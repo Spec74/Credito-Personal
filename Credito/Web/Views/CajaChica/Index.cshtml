@@ -1,0 +1,732 @@
+﻿@model ITB.VENDIX.DA.CajaChicaDiario
+@if (Model != null)
+{
+<ul class="stats not-on-phone">
+    <li class="saldos">
+        <strong>@Model.SaldoInicial</strong>
+        <span class="green">Saldo Inicial(S/.)</span>
+    </li>
+    <li class="saldos">
+        <strong>
+            <label id="lblEntradas">@String.Format("{0:0.00}", Model.Entradas)</label>
+        </strong>
+        <span class="green">Entradas(S/.)</span>
+    </li>
+    <li class="saldos">
+        <strong>
+            <label id="lblSalidas">@String.Format("{0:0.00}", Model.Salidas)</label>
+        </strong>
+        <span class="green">Salidas(S/.)</span>
+    </li>
+    <li class="saldos">
+        <strong>
+            <label id="lblSaldoFinal">@Model.SaldoFinal</label>
+        </strong>
+        <span class="red">Neto Caja(S/.)</span>
+    </li>
+    <li>
+        <strong>@(Model.IndCierre ? "CERRADO" : "ABIERTO")</strong>
+        <small>@Model.FechaIniOperacion</small>
+        <span style="cursor: pointer" id="lblMostrarSaldos">CAJA CHICA</span>
+    </li>
+</ul>
+
+<div class="grid_12">
+    <br />
+    <div class="box tabbedBox">
+        <div class="header">
+            <h2>MOVIMIENTOS CAJA CHICA</h2>
+            <ul>
+                <li><a href="#t1-c1">GASTOS</a></li>
+                <li><a href="#t1-c2">RENDICION</a></li>
+                <li><a href="#t1-c3">ARQUEO</a></li>
+            </ul>
+        </div>
+        <br />
+        <div id="tabcaja" class="content tabbed">
+            
+            <div id="t1-c1">
+                <p class="_50 small">
+                    <label>Usuario:</label>
+                    <input id="txtPersonaES" type="search" placeholder="BUSCAR USUARIO" />
+                </p>
+                
+                <p class="_50 small">
+                    <label>Operación:</label>
+                    @Html.DropDownList("cboTipoOperacion", (IEnumerable<SelectListItem>)ViewBag.cboTipoOperacion)
+                </p>
+                <p class="_50 small">
+                    <label>Descripcion:</label>
+                    <input id="txtDescripcion" type="text" />
+                </p>
+                <p class="_25 small">
+                    <label>Importe:</label>
+                    <input id="txtImporte" type="text" style="text-align: center" />
+                </p>
+                <p class="_25 small" style="margin-top:20px">
+
+                    <a id="btnGenerarGasto" class="button red center">Generar Operación</a>
+                </p>
+            </div>
+            <div id="t1-c2">
+                <p>
+                    <button id="btnRendicionPendiente" class="inline"><span class="icon icon-repeat"></span>Rendiciones Pendientes</button>
+                </p>
+                               
+                <div   style="display: none" class="actRendicion">
+
+                    <div class="alert success sticky no-margin">
+                        <span class="icon"></span>
+                        <label id="lblUsuarioGasto"></label>
+                    </div>
+                    <p class="_25 small">
+                        <label>Documento</label>
+                        @Html.DropDownList("cboTipoDocumento", (IEnumerable<SelectListItem>)ViewBag.cboTipoDocumento)
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtFechaGasto">Fecha (*):</label>
+                        <input type="date" name="txtFechaGasto" class="required maskDate" id="txtFechaGasto" placeholder="DD/MM/YYYY"
+                               value="" />
+                    </p>
+
+                    <p class="_25 small">
+                        <label>Serie:</label>
+                        <input id="txtSerie" type="text" />
+                    </p>
+                    <p class="_25 small">
+                        <label>Numero:</label>
+                        <input id="txtNumero" type="text" />
+                    </p>
+                    <p class="_25 small">
+                        <label>RUC:</label>
+                        <input id="txtRUC" type="text" />
+                    </p>
+                    <p class="_50 small">
+                        <label>Razon Social:</label>
+                        <input id="txtRazonSocial" type="text" />
+                    </p>
+                    <p class="_50 small">
+                        <label>Detalle Gasto (*):</label>
+                        <input id="txtDetalleRendicion" type="text" />
+                    </p>
+                    <p class="_25 small">
+                        <label>Importe (*):</label>
+                        <input id="txtImporteRendicion" type="text" style="text-align: center" />
+                    </p>
+                    <p class="_25 small">
+                        <a id="btnAgregarRendicion" style="margin-top:15px" class="button right">Agregar Gasto</a>
+                    </p>
+
+                  
+                </div>
+                <div class="clear"> </div>
+                <div class="actRendicion" style="float: right;display: none">
+                    
+
+                    <br />
+                            <table id="grdRendicion"></table>
+                            <div id="grdpRendicion"></div>
+                       
+                    <button id="btnCerrarRendicion" style="float: right;" class="button red block"><span class="icon icon-play"></span>Cerrar Rendicion</button>
+                </div>   
+            </div>
+            <div id="t1-c3">
+                <table id="grdEntradas"></table>
+                <div id="grdpEntradas"></div>
+                <br />
+                <table id="grdSalidas"></table>
+                <div id="grdpSalidas"></div>
+                <br />
+                <button id="btnPrevSaldoCaja" class="button block"><span class="icon icon-print"></span>Previzualizar Saldo Caja</button>
+                <button id="btnCerrarCajaChica" style="float: right" class="button red block"><span class="icon icon-play"></span>Cerrar Caja</button>
+                <button id="btnTransFerirBoveda" style="float: right" class="button green block"><span class="icon icon-play"></span>Transferir Saldos</button>
+                <span class="badge block blue dark" style="font-size: large;float: right">TOTAL CAJA: S/. <span id="lblNetoArq">0.00</span></span>
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+<div style="display: none;" id="dlgRendicionPendiente" title="Rendiciones Pendientes">
+    <div class="actions">
+        <table id="grdRendicionPendiente"></table>
+        <div id="grdpRendicionPendiente"></div>
+    </div>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+    </div>
+</div>
+<div style="display: none;" id="dlgGastoRendido" title="Rendicion de Caja Chica">
+    <div class="actions">
+        <table id="grdRendicionCajaChica"></table>
+        <div id="grdpRendicionCajaChica"></div>
+    </div>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+    </div>
+</div>
+<div style="display: none;" id="dlgTransferirBoveda" title="Transferencia a Boveda">
+    <form class="full validate">
+        <div class="row">
+            <label for="txtMontoTransferencia">
+                <strong>Monto:</strong>
+            </label>
+            <div>
+                <strong><span id="lblMensaje" style="color:red"></span></strong><br />
+                <span><strong>Monto total de Caja : S/.  <span id="lblMontoCaja" style="color:blue"></span></strong></span>
+                <input type="number" id="txtMontoTransferencia" placeholder="0.00" />
+            </div>
+        </div>
+
+        <div class="row">
+            <label for="txtDescripcionTransferencia">
+                <strong>Descripción :</strong>
+            </label>
+            <div>
+                <input type="text" id="txtDescripcionTransferencia" placeholder="Descripcion de transferencia" />
+            </div>
+        </div>
+
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <input id="btnEnviar" type="button" value="Guardar" />
+        </div>
+    </div>
+</div>
+@section scripts{        
+<script>
+    $(function () {
+        $.data(document.body, 'PersonaESid', 0);
+        $.data(document.body, 'CajaChicaDiarioId', @Model.Id);
+        $("#txtImporte,#txtImporteRendicion").numeric(2);
+
+
+        $("#lblNetoArq").text($("#lblSaldoFinal").text());
+        $("#txtPersonaES").autocomplete({
+            source: "@Url.Action("BuscarUsuario", "Cliente")",
+            minLength: 2,
+            select: function (event, ui) {
+                event.preventDefault();
+                $.data(document.body, 'PersonaESid', ui.item.id);
+                $('#txtPersonaES').val(ui.item.value);
+                $("#txtDescripcion").focus();
+            }
+        });
+        $("#dlgRendicionPendiente").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 800,
+            open: function () {
+                $(this).parent().css('overflow', 'visible');
+                $$.utils.forms.resize();
+            }
+        }).find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            //$el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+        $("#dlgGastoRendido").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 900,
+            open: function () {
+                $(this).parent().css('overflow', 'visible');
+                $$.utils.forms.resize();
+            }
+        }).find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            //$el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+        $("#btnGenerarGasto").click(function () {
+            event.preventDefault();
+            if ($.data(document.body, 'PersonaESid') == 0) {
+                Vendix.Dialogo("Seleccione una persona", "Aceptar");
+                return;
+            }
+            if ($("#txtDescripcion").val().length == 0) {
+                Vendix.Dialogo("Ingrese una descripción", "Aceptar");
+                return;
+            }
+            var importe = parseFloat($("#txtImporte").val());
+            if (isNaN(importe) || importe <= 0) {
+                Vendix.Dialogo("Ingrese un importe mayor a cero", "Aceptar");
+                return;
+            }
+
+            Vendix.Dialogo("CONFIRMAR para realizar esta operación.", "SiNo", function () {
+                $.ajax({
+                    url: "@Url.Action("RealizarEntradaSalida", "CajaChica")",
+                    data: {
+                        pPersonaId: $.data(document.body, 'PersonaESid'),
+                        pTipoOperacionId: $("#cboTipoOperacion").val(),
+                        pDescripcion: $("#txtDescripcion").val(),
+                        pImporte: $("#txtImporte").val()
+                    },
+                    success: function (retorno) {
+                        if (retorno.length == 0) {
+                            Vendix.Notificar();
+                            $.data(document.body, 'PersonaESid', 0);
+                            $("#txtPersonaES,#txtImporte,#txtDescripcion").prop('value', '');
+                            MostrarSaldoCajaDiario();
+                        } else {
+                            Vendix.Dialogo(retorno);
+                        }
+                    }
+                });
+            });
+        });
+
+        $('a[href="#t1-c3"]').click(function () {
+            $("#grdEntradas,#grdSalidas").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+            $("#grdEntradas,#grdSalidas").setGridWidth($('#tabcaja').width() - 3, true);
+            $("#lblNetoArq").text($("#lblSaldoFinal").text());
+        });
+
+        function MostrarSaldoCajaDiario() {
+            $.ajax({
+                url: "@Url.Action("ObtenerCajaChicaDiario", "CajaChica")",
+                data: {},
+                success: function (ret) {
+                    $("#lblEntradas").text(parseFloat(ret.Entradas).toFixed(2));
+                    $("#lblSalidas").text(parseFloat(ret.Salidas).toFixed(2));
+                    $("#lblSaldoFinal").text(parseFloat(ret.SaldoFinal).toFixed(2));
+                }
+            });
+        }
+        $("#grdEntradas").jqGrid({
+            url: "@Url.Action("ListarMovimientosJGrid", "CajaChica")",
+            datatype: "json",
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "Tipo", Value: "E" }]);
+                }
+            },
+            colNames: ['Nro.', 'Imprimir', 'CajaDiarioId', 'Fecha Registro', 'Operación', 'Persona', 'Tipo Operación', 'Descripcion', 'Importe', 'Estado'],
+            colModel:
+            [
+                { name: 'MovimientoCajaChicaId', index: 'MovimientoCajaChicaId', align: 'center', width: 40 },
+                { name: 'Imprimir', index: 'Imprimir', align: 'center', width: 40, formatter: MovCajaPrintFormatter },
+                { name: 'CajaDiarioId', index: 'CajaDiarioId', hidden: true },
+                { name: 'FechaReg', index: 'FechaReg', align: 'center', width: 125 },
+                { name: 'Operacion', index: 'Operacion', align: 'center', width: 70 },
+                { name: 'Persona', index: 'Persona', width: 220 },
+                { name: 'TipoOperacion', index: 'TipoOperacion', align: 'center', width: 100 },
+                { name: 'Descripcion', index: 'Descripcion', width: 260 },
+                { name: 'ImportePago', index: 'ImportePago', align: 'right', width: 60 },
+                { name: 'Estado', index: 'Estado', align: 'center', width: 80 }
+            ],
+            caption: "ENTRADAS",
+            pager: $('#grdpEntradas'),
+            rowNum: 10,
+            rowList: [5, 10, 20],
+            sortname: 'MovimientoCajaChicaId',
+            sortorder: "desc",
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            width: '100%',
+            height: '234px',
+            ondblClickRow: function () {
+                var id = jQuery("#grdEntradas").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    var ret = $("#grdEntradas").jqGrid('getRowData', id);
+                    $.ajax({
+                        url: "@Url.Action("MostrarDetalleMovCaja","Saldos")",
+                        data: { pMovimientoCajaId: ret.MovimientoCajaId },
+                        success: function (rpt) {
+                            if (rpt.length > 0)
+                                Vendix.Dialogo(rpt);
+                        }
+                    });
+                }
+            }
+        }).jqGrid('bindKeys', { "onEnter": function (rowid) { /*mostrardetalle();*/ } });
+
+        jQuery("#grdSalidas").jqGrid({
+            url: "@Url.Action("ListarMovimientosJGrid", "CajaChica")",
+            datatype: "json",
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "Tipo", Value: "S" }]);
+                }
+            },
+            colNames: ['Nro.', 'Imprimir', 'CajaDiarioId', 'Fecha Registro', 'Operación', 'Persona', 'Tipo Operación', 'Descripcion', 'Importe', 'Estado'],
+            colModel:
+        [
+            { name: 'MovimientoCajaChicaId', index: 'MovimientoCajaChicaId', align: 'center', width: 40 },
+            { name: 'Imprimir', index: 'Imprimir', align: 'center', width: 40, formatter: MovCajaPrintFormatter },
+            { name: 'CajaDiarioId', index: 'CajaDiarioId', hidden: true },
+            { name: 'FechaReg', index: 'FechaReg', align: 'center', width: 125 },
+            { name: 'Operacion', index: 'Operacion', align: 'center', width: 70 },
+            { name: 'Persona', index: 'Persona', width: 220 },
+            { name: 'TipoOperacion', index: 'TipoOperacion', align: 'center', width: 100 },
+            { name: 'Descripcion', index: 'Descripcion', width: 260 },
+            { name: 'ImportePago', index: 'ImportePago', align: 'right', width: 60 },
+            { name: 'Estado', index: 'Estado', align: 'center', width: 80 }
+        ],
+            caption: "SALIDAS",
+            pager: jQuery('#grdpSalidas'),
+            rowNum: 10,
+            rowList: [5, 10, 15],
+            sortname: 'MovimientoCajaChicaId',
+            sortorder: "desc",
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            width: '100%',
+            height: '234px',
+            ondblClickRow: function () {
+                var id = jQuery("#grdSalidas").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    var ret = $("#grdSalidas").jqGrid('getRowData', id);
+                    if (ret.TipoOperacion=="GASTO") {
+                        $.data(document.body, 'MovimientoCajaChicaId',ret.MovimientoCajaChicaId)
+                        $("#dlgGastoRendido").dialog('open');
+                        CargarGrillaGastoRendidoCajaChica();
+                    }
+                }
+            }
+        }).jqGrid('bindKeys', { "onEnter": function (rowid) { /*mostrardetalle();*/ } });
+
+        function CargarGrillaGastoRendidoCajaChica() {
+            if ($("#gbox_grdRendicionCajaChica").length > 0)
+                $("#grdRendicionCajaChica").trigger("reloadGrid");
+            else {
+                $("#grdRendicionCajaChica").jqGrid({
+                    url: "@Url.Action("ListarRendicionGrd", "CajaChica")",
+                    datatype: "json",
+                    postData: {
+                        filters: function () {
+                            return $.toJSON([{ Key: "MovimientoCajaChicaId", Value: $.data(document.body, 'MovimientoCajaChicaId') }]);
+                        }
+                    },
+                    colNames: ['Id', 'RUC', 'RazonSocial', 'DetalleGasto', 'Documento', 'Fecha', 'Serie', 'Numero', 'Importe'],
+                    colModel: [
+                        { name: "Id", index: "Id", sortable: false, width: 30 },
+                        { name: "RUC", index: "RUC", sortable: false, width: 70 },
+                        { name: "RazonSocial", index: "RazonSocial", width: 280 },
+                        { name: "DetalleGasto", index: "DetalleGasto", sortable: false, width: 250 },
+                        { name: "TipoDocumento", index: "TipoDocumento", sortable: false, width: 80 },
+                        { name: "Fecha", index: "Fecha", sortable: false, width: 70, align: "center" },
+                        { name: "Serie", index: "Serie", sortable: false, width: 40, align: "center" },
+                        { name: "Numero", index: "Numero", sortable: false, width: 45, align: "center" },
+                        { name: "Importe", index: "Importe", align: "center", sortable: false, width: 60 }
+                    ],
+                    caption: "Rendicion de Gastos Caja Chica",
+                    pager: $('#grdpRendicionCajaChica'),
+                    rowNum: 10,
+                    rowList: [5, 10, 15],
+                    sortname: 'Id',
+                    sortorder: "asc",
+                    rownumbers: true,
+                    autowidth: true,
+                    width: 'auto',
+                    height: '234px'
+                });
+            }
+
+        }
+
+        $("#btnRendicionPendiente").click(function () {
+            event.preventDefault();
+            CargarGrillaRendicionPendiente();
+        });
+
+        function MovCajaPrintFormatter(cellvalue, options, rowObject) {
+            if (cellvalue.length > 0)
+                return "<a href='#' onclick='ImprimirMovCaja(" + cellvalue + ");return false;' class='button small blue tooltip' data-gravity='s' title='Imprimir'><i class='icon-picture'></i></a>";
+            return "";
+        }
+
+        function CargarGrillaRendicionPendiente(cliente) {
+
+            if ($("#gbox_grdRendicionPendiente").length > 0)
+                $("#grdRendicionPendiente").trigger("reloadGrid");
+            else {
+                $("#grdRendicionPendiente").jqGrid({
+                    url: "@Url.Action("ListarRencionesPendientesJGrid", "CajaChica")",
+                    datatype: "json",
+                    postData: {
+                        filters: function () {
+                            return $.toJSON([{ Key: "PersonaId", Value: 0 }]);
+                        }
+                    },
+                    colNames: ['Id', 'Usuario', 'Descripcion', 'Fecha', 'Importe', 'Importe Rendido'],
+                    colModel:
+                    [
+                        { name: 'Id', index: 'Id', sortable: false, width: '30' },
+                        { name: 'Usuario', index: 'Usuario', sortable: false, width: '200' },
+                        { name: 'Descripcion', index: 'Descripcion', sortable: false },
+                        { name: 'FechaReg', index: 'FechaReg', sortable: false, align: 'center' },
+                        { name: 'Importe', index: 'Importe', align: 'center', sortable: false, width: '80' },
+                        { name: 'ImporteRendido', index: 'ImporteRendido', align: 'center', sortable: false, width: '80' }
+                    ],
+                    caption: "Rendiciones Pendientes",
+                    pager: $('#grdpRendicionPendiente'),
+                    rowNum: 10,
+                    rowList: [5, 10, 15],
+                    sortname: 'Id',
+                    sortorder: "asc",
+                    gridview: true,
+                    viewrecords: true,
+                    rownumbers: true,
+                    autowidth: true,
+                    width: 'auto',
+                    height: '234px',
+                    ondblClickRow: function () {
+                        var id = jQuery("#grdRendicionPendiente").jqGrid('getGridParam', 'selrow');
+                        if (id) {
+                            var ret = $("#grdRendicionPendiente").jqGrid('getRowData', id);
+                            $("#dlgRendicionPendiente").dialog('close');
+                            $(".actRendicion").show('slow');
+                            $("#lblUsuarioGasto").text(ret.Usuario + " - " + ret.Descripcion + ' - Importe a Rendir: ' + ret.Importe);
+                            $.data(document.body, 'MovimientoCajaChicaId', ret.Id);
+                            $("#txtSerie,#txtNumero,#txtRUC,#txtRazonSocial,#txtDetalleRendicion,#txtImporteRendicion").prop('value', '');
+                            $("#txtFechaGasto").val("@ITB.VENDIX.BL.VendixGlobal.GetFecha().ToString("dd/MM/yyyy")");
+
+                            CargarGrillaRendicion();
+
+                        }
+                    }
+                });
+            }
+
+            $('#dlgRendicionPendiente').dialog('open');
+
+        }
+        function EliminarFormatter(cellvalue, options, rowObject) {
+
+            return "<a href='#' onclick='EliminarComprobante(" + cellvalue + ");return false;' class='button small grey tooltip' data-gravity='s' title='Eliminar'><i class='icon-remove'></i></a>";
+        }
+
+        function CargarGrillaRendicion() {
+            if ($("#gbox_grdRendicion").length > 0)
+                $("#grdRendicion").trigger("reloadGrid");
+            else {
+                $("#grdRendicion").jqGrid({
+                    url: "@Url.Action("ListarRendicionGrd", "CajaChica")",
+                    datatype: "json",
+                    postData: {
+                        filters: function () {
+                            return $.toJSON([{ Key: "MovimientoCajaChicaId", Value: $.data(document.body, 'MovimientoCajaChicaId') }]);
+                        }
+                    },
+                    colNames: ['Id', 'RUC', 'RazonSocial', 'DetalleGasto', 'Documento', 'Fecha', 'Serie', 'Numero', 'Importe','X'],
+                    colModel: [
+                        { name: "Id", index: "Id", sortable: false, width: 30 },
+                        { name: "RUC", index: "RUC", sortable: false, width: 70 },
+                        { name: "RazonSocial", index: "RazonSocial", width: 270 },
+                        { name: "DetalleGasto", index: "DetalleGasto", sortable: false, width: 250 },
+                        { name: "TipoDocumento", index: "TipoDocumento", sortable: false, width: 80 },
+                        { name: "Fecha", index: "Fecha", sortable: false, width: 70, align: "center" },
+                        { name: "Serie", index: "Serie", sortable: false, width: 40, align: "center" },
+                        { name: "Numero", index: "Numero", sortable: false, width: 45, align: "center" },
+                        { name: "Importe", index: "Importe", align: "center", sortable: false, width: 60 },
+                        { name: 'Eliminar', index: 'Eliminar',sortable: false, align: 'center', width: 30, formatter: EliminarFormatter }
+                    ],
+                    caption: "Rendicion de Gastos",
+                    pager: $('#grdpRendicion'),
+                    rowNum: 10,
+                    rowList: [5, 10, 15],
+                    sortname: 'Id',
+                    sortorder: "asc",
+                    rownumbers: true,
+                    autowidth: true,
+                    width: 'auto',
+                    height: '234px'
+
+                });
+            }
+
+        }
+        $("#btnAgregarRendicion").click(function () {
+            if ($("#txtFechaGasto").val().length == 0) {
+                Vendix.Dialogo("Ingrese Fecha", "Aceptar");
+                return;
+            }
+            if ($("#txtDetalleRendicion").val().length == 0) {
+                Vendix.Dialogo("Ingrese Detalle Gasto", "Aceptar");
+                return;
+            }
+            var importe = parseFloat($("#txtImporteRendicion").val());
+            if (isNaN(importe) || importe <= 0) {
+                Vendix.Dialogo("Ingrese un importe mayor a cero", "Aceptar");
+                return;
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("CrearMovimientoRendicion", "CajaChica")",
+                data: {
+                    pMovimientoCajaChicaId: $.data(document.body, 'MovimientoCajaChicaId'),
+                    pTipoDocumentoId: $("#cboTipoDocumento").val(),
+                    pFecha: $("#txtFechaGasto").val(),
+                    pSerie: $("#txtSerie").val(),
+                    pNumero: $("#txtNumero").val(),
+                    pRUC: $("#txtRUC").val(),
+                    pRazonSocial: $("#txtRazonSocial").val(),
+                    pDetalle: $("#txtDetalleRendicion").val(),
+                    pImporte: $("#txtImporteRendicion").val()
+                },
+                success: function (retorno) {
+                    if (retorno.length == 0) {
+                        Vendix.Notificar();
+                        $("#grdRendicion").trigger("reloadGrid");
+                        $("#txtSerie,#txtNumero,,#txtRUC,#txtRazonSocial,#txtDetalleRendicion,#txtImporteRendicion").prop('value', '');
+                        $("#txtFechaGasto").val("@ITB.VENDIX.BL.VendixGlobal.GetFecha().ToString("dd/MM/yyyy")");
+
+                    } else {
+                        Vendix.Dialogo(retorno);
+                    }
+                }
+            });
+
+
+        });
+        $("#btnCerrarRendicion").click(function () {
+            Vendix.Dialogo("DESEA CERRAR ESTA RENDICION?", "SiNo", function () {
+                $.ajax({
+                    url: "@Url.Action("CerrarRendicion", "CajaChica")",
+                    data: { pMovimientoCajaChicaId: $.data(document.body, 'MovimientoCajaChicaId') },
+                    success: function (dev) {
+                        Vendix.Notificar();
+                        $(".actRendicion").hide('slow');
+                        if (dev > 0) {
+                            MostrarSaldoCajaDiario();
+                        }
+
+                    }
+                });
+            });
+        });
+        $("#btnCerrarCajaChica").click(function () {
+            $.ajax({
+                url: "@Url.Action("TieneRencicionesPendientes", "CajaChica")",
+                data: {},
+                success: function (nropendientes) {
+                    if (nropendientes > 0) {
+                        Vendix.Dialogo("Tiene Rendiciones pendientes.");
+                    }
+                    else {
+                        Vendix.Dialogo("DESEA CERRAR ESTA CAJA?", "SiNo", function () {
+                            $.ajax({
+                                url: "@Url.Action("CerrarCajaChicaDiario", "CajaChica")",
+                                data:{},
+                                success: function (CajaDiarioId) {
+                                    $("#btnPrevSaldoCaja").trigger("click");
+                                    window.location = '@Url.Action("Index", "CajaChica")';
+                                }
+                            });
+                        });
+                    }
+                }
+            });
+        });
+
+        $("#btnPrevSaldoCaja").click(function () {
+            event.preventDefault();
+            var ruta = '@Url.Action("ReporteSaldoCajaChica", "Reporte")' + "?pCajaChicaDiarioId="+ $.data(document.body, 'CajaChicaDiarioId');
+            window.open(ruta);
+            return false;
+        });
+
+
+        $("#dlgTransferirBoveda").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 400,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('#btnEnviar').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+
+                if (parseFloat($("#lblMontoCaja").text()) >= parseFloat($("#txtMontoTransferencia").val())) {
+                    $.ajax({
+                        type: 'POST',
+                        url: "@Url.Action("TransferirBoveda", "CajaChica")",
+                        data: {
+                            pMonto: $('#txtMontoTransferencia').val(),
+                            pDescripcion: $("#txtDescripcionTransferencia").val()
+                        },
+                        success: function (data) {
+                            Vendix.Notificar("Grabar");
+                            $("#grdSalidas").trigger("reloadGrid");
+                            MostrarSaldoCajaDiario();
+                            $el.find('form')[0].reset();
+                            $el.dialog('close');
+                        }
+                    });
+                } else {
+                    $("#txtImporte").focus();
+                    $("#lblMensaje").text("El Monto a transferir debe ser menor al monto total en Caja");
+                }
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        $('#btnTransFerirBoveda').click(function () {
+            var $el = $("#dlgTransferirBoveda");
+            $el.find('form')[0].reset();
+
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("MostrarMontoCaja","CajaChica")",
+                data: {},
+                success: function (data) {
+                    $("#lblMontoCaja").text(data);
+                }
+            });
+
+            $("#lblMensaje").text("");
+            $('#dlgTransferirBoveda').dialog('open');
+            return false;
+        });
+
+    });
+
+    function ImprimirMovCaja(pMovimientoCajaId) {
+        var ruta = '@Url.Action("ReporteMovimientoCajaChica", "Reporte")' + '?pMovimientoCajaChicaId=' + pMovimientoCajaId;
+        Vendix.Reporte(ruta);
+    }
+    function EliminarComprobante(id) {
+        Vendix.Dialogo("DESEA ELIMINAR ESTE REGISTRO?", "SiNo", function () {
+            $.ajax({
+                url: "@Url.Action("EliminarComprobanteCajaChica", "CajaChica")",
+                type: 'POST',
+                data: { pid: id },
+                success: function (rpt) {
+                    Vendix.Notificar('Eliminar');
+                    $("#grdRendicion").trigger("reloadGrid");
+                }
+            });
+        });
+    }
+</script>
+}
+
+}
+else
+{
+    <ul class="stats not-on-phone">
+
+        <li>
+            <strong>CAJA CHICA NO ASIGNADA</strong>
+            <span>-*-</span>
+        </li>
+    </ul>
+}

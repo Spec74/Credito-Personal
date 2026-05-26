@@ -1,0 +1,200 @@
+/**
+ * Módulo Clientes — tabla y ficha (toolbar: CredixListToolbar).
+ */
+
+.clientes-table .ant-table-tbody > tr {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.clientes-table .ant-table-tbody > tr:hover > td {
+  background: var(--credix-brand-light, #e8f2fc) !important;
+}
+
+.clientes-table__nombre {
+  font-weight: 600;
+  color: var(--credix-brand, #114885);
+}
+
+.clientes-table__doc {
+  font-variant-numeric: tabular-nums;
+  color: var(--credix-text-muted, #6b7280);
+}
+
+.clientes-empty {
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.clientes-empty__icon {
+  font-size: 40px;
+  color: var(--credix-brand, #114885);
+  opacity: 0.35;
+  margin-bottom: 12px;
+}
+
+.clientes-empty__title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--credix-text, #1f2937);
+}
+
+.clientes-empty__desc {
+  margin: 0 auto 16px;
+  max-width: 36ch;
+  font-size: 14px;
+  color: var(--credix-text-muted, #6b7280);
+  line-height: 1.5;
+}
+
+/* —— Mantener (ficha) —— */
+.cliente-mantener-page .credix-page-body {
+  max-width: 1280px;
+}
+
+.cliente-mantener-tabs.ant-tabs-card > .ant-tabs-nav {
+  margin-bottom: 0;
+}
+
+.cliente-mantener-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+  border-radius: var(--credix-radius, 8px) var(--credix-radius, 8px) 0 0;
+  font-weight: 600;
+  padding: 10px 18px;
+}
+
+.cliente-mantener-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background: var(--credix-brand-light, #e8f2fc);
+  border-bottom-color: var(--credix-surface, #fff);
+}
+
+.cliente-mantener-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--credix-brand, #114885);
+}
+
+.cliente-mantener-tabs .ant-tabs-content-holder {
+  background: var(--credix-surface, #fff);
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-top: none;
+  border-radius: 0 0 var(--credix-radius, 8px) var(--credix-radius, 8px);
+  padding: 4px 0 0;
+}
+
+.cliente-mantener-tabs .credix-box {
+  border: none;
+  box-shadow: none;
+  margin: 0;
+}
+
+.cliente-mantener-tabs .credix-box-content {
+  padding-top: 16px;
+}
+
+.cliente-mantener__calificacion-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--credix-brand, #114885);
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.cliente-mantener__section-title {
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--credix-brand-light, #e8f2fc);
+  color: var(--credix-brand, #114885);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cliente-mantener__map-block {
+  margin-top: 8px;
+  padding: 14px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 8px);
+  background: linear-gradient(180deg, #fafcff 0%, #fff 100%);
+  box-shadow: var(--credix-shadow-sm);
+}
+
+.cliente-mantener__map-actions {
+  margin-bottom: 10px;
+}
+
+.cliente-mantener__map-actions .ant-btn-primary {
+  background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand, #114885) 100%);
+  border: none;
+  font-weight: 600;
+}
+
+.cliente-mantener__depurado {
+  margin-bottom: 0;
+  border-radius: var(--credix-radius, 8px);
+}
+
+.cliente-mantener__conyuge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: var(--credix-radius, 8px);
+  background: var(--credix-brand-light, #e8f2fc);
+  border: 1px solid #c5daf0;
+}
+
+.cliente-mantener__footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 8px);
+  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+}
+
+.cliente-mantener__footer .ant-btn-primary {
+  background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand, #114885) 100%);
+  border: none;
+  font-weight: 600;
+  min-width: 120px;
+}
+
+.cliente-mantener__loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 320px;
+  padding: 48px 24px;
+}
+
+.cliente-mantener__loading-text {
+  font-size: 14px;
+  color: var(--credix-text-muted, #6b7280);
+}
+
+.cliente-mantener__doc-tag {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+  .cliente-mantener__conyuge-row {
+    flex-direction: column;
+  }
+
+  .cliente-mantener__footer {
+    position: static;
+  }
+}

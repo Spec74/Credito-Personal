@@ -1,0 +1,314 @@
+/**
+ * Responsive global — informes, bóveda, CRUD y alias de toolbars.
+ * Complementa credix-design-system.css (ya cubre page-head, list-toolbar, stats, hubs).
+ * Breakpoints estándar: 991px (tablet) · 640px (móvil) · 480px (móvil estrecho).
+ */
+
+/* —— Páginas con layout CredixPage / CredixCrudPage / CredixInformePage —— */
+.credix-page .credix-page-body,
+.credix-informe-page .credix-page-body,
+.credix-crud-page .credix-page-body {
+  min-width: 0;
+}
+
+.credix-page .credix-panel,
+.credix-informe-page .credix-panel,
+.credix-crud-page .credix-panel {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.credix-page .credix-panel-body,
+.credix-informe-page .credix-panel-body,
+.credix-crud-page .credix-panel-body,
+.credix-informe-results-panel .credix-box-content {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+/* —— Informes (CredixInformePage) —— */
+.credix-informe-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+.credix-informe-filter-row .ant-form-item {
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.credix-informe-export-row,
+.credix-filter-bar .credix-export-bar {
+  width: 100%;
+}
+
+.credix-informe-panel-search,
+.credix-informe-panel-search--wide {
+  width: min(320px, 100%);
+  max-width: 100%;
+}
+
+.credix-cobranza-table-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 12px;
+  align-items: end;
+  width: 100%;
+  min-width: 0;
+}
+
+.credix-cobranza-table-search-wrap {
+  min-width: 0;
+}
+
+.credix-cobranza-table-search-meta {
+  word-break: break-word;
+}
+
+.credix-informe-page ul.credix-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* —— Bóveda —— */
+.boveda-page .credix-page-body {
+  min-width: 0;
+}
+
+.boveda-estado-dinero,
+.boveda-saldos-grid,
+.boveda-resumen-cuenta__grid {
+  min-width: 0;
+}
+
+.boveda-resumen-cuenta__texto {
+  word-break: break-word;
+}
+
+.boveda-operaciones-form,
+.boveda-operaciones-form--cierre {
+  max-width: 100%;
+}
+
+/* —— CRUD toolbar (maestros / admin) —— */
+.credix-crud-toolbar {
+  width: 100%;
+  min-width: 0;
+}
+
+.credix-crud-toolbar__filters {
+  min-width: 0;
+}
+
+/* Alias: toolbars caja usan credix-list-toolbar en build; mantener compatibilidad */
+.caja-list-toolbar,
+.caja-saldos-toolbar,
+.caja-verificar-pagos-toolbar,
+.caja-chica-toolbar,
+.caja-maestro-toolbar,
+.credix-list-toolbar {
+  min-width: 0;
+}
+
+.caja-maestro-toolbar__filtros,
+.caja-maestro-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+/* Hints legacy en banners */
+.caja-maestro-legacy-hint,
+.caja-verificar-pagos-legacy-hint,
+.caja-chica-legacy-hint,
+.comprobantes-caja-chica-legacy-hint,
+.credito-aprobacion-legacy-hint {
+  word-break: break-word;
+}
+
+/* —— Tablet (≤991px) —— */
+@media (max-width: 991px) {
+  .credix-informe-page ul.credix-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .boveda-resumen-cuenta__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* —— Móvil (≤640px) —— */
+@media (max-width: 640px) {
+  .credix-informe-page .credix-informe-filter-bar {
+    padding: 12px;
+  }
+
+  .credix-informe-filter-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .credix-informe-filter-row .ant-form-item,
+  .credix-informe-filter-row .ant-picker,
+  .credix-informe-filter-row .ant-select,
+  .credix-informe-filter-row .ant-input,
+  .credix-informe-filter-row .ant-input-number,
+  .credix-informe-filter-row .ant-btn {
+    width: 100%;
+  }
+
+  .credix-informe-export-row .credix-export-bar,
+  .credix-informe-export-row .ant-space {
+    width: 100%;
+  }
+
+  .credix-informe-export-row .ant-btn,
+  .credix-export-bar .ant-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .credix-informe-panel-search,
+  .credix-informe-panel-search--wide {
+    width: 100%;
+  }
+
+  .credix-informe-panel-actions--header {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credix-informe-panel-actions--header .ant-btn {
+    width: 100%;
+  }
+
+  .credix-cobranza-table-toolbar {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .credix-cobranza-table-search-meta {
+    font-size: 12px;
+  }
+
+  .credix-informe-page ul.credix-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .credix-crud-toolbar__filters {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px;
+  }
+
+  .credix-crud-toolbar__filters .ant-select,
+  .credix-crud-toolbar__filters .ant-input-number,
+  .credix-crud-toolbar__filters .ant-auto-complete,
+  .credix-crud-toolbar__filters .ant-input-affix-wrapper {
+    width: 100% !important;
+    flex: none;
+  }
+
+  .credix-crud-toolbar__actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credix-crud-toolbar__actions .ant-btn-primary {
+    width: 100%;
+  }
+
+  .boveda-estado-dinero {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .boveda-saldos-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .boveda-resumen-cuenta__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .boveda-resumen-cuenta__header,
+  .boveda-resumen-cuenta__body {
+    padding-inline: 12px;
+  }
+
+  .boveda-operaciones-tabs .ant-tabs-content-holder {
+    padding: 12px;
+  }
+
+  .boveda-operaciones-form__actions .ant-btn {
+    width: 100%;
+  }
+
+  .caja-maestro-toolbar__filtros,
+  .caja-maestro-filtros {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .caja-maestro-toolbar__filtros .ant-btn,
+  .caja-maestro-filtros .ant-btn,
+  .caja-maestro-filtros .ant-btn-primary {
+    width: 100%;
+  }
+
+  .caja-maestro-toolbar__filtros .ant-checkbox-wrapper,
+  .caja-maestro-filtros .ant-checkbox-wrapper {
+    width: 100%;
+  }
+
+  .comprobantes-caja-chica-filters {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .comprobantes-caja-chica-filters .ant-form-item {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 0;
+  }
+
+  .comprobantes-caja-chica-filters .ant-picker,
+  .comprobantes-caja-chica-filters .ant-btn {
+    width: 100%;
+  }
+
+  .clientes-page ul.credix-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* —— Móvil estrecho (≤480px) —— */
+@media (max-width: 480px) {
+  .boveda-estado-dinero,
+  .boveda-saldos-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .boveda-resumen-cuenta__item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .credix-informe-export-row .ant-space {
+    flex-direction: column;
+  }
+
+  .credix-informe-export-row .ant-btn {
+    width: 100%;
+  }
+}

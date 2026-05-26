@@ -1,0 +1,59 @@
+﻿<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">VERIFICAR EL DEPOSITO EN LAS CUENTAS CORRESPONDIENTES</h2>
+        </div>
+        <table id="grdBuscar"></table>
+        <div id="grdpBuscar"></div>
+    </div>
+</div>
+<script>
+    $$.ready(function () {        
+        jQuery("#grdBuscar").jqGrid({
+            url: "@Url.Action("ListarGrid", "VerificarPagos")",
+            datatype: "json",
+            postData: {
+                filters: function () { }
+            },
+            colNames: ['MOV ID', 'CLIENTE', 'MOVIMIENTO', 'PAGO', 'TIPO', 'FECHA', 'REGISTRO'],
+            colModel:
+                [
+                    { name: 'MovimientoCajaId', index: 'MovimientoCajaId', width: 50 },
+                    { name: 'Cliente', index: 'Cliente' },
+                    { name: 'Movimiento', index: 'Movimiento' },
+                    { name: 'ImportePago', index: 'ImportePago', width: 50, align: "center" },
+                    { name: 'TipoPago', index: 'TipoPago', align: "center", width: 60 },
+                    { name: 'FechaTransferencia', index: 'FechaTransferencia', align: "center", width: 80 },
+                    { name: 'Registro', index: 'Registro', align: "center", width: 80 }
+                ],
+            caption: "VERIFICADOR DE PAGOS",
+            pager: jQuery('#grdpBuscar'),
+            rowNum: 45,
+            rowList: [45, 60, 75],
+            sortname: 'MovimientoCajaId',
+            sortorder: "asc",
+            viewrecords: true,
+            gridview: true,
+            rownumbers: true,
+            autowidth: true,
+            width: 'auto',
+            height: '647px',
+            ondblClickRow: function () {
+                var id = jQuery("#grdBuscar").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    var ret = $("#grdBuscar").jqGrid('getRowData', id);
+                    Vendix.Dialogo(ret.MovimientoCajaId +' - '+ ret.Movimiento + ' - ' + ret.TipoPago + ' - ' + ret.FechaTransferencia + " \n ¿Deseas actualizar el pago como Verificado?.", "SiNo", function () {
+                        $.ajax({
+                            url: "@Url.Action("Verificar","VerificarPagos")",
+                            data: { pMovimientoCajaId: ret.MovimientoCajaId },
+                            success: function () {
+                                $("#grdBuscar").trigger("reloadGrid");
+                            }
+                        });                        
+                    });
+                }
+            }
+        });
+    });
+
+</script>

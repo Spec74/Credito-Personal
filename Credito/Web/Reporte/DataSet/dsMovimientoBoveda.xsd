@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="dsMovimientoBoveda" targetNamespace="http://tempuri.org/dsMovimientoBoveda.xsd" xmlns:mstns="http://tempuri.org/dsMovimientoBoveda.xsd" xmlns="http://tempuri.org/dsMovimientoBoveda.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="dsMovimientoBoveda" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_UserDSName="dsMovimientoBoveda" msprop:Generator_DataSetName="dsMovimientoBoveda">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="dsMovimientoBoveda" msprop:Generator_RowClassName="dsMovimientoBovedaRow" msprop:Generator_RowEvHandlerName="dsMovimientoBovedaRowChangeEventHandler" msprop:Generator_RowDeletedName="dsMovimientoBovedaRowDeleted" msprop:Generator_RowDeletingName="dsMovimientoBovedaRowDeleting" msprop:Generator_RowEvArgName="dsMovimientoBovedaRowChangeEvent" msprop:Generator_TablePropName="_dsMovimientoBoveda" msprop:Generator_RowChangedName="dsMovimientoBovedaRowChanged" msprop:Generator_RowChangingName="dsMovimientoBovedaRowChanging" msprop:Generator_TableClassName="dsMovimientoBovedaDataTable" msprop:Generator_UserTableName="dsMovimientoBoveda" msprop:Generator_TableVarName="tabledsMovimientoBoveda">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="MovimientoBovedaId" msprop:Generator_ColumnPropNameInRow="MovimientoBovedaId" msprop:Generator_ColumnPropNameInTable="MovimientoBovedaIdColumn" msprop:Generator_ColumnVarNameInTable="columnMovimientoBovedaId" msprop:Generator_UserColumnName="MovimientoBovedaId" type="xs:int" minOccurs="0" />
+              <xs:element name="FechaReg" msprop:Generator_ColumnPropNameInRow="FechaReg" msprop:Generator_ColumnPropNameInTable="FechaRegColumn" msprop:Generator_ColumnVarNameInTable="columnFechaReg" msprop:Generator_UserColumnName="FechaReg" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="CodOperacion" msprop:Generator_ColumnPropNameInRow="CodOperacion" msprop:Generator_ColumnPropNameInTable="CodOperacionColumn" msprop:Generator_ColumnVarNameInTable="columnCodOperacion" msprop:Generator_UserColumnName="CodOperacion" type="xs:string" minOccurs="0" />
+              <xs:element name="Glosa" msprop:Generator_ColumnPropNameInRow="Glosa" msprop:Generator_ColumnPropNameInTable="GlosaColumn" msprop:Generator_ColumnVarNameInTable="columnGlosa" msprop:Generator_UserColumnName="Glosa" type="xs:string" minOccurs="0" />
+              <xs:element name="Entrada" msprop:Generator_ColumnPropNameInRow="Entrada" msprop:Generator_ColumnPropNameInTable="EntradaColumn" msprop:Generator_ColumnVarNameInTable="columnEntrada" msprop:Generator_UserColumnName="Entrada" type="xs:decimal" minOccurs="0" />
+              <xs:element name="Salida" msprop:Generator_ColumnPropNameInRow="Salida" msprop:Generator_ColumnPropNameInTable="SalidaColumn" msprop:Generator_ColumnVarNameInTable="columnSalida" msprop:Generator_UserColumnName="Salida" type="xs:decimal" minOccurs="0" />
+              <xs:element name="TipoPago" msprop:Generator_ColumnPropNameInRow="TipoPago" msprop:Generator_ColumnPropNameInTable="TipoPagoColumn" msprop:Generator_ColumnVarNameInTable="columnTipoPago" msprop:Generator_UserColumnName="TipoPago" type="xs:string" minOccurs="0" />
+              <xs:element name="Agente" msprop:Generator_ColumnPropNameInRow="Agente" msprop:Generator_ColumnPropNameInTable="AgenteColumn" msprop:Generator_ColumnVarNameInTable="columnAgente" msprop:Generator_UserColumnName="Agente" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -1,0 +1,32 @@
+namespace Credito.Modern.Application.Clientes;
+
+/// <summary>Paridad <c>ClienteController.Guardar</c> / Mantener.</summary>
+public sealed record GuardarClienteRequest(
+    int ClienteId,
+    string TipoPersona,
+    string Nombre,
+    string? ApePaterno,
+    string? ApeMaterno,
+    string NumeroDocumento,
+    bool SexoMasculino,
+    string? Email,
+    string? Celular1,
+    string? Nota,
+    DateTime? FechaNacimiento,
+    string? Direccion,
+    string? DireccionRef,
+    int? DistritoId,
+    string? DireccionNegocio,
+    string? DireccionNegocioRef,
+    decimal? Latitud,
+    decimal? Longitud,
+    int? OcupacionId,
+    string? OcupacionOtros,
+    string Calificacion,
+    bool Activo,
+    decimal? TopeCredito,
+    int? EstadoCivilId,
+    int? TipoViviendaId,
+    int? ConyuguePersonaId,
+    int? ClasificacionRiesgoSbsId,
+    string? ClasificacionRiesgoSbsObs);

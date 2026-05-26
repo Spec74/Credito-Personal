@@ -1,0 +1,131 @@
+﻿<div class="grid_12">
+    <div class="box">
+				
+        <div class="header">
+           <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Lista de Precio</h2>
+        </div>
+			<br />		
+        <div class="content">
+            
+            <div class="searchbox">
+                <table>
+                    <tr >
+                        <td >
+                            @Html.DropDownList("cboTipoArticulo", (IEnumerable<SelectListItem>)ViewBag.cboTipoArticulo, new { @class="search"})
+                        </td>
+                        <td style="width: 100%; ">
+                            <input id="txtBuscar" type="text" placeholder="Ingrese Serie / Articulo" />
+                            <input id="btnBuscar" type="submit" value="Buscar" class="grey" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table class="styled"></table>
+        </div><!-- End of .content -->
+    </div><!-- End of .box -->
+</div><!-- End of .grid_12 -->
+
+<div class="grid_12">
+    <table id="grdBuscar"></table>
+    <div id="grdpBuscar"></div>
+</div>
+
+<div style="display: none;" id="dlgNuevo" title="Mantener Lista de Precio">
+    <form action="#" class="full validate">
+        <div class="row">
+            <label for="txtBuscarxserie">
+                <strong>Buscar x Serie</strong>
+            </label>
+            <div>
+                <input type="text" name="txtBuscarxserie" id="txtBuscarxserie" />
+            </div>
+        </div>
+        <div class="row">
+            <label for="txtArticulo">
+                <strong>Buscar x Articulo</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtArticulo" id="txtArticulo" />
+            </div>
+        </div>
+        <div class="row">
+            <label for="txtListaPrecio">
+                <strong>Lista de Precio:</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtListaPrecio" id="txtListaPrecio" style="width: 80px;text-align: center " />&nbsp;
+                <strong>Descuento Max:</strong>
+                <input class="required" type="text" name="txtDescuento" id="txtDescuento" style="width: 80px;text-align: center " />
+            </div>
+        </div>
+        
+        <div class="row">
+            <label for="chkActivo">
+                <strong>Estado:</strong>
+            </label>
+            <div>
+                <div><input type="checkbox" id="chkActivo" /> <label for="chkActivo">Activo</label></div>
+            </div>
+        </div>
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <button class="submit">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script >
+    $(function () {
+        $("#btnBuscar").click(function () {
+            $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+        });
+        $("#txtBuscar").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+            }
+        });
+       
+
+        $('#grdBuscar').jqGrid({
+            url: "@Url.Action("Listar","ListaPrecio")",
+            datatype: 'json',
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "Buscar", Value: $("#txtBuscar").val() }, { Key: "TipoArticuloid", Value: $("#cboTipoArticulo").val() }, { Key: "Asignado", Value: true }]);
+                }
+            },
+            colNames: ['Articuloid', 'ListaPrecioId', 'Tipo Articulo', 'Articulo', 'Precio Venta', 'Descuento Max'],
+            colModel: [
+                { name: 'Articuloid', index: 'Articuloid', hidden: true },
+                { name: 'ListaPrecioid', index: 'ListaPrecioid', hidden: true },
+                { name: 'TipoArticulo', index: 'TipoArticulo', align: 'left', width: 100 },
+                { name: 'Articulo', index: 'Denominacion', align: 'left', width: 250 },
+                { name: 'Monto', index: 'Monto', align: 'right', width: 80, formatter: 'currency', formatoptions: { decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2, prefix: "S/. " } },
+                { name: 'Descuento', index: 'Descuento', align: 'right', width: 80, formatter: 'currency', formatoptions: { decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2, prefix: "S/. " } }
+                //{ name: 'Estado', index: 'Estado', hidden: true },
+                //{ name: 'Activo', index: 'Activo', align: 'center', width: 80, formatter: ActivoFormatter }
+            ],
+            caption: "Lista de Precios",
+            pager: $('#grdpBuscar'),
+            rowNum: 15,
+            rowList: [15, 30, 45],
+            sortname: 'TipoArticulo',
+            sortorder: 'asc',
+            gridview: true,
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            width: 'auto',
+            height: '347px'
+        });
+        
+    });
+   
+</script>
+
+

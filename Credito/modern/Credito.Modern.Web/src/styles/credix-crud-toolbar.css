@@ -1,0 +1,85 @@
+/**
+ * Toolbar CRUD — filtros legacy + CredixListToolbar.
+ */
+
+.credix-crud-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.credix-crud-toolbar__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  width: 100%;
+  min-width: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-left: 3px solid var(--credix-brand, #114885);
+  background: #fff;
+}
+
+.credix-crud-toolbar__filters .ant-select,
+.credix-crud-toolbar__filters .ant-input-number,
+.credix-crud-toolbar__filters .ant-auto-complete,
+.credix-crud-toolbar__filters .ant-input-affix-wrapper {
+  flex: 1 1 160px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.credix-crud-toolbar__filters .ant-select {
+  min-width: 140px;
+}
+
+.credix-crud-toolbar__filters-link {
+  flex-shrink: 0;
+  padding: 0 4px;
+}
+
+.credix-crud-toolbar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.credix-crud-toolbar .credix-list-toolbar {
+  margin-bottom: 0;
+}
+
+@media (max-width: 640px) {
+  .credix-crud-toolbar__filters {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 10px 12px;
+  }
+
+  .credix-crud-toolbar__filters .ant-select,
+  .credix-crud-toolbar__filters .ant-input-number,
+  .credix-crud-toolbar__filters .ant-auto-complete,
+  .credix-crud-toolbar__filters .ant-input-affix-wrapper {
+    width: 100% !important;
+    flex: none;
+  }
+
+  .credix-crud-toolbar__actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credix-crud-toolbar__actions .ant-btn-primary {
+    width: 100%;
+  }
+
+  .credix-crud-toolbar__actions .ant-checkbox-wrapper {
+    width: 100%;
+    padding: 4px 0;
+  }
+}

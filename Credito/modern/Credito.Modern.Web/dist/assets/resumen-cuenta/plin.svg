@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Plin">
+  <defs>
+    <linearGradient id="plin-g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00b4d8"/>
+      <stop offset="100%" stop-color="#0077b6"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="12" fill="url(#plin-g)"/>
+  <text x="24" y="30" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="800">plin</text>
+</svg>

@@ -1,0 +1,1768 @@
+<!doctype html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]> <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>    <html class="no-js lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>    <html class="no-js lt-ie9" lang="en"> <![endif]-->
+
+<!-- Consider adding a manifest.appcache: h5bp.com/d/Offline -->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+	<meta charset="utf-8" />
+
+	<link rel="dns-prefetch" href="//fonts.googleapis.com" />
+	<link rel="dns-prefetch" href="//themes.googleusercontent.com" />
+	
+	<link rel="dns-prefetch" href="//ajax.googleapis.com" />
+	<link rel="dns-prefetch" href="//cdnjs.cloudflare.com" />
+	<link rel="dns-prefetch" href="//agorbatchev.typepad.com" />
+	
+	<!-- Use the .htaccess and remove these lines to avoid edge case issues.
+	   More info: h5bp.com/b/378 -->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	
+	<title>Icons - Mango: Slick and Responsive Admin Template</title>
+	<meta name="description" content="Mango is a slick and responsive Admin Template build with modern techniques like HTML5 and CSS3 to be used for backend solutions of any size." />
+	<meta name="author" content="Simon Stamm & Markus Siemens" />
+
+	<!-- Mobile viewport optimized: h5bp.com/viewport -->
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<!-- iPhone: Don't render numbers as call links -->
+	<meta name="format-detection" content="telephone=no" />
+	
+	<link rel="shortcut icon" href="favicon.ico" />
+	<!-- Place favicon.ico and apple-touch-icon.png in the root directory: mathiasbynens.be/notes/touch-icons -->
+	<!-- More ideas for your <head> here: h5bp.com/d/head-Tips -->
+	
+	
+	
+	
+	
+	
+	
+	<!-- The Styles -->
+	<!-- ---------- -->
+	
+	<!-- Layout Styles -->
+	<link rel="stylesheet" href="css/style.css" />
+	<link rel="stylesheet" href="css/grid.css" />
+	<link rel="stylesheet" href="css/layout.css" />
+	
+	<!-- Icon Styles -->
+	<link rel="stylesheet" href="css/icons.css" />
+	<link rel="stylesheet" href="css/fonts/font-awesome.css" />
+	<!--[if IE 8]><link rel="stylesheet" href="css/fonts/font-awesome-ie7.css"><![endif]-->
+	
+	<!-- External Styles -->
+	<link rel="stylesheet" href="css/external/jquery-ui-1.8.21.custom.css" />
+	<link rel="stylesheet" href="css/external/jquery.chosen.css" />
+	<link rel="stylesheet" href="css/external/jquery.cleditor.css" />
+	<link rel="stylesheet" href="css/external/jquery.colorpicker.css" />
+	<link rel="stylesheet" href="css/external/jquery.elfinder.css" />
+	<link rel="stylesheet" href="css/external/jquery.fancybox.css" />
+	<link rel="stylesheet" href="css/external/jquery.jgrowl.css" />
+	<link rel="stylesheet" href="css/external/jquery.plupload.queue.css" />
+	<link rel="stylesheet" href="css/external/syntaxhighlighter/shCore.css" />
+	<link rel="stylesheet" href="css/external/syntaxhighlighter/shThemeDefault.css" />
+	
+	<!-- Elements -->
+	<link rel="stylesheet" href="css/elements.css" />
+	<link rel="stylesheet" href="css/forms.css" />
+	
+	<!-- OPTIONAL: Print Stylesheet for Invoice -->
+	<link rel="stylesheet" href="css/print-invoice.css" />
+	
+	<!-- Typographics -->
+	<link rel="stylesheet" href="css/typographics.css" />
+	
+	<!-- Responsive Design -->
+	<link rel="stylesheet" href="css/media-queries.css" />
+	
+	<!-- Bad IE Styles -->
+	<link rel="stylesheet" href="css/ie-fixes.css" />
+	
+	
+	
+	
+	
+	
+	
+	<!-- The Scripts -->
+	<!-- ----------- -->
+	
+	
+	<!-- JavaScript at the top (will be cached by browser) -->
+	
+	<!-- Load Webfont loader -->
+	<script type="text/javascript">
+		window.WebFontConfig = {
+			google: { families: [ 'PT Sans:400,700' ] },
+			active: function(){ $(window).trigger('fontsloaded') }
+		};
+	</script>
+	<script defer async src="https://ajax.googleapis.com/ajax/libs/webfont/1.0.28/webfont.js"></script>
+	
+	<!-- Essential polyfills -->
+	<script src="js/mylibs/polyfills/modernizr-2.6.1.min.js"></script>
+	<script src="js/mylibs/polyfills/respond.js"></script>
+	<script src="js/mylibs/polyfills/matchmedia.js"></script>
+	<!--[if lt IE 9]><script src="js/mylibs/polyfills/selectivizr-min.js"></script><![endif]-->
+	<!--[if lt IE 10]><script src="js/mylibs/charts/excanvas.js"></script><![endif]-->
+	<!--[if lt IE 10]><script src="js/mylibs/polyfills/classlist.js"></script><![endif]-->
+	
+	
+	
+	 <script src="js/libs/jquery-1.7.2.min.js"></script>
+     <script src="js/libs/jquery-ui-1.8.21.min.js"></script>
+     <script src="js/libs/lodash.min.js"></script>
+
+	
+	
+	<!-- scripts concatenated and minified via build script -->
+	
+	<!-- General Scripts -->
+	<script src="js/mylibs/jquery.hashchange.js"></script>
+	<script src="js/mylibs/jquery.idle-timer.js"></script>
+	<script src="js/mylibs/jquery.plusplus.js"></script>
+	<script src="js/mylibs/jquery.jgrowl.js"></script>
+	<script src="js/mylibs/jquery.scrollTo.js"></script>
+	<script src="js/mylibs/jquery.ui.touch-punch.js"></script>
+	<script src="js/mylibs/jquery.ui.multiaccordion.js"></script>
+	<script src="js/mylibs/number-functions.js"></script>
+	
+	<!-- Forms -->
+	<script src="js/mylibs/forms/jquery.autosize.js"></script>
+	<script src="js/mylibs/forms/jquery.checkbox.js"></script>
+	<script src="js/mylibs/forms/jquery.chosen.js"></script>
+	<script src="js/mylibs/forms/jquery.cleditor.js"></script>
+	<script src="js/mylibs/forms/jquery.colorpicker.js"></script>
+	<script src="js/mylibs/forms/jquery.ellipsis.js"></script>
+	<script src="js/mylibs/forms/jquery.fileinput.js"></script>
+	<script src="js/mylibs/forms/jquery.fullcalendar.js"></script>
+	<script src="js/mylibs/forms/jquery.maskedinput.js"></script>
+	<script src="js/mylibs/forms/jquery.mousewheel.js"></script>
+	<script src="js/mylibs/forms/jquery.placeholder.js"></script>
+	<script src="js/mylibs/forms/jquery.pwdmeter.js"></script>
+	<script src="js/mylibs/forms/jquery.ui.datetimepicker.js"></script>
+	<script src="js/mylibs/forms/jquery.ui.spinner.js"></script>
+	<script src="js/mylibs/forms/jquery.validate.js"></script>
+	<script src="js/mylibs/forms/uploader/plupload.js"></script>
+	<script src="js/mylibs/forms/uploader/plupload.html5.js"></script>
+	<script src="js/mylibs/forms/uploader/plupload.html4.js"></script>
+	<script src="js/mylibs/forms/uploader/plupload.flash.js"></script>
+	<script src="js/mylibs/forms/uploader/jquery.plupload.queue/jquery.plupload.queue.js"></script>
+		
+	<!-- Charts -->
+	<script src="js/mylibs/charts/jquery.flot.js"></script>
+	<script src="js/mylibs/charts/jquery.flot.orderBars.js"></script>
+	<script src="js/mylibs/charts/jquery.flot.pie.js"></script>
+	<script src="js/mylibs/charts/jquery.flot.resize.js"></script>
+	
+	<!-- Explorer -->
+	<script src="js/mylibs/explorer/jquery.elfinder.js"></script>
+	
+	<!-- Fullstats -->
+	<script src="js/mylibs/fullstats/jquery.css-transform.js"></script>
+	<script src="js/mylibs/fullstats/jquery.animate-css-rotate-scale.js"></script>
+	<script src="js/mylibs/fullstats/jquery.sparkline.js"></script>
+	
+	<!-- Syntax Highlighter -->
+	<script src="js/mylibs/syntaxhighlighter/shCore.js"></script>
+	<script src="js/mylibs/syntaxhighlighter/shAutoloader.js"></script>
+	
+	<!-- Dynamic Tables -->
+	<script src="js/mylibs/dynamic-tables/jquery.dataTables.js"></script>
+	<script src="js/mylibs/dynamic-tables/jquery.dataTables.tableTools.zeroClipboard.js"></script>
+	<script src="js/mylibs/dynamic-tables/jquery.dataTables.tableTools.js"></script>
+	
+	<!-- Gallery -->
+	<script src="js/mylibs/gallery/jquery.fancybox.js"></script>
+	
+	<!-- Tooltips -->
+	<script src="js/mylibs/tooltips/jquery.tipsy.js"></script>
+	
+	<!-- Do not touch! -->
+	<script src="js/mango.js"></script>
+	<script src="js/plugins.js"></script>
+	<script src="js/script.js"></script>
+	
+	<!-- Your custom JS goes here -->
+	<script src="js/app.js"></script>
+	
+	<!-- end scripts -->
+	
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head>
+
+<body>
+
+	<!----------------------->
+	<!-- Some dialogs etc. -->
+
+	<!-- The loading box -->
+	<div id="loading-overlay"></div>
+	<div id="loading">
+		<span>Loading...</span>
+	</div>
+	<!-- End of loading box -->
+	
+	<!-- The lock screen -->
+	<div id="lock-screen" title="Screen Locked">
+		
+		<a href="login.html" class="header right button grey flat">Logout</a>
+		
+		<p>Due to the inactivity of this session, your account was temporarily locked.</p>
+		<p>To unlock your account, simply slide the button and enter your password.</p>
+		
+		<div class="actions">
+			<div id="slide_to_unlock">
+				<img src="img/elements/slide-unlock/lock-slider.png" alt="slide me" />
+				<span>slide to unlock</span>
+			</div>
+			<form action="#" method="GET" />
+				<input type="password" name="pwd" id="pwd" placeholder="Enter your password here..." autocorrect="off" autocapitalize="off" /> <input type="submit" name="send" value="Unlock" disabled="" /> <input type="reset" value="X" />
+			</form>
+		</div><!-- End of .actions -->
+		
+	</div><!-- End of lock screen -->
+	
+	<!-- The settings dialog -->
+	<div id="settings" class="settings-content" data-width="450">
+	
+		<ul class="tabs center-elements">
+			<li><a href="#settings-1"><img src="img/icons/packs/fugue/24x24/user-business.png" alt="" /><span>Account Settings</span></a></li>
+			<li><a href="#settings-2"><img src="img/icons/packs/fugue/24x24/balloon.png" alt="" /><span>Notifications</span></a></li>
+			<li><a href="#settings-3"><img src="img/icons/packs/fugue/24x24/credit-card.png" alt="" /><span>Invoicing</span></a></li>
+		</ul>
+		
+		<div class="change_password">
+			<form action="#" method="GET" class="validate" id="settings_password" />
+				<p>
+					<label for="settings-password">New Password:</label> <input type="password" id="settings-password" class="required strongpw small password meter" />
+				</p>
+			</form>
+			<div class="actions">
+				<div class="right">
+					<input form="settings_password" type="reset" value="Cancel" class="grey" />
+					<input form="settings_password" type="submit" value="OK" />
+				</div>
+			</div>
+		</div><!-- End of .change_password -->
+		
+		<div class="content">
+		
+			<div id="settings-1">
+				<form action="#" method="GET" />
+					<p>
+						<label for="settings-name">Name:</label> <input type="text" id="settings-name" class="medium" />
+					</p>
+					<p>
+						<label for="settings-descr">Descripton:</label> <input type="text" id="settings-descr" class="medium" />
+					</p>
+					<p class="divider" />
+					<p>
+						<label for="settings-pw">Password: </label> <input class="grey change_password_button" type="button" id="settings-pw" value="Change Password..." data-lang-changed="Password changed" />
+					</p>
+				</form>
+			</div><!-- End of #settings-1 -->
+			
+			<div id="settings-2">
+				Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.
+				<form action="#" method="GET" />
+					<div class="spacer"></div>
+					<p class="divider" />
+					<div class="spacer"></div>
+					<p>
+						<label for="settings-email">Email Address:</label> <input type="text" id="settings-email" class="medium" />
+					</p>
+					<p>
+						<label for="settings-interval">Interval: </label>
+						<select name="settings-interval" id="settings-interval" data-placeholder="Choose an Interval">
+							<option value="" />
+							<option value="Never" />Never
+							<option value="Daily" />Daily
+							<option value="Weekly" />Weekly
+							<option value="Monthly" />Monthly
+							<option value="Yearly" />Yearly
+						</select>
+					</p>
+				</form>
+			</div><!-- End of #settings-2 -->
+			
+			<div id="settings-3">
+				<form action="#" method="GET" />
+					<p>
+						<label for="settings-card-number">Card number:</label> <input type="text" id="settings-card-number" class="medium" />
+					</p>
+					<p>
+						<label for="settings-cvv">CVV:</label> <input type="text" id="settings-cvv" class="medium" />
+					</p>
+					<p>
+						<label for="settings-expiration">Expiration: </label>
+						<select sname="settings-expiration" id="settings-expiration" data-placeholder="Choose an Expiration">
+							<option value="" />
+							<option value="2012" />2012
+							<option value="2013" />2013
+							<option value="2014" />2014
+							<option value="2015" />2015
+						</select>
+					</p>
+				</form>
+			</div><!-- End of #settings-3 -->
+			
+		</div><!-- End of .content -->
+		
+		<div class="actions">
+			<div class="left">
+				<button class="grey cancel">Cancel</button>
+			</div>
+			<div class="right">
+				<button class="save">Save</button>
+				<button class="hide saving" disabled="">Saving...</button>
+			</div>
+		</div><!-- End of .actions -->
+		
+	</div><!-- End of settings dialog -->
+	
+	<!-- Add Client Example Dialog -->
+	<div style="display: none;" id="dialog_add_client" title="Add Client Example Dialog">
+		<form action="" class="full validate" />
+			<div class="row">
+				<label for="d2_username">
+					<strong>Username</strong>
+				</label>
+				<div>
+					<input class="required" type="text" name="d2_username" id="d2_username" />
+				</div>
+			</div>
+			<div class="row">
+				<label for="d2_email">
+					<strong>Email Address</strong>
+				</label>
+				<div>
+					<input class="required" type="text" name="d2_email" id="d2_email" />
+				</div>
+			</div>
+			<div class="row">
+				<label for="d2_role">
+					<strong>Role</strong>
+				</label>
+				<div>
+					<select style="padding-bottom: 10px" name="d2_role" id="d2_role" class="search required" data-placeholder="Choose a Role">
+						<option value="" />
+						<option value="Applicant" />Applicant 
+						<option value="Member" />Member 
+						<option value="Moderator" />Moderator 
+						<option value="Administrator" />Administrator 
+					</select>
+				</div>
+			</div>
+		</form>
+		<div class="actions">
+			<div class="left">
+				<button class="grey cancel">Cancel</button>
+			</div>
+			<div class="right">
+				<button class="submit">Add User</button>
+			</div>
+		</div>
+	</div><!-- End if #dialog_add_client -->
+	
+	<script>
+	$$.ready(function() {
+		$( "#dialog_add_client" ).dialog({
+			autoOpen: false,
+			modal: true,
+			width: 400,
+			open: function(){ $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize() }
+		}).find('button.submit').click(function(){
+			var $el = $(this).parents('.ui-dialog-content');
+			if ($el.validate().form()) {
+				$el.find('form')[0].reset();
+				$el.dialog('close');
+			}
+		}).end().find('button.cancel').click(function(){
+			var $el = $(this).parents('.ui-dialog-content');
+			$el.find('form')[0].reset();
+			$el.dialog('close');;
+		});
+		
+		$( ".open-add-client-dialog" ).click(function() {
+			$( "#dialog_add_client" ).dialog( "open" );
+			return false;
+		});
+	});
+	</script>
+	<!--  End of Add Client Example Dialog -->
+	
+	<!-- Message Dialog -->
+	<div style="display: none;" id="dialog_message" title="Conversation: John Doe">
+		<div class="spacer"></div>
+		<div class="messages full chat">
+			
+			<div class="msg reply">
+				<img src="img/icons/packs/iconsweets2/25x25/user-2.png" />
+				<div class="content">
+					<h3><a href="pages_profile.html">John Doe</a> <span>says:</span><small>3 hours ago</small></h3>
+					<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore
+					et dolore magna aliquyam erat, sed diam voluptua.</p>
+				</div>
+			</div>
+			
+			<div class="msg">
+				<img src="img/icons/packs/iconsweets2/25x25/user-2.png" />
+				<div class="content">
+					<h3><a href="pages_profile.html">Peter Doe</a> <span>says:</span><small>5 hours ago</small></h3>
+					<p>At vero eos et accusam et justo duo dolores et ea rebum.
+					Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+				</div>
+			</div>
+		
+		</div><!-- End of .messages -->
+		
+		<div class="actions">
+			<div class="left">
+				<input style="width: 330px;" type="text" name="d3_message" id="d3_message" placeholder="Type your message..." />
+			</div>
+			<div class="right">
+				<button>Send</button>
+				<button class="grey">Cancel</button>
+			</div>
+		</div><!-- End of .actions -->
+		
+	</div><!-- End of #dialog_message -->
+	
+	<script>
+	$$.ready(function() {
+		$( "#dialog_message" ).dialog({
+			autoOpen: false,
+			width: 500,
+			modal: true
+		}).find('button').click(function(){
+			$(this).parents('.ui-dialog-content').dialog('close');
+		});
+		
+		$( ".open-message-dialog" ).click(function() {
+			$( "#dialog_message" ).dialog( "open" );
+			return false;
+		});
+	});
+	</script>
+	<!-- End of Message Dialog -->
+	
+	<!--------------------------------->
+	<!-- Now, the page itself begins -->
+	<!--------------------------------->
+	
+	<!-- The toolbar at the top -->
+	<section id="toolbar">
+		<div class="container_12">
+		
+			<!-- Left side -->
+			<div class="left">
+				<ul class="breadcrumb">
+				
+					<li><a href="dashboard.html">Mango</a></li>
+					<li><a href="javascript:void(0);">UI Widgets</a></li>
+					<li><a href="javascript:void(0);">Icons</a></li>
+
+				</ul>
+			</div>
+			<!-- End of .left -->
+			
+			<!-- Right side -->
+			<div class="right">
+				<ul>
+				
+					<li><a href="pages_profile.html"><span class="icon i14_admin-user"></span>Profile</a></li>
+					
+					<li>
+						<a href="#"><span>3</span>Messages</a>
+						
+						<!-- Mail popup -->
+						<div class="popup">
+							<h3>New Messages</h3>
+							
+							<!-- Button bar -->
+							<a class="button flat left grey" onclick="$(this).parent().fadeToggle($$.config.fxSpeed)">Close</a>
+							<a class="button flat right" href="tables_dynamic.html">Inbox</a>
+							
+							<!-- The mail content -->
+							<div class="content mail">
+								<ul>
+								
+									<li>
+										<div class="avatar">
+											<img src="img/elements/mail/avatar.png" height="40" width="40/" />
+										</div>
+										<div class="info">
+											<strong>John Doe</strong>
+											<span>Thanks for your theme!</span>
+											<small>09:32 am</small>
+										</div>
+										<div class="text">
+											<p>Hey Admin!</p>
+											<p>I've purchased your admin template and it's great :)</p>
+											<p>A happy customer</p>
+											<div class="actions">
+												<a href="javascript:void(0);" class="left open-message-dialog">Reply</a>
+												<a onclick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">Delete</a>
+											</div>
+										</div>
+									</li>
+									
+									<li>
+										<div class="avatar">
+											<img src="img/elements/mail/mail.png" height="40" width="40/" />
+										</div>
+										<div class="info">
+											<strong>System</strong>
+											<span>New comment</span>
+											<small>08:47 am</small>
+										</div>
+										<div class="text">
+											<p>Hello,</p>
+											<p>There is one new comment on your theme.</p>
+											<p>Go to Comments page to see it.</p>
+											<div class="actions">
+												<a href="javascript:void(0);" class="left open-message-dialog">Reply</a>
+												<a onclick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">Delete</a>
+											</div>
+										</div>
+									</li>
+									
+									<li>
+										<div class="avatar">
+											<img src="img/elements/mail/mail.png" height="40" width="40/" />
+										</div>
+										<div class="info">
+											<strong>Stranger</strong>
+											<span>[SPAM] ---</span>
+											<small>Yesterday</small>
+										</div>
+										<div class="text">
+											<p>[...]</p>
+											<div class="actions">
+												<a href="javascript:void(0);" class="left open-message-dialog">Read</a>
+												<a onclick="$(this).parent().parent().parent().slideToggle($$.config.fxSpeed)" class="red right" href="javascript:void(0);">Delete</a>
+											</div>                            
+										</div>
+									</li>
+									
+								</ul>
+							</div><!-- End of .contents -->
+							
+						</div><!-- End of .popup -->
+					</li><!-- End of li -->
+					
+					<li class="space"></li>
+					
+					<li><a href="javascript:void(0);" id="btn-lock"><span>--:--</span>Lock screen</a></li>
+					
+					<li class="red"><a href="login.html">Logout</a></li>
+					
+				</ul>
+			</div><!-- End of .right -->
+			
+			<!-- Phone only items -->
+			<div class="phone">
+				
+				<!-- User Link -->
+				<li><a href="pages_profile.html"><span class="icon icon-user"></span></a></li>
+				<!-- Navigation -->
+				<li><a class="navigation" href="#"><span class="icon icon-list"></span></a></li>
+			
+			</div><!-- End of phone items -->
+			
+		</div><!-- End of .container_12 -->
+	</section><!-- End of #toolbar -->
+	
+	<!-- The header containing the logo -->
+	<header class="container_12">
+	
+		<!-- Your logos -->
+		<a href="dashboard.html"><img src="img/logo.png" alt="Mango" width="191" height="60" /></a>
+		<a class="phone-title" href="dashboard.html"><img src="img/logo-mobile.png" alt="Mango" height="22" width="70" /></a>
+		
+		<div class="buttons">
+			<a href="statistics.html">
+				<span class="icon icon-sitemap"></span>
+				Statistics
+			</a>
+			<a href="forms.html">
+				<span class="icon icon-list-alt"></span>
+				Forms
+			</a>
+			<a href="tables_dynamic.html">
+				<span class="icon icon-table"></span>
+				Tables
+			</a>
+		</div><!-- End of .buttons -->
+	</header><!-- End of header -->
+	
+	<!-- The container of the sidebar and content box -->
+	<div role="main" id="main" class="container_12 clearfix">
+	
+		<!-- The blue toolbar stripe -->
+		<section class="toolbar">
+			<div class="user">
+				<div class="avatar">
+					<img src="img/layout/content/toolbar/user/avatar.png" />
+					<span>3</span>
+				</div>
+				<span>Administrator</span>
+				<ul>
+					<li><a href="javascript:$$.settings();">Settings</a></li>
+					<li><a href="pages_profile.html">Profile</a></li>
+					<li class="line"></li>
+					<li><a href="login.html">Logout</a></li>
+				</ul>
+			</div>
+			<ul class="shortcuts">
+			
+				<li>
+					<a href="javascript:void(0);"><span class="icon i24_user-business"></span></a>
+					<!-- Possible sizes: small/medium/large -->
+					<div class="small">
+						<h3>Create a User</h3>
+						
+						<!-- Button bar -->
+						<button class="button flat left grey" onclick="$(this).parent().fadeToggle($$.config.fxSpeed).parent().removeClass('active')">Close</button>
+						<button class="button flat right" onclick="$(this).parent().fadeToggle($$.config.fxSpeed).parent().removeClass('active')">Create</button>
+						
+						<div class="content">
+							<form class="full grid" />
+								<div class="row no-bg">
+									<p class="_100 small">
+										<label for="p1_username">Username</label>
+										<input type="text" name="p1_username" id="p1_username" />
+									</p>
+								</div>
+								<div class="row no-bg">
+									<p class="_50 small">
+										<label for="p1_firstname">Firstname</label>
+										<input type="text" name="p1_firstname" id="p1_firstname" />
+									</p>
+									<p class="_50 small">
+										<label for="p1_lastname">Lastname</label>
+										<input type="text" name="p1_lastname" id="p1_lastname" />
+									</p>
+								</div>
+							</form>
+						</div>
+					</div><!-- End of popup -->
+				</li>
+				
+				<li>
+					<a href="javascript:void(0);"><span class="icon i24_inbox-document"></span></a>
+					<!-- Possible sizes: small/medium/large -->
+					<div class="small">
+						<h3>Write a Message</h3>
+						
+						<!-- Button bar -->
+						<button class="button flat left grey" onclick="$(this).parent().fadeToggle($$.config.fxSpeed).parent().removeClass('active')">Close</button>
+						<button class="button flat right" onclick="$(this).parent().fadeToggle($$.config.fxSpeed).parent().removeClass('active')">Send</button>
+						
+						<div class="content">
+							<form class="full grid" />
+								<div class="row no-bg">
+									<p class="_100 small">
+										<input type="text" name="p2_recipient" id="p2_recipient" placeholder="Recipient" />
+									</p>
+									<p class="_100 small">
+										<input type="text" name="p2_subject" id="p2_subject" placeholder="Subject" />
+									</p>
+									<p class="_100 small">
+										<textarea rows="5" cols="30" name="p2_message" id="p2_message" placeholder="Message"></textarea>
+									</p>
+								</div>
+							</form>
+						</div>
+					</div><!-- End of popup -->
+				</li>
+				
+				<li>
+					<a href="javascript:void(0);"><span class="icon i24_application-blue"></span></a>
+					<!-- Possible sizes: small/medium/large -->
+					<div class="small">
+						<h3>Information</h3>
+						
+						<!-- Button bar -->
+						<button class="button flat left grey" onclick="$(this).parent().fadeToggle($$.config.fxSpeed).parent().removeClass('active')">Close</button>
+						
+						<div class="content">
+							<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.</p>
+						</div>
+					</div><!-- End of popup -->
+				</li>
+				
+			</ul><!-- End of .shortcuts -->
+			
+			<input type="search" data-source="extras/search.php" placeholder="Search..." autocomplete="off" class="tooltip" title="e.g. Peach" data-gravity="s" />
+		</section><!-- End of .toolbar-->
+		
+		<!-- The sidebar -->
+		<aside>
+			<div class="top">
+			
+				<!-- Navigation -->
+				<nav><ul class="collapsible accordion">
+				
+					<li><a href="dashboard.html"><img src="img/icons/packs/fugue/16x16/dashboard.png" alt="" height="16" width="16" />Dashboard</a></li>
+					
+					<li>
+						<a class="open" href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/ui-layered-pane.png" alt="" height="16" width="16" />UI Widgets<span class="badge">4</span></a>
+						<ul>
+							<li><a href="ui_general.html"><span class="icon icon-list"></span>General</a></li>
+							<li><a href="ui_extras.html"><span class="icon icon-cog"></span>Extras</a></li>
+							<li class="current"><a href="ui_icons.html"><span class="icon icon-picture"></span>Icons</a></li>
+							<li><a href="ui_grid.html"><span class="icon icon-th"></span>Grid</a></li>
+						</ul>
+					</li>
+					
+					<li>
+						<a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/application-form.png" alt="" height="16" width="16" />Form Elements</a>
+						<ul>
+							<li><a href="forms.html"><span class="icon icon-list-alt"></span>General</a></li>
+							<li><a href="forms_validation.html"><span class="icon icon-warning-sign"></span>Validation</a></li>
+							<li><a href="forms_extras.html"><span class="icon icon-magic"></span>Fileuploader &amp; Wizard</a></li>
+						</ul>
+					</li>
+					
+					<li>
+						<a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/chart.png" alt="" height="16" width="16" />Statistics / Charts<span class="badge">2</span></a>
+						<ul>
+							<li><a href="statistics.html"><span class="icon icon-sitemap"></span>Statistics Elements</a></li>
+							<li><a href="charts.html"><span class="icon icon-bar-chart"></span>Charts</a></li>
+						</ul>
+					</li>
+					
+					<li>
+						<a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/table.png" alt="" height="16" width="16" />Tables</a>
+						<ul>
+							<li><a href="tables_static.html"><span class="icon icon-check-empty"></span>Static</a></li>
+							<li><a href="tables_dynamic.html"><span class="icon icon-table"></span>Dynamic</a></li>
+							<li><a href="tables_full.html"><span class="icon icon-fullscreen"></span>Full</a></li>
+						</ul>
+					</li>
+					
+					<li>
+						<a href="javascript:void(0);"><img src="img/icons/packs/fugue/16x16/document-horizontal.png" alt="" height="16" width="16" />Other Pages</a>
+						<ul>
+							<li><a href="login.html">Login</a></li>
+							<li><a href="pages_profile.html">Profile</a></li>
+							<li><a href="pages_invoice.html">Invoice<span class="badge grey">1 open</span></a></li>
+							<li><a href="pages_faq.html">FAQ</a></li>
+							<li><a href="pages_search.html">Search</a></li>
+							<li><a href="pages_error_404.html">Error Page (404)</a></li>
+						</ul>
+					</li>
+					
+				</ul></nav><!-- End of nav -->				
+			</div><!-- End of .top -->
+			
+			<div class="bottom sticky">
+				<div class="divider"></div>
+				<div class="progress">
+					<div class="bar" data-title="Space" data-value="1285" data-max="5120" data-format="0,0 MB"></div>
+					<div class="bar" data-title="Traffic" data-value="8.61" data-max="14" data-format="0.00 GB"></div>
+					<div class="bar" data-title="Budget" data-value="20000" data-max="20000" data-format="$0,0"></div>
+				</div>
+				<div class="divider"></div>
+				<div class="buttons">
+					<a href="javascript:void(0);" class="button grey open-add-client-dialog">Add New Client</a>
+					<a href="javascript:void(0);" class="button grey open-add-client-dialog">Open a Ticket</a>
+				</div>
+			</div><!-- End of .bottom -->
+			
+		</aside><!-- End of sidebar -->
+
+		<!-- Here goes the content. -->
+		<section id="content" class="container_12 clearfix" data-sort="true">
+			<h1 class="grid_12">Icons</h1>
+			
+			<div class="grid_12">
+				<div class="box">
+				
+					<div class="header">
+						<h2>Font Awesome Icons</h2>
+					</div>
+					
+					<div class="content center-elements">
+						<div class="spacer"></div>
+						<span title="icon-adjust" class="tooltip icon-demo icon-adjust"></span>
+						<span title="icon-asterisk" class="tooltip icon-demo icon-asterisk"></span>
+						<span title="icon-ban-circle" class="tooltip icon-demo icon-ban-circle"></span>
+						<span title="icon-bar-chart" class="tooltip icon-demo icon-bar-chart"></span>
+						<span title="icon-barcode" class="tooltip icon-demo icon-barcode"></span>
+						<span title="icon-beaker" class="tooltip icon-demo icon-beaker"></span>
+						<span title="icon-bell" class="tooltip icon-demo icon-bell"></span>
+						<span title="icon-bolt" class="tooltip icon-demo icon-bolt"></span>
+						<span title="icon-book" class="tooltip icon-demo icon-book"></span>
+						<span title="icon-bookmark" class="tooltip icon-demo icon-bookmark"></span>
+						<span title="icon-bookmark-empty" class="tooltip icon-demo icon-bookmark-empty"></span>
+						<span title="icon-briefcase" class="tooltip icon-demo icon-briefcase"></span>
+						<span title="icon-bullhorn" class="tooltip icon-demo icon-bullhorn"></span>
+						<span title="icon-calendar" class="tooltip icon-demo icon-calendar"></span>
+						<span title="icon-camera" class="tooltip icon-demo icon-camera"></span>
+						<span title="icon-camera-retro" class="tooltip icon-demo icon-camera-retro"></span>
+						<span title="icon-certificate" class="tooltip icon-demo icon-certificate"></span>
+						<span title="icon-check" class="tooltip icon-demo icon-check"></span>
+						<span title="icon-check-empty" class="tooltip icon-demo icon-check-empty"></span>
+						<span title="icon-cloud" class="tooltip icon-demo icon-cloud"></span>
+						<span title="icon-cog" class="tooltip icon-demo icon-cog"></span>
+						<span title="icon-cogs" class="tooltip icon-demo icon-cogs"></span>
+						<span title="icon-comment" class="tooltip icon-demo icon-comment"></span>
+						<span title="icon-comment-alt" class="tooltip icon-demo icon-comment-alt"></span>
+						<span title="icon-comments" class="tooltip icon-demo icon-comments"></span>
+						<span title="icon-comments-alt" class="tooltip icon-demo icon-comments-alt"></span>
+						<span title="icon-credit-card" class="tooltip icon-demo icon-credit-card"></span>
+						<span title="icon-dashboard" class="tooltip icon-demo icon-dashboard"></span>
+						<span title="icon-download" class="tooltip icon-demo icon-download"></span>
+						<span title="icon-download-alt" class="tooltip icon-demo icon-download-alt"></span>
+						<span title="icon-edit" class="tooltip icon-demo icon-edit"></span>
+						<span title="icon-envelope" class="tooltip icon-demo icon-envelope"></span>
+						<span title="icon-envelope-alt" class="tooltip icon-demo icon-envelope-alt"></span>
+						<span title="icon-exclamation-sign" class="tooltip icon-demo icon-exclamation-sign"></span>
+						<span title="icon-external-link" class="tooltip icon-demo icon-external-link"></span>
+						<span title="icon-eye-close" class="tooltip icon-demo icon-eye-close"></span>
+						<span title="icon-eye-open" class="tooltip icon-demo icon-eye-open"></span>
+						<span title="icon-facetime-video" class="tooltip icon-demo icon-facetime-video"></span>
+						<span title="icon-film" class="tooltip icon-demo icon-film"></span>
+						<span title="icon-filter" class="tooltip icon-demo icon-filter"></span>
+						<span title="icon-fire" class="tooltip icon-demo icon-fire"></span>
+						<span title="icon-flag" class="tooltip icon-demo icon-flag"></span>
+						<span title="icon-folder-close" class="tooltip icon-demo icon-folder-close"></span>
+						<span title="icon-folder-open" class="tooltip icon-demo icon-folder-open"></span>
+						<span title="icon-gift" class="tooltip icon-demo icon-gift"></span>
+						<span title="icon-glass" class="tooltip icon-demo icon-glass"></span>
+						<span title="icon-globe" class="tooltip icon-demo icon-globe"></span>
+						<span title="icon-group" class="tooltip icon-demo icon-group"></span>
+						<span title="icon-hdd" class="tooltip icon-demo icon-hdd"></span>
+						<span title="icon-headphones" class="tooltip icon-demo icon-headphones"></span>
+						<span title="icon-heart" class="tooltip icon-demo icon-heart"></span>
+						<span title="icon-heart-empty" class="tooltip icon-demo icon-heart-empty"></span>
+						<span title="icon-home" class="tooltip icon-demo icon-home"></span>
+						<span title="icon-inbox" class="tooltip icon-demo icon-inbox"></span>
+						<span title="icon-info-sign" class="tooltip icon-demo icon-info-sign"></span>
+						<span title="icon-key" class="tooltip icon-demo icon-key"></span>
+						<span title="icon-leaf" class="tooltip icon-demo icon-leaf"></span>
+						<span title="icon-legal" class="tooltip icon-demo icon-legal"></span>
+						<span title="icon-lemon" class="tooltip icon-demo icon-lemon"></span>
+						<span title="icon-lock" class="tooltip icon-demo icon-lock"></span>
+						<span title="icon-unlock" class="tooltip icon-demo icon-unlock"></span>
+						<span title="icon-magic" class="tooltip icon-demo icon-magic"></span>
+						<span title="icon-magnet" class="tooltip icon-demo icon-magnet"></span>
+						<span title="icon-map-marker" class="tooltip icon-demo icon-map-marker"></span>
+						<span title="icon-minus" class="tooltip icon-demo icon-minus"></span>
+						<span title="icon-minus-sign" class="tooltip icon-demo icon-minus-sign"></span>
+						<span title="icon-money" class="tooltip icon-demo icon-money"></span>
+						<span title="icon-move" class="tooltip icon-demo icon-move"></span>
+						<span title="icon-music" class="tooltip icon-demo icon-music"></span>
+						<span title="icon-off" class="tooltip icon-demo icon-off"></span>
+						<span title="icon-ok" class="tooltip icon-demo icon-ok"></span>
+						<span title="icon-ok-circle" class="tooltip icon-demo icon-ok-circle"></span>
+						<span title="icon-ok-sign" class="tooltip icon-demo icon-ok-sign"></span>
+						<span title="icon-pencil" class="tooltip icon-demo icon-pencil"></span>
+						<span title="icon-picture" class="tooltip icon-demo icon-picture"></span>
+						<span title="icon-plane" class="tooltip icon-demo icon-plane"></span>
+						<span title="icon-plus" class="tooltip icon-demo icon-plus"></span>
+						<span title="icon-plus-sign" class="tooltip icon-demo icon-plus-sign"></span>
+						<span title="icon-print" class="tooltip icon-demo icon-print"></span>
+						<span title="icon-pushpin" class="tooltip icon-demo icon-pushpin"></span>
+						<span title="icon-qrcode" class="tooltip icon-demo icon-qrcode"></span>
+						<span title="icon-question-sign" class="tooltip icon-demo icon-question-sign"></span>
+						<span title="icon-random" class="tooltip icon-demo icon-random"></span>
+						<span title="icon-refresh" class="tooltip icon-demo icon-refresh"></span>
+						<span title="icon-remove" class="tooltip icon-demo icon-remove"></span>
+						<span title="icon-remove-circle" class="tooltip icon-demo icon-remove-circle"></span>
+						<span title="icon-remove-sign" class="tooltip icon-demo icon-remove-sign"></span>
+						<span title="icon-reorder" class="tooltip icon-demo icon-reorder"></span>
+						<span title="icon-resize-horizontal" class="tooltip icon-demo icon-resize-horizontal"></span>
+						<span title="icon-resize-vertical" class="tooltip icon-demo icon-resize-vertical"></span>
+						<span title="icon-retweet" class="tooltip icon-demo icon-retweet"></span>
+						<span title="icon-road" class="tooltip icon-demo icon-road"></span>
+						<span title="icon-rss" class="tooltip icon-demo icon-rss"></span>
+						<span title="icon-screenshot" class="tooltip icon-demo icon-screenshot"></span>
+						<span title="icon-search" class="tooltip icon-demo icon-search"></span>
+						<span title="icon-share" class="tooltip icon-demo icon-share"></span>
+						<span title="icon-share-alt" class="tooltip icon-demo icon-share-alt"></span>
+						<span title="icon-shopping-cart" class="tooltip icon-demo icon-shopping-cart"></span>
+						<span title="icon-signal" class="tooltip icon-demo icon-signal"></span>
+						<span title="icon-signin" class="tooltip icon-demo icon-signin"></span>
+						<span title="icon-signout" class="tooltip icon-demo icon-signout"></span>
+						<span title="icon-sitemap" class="tooltip icon-demo icon-sitemap"></span>
+						<span title="icon-sort" class="tooltip icon-demo icon-sort"></span>
+						<span title="icon-sort-down" class="tooltip icon-demo icon-sort-down"></span>
+						<span title="icon-sort-up" class="tooltip icon-demo icon-sort-up"></span>
+						<span title="icon-star" class="tooltip icon-demo icon-star"></span>
+						<span title="icon-star-empty" class="tooltip icon-demo icon-star-empty"></span>
+						<span title="icon-star-half" class="tooltip icon-demo icon-star-half"></span>
+						<span title="icon-tag" class="tooltip icon-demo icon-tag"></span>
+						<span title="icon-tags" class="tooltip icon-demo icon-tags"></span>
+						<span title="icon-tasks" class="tooltip icon-demo icon-tasks"></span>
+						<span title="icon-thumbs-down" class="tooltip icon-demo icon-thumbs-down"></span>
+						<span title="icon-thumbs-up" class="tooltip icon-demo icon-thumbs-up"></span>
+						<span title="icon-time" class="tooltip icon-demo icon-time"></span>
+						<span title="icon-tint" class="tooltip icon-demo icon-tint"></span>
+						<span title="icon-trash" class="tooltip icon-demo icon-trash"></span>
+						<span title="icon-trophy" class="tooltip icon-demo icon-trophy"></span>
+						<span title="icon-truck" class="tooltip icon-demo icon-truck"></span>
+						<span title="icon-umbrella" class="tooltip icon-demo icon-umbrella"></span>
+						<span title="icon-upload" class="tooltip icon-demo icon-upload"></span>
+						<span title="icon-upload-alt" class="tooltip icon-demo icon-upload-alt"></span>
+						<span title="icon-user" class="tooltip icon-demo icon-user"></span>
+						<span title="icon-user-md" class="tooltip icon-demo icon-user-md"></span>
+						<span title="icon-volume-off" class="tooltip icon-demo icon-volume-off"></span>
+						<span title="icon-volume-down" class="tooltip icon-demo icon-volume-down"></span>
+						<span title="icon-volume-up" class="tooltip icon-demo icon-volume-up"></span>
+						<span title="icon-warning-sign" class="tooltip icon-demo icon-warning-sign"></span>
+						<span title="icon-wrench" class="tooltip icon-demo icon-wrench"></span>
+						<span title="icon-zoom-in" class="tooltip icon-demo icon-zoom-in"></span>
+						<span title="icon-zoom-out" class="tooltip icon-demo icon-zoom-out"></span>
+						<span title="icon-file" class="tooltip icon-demo icon-file"></span>
+						<span title="icon-cut" class="tooltip icon-demo icon-cut"></span>
+						<span title="icon-copy" class="tooltip icon-demo icon-copy"></span>
+						<span title="icon-paste" class="tooltip icon-demo icon-paste"></span>
+						<span title="icon-save" class="tooltip icon-demo icon-save"></span>
+						<span title="icon-undo" class="tooltip icon-demo icon-undo"></span>
+						<span title="icon-repeat" class="tooltip icon-demo icon-repeat"></span>
+						<span title="icon-paper-clip" class="tooltip icon-demo icon-paper-clip"></span>
+						<span title="icon-text-height" class="tooltip icon-demo icon-text-height"></span>
+						<span title="icon-text-width" class="tooltip icon-demo icon-text-width"></span>
+						<span title="icon-align-left" class="tooltip icon-demo icon-align-left"></span>
+						<span title="icon-align-center" class="tooltip icon-demo icon-align-center"></span>
+						<span title="icon-align-right" class="tooltip icon-demo icon-align-right"></span>
+						<span title="icon-align-justify" class="tooltip icon-demo icon-align-justify"></span>
+						<span title="icon-indent-left" class="tooltip icon-demo icon-indent-left"></span>
+						<span title="icon-indent-right" class="tooltip icon-demo icon-indent-right"></span>
+						<span title="icon-font" class="tooltip icon-demo icon-font"></span>
+						<span title="icon-bold" class="tooltip icon-demo icon-bold"></span>
+						<span title="icon-italic" class="tooltip icon-demo icon-italic"></span>
+						<span title="icon-strikethrough" class="tooltip icon-demo icon-strikethrough"></span>
+						<span title="icon-underline" class="tooltip icon-demo icon-underline"></span>
+						<span title="icon-link" class="tooltip icon-demo icon-link"></span>
+						<span title="icon-columns" class="tooltip icon-demo icon-columns"></span>
+						<span title="icon-table" class="tooltip icon-demo icon-table"></span>
+						<span title="icon-th-large" class="tooltip icon-demo icon-th-large"></span>
+						<span title="icon-th" class="tooltip icon-demo icon-th"></span>
+						<span title="icon-th-list" class="tooltip icon-demo icon-th-list"></span>
+						<span title="icon-list" class="tooltip icon-demo icon-list"></span>
+						<span title="icon-list-ol" class="tooltip icon-demo icon-list-ol"></span>
+						<span title="icon-list-ul" class="tooltip icon-demo icon-list-ul"></span>
+						<span title="icon-list-alt" class="tooltip icon-demo icon-list-alt"></span>
+						<span title="icon-arrow-down" class="tooltip icon-demo icon-arrow-down"></span>
+						<span title="icon-arrow-left" class="tooltip icon-demo icon-arrow-left"></span>
+						<span title="icon-arrow-right" class="tooltip icon-demo icon-arrow-right"></span>
+						<span title="icon-arrow-up" class="tooltip icon-demo icon-arrow-up"></span>
+						<span title="icon-chevron-down" class="tooltip icon-demo icon-chevron-down"></span>
+						<span title="icon-circle-arrow-down" class="tooltip icon-demo icon-circle-arrow-down"></span>
+						<span title="icon-circle-arrow-left" class="tooltip icon-demo icon-circle-arrow-left"></span>
+						<span title="icon-circle-arrow-right" class="tooltip icon-demo icon-circle-arrow-right"></span>
+						<span title="icon-circle-arrow-up" class="tooltip icon-demo icon-circle-arrow-up"></span>
+						<span title="icon-chevron-left" class="tooltip icon-demo icon-chevron-left"></span>
+						<span title="icon-caret-down" class="tooltip icon-demo icon-caret-down"></span>
+						<span title="icon-caret-left" class="tooltip icon-demo icon-caret-left"></span>
+						<span title="icon-caret-right" class="tooltip icon-demo icon-caret-right"></span>
+						<span title="icon-caret-up" class="tooltip icon-demo icon-caret-up"></span>
+						<span title="icon-chevron-right" class="tooltip icon-demo icon-chevron-right"></span>
+						<span title="icon-hand-down" class="tooltip icon-demo icon-hand-down"></span>
+						<span title="icon-hand-left" class="tooltip icon-demo icon-hand-left"></span>
+						<span title="icon-hand-right" class="tooltip icon-demo icon-hand-right"></span>
+						<span title="icon-hand-up" class="tooltip icon-demo icon-hand-up"></span>
+						<span title="icon-chevron-up" class="tooltip icon-demo icon-chevron-up"></span>
+						<span title="icon-play-circle" class="tooltip icon-demo icon-play-circle"></span>
+						<span title="icon-play" class="tooltip icon-demo icon-play"></span>
+						<span title="icon-pause" class="tooltip icon-demo icon-pause"></span>
+						<span title="icon-stop" class="tooltip icon-demo icon-stop"></span>
+						<span title="icon-step-backward" class="tooltip icon-demo icon-step-backward"></span>
+						<span title="icon-fast-backward" class="tooltip icon-demo icon-fast-backward"></span>
+						<span title="icon-backward" class="tooltip icon-demo icon-backward"></span>
+						<span title="icon-forward" class="tooltip icon-demo icon-forward"></span>
+						<span title="icon-fast-forward" class="tooltip icon-demo icon-fast-forward"></span>
+						<span title="icon-step-forward" class="tooltip icon-demo icon-step-forward"></span>
+						<span title="icon-eject" class="tooltip icon-demo icon-eject"></span>
+						<span title="icon-fullscreen" class="tooltip icon-demo icon-fullscreen"></span>
+						<span title="icon-resize-full" class="tooltip icon-demo icon-resize-full"></span>
+						<span title="icon-resize-small" class="tooltip icon-demo icon-resize-small"></span>
+						<span title="icon-phone" class="tooltip icon-demo icon-phone"></span>
+						<span title="icon-phone-sign" class="tooltip icon-demo icon-phone-sign"></span>
+						<span title="icon-facebook" class="tooltip icon-demo icon-facebook"></span>
+						<span title="icon-facebook-sign" class="tooltip icon-demo icon-facebook-sign"></span>
+						<span title="icon-twitter" class="tooltip icon-demo icon-twitter"></span>
+						<span title="icon-twitter-sign" class="tooltip icon-demo icon-twitter-sign"></span>
+						<span title="icon-github" class="tooltip icon-demo icon-github"></span>
+						<span title="icon-github-sign" class="tooltip icon-demo icon-github-sign"></span>
+						<span title="icon-linkedin" class="tooltip icon-demo icon-linkedin"></span>
+						<span title="icon-linkedin-sign" class="tooltip icon-demo icon-linkedin-sign"></span>
+						<span title="icon-pinterest" class="tooltip icon-demo icon-pinterest"></span>
+						<span title="icon-pinterest-sign" class="tooltip icon-demo icon-pinterest-sign"></span>
+						<span title="icon-google-plus" class="tooltip icon-demo icon-google-plus"></span>
+						<span title="icon-google-plus-sign" class="tooltip icon-demo icon-google-plus-sign"></span>
+						<span title="icon-sign-blank" class="tooltip icon-demo icon-sign-blank"></span>
+						<div class="spacer"></div>
+					</div><!-- End of .content -->
+					
+				</div><!-- End of .box -->
+			</div><!-- End of .grid_12 -->
+			
+			<div class="grid_12">
+				<div class="box">
+				
+					<div class="header">
+						<h2>iconSweets 2 (25x25)</h2>
+					</div>
+					
+					<div class="content center-elements">
+						<div class="spacer"></div>
+						<img title="abacus.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/abacus.png" />
+						<img title="acces-denied-sign.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/acces-denied-sign.png" />
+						<img title="address-book-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/address-book-2.png" />
+						<img title="address-book-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/address-book-3.png" />
+						<img title="address-book-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/address-book-4.png" />
+						<img title="address-book-5.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/address-book-5.png" />
+						<img title="address-book.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/address-book.png" />
+						<img title="adidas-sport-shirt.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/adidas-sport-shirt.png" />
+						<img title="admin-user-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/admin-user-2.png" />
+						<img title="admin-user.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/admin-user.png" />
+						<img title="airplane.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/airplane.png" />
+						<img title="alarm---bell.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/alarm---bell.png" />
+						<img title="alarm-clock.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/alarm-clock.png" />
+						<img title="alert-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/alert-2.png" />
+						<img title="alert.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/alert.png" />
+						<img title="american-express.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/american-express.png" />
+						<img title="android.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/android.png" />
+						<img title="apartment-building.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/apartment-building.png" />
+						<img title="applications.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/applications.png" />
+						<img title="archive.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/archive.png" />
+						<img title="bag-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/bag-2.png" />
+						<img title="bag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/bag.png" />
+						<img title="balloons.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/balloons.png" />
+						<img title="bandaid.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/bandaid.png" />
+						<img title="battery-almost-empty.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/battery-almost-empty.png" />
+						<img title="battery-almost-full.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/battery-almost-full.png" />
+						<img title="battery-empty.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/battery-empty.png" />
+						<img title="battery-full.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/battery-full.png" />
+						<img title="battery.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/battery.png" />
+						<img title="bended-arrow-down.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/bended-arrow-down.png" />
+						<img title="bended-arrow-left.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/bended-arrow-left.png" />
+						<img title="bended-arrow-right.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/bended-arrow-right.png" />
+						<img title="bended-arrow-up.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/bended-arrow-up.png" />
+						<img title="big-brush.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/big-brush.png" />
+						<img title="bills-stack.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/bills-stack.png" />
+						<img title="blackberry-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/blackberry-2.png" />
+						<img title="blackberry-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/blackberry-3.png" />
+						<img title="blackberry.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/blackberry.png" />
+						<img title="blocks---images.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/blocks---images.png" />
+						<img title="blu-ray.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/blu-ray.png" />
+						<img title="bluetooth-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/bluetooth-2.png" />
+						<img title="bluetooth.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/bluetooth.png" />
+						<img title="book-large.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/book-large.png" />
+						<img title="book.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/book.png" />
+						<img title="books-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/books-2.png" />
+						<img title="books.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/books.png" />
+						<img title="box-incoming-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/box-incoming-2.png" />
+						<img title="box-incoming.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/box-incoming.png" />
+						<img title="box-outgoing-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/box-outgoing-2.png" />
+						<img title="box-outgoing.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/box-outgoing.png" />
+						<img title="bulls-eye.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/bulls-eye.png" />
+						<img title="calculator.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/calculator.png" />
+						<img title="camera-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/camera-2.png" />
+						<img title="camera.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/camera.png" />
+						<img title="candy-cane.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/candy-cane.png" />
+						<img title="car.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/car.png" />
+						<img title="cash-register.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cash-register.png" />
+						<img title="cassette.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cassette.png" />
+						<img title="cat.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cat.png" />
+						<img title="cd.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cd.png" />
+						<img title="cell-phone-reception.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cell-phone-reception.png" />
+						<img title="chair.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/chair.png" />
+						<img title="chart-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/chart-2.png" />
+						<img title="chart-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/chart-3.png" />
+						<img title="chart-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/chart-4.png" />
+						<img title="chart-5.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/chart-5.png" />
+						<img title="chart-6.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/chart-6.png" />
+						<img title="chart-7.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/chart-7.png" />
+						<img title="chart-8.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/chart-8.png" />
+						<img title="chart.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/chart.png" />
+						<img title="chemical.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/chemical.png" />
+						<img title="chrome.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/chrome.png" />
+						<img title="clapboard.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/clapboard.png" />
+						<img title="clipboard.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/clipboard.png" />
+						<img title="clock-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/clock-2.png" />
+						<img title="clock.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/clock.png" />
+						<img title="cloud---lightning-w--rain.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cloud---lightning-w--rain.png" />
+						<img title="cloud---lightning.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cloud---lightning.png" />
+						<img title="cloud---rain-w--shining-sun.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cloud---rain-w--shining-sun.png" />
+						<img title="cloud---rain-w--sun.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cloud---rain-w--sun.png" />
+						<img title="cloud-download.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cloud-download.png" />
+						<img title="cloud-upload.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cloud-upload.png" />
+						<img title="cloud.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cloud.png" />
+						<img title="cog-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cog-2.png" />
+						<img title="cog-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cog-3.png" />
+						<img title="cog-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cog-4.png" />
+						<img title="cog-5.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cog-5.png" />
+						<img title="cog.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cog.png" />
+						<img title="companies.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/companies.png" />
+						<img title="computer-imac.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/computer-imac.png" />
+						<img title="coverflow.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/coverflow.png" />
+						<img title="create---write.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/create---write.png" />
+						<img title="creditcard.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/creditcard.png" />
+						<img title="cup.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cup.png" />
+						<img title="cut---scissors.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/cut---scissors.png" />
+						<img title="day-calendar.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/day-calendar.png" />
+						<img title="delicious.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/delicious.png" />
+						<img title="digg-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/digg-2.png" />
+						<img title="digg-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/digg-3.png" />
+						<img title="digg-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/digg-4.png" />
+						<img title="digg.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/digg.png" />
+						<img title="document.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/document.png" />
+						<img title="documents.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/documents.png" />
+						<img title="dog-tag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/dog-tag.png" />
+						<img title="dog-tags.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/dog-tags.png" />
+						<img title="download-to-computer.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/download-to-computer.png" />
+						<img title="download.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/download.png" />
+						<img title="dress.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/dress.png" />
+						<img title="dribbble-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/dribbble-2.png" />
+						<img title="dribbble-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/dribbble-3.png" />
+						<img title="dribbble-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/dribbble-4.png" />
+						<img title="dribbble.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/dribbble.png" />
+						<img title="dropbox.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/dropbox.png" />
+						<img title="drupal.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/drupal.png" />
+						<img title="dvd.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/dvd.png" />
+						<img title="electricity-input-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/electricity-input-2.png" />
+						<img title="electricity-input-w--plug.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/electricity-input-w--plug.png" />
+						<img title="electricity-input.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/electricity-input.png" />
+						<img title="electricity-plug.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/electricity-plug.png" />
+						<img title="excel-document.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/excel-document.png" />
+						<img title="excel-documents.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/excel-documents.png" />
+						<img title="exit.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/exit.png" />
+						<img title="expos-.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/expos-.png" />
+						<img title="expression-engine.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/expression-engine.png" />
+						<img title="eyedropper.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/eyedropper.png" />
+						<img title="facebook-like.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/facebook-like.png" />
+						<img title="facebook.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/facebook.png" />
+						<img title="female-contour.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/female-contour.png" />
+						<img title="female-symbol.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/female-symbol.png" />
+						<img title="file-cabinet.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/file-cabinet.png" />
+						<img title="film-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/film-2.png" />
+						<img title="film-camera-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/film-camera-2.png" />
+						<img title="film-camera.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/film-camera.png" />
+						<img title="film-strip.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/film-strip.png" />
+						<img title="finish-banner.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/finish-banner.png" />
+						<img title="finish-flag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/finish-flag.png" />
+						<img title="firefox.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/firefox.png" />
+						<img title="flag-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/flag-2.png" />
+						<img title="flag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/flag.png" />
+						<img title="flip-clock.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/flip-clock.png" />
+						<img title="folder.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/folder.png" />
+						<img title="footprint.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/footprint.png" />
+						<img title="footprints.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/footprints.png" />
+						<img title="fountain-pen.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/fountain-pen.png" />
+						<img title="frames.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/frames.png" />
+						<img title="g-key.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/g-key.png" />
+						<img title="glass.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/glass.png" />
+						<img title="globe-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/globe-2.png" />
+						<img title="globe.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/globe.png" />
+						<img title="go-back-from-screen.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/go-back-from-screen.png" />
+						<img title="go-full-screen.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/go-full-screen.png" />
+						<img title="google-buzz.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/google-buzz.png" />
+						<img title="google-maps.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/google-maps.png" />
+						<img title="graph-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/graph-2.png" />
+						<img title="graph.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/graph.png" />
+						<img title="group-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/group-2.png" />
+						<img title="group.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/group.png" />
+						<img title="halloween-pumpkin.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/halloween-pumpkin.png" />
+						<img title="hard-disk.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/hard-disk.png" />
+						<img title="hd-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/hd-2.png" />
+						<img title="hd-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/hd-3.png" />
+						<img title="hd.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/hd.png" />
+						<img title="headphones.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/headphones.png" />
+						<img title="help.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/help.png" />
+						<img title="home-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/home-2.png" />
+						<img title="home.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/home.png" />
+						<img title="hour-glass.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/hour-glass.png" />
+						<img title="ice-cream-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ice-cream-2.png" />
+						<img title="ice-cream.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ice-cream.png" />
+						<img title="ichat.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ichat.png" />
+						<img title="ideal.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ideal.png" />
+						<img title="image-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/image-2.png" />
+						<img title="image-file.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/image-file.png" />
+						<img title="image.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/image.png" />
+						<img title="images-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/images-2.png" />
+						<img title="images.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/images.png" />
+						<img title="inbox.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/inbox.png" />
+						<img title="info---about.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/info---about.png" />
+						<img title="ipad-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ipad-2.png" />
+						<img title="ipad.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ipad.png" />
+						<img title="iphone-3(g).png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/iphone-3(g).png" />
+						<img title="iphone-4---2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/iphone-4---2.png" />
+						<img title="iphone-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/iphone-4.png" />
+						<img title="ipod-classic.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ipod-classic.png" />
+						<img title="ipod-nano-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ipod-nano-2.png" />
+						<img title="ipod-nano.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ipod-nano.png" />
+						<img title="ipod-shuffle.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ipod-shuffle.png" />
+						<img title="joomla.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/joomla.png" />
+						<img title="key-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/key-2.png" />
+						<img title="key.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/key.png" />
+						<img title="keyboard.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/keyboard.png" />
+						<img title="ladys-purse.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ladys-purse.png" />
+						<img title="lamp.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/lamp.png" />
+						<img title="laptop.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/laptop.png" />
+						<img title="lastfm-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/lastfm-2.png" />
+						<img title="lastfm.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/lastfm.png" />
+						<img title="leaf.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/leaf.png" />
+						<img title="lemonade-stand-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/lemonade-stand-2.png" />
+						<img title="lemonade-stand.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/lemonade-stand.png" />
+						<img title="light-bulb.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/light-bulb.png" />
+						<img title="link-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/link-2.png" />
+						<img title="link.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/link.png" />
+						<img title="linux.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/linux.png" />
+						<img title="list-w--image.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/list-w--image.png" />
+						<img title="list-w--images.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/list-w--images.png" />
+						<img title="list.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/list.png" />
+						<img title="loading-bar.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/loading-bar.png" />
+						<img title="locked-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/locked-2.png" />
+						<img title="locked-folder.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/locked-folder.png" />
+						<img title="locked.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/locked.png" />
+						<img title="macos.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/macos.png" />
+						<img title="magic-mouse.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/magic-mouse.png" />
+						<img title="magnifying-glass-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/magnifying-glass-2.png" />
+						<img title="magnifying-glass.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/magnifying-glass.png" />
+						<img title="mail-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/mail-2.png" />
+						<img title="mail.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/mail.png" />
+						<img title="male-contour.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/male-contour.png" />
+						<img title="male-symbol.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/male-symbol.png" />
+						<img title="map.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/map.png" />
+						<img title="marker.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/marker.png" />
+						<img title="mastercard.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/mastercard.png" />
+						<img title="medical-case.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/medical-case.png" />
+						<img title="megaphone.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/megaphone.png" />
+						<img title="mickey.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/mickey.png" />
+						<img title="microphone.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/microphone.png" />
+						<img title="mighty-mouse.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/mighty-mouse.png" />
+						<img title="mobile-phone-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/mobile-phone-2.png" />
+						<img title="mobile-phone.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/mobile-phone.png" />
+						<img title="mobypicture.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/mobypicture.png" />
+						<img title="money-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/money-2.png" />
+						<img title="money.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/money.png" />
+						<img title="monitor.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/monitor.png" />
+						<img title="month-calendar.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/month-calendar.png" />
+						<img title="mouse-.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/mouse-.png" />
+						<img title="mouse-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/mouse-2.png" />
+						<img title="mouse-wires.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/mouse-wires.png" />
+						<img title="music-folder.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/music-folder.png" />
+						<img title="musical-keyboard.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/musical-keyboard.png" />
+						<img title="myspace-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/myspace-2.png" />
+						<img title="myspace.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/myspace.png" />
+						<img title="nike-sport-shirt.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/nike-sport-shirt.png" />
+						<img title="note-book.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/note-book.png" />
+						<img title="old-phone.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/old-phone.png" />
+						<img title="pacman-ghost.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/pacman-ghost.png" />
+						<img title="pacman.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/pacman.png" />
+						<img title="paint-brush.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/paint-brush.png" />
+						<img title="pants.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/pants.png" />
+						<img title="paperclip.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/paperclip.png" />
+						<img title="paypal-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/paypal-2.png" />
+						<img title="paypal-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/paypal-3.png" />
+						<img title="paypal-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/paypal-4.png" />
+						<img title="paypal-5.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/paypal-5.png" />
+						<img title="paypal.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/paypal.png" />
+						<img title="pdf-document.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/pdf-document.png" />
+						<img title="pdf-documents.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/pdf-documents.png" />
+						<img title="pencil.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/pencil.png" />
+						<img title="personal-folder---user-folder.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/personal-folder---user-folder.png" />
+						<img title="phone-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/phone-2.png" />
+						<img title="phone-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/phone-3.png" />
+						<img title="phone-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/phone-4.png" />
+						<img title="phone-hook.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/phone-hook.png" />
+						<img title="phone.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/phone.png" />
+						<img title="piggy-bank.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/piggy-bank.png" />
+						<img title="plane-suitcase.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/plane-suitcase.png" />
+						<img title="plate---diner.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/plate---diner.png" />
+						<img title="plixi.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/plixi.png" />
+						<img title="post-card.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/post-card.png" />
+						<img title="power.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/power.png" />
+						<img title="powerpoint-document.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/powerpoint-document.png" />
+						<img title="powerpoint-documents.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/powerpoint-documents.png" />
+						<img title="presentation.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/presentation.png" />
+						<img title="preview.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/preview.png" />
+						<img title="price-tag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/price-tag.png" />
+						<img title="price-tags.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/price-tags.png" />
+						<img title="printer.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/printer.png" />
+						<img title="quicktime-(new).png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/quicktime-(new).png" />
+						<img title="quicktime.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/quicktime.png" />
+						<img title="radio-signal.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/radio-signal.png" />
+						<img title="radio.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/radio.png" />
+						<img title="rake-&-scoop.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/rake-&-scoop.png" />
+						<img title="record.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/record.png" />
+						<img title="recycle-symbol.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/recycle-symbol.png" />
+						<img title="recycled-bag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/recycled-bag.png" />
+						<img title="refresh-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/refresh-2.png" />
+						<img title="refresh-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/refresh-3.png" />
+						<img title="refresh-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/refresh-4.png" />
+						<img title="refresh.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/refresh.png" />
+						<img title="repeat.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/repeat.png" />
+						<img title="robot.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/robot.png" />
+						<img title="rss.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/rss.png" />
+						<img title="ruler-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ruler-2.png" />
+						<img title="ruler.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/ruler.png" />
+						<img title="running-man.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/running-man.png" />
+						<img title="safari.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/safari.png" />
+						<img title="scan-label-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/scan-label-2.png" />
+						<img title="scan-label-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/scan-label-3.png" />
+						<img title="scan-label.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/scan-label.png" />
+						<img title="sd-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/sd-2.png" />
+						<img title="sd-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/sd-3.png" />
+						<img title="sd.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/sd.png" />
+						<img title="settings-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/settings-2.png" />
+						<img title="settings.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/settings.png" />
+						<img title="shades.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/shades.png" />
+						<img title="shopping-bag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/shopping-bag.png" />
+						<img title="shopping-basket-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/shopping-basket-2.png" />
+						<img title="shopping-basket.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/shopping-basket.png" />
+						<img title="shopping-cart-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/shopping-cart-2.png" />
+						<img title="shopping-cart-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/shopping-cart-3.png" />
+						<img title="shopping-cart-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/shopping-cart-4.png" />
+						<img title="shopping-cart.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/shopping-cart.png" />
+						<img title="shuffle.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/shuffle.png" />
+						<img title="sign-post-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/sign-post-2.png" />
+						<img title="sign-post.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/sign-post.png" />
+						<img title="skype-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/skype-2.png" />
+						<img title="skype.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/skype.png" />
+						<img title="sleeveless-shirt.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/sleeveless-shirt.png" />
+						<img title="small-brush.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/small-brush.png" />
+						<img title="socks.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/socks.png" />
+						<img title="sound.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/sound.png" />
+						<img title="speech-bubble-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/speech-bubble-2.png" />
+						<img title="speech-bubble.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/speech-bubble.png" />
+						<img title="speech-bubbles-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/speech-bubbles-2.png" />
+						<img title="speech-bubbles.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/speech-bubbles.png" />
+						<img title="sport-shirt.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/sport-shirt.png" />
+						<img title="sticky-note.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/sticky-note.png" />
+						<img title="stop-watch.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/stop-watch.png" />
+						<img title="strategy-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/strategy-2.png" />
+						<img title="strategy.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/strategy.png" />
+						<img title="strike-through-month-calendar.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/strike-through-month-calendar.png" />
+						<img title="stubleupon.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/stubleupon.png" />
+						<img title="suitcase-1.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/suitcase-1.png" />
+						<img title="suitcase-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/suitcase-2.png" />
+						<img title="sweater.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/sweater.png" />
+						<img title="t-shirt.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/t-shirt.png" />
+						<img title="table.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/table.png" />
+						<img title="tag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/tag.png" />
+						<img title="tags-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/tags-2.png" />
+						<img title="television.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/television.png" />
+						<img title="text-document.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/text-document.png" />
+						<img title="text-documents.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/text-documents.png" />
+						<img title="text-styling-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/text-styling-2.png" />
+						<img title="text-styling-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/text-styling-3.png" />
+						<img title="text-styling.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/text-styling.png" />
+						<img title="timer.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/timer.png" />
+						<img title="tools.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/tools.png" />
+						<img title="traffic-light.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/traffic-light.png" />
+						<img title="trashcan-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/trashcan-2.png" />
+						<img title="trashcan.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/trashcan.png" />
+						<img title="travel-suitcase.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/travel-suitcase.png" />
+						<img title="tree.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/tree.png" />
+						<img title="trolly.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/trolly.png" />
+						<img title="truck-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/truck-2.png" />
+						<img title="truck.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/truck.png" />
+						<img title="tumbler.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/tumbler.png" />
+						<img title="twitter-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/twitter-2.png" />
+						<img title="twitter.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/twitter.png" />
+						<img title="umbrella.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/umbrella.png" />
+						<img title="under-construction.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/under-construction.png" />
+						<img title="universal-acces.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/universal-acces.png" />
+						<img title="unlocked.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/unlocked.png" />
+						<img title="upload.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/upload.png" />
+						<img title="usb-stick.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/usb-stick.png" />
+						<img title="user-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/user-2.png" />
+						<img title="user-comment.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/user-comment.png" />
+						<img title="user.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/user.png" />
+						<img title="users-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/users-2.png" />
+						<img title="users.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/users.png" />
+						<img title="v-card-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/v-card-2.png" />
+						<img title="v-card-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/v-card-3.png" />
+						<img title="v-card.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/v-card.png" />
+						<img title="vault.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/vault.png" />
+						<img title="vimeo-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/vimeo-2.png" />
+						<img title="vimeo-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/vimeo-3.png" />
+						<img title="vimeo-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/vimeo-4.png" />
+						<img title="vimeo-5.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/vimeo-5.png" />
+						<img title="vimeo.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/vimeo.png" />
+						<img title="visa-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/visa-2.png" />
+						<img title="visa.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/visa.png" />
+						<img title="wacom-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/wacom-2.png" />
+						<img title="wacom.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/wacom.png" />
+						<img title="walking-man.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/walking-man.png" />
+						<img title="wifi-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/wifi-2.png" />
+						<img title="wifi-signal-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/wifi-signal-2.png" />
+						<img title="wifi-signal.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/wifi-signal.png" />
+						<img title="wifi.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/wifi.png" />
+						<img title="windows.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/windows.png" />
+						<img title="wine-glass.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/wine-glass.png" />
+						<img title="winner-podium.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/winner-podium.png" />
+						<img title="word-document.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/word-document.png" />
+						<img title="word-documents.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/word-documents.png" />
+						<img title="wordpress-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/wordpress-2.png" />
+						<img title="wordpress.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/wordpress.png" />
+						<img title="youtube-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/youtube-2.png" />
+						<img title="youtube-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/youtube-3.png" />
+						<img title="youtube-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/youtube-4.png" />
+						<img title="youtube.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/youtube.png" />
+						<img title="zip-file.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/zip-file.png" />
+						<img title="zip-files.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/25x25/zip-files.png" />
+						<div class="spacer"></div>
+					</div><!-- End of .content -->
+					
+				</div><!-- End of .box -->
+			</div><!-- End of .grid_12 -->
+			
+			<div class="grid_12">
+				<div class="box">
+				
+					<div class="header">
+						<h2>iconSweets 2 (16x16)</h2>
+					</div>
+					
+					<div class="content center-elements">
+						<div class="spacer"></div>
+						<img title="abacus.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/abacus.png" />
+						<img title="acces-denied-sign.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/acces-denied-sign.png" />
+						<img title="address-book.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/address-book.png" />
+						<img title="admin-user-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/admin-user-2.png" />
+						<img title="admin-user.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/admin-user.png" />
+						<img title="airplane.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/airplane.png" />
+						<img title="alarm---bell-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/alarm---bell-2.png" />
+						<img title="alarm---bell.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/alarm---bell.png" />
+						<img title="alarm-clock.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/alarm-clock.png" />
+						<img title="alert-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/alert-2.png" />
+						<img title="alert.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/alert.png" />
+						<img title="android.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/android.png" />
+						<img title="apartment-building.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/apartment-building.png" />
+						<img title="archive.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/archive.png" />
+						<img title="bag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/bag.png" />
+						<img title="balloons.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/balloons.png" />
+						<img title="bandaid.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/bandaid.png" />
+						<img title="battery-almost-empty.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/battery-almost-empty.png" />
+						<img title="battery-almost-full.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/battery-almost-full.png" />
+						<img title="battery-empty.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/battery-empty.png" />
+						<img title="battery-full.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/battery-full.png" />
+						<img title="battery.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/battery.png" />
+						<img title="bended-arrow-down.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/bended-arrow-down.png" />
+						<img title="bended-arrow-left.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/bended-arrow-left.png" />
+						<img title="bended-arrow-right.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/bended-arrow-right.png" />
+						<img title="bended-arrow-up.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/bended-arrow-up.png" />
+						<img title="big-brush.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/big-brush.png" />
+						<img title="blackberry.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/blackberry.png" />
+						<img title="blocks---images.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/blocks---images.png" />
+						<img title="blu-ray.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/blu-ray.png" />
+						<img title="bluetooth-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/bluetooth-2.png" />
+						<img title="bluetooth.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/bluetooth.png" />
+						<img title="book-large.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/book-large.png" />
+						<img title="book.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/book.png" />
+						<img title="books.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/books.png" />
+						<img title="box-incoming.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/box-incoming.png" />
+						<img title="box-outgoing.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/box-outgoing.png" />
+						<img title="bulls-eye.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/bulls-eye.png" />
+						<img title="calculator.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/calculator.png" />
+						<img title="camera-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/camera-2.png" />
+						<img title="camera.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/camera.png" />
+						<img title="car.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/car.png" />
+						<img title="cash-register.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cash-register.png" />
+						<img title="cassette.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cassette.png" />
+						<img title="cat.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cat.png" />
+						<img title="cd.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cd.png" />
+						<img title="chair.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/chair.png" />
+						<img title="chart-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/chart-2.png" />
+						<img title="chart-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/chart-3.png" />
+						<img title="chart-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/chart-4.png" />
+						<img title="chart-5.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/chart-5.png" />
+						<img title="chart-6.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/chart-6.png" />
+						<img title="chart-7.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/chart-7.png" />
+						<img title="chart-8.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/chart-8.png" />
+						<img title="chart.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/chart.png" />
+						<img title="chemical.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/chemical.png" />
+						<img title="chrome.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/chrome.png" />
+						<img title="clipboard.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/clipboard.png" />
+						<img title="clock.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/clock.png" />
+						<img title="cloud-download.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cloud-download.png" />
+						<img title="cloud-upload.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cloud-upload.png" />
+						<img title="cloud.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cloud.png" />
+						<img title="cog-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cog-2.png" />
+						<img title="cog-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cog-3.png" />
+						<img title="cog-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cog-4.png" />
+						<img title="cog.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cog.png" />
+						<img title="companies.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/companies.png" />
+						<img title="computer-imac.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/computer-imac.png" />
+						<img title="coverflow.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/coverflow.png" />
+						<img title="create---write.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/create---write.png" />
+						<img title="cup.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cup.png" />
+						<img title="cut---scissors.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/cut---scissors.png" />
+						<img title="day-calendar.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/day-calendar.png" />
+						<img title="delicious.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/delicious.png" />
+						<img title="digg-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/digg-2.png" />
+						<img title="digg.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/digg.png" />
+						<img title="document.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/document.png" />
+						<img title="documents.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/documents.png" />
+						<img title="download-to-computer.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/download-to-computer.png" />
+						<img title="download.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/download.png" />
+						<img title="dress.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/dress.png" />
+						<img title="dribbble-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/dribbble-2.png" />
+						<img title="dribbble.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/dribbble.png" />
+						<img title="dropbox.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/dropbox.png" />
+						<img title="drupal.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/drupal.png" />
+						<img title="dvd.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/dvd.png" />
+						<img title="electricity-input.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/electricity-input.png" />
+						<img title="electricity-plug.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/electricity-plug.png" />
+						<img title="excel-document.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/excel-document.png" />
+						<img title="excel-documents.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/excel-documents.png" />
+						<img title="exit.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/exit.png" />
+						<img title="expos-.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/expos-.png" />
+						<img title="expression-engine.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/expression-engine.png" />
+						<img title="eyedropper.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/eyedropper.png" />
+						<img title="facebook-like.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/facebook-like.png" />
+						<img title="facebook.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/facebook.png" />
+						<img title="fax.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/fax.png" />
+						<img title="female-contour.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/female-contour.png" />
+						<img title="female-symbol.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/female-symbol.png" />
+						<img title="file-cabinet.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/file-cabinet.png" />
+						<img title="film-camera.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/film-camera.png" />
+						<img title="film-strip-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/film-strip-2.png" />
+						<img title="film-strip.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/film-strip.png" />
+						<img title="finish-flag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/finish-flag.png" />
+						<img title="firefox.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/firefox.png" />
+						<img title="flag-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/flag-2.png" />
+						<img title="flag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/flag.png" />
+						<img title="folder.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/folder.png" />
+						<img title="footprints.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/footprints.png" />
+						<img title="fountain-pen.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/fountain-pen.png" />
+						<img title="frames.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/frames.png" />
+						<img title="globe-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/globe-2.png" />
+						<img title="globe.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/globe.png" />
+						<img title="go-back-from-full-screen.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/go-back-from-full-screen.png" />
+						<img title="go-back-from-screen.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/go-back-from-screen.png" />
+						<img title="go-full-screen.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/go-full-screen.png" />
+						<img title="google-buzz.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/google-buzz.png" />
+						<img title="google-maps.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/google-maps.png" />
+						<img title="graph.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/graph.png" />
+						<img title="hd-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/hd-2.png" />
+						<img title="hd-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/hd-3.png" />
+						<img title="hd.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/hd.png" />
+						<img title="headphones.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/headphones.png" />
+						<img title="help.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/help.png" />
+						<img title="home-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/home-2.png" />
+						<img title="home.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/home.png" />
+						<img title="ice-cream-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/ice-cream-2.png" />
+						<img title="ice-cream.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/ice-cream.png" />
+						<img title="ichat.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/ichat.png" />
+						<img title="image-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/image-2.png" />
+						<img title="image.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/image.png" />
+						<img title="image2-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/image2-2.png" />
+						<img title="inbox.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/inbox.png" />
+						<img title="info---about.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/info---about.png" />
+						<img title="ipad.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/ipad.png" />
+						<img title="iphone-3(g).png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/iphone-3(g).png" />
+						<img title="iphone-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/iphone-4.png" />
+						<img title="ipod-classic.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/ipod-classic.png" />
+						<img title="ipod-nano.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/ipod-nano.png" />
+						<img title="joomla.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/joomla.png" />
+						<img title="key-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/key-2.png" />
+						<img title="key.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/key.png" />
+						<img title="ladys-purse.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/ladys-purse.png" />
+						<img title="lamp.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/lamp.png" />
+						<img title="laptop.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/laptop.png" />
+						<img title="lastfm-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/lastfm-2.png" />
+						<img title="lemonade-stand.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/lemonade-stand.png" />
+						<img title="light-bulb.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/light-bulb.png" />
+						<img title="link-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/link-2.png" />
+						<img title="link.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/link.png" />
+						<img title="linux.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/linux.png" />
+						<img title="list-w--image.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/list-w--image.png" />
+						<img title="list-w--images.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/list-w--images.png" />
+						<img title="list.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/list.png" />
+						<img title="loading-bar.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/loading-bar.png" />
+						<img title="locked-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/locked-2.png" />
+						<img title="locked.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/locked.png" />
+						<img title="macos.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/macos.png" />
+						<img title="magic-mouse.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/magic-mouse.png" />
+						<img title="magnifying-glass.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/magnifying-glass.png" />
+						<img title="mail.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/mail.png" />
+						<img title="male-contour.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/male-contour.png" />
+						<img title="male-symbol.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/male-symbol.png" />
+						<img title="map.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/map.png" />
+						<img title="marker.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/marker.png" />
+						<img title="medical-case.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/medical-case.png" />
+						<img title="megaphone.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/megaphone.png" />
+						<img title="microphone.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/microphone.png" />
+						<img title="mighty-mouse.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/mighty-mouse.png" />
+						<img title="mobile-phone.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/mobile-phone.png" />
+						<img title="mobypicture.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/mobypicture.png" />
+						<img title="money-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/money-2.png" />
+						<img title="money.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/money.png" />
+						<img title="monitor.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/monitor.png" />
+						<img title="month-calendar.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/month-calendar.png" />
+						<img title="mouse-wires.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/mouse-wires.png" />
+						<img title="note-book.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/note-book.png" />
+						<img title="pacman-ghost.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/pacman-ghost.png" />
+						<img title="pacman.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/pacman.png" />
+						<img title="paint-brush.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/paint-brush.png" />
+						<img title="pants.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/pants.png" />
+						<img title="paperclip.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/paperclip.png" />
+						<img title="paypal-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/paypal-2.png" />
+						<img title="paypal-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/paypal-3.png" />
+						<img title="paypal.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/paypal.png" />
+						<img title="pdf-document.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/pdf-document.png" />
+						<img title="pdf-documents.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/pdf-documents.png" />
+						<img title="pencil.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/pencil.png" />
+						<img title="phone-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/phone-3.png" />
+						<img title="phone-hook.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/phone-hook.png" />
+						<img title="phone.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/phone.png" />
+						<img title="piggy-bank.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/piggy-bank.png" />
+						<img title="plane-suitcase.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/plane-suitcase.png" />
+						<img title="plixi.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/plixi.png" />
+						<img title="post-card.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/post-card.png" />
+						<img title="power.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/power.png" />
+						<img title="powerpoint-document.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/powerpoint-document.png" />
+						<img title="powerpoint-documents.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/powerpoint-documents.png" />
+						<img title="presentation.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/presentation.png" />
+						<img title="preview.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/preview.png" />
+						<img title="price-tag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/price-tag.png" />
+						<img title="price-tags.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/price-tags.png" />
+						<img title="printer.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/printer.png" />
+						<img title="radio.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/radio.png" />
+						<img title="record.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/record.png" />
+						<img title="recycle-symbol.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/recycle-symbol.png" />
+						<img title="refresh-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/refresh-2.png" />
+						<img title="refresh-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/refresh-3.png" />
+						<img title="refresh-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/refresh-4.png" />
+						<img title="refresh.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/refresh.png" />
+						<img title="repeat.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/repeat.png" />
+						<img title="robot.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/robot.png" />
+						<img title="rss.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/rss.png" />
+						<img title="ruler-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/ruler-2.png" />
+						<img title="ruler.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/ruler.png" />
+						<img title="running-man.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/running-man.png" />
+						<img title="safari.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/safari.png" />
+						<img title="scan-label-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/scan-label-2.png" />
+						<img title="sd-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/sd-2.png" />
+						<img title="sd-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/sd-3.png" />
+						<img title="sd.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/sd.png" />
+						<img title="settings-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/settings-2.png" />
+						<img title="settings.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/settings.png" />
+						<img title="shopping-bag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/shopping-bag.png" />
+						<img title="shopping-basket-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/shopping-basket-2.png" />
+						<img title="shopping-cart-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/shopping-cart-2.png" />
+						<img title="shopping-cart-3.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/shopping-cart-3.png" />
+						<img title="shopping-cart-4.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/shopping-cart-4.png" />
+						<img title="shopping-cart.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/shopping-cart.png" />
+						<img title="shuffle.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/shuffle.png" />
+						<img title="sign-post.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/sign-post.png" />
+						<img title="skype.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/skype.png" />
+						<img title="sleeveless-shirt.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/sleeveless-shirt.png" />
+						<img title="small-brush.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/small-brush.png" />
+						<img title="socks.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/socks.png" />
+						<img title="sound.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/sound.png" />
+						<img title="speech-bubble-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/speech-bubble-2.png" />
+						<img title="speech-bubble.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/speech-bubble.png" />
+						<img title="speech-bubbles-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/speech-bubbles-2.png" />
+						<img title="speech-bubbles.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/speech-bubbles.png" />
+						<img title="sport-shirt.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/sport-shirt.png" />
+						<img title="stop-watch.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/stop-watch.png" />
+						<img title="strategy-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/strategy-2.png" />
+						<img title="strategy.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/strategy.png" />
+						<img title="stubleupon.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/stubleupon.png" />
+						<img title="suitcase.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/suitcase.png" />
+						<img title="sweater.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/sweater.png" />
+						<img title="t-shirt.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/t-shirt.png" />
+						<img title="table.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/table.png" />
+						<img title="tag.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/tag.png" />
+						<img title="tags-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/tags-2.png" />
+						<img title="television.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/television.png" />
+						<img title="timer.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/timer.png" />
+						<img title="trashcan-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/trashcan-2.png" />
+						<img title="trashcan.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/trashcan.png" />
+						<img title="travel-suitcase.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/travel-suitcase.png" />
+						<img title="tree.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/tree.png" />
+						<img title="trolly.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/trolly.png" />
+						<img title="truck.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/truck.png" />
+						<img title="tumbler.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/tumbler.png" />
+						<img title="twitter-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/twitter-2.png" />
+						<img title="twitter.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/twitter.png" />
+						<img title="umbrella.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/umbrella.png" />
+						<img title="under-construction.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/under-construction.png" />
+						<img title="unlocked.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/unlocked.png" />
+						<img title="upload.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/upload.png" />
+						<img title="user-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/user-2.png" />
+						<img title="user-comment.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/user-comment.png" />
+						<img title="user.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/user.png" />
+						<img title="users-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/users-2.png" />
+						<img title="users.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/users.png" />
+						<img title="v-card-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/v-card-2.png" />
+						<img title="v-card.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/v-card.png" />
+						<img title="vault.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/vault.png" />
+						<img title="vimeo-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/vimeo-2.png" />
+						<img title="vimeo.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/vimeo.png" />
+						<img title="walking-man.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/walking-man.png" />
+						<img title="wifi-signal-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/wifi-signal-2.png" />
+						<img title="wifi-signal.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/wifi-signal.png" />
+						<img title="windows.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/windows.png" />
+						<img title="winner-podium.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/winner-podium.png" />
+						<img title="word-document.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/word-document.png" />
+						<img title="word-documents.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/word-documents.png" />
+						<img title="wordpress-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/wordpress-2.png" />
+						<img title="wordpress.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/wordpress.png" />
+						<img title="youtube-2.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/youtube-2.png" />
+						<img title="youtube.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/youtube.png" />
+						<img title="zip-file.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/zip-file.png" />
+						<img title="zip-files.png" class="tooltip icon-demo" src="img/icons/packs/iconsweets2/16x16/zip-files.png" />
+						<div class="spacer"></div>
+					</div><!-- End of .content -->
+					
+				</div><!-- End of .box -->
+			</div><!-- End of .grid_12 -->
+			
+			<div class="grid_12">
+				<div class="box">
+				
+					<div class="header">
+						<h2>Fugue-Icons</h2>
+					</div>
+					
+					<div class="content center-elements">
+						<p style="font-size: 14px;"><strong>This package contains over 3200 colored icons!</strong></p><br />
+						<p>You can see the icons here: <a target="_blank" href="http://p.yusukekamiyamane.com/icons/preview/fugue.png">http://p.yusukekamiyamane.com/icons/preview/fugue.png</a></p>
+					</div><!-- End of .content -->
+					
+				</div><!-- End of .box -->
+			</div><!-- End of .grid_12 -->
+		</section><!-- End of #content -->
+		
+	</div><!-- End of #main -->
+	
+	<!-- The footer -->
+	<footer class="container_12">
+		<ul class="grid_6">
+			<li><a href="#">About</a></li>
+			<li><a href="#">Jobs</a></li>
+			<li><a href="#">@StammTec.de</a></li>
+		</ul>
+		
+		<span class="grid_6">
+			Copyright &copy; 2012 YourCompany
+		</span>
+	</footer><!-- End of footer -->
+	
+	<!-- Spawn $$.loaded -->
+	<script>
+		$$.loaded();
+	</script>
+	
+	<!-- Prompt IE 6 users to install Chrome Frame. Remove this if you want to support IE 6.
+	   chromium.org/developers/how-tos/chrome-frame-getting-started -->
+	<!--[if lt IE 7 ]>
+	<script defer src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
+	<script defer>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
+	<![endif]-->
+
+</body>
+</html>

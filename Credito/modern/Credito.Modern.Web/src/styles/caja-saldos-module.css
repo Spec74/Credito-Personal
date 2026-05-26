@@ -1,0 +1,124 @@
+/**
+ * Saldos y cierres — estilos específicos (layout: credix-module-layout).
+ */
+
+.caja-saldos-page__rol-badge {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  min-width: 0;
+}
+
+.caja-saldos-page__rol-badge .ant-tag {
+  font-weight: 600;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.caja-saldos-asignadas-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.caja-saldos-asignadas-actions .ant-btn-dangerous {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.caja-saldos-table .ant-table-tbody > tr {
+  transition: background-color 0.12s ease;
+}
+
+.caja-saldos-table .ant-table-tbody > tr:hover > td {
+  background: var(--credix-brand-light, #e8f2fc) !important;
+}
+
+.caja-saldos-table .ant-table-summary {
+  font-weight: 700;
+  background: linear-gradient(90deg, #e8f2fc 0%, #f8fbff 100%);
+}
+
+.caja-saldos-table .ant-table-summary .ant-table-cell {
+  color: var(--credix-brand, #114885);
+  font-variant-numeric: tabular-nums;
+}
+
+.caja-saldos-cierre-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.caja-saldos-cierre-panel .credix-panel {
+  border-color: #c5daf0;
+}
+
+.caja-saldos-boveda-banner {
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #c5daf0;
+  background: linear-gradient(90deg, #e8f2fc 0%, #fff 100%);
+  font-size: 13px;
+  word-break: break-word;
+}
+
+.caja-saldos-boveda-banner strong {
+  color: var(--credix-brand, #114885);
+}
+
+.caja-saldos-conteo-modal__resumen {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--credix-brand-light, #e8f2fc);
+  font-size: 14px;
+}
+
+.caja-saldos-conteo-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.caja-saldos-conteo-modal__totales {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--credix-border, #e5e7eb);
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .caja-saldos-page__rol-badge {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .caja-saldos-asignadas-actions {
+    flex-direction: column;
+  }
+
+  .caja-saldos-asignadas-actions .ant-btn {
+    width: 100%;
+  }
+
+  .caja-saldos-conteo-modal__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .caja-saldos-boveda-banner {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+}

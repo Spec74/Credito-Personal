@@ -1,0 +1,413 @@
+﻿<h1 class="grid_12">Mantenimiento de Usuarios</h1>
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2>
+                <img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Lista de Usuarios
+            </h2>
+        </div>
+        <div class="searchbox">
+            <input id="txtBuscar" type="text" placeholder="Ingrese Nombre de Usuarios" />
+            <input id="btnBuscar" type="submit" value="Buscar" class="grey" />
+        </div>
+        <a id="btnNuevo" href="#" class="button">Nuevo Usuario</a>
+        <table id="grdBuscar"></table>
+        <div id="grdpBuscar"></div>
+    </div>
+</div>
+<div style="display: none;" id="dlgNuevo" title="Mantener Lista de Usuario">
+    <form id="frm1" method="post" action="#" class="full validate">
+        <p class="_50 small">
+            <label for="txtNumeroDocumento" class="inline">DNI:</label>
+            <input data-error-type="inline" type="text" class="required" id="txtNumeroDocumento" />
+        </p>
+        <p class="_50 small">
+            <label for="txtNombre" class="inline">Nombres:</label>
+            <input data-error-type="inline" type="text" class="required" id="txtNombre" />
+        </p>
+        <p class="_50 small">
+            <label for="txtApePaterno" class="inline">Ap.Paterno:</label>
+            <input data-error-type="inline" type="text" class="required" id="txtApePaterno" />
+        </p>
+        <p class="_50 small">
+            <label for="txtApeMaterno" class="inline">Ap.Materno:</label>
+            <input data-error-type="inline" type="text" class="required" id="txtApeMaterno" />
+        </p>
+        <p class="_50 small">
+            <label for="txtFechaNacimiento" class="inline">Fecha Nacimiento:</label>
+            <input data-error-type="inline" type="date" class="required maskDate" id="txtFechaNacimiento" placeholder="DD/MM/YYYY" />
+        </p>
+        <p class="_50 small">
+            <select id="drpSexo">
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+            </select>
+        </p>
+        <p class="_50 small">
+            <label for="txtTelefonoMovil" class="inline">Celular:</label>
+            <input data-error-type="inline" type="text" id="txtTelefonoMovil" />
+        </p>
+        <p class="_50 small">
+            <label for="txtEmailPersonal" class="inline">Correo:</label>
+            <input data-error-type="inline" type="text" id="txtEmailPersonal" />
+        </p>
+        <p class="_100 small">
+            <label for="txtDireccion" class="inline">Dirección:</label>
+            <input data-error-type="inline" type="text" id="txtDireccion" />
+        </p>
+        <p class="_50 small">
+            <label for="txtNombreUsuario" class="inline">Usuario:</label>
+            <input data-error-type="inline" type="text" class="required" id="txtNombreUsuario" />
+        </p>
+        <p class="_50 small">
+            <label for="txtClaveUsuario" class="inline">Clave:</label>
+            <input data-error-type="inline" type="text" class="required" id="txtClaveUsuario" />
+        </p>
+        <p class="_50 small ">
+            <input type="checkbox" id="chkActivo" /> <label for="chkActivo" style="display: inline">Activo</label>
+        </p>
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="left" style="padding-left:20px">
+            <input id="btnResetear" type="button" value="Resetear Clave" />
+        </div>
+        <div class="right">
+            <button class="submit">Guardar</button>
+        </div>
+    </div>
+    <br />
+    <div id="divAd1" class="box tabbedBox">
+        <div class="header">
+            <h2>Permiso Usuarios</h2>
+            <ul>
+                <li><a href="#t1-c1">Oficinas</a></li>
+                <li><a href="#t1-c2">Roles</a></li>
+            </ul>
+        </div>
+        <div class="content tabbed">
+
+            <div id="t1-c1">
+                <br />
+                <select multiple="" class="dualselects" data-size="small"></select>
+                <div style="float: right">
+                    <button id="btnAsignarOficina">Asignar Oficina</button>
+                </div>
+            </div>
+
+            <div id="t1-c2">
+                <br />
+                @Html.DropDownList("cboOficina", "--SELECCIONE--")
+                <select multiple="" class="dualselects" data-size="small"></select>
+                <div style="float: right">
+                    <button id="btnAsignarRol">Asignar Roles</button>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+</div>
+<script>
+    $$.ready(function () {
+        //$("#txtNumeroDocumento").mask("99999999");
+
+        $("#txtNumeroDocumento").mask("99999999").keypress(function () {
+            if (event.which == 13) {
+                event.preventDefault();
+                $(this).trigger('blur');
+            }
+        }).blur(function () {
+
+            if (isNaN($(this).val())) return false;
+
+            if ($(this).val().length > 0) {
+                $.data(document.body, 'NumDocumento', $(this).val());
+
+                if ($(this).val() == $.data(document.body, 'NumeroDocumento'))
+                    return;
+                $.ajax({
+                    url: "@Url.Action("ValidarUsuarioDNI", "Usuario")",
+                    data: { pDNI: $(this).val() },
+                    success: function (rpta) {
+                        if (rpta) {
+                            Vendix.Mensaje("Ya existe un Usuario  con este DNI");
+                            //$("#txtApePaterno").val('');
+                            //$("#txtApeMaterno").val('');
+                            //$("#txtNombre").val('');
+                            //$("#txtFechaNacimiento").val('');
+                            //$("#txtTelefonoMovil").val('');
+                            //$("#txtEmailPersonal").val('');
+                            //$("#txtDireccion").val('');
+                            //$("#txtNombre").focus();
+                            $("#txtNumeroDocumento").val('').focus();
+                            return;
+                        }
+
+                        @*$.ajax({
+                            url: "@Url.Action("ObtenerPersonaDNI", "Usuario")",
+                            data: { pDNI: $.data(document.body, 'NumDocumento') },
+                            success: function (rpta) {
+                                if (rpta == null) {
+                                    $("#txtApePaterno").val('');
+                                    $("#txtApeMaterno").val('');
+                                    $("#txtNombre").val('');
+                                    $("#txtFechaNacimiento").val('');
+                                    $("#txtTelefonoMovil").val('');
+                                    $("#txtEmailPersonal").val('');
+                                    $("#txtDireccion").val('');
+                                    $("#txtNombre").focus();
+                                    return;
+                                }
+
+                                $("#txtApePaterno").val(rpta.Persona.ApePaterno);
+                                $("#txtApeMaterno").val(rpta.Persona.ApeMaterno);
+                                $("#txtNombre").val(rpta.Persona.Nombre);
+                                $("#drpSexo").val(rpta.Persona.Sexo).trigger("liszt:updated");
+                                $("#txtFechaNacimiento").val(rpta.FNacimiento);
+                                $("#txtTelefonoMovil").val(rpta.Persona.Celular1);
+                                $("#txtEmailPersonal").val(rpta.Persona.EmailPersonal);
+                                $("#txtDireccion").val(rpta.Persona.Direccion);
+
+                                $("#txtNombreUsuario").focus();
+                            }
+                        });*@
+                    }
+                });
+
+
+
+            }
+        });
+
+        $("#btnNuevo").click(function () {
+            $.data(document.body, 'UsuarioId', 0);
+            $.data(document.body, 'NumeroDocumento', '');
+            $("#dlgNuevo").find('form')[0].reset();
+            $("#txtNombre,#txtApePaterno,#txtApeMaterno,#txtNumeroDocumento,#txtFechaNacimiento,#txtTelefonoMovil,#txtEmailPersonal,#txtDireccion,#txtNombreUsuario,#txtClaveUsuario").val("");
+            $("#drpSexo").val("M").trigger("liszt:updated");
+            $("#chkActivo").prop("checked", true);
+            $("#cboOficina").val("").trigger("liszt:updated");
+            $("#dlgNuevo").dialog("open");
+            $("#divAd1").hide();
+            Vendix.TextoInline();
+            return false;
+        });
+        $("#txtBuscar").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+            }
+        });
+        $("#btnBuscar").click(function () { $("#grdBuscar").trigger("reloadGrid"); });
+        $("#btnResetear").click(function () {
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("ResetearClave","Usuario")",
+                data: { pUsuarioId: $.data(document.body, 'UsuarioId') },
+                success: function (rpta) {
+                    Vendix.Mensaje("Se reseteó la clave a 123456");
+                    $("#dlgNuevo").find('form')[0].reset();
+                    $("#dlgNuevo").dialog('close');
+                }
+            });
+        });
+        $("#btnAsignarOficina").click(function () {
+            var arr = $("#t1-c1 .dualselect .right select.ignore option");
+            var lstoficina = '';
+            $.each(arr, function (index, valor) {
+                if (lstoficina == '')
+                    lstoficina = valor.value;
+                else
+                    lstoficina += ',' + valor.value;
+            });
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("AsignarOficina", "Usuario")",
+                data: { pUsuarioId: $.data(document.body, 'UsuarioId'), pOficinas: lstoficina },
+                success: function (ret) {
+                    Vendix.Mensaje("Se Asignó las oficinas correctamnente");
+                }
+            });
+        });
+        $("#btnAsignarRol").click(function () {
+            var arr = $("#t1-c2 .dualselect .right select.ignore option");
+            var lstrol = '';
+            $.each(arr, function (index, valor) {
+                if (lstrol == '')
+                    lstrol = valor.value;
+                else
+                    lstrol += ',' + valor.value;
+            });
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("AsignarRol", "Usuario")",
+                data: { pUsuarioId: $.data(document.body, 'UsuarioId'), pOficinaId: $("#cboOficina").val(), pRoles: lstrol },
+                success: function (ret) {
+                    Vendix.Mensaje("Se Asignó los roles correctamnente");
+                }
+            });
+        });
+        $("#cboOficina").change(function () {
+            $.ajax({
+                url: "@Url.Action("ObtenerUsuarioRol", "Usuario")",
+                data: { pOficinaId: $("#cboOficina").val(), pUsuarioId: $.data(document.body, 'UsuarioId') },
+                success: function (rpta) {
+                    $("#t1-c2 .right .ignore").html('');
+                    $("#t1-c2 .left .ignore").html('');
+                    $("#t1-c2 .dualselect .right input.ignore").attr({ 'placeholder': '-- ASIGNADOS --', 'readOnly': 'readonly' });
+                    $("#t1-c2 .dualselect .left input.ignore").attr({ 'placeholder': '-- NO ASIGNADOS --', 'readOnly': 'readonly' });
+                    if (rpta == null)
+                        return;
+                    $.each(rpta, function (index, valor) {
+                        if (valor.Asignado == 1)
+                            $("#t1-c2 .right .ignore").append("<option value='" + valor.RolId + "'>" + valor.Denominacion + "</option>");
+                        else
+                            $("#t1-c2 .left .ignore").append("<option value='" + valor.RolId + "'>" + valor.Denominacion + "</option>");
+                    });
+                }
+            });
+        });
+
+        $("#dlgNuevo").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 540,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('button.submit').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($("#frm1").validate().form()) {
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("GuardarUsuario", "Usuario")",
+                    data: {
+                        pUsuarioId: $.data(document.body, 'UsuarioId'),
+                        pApePaterno: $("#txtApePaterno").val(),
+                        pApeMaterno: $("#txtApeMaterno").val(),
+                        pNombre: $("#txtNombre").val(),
+                        pNumeroDocumento: $("#txtNumeroDocumento").val(),
+                        pSexoM: $("#drpSexo").val(),
+                        pFechaNacimiento: $("#txtFechaNacimiento").val(),
+                        pTelefonoMovil: $("#txtTelefonoMovil").val(),
+                        pEmailPersonal: $("#txtEmailPersonal").val(),
+                        pDireccion: $("#txtDireccion").val(),
+                        pNombreusuario: $("#txtNombreUsuario").val(),
+                        pClaveUsuario: $("#txtClaveUsuario").val(),
+                        pActivo: $("#chkActivo").prop('checked')
+                    },
+                    success: function (ret) {
+                        Vendix.Notificar("Modificar");
+                        $("#grdBuscar").trigger("reloadGrid");
+                        if ($.data(document.body, 'UsuarioId') == '0') {
+                            $.data(document.body, 'UsuarioId', ret);
+                            $("#divAd1").show();
+                            $(".dualselect .right input.ignore").attr({ 'placeholder': '-- ASIGNADOS --', 'readOnly': 'readonly' });
+                            $(".dualselect .left input.ignore").attr({ 'placeholder': '-- NO ASIGNADOS --', 'readOnly': 'readonly' });
+                            $(".right .ignore").html('');
+                            $(".left .ignore").html('');
+
+                            $.ajax({
+                                url: "@Url.Action("ListarOficinas", "Usuario")",
+                                success: function (rpta) {
+                                    $.each(rpta, function (index, valor) {
+                                        $("#t1-c1 .left .ignore").append("<option value='" + valor.OficinaId + "'>" + valor.Denominacion + "</option>");
+                                    });
+                                }
+                            });
+                        }
+                        else {
+                            $el.find('form')[0].reset();
+                            $el.dialog('close');
+                        }
+                    }
+                });
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        jQuery("#grdBuscar").jqGrid({
+            url: "@Url.Action("ListarUsuario", "Usuario")",
+            datatype: "json",
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "Buscar", Value: $("#txtBuscar").val() }]);
+                }
+            },
+            colNames: ['UsuarioId', 'Usuario', 'Nombre', 'Celular', 'Email', 'Estado', 'Estado'],
+            colModel:
+                [
+                    { name: 'UsuarioId', index: 'UsuarioId', hidden: true },
+                    { name: 'Usuario', index: 'Usuario' },
+                    { name: 'Nombre', index: 'Nombre', width: 260 },
+                    { name: 'Movil', index: 'Movil' },
+                    { name: 'Correo', index: 'Correo' },
+                    { name: 'Estado', index: 'Estado', hidden: true },
+                    { name: 'Activo', index: 'Activo', align: 'center', width: 80, formatter: ActivoFormatter }
+                ],
+            caption: "Usuarios Registrados",
+            pager: jQuery('#grdpBuscar'),
+            rowNum: 15,
+            rowList: [15, 30, 45],
+            sortname: 'Personaid',
+            sortorder: "asc",
+            gridview: true,
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            paging: true,
+            width: 'auto',
+            height: '347px',
+            ondblClickRow: function () {
+                //$("#txtNumeroDocumento").prop("disabled", true);
+                var id = jQuery("#grdBuscar").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    var ret = $("#grdBuscar").jqGrid('getRowData', id);
+                    $.ajax({
+                        url: "@Url.Action("ObtenerUsuarioPersona", "Usuario")",
+                        data: { pUsuarioId: ret.UsuarioId },
+                        success: function (rpta) {
+                            $("#txtApePaterno").val(rpta.Persona.ApePaterno);
+                            $("#txtApeMaterno").val(rpta.Persona.ApeMaterno);
+                            $("#txtNombre").val(rpta.Persona.Nombre);
+                            $("#txtNumeroDocumento").val(rpta.Persona.NumeroDocumento);
+                            $("#drpSexo").val(rpta.Persona.Sexo).trigger("liszt:updated");
+                            $("#txtFechaNacimiento").val(rpta.FNacimiento);
+                            $("#txtTelefonoMovil").val(rpta.Persona.Celular1);
+                            $("#txtEmailPersonal").val(rpta.Persona.EmailPersonal);
+                            $("#txtDireccion").val(rpta.Persona.Direccion);
+                            $("#txtClaveUsuario").val(rpta.Usuario.ClaveUsuario);
+                            $("#txtNombreUsuario").val(rpta.Usuario.NombreUsuario);
+                            $("#chkActivo").prop("checked", rpta.Usuario.Estado ? true : false);
+
+                            $(".right .ignore").html('');
+                            $(".left .ignore").html('');
+                            $(".dualselect .right input.ignore").attr({ 'placeholder': '-- ASIGNADOS --', 'readOnly': 'readonly' });
+                            $(".dualselect .left input.ignore").attr({ 'placeholder': '-- NO ASIGNADOS --', 'readOnly': 'readonly' });
+
+                            $.each(rpta.Oficinas, function (index, valor) {
+                                if (valor.Asignado == 1)
+                                    $("#t1-c1 .right .ignore").append("<option value='" + valor.OficinaId + "'>" + valor.Denominacion + "</option>");
+                                else
+                                    $("#t1-c1 .left .ignore").append("<option value='" + valor.OficinaId + "'>" + valor.Denominacion + "</option>");
+                            });
+                            $("#cboOficina").val("").trigger("liszt:updated");
+                            $("#divAd1").show();
+                            $.data(document.body, 'UsuarioId', rpta.Usuario.UsuarioId);
+                            $.data(document.body, 'NumeroDocumento', rpta.Persona.NumeroDocumento);
+                            $("#dlgNuevo").dialog("open");
+                            Vendix.TextoInline();
+                        }
+                    });
+                }
+            }
+        });
+
+
+    });
+</script>

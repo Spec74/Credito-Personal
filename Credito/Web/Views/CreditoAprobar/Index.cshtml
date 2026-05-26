@@ -1,0 +1,87 @@
+﻿
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">CREDITOS POR APROBAR</h2>
+        </div>
+        <div class="searchbox">
+            <input id="txtBuscar" type="text" placeholder="Ingrese Nombre del Cliente" />
+            <input id="btnBuscar" type="submit" value="Buscar" class="grey" />
+        </div>
+        @*<a id="btnNuevo" href="#" class="button">Nueva Oficina</a>*@
+        <table id="grdBuscar"></table>
+        <div id="grdpBuscar"></div>
+    </div>
+
+</div>
+
+
+
+<script>
+    $$.ready(function () {
+
+        $("#txtBuscar").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+            }
+        });
+        $("#btnBuscar").click(function () { $("#grdBuscar").trigger("reloadGrid"); });
+
+
+        jQuery("#grdBuscar").jqGrid({
+            url: "@Url.Action("ListarGrid", "CreditoAprobar")",
+            datatype: "json",
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "Buscar", Value: $("#txtBuscar").val() }]);
+                }
+            },
+            colNames: ['CREDITO ID','PersonaId','CODIGO', 'CLIENTE', 'CREDITO', 'INTERES','GESTOR','ACCION'],
+            colModel:
+                [
+                    { name: 'CreditoId', index: 'CreditoId', width: 50 },
+                    { name: 'PersonaId', index: 'PersonaId', hidden: true },
+                    { name: 'Codigo', index: 'Codigo', align: "center", width: 70 },
+                    { name: 'Cliente', index: 'Cliente', width: 150, align: "left" },
+                    { name: 'Monto', index: 'Monto', align: "center" },
+                    { name: 'Interes', index: 'Interes', align: "center" },
+                    { name: 'Agente', index: 'Agente', width: 150, align: "left" },
+                    { name: 'imprimir', index: 'imprimir', align: 'center', width: 60, formatter: ImprimirFormatter }
+                ],
+            caption: "Creditos por Aprobar",
+            pager: jQuery('#grdpBuscar'),
+            rowNum: 15,
+            rowList: [15, 30, 45],
+            sortname: 'Agente',
+            sortorder: "asc",
+            viewrecords: true,
+            gridview: true,
+            rownumbers: true,
+            autowidth: true,
+            //paging: true,
+            width: 'auto',
+            height: '347px',
+            ondblClickRow: function () {
+                var id = jQuery("#grdBuscar").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    var ret = $("#grdBuscar").jqGrid('getRowData', id);
+
+                    window.location = '@Url.Action("Creditos", "Credito")' + "?pPersonaId=" + ret.PersonaId;
+                }
+            }
+        });//.navGrid('#grdBuscar', { edit: false, add: false, del: false });
+    });
+
+    function ImprimirFormatter(cellvalue, options, rowObject) {
+        return "<a href='#' onclick='ImprimirCliente(" + cellvalue + ");return false;' class='button small blue tooltip' data-gravity='s' title='Imprimir'><i class='icon-picture'></i></a>";
+    }
+    function ImprimirCliente(id) {
+        event.preventDefault();
+        var ruta = '@Url.Action("ReporteCliente", "Reporte")' + '?pPersonaId=' + id;
+        window.open(ruta);
+        return false;
+    }
+</script>
+
+

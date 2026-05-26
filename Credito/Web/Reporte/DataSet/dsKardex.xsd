@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="dsKardex" targetNamespace="http://tempuri.org/dsKardex.xsd" xmlns:mstns="http://tempuri.org/dsKardex.xsd" xmlns="http://tempuri.org/dsKardex.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="dsKardex" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="dsKardex" msprop:Generator_UserDSName="dsKardex">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="dsKardex" msprop:Generator_TableClassName="dsKardexDataTable" msprop:Generator_TableVarName="tabledsKardex" msprop:Generator_TablePropName="_dsKardex" msprop:Generator_RowDeletingName="dsKardexRowDeleting" msprop:Generator_RowChangingName="dsKardexRowChanging" msprop:Generator_RowEvHandlerName="dsKardexRowChangeEventHandler" msprop:Generator_RowDeletedName="dsKardexRowDeleted" msprop:Generator_UserTableName="dsKardex" msprop:Generator_RowChangedName="dsKardexRowChanged" msprop:Generator_RowEvArgName="dsKardexRowChangeEvent" msprop:Generator_RowClassName="dsKardexRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="MovimientoDetid" msprop:Generator_ColumnVarNameInTable="columnMovimientoDetid" msprop:Generator_ColumnPropNameInRow="MovimientoDetid" msprop:Generator_ColumnPropNameInTable="MovimientoDetidColumn" msprop:Generator_UserColumnName="MovimientoDetid" type="xs:int" minOccurs="0" />
+              <xs:element name="Almacenid" msprop:Generator_ColumnVarNameInTable="columnAlmacenid" msprop:Generator_ColumnPropNameInRow="Almacenid" msprop:Generator_ColumnPropNameInTable="AlmacenidColumn" msprop:Generator_UserColumnName="Almacenid" type="xs:int" minOccurs="0" />
+              <xs:element name="Articuloid" msprop:Generator_ColumnVarNameInTable="columnArticuloid" msprop:Generator_ColumnPropNameInRow="Articuloid" msprop:Generator_ColumnPropNameInTable="ArticuloidColumn" msprop:Generator_UserColumnName="Articuloid" type="xs:int" minOccurs="0" />
+              <xs:element name="Fecha" msprop:Generator_ColumnVarNameInTable="columnFecha" msprop:Generator_ColumnPropNameInRow="Fecha" msprop:Generator_ColumnPropNameInTable="FechaColumn" msprop:Generator_UserColumnName="Fecha" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="Concepto" msprop:Generator_ColumnVarNameInTable="columnConcepto" msprop:Generator_ColumnPropNameInRow="Concepto" msprop:Generator_ColumnPropNameInTable="ConceptoColumn" msprop:Generator_UserColumnName="Concepto" type="xs:string" minOccurs="0" />
+              <xs:element name="CantidadEnt" msprop:Generator_ColumnVarNameInTable="columnCantidadEnt" msprop:Generator_ColumnPropNameInRow="CantidadEnt" msprop:Generator_ColumnPropNameInTable="CantidadEntColumn" msprop:Generator_UserColumnName="CantidadEnt" type="xs:int" minOccurs="0" />
+              <xs:element name="PrecioUnitarioEnt" msprop:Generator_ColumnVarNameInTable="columnPrecioUnitarioEnt" msprop:Generator_ColumnPropNameInRow="PrecioUnitarioEnt" msprop:Generator_ColumnPropNameInTable="PrecioUnitarioEntColumn" msprop:Generator_UserColumnName="PrecioUnitarioEnt" type="xs:decimal" minOccurs="0" />
+              <xs:element name="TotalEnt" msprop:Generator_ColumnVarNameInTable="columnTotalEnt" msprop:Generator_ColumnPropNameInRow="TotalEnt" msprop:Generator_ColumnPropNameInTable="TotalEntColumn" msprop:Generator_UserColumnName="TotalEnt" type="xs:decimal" minOccurs="0" />
+              <xs:element name="CantidadSal" msdata:Caption="CantidadEnt" msprop:Generator_ColumnVarNameInTable="columnCantidadSal" msprop:Generator_ColumnPropNameInRow="CantidadSal" msprop:Generator_ColumnPropNameInTable="CantidadSalColumn" msprop:Generator_UserColumnName="CantidadSal" type="xs:int" minOccurs="0" />
+              <xs:element name="PrecioUnitarioSal" msdata:Caption="PrecioUnitarioEnt" msprop:Generator_ColumnVarNameInTable="columnPrecioUnitarioSal" msprop:Generator_ColumnPropNameInRow="PrecioUnitarioSal" msprop:Generator_ColumnPropNameInTable="PrecioUnitarioSalColumn" msprop:Generator_UserColumnName="PrecioUnitarioSal" type="xs:decimal" minOccurs="0" />
+              <xs:element name="TotalSal" msdata:Caption="TotalEnt" msprop:Generator_ColumnVarNameInTable="columnTotalSal" msprop:Generator_ColumnPropNameInRow="TotalSal" msprop:Generator_ColumnPropNameInTable="TotalSalColumn" msprop:Generator_UserColumnName="TotalSal" type="xs:decimal" minOccurs="0" />
+              <xs:element name="CantidadSaldo" msdata:Caption="CantidadEnt" msprop:Generator_ColumnVarNameInTable="columnCantidadSaldo" msprop:Generator_ColumnPropNameInRow="CantidadSaldo" msprop:Generator_ColumnPropNameInTable="CantidadSaldoColumn" msprop:Generator_UserColumnName="CantidadSaldo" type="xs:int" minOccurs="0" />
+              <xs:element name="PrecioUnitarioSaldo" msdata:Caption="PrecioUnitarioEnt" msprop:Generator_ColumnVarNameInTable="columnPrecioUnitarioSaldo" msprop:Generator_ColumnPropNameInRow="PrecioUnitarioSaldo" msprop:Generator_ColumnPropNameInTable="PrecioUnitarioSaldoColumn" msprop:Generator_UserColumnName="PrecioUnitarioSaldo" type="xs:decimal" minOccurs="0" />
+              <xs:element name="TotalSaldo" msdata:Caption="TotalEnt" msprop:Generator_ColumnVarNameInTable="columnTotalSaldo" msprop:Generator_ColumnPropNameInRow="TotalSaldo" msprop:Generator_ColumnPropNameInTable="TotalSaldoColumn" msprop:Generator_UserColumnName="TotalSaldo" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -1,0 +1,859 @@
+﻿@using System.Globalization
+@using ITB.VENDIX.BL
+@model ITB.VENDIX.DA.Boveda
+
+<div class="grid_12 " id="recargar">
+    <div class="box ">
+        <div class="header">
+            <h2>
+                <img class="icon" src="~/img/icons/packs/fugue/16x16/receipt-invoice.png" />
+                ESTADO DE DINERO
+            </h2>
+        </div>
+        <div class="content center-elements">
+            <br />
+            <div class="full-stats">
+                <a href="javascript:void(0);" class="stat simple" data-value="@Model.SaldoFinal" data-title="BOVEDA" data-format="0.00"></a>
+            </div>
+            <div class="full-stats">
+                <a href="javascript:void(0);" class="stat simple" data-value="@ViewBag.MontoCajachica" data-title="CAJA CHICA" data-format="0.00"></a>
+            </div>
+            <div class="full-stats">
+                <a href="javascript:void(0);" class="stat simple" data-value="@ViewBag.MontoCajas" data-title="CAJAS" data-format="0.00"></a>
+            </div>
+            <div class="full-stats">
+                <a href="javascript:void(0);" class="stat simple" data-value="@ViewBag.MontoPlanPagoPendiente" data-title="CREDITOS" data-format="0.00"></a>
+            </div>
+
+            <br />
+            <div class="full-stats">
+                <a id="btnReporteVencidos" href="javascript:void(0);" class="stat simple" data-value="@ViewBag.MontoVencido" data-title="CREDITOS VENCIDOS" data-format="0.00"></a>
+            </div>
+            <div class="full-stats">
+                <a id="btnReporteVencidoMenor60" href="javascript:void(0);" class="stat simple" data-value="@ViewBag.VencidoMenor60" data-title="Vencido sin Mora (<60)" data-format="0.00"></a>
+            </div>
+            <div class="full-stats">
+                <a id="btnReporteVencidoMayor60" href="javascript:void(0);" class="stat simple" data-value="@ViewBag.VencidoMayor60" data-title="Vencido con Mora (>60)" data-format="0.00"></a>
+            </div>
+            <div class="full-stats">
+                <a id="btnReporteVencidoIrrecuperable" href="javascript:void(0);" class="stat simple" data-value="@ViewBag.VencidoIrrecuperable" data-title="Vencido Irrecuperable" data-format="0.00"></a>
+            </div>
+
+            <div class="full-stats">
+                <a href="javascript:void(0);" class="stat simple" data-value="@ViewBag.TotalFondo" data-title="TOTAL FONDO S/." data-format="0.00"></a>
+            </div>
+        </div>
+        <div class="actions">
+
+        </div>
+    </div>
+    
+</div>
+
+<div class="grid_12 " id="recargar">
+    <div class="box ">
+        <div class="header">
+            <h2>
+                <img class="icon" src="~/img/icons/packs/fugue/16x16/receipt-invoice.png" />
+                BOVEDA @(VendixGlobal<string>.Obtener("NombreOficina")) Fecha Inicio Operacion: @Model.FechaIniOperacion
+            </h2>
+        </div>
+        <div class="content center-elements">
+            <br />
+            <div class="full-stats">
+                <a href="javascript:void(0);" class="stat simple" data-value="@Model.SaldoInicial" data-title="SALDO INICIAL S/." data-format="0.00"></a>
+            </div>
+            <div class="full-stats">
+                <a href="javascript:void(0);" class="stat simple" data-value="@Model.Entradas" data-title="ENTRADAS S/." data-format="0.00"></a>
+            </div>
+            <div class="full-stats">
+                <a href="javascript:void(0);" class="stat simple" data-value="@Model.Salidas" data-title="SALIDAS S/." data-format="0.00"></a>
+            </div>
+            <div class="full-stats">
+                <a href="javascript:void(0);" class="stat simple" data-value="@Model.SaldoFinal" data-title="SALDO FINAL S/." data-format="0.00"></a>
+            </div>
+            <br />
+            <div class="alert note sticky">
+                <span class="icon"></span>
+                <strong><label id="lblResumenCuenta">@ViewBag.ResumenCuentaBoveda</label></strong>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="left">
+                <a href="#" id="btnRptBoveda" class="button">MOVIMIENTOS</a>
+            </div>
+            <div class="right">
+                <a href="#" id="btnIngresoEgreso" class="button">INGRESO EGRESO</a>
+                <a href="#" id="btnTransferir" class="button">TRANSFERENCIAS</a>
+                <a href="#" id="btnCerrar" class="button red">CIERRE BOVEDA</a>
+            </div>
+        </div>
+        <div class="actions">           
+            <div class="right">
+                <a href="#" id="btnAsignarBovedaTemp" class="button grey">ASIGNAR BOVEDA TEMPORAL</a>
+                <a href="#" id="btnTransferirBovedaTemp" class="button grey">TRANSFERIR A BOVEDA TEMPORAL</a>                
+                <a href="#" id="btnCerrarBovedaTemp" class="button grey">CERRAR BOVEDA TEMPORAL</a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="grid_12 ">
+
+    <div class="box">
+        <div class="header">
+            <h2>
+                <img class="icon" src="~/img/icons/packs/fugue/16x16/receipt-invoice.png" />BOVEDA
+            </h2>
+        </div>
+
+        <div class="content">
+
+            <div class="clearfix"></div>
+            <table id="grdBoveda"></table>
+            <div id="grdpBoveda"></div>
+
+            <div class="spacer"></div>
+            <div class="clearfix"></div>
+            <table id="grdBovedaMov"></table>
+            <div id="grdpBovedaMov"></div>
+
+            <div class="spacer"></div>
+            <div class="clearfix"></div>
+            <table id="grdCajaDiario"></table>
+            <div id="grdpCajaDiario"></div>
+        </div>
+        <div class="spacer"></div>
+        <div class="actions">
+            <div class="left">
+                <a href="#" class="button grey">Imprimir</a>
+            </div>
+            <div class="right">
+                <a href="#" class="button">Movimientos</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="display: none;" id="dlgTransferir" title="Realizar Transferencia">
+    <form class="full validate">
+
+        <div class="row">
+            <label>
+                <strong>Transferencia:</strong>
+            </label>
+            <div>
+                <table>
+                    <tr>
+                        <td>
+                            <input type="radio" name="rbTipoTransferencia" id="rbCaja" value="caja" checked="checked" /><label for="rbCaja"> CAJA</label>  &nbsp;&nbsp;
+                            <input type="radio" name="rbTipoTransferencia" id="rbOficina" value="oficina" /><label for="rbOficina">OFICINA</label>
+                            <input type="radio" name="rbTipoTransferencia" id="rbCajaChica" value="cajachica" /><label for="rbCajaChica">CAJACHICA</label>
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+        </div>
+
+        <div class="row Oficina">
+            <label for="cboOficinas">
+                <strong>Oficina :</strong>
+            </label>
+            <div>
+                @Html.DropDownList("cboOficinas", (IEnumerable<SelectListItem>)ViewBag.cboOficinas)
+            </div>
+        </div>
+
+        <div class="row Caja">
+            <label for="cboCajas">
+                <strong>Caja :</strong>
+            </label>
+            <div>
+                @Html.DropDownList("cboCajas", (IEnumerable<SelectListItem>)ViewBag.cboCajas)
+            </div>
+        </div>
+        <div class="row CajaChica">
+            <label >
+                <strong>Caja :</strong>
+            </label>
+            <div>
+                <p>CAJA CHICA</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <label for="txtImporte">
+                <strong>Importe :</strong>
+            </label>
+            <div>
+                <strong><span id="lblMensaje" style="color:red"></span></strong><br />
+                <span><strong>Monto total de boveda : S/.  <span id="lblMontoBoveda" style="color:blue"></span></strong></span>
+                <input type="number" id="txtImporte" placeholder="0.00" required="required" />
+            </div>
+        </div>
+
+        <div class="row">
+            <label for="txtDescripcion">
+                <strong>Descripción :</strong>
+            </label>
+            <div>
+                <input type="text" id="txtDescripcion" placeholder="Descripcion de transferencia" />
+            </div>
+        </div>
+
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <input id="btnEnviar" type="button" value="Guardar" />
+        </div>
+    </div>
+</div>
+
+<div style="display: none;" id="dlgIngresoEgreso" title="Realizar Ingresos y Egresos">
+    <form class="full validate">
+        <div class="row">
+            <label for="cboTipoOperacion">
+                <strong>Operacion:</strong>
+            </label>
+            <div>
+                @Html.DropDownList("cboTipoOperacion", (IEnumerable<SelectListItem>)ViewBag.cboTipoOperacion)
+            </div>
+        </div>
+        <div class="row">
+            <label for="cboTipoCuenta">
+                <strong>Cuenta:</strong>
+            </label>
+            <div>
+                @Html.DropDownList("cboTipoCuenta", (IEnumerable<SelectListItem>)ViewBag.cboTipoCuenta)
+            </div>
+        </div>
+        <div class="row">
+            <label for="txtImporte">
+                <strong>Importe :</strong>
+            </label>
+            <div>
+                <strong><span id="lblMensajeb" style="color:red"></span></strong>
+                <input type="number" id="txtImporteb" placeholder="0.00" required="required" />
+            </div>
+        </div>
+
+        <div class="row">
+            <label for="txtDescripcionb">
+                <strong>Descripción:</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtDescripcionb" id="txtDescripcionb" placeholder="Descripcion" />
+            </div>
+        </div>
+
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <input id="btnGuardarIngresoEgreso" type="button" value="Guardar" />
+        </div>
+    </div>
+</div>
+
+<div style="display: none;" id="dlgAsignarBovedaTemporal" title="Asignar Boveda Temporal">
+    <form class="full validate">
+        <div class="row usuario">
+            <label for="cboOficinas">
+                <strong>Usuarios:</strong>
+            </label>
+            <div>
+                @Html.DropDownList("cboUsuario", (IEnumerable<SelectListItem>)ViewBag.cboUsuario)
+            </div>
+        </div>
+
+        <div class="row">
+            <label for="txtImporteTemp">
+                <strong>Importe :</strong>
+            </label>
+            <div>
+                <strong><span id="lblMensajeAsignarBovedaTemp" style="color:red"></span></strong>
+                <input type="number" id="txtImporteTemp" placeholder="0.00" required="required" />
+            </div>
+        </div>
+
+        <div class="row">
+            <label for="txtDescripcionTemp">
+                <strong>Descripción:</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtDescripcionTemp" id="txtDescripcionTemp" placeholder="Descripcion" />
+            </div>
+        </div>
+
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <input id="btnGuardarAsignarTemporal" type="button" value="Guardar" />
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    $$.ready(function () {
+        $("#grdBoveda").jqGrid({
+            url: "@Url.Action("ListarBovedaJgrid", "Boveda")",
+            datatype: "json",
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "Buscar", Value: '1' }]);
+                }
+            },
+            colNames: ['ID','Tipo', 'SaldoInicial', 'Entradas', 'Salidas', 'SaldoFinal', 'FechaIniOperacion', 'FechaFinOperacion', 'Cierre', 'Accion'],
+            colModel:
+            [
+                { name: 'BovedaId', index: 'BovedaId', width: 50, align: 'center' },
+                { name: 'Tipo', index: 'Tipo', width: 70, align: 'center' },
+                { name: 'SaldoInicial', index: 'SaldoInicial', align: 'center' },
+                { name: 'Entradas', index: 'Entradas', align: 'center' },
+                { name: 'Salidas', index: 'Salidas', align: 'center' },
+                { name: 'SaldoFinal', index: 'SaldoFinal', align: 'center' },
+                { name: 'FechaIniOperacion', index: 'FechaIniOperacion', align: 'center' },
+                { name: 'FechaFinOperacion', index: 'FechaFinOperacion', align: 'center' },
+                { name: 'IndCierre', index: 'IndCierre',width: 70, align: 'center' },
+                { name: 'imprimir', index: 'imprimir', align: 'center', width: 60, formatter: ImprimirReporteBoveda }
+            ],
+            caption: "Cierres de Boveda",
+            pager: jQuery('#grdpBoveda'),
+            rowNum: 5,
+            rowList: [5, 10, 15],
+            sortname: 'BovedaId',
+            sortorder: "desc",
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            width: 'auto',
+            height: '160px',
+            gridComplete: function () {
+                var grid = $('#grdBoveda');
+                var ids = grid.jqGrid("getDataIDs");
+                if (ids.length > 0) {
+                    grid.jqGrid("setSelection", ids[0]);
+                }
+            },
+            onSelectRow: function (id) {
+                if (id) {
+                    $.data(document.body, 'grdBovedaId', id);
+
+                    if ($("#gbox_grdBovedaMov").length > 0)
+                        $("#grdBovedaMov").trigger("reloadGrid");
+                    else {
+                        $("#grdBovedaMov").jqGrid({
+                            url: "@Url.Action("ListarBovedaMovJgrid", "Boveda")",
+                            datatype: "json",
+                            postData: {
+                                filters: function () {
+                                    return $.toJSON([{ Key: "BovedaId", Value: $.data(document.body, 'grdBovedaId') }]);
+                                }
+                            },
+                            colNames: ['MovimientoBovedaId', 'ID', 'CAJA DIARIO', 'FECHA', 'OPERACION','TIPO PAGO', 'GLOSA', 'IMPORTE', 'ACCION'],
+                            colModel:
+                            [
+                                { name: 'MovimientoBovedaId', index: 'MovimientoBovedaId', hidden: true },
+                                { name: 'BovedaId', index: 'BovedaId', width: 50, align: 'center' },
+                                { name: 'CajaDiarioId', index: 'CajaDiarioId', width: 50, align: 'center' },
+                                { name: 'FechaReg', index: 'FechaReg', width: 100, align: 'center' },
+                                { name: 'CodOperacion', index: 'CodOperacion', width: 60, align: 'center' },
+                                { name: 'TipoPago', index: 'TipoPago', width: 60, align: 'center' },
+                                { name: 'Glosa', index: 'Glosa', width: 300 },
+                                { name: 'Importe', index: 'Importe', width: 80, align: 'right' },
+                                { name: 'imprimir', index: 'imprimir', align: 'center', width: 60, formatter: ImprimirReporteBovedaMov }
+                            ],
+                            caption: "Movimientos Boveda",
+                            pager: $('#grdpBovedaMov'),
+                            rowNum: 5,
+                            rowList: [5, 10, 15],
+                            sortname: 'MovimientoBovedaId',
+                            sortorder: "desc",
+                            viewrecords: true,
+                            rownumbers: true,
+                            autowidth: true,
+                            width: 'auto',
+                            height: '160px'
+                        });
+                    }
+
+                    if ($("#gbox_grdCajaDiario").length > 0)
+                        $("#grdCajaDiario").trigger("reloadGrid");
+                    else {
+                        $("#grdCajaDiario").jqGrid({
+                            url: "@Url.Action("ListarSaldoCajaDiarioBoveda", "Saldos")",
+                            datatype: "json",
+                            postData: {
+                                filters: function () {
+                                    return $.toJSON([{ Key: "BovedaId", Value: $.data(document.body, 'grdBovedaId') }]);
+                                }
+                            },
+                            colNames: ['NRO', 'CAJA', 'RESPONSABLE', 'SALDO INICIAL', 'SALDO FINAL', 'F.INICIO', 'F.FIN', 'CERRADO', 'BOVEDA', 'ACCION'],
+                            colModel:
+                            [
+                                { name: 'CajaDiarioId', index: 'CajaDiarioId', width: 75 },
+                                { name: 'Caja', index: 'Caja', width: 150 },
+                                { name: 'NombreUsuario', index: 'NombreUsuario', width: 150 },
+                                { name: 'SaldoInicial', index: 'SaldoInicial' },
+                                { name: 'SaldoFinal', index: 'SaldoFinal' },
+                                { name: 'FechaIniOperacion', index: 'FechaIniOperacion' },
+                                { name: 'FechaFinOperacion', index: 'FechaFinOperacion' },
+                                { name: 'IndCierre', index: 'IndCierre', width: 70, align: "center" },
+                                { name: 'TransBoveda', index: 'TransBoveda', width: 70, align: "center" },
+                                { name: 'imprimir', index: 'imprimir', align: 'center', width: 60, formatter: ImprimirFormatter }
+                            ],
+                            caption: "Saldos Caja Diario",
+                            pager: $('#grdpCajaDiario'),
+                            rowNum: 10,
+                            rowList: [10, 20, 30],
+                            sortname: 'CajaDiarioId',
+                            sortorder: "desc",
+                            viewrecords: true,
+                            rownumbers: true,
+                            autowidth: true,
+                            //paging: true,
+                            width: 'auto',
+                            height: '252px'
+                        });
+                    }
+                }
+            }
+        });
+
+        $('#btnCerrar').click(function () {
+
+            $.ajax({
+                type: 'GET',
+                url: "@Url.Action("ValidarCierre", "Boveda")",
+                data: {},
+                success: function (ret) {
+                    if (ret.length == 0) {
+                        Vendix.Dialogo("Desea realizar CIERRE BOVEDA.", "SiNo", function () {
+                            $.ajax({
+                                url: "@Url.Action("Cerrar","Boveda")",
+                                data: {},
+                                success: function (ret) {
+                                    if (ret) location.reload();
+                                }
+                            });
+                        });
+
+                        return false;
+
+                    } else {
+                        Vendix.Dialogo(ret);
+                    }
+                }
+            });
+
+        });
+        $('#btnCerrarBovedaTemp').click(function () {
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("ExisteBovedaTemporal", "Boveda")',
+                data: {},
+                success: function (data) {
+                    if (data) {
+
+                        $.ajax({
+                            type: 'GET',
+                            url: "@Url.Action("ValidarCierre", "Boveda")",
+                            data: {},
+                            success: function (ret) {
+                                if (ret.length == 0) {
+
+                                    Vendix.Dialogo("Desea realizar CIERRE BOVEDA TEMPORAL.", "SiNo", function () {
+                                        $.ajax({
+                                            url: "@Url.Action("CerrarBovedaTemporal","Boveda")",
+                                            data: {},
+                                            success: function (ret) {
+                                                if (ret) location.reload();
+                                            }
+                                        });
+                                    });
+                                    return false;
+
+                                } else {
+                                    Vendix.Dialogo(ret);
+                                }
+                            }
+                        });
+
+
+
+                    } else {
+                        Vendix.Dialogo("No Existe una boveda Temporal Creada");
+                    }
+                }
+            });
+        });
+        $("#btnRptBoveda").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaReporteBoveda('PDF'));
+            return false;
+        });
+        function obtenerRutaReporteBoveda(tipo) {
+
+            var ruta = '@Url.Action("ReporteMovimientoBoveda", "Reporte")'
+                + '?pBovedaId=null'
+                + '&pTipo=' + tipo;
+            return ruta;
+        };
+
+        $("#rbOficina,#rbCaja,#rbCajaChica").change(function () {
+            $(".Caja").hide();
+            $(".Oficina").hide();
+            $(".CajaChica").hide();
+
+            if ($("#rbCaja").prop('checked')) {
+                $(".Caja").show();
+
+            } else if ($("#rbOficina").prop('checked')) {
+                $(".Oficina").show();
+            }
+            else {
+                $(".CajaChica").show();
+            }
+        });
+
+        $('#btnTransferir').click(function () {
+            var $el = $("#dlgTransferir");
+            $el.find('form')[0].reset();
+
+            MostrarSaldosBoveda();
+
+            $(".Caja").show();
+            $(".Oficina").hide();
+            $(".CajaChica").hide();
+
+            $("#cboCajas,#cboOficinas").val("").trigger("liszt:updated");
+            $("#lblMensaje").text("");
+            $('#dlgTransferir').dialog('open');
+            return false;
+        });
+
+        $("#dlgTransferir").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 400,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('#btnEnviar').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+
+                if (parseFloat($("#lblMontoBoveda").text()) >= parseFloat($("#txtImporte").val())) {
+
+                    if ($("#rbCaja").prop('checked')) {
+                        TransferirMonto($("#cboCajas").val(), "@Url.Action("TransferirCaja", "Boveda")", $el);
+                    } else if ($("#rbOficina").prop('checked')) {
+                        TransferirMonto($("#cboOficinas").val(), "@Url.Action("TransferirOficina", "Boveda")", $el);
+                    } else {
+                        TransferirMontoCajaChica("@Url.Action("TransferirCajaChica", "Boveda")", $el);
+                    }
+                } else {
+                    $("#txtImporte").focus();
+                    $("#lblMensaje").text("El importe debe ser menor al Monto en Boveda");
+                }
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        $('#btnIngresoEgreso').click(function () {
+            var $el = $("#dlgIngresoEgreso");
+            $el.find('form')[0].reset();
+
+            //MostrarSaldosBoveda();
+            $("#cboTipoOperacion,#cboTipoCuenta").val("").trigger("liszt:updated");
+            $("#lblMensajeb").text("");
+            $('#dlgIngresoEgreso').dialog('open');
+            return false;
+        });
+
+        $('#btnTransferirBovedaTemp').click(function () {
+            $.data(document.body, 'AsignarBovedaTemporal', false);
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("ExisteBovedaTemporal", "Boveda")',
+                data: {},
+                success: function (data) {
+                    if (data == true) {
+                        var $el = $("#dlgAsignarBovedaTemporal");
+                        $el.find('form')[0].reset();
+
+                        $("#cboUsuario").val("").trigger("liszt:updated");
+                        $("#lblMensajeAsignarBovedaTemp").text("");
+                        $('#dlgAsignarBovedaTemporal').dialog('open');
+                        $(".usuario").hide();
+                    } else {
+                        Vendix.Dialogo("No Existe una boveda Temporal Abierta");
+                    }
+                }
+            });
+
+            return false;
+        });
+        $('#btnAsignarBovedaTemp').click(function () {
+            $(".usuario").show();
+            $.data(document.body, 'AsignarBovedaTemporal', true);
+            $.ajax({
+                type: 'GET',
+                url: '@Url.Action("ExisteBovedaTemporal", "Boveda")',
+                data: {},
+                success: function (data) {
+                    if (data==false ) {
+                        var $el = $("#dlgAsignarBovedaTemporal");
+                        $el.find('form')[0].reset();
+
+                        $("#cboUsuario").val("").trigger("liszt:updated");
+                        $("#lblMensajeAsignarBovedaTemp").text("");
+                        $('#dlgAsignarBovedaTemporal').dialog('open');
+                    } else {
+                        Vendix.Dialogo("Ya Existe una boveda Temporal Creada");
+                    }
+                }
+            });
+
+            return false;
+        });
+
+        $("#dlgIngresoEgreso").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 450,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('#btnGuardarIngresoEgreso').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+                if ($("#cboTipoOperacion").val() != 20) { //diferente de TipoOperacion Ingreso
+                    if (parseFloat($("#txtImporteb").val()) > parseFloat('@Model.SaldoFinal')) {
+                        $("#txtImporteb").focus();
+                        $("#lblMensajeb").text("El importe debe ser menor o igual al Saldo final en Boveda");
+                        return;
+                    }
+                }
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("IngresoEgreso", "Boveda")',
+                    data: {
+                        pImporte: $('#txtImporteb').val(),
+                        pDescripcion: $("#txtDescripcionb").val(),
+                        pTipoOperacionId: $("#cboTipoOperacion").val(),
+                        pTipoCuentaId: $("#cboTipoCuenta").val()
+                    },
+                    success: function (data) {
+                        if (data == true) {
+                            Vendix.Notificar("Grabar");
+                            //$("#grdBovedaMov").trigger("reloadGrid");
+                            $el.find('form')[0].reset();
+                            $el.dialog('close');
+
+                            location.reload();
+
+                        } else {
+                            alert("Sucedio un Error al Realizar la Transaccion consulte Con Area de Sistemas");
+                        }
+                    }
+                });
+
+
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        $("#dlgAsignarBovedaTemporal").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 450,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('#btnGuardarAsignarTemporal').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+
+                if (parseFloat($("#txtImporteTemp").val()) > parseFloat('@Model.SaldoFinal')) {
+                    $("#txtImporteTemp").focus();
+                    $("#lblMensajeAsignarBovedaTemp").text("El importe debe ser menor o igual al Saldo final en Boveda");
+                    return;
+                }
+
+                var esAsignarBovedaTmp = $.data(document.body, 'AsignarBovedaTemporal');
+                var usuarioBovedaTmpId = 0;
+                if (esAsignarBovedaTmp) {
+                    usuarioBovedaTmpId = $("#cboUsuario").val();
+                }
+
+                $.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("AsignarBovedaTemporal", "Boveda")',
+                    data: {
+                        pImporte: $('#txtImporteTemp').val(),
+                        pDescripcion: $("#txtDescripcionTemp").val(),
+                        pUsuarioId: usuarioBovedaTmpId
+                    },
+                    success: function (data) {
+                        if (data.length==0) {
+                            Vendix.Notificar("Grabar");
+                            //$("#grdBovedaMov").trigger("reloadGrid");
+                            $el.find('form')[0].reset();
+                            $el.dialog('close');
+
+                            location.reload();
+
+                        } else {
+                            Vendix.Dialogo(data);
+                        }
+                    }
+                });
+
+
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        $("#btnReporteVencidos").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaReporteVencido(null,null,null,'Excel'));
+            return false;
+        });
+        $("#btnReporteVencidoMenor60").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaReporteVencido('S', null, null, 'Excel'));
+            return false;
+        });
+        $("#btnReporteVencidoMayor60").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaReporteVencido(null, 'S', null, 'Excel'));
+            return false;
+        });
+        $("#btnReporteVencidoIrrecuperable").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaReporteVencido(null, null, 'S', 'Excel'));
+            return false;
+        });
+
+        function obtenerRutaReporteVencido(pVencidoMenor60, pVencidoMayor60, pVencidoIrrecuperable,tipo) {
+            var ruta = '@Url.Action("ReporteCreditoVencido", "Reporte")'
+                + '?pVencidoMenor60=' + pVencidoMenor60
+                + '&pVencidoMayor60=' + pVencidoMayor60
+                + '&pVencidoIrrecuperable=' + pVencidoIrrecuperable
+                + '&pTipo=' + tipo;
+            return ruta;
+        };
+
+    });
+    function EliminarMovFormatter(cellvalue, options, rowObject) {
+        return "<a href='#' onclick='EliminarMov(" + cellvalue + ");return false;' class='button small red tooltip' data-gravity='s' title='Anular'><i class='icon-remove'></i></a>";
+    }
+    function EliminarMov(pCajaDiarioId) {
+        @* event.preventDefault();
+        var ruta = '@Url.Action("ReporteSaldoCaja", "Reporte")' + '?pCajaDiarioid=' + pCajaDiarioid;
+        window.open(ruta);*@
+        return false;
+    }
+
+    function ImprimirFormatter(cellvalue, options, rowObject) {
+        return "<a href='#' onclick='ImprimirSaldo(" + cellvalue + ");return false;' class='button small blue tooltip' data-gravity='s' title='Imprimir'><i class='icon-picture'></i></a>";
+    }
+    function ImprimirSaldo(pCajaDiarioId) {
+        event.preventDefault();
+        var ruta = '@Url.Action("ReporteSaldoCaja", "Reporte")' + '?pCajaDiarioId=' + pCajaDiarioId;
+        window.open(ruta);
+        return false;
+    }
+    function ImprimirReporteBoveda(cellvalue, options, rowObject) {
+        return "<a href='#' onclick='ImprimirMovBoveda(" + cellvalue + ");return false;' class='button small blue tooltip' data-gravity='s' title='Imprimir'><i class='icon-picture'></i></a>";
+    }
+    function ImprimirMovBoveda(id) {
+        event.preventDefault();
+        var ruta = '@Url.Action("ReporteMovimientoBoveda", "Reporte")' + '?pBovedaId=' + id + '&pTipo=PDF';
+        window.open(ruta);
+        return false;
+    }
+    function ImprimirReporteBovedaMov(cellvalue, options, rowObject) {
+        return "<a href='#' onclick='ImprimirMovBovedaMov(" + cellvalue + ");return false;' class='button small blue tooltip' data-gravity='s' title='Imprimir'><i class='icon-picture'></i></a>";
+    }
+    function ImprimirMovBovedaMov(id) {
+        event.preventDefault();
+        var ruta = '@Url.Action("ReporteMovimientoBovedaMov", "Reporte")' + '?pMovimientoBovedaId=' + id + '&pTipo=PDF';
+        window.open(ruta);
+        return false;
+    }
+    function TransferirMonto(cboId, pUrl, $el) {
+        $.ajax({
+            type: 'POST',
+            url: pUrl,
+            data: {
+                pImporte: $('#txtImporte').val(),
+                pDescripcion: $("#txtDescripcion").val(),
+                pCboId: cboId
+            },
+            success: function (data) {
+                if (data == true) {
+                    Vendix.Notificar("Grabar");
+                    $("#grdBovedaMov").trigger("reloadGrid");
+                    $el.find('form')[0].reset();
+                    $el.dialog('close');
+
+                    location.reload();
+
+                } else {
+                    alert("Sucedio un Error al Realizar la Transaccion consulte Con Area de Sistemas");
+                }
+            }
+        });
+    }
+    function TransferirMontoCajaChica(pUrl, $el) {
+        $.ajax({
+            type: 'POST',
+            url: pUrl,
+            data: {
+                pImporte: $('#txtImporte').val(),
+                pDescripcion: $("#txtDescripcion").val()
+            },
+            success: function (res) {
+                if (res.length == 0) {
+                    Vendix.Notificar("Grabar");
+                    $("#grdBovedaMov").trigger("reloadGrid");
+                    $el.find('form')[0].reset();
+                    $el.dialog('close');
+
+                    location.reload();
+
+                } else {
+                    alert(res);
+                }
+            }
+        });
+    }
+    function MostrarSaldosBoveda() {
+
+        $.ajax({
+            type: 'POST',
+            url: "@Url.Action("MostrarMontoBoveda","Saldos")",
+            data: {},
+            success: function (data) {
+                $("#lblMontoBoveda").text(data);
+            }
+        });
+    }
+
+
+</script>

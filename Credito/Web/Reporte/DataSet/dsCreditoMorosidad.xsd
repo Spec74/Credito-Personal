@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="dsCreditoMorosidad" targetNamespace="http://tempuri.org/dsCreditoMorosidad.xsd" xmlns:mstns="http://tempuri.org/dsCreditoMorosidad.xsd" xmlns="http://tempuri.org/dsCreditoMorosidad.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="dsCreditoMorosidad" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="dsCreditoMorosidad" msprop:Generator_UserDSName="dsCreditoMorosidad">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="dsCreditoMorosidad" msprop:Generator_TableClassName="dsCreditoMorosidadDataTable" msprop:Generator_TableVarName="tabledsCreditoMorosidad" msprop:Generator_TablePropName="_dsCreditoMorosidad" msprop:Generator_RowDeletingName="dsCreditoMorosidadRowDeleting" msprop:Generator_RowChangingName="dsCreditoMorosidadRowChanging" msprop:Generator_RowEvHandlerName="dsCreditoMorosidadRowChangeEventHandler" msprop:Generator_RowDeletedName="dsCreditoMorosidadRowDeleted" msprop:Generator_UserTableName="dsCreditoMorosidad" msprop:Generator_RowChangedName="dsCreditoMorosidadRowChanged" msprop:Generator_RowEvArgName="dsCreditoMorosidadRowChangeEvent" msprop:Generator_RowClassName="dsCreditoMorosidadRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Creditoid" msprop:Generator_ColumnVarNameInTable="columnCreditoid" msprop:Generator_ColumnPropNameInRow="Creditoid" msprop:Generator_ColumnPropNameInTable="CreditoidColumn" msprop:Generator_UserColumnName="Creditoid" type="xs:int" minOccurs="0" />
+              <xs:element name="Cliente" msprop:Generator_ColumnVarNameInTable="columnCliente" msprop:Generator_ColumnPropNameInRow="Cliente" msprop:Generator_ColumnPropNameInTable="ClienteColumn" msprop:Generator_UserColumnName="Cliente" type="xs:string" minOccurs="0" />
+              <xs:element name="Direccion" msprop:Generator_ColumnVarNameInTable="columnDireccion" msprop:Generator_ColumnPropNameInRow="Direccion" msprop:Generator_ColumnPropNameInTable="DireccionColumn" msprop:Generator_UserColumnName="Direccion" type="xs:string" minOccurs="0" />
+              <xs:element name="Celular" msprop:Generator_ColumnVarNameInTable="columnCelular" msprop:Generator_ColumnPropNameInRow="Celular" msprop:Generator_ColumnPropNameInTable="CelularColumn" msprop:Generator_UserColumnName="Celular" type="xs:string" minOccurs="0" />
+              <xs:element name="FechaDesembolso" msprop:Generator_ColumnVarNameInTable="columnFechaDesembolso" msprop:Generator_ColumnPropNameInRow="FechaDesembolso" msprop:Generator_ColumnPropNameInTable="FechaDesembolsoColumn" msprop:Generator_UserColumnName="FechaDesembolso" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="FechaVcto" msprop:Generator_ColumnVarNameInTable="columnFechaVcto" msprop:Generator_ColumnPropNameInRow="FechaVcto" msprop:Generator_ColumnPropNameInTable="FechaVctoColumn" msprop:Generator_UserColumnName="FechaVcto" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="Articulo" msprop:Generator_ColumnVarNameInTable="columnArticulo" msprop:Generator_ColumnPropNameInRow="Articulo" msprop:Generator_ColumnPropNameInTable="ArticuloColumn" msprop:Generator_UserColumnName="Articulo" type="xs:string" minOccurs="0" />
+              <xs:element name="MontoCredito" msprop:Generator_ColumnVarNameInTable="columnMontoCredito" msprop:Generator_ColumnPropNameInRow="MontoCredito" msprop:Generator_ColumnPropNameInTable="MontoCreditoColumn" msprop:Generator_UserColumnName="MontoCredito" type="xs:decimal" minOccurs="0" />
+              <xs:element name="SaldoCredito" msprop:Generator_ColumnVarNameInTable="columnSaldoCredito" msprop:Generator_ColumnPropNameInRow="SaldoCredito" msprop:Generator_ColumnPropNameInTable="SaldoCreditoColumn" msprop:Generator_UserColumnName="SaldoCredito" type="xs:decimal" minOccurs="0" />
+              <xs:element name="CapitalAtrazo" msprop:Generator_ColumnVarNameInTable="columnCapitalAtrazo" msprop:Generator_ColumnPropNameInRow="CapitalAtrazo" msprop:Generator_ColumnPropNameInTable="CapitalAtrazoColumn" msprop:Generator_UserColumnName="CapitalAtrazo" type="xs:decimal" minOccurs="0" />
+              <xs:element name="GA" msprop:Generator_ColumnVarNameInTable="columnGA" msprop:Generator_ColumnPropNameInRow="GA" msprop:Generator_ColumnPropNameInTable="GAColumn" msprop:Generator_UserColumnName="GA" type="xs:decimal" minOccurs="0" />
+              <xs:element name="InteresAtrazo" msprop:Generator_ColumnVarNameInTable="columnInteresAtrazo" msprop:Generator_ColumnPropNameInRow="InteresAtrazo" msprop:Generator_ColumnPropNameInTable="InteresAtrazoColumn" msprop:Generator_UserColumnName="InteresAtrazo" type="xs:decimal" minOccurs="0" />
+              <xs:element name="Mora" msprop:Generator_ColumnVarNameInTable="columnMora" msprop:Generator_ColumnPropNameInRow="Mora" msprop:Generator_ColumnPropNameInTable="MoraColumn" msprop:Generator_UserColumnName="Mora" type="xs:decimal" minOccurs="0" />
+              <xs:element name="ImporteLibre" msprop:Generator_ColumnVarNameInTable="columnImporteLibre" msprop:Generator_ColumnPropNameInRow="ImporteLibre" msprop:Generator_ColumnPropNameInTable="ImporteLibreColumn" msprop:Generator_UserColumnName="ImporteLibre" type="xs:decimal" minOccurs="0" />
+              <xs:element name="DiasAtrazo" msprop:Generator_ColumnVarNameInTable="columnDiasAtrazo" msprop:Generator_ColumnPropNameInRow="DiasAtrazo" msprop:Generator_ColumnPropNameInTable="DiasAtrazoColumn" msprop:Generator_UserColumnName="DiasAtrazo" type="xs:int" minOccurs="0" />
+              <xs:element name="CuotasAtrazo" msprop:Generator_ColumnVarNameInTable="columnCuotasAtrazo" msprop:Generator_ColumnPropNameInRow="CuotasAtrazo" msprop:Generator_ColumnPropNameInTable="CuotasAtrazoColumn" msprop:Generator_UserColumnName="CuotasAtrazo" type="xs:int" minOccurs="0" />
+              <xs:element name="DeudaAtrazo" msprop:Generator_ColumnVarNameInTable="columnDeudaAtrazo" msprop:Generator_ColumnPropNameInRow="DeudaAtrazo" msprop:Generator_ColumnPropNameInTable="DeudaAtrazoColumn" msprop:Generator_UserColumnName="DeudaAtrazo" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

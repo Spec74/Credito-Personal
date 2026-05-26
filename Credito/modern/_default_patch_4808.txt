@@ -1,0 +1,12 @@
+    # Iconos y fuentes del menú (Web/css, Web/img) — montados en docker-compose
+    location /css/ {
+        alias /var/www/legacy-web/css/;
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+
+    location /img/ {
+        alias /var/www/legacy-web/img/;
+        expires 7d;
+        add_header Cache-Control "public";
+    }

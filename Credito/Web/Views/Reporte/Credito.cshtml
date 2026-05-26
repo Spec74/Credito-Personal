@@ -1,0 +1,919 @@
+﻿@if (ViewBag.rol == "ADMIN" || ViewBag.rol == "APROBADOR" || ViewBag.rol == "PARCIAL")
+{
+    <div class="grid_4">
+        <form method="post" action="#" class="box validate">
+            <div class="header">
+                <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Reporte Morosidad</h2>
+            </div>
+
+            <div class="content">
+
+                <p class="_100 small" style="padding-top: 10px;">
+                    @Html.DropDownList("cboOficina1", "TODOS")
+                </p>
+
+                <p class="_100 small">
+                    <label for="txtHastaFecha" class="inline">Hasta la fecha:</label>
+                    <input data-error-type="inline" type="date" class="required maskDate" name="txtHastaFecha" id="txtHastaFecha" placeholder="DD/MM/YYYY" />
+                </p>
+
+                <p class="_100 small">
+                    <label for="txtDiasAtrazoIni" class="inline">Dias de Atrazo INICIO:</label>
+                    <input data-error-type="inline" type="number" class="required" name="txtDiasAtrazoIni" id="txtDiasAtrazoIni" value="1" />
+                </p>
+                <p class="_100 small">
+                    <label for="txtDiasAtrazoFin" class="inline">Dias de Atrazo FINAL:</label>
+                    <input data-error-type="inline" type="number" class="required" name="txtDiasAtrazoFin" id="txtDiasAtrazoFin" value="9999" />
+                </p>
+
+            </div>
+            <br />
+            <div class="actions">
+                <div class="right">
+                    <input type="submit" value="Créditos con morosidad" id="btnRptCreditoMora" />
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="grid_4">
+        <form method="post" action="#" class="box validate">
+            <div class="header">
+                <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Creditos Aprobados</h2>
+            </div>
+
+            <div class="content">
+
+                <p class="_100 small" style="padding-top: 10px;">
+                    @Html.DropDownList("cboOficina4", "TODOS")
+                </p>
+                <p class="_100 small" style="padding-top: 10px;">
+                    @Html.DropDownList("cboGestor", "TODOS")
+                </p>
+                <p class="_100 small">
+                    <label for="txtFechaAprobacion" class="inline">Fecha:</label>
+                    <input data-error-type="inline" type="date" class="required maskDate" name="txtFechaAprobacion" id="txtFechaAprobacion" placeholder="DD/MM/YYYY" />
+                </p>
+            </div>
+            <br />
+            <div class="actions">
+                <div class="right">
+                    <input type="submit" value="PDF" id="btnRptCreditoAprobadoPdf" />
+                    <input type="submit" value="XLS" id="btnRptCreditoAprobadoExcel" />
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid_4">
+        <form method="post" action="#" class="box validate">
+            <div class="header">
+                <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Cobro Diario, Observados y morosos por Gestor</h2>
+            </div>
+
+            <div class="content">
+
+                <p class="_100 small" style="padding-top: 10px;">
+                    @Html.DropDownList("cboOficina3", "TODOS")
+                </p>
+                <p class="_100 small" style="padding-top: 10px;">
+                    @Html.DropDownList("cboUsuario", "TODOS")
+                </p>
+            </div>
+            <br />
+            <div class="actions">
+                <div class="left">
+
+                </div>
+                <div class="right">
+                    <input type="submit" value="Cobro Diario Xls" id="btnRptCobroDiarioGestorXls" />
+                    <input type="submit" value="Cobro Diario Pdf" id="btnRptCobroDiarioGestorPdf" />
+                    @*                        
+        <input type="submit" value="Cobranza Xls" id="btnRptCobranzaGestorXls" />
+        <input type="submit" value="Cobranza Pdf" id="btnRptCobranzaGestorPdf" />
+                    *@
+                    <input type="submit" value="Morosidad Xls" id="btnRptMorosidadGestorXls" />
+                    <input type="submit" value="Morosidad Pdf" id="btnRptMorosidadGestorPdf" />
+                    <br />
+                    <input type="submit" value="Obs Xls" id="btnRptCreditoObservadoXls" />
+                    <input type="submit" value="Obs Pdf" id="btnRptCreditoObservadoPdf" />
+                    <input type="submit" value="Clientes Nuevos" id="btnRptClientesNuevos" />
+                    <input type="submit" value="Clientes Inactivos" id="btnRptClientesInactivos" />
+                    <input type="submit" value="Clientes Bloqueados" id="btnRptClienteBloqueado" />
+                    <input type="submit" value="Clientes con Tope Credito" id="btnRptClienteTopeCredito" />
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid_4">
+        <form method="post" action="#" class="box validate">
+            <div class="header">
+                <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Reporte Creditos</h2>
+            </div>
+
+            <div class="content">
+
+                <p class="_100 small" style="padding-top: 10px;">
+                    @Html.DropDownList("cboOficina", "TODOS")
+                </p>
+                <p class="_100 small" style="padding-top: 10px;">
+                    @Html.DropDownList("cboGestor2", "TODOS")
+                </p>
+                <p class="_100 small">
+                    <select id="cboEstadoCredito">
+                        <option value="CRE">SOLICITUD CREDITO</option>
+                        <option value="PEN">PENDIENTE</option>
+                        <option value="DES">DESEMBOLSADO</option>
+                        <option value="PAG">PAGADO</option>
+                        <option value="REP">REPROGRAMADO</option>
+                        <option value="ANU">ANULADO</option>
+                    </select>
+                </p>
+                <p class="_100 small">
+                    <label for="txtFechaIni" class="inline">Fecha Inicial:</label>
+                    <input data-error-type="inline" type="date" class="required maskDate"
+                           name="txtFechaIni" id="txtFechaIni" placeholder="DD/MM/YYYY" />
+                </p>
+                <p class="_100 small">
+                    <label for="txtFechaFin" class="inline">Fecha Final:</label>
+                    <input data-error-type="inline" type="date" class="required maskDate"
+                           name="txtFechaFin" id="txtFechaFin" placeholder="DD/MM/YYYY" />
+                </p>
+
+            </div>
+            <br />
+            <div class="actions">
+                <div class="right">
+                    <input type="submit" value="Reporte Créditos" id="btnRptCredito" />
+                </div>
+            </div>
+            <div class="actions">
+                <div class="right">
+                    <input type="checkbox" name="chkTodo" id="chkTodo" /><label for="chkTodo">TODOS </label>
+                    <input type="submit" value="Rentabilidad Xls" id="btnRptRentabilidadXls" />
+                    <input type="submit" value="Rentabilidad Pdf" id="btnRptRentabilidadPdf" />
+                </div>
+            </div>
+        </form>
+    </div>
+
+    if (ViewBag.rol == "APROBADOR" || ViewBag.rol == "ADMIN")
+    {
+        <div class="grid_4">
+            <form method="post" action="#" class="box validate">
+                <div class="header">
+                    <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Reporte varios</h2>
+                </div>
+
+                <div class="content">
+
+                    <p class="_100 small" style="padding-top: 10px;">
+                        @Html.DropDownList("cboOficina5", "TODOS")
+                    </p>
+                    <p class="_100 small" style="padding-top: 10px;">
+                        @Html.DropDownList("cboGestor3", "TODOS")
+                    </p>
+                    <p class="_100 small">
+                        <label for="txtFechaIniCondonacion" class="inline">Fecha Inicial:</label>
+                        <input data-error-type="inline" type="date" class="required maskDate"
+                               name="txtFechaIniCondonacion" id="txtFechaIniCondonacion" placeholder="DD/MM/YYYY" />
+                    </p>
+                    <p class="_100 small">
+                        <label for="txtFechaFinCondonacion" class="inline">Fecha Final:</label>
+                        <input data-error-type="inline" type="date" class="required maskDate"
+                               name="txtFechaFinCondonacion" id="txtFechaFinCondonacion" placeholder="DD/MM/YYYY" />
+                    </p>
+
+                </div>
+                <br />
+                <div class="actions">
+                    <div class="right">
+                        @if (ViewBag.rol == "ADMIN")
+                        {
+                            <input type="submit" value="Condonacion Xls" id="btnRptCondonacionXls" />
+                            <input type="submit" value="Condonacion Pdf" id="btnRptCondonacionPdf" />
+                            <input type="submit" value="Activos Xls" id="btnRptActivosXls" />
+                            @*<input type="submit" value="Activos Pdf" id="btnRptActivosPdf" />*@
+                            @*<br/>*@
+                            <input type="submit" value="Cierre Xls" id="btnRptCierreXls" />
+                            <input type="submit" value="Cierre Pdf" id="btnRptCierrePdf" />
+                            <input type="submit" value="Morosos Pagados Xls" id="btnRptMorososPagadosXls" />
+                            <input type="submit" value="Morosos Pagados Pdf" id="btnRptMorososPagadosPdf" />
+                            <input type="submit" value="Clientes Nuevos" id="btnRptClientesNuevosFecha" />
+                            <input type="submit" value="Caja Diario" id="btnRptCajaDiario" />
+
+                            <input type="submit" value="Clientes Inactivos Pagados" id="btnRptClientesInactivosPagados" />
+                        }
+                        else
+                        {
+                            <input type="submit" value="Clientes Inactivos Pagados" id="btnRptClientesInactivosPagados" />
+                        }
+                    </div>
+                </div>
+            </form>
+        </div>
+
+    }
+
+    if (ViewBag.rol == "ADMIN")
+    {
+
+        <div class="grid_4">
+            <form method="post" action="#" class="box validate">
+                <div class="header">
+                    <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Reporte Comprobantes Caja Chica</h2>
+                </div>
+                <div class="content">
+                    <p class="_100 small">
+                        <label for="txtFechaIniCajaChica" class="inline">Fecha Inicial:</label>
+                        <input data-error-type="inline" type="date" class="required maskDate"
+                               name="txtFechaIniCajaChica" id="txtFechaIniCajaChica" placeholder="DD/MM/YYYY" />
+                    </p>
+                    <p class="_100 small">
+                        <label for="txtFechaFinCajaChica" class="inline">Fecha Final:</label>
+                        <input data-error-type="inline" type="date" class="required maskDate"
+                               name="txtFechaFinCajaChica" id="txtFechaFinCajaChica" placeholder="DD/MM/YYYY" />
+                    </p>
+                </div>
+                <br />
+                <div class="actions">
+                    <div class="right">
+                        <input type="submit" value="Comprobantes Xls" id="btnRptComprobantesXls" />
+                        <input type="submit" value="Comprobantes Pdf" id="btnRptComprobantesPdf" />
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="grid_4">
+            <form method="post" action="#" class="box validate">
+                <div class="header">
+                    <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Reporte Movimientos Anulados</h2>
+                </div>
+                <div class="content">
+                    <p class="_100 small">
+                        <label for="txtFechaIniCajaAnulado" class="inline">Fecha Inicial:</label>
+                        <input data-error-type="inline" type="date" class="required maskDate"
+                               name="txtFechaIniCajaAnulado" id="txtFechaIniCajaAnulado" placeholder="DD/MM/YYYY" />
+                    </p>
+                    <p class="_100 small">
+                        <label for="txtFechaFinCajaAnulado" class="inline">Fecha Final:</label>
+                        <input data-error-type="inline" type="date" class="required maskDate"
+                               name="txtFechaFinCajaAnulado" id="txtFechaFinCajaAnulado" placeholder="DD/MM/YYYY" />
+                    </p>
+                </div>
+                <br />
+                <div class="actions">
+                    <div class="right">
+                        @*<input type="submit" value="Comprobantes Xls" id="btnRptComprobantesXls" />*@
+                        <input type="submit" value="Anulados Pdf" id="btnRptComprobantesAnuladosPdf" />
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="grid_4">
+            <form method="post" action="#" class="box validate">
+                <div class="header">
+                    <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Reporte Saldo Cartera</h2>
+                </div>
+
+                <div class="content">
+
+                    <p class="_100 small" style="padding-top: 10px;">
+                        @Html.DropDownList("cboOficina6", "TODOS")
+                    </p>
+
+                    <p class="_50 small">
+                        <select id="cboAnioIni">
+                            <option value="2022">2022</option>
+                            <option value="2023">2023</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                            <option value="2029">2029</option>
+                            <option value="2030">2030</option>
+                            <option value="2031">2031</option>
+                            <option value="2032">2032</option>
+                        </select>
+                    </p>
+                    <p class="_50 small">
+                        <select id="cboMesIni">
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </p>
+                    <p class="_50 small">
+                        <select id="cboAnioFin">
+                            <option value="2022">2022</option>
+                            <option value="2023">2023</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                            <option value="2026">2026</option>
+                            <option value="2027">2027</option>
+                            <option value="2028">2028</option>
+                            <option value="2029">2029</option>
+                            <option value="2030">2030</option>
+                            <option value="2031">2031</option>
+                            <option value="2032">2032</option>
+                        </select>
+                    </p>
+                    <p class="_50 small">
+                        <select id="cboMesFin">
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </p>
+                </div>
+                <br />
+                <div class="actions">
+                    <div class="right">
+                        <input type="submit" value="Reporte Saldo Cartera" id="btnReporteSaldoCartera" />
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="grid_4">
+            <form method="post" action="#" class="box validate">
+                <div class="header">
+                    <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Reporte Central de Riesgos</h2>
+                </div>
+
+                <div class="content">
+
+                    <p class="_100 small" style="padding-top: 10px;">
+                        @Html.DropDownList("cboOficina2", "TODOS")
+                    </p>
+
+                    <p class="_100 small">
+                        <select id="cboAnio">
+                            <option value="2014">2014</option>
+                            <option value="2015">2015</option>
+                            <option value="2016">2016</option>
+                            <option value="2017">2017</option>
+                            <option value="2018">2018</option>
+                            <option value="2019">2019</option>
+                            <option value="2020">2020</option>
+                            <option value="2021">2021</option>
+                            <option value="2022">2022</option>
+                            <option value="2023">2023</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                        </select>
+                    </p>
+                    <p class="_100 small">
+                        <select id="cboMes">
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </p>
+
+                </div>
+                <br />
+                <div class="actions">
+                    <div class="right">
+                        <input type="submit" value="Reporte Central de Riesgo" id="btnCentralRiesgo" />
+                    </div>
+                </div>
+            </form>
+        </div>
+    }
+}
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#txtFechaIni,#txtFechaIniCajaChica,#txtFechaIniCajaAnulado,#txtFechaIniCondonacion").val("@ITB.VENDIX.BL.VendixGlobal.GetFecha().AddDays(- ITB.VENDIX.BL.VendixGlobal.GetFecha().Day + 1).ToString("dd/MM/yyyy")");
+        $("#txtFechaFin,#txtFechaFinCajaChica,#txtFechaFinCajaAnulado,#txtFechaFinCondonacion").val("@ITB.VENDIX.BL.VendixGlobal.GetFecha().AddDays(-ITB.VENDIX.BL.VendixGlobal.GetFecha().Day + 1).AddMonths(1).AddDays(-1).ToString("dd/MM/yyyy")");
+        $("#txtHastaFecha,#txtFechaAprobacion").val("@ITB.VENDIX.BL.VendixGlobal.GetFecha().ToString("dd/MM/yyyy")");
+
+        $("#cboAnio,#cboAnioIni").val(@ITB.VENDIX.BL.VendixGlobal.GetFecha().AddMonths(-1).Year).trigger("liszt:updated");
+        $("#cboMes,#cboMesIni").val(@ITB.VENDIX.BL.VendixGlobal.GetFecha().AddMonths(-1).Month).trigger("liszt:updated");
+        $("#cboAnioFin").val(@ITB.VENDIX.BL.VendixGlobal.GetFecha().Year).trigger("liszt:updated");
+        $("#cboMesFin").val(@ITB.VENDIX.BL.VendixGlobal.GetFecha().Month).trigger("liszt:updated");
+
+        $('#btnCentralRiesgo').click(function () {
+            var oficina = $('#cboOficina2').val();
+            if (oficina.length == 0) oficina = null;
+
+            window.location.href = '@Url.Action("ReporteCentrarRiegoTXT", "Reporte")'
+                + '?pOficinaid=' + oficina
+                + '&pAnio=' + $("#cboAnio").val()
+                + '&pMes=' + $("#cboMes").val();
+            return false;
+        });
+
+        $("#btnRptCredito").click(function () {
+            event.preventDefault();
+            var oficina = $('#cboOficina').val();
+            if (oficina.length == 0) oficina = null;
+            var usuario = $('#cboGestor2').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteCredito", "Reporte")'
+                + '?pOficinaid=' + oficina
+                + '&pGestorid=' + usuario
+                + '&pEstadoCredito=' + $("#cboEstadoCredito").val()
+                + '&pFechaIni=' + $('#txtFechaIni').val()
+                + '&pFechaFin=' + $('#txtFechaFin').val();
+
+            window.open(ruta);
+            return false;
+        });
+
+        $("#btnReporteSaldoCartera").click(function () {
+            event.preventDefault();
+            var oficina = $('#cboOficina6').val();
+            if (oficina.length == 0) oficina = null;
+            //var usuario = $('#cboGestor2').val();
+            //if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteSaldoCarteraCajaDiario", "Reporte")'
+                + '?pOficinaid=' + oficina
+                + '&anioIni=' + $('#cboAnioIni').val()
+                + '&mesIni=' + $('#cboMesIni').val()
+                + '&anioFin=' + $('#cboAnioFin').val()
+                + '&mesFin=' + $('#cboMesFin').val();
+
+            //alert(ruta );
+            window.open(ruta);
+            return false;
+        });
+
+        $("#btnRptRentabilidadPdf").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaRentabilidad('PDF'));
+            return false;
+        });
+        $("#btnRptRentabilidadXls").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaRentabilidad('Excel'));
+            return false;
+        });
+        function obtenerRutaRentabilidad(tipo) {
+            var oficina = $('#cboOficina').val();
+            if (oficina.length == 0) oficina = null;
+
+            var ruta = '@Url.Action("ReporteCreditoRentabilidad", "Reporte")'
+                + '?pFechaIni=' + $('#txtFechaIni').val()
+                + '&pFechaFin=' + $('#txtFechaFin').val()
+                + '&pEstadoCredito=' + $("#cboEstadoCredito").val()
+                + '&indTodos=' + $("#chkTodo").prop('checked')
+                + '&pOficinaid=' + oficina
+                + '&pTipo=' + tipo;
+            return ruta;
+        };
+
+        $("#btnRptComprobantesPdf").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaComprobantes('PDF'));
+            return false;
+        });
+        $("#btnRptComprobantesXls").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaComprobantes('Excel'));
+            return false;
+        });
+        function obtenerRutaComprobantes(tipo) {
+
+            var ruta = '@Url.Action("ReporteComprobantesCajaChica", "Reporte")'
+                + '?pFechaIni=' + $('#txtFechaIniCajaChica').val()
+                + '&pFechaFin=' + $('#txtFechaFinCajaChica').val()
+                + '&pTipo=' + tipo;
+            return ruta;
+        };
+        $("#btnRptComprobantesAnuladosPdf").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaComprobantesAnulados('PDF'));
+            return false;
+        });
+        $("#btnRptComprobantesAnuladosXls").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaComprobantesAnulados('Excel'));
+            return false;
+        });
+        function obtenerRutaComprobantesAnulados(tipo) {
+
+            var ruta = '@Url.Action("ReporteComprobantesCajaAnulados", "Reporte")'
+                + '?pFechaIni=' + $('#txtFechaIniCajaAnulado').val()
+                + '&pFechaFin=' + $('#txtFechaFinCajaAnulado').val()
+                + '&pTipo=' + tipo;
+            return ruta;
+        };
+
+        $("#btnRptCreditoAprobado").click(function () {
+            event.preventDefault();
+            var oficina = $('#cboOficina4').val();
+            if (oficina.length == 0) oficina = null;
+            var usuario = $('#cboGestor').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteCreditoAprobado", "Reporte")'
+                + '?pFecha=' + $('#txtFechaAprobacion').val()
+                + '&pUsuarioid=' + usuario
+                + '&pOficinaid=' + oficina;
+            //alert(ruta );
+            window.open(ruta);
+            return false;
+        });
+
+        $("#btnRptCreditoAprobadoPdf").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaCreditoAprobado('PDF'));
+            return false;
+        });
+
+        $("#btnRptCreditoAprobadoExcel").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaCreditoAprobado('Excel'));
+            return false;
+        });
+
+        function obtenerRutaCreditoAprobado(tipo) {
+            var oficina = $('#cboOficina4').val();
+            if (oficina.length == 0) oficina = null;
+            var usuario = $('#cboGestor').val();
+            if (usuario.length == 0) usuario = null;
+            var ruta = '@Url.Action("ReporteCreditoAprobado", "Reporte")'
+                + '?pFecha=' + $('#txtFechaAprobacion').val()
+                + '&pUsuarioid=' + usuario
+                + '&pOficinaid=' + oficina
+                + '&pTipo=' + tipo;
+            return ruta;
+        }
+
+
+        $("#btnRptCreditoMora").click(function () {
+            event.preventDefault();
+            var oficina = $('#cboOficina1').val();
+            if (oficina.length == 0) oficina = null;
+
+            var ruta = '@Url.Action("ReporteCreditoMorosidad", "Reporte")'
+                + '?pOficinaid=' + oficina
+                + '&pFechaHasta=' + $('#txtHastaFecha').val()
+                + '&pDiasAtrazoIni=' + $('#txtDiasAtrazoIni').val()
+                + '&pDiasAtrazoFin=' + $('#txtDiasAtrazoFin').val();
+            window.open(ruta);
+            return false;
+        });
+        $("#btnRptMorosidadGestorPdf").click(function () {
+            event.preventDefault();
+            //var usuario = $('#cboUsuario').val();
+            //if (usuario.length == 0) {
+            //    Vendix.Mensaje('Seleccione un Gestor');
+            //    return false;
+            //};
+            window.open(obtenerRutaMorosidadGestor('PDF'));
+            return false;
+        });
+        $("#btnRptMorosidadGestorXls").click(function () {
+            event.preventDefault();
+            //var usuario = $('#cboUsuario').val();
+            //if (usuario.length == 0) {
+            //    Vendix.Mensaje('Seleccione un Gestor');
+            //    return false;
+            //};
+            window.open(obtenerRutaMorosidadGestor('Excel'));
+            return false;
+        });
+        function obtenerRutaMorosidadGestor(tipo) {
+            var oficina = $('#cboOficina3').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboUsuario').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteMorosidadGestor", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario
+                + '&pTipo=' + tipo;
+            return ruta;
+        }
+        $("#btnRptCobroDiarioGestorPdf").click(function () {
+            event.preventDefault();
+            var usuario = $('#cboUsuario').val();
+            if (usuario.length == 0) {
+                Vendix.Mensaje('Seleccione un Gestor');
+                return false;
+            };
+            window.open(obtenerRutaCobroDiarioGestor('PDF'));
+            return false;
+        });
+
+        $("#btnRptCobroDiarioGestorXls").click(function () {
+            event.preventDefault();
+            var usuario = $('#cboUsuario').val();
+            if (usuario.length == 0) {
+                Vendix.Mensaje('Seleccione un Gestor');
+                return false;
+            };
+            window.open(obtenerRutaCobroDiarioGestor('Excel'));
+            return false;
+        });
+        function obtenerRutaCobroDiarioGestor(tipo) {
+            var oficina = $('#cboOficina3').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboUsuario').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteCobroDiario", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pGestorid=' + usuario
+                + '&pTipo=' + tipo;
+            return ruta;
+        }
+
+        //$("#btnRptCobranzaGestorPdf").click(function () {
+        //    event.preventDefault();
+        //    var usuario = $('#cboUsuario').val();
+        //    if (usuario.length == 0) {
+        //        Vendix.Mensaje('Seleccione un Gestor');
+        //        return false;
+        //    };
+        //    window.open(obtenerRutaCobranzaGestor('PDF'));
+        //    return false;
+        //});
+
+        //$("#btnRptCobranzaGestorXls").click(function () {
+        //    event.preventDefault();
+        //    var usuario = $('#cboUsuario').val();
+        //    if (usuario.length == 0) {
+        //        Vendix.Mensaje('Seleccione un Gestor');
+        //        return false;
+        //    };
+        //    window.open(obtenerRutaCobranzaGestor('Excel'));
+        //    return false;
+        //});
+        @*function obtenerRutaCobranzaGestor(tipo) {
+            var oficina = $('#cboOficina3').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboUsuario').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteCobranzaGestor", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pGestorid=' + usuario
+                + '&pTipo=' + tipo;
+            return ruta;
+        };*@
+
+        $("#btnRptClientesNuevos").click(function () {
+            event.preventDefault();
+            var oficina = $('#cboOficina3').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboUsuario').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteClientesNuevosMes", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario;
+            window.open(ruta);
+            return false;
+        });
+
+        $("#btnRptClientesNuevosFecha").click(function () {
+            event.preventDefault();
+            var oficina = $('#cboOficina5').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboGestor3').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteClientesNuevosMes", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario
+                + '&pFechaIni=' + $('#txtFechaIniCondonacion').val()
+                + '&pFechaFin=' + $('#txtFechaFinCondonacion').val();
+            window.open(ruta);
+            return false;
+        });
+        $("#btnRptCajaDiario").click(function () {
+            event.preventDefault();
+            var oficina = $('#cboOficina5').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboGestor3').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteCajaDiario", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario
+                + '&pFechaIni=' + $('#txtFechaIniCondonacion').val()
+                + '&pFechaFin=' + $('#txtFechaFinCondonacion').val();
+            window.open(ruta);
+            return false;
+        });
+
+
+        $("#btnRptClientesInactivos").click(function () {
+            event.preventDefault();
+            var oficina = $('#cboOficina3').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboUsuario').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteClientesInactivos", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario;
+            window.open(ruta);
+            return false;
+        });
+
+        $("#btnRptClienteBloqueado").click(function () {
+            event.preventDefault();
+            var oficina = $('#cboOficina3').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboUsuario').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteClienteBloqueado", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario;
+            window.open(ruta);
+            return false;
+        });
+        $("#btnRptClienteTopeCredito").click(function () {
+            event.preventDefault();
+            var oficina = $('#cboOficina3').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboUsuario').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteClienteTopeCredito", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario;
+            window.open(ruta);
+            return false;
+        });
+
+        $("#btnRptCreditoObservadoPdf").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaCreditoObs('PDF'));
+            return false;
+        });
+        $("#btnRptCreditoObservadoXls").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaCreditoObs('Excel'));
+            return false;
+        });
+        function obtenerRutaCreditoObs(tipo) {
+            var oficina = $('#cboOficina3').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboUsuario').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteCreditoObservado", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario
+                + '&pTipo=' + tipo;
+            return ruta;
+        }
+
+        $("#btnRptCondonacionPdf").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaCreditoCondonado('PDF'));
+            return false;
+        });
+        $("#btnRptCondonacionXls").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaCreditoCondonado('Excel'));
+            return false;
+        });
+        function obtenerRutaCreditoCondonado(tipo) {
+            var oficina = $('#cboOficina5').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboGestor3').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteCreditoCondonado", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario
+                + '&pFechaIni=' + $('#txtFechaIniCondonacion').val()
+                + '&pFechaFin=' + $('#txtFechaFinCondonacion').val()
+                + '&pTipo=' + tipo;
+            return ruta;
+        }
+        $("#btnRptActivosPdf").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaCreditoActivo('PDF'));
+            return false;
+        });
+        $("#btnRptActivosXls").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaCreditoActivo('Excel'));
+            return false;
+        });
+        function obtenerRutaCreditoActivo(tipo) {
+            var oficina = $('#cboOficina5').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboGestor3').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteCreditoActivo", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario
+                + '&pFechaIni=' + $('#txtFechaIniCondonacion').val()
+                + '&pFechaFin=' + $('#txtFechaFinCondonacion').val()
+                + '&pTipo=' + tipo;
+            return ruta;
+        }
+        $("#btnRptCierrePdf").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaCreditoCierre('PDF'));
+            return false;
+        });
+        $("#btnRptCierreXls").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaCreditoCierre('Excel'));
+            return false;
+        });
+        function obtenerRutaCreditoCierre(tipo) {
+            var oficina = $('#cboOficina5').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboGestor3').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteCreditoCierre", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario
+                + '&pFechaIni=' + $('#txtFechaIniCondonacion').val()
+                + '&pFechaFin=' + $('#txtFechaFinCondonacion').val()
+                + '&pTipo=' + tipo;
+            return ruta;
+        }
+        $("#btnRptMorososPagadosPdf").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaCreditoMorosoPagado('PDF'));
+            return false;
+        });
+        $("#btnRptMorososPagadosXls").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaCreditoMorosoPagado('Excel'));
+            return false;
+        });
+        function obtenerRutaCreditoMorosoPagado(tipo) {
+            var oficina = $('#cboOficina5').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboGestor3').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteCreditoMorosoPagado", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario
+                + '&pFechaIni=' + $('#txtFechaIniCondonacion').val()
+                + '&pFechaFin=' + $('#txtFechaFinCondonacion').val()
+                + '&pTipo=' + tipo;
+            return ruta;
+        }
+
+
+        $("#btnRptClientesInactivosPagados").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaClienteInactivoPagado('PDF'));
+            return false;
+        });
+
+        function obtenerRutaClienteInactivoPagado(tipo) {
+            var oficina = $('#cboOficina5').val();
+            if (oficina.length == 0) oficina = null;
+
+            var usuario = $('#cboGestor3').val();
+            if (usuario.length == 0) usuario = null;
+
+            var ruta = '@Url.Action("ReporteClientesInactivosPagados", "Reporte")'
+                + '?pOficinaId=' + oficina + '&pUsuarioId=' + usuario
+                + '&pFechaIni=' + $('#txtFechaIniCondonacion').val()
+                + '&pFechaFin=' + $('#txtFechaFinCondonacion').val()
+                + '&pTipo=' + tipo;
+            return ruta;
+        }
+    });
+</script>

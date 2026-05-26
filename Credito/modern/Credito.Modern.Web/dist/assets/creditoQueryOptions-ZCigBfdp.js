@@ -1,0 +1,1 @@
+var e={master:5*6e4,ficha:2*6e4,operacion:6e4,listado:45e3};export{e as t};

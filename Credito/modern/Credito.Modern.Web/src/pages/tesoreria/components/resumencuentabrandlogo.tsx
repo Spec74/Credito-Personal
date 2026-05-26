@@ -1,0 +1,1 @@
+export { ResumenCuentaBrandLogo } from './resumenCuentaBrandIcons'

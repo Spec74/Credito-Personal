@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="6953446082c94040b6ba68f5db25178a" Name="Diagrama1">
+        <EntityTypeShape EntityType="VENDIXModel.Almacen" Width="1.5" PointX="7.5" PointY="12.5" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Articulo" Width="1.5" PointX="7.5" PointY="5.25" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Marca" Width="1.5" PointX="3" PointY="4.625" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Modelo" Width="1.5" PointX="5.25" PointY="4.625" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Movimiento" Width="1.5" PointX="9.75" PointY="12.5" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.MovimientoDet" Width="1.5" PointX="12" PointY="12.5" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.MovimientoDoc" Width="1.5" PointX="3" PointY="9.125" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.SerieArticulo" Width="1.5" PointX="14.25" PointY="12.5" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.TipoArticulo" Width="1.5" PointX="5.25" PointY="5.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.TipoMovimiento" Width="1.5" PointX="7.5" PointY="17.5" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Boveda" Width="1.5" PointX="7.5" PointY="15.375" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.BovedaMov" Width="1.5" PointX="9.75" PointY="14.875" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.BovedaMovTemp" Width="1.5" PointX="9.75" PointY="16" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Caja" Width="1.5" PointX="7.5" PointY="8.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.CajaDiario" Width="1.5" PointX="9.75" PointY="7.5" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Cargo" Width="1.5" PointX="12.75" PointY="6.25" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Credito" Width="1.5" PointX="7.5" PointY="10.25" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.CuentaxCobrar" Width="1.5" PointX="12.75" PointY="8.25" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.GastosAdm" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.MovimientoCaja" Width="1.5" PointX="15" PointY="8.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.MovimientoCajaAnu" Width="1.5" PointX="17.25" PointY="8.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.PlanPago" Width="1.5" PointX="12.75" PointY="10.25" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Producto" Width="1.5" PointX="5.25" PointY="10.25" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Cliente" Width="1.5" PointX="3" PointY="12.5" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Menu" Width="1.5" PointX="8.25" PointY="18.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Ocupacion" Width="1.5" PointX="2.75" PointY="0.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Oficina" Width="1.5" PointX="5.25" PointY="11.375" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Persona" Width="1.5" PointX="0.75" PointY="9.125" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Rol" Width="1.5" PointX="5.25" PointY="13.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.RolMenu" Width="1.5" PointX="10.5" PointY="17.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.TipoDocumento" Width="1.5" PointX="0.75" PointY="7.5" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.TipoOperacion" Width="1.5" PointX="0.75" PointY="2.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.Usuario" Width="1.5" PointX="3" PointY="10.25" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.UsuarioOficina" Width="1.5" PointX="10.5" PointY="10.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.UsuarioRol" Width="1.5" PointX="7.5" PointY="13.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.ValorTabla" Width="1.5" PointX="2.75" PointY="2.75" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.ListaPrecio" Width="1.5" PointX="9.75" PointY="4.25" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.OrdenVenta" Width="1.5" PointX="7.5" PointY="7.25" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.OrdenVentaDet" Width="1.5" PointX="9.75" PointY="6.25" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.OrdenVentaDetSerie" Width="1.5" PointX="16.5" PointY="7.375" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.TarjetaPunto" Width="1.5" PointX="3" PointY="13.625" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.TarjetaPuntoDet" Width="1.5" PointX="9.75" PointY="9.5" IsExpanded="false" />
+        <EntityTypeShape EntityType="VENDIXModel.PlanPagoLibre" Width="1.5" PointX="17.25" PointY="10.5" IsExpanded="false" />
+        <AssociationConnector Association="VENDIXModel.FK_ALMACEN_OficinaId" />
+        <AssociationConnector Association="VENDIXModel.FK_ENTRADASALIDA_AlmacenId" />
+        <AssociationConnector Association="VENDIXModel.FK_SERIEARTICULO_AlmacenId" />
+        <AssociationConnector Association="VENDIXModel.FK_ARTICULO_ModeloId" />
+        <AssociationConnector Association="VENDIXModel.FK_ARTICULO_TipoArticuloId" />
+        <AssociationConnector Association="VENDIXModel.FK_DETENTRADASALIDA_ArticuloId" />
+        <AssociationConnector Association="VENDIXModel.FK_DETORDENVENTA_ArticuloId" />
+        <AssociationConnector Association="VENDIXModel.FK_ListaPrecio_Articulo" />
+        <AssociationConnector Association="VENDIXModel.FK_SERIEARTICULO_ArticuloId" />
+        <AssociationConnector Association="VENDIXModel.FK_MODELO_MarcaId" />
+        <AssociationConnector Association="VENDIXModel.FK_DETENTRADASALIDA_EntradaSalidaId" />
+        <AssociationConnector Association="VENDIXModel.FK_DOCENTRADASALIDA_MovimientoId" />
+        <AssociationConnector Association="VENDIXModel.FK_ENTRADASALIDA_TipoMovimientoId" />
+        <AssociationConnector Association="VENDIXModel.FK_SERIEARTICULO_MOVIMIENTODET" />
+        <AssociationConnector Association="VENDIXModel.FK_DOCENTRADASALIDA_DestinatarioId" />
+        <AssociationConnector Association="VENDIXModel.FK_DOCENTRADASALIDA_RemitenteId" />
+        <AssociationConnector Association="VENDIXModel.FK_DOCENTRADASALIDA_TipoDocumentoId" />
+        <AssociationConnector Association="VENDIXModel.FK__OrdenVent__Serie__09952E60" />
+        <AssociationConnector Association="VENDIXModel.FK__Boveda__OficinaI__046664EF" />
+        <AssociationConnector Association="VENDIXModel.FK_BovedaMovTemp_Boveda" />
+        <AssociationConnector Association="VENDIXModel.FK_BovedaMovTemp_Boveda1" />
+        <AssociationConnector Association="VENDIXModel.FK_MovimientoBoveda_Boveda" />
+        <AssociationConnector Association="VENDIXModel.FK__Caja__OficinaId__092B1A0C" />
+        <AssociationConnector Association="VENDIXModel.FK__CajaDiari__CajaI__0EE3F362" />
+        <AssociationConnector Association="VENDIXModel.FK_Caja_Usuario" />
+        <AssociationConnector Association="VENDIXModel.FK_Caja_Usuario1" />
+        <AssociationConnector Association="VENDIXModel.FK__CajaDiari__Usuar__0DEFCF29" />
+        <AssociationConnector Association="VENDIXModel.FK__Movimient__CajaD__149CCCB8" />
+        <AssociationConnector Association="VENDIXModel.FK__Cargo__CreditoId__109731AA" />
+        <AssociationConnector Association="VENDIXModel.FK_Cargo_Usuario" />
+        <AssociationConnector Association="VENDIXModel.FK__Credito__OrdenVe__3E5DFC5A" />
+        <AssociationConnector Association="VENDIXModel.FK__CuentaxCo__Credi__3D69D821" />
+        <AssociationConnector Association="VENDIXModel.FK__PlanPago__Credit__75592B89" />
+        <AssociationConnector Association="VENDIXModel.FK_Credito_Oficina" />
+        <AssociationConnector Association="VENDIXModel.FK_Credito_Persona" />
+        <AssociationConnector Association="VENDIXModel.FK_Credito_Persona1" />
+        <AssociationConnector Association="VENDIXModel.FK_Credito_Producto" />
+        <AssociationConnector Association="VENDIXModel.FK_Credito_Usuario3" />
+        <AssociationConnector Association="VENDIXModel.FK_Credito_Usuario4" />
+        <AssociationConnector Association="VENDIXModel.FK_MovimientoCaja_Credito" />
+        <AssociationConnector Association="VENDIXModel.FK__CuentasxC__Movim__3A58614C" />
+        <AssociationConnector Association="VENDIXModel.FK__Movimient__Movim__51A5DAF8" />
+        <AssociationConnector Association="VENDIXModel.FK__Movimient__Usuar__17793963" />
+        <AssociationConnector Association="VENDIXModel.FK__PlanPagoL__Movim__75E33B6E" />
+        <AssociationConnector Association="VENDIXModel.FK_MovimientoCaja_OrdenVenta" />
+        <AssociationConnector Association="VENDIXModel.FK_MovimientoCaja_Persona" />
+        <AssociationConnector Association="VENDIXModel.FK_PlanPago_MovimientoCaja" />
+        <AssociationConnector Association="VENDIXModel.FK__PlanPagoL__PlanP__74EF1735" />
+        <AssociationConnector Association="VENDIXModel.FK_PlanPago_Usuario" />
+        <AssociationConnector Association="VENDIXModel.FK_Cliente_Persona" />
+        <AssociationConnector Association="VENDIXModel.FK__RolMenu__MenuId__6BCFC14F" />
+        <AssociationConnector Association="VENDIXModel.FK__UsuarioOf__Ofici__768259EC" />
+        <AssociationConnector Association="VENDIXModel.FK__UsuarioRo__Ofici__764D4FC2" />
+        <AssociationConnector Association="VENDIXModel.FK_Oficina_Usuario" />
+        <AssociationConnector Association="VENDIXModel.FK_ORDENVENTA_OficinaId" />
+        <AssociationConnector Association="VENDIXModel.FK__TarjetaPu__Perso__118B55E3" />
+        <AssociationConnector Association="VENDIXModel.FK__Usuario__Persona__33C07256" />
+        <AssociationConnector Association="VENDIXModel.FK_OrdenVenta_Persona" />
+        <AssociationConnector Association="VENDIXModel.FK__RolMenu__RolId__6ADB9D16" />
+        <AssociationConnector Association="VENDIXModel.FK__UsuarioRo__RolId__71889AA5" />
+        <AssociationConnector Association="VENDIXModel.FK__UsuarioOf__Usuar__758E35B3" />
+        <AssociationConnector Association="VENDIXModel.FK__UsuarioRo__Usuar__7094766C" />
+        <AssociationConnector Association="VENDIXModel.FK_OrdenVenta_Usuario" />
+        <AssociationConnector Association="VENDIXModel.FK_OrdenVenta_Usuario1" />
+        <AssociationConnector Association="VENDIXModel.FK__TarjetaPu__Orden__17442F39" />
+        <AssociationConnector Association="VENDIXModel.FK_DETORDENVENTA_OrdenVentaId" />
+        <AssociationConnector Association="VENDIXModel.FK__OrdenVent__Orden__08A10A27" />
+        <AssociationConnector Association="VENDIXModel.FK__TarjetaPu__Tarje__16500B00" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

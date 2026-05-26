@@ -1,0 +1,897 @@
+﻿<div class="grid_12 profile">
+    <div class="header">
+        <div class="title">
+            <h2>Entradas de Almacen</h2>
+            <h3><span id="lblAlmacenHeader"></span></h3>
+        </div>
+        <div class="avatar">
+            <img src="~/img/icons/packs/fugue/24x24/monitor-sidebar.png" />
+            <a id="lnkCrearEntrada" href="javascript:void(0);">Nueva Entrada</a>
+        </div>
+        <ul class="info">
+            <li>
+                <a href="javascript:void(0);">
+                    <strong>42</strong>
+                    <small>Entradas Confirmadas</small>
+                </a>
+            </li>
+            <li>
+                <a href="javascript:void(0);">
+                    <strong>216</strong>
+                    <small>Entradas sin Confirmar</small>
+                </a>
+            </li>
+            <li>
+                <a href="javascript:void(0);">
+                    <strong>106</strong>
+                    <small>Total Entradas</small>
+                </a>
+            </li>
+        </ul>
+        <!-- End of ul.info -->
+    </div>
+    
+    <div id="tabs">
+        <ul>
+            <li><a href="#tabs-1">Buscar Entrada</a></li>
+            <li><a href="#tabs-2">Detalle de Entrada</a></li>
+        </ul>
+        <div id="tabs-1">
+            <br/>
+            <div class="searchbox">
+                <table style="margin: 0">
+                    <tr >
+                        <td>@Html.DropDownList("cboAlmacen")</td>
+                        <td style="width: 100%; ">
+                            <input id="txtBuscar" type="search" placeholder="Buscar por Nro. Entrada, Documento o Fecha (dd/mm/yyyy)" style="width: 40%"  autofocus />
+                            <input id="txtBuscarxArt" type="search" placeholder="Buscar por Articulo" style="width: 40%"  />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table id="grdBuscar"></table>
+            <div id="grdpBuscar"></div>
+        </div>
+        <div id="tabs-2">
+            <div class="details grid_6">
+                <h2>Entrada</h2>
+                <a id="lnkEntradaAct" href="javascript:void(0);"><span class="icon icon-pencil"></span>Actualizar Entrada</a>
+                <section>
+                    <table>
+                        <tr>
+                            <th>Almacen:</th>
+                            <td><span id="lblAlmacen"></span></td>
+                        </tr>
+                        <tr>
+                            <th>Entrada:</th>
+                            <td >
+                                <span id="lblNroEntrada"></span>&nbsp;
+                                <span id="lblEstado"></span>&nbsp; 
+                                <a id="lnkConfirmar" href="javascript:void(0);"><span class="badge green icon icon-check" style="cursor: pointer"> Confirmar</span></a>
+                                <a id="lnkConstancia" href="javascript:void(0);"><span class="badge blue icon icon-picture" style="cursor: pointer"> Ver Constancia</span></a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Movimiento:</th>
+                            <td>@Html.DropDownList("cboTipoMovimiento")</td>
+                        </tr>
+                        <tr>
+                            <th>Fecha Op:</th>
+                            <td>
+                                <input type="date" id="txtfecha" readonly="readonly" style="width: 180px" /></td>
+                        </tr>
+                        <tr>
+                            <th>Descripción:</th>
+                            <td style="width: 100%;">
+                                <textarea id="txtObs" style="width: 100%;height: 66px" placeholder="Ingresa tu observación Aqui...."></textarea>
+                            </td>
+                        </tr>
+                    </table>
+                </section>
+            </div>
+            
+            <div class="details grid_6">
+                <h2>Documentos</h2>
+                <a id="lnkDocumento" href="javascript:void(0);"><span class="icon icon-plus"></span>Agregar Documento</a>
+                <table id="grdDocumentosAdjuntos" class="grdEliminar"></table>
+            </div>
+            <div class="details grid_6">
+                <h2>Importe</h2>
+                <a id="lnkImporte" href="javascript:void(0);"><span class="icon icon-pencil"></span>Actualizar Importe</a>
+                <section>
+                    <table  style="width: 95%; text-align: right;">
+                        <tr style="display:none ">
+                            <th >Sub Total:</th>
+                            <td style="width: 80px" id="lblSubTotal">
+                            </td>
+                        </tr>
+                        <tr style="display:none">
+                            <th>I.G.V.:</th>
+                            <td id="lblIgv" ></td>
+                        </tr>
+                        <tr>
+                            <th>Ajuste Redondeo:</th>
+                            <td><input type="text" id="txtRedondeo" style="width: 40px;text-align: right"/></td>
+                        </tr>
+                        <tr>
+                            <th>Total(S/.):</th>
+                            <td id="lblTotal"></td>
+                        </tr>
+                    </table>
+                </section>
+            </div>
+
+            <div class="details grid_12" >
+                <h2>Detalle Entrada</h2>
+                <a id="lnkDetalle" href="javascript:void(0);"><span class="icon icon-plus"></span>Agregar Detalle</a>
+                <a id="lnkCodBarras" href="javascript:void(0);"><span class="icon icon-print"></span>Imprimir Codigo Barras</a>
+                <a id="lnkDesconfirmar" href="javascript:void(0);"><span class="icon icon-magic"></span>Desconfirmar</a>
+                <table id="grdDetalle" class="grdDelete" ></table> 
+            </div>
+              
+        </div>
+       
+    </div>
+</div>
+
+<div style="display: none;" id="dlgDocumento" title="Documentos">
+    <form action="#" class="full validate">
+        <div class="row">
+            <label>
+                <strong>Tipo Documento</strong>
+            </label>
+            <div style="margin-left: 130px;">
+                @Html.DropDownList("cboTipoDocumento")
+            </div>
+        </div>
+        <div class="row" style="height: 80px">
+            <label for="txtSerieDoc">
+                <strong>Serie-Numero:</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtSerieDoc" id="txtSerieDoc" style="width: 70px;" />
+                --
+                <input class="required" type="text" name="txtNroDoc" id="txtNroDoc" style="width: 120px;" />
+            </div>
+        </div>
+
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <button class="submit">Guardar</button>
+        </div>
+    </div>
+</div>
+<div style="display: none;" id="dlgDetalle" title="Detalle de Entradas y Salidas">
+    <form action="#" class="full validate">
+        <div class="row">
+            <label>
+                <strong>Articulo</strong>
+            </label>
+            <div>
+                <input type="text" name="txtArticulo" id="txtArticulo" placeholder="Nombre de articulo..." />
+            </div>
+            <div id="msjEncontrado" style="display: none; margin: 0" class="alert success sticky ">
+                <span class="icon"></span><strong>Encontrado!</strong>
+                <label id="lblCodigoArt"></label>--<label id="lblDenominacionArt"></label>
+            </div>
+        </div>
+        <div class="row">
+            <label for="chkAutogenerar">
+                <strong>Codigo:</strong>
+            </label>
+            <div>
+                <div><input type="checkbox" id="chkAutogenerar" checked="checked" /> <label for="chkAutogenerar">Autogenerar Código</label>
+                    <span id="spCantidadCodigo" >=> Ingrese Cantidad: <input class="required" type="text" name="txtCantidadCodigo" id="txtCantidadCodigo" value="1" style="width: 50px;text-align: center" /> </span>
+                </div>
+            </div>
+        </div>
+        <div id="divCodigoManual" style="display: none;">
+            <div class="row">
+                <label for="chkCorrelativo">
+                    <strong>Accion:</strong>
+                </label>
+                <div>
+                    <div><input type="checkbox" id="chkCorrelativo" /> <label for="chkCorrelativo">CORRELATIVO</label>
+                        <span id="spCantidad" style="display: none" >=> Cantidad: <input class="required" type="text" name="txtCantidad" id="txtCantidad" style="width: 70px;" /> </span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <label for="txtSerie">
+                    <strong>Nro. Series:</strong>
+                </label>
+                <div>
+                    <input style="width: 100%" type="text" name="txtSerie" id="txtSerie" placeholder="Ingrese un número de Serie, luego <Enter>" />
+                </div>
+            </div>
+            <div class="row">
+                <label for="txtListaSerie">
+                    <strong>Series</strong>
+                </label>
+                <div >
+                    <select name="txtListaSerie[]" id="txtListaSerie" data-placeholder="Lista de Series" multiple="" readonly="readonly"></select>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <label for="txtCantidad">
+                <strong>Precio Unitario:</strong>
+            </label>
+            <div>
+                <input class="required" type="number" value="0.0" min="0" name="txtPrecio" id="txtPrecio" style="width: 90px;"  />
+                <strong>Descuento:</strong>
+                <input class="required" type="number" value="0.0" min="0" name="txtDescuento" id="txtDescuento" style="width: 90px;" />
+            </div>
+        </div>
+        <div class="row">
+            <label for="txtDescuento">
+                <strong>Medida:</strong>
+            </label>
+            <div style="width: 150px">
+                @Html.DropDownList("cboMedida")  
+            </div>
+        </div>
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <button class="submit">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<div style="display: none;" id="dlgNuevo" title="Crear Entrada de Almacen">
+    <form action="#" class="full validate" >
+        <div class="row">
+            <label for="cboAlmacen2">
+                <strong>Almacen</strong>
+            </label>
+            <div style="margin-left: 130px;">
+                 @Html.DropDownList("cboAlmacen2")
+            </div>
+        </div>
+         <div class="row">
+            <label for="cboTipoMovimiento">
+                <strong>TipoMovimiento</strong>
+            </label>
+            <div style="margin-left: 130px;">
+                 @Html.DropDownList("cboTipoMovimiento2")
+            </div>
+        </div>
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <button class="submit">Crear Entrada</button>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        $("#tabs").tabs().tabs("option", "disabled", [1]);
+        $.data(document.body, 'MovimientoId', 0);
+        $.data(document.body, 'ArticuloBuscarId', 0);
+        $("#cboMedida").width('100px');
+        
+        $("#lnkCrearEntrada").click(function () {
+            $("#dlgNuevo").dialog("open");
+            return false;
+        });
+
+        $("#lnkDesconfirmar").click(function () {
+            event.preventDefault();
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("Desconfirmar", "Entrada")",
+                    data: {
+                        pMovimientoId: $.data(document.body, 'MovimientoId')
+                    },
+                    success: function (res) {
+                        if (res=="UPD") {
+                            Vendix.Notificar("Modificar");
+                            VerDetalle();
+                        }
+                        else Vendix.Mensaje("No se puede DESCONFIRMAR, existe un árticulo vendido");
+                    }
+             });
+        });
+                
+        
+       $("#lnkCodBarras").click(function () {
+            var ruta = '@Url.Action("ReporteCodBarras", "Reporte")'
+                       + '?pMovimientoId=' + $.data(document.body, 'MovimientoId');
+            //window.open(ruta);
+            Vendix.Reporte(ruta);
+            return false;
+        });
+
+        $("#cboAlmacen").change(function () {
+            $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+        });
+
+        $("#dlgNuevo").dialog({
+            autoOpen: false,
+            modal: true,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('button.submit').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("Guardar", "Entrada")",
+                    data: {
+                        pMovimientoId: 0,
+                        pAlmacenId: $("#cboAlmacen2").val(),
+                        pTipoMovimientoId: $("#cboTipoMovimiento2").val(),
+                        pFecha:''
+                    },
+                    success: function (movid) {
+                        Vendix.Notificar("Modificar");
+                        $.data(document.body, 'MovimientoId', movid);
+                        VerDetalle();
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                    }
+                });
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+ 
+        $("#lnkConfirmar").click(function () {
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("Confirmar", "Entrada")",
+                data: {pMovimientoId: $.data(document.body, 'MovimientoId')},
+                success: function (ret) {
+                    if (ret.length==0) {
+                        Vendix.Notificar("Modificar");
+                        VerDetalle();
+                    }
+                    else {
+                        Vendix.Dialogo(ret, "Aceptar");
+                    }
+                }
+            });
+        });
+
+        $("#txtBuscar").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $("#txtBuscarxArt").val('');
+                $.data(document.body, 'ArticuloBuscarId', 0);
+                $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+            }
+        });
+        
+        $("#txtRedondeo").bind("keyup", function (e) {
+            if ($.isNumeric(parseInt($("#txtRedondeo").val()))) {
+                $("#lblTotal").text(
+                    (parseFloat($("#txtRedondeo").val(), 10) +
+                    parseFloat($("#lblSubTotal").text(), 10) +
+                    parseFloat($("#lblIgv").text(), 10)).toFixed(2)
+                );
+            }
+        });
+        
+        $("#txtSerie").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+
+                var serie = $.trim($("#txtSerie").val());
+                if (serie.length == 0) return;
+                
+                var lstSeries = $("#txtListaSerie").val();
+                if (lstSeries != null) {
+                    if ($.inArray(serie, lstSeries) != -1) {
+                        Vendix.Dialogo("Serie Duplicada.", "Aceptar");
+                        $("#txtSerie").val('');
+                        return;
+                    }
+                }
+                if ($("#chkCorrelativo").prop('checked')) {
+                    if (lstSeries != null && lstSeries.length >= 1) {
+                        $("#txtSerie").val('');
+                        return;
+                    }
+                }
+
+                var mensaje = ValidarSerie();
+                if (mensaje.length>0) {
+                    Vendix.Dialogo("Ya existe la lista de serie: " + mensaje, "Aceptar");
+                    return;
+                }
+                
+                $('#txtListaSerie').append($('<option>', { value: serie, text: serie, selected: "selected" })).trigger("liszt:updated");
+                $("#txtSerie").val('');
+            }
+        });
+
+        $("#chkCorrelativo").change(function () {
+            if ($("#chkCorrelativo").prop('checked')) {
+                var lstSeries = $("#txtListaSerie").val();
+                if (lstSeries != null && lstSeries.length >= 1) {
+                    $('#txtListaSerie').html($('<option>', { value: lstSeries[0], text: lstSeries[0], selected: "selected" })).trigger("liszt:updated");
+                }
+                $("#spCantidad").show();
+                $("#txtCantidad").focus();
+            }
+            else
+                $("#spCantidad").hide();
+        });
+        
+        $("#chkAutogenerar").change(function () {
+            if ($("#chkAutogenerar").prop('checked')) {
+                $("#spCantidadCodigo").show();
+                $("#divCodigoManual").hide();
+                $("#txtCantidadCodigo").focus();
+            }
+            else
+            {
+                $("#spCantidadCodigo").hide();
+                $("#divCodigoManual").show();
+                $("#txtSerie").focus();
+            } 
+            
+        });
+        
+        $('#grdBuscar').jqGrid({
+            url: "@Url.Action("Listar", "Entrada")",
+            datatype: 'json',
+            mtype: 'POST',
+            postData: {
+                filters: function () {
+                    return $.toJSON([
+                        { Key: "Buscar", Value: $("#txtBuscar").val() },
+                        { Key: "BuscarxArticuloId", Value: $.data(document.body, 'ArticuloBuscarId') },
+                        { Key: "Almacen", Value: $("#cboAlmacen").val() }
+                    ]);
+                }
+            },
+            colNames: ['Nro. Entrada', 'Tipo', 'TipoMovimientoId', 'TipoMovimiento', 'Fecha', 'Documento', 'Estado', 'Observacion'],
+            colModel: [
+                { name: 'MovimientoId', index: 'MovimientoId', align: 'center', width: 60 },
+                { name: 'Tipo', index: 'Tipo' },
+                { name: 'TipoMovimientoId', index: 'TipoMovimientoId', hidden: true },
+                { name: 'TipoMovimiento', index: 'TipoMovimiento' },
+                { name: 'Fecha', index: 'Fecha' },
+                { name: 'Documento', index: 'Documento' },
+                { name: 'Estado', index: 'Estado', align: 'center' },
+                { name: 'Observacion', index: 'Observacion' }
+            ],
+            caption: "Entradas de Almacen",
+            pager: $('#grdpBuscar'),
+            rowNum: 10,
+            rowList: [10, 20, 30],
+            sortname: 'MovimientoId',
+            sortorder: 'desc',
+            gridview: true,
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            width: 'auto',
+            height: '232px',
+            ondblClickRow: function () { mostrardetalle(); }
+        }).jqGrid('bindKeys', { "onEnter": function (rowid) { mostrardetalle(); } });
+
+        jQuery("#grdDocumentosAdjuntos").jqGrid({
+            url: "@Url.Action("ListarDocs", "Entrada")",
+            datatype: 'json',
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "MovimientoId", Value: $.data(document.body, 'MovimientoId') }]);
+                }
+            },
+            colNames: ['MovimientoDocid', 'Tipo Documento', 'Serie', 'Numero', 'Eliminar'],
+            colModel: [
+                { name: 'MovimientoDocid', index: 'MovimientoDocid', hidden: true },
+                { name: 'TipoDocumento', index: 'TipoDocumento', sortable: false },
+                { name: 'SerieDocumento', index: 'SerieDocumento', align: 'center', sortable: false },
+                { name: 'NroDocumento', index: 'NroDocumento', align: 'center', sortable: false },
+                { name: 'Eliminar', index: 'Eliminar', align: 'center', formatter: EliminarFormatter,width: 40, sortable: false }
+            ],
+            sortname: 'MovimientoDocid',
+            gridview: true,
+            viewrecords: true,
+            height: "auto",
+            autowidth: true,
+            width: 'auto',
+            rownumbers: true
+        });
+
+        jQuery("#grdDetalle").jqGrid({
+            url: "@Url.Action("ListarDetalle", "Entrada")",
+            datatype: 'json',
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "MovimientoId", Value: $.data(document.body, 'MovimientoId') }]);
+                }
+            },
+            colNames: ['MovimientoDetId', 'ArticuloId','UnidadId', 'Cantidad','Medida', 'Descripcion', 'PrecioUnitario', 'Descuento', 'Importe', 'IndCorretativo', 'Eliminar'],
+            colModel: [
+                { name: 'MovimientoDetId', index: 'MovimientoDetId', hidden: true },
+                { name: 'ArticuloId', index: 'ArticuloId', hidden: true },
+                { name: 'UnidadId', index: 'UnidadId', hidden: true },
+                { name: 'Cantidad', index: 'Cantidad', width: 40, align: 'center', sortable: false },
+                { name: 'Medida', index: 'Medida', width: 40, sortable: false },
+                { name: 'Descripcion', index: 'Descripcion', width: 300, sortable: false },
+                { name: 'PrecioUnitario', index: 'PrecioUnitario', align: 'right', width: 50, sortable: false },
+                { name: 'Descuento', index: 'Descuento', align: 'right', width: 50, sortable: false },
+                { name: 'Importe', index: 'Importe', align: 'right', width: 50, sortable: false },
+                { name: 'IndCorrelativo', index: 'IndCorrelativo', hidden: true },
+                { name: 'Eliminar', index: 'Eliminar', align: 'center', width: 20, formatter: ElimianrMovDetFormatter, sortable: false }
+            ],
+            sortname: 'MovimientoDetId',
+            gridview: true,
+            rowNum: 50,
+            height: 'auto',
+            autowidth: true,
+            viewrecords: true,
+            rownumbers: true,
+            ondblClickRow: function () {
+                var id = jQuery("#grdDetalle").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    var ret = $("#grdDetalle").jqGrid('getRowData', id);
+                    $.data(document.body, 'MovimientoDetId', ret.MovimientoDetId);
+                    $.data(document.body, 'ArticuloId', ret.ArticuloId);
+                    
+                    $("#txtArticulo").val(ret.Descripcion).attr("disabled", "disabled");
+                    $("#lblDenominacionArt").text(ret.Descripcion);
+                    $("#msjEncontrado").show();
+                    $("#txtCantidad").val(ret.Cantidad);
+                    $("#txtPrecio").val(ret.PrecioUnitario);
+                    $("#txtDescuento").val(ret.Descuento);
+                    $("#cboMedida").val(ret.UnidadId).trigger("liszt:updated");
+                    $("#chkCorrelativo").prop("checked", ret.IndCorrelativo == "True" ? true : false);
+                    $("#dlgDetalle").dialog("open");
+
+                    $.ajax({
+                        url: "@Url.Action("ObtenerSeriesMovimientoDetalle", "Entrada")",
+                        data: { pMovimientoDetId: ret.MovimientoDetId },
+                        success: function (series) {
+                            $('#txtListaSerie').html('');
+                            if ($("#chkCorrelativo").prop('checked')) {
+                                $("#spCantidad").show();
+                                if (series[0] != null)
+                                    $('#txtListaSerie').append($('<option>', { value: series[0].NumeroSerie, text: series[0].NumeroSerie, selected: "selected" }));
+                            } else {
+                                $("#spCantidad").hide();
+                                $.each(series, function () {
+                                    $('#txtListaSerie').append($('<option>', { value: this.NumeroSerie, text: this.NumeroSerie, selected: "selected" }));
+                                });
+                            }
+                            $('#txtListaSerie').trigger("liszt:updated");
+                            $("#txtSerie").val('');
+                        }
+                    });
+                }
+            }
+        });
+
+        $('#lnkEntradaAct').click(function () {
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("Guardar", "Entrada")",
+                data: {
+                    pMovimientoId: $.data(document.body, 'MovimientoId'),
+                    pAlmacenId: 0,
+                    pTipoMovimientoId: $("#cboTipoMovimiento").val(),
+                    pFecha: $("#txtfecha").val(),
+                    pObservacion: $("#txtObs").val()
+                },
+                success: function (data) {
+                    Vendix.Notificar("Modificar");
+                }
+            });
+        });
+        $("#lnkConstancia").click(function () {
+            window.location = '@Url.Action("ConstanciaAlmacen", "Reporte")' + "?pMovimientoId=" + $.data(document.body, 'MovimientoId');
+        });
+        
+        $('#lnkImporte').click(function () {
+            var ajuste = $("#txtRedondeo").val();
+            if (!$.isNumeric(parseInt(ajuste))) 
+                ajuste = 0;
+            
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("ActualizarImporte", "Entrada")",
+                data: {
+                    pMovimientoId: $.data(document.body, 'MovimientoId'),
+                    pAjuste: ajuste
+                },
+                success: function (data) {
+                    Vendix.Notificar("Modificar");
+                }
+            });
+        });
+
+        $("#dlgDocumento").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 400,
+            open: function () {
+                $(this).parent().css('overflow', 'visible');
+                $$.utils.forms.resize();
+            }
+        }).find('button.submit').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+                if ($.data(document.body, 'MovimientoId') == null || $.data(document.body, 'MovimientoId') == 0)
+                    Vendix.Dialogo("ERROR: Seleccione una Entrada.", "Aceptar");
+
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("AgregarDocumento", "Entrada")",
+                    data: {
+                        pMovimientoId: $.data(document.body, 'MovimientoId'),
+                        pTipoDocumentoId: $("#cboTipoDocumento").val(),
+                        pSerie: $("#txtSerieDoc").val(),
+                        pNumero: $("#txtNroDoc").val()
+                    },
+                    success: function (data) {
+                        Vendix.Notificar("Crear");
+                        $("#grdDocumentosAdjuntos").trigger("reloadGrid");
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                    }
+                });
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        $("#lnkDocumento").click(function () {
+            $("#txtSerieDoc,#txtNroDoc").val('');
+            $("#cboTipoDocumento").trigger("liszt:updated");
+            $("#dlgDocumento").dialog("open");
+            $("#txtSerieDoc").focus();
+            return false;
+        });
+
+        $("#lnkDetalle").click(function () {
+            $("#txtSerie,#txtArticulo").val('').removeAttr("disabled");
+            $("#CboMedida").removeAttr("disabled");
+            $("#txtPrecio,#txtDescuento").val('0.00');
+            $("#txtCantidad").val('0');
+            $.data(document.body, 'MovimientoDetId', 0);
+            $.data(document.body, 'ArticuloId', 0);
+            $("#msjEncontrado").hide();
+            $('#txtListaSerie').html('').trigger("liszt:updated");
+            $("#dlgDetalle").dialog("open");
+            return false;
+        });
+
+        $("#dlgDetalle").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 550,
+            open: function () {
+                $(this).parent().css('overflow', 'visible');
+                $$.utils.forms.resize();
+            }
+        }).find('button.submit').click(function () {
+            if ($.data(document.body, 'ArticuloId') == null || $.data(document.body, 'ArticuloId') == 0) {
+                Vendix.Dialogo("Mensaje: Busque un articulo.", "Aceptar"); return;
+            }
+            else if ($("#txtListaSerie").val() == null || $("#txtListaSerie").val().length == 0) {
+                if ($("#chkAutogenerar").prop('checked') == false) {
+                    Vendix.Dialogo("Mensaje: Ingrese Serie Articulo.", "Aceptar");
+                    return;
+                }
+            }
+
+            var cantidad;
+            if ($("#chkAutogenerar").prop('checked')) {
+                cantidad = $("#txtCantidadCodigo").val().length > 0 ? $("#txtCantidadCodigo").val() : 0;
+            } else {
+                cantidad = $("#txtCantidad").val().length > 0 ? $("#txtCantidad").val() : 0;
+            }
+
+
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("CrearMovimientoDetalle", "Entrada")",
+                    data: {
+                        pMovimientoId: $.data(document.body, 'MovimientoId'),
+                        pMovimientoDetId: $.data(document.body, 'MovimientoDetId'),
+                        pArticuloId: $.data(document.body, 'ArticuloId'),
+                        pIndAutogenerar: $("#chkAutogenerar").prop('checked'),
+                        pListaSerie: $("#txtListaSerie").val()!=null? $("#txtListaSerie").val().join(","):"",
+                        pCantidad: cantidad,
+                        pIndCorrelativo: $("#chkCorrelativo").prop('checked'),
+                        pPrecioUnitario: $("#txtPrecio").val(),
+                        pDescuento: $("#txtDescuento").val(),
+                        pMedida: $("#cboMedida").val()
+                    },
+                    success: function (data) {
+                        Vendix.Notificar("Crear");
+                        $("#grdDetalle").trigger("reloadGrid");
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                        mostrarTotal();
+                        
+                    }
+                });
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        $("#txtArticulo").autocomplete({
+            source: "@Url.Action("BuscarArticuloSelect", "Articulo")",
+            minLength: 2,
+            select: function (event, ui) {
+                // alert(ui.item.id);
+                $.ajax({
+                    async: false,
+                    url: "@Url.Action("ObtenerArticulo", "Articulo")",
+                    data: { pArticuloId: ui.item.id },
+                    success: function(rpt) {
+                        if (rpt != null) {
+                            $("#lblCodigoArt").text(rpt.CodArticulo);
+                            $("#lblDenominacionArt").text(rpt.Denominacion);
+                            $("#msjEncontrado").show('fast');
+                        }
+                        $.data(document.body, 'ArticuloId', ui.item.id);
+                        $("#chkCorrelativo").prop('checked') ? $('#txtCantidad').focus() : $('#txtSerie').focus();
+                    }
+                });
+            }
+        });
+        
+        $("#txtBuscarxArt").autocomplete({
+            source: "@Url.Action("BuscarArticuloSelect", "Articulo")",
+            minLength: 2,
+            select: function (event, ui) {
+                // alert(ui.item.id);
+                $("#txtBuscar").val('');
+                $.data(document.body, 'ArticuloBuscarId', ui.item.id);
+                $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+            }
+        });
+
+        $(window).resize(function () {
+            jQuery("#grdDetalle").jqGrid('setGridWidth', parseInt($("#content").width()) - 62);
+            jQuery("#grdDocumentosAdjuntos").jqGrid('setGridWidth', parseInt($("#content").width())/2 - 45);
+        });
+
+    });
+
+    
+
+    function ElimianrMovDetFormatter(cellvalue, options, rowObject) {
+        if (cellvalue.length==0) return "";
+        return "<a href='#' onclick='DeleteMovDet(" + cellvalue + ");return false;' class='button small grey tooltip' data-gravity='s' title='Eliminar'><i class='icon-remove'></i></a>";
+    }
+    function DeleteMovDet(id) {
+        $.ajax({
+            url: "@Url.Action("Delete", "Entrada")",
+            type: 'POST',
+            data: { pid: id },
+            success: function (rpt) {
+                Vendix.Notificar('Eliminar');
+                $(".grdDelete").trigger("reloadGrid");
+                mostrarTotal();
+            }
+        });
+    }
+    function mostrardetalle() {
+        var id = jQuery("#grdBuscar").jqGrid('getGridParam', 'selrow');
+        if (id) {
+            var ret = $("#grdBuscar").jqGrid('getRowData', id);
+            $.data(document.body, 'MovimientoId', ret.MovimientoId);
+            VerDetalle();
+          
+        }
+    }
+    function mostrarTotal() {
+        $.ajax({
+            url: "@Url.Action("ObtenerMovimiento", "Entrada")",
+            data: { pMovimientoId: $.data(document.body, 'MovimientoId') },
+            success: function (mov) {
+                $("#lblSubTotal").text(parseFloat(mov.SubTotal).toFixed(2));
+                $("#lblIgv").text(parseFloat(mov.IGV).toFixed(2));
+                $("#txtRedondeo").val(parseFloat(mov.AjusteRedondeo).toFixed(2));
+                $("#lblTotal").text(parseFloat(mov.TotalImporte).toFixed(2));
+                if (mov.EstadoId !=1 ) {
+                    $("#lnkConfirmar,#lnkDetalle,#lnkEntradaAct,#lnkImporte,#lnkDocumento").hide();
+                    $("#txtfecha,#txtRedondeo").attr('disabled', 'disabled');
+                    $("#cboTipoMovimiento").attr('disabled', 'disabled').trigger("liszt:updated");
+                }
+                
+            }
+        }); 
+    }
+    
+    function VerDetalle(){
+        $.ajax({
+            url: "@Url.Action("ObtenerMovimiento", "Entrada")",
+            data: { pMovimientoId: $.data(document.body, 'MovimientoId') },
+            success: function (mov) {
+                $("#lblNroEntrada").text(mov.MovimientoId);
+                $("#cboTipoMovimiento").val(mov.TipoMovimientoId).trigger("liszt:updated");
+                $("#txtObs").val(mov.Observacion);
+                $("#lblSubTotal").text(parseFloat(mov.SubTotal).toFixed(2));
+                $("#lblIgv").text(parseFloat(mov.IGV).toFixed(2));
+                $("#txtRedondeo").val(parseFloat(mov.AjusteRedondeo).toFixed(2));
+                $("#lblTotal").text(parseFloat(mov.TotalImporte).toFixed(2));
+                $("#cboAlmacen2,#cboTipoMovimiento2").trigger("liszt:updated");
+
+                $.ajax({
+                    url: "@Url.Action("ObtenerMovimientoExt", "Entrada")" ,
+                    data: { pMovimientoId: $.data(document.body, 'MovimientoId') },
+                    success: function (movext) {
+                        $("#lblAlmacenHeader").text(movext.Almacen);
+                        $("#lblAlmacen").text(movext.Almacen);
+                        $("#lblEstado").text(movext.Estado);
+                        $("#txtfecha").val(movext.Fecha);
+                    }
+                });
+
+                $("#grdDetalle,#grdDocumentosAdjuntos").trigger("reloadGrid");
+                $("#tabs").tabs({ disabled: [2] });
+                $("#tabs").tabs("option", "selected", 1);
+                if (mov.EstadoId != 1) {
+                    $("#lnkConfirmar,#lnkDetalle,#lnkEntradaAct,#lnkImporte,#lnkDocumento").hide();
+                    $("#lnkDesconfirmar").show();
+                    $("#txtfecha,#txtRedondeo").attr('disabled', 'disabled');
+                    $("#cboTipoMovimiento").attr('disabled', 'disabled').trigger("liszt:updated");
+                } else {
+                    $("#lnkConfirmar,#lnkDetalle,#lnkEntradaAct,#lnkImporte,#lnkDocumento").show();
+                    $("#lnkDesconfirmar").hide();
+                    $("#txtfecha,#txtRedondeo").removeAttr('disabled');
+                    $("#cboTipoMovimiento").removeAttr('disabled').trigger("liszt:updated");
+                }
+            }
+        });
+        
+
+    }
+    
+    function ValidarSerie() {
+        var str = '';
+        $.ajax({
+            async: false,
+            url: "@Url.Action("ValidarExisteSerie", "Entrada")",
+            data: { pListaSerie: $("#txtSerie").val(), pIndCorrelativo: $("#chkCorrelativo").prop('checked'), pCantidad: $("#txtCantidad").val() },
+            success: function(ret) {
+                str = ret;
+            }
+        });
+        return str;
+    }
+    
+    function EliminarFormatter(cellvalue, options, rowObject) {
+        if (cellvalue.length == 0) return "";
+        return "<a href='#' onclick='Eliminar(" + cellvalue + ");return false;' class='button small grey tooltip' data-gravity='s' title='Eliminar'><i class='icon-remove'></i></a>";
+    }
+    function Eliminar(id) {
+        $.ajax({
+            url: "@Url.Action("Eliminar","Entrada")",
+            type: 'POST',
+            data: { pid: id },
+            success: function (rpt) {
+                Vendix.Notificar('Eliminar');
+                $(".grdEliminar").trigger("reloadGrid");
+            }
+        });
+    }
+</script>

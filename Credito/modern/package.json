@@ -1,0 +1,10 @@
+{
+  "name": "credito-modern",
+  "private": true,
+  "description": "Raiz del monorepo moderno. El SPA vive en Credito.Modern.Web.",
+  "scripts": {
+    "build": "npm run build --prefix Credito.Modern.Web",
+    "build:spa": "npm run build --prefix Credito.Modern.Web",
+    "dev:spa": "npm run dev --prefix Credito.Modern.Web"
+  }
+}

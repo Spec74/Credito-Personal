@@ -1,0 +1,234 @@
+﻿<div class="grid_12">
+    <div class="box">
+				
+        <div class="header">
+           <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Ordenes de Venta</h2>
+        </div>
+					
+        <div class="content">
+            <div class="tabletools">
+                <div class="left">
+                    <a id="lnkNuevaOrden"><i class="icon-plus"></i>Nueva Orden de Venta</a>
+                </div>
+                <div class="right">
+            		<input type="radio" name="rb_opcion" id="rbNoEntregado" value="N"  checked="checked"/><label for="rbNoEntregado">Pendientes&nbsp;&nbsp;</label>
+					<input type="radio" name="rb_opcion" id="rbEntregado" value="S"  /><label for="rbEntregado">Entregados</label>
+                </div>
+            </div>
+            <div class="searchbox">
+                <table>
+                    <tr >
+                        <td >
+                           
+                        </td>
+                        <td style="width: 100%; ">
+                            <input id="txtBuscar" type="text" placeholder="Buscar por Nro Orden / Vendedor / Fecha(DD/MM/YYYY)" />
+                            <input id="btnBuscar" type="submit" value="Buscar" class="grey" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table class="styled"></table>
+        </div><!-- End of .content -->
+    </div><!-- End of .box -->
+</div><!-- End of .grid_12 -->
+
+<div class="grid_12">
+    <table id="grdBuscar"></table>
+    <div id="grdpBuscar"></div>
+</div>
+
+<div style="display: none;" id="dlgNuevo" title="Mantener Lista de Precio">
+    <form action="#" class="full validate">
+        <div class="row">
+            <label for="txtBuscarxserie">
+                <strong>Buscar x Serie</strong>
+            </label>
+            <div>
+                <input type="text" name="txtBuscarxserie" id="txtBuscarxserie" />
+            </div>
+        </div>
+        <div class="row">
+            <label for="txtArticulo">
+                <strong>Buscar x Articulo</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtArticulo" id="txtArticulo" />
+            </div>
+        </div>
+        <div class="row">
+            <label for="txtListaPrecio">
+                <strong>Lista de Precio:</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtListaPrecio" id="txtListaPrecio" style="width: 80px;text-align: center " />&nbsp;
+                <strong>Descuento Max:</strong>
+                <input class="required" type="text" name="txtDescuento" id="txtDescuento" style="width: 80px;text-align: center " />
+            </div>
+        </div>
+        
+        <div class="row">
+            <label for="chkActivo">
+                <strong>Estado:</strong>
+            </label>
+            <div>
+                <div><input type="checkbox" id="chkActivo" /> <label for="chkActivo">Activo</label></div>
+            </div>
+        </div>
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <button class="submit">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script >
+    $(function () {
+
+        $("#btnBuscar").click(function () {
+            $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+        });
+        $("#rbEntregado,#rbNoEntregado").change(function () {
+            $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+        });
+
+        $("#lnkNuevaOrden").click(function () {
+            $("#dialogo_buscar_cliente").dialog("open");
+            return false;
+        });
+
+        $("#txtCliente").autocomplete({
+            source: "@Url.Action("BuscarCliente", "Cliente")",
+            minLength: 2,
+            select: function (event, ui) {
+                window.location = '@Url.Action("Index", "OrdenVenta")' + "?id=0&pPersonaId=" + ui.item.id;
+            }
+        });
+        
+       
+        $("#txtBuscarxserie").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $.ajax({
+                    url: Vendix.Url('BuscarListaPrecio'),
+                    data: { pArticuloId: 0, pSerie: $("#txtBuscarxserie").val() },
+                    success: function (rpt) {
+                        if (rpt != null) {
+                            $("#txtArticulo").val(rpt.Denominacion);
+                            $("#txtListaPrecio").val(rpt.Monto.toFixed(2));
+                            $("#txtDescuento").val(rpt.Descuento.toFixed(2));
+                            $("#chkActivo").prop("checked", rpt.Estado);
+                            $.data(document.body, 'ListaPrecioId', rpt.ListaPrecioId);
+                            $.data(document.body, 'ArticuloId', rpt.ArticuloId);
+                            $('#txtListaPrecio').focus().select();
+                        } else {
+                            $("#txtBuscarxserie,#txtArticulo").val('');
+                            $("#chkActivo").prop("checked", false);
+                            $("#txtListaPrecio,#txtDescuento").val("0.00");
+                            $.data(document.body, 'ListaPrecioId', 0);
+                            $.data(document.body, 'ArticuloId', 0);
+                        }
+                    }
+                });
+            }
+        });
+
+        $("#txtBuscar").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+            }
+        });
+        $("#txtListaPrecio,#txtDescuento").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                GuardarDialogoListaPrecio();
+            }
+        });
+
+        $("#dlgNuevo").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 400,
+            open: function () {
+                $(this).parent().css('overflow', 'visible');
+                $$.utils.forms.resize();
+            }
+        }).find('button.submit').click(function () {
+            GuardarDialogoListaPrecio();
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        $('#grdBuscar').jqGrid({
+            url: "@Url.Action("ListarOrdenesVentaJgrid","OrdenVenta")",
+            datatype: 'json',
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "Buscar", Value: $("#txtBuscar").val() }, { Key: "Entregado", Value: $("#rbEntregado").prop('checked') }]);
+                }
+            },
+            colNames: ['# Orden', 'Fecha', 'Cliente', 'Descuento', 'Monto','Tipo', 'Condicion', 'Accion'],
+            colModel: [
+                { name: 'OrdenVentaId', index: 'OrdenVentaId', align: 'center', width: 50 },
+                { name: 'FechaReg', index: 'FechaReg', align: 'center', width: 90 },
+                { name: 'Cliente', index: 'Cliente', align: 'left', width: 250 },
+                { name: 'TotalDescuento', index: 'TotalDescuento', align: 'right', width: 50 },
+                { name: 'TotalNeto', index: 'TotalNeto', align: 'right', width: 80, formatter: 'currency', formatoptions: { decimalSeparator: ".", thousandsSeparator: ",", decimalPlaces: 2, prefix: "S/. " } },
+                { name: 'Tipo', index: 'Tipo', align: 'center', width: 80 },
+                { name: 'Condicion', index: 'Condicion', align: 'center', width: 80 },
+                { name: 'Activo', index: 'Activo', align: 'center', width: 80, formatter: AccionFormatter }
+            ],
+            caption: "Ordenes de Venta",
+            pager: $('#grdpBuscar'),
+            rowNum: 15,
+            rowList: [15, 30, 45],
+            sortname: 'FechaReg',
+            sortorder: 'desc',
+            gridview: true,
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            //shrinkToFit: false,
+            width: 'auto',
+            height: '347px',
+            ondblClickRow: function () {
+                var id = jQuery("#grdBuscar").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    var ret = $("#grdBuscar").jqGrid('getRowData', id);
+                    window.location = "@Url.Action("Index","OrdenVenta")" + "?id=" + ret.OrdenVentaId;
+                }
+            }
+        });
+    });
+    function AccionFormatter(cellvalue, options, rowObject) {
+        var arr = cellvalue.split(',');
+        if (arr[1] == '1') {
+            return "<a href='#' onclick='EliminarOV(" + arr[0] + ");return false;' class='button small grey tooltip' data-gravity='s' title='Eliminar'><i class='icon-remove'></i></a>";
+        }
+        return "";
+    }
+
+    function EliminarOV(id) {
+        Vendix.Dialogo('Esta acción eliminará permamente la orden de venta <br/>¿Deseas Eliminar la Orden?', 'SiNo', function () {
+            $.ajax({
+                url: "@Url.Action("EliminarOrdenVenta","OrdenVenta")",
+                type: 'POST',
+                data: { pOrdenVentaId: id },
+                success: function (rpt) {
+                    Vendix.Notificar('Eliminar');
+                    $("#grdBuscar").trigger("reloadGrid");
+                }
+            });
+        });
+
+    }
+</script>
+
+

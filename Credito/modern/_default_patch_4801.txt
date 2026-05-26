@@ -1,0 +1,26 @@
+    # Iconos y fuentes del menú (Web/css, Web/img) — necesarios para la SPA en /app/
+    location /css/ {
+        proxy_pass http://credito_mvc_legacy;
+        proxy_http_version 1.1;
+        proxy_set_header Host localhost:52099;
+        proxy_set_header X-Forwarded-Host $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /img/ {
+        proxy_pass http://credito_mvc_legacy;
+        proxy_http_version 1.1;
+        proxy_set_header Host localhost:52099;
+        proxy_set_header X-Forwarded-Host $http_host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # Corte B local: SPA en /app/ (dist montado en docker-compose)
+    location /app/ {
+        alias /var/www/credito-modern-web/;
+        index index.html;
+        try_files $uri $uri/ /app/index.html;
+    }
+
+    # 5C-7.5 cutover local: redirects MVC migrado → SPA (antes del proxy MVC)
+    include /etc/nginx/spa-legacy-redirects.conf;

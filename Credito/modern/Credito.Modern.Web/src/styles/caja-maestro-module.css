@@ -1,0 +1,30 @@
+/**
+ * Maestro de cajas — estilos específicos (layout en credix-module-layout + credix-list-toolbar).
+ */
+
+.caja-maestro-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.caja-maestro-table .ant-table-tbody > tr {
+  cursor: pointer;
+}
+
+.caja-maestro-table .ant-table-tbody > tr:hover > td {
+  background: var(--credix-brand-light, #e8f2fc) !important;
+}
+
+@media (max-width: 640px) {
+  .caja-maestro-filtros {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .caja-maestro-filtros .ant-btn-primary {
+    width: 100%;
+  }
+}

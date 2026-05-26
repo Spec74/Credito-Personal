@@ -1,0 +1,102 @@
+﻿@model VendixWeb.Models.ReporteConstanciaAlmacen
+
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2>CONSTANCIA DE ALMACEN</h2>
+        </div>
+        <div class="content invoice">
+            <img src="~/images/logo.jpg" width="100" height="100" style="float: left" />
+            <h4>Cooperativa de Ahorro y Credito Mujeres Emprendedoras</h4>
+            <h4>CONSTANCIA DE @Model.Cabecera.Tipo: @Model.Cabecera.MovimientoId</h4>
+            <h3>@Model.Cabecera.TipoMovimientoDesc</h3>
+            <div class="supplier">
+                <table>
+                    <tr>
+                        <td><span>OFICINA</span></td>
+                        <td style="width: 15px">:</td>
+                        <td><strong>@Model.Cabecera.Oficina</strong></td>
+                    </tr>
+                    <tr>
+                        <td><span>ALMACEN</span></td>
+                        <td>:</td>
+                        <td><strong>@Model.Cabecera.Almacen</strong></td>
+                    </tr>
+                    <tr>
+                        <td><span>OBSERVACION</span></td>
+                        <td>:</td>
+                        <td><strong>@Model.Cabecera.Observacion</strong></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="customer">
+                <table>
+                    <tr>
+                        <td style="text-align: left"><span>TIPO</span></td>
+                        <td style="width: 15px">:</td>
+                        <td style="text-align: left"><strong>@Model.Cabecera.TipoMovimiento</strong></td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: left"><span>DOCUMENTOS</span></td>
+                        <td>:</td>
+                        <td style="text-align: left"><strong>@Model.Cabecera.Documento</strong></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="clearfix"></div>
+            <br />
+            <div class="details">
+                <div class="highlighted">
+                    <span>Fecha Operación:</span> <strong>@Model.Cabecera.Fecha.ToShortDateString()</strong>
+                </div>
+                <div>
+                    <span>Estado:</span> <strong>@Model.Cabecera.Estado</strong>
+                </div>
+                <div>
+                    <span>Total Importe:</span> <strong>S/. @Model.Cabecera.Importe</strong>
+                </div>
+            </div>
+
+            <table class="styled borders">
+                <thead>
+                    <tr>
+                        <th>Cant</th>
+                        <th>Producto</th>
+                        <th>P.Unit.</th>
+                        <th>Dsct.</th>
+                        <th>Importe</th>
+                    </tr>
+                </thead>
+                <tbody >
+                    @foreach (var item in Model.Detalle)
+                    {
+                        <tr>
+                            <td style="font-size: 8px">@item.Cantidad</td>
+                            <td style="font-size: 8px">@item.Descripcion</td>
+                            <td style="font-size: 8px">@item.PrecioUnitario</td>
+                            <td style="font-size: 8px">@item.Descuento</td>
+                            <td style="font-size: 8px">@item.Importe</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="total">
+                <span>Total</span><strong>S/. @Model.Cabecera.Importe</strong>
+            </div>
+
+            <div class="clearfix"></div>
+
+            @*<div class="notes">
+                <h5>Notes:</h5>
+                <p>Etiam convallis sodales elementum. Suspendisse interdum, nisi vitae pellentesque eleifend, justo nulla dictum lectus, consectetur elementum metus turpis quis mi. Integer non ante vel magna elementum aliquam.</p>
+            </div>*@
+
+        </div>
+        <!-- End of .content -->
+
+    </div>
+    <!-- End of .box -->
+</div>
+<!-- End of .grid_4 -->

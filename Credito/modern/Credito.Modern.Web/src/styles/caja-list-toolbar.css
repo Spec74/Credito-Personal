@@ -1,0 +1,234 @@
+/**
+ * Toolbar reutilizable — Saldos, Verificar pagos, Caja chica, Maestro.
+ * Grid responsive: campo + acciones; hint en fila completa debajo.
+ */
+
+.caja-list-toolbar,
+.caja-saldos-toolbar,
+.caja-verificar-pagos-toolbar,
+.caja-chica-toolbar,
+.caja-maestro-toolbar {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'buscar actions'
+    'hint hint';
+  align-items: center;
+  gap: 10px 12px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-left: 3px solid var(--credix-brand, #114885);
+  background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+}
+
+.caja-list-toolbar__buscar,
+.caja-saldos-toolbar__buscar,
+.caja-verificar-pagos-toolbar__buscar,
+.caja-chica-toolbar__buscar,
+.caja-maestro-toolbar__buscar {
+  grid-area: buscar;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.caja-list-toolbar__buscar .ant-input-affix-wrapper,
+.caja-saldos-toolbar__buscar .ant-input-affix-wrapper,
+.caja-verificar-pagos-toolbar__buscar .ant-input-affix-wrapper,
+.caja-chica-toolbar__buscar .ant-input-affix-wrapper,
+.caja-maestro-toolbar__buscar .ant-input-affix-wrapper {
+  width: 100%;
+  height: 44px;
+  max-height: 44px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 15px;
+  border-radius: 10px;
+  border-color: #d1d5db;
+  background: #fff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.caja-list-toolbar__buscar .ant-input-affix-wrapper:hover,
+.caja-saldos-toolbar__buscar .ant-input-affix-wrapper:hover,
+.caja-verificar-pagos-toolbar__buscar .ant-input-affix-wrapper:hover,
+.caja-chica-toolbar__buscar .ant-input-affix-wrapper:hover,
+.caja-maestro-toolbar__buscar .ant-input-affix-wrapper:hover {
+  border-color: #9cb8d9;
+}
+
+.caja-list-toolbar__buscar .ant-input-affix-wrapper-focused,
+.caja-list-toolbar__buscar .ant-input-affix-wrapper:focus-within,
+.caja-saldos-toolbar__buscar .ant-input-affix-wrapper-focused,
+.caja-saldos-toolbar__buscar .ant-input-affix-wrapper:focus-within,
+.caja-verificar-pagos-toolbar__buscar .ant-input-affix-wrapper-focused,
+.caja-verificar-pagos-toolbar__buscar .ant-input-affix-wrapper:focus-within,
+.caja-chica-toolbar__buscar .ant-input-affix-wrapper-focused,
+.caja-chica-toolbar__buscar .ant-input-affix-wrapper:focus-within,
+.caja-maestro-toolbar__buscar .ant-input-affix-wrapper-focused,
+.caja-maestro-toolbar__buscar .ant-input-affix-wrapper:focus-within {
+  border-color: var(--credix-brand, #114885);
+  box-shadow: 0 0 0 3px rgba(17, 72, 133, 0.1);
+}
+
+.caja-list-toolbar__buscar .ant-input-affix-wrapper > input.ant-input,
+.caja-saldos-toolbar__buscar .ant-input-affix-wrapper > input.ant-input,
+.caja-verificar-pagos-toolbar__buscar .ant-input-affix-wrapper > input.ant-input,
+.caja-chica-toolbar__buscar .ant-input-affix-wrapper > input.ant-input,
+.caja-maestro-toolbar__buscar .ant-input-affix-wrapper > input.ant-input {
+  height: 42px;
+  line-height: 42px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.caja-list-toolbar__buscar .ant-input-prefix,
+.caja-saldos-toolbar__buscar .ant-input-prefix,
+.caja-verificar-pagos-toolbar__buscar .ant-input-prefix,
+.caja-chica-toolbar__buscar .ant-input-prefix,
+.caja-maestro-toolbar__buscar .ant-input-prefix {
+  color: var(--credix-brand, #114885);
+}
+
+.caja-list-toolbar__hint,
+.caja-saldos-toolbar__hint,
+.caja-verificar-pagos-toolbar__hint,
+.caja-chica-toolbar__hint,
+.caja-maestro-toolbar__hint {
+  grid-area: hint;
+  margin: 0;
+  padding-top: 2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--credix-text-muted, #6b7280);
+  word-break: break-word;
+  border-top: 1px solid var(--credix-border, #e5e7eb);
+}
+
+.caja-list-toolbar__hint-short,
+.caja-saldos-toolbar__hint-short,
+.caja-verificar-pagos-toolbar__hint-short,
+.caja-chica-toolbar__hint-short {
+  display: none;
+}
+
+.caja-list-toolbar__actions,
+.caja-saldos-toolbar__actions,
+.caja-verificar-pagos-toolbar__actions,
+.caja-chica-toolbar__actions,
+.caja-maestro-toolbar__actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.caja-list-toolbar__actions .ant-space,
+.caja-verificar-pagos-toolbar__actions .ant-space {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.caja-list-toolbar__refresh,
+.caja-saldos-toolbar__refresh,
+.caja-verificar-pagos-toolbar__refresh,
+.caja-chica-toolbar__refresh,
+.caja-maestro-toolbar__refresh {
+  border-radius: 8px;
+}
+
+/* Móvil */
+@media (max-width: 640px) {
+  .caja-list-toolbar,
+  .caja-saldos-toolbar,
+  .caja-verificar-pagos-toolbar,
+  .caja-chica-toolbar,
+  .caja-maestro-toolbar {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'buscar'
+      'actions'
+      'hint';
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .caja-list-toolbar__buscar .ant-input-affix-wrapper > input.ant-input,
+  .caja-saldos-toolbar__buscar .ant-input-affix-wrapper > input.ant-input,
+  .caja-verificar-pagos-toolbar__buscar .ant-input-affix-wrapper > input.ant-input,
+  .caja-chica-toolbar__buscar .ant-input-affix-wrapper > input.ant-input,
+  .caja-maestro-toolbar__buscar .ant-input-affix-wrapper > input.ant-input {
+    font-size: 16px;
+  }
+
+  .caja-list-toolbar__actions,
+  .caja-saldos-toolbar__actions,
+  .caja-verificar-pagos-toolbar__actions,
+  .caja-chica-toolbar__actions,
+  .caja-maestro-toolbar__actions {
+    justify-content: stretch;
+    width: 100%;
+  }
+
+  .caja-list-toolbar__actions > .ant-btn,
+  .caja-saldos-toolbar__actions > .ant-btn,
+  .caja-chica-toolbar__actions > .ant-btn,
+  .caja-maestro-toolbar__actions > .ant-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .caja-verificar-pagos-toolbar__actions .ant-space {
+    width: 100%;
+  }
+
+  .caja-verificar-pagos-toolbar__actions .ant-space-item {
+    flex: 1 1 auto;
+  }
+
+  .caja-verificar-pagos-toolbar__actions .ant-btn {
+    width: 100%;
+  }
+
+  .caja-list-toolbar__hint-long,
+  .caja-saldos-toolbar__hint-long,
+  .caja-verificar-pagos-toolbar__hint-long,
+  .caja-chica-toolbar__hint-long {
+    display: none;
+  }
+
+  .caja-list-toolbar__hint-short,
+  .caja-saldos-toolbar__hint-short,
+  .caja-verificar-pagos-toolbar__hint-short,
+  .caja-chica-toolbar__hint-short {
+    display: inline;
+  }
+
+  .caja-list-toolbar__actions .ant-btn > span:not(.anticon),
+  .caja-saldos-toolbar__actions .ant-btn > span:not(.anticon),
+  .caja-verificar-pagos-toolbar__actions .ant-btn > span:not(.anticon),
+  .caja-chica-toolbar__actions .ant-btn > span:not(.anticon),
+  .caja-maestro-toolbar__actions .ant-btn > span:not(.anticon) {
+    display: none;
+  }
+
+  .caja-list-toolbar__actions .ant-btn,
+  .caja-saldos-toolbar__actions .ant-btn,
+  .caja-verificar-pagos-toolbar__actions .ant-btn,
+  .caja-chica-toolbar__actions .ant-btn,
+  .caja-maestro-toolbar__actions .ant-btn {
+    padding-inline: 10px;
+  }
+}

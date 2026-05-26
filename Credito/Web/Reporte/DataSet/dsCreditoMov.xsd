@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="dsCreditoMov" targetNamespace="http://tempuri.org/dsCreditoMov.xsd" xmlns:mstns="http://tempuri.org/dsCreditoMov.xsd" xmlns="http://tempuri.org/dsCreditoMov.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="dsCreditoMov" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="dsCreditoMov" msprop:Generator_UserDSName="dsCreditoMov">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="dsCreditoMov" msprop:Generator_TableClassName="dsCreditoMovDataTable" msprop:Generator_TableVarName="tabledsCreditoMov" msprop:Generator_TablePropName="_dsCreditoMov" msprop:Generator_RowDeletingName="dsCreditoMovRowDeleting" msprop:Generator_RowChangingName="dsCreditoMovRowChanging" msprop:Generator_RowEvHandlerName="dsCreditoMovRowChangeEventHandler" msprop:Generator_RowDeletedName="dsCreditoMovRowDeleted" msprop:Generator_UserTableName="dsCreditoMov" msprop:Generator_RowChangedName="dsCreditoMovRowChanged" msprop:Generator_RowEvArgName="dsCreditoMovRowChangeEvent" msprop:Generator_RowClassName="dsCreditoMovRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="MovimientoCajaId" msprop:Generator_ColumnVarNameInTable="columnMovimientoCajaId" msprop:Generator_ColumnPropNameInRow="MovimientoCajaId" msprop:Generator_ColumnPropNameInTable="MovimientoCajaIdColumn" msprop:Generator_UserColumnName="MovimientoCajaId" type="xs:int" minOccurs="0" />
+              <xs:element name="Fecha" msprop:Generator_ColumnVarNameInTable="columnFecha" msprop:Generator_ColumnPropNameInRow="Fecha" msprop:Generator_ColumnPropNameInTable="FechaColumn" msprop:Generator_UserColumnName="Fecha" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="Operacion" msprop:Generator_ColumnVarNameInTable="columnOperacion" msprop:Generator_ColumnPropNameInRow="Operacion" msprop:Generator_ColumnPropNameInTable="OperacionColumn" msprop:Generator_UserColumnName="Operacion" type="xs:string" minOccurs="0" />
+              <xs:element name="Glosa" msprop:Generator_ColumnVarNameInTable="columnGlosa" msprop:Generator_ColumnPropNameInRow="Glosa" msprop:Generator_ColumnPropNameInTable="GlosaColumn" msprop:Generator_UserColumnName="Glosa" type="xs:string" minOccurs="0" />
+              <xs:element name="ImportePago" msprop:Generator_ColumnVarNameInTable="columnImportePago" msprop:Generator_ColumnPropNameInRow="ImportePago" msprop:Generator_ColumnPropNameInTable="ImportePagoColumn" msprop:Generator_UserColumnName="ImportePago" type="xs:decimal" minOccurs="0" />
+              <xs:element name="Saldo" msprop:Generator_ColumnVarNameInTable="columnSaldo" msprop:Generator_ColumnPropNameInRow="Saldo" msprop:Generator_ColumnPropNameInTable="SaldoColumn" msprop:Generator_UserColumnName="Saldo" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

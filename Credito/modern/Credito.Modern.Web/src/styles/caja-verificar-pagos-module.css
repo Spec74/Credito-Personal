@@ -1,0 +1,63 @@
+/**
+ * Verificar pagos — estilos específicos de tabla y acciones.
+ */
+
+.caja-verificar-pagos-table .ant-table-tbody > tr.caja-verificar-pagos-row--selected > td {
+  background: var(--credix-brand-light, #e8f2fc) !important;
+}
+
+.caja-verificar-pagos-table .ant-table-tbody > tr:hover > td {
+  cursor: pointer;
+}
+
+.caja-verificar-pagos-table__importe {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--credix-brand, #114885);
+}
+
+.caja-verificar-pagos-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.caja-verificar-pagos-empty {
+  padding: 24px 16px;
+  text-align: center;
+}
+
+@media (max-width: 991px) {
+  .caja-verificar-pagos-page ul.credix-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .caja-verificar-pagos-page ul.credix-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .caja-verificar-pagos-legacy-hint {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .caja-verificar-pagos-actions .ant-btn > span:not(.anticon) {
+    display: none;
+  }
+
+  .caja-verificar-pagos-actions .ant-btn {
+    padding-inline: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .caja-verificar-pagos-actions .ant-btn > span:not(.anticon) {
+    display: none;
+  }
+
+  .caja-verificar-pagos-actions .ant-btn {
+    padding-inline: 8px;
+  }
+}

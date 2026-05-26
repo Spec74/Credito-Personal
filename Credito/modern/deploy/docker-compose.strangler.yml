@@ -1,0 +1,60 @@
+# Strangler staging — desde carpeta modern/:
+#   docker compose -f deploy/docker-compose.strangler.yml --env-file deploy/.env up -d
+#
+# Puertos:
+#   9080 — nginx (fachada única: MVC + /api/v1 + /app/)
+#   5080 — API directa (depuración, sin proxy)
+
+services:
+  credito-modern-api:
+    image: deploy-credito-modern-api:latest
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Staging
+      CreditoDatabase__ConnectionString: ${CREDITO_DB_CONNECTION_STRING}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY}
+      Jwt__Issuer: ${JWT_ISSUER:-Credito.Modern.Staging}
+      Jwt__Audience: ${JWT_AUDIENCE:-Credito.Modern.Staging}
+      Jwt__RefreshAudience: ${JWT_REFRESH_AUDIENCE:-Credito.Modern.Staging.Refresh}
+      Hosting__AllowDevToken: "true"
+      Hosting__DisableHttpsRedirection: "true"
+      Auth__RequerirClienteAcceso: "false"
+      Auth__MigracionClavePerezosa: "true"
+      Auth__RequerirClienteAcceso: "false"
+      # false: no rehash PBKDF2 al login (ClaveUsuario nvarchar(50) no cabe el hash). MVC sigue con clave en claro.
+      Auth__MigracionClavePerezosa: "false"
+    ports:
+      - "5080:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 25s
+
+  strangler-proxy:
+    image: nginx:1.27-alpine
+    depends_on:
+      credito-modern-api:
+        condition: service_healthy
+    ports:
+      - "9080:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/proxy_params_strangler.conf:/etc/nginx/proxy_params_strangler.conf:ro
+      - ./nginx/spa-legacy-redirects.conf:/etc/nginx/spa-legacy-redirects.conf:ro
+      - ../Credito.Modern.Web/dist:/var/www/credito-modern-web:ro
+      # Iconos menú SPA (/css, /img) sin depender de MVC en marcha
+      - ../../Web/css:/var/www/legacy-web/css:ro
+      - ../../Web/img:/var/www/legacy-web/img:ro
+      - ./nginx/proxy_params_strangler.conf:/etc/nginx/proxy_params_strangler.conf:ro
+      - ./nginx/spa-legacy-redirects.conf:/etc/nginx/spa-legacy-redirects.conf:ro
+      - ../Credito.Modern.Web/dist:/var/www/credito-modern-web:ro
+      - ../../Web/css:/var/www/legacy-web/css:ro
+      - ../../Web/img:/var/www/legacy-web/img:ro

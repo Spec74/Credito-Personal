@@ -1,0 +1,150 @@
+﻿<h1 class="grid_12">Mantenimiento de TipoArticulo</h1>
+
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Lista de TipoArticulo</h2>
+        </div>
+
+        <div class="searchbox">
+            <input id="txtBuscar" type="text" placeholder="Ingrese Nombre del TipoArticulo" />
+            <input id="btnBuscar" type="submit" value="Buscar" class="grey" />
+        </div>
+        <a id="btnNuevo" href="#" class="button">Nuevo TipoArticulo</a>
+        <table id="grdBuscar" ></table>
+        <div id="grdpBuscar"></div>
+    </div>
+   
+  </div>
+
+<div style="display: none;" id="dlgNuevo" title="Mantener Lista de TipoArticulo">
+    <form action="#" class="full validate" >
+        <div class="row">
+            <label for="txtTipoArticulo">
+                <strong>TipoArticulo</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtTipoArticulo" id="txtTipoArticulo" />
+            </div>
+        </div>
+        <div class="row">
+            <label for="txtDescripcion">
+                <strong>Descripcion:</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtDescripcion" id="txtDescripcion"/>
+            </div>
+        </div>
+        <div class="row">
+            <label for="chkActivo">
+                <strong>Estado:</strong>
+            </label>
+            <div>
+                <div><input type="checkbox" id="chkActivo" /> <label for="chkActivo">Activo</label></div>
+            </div>
+        </div>
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <button class="submit">Guardar</button>
+        </div>
+       @* <div class="right">
+          <input id="btnEnviar" type="button" value="Guardar" name="submit" />
+        </div>*@
+    </div>
+</div>
+<script >
+    $$.ready(function () {
+        $("#btnNuevo").click(function () {
+            $.data(document.body, 'TipoArticuloId', 0);
+            $("#txtTipoArticulo").val("").removeAttr('disabled');
+            $("#chkActivo").prop("checked", true);
+            $("#dlgNuevo").dialog("open");s
+            return false;
+        });
+        $("#txtBuscar").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+            }
+        });
+        $("#btnBuscar").click(function () { $("#grdBuscar").trigger("reloadGrid"); });
+
+        $("#dlgNuevo").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 400,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('button.submit').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("GuardarTipoArticulo", "TipoArticulo")",
+                    data: {
+                        pTipoArticuloId: $.data(document.body, 'TipoArticuloId'),
+                        pDenominacion: $("#txtTipoArticulo").val(),
+                        pDescripcion: $("#txtDescripcion").val(),
+                        pActivo: $("#chkActivo").prop('checked'),
+                    },
+                    success: function (data) {
+                        Vendix.Notificar("Modificar");
+                        $("#grdBuscar").trigger("reloadGrid");
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                    }
+                });
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        jQuery("#grdBuscar").jqGrid({
+            url: "@Url.Action("ListarTipoArticulo", "TipoArticulo")",
+            datatype: "json",
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "Buscar", Value: $("#txtBuscar").val() }]);
+                }
+            },
+            colNames: ['ID', 'DENOMINACION', 'DESCRIPCION', 'ESTADO', 'ESTADO'],
+            colModel:
+                [
+                    { name: 'TipoArticuloId', index: 'TipoArticuloId', width: 75 },
+                    { name: 'Denominacion', index: 'Denominacion', width: 150, align: "left" },
+                    { name: 'Descripcion', index: 'Descripcion', width: 150, align: "left" },
+                    { name: 'Estado', index: 'Estado', hidden: true },
+                    { name: 'Activo', index: 'Activo', align: 'center', width: 80, formatter: ActivoFormatter },
+                ],
+            caption: "Lista TipoArticulo",
+            pager: jQuery('#grdpBuscar'),
+            rowNum: 15,
+            rowList: [15, 30, 45],
+            sortname: 'TipoArticuloId',
+            sortorder: "asc",
+            viewrecords: true,
+            gridview: true,
+            rownumbers: true,
+            autowidth: true,
+            //paging: true,
+            width: 'auto',
+            height: '347px',
+            ondblClickRow: function () {
+                var id = jQuery("#grdBuscar").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    var ret = $("#grdBuscar").jqGrid('getRowData', id);
+                    $("#txtTipoArticulo").val(ret.Denominacion);
+                    $("#txtDescripcion").val(ret.Descripcion);
+                    $("#chkActivo").prop("checked", ret.Estado == "True" ? true : false);
+                    $.data(document.body, 'TipoArticuloId', ret.TipoArticuloId);
+                    $("#dlgNuevo").dialog("open");
+                }
+            }
+        });//.navGrid('#grdBuscar', { edit: false, add: false, del: false });
+    });
+</script>

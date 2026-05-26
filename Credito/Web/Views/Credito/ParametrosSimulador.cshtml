@@ -1,0 +1,44 @@
+﻿
+<div class="grid_4">
+    <form method="post" action="#" class="box validate">
+        <div class="header">
+            <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/database.png" alt="simulador">Parametros del Simulador de Creditos</h2>
+        </div>
+
+        <div class="content">
+            <p class="_100 small">
+                <label for="txtFactorVariable" class="inline">F. Compensacion Cuota Variable:</label>
+                <input data-error-type="inline" type="text" class="required" id="txtFactorVariable" value="@ViewBag.FactorVariable" title="Solo números" />
+            </p>
+            <p class="_100 small">
+                <label for="txtFactorFijo" class="inline">F. Compensacion Cuota Fijo:</label>
+                <input data-error-type="inline" type="text" class="required" id="txtFactorFijo" value="@ViewBag.FactorFijo" title="Solo números enteros" />
+            </p>
+        </div>
+        <br />
+        <div class="actions">
+            <div class="right">
+                <input type="button" value="Guardar Parametros" id="btnGuardar" />
+            </div>
+        </div>
+    </form>
+</div>
+<script>
+    $(function () {
+        $("#txtFactorFijo,#txtFactorVariable").numeric(2);
+
+        $('#btnGuardar').click(function () {
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("ActualizarParametrosSimulador", "Credito")",
+                data: {
+                    pFactorVariable: $("#txtFactorVariable").val(),
+                    pFactorFijo: $("#txtFactorFijo").val()
+                },
+                success: function (data) {
+                    Vendix.Notificar("Modificar");
+                }
+            });
+        });
+    });
+</script>

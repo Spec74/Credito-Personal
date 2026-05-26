@@ -1,0 +1,42 @@
+﻿@model List<ITB.VENDIX.DA.usp_GenerarKardex_Result>
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Busqueda de Kardex</h2>
+        </div>
+        <div class="searchbox">
+            <table style="margin: 0">
+                <tr >
+                    <td>@Html.DropDownList("cboAlmacen")</td>
+                    <td style="width: 100%; ">
+                        <input id="txtBuscar" type="text" placeholder="Ingrese Nombre de Articulo" />
+                        <input id="btnBuscar" style="height: 35px;" type="submit" value="Buscar Entradas" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="rptKardex">
+    
+</div>
+
+
+<script type="text/javascript">
+    $(document).ready(function () { 
+        $("#txtBuscar").autocomplete({
+            source: "@Url.Action("BuscarArticuloSelect", "Articulo")",
+            minLength: 2,
+            select: function (event, ui) {
+                var articuloId = ui.item.id;
+                var almacenId = $("#cboAlmacen").val();
+                var ruta = '@Url.Action("ListarKardex", "Kardex")' + '?pArticuloid=' + articuloId + '&pAlmacenId=' + almacenId;
+                $.data(document.body, 'Articuloid', articuloId);
+                $.data(document.body, 'Almacenid', almacenId);
+
+                $('#rptKardex').load(ruta);
+            }
+        });
+    });
+</script>

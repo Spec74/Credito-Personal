@@ -1,0 +1,566 @@
+﻿
+@{
+    ViewBag.Title = "Dashboard Cobranza Pagos por Gestor";
+}
+
+<style>
+    .dashboard-container {
+        padding: 15px;
+    }
+    .filter-panel {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .filter-row {
+        display: flex;
+        gap: 20px;
+        align-items: flex-end;
+        flex-wrap: wrap;
+    }
+    .filter-group {
+        display: flex;
+        flex-direction: column;
+        min-width: 200px;
+    }
+    .filter-group.gestor-group {
+        min-width: 300px;
+    }
+    .filter-group.gestor-group select {
+        min-width: 300px;
+    }
+    .filter-group label {
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #333;
+    }
+    .filter-group select {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        min-width: 200px;
+    }
+    .btn-generar {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 0.3s;
+    }
+    .btn-generar:hover {
+        background: #0056b3;
+    }
+    .btn-generar:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+    }
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .summary-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        text-align: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .summary-card.credito { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+    .summary-card.pagado { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .summary-card.saldo { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .summary-card.clientes { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .summary-card h3 {
+        margin: 0 0 3px 0;
+        font-size: 12px;
+        opacity: 0.9;
+        text-transform: uppercase;
+    }
+    .summary-card .value {
+        font-size: 22px;
+        font-weight: 700;
+    }
+    .data-table-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    .table-header {
+        background: #343a40;
+        color: white;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .table-header h2 {
+        margin: 0;
+        font-size: 16px;
+    }
+    .table-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .search-box {
+        display: flex;
+        align-items: center;
+        background: white;
+        border-radius: 4px;
+        padding: 0 10px;
+    }
+    .search-box input {
+        border: none;
+        padding: 6px 8px;
+        font-size: 12px;
+        width: 180px;
+        outline: none;
+    }
+    .search-box i {
+        color: #6c757d;
+    }
+    .btn-clear-search {
+        background: none;
+        border: none;
+        color: #6c757d;
+        cursor: pointer;
+        padding: 2px 5px;
+        font-size: 14px;
+        display: none;
+    }
+    .btn-clear-search:hover {
+        color: #dc3545;
+    }
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+    .data-table thead th {
+        background: #495057;
+        color: white;
+        padding: 12px 10px;
+        text-align: left;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .data-table tbody tr:nth-child(even) {
+        background: #f8f9fa;
+    }
+    .data-table tbody tr:hover {
+        background: #e9ecef;
+    }
+    .data-table tbody td {
+        padding: 10px;
+        border-bottom: 1px solid #dee2e6;
+        vertical-align: top;
+    }
+    .text-right {
+        text-align: right;
+    }
+    .text-center {
+        text-align: center;
+    }
+    .pagos-row {
+        background: #f0f7ff !important;
+    }
+    .pagos-row:hover {
+        background: #e3f0ff !important;
+    }
+    .pagos-row td {
+        padding: 8px 15px !important;
+        border-bottom: 2px solid #dee2e6 !important;
+    }
+    .pagos-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .pagos-label {
+        font-weight: 600;
+        color: #495057;
+        font-size: 12px;
+        white-space: nowrap;
+        min-width: 50px;
+        display: inline-block;
+    }
+    .pagos-timeline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        align-items: center;
+    }
+    .pago-badge {
+        color: white;
+        padding: 4px 10px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 500;
+        white-space: nowrap;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        min-width: 70px;
+    }
+    .pago-monto {
+        font-weight: 600;
+        font-size: 11px;
+    }
+    .pago-fecha {
+        font-size: 9px;
+        opacity: 0.9;
+    }
+    .pago-realizado {
+        background: linear-gradient(135deg, #17a2b8 0%, #007bff 100%);
+    }
+    .pago-cero {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    }
+    .pago-index {
+        background: rgba(255,255,255,0.3);
+        color: white;
+        padding: 1px 5px;
+        border-radius: 50%;
+        font-size: 8px;
+        margin-bottom: 2px;
+    }
+    .sin-pagos {
+        color: #999;
+        font-style: italic;
+        font-size: 12px;
+    }
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .no-data {
+        text-align: center;
+        padding: 50px;
+        color: #6c757d;
+        font-size: 16px;
+    }
+    .cliente-nombre {
+        font-weight: 500;
+        color: #333;
+        max-width: 180px;
+    }
+    .forma-pago {
+        background: #e9ecef;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        display: inline-block;
+    }
+    .btn-exportar {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12px;
+        margin-left: 10px;
+    }
+    .btn-exportar:hover {
+        background: #1e7e34;
+    }
+</style>
+
+<div class="dashboard-container">
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <div class="filter-panel">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="cboOficina"><i class="icon-building"></i> Oficina</label>
+                @Html.DropDownList("cboOficina", null, new { @class = "form-control" })
+            </div>
+            <div class="filter-group gestor-group">
+                <label for="cboGestor"><i class="icon-user"></i> Gestor</label>
+                @Html.DropDownList("cboGestor", "-- Todos los Gestores --")
+            </div>
+            <div class="filter-group">
+                <button type="button" class="btn-generar" id="btnGenerarReporte">
+                    <i class="icon-search"></i> Generar Reporte
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-cards" id="summaryCards" style="display: none;">
+        <div class="summary-card clientes">
+            <h3><i class="icon-users"></i> Total Clientes</h3>
+            <div class="value" id="totalClientes">0</div>
+        </div>
+        <div class="summary-card credito">
+            <h3><i class="icon-money"></i> Total Crédito</h3>
+            <div class="value" id="totalCredito">S/ 0.00</div>
+        </div>
+        <div class="summary-card pagado">
+            <h3><i class="icon-check"></i> Total Pagado</h3>
+            <div class="value" id="totalPagado">S/ 0.00</div>
+        </div>
+        <div class="summary-card saldo">
+            <h3><i class="icon-warning"></i> Saldo Pendiente</h3>
+            <div class="value" id="totalSaldo">S/ 0.00</div>
+        </div>
+    </div>
+
+    <div class="data-table-container" id="tableContainer" style="display: none;">
+        <div class="table-header">
+            <h2><i class="icon-list"></i> Detalle de Cobranza por Gestor</h2>
+            <div class="table-header-actions">
+                <div class="search-box">
+                    <i class="icon-search"></i>
+                    <input type="text" id="txtBuscarCliente" placeholder="Buscar cliente..." />
+                    <button type="button" class="btn-clear-search" id="btnClearSearch">&times;</button>
+                </div>
+                <button type="button" class="btn-exportar" id="btnExportarExcel" style="background: #17a2b8;">
+                    <i class="icon-file-excel"></i> Excel
+                </button>
+            </div>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="data-table" id="tablaCobranza">
+            <thead>
+                <tr>
+                    <th class="text-center">Nro</th>
+                    <th>Cliente</th>
+                    <th>Tipo</th>
+                    <th class="text-right">Crédito</th>
+                    <th class="text-right">Interés</th>
+                    <th class="text-right">Monto Total</th>
+                    <th class="text-center">1er Pago</th>
+                    <th class="text-center">Vcto.</th>
+                    <th class="text-right">Pagado</th>
+                    <th class="text-right">Saldo</th>
+                </tr>
+            </thead>
+                <tbody id="tbodyCobranza">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="no-data" id="noDataMessage">
+        <i class="icon-info-sign"></i>
+        <p>Seleccione los filtros y presione "Generar Reporte" para ver los datos de cobranza.</p>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(document).ready(function () {
+$('#btnGenerarReporte').click(function () {
+    cargarReporte();
+});
+
+$('#btnExportarExcel').click(function () {
+    exportarExcel();
+});
+
+    // Buscador de cliente en tiempo real (sin ir a la base de datos)
+    $('#txtBuscarCliente').on('keyup', function () {
+        var searchText = $(this).val().toLowerCase().trim();
+            
+        // Mostrar/ocultar botón limpiar
+        if (searchText.length > 0) {
+            $('#btnClearSearch').show();
+        } else {
+            $('#btnClearSearch').hide();
+        }
+            
+        // Filtrar filas de la tabla
+        $('#tbodyCobranza tr').each(function () {
+            var $row = $(this);
+            var $nextRow = $row.next('.pagos-row');
+                
+            // Solo procesar filas de datos (no las filas de pagos)
+            if (!$row.hasClass('pagos-row')) {
+                var clienteNombre = $row.find('.cliente-nombre').text().toLowerCase();
+                    
+                if (searchText === '' || clienteNombre.indexOf(searchText) > -1) {
+                    $row.show();
+                    if ($nextRow.length) $nextRow.show();
+                } else {
+                    $row.hide();
+                    if ($nextRow.length) $nextRow.hide();
+                }
+            }
+        });
+    });
+
+    // Limpiar búsqueda
+    $('#btnClearSearch').click(function () {
+        $('#txtBuscarCliente').val('').trigger('keyup');
+        $(this).hide();
+    });
+
+    function cargarReporte() {
+            var gestorid = $('#cboGestor').val();
+            var oficinaid = $('#cboOficina').val();
+
+            if (gestorid === '') gestorid = null;
+            if (oficinaid === '') oficinaid = null;
+
+            $('#loadingOverlay').css('display', 'flex');
+            $('#btnGenerarReporte').prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("ObtenerCobranzaPagos", "Reporte")',
+                type: 'GET',
+                data: {
+                    pGestorid: gestorid,
+                    pOficinaid: oficinaid
+                },
+                success: function (response) {
+                    $('#loadingOverlay').hide();
+                    $('#btnGenerarReporte').prop('disabled', false);
+
+                    if (response.success && response.data.length > 0) {
+                        $('#noDataMessage').hide();
+                        $('#summaryCards').show();
+                        $('#tableContainer').show();
+
+                        // Actualizar resumen
+                        $('#totalClientes').text(response.resumen.TotalClientes);
+                        $('#totalCredito').text('S/ ' + response.resumen.TotalCredito);
+                        $('#totalPagado').text('S/ ' + response.resumen.TotalPagado);
+                        $('#totalSaldo').text('S/ ' + response.resumen.TotalSaldo);
+
+                        // Construir tabla
+                        var tbody = $('#tbodyCobranza');
+                        tbody.empty();
+
+                        $.each(response.data, function (index, item) {
+                            var pagosHtml = '';
+                            if (item.PagosLista && item.PagosLista.length > 0) {
+                                pagosHtml = '<div class="pagos-container">';
+                                pagosHtml += '<div class="pagos-timeline">';
+                                
+                                var pagosCount = 0;
+                                var impagosCount = 0;
+                                for (var j = 0; j < item.PagosLista.length; j++) {
+                                    var pago = item.PagosLista[j];
+                                    if (pago && pago.trim() !== '') {
+                                        var pagoTrim = pago.trim();
+                                        var monto = pagoTrim;
+                                        var fecha = '';
+                                        var matchFecha = pagoTrim.match(/\(([^)]+)\)/);
+                                        if (matchFecha) {
+                                            fecha = matchFecha[1];
+                                            monto = pagoTrim.replace(/\s*\([^)]+\)/, '').trim();
+                                        }
+                                        var esCero = monto === '0.00' || monto === '0' || monto.startsWith('0.00');
+                                        if (esCero) impagosCount++; else pagosCount++;
+                                        var claseColor = esCero ? 'pago-cero' : 'pago-realizado';
+                                        pagosHtml += '<span class="pago-badge ' + claseColor + '">' +
+                                            '<span class="pago-index">' + (j + 1) + '</span>' +
+                                            '<span class="pago-monto">' + monto + '</span>' +
+                                            (fecha ? '<span class="pago-fecha">' + fecha + '</span>' : '') +
+                                            '</span>';
+                                    }
+                                }
+                                // Agregar contador a la izquierda similar a la imagen
+                                var diasAtraso = item.DiasAtraso || 0;
+                                var contadorHtml = '<div style="min-width:120px; text-align:left; margin-right:8px;">' +
+                                    '<div style="font-weight:700; color:#333;">Pagos: <span style="color:#17a2b8;">' + pagosCount + '</span></div>' +
+                                    '<div style="font-weight:700; color:#333;">Impagos: <span style="color:#dc3545;">' + impagosCount + '</span></div>' +
+                                    '<div style="font-weight:700; color:#c82333;">Días Mora: <span>' + diasAtraso + '</span></div>' +
+                                    '</div>';
+                                pagosHtml = '<div style="display:flex; align-items:center;">' + contadorHtml + '<div class="pagos-timeline">' + pagosHtml + '</div></div>';
+                                pagosHtml += '</div>';
+                            } else {
+                                pagosHtml = '<div class="pagos-container"><span class="pagos-label">Pagos:</span> <span class="sin-pagos">Sin pagos registrados</span></div>';
+                            }
+
+                            // Fila principal con datos del cliente
+                            var row = '<tr>' +
+                                '<td class="text-center">' + (item.Nro || (index + 1)) + '</td>' +
+                                '<td class="cliente-nombre">' + item.Cliente + '</td>' +
+                                '<td><span class="forma-pago">' + item.FormaPago + '</span></td>' +
+                                '<td class="text-right">' + item.MontoCredito + '</td>' +
+                                '<td class="text-right">' + item.Interes + '</td>' +
+                                '<td class="text-right">' + item.MontoTotal + '</td>' +
+                                '<td class="text-center">' + item.FechaPrimerPago + '</td>' +
+                                '<td class="text-center">' + item.FechaVencimiento + '</td>' +
+                                '<td class="text-right" style="font-weight: 600; color: #28a745;">' + item.TotalPago + '</td>' +
+                                '<td class="text-right" style="font-weight: 600; color: #dc3545;">' + item.Saldo + '</td>' +
+                                '</tr>';
+                            
+                            // Fila secundaria con historial de pagos
+                            var rowPagos = '<tr class="pagos-row">' +
+                                '<td colspan="10">' + pagosHtml + '</td>' +
+                                '</tr>';
+                            
+                            tbody.append(row);
+                            tbody.append(rowPagos);
+                        });
+                    } else {
+                        $('#summaryCards').hide();
+                        $('#tableContainer').hide();
+                        $('#noDataMessage').html('<i class="icon-info-sign"></i><p>No se encontraron datos para los filtros seleccionados.</p>').show();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    $('#loadingOverlay').hide();
+                    $('#btnGenerarReporte').prop('disabled', false);
+                    Vendix.Mensaje('Error al obtener los datos: ' + error);
+                }
+            });
+        }
+
+        
+
+        function exportarExcel() {
+            var gestorid = $('#cboGestor').val();
+            var oficinaid = $('#cboOficina').val();
+
+            if (gestorid === '') gestorid = null;
+            if (oficinaid === '') oficinaid = null;
+
+            var ruta = '@Url.Action("ExportarCobranzaPagosExcel", "Reporte")'
+                + '?pGestorid=' + gestorid
+                + '&pOficinaid=' + oficinaid;
+
+            window.open(ruta);
+        }
+    });
+</script>
+

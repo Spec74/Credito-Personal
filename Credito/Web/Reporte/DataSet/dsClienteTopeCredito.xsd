@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="dsClienteTopeCredito" targetNamespace="http://tempuri.org/dsClienteTopeCredito.xsd" xmlns:mstns="http://tempuri.org/dsClienteTopeCredito.xsd" xmlns="http://tempuri.org/dsClienteTopeCredito.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="dsClienteTopeCredito" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_UserDSName="dsClienteTopeCredito" msprop:Generator_DataSetName="dsClienteTopeCredito">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="dsClienteTopeCredito" msprop:Generator_RowEvHandlerName="dsClienteTopeCreditoRowChangeEventHandler" msprop:Generator_RowDeletedName="dsClienteTopeCreditoRowDeleted" msprop:Generator_RowDeletingName="dsClienteTopeCreditoRowDeleting" msprop:Generator_RowEvArgName="dsClienteTopeCreditoRowChangeEvent" msprop:Generator_TablePropName="_dsClienteTopeCredito" msprop:Generator_RowChangedName="dsClienteTopeCreditoRowChanged" msprop:Generator_RowChangingName="dsClienteTopeCreditoRowChanging" msprop:Generator_TableClassName="dsClienteTopeCreditoDataTable" msprop:Generator_RowClassName="dsClienteTopeCreditoRow" msprop:Generator_TableVarName="tabledsClienteTopeCredito" msprop:Generator_UserTableName="dsClienteTopeCredito">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Agente" msprop:Generator_ColumnPropNameInRow="Agente" msprop:Generator_ColumnPropNameInTable="AgenteColumn" msprop:Generator_ColumnVarNameInTable="columnAgente" msprop:Generator_UserColumnName="Agente" type="xs:string" minOccurs="0" />
+              <xs:element name="NumeroDocumento" msprop:Generator_ColumnPropNameInRow="NumeroDocumento" msprop:Generator_ColumnPropNameInTable="NumeroDocumentoColumn" msprop:Generator_ColumnVarNameInTable="columnNumeroDocumento" msprop:Generator_UserColumnName="NumeroDocumento" type="xs:string" minOccurs="0" />
+              <xs:element name="Cliente" msprop:Generator_ColumnPropNameInRow="Cliente" msprop:Generator_ColumnPropNameInTable="ClienteColumn" msprop:Generator_ColumnVarNameInTable="columnCliente" msprop:Generator_UserColumnName="Cliente" type="xs:string" minOccurs="0" />
+              <xs:element name="Direccion" msprop:Generator_ColumnPropNameInRow="Direccion" msprop:Generator_ColumnPropNameInTable="DireccionColumn" msprop:Generator_ColumnVarNameInTable="columnDireccion" msprop:Generator_UserColumnName="Direccion" type="xs:string" minOccurs="0" />
+              <xs:element name="DireccionRef" msprop:Generator_ColumnPropNameInRow="DireccionRef" msprop:Generator_ColumnPropNameInTable="DireccionRefColumn" msprop:Generator_ColumnVarNameInTable="columnDireccionRef" msprop:Generator_UserColumnName="DireccionRef" type="xs:string" minOccurs="0" />
+              <xs:element name="Celular" msprop:Generator_ColumnPropNameInRow="Celular" msprop:Generator_ColumnPropNameInTable="CelularColumn" msprop:Generator_ColumnVarNameInTable="columnCelular" msprop:Generator_UserColumnName="Celular" type="xs:string" minOccurs="0" />
+              <xs:element name="Calificacion" msprop:Generator_ColumnPropNameInRow="Calificacion" msprop:Generator_ColumnPropNameInTable="CalificacionColumn" msprop:Generator_ColumnVarNameInTable="columnCalificacion" msprop:Generator_UserColumnName="Calificacion" type="xs:string" minOccurs="0" />
+              <xs:element name="TopeCredito" msprop:Generator_ColumnPropNameInRow="TopeCredito" msprop:Generator_ColumnPropNameInTable="TopeCreditoColumn" msprop:Generator_ColumnVarNameInTable="columnTopeCredito" msprop:Generator_UserColumnName="TopeCredito" type="xs:decimal" minOccurs="0" />
+              <xs:element name="Nota" msprop:Generator_ColumnPropNameInRow="Nota" msprop:Generator_ColumnPropNameInTable="NotaColumn" msprop:Generator_ColumnVarNameInTable="columnNota" msprop:Generator_UserColumnName="Nota" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

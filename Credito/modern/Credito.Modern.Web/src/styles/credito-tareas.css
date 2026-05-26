@@ -1,0 +1,264 @@
+/* Tareas de crédito — paridad Index.cshtml + diseño Credix */
+
+.credito-tareas-toolbar {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 200px) auto;
+  grid-template-areas:
+    'buscar analista filtros'
+    'actions actions actions';
+  align-items: center;
+  gap: 10px 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-left: 3px solid var(--credix-brand, #114885);
+  background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+}
+
+.credito-tareas-toolbar__buscar {
+  grid-area: buscar;
+  min-width: 0;
+}
+
+.credito-tareas-toolbar__buscar .ant-input-affix-wrapper {
+  height: 44px;
+  max-height: 44px;
+  border-radius: 10px;
+}
+
+.credito-tareas-toolbar__buscar .ant-input-affix-wrapper > input.ant-input {
+  height: 42px;
+  line-height: 42px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credito-tareas-toolbar__analista {
+  grid-area: analista;
+  min-width: 0;
+  width: 100%;
+}
+
+.credito-tareas-toolbar__filtros {
+  grid-area: filtros;
+  min-width: 0;
+}
+
+.credito-tareas-toolbar__actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+  min-width: 0;
+  padding-top: 4px;
+  border-top: 1px solid var(--credix-border, #e5e7eb);
+}
+
+.credito-tareas-toolbar__actions .ant-btn-primary {
+  background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand, #1e4d7b) 100%);
+  border: none;
+  font-weight: 600;
+}
+
+.credito-tareas-row--completada > td {
+  background: #ecfdf5 !important;
+}
+
+.credito-tareas-row--completada .credito-tareas-cliente-nombre {
+  color: #15803d;
+  text-decoration: line-through;
+}
+
+.credito-tareas-cliente-nombre {
+  font-weight: 600;
+  color: var(--credix-brand, #1e4d7b);
+}
+
+.credito-tareas-sub-progress {
+  min-width: 88px;
+}
+
+.credito-tareas-sub-progress__label {
+  display: block;
+  font-size: 11px;
+  color: #64748b;
+  margin-bottom: 2px;
+}
+
+/* Buscador crédito (modal) */
+.credito-tareas-buscar__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.credito-tareas-buscar__input {
+  min-width: 0;
+  width: 100%;
+}
+
+.credito-tareas-buscar__input .ant-input-affix-wrapper {
+  min-height: 44px;
+  border-radius: 10px;
+  border-color: #94b8e8;
+}
+
+.credito-tareas-buscar__input .ant-input-affix-wrapper-focused {
+  border-color: var(--credix-brand, #1e4d7b);
+  box-shadow: 0 0 0 3px rgb(30 77 123 / 12%);
+}
+
+.credito-tareas-buscar__icon {
+  color: var(--credix-brand, #1e4d7b);
+}
+
+.credito-tareas-buscar__btn.ant-btn-primary {
+  min-height: 44px;
+  padding-inline: 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand, #1e4d7b) 100%);
+  border: none;
+}
+
+.credito-tareas-buscar__tabla {
+  margin-top: 12px;
+}
+
+.credito-tareas-buscar__hint {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.credito-tareas-buscar-option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 0;
+}
+
+.credito-tareas-buscar-option__name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.credito-tareas-buscar-option__meta {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.credito-tareas-buscar-dropdown .ant-select-item {
+  padding: 8px 12px !important;
+}
+
+/* Modal editor */
+.credito-tareas-modal__credito-seleccionado {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #e8f1fb 0%, #f0f7ff 100%);
+  border: 1px solid #c7daf3;
+  border-radius: 8px;
+  color: var(--credix-brand, #1e4d7b);
+}
+
+.credito-tareas-modal__sub-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 16px 0 8px;
+}
+
+.credito-tareas-modal__progress {
+  margin-bottom: 12px;
+}
+
+.credito-tareas-modal__preset {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.credito-tareas-modal__sub-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+  padding-right: 4px;
+}
+
+.credito-tareas-subitem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+}
+
+.credito-tareas-subitem--done .ant-input {
+  text-decoration: line-through;
+  color: #64748b;
+}
+
+.credito-tareas-modal__guardar.ant-btn-primary {
+  background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand, #1e4d7b) 100%);
+  border: none;
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .credito-tareas-toolbar {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'buscar'
+      'analista'
+      'filtros'
+      'actions';
+    padding: 12px;
+  }
+
+  .credito-tareas-toolbar__buscar .ant-input-affix-wrapper > input.ant-input {
+    font-size: 16px;
+  }
+
+  .credito-tareas-toolbar__filtros {
+    width: 100%;
+  }
+
+  .credito-tareas-toolbar__filtros .ant-segmented {
+    width: 100%;
+  }
+
+  .credito-tareas-toolbar__actions {
+    justify-content: stretch;
+  }
+
+  .credito-tareas-toolbar__actions .ant-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .credito-tareas-toolbar__actions .ant-btn > span:not(.anticon) {
+    display: none;
+  }
+
+  .credito-tareas-buscar__row {
+    grid-template-columns: 1fr;
+  }
+
+  .credito-tareas-buscar__btn {
+    width: 100%;
+  }
+}

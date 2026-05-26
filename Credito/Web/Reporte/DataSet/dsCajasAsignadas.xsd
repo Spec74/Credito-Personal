@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="dsCajasAsignadas" targetNamespace="http://tempuri.org/dsCajasAsignadas.xsd" xmlns:mstns="http://tempuri.org/dsCajasAsignadas.xsd" xmlns="http://tempuri.org/dsCajasAsignadas.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="dsCajasAsignadas" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_UserDSName="dsCajasAsignadas" msprop:Generator_DataSetName="dsCajasAsignadas">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="dsCajasAsignadas" msprop:Generator_RowEvHandlerName="dsCajasAsignadasRowChangeEventHandler" msprop:Generator_RowDeletedName="dsCajasAsignadasRowDeleted" msprop:Generator_RowDeletingName="dsCajasAsignadasRowDeleting" msprop:Generator_RowEvArgName="dsCajasAsignadasRowChangeEvent" msprop:Generator_TablePropName="_dsCajasAsignadas" msprop:Generator_RowChangedName="dsCajasAsignadasRowChanged" msprop:Generator_RowChangingName="dsCajasAsignadasRowChanging" msprop:Generator_TableClassName="dsCajasAsignadasDataTable" msprop:Generator_RowClassName="dsCajasAsignadasRow" msprop:Generator_TableVarName="tabledsCajasAsignadas" msprop:Generator_UserTableName="dsCajasAsignadas">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="CajaDiarioId" msprop:Generator_ColumnPropNameInRow="CajaDiarioId" msprop:Generator_ColumnPropNameInTable="CajaDiarioIdColumn" msprop:Generator_ColumnVarNameInTable="columnCajaDiarioId" msprop:Generator_UserColumnName="CajaDiarioId" type="xs:int" minOccurs="0" />
+              <xs:element name="Caja" msprop:Generator_ColumnPropNameInRow="Caja" msprop:Generator_ColumnPropNameInTable="CajaColumn" msprop:Generator_ColumnVarNameInTable="columnCaja" msprop:Generator_UserColumnName="Caja" type="xs:string" minOccurs="0" />
+              <xs:element name="Modo" msprop:Generator_ColumnPropNameInRow="Modo" msprop:Generator_ColumnPropNameInTable="ModoColumn" msprop:Generator_ColumnVarNameInTable="columnModo" msprop:Generator_UserColumnName="Modo" type="xs:string" minOccurs="0" />
+              <xs:element name="Cajero" msprop:Generator_ColumnPropNameInRow="Cajero" msprop:Generator_ColumnPropNameInTable="CajeroColumn" msprop:Generator_ColumnVarNameInTable="columnCajero" msprop:Generator_UserColumnName="Cajero" type="xs:string" minOccurs="0" />
+              <xs:element name="FechaIniOperacion" msprop:Generator_ColumnPropNameInRow="FechaIniOperacion" msprop:Generator_ColumnPropNameInTable="FechaIniOperacionColumn" msprop:Generator_ColumnVarNameInTable="columnFechaIniOperacion" msprop:Generator_UserColumnName="FechaIniOperacion" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="FechaFinOperacion" msprop:Generator_ColumnPropNameInRow="FechaFinOperacion" msprop:Generator_ColumnPropNameInTable="FechaFinOperacionColumn" msprop:Generator_ColumnVarNameInTable="columnFechaFinOperacion" msprop:Generator_UserColumnName="FechaFinOperacion" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="SaldoInicial" msprop:Generator_ColumnPropNameInRow="SaldoInicial" msprop:Generator_ColumnPropNameInTable="SaldoInicialColumn" msprop:Generator_ColumnVarNameInTable="columnSaldoInicial" msprop:Generator_UserColumnName="SaldoInicial" type="xs:decimal" minOccurs="0" />
+              <xs:element name="Entradas" msprop:Generator_ColumnPropNameInRow="Entradas" msprop:Generator_ColumnPropNameInTable="EntradasColumn" msprop:Generator_ColumnVarNameInTable="columnEntradas" msprop:Generator_UserColumnName="Entradas" type="xs:decimal" minOccurs="0" />
+              <xs:element name="Salidas" msprop:Generator_ColumnPropNameInRow="Salidas" msprop:Generator_ColumnPropNameInTable="SalidasColumn" msprop:Generator_ColumnVarNameInTable="columnSalidas" msprop:Generator_UserColumnName="Salidas" type="xs:decimal" minOccurs="0" />
+              <xs:element name="SaldoFinal" msprop:Generator_ColumnPropNameInRow="SaldoFinal" msprop:Generator_ColumnPropNameInTable="SaldoFinalColumn" msprop:Generator_ColumnVarNameInTable="columnSaldoFinal" msprop:Generator_UserColumnName="SaldoFinal" type="xs:decimal" minOccurs="0" />
+              <xs:element name="Resumen" msprop:Generator_ColumnPropNameInRow="Resumen" msprop:Generator_ColumnPropNameInTable="ResumenColumn" msprop:Generator_ColumnVarNameInTable="columnResumen" msprop:Generator_UserColumnName="Resumen" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

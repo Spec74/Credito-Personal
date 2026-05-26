@@ -1,0 +1,64 @@
+﻿@model  List<ITB.VENDIX.DA.CreditoImagen>
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/image-sunset.png" />Subir imagenes</h2>
+        </div>
+        <form action="@Url.Action("SubirImagen","Credito")" method="post" enctype="multipart/form-data">            
+            <div class="grid_6">
+                <input name="imagen" accept="image/png,image/jpeg" type="file" >
+                <input name="pCreditoId" type="hidden" value="@ViewBag.CreditoId" />
+            </div>              
+            <div class="grid_6 right" >
+                <input type="submit" value="Subir imagenes" />
+            </div>  
+        </form>
+        <p></p>        
+    </div>
+</div>
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2>
+                <img class="icon" src="~/img/icons/packs/fugue/16x16/image-sunset.png" />
+                Evidencias del credito @ViewBag.CreditoId - @ViewBag.Cliente
+            </h2>
+        </div>
+        <div class="content">
+            <div class="gallery">
+                @foreach (var item in Model)
+                {
+                    <div class="image">
+                        <span onclick="EliminarImg(@item.Id);" class="badge">Eliminar</span>
+                        <a href="~/storage/@ViewBag.CreditoId/@item.Imagen">
+                            <img src="~/storage/@ViewBag.CreditoId/@item.Imagen" style="width:120px; height:120px" />
+                        </a>
+                    </div>
+                }
+                
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+<script>
+    function EliminarImg(id) {
+        Vendix.Dialogo("Desea Eliminar la imagen?", "SiNo", function () {
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("EliminarImagen", "Credito")",
+                data: {
+                    pCreditoImagenId: id
+                },
+                success: function (ret) {
+                    if (ret) {
+                        window.location.reload();
+                    }
+                }
+            });
+        });
+    }
+</script>
+ }

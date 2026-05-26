@@ -1,0 +1,1 @@
+import{y as e}from"./index-DWJf7Qwy.js";import{t}from"./reporteCreditoAccess-t_puKVPG.js";function n(){let{session:n}=e();return t(n?.roles??[])}export{n as t};

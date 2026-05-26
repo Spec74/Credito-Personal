@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="dsStokAnulados" targetNamespace="http://tempuri.org/dsStokAnulados.xsd" xmlns:mstns="http://tempuri.org/dsStokAnulados.xsd" xmlns="http://tempuri.org/dsStokAnulados.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="dsStokAnulados" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="dsStokAnulados" msprop:Generator_UserDSName="dsStokAnulados">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="dsStockAnulados" msprop:Generator_TableClassName="dsStockAnuladosDataTable" msprop:Generator_TableVarName="tabledsStockAnulados" msprop:Generator_TablePropName="dsStockAnulados" msprop:Generator_RowDeletingName="dsStockAnuladosRowDeleting" msprop:Generator_RowChangingName="dsStockAnuladosRowChanging" msprop:Generator_RowEvHandlerName="dsStockAnuladosRowChangeEventHandler" msprop:Generator_RowDeletedName="dsStockAnuladosRowDeleted" msprop:Generator_UserTableName="dsStockAnulados" msprop:Generator_RowChangedName="dsStockAnuladosRowChanged" msprop:Generator_RowEvArgName="dsStockAnuladosRowChangeEvent" msprop:Generator_RowClassName="dsStockAnuladosRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="MovimientoId" msprop:Generator_ColumnVarNameInTable="columnMovimientoId" msprop:Generator_ColumnPropNameInRow="MovimientoId" msprop:Generator_ColumnPropNameInTable="MovimientoIdColumn" msprop:Generator_UserColumnName="MovimientoId" type="xs:int" minOccurs="0" />
+              <xs:element name="Movimiento" msprop:Generator_ColumnVarNameInTable="columnMovimiento" msprop:Generator_ColumnPropNameInRow="Movimiento" msprop:Generator_ColumnPropNameInTable="MovimientoColumn" msprop:Generator_UserColumnName="Movimiento" type="xs:string" minOccurs="0" />
+              <xs:element name="Observacion" msprop:Generator_ColumnVarNameInTable="columnObservacion" msprop:Generator_ColumnPropNameInRow="Observacion" msprop:Generator_ColumnPropNameInTable="ObservacionColumn" msprop:Generator_UserColumnName="Observacion" type="xs:string" minOccurs="0" />
+              <xs:element name="Fecha" msprop:Generator_ColumnVarNameInTable="columnFecha" msprop:Generator_ColumnPropNameInRow="Fecha" msprop:Generator_ColumnPropNameInTable="FechaColumn" msprop:Generator_UserColumnName="Fecha" type="xs:dateTime" minOccurs="0" />
+              <xs:element name="Cantidad" msprop:Generator_ColumnVarNameInTable="columnCantidad" msprop:Generator_ColumnPropNameInRow="Cantidad" msprop:Generator_ColumnPropNameInTable="CantidadColumn" msprop:Generator_UserColumnName="Cantidad" type="xs:int" minOccurs="0" />
+              <xs:element name="Detalle" msprop:Generator_ColumnVarNameInTable="columnDetalle" msprop:Generator_ColumnPropNameInRow="Detalle" msprop:Generator_ColumnPropNameInTable="DetalleColumn" msprop:Generator_UserColumnName="Detalle" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

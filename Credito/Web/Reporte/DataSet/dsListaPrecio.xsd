@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="dsListaPrecio" targetNamespace="http://tempuri.org/dsListaPrecio.xsd" xmlns:mstns="http://tempuri.org/dsListaPrecio.xsd" xmlns="http://tempuri.org/dsListaPrecio.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="dsListaPrecio" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="dsListaPrecio" msprop:Generator_UserDSName="dsListaPrecio">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="dsListaPrecio" msprop:Generator_TableClassName="dsListaPrecioDataTable" msprop:Generator_TableVarName="tabledsListaPrecio" msprop:Generator_TablePropName="_dsListaPrecio" msprop:Generator_RowDeletingName="dsListaPrecioRowDeleting" msprop:Generator_RowChangingName="dsListaPrecioRowChanging" msprop:Generator_RowEvHandlerName="dsListaPrecioRowChangeEventHandler" msprop:Generator_RowDeletedName="dsListaPrecioRowDeleted" msprop:Generator_UserTableName="dsListaPrecio" msprop:Generator_RowChangedName="dsListaPrecioRowChanged" msprop:Generator_RowEvArgName="dsListaPrecioRowChangeEvent" msprop:Generator_RowClassName="dsListaPrecioRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Articuloid" msprop:Generator_ColumnVarNameInTable="columnArticuloid" msprop:Generator_ColumnPropNameInRow="Articuloid" msprop:Generator_ColumnPropNameInTable="ArticuloIdColumn" msprop:Generator_UserColumnName="Articuloid" type="xs:int" minOccurs="0" />
+              <xs:element name="TipoArticulo" msprop:Generator_ColumnVarNameInTable="columnTipoArticulo" msprop:Generator_ColumnPropNameInRow="TipoArticulo" msprop:Generator_ColumnPropNameInTable="TipoArticuloColumn" msprop:Generator_UserColumnName="TipoArticulo" type="xs:string" minOccurs="0" />
+              <xs:element name="ArticuloDes" msprop:Generator_ColumnVarNameInTable="columnArticuloDes" msprop:Generator_ColumnPropNameInRow="ArticuloDes" msprop:Generator_ColumnPropNameInTable="ArticuloDesColumn" msprop:Generator_UserColumnName="ArticuloDes" type="xs:string" minOccurs="0" />
+              <xs:element name="Monto" msprop:Generator_ColumnVarNameInTable="columnMonto" msprop:Generator_ColumnPropNameInRow="Monto" msprop:Generator_ColumnPropNameInTable="MontoColumn" msprop:Generator_UserColumnName="Monto" type="xs:decimal" minOccurs="0" />
+              <xs:element name="Descuento" msprop:Generator_ColumnVarNameInTable="columnDescuento" msprop:Generator_ColumnPropNameInRow="Descuento" msprop:Generator_ColumnPropNameInTable="DescuentoColumn" msprop:Generator_UserColumnName="Descuento" type="xs:decimal" minOccurs="0" />
+              <xs:element name="PuntosCanje" msprop:Generator_ColumnVarNameInTable="columnPuntosCanje" msprop:Generator_ColumnPropNameInRow="PuntosCanje" msprop:Generator_ColumnPropNameInTable="PuntosCanjeColumn" msprop:Generator_UserColumnName="PuntosCanje" type="xs:decimal" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

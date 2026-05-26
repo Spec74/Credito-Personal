@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="dsReporteAval" targetNamespace="http://tempuri.org/dsReporteAval.xsd" xmlns:mstns="http://tempuri.org/dsReporteAval.xsd" xmlns="http://tempuri.org/dsReporteAval.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections />
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="dsReporteAval" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="dsReporteAval" msprop:Generator_UserDSName="dsReporteAval">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="dsReporteAval" msprop:Generator_TableClassName="dsReporteAvalDataTable" msprop:Generator_TableVarName="tabledsReporteAval" msprop:Generator_TablePropName="_dsReporteAval" msprop:Generator_RowDeletingName="dsReporteAvalRowDeleting" msprop:Generator_RowChangingName="dsReporteAvalRowChanging" msprop:Generator_RowEvHandlerName="dsReporteAvalRowChangeEventHandler" msprop:Generator_RowDeletedName="dsReporteAvalRowDeleted" msprop:Generator_UserTableName="dsReporteAval" msprop:Generator_RowChangedName="dsReporteAvalRowChanged" msprop:Generator_RowEvArgName="dsReporteAvalRowChangeEvent" msprop:Generator_RowClassName="dsReporteAvalRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="Grupo" msprop:Generator_ColumnVarNameInTable="columnGrupo" msprop:Generator_ColumnPropNameInRow="Grupo" msprop:Generator_ColumnPropNameInTable="GrupoColumn" msprop:Generator_UserColumnName="Grupo" type="xs:string" minOccurs="0" />
+              <xs:element name="CreditoId" msprop:Generator_ColumnVarNameInTable="columnCreditoId" msprop:Generator_ColumnPropNameInRow="CreditoId" msprop:Generator_ColumnPropNameInTable="CreditoIdColumn" msprop:Generator_UserColumnName="CreditoId" type="xs:int" minOccurs="0" />
+              <xs:element name="MontoCredito" msprop:Generator_ColumnVarNameInTable="columnMontoCredito" msprop:Generator_ColumnPropNameInRow="MontoCredito" msprop:Generator_ColumnPropNameInTable="MontoCreditoColumn" msprop:Generator_UserColumnName="MontoCredito" type="xs:decimal" minOccurs="0" />
+              <xs:element name="Estado" msprop:Generator_ColumnVarNameInTable="columnEstado" msprop:Generator_ColumnPropNameInRow="Estado" msprop:Generator_ColumnPropNameInTable="EstadoColumn" msprop:Generator_UserColumnName="Estado" type="xs:string" minOccurs="0" />
+              <xs:element name="Persona" msprop:Generator_ColumnVarNameInTable="columnPersona" msprop:Generator_ColumnPropNameInRow="Persona" msprop:Generator_ColumnPropNameInTable="PersonaColumn" msprop:Generator_UserColumnName="Persona" type="xs:string" minOccurs="0" />
+              <xs:element name="Dni" msprop:Generator_ColumnVarNameInTable="columnDni" msprop:Generator_ColumnPropNameInRow="Dni" msprop:Generator_ColumnPropNameInTable="DniColumn" msprop:Generator_UserColumnName="Dni" type="xs:string" minOccurs="0" />
+              <xs:element name="Celular" msprop:Generator_ColumnVarNameInTable="columnCelular" msprop:Generator_ColumnPropNameInRow="Celular" msprop:Generator_ColumnPropNameInTable="CelularColumn" msprop:Generator_UserColumnName="Celular" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

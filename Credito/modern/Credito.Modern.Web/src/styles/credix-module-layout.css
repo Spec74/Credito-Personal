@@ -1,0 +1,200 @@
+/**
+ * Layout responsive compartido por todos los módulos CredixPage / Crud / Informe.
+ */
+
+.credix-page {
+  min-width: 0;
+}
+
+.credix-page-head-text {
+  min-width: 0;
+  flex: 1 1 200px;
+}
+
+.credix-page-actions {
+  flex-shrink: 0;
+}
+
+.credix-page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.credix-filter-bar {
+  min-width: 0;
+  overflow: hidden;
+  padding: clamp(10px, 2vw, 16px);
+}
+
+.credix-filter-bar .credix-list-toolbar {
+  margin-bottom: 0;
+}
+
+.credix-panel {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.credix-panel-body {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+/* Banner informativo (paridad MVC, hints) */
+.credix-module-banner {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  border-radius: 8px;
+  border-left: 4px solid var(--credix-brand, #114885);
+  background: var(--credix-brand-light, #e8f2fc);
+  color: var(--credix-text, #1f2937);
+  word-break: break-word;
+}
+
+.credix-module-banner--spaced {
+  margin-bottom: 12px;
+}
+
+/* KPIs: forzar 3 columnas en desktop ancho si el módulo lo necesita */
+.credix-page--stats-3 ul.credix-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Informes: filtros y export */
+.credix-informe-page .credix-informe-filter-bar {
+  min-width: 0;
+}
+
+.credix-informe-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px 12px;
+  width: 100%;
+}
+
+.credix-informe-filter-row .ant-form-item {
+  margin-bottom: 0;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+
+.credix-informe-filter-row .ant-picker {
+  max-width: 100%;
+}
+
+.credix-informe-panel-actions {
+  flex-wrap: wrap;
+}
+
+.credix-informe-panel-search,
+.credix-informe-panel-search--wide {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Búsqueda prominente sobre tabla (informes) */
+.credix-cobranza-table-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px 12px;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  background: var(--credix-brand-light, #e8f2fc);
+  border: 1px solid rgba(17, 72, 133, 0.12);
+  border-radius: var(--credix-radius, 8px);
+}
+
+.credix-cobranza-table-search-wrap {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+
+.credix-cobranza-table-search {
+  width: 100%;
+  max-width: 100%;
+}
+
+.credix-cobranza-table-search .ant-input-affix-wrapper,
+.credix-cobranza-table-search.ant-input-affix-wrapper {
+  height: 44px;
+  max-height: 44px;
+}
+
+.credix-cobranza-table-search .ant-input {
+  height: 42px;
+  line-height: 42px;
+}
+
+.credix-cobranza-table-search-meta {
+  white-space: normal;
+  text-align: right;
+  font-size: 12px;
+}
+
+@media (max-width: 991px) {
+  .credix-page--stats-3 ul.credix-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .credix-page-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credix-page-actions {
+    width: 100%;
+  }
+
+  .credix-page-actions .ant-space {
+    width: 100%;
+  }
+
+  .credix-page-actions .ant-btn {
+    flex: 1 1 auto;
+  }
+
+  .credix-module-banner {
+    font-size: 12px;
+    padding: 8px 10px;
+  }
+
+  .credix-page--stats-3 ul.credix-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .credix-informe-filter-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credix-informe-filter-row .ant-form-item {
+    flex: none;
+    width: 100%;
+  }
+
+  .credix-informe-filter-row .ant-picker {
+    width: 100% !important;
+  }
+
+  .credix-informe-filter-row .ant-btn {
+    width: 100%;
+  }
+
+  .credix-cobranza-table-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .credix-cobranza-table-search-meta {
+    text-align: left;
+  }
+}

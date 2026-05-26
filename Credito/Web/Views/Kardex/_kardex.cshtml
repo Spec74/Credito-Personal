@@ -1,0 +1,99 @@
+﻿@model List<ITB.VENDIX.DA.usp_GenerarKardex_Result>
+
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2>Cooperativa de Ahorro y Crédito Mujeres Emprendedoras</h2>
+        </div>
+        <div class="content invoice">
+            <br>
+            <div class="details">
+                <div class="highlighted">
+                    <span>KARDEX : @ViewBag.Articulo</span> <strong>@ViewBag.Almacen</strong>
+                </div>
+                <div>
+                    <span>Al:</span> <strong>@ITB.VENDIX.BL.VendixGlobal.GetFecha().ToLongDateString()</strong>
+                    <input id="btnExportar" style="float: right" type="button" value="Exportar PDF" />
+                    
+                </div>
+            </div>
+
+            <table class="styled borders" >
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Concepto</th>
+                        <th>CantEnt</th>
+                        <th>PUEnt</th>
+                        <th>TotalEnt</th>
+                        <th>CantSalida</th>
+                        <th>PUSalida</th>
+                        <th>TotalSalida</th>
+                        <th>CantSaldo</th>
+                        <th>PUSaldo</th>
+                        <th>TotalSaldo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(var item in Model)
+                    {
+                        <tr >
+                            <td style="font-size: xx-small">@item.Fecha.Value.ToShortDateString()</td>
+                            <td style="font-size: xx-small">@item.Concepto</td>
+                            <td style="text-align: center">
+                                <a href="#" onclick="ObtenerSerie(@item.MovimientoDetId,false);" style="text-decoration: underline">@item.CantEnt</a>
+                            </td>
+                            <td style="text-align: right">@item.PUEnt</td>
+                            <td style="text-align: right">@item.TotalEnt</td>
+                            <td style="text-align: center">
+                                <a href="#" onclick="ObtenerSerie(@item.MovimientoDetId,false);" style="text-decoration: underline">@item.CantSal</a>
+                            </td>
+                            <td style="text-align: right">@item.PUSal</td>
+                            <td style="text-align: right">@item.TotalSal</td>
+                            <td style="text-align: center;">
+                                @if (item.CantSaldo>0)
+                                {
+                                    <a href="#" onclick="ObtenerSerie(@item.MovimientoDetId,true);" style="text-decoration: underline">@item.CantSaldo</a>
+                                }
+                                else
+                                {
+                                    @item.CantSaldo
+                                }
+                            </td>
+                            <td style="text-align: right;">@item.PUSaldo</td>
+                            <td style="text-align: right;">@item.TotalSaldo</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <br>
+            
+        </div>
+    </div>
+</div>
+<div id="rptContainer"></div>
+
+<script>
+    $(function () {
+        $("#btnExportar").click(function() {
+
+            var ruta = '@Url.Action("ReporteKardex", "Reporte")'
+                        + '?pArticuloid=' + $.data(document.body, 'Articuloid')
+                        + '&pAlmacenid=' + $.data(document.body, 'Almacenid');
+            window.open(ruta);
+           // $('#rptContainer').load(ruta);
+            return false;
+        });
+    });
+    function ObtenerSerie(modDetId,indstock) {
+        event.preventDefault();
+        $.ajax({
+            url: '@Url.Action("ObtenerSerieKardex", "Kardex")',
+            data: { pMovimientoDetalleId: modDetId,pIndStock: indstock},
+            success: function (ret) {
+                Vendix.Dialogo(ret);
+            }
+        });
+        return false;
+    }
+</script>

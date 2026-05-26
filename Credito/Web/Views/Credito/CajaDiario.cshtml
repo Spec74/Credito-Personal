@@ -1,0 +1,1768 @@
+﻿@model ITB.VENDIX.DA.CajaDiario
+
+
+@if (Model != null)
+{
+    <style>
+        .BordeSeleccion {
+            border-style: dashed;
+            border-width: 4px;
+        }
+    </style>
+    <ul class="stats not-on-phone">
+        <li class="saldos">
+            <strong>@Model.SaldoInicial</strong>
+            <span class="green">Saldo Inicial(S/.)</span>
+        </li>
+        <li class="saldos">
+            <strong>
+                <label id="lblEntradas">@String.Format("{0:0.00}", Model.Entradas)</label>
+            </strong>
+            <span class="green">Entradas(S/.)</span>
+        </li>
+        <li class="saldos">
+            <strong>
+                <label id="lblSalidas">@String.Format("{0:0.00}", Model.Salidas)</label>
+            </strong>
+            <span class="green">Salidas(S/.)</span>
+        </li>
+        <li class="saldos">
+            <strong>
+                <label id="lblSaldoFinal">@Model.SaldoFinal</label>
+            </strong>
+            <span class="red">Neto Caja(S/.)</span>
+        </li>
+        <li>
+            <strong>@(Model.IndCierre ? "CERRADO" : "ABIERTO")</strong>
+            <small>@Model.FechaIniOperacion</small>
+            <span style="cursor: pointer" id="lblMostrarSaldos">@Model.Caja.Denominacion</span>
+        </li>
+    </ul>
+    
+    <div class="grid_12">
+        <div class="alert note sticky no-margin">
+            <span class="icon"></span>
+            <strong><label id="lblResumenCuenta">@ViewBag.ResumenCuentaCajadiario</label></strong>
+        </div>
+        <br />
+        <div class="box tabbedBox">
+            <div class="header">
+                <h2>MOVIMIENTOS @Model.Caja.Denominacion</h2>
+                <ul>
+                    <li><a href="#t1-c1">COBRANZAS</a></li>
+                    <li><a href="#t1-cd">DESEMBOLSOS</a></li>
+                    <li><a href="#t1-c2">EGRESO-INGRESO</a></li>
+                    <li><a href="#t1-c3">ARQUEO</a></li>
+                </ul>
+            </div>
+            <br />
+            <div id="tabcaja" class="content tabbed">
+                <div id="t1-c1">
+                    <div class="grid_12">
+                        <p class="_50 small">
+                            <input id="txtCliente" type="search" placeholder="BUSCAR CLIENTE POR DNI Y NOMBRES" style="width: 95%" autofocus />
+                        </p>
+                        <p class="_50 small">
+                            <button id="btnCxcPendiente" class="inline"><span class="icon icon-repeat"></span>GAD Pendientes</button>
+                            <button id="btnCuotaPendiente" class="inline"><span class="icon icon-repeat"></span>Cuotas Pendientes</button>
+                            <button id="btnCompletarCoutaPendienteImpago" class="inline">Completar Impagos</button>
+
+                        </p>
+                        @*<div class="msjClienteEncontrado" style="display: none; margin: 0">
+                            <div class="alert success sticky ">
+                                <span class="icon"></span><strong>Encontrado!</strong>
+                                <label id="lblCliente"></label>
+                            </div>
+                        </div>*@
+                        <div class="spacer"></div>
+                    </div>
+
+                    <div id="divCxC" class="grid_12 box">
+                        <div class="header ">
+                            <h2>
+                                <img class="icon" src="~/img/icons/packs/fugue/16x16/receipt-invoice.png" />
+                                CUENTAS POR COBRAR [<label id="lblcxcCliente"></label>]
+                            </h2>
+                        </div>
+
+                        <table id="grdcxc"></table>
+                        <div id="grdpcxc"></div>
+
+                        <div id="actCxC" class="actions " style="display: none">
+                            <div class="right">
+                                <a id="btnPagoCxC" class="button">Pagar Cuenta</a>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="box grid_12 msjCreditoEncontrado">
+
+                        <div class="header">
+                            <h2>
+                                <img class="icon" src="~/img/icons/packs/fugue/16x16/receipt-invoice.png" />
+                                CREDITO  [ <label id="lblCreditoActual"></label> ] <label style="font-size:large" id="lblCreditoCliente"></label>
+                            </h2>
+                        </div>
+                        <div class="msjCreditoEncontrado" style='display: none; background: #f0f1f4'>
+                            <br />
+                            <div class="grid_4 center-elements" id="divbtncreditos"></div>
+
+                            <div class="grid_5 center-elements ">
+                                <span class="badge block dark">
+                                    PAGO LIBRE:
+                                    <input id="txtPagoLibre" type="text" style="font-size:small; text-align: right; width: 80px;  " />
+                                    <button id="btnPagoLibre" class="button red block"><span class="icon icon-list"></span>Pago Libre</button>
+                                </span>
+                            </div>
+                            <div class="grid_2">
+                                <div style="margin-top:15px">
+                                    @Html.DropDownList("cboTipoPago", (IEnumerable<SelectListItem>)ViewBag.cboTipoPago)
+                                </div>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                        <table id="grdBuscar"></table>
+                        <div id="grdpBuscar"></div>
+                        <div class="actions msjCreditoEncontrado" style="display: none">
+                            <span class="badge block dark" style="float: right">
+                                TOTAL: <span id="lblMontoPago">0.00</span> Recibido:
+                                <input id="txtImporteRecibido" type="text" style="font-size:small; text-align: right; width: 80px; " />
+                                VUELTO: <span id="lblvuelto">0.00</span>
+                                <button id="btnPagar" class="button red block"><span class="icon icon-ok"></span>Pagar Couta</button>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="box grid_12 msjCreditoEncontrado" style="display: none">
+                        <div class="actions" id="divCancelarCreditoShow">
+                            <button id="btnCancelarCreditoShow" class="button red block"><span class="icon icon-legal"></span>Cancelar Crédito</button>
+                        </div>
+                        <div class="CancelarCredito">
+                            <table id="grdCancelarCredito"></table>
+                            <div id="grdpCancelarCredito"></div>
+                        </div>
+                        <div class="actions CancelarCredito" style="display: none">
+                            <button id="btnCancelarCredito" class="button red block" style="float: right"><span class="icon icon-ok"></span>Cancelar Crédito</button>
+                        </div>
+                    </div>
+
+                </div>
+                <div id="t1-cd">
+                    <div class="grid_10">
+                        <p class="_75 small">
+                            <input id="txtClienteds" type="search" placeholder="BUSCAR CLIENTE POR DNI Y NOMBRES" style="width: 95%" />
+                        </p>
+                        <p class="_25 small">
+                            <button id="btnDesembolsoPendiente" class="inline"><span class="icon icon-repeat"></span>Pendientes</button>
+                        </p>
+                        @*<div class="msjClienteEncontradods" style="display:none" >
+                            <div class="alert success sticky " >
+                                <span class="icon"></span><label>Encontrado!</label>
+                                <label id="lblClienteds"></label>
+                            </div>
+                        </div>*@
+                        <div class="spacer"></div>
+                        <div id="divdesembolso" class="grid_12 box">
+                            <div class="header ">
+                                <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/receipt-invoice.png" />DESEMBOLSO</h2>
+                            </div>
+
+                            <table id="grdDesembolso"></table>
+                            <div id="grdpDesembolso"></div>
+
+                            <div id="actDesembolso" class="actions " style="display: none">
+                                <div class="right">
+                                    <button id="btnDesembolso" class="submit">Desembolsar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div id="t1-c2">
+                    <p class="_50 small">
+                        <label>Persona:</label>
+                        <input id="txtPersonaES" type="search" placeholder="BUSCAR PERSONA" />
+                    </p>
+                    @*<p class="_25 small">
+                        <label>Tipo:</label>
+                        <select id="cboEgresoIngreso">
+                            <option value="0">EGRESO</option>
+                            <option value="1">INGRESO</option>
+                        </select>
+                    </p>*@
+                    <p class="_25 small">
+                        <label>Operación:</label>
+                        @Html.DropDownList("cboTipoOperacion", (IEnumerable<SelectListItem>)ViewBag.cboTipoOperacion)
+                    </p>
+                    <p class="_25 small">
+                        <label>Tipo:</label>
+                        @Html.DropDownList("cboTipoPagoEI", (IEnumerable<SelectListItem>)ViewBag.cboTipoPagoEI)
+                    </p>
+
+
+                    <p class="_50 small">
+                        <label>Descripcion:</label>
+                        <input id="txtDescripcionSalida" type="text" />
+                    </p>
+                    <p class="_25 small">
+                        <label>Importe:</label>
+                        <input id="txtImporteSalida" type="text" style="text-align: center" />
+                    </p>
+                    <p class="_25 small" style="margin-top:20px">
+
+                        <a id="btnPagarSalida" class="button red center">Realizar Operación</a>
+                    </p>
+                </div>
+
+                <div id="t1-c3">
+                    <table id="grdEntradas"></table>
+                    <div id="grdpEntradas"></div>
+                    <br />
+                    <table id="grdSalidas"></table>
+                    <div id="grdpSalidas"></div>
+                    <br />
+                    <button id="btnPrevSaldoCaja" class="button block"><span class="icon icon-print"></span>Previzualizar Saldo Caja</button>
+                    <button id="btnCerrar" style="float: right" class="button red block"><span class="icon icon-play"></span>Cerrar Caja</button>
+                    @if (ViewBag.EsCajaCentral)
+                    {
+                        <button id="btnConciliar" style="float: right" class="button green block"><span class="icon icon-play"></span>Conciliar Pagos</button>
+                    }
+                    <button id="btnTransFerirSaldos" style="float: right" class="button green block"><span class="icon icon-play"></span>Transferir Saldos</button>
+                    <span class="badge block blue dark" style="font-size: large;float: right">TOTAL CAJA: S/. <span id="lblNetoArq">0.00</span></span>
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <a href="@Url.Action("ReporteCobroDiario", "Reporte")" class="button block" target="_blank"><span class="icon icon-print"></span>Cobros del Dia PDF</a>
+
+        <button id="btnAbrirSeleccionRuta" class="button block" style="background-color: #28a745; color: white;">
+            <span class="icon icon-map-marker"></span>Armar Ruta QR
+        </button>
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+        <div style="display: none;" id="dlgSeleccionRuta" title="Armar Ruta de Cobranza">
+
+            <div style="margin-bottom: 10px;">
+                <label style="font-weight: bold;">Filtrar Cartera: </label>
+                <select id="cboFiltroRuta" style="padding: 4px;">
+                    <option value="0">Cuotas de Hoy + Atrasados</option>
+                    <option value="1">Solo Atrasados (Morosos)</option>
+                </select>
+                <button id="btnFiltrarRuta" class="button small blue">Actualizar Lista</button>
+            </div>
+
+            <div class="alert note">Seleccione máximo 25 clientes para esta ruta.</div>
+            <table id="grdClientesRuta"></table>
+            <div id="grdpClientesRuta"></div>
+
+            <div class="actions" style="margin-top: 15px;">
+                <button id="btnProcesarRuta" class="button green block right"><span class="icon icon-qrcode"></span> Generar QR de Ruta</button>
+            </div>
+        </div>
+
+        <div id="dlgRutaQR" title="Ruta Optimizada Lista" style="display:none; text-align:center;">
+            <p style="margin-bottom: 10px;"><strong>Escanea este código con tu celular</strong></p>
+
+            <div id="codigoQR" style="display:flex; flex-direction: column; align-items: center; margin: 15px auto;"></div>
+
+            <p style="font-size: 11px; color: gray; margin-top: 15px;">Se abrirá WhatsApp con los enlaces ordenados.</p>
+        </div>
+
+        <button id="btnMovimientosCaja" class="inline"><span class="icon icon-repeat"></span>Movimientos</button>
+    </div>
+
+    <div style="display: none;" id="dlgTransferirBoveda" title="Transferencias">
+        <form class="full validate">
+            <div class="row">
+                <label>
+                    <strong>Transferencia:</strong>
+                </label>
+                <div>
+                    <table>
+                        <tr>
+                            <td>
+                                <input type="radio" name="rbTipoTransferencia" id="rbCaja" value="caja" checked="checked" /><label for="rbCaja"> CAJA</label>  &nbsp;&nbsp;
+                                <input type="radio" name="rbTipoTransferencia" id="rbBoveda" value="boveda" /><label for="rbBoveda">BOVEDA</label>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="row Caja">
+                <label for="cboCajas">
+                    <strong>Caja :</strong>
+                </label>
+                <div>
+                    @Html.DropDownList("cboCajas", (IEnumerable<SelectListItem>)ViewBag.cboCajas)
+                </div>
+            </div>
+            <div class="row">
+                <label for="txtMontoTransferencia">
+                    <strong>Monto:</strong>
+                </label>
+                <div>
+                    <strong><span id="lblMensaje" style="color:red"></span></strong><br />
+                    <span><strong>Monto total de Caja : S/.  <span id="lblMontoCaja" style="color:blue"></span></strong></span>
+                    <input type="number" id="txtMontoTransferencia" placeholder="0.00" />
+                </div>
+            </div>
+
+            <div class="row">
+                <label for="txtDescripcionTransferencia">
+                    <strong>Descripción :</strong>
+                </label>
+                <div>
+                    <input type="text" id="txtDescripcionTransferencia" placeholder="Descripcion de transferencia" />
+                </div>
+            </div>
+
+        </form>
+        <div class="actions">
+            <div class="left">
+                <button class="grey cancel">Salir</button>
+            </div>
+            <div class="right">
+                <input id="btnEnviar" type="button" value="Guardar" />
+            </div>
+        </div>
+    </div>
+
+    <div style="display: none;" id="dlgCxcPendiente" title="Cuotas Pendientes">
+        <div class="actions">
+            <table id="grdCxcPendiente"></table>
+            <div id="grdpCxcPendiente"></div>
+        </div>
+        <div class="actions">
+            <div class="left">
+                <button class="grey cancel">Salir</button>
+            </div>
+        </div>
+    </div>
+    <div style="display: none;" id="dlgConfirmarClave" title="Autorización">
+        <div class="actions">
+            <form class="full validate">
+                <div class="row">
+                    <div>
+                        <input type="password" id="txtConfirmarClave" placeholder="Clave" />
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="actions">
+            <div class="left">
+                <button class="grey cancel">Salir</button>
+            </div>
+            <div class="right">
+                <input id="btnConfirmarClave" type="button" value="Confirmar" />
+            </div>
+        </div>
+    </div>
+    <div style="display: none;" id="dlgFechaHoraMovimiento" title="Fecha Hora de Transferencia">
+        <div class="actions">
+            <form class="full validate">
+                <div class="row">
+                    <label for="f3_datepicker">
+                        <strong>Fecha y Hora</strong>
+                    </label>
+                    <div>
+                        <input type="datetime" name="txtFechaHoraTransaccion" id="txtFechaHoraTransaccion" />
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="actions">
+            <div class="left">
+                <button class="grey cancel">Salir</button>
+            </div>
+            <div class="right">
+                <input id="btnFechaHoraMovimiento" type="button" value="Confirmar" />
+            </div>
+        </div>
+    </div>
+    <div style="display: none;" id="dlgMovimientosCaja" title="Movimientos Caja">
+        <form class="full validate">
+            <p class="_75 small">
+                <input data-error-type="inline" type="text" id="txtBuscarClienteMovCaja" placeholder="Buscar Cliente" />
+            </p>
+            <p class="_25 small">
+                <button id="btnBuscarMovimientoCaja" class="red">Buscar</button>
+            </p>
+        </form>
+        <div class="actions">
+            <table id="grdMovimientosCaja"></table>
+            <div id="grdpMovimientosCaja"></div>
+        </div>
+        <div class="actions">
+            <div class="left">
+                <button class="grey cancel">Salir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(function () {
+            $.data(document.body, 'PersonaId', 0);
+            $.data(document.body, 'PersonaESid', 0);
+            $("#txtImporteSalida").numeric(2);
+            $("#txtFechaHoraTransaccion").mask("99/99/9999 99:99")
+
+            $("#rbBoveda,#rbCaja").change(function () {
+                $(".Caja").hide();
+                $(".Boveda").hide();
+
+                if ($("#rbCaja").prop('checked')) {
+                    $(".Caja").show();
+                }
+                else {
+                    $(".Boveda").show();
+                }
+            });
+
+            $("#txtPagoLibre")
+				.numeric(2)
+				.keypress(function (event) {
+				    if (event.which == 13) {
+				        $("#btnPagoLibre").trigger("click");
+				    }
+				    $("#btnPagoLibre").prop('disabled', false);
+				});
+
+            $('#lblMostrarSaldos').click(function () {
+                $('.saldos').toggle();
+            });
+
+
+            $("#btnPrevSaldoCaja").click(function () {
+                event.preventDefault();
+                var ruta = '@Url.Action("ReporteSaldoCajaActual", "Reporte")';
+                window.open(ruta);
+                return false;
+            });
+
+            $('a[href="#t1-c3"]').click(function () {
+                $("#grdEntradas,#grdSalidas").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+                $("#grdEntradas,#grdSalidas").setGridWidth($('#tabcaja').width() - 3, true);
+                $("#lblNetoArq").text($("#lblSaldoFinal").text());
+            });
+            $("#dlgCxcPendiente").dialog({
+                autoOpen: false,
+                modal: true,
+                width: 650,
+                open: function () {
+                    $(this).parent().css('overflow', 'visible');
+                    $$.utils.forms.resize();
+                }
+            }).find('button.cancel').click(function () {
+                var $el = $(this).parents('.ui-dialog-content');
+                //$el.find('form')[0].reset();
+                $el.dialog('close');
+            });
+            $("#btnCxcPendiente").click(function () {
+                event.preventDefault();
+                $.data(document.body, 'PersonaId', 0);
+                CargarGrillaCxc();
+            });
+
+            $("#dlgMovimientosCaja").dialog({
+                autoOpen: false,
+                modal: true,
+                width: 650,
+                open: function () {
+                    $(this).parent().css('overflow', 'visible');
+                    $$.utils.forms.resize();
+                }
+            }).find('button.cancel').click(function () {
+                var $el = $(this).parents('.ui-dialog-content');
+                //$el.find('form')[0].reset();
+                $el.dialog('close');
+            });
+
+            $("#btnMovimientosCaja").click(function () {
+                event.preventDefault();
+                $('#txtBuscarClienteMovCaja').val("");
+                $.data(document.body, 'PersonaIdMovCaja', 0);
+
+                if ($("#gbox_grdMovimientosCaja").length > 0)
+                    $("#grdMovimientosCaja").trigger("reloadGrid");
+                else {
+                    $("#grdMovimientosCaja").jqGrid({
+                        url: "@Url.Action("ListarMovimientoCajaGrd", "CajaDiario")",
+                        datatype: "json",
+                        postData: {
+                            filters: function () {
+                                return $.toJSON([{ Key: "PersonaId", Value: $.data(document.body, 'PersonaIdMovCaja') }]);
+                            }
+                        },
+                        colNames: ['Id', 'Imprimir', 'Op', 'FechaReg', 'Descripcion', 'Importe', 'Estado'],
+                        colModel: [
+                            { name: "MovimientoCajaId", index: "MovimientoCajaId", align: "center", width: 40, sortable: false },
+                            { name: 'Imprimir', index: 'Imprimir', align: 'center', width: 40, formatter: MovCajaPrintFormatter },
+                            { name: "Operacion", index: "Operacion", width: 40, align: "center", sortable: false },
+                            { name: "FechaReg", index: "FechaReg", width: 120, sortable: false, align: "center" },
+                            { name: "Descripcion", index: "Descripcion", width: 250, sortable: false },
+                            { name: "ImportePago", index: "ImportePago", width: 80, align: "center", sortable: false },
+                            { name: "Estado", index: "Estado", align: "center", width: 70, sortable: false }
+                        ],
+                        caption: "Movimientos de Caja",
+                        pager: $('#grdpMovimientosCaja'),
+                        rowNum: 20,
+                        rowList: [20, 40, 60],
+                        sortname: 'MovimientoCajaId',
+                        sortorder: "desc",
+                        viewrecords: true,
+                        rownumbers: true,
+                        width: '610',
+                        height: '300'
+                    });
+                }
+                $("#dlgMovimientosCaja").dialog('open');
+                return false;
+            });
+
+            $("#txtBuscarClienteMovCaja").autocomplete({
+                source: "@Url.Action("BuscarCliente", "Cliente")",
+                minLength: 2,
+                select: function (event, ui) {
+                    event.preventDefault();
+                    $.data(document.body, 'PersonaIdMovCaja', ui.item.id);
+                    $("#txtBuscarClienteMovCaja").val(ui.item.value);
+                }
+            });
+            $("#btnBuscarMovimientoCaja").click(function () {
+                event.preventDefault();
+                $("#grdMovimientosCaja").trigger("reloadGrid"); return false;
+            });
+
+            $("#btnCuotaPendiente").click(function () {
+                event.preventDefault();
+
+                if ($("#gbox_grdCxcPendiente").length > 0)
+                    $("#grdCxcPendiente").trigger("reloadGrid");
+                else {
+                    $("#grdCxcPendiente").jqGrid({
+                        url: "@Url.Action("ListarCreditoPendienteGrd", "Credito")",
+                        datatype: "json",
+                        postData: {
+                            filters: function () {
+                                //return $.toJSON([{ Key: "CreditoId", Value: $.data(document.body, 'CreditoId') }]);
+                            }
+                        },
+                        colNames: ['CreditoId', 'Codigo', 'Cliente', 'Credito', 'PersonaId'],
+                        colModel: [
+                            { name: "CreditoId", index: "CreditoId", sortable: false, hidden: true },
+                            { name: "Codigo", index: "Codigo", width: 120, sortable: false },
+                            { name: "Cliente", index: "Cliente", width: 280 },
+                            { name: "MontoCredito", index: "MontoCredito", align: "center", sortable: false },
+                            { name: "PersonaId", index: "PersonaId", hidden: true }
+                        ],
+                        caption: "Creditos de Cuotas Pendientes",
+                        pager: $('#grdpCxcPendiente'),
+                        rowNum: 100,
+                        rowList: [50, 100, 150],
+                        sortname: 'Cliente',
+                        sortorder: "asc",
+                        viewrecords: true,
+                        rownumbers: true,
+                        width: '610',
+                        height: '500',
+                        ondblClickRow: function () {
+                            var id = jQuery("#grdCxcPendiente").jqGrid('getGridParam', 'selrow');
+                            if (id) {
+                                var ret = $("#grdCxcPendiente").jqGrid('getRowData', id);
+                                $("#dlgCxcPendiente").dialog('close');
+                                CargarCreditosPendientes(ret.PersonaId, ret.Cliente + ' [ ' + ret.Codigo + ' ]');
+                            }
+                        }
+                    });
+                }
+                $("#dlgCxcPendiente").dialog('open');
+                return false;
+            });
+
+            $('#btnCompletarCoutaPendienteImpago').click(function () {
+                event.preventDefault();
+                Vendix.Dialogo("Desea Completar las cuotas Impagos", "SiNo", function () {
+                    $.ajax({
+                        url: "@Url.Action("CompletarImpagos", "Credito")",
+                        data: {},
+                        success: function (retorno) {
+                            if (retorno) {
+                                Vendix.Notificar();
+                            } else
+                                Vendix.Mensaje("ERROR: Consulte con sistemas");
+                        }
+                    });
+                });
+            });
+
+            $('#btnPagoLibre').click(function () {
+                //validar total pago cuota
+                var totalpago = $.data(document.body, 'TotalPagoCuota');
+                if (parseFloat($("#txtPagoLibre").val()) > parseFloat(totalpago)) {
+                    Vendix.Dialogo("El Importe del Pago Libre no debe ser mayor a " + totalpago);
+                    return false;
+                }
+                $("#btnPagoLibre").prop('disabled', true);
+                $.ajax({
+                    url: "@Url.Action("TieneCxcPendiente", "Credito")",
+                    data: {
+                        pCreditoId: $.data(document.body, "CreditoIdSelect")
+                    },
+                    success: function (tienepagospen) {
+                        if (tienepagospen == false) {
+                            if (parseFloat($("#cboTipoPago").val()) > 1) {
+                                var $el = $("#dlgFechaHoraMovimiento");
+                                $el.find('form')[0].reset();
+
+                                //const zeroPad = (val) => val.toString().padStart(2, "0");
+                                //let odate = new Date();
+
+                                //let year = odate.getFullYear();
+                                //let month = zeroPad(odate.getMonth()+1);
+                                //let day = zeroPad(odate.getDate());
+                                //let hour = zeroPad(odate.getHours());
+                                //let mins = zeroPad(odate.getMinutes());
+
+                                @{
+                                    var tiempo = ITB.VENDIX.BL.VendixGlobal.GetFecha().ToString("dd/MM/yyyy HH:mm");
+                                }
+
+                                $('#dlgFechaHoraMovimiento').dialog('open');
+                                //$("#txtFechaHoraTransaccion").val(day + '/' + month + '/' + year + ' ' + hour + ':' + mins);
+                                $("#txtFechaHoraTransaccion").val('@tiempo');
+                            } else {
+                                RealizarPagoLibre();
+                            }
+
+                        } else {
+                            $("#btnPagoLibre").prop('disabled', false);
+                            Vendix.Dialogo("Tiene Cuentas por cobrar pendientes");
+                        }
+
+                    }
+                });
+            });
+
+            function RealizarPagoLibre() {
+                Vendix.Dialogo("Desea realizar el pago Libre de " + parseFloat($("#txtPagoLibre").val()).toFixed(2), "SiNo", function () {
+                    $.ajax({
+                        url: "@Url.Action("PagarCuotasImporteLibre", "Credito")",
+                        data: {
+                            pCreditoId: $.data(document.body, "CreditoIdSelect"),
+                            pImporteLibre: $("#txtPagoLibre").val(),
+                            pTipoPagoId: $("#cboTipoPago").val(),
+                            pFechaHoraTrans: $("#txtFechaHoraTransaccion").val()
+                        },
+                        success: function (retorno) {
+                            if (retorno != null) {
+                                Vendix.Notificar();
+                                LimpiarTabPagoCuota();
+                                $('#dlgFechaHoraMovimiento').dialog('close');
+                                $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+
+                                //ImprimirMovCaja(retorno);
+                            } else
+                                Vendix.Mensaje("ERROR: Consulte con sistemas");
+                            $("#btnPagoLibre").prop('disabled', false);
+                        }
+                    });
+                });
+
+            }
+
+            $('#btnCancelarCreditoShow').click(function () {
+                $("#divCancelarCreditoShow").hide();
+                $(".CancelarCredito").show();
+
+                if ($("#gbox_grdCancelarCredito").length > 0)
+                    $("#grdCancelarCredito").trigger("reloadGrid");
+                else {
+                    $("#grdCancelarCredito").jqGrid({
+                        url: "@Url.Action("ListarCuotasPendientesJGrid", "Credito")",
+                        datatype: "json",
+                        postData: {
+                            filters: function () {
+                                return $.toJSON([{ Key: "indCancelacion", Value: true }, { Key: "CreditoId", Value: $.data(document.body, "CreditoIdSelect") }]);
+                            }
+                        },
+                        colNames: ['PlanPagoId', 'GLOSA', 'VENCIMIENTO', 'AMORT.', 'INTERES', 'GA', 'CUOTA', 'ATRAZO', 'MORA', '% MORA', 'PAGO LIBRE', 'SALDO'],
+                        colModel:
+							[
+								{ name: 'PlanPagoId', index: 'PlanPagoId', hidden: true },
+								{ name: 'Glosa', index: 'Denominacion', width: 300 },
+								{ name: 'FechaVencimiento', index: 'FechaVencimiento', align: 'center' },
+								{ name: 'Amortizacion', index: 'Amortizacion', align: 'center' },
+								{ name: 'Interes', index: 'Interes', align: 'center' },
+								{ name: 'GastosAdm', index: 'GastosAdm', align: 'center' },
+								{ name: 'Cuota', index: 'Cuota', align: 'center' },
+								{ name: 'DiasAtrazo', index: 'DiasAtrazo', align: 'center' },
+								{ name: 'ImporteMora', index: 'ImporteMora', align: 'center' },
+								{ name: 'Cargo', index: 'Cargo', align: 'center' },
+								{ name: 'PagoLibre', index: 'PagoLibre', align: 'center' },
+								{ name: 'PagoCuota', index: 'PagoCuota', align: 'center' }
+							],
+                        caption: "Cuotas Pendientes por cancelación de Crédito",
+                        pager: jQuery('#grdpCancelarCredito'),
+                        rowNum: 100,
+                        rowList: [100, 125, 150],
+                        sortorder: "asc",
+                        gridview: true,
+                        viewrecords: true,
+                        rownumbers: true,
+                        autowidth: true,
+                        width: 'auto',
+                        height: '117px',
+                        footerrow: true,
+                        loadComplete: function () {
+                            let totalcuotas = $(this).jqGrid('getCol', 'PlanPagoId', false, 'count');
+                            let totalPagoCuota = $(this).jqGrid('getCol', 'PagoCuota', false, 'sum');
+                            let totalAmortizacion = $(this).jqGrid('getCol', 'Amortizacion', false, 'sum');
+                            let totalCuota = $(this).jqGrid('getCol', 'Cuota', false, 'sum');
+                            let totalMora = $(this).jqGrid('getCol', 'ImporteMora', false, 'sum');
+                            let totalInteres = $(this).jqGrid('getCol', 'Interes', false, 'sum');
+                            $(this).jqGrid("footerData", "set", {
+                                Glosa: "Cuotas Pendientes: " + (totalcuotas - 1),
+                                FechaVencimiento: "Cancelación:",
+                                Amortizacion: parseFloat(totalAmortizacion).toFixed(2),
+                                Interes: parseFloat(totalInteres).toFixed(2),
+                                Cuota: parseFloat(totalCuota).toFixed(2),
+                                ImporteMora: parseFloat(totalMora).toFixed(2),
+                                PagoCuota: parseFloat(totalPagoCuota).toFixed(2)
+                            });
+
+
+                        }
+                    });
+                }
+            });
+            $('#btnCancelarCredito').click(function () {
+                $.ajax({
+                    url: "@Url.Action("TieneCxcPendiente", "Credito")",
+                    data: {
+                        pCreditoId: $.data(document.body, "CreditoIdSelect")
+                    },
+                    success: function (tienepagospen) {
+                        if (tienepagospen == false) {
+                            Vendix.Dialogo("Desea realizar la Cancelacion del Crédito ", "SiNo", function () {
+                                $.ajax({
+                                    url: "@Url.Action("PagarCuotasCancelacion", "Credito")",
+                                    data: {
+                                        pCreditoId: $.data(document.body, "CreditoIdSelect")
+                                    },
+                                    success: function (retorno) {
+                                        if (retorno != null) {
+                                            Vendix.Notificar();
+                                            LimpiarTabPagoCuota();
+                                            ImprimirMovCaja(retorno);
+                                        } else {
+                                            Vendix.Mensaje("ERROR: Consulte con sistemas");
+                                        }
+                                    }
+                                });
+                            });
+                        } else
+                            Vendix.Dialogo("Tiene Cuentas por cobrar pendientes");
+                    }
+                });
+            });
+
+            $("#grdEntradas").jqGrid({
+                url: "@Url.Action("ListarMovimientosCajaJGrid", "Credito")",
+                datatype: "json",
+                postData: {
+                    filters: function () {
+                        return $.toJSON([{ Key: "Tipo", Value: "E" }]);
+                    }
+                },
+                colNames: ['Nro.', 'Imprimir', 'CajaDiarioId', 'Fecha Registro', 'Operación', 'Persona', 'Tipo Operación', 'Descripcion', 'Importe', 'Estado', 'Anular'],
+                colModel:
+					[
+						{ name: 'MovimientoCajaId', index: 'MovimientoCajaId', align: 'center', width: 40 },
+						{ name: 'Imprimir', index: 'Imprimir', align: 'center', width: 40, formatter: MovCajaPrintFormatter },
+						{ name: 'CajaDiarioId', index: 'CajaDiarioId', hidden: true },
+						{ name: 'FechaReg', index: 'FechaReg', align: 'center', width: 125 },
+						{ name: 'Operacion', index: 'Operacion', align: 'center', width: 70 },
+						{ name: 'Persona', index: 'Persona', width: 220 },
+						{ name: 'TipoOperacion', index: 'TipoOperacion', align: 'center', width: 100 },
+						{ name: 'Descripcion', index: 'Descripcion', width: 260 },
+						{ name: 'ImportePago', index: 'ImportePago', align: 'right', width: 60 },
+						{ name: 'Estado', index: 'Estado', align: 'center', width: 80 },
+						{ name: 'Anular', index: 'Anular', align: 'center', hidden: true, width: 40, formatter: anularEntradaFormatter }
+					],
+                caption: "ENTRADAS",
+                pager: $('#grdpEntradas'),
+                rowNum: 10,
+                rowList: [5, 10, 20],
+                sortname: 'MovimientoCajaId',
+                sortorder: "desc",
+                viewrecords: true,
+                rownumbers: true,
+                autowidth: true,
+                width: '100%',
+                height: '234px',
+                ondblClickRow: function () {
+                    var id = jQuery("#grdEntradas").jqGrid('getGridParam', 'selrow');
+                    if (id) {
+                        var ret = $("#grdEntradas").jqGrid('getRowData', id);
+                        $.ajax({
+                            url: "@Url.Action("MostrarDetalleMovCaja","Saldos")",
+                            data: { pMovimientoCajaId: ret.MovimientoCajaId },
+                            success: function (rpt) {
+                                if (rpt.length > 0)
+                                    Vendix.Dialogo(rpt);
+                            }
+                        });
+                    }
+                }
+            }).jqGrid('bindKeys', { "onEnter": function (rowid) { /*mostrardetalle();*/ } });
+
+            jQuery("#grdSalidas").jqGrid({
+                url: "@Url.Action("ListarMovimientosCajaJGrid", "Credito")",
+                datatype: "json",
+                postData: {
+                    filters: function () {
+                        return $.toJSON([{ Key: "Tipo", Value: "S" }]);
+                    }
+                },
+                colNames: ['Nro.', 'Imprimir', 'CajaDiarioId', 'Fecha Registro', 'Operación', 'Persona', 'Tipo Operación', 'Descripcion', 'Importe', 'Estado', 'Anular'],
+                colModel:
+					[
+						{ name: 'MovimientoCajaId', index: 'MovimientoCajaId', align: 'center', width: 40 },
+						{ name: 'Imprimir', index: 'Imprimir', align: 'center', width: 40, formatter: MovCajaPrintFormatter },
+						{ name: 'CajaDiarioId', index: 'CajaDiarioId', hidden: true },
+						{ name: 'FechaReg', index: 'FechaReg', align: 'center', width: 125 },
+						{ name: 'Operacion', index: 'Operacion', align: 'center', width: 70 },
+						{ name: 'Persona', index: 'Persona', width: 220 },
+						{ name: 'TipoOperacion', index: 'TipoOperacion', align: 'center', width: 100 },
+						{ name: 'Descripcion', index: 'Descripcion', width: 260 },
+						{ name: 'ImportePago', index: 'ImportePago', align: 'right', width: 60 },
+						{ name: 'Estado', index: 'Estado', align: 'center', width: 80 },
+						{ name: 'Anular', index: 'Anular', align: 'center', hidden: true, width: 40, formatter: anularSalidaFormatter }
+					],
+                caption: "SALIDAS",
+                pager: jQuery('#grdpSalidas'),
+                rowNum: 10,
+                rowList: [5, 10, 15],
+                sortname: 'MovimientoCajaId',
+                sortorder: "desc",
+                viewrecords: true,
+                rownumbers: true,
+                autowidth: true,
+                width: '100%',
+                height: '234px'
+            }).jqGrid('bindKeys', { "onEnter": function (rowid) { /*mostrardetalle();*/ } });
+
+            $("#btnDesembolsoPendiente").click(function () {
+                $.data(document.body, 'PersonaDesembolsoId', 0);
+                CargarGrillaDesembolso();
+            });
+
+            $("#btnPagoCxC").click(function () {
+                Vendix.Dialogo("Desea realizar la Cobranza", "SiNo", function () {
+                    var id = jQuery("#grdcxc").jqGrid('getGridParam', 'selrow');
+                    if (id) {
+                        var ret = $("#grdcxc").jqGrid('getRowData', id);
+
+                        $.ajax({
+                            url: "@Url.Action("RealizarPagarCuentaxCobrar", "Credito")",
+                            data: {
+                                pOrdenVentaId: ret.OrdenVentaId, pCuentaxCobrarId: ret.CuentaxCobrarId
+                            },
+                            success: function (retorno) {
+                                if (retorno != null) {
+                                    Vendix.Notificar();
+                                    LimpiarTabPagoCuota();
+                                    $("#grdcxc").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+                                    $("#actCxC").hide('fast');
+                                    //ImprimirMovCaja(retorno);
+                                } else {
+                                    Vendix.Mensaje("ERROR: Consulte con sistemas");
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+
+            $("#btnPagarSalida").click(function () {
+
+                if ($.data(document.body, 'PersonaESid') == 0) {
+                    Vendix.Dialogo("Seleccione una persona", "Aceptar");
+                    return;
+                }
+                if ($("#txtDescripcionSalida").val().length == 0) {
+                    Vendix.Dialogo("Ingrese una descripción", "Aceptar");
+                    return;
+                }
+                var importe = parseFloat($("#txtImporteSalida").val());
+                if (isNaN(importe) || importe <= 0) {
+                    Vendix.Dialogo("Ingrese un importe mayor a cero", "Aceptar");
+                    return;
+                }
+
+                $.ajax({
+                    type: 'GET',
+                    url: "@Url.Action("EsIngresoTipoOperacion", "CajaDiario")",
+                    data: { pTipoOperacionId: $("#cboTipoOperacion").val() },
+                    success: function (esIngreso) {
+                        if (esIngreso) {
+                            RealizarOperacionIngresoEgreso();
+                        } else {
+                            var $el = $("#dlgConfirmarClave");
+                            $el.find('form')[0].reset();
+                            $('#dlgConfirmarClave').dialog('open');
+                            return false;
+                        }
+                    }
+                });
+
+            });
+
+            $("#btnDesembolso").click(function () {
+                $.ajax({
+                    url: "@Url.Action("ValidarDesembolso", "Credito")",
+                    data: { pCreditoId: $.data(document.body, 'CreditoDesembolsoId') },
+                    success: function (ret) {
+                        if (ret.error) {
+                            Vendix.Dialogo(ret.mensaje, "Aceptar");
+                        }
+                        else {
+                            Vendix.Dialogo("CONFIRMAR para realizar DESEMBOLSO.", "SiNo", function () {
+
+                                $("#btnDesembolso").prop('disabled', true);
+
+                                $.ajax({
+                                    url: "@Url.Action("RealizarDesembolso", "Credito")",
+                                    data: { pCreditoId: $.data(document.body, 'CreditoDesembolsoId') },
+                                    success: function (movcajaid) {
+                                        if (movcajaid.length <= 8) {
+                                            $("#btnDesembolso").prop('disabled', false);
+                                            Vendix.Notificar();
+                                            $("#txtClienteds").prop('value', '');
+                                            //ImprimirMovCaja(movcajaid);
+                                            MostrarSaldoCajaDiario();
+                                            $("#grdDesembolso").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+                                            $("#actDesembolso").hide('fast');
+
+                                            //$(".msjClienteEncontradods").hide();
+                                            //$("#divdesembolso").hide();
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    }
+                });
+
+            });
+
+            $("#txtCliente").autocomplete({
+                source: "@Url.Action("BuscarCliente", "Cliente")",
+                minLength: 2,
+                select: function (event, ui) {
+                    event.preventDefault();
+                    $.data(document.body, 'PersonaId', ui.item.id);
+                    //alert(ui.item.value);
+                    //$(".msjClienteEncontrado").show('slow');
+
+                    CargarGrillaCxc(ui.item.value);
+                    CargarCreditosPendientes(ui.item.id, ui.item.value);
+                }
+            });
+            function CargarCreditosPendientes(personaid, cliente) {
+                $.ajax({
+                    url: '@Url.Action("ListarCreditosPendientesCombo","Credito")' + '?pPersonaId=' + personaid,
+                    data: {},
+                    success: function (result) {
+                        if (result != null) {
+                            var html = '';
+                            $.each(result, function () {
+                                html += '<div class="full-stats" onclick="AgregarBorde(this);"><a href="javascript:CargarGrillaCuotas(' + this.Id + ');" class="stat simple tooltip" data-gravity="s" original-title="' + this.Valor + '"><div class="value">Crédito ' + this.Id + '</br> S/. '
+                                    + this.MontoCredito + '</br><button onclick="javascript:MostrarRptMovimientoCredito(' + this.Id + ');return false;" style="font-size:70%;padding:3px">Movimientos</button></div></a></div>';
+                            });
+                            $("#divbtncreditos").html(html);
+
+                            //$("#lblCliente").text($("#txtCliente").val());
+                            $("#txtCliente").val("");
+                            $("#lblCreditoCliente").text(cliente);
+                            if (html == '') {
+                                $(".msjCreditoEncontrado").hide();
+                                return;
+                            }
+
+                            if (result.length > 0) {
+                                CargarGrillaCuotas(result[0].Id);
+                                $(".full-stats:eq(0)").addClass("BordeSeleccion");
+                            }
+                            $(".msjCreditoEncontrado,#divCancelarCreditoShow").show('slow');
+                            $(".CancelarCredito").hide();
+
+                            $('.tooltip').each(function () {
+                                var $tooltip = $(this),
+                                    grav = $tooltip.data('gravity') || $.fn.tipsy.autoNS,
+                                    anim = $tooltip.data('anim') || true;
+                                $tooltip.tipsy({
+                                    gravity: grav,
+                                    fade: anim
+                                });
+                            });
+                        }
+                    }
+                });
+            }
+
+
+
+            $("#txtPersonaES").autocomplete({
+                source: "@Url.Action("BuscarPersona", "Cliente")",
+                minLength: 2,
+                select: function (event, ui) {
+                    event.preventDefault();
+                    $.data(document.body, 'PersonaESid', ui.item.id);
+                    $("#txtPersonaES").val(ui.item.value);
+                    $("#txtDescripcionSalida").focus();
+                }
+            });
+            $("#txtClienteds").autocomplete({
+                source: "@Url.Action("BuscarCliente", "Cliente")",
+                minLength: 2,
+                select: function (event, ui) {
+                    event.preventDefault();
+                    $.data(document.body, 'PersonaDesembolsoId', ui.item.id);
+                    //$(".msjClienteEncontradods").show('slow');
+                    $("#actDesembolso").hide();
+                    //$("#lblClienteds").text(ui.item.value);
+                    $("#txtClienteds").val("");
+                    CargarGrillaDesembolso();
+                }
+            });
+
+            $("#txtImporteRecibido")
+				.numeric(2)
+				.keyup(function (event) {
+				    if (event.which == 13) {
+				        event.preventDefault();
+				    }
+
+				    var recibido = parseFloat($(this).val());
+				    var vuelto = 0;
+				    if (!isNaN(recibido)) {
+				        vuelto = recibido - parseFloat($("#lblMontoPago").text());
+				        if (vuelto < 0) {
+				            vuelto = 0;
+				        }
+				    }
+				    $("#lblvuelto").text(parseFloat(vuelto).toFixed(2));
+				})
+				.keypress(function (event) {
+				    if (event.which == 13) {
+				        $("#btnPagar").trigger("click");
+				    }
+				});
+
+
+            $("#btnPagar").click(function () {
+
+                var s = $("#grdBuscar").jqGrid('getGridParam', 'selarrrow');
+                if (s.length == 0) {
+                    Vendix.Mensaje('Error: Se requiere seleccionar cuotas');
+                    return;
+                }
+
+                var recibido = $('#txtImporteRecibido');
+                if (recibido.val().length == 0) {
+                    Vendix.Mensaje('Error: Ingrese monto recibido');
+                    recibido.focus();
+                    return;
+                }
+                if (parseFloat(recibido.val()) < parseFloat($('#lblMontoPago').text())) {
+                    Vendix.Mensaje('Error: El importe recibido debe ser mayor o igual al total de pago');
+                    recibido.val('');
+                    return;
+                }
+
+                $.ajax({
+                    url: "@Url.Action("TieneCxcPendiente", "Credito")",
+                    data: {
+                        pCreditoId: $.data(document.body, "CreditoIdSelect")
+                    },
+                    success: function (tienepagospen) {
+                        if (tienepagospen == false) {
+                            Vendix.Dialogo("Desea Cobrar las cuotas seleccionadas?", "SiNo", function () {
+                                $.ajax({
+                                    url: "@Url.Action("PagarCuotas", "Credito")",
+                                    data: {
+                                        pCreditoId: $.data(document.body, "CreditoIdSelect"),
+                                        pPlanPago: $.data(document.body, 'PlanPagoId'),
+                                        pImporteRecibido: $('#txtImporteRecibido').val()
+                                    },
+                                    success: function (ret) {
+                                        if (ret != null) {
+                                            Vendix.Notificar();
+                                            LimpiarTabPagoCuota();
+                                            $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+                                            //ImprimirMovCaja(ret);
+                                        } else {
+                                            Vendix.Mensaje("ERROR: Consulte con sistemas");
+                                        }
+                                    }
+                                });
+                            });
+                        } else
+                            Vendix.Dialogo("Tiene Cuentas por cobrar pendientes");
+                    }
+                });
+            });
+
+            $("#btnCerrar").click(function () {
+                $.ajax({
+                    url: "@Url.Action("ValidarCierreCajaDiario", "Credito")",
+                    data: {},
+                    success: function (res) {
+                        if (res.length > 0) {
+                            Vendix.Dialogo(res);
+                        }
+                        else {
+                            Vendix.Dialogo("DESEA CERRAR ESTA CAJA?", "SiNo", function () {
+                                $.ajax({
+                                    url: "@Url.Action("CerrarCajaDiario", "Credito")",
+                                    data: {},
+                                    success: function (CajaDiarioId) {
+                                        $("#btnPrevSaldoCaja").trigger("click");
+                                        window.location = '@Url.Action("CajaDiario", "Credito")';
+                                    }
+                                });
+                            });
+                        }
+                    }
+                });
+            });
+            $("#btnConciliar").click(function () {
+                Vendix.Dialogo("ESTE PROCESO REALIZA LA TRANSFERENCIA AUTOMATICA DE PAGOS QUE PERTENECEN A OTROS AGENTES SOLO CON CAJAS ABIERTAS.\n ¿DESEAS CONCILIAR?", "SiNo", function () {
+                    $.ajax({
+                        url: "@Url.Action("ConciliarCajaDiario", "Credito")",
+                        data: {},
+                        success: function () {
+                            window.location = '@Url.Action("CajaDiario", "Credito")';
+                        }
+                    });
+                });
+            });
+
+
+            $('#btnTransFerirSaldos').click(function () {
+                var $el = $("#dlgTransferirBoveda");
+                $el.find('form')[0].reset();
+
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("MostrarMontoCaja","CajaDiario")",
+                    data: {},
+                    success: function (data) {
+                        $("#lblMontoCaja").text(data);
+                    }
+                });
+
+                $("#lblMensaje").text("");
+                $("#cboCajas").val("").trigger("liszt:updated");
+
+                $('#dlgTransferirBoveda').dialog('open');
+                return false;
+            });
+
+
+
+            $("#dlgTransferirBoveda").dialog({
+                autoOpen: false,
+                modal: true,
+                width: 400,
+                open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+            }).find('#btnEnviar').click(function () {
+                var $el = $(this).parents('.ui-dialog-content');
+                if ($el.validate().form()) {
+
+                    //console.log($("#cboCajas").val());
+
+                    if ($("#rbCaja").prop('checked') && $("#cboCajas").val() == null) {
+                        Vendix.Dialogo("Seleccione una caja abierta destino");
+                        return;
+                    }
+
+                    if (parseFloat($("#lblMontoCaja").text()) >= parseFloat($("#txtMontoTransferencia").val())) {
+                        $.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("TransferirSaldos", "CajaDiario")",
+                            data: {
+                                pCajaId: $("#rbCaja").prop('checked') ? $("#cboCajas").val() : null,
+                                pMonto: $('#txtMontoTransferencia').val(),
+                                pDescripcion: $("#txtDescripcionTransferencia").val()
+                            },
+                            success: function (data) {
+                                if (data) {
+                                    Vendix.Notificar("Grabar");
+                                    $("#grdSalidas").trigger("reloadGrid");
+                                    MostrarSaldoCajaDiario();
+                                    $el.find('form')[0].reset();
+                                    $el.dialog('close');
+                                }
+                                else {
+                                    Vendix.Mensaje("Error al Grabar, Comuniquese con Sistemas");
+                                }
+                            }
+                        });
+                    } else {
+                        $("#txtImporte").focus();
+                        $("#lblMensaje").text("El Monto a transferir debe ser menor al monto total en Caja");
+                    }
+                }
+            }).end().find('button.cancel').click(function () {
+                var $el = $(this).parents('.ui-dialog-content');
+                $el.find('form')[0].reset();
+                $el.dialog('close');
+            });
+
+            $("#dlgConfirmarClave").dialog({
+                autoOpen: false,
+                modal: true,
+                width: 400,
+                open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+            }).find('#btnConfirmarClave').click(function () {
+
+                $.ajax({
+                    url: "@Url.Action("ConfirmarClave", "CajaDiario")",
+                    data: {
+                        clave: $('#txtConfirmarClave').val()
+                    },
+                    success: function (ret) {
+                        if (ret.Error) {
+                            Vendix.Mensaje(ret.Mensaje);
+                        }
+                        else {
+                            $("#dlgConfirmarClave").dialog('close');
+                            RealizarOperacionIngresoEgreso();
+                        }
+                    }
+                });
+
+            }).end().find('button.cancel').click(function () {
+                var $el = $(this).parents('.ui-dialog-content');
+                $el.find('form')[0].reset();
+                $el.dialog('close');
+            });
+
+            $("#dlgFechaHoraMovimiento").dialog({
+                autoOpen: false,
+                modal: true,
+                width: 400,
+                open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+            }).find('#btnFechaHoraMovimiento').click(function () {
+
+                RealizarPagoLibre();
+
+            }).end().find('button.cancel').click(function () {
+                var $el = $(this).parents('.ui-dialog-content');
+                $el.find('form')[0].reset();
+                $el.dialog('close');
+            });
+
+        });
+
+        function RealizarOperacionIngresoEgreso() {
+            Vendix.Dialogo("CONFIRMAR para realizar esta operación.", "SiNo", function () {
+                $.ajax({
+                    url: "@Url.Action("RealizarEntradaSalidaCajaDiario", "Credito")",
+                    data: {
+                        pPersonaId: $.data(document.body, 'PersonaESid'),
+                        pTipoOperacionId: $("#cboTipoOperacion").val(),
+                        pDescripcion: $("#txtDescripcionSalida").val(),
+                        pImporte: $("#txtImporteSalida").val(),
+                        pTipoPagoId: $("#cboTipoPagoEI").val()
+                    },
+                    success: function (retorno) {
+                        if (retorno.length == 0) {
+                            Vendix.Notificar();
+                            $.data(document.body, 'PersonaESid', 0);
+                            $("#txtPersonaES,#txtImporteSalida,#txtDescripcionSalida").prop('value', '');
+                            MostrarSaldoCajaDiario();
+                        } else {
+                            Vendix.Dialogo(retorno);
+                        }
+                    }
+                });
+            });
+        }
+
+        function LimpiarTabPagoCuota() {
+            $.data(document.body, 'PersonaId', 0);
+            //$("#divCxC,#actCxC,.msjCreditoEncontrado").hide();
+            $("#lblMontoPago").text("0.00");
+            $("#lblvuelto").text("0.00");
+            $('#txtImporteRecibido,#txtPagoLibre').prop("value", "");
+            MostrarSaldoCajaDiario();
+
+        }
+        function MostrarSaldoCajaDiario() {
+            $.ajax({
+                url: "@Url.Action("ObtenerCajaDiario", "Credito")",
+                data: {},
+                success: function (ret) {
+                    $("#lblEntradas").text(parseFloat(ret.Entradas).toFixed(2));
+                    $("#lblSalidas").text(parseFloat(ret.Salidas).toFixed(2));
+                    $("#lblSaldoFinal").text(parseFloat(ret.SaldoFinal).toFixed(2));
+                    $("#lblNetoArq").text($("#lblSaldoFinal").text());
+                }
+            });
+            $.ajax({
+                url: "@Url.Action("ObtenerResumenCuentaCajaDiario", "Credito")",
+                data: {},
+                success: function (ret) {
+                    $("#lblResumenCuenta").text(ret);
+                }
+            });
+        }
+
+        function MostrarRptMovimientoCredito(creditoid) {
+            event.preventDefault();
+            var ruta = '@Url.Action("ReporteCreditoMovimiento", "Reporte")' + '?pCreditoId=' + creditoid;
+            Vendix.Reporte(ruta);
+            return false;
+        }
+
+        function CargarGrillaCuotas(pCreditoId) {
+            $.data(document.body, 'CreditoIdSelect', pCreditoId);
+            $('#lblCreditoActual').text(pCreditoId);
+
+            if ($("#gbox_grdBuscar").length > 0)
+                $("#grdBuscar").trigger("reloadGrid");
+            else {
+                $("#grdBuscar").jqGrid({
+                    url: "@Url.Action("ListarCuotasPendientesJGrid", "Credito")",
+                    datatype: "json",
+                    postData: {
+                        filters: function () {
+                            return $.toJSON([{ Key: "indCancelacion", Value: false }, { Key: "CreditoId", Value: $.data(document.body, 'CreditoIdSelect') }]);
+                        }
+                    },
+                    colNames: ['PlanPagoId', 'GLOSA', 'VENCIMIENTO', 'AMORT.', 'INTERES', 'GA', 'CUOTA', 'ATRAZO', 'MORA', 'CARGO', 'LIBRE', 'PAGO'],
+                    colModel:
+						[
+							{ name: 'PlanPagoId', index: 'PlanPagoId', hidden: true },
+							{ name: 'Glosa', index: 'Denominacion', width: 250 },
+							{ name: 'FechaVencimiento', index: 'FechaVencimiento', align: 'center', width: 120 },
+							{ name: 'Amortizacion', index: 'Amortizacion', align: 'center', width: 100},
+							{ name: 'Interes', index: 'Interes', align: 'center', width: '80px' },
+							{ name: 'GastosAdm', index: 'GastosAdm', align: 'center', width: '70px' },
+							{ name: 'Cuota', index: 'Cuota', align: 'center', width: '100px' },
+							{ name: 'DiasAtrazo', index: 'DiasAtrazo', align: 'center', width: '80px' },
+							{ name: 'ImporteMora', index: 'ImporteMora', align: 'center', width: '80px' },
+							{ name: 'Cargo', index: 'Cargo', align: 'center', width: '60px' },
+							{ name: 'PagoLibre', index: 'PagoLibre', align: 'center', width: 100 },
+							{ name: 'PagoCuota', index: 'PagoCuota', align: 'center', width: 100 }
+						],
+                    caption: "Cuotas Pendientes",
+                    pager: jQuery('#grdpBuscar'),
+                    rowNum: 100,
+                    rowList: [100, 125, 150],
+                    sortorder: "asc",
+                    gridview: true,
+                    viewrecords: true,
+                    rownumbers: true,
+                    autowidth: true,
+                    //paging: true,
+                    width: 'auto',
+                    height: '351px',
+                    //recordpos: 'right',
+                    multiselect: true,
+                    onSelectRow: function (id) { CalcularMontoCuota(); },
+                    onSelectAll: function (aRowids, isSelected) { CalcularMontoCuota(); },
+                    footerrow: true,
+                    loadComplete: function () {
+
+                        let totalcuotas = $(this).jqGrid('getCol', 'PlanPagoId', false, 'count');
+                        let totalPagoCuota = $(this).jqGrid('getCol', 'PagoCuota', false, 'sum');
+                        let totalAmortizacion = $(this).jqGrid('getCol', 'Amortizacion', false, 'sum');
+                        let totalCuota = $(this).jqGrid('getCol', 'Cuota', false, 'sum');
+                        let totalMora = $(this).jqGrid('getCol', 'ImporteMora', false, 'sum');
+                        let totalInteres = $(this).jqGrid('getCol', 'Interes', false, 'sum');
+                        $(this).jqGrid("footerData", "set", {
+                            Glosa: "Cuotas Pendientes: " + (totalcuotas -1),
+                            FechaVencimiento: "Pendiente:",
+                            Amortizacion: parseFloat(totalAmortizacion).toFixed(2),
+                            Interes: parseFloat(totalInteres).toFixed(2),
+                            Cuota: parseFloat(totalCuota).toFixed(2),
+                            ImporteMora: parseFloat(totalMora).toFixed(2),
+                            PagoCuota: parseFloat(totalPagoCuota).toFixed(2)
+
+                        });
+                        $.data(document.body, 'TotalPagoCuota', parseFloat(totalPagoCuota).toFixed(2));
+
+
+                    }
+                }).jqGrid('bindKeys', {
+                    "onEnter": function (rowid) { /*mostrardetalle();*/
+                    }
+                });
+            }
+        }
+        function CalcularMontoCuota() {
+            var suma = 0;
+            var arr = jQuery("#grdBuscar").jqGrid('getGridParam', 'selarrrow');
+            if (arr.length == 0) {
+                $.data(document.body, 'PlanPagoId', '');
+                $("#lblMontoPago").text("0.00");
+                return;
+            }
+            $.each(arr, function (key, value) {
+                var ret = $("#grdBuscar").jqGrid('getRowData', value);
+                suma += parseFloat(ret.PagoCuota);
+            });
+            $.data(document.body, 'PlanPagoId', arr.join(","));
+            $("#lblMontoPago").text(parseFloat(suma).toFixed(2));
+            $("#txtImporteRecibido").trigger("keyup").select().focus();
+        }
+
+        function CargarGrillaCxc(cliente) {
+            $.ajax({
+                url: "@Url.Action("ExisteCxCPendientes", "Credito")",
+                async: false,
+                data: { pPersonaId: $.data(document.body, 'PersonaId') },
+                success: function (nro) {
+                    if (nro > 0) {
+                        $("#divCxC").show('slow');
+                        $("#lblcxcCliente").val(cliente);
+                    }
+                    else {
+                        $("#divCxC").hide();
+                        return;
+                    }
+                }
+            });
+
+            if ($("#gbox_grdcxc").length > 0)
+                $("#grdcxc").trigger("reloadGrid");
+            else {
+                $("#grdcxc").jqGrid({
+                    url: "@Url.Action("ListarCuentasxCobrarJGrid", "Credito")",
+                    datatype: "json",
+                    postData: {
+                        filters: function () {
+                            return $.toJSON([{ Key: "PersonaId", Value: $.data(document.body, 'PersonaId') }]);
+                        }
+                    },
+                    colNames: ['Orden', 'CuentaxCobrarId', 'Codigo', 'Cliente', 'Operacion', 'Origen', 'Monto', 'Estado', 'Fecha'],
+                    colModel:
+						[
+							{ name: 'OrdenVentaId', index: 'OrdenVentaId', hidden: true },
+							{ name: 'CuentaxCobrarId', index: 'CuentaxCobrarId', hidden: true },
+							{ name: 'Codigo', index: 'Codigo', sortable: false, align: 'center', width: '50' },
+							{ name: 'Cliente', index: 'Cliente', sortable: false, width: '250' },
+							{ name: 'Operacion', index: 'Operacion', sortable: false, width: '50' },
+							{ name: 'Origen', index: 'Origen', sortable: false },
+							{ name: 'Monto', index: 'Monto', align: 'center', sortable: false },
+							{ name: 'Estado', index: 'Estado', align: 'center', sortable: false, width: '50' },
+							{ name: 'FechaReg', index: 'FechaReg', align: 'center', sortable: false }
+						],
+                    caption: "Cuentas por Cobrar Pendientes",
+                    pager: $('#grdpcxc'),
+                    rowNum: 10,
+                    rowList: [5, 10, 15],
+                    sortname: 'CuentaxCobrarId',
+                    sortorder: "desc",
+                    gridview: true,
+                    viewrecords: true,
+                    rownumbers: true,
+                    autowidth: true,
+                    width: 'auto',
+                    height: '234px',
+                    onSelectRow: function (id) {
+                        $("#actCxC").show('slow');
+                    },
+                }).jqGrid('bindKeys', {
+                    "onEnter": function (rowid) { /*mostrardetalle();*/
+                    }
+                });
+            }
+        }
+        function CargarGrillaDesembolso() {
+            @*$.ajax({
+                url: "@Url.Action("ExisteDesembolso", "Credito")",
+                data: { pPersonaId: $.data(document.body, 'PersonaDesembolsoId') },
+                success: function (ret) {
+                    if (ret > 0)
+                        $("#divdesembolso").show();
+                    else {
+                        $("#divdesembolso").hide();
+                        return;
+                    }
+                }
+            });*@
+
+            if ($("#gbox_grdDesembolso").length > 0)
+                $("#grdDesembolso").trigger("reloadGrid");
+            else {
+                $("#grdDesembolso").jqGrid({
+                    url: "@Url.Action("ListarDesembolsoJGrid", "Credito")",
+                    datatype: "json",
+                    postData: {
+                        filters: function () {
+                            return $.toJSON([{ Key: "PersonaId", Value: $.data(document.body, 'PersonaDesembolsoId') }]);
+                        }
+                    },
+                    colNames: ['Nro Credito', 'Codigo', 'Cliente', 'Credito', 'Gasto Adm', 'DESEMBOLSO', 'Estado'],
+                    colModel:
+                    [
+                        { name: 'CreditoId', index: 'CreditoId', sortable: false, align: 'center', width: '60' },
+                        { name: 'Codigo', index: 'Codigo', sortable: false, align: 'center', width: '60' },
+                        { name: 'Cliente', index: 'Cliente', sortable: false, width: '350' },
+                        { name: 'MontoCredito', index: 'MontoCredito', align: 'center', sortable: false },
+                        { name: 'MontoGastosAdm', index: 'MontoGastosAdm', align: 'center', sortable: false },
+                        { name: 'MontoDesembolso', index: 'MontoDesembolso', align: 'center', sortable: false },
+                        { name: 'Estado', index: 'Estado', align: 'center', sortable: false }
+                    ],
+                    caption: "Desembolsos Pendientes",
+                    pager: $('#grdpDesembolso'),
+                    rowNum: 10,
+                    rowList: [5, 10, 15],
+                    sortname: 'CreditoId',
+                    sortorder: "desc",
+                    gridview: true,
+                    viewrecords: true,
+                    rownumbers: true,
+                    autowidth: true,
+                    width: 'auto',
+                    height: '234px',
+                    onSelectRow: function (id) {
+                        $("#actDesembolso").show('slow');
+                        if (id) {
+                            var ret = $("#grdDesembolso").jqGrid('getRowData', id);
+                            $("#btnDesembolso").text("Credito Nro:" + ret.CreditoId + " Desembolso:" + ret.MontoDesembolso);
+                            $.data(document.body, 'CreditoDesembolsoId', ret.CreditoId);
+                        }
+
+                    },
+                }).jqGrid('bindKeys', {
+                    "onEnter": function (rowid) { /*mostrardetalle();*/
+                    }
+                });
+            }
+        }
+
+        function AgregarBorde(control) {
+            $(".full-stats").removeClass("BordeSeleccion");
+            $(control).addClass("BordeSeleccion");
+        }
+        function MovCajaPrintFormatter(cellvalue, options, rowObject) {
+            if (cellvalue.length > 0)
+                return "<a href='#' onclick='ImprimirMovCaja(" + cellvalue + ");return false;' class='button small blue tooltip' data-gravity='s' title='Imprimir'><i class='icon-picture'></i></a>";
+            return "";
+        }
+        function anularEntradaFormatter(cellvalue, options, rowObject) {
+            if (cellvalue.length > 0)
+                return "<a href='#' onclick='AnularMovCaja(" + cellvalue + ",1);return false;' class='button small red tooltip' data-gravity='s' title='Eliminar'><i class='icon-remove'></i></a>";
+            return "";
+        }
+        function anularSalidaFormatter(cellvalue, options, rowObject) {
+            if (cellvalue.length > 0)
+                return "<a href='#' onclick='AnularMovCaja(" + cellvalue + ",0);return false;' class='button small red tooltip' data-gravity='s' title='Eliminar'><i class='icon-remove'></i></a>";
+            return "";
+        }
+        function ImprimirMovCaja(pMovimientoCajaId) {
+            var ruta = '@Url.Action("ReporteMovimientoCaja", "Reporte")' + '?pMovimientoCajaId=' + pMovimientoCajaId;
+            //window.open(ruta);
+            Vendix.Reporte(ruta);
+            //alert(pMovimientoCajaId);
+        }
+
+        function AnularMovCaja(pMovimientoCajaId, ind) {
+            $.ajax({
+                url: "@Url.Action("ValidarAnularMovimientoCaja", "Credito")",
+                data: { pMovimientoCajaId: pMovimientoCajaId },
+                success: function (ret) {
+                    if (ret == false) {
+                        Vendix.DialogoObs("Ingrese la Observación para anular.", function () {
+                            $.ajax({
+                                url: "@Url.Action("AnularMovimientoCaja", "Credito")",
+                                data: { pMovimientoCajaId: pMovimientoCajaId, pObservacion: $.data(document.body, 'txtObsBase') },
+                                success: function (rpt) {
+                                    if (rpt) {
+                                        Vendix.Notificar('Anular');
+                                        if (ind == 1)
+                                            $("#grdEntradas").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+                                        else
+                                            $("#grdSalidas").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+                                        MostrarSaldoCajaDiario();
+                                    }
+                                }
+                            });
+                        });
+                    } else
+                        Vendix.Dialogo("Tiene Pagos de cuotas, No se Puede Anular el Crédito", "Aceptar");
+                }
+            });
+        }
+
+     // Variable global para "recordar" las selecciones entre búsquedas y páginas
+        var clientesSeleccionadosGlobal = [];
+
+        // 1. Inicializar las ventanas modales
+        $("#dlgSeleccionRuta").dialog({ autoOpen: false, modal: true, width: 700 });
+        $("#dlgRutaQR").dialog({ autoOpen: false, modal: true, width: 450, height: 'auto' });
+
+        // 2. Al hacer clic en "Armar Ruta QR"
+        $("#btnAbrirSeleccionRuta").click(function(e){
+            e.preventDefault();
+
+            // Limpiamos la memoria al abrir la ventana
+            clientesSeleccionadosGlobal = [];
+
+            if ($("#gbox_grdClientesRuta").length > 0) {
+                $("#grdClientesRuta").jqGrid('setGridParam', { datatype: 'json' }).trigger("reloadGrid");
+            } else {
+                $("#grdClientesRuta").jqGrid({
+                    url: "@Url.Action("ListarCobrosDelDiaJson", "Reporte")",
+                    datatype: "json",
+                    postData: {
+                        pIndMora: function () { return $("#cboFiltroRuta").val() == "1"; }
+                    },
+                    colNames: ['ID', 'Cliente', 'Dirección', 'Cuota', 'Mora', 'Total'],
+                    colModel: [
+                        { name: 'CreditoId', index: 'CreditoId', hidden: true, key: true },
+                        { name: 'Cliente', index: 'Cliente', width: 220, sortable: true },
+                        { name: 'Direccion', index: 'Direccion', width: 220, sortable: true },
+                        { name: 'Cuota', index: 'Cuota', align: 'center', width: 60, sorttype: "number" },
+                        { name: 'Mora', index: 'Mora', align: 'center', width: 60, sorttype: "number" },
+                        { name: 'Total', index: 'Total', align: 'center', width: 60, sorttype: "number" }
+                    ],
+                    pager: '#grdpClientesRuta',
+                    rowNum: 50,
+                    rowList: [20, 50, 100],
+                    viewrecords: true,
+                    multiselect: true,
+                    height: '250px',
+                    autowidth: true,
+                    loadonce: true,
+                    ignoreCase: true,
+
+                    onSelectRow: function(rowid, status) {
+                        var index = $.inArray(rowid, clientesSeleccionadosGlobal);
+                        if (status && index < 0) {
+                            clientesSeleccionadosGlobal.push(rowid);
+                        } else if (!status && index >= 0) {
+                            clientesSeleccionadosGlobal.splice(index, 1);
+                        }
+                    },
+                    onSelectAll: function(aRowids, status) {
+                        $.each(aRowids, function(i, rowid) {
+                            var index = $.inArray(rowid, clientesSeleccionadosGlobal);
+                            if (status && index < 0) {
+                                clientesSeleccionadosGlobal.push(rowid);
+                            } else if (!status && index >= 0) {
+                                clientesSeleccionadosGlobal.splice(index, 1);
+                            }
+                        });
+                    },
+                    gridComplete: function() {
+                        $.each(clientesSeleccionadosGlobal, function(i, rowid) {
+                            $("#grdClientesRuta").jqGrid('setSelection', rowid, false);
+                        });
+                    }
+                });
+
+                $("#grdClientesRuta").jqGrid('filterToolbar', { defaultSearch: "cn", stringResult: true, searchOnEnter: false });
+            }
+
+            $("#dlgSeleccionRuta").dialog('open');
+        });
+
+        // 3. Botón para recargar la tabla si cambian el combo de filtro principal
+        $("#btnFiltrarRuta").click(function(e){
+            e.preventDefault();
+            clientesSeleccionadosGlobal = [];
+            var grid = $("#grdClientesRuta");
+            grid[0].clearToolbar();
+            grid.jqGrid('setGridParam', { datatype: 'json', page: 1 }).trigger("reloadGrid");
+        });
+
+        // 4. Al hacer clic en "Generar QR de Ruta"
+        $("#btnProcesarRuta").click(function(e){
+            e.preventDefault();
+
+            if(clientesSeleccionadosGlobal.length === 0){
+                Vendix.Mensaje("Debe seleccionar al menos un cliente.");
+                return;
+            }
+
+            Vendix.Notificar("Armando ruta y optimizando distancias...");
+
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("GenerarRutaCobrosHoy", "Reporte")',
+                data: { pIds: clientesSeleccionadosGlobal.join(",") },
+                success: function (respuesta) {
+                    if (respuesta.Exito) {
+                        $("#dlgSeleccionRuta").dialog('close');
+
+                        // CORRECCIÓN: Armamos la URL dinámica usando el origen actual
+                        var dominioActual = window.location.origin;
+                        var urlCompleta = dominioActual + respuesta.UrlCortita;
+
+                        GenerarYMostrarQR(urlCompleta);
+                    } else {
+                        Vendix.Mensaje("Error: " + respuesta.Mensaje);
+                    }
+                }
+            });
+        });
+
+        // 5. Función que dibuja el QR y muestra la URL abajo para pruebas
+        function GenerarYMostrarQR(urlCompleta) {
+            $("#codigoQR").empty();
+
+            var qrDiv = document.createElement("div");
+            document.getElementById("codigoQR").appendChild(qrDiv);
+
+            new QRCode(qrDiv, {
+                text: urlCompleta, // Usamos la URL completa ya validada
+                width: 250,
+                height: 250,
+                correctLevel : QRCode.CorrectLevel.L
+            });
+
+            var htmlEnlace = `
+                <div style="margin-top: 20px; text-align: center; word-wrap: break-word; width: 100%;">
+                    <p style="margin: 0 0 5px 0; font-size: 13px; color: #666;">
+                        <strong>Enlace generado (clic para probar):</strong>
+                    </p>
+                    <a href="${urlCompleta}" target="_blank" style="font-size: 15px; color: #007bff; text-decoration: underline; display: block;">
+                        ${urlCompleta}
+                    </a>
+                </div>
+            `;
+
+            $("#codigoQR").append(htmlEnlace);
+            $("#dlgRutaQR").dialog('option', 'position', {my: "center", at: "center", of: window});
+            $("#dlgRutaQR").dialog('open');
+        }
+
+    </script>
+}
+else
+{
+    <ul class="stats not-on-phone">
+
+        <li>
+            <strong>CAJA NO ASIGNADA</strong>
+            <span>ESTADO</span>
+        </li>
+    </ul>
+}
+
+
+

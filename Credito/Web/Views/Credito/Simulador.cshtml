@@ -1,0 +1,100 @@
+﻿@model List<ITB.VENDIX.DA.usp_SimuladorCredito_Result>
+
+
+    <div class="grid_12">
+        <div class="box">
+            <div class="header">
+                <h2>Simulador de Créditos<a id="btnExportar" class="button" style="float: right; margin-top: 0; padding:4px">Exportar a PDF</a></h2>
+            </div>
+            <div class="content invoice">
+                <h3><button id="lnkSimulador" class="open-simulador">Simulador de Créditos</button></h3>
+                <div class="details">
+                    <div class="highlighted">
+                        <span>Producto:</span> <strong>@ViewBag.pProducto</strong>
+                        <span>Monto:</span> <strong>@ViewBag.pMonto</strong>
+                        <span>Numero Cuotas:</span> <strong>@ViewBag.pCuotas</strong>
+                    </div>
+                    <div>
+                        <span>Modalidad:</span> <strong>@ViewBag.pModalidad</strong>
+                    </div>
+                    <div>
+                        <span>TEA:</span> <strong>@ViewBag.pInteres %</strong>
+                        <span>TEM:</span> <strong>@ViewBag.TEM %</strong>
+                    </div>
+                    <div>
+                        <span>Fecha Primer Pago:</span> <strong>@ViewBag.pFecha</strong>
+                    </div>
+                </div>
+
+                <table class="styled borders" style="text-align: center">
+                    <thead>
+                        <tr>
+                            <th>Numero</th>
+                            <th>Capital</th>
+                            <th>Fecha Pago</th>
+                            <th>Amortizacion</th>
+                            <th>Interés</th>
+                            <th>Gastos Adm</th>
+                            <th>Cuota</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Numero</td>
+                                <td>@item.Capital</td>
+                                <td>@item.FechaPago.Value.ToShortDateString()</td>
+                                <td>@item.Amortizacion</td>
+                                <td>@item.Interes</td>
+                                <td>@item.GastosAdm</td>
+                                <td>@item.Cuota</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <!-- End of .content -->
+
+        </div>
+        <!-- End of .box -->
+    </div>
+
+    @*<div id="dialog" style="display: none">
+        <iframe src="@Url.Action("ReporteSimuladorPlanPagos", "Reporte",
+                    new {pProductoid = ViewBag.pProductoId, pMonto = ViewBag.pMonto, pCuotas = ViewBag.pCuotas, pInteres = ViewBag.pInteres, pFecha = ViewBag.pFecha, pModalidad = ViewBag.pModalidadVal })"
+                style='height: 100%;width: 100%;'></iframe>
+    </div>*@
+
+    <script>
+        $(function () {
+            @*$("#lnkSimulador").click(function () {
+                Vendix.CargarCombo("@Url.Action("ListarProductos", "Credito")", "cboProductos");
+                $("#cboModalidad").trigger("liszt:updated");
+                $("#dialog_simulador").dialog("open");
+                return false;
+            });*@
+
+            $("#btnExportar").click(function () {
+            Vendix.Reporte('@Url.Action("ReporteSimuladorPlanPagos", "Reporte")' + window.location.search);
+            //window.open('@Url.Action("ReporteSimuladorPlanPagos", "Reporte")' + window.location.search);
+            return false;
+        });
+
+
+        //$("#btnExportar").click(function () {
+        //        $("#dialog").dialog({
+        //            modal: true,
+        //            title: 'Reporte',
+        //            width: '60%',
+        //            height: $(window).height() - 120,
+        //            buttons: {Close: function () {$(this).dialog('close');}}
+        //        });
+        //    });
+
+        });
+
+    </script>
+
+

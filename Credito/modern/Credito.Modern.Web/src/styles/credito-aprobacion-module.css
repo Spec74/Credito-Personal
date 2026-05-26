@@ -1,0 +1,444 @@
+/**
+ * Bandeja Aprobar créditos — Credix (#114885), paridad CreditoAprobar/Index.
+ */
+
+.credito-aprobacion-page > .credix-filter-bar {
+  padding: 0;
+  margin-bottom: 14px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.credito-aprobacion-page .credix-panel {
+  border-radius: 12px;
+}
+
+/* —— Tarjeta de búsqueda —— */
+.credito-aprobacion-search-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  padding: 18px 20px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-left: 4px solid var(--credix-brand, #114885);
+  background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+  box-shadow: var(--credix-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.06));
+}
+
+.credito-aprobacion-search-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.credito-aprobacion-search-card__title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.credito-aprobacion-search-card__title > div {
+  min-width: 0;
+}
+
+.credito-aprobacion-search-card__title-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  font-size: 18px;
+  color: var(--credix-brand, #114885);
+  background: var(--credix-brand-light, #e8f2fc);
+}
+
+.credito-aprobacion-search-card__heading {
+  margin: 0 0 2px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--credix-text, #1f2937);
+}
+
+.credito-aprobacion-search-card__subheading {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--credix-text-muted, #6b7280);
+}
+
+.credito-aprobacion-search-card__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.credito-aprobacion-search-card__estado.ant-tag {
+  margin: 0;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 6px;
+}
+
+.credito-aprobacion-search-card__refresh {
+  border-radius: 8px;
+}
+
+/* Grid: campo + botón (evita estiramiento raro en flex) */
+.credito-aprobacion-search-card__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+}
+
+.credito-aprobacion-search-card__input.ant-input-affix-wrapper {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  max-height: 44px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 15px;
+  border-radius: 10px;
+  border-color: #d1d5db;
+  background: #fff;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.credito-aprobacion-search-card__input.ant-input-affix-wrapper:hover {
+  border-color: #9cb8d9;
+}
+
+.credito-aprobacion-search-card__input.ant-input-affix-wrapper-focused,
+.credito-aprobacion-search-card__input.ant-input-affix-wrapper:focus-within {
+  border-color: var(--credix-brand, #114885);
+  box-shadow: 0 0 0 3px rgba(17, 72, 133, 0.12);
+}
+
+.credito-aprobacion-search-card__input.ant-input-affix-wrapper > input.ant-input {
+  height: 42px;
+  line-height: 42px;
+  font-size: inherit;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credito-aprobacion-search-card__input-icon {
+  color: var(--credix-brand, #114885);
+  font-size: 16px;
+  opacity: 0.85;
+  flex-shrink: 0;
+}
+
+.credito-aprobacion-search-card__submit.ant-btn-primary {
+  height: 44px !important;
+  min-height: 44px;
+  max-height: 44px;
+  padding-inline: 20px !important;
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: none !important;
+  border-radius: 10px !important;
+  background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand, #114885) 100%) !important;
+  box-shadow:
+    0 1px 2px rgba(17, 72, 133, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.credito-aprobacion-search-card__submit.ant-btn-primary:not(:disabled):hover {
+  background: linear-gradient(180deg, #2a7dc4 0%, #0d3a6d 100%) !important;
+  box-shadow: 0 4px 12px rgba(17, 72, 133, 0.28);
+}
+
+.credito-aprobacion-search-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.credito-aprobacion-search-card__chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--credix-brand, #114885);
+  background: var(--credix-brand-light, #e8f2fc);
+  border: 1px solid rgba(17, 72, 133, 0.12);
+  border-radius: 999px;
+}
+
+.credito-aprobacion-search-card__chip--hint {
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--credix-text-muted, #6b7280);
+  background: #f3f4f6;
+  border-color: var(--credix-border, #e5e7eb);
+}
+
+.credito-aprobacion-search-card__chip-hint-short {
+  display: none;
+}
+
+.credito-aprobacion-search-card__footer {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--credix-border, #e5e7eb);
+  width: 100%;
+}
+
+.credito-aprobacion-search-card__status {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+}
+
+.credito-aprobacion-search-card__status-line {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--credix-text-muted, #6b7280);
+  word-break: break-word;
+}
+
+.credito-aprobacion-search-card__status-line--muted {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.credito-aprobacion-search-card__status-line strong,
+.credito-aprobacion-search-card__status strong {
+  color: var(--credix-brand, #114885);
+  font-weight: 600;
+}
+
+.credito-aprobacion-search-card__status--active {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 6px 8px;
+  color: var(--credix-brand, #114885);
+}
+
+.credito-aprobacion-search-card__status--active .anticon {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.credito-aprobacion-search-card__alert {
+  border-radius: 8px;
+  margin: 0;
+}
+
+/* Tabla */
+.credito-aprobacion-table {
+  min-width: 0;
+}
+
+.credito-aprobacion-table .ant-table-tbody > tr {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.credito-aprobacion-table .ant-table-tbody > tr:hover > td {
+  background: var(--credix-brand-light, #e8f2fc) !important;
+}
+
+.credito-aprobacion-table__cliente {
+  font-weight: 600;
+  color: var(--credix-brand, #114885);
+}
+
+.credito-aprobacion-table__doc {
+  font-variant-numeric: tabular-nums;
+  color: var(--credix-text-muted, #6b7280);
+  font-size: 12px;
+}
+
+.credito-aprobacion-table__monto {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.credito-aprobacion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.credito-aprobacion-actions__btn {
+  font-weight: 500;
+  border-radius: 6px;
+}
+
+.credito-aprobacion-actions__btn--consulta {
+  color: var(--credix-brand, #114885);
+  border-color: #a8c4e8;
+  background: #f8fbff;
+}
+
+.credito-aprobacion-actions__btn--consulta:hover {
+  color: #fff !important;
+  border-color: var(--credix-brand, #114885) !important;
+  background: var(--credix-brand, #114885) !important;
+}
+
+.credito-aprobacion-actions__btn--aprobar.ant-btn-primary {
+  background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand, #114885) 100%);
+  border: none;
+  font-weight: 600;
+  min-width: 44px;
+}
+
+.credito-aprobacion-actions__btn--rechazar.ant-btn-dangerous {
+  font-weight: 600;
+}
+
+.credito-aprobacion-empty {
+  padding: 40px 16px;
+  text-align: center;
+}
+
+.credito-aprobacion-empty__icon {
+  font-size: 40px;
+  color: var(--credix-brand, #114885);
+  opacity: 0.35;
+  margin-bottom: 12px;
+}
+
+.credito-aprobacion-empty__title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--credix-text, #1f2937);
+}
+
+.credito-aprobacion-empty__desc {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--credix-text-muted, #6b7280);
+  max-width: 420px;
+  margin-inline: auto;
+}
+
+/* Móvil */
+@media (max-width: 640px) {
+  .credito-aprobacion-search-card {
+    padding: 14px 12px 12px;
+    border-radius: 10px;
+  }
+
+  .credito-aprobacion-search-card__header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .credito-aprobacion-search-card__title {
+    flex: none;
+    width: 100%;
+  }
+
+  .credito-aprobacion-search-card__title-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .credito-aprobacion-search-card__heading {
+    font-size: 14px;
+  }
+
+  .credito-aprobacion-search-card__subheading {
+    font-size: 12px;
+  }
+
+  .credito-aprobacion-search-card__header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .credito-aprobacion-search-card__refresh {
+    flex: 1;
+    max-width: none;
+  }
+
+  .credito-aprobacion-search-card__row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .credito-aprobacion-search-card__input.ant-input-affix-wrapper {
+    height: 44px;
+    max-height: 44px;
+  }
+
+  .credito-aprobacion-search-card__input.ant-input-affix-wrapper > input.ant-input {
+    height: 42px;
+    line-height: 42px;
+    font-size: 16px; /* evita zoom iOS al enfocar */
+  }
+
+  .credito-aprobacion-search-card__submit.ant-btn-primary {
+    width: 100%;
+    min-width: 0;
+    height: 44px !important;
+  }
+
+  .credito-aprobacion-search-card__chip-hint-long {
+    display: none;
+  }
+
+  .credito-aprobacion-search-card__chip-hint-short {
+    display: inline;
+  }
+
+  .credito-aprobacion-actions .ant-btn span:not(.anticon) {
+    display: none;
+  }
+
+  .credito-aprobacion-actions .ant-btn {
+    padding-inline: 8px;
+  }
+}
+
+/* Móvil estrecho */
+@media (max-width: 380px) {
+  .credito-aprobacion-search-card__header-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credito-aprobacion-search-card__estado.ant-tag {
+    text-align: center;
+    justify-content: center;
+  }
+}

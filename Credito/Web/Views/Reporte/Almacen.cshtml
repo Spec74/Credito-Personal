@@ -1,0 +1,91 @@
+﻿@model List<decimal>
+
+<h1 class="grid_12">Indicadores de Almacen</h1>
+
+<div class="grid_12 center-elements">
+	<div class="full-stats">
+		<div class="stat hlist" 
+			 data-list='[{"val":@Model[0],"title":"Articulos Registrados","color":"green"},{"val":@Model[1],"title":"Stock Articulos","color":"red"},{"val":@Model[2],"format":"S/ 0,0.00;-S/ 0,0.00","title":"Costo Inversión"}]'>
+		</div>
+	</div>
+</div>
+
+<h1 class="grid_12">Reportes de Almacen</h1>
+<div class="grid_4">
+	<form method="post" action="#" class="box validate">
+		<div class="header">
+			<h2>
+				<img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Stock General de Productos</h2>
+		</div>
+		<div class="content">
+			<p class="_100 small" style="padding-top: 10px;">
+				@Html.DropDownList("cboOficina", "TODOS")
+			</p>
+		</div>
+		<div class="actions">
+			<div class="right">
+				<input type="submit" value="Stock General PDF" id="btnRptStockPdf" />
+				<input type="submit" value="Stock General EXCEL" id="btnRptStockExcel" />
+			</div>
+		</div>
+	</form>
+</div>
+
+<div class="grid_4">
+    <form method="post" action="#" class="box validate">
+        <div class="header">
+            <h2>
+                <img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Productos Anulados
+            </h2>
+        </div>
+        <div class="content">
+            <p class="_100 small" style="padding-top: 10px;">
+               
+            </p>
+        </div>
+        <div class="actions">
+            <div class="right">
+                <input type="submit" value="Anulados PDF" id="btnRptStockAnuladoPdf" />
+                <input type="submit" value="Anulados EXCEL" id="btnRptStockAnuladoExcel" />
+            </div>
+        </div>
+    </form>
+</div>
+<script type="text/javascript">
+	$(document).ready(function () {
+		$("#btnRptStockPdf").click(function () {
+			event.preventDefault();
+			verReporte('PDF');
+			return false;
+		});
+		$("#btnRptStockExcel").click(function () {
+			event.preventDefault();
+			verReporte('Excel');
+			return false;
+		});
+
+		$("#btnRptStockAnuladoPdf").click(function () {
+		    event.preventDefault();
+		    verReporteAnulado('PDF');
+		    return false;
+		});
+		$("#btnRptStockAnuladoExcel").click(function () {
+		    event.preventDefault();
+		    verReporteAnulado('Excel');
+		    return false;
+		});
+	});
+
+	function verReporte(tipoReporte) {
+		var oficina = $('#cboOficina').val();
+		if (oficina.length == 0) oficina = null;
+
+		var ruta = '@Url.Action("ReporteStock", "Reporte")' + '?pOficinaid=' + oficina + '&pTipoReporte=' + tipoReporte;
+		window.open(ruta);
+	}
+    function verReporteAnulado(tipoReporte) {
+        var ruta = '@Url.Action("ReporteStockAnulados", "Reporte")' + '?pTipoReporte=' + tipoReporte;
+        window.open(ruta);
+    }
+</script>
+

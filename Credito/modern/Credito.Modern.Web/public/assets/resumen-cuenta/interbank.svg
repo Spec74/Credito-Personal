@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Interbank">
+  <rect width="48" height="48" rx="10" fill="#ff5000"/>
+  <circle cx="24" cy="22" r="11" fill="none" stroke="#fff" stroke-width="2.5"/>
+  <path fill="#fff" d="M24 11v4M24 29v4M13 22h4M31 22h4M16.5 16.5l2.8 2.8M28.7 28.7l2.8 2.8M31.5 16.5l-2.8 2.8M19.3 28.7l-2.8 2.8"/>
+  <text x="24" y="42" text-anchor="middle" fill="#fff" font-family="Arial,sans-serif" font-size="5.5" font-weight="700" letter-spacing=".5">INTERBANK</text>
+</svg>

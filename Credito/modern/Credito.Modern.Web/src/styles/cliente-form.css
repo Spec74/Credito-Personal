@@ -1,0 +1,52 @@
+.cliente-mantener-page .credix-page-body {
+  max-width: 1280px;
+}
+
+.cliente-mantener__calificacion-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #114885;
+  color: #fff;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.cliente-mantener__section-title {
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e8f2fc;
+  color: #114885;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.cliente-mantener__map-block {
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fafcff 0%, #fff 100%);
+}
+
+.cliente-mantener__map-actions {
+  margin-bottom: 10px;
+}
+
+.cliente-mantener__depurado {
+  margin-bottom: 16px;
+}
+
+.cliente-mantener__conyuge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+@media (max-width: 768px) {
+  .cliente-mantener__conyuge-row {
+    flex-direction: column;
+  }
+}

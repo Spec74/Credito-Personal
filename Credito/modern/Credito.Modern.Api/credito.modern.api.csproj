@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Credito.Modern.Api</RootNamespace>
+    <UserSecretsId>8f2c4e6a-0b1d-4c3e-9f8a-7d6c5b4a3210</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+    <PackageReference Include="Microsoft.OpenApi" Version="1.6.22" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="7.2.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Credito.Modern.Infrastructure\Credito.Modern.Infrastructure.csproj" />
+    <ProjectReference Include="..\Credito.Modern.Application\Credito.Modern.Application.csproj" />
+  </ItemGroup>
+</Project>

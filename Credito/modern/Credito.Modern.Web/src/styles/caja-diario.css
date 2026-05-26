@@ -1,0 +1,1357 @@
+/* Caja diario — diseño profesional (marca Credix + paridad colores legacy) */
+
+.caja-diario-page {
+  --caja-brand: var(--credix-brand, #114885);
+  --caja-brand-hover: var(--credix-brand-hover, #1a5a9e);
+  --caja-brand-light: var(--credix-brand-light, #e8f2fc);
+  --caja-cuota-pendiente-bg: #fffbeb;
+  --caja-cuota-pendiente-border: #f59e0b;
+  --caja-cuota-pagada-bg: #ecfdf5;
+  --caja-cuota-pagada-border: #22c55e;
+  --caja-cuota-mora-bg: #fef2f2;
+  --caja-cuota-mora-border: #ef4444;
+  --caja-cuota-creada-bg: #fefce8;
+  --caja-cuota-creada-border: #eab308;
+  --caja-cuota-resumen-bg: #f1f5f9;
+}
+
+.caja-diario-page.credix-page .credix-page-body {
+  width: 100%;
+  max-width: none;
+}
+
+.caja-diario-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.caja-diario-workspace {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+@media (min-width: 1100px) {
+  .caja-diario-workspace {
+    grid-template-columns: minmax(200px, 228px) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.caja-diario-tabs-panel {
+  min-width: 0;
+  width: 100%;
+}
+
+.caja-diario-main-panel.credix-box {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.caja-diario-main-panel .credix-box-content {
+  padding: 12px 14px 16px;
+}
+
+.caja-diario-resumen-pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.caja-diario-mora-banner {
+  margin-bottom: 0;
+}
+
+.caja-diario-cobranzas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.caja-diario-cobranzas-top {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  background: var(--caja-brand-light);
+  border: 1px solid #c7daf3;
+  border-radius: var(--credix-radius);
+}
+
+.caja-diario-cobranzas-top__search,
+.caja-diario-search-row {
+  width: 100%;
+  min-width: 0;
+}
+
+.caja-diario-cobranzas-top__label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--caja-brand);
+}
+
+.caja-diario-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  padding-top: 4px;
+  border-top: 1px solid #c7daf3;
+}
+
+@media (min-width: 768px) {
+  .caja-diario-actions-row {
+    justify-content: flex-start;
+  }
+}
+
+/* —— Modal mora —— */
+.caja-mora-modal .ant-modal-body {
+  padding-top: 12px;
+}
+
+.caja-mora-modal__kpis {
+  margin-bottom: 12px;
+}
+
+.caja-mora-kpi {
+  background: var(--credix-surface-muted, #f8fafc);
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: 8px;
+  padding: 10px 12px;
+  height: 100%;
+}
+
+.caja-mora-kpi__hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+.caja-mora-modal__info {
+  margin-bottom: 12px;
+}
+
+.caja-mora-modal__tabs .ant-tabs-nav {
+  margin-bottom: 8px;
+}
+
+.caja-mora-modal__footer {
+  width: 100%;
+  justify-content: flex-end;
+}
+
+/* —— Sidebar sesión —— */
+.caja-diario-session-card {
+  background: linear-gradient(180deg, var(--caja-brand-light) 0%, #fff 48%);
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 8px);
+  padding: 14px;
+  font-size: 12px;
+  position: sticky;
+  top: 12px;
+  box-shadow: var(--credix-shadow-sm);
+}
+
+.caja-diario-session-name {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--caja-brand);
+  line-height: 1.3;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+  width: 100%;
+}
+
+.caja-diario-session-name:hover {
+  color: var(--caja-brand-hover);
+  text-decoration: underline;
+}
+
+.caja-diario-session-card dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 5px 10px;
+}
+
+.caja-diario-session-card dt {
+  color: var(--credix-text-muted);
+  font-weight: 400;
+}
+
+.caja-diario-session-card dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+  color: var(--credix-text);
+}
+
+.caja-diario-quick-links {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--credix-border);
+}
+
+.caja-diario-ops-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--credix-border);
+}
+
+.caja-diario-ops-stack .ant-btn {
+  justify-content: flex-start;
+  height: auto;
+  min-height: 38px;
+}
+
+.caja-diario-ops-ruta.ant-btn {
+  background: #16a34a !important;
+  border-color: #16a34a !important;
+  color: #fff !important;
+}
+
+.caja-diario-ops-ruta.ant-btn:hover {
+  background: #15803d !important;
+  border-color: #15803d !important;
+}
+
+/* —— Tabs —— */
+.caja-diario-tabs-panel {
+  min-width: 0;
+}
+
+.caja-diario-tabs .ant-tabs-tab-btn {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.caja-diario-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--caja-brand);
+}
+
+.caja-diario-tabs .ant-tabs-ink-bar {
+  background: var(--caja-brand);
+}
+
+/* —— Secciones —— */
+.caja-section {
+  border: 1px solid var(--credix-border);
+  border-radius: var(--credix-radius);
+  background: #fff;
+  overflow: hidden;
+  box-shadow: var(--credix-shadow-sm);
+}
+
+.caja-section__head {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--credix-border);
+}
+
+.caja-section__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.caja-section--brand .caja-section__head {
+  background: var(--caja-brand-light);
+}
+
+.caja-section--brand .caja-section__icon {
+  background: var(--caja-brand);
+  color: #fff;
+}
+
+.caja-section--credito .caja-section__head {
+  background: #f8fafc;
+}
+
+.caja-section--credito .caja-section__icon {
+  background: var(--caja-brand);
+  color: #fff;
+}
+
+.caja-section--cxc .caja-section__head {
+  background: #fff7ed;
+}
+
+.caja-section--cxc .caja-section__icon {
+  background: #ea580c;
+  color: #fff;
+}
+
+.caja-section--pago .caja-section__head {
+  background: var(--caja-brand);
+  color: #fff;
+}
+
+.caja-section--pago .caja-section__kicker,
+.caja-section--pago .caja-section__title,
+.caja-section--pago .caja-section__subtitle {
+  color: #fff;
+}
+
+.caja-section__kicker {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--credix-text-muted);
+}
+
+.caja-section__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--credix-text);
+}
+
+.caja-section__subtitle {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--credix-text-muted);
+}
+
+.caja-section__body {
+  padding: 12px 14px 14px;
+}
+
+/* —— Toolbar cobranzas (alias; reglas en bloque superior) —— */
+
+.caja-cliente-buscar-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.caja-cliente-buscar-wrap--full {
+  width: 100%;
+}
+
+.caja-cliente-buscar-wrap .caja-cliente-buscar {
+  min-width: 0;
+  width: 100%;
+}
+
+.caja-cliente-buscar__submit.ant-btn-primary {
+  flex-shrink: 0;
+  height: auto;
+  align-self: stretch;
+  background: var(--caja-brand);
+  border-color: var(--caja-brand);
+  font-weight: 600;
+  padding-inline: 16px;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .caja-cliente-buscar__submit-text {
+    display: none;
+  }
+
+  .caja-cliente-buscar__submit.ant-btn-primary {
+    padding-inline: 12px;
+  }
+}
+
+.caja-cliente-buscar-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.caja-cliente-buscar-wrap--full {
+  width: 100%;
+}
+
+.caja-cliente-buscar-wrap .caja-cliente-buscar {
+  min-width: 0;
+  width: 100%;
+}
+
+.caja-cliente-buscar__submit.ant-btn-primary {
+  flex-shrink: 0;
+  height: auto;
+  align-self: stretch;
+  background: var(--caja-brand);
+  border-color: var(--caja-brand);
+  font-weight: 600;
+  padding-inline: 16px;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .caja-cliente-buscar__submit-text {
+    display: none;
+  }
+
+  .caja-cliente-buscar__submit.ant-btn-primary {
+    padding-inline: 12px;
+  }
+}
+
+.caja-cliente-buscar__icon {
+  color: var(--caja-brand);
+}
+
+.caja-cliente-buscar__icon-muted {
+  color: var(--credix-text-muted);
+}
+
+/* —— Chips crédito —— */
+.caja-diario-creditos-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.caja-diario-credito-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 112px;
+  padding: 10px 12px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s,
+    transform 0.1s;
+}
+
+.caja-diario-credito-chip:hover {
+  border-color: #93c5fd;
+  transform: translateY(-1px);
+}
+
+.caja-diario-credito-chip.is-active {
+  border-color: var(--caja-brand);
+  border-style: dashed;
+  background: var(--caja-brand-light);
+  box-shadow: 0 0 0 2px rgba(17, 72, 133, 0.12);
+}
+
+.caja-diario-credito-chip-id {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--caja-brand);
+}
+
+.caja-diario-credito-chip-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+}
+
+.caja-diario-credito-chip-mov {
+  font-size: 11px;
+  padding: 0 4px;
+  height: auto;
+}
+
+.caja-diario-credito-chip-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+}
+
+.caja-diario-credito-chip-mov {
+  font-size: 11px;
+  padding: 0 4px;
+  height: auto;
+}
+
+.caja-diario-credito-chip-monto {
+  font-size: 11px;
+  color: var(--credix-text-muted);
+}
+
+.caja-diario-credito-filters {
+  width: 100%;
+}
+
+/* —— Pago libre —— */
+.caja-diario-pago-libre-band {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  margin-top: 10px;
+  background: linear-gradient(90deg, #1e3a5f 0%, var(--caja-brand) 100%);
+  border-radius: 8px;
+  color: #fff;
+}
+
+.caja-diario-pago-libre-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.caja-btn-pago-libre.ant-btn-primary {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.35);
+  font-weight: 600;
+}
+
+.caja-btn-pago-libre.ant-btn-primary:not(:disabled):hover {
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%) !important;
+  filter: brightness(1.03);
+}
+
+.caja-btn-pagar-cuota.ant-btn-primary {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 55%, #3b82f6 100%) !important;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.4);
+  font-weight: 700;
+  min-width: 148px;
+}
+
+.caja-btn-pagar-cuota.ant-btn-primary:not(:disabled):hover {
+  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important;
+}
+
+.caja-cuotas-table--auto table {
+  table-layout: auto !important;
+  width: max-content;
+  min-width: 100%;
+}
+
+.caja-cuotas-table--auto .ant-table-thead > tr > th,
+.caja-cuotas-table--auto .ant-table-tbody > tr > td {
+  white-space: nowrap;
+}
+
+.caja-cuotas-table--auto .ant-table-thead > tr > th:nth-child(3),
+.caja-cuotas-table--auto .ant-table-tbody > tr > td:nth-child(3) {
+  white-space: normal;
+  max-width: 220px;
+}
+
+/* —— Modal créditos pendientes —— */
+.caja-creditos-pendientes-modal .ant-modal-header {
+  background: linear-gradient(90deg, #eff6ff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #dbeafe;
+}
+
+.caja-creditos-pendientes-modal__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--caja-brand, #1e40af);
+}
+
+.caja-creditos-pendientes-modal__intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid var(--credix-border, #e2e8f0);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.caja-creditos-pendientes-table .ant-table {
+  table-layout: auto !important;
+}
+
+.caja-creditos-pendientes-table__row {
+  cursor: pointer;
+}
+
+.caja-creditos-pendientes-table__row:hover > td {
+  background: #eff6ff !important;
+}
+
+.caja-btn-pago-libre.ant-btn-primary {
+  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
+  border: none !important;
+  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.35);
+  font-weight: 600;
+}
+
+.caja-btn-pago-libre.ant-btn-primary:not(:disabled):hover {
+  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%) !important;
+  filter: brightness(1.03);
+}
+
+.caja-btn-pagar-cuota.ant-btn-primary {
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 55%, #3b82f6 100%) !important;
+  border: none !important;
+  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.4);
+  font-weight: 700;
+  min-width: 148px;
+}
+
+.caja-btn-pagar-cuota.ant-btn-primary:not(:disabled):hover {
+  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important;
+}
+
+.caja-cuotas-table--auto table {
+  table-layout: auto !important;
+  width: max-content;
+  min-width: 100%;
+}
+
+.caja-cuotas-table--auto .ant-table-thead > tr > th,
+.caja-cuotas-table--auto .ant-table-tbody > tr > td {
+  white-space: nowrap;
+}
+
+.caja-cuotas-table--auto .ant-table-thead > tr > th:nth-child(3),
+.caja-cuotas-table--auto .ant-table-tbody > tr > td:nth-child(3) {
+  white-space: normal;
+  max-width: 220px;
+}
+
+/* —— Modal créditos pendientes —— */
+.caja-creditos-pendientes-modal .ant-modal-header {
+  background: linear-gradient(90deg, #eff6ff 0%, #f8fafc 100%);
+  border-bottom: 1px solid #dbeafe;
+}
+
+.caja-creditos-pendientes-modal__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--caja-brand, #1e40af);
+}
+
+.caja-creditos-pendientes-modal__intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border: 1px solid var(--credix-border, #e2e8f0);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.caja-creditos-pendientes-table .ant-table {
+  table-layout: auto !important;
+}
+
+.caja-creditos-pendientes-table__row {
+  cursor: pointer;
+}
+
+.caja-creditos-pendientes-table__row:hover > td {
+  background: #eff6ff !important;
+}
+
+/* —— Tabla cuotas + leyenda —— */
+.caja-cuotas-table-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.caja-cuotas-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  margin: 0;
+  padding: 8px 12px;
+  list-style: none;
+  background: #f8fafc;
+  border: 1px solid var(--credix-border);
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--credix-text-muted);
+}
+
+.caja-cuotas-legend li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.caja-cuotas-legend__swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+}
+
+.caja-cuotas-table .ant-table-tbody > tr.caja-cuota-row > td {
+  transition: background 0.12s;
+}
+
+.caja-cuota-row--pendiente > td {
+  background: var(--caja-cuota-pendiente-bg) !important;
+}
+
+.caja-cuota-row--pendiente > td:first-child {
+  box-shadow: inset 3px 0 0 var(--caja-cuota-pendiente-border);
+}
+
+.caja-cuota-row--pagada > td {
+  background: var(--caja-cuota-pagada-bg) !important;
+}
+
+.caja-cuota-row--pagada > td:first-child {
+  box-shadow: inset 3px 0 0 var(--caja-cuota-pagada-border);
+}
+
+.caja-cuota-row--mora > td {
+  background: var(--caja-cuota-mora-bg) !important;
+}
+
+.caja-cuota-row--mora > td:first-child {
+  box-shadow: inset 3px 0 0 var(--caja-cuota-mora-border);
+}
+
+.caja-cuota-row--locked > td {
+  color: var(--credix-text-muted, #64748b);
+}
+
+.caja-cuota-row--locked.caja-cuota-row--pagada > td {
+  opacity: 0.92;
+}
+
+.caja-cuota-row--locked .caja-cuota-estado-tag {
+  opacity: 1;
+}
+
+.caja-cuotas-table .ant-table-tbody > tr.caja-cuota-row--locked .ant-checkbox-wrapper {
+  cursor: not-allowed;
+}
+
+.caja-cuota-checkbox-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.caja-cuotas-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: 10px;
+}
+
+.caja-cuotas-table-hint {
+  flex: 1 1 220px;
+  margin: 0 !important;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.caja-cuota-estado-tag {
+  margin: 0;
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.caja-cuota-pagar--done {
+  color: var(--credix-text-muted, #64748b);
+  font-weight: 500;
+}
+
+.caja-cuota-row--locked > td {
+  color: var(--credix-text-muted, #64748b);
+}
+
+.caja-cuota-row--locked.caja-cuota-row--pagada > td {
+  opacity: 0.92;
+}
+
+.caja-cuota-row--locked .caja-cuota-estado-tag {
+  opacity: 1;
+}
+
+.caja-cuotas-table .ant-table-tbody > tr.caja-cuota-row--locked .ant-checkbox-wrapper {
+  cursor: not-allowed;
+}
+
+.caja-cuota-checkbox-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.caja-cuotas-table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  margin-bottom: 10px;
+}
+
+.caja-cuotas-table-hint {
+  flex: 1 1 220px;
+  margin: 0 !important;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.caja-cuota-estado-tag {
+  margin: 0;
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.caja-cuota-pagar--done {
+  color: var(--credix-text-muted, #64748b);
+  font-weight: 500;
+}
+
+.caja-cuota-row--creada > td {
+  background: var(--caja-cuota-creada-bg) !important;
+}
+
+.caja-cuota-row--creada > td:first-child {
+  box-shadow: inset 3px 0 0 var(--caja-cuota-creada-border);
+}
+
+.caja-cuota-row--resumen > td {
+  background: var(--caja-cuota-resumen-bg) !important;
+  font-weight: 700;
+}
+
+.caja-cuota-row--resumen > td:first-child {
+  box-shadow: inset 3px 0 0 var(--caja-brand);
+}
+
+.caja-cuotas-table .ant-table-tbody > tr.caja-cuota-row:hover > td {
+  filter: brightness(0.98);
+}
+
+.caja-cuotas-table .ant-table-tbody > tr.caja-cuota-row.ant-table-row-selected > td {
+  background: #dbeafe !important;
+}
+
+.caja-cuota-mora-cell {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.caja-cuota-atraso-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 4px;
+  font-size: 10px;
+  background: #fecaca;
+  border-radius: 4px;
+  color: #991b1b;
+}
+
+.caja-cuota-pagar {
+  color: var(--caja-brand);
+}
+
+/* Leyenda swatches (mismas clases que filas) */
+.caja-cuotas-legend__swatch.caja-cuota-row--pendiente {
+  background: var(--caja-cuota-pendiente-bg);
+  border-color: var(--caja-cuota-pendiente-border);
+}
+
+.caja-cuotas-legend__swatch.caja-cuota-row--mora {
+  background: var(--caja-cuota-mora-bg);
+  border-color: var(--caja-cuota-mora-border);
+}
+
+.caja-cuotas-legend__swatch.caja-cuota-row--pagada {
+  background: var(--caja-cuota-pagada-bg);
+  border-color: var(--caja-cuota-pagada-border);
+}
+
+.caja-cuotas-legend__swatch.caja-cuota-row--creada {
+  background: var(--caja-cuota-creada-bg);
+  border-color: var(--caja-cuota-creada-border);
+}
+
+.caja-cuotas-legend__swatch.caja-cuota-row--resumen {
+  background: var(--caja-cuota-resumen-bg);
+  border-color: var(--caja-brand);
+}
+
+/* —— Resumen selección + dock pago —— */
+.caja-diario-seleccion-resumen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0;
+  padding: 10px 14px;
+  font-size: 13px;
+  background: var(--caja-brand-light);
+  border: 1px solid #c7daf3;
+  border-radius: 8px;
+}
+
+.caja-diario-pago-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  padding: 14px 16px;
+  background: #fff;
+  border: 2px solid var(--caja-brand);
+  border-radius: 10px;
+  box-shadow: var(--credix-shadow-md);
+}
+
+.caja-diario-pago-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 24px;
+  margin-bottom: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+
+.caja-diario-pago-totals strong {
+  font-size: 17px;
+  color: var(--caja-brand);
+}
+
+.caja-vuelto-neg {
+  color: #dc2626 !important;
+}
+
+.caja-diario-pago-actions .ant-btn-primary {
+  background: var(--caja-brand);
+}
+
+/* —— Arqueo —— */
+.caja-diario-arqueo-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.caja-diario-arqueo-search {
+  flex: 1;
+  min-width: 220px;
+  max-width: 400px;
+}
+
+.caja-diario-arqueo-split {
+  display: grid;
+  gap: 16px;
+}
+
+@media (min-width: 960px) {
+  .caja-diario-arqueo-split {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.caja-diario-arqueo-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid var(--credix-border);
+  border-radius: 8px;
+}
+
+.caja-diario-arqueo-footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.caja-diario-total-caja-badge {
+  font-size: 16px !important;
+  font-weight: 700;
+  padding: 8px 16px !important;
+  margin: 0;
+  border: none;
+}
+
+.caja-monto-entrada {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.caja-monto-salida {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* —— Desembolsos / E/S —— */
+.caja-diario-desembolsos {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.caja-diario-entrada-salida-form .ant-form-item-label > label {
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.caja-diario-cancelacion-trigger {
+  margin-top: 8px;
+}
+
+.caja-diario-cancelacion-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--credix-border);
+}
+
+.caja-diario-modal-hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--credix-text-muted);
+}
+
+.caja-diario-pago-dock--inline {
+  position: static;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  background: transparent;
+}
+
+.caja-diario-cxc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.caja-cxc-table .ant-table-tbody > tr:hover > td {
+  background: #fff7ed !important;
+}
+
+.caja-diario-pago-dock--inline {
+  position: static;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  background: transparent;
+}
+
+.caja-diario-cxc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.caja-cxc-table .ant-table-tbody > tr:hover > td {
+  background: #fff7ed !important;
+}
+
+@media (max-width: 1099px) {
+  .caja-diario-session-card {
+    position: static;
+  }
+
+  .caja-diario-pago-dock {
+    position: static;
+  }
+}
+
+/* —— Modales y drawers (marca Credix) —— */
+.caja-modal-root .ant-modal-content,
+.caja-drawer-root .ant-drawer-content {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow:
+    0 24px 48px rgba(17, 72, 133, 0.14),
+    0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.caja-modal-root .ant-modal-header,
+.caja-drawer-root .ant-drawer-header {
+  background: linear-gradient(135deg, var(--caja-brand) 0%, #1a5a9e 100%);
+  border-bottom: none;
+  padding: 16px 20px;
+  margin: 0;
+}
+
+.caja-modal-root .ant-modal-title,
+.caja-drawer-root .ant-drawer-title {
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.caja-modal-root .ant-modal-close,
+.caja-drawer-root .ant-drawer-close {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.caja-modal-root .ant-modal-close:hover,
+.caja-drawer-root .ant-drawer-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.caja-modal-root .ant-modal-body,
+.caja-drawer-root .ant-drawer-body {
+  padding: 20px;
+}
+
+.caja-modal-root .ant-modal-footer,
+.caja-drawer-root .ant-drawer-footer {
+  border-top: 1px solid var(--credix-border, #e5e7eb);
+  padding: 12px 20px 16px;
+  background: #f8fafc;
+}
+
+.caja-modal-root--confirm .ant-modal-confirm-title {
+  font-weight: 600;
+  color: var(--caja-brand);
+}
+
+.caja-diario-modal-hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--credix-text-muted, #64748b);
+  line-height: 1.45;
+}
+
+.caja-diario-credito-chip-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.caja-ruta-qr-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.caja-ruta-qr-icon {
+  font-size: 28px;
+  color: var(--caja-brand);
+}
+
+.caja-ruta-qr-hint {
+  margin: 0 !important;
+  max-width: 340px;
+}
+
+.caja-ruta-qr-image {
+  border: 4px solid var(--caja-brand-light);
+  border-radius: 10px;
+}
+
+.caja-ruta-qr-url {
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.caja-mov-detalle .ant-descriptions-item-label {
+  font-weight: 500;
+  width: 38%;
+}
+
+@media (max-width: 640px) {
+  .caja-diario-arqueo-search {
+    flex: none;
+    width: 100%;
+    max-width: none;
+  }
+
+  .caja-diario-arqueo-toolbar,
+  .caja-diario-cxc-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .caja-diario-arqueo-toolbar .ant-btn,
+  .caja-diario-cxc-toolbar .ant-btn {
+    width: 100%;
+  }
+
+  .caja-cuotas-table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .caja-cuotas-table-hint {
+    flex: none;
+    width: 100%;
+  }
+}
+
+/* —— Modales y drawers (marca Credix) —— */
+.caja-modal-root .ant-modal-content,
+.caja-drawer-root .ant-drawer-content {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow:
+    0 24px 48px rgba(17, 72, 133, 0.14),
+    0 4px 12px rgba(15, 23, 42, 0.08);
+}
+
+.caja-modal-root .ant-modal-header,
+.caja-drawer-root .ant-drawer-header {
+  background: linear-gradient(135deg, var(--caja-brand) 0%, #1a5a9e 100%);
+  border-bottom: none;
+  padding: 16px 20px;
+  margin: 0;
+}
+
+.caja-modal-root .ant-modal-title,
+.caja-drawer-root .ant-drawer-title {
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.caja-modal-root .ant-modal-close,
+.caja-drawer-root .ant-drawer-close {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.caja-modal-root .ant-modal-close:hover,
+.caja-drawer-root .ant-drawer-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.caja-modal-root .ant-modal-body,
+.caja-drawer-root .ant-drawer-body {
+  padding: 20px;
+}
+
+.caja-modal-root .ant-modal-footer,
+.caja-drawer-root .ant-drawer-footer {
+  border-top: 1px solid var(--credix-border, #e5e7eb);
+  padding: 12px 20px 16px;
+  background: #f8fafc;
+}
+
+.caja-modal-root--confirm .ant-modal-confirm-title {
+  font-weight: 600;
+  color: var(--caja-brand);
+}
+
+.caja-diario-modal-hint {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--credix-text-muted, #64748b);
+  line-height: 1.45;
+}
+
+.caja-diario-credito-chip-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.caja-ruta-qr-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.caja-ruta-qr-icon {
+  font-size: 28px;
+  color: var(--caja-brand);
+}
+
+.caja-ruta-qr-hint {
+  margin: 0 !important;
+  max-width: 340px;
+}
+
+.caja-ruta-qr-image {
+  border: 4px solid var(--caja-brand-light);
+  border-radius: 10px;
+}
+
+.caja-ruta-qr-url {
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.caja-mov-detalle .ant-descriptions-item-label {
+  font-weight: 500;
+  width: 38%;
+}

@@ -1,0 +1,136 @@
+﻿
+<div class="grid_12">
+    <form method="post" action="#" class="box validate">
+
+        <div class="header">
+            <h2>Salidas de Almacen</h2>
+        </div>
+
+        <div class="content">
+
+            <p class="_50 small" style="padding-top: 10px;">
+                @Html.DropDownList("cboTipoMov")
+            </p>
+
+            <p class="_100 small" >
+                <label for="txtGlosa" class="inline">GLOSA SALIDA:</label>
+                <input data-error-type="inline" type="text" class="required" name="txtGlosa" id="txtGlosa" />
+            </p>
+            <p class="_50 small" >
+                <label for="txtBuscarSerie" class="inline">SERIE DEL ARTICULO:</label>
+                <input data-error-type="inline" type="text" name="txtBuscarSerie" id="txtBuscarSerie" />
+                
+            </p>
+            <p class="_50 small">
+                <input id="btnBuscarSerie" type="submit" value="Agregar Serie" class="grey" />
+            </p>
+            <div class="clearfix"></div>
+            <div id="divAgregar" style="display: none">
+                <div id="mensaje" class="alert error sticky">
+                    <span class="icon"></span><strong id="lblmensaje"></strong>
+                </div>
+            </div>
+            <table id="tablaDetalleOrden" class="styled">
+                <thead>
+                    <tr>
+                        <th style="width: 40px">Serie</th>
+                        <th>Producto</th>
+                        <th style="width: 40px">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tdProductos"></tbody>
+            </table>
+        </div>
+
+        <div class="actions">
+            <div class="right">
+                <button id="btnSalida" class="button red block left"><span class="icon icon-play"></span>Crear Salida</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    $(function () {
+        $("#txtBuscarSerie").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $.ajax({
+                    url: "@Url.Action("BuscarProducto", "Salida")",
+                    data: { pNumeroSerie: $.trim(this.value) },
+                    success: function (ret) {
+                        $("#divAgregar").show('fast');
+                        if (ret.Error) {
+                            $("#mensaje").removeClass('success').addClass('error');
+                            $("#lblmensaje").text(ret.Mensaje);
+                        } else {
+                            $("#mensaje").addClass('success');
+                            $("#lblmensaje").text("Articulo Agregado");
+
+                            ListarDetalle(ret.SerieId, ret.Serie,ret.ArticuloId, ret.Denominacion);
+                        }
+                        $("#txtBuscarSerie").val('');
+                    }
+                });
+            }
+            else {
+                $("#divAgregar").hide();
+            }
+        });
+
+        $("#btnSalida").click(function () {
+
+            $.ajax({
+                type: 'POST',
+                dataType: 'json',
+                contentType: "application/json; charset=utf-8",
+                url: '@Url.Action("RealizarSalida","Salida")',
+                data: JSON.stringify({ tipoMovId: $("#cboTipoMov").val(), glosa: $("#txtGlosa").val(), series: lista }),
+                success: function (ret) {
+                    if (ret.length > 0)
+                        alert(ret);
+                    else
+                        window.location.reload();
+                    
+                }
+            });
+            return false;
+        });
+
+    });
+    var lista = [];
+    function ListarDetalle(serieid, serie,articuloId, denominacion) {
+        for (var i = 0; i < lista.length ; i++) {
+            if (lista[i].SerieId == serieid)
+                return;
+        }
+
+        lista.push({ SerieId: serieid, Serie: serie, ArticuloId: articuloId, Denominacion: denominacion });
+        Mostrar();
+    }
+
+    function Eliminar(serieId) {
+        for (var i = lista.length; i--;) {
+            if (lista[i].SerieId === serieId) {
+                lista.splice(i, 1);
+            }
+        }
+        Mostrar();
+    }
+
+    function Mostrar() {
+        var html = '';
+        $.each(lista, function () {
+            html += "<tr>" +
+            "<td>" + this.Serie + "</td>" +
+            "<td>" + this.Denominacion + "</td>" +
+            "<td class='center' style='width: 50px'>" +
+            "<a href='#' onclick='Eliminar(" + this.SerieId + ");return false;'  class='eliminar button small grey tooltip' data-gravity='s' title='Eliminar'><i class='icon-remove'></i></a>" +
+            "</td>" +
+            "</tr>";
+        });
+        $("#tdProductos").html(html);
+
+    }
+
+</script>

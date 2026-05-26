@@ -1,0 +1,29 @@
+Credito modern recovery report
+from_history=1209
+from_transcript=35
+skipped_existing=1200
+strreplace_patches=988
+
+Extensions restored (excluding bin/obj/node_modules):
+  .cs: 826
+  .tsx: 184
+  .ts: 117
+  .ps1: 29
+  .css: 22
+  .txt: 17
+  .py: 11
+  .md: 10
+  .svg: 10
+  .json: 9
+  .example: 7
+  .csproj: 5
+  .conf: 4
+  (noext): 3
+  .mjs: 2
+  .sln: 1
+  .development: 1
+  .local: 1
+  .production: 1
+  .html: 1
+  .yml: 1
+  .png: 1

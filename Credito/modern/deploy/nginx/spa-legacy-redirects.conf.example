@@ -1,0 +1,94 @@
+# Fase 5C-7 — Redirect 302 rutas MVC migradas → SPA (/app/...).
+# Sincronizar con Credito.Modern.Web/src/utils/legacyRoutes.ts
+# Incluir ANTES del location / { proxy_pass MVC } en production.conf.example:
+#   include /etc/nginx/spa-legacy-redirects.conf;
+
+# Login default SPA (activar con Ui:DefaultLoginToSpa en producción)
+# location = / {
+#     return 302 /app/login;
+# }
+
+location ~* ^/Home/Login$ {
+    return 302 /app/login$is_args$args;
+}
+
+location ~* ^/Usuario(/Index)?$ {
+    return 302 /app/admin/usuarios$is_args$args;
+}
+location ~* ^/Rol(/Index)?$ {
+    return 302 /app/admin/roles$is_args$args;
+}
+location ~* ^/Oficina(/Index)?$ {
+    return 302 /app/admin/oficinas$is_args$args;
+}
+location ~* ^/Comision(/Index)?$ {
+    return 302 /app/admin/comisiones$is_args$args;
+}
+location ~* ^/Marca(/Index)?$ {
+    return 302 /app/maestros/marcas$is_args$args;
+}
+location ~* ^/Modelo(/Index)?$ {
+    return 302 /app/maestros/modelos$is_args$args;
+}
+location ~* ^/TipoArticulo(/Index)?$ {
+    return 302 /app/maestros/tipos-articulo$is_args$args;
+}
+location ~* ^/Articulo(/Index)?$ {
+    return 302 /app/maestros/articulos$is_args$args;
+}
+location ~* ^/Almacen(/Index)?$ {
+    return 302 /app/maestros/almacenes$is_args$args;
+}
+location ~* ^/Caja(/Index)?$ {
+    return 302 /app/caja/maestro$is_args$args;
+}
+location ~* ^/CajaDiario(/Index)?$ {
+    return 302 /app/caja/diario$is_args$args;
+}
+location ~* ^/VerificarPagos(/Index)?$ {
+    return 302 /app/caja/verificar-pagos$is_args$args;
+}
+location ~* ^/Saldos(/Index)?$ {
+    return 302 /app/caja/saldos$is_args$args;
+}
+location ~* ^/CajaChica(/Index)?$ {
+    return 302 /app/caja/chica$is_args$args;
+}
+location ~* ^/Cliente(/Index)?$ {
+    return 302 /app/clientes$is_args$args;
+}
+location ~* ^/Credito/Simulador {
+    return 302 /app/credito/simulador$is_args$args;
+}
+location ~* ^/Credito/ParametrosSimulador {
+    return 302 /app/credito/parametros-simulador$is_args$args;
+}
+location ~* ^/Credito/(Consulta|Index) {
+    return 302 /app/credito/consulta$is_args$args;
+}
+location ~* ^/Credito/Tareas {
+    return 302 /app/credito/tareas$is_args$args;
+}
+location ~* ^/CreditoAprobar(/Index)?$ {
+    return 302 /app/credito/aprobar$is_args$args;
+}
+location ~* ^/VentaRapida(/Index)?$ {
+    return 302 /app/ventas/venta-rapida$is_args$args;
+}
+location ~* ^/OrdenVenta {
+    return 302 /app/ventas/orden-venta$is_args$args;
+}
+location ~* ^/ListaPrecio(/Index)?$ {
+    return 302 /app/ventas/lista-precios$is_args$args;
+}
+location ~* ^/Boveda(/Index)?$ {
+    return 302 /app/tesoreria/boveda$is_args$args;
+}
+
+# Informes frecuentes (datos en API; PDF tabular en SPA)
+location ~* ^/Reporte/ReporteCobroDiario {
+    return 302 /app/informes/cobro-diario$is_args$args;
+}
+location ~* ^/Reporte/ListarSaldoCartera {
+    return 302 /app/informes/saldo-cartera$is_args$args;
+}

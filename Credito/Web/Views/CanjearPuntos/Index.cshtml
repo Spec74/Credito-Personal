@@ -1,0 +1,212 @@
+﻿
+<div class="grid_12 profile">
+    <div class="header">
+        <div class="title">
+            <h2 id="lblCodCliente">CLIENTE : </h2>
+        </div>
+        <div class="avatar">
+            <img src="~/img/icons/packs/fugue/24x24/monitor-sidebar.png" />
+            <a id="lnkCanjearPuntos" href="@Url.Action("Index", "CanjearPuntos", null, "http")">Nuevo Canje</a>
+        </div>
+        <ul class="info">
+            <li>
+                <a href="javascript:void(0);">
+                    <strong>Puntos</strong>
+                    <small>---------------</small>
+                </a>
+            </li>
+            <li>
+                <a href="javascript:void(0);">
+                    <strong><span id="lblTotalPuntos">&nbsp;&nbsp;&nbsp;&nbsp; 0</span></strong>
+                    <small>Total Puntos</small>
+                </a>
+            </li>
+        </ul>
+        <!-- End of ul.info -->
+    </div>
+    <!-- End of .header -->
+</div>
+
+<div class="grid_12">
+    <div class="box">
+				
+        <div class="header">
+           <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Canjear de Puntos del Cliente</h2>
+        </div>
+					
+        <div class="content">
+            <div class="tabletools">
+                <div class="right">
+                </div>
+            </div>
+            <div class="searchbox">
+                <table>
+                    <tr >
+                        <td >
+                           
+                        </td>
+                        <td style="width: 100%; ">
+                            <input id="txtBuscar" type="text" placeholder="Buscar Cliente por Nombres, Apellidos, Documento" />
+                            <input id="btnBuscar" type="submit" value="Buscar" class="grey" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table class="styled"></table>
+        </div><!-- End of .content -->
+    </div><!-- End of .box -->
+</div><!-- End of .grid_12 -->
+
+<div class="grid_12">
+    <table id="grdBuscar"></table>
+    <div id="grdpBuscar"></div>
+</div>
+
+
+<div style="display: none;" id="dlgNuevo" title="Canjear Articulo">
+    <form action="#" class="full validate">
+        <div class="row">
+            <label for="txtBuscarxserie">
+                <strong>Serie Articulo</strong>
+            </label>
+            <div>
+                <input type="text" name="txtBuscarxserie" id="txtBuscarxserie" placeholder="Ingrese Serie Articulo a canjear" />
+            </div>
+        </div>
+        <div class="row">
+                <h2 id="lblNota" style="color: red"></h2>
+        </div>
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <button id="btnCanjear" class="submit">Canjear Articulo</button>
+        </div>
+    </div>
+</div>
+
+<script >
+    $(function() {
+        $.data(document.body, "Personaid","0");
+
+        $("#rbCanjeables,#rbNoCanjeables").change(function () {
+            $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+        });
+
+        $('#grdBuscar').jqGrid({
+            url: "@Url.Action("Listar","CanjearPuntos")",
+            datatype: 'json',
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "Buscar", Value: $.data(document.body, "PersonaId")}]);
+                }
+            },
+            colNames: ['Articuloid', 'ListaPrecioId', 'Tipo Articulo', 'Articulo', 'Puntos de Canje', 'Estado', 'Estado'],
+            colModel: [
+                { name: 'Articuloid', index: 'Articuloid', hidden: true },
+                { name: 'ListaPrecioid', index: 'ListaPrecioid', hidden: true },
+                { name: 'TipoArticulo', index: 'TipoArticulo', align: 'left', width: 100 },
+                { name: 'Articulo', index: 'Denominacion', align: 'left', width: 310 },
+                { name: 'Puntos', index: 'Puntos', align: 'center', width: 50 },
+                { name: 'Estado', index: 'Estado', hidden: true },
+                { name: 'Activo', index: 'Activo', align: 'center', width: 50, formatter: ActivoFormatter }
+            ],
+            caption: "ARTICULOS PARA CANJEAR",
+            pager: $('#grdpBuscar'),
+            rowNum: 15,
+            rowList: [15, 30, 45],
+            sortname: 'TipoArticulo',
+            sortorder: 'asc',
+            gridview: true,
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            //shrinkToFit: false,
+            width: 'auto',
+            height: '347px',
+            ondblClickRow: function () {
+                var id = jQuery("#grdBuscar").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    var ret = $("#grdBuscar").jqGrid('getRowData', id);
+                    $("#dlgNuevo").dialog("open");
+                }
+            }
+        });
+
+
+    });
+
+
+    $("#txtBuscarxserie").keypress(function (e) {
+        if (e.which == 13) {
+            e.preventDefault();
+            $("#btnCanjear").trigger('click');
+
+            ObtenerPuntos($.data(document.body,"Personaid"));
+        }
+    });
+
+
+    $("#dlgNuevo").dialog({
+        autoOpen: false,
+        modal: true,
+        width: 400,
+        open: function () {
+            $(this).parent().css('overflow', 'visible');
+            $$.utils.forms.resize();
+            $("#lblNota").text("");
+        }
+    }).find('button.submit').click(function () {
+        
+        $.ajax({
+            type: 'POST',
+            url: "@Url.Action("CanjearArticulo", "CanjearPuntos")",
+            data: {
+                pCodCliente : $.data(document.body, "Personaid"),
+                pNumSerie : $("#txtBuscarxserie").val() 
+            },
+            success: function (data) {
+                if(data!="") {
+                    $("#lblNota").text("" + data);
+                } else {
+                    $("#dlgNuevo").dialog('close');
+                    Vendix.Notificar('Canjear');
+                }
+            }
+        });
+
+    }).end().find('button.cancel').click(function () {
+        var $el = $(this).parents('.ui-dialog-content');
+        $el.find('form')[0].reset();
+        $el.dialog('close');
+    });
+    
+    $("#txtBuscar").autocomplete({
+        source: "@Url.Action("BuscarCliente", "Cliente")",
+        minLength: 2,
+        select: function (event, ui) {
+            $.data(document.body, "Personaid", ui.item.id);
+            $("#lblCodCliente").text("CLIENTE : " + ui.item.value);
+            ObtenerPuntos(ui.item.id);
+        }
+    });
+
+    function ObtenerPuntos(personaid) {
+        $.ajax({
+            url: "@Url.Action("ObtenerPuntos", "CanjearPuntos")",
+            data: { pPersonaId: personaid },
+            success: function(rpt) {
+                if (rpt == null) {
+                    $("#grdBuscar").jqGrid("clearGridData", true);
+                    $("#lblTotalPuntos").text('0');
+                }
+                else {
+                    $("#lblTotalPuntos").text("" + rpt.TotalPuntos);
+                    $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+                }
+            }
+        });
+    }
+</script>

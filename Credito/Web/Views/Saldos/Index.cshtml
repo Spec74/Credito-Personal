@@ -1,0 +1,578 @@
+﻿<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2>
+                <img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">
+                Lista Cajas Asignadas [@if (ViewBag.EsLectura)
+                {<text>ENCARGADO</text>}
+                else
+                {<text>PRINCIPAL</text> }]
+            </h2>
+        </div>
+
+        <table id="grdCajadiario"></table>
+        <div class="actions">
+            @if (!ViewBag.EsLectura)
+            {
+                <div class="left">
+                    <a id="btnNuevo" href="#" class="button">Asignar Caja</a>
+                </div>
+                <div class="right">
+                    <a id="btnReporteBoveda" href="#" class="button">Reporte Boveda</a>
+                    <a id="btnReporteCajas" href="#" class="button">Reporte Cajas</a>
+                    <a id="btnTransferir" href="#" class="button red">CERRAR CAJAS</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<div class="grid_12">
+    <table id="grdBuscar"></table>
+    <div id="grdpBuscar"></div>
+</div>
+
+@if (!ViewBag.EsLectura)
+{    
+    <div class="grid_12">
+        <table id="grdCajaChica"></table>
+        <div id="grdpCajaChica"></div>
+        <button id="btnCerrarCajaChica" style="float: right" class="button red block"><span class="icon icon-play"></span>CERRAR CAJA CHICA</button>
+    </div>
+
+<div class="clearfix"></div><br />
+}
+@if (ViewBag.RolAdmin || ViewBag.permisoAnulacionMov)
+{
+    <div class="grid_6">
+        <form method="post" action="#" class="box">
+
+            <div class="header">
+                <h2>Anular Movimiento de Caja</h2>
+            </div>
+
+            <div class="content">
+
+                <p class="_100 small" style="padding-top: 10px;">
+                    <label for="txtAnularMovCaja" class="inline">Nro. Movimiento:</label>
+                    <input data-error-type="inline" type="text" name="txtAnularMovCaja" id="txtAnularMovCaja" />
+                </p>
+                <p class="_50 small">
+                    <label>CajaDiario: <span id="lblaCajaDiarioId" class="lbla"></span></label>
+                </p>
+                <p class="_50 small">
+                    <label>Operación: <span id="lblaOperacion" class="lbla"></span></label>
+                </p>
+                <p class="_100 small">
+                    <label>Descripcion: <span id="lblaDescripcion" class="lbla"></span></label>
+                </p>
+                <p class="_100 small">
+                    <label>Persona: <span id="lblaPersona" class="lbla"></span></label>
+                </p>
+                <p class="_50 small">
+                    <label>Fecha Pago: <span id="lblaFecha" class="lbla"></span></label>
+                </p>
+                <p class="_50 small">
+                    <label>Importe Pago: <span id="lblaImportePago" class="lbla"></span></label>
+                </p>
+            </div>
+            <div class="actions">
+                <div class="right">
+                    <input type="button" style="display:none" value="Anular Movimiento" id="btnAnularMovCaja" />
+                </div>
+            </div>
+        </form>
+    </div>
+}
+
+
+<div style="display: none;" id="dialog_AsignarCaja" title="Asignar Caja">
+    <form class="full validate">
+        <div class="row">
+            <label for="cboCaja">
+                <strong>Caja Disponible:</strong>
+            </label>
+            <div>
+                <select id='cboCaja' name='cboCaja'></select>
+            </div>
+        </div>
+
+        @*<div class="row">
+                <label for="cboUsuario">
+                    <strong>Usuario:</strong>
+                </label>
+                <div>
+                    <select id="cboUsuario" name="cboUsuario" ></select>
+
+                </div>
+            </div>*@
+
+        <div class="row">
+            <label for="pSaldoInicial">
+                <strong>Saldo Inicial</strong>
+            </label>
+            <div>
+                <span id="lblMontoBoveda" style="color:blue"><strong></strong></span>
+                <input class="required" type="text" name="pSaldoInicial" id="pSaldoInicial" value="0" placeholder="0.00" />
+            </div>
+        </div>
+        <br />
+        <br />
+    </form>
+
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Cancelar</button>
+        </div>
+        <div class="right">
+            <button id="btnGuardarAsignarCaja" class="submit">Guardar</button>
+        </div>
+    </div>
+</div>
+<div style="display: none;" id="dialog_ConteoBillete" title="Conteo de Billetes">
+    <form id="frm1" method="post" action="#" class="full validate">
+        <p class="_100 small ">SALDO FINAL CAJAS: <span id="lblImporteCierre" style="font-size:larger">0.00</span></p>
+        <p class="_50 small">
+            <label for="p200soles" class="inline">200 Soles:</label>
+            <input data-error-type="inline" type="text" class="required" id="p200soles" />
+        </p>
+        <p class="_50 small">
+            <label for="p100soles" class="inline">100 Soles:</label>
+            <input data-error-type="inline" type="text" class="required" id="p100soles" />
+        </p>
+        <p class="_50 small">
+            <label for="p50soles" class="inline">50 Soles:</label>
+            <input data-error-type="inline" type="text" class="required" id="p50soles" />
+        </p>
+        <p class="_50 small">
+            <label for="p20soles" class="inline">20 Soles:</label>
+            <input data-error-type="inline" type="text" class="required" id="p20soles" />
+        </p>
+        <p class="_50 small">
+            <label for="p10soles" class="inline">10 Soles:</label>
+            <input data-error-type="inline" type="text" class="required" id="p10soles" />
+        </p>
+        <p class="_50 small">
+            <label for="p5soles" class="inline">5 Soles:</label>
+            <input data-error-type="inline" type="text" class="required" id="p5soles" />
+        </p>
+        <p class="_50 small">
+            <label for="p2soles" class="inline">2 Soles:</label>
+            <input data-error-type="inline" type="text" class="required" id="p2soles" />
+        </p>
+        <p class="_50 small">
+            <label for="p1sol" class="inline">1 Sol:</label>
+            <input data-error-type="inline" type="text" class="required" id="p1sol" />
+        </p>
+        <p class="_50 small">
+            <label for="p50cen" class="inline">50 Centimos:</label>
+            <input data-error-type="inline" type="text" class="required" id="p50cen" />
+        </p>
+        <p class="_50 small">
+            <label for="p20cen" class="inline">20 Centimos:</label>
+            <input data-error-type="inline" type="text" class="required" id="p20cen" />
+        </p>
+        <p class="_50 small">
+            <label for="p10cen" class="inline">10 Centimos:</label>
+            <input data-error-type="inline" type="text" class="required" id="p10cen" />
+        </p>
+
+        <p class="_100 small">
+            CONTEO BILLETE: <span id="lblConteoBillete" style="font-size:larger">0.00</span>
+            SOBRANTE: <span id="lblSobrante" style="font-size:larger">0.00</span>
+        </p>
+
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <button class="submit">Guardar</button>
+        </div>
+    </div>
+
+</div>
+
+
+<script type="text/javascript">
+    $$.ready(function () {
+        $("#pSaldoInicial").numeric(2);
+        $("#p200soles,#p100soles,#p50soles,#p20soles,#p10soles,#p5soles,#p2soles,#p1sol,#p50cen,#p20cen,#p10cen").numeric(0).keyup(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+            }
+            CalcularConteoBillete();
+        }).blur(function () { CalcularConteoBillete(); });
+
+        function CalcularConteoBillete() {
+            var totalBillete = parseFloat($("#p200soles").val()) * 200 + parseFloat($("#p100soles").val()) * 100 + parseFloat($("#p50soles").val()) * 50 + parseFloat($("#p20soles").val()) * 20 + parseFloat($("#p10soles").val()) * 10 + parseFloat($("#p5soles").val()) * 5 + parseFloat($("#p2soles").val()) * 2 + parseFloat($("#p1sol").val()) + parseFloat($("#p50cen").val()) * 0.5 + parseFloat($("#p20cen").val()) * 0.2 + parseFloat($("#p10cen").val()) * 0.1;
+            var importeCierre = parseFloat($.data(document.body, 'ImporteCierre'));
+            var sobrante = totalBillete - importeCierre;
+            if (sobrante < 0) sobrante = 0;
+
+            $("#lblConteoBillete").text(totalBillete.toFixed(2));
+            $("#lblSobrante").text(sobrante.toFixed(2));
+            $.data(document.body, 'ConteoBillete', totalBillete.toFixed(2));
+            $.data(document.body, 'SobranteBillete', sobrante.toFixed(2));
+        }
+
+        $("#txtAnularMovCaja").numeric().keypress(function (event) {
+            if (event.which == 13) {
+                //event.preventDefault();
+                $.ajax({
+                    url: "@Url.Action("ObtenerMovimientoCajaAnular", "CajaDiario")",
+                    data: { pMovimientoCajaId: $(this).val() },
+                    success: function (ret) {
+                        if (ret.rpta.Error) {
+                            Vendix.Dialogo(ret.rpta.Mensaje);
+                            $("#btnAnularMovCaja").hide();
+                            $(".lbla").text("");
+                        }
+                        else {
+                            $.data(document.body, 'MovimientoCajaId', ret.val.MovimientoCajaId);
+                            $("#lblaCajaDiarioId").text(ret.val.MovimientoCajaId);
+                            $("#lblaOperacion").text(ret.val.Operacion);
+                            $("#lblaDescripcion").text(ret.val.Descripcion);
+                            $("#lblaImportePago").text(ret.val.ImportePago);
+                            $("#lblaFecha").text(ret.rpta.Valor);
+                            $("#lblaPersona").text(ret.rpta.Valor1);
+                            $("#btnAnularMovCaja").show().focus();
+                        }
+                    }
+                });
+                return false;
+            }
+        });
+        $("#btnAnularMovCaja").click(function () {
+            AnularMovCaja($.data(document.body, 'MovimientoCajaId'));
+        });
+
+        $("#btnNuevo").click(function () {
+            Vendix.CargarCombo("@Url.Action("ObtnerListaCajasCombo", "Saldos")", "cboCaja");
+            @*Vendix.CargarCombo("@Url.Action("ObtnerListaUsuariosCombo", "Saldos")", "cboUsuario");*@
+
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("MostrarMontoBoveda","Saldos")",
+                data: {},
+                success: function (data) {
+                    $("#lblMontoBoveda").text("Monto total de boveda : S/. " + data);
+                }
+            });
+            $("#dialog_AsignarCaja").dialog("open");
+            return false;
+        });
+
+        $("#btnTransferir").click(function () {
+            $.ajax({
+                type: 'GET',
+                url: "@Url.Action("ValidarCierre","Saldos")",
+                data: {},
+                success: function (ret) {
+                    if (ret.length == 0) {
+
+                        @*$.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("ImporteCierre","Saldos")",
+                            data: {},
+                            success: function () {
+                                Vendix.Notificar("Grabar");
+                                $("#grdCajadiario,#grdBuscar,#grdCajaChica").trigger("reloadGrid");
+                                $el.find('form')[0].reset();
+                                $el.dialog('close');
+                            }
+                        });*@
+                        $("#lblConteoBillete,#lblSobrante").text("0.00");
+                        $("#p200soles,#p100soles,#p50soles,#p20soles,#p10soles,#p5soles,#p2soles,#p1sol,#p50cen,#p20cen,#p10cen").val(0);
+                        $("#dialog_ConteoBillete").dialog("open");
+                        Vendix.TextoInline();
+                        return false;
+
+
+                    } else {
+                        Vendix.Dialogo(ret);
+                    }
+                }
+            });
+
+        });
+
+        $("#dialog_AsignarCaja").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 400,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('button.submit').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+
+                $("#btnGuardarAsignarCaja").prop('disabled', true);
+
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("AsignarCaja", "Saldos")",
+                    data: {
+                        pCajaId: $("#cboCaja").val(),
+                        pUsuarioAsignadoId: 0,// $("#cboUsuario").val(),
+                        pSaldoInicial: $("#pSaldoInicial").val(),
+                    },
+                    success: function (ret) {
+                        $("#btnGuardarAsignarCaja").prop('disabled', false);
+                        if (ret.length == 0) {
+                            Vendix.Notificar("Crear");
+                            $("#grdCajadiario,#grdBuscar,#grdCajaChica").trigger("reloadGrid");
+                            $el.find('form')[0].reset();
+                            $el.dialog('close');
+                        } else {
+                            $el.find('form')[0].reset();
+                            $el.dialog('close');
+                            Vendix.Dialogo(ret);
+                        }
+                    }
+                });
+
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        $("#dialog_ConteoBillete").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 400,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('button.submit').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+
+                var conteoBillete = parseFloat($.data(document.body, 'ConteoBillete'));
+                var importeCierre = parseFloat($.data(document.body, 'ImporteCierre'));
+                if (conteoBillete < importeCierre) {
+                    Vendix.Dialogo("El Conteo de Billetes debe ser mayor o igual al importe Cierre.", "Aceptar");
+                    return false;
+                }
+
+                Vendix.Dialogo("Confirme para CERRAR CAJAS?", "SiNo", function () {
+                                      
+
+                    $.ajax({
+                        type: 'POST',
+                        url: "@Url.Action("Transferir","Saldos")",
+                        data: { pSobrante: $.data(document.body, 'SobranteBillete') },
+                        success: function () {
+                            Vendix.Notificar("Grabar");
+
+                            $("#grdCajadiario,#grdBuscar,#grdCajaChica").trigger("reloadGrid");
+                            $el.find('form')[0].reset();
+                            $el.dialog('close');
+                        }
+                    });
+                    $.ajax({
+                        type: 'POST',
+                        url: "@Url.Action("ActualizarDatosPostCierreBoveda", "Saldos")",
+                        data: {},
+                        success: function () {
+                            console.log('realizado');
+                        }
+                    });
+                });
+
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        jQuery("#grdCajadiario").jqGrid({
+            url: "@Url.Action("ListarCajasAsignadas", "Saldos")",
+            datatype: "json",
+            colNames: ['Diarioid', 'CAJA', 'MODO', 'CAJERO', 'FECHA INICIO', 'FECHA FIN', 'SALDO INICIAL', 'ENTRADAS', 'SALIDAS', 'SALDO FINAL'],
+            colModel:
+                [
+                    { name: 'CajaDiarioId', index: 'CajaDiarioId', width: 25, sortable: false },
+                    { name: 'Caja', index: 'Caja', width: 80, sortable: false },
+                    { name: 'IndCierre', index: 'IndCierre', width: 40, align: "center" },
+                    { name: 'Cajero', index: 'Cajero', width: 150 },
+                    { name: 'FechaIniOperacion', index: 'FechaIniOperacion', width: 85, align: "center" },
+                    { name: 'FechaFinOperacion', index: 'FechaFinOperacion', width: 85, align: "center" },
+                    { name: 'SaldoInicial', index: 'SaldoInicial', width: 50, align: "center" },
+                    { name: 'Entradas', index: 'Entradas', width: 50, align: "center" },
+                    { name: 'Salidas', index: 'Salidas', width: 50, align: "center" },
+                    { name: 'SaldoFinal', index: 'SaldoFinal', width: 50, align: "center" }
+                ],
+            caption: "Cajas Asignadas",
+            //rowNum: 12,
+            sortname: 'CajaDiarioId',
+            sortorder: "asc",
+            viewrecords: true,
+            gridview: true,
+            rownumbers: true,
+            autowidth: true,
+            width: 'auto',
+            height: '234px',
+            footerrow: true,
+            loadComplete: function () {
+                var $self = $(this),
+                    sumsi = $self.jqGrid('getCol', 'SaldoInicial', false, 'sum'),
+                    sument = $self.jqGrid('getCol', 'Entradas', false, 'sum'),
+                    sumsal = $self.jqGrid('getCol', 'Salidas', false, 'sum'),
+                    sumsf = $self.jqGrid('getCol', 'SaldoFinal', false, 'sum');
+                $self.jqGrid("footerData", "set", {
+                    FechaFinOperacion: "TOTAL CAJAS: ",
+                    SaldoInicial: parseFloat(sumsi).toFixed(2),
+                    Entradas: parseFloat(sument).toFixed(2),
+                    Salidas: parseFloat(sumsal).toFixed(2),
+                    SaldoFinal: parseFloat(sumsf).toFixed(2)
+                });
+                let importef = sumsf.toFixed(1);
+                $.data(document.body, 'ImporteCierre', importef);
+                $("#lblImporteCierre").text(importef);
+            }
+        });
+
+        jQuery("#grdBuscar").jqGrid({
+            url: "@Url.Action("ListarSaldoCajaDiario", "Saldos")",
+            datatype: "json",
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "BovedaId", Value: '0' }]);
+                }
+            },
+            colNames: ['NRO', 'CAJA', 'RESPONSABLE', 'SALDO INICIAL', 'SALDO FINAL', 'F.INICIO', 'F.FIN', 'CERRADO', 'BOVEDA', 'ACCION'],
+            colModel:
+                [
+                    { name: 'CajaDiarioId', index: 'CajaDiarioId', width: 75 },
+                    { name: 'Caja', index: 'Caja', width: 150 },
+                    { name: 'NombreUsuario', index: 'NombreUsuario', width: 150 },
+                    { name: 'SaldoInicial', index: 'SaldoInicial' },
+                    { name: 'SaldoFinal', index: 'SaldoFinal' },
+                    { name: 'FechaIniOperacion', index: 'FechaIniOperacion' },
+                    { name: 'FechaFinOperacion', index: 'FechaFinOperacion' },
+                    { name: 'IndCierre', index: 'IndCierre', width: 70, align: "center" },
+                    { name: 'TransBoveda', index: 'TransBoveda', width: 70, align: "center" },
+                    { name: 'imprimir', index: 'imprimir', align: 'center', width: 60, formatter: ImprimirFormatter }
+                ],
+            caption: "Saldos Caja Diario",
+            pager: jQuery('#grdpBuscar'),
+            rowNum: 10,
+            rowList: [10, 20, 30],
+            sortname: 'CajaDiarioId',
+            sortorder: "desc",
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            //paging: true,
+            width: 'auto',
+            height: '232px'
+        });
+
+        jQuery("#grdCajaChica").jqGrid({
+            url: "@Url.Action("ListarSaldoCajaChicaDiario", "Saldos")",
+            datatype: "json",
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "BovedaId", Value: '0' }]);
+                }
+            },
+            colNames: ['NRO', 'CAJA', 'RESPONSABLE', 'SALDO INICIAL', 'SALDO FINAL', 'F.INICIO', 'F.FIN', 'CERRADO', 'BOVEDA', 'ACCION'],
+            colModel:
+            [
+                { name: 'Id', index: 'Id', width: 75, sortable: false },
+                { name: 'Caja', index: 'Caja', width: 150, sortable: false },
+                { name: 'NombreUsuario', index: 'NombreUsuario', width: 150, sortable: false },
+                { name: 'SaldoInicial', index: 'SaldoInicial', sortable: false },
+                { name: 'SaldoFinal', index: 'SaldoFinal', sortable: false },
+                { name: 'FechaIniOperacion', index: 'FechaIniOperacion', sortable: false },
+                { name: 'FechaFinOperacion', index: 'FechaFinOperacion', sortable: false },
+                { name: 'IndCierre', index: 'IndCierre', width: 70, align: "center", sortable: false },
+                { name: 'TransBoveda', index: 'TransBoveda', width: 70, align: "center", sortable: false },
+                { name: 'imprimir', index: 'imprimir', align: 'center', width: 60, sortable: false, formatter: ImprimirFormatter }
+            ],
+            caption: "Saldos Caja Chica",
+            pager: jQuery('#grdpCajaChica'),
+            rowNum: 10,
+            rowList: [10, 20, 30],
+            sortname: 'Id',
+            sortorder: "desc",
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            //paging: true,
+            width: 'auto',
+            height: '232px'
+        });
+    });
+    function ImprimirFormatter(cellvalue, options, rowObject) {
+        return "<a href='#' onclick='ImprimirSaldo(" + cellvalue + ");return false;' class='button small blue tooltip' data-gravity='s' title='Imprimir'><i class='icon-picture'></i></a>";
+    }
+    function ImprimirSaldo(pCajaDiarioId) {
+        event.preventDefault();
+        var ruta = '@Url.Action("ReporteSaldoCaja", "Reporte")' + '?pCajaDiarioId=' + pCajaDiarioId;
+        window.open(ruta);
+        return false;
+    }
+    function AnularMovCaja(pMovimientoCajaId) {
+        @*$.ajax({
+            url: "@Url.Action("ValidarAnularMovimientoCaja", "Credito")",
+            data: { pMovimientoCajaId: pMovimientoCajaId },
+            success: function (ret) {
+                if (ret == false) {*@
+        Vendix.DialogoObs("Ingrese la Observación para anular.", function () {
+            $.ajax({
+                url: "@Url.Action("AnularMovimientoCaja", "Credito")",
+                data: { pMovimientoCajaId: pMovimientoCajaId, pObservacion: $.data(document.body, 'txtObsBase') },
+                success: function (rpt) {
+                    if (rpt) {
+                        Vendix.Notificar('Anular');
+                        $("#btnAnularMovCaja").hide();
+                        $(".lbla").text("");
+                    }
+                }
+            });
+        });
+        @*        } else
+                    Vendix.Dialogo("Tiene Pagos de cuotas, No se Puede Anular el Crédito", "Aceptar");
+            }
+                    });*@
+    }
+    $("#btnReporteCajas").click(function () {
+        event.preventDefault();
+        var ruta = '@Url.Action("ReporteCajasAsignadas", "Reporte")';
+        window.open(ruta);
+        return false;
+    });
+    $("#btnReporteBoveda").click(function () {
+        event.preventDefault();
+        var ruta = '@Url.Action("ReporteMovimientoBoveda", "Reporte")';
+        window.open(ruta);
+        return false;
+    });
+
+    $("#btnCerrarCajaChica").click(function () {
+        $.ajax({
+            type: 'GET',
+            url: "@Url.Action("ValidarCierreCajaChica", "Saldos")",
+            data: {},
+            success: function (ret) {
+                if (ret.length == 0) {
+                    Vendix.Dialogo("Confirme para CERRAR CAJA CHICA?", "SiNo", function () {
+                        $.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("TransferirCierreCajaChica", "Saldos")",
+                            data: {},
+                            success: function () {
+                                Vendix.Notificar("Grabar");
+                                $("#grdCajadiario,#grdBuscar,#grdCajaChica").trigger("reloadGrid");
+                            }
+                        });
+                    });
+                } else {
+                    Vendix.Dialogo(ret);
+                }
+            }
+        });
+    });
+</script>

@@ -1,0 +1,274 @@
+﻿<h1 class="grid_12">Mantenimiento de Persona</h1>
+
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2>
+                <img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Lista de Personas</h2>
+        </div>
+
+        <div class="searchbox">
+            <input id="txtBuscar" type="text" placeholder="Ingrese Nombre" />
+            <input id="btnBuscar" type="submit" value="Buscar" class="grey" />
+        </div>
+        <a id="btnNuevo" href="#" class="button">Nueva Persona</a>
+        <table id="grdBuscar"></table>
+        <div id="grdpBuscar"></div>
+    </div>
+</div>
+
+<div style="display: none;" id="dlgNuevo" title="Mantener Lista de Persona">
+    <form action="#" class="full validate">
+        <div class="row">
+            <label for="txtNombre">
+                <strong>Nombre:</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtNombre" id="txtNombre" />
+            </div>
+        </div>
+        <div class="row">
+            <label for="txtApePaterno">
+                <strong>Ap.Paterno: </strong>
+            </label>
+            <div>
+                <input class="required" style="width: 38%" type="text" name="txtApePaterno" id="txtApePaterno" />
+                <strong>Ap.Materno</strong>
+                <input class="required" style="width: 38%; float: right" type="text" name="txtApeMaterno" id="txtApeMaterno" />
+            </div>
+        </div>
+        
+        <div class="row">
+            <label for="drpTipoDocumento">
+                <strong>Documento:</strong>
+            </label>
+            <div>
+                <table style="width:100%;">
+                    <tr>
+                        <td style="width: 38%;">
+                            <select id ="drpTipoDocumento" >
+                                <option value="DNI">DNI</option>
+                                <option value="RUC">RUC</option>
+                            </select></td>
+                        <td><strong>&nbsp&nbsp NºDocumento:</strong></td>
+                        @*<td style="text-align:right">*@
+                        <td style="width:38%">
+                            <input class="required" style="float:right" type="text" name="txtNumeroDocumento" id="txtNumeroDocumento"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <label>
+                <strong>Sexo:</strong>
+            </label>
+            <div style="margin-top: 4%">
+                <input type="radio" name="rbSexo" id="rbSexoM" value="M" checked="checked"/><label for="rbSexoM">Masculino</label>&nbsp;&nbsp;
+                <input type="radio" name="rbSexo" id="rbSexoF" value="F" /><label for="rbSexoF">Femenino</label>
+            </div>
+        </div>
+        
+        <div class="row">
+            <label>
+                <strong>TipoPersona:</strong>
+            </label>
+            <div style="margin-top: 4%">
+                <input type="radio" name="rbTipoPersona" id="rbTipoPersonaN" value="N" checked="checked"/><label for="rbTipoPersonaN">Natural</label>&nbsp;&nbsp;
+                <input type="radio" name="rbTipoPersona" id="rbTipoPersonaJ" value="J" /><label for="rbTipoPersonaJ">Juridica</label>
+            </div>
+        </div>
+
+       @* <div class="row">
+            <label for="drpSexo">
+                <strong>Sexo:</strong>
+            </label>
+            <div>
+                <table style="width:100%;">
+                    <tr>
+                        <td style="width: 38%;">
+                            <select id ="drpSexo" >
+                                <option value="M">Masculino</option>
+                                <option value="F">Femenino</option>
+                            </select></td>
+                        <td><strong>&nbsp&nbsp TipoPersona:</strong></td>
+                        <td style="width:38%">
+                            <select id = "drpTipoPersona">
+                                <option value="N">Natural</option>
+                                <option value="J">Juridica</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>*@
+         <div class="row">
+            <label for="txtEmailPersonal">
+                <strong>Email:</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtEmailPersonal" id="txtEmailPersonal"/>
+            </div>
+        </div>
+       <div class="row">
+            <label for="txtTelefonoMovil">
+                <strong>Telefono Movil:</strong>
+            </label>
+            <div>
+                <input class="required" style="width:38%" type="text" name="txtTelefonoMovil" id="txtTelefonoMovil"/>
+                <strong>Telefono Fijo:</strong>
+                <input class="required"  style="width:38%; float:right" type="text" name="txtTelefonoFijo" id="txtTelefonoFijo"/>
+            </div>
+        </div>
+        <div class="row">
+            <label for="txtFechaNacimiento">
+                <strong>Fecha Nacimiento:</strong>
+            </label>
+            <div>
+                <input type="date" id="txtFechaNacimiento" readonly="readonly" style="width: 38%"/>
+                <strong>Direccion:</strong>
+                <input class="required" style="width:38%; float:right" type="text" name="txtDireccion" id="txtDireccion"/>
+            </div>
+        </div>  
+        <div class="row">
+            <label for="chkActivo">
+                <strong>Estado:</strong>
+            </label>
+            <div>
+                <div><input type="checkbox" id="chkActivo" /> <label for="chkActivo">Activo</label></div>
+            </div>
+        </div>
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            @*<button class="submit">Guardar</button>*@
+            <input id="btnEnviar" type="button" value="Guardar" />
+        </div>
+    </div>
+</div>
+
+<script>
+    $$.ready(function () {
+        $("#btnNuevo").click(function () {
+            $.data(document.body, 'Personaid', 0);
+            $("#txtPersona").val("").removeAttr('disabled');
+            //$("#rbSexo").prop("checked", true);
+            $("#chkActivo").prop("checked",true);
+            $("#dlgNuevo").dialog("open");
+            return false;
+        });
+        $("#txtBuscar").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+            }
+        });
+        $("#btnBuscar").click(function () { $("#grdBuscar").trigger("reloadGrid"); });
+
+        $("#dlgNuevo").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 540,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('#btnEnviar').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("GuardarPersona", "Persona")",
+                    data: {
+                        pPersonaId: $.data(document.body, 'PersonaId'),
+                        pNombre: $("#txtNombre").val(),
+                        pApePaterno: $("#txtApePaterno").val(),
+                        pApeMaterno: $("#txtApeMaterno").val(),
+                        pTipoDocumento: $("#drpTipoDocumento").val(),
+                        pNumeroDocumento: $("#txtNumeroDocumento").val(),
+                        pSexoM: $("#rbSexoM").prop('checked'),
+                        pTipoPersonaN: $("#rbTipoPersonaN").prop('checked'),
+                        pEmailPersonal: $("#txtEmailPersonal").val(),
+                        pTelefonoMovil: $("#txtTelefonoMovil").val(),
+                        pTelefonoFijo: $("#txtTelefonoFijo").val(),
+                        pFechaNacimiento: $("#txtFechaNacimiento").val(),
+                        pDireccion: $("#txtDireccion").val(),
+                        pActivo: $("#chkActivo").prop('checked')
+                    },
+                    success: function (data) {
+                        Vendix.Notificar("Modificar");
+                        $("#grdBuscar").trigger("reloadGrid");
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                    }
+                });
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        jQuery("#grdBuscar").jqGrid({
+            url: "@Url.Action("ListarPersona", "Persona")",
+            datatype: "json",
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "Buscar", Value: $("#txtBuscar").val() }]);
+                }
+            },
+            colNames: ['INV NRO', 'NOMBRE COMPLETO', 'TIPO DE DOC.', 'NRO DOCUMENTO', 'EMAIL', 'TELEFONO MOVIL', 'TELEFONO FIJO', 'FECHA NACIM.', 'DIRECCION', 'ESTADO', 'ESTADO'],
+            colModel:
+                [
+                    { name: 'Personaid', index: 'Personaid', width: 35 },
+                    { name: 'NombreCompleto', index: 'NombreCompleto', width: 260, align: "left" },
+                    { name: 'TipoDocumento', index: 'TipoDocumento', width: 70, align: "left" },
+                    { name: 'NumeroDocumento', index: 'NumeroDocumento', width: 150, align: "left" },
+                    { name: 'EmailPersonal', index: 'EmailPersonal', width: 150, align: "left" },
+                    { name: 'TelefonoMovil', index: 'TelefonoMovil', width: 150, align: "left" },
+                    { name: 'TelefonoFijo', index: 'TelefonoFijo', width: 150, align: "left" },
+                    { name: 'FechaNacimiento', index: 'FechaNacimiento', width: 150, align: "left" },
+                    { name: 'Direccion', index: 'Direccion', width: 150, align: "left" },
+                    { name: 'Estado', index: 'Estado', hidden: true },
+                    { name: 'Activo', index: 'Activo', align: 'center', width: 80, formatter: ActivoFormatter }
+                ],
+            caption: "Lista Persona",
+            pager: jQuery('#grdpBuscar'),
+            rowNum: 15,
+            rowList: [15, 30, 45],
+            sortname: 'Personaid',
+            sortorder: "asc",
+            gridview: true,
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            //paging: true,
+            width: 'auto',
+            height: '347px',
+            ondblClickRow: function () {
+                var id = jQuery("#grdBuscar").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    var ret = $("#grdBuscar").jqGrid('getRowData', id);
+                    $("#txtNombre").val(ret.Nombre);
+                    $("#txtApePaterno").val(ret.ApePaterno);
+                    $("#txtApeMaterno").val(ret.ApeMaterno);
+                    $("#drpTipoDocumento").val(ret.TipoDocumento);
+                    $("#txtNumeroDocumento").val(ret.NumeroDocumento);
+                    //$("#rbSexoM").prop("checked", ret.rbSexo);
+                    //$("#rbTipoPersona").val(ret.TipoPersona);
+                    $("#txtEmailPersonal").val(ret.EmailPersonal);
+                    $("#txtTelefonoMovil").val(ret.TelefonoMovil);
+                    $("#txtTelefonoFijo").val(ret.TelefonoFijo);
+                    $("#txtFechaNacimiento").val(ret.FechaNacimiento);
+                    $("#txtDireccion").val(ret.Direccion);
+                    $("#chkActivo").prop("checked", ret.Estado == "True" ? true : false);
+                    $.data(document.body, 'Personaid', ret.PersonaId);
+                    $("#dlgNuevo").dialog("open");
+                }
+            }
+        });//.navGrid('#grdBuscar', { edit: false, add: false, del: false });
+    });
+</script>
+
+
+

@@ -1,0 +1,743 @@
+﻿@model ITB.VENDIX.DA.Cliente
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+
+<style>
+    .texto {
+        padding-top: 6px;
+    }
+</style>
+<section class="grid_12 clearfix box">
+    <form method="post" action="@Url.Action("Guardar","Cliente")" class="validate" name="frmCliente">
+        <div class="grid_6">
+
+            <div class="header">
+                <h2><a href="@Url.Action("Index","Cliente")">Clientes</a></h2>
+            </div>
+            <div class="content">
+                <input type="hidden" name="c.ClienteId" id="ClienteId" value="@Model.ClienteId" />
+                <input type="hidden" name="p.PersonaId" id="PersonaId" value="@Model.PersonaId" />
+
+                <p class="_25 texto ">
+                    <select id="cboTipoPersona" name="p.TipoPersona">
+                        <option value="N" selected>NATURAL</option>
+                        <option value="J">JURIDICO</option>
+                    </select>
+                </p>
+                <p class="_50 texto">
+                    <label for="NroDocumento" id="lblDocumento" class="inline">DNI:</label>
+                    <input type="text" class="required" name="p.NumeroDocumento" id="NroDocumento" value="@Model.Persona.NumeroDocumento" autofocus />
+                </p>
+                <p class="_25 texto">
+                    <input id="btnValidar" type="button" value="VALIDAR" />
+                </p>
+
+
+                <p class="_100  texto">
+                    <label for="txtNombre" id="lblNombre" class="inline">Nombre:</label>
+                    <input type="text" class="required" name="p.Nombre" id="txtNombre" value="@Model.Persona.Nombre" />
+                </p>
+                <p class="_50 texto natural">
+                    <label for="txtApePaterno" class="inline">Paterno:</label>
+                    <input type="text" class="required" name="p.ApePaterno" id="txtApePaterno" value="@Model.Persona.ApePaterno" />
+                </p>
+                <p class="_50 texto natural">
+                    <label for="txtApeMaterno" class="inline">Materno:</label>
+                    <input type="text" class="required" name="p.ApeMaterno" id="txtApeMaterno" value="@Model.Persona.ApeMaterno" />
+                </p>
+                @*<p class="_50 texto natural">
+                        <label for="txtFechaNacimiento" class="inline maskDate">Nacimiento:</label>
+                        <input type="date" name="p.FechaNacimiento" id="txtFechaNacimiento" placeholder="DD/MM/YYYY"
+                               value="@if (Model.Persona.FechaNacimiento.HasValue) {<text>@Model.Persona.FechaNacimiento.Value.ToString("dd/MM/yyyy")</text>}" />
+                    </p>*@
+                <p class="_50 texto natural">
+                    <label for="txtFechaNacimiento" class="inline">Fecha Nacimiento:</label>
+                    <input type="date" name="p.FechaNacimiento" class="maskDate" id="txtFechaNacimiento" placeholder="DD/MM/YYYY"
+                           value="" />
+                </p>
+                <p class="_50 texto natural">
+                    <select id="cboSexo" name="p.Sexo">
+                        <option value="M" selected>MASCULINO</option>
+                        <option value="F">FEMENINO</option>
+                    </select>
+                </p>
+                <p class="_50 texto">
+                    <label for="txtcelular1" class="inline">Celular:</label>
+                    <input type="text" name="p.Celular1" id="txtcelular1" pattern="^\d{1,10}$" value="@Model.Persona.Celular1" />
+                </p>
+                <p class="_50  texto">
+                    <label for="txtEmailPersonal" class="inline">Correo:</label>
+                    <input type="text" name="p.EmailPersonal" id="txtEmailPersonal" value="@Model.Persona.EmailPersonal" />
+                </p>
+
+                <p class="_100 texto">
+                    <label for="txtDireccion" class="inline">Domicilio:</label>
+                    <input type="text" name="p.Direccion" id="txtDireccion" value="@Model.Persona.Direccion" />
+                </p>
+                <p class="_100 texto">
+                    <label for="txtDireccionRef" class="inline">Referencia Domicilio:</label>
+                    <input type="text" name="p.DireccionRef" id="txtDireccionRef" value="@Model.Persona.DireccionRef" />
+                </p>
+                <p class="_100 texto">
+                    <label for="txtUbicacion" class="inline">Distrito:</label>
+                    <input type="text" name="txtUbicacion" id="txtUbicacion" placeholder="Buscar por Distrito" value="@ViewBag.Distrito" />
+                    <input type="hidden" name="p.DistritoId" id="DistritoId" value="@Model.Persona.DistritoId" />
+                </p>
+                <p class="_100 texto">
+                    <label for="txtNegocio" class="inline">Dirección de Negocio:</label>
+                    <input type="text" name="c.DireccionNegocio" id="txtNegocio" value="@Model.DireccionNegocio" />
+                </p>
+                <p class="_100 texto">
+                    <label for="txtNegocioRef" class="inline">Referencia Negocio:</label>
+                    <input type="text" name="c.DireccionNegocioRef" id="txtNegocioRef" value="@Model.DireccionNegocioRef" />
+                </p>
+
+                <input type="hidden" name="c.Latitud" id="Latitud" value="@Model.Latitud" />
+                <input type="hidden" name="c.Longitud" id="Longitud" value="@Model.Longitud" />
+
+                <div class="_100 texto">
+                    <label style="font-weight: bold; color: #d32f2f;">📍 Ubicación GPS:</label>
+                    <br />
+                    <button id="btnBuscarEnMapa" class="button small blue" style="margin: 10px 0;">
+                        <span class="icon icon-search"></span> Ubicar Domicilio en el Mapa
+                    </button>
+
+                    <div id="mapa-cliente" style="height: 300px; width: 98%; border: 2px solid #ccc; border-radius: 8px; margin-bottom: 15px;"></div>
+                </div>
+
+            </div>
+
+        </div>
+        <div class="grid_6">
+
+            <div class="header">
+                <h2>CALIFICACION: @Model.Calificacion</h2>
+            </div>
+            <div class="content">
+                @if (ViewBag.Depurado != null)
+                {
+                    <p class="_100  texto">
+                        <div class="alert error sticky no-margin">
+                            <a @if (ViewBag.Admin > 0 || ViewBag.Aprobador1 > 0) { <text> href="#" id="btnDepurado" </text> } style="color:white">
+                                <span class="icon"></span>
+                                <strong>DEPURADO!</strong> @ViewBag.Depurado
+                            </a>
+                        </div>
+                    </p>
+                }
+                <p class="_50 texto">
+                    <label for="txtTopeCredito">Tope Credito:</label>
+                    <input type="text" name="c.TopeCredito" id="txtTopeCredito" value="@Model.TopeCredito" @if (ViewBag.Aprobador1 == 0) { <text> readonly</text> } />
+                </p>
+                <p class="_50 texto">
+                    <label>Giro de Negocio:</label>
+                    @Html.DropDownList("c.ActividadEconId", (IEnumerable<SelectListItem>)ViewBag.cboGiroNegocio, new { @class = "search" })
+                </p>
+
+
+
+                <p id="pnlOtros" class="_100 texto">
+                    <label for="txtOtros" class="inline">OTROS:</label>
+                    <input type="text" name="txtOtros" id="txtOtros" required />
+                </p>
+
+                <p class="_50 texto natural">
+                    <label>Estado Civil:</label>
+                    @Html.DropDownList("p.EstadoCivilId", (IEnumerable<SelectListItem>)ViewBag.cboEstadoCivil, "--Seleccionar--")
+                </p>
+                <p class="_50 texto">
+                    <label>Tipo de Vivienda:</label>
+                    @Html.DropDownList("p.TipoViviendaId", (IEnumerable<SelectListItem>)ViewBag.cboTipoVivienda, "--Seleccionar--")
+                </p>
+                <div id="pnlEstadoCivil">
+                    @*<p class="_100 texto natural">
+                            <label for="txtConyugue" class="inline">Conyugue:</label>
+                            <input type="text" name="p.Conyugue" id="txtConyugue" value="@Model.Persona.Conyugue" />
+                        </p>
+                        <p class="_50 texto natural">
+                            <label for="txtDNIConyugue" class="inline">DNI Conyugue:</label>
+                            <input type="text" name="p.ConyugueDNI" id="txtDNIConyugue" value="@Model.Persona.ConyugueDNI" />
+                        </p>
+                        <p class="_50 texto natural">
+                            <label for="txtCelularConyugue" class="inline">Celular:</label>
+                            <input type="text" name="p.ConyugueCelular" id="txtCelularConyugue" value="@Model.Persona.ConyugueCelular" />
+                        </p>*@
+
+                    <p class="_75 small">
+                        <label>Conyugue:</label>
+                        <input id="txtPersonaES" name="txtConyuguePersona" type="search" placeholder="BUSCAR CONYUGUE" value="@ViewBag.ConyuguePersona" />
+                        <input type="hidden" name="P.ConyuguePersonaId" id="ConyuguePersonaId" value="@Model.Persona.ConyuguePersonaId" />
+                    </p>
+                    <p class="_25 small">
+                        <a id="btnDetalleConyugue" style="margin-top:15px" class="button"><span class="icon icon-list-alt"></span></a>
+                        <a id="btnNuevoAval" style="margin-top:15px" class="button"><span class="icon  icon-user"></span></a>
+                    </p>
+
+                </div>
+
+                @*<p class="_100 texto">
+                        <label for="txtAval" class="inline">Aval:</label>
+                        <input type="text" name="c.Aval" id="txtAval" value="@Model.Aval" />
+                    </p>
+                    <p class="_50 texto">
+                        <label for="txtDNIAval" class="inline">DNI Aval:</label>
+                        <input type="text" name="c.AvalDNI" id="txtDNIAval" value="@Model.AvalDNI" />
+                    </p>
+
+                    <p class="_50 texto">
+                        <label for="txtCelularAval" class="inline">Celular:</label>
+                        <input type="text" name="c.AvalCelular" id="txtCelularAval" value="@Model.AvalCelular" />
+                    </p>*@
+                <p class="_100 texto">
+                    <label for="Nota" class="inline">Observación:</label>
+                    <input type="text" id="Nota" name="c.Nota" style="height: 45px;" value="@Model.Nota" />
+                </p>
+
+                <p class="_50 texto">
+                    <label>Clasificación Riesgo SBS:</label>
+                    @Html.DropDownList("c.ClasificacionRiesgoSBS", (IEnumerable<SelectListItem>)ViewBag.ClasificacionRiesgoSBS, "--Seleccionar--")
+                </p>
+                <p class="_50 texto">
+                    <label for="txtObservacionCentralRiesgo">Obs Riesgo:</label>
+                    <input type="text" name="c.ClasificacionRiesgoSBSObs" id="txtObservacionCentralRiesgo" value="@Model.ClasificacionRiesgoSBSObs" />
+                </p>
+
+                <p class="_100 texto">
+                    <br />
+                    @if (ViewBag.Aprobador1 > 0)
+                    {
+                        <button id="btnBloqueado" class="block"><span class="icon icon-lock"></span></button>
+                    }
+                    <label for="chkBloqueado" style="display: inline">Bloqueado</label>
+                    <input type="checkbox" id="chkBloqueado" name="chkBloqueado" @if (Model.Bloqueado) { <text> checked</text> } onclick="javascript: return false;" />
+                </p>
+                <p class="_50 texto ">
+                    <label for="chkActivo" style="display: inline">Activo</label>
+                    <input type="checkbox" name="chkActivo" @if (Model.Estado) { <text> checked</text> } />
+                </p>
+
+
+            </div>
+
+            <div class="actions">
+                @*<div class="left">
+                        <input type="reset" value="Cancel" />
+                    </div>*@
+                <div class="right">
+                    <input type="button" id="btnguardar" value="Guardar" />
+                </div>
+            </div>
+        </div>
+    </form>
+</section>
+
+<div style="display: none;" id="dlgNuevoAval" title="Crear Persona">
+    <form id="frm1" method="post" action="#" class="full validate">
+        <p class="_50 small">
+            <label for="txtAvalDni" class="inline">DNI:</label>
+            <input data-error-type="inline" type="text" class="required" id="txtAvalDni" />
+        </p>
+        <p class="_50 small">
+            <a id="btnAvalBuscarDni" class="button"><span class="icon  icon-user"></span>Buscar Dni</a>
+        </p>
+        <p class="_50 small">
+            <label for="txtAvalNombre" class="inline">Nombres:</label>
+            <input data-error-type="inline" type="text" class="required" id="txtAvalNombre" />
+        </p>
+        <p class="_50 small">
+            <label for="txtAvalApePaterno" class="inline">Ap.Paterno:</label>
+            <input data-error-type="inline" type="text" class="required" id="txtAvalApePaterno" />
+        </p>
+        <p class="_50 small">
+            <label for="txtAvalApeMaterno" class="inline">Ap.Materno:</label>
+            <input data-error-type="inline" type="text" class="required" id="txtAvalApeMaterno" />
+        </p>
+        <p class="_50 small">
+            <label for="txtAvalCelular" class="inline">Celular:</label>
+            <input data-error-type="inline" type="text" class="required" id="txtAvalCelular" />
+        </p>
+
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <input id="btnEnviar" type="button" value="Guardar" />
+        </div>
+    </div>
+</div>
+@section scripts{
+    <script>
+        var tokenApiperu = 'Bearer bbd78886dd0b93fe2282ef3f919b1a0f662dfada35d422b8212891a931b37f98';
+
+        $$.ready(function () {
+            //$("#txtCodigo").mask("aa999");
+            $("#txtTopeCredito").numeric(2);
+
+            @if (Model.PersonaId > 0)
+            {
+                <text>
+            $("#txtFechaNacimiento").val('@(Model.Persona.FechaNacimiento.HasValue ? Model.Persona.FechaNacimiento.Value.ToString("dd/MM/yyyy") : "")');
+            $("#cboTipoPersona").prop("disabled", true).trigger("liszt:updated");
+            $("#p_TipoViviendaId").val('@Model.Persona.TipoViviendaId').trigger("liszt:updated");
+            $("#p_EstadoCivilId").val('@Model.Persona.EstadoCivilId').trigger("liszt:updated");
+            //$("#NroDocumento,#txtCodigo,#txtNombre,#txtApePaterno,#txtApeMaterno").prop("readonly", true);
+            $("#NroDocumento,#txtNombre,#txtApePaterno,#txtApeMaterno").prop("readonly", true);
+            $("#btnValidar").hide();
+            </text>
+            }
+            else
+            {
+                <text>
+            $("#NroDocumento").prop("readonly", false);
+            //$("#txtCodigo").prop("disabled", false);
+            $("#txtNombre,#txtApePaterno,#txtApeMaterno").prop("readonly", true);
+            $("#btnValidar").show();
+            </text>
+            }
+
+
+            @if (Model.ClienteId > 0)
+            {
+                <text>
+
+            $("#c_ActividadEconId").val(@(Model.ActividadEconId.HasValue?Model.ActividadEconId:1)).trigger("liszt:updated");
+
+            $("#cboCalificacion").val('@Model.Calificacion').trigger("liszt:updated");
+            $("#c_ClasificacionRiesgoSBS").val('@Model.ClasificacionRiesgoSBS').trigger("liszt:updated");
+            </text>
+            }
+            @if (ViewBag.Aprobador1 > 0)
+            {
+                <text>
+            //$("#NroDocumento,#txtCodigo,#txtNombre,#txtApePaterno,#txtApeMaterno").prop("readonly", false);
+            $("#NroDocumento,#txtNombre,#txtApePaterno,#txtApeMaterno").prop("readonly", false);
+            $("#btnValidar").show();
+            </text>
+            }
+
+            @if (ViewBag.Aprobador1 == 0 && ViewBag.Admin == 0)
+            {
+                <text>
+            $("#txtObservacionCentralRiesgo").prop("readonly", true);
+            $("#c_ClasificacionRiesgoSBS").prop("disabled", true).trigger("liszt:updated");
+                </text>
+            }
+
+            $("#pnlOtros,#pnlEstadoCivil").hide();
+            $("#c_ActividadEconId").change(function () {
+                if ($("#c_ActividadEconId option:selected").text() == "OTROS") {
+                    $("#pnlOtros").show();
+                    $("#txtOtros").focus();
+                } else {
+                    $("#pnlOtros").hide();
+                }
+            });
+
+
+
+            $("#p_EstadoCivilId").change(function () {
+                let seleccion = $("#p_EstadoCivilId option:selected").val();
+                //alert(seleccion);
+                if (seleccion == 2 || seleccion == 3) { //si es casado o conviviente
+                    $("#pnlEstadoCivil").show();
+                } else {
+                    $("#pnlEstadoCivil").hide();
+                }
+            });
+
+            $("#p_EstadoCivilId").trigger('change');
+
+            $("#txtPersonaES").autocomplete({
+                source: "@Url.Action("BuscarPersona", "Cliente")",
+                minLength: 2,
+                select: function (event, ui) {
+                    event.preventDefault();
+                    //$.data(document.body, 'PersonaESid', ui.item.id);
+                    $("#ConyuguePersonaId").val(ui.item.id);
+                    $("#txtPersonaES").val(ui.item.value);
+                }
+            });
+
+            $("#btnDetalleConyugue").click(function () {
+                if ($("#txtPersonaES").val().length > 0) {
+                    var url = "@Url.Action("ReporteCliente","Reporte")?pPersonaId=" + $("#ConyuguePersonaId").val();
+                    window.open(url);
+                    return false;
+                }
+            });
+
+            $("#btnDepurado").click(function () {
+                Vendix.Dialogo("Desea habilitar al Cliente?",
+                    "SiNo",
+                    function () {
+                        $.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("HabilitarDepurado", "Cliente")",
+                            data: { pid: @Model.ClienteId },
+                            success: function (ret) {
+                                window.location.reload();
+                            }
+                        });
+                    });
+            });
+
+
+            $("#btnguardar").click(function () {
+                // si el estado civil es casado o conviviente
+                if ($('#p_EstadoCivilId').val() == 2 || $('#p_EstadoCivilId').val() == 3) {
+                    if ($("#txtPersonaES").val().trim() == "") {
+                        Vendix.Dialogo("Es obligatorio ingresar datos del Conyugue");
+                        return false;
+                    }
+                } else {
+                    $("#txtPersonaES").val("");
+                }
+
+                if ($('#NroDocumento').val() == '@Model.Persona.NumeroDocumento') {
+                    document.frmCliente.submit();
+                    return true;
+                }
+                else {
+                    $.ajax({
+                        url: "@Url.Action("ValidarClienteDNI", "Cliente")",
+                        async: false,
+                        data: { pDNI: $('#NroDocumento').val() },
+                        success: function (existe) {
+                            if (existe) {
+                                Vendix.Dialogo("Ya existe un Cliente con este DNI");
+                                return false;
+                            }
+                            document.frmCliente.submit();
+                        }
+                    });
+                }
+                return false;
+            });
+
+
+            $('#btnNuevoAval').click(function () {
+                var $el = $("#dlgNuevoAval");
+                $el.find('form')[0].reset();
+                $('#dlgNuevoAval').dialog('open');
+                Vendix.TextoInline();
+                return false;
+            });
+
+            $("#dlgNuevoAval").dialog({
+                autoOpen: false,
+                modal: true,
+                width: 540,
+                open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+            }).find('#btnEnviar').click(function () {
+                var $el = $(this).parents('.ui-dialog-content');
+                if ($("#frm1").validate().form()) {
+
+                    $.ajax({
+                        type: 'POST',
+                        url: "@Url.Action("CrearClienteAval", "Cliente")",
+                        data: {
+                            pDni: $("#txtAvalDni").val(),
+                            pNombre: $('#txtAvalNombre').val(),
+                            pPaterno: $("#txtAvalApePaterno").val(),
+                            pMaterno: $("#txtAvalApeMaterno").val(),
+                            pCelular: $("#txtAvalCelular").val()
+                        },
+                        success: function (data) {
+                            if (data == null) {
+                                Vendix.Notificar("Grabar");
+                                $el.find('form')[0].reset();
+                                $el.dialog('close');
+                            }
+                            else {
+                                Vendix.Mensaje(data);
+                            }
+                        }
+                    });
+                }
+            }).end().find('button.cancel').click(function () {
+                var $el = $(this).parents('.ui-dialog-content');
+                $el.find('form')[0].reset();
+                $el.dialog('close');
+            });
+
+
+            $("#btnAvalBuscarDni").click(function () {
+                $.ajax({
+                    type: 'GET',
+                    url: "https://apiperu.dev/api/dni/" + $("#txtAvalDni").val(),
+                    data: {},
+                    headers: { 'Authorization': tokenApiperu },
+                    success: function (ret) {
+                        if (ret.success) {
+                            $("#txtAvalNombre").val(ret.data.nombres);
+                            $("#txtAvalApePaterno").val(ret.data.apellido_paterno);
+                            $("#txtAvalApeMaterno").val(ret.data.apellido_materno);
+                        } else {
+                            Vendix.Mensaje("DNI NO ENCONTRADO EN RENIEC");
+                        }
+                    }
+                });
+            });
+
+            $("#btnValidar").click(function () {
+                $.ajax({
+                    url: "@Url.Action("ValidarClienteDNI", "Cliente")",
+                    data: { pDNI: $('#NroDocumento').val() },
+                    success: function (rpta) {
+
+                        if (rpta) {
+                            Vendix.Mensaje("Ya existe un Cliente  con este DNI");
+                            $("#txtNombre").val('');
+                            $("#txtApePaterno").val('');
+                            $("#txtApeMaterno").val('');
+                            $("#NroDocumento").val('').focus();
+                            return;
+                        } else {
+                            if ($("#cboTipoPersona").val() == "N") {
+                                $.ajax({
+                                    type: 'GET',
+                                    url: "https://apiperu.dev/api/dni/" + $("#NroDocumento").val(),
+                                    data: {},
+                                    headers: { 'Authorization': tokenApiperu },
+                                    success: function (ret) {
+                                        if (ret.success) {
+                                            $("#txtNombre").val(ret.data.nombres);
+                                            $("#txtApePaterno").val(ret.data.apellido_paterno);
+                                            $("#txtApeMaterno").val(ret.data.apellido_materno);
+                                        } else {
+                                            Vendix.Mensaje("DNI NO ENCONTRADO EN RENIEC");
+                                        }
+                                    }
+                                });
+                            } else {
+                                $.ajax({
+                                    type: 'GET',
+                                    url: "https://apiperu.dev/api/ruc/" + $("#NroDocumento").val(),
+                                    data: {},
+                                    headers: { 'Authorization': tokenApiperu },
+                                    success: function (ret) {
+                                        if (ret.success) {
+                                            $("#txtNombre").val(ret.data.nombre_o_razon_social);
+                                            $("#txtDireccion").val(ret.data.direccion);
+                                        } else {
+                                            Vendix.Mensaje("RUC NO ENCONTRADO EN SUNAT");
+                                        }
+                                    }
+                                });
+                            }
+
+                        }
+                    }
+                });
+
+
+            });
+
+
+            $("#btnBloqueado").click(function () {
+                event.preventDefault();
+                var chk = $("#chkBloqueado").prop('checked');
+                var mensaje = '';
+                chk ? mensaje = "DesBloquear" : mensaje = "Bloquear";
+
+                Vendix.Dialogo("Desea " + mensaje + " al Cliente ",
+                    "SiNo",
+                    function () {
+                        $.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("Bloquear", "Cliente")",
+                            data: { pid: @Model.ClienteId },
+                            success: function (ret) {
+                                Vendix.Notificar();
+                                $("#chkBloqueado").prop("checked", ret);
+                            }
+                        });
+                    });
+            });
+
+            $("#cboTipoPersona").change(function () {
+                if ($("#cboTipoPersona").val() == "N") {
+                    $("#lblDocumento").text("DNI:");
+                    $("#lblNombre").text("Nombres:");
+                    $(".natural").show();
+                    $("#NroDocumento").mask("99999999");
+                } else {
+                    $("#lblDocumento").text("RUC:");
+                    $("#lblNombre").text("Rz Social:");
+                    $(".natural").hide();
+                    $("#NroDocumento").mask("99999999999");
+                }
+                $("#txtDocumento").focus();
+            });
+
+            $("#NroDocumento").mask("99999999").keypress(function () {
+                if (event.which == 13) {
+                    event.preventDefault();
+                    $(this).trigger('blur');
+                }
+            });
+
+            $("#txtUbicacion").autocomplete({
+                source: "@Url.Action("BuscarDistrito", "Cliente")",
+                minLength: 2,
+                select: function (event, ui) {
+                    //console.log(ui.item);
+                    event.preventDefault();
+                    $("#txtUbicacion").val(ui.item.value);
+                    $("#DistritoId").val(ui.item.id);
+                }
+            });
+
+        // 1. CONFIGURACIÓN INICIAL DEL MAPA
+
+        var tieneCoordenadas = '@Model.Latitud' != '' && '@Model.Longitud' != '';
+        var latInicial = tieneCoordenadas ? parseFloat('@Model.Latitud'.replace(',', '.')) : -13.15878;
+        var lngInicial = tieneCoordenadas ? parseFloat('@Model.Longitud'.replace(',', '.')) : -74.22321;
+
+        var mapa = L.map('mapa-cliente').setView([latInicial, lngInicial], 15);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(mapa);
+
+        var marcador = L.marker([latInicial, lngInicial], { draggable: true }).addTo(mapa);
+
+        // Actualizar coordenadas al arrastrar el marcador
+        marcador.on('dragend', function (e) {
+            var posicion = marcador.getLatLng();
+            $("#Latitud").val(posicion.lat.toFixed(8));
+            $("#Longitud").val(posicion.lng.toFixed(8));
+        });
+
+        // Inicializar el buscador interno del mapa (Lupa superior derecha)
+        var geocoderControl = L.Control.geocoder({
+            defaultMarkGeocode: false,
+            placeholder: "Buscar lugar o referencia..."
+        }).on('markgeocode', function(e) {
+            var centro = e.geocode.center;
+            mapa.setView(centro, 18);
+            marcador.setLatLng(centro);
+            $("#Latitud").val(centro.lat.toFixed(8));
+            $("#Longitud").val(centro.lng.toFixed(8));
+        }).addTo(mapa);
+
+        // EXTRAEMOS EL BUSCADOR SEGURO DEL CONTROL (Esto evita cualquier error de versión)
+        var miBuscador = geocoderControl.options.geocoder;
+
+        // 2. AUTOCOMPLETADO DEL DISTRITO (Conectado al Mapa)
+        $("#txtUbicacion").autocomplete({
+            source: "@Url.Action("BuscarDistrito", "Cliente")",
+            minLength: 2,
+            select: function (event, ui) {
+                event.preventDefault();
+                $("#txtUbicacion").val(ui.item.value);
+                $("#DistritoId").val(ui.item.id);
+
+                // MAGIA: Al seleccionar el distrito, el mapa viaja hacia allá
+                var busquedaDistrito = ui.item.value + ", Ayacucho, Peru";
+                if (typeof Vendix !== 'undefined' && Vendix.Notificar) {
+                    Vendix.Notificar("Ubicando " + ui.item.value + " en el mapa...");
+                }
+
+                miBuscador.geocode(busquedaDistrito, function(results) {
+                    if (results && results.length > 0) {
+                        var centro = results[0].center;
+                        mapa.setView(centro, 15); // Zoom nivel distrito
+                        marcador.setLatLng(centro);
+                        $("#Latitud").val(centro.lat.toFixed(8));
+                        $("#Longitud").val(centro.lng.toFixed(8));
+                    }
+                });
+            }
+        });
+
+        // Si es un cliente sin GPS pero ya tiene un distrito guardado al cargar la página
+        if (!tieneCoordenadas) {
+            var distritoGuardado = $("#txtUbicacion").val().trim();
+            if (distritoGuardado !== "") {
+                miBuscador.geocode(distritoGuardado + ", Ayacucho, Peru", function(results) {
+                    if (results && results.length > 0) {
+                        var centro = results[0].center;
+                        mapa.setView(centro, 15);
+                        marcador.setLatLng(centro);
+                        $("#Latitud").val(centro.lat.toFixed(8));
+                        $("#Longitud").val(centro.lng.toFixed(8));
+                    }
+                });
+            }
+        }
+
+        // 3. BOTÓN BUSCAR EN MAPA (Búsqueda Progresiva)
+        $("#btnBuscarEnMapa").click(function(e) {
+            e.preventDefault();
+
+            var direccion = $("#txtDireccion").val().trim();
+            var distrito = $("#txtUbicacion").val().trim();
+
+            if (distrito === "") {
+                if (typeof Vendix !== 'undefined' && Vendix.Mensaje) {
+                    Vendix.Mensaje("Por favor, ingrese o seleccione al menos el Distrito.");
+                } else {
+                    alert("Por favor, ingrese o seleccione al menos el Distrito.");
+                }
+                return;
+            }
+
+            // Armamos dos opciones: la muy detallada y la general (solo distrito)
+            // Nota: Le quité la tilde a "Perú" porque el buscador en inglés/internacional a veces se confunde.
+            var busquedaExacta = direccion + ", " + distrito + ", Ayacucho, Peru";
+            var busquedaGeneral = distrito + ", Ayacucho, Peru";
+
+            // Función recursiva para procesar resultados
+            function procesarBusqueda(resultados, intentoExacto) {
+                if (resultados && resultados.length > 0) {
+                    var centro = resultados[0].center;
+
+                    // Si es exacta nos acercamos más (zoom 18), si es general (zoom 15)
+                    var zoomNivel = intentoExacto ? 18 : 15;
+                    mapa.setView(centro, zoomNivel);
+                    marcador.setLatLng(centro);
+
+                    $("#Latitud").val(centro.lat.toFixed(8));
+                    $("#Longitud").val(centro.lng.toFixed(8));
+
+                    // Si solo encontró el distrito, avisamos al usuario
+                    if (!intentoExacto && direccion !== "") {
+                        var msj = "No se encontró la calle exacta. Se ubicó en el centro del distrito. Por favor, arrastre el marcador (📍) a su casa.";
+                        if (typeof Vendix !== 'undefined' && Vendix.Mensaje) { Vendix.Mensaje(msj); } else { alert(msj); }
+                    }
+                } else {
+                    if (intentoExacto) {
+                        // Si falló buscando la calle, intentamos buscando SOLO el distrito
+                        miBuscador.geocode(busquedaGeneral, function(resGeneral) {
+                            procesarBusqueda(resGeneral, false);
+                        });
+                    } else {
+                        var msjError = "No se pudo encontrar la ubicación. Intente usar la lupa del mapa o arrastrar el marcador manualmente.";
+                        if (typeof Vendix !== 'undefined' && Vendix.Mensaje) { Vendix.Mensaje(msjError); } else { alert(msjError); }
+                    }
+                }
+            }
+
+            if (typeof Vendix !== 'undefined' && Vendix.Notificar) { Vendix.Notificar("Buscando en el mapa..."); }
+
+            // Lanzamos el primer intento (con la calle)
+            miBuscador.geocode(busquedaExacta, function(results) {
+                procesarBusqueda(results, true);
+            });
+        });
+
+        // Corrección de tamaño del mapa al cargar dentro de pestañas/paneles
+        setTimeout(function () { mapa.invalidateSize(); }, 500);
+
+        });
+    </script>
+}
+
+

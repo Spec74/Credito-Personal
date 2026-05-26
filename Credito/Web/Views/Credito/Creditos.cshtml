@@ -1,0 +1,1921 @@
+﻿@model VendixWeb.Controllers.DatosCredito
+<style>
+    .BordeSeleccion {
+        border: 1px solid green;
+    }
+    .riesgo-sbs-0 { background-color: #28a745; color: white; padding: 2px 5px; border-radius: 3px; } /* Normal - Verde */
+    .riesgo-sbs-1 { background-color: #ffc107; color: black; padding: 2px 5px; border-radius: 3px; } /* CPP - Amarillo */
+    .riesgo-sbs-2 { background-color: #fd7e14; color: white; padding: 2px 5px; border-radius: 3px; } /* Deficiente - Naranja */
+    .riesgo-sbs-3 { background-color: #dc3545; color: white; padding: 2px 5px; border-radius: 3px; } /* Dudoso - Rojo */
+    .riesgo-sbs-4 { background-color: #000000; color: white; padding: 2px 5px; border-radius: 3px; } /* Pérdida - Negro */
+</style>
+
+<div class="grid_12 profile">
+    <div class="header">
+        <div class="title">
+            @if (Model != null)
+            {
+                <h2>
+                    <a target="_blank" href="@Url.Action("ReporteCliente","Reporte")?pPersonaId=@Model.Persona.PersonaId">
+                        @Model.Persona.NumeroDocumento - @Model.Persona.NombreCompleto
+                    </a>
+
+                </h2>
+                <h3>
+                    @Model.EstadoCliente                    
+                </h3>
+                <h2>
+                    @if (!string.IsNullOrEmpty(Model.ClasificacionRiesgoSBS))
+                    {
+                        string claseRiesgo = "riesgo-sbs-" + Model.ClasificacionRiesgoSBS;
+                        string textoRiesgo = "";
+                        switch (Model.ClasificacionRiesgoSBS)
+                        {
+                            case "0": textoRiesgo = "NORMAL"; break;
+                            case "1": textoRiesgo = "CPP"; break;
+                            case "2": textoRiesgo = "DEFICIENTE"; break;
+                            case "3": textoRiesgo = "DUDOSO"; break;
+                            case "4": textoRiesgo = "PÉRDIDA"; break;
+                        }
+                        <span class="@claseRiesgo" title="@Model.ClasificacionRiesgoSBSObs" style="margin-left: 10px; font-size: 1.2em;">
+                            SBS: @textoRiesgo
+                        </span>
+                    }
+                </h2>
+                <div class="right" style="padding:15px">
+                    @if (ViewBag.Depurado == null)
+                    {
+                        //if (ViewBag.Aprobador1 > 0)
+                        //{
+                            <button class="grey" id="btnDepurarCliente">Depurar</button>
+                        //}
+                    }
+                    else
+                    {
+                        <div class="alert error sticky no-margin">
+                            <span class="icon"></span>
+                            <strong>DEPURADO!</strong> @ViewBag.Depurado
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+        <div class="avatar">
+            <img src="~/img/elements/profile/avatar.png" />
+            <a class="abrir-buscarCliente block">Buscar Cliente</a>
+        </div>
+
+        <ul class="info">
+            <li>
+                <strong style="font-size:40px">
+                    @if (Model != null)
+                    {@Model.Persona.Codigo}
+                </strong>
+            </li>
+            <li>
+                <strong>
+                    @if (Model != null)
+                    {
+                        @Model.TotalCreditos
+                    }
+                    else
+                    {
+                        <text>0</text>
+                    }
+                </strong>
+                <small>Total Créditos</small>
+            </li>
+            <li>
+                <strong>
+                    @if (Model != null && Model.Creditos != null)
+                    {
+                        @Model.Creditos.Count
+                    }
+                    else
+                    {
+                        <text>0</text>
+                    }
+                </strong>
+                <small>Créditos Pendientes</small>
+
+            </li>
+            <li>
+                <strong style="font-size:40px">
+                    @if (Model != null)
+                    {@Model.Cliente.Calificacion}
+                </strong>
+            </li>
+            <li>
+                @if (Model != null && Model.Creditos != null)
+                {
+                    if (!Model.Cliente.Bloqueado && ViewBag.Depurado == null)
+                    {
+                        if (Model.lectura == false)
+                        {
+                            <button id="btnCrearSolicitud">Crear Solicitud de Crédito</button>
+                        }
+                    }
+                }
+            </li>
+        </ul>
+    </div>
+    @if (Model != null && Model.Avales != null)
+    {
+        <div class="grid_12">
+            <div class="box">
+                <div class="header">
+                    <h2>Aval y Avalados</h2>
+                </div>
+                <div class="content">
+                    <table class="styled" style="padding:0;margin:0">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>CreditoId</th>
+                                <th>Credito</th>
+                                <th>Estado</th>
+                                <th>Persona</th>
+                                <th>Dni</th>
+                                <th>Celular</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Avales)
+                            {
+                                <tr>
+                                    <td class='center' style='width: 40px'>@item.Grupo</td>
+                                    <td class='center' style='width: 40px'>@item.CreditoId</td>
+                                    <td class='center' style='width: 40px'>@item.MontoCredito</td>
+                                    <td class='center' style='width: 40px'>@item.Estado</td>
+                                    <td>@item.Persona</td>
+                                    <td class='center' style='width: 70px'>@item.Dni</td>
+                                    <td class='center' style='width: 70px'>@item.Celular</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    }
+    <br />
+    @if (Model != null && Model.SolicitudCredito != null)
+    {
+        <div id="divSolicitud" class="grid_12">
+            <form method="post" action="#" class="box validate">
+
+                <div class="header">
+                    <h2>Solicitud de crédito Pendiente : @Model.SolicitudCredito.Descripcion</h2>
+                </div>
+
+                <div class="content">
+                    <p class="_25 small" style="padding-bottom: 10px;">
+                        <label>Nro Solicitud: @Model.SolicitudCredito.CreditoId</label>
+                        <label>Fecha: @Model.SolicitudCredito.FechaReg</label>
+                        <label>Estado: @(Model.SolicitudCredito.Estado == "P" ? "PENDIENTE" : "APROBADO")</label>
+
+                        <br /><br />
+                        <label id="lblInteresRango">Interes Min: @Model.Producto.InteresMinima% Max: @Model.Producto.InteresMaxima%</label>
+                        <br />
+                        <label id="lblMontoDesemb">Monto a Desembolsar: 0.00</label>
+                    </p>
+
+                    <p class="_25 small">
+                        <label>Producto:</label>
+                        @Html.DropDownList("cboProducto", (IEnumerable<SelectListItem>)ViewBag.cboProducto)
+                    </p>
+                    @*<p class="_25 small">
+            <label>Tipo de Crédito:</label>
+            <select id="cboTipoCuota">
+                <option value="V">VARIABLE</option>
+                <option value="F">FIJO</option>
+            </select>
+        </p>*@
+                    <p class="_25 small">
+                        <label>Tipo:</label>
+                        <select id="cboFormaPago">
+                            <option value="D">DIARIO</option>
+                            <option value="M">MENSUAL</option>
+                            <option value="Q">QUINCENAL</option>
+                            <option value="S">SEMANAL</option>
+                        </select>
+                    </p>
+                    <p class="_25 small">
+                        <label>Tramite Administrativos:</label>
+                        <select id="cboGA">
+                            @*<option value="CAP">Gastos Adm. Descuento en Capital</option>
+                <option value="CUO">Gastos Adm. en Cuotas</option>*@
+                            <option value="ADE">Tramite Adm. Pago Adelantado</option>
+                        </select>
+                    </p>
+
+                    @*<p class="_25 small">
+            <label for="txtInicial" class="inline">Inicial del crédito:</label>
+            <input data-error-type="inline" type="text" class="required" readonly name="txtInicial" id="txtInicial" value="@Model.SolicitudCredito.MontoInicial" />
+        </p>*@
+                    <p class="_25 small">
+                        <label for="txtMontoCredito" class="inline">Monto Crédito:</label>
+                        <input data-error-type="inline" type="text" class="required" id="txtMontoCredito" value="@Model.SolicitudCredito.MontoCredito" autofocus />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtNroCuotas" class="inline">Número Cuotas:</label>
+                        <input data-error-type="inline" type="text" class="required" id="txtNroCuotas" value="@Model.SolicitudCredito.NumeroCuotas" pattern="^\d{1,10}$" title="Solo números enteros" />
+                    </p>
+
+                    <p class="_25 small">
+                        <label for="txtGa" class="inline">Tramite Adm:</label>
+                        <input data-error-type="inline" type="text" readonly name="txtGa" id="txtGa" value="@Model.SolicitudCredito.MontoGastosAdm" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtInteres" class="inline">Interes %:</label>
+                        <input data-error-type="inline" type="text" class="required" id="txtInteres" value="@Model.SolicitudCredito.Interes" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtFechappSol" class="inline">Primer Pago:</label>
+                        <input data-error-type="inline" type="date" class="required maskDate" id="txtFechappSol" />
+                    </p>
+                    <p class="_25 small">
+                        <input type="checkbox" name="chkcCentralRiesgo" id="chkcCentralRiesgo" checked />
+                        <label for="chkcCentralRiesgo">Incluir Central de riesgo al tramite</label>
+
+                    </p>
+                    <p class="_75 small" style="padding-bottom: 10px;">
+                        <label for="txtObsSol" class="inline">Observación:</label>
+                        <input type="text" id="txtObsSol" style="height: 45px;" value="@Model.SolicitudCredito.Observacion" />
+                    </p>
+
+                   
+                </div>
+                <!-- End of .content -->
+
+                <div class="actions">
+                    @if (Model.lectura == false)
+                {
+                        <div class="left">
+                            <button id="btnSimulador" class="icon icon-link">Simular Plan de pagos</button>
+                        </div>
+                        <div class="right">
+                            <button id="btnRechazarCredito" onclick="RechazarCredito(@Model.SolicitudCredito.CreditoId);return false;" class="button red block"><span class="icon icon-remove"></span>Rechazar Solicitud</button>
+                            <button id="btnGenerarCredito" class="block"><span class="icon icon-plus"></span>Generar Crédito</button>
+                        </div>
+                    }
+                </div>
+                <!-- End of .actions -->
+            </form>
+            <!-- End of .box -->
+        </div>
+
+        <script>
+            $(function () {
+                $("#txtInteres,#txtGa").numeric(2);
+                $("#txtNroCuotas").numeric();
+                $("#lblInteresRango").data("min", @Model.Producto.InteresMinima);
+                $("#lblInteresRango").data("max", @Model.Producto.InteresMaxima);
+
+                $("#txtMontoCredito").numeric(2)
+                    .keyup(function (event) {
+                        if (event.which == 13) {
+                            event.preventDefault();
+                        }
+                        CalcularGastosAdm();
+                    });
+                $("#txtInteres").blur(function () {
+                    var num = parseFloat($(this).val());
+                    var max = $("#lblInteresRango").data("max");
+                    var min = $("#lblInteresRango").data("min");
+                    if (num < min || num > max) {
+                        $(this).val(max.toFixed(2));
+                        Vendix.Mensaje("El Interes debe estar entre " + min.toFixed(2) + " y " + max.toFixed(2));
+                    }
+                });
+                $("#chkcCentralRiesgo").change(function () {
+                    CalcularGastosAdm();
+                });
+                $("#cboProducto").change(function () {
+                    $.ajax({
+                        url: "@Url.Action("ObtenerProducto", "Credito")",
+                        data: { pProductoId: $(this).val() },
+                        success: function (ret) {
+                            var max = parseFloat(ret.InteresMaxima);
+                            var min = parseFloat(ret.InteresMinima);
+                            var interesDef = 8;
+                            if (interesDef>=min && interesDef<=max) {
+                                $("#txtInteres").val(interesDef.toFixed(2));
+                            }else
+                                $("#txtInteres").val(interesDef.toFixed(2));
+
+                            $("#lblInteresRango").text("Interes Min: " + min.toFixed(2) + " Max: " + max.toFixed(2));
+                            $("#lblInteresRango").data("min", min);
+                            $("#lblInteresRango").data("max", max);
+
+                            //$("#lblImpMoratorio").text("Importe Moratorio" + ret.ImporteMoratorio);
+                            //$("#lblDiasGracia").text("Días de Gracia" + ret.DiasGracia);
+                            CalcularGastosAdm();
+                        }
+                    });
+                });
+                $("#cboFormaPago").change(function () {
+                    $.ajax({
+                        url: "@Url.Action("ObtenerFechaPrimerPago", "Credito")",
+                        data: { pModalidad: $(this).val() },
+                        success: function (ret) {
+                            //alert(ret);
+                            $("#txtFechappSol").val(ret);
+                        }
+                    });
+                });
+                $("#cboFormaPago").trigger("change");
+
+                $("#cboGA").change(function () {
+                    CalcularDesembolso();
+                });
+                $("#txtGa")
+                   .keyup(function (event) {
+                       if (event.which == 13) {
+                           event.preventDefault();
+                       }
+                       CalcularDesembolso();
+                   }).blur(function(){ CalcularDesembolso();});
+            });
+            function CalcularDesembolso(){
+                var m = parseFloat( $("#txtMontoCredito").val());
+                var ga = parseFloat( $("#txtGa").val());
+                if ($('#cboGA').val()=='CAP')
+                    $('#lblMontoDesemb').text('MONTO A DESEMBOLSAR: ' + parseFloat(m-ga).toFixed(2) );
+                else
+                    $('#lblMontoDesemb').text('MONTO A DESEMBOLSAR: ' + m.toFixed(2) );
+            }
+
+            function CalcularGastosAdm() {
+                $.ajax({
+                    url: "@Url.Action("CalcularGastosAdm", "Credito")",
+                    data: {
+                        pProductoId: 1,
+                        pMonto: $("#txtMontoCredito").val(),
+                        pIncluyeCentralRiesgo: $("#chkcCentralRiesgo").prop('checked')
+                    },
+                    success: function (ret) {
+                        $("#txtGa").val(ret.toFixed(2));
+                        CalcularDesembolso();
+                    }
+                });
+            }
+
+        </script>
+    }
+    @if (Model != null && Model.TotalCreditos > 0)
+    {
+        <div class="credito grid_6 center-elements">
+            @foreach (var item in Model.Creditos)
+            {
+                <div id="credit_@item.CreditoId" class="full-stats equalHeight" style="cursor: pointer;" onclick="mostrarCredito(@item.CreditoId);">
+                    <h2 class="center">CREDITO Nro: @item.CreditoId @item.Estado</h2>
+                    <div class="stat level" style="cursor: pointer" data-value="@item.PlanPago.Where(x => x.Estado == "PAG").Sum(x => x.Amortizacion)" data-max="@item.MontoCredito" data-format="S/ 0.00" data-description="Pagos"></div>
+                </div>
+            }
+        </div>
+        <div class="grid_6">
+            <table id="grdHistorial"></table>
+            <div id="grdpHistorial"></div>
+        </div>
+
+        <div class="credito grid_12">
+            <form method="post" action="#" class="box validate">
+                <div class="header">
+
+                    <div id="spancEstadoVencido" style="margin-left: 10px; margin-right: 10px;" class="alert sticky no-margin">
+                        <span class="icon"></span>
+                        CREDITO Nro: <label id="lblcCreditoId"></label>
+                        -
+                        <span onclick="VerEvidencias();" class="badge block blue" style="margin:0;padding:0">VER EVIDENCIAS</span>
+
+                        @*<div id="divchkcIrrecuperable" style="float:right">
+                    <input type="checkbox" name="chkcIrrecuperable" id="chkcIrrecuperable" />
+                    <label for="chkcIrrecuperable">Credito Irrecuperable?</label>
+                </div>*@
+                    </div>
+
+                </div>
+
+                <div class="content">
+                    <p class="_100 small">
+                        <label id="lblcDescripcion" />
+                    </p>
+                    <p class="_50 small">
+                        <label for="txtcTipoProducto" class="inline">Producto:</label>
+                        <input type="text" readonly id="txtcTipoProducto" style="font-weight: bolder" />
+
+                    </p>
+
+
+                    <p class="_50 small">
+                        @Html.DropDownList("cboAnalista", (IEnumerable<SelectListItem>)ViewBag.cboAnalista)
+                        @if (ViewBag.Administrador > 0)
+                        {
+                            <button id="btnAnalista" class="block"><span class="icon icon-save"></span>Cambiar Gestor</button>
+                        }
+                    </p>
+                    <p class="_50 small">
+                        <label for="txtcTipoGA" class="inline">Cobro Gasto Adm:</label>
+                        <input type="text" readonly id="txtcTipoGA" style="font-weight: bolder" />
+                    </p>
+
+                    <p class="_25 small">
+                        <label for="txtcCredito" class="inline">Monto Crédito:</label>
+                        <input type="text" readonly id="txtcCredito" style="font-weight: bolder" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcDesembolso" class="inline">Monto Desembolsado:</label>
+                        <input type="text" readonly id="txtcDesembolso" style="font-weight: bolder" />
+                    </p>
+
+                    <p class="_25 small">
+                        <label for="txtcFormaPago" class="inline">Forma de Pago:</label>
+                        <input type="text" readonly id="txtcFormaPago" style="font-weight: bolder" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcCuotas" class="inline">Numero Cuotas:</label>
+                        <input type="text" readonly id="txtcCuotas" style="font-weight: bolder" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcGA" class="inline">Tramite Administrativos:</label>
+                        <input type="text" id="txtcGA" style="font-weight: bolder" />
+                        @if (ViewBag.Administrador > 0)
+                        {
+                            <button id="btnTramiteAdm" class="block"><span class="icon icon-save"></span>Guardar Tramite Adm</button>
+                        }
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcCentralRiesgo" class="inline">Central de Riego:</label>
+                        <input type="text" id="txtcCentralRiesgo" style="font-weight: bolder" />
+                        @if (ViewBag.Administrador > 0)
+                        {
+                            <button id="btnCentralRiesgo" class="block"><span class="icon icon-save"></span>Guardar Central Riesgo</button>
+                        }
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcInteres" class="inline">Interes %:</label>
+                        <input type="text" readonly id="txtcInteres" style="font-weight: bolder" />
+                    </p>
+
+                    <p class="_25 small">
+                        <label for="txtcFechaPrimerPago" class="inline">Primer Pago:</label>
+                        <input type="text" readonly id="txtcFechaPrimerPago" style="font-weight: bolder" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcFechaVcto" class="inline">Vencimiento:</label>
+                        <input type="text" readonly id="txtcFechaVcto" style="font-weight: bolder" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcEstado" class="inline">Estado:</label>
+                        <input type="text" readonly id="txtcEstado" style="font-weight: bolder" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcCargos" class="inline">Cargos:</label>
+                        <input type="text" readonly id="txtcCargos" style="font-weight: bolder" />
+                    </p>
+
+                    @*<p class="_25 small todo des">
+                <label for="txtcCancelacion" class="inline">Saldo Cancelación:</label>
+                <input type="text" readonly id="txtcCancelacion" style="font-weight: bolder" />
+            </p>*@
+                    <p class="_50 small">
+                        <label for="txtcFechaAprobacion" class="inline">Aprobación:</label>
+                        <input type="text" readonly id="txtcFechaAprobacion" style="font-weight: bolder" />
+                    </p>
+                    <p class="_50 small">
+                        <label for="txtcFechaDesembolso" class="inline">Desembolso:</label>
+                        <input type="text" readonly id="txtcFechaDesembolso" style="font-weight: bolder" />
+                    </p>
+                    <p class="_75 small">
+                        <label for="txtcObservado" class="inline">Credito Observado:</label>
+                        <input type="text" id="txtcObservado" style="font-weight: bolder" />
+
+                    </p>
+                    <p class="_25 small">
+                        @if (Model.lectura == false)
+                        {
+                            <button id="btncObservado">Credito Obs</button>
+                        }
+                    </p>
+
+                    @if (ViewBag.Administrador > 0)
+                    {
+                        <p class="_25 small prorrogar">
+                            <select id="cboProrrogar">
+                                <option value="7">7 días</option>
+                                <option value="14">14 días</option>
+                                <option value="21">21 días</option>
+                                <option value="28">28 días</option>
+                            </select>
+                        </p>
+                        <p class="_25 small prorrogar">
+                            <button id="btnProrrogar">Prorrogar Credito</button>
+                        </p>
+                    }
+                </div>
+                <hr />
+                <p class="_25 small" style="height: 45px;">
+                    <b>CREDITO PRENDARIO</b> <input type="checkbox" name="chkcPrendario" id="chkcPrendario" />
+                </p>
+                <p class="_75 small">
+                    <label for="txtcDescripcionPrenda" class="inline">Descripción prenda:</label>
+                    <input data-error-type="inline" type="text" class="required" id="txtcDescripcionPrenda" value="" />
+                </p>
+                <p class="_25 small">
+                    <label for="txtcMontoTasacionPrenda" class="inline">Monto Tasación:</label>
+                    <input data-error-type="inline" type="text" class="required" id="txtcMontoTasacionPrenda" value="" />
+                </p>
+                <p class="_25 small">
+                    <label for="txtcFechaRematePrenda" class="inline">Fecha remate:</label>
+                    <input data-error-type="inline" type="date" class="required maskDate" id="txtcFechaRematePrenda" />
+                </p>
+                <p class="_25 small ">
+                    <button id="btnGuardarPrendario">Guardar Prendario</button>
+                </p>
+                <p class="_100 small">
+                    <hr class="_100" />
+                </p>
+
+                <div class="content">
+                    <p class="_50 small">
+                        <label for="txtcCliente" class="inline">Cliente:</label>
+                        <input type="text" readonly id="txtcCliente" value="@Model.Persona.NombreCompleto" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcDNI" class="inline">DNI:</label>
+                        <input type="text" readonly id="txtcDNI" value="@Model.Persona.NumeroDocumento" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcCelular" class="inline">Celular:</label>
+                        <input type="text" readonly id="txtcCelular" value="@Model.Persona.Celular1" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcNacimiento" class="inline">F. Nacimiento:</label>
+                        <input type="text" readonly id="txtcNacimiento" value='@(Model.Persona.FechaNacimiento.HasValue?Model.Persona.FechaNacimiento.Value.ToShortDateString():"")' />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcEstadoCivil" class="inline">Estado Civil:</label>
+                        <input type="text" readonly id="txtcEstadoCivil" value="@Model.EstadoCivil" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcSexo" class="inline">Sexo:</label>
+                        <input type="text" readonly id="txtcSexo" value="@Model.Persona.Sexo" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcTipoVivienda" class="inline">T. Vivienda:</label>
+                        <input type="text" readonly id="txtcTipoVivienda" value="@Model.TipoVivienda" />
+                    </p>
+                    <p class="_50 small">
+                        <label for="txtcDireccion" class="inline">Direccion:</label>
+                        <input type="text" readonly id="txtcDireccion" value="@Model.Persona.Direccion" />
+                    </p>
+                    <p class="_50 small">
+                        <label for="txtcDireccionRef" class="inline">Direccion Referencia:</label>
+                        <input type="text" readonly id="txtcDireccionRef" value="@Model.Persona.DireccionRef" />
+                    </p>
+                    <p class="_50 small">
+                        <label for="txtcDireccionNegocio" class="inline">Direccion Negocio:</label>
+                        <input type="text" readonly id="txtcDireccionNegocio" value="@Model.Cliente.DireccionNegocio" />
+                    </p>
+                    <p class="_50 small">
+                        <label for="txtcDireccionNegocioRef" class="inline">Direccion Negocio Ref.:</label>
+                        <input type="text" readonly id="txtcDireccionNegocioRef" value="@Model.Cliente.DireccionNegocioRef" />
+                    </p>
+                    <p class="_50 small">
+                        <label for="txtcActividadEconomica" class="inline">Actividad Economica:</label>
+                        <input type="text" readonly id="txtcActividadEconomica" value="@Model.ActividadEconomica" />
+                    </p>
+                    <p class="_50 small">
+                        <label for="txtcCorreo" class="inline">Correo:</label>
+                        <input type="text" readonly id="txtcCorreo" value="@Model.Persona.EmailPersonal" />
+                    </p>
+                    <p class="_50 small">
+                        <label for="txtcConyugue" class="inline">Conyugue:</label>
+                        <input type="text" readonly id="txtcConyugue" value="@Model.Conyugue" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcConyugueDNI" class="inline">Conyugue DNI:</label>
+                        <input type="text" readonly id="txtcConyugueDNI" value="@Model.ConyugueDni" />
+                    </p>
+                    <p class="_25 small">
+                        <label for="txtcConyugueCelular" class="inline">Conyugue Celular:</label>
+                        <input type="text" readonly id="txtcConyugueCelular" value="@Model.ConyugueCelular" />
+                    </p>
+
+                    <p class="_50 small">
+                        <input id="txtPersonaES" name="txtAvalPersona" type="search" placeholder="BUSCAR AVAL" value="@ViewBag.AvalPersona" />
+                    </p>
+                    <p class="_50 small" style="margin-top:-12px">
+                        <a id="btnGuardarAval" style="margin-top:15px" class="button"><span class="icon icon-save"></span>Guardar Aval</a>
+                        <a id="btnDetalleAval" style="margin-top:15px" class="button"><span class="icon icon-list-alt"></span>Detalle</a>
+                        <a id="btnNuevoAval" style="margin-top:15px" class="button"><span class="icon  icon-user"></span>Nuevo Aval</a>
+                    </p>
+                    <p class="_100 small">
+                        <label for="txtcNota" class="inline">Nota Cliente:</label>
+                        <input type="text" readonly id="txtcNota" value="@Model.Cliente.Nota" />
+                    </p>
+
+                    <p class="_25 small">
+                        <label for="txtTopeCredito" class="inline">Tope Credito:</label>
+                        <input type="text" id="txtTopeCredito" value="@Model.Cliente.TopeCredito" />
+                    </p>
+                    @if (ViewBag.Administrador > 0 || ViewBag.Aprobador1 > 0)
+                    {
+                        <p class="_25 small ">
+                            <button id="btnTopeCredito">Guardar Tope</button>
+                        </p>
+                    }
+                    <p class="_25 small ">
+                        @if (ViewBag.Administrador > 0 || ViewBag.Aprobador1 > 0)
+                        {
+                            <button id="btnBloqueado" class="block"><span class="icon icon-lock"></span></button>
+                        }
+                        <label for="chkBloqueado" style="display: inline">Bloqueado</label>
+                        <input type="checkbox" id="chkBloqueado" name="chkBloqueado" @if (Model.Cliente.Bloqueado) { <text> checked</text> } onclick="javascript: return false;" />
+                    </p>
+
+                </div>
+
+                <div class="actions">
+                    <div class="left">
+                        <button id="btncImpEstadoCuenta" class="todo pen des block"><span class="icon icon-print"></span>Estado Cuenta</button>
+                        <button id="btncImpPlanPago" class="todo pen des ap1 apr block"><span class="icon icon-print"></span>Plan Pagos</button>
+                        <button id="btncImpMovimiento" class="todo des his block"><span class="icon icon-print"></span>Movimientos</button>
+                        @if (Model.lectura == false)
+                        {
+                            <button id="btncCargos" class="todo des block"><span class="icon icon-repeat"></span>Cargos</button>
+                            if (ViewBag.Administrador > 0)
+                            {
+                                <button id="btncReprogramar" class="todo des block"><span class="icon icon-ok"></span>REPROGRAMAR</button>
+                                <button id="btncCondonar" class="todo des block"><span class="icon icon-table"></span>Condonar</button>
+                            }
+                        }
+                    </div>
+                    <div class="right">
+                        @if (Model.lectura == false)
+                        {
+                            if (ViewBag.Aprobador1 > 0)
+                            {
+                                <button id="btncAnular" class="todo des apr block red"><span class="icon icon-remove"></span>Anular</button>
+                                <button id="btncAprobar2" class="todo pen block"><span class="icon icon-ok"></span>Aprobar</button>
+                            }
+                            <button id="btncRechazar" class="todo pen block red"><span class="icon icon-remove"></span>Rechazar</button>
+                        }
+                    </div>
+                </div>
+                <div class="grid_12">
+                    <table id="grdPrestamo"></table>
+                </div>
+            </form>
+        </div>
+
+
+        <div style="display: none;" id="dlgCargo" title="Cargos / Comisiones">
+            <form class="full validate" id="frmcargo">
+                <div class="row">
+                    <label for="drpTipoCargo">
+                        <strong>Tipo:</strong>
+                    </label>
+                    <div>
+                        <table style="width: 100%;">
+                            <tr>
+                                <td>
+                                    <select id="drpTipoCargo"></select>
+                                </td>
+                                <td style="text-align: center">
+                                    <strong>Monto:</strong>
+                                </td>
+                                <td>
+                                    <input type="text" class="required" id="txtMontoCargo" value="0.00" style="text-align: center" min="0.5" />
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="txtdescCargo">
+                        <strong>Descripcion:</strong>
+                    </label>
+                    <div>
+                        <input class="required" type="text" name="txtdescCargo" id="txtdescCargo" />
+                    </div>
+                </div>
+                <div class="row">
+                    <label>
+                        <strong>Aplicar cargo:</strong>
+                    </label>
+                    <div>
+                        <table>
+                            <tr>
+                                <td>
+                                    <input type="radio" name="rbCargo" id="rbCargoActual" value="I" checked="checked" /><label for="rbCargoActual">En la cuota actual</label>&nbsp;&nbsp;
+                                    <input type="radio" name="rbCargo" id="rbCargoFinal" value="F" /><label for="rbCargoFinal">En la última cuota</label>
+                                </td>
+                                <td>
+                                    <input id="btnCrearCargo" type="button" value="Crear Cargo" />
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </form>
+            <div class="actions">
+                <table id="grdCargo"></table>
+                <div id="grdpCargo"></div>
+            </div>
+            <div class="actions">
+                <div class="left">
+                    <button class="grey cancel">Salir</button>
+                </div>
+            </div>
+        </div>
+        <div style="display: none;" id="dlgCondonar" title="Condonar Credito">
+            <form class="full ">
+                <fieldset>
+                    <div class="row">
+                        <label>
+                            <strong>DEUDA:</strong>
+                        </label>
+                        <div>
+                            <div><strong id="lblCondonarCapital">0</strong></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label>
+                            <strong>Capital: <label id="lblCondonarCapitalneto">0</label></strong>
+                        </label>
+                        <div>
+                            <div>
+                                <input type="checkbox" name="chkcCapital" id="chkcCapital" /> <label for="chkcCapital">Condonar?</label>
+                                <input type="text" id="txtcCondonarCapital" style="text-align: center; display:none" min="0" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label>
+                            <strong>Interes: <label id="lblCondonarInteres">0</label></strong>
+                        </label>
+                        <div>
+                            <div>
+                                <input type="checkbox" name="chkcInteres" id="chkcInteres" /> <label for="chkcInteres">Condonar?</label>
+                                <input type="text" id="txtcCondonarInteres" style="text-align: center; display:none" min="0" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label>
+                            <strong>Mora: <label id="lblCondonarMoras">0</label></strong>
+                        </label>
+                        <div>
+                            <div>
+                                <input type="checkbox" name="chkcMoras" id="chkcMoras" /> <label for="chkcMoras">Condonar?</label>
+                                <input type="text" id="txtcCondonarMoras" style="text-align: center; display:none" min="0" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label>
+                            <strong>Cargos: <label id="lblCondonarCargos">0</label></strong>
+                        </label>
+                        <div>
+                            <div>
+                                <input type="checkbox" name="chkcCargos" id="chkcCargos" /> <label for="chkcCargos">Condonar?</label>
+                                <input type="text" id="txtcCondonarCargos" style="text-align: center; display:none" min="0" />
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="row">
+                    <label for="txtdescCargo">
+                        <strong>Observaciones:</strong>
+                    </label>
+                    <div>
+                        <input class="required" type="text" name="txtcCondonarObs" id="txtcCondonarObs" />
+                    </div>
+                </div>
+
+            </form>
+
+            <div class="actions">
+                <div class="left">
+                    <button class="grey cancel">Salir</button>
+                </div>
+                <div class="right">
+                    <strong id="lblcCxcCondonar">0.00</strong>
+                    <button class="submit" id="btnCrearCondonarCredito">Crear Cuenta x Cobrar y Condonar</button>
+                </div>
+            </div>
+        </div>
+        <div style="display: none;" id="dlgConfirmarClave" title="Autorización">
+            <div class="actions">
+                <form class="full validate">
+                    <div class="row">
+                        <div>
+                            <input type="password" id="txtConfirmarClave" placeholder="Clave" />
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="actions">
+                <div class="left">
+                    <button class="grey cancel">Salir</button>
+                </div>
+                <div class="right">
+                    <input id="btnConfirmarClave" type="button" value="Confirmar" />
+                </div>
+            </div>
+        </div>
+        <style>
+            .myclassTotal td {
+                font-weight: bolder !important;
+                background-color: #ecf1f4 !important;
+            }
+
+            .field-creado {
+                background: #FAFF00;
+                border: 1px solid #FB9804;
+            }
+
+            .field-pendiente {
+                background: #faf189;
+                border: 1px solid #FB9804;
+            }
+
+            .field-pagado {
+                background: #D0FE92;
+                border: 1px solid #00AA00;
+            }
+
+            .field-error {
+                background: #F7E5E5;
+                border: 1px solid #FB9804;
+                /*border: 1px solid #E63836;*/
+            }
+        </style>
+        <div style="display: none;" id="dlgNuevoAval" title="Crear Persona">
+            <form id="frm1" method="post" action="#" class="full validate">
+                <p class="_50 small">
+                    <label for="txtAvalDni" class="inline">DNI:</label>
+                    <input data-error-type="inline" type="text" class="required" id="txtAvalDni" />
+                </p>
+                <p class="_50 small">
+                    <a id="btnAvalBuscarDni" class="button"><span class="icon  icon-user"></span>Buscar Dni</a>
+                </p>
+                <p class="_50 small">
+                    <label for="txtAvalNombre" class="inline">Nombres:</label>
+                    <input data-error-type="inline" type="text" class="required" id="txtAvalNombre" />
+                </p>
+                <p class="_50 small">
+                    <label for="txtAvalApePaterno" class="inline">Ap.Paterno:</label>
+                    <input data-error-type="inline" type="text" class="required" id="txtAvalApePaterno" />
+                </p>
+                <p class="_50 small">
+                    <label for="txtAvalApeMaterno" class="inline">Ap.Materno:</label>
+                    <input data-error-type="inline" type="text" class="required" id="txtAvalApeMaterno" />
+                </p>
+                <p class="_50 small">
+                    <label for="txtAvalCelular" class="inline">Celular:</label>
+                    <input data-error-type="inline" type="text" class="required" id="txtAvalCelular" />
+                </p>
+
+            </form>
+            <div class="actions">
+                <div class="left">
+                    <button class="grey cancel">Salir</button>
+                </div>
+                <div class="right">
+                    <input id="btnEnviar" type="button" value="Guardar" />
+                </div>
+            </div>
+        </div>
+
+        <div style="display: none;" id="dlgAgregarDesc" title="Modificar Descuento">
+            <form action="#" class="full validate">
+                <div class="row">
+                    <label for="txtDescuento">
+                        <strong>Descuento : </strong>
+                    </label>
+                    <div>
+                        <input type="text" id="txtDescuento" name="txtDescuento" style="width: 100px; text-align: center" />
+                    </div>
+                    <strong>
+                        <p id="lblValidarDescuento" style="color: red; text-align: center"></p>
+                    </strong>
+
+                </div>
+            </form>
+
+            <div class="actions">
+                <div class="right">
+                    <button class="grey cancel">Salir</button>
+                </div>
+
+                <div class="left">
+                    <button class="submit" id="btnSubmit">Guardar</button>
+                </div>
+            </div>
+
+        </div>
+        <script>
+            var tokenApiperu = 'Bearer bbd78886dd0b93fe2282ef3f919b1a0f662dfada35d422b8212891a931b37f98';
+
+            $(function () {
+                mostrarCredito(@(Model.Creditos.FirstOrDefault() == null ? 0 : Model.Creditos.First().CreditoId));
+                $("#txtMontoCargo,#txtcCondonarInteres,#txtcCondonarMoras,#txtcCondonarCargos").numeric(2);
+                $("#txtcGA,#txtcCentralRiesgo,#txtTopeCredito").numeric(2);
+                $("#txtcCondonarInteres,#txtcCondonarMoras,#txtcCondonarCargos,#txtcCondonarCapital").change(function(){
+                    CalcularMontoCondonar();
+                });
+                $("#chkcCapital").change(function () {
+                    $("#chkcCapital").prop('checked')?$("#txtcCondonarCapital").show().focus():$("#txtcCondonarCapital").hide();
+                    CalcularMontoCondonar();
+                });
+                $("#chkcInteres").change(function () {
+                    $("#chkcInteres").prop('checked')?$("#txtcCondonarInteres").show().focus():$("#txtcCondonarInteres").hide();
+                    CalcularMontoCondonar();
+                });
+                $("#chkcCargos").change(function () {
+                    $("#chkcCargos").prop('checked')?$("#txtcCondonarCargos").show().focus():$("#txtcCondonarCargos").hide();
+                    CalcularMontoCondonar();
+                });
+                $("#chkcMoras").change(function () {
+                    $("#chkcMoras").prop('checked')?$("#txtcCondonarMoras").show().focus():$("#txtcCondonarMoras").hide();
+                    CalcularMontoCondonar();
+                });
+
+                @*$('#chkcIrrecuperable').change(function () {
+
+                    $.ajax({
+                        url: "@Url.Action("ActualizarCreditoIrrecuperable", "Credito")",
+                        data: {
+                            pCreditoId: $.data(document.body, 'CreditoId'),
+                            pIndIrrecupable: $(this).is(':checked')
+                        },
+                        success: function (rpt) {
+                            if (rpt)
+                                Vendix.Mensaje("Credito VENCIDO como IRRECUPERABLE");
+                            else
+                                Vendix.Mensaje("Credito VENCIDO como RECUPERABLE");
+                        }
+                    });
+
+
+                });*@
+                $("#btnBloqueado").click(function () {
+                    event.preventDefault();
+                    var chk = $("#chkBloqueado").prop('checked');
+                    var mensaje = '';
+                    chk ? mensaje = "DesBloquear" : mensaje = "Bloquear";
+
+                    Vendix.Dialogo("Desea " + mensaje + " al Cliente ",
+                        "SiNo",
+                        function () {
+                            $.ajax({
+                                type: 'POST',
+                                url: "@Url.Action("Bloquear", "Cliente")",
+                                data: { pid: $.data(document.body, 'PersonaId') },
+                                success: function (ret) {
+                                    Vendix.Notificar();
+                                    $("#chkBloqueado").prop("checked", ret);
+                                }
+                            });
+                        });
+                });
+
+                $("#txtPersonaES").autocomplete({
+                    source: "@Url.Action("BuscarPersona", "Cliente")",
+                    minLength: 2,
+                    select: function (event, ui) {
+                        event.preventDefault();
+                        $.data(document.body, 'AvalPersonaId', ui.item.id);
+                        $("#txtPersonaES").val(ui.item.value);
+                    }
+                });
+                $("#btnDetalleAval").click(function(){
+                    if ($("#txtPersonaES").val().length > 0 ) {
+                        var url = "@Url.Action("ReporteCliente","Reporte")?pPersonaId=" + $.data(document.body, 'AvalPersonaId');
+                        window.open(url);
+                        return false;
+                    }
+                });
+
+                $("#btnGuardarAval").click(function(){
+                    if ($("#txtPersonaES").val().trim()=="") {
+                        $.data(document.body, 'AvalPersonaId',null);
+                    }
+
+                    $.ajax({
+                        url: "@Url.Action("ActualizarAvalCredito", "Credito")",
+                        data: {
+                            pCreditoId: $.data(document.body, 'CreditoId'),
+                            pPersonaId: $.data(document.body, 'AvalPersonaId')
+                        },
+                        success: function (rpt) {
+                            if (rpt) {
+                                Vendix.Mensaje("Aval Guardado Correctamente");
+                            }
+                        }
+                    });
+                });
+
+                $('#btnNuevoAval').click(function () {
+                    var $el = $("#dlgNuevoAval");
+                    $el.find('form')[0].reset();
+                    $('#dlgNuevoAval').dialog('open');
+                    Vendix.TextoInline();
+                    return false;
+                });
+
+                $("#dlgNuevoAval").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    width: 540,
+                    open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+                }).find('#btnEnviar').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    if ($("#frm1").validate().form()) {
+
+                        $.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("CrearClienteAval", "Cliente")",
+                            data: {
+                                pDni: $("#txtAvalDni").val(),
+                                pNombre: $('#txtAvalNombre').val(),
+                                pPaterno: $("#txtAvalApePaterno").val(),
+                                pMaterno: $("#txtAvalApeMaterno").val(),
+                                pCelular: $("#txtAvalCelular").val()
+                            },
+                            success: function (data) {
+                                if (data==null) {
+                                    Vendix.Notificar("Grabar");
+                                    $el.find('form')[0].reset();
+                                    $el.dialog('close');
+                                }
+                                else {
+                                    Vendix.Mensaje(data);
+                                }
+                            }
+                        });
+                    }
+                }).end().find('button.cancel').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    $el.find('form')[0].reset();
+                    $el.dialog('close');
+                });
+
+
+                $("#btnAvalBuscarDni").click(function(){
+                    $.ajax({
+                        type: 'GET',
+                        url: "https://apiperu.dev/api/dni/" + $("#txtAvalDni").val(),
+                        data: {},
+                        headers: { 'Authorization': tokenApiperu },
+                        success: function(ret) {
+                            if (ret.success) {
+                                $("#txtAvalNombre").val(ret.data.nombres);
+                                $("#txtAvalApePaterno").val(ret.data.apellido_paterno);
+                                $("#txtAvalApeMaterno").val(ret.data.apellido_materno);
+                            } else {
+                                Vendix.Mensaje("DNI NO ENCONTRADO EN RENIEC");
+                            }
+                        }
+                    });
+                });
+
+                $("#dlgCargo").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    width: 650,
+                    open: function () {
+                        $(this).parent().css('overflow', 'visible');
+                        $$.utils.forms.resize();
+                    }
+                }).find('button.submit').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    if ($el.validate().form()) {
+                        alert('ok');
+                        @*$.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("GuardarMarca", "Marca")",
+                            data: {
+                                pMarcaId: $.data(document.body, 'MarcaId'),
+                                pDenominacion: $("#txtMarca").val(),
+                                pActivo: $("#chkActivo").prop('checked')
+                            },
+                            success: function(data) {
+                                Vendix.Notificar("Modificar");
+                                $el.find('form')[0].reset();
+                                $el.dialog('close');
+                            }
+                        });*@
+                    }
+                }).end().find('button.cancel').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    $el.find('form')[0].reset();
+                    $el.dialog('close');
+                });
+
+                $("#dlgCondonar").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    width: 650,
+                    open: function () {
+                        $(this).parent().css('overflow', 'visible');
+                        $$.utils.forms.resize();
+                    }
+                }).find('button.cancel').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    $el.find('form')[0].reset();
+                    $el.dialog('close');
+                });
+
+                $("#dlgConfirmarClave").dialog({
+                    autoOpen: false,
+                    modal: true,
+                    width: 400,
+                    open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+                }).find('#btnConfirmarClave').click(function () {
+
+                    $.ajax({
+                        url: "@Url.Action("ConfirmarClave", "CajaDiario")",
+                        data: {
+                            clave: $('#txtConfirmarClave').val()
+                        },
+                        success: function (ret) {
+                            if (ret.Error) {
+                                Vendix.Mensaje(ret.Mensaje);
+                            }
+                            else {
+                                $("#dlgConfirmarClave").dialog('close');
+
+                                var id = $.data(document.body, 'CreditoId');
+                                if (id) {
+                                    @*$.ajax({
+                                        url: "@Url.Action("ValidarAnularCredito", "Credito")",
+                                        data: { pCreditoId: id },
+                                    success: function (ret) {
+                                        if (ret) {*@
+                                    Vendix.DialogoObs("Ingrese la Observación para anular.", function () {
+                                        $.ajax({
+                                            url: "@Url.Action("AnularCredito", "Credito")",
+                                            data: { pCreditoId: id, pObservacion: $.data(document.body, 'txtObsBase') },
+                                            success: function (rpt) {
+                                                if (rpt) {
+                                                    window.location.reload();
+                                                    //$('#btnImpEstCre,#btnImpPlan,#btnMovimiento,#btnAprobarCre,#btnRechazarCre,#btnAnularCre').hide();
+                                                    //$("#grdCreditoPen,#grdCredito").trigger("reloadGrid");
+                                                    //Vendix.Notificar();
+                                                }
+                                            }
+                                        });
+                                    });
+                                    @*        } else
+                                                Vendix.Dialogo("Tiene Pagos, No se Puede Anular el Crédito", "Aceptar");
+                                            }
+                                        });*@
+                                } else {
+                                    Vendix.Mensaje("Por favor seleccione un credito");
+                                }
+                            }
+                        }
+                    });
+                }).end().find('button.cancel').click(function () {
+                    var $el = $(this).parents('.ui-dialog-content');
+                    $el.find('form')[0].reset();
+                    $el.dialog('close');
+                });
+
+                $("#btnAnalista").click(function(){
+                    event.preventDefault();
+                    $.ajax({
+                        type: 'POST',
+                        url: "@Url.Action("CambiarAnalista", "Credito")",
+                        data: { pCreditoId: $.data(document.body, 'CreditoId'), pAnalistaId: $("#cboAnalista").val() },
+                        success: function (ret) {
+                            Vendix.Notificar();
+                        }
+                    });
+                });
+                $("#btncObservado").click(function () {
+                    event.preventDefault();
+                    $.ajax({
+                        type: 'POST',
+                        url: "@Url.Action("ObservarCredito", "Credito")",
+                        data: { pCreditoId: $.data(document.body, 'CreditoId'), pObs: $("#txtcObservado").val() },
+                        success: function (ret) {
+                            Vendix.Notificar();
+                        }
+                    });
+                });
+                $("#btnProrrogar").click(function () {
+                    event.preventDefault();
+                    Vendix.Dialogo("Desea PRORROGAR el crédito en " + $("#cboProrrogar").val() + " Días?" , "SiNo", function () {
+                        $.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("ProrrogarCredito", "Credito")",
+                            data: { pCreditoId: $.data(document.body, 'CreditoId'), pDias: $("#cboProrrogar").val() },
+                            success: function (ret) {
+
+                                window.location.reload();
+                            }
+                        });
+                    });
+                });
+
+                $("#btnTopeCredito").click(function () {
+                    event.preventDefault();
+                    Vendix.Dialogo("Desea Actualizar el Tope crédito", "SiNo", function () {
+                        $.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("ActualizarTopeCredito", "Credito")",
+                            data: { pPersonaId: $.data(document.body, 'PersonaId'), pTopeCredito: $("#txtTopeCredito").val() },
+                            success: function (ret) {
+                                Vendix.Notificar();
+                                //window.location.reload();
+                            }
+                        });
+                    });
+                });
+                $("#btnTramiteAdm").click(function () {
+                    event.preventDefault();
+                    Vendix.Dialogo("Deseas modificar Tramites Administrativos?" , "SiNo", function () {
+                        $.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("ModificarTramiteAdmCredito", "Credito")",
+                            data: { pCreditoId: $.data(document.body, 'CreditoId'), pValor: $("#txtcGA").val() },
+                            success: function (ret) {
+                                Vendix.Notificar();
+                            }
+                        });
+                    });
+                });
+
+                $("#btnCentralRiesgo").click(function () {
+                    event.preventDefault();
+                    Vendix.Dialogo("Deseas modificar Central de Riesgo?" , "SiNo", function () {
+                        $.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("ModificarCentralRieagoCredito", "Credito")",
+                            data: { pCreditoId: $.data(document.body, 'CreditoId'), pValor: $("#txtcCentralRiesgo").val() },
+                            success: function (ret) {
+                                Vendix.Notificar();
+                            }
+                        });
+                    });
+                });
+
+                $("#btnCrearCondonarCredito").click(function(){
+                    var montocxc = $.data(document.body, 'cDeudaCondonarCXC');
+
+                    Vendix.Dialogo("Desea condonar el crédito y generar la cuenta por cobrar de " + montocxc.toFixed(2) , "SiNo", function () {
+
+                        $.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("CondonarCredito", "Credito")",
+                            data: { pCreditoId: $.data(document.body, 'CreditoId') ,
+                                pMontocxc:montocxc.toFixed(2),
+                                pMontoCondonacion:$.data(document.body, 'cMontoCondonacion'),
+                                pObs:$.data(document.body, 'cDeudaObs')},
+                            success: function (ret) {
+                                Vendix.Notificar();
+                                $("#dlgCondonar").dialog('close');
+                            }
+                        });
+                    });
+                });
+
+                $("#btnCrearCargo").click(function () {
+                    if ($("#frmcargo").validate().form()) {
+                        $.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("GuardarCargo", "Credito")",
+                            data: {
+                                pCreditoId: $.data(document.body, 'CreditoId'),
+                                pTipoCargoId: $("#drpTipoCargo").val(),
+                                pMonto: $("#txtMontoCargo").val(),
+                                pDescripcion: $("#txtdescCargo").val(),
+                                pFinal: $("#rbCargoFinal").prop('checked')
+                            },
+                            success: function (data) {
+                                Vendix.Notificar("Modificar");
+                                $("#grdCargo,#grdPrestamo").trigger("reloadGrid");
+                                $("#dlgCargo").find('form')[0].reset();
+                                $("#drpTipoCargo").trigger("liszt:updated");
+                            }
+                        });
+                    }
+                });
+                $("#btncCondonar").click(function(){
+                    event.preventDefault();
+                    $("#dlgCondonar").find('form')[0].reset();
+                    $("#cboCondonar").trigger("liszt:updated");
+
+                    $.ajax({
+                        type: 'GET',
+                        url: "@Url.Action("ObtenerCreditoPendiente", "Credito")",
+                        data: {pCreditoId: $.data(document.body, 'CreditoId')},
+                        success: function (ret) {
+                            //console.log(ret);
+                            var capital =   ret.Amortizacion - ret.PagoLibre;
+                            $("#lblCondonarCapitalneto").text(capital.toFixed(2));
+                            $("#lblCondonarInteres").text(ret.Interes.toFixed(2));
+                            $("#lblCondonarCargos").text(ret.Cargo.toFixed(2));
+                            $("#lblCondonarMoras").text(ret.ImporteMora.toFixed(2));
+
+                            $("#txtcCondonarCapital").val(capital.toFixed(2));
+                            $("#txtcCondonarInteres").val(ret.Interes.toFixed(2));
+                            $("#txtcCondonarCargos").val(ret.Cargo.toFixed(2));
+                            $("#txtcCondonarMoras").val(ret.ImporteMora.toFixed(2));
+
+                            var deuda = ret.Cuota + ret.ImporteMora + ret.Cargo;
+                            $.data(document.body, 'cDeuda',deuda);
+                            $.data(document.body, 'cDeudaCapital',(ret.Amortizacion - ret.PagoLibre));
+                            $.data(document.body, 'cDeudaInteres',ret.Interes);
+                            $.data(document.body, 'cDeudaMoras',ret.ImporteMora);
+                            $.data(document.body, 'cDeudaCargos',ret.Cargo);
+                            $("#lblCondonarCapital,#lblcCxcCondonar").text(deuda.toFixed(2));
+
+                            $("#dlgCondonar").dialog('open');
+                        }
+                    });
+
+                    return false;
+                });
+                $("#btncCargos").click(function () {
+                    event.preventDefault();
+                    $("#dlgCargo").find('form')[0].reset();
+                    Vendix.CargarCombo("@Url.Action("ListarTipoCargo", "Credito")", "drpTipoCargo");
+
+                    if ($("#gbox_grdCargo").length > 0)
+                        $("#grdCargo").trigger("reloadGrid");
+                    else {
+                        $("#grdCargo").jqGrid({
+                            url: "@Url.Action("ListarCargoGrd", "Credito")",
+                            datatype: "json",
+                            postData: {
+                                filters: function () {
+                                    return $.toJSON([{ Key: "CreditoId", Value: $.data(document.body, 'CreditoId') }]);
+                                }
+                            },
+                            colNames: ['Cargoid', 'Usuario', 'TipoCargo', 'Importe', 'Descripcion', 'Cuota', 'Estado'],
+                            colModel: [
+                                { name: "Cargoid", index: "Cargoid", hidden: true },
+                                { name: "Usuario", index: "Usuario", width: 80, sortable: false },
+                                { name: "TipoCargo", index: "TipoCargo", width: 100, sortable: false },
+                                { name: "Importe", index: "Importe", width: 50, align: "center", sortable: false },
+                                { name: "Descripcion", index: "Descripcion", width: 200, sortable: false },
+                                { name: "NumCuota", index: "NumCuota", width: 40, align: "center", sortable: false },
+                                { name: "Estado", index: "Estado", width: 40, align: "center", sortable: false }
+                            ],
+                            caption: "CARGOS / COMISIONES",
+                            pager: $('#grdpCargo'),
+                            rowNum: 5,
+                            rowList: [5, 10, 15],
+                            sortname: 'Cargoid',
+                            sortorder: "asc",
+                            viewrecords: true,
+                            rownumbers: true,
+                            width: '610',
+                            height: '116',
+                        });
+                    }
+                    $("#dlgCargo").dialog('open');
+                    return false;
+                });
+            });
+
+            function CalcularMontoCondonar(){
+                var deuda =  parseFloat($.data(document.body, 'cDeuda'));
+                var deudacapital = $.data(document.body, 'cDeudaCapital');
+                var deudainteres = $.data(document.body, 'cDeudaInteres');
+                var deudaMoras = $.data(document.body, 'cDeudaMoras');
+                var deudaCargos = $.data(document.body, 'cDeudaCargos');
+
+                var capital = 0;
+                var interes = 0;
+                var cargo = 0;
+                var moras = 0;
+
+                if ($("#chkcCapital").prop('checked')) {
+                    if (parseFloat($('#txtcCondonarCapital').val()) > deudacapital)
+                        $('#txtcCondonarCapital').val(deudacapital.toFixed(2));
+                    capital = parseFloat($('#txtcCondonarCapital').val()) ;
+                }
+                if ($("#chkcInteres").prop('checked')) {
+                    if (parseFloat($('#txtcCondonarInteres').val()) > deudainteres)
+                        $('#txtcCondonarInteres').val(deudainteres.toFixed(2));
+                    interes = parseFloat($('#txtcCondonarInteres').val()) ;
+                }
+                if ($("#chkcCargos").prop('checked')) {
+                    if (parseFloat($('#txtcCondonarCargos').val()) > deudaCargos)
+                        $('#txtcCondonarCargos').val(deudaCargos.toFixed(2));
+                    cargo = parseFloat($('#txtcCondonarCargos').val()) ;
+                }
+                if ($("#chkcMoras").prop('checked')) {
+                    if (parseFloat($('#txtcCondonarMoras').val()) > deudaMoras)
+                        $('#txtcCondonarMoras').val(deudaMoras.toFixed(2));
+                    moras = parseFloat($('#txtcCondonarMoras').val()) ;
+                }
+
+                var m = deuda - capital - interes  - cargo - moras;
+                $.data(document.body, 'cDeudaCondonarCXC',m);
+                $.data(document.body, 'cDeudaObs','DEUDA('+deuda.toFixed(2)+')=CAPITAL('+deudacapital.toFixed(2)+')+INTERES('+deudainteres.toFixed(2)+')+MORAS('+deudaMoras.toFixed(2)+')+CARGOS('+deudaCargos.toFixed(2)+')' + ' ==> PAGO CONDONACION ('+m.toFixed(2)+') ==>CAPITAL('+capital.toFixed(2)+') INTERES('+interes.toFixed(2)+') MORAS('+moras.toFixed(2)+') CARGOS('+cargo.toFixed(2)+')' );
+                $.data(document.body, 'cMontoCondonacion',interes + cargo + moras);
+                $("#lblcCxcCondonar").text(m.toFixed(2));
+
+            }
+
+            function VerEvidencias(){
+                window.open('@Url.Action("Evidencias","Credito")' + "/" + $.data(document.body, 'CreditoId'), '_self');
+            }
+
+            function mostrarCredito(CreditoId) {
+                if (CreditoId == 0) {
+                    $(".credito").hide();
+                    return;
+                }
+                // alert(123);
+
+                $(".credito").show('fast');
+                $(".full-stats").removeClass("BordeSeleccion");
+                $('#credit_'+CreditoId).addClass("BordeSeleccion");
+                $.data(document.body, 'CreditoId', CreditoId);
+                $('#lblcCreditoId').text(CreditoId);
+                $.ajax({
+                    url: "@Url.Action("ObtenerCredito", "Credito")",
+                    data: { pCreditoId: CreditoId },
+                    success: function (ret) {
+                        $('#lblcDescripcion').text(ret.Descripcion);
+                        $('#txtcTipoProducto').val(ret.ProductoCre);
+                        //$('#txtcProducto').val(ret.MontoProducto.toFixed(2));
+                        $('#txtcCentralRiesgo').val(ret.CentralRiesgo.toFixed(2));
+                        $('#txtcGA').val(ret.MontoGastosAdm.toFixed(2));
+                        $('#txtcCredito').val(ret.MontoCredito.toFixed(2));
+                        $('#txtcDesembolso').val(ret.MontoDesembolso.toFixed(2));
+
+                        //$('#spancEstadoVencido').removeClass("note success information warning error").addClass(ret.EstadoVencido);
+
+                        //$('#chkcIrrecuperable').prop("checked", ret.IndIrrecuperable);
+
+                        $('#txtcTipoGA').val(Constante.TIPOGA( ret.TipoGastoAdm));
+                        $('#txtcFormaPago').val(Constante.FORMAPAGO(ret.FormaPago) );
+                        $('#txtcCuotas').val(ret.NumeroCuotas);
+                        $('#txtcInteres').val(ret.Interes.toFixed(2));
+                        $('#txtcFechaDesembolso').val(ret.Desembolso);
+                        $('#txtcFechaAprobacion').val(ret.FAprobacion);
+                        $('#txtcFechaVcto').val(ret.Vencimiento);
+                        $('#txtcFechaPrimerPago').val(ret.FPrimerPago);
+
+                        $('#txtcEstado').val(Constante.CREDITO(ret.Estado));
+                        $('#txtcCargos').val(ret.Cargos.toFixed(2));
+                        @if (ViewBag.Aprobador1 == 0)
+                        {
+                            <text>  $("#cboAnalista").prop('disabled',true);
+                        $("#btnAnalista").hide();
+                        $(".prorrogar").hide();
+                        $("#txtcGA,#txtcCentralRiesgo").prop('disabled',true);
+                        $("#btnTramiteAdm,#btnCentralRiesgo").hide();
+                        </text>
+                        }
+                        $('#cboAnalista').val(ret.UsuarioRegId).trigger("liszt:updated");
+                        $('#txtcObservado').val(ret.Observacion);
+
+
+
+                        $('#txtPersonaES').val(ret.Aval);
+                        $.data(document.body, 'AvalPersonaId',ret.PersonaAvalId);
+
+                        $("#grdPrestamo").trigger("reloadGrid");
+
+                        $('.todo').hide();
+                        if (ret.Estado == 'DES') { $('.des').show(); /*$('#txtcCancelacion').val(ret.SaldoCancelacion.toFixed(2));*/ }
+                        else if (ret.Estado == 'PEN') $('.pen').show();
+                        else if (ret.Estado == 'APR') $('.apr').show();
+                        else if (ret.Estado == 'AP1') $('.ap1').show();
+                        else if (ret.Estado == 'PAG' || ret.Estado == 'ANU' || ret.Estado == 'REP') $('.his').show();
+                    }
+                });
+
+                if ($("#gbox_grdPrestamo").length > 0)
+                    $("#grdPrestamo").trigger("reloadGrid");
+                else {
+                    $("#grdPrestamo").jqGrid({
+                        url: "@Url.Action("ListarPlanPagoActGrd", "Credito")",
+                        datatype: "json",
+                        postData: {
+                            filters: function () {
+                                return $.toJSON([{ Key: "pCreditoId", Value: $.data(document.body, 'CreditoId') }]);
+                            }
+                        },
+                        colNames: ['No', 'Capital', 'F Vcto.', 'Amortizacion', 'Interes', 'G. Adm', 'Cuota', 'Atrazo', 'Mora', 'Dcto', 'Cargo', 'Pago Libre', 'Total Pago', 'Estado', 'Fecha Pago'],
+                        colModel: [
+                            { name: "Numero", index: "Numero", align: "center", width: 30, sortable: false },
+                            { name: "Capital", index: "Capital", width: 70, align: "right", sortable: false },
+                            { name: "FechaVencimiento", index: "FechaVencimiento", width: 80, align: "center", sortable: false },
+                            { name: "Amortizacion", index: "Amortizacion", width: 70, align: "right", sortable: false },
+                            { name: "Interes", index: "Interes", width: 60, align: "right", sortable: false },
+                            { name: "GastosAdm", index: "GastosAdm", width: 50, align: "right", sortable: false },
+                            { name: "Cuota", index: "Cuota", width: 70, align: "right", sortable: false },
+                            { name: "DiasAtrazo", index: "DiasAtrazo", width: 50, align: "center", sortable: false },
+                            { name: "ImporteMora", index: "ImporteMora", width: 60, align: "right", sortable: false },
+                            { name: "Descuento", index: "Descuento", width: 60, align: "right", sortable: false, formatter: LinkDescuento },
+                            { name: "Cargo", index: "Cargo", width: 50, align: "right", sortable: false },
+                            { name: "PagoLibre", index: "PagoLibre", width: 70, align: "right", sortable: false },
+                            { name: "PagoCuota", index: "PagoCuota", width: 80, align: "right", sortable: false },
+                            { name: "Estado", index: "Estado", width: 50, align: "center", sortable: false, formatter: LinkReimpresion },
+                            { name: "FechaPago", index: "FechaPago", width: 80, align: "center", sortable: false }
+                        ],
+                        caption: "CUOTAS PENDIENTES",
+                        rowNum: 350,
+                        height: '100%',
+                        sortname: 'Numero',
+                        sortorder: "desc",
+                        viewrecords: true,
+                        gridview: true,
+                        autowidth: true,
+                        width: 'auto',
+                        gridComplete: function () {
+                            var grd = $("#grdPrestamo");
+                            var rows = grd.getDataIDs();
+
+                            for (var i = 0; i < rows.length - 3; i++) {
+                                var ret = grd.jqGrid('getRowData', rows[i]);
+                                if (ret.Estado == 'PAG') {
+                                    $("#" + rows[i]).addClass("field-pagado");
+                                } else if (ret.Estado == 'CRE')
+                                    $("#" + rows[i]).addClass("field-creado");
+                                else if (ret.Estado == 'PEN' && ret.DiasAtrazo > 0) {
+                                    $("#" + rows[i]).addClass("field-error");
+                                } else {
+                                    $("#" + rows[i]).addClass("field-pendiente");
+                                }
+                            }
+                            grd.jqGrid('setRowData', rows[rows.length - 3], false, 'myclassTotal');
+                            grd.jqGrid('setRowData', rows[rows.length - 2], false, 'myclassTotal');
+                            grd.jqGrid('setRowData', rows[rows.length - 1], false, 'myclassTotal');
+                        }
+                    });
+                }
+            }
+
+            $("#grdHistorial").jqGrid({
+                url: "@Url.Action("ListarCreditosGrd", "Credito")",
+                datatype: "json",
+                postData: {
+                    filters: function () {
+                        return $.toJSON([
+                            { Key: "Buscar", Value: "@Model.Persona.PersonaId" },
+                            { Key: "Estado", Value: "HIS" }]);
+                    }
+                },
+                colNames: ['ID', 'DESEMBOLSO',  'CREDITO','INTERES', 'MOD', 'CUOTAS','CAL','FECHA PAG', 'ESTADO'],
+                colModel:
+                    [
+                        { name: 'CreditoId', index: 'CreditoId', width: 60, align: "center", sortable: false },
+                        { name: 'Desembolso', index: 'Desembolso', width: 100, align: "right", sortable: false },
+                        { name: 'MontoCredito', index: 'MontoCredito', width: 70, align: "right", sortable: false },
+                        { name: 'Interes', index: 'Interes', width: 60, align: "center", sortable: false },
+                        { name: 'FormaPago', index: 'FormaPago', width: 50, align: "center", sortable: false },
+                        { name: 'NumeroCuotas', index: 'NumeroCuotas', width: 60, align: "center", sortable: false },
+                        { name: 'Calificacion', index: 'Calificacion', width: 50, align: "center", sortable: false },
+                        { name: 'FechaPagado', index: 'FechaPagado', width: 100, align: "center", sortable: false },
+                        { name: 'Estado', index: 'Estado', width: 110, align: "center", sortable: false }
+                    ],
+                caption: "HISTORIAL DE CRÉDITOS",
+                pager: $('#grdpHistorial'),
+                rowNum: 5,
+                rowList: [5, 10, 15],
+                sortname: 'CreditoId',
+                sortorder: "desc",
+                viewrecords: true,
+                rownumbers: true,
+                autowidth: true,
+                height: '116',
+                ondblClickRow: function () {
+                    var id = jQuery("#grdHistorial").jqGrid('getGridParam', 'selrow');
+                    if (id) {
+                        var ret = $("#grdHistorial").jqGrid('getRowData', id);
+                        mostrarCredito(ret.CreditoId);
+                    }
+                }
+            });
+
+            $("#dlgAgregarDesc").dialog({
+                autoOpen: false,
+                resizable: false,
+                modal: true,
+                width: 240,
+                open: function () {
+                    $(this).parent().css('overflow', 'visible');
+                    $$.utils.forms.resize();
+                }
+            }).find('button.submit').click(function () {
+                var $el = $(this).parents('.ui-dialog-content');
+                //alert($.data(document.body, 'ppImporteMora'));
+                if ($("#txtDescuento").val() <= $.data(document.body, 'ppImporteMora')) {
+                    if ($el.validate().form()) {
+                        $.ajax({
+                            type: 'POST',
+                            url: "@Url.Action("ActualizarDescuentoPlanPago", "Credito")",
+                            data: {
+                                pPlanPagoId: $.data(document.body, 'ppPlanPagoId'),
+                                pDescuento: $("#txtDescuento").val(),
+                            },
+                            success: function (data) {
+                                $("#grdPrestamo").trigger("reloadGrid");
+                                $el.dialog('close');
+                                Vendix.Notificar("Modificar");
+                            }
+                        });
+                    }
+                } else {
+                    $("#lblValidarDescuento").text("Descuento Mayor a la Mora");
+                }
+            }).end().find('button.cancel').click(function () {
+                var $el = $(this).parents('.ui-dialog-content');
+                $el.find('form')[0].reset();
+                $el.dialog('close');
+            });
+
+            $('#btncImpEstadoCuenta').click(function () {
+                event.preventDefault();
+                var ruta = '@Url.Action("ReporteEstadoCredito", "Reporte")' + '?pCreditoId=' + $.data(document.body, 'CreditoId');
+                Vendix.Reporte(ruta);
+                return false;
+            });
+            $('#btncImpPlanPago').click(function () {
+                event.preventDefault();
+                var ruta = '@Url.Action("ReportePlanPagos", "Reporte")' + '?pCreditoId=' + $.data(document.body, 'CreditoId');
+                Vendix.Reporte(ruta);
+                return false;
+            });
+            $('#btncImpMovimiento').click(function () {
+                event.preventDefault();
+                var ruta = '@Url.Action("ReporteCreditoMovimiento", "Reporte")' + '?pCreditoId=' + $.data(document.body, 'CreditoId');
+                Vendix.Reporte(ruta);
+                return false;
+            });
+            $("#btncReprogramar").click(function () {
+                event.preventDefault();
+                var id = $.data(document.body, 'CreditoId');
+                if (id) {
+                    Vendix.Dialogo("Desea REPROGRAMAR el crédito indicado?", "SiNo", function () {
+                        $.ajax({
+                            url: "@Url.Action("ReprogramarCredito", "Credito")",
+                            data: { pCreditoId: id },
+                            success: function (ret) {
+                                window.location.reload();
+                            }
+                        });
+                    });
+                } else {
+                    Vendix.Mensaje("Por favor seleccione un credito");
+                }
+            });
+
+            $('#btncAnular').click(function () {
+                event.preventDefault();
+                var $el = $("#dlgConfirmarClave");
+                $el.find('form')[0].reset();
+                $('#dlgConfirmarClave').dialog('open');
+
+            });
+            $('#btnDepurarCliente').click(function () {
+                var id = $.data(document.body, 'PersonaId');
+                Vendix.DialogoObs("Ingrese Motivo de Depuracion.", function () {
+                    $.ajax({
+                        url: "@Url.Action("DepurarCredito", "Credito")",
+                        data: { pPersonaId: id, pObservacion: $.data(document.body, 'txtObsBase') },
+                        success: function (rpt) {
+                            if (rpt) {
+                                window.location.reload();
+                            }
+                        }
+                    });
+                });
+            });
+            $('#btncRechazar').click(function () {
+                event.preventDefault();
+                var id = $.data(document.body, 'CreditoId');
+                if (id) {
+                    Vendix.Dialogo("Desea Rechazar el crédito indicado?", "SiNo", function () {
+                        $.ajax({
+                            url: "@Url.Action("RechazarCredito", "Credito")",
+                            data: { pCreditoId: id },
+                            success: function (ret) {
+                                window.location.reload();
+                                //$('#btnImpEstCre,#btnImpPlan,#btnMovimiento,#btnAprobarCre,#btnRechazarCre,#btnAnularCre').hide();
+                                //$("#grdCreditoPen,#grdCredito").trigger("reloadGrid");
+                                //Vendix.Notificar();
+                            }
+                        });
+                    });
+                } else {
+                    Vendix.Mensaje("Por favor seleccione un credito");
+                }
+            });
+            @*$('#btncAprobar1').click(function () {
+                event.preventDefault();
+                var id = $.data(document.body, 'CreditoId');
+                if (id) {
+                    Vendix.Dialogo("Desea Aprobar el crédito indicado?", "SiNo", function () {
+                        $.ajax({
+                            url: "@Url.Action("AprobarCredito1ra", "Credito")",
+                            data: { pCreditoId: id },
+                            success: function (ret) {
+                                mostrarCredito(id);
+                                Vendix.Notificar();
+                            }
+                        });
+                    });
+                } else {
+                    Vendix.Mensaje("Por favor seleccione un credito");
+                }
+            });*@
+            $('#btncAprobar2').click(function () {
+                event.preventDefault();
+                var id = $.data(document.body, 'CreditoId');
+                if (id) {
+                    Vendix.Dialogo("Desea Aprobar el crédito indicado?", "SiNo", function () {
+                        $.ajax({
+                            url: "@Url.Action("AprobarCredito", "Credito")",
+                            data: { pCreditoId: id },
+                            success: function (ret) {
+                                mostrarCredito(id);
+                                Vendix.Notificar();
+                            }
+                        });
+                    });
+                } else {
+                    Vendix.Mensaje("Por favor seleccione un credito");
+                }
+            });
+        </script>
+    }
+</div>
+
+
+
+<script>
+    $$.ready(function () {
+
+        $.data(document.body, 'PersonaId', '@ViewBag.PersonaId');
+
+
+        $("#btnCrearSolicitud").click(function () {
+            Vendix.Dialogo("Deseas crear la solicitud de crédito?", "SiNo", function () {
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("CrearSolicitudCredito", "Credito")",
+                    data: {
+                        pPersonaId: $.data(document.body, 'PersonaId')
+                    },
+                    success: function (rep) {
+                        window.location = '@Url.Action("Creditos", "Credito")' + "?pPersonaId=" + $.data(document.body, 'PersonaId');
+                    }
+                });
+            });
+        });
+
+        $(".abrir-buscarCliente").click(function () {
+            $("#dialogo_buscar_cliente").dialog("open");
+            return false;
+        });
+
+        $("#txtCliente").autocomplete({
+            source: "@Url.Action("BuscarCliente", "Cliente")",
+            minLength: 2,
+            select: function (event, ui) {
+                // alert(ui.item.id);
+                window.location = '@Url.Action("Creditos", "Credito")' + "?pPersonaId=" + ui.item.id;
+            }
+        });
+
+        $("#btnSimulador").click(function () {
+            var ga = $("#txtGa").val();
+
+            var ruta = '@Url.Action("ReporteSimuladorPlanPagos", "Reporte")' +
+                '?pProductoid=' + $("#cboProducto").val() + '&pMonto=' + $("#txtMontoCredito").val() + '&pCuotas=' + $("#txtNroCuotas").val() + '&pInteres=' + $("#txtInteres").val() + '&pFecha=' + $("#txtFechappSol").val() + '&pModalidad=' + $("#cboFormaPago").val() + '&pGastosAdm=' + ga + '&pGA=' + $('#cboGA').val() + '&pCliente=@ViewBag.Cliente' ;
+
+            //window.open(ruta);
+            Vendix.Reporte(ruta);
+            return false;
+        });
+
+        $("#btnGenerarCredito").click(function () {
+            event.preventDefault();
+
+            var montocredito = parseFloat($("#txtMontoCredito").val());
+            if (montocredito <= 0) {
+                Vendix.Mensaje("Error: El monto de credito debe ser mayor cero");
+                return;
+            }
+
+            Vendix.Dialogo("Desea generar el crédito para aprobación?", "SiNo", function () {
+                $.ajax({
+                    url: "@Url.Action("GenerarCredito", "Credito")",
+                    data: {
+                        pProductoId: $("#cboProducto").val(),
+                        pTipoCuota: "F",
+                        pMontoInicial: 0.0,
+                        pMontoGastosAdm: $("#txtGa").val(),
+                        pIndGastosAdm: $("#cboGA").val(),
+                        pMontoCredito: $("#txtMontoCredito").val(),
+                        pModalidad: $("#cboFormaPago").val(),
+                        pNumerocuotas: $("#txtNroCuotas").val(),
+                        pInteresMensual: $("#txtInteres").val(),
+                        pFecha: $("#txtFechappSol").val(),
+                        pObservacion: $("#txtObsSol").val(),
+                        pIndCentralRiesgo: $("#chkcCentralRiesgo").prop('checked')
+                    },
+                    success: function (ret) {
+                        if (ret.length == 0)
+                            window.location.reload();
+                        else {
+                            Vendix.Mensaje(ret);
+                        }
+                    }
+                });
+            });
+        });
+
+    });
+
+
+    function RechazarCredito(CreditoId) {
+        Vendix.Dialogo("Desea Rechazar el crédito indicado?", "SiNo", function () {
+            $.ajax({
+                url: "@Url.Action("RechazarCredito", "Credito")",
+                data: { pCreditoId: CreditoId },
+                success: function (ret) {
+                    $("#divSolicitud").hide();
+                    Vendix.Notificar();
+                }
+            });
+        });
+    }
+
+    function LinkReimpresion(cellvalue, options, rowObject) {
+        var arr = cellvalue.split(',');
+        if (arr[0] != 'PAG') return arr[0];
+        return "<a href='' onclick='MostrarReimpresion(" + arr[1] + ");return false;'> " + arr[0] + " </a>";        
+        
+    };
+    function LinkDescuento(cellvalue, options, rowObject) {
+        var arr = cellvalue.split(';');
+        if (arr[1] != 'PEN') return arr[0];
+
+        
+        @if (ViewBag.Administrador > 0)
+        {   <text>
+            return "<a href='' onclick='MostrarDescuento("+arr[0]+"," + arr[2] + ","+arr[3]+");return false;'> " + arr[0] + " </a>";
+            </text>
+        }
+        
+        return arr[0];
+    };
+    function MostrarDescuento(descuento, planpagoid, mora){
+        $.data(document.body, "ppPlanPagoId", planpagoid);
+        $.data(document.body, 'ppImporteMora', mora);
+        $("#lblValidarDescuento").text("");
+        $('#txtDescuento').val(parseFloat(descuento).toFixed(2));
+                
+        $("#dlgAgregarDesc").dialog("open");
+        $('#txtDescuento').select();
+
+        @*$.ajax({
+            url: "@Url.Action("ObtenerPlanPago", "Credito")",
+            data: { pPlanPagoId: planpagoid },
+            success: function (data) {
+                
+                $('#txtDescuento').val(parseFloat(data.Descuento).toFixed(2));
+                
+                $("#dlgAgregarDesc").dialog("open");
+                $('#txtDescuento').select();
+            },
+        });*@
+        
+    }
+
+    function MostrarReimpresion(MovimientoCajaId) {
+        //alert(MovimientoCajaId);
+        var ruta = '@Url.Action("ReporteMovimientoCaja", "Reporte")' + '?pMovimientoCajaId=' + MovimientoCajaId;
+        Vendix.Reporte(ruta);
+    }
+
+    @*function ImprimirMovCaja(pMovimientoCajaId) {
+        var ruta = '@Url.Action("ReporteMovimientoCaja", "Reporte")' + '?pMovimientoCajaId=' + pMovimientoCajaId;
+        //window.open(ruta);
+        Vendix.Reporte(ruta);
+    }*@
+
+    @*function editLink(cellValue, options, rowdata, action) {
+        //ver como abrir la reinpresion
+        var ruta = '@Url.Action("ReporteMovimientoCaja", "Reporte")' + '?pMovimientoCajaId=' + pMovimientoCajaId;
+        //window.open(ruta);
+
+    }*@
+</script>

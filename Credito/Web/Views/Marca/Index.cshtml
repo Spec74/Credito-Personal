@@ -1,0 +1,139 @@
+﻿<h1 class="grid_12">Mantenimiento de Lista de Marcas</h1>
+
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Lista de Marcas</h2>
+        </div>
+
+        <div class="searchbox">
+            <input id="txtBuscar" type="text" placeholder="Ingrese Nombre de Modelo" />
+            <input id="btnBuscar" type="submit" value="Buscar" class="grey" />
+        </div>
+        <a id="btnNuevo" href="#" class="button">Nueva Marca</a>
+        <table id="grdBuscar" ></table>
+        <div id="grdpBuscar"></div>
+    </div>
+   
+  </div>
+
+<div style="display: none;" id="dlgNuevo" title="Mantener Lista de Marcas">
+    <form action="#" class="full validate" >
+        <div class="row">
+            <label for="txtMarca">
+                <strong>Ingrese Marca</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtMarca" id="txtMarca"  />
+            </div>
+        </div>
+        <div class="row">
+            <label for="chkActivo">
+                <strong>Estado:</strong>
+            </label>
+            <div>
+                <div><input type="checkbox" id="chkActivo" /> <label for="chkActivo">Activo</label></div>
+            </div>
+        </div>
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <button class="submit">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<script >
+    $$.ready(function () {
+        $("#btnNuevo").click(function () {
+            $.data(document.body, 'MarcaId', 0);
+            $("#txtMarca").val("").removeAttr('disabled');
+            $("#chkActivo").prop("checked", true);
+            $("#dlgNuevo").dialog("open");
+            return false;
+        });
+        $("#txtBuscar").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+            }
+        });
+        $("#btnBuscar").click(function() { $("#grdBuscar").trigger("reloadGrid"); });
+    
+        $("#dlgNuevo").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 400,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('button.submit').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("GuardarMarca", "Marca")",
+                    data: {
+                        pMarcaId: $.data(document.body, 'MarcaId'),
+                        pDenominacion: $("#txtMarca").val(),
+                        pActivo: $("#chkActivo").prop('checked')
+                    },
+                    success: function(data) {
+                        Vendix.Notificar("Modificar");
+                        $("#grdBuscar").trigger("reloadGrid");
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                    }
+                });
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+  
+        jQuery("#grdBuscar").jqGrid({
+            url: "@Url.Action("ListarMarca", "Marca")",
+            datatype: "json",
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "Buscar", Value: $("#txtBuscar").val() }]);
+                }
+            },
+            colNames: ['INV NRO', 'DENOMINACION', 'ESTADO', 'ESTADO'],
+            colModel:
+                [
+                    { name: 'MarcaId', index: 'MarcaId', width: 75 },
+                    { name: 'Denominacion', index: 'Denominacion', width: 150, align: "left" },
+                    { name: 'Estado', index: 'Estado', hidden: true },
+                    { name: 'Activo', index: 'Activo', align: 'center', width: 80, formatter: ActivoFormatter }
+                ],
+            caption: "Lista Marca",
+            pager: jQuery('#grdpBuscar'),
+            rowNum: 15,
+            rowList: [15, 30, 45],
+            sortname: 'MarcaId',
+            sortorder: "asc",
+            gridview: true,
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            //paging: true,
+            width: 'auto',
+            height: '347px',
+            ondblClickRow: function () {
+                var id = jQuery("#grdBuscar").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    var ret = $("#grdBuscar").jqGrid('getRowData', id);
+                    $("#txtMarca").val(ret.Denominacion);
+                    $("#chkActivo").prop("checked", ret.Estado == "True" ? true : false);
+                    $.data(document.body, 'MarcaId', ret.MarcaId);
+                    $("#dlgNuevo").dialog("open");
+                }
+            }
+        });//.navGrid('#grdBuscar', { edit: false, add: false, del: false });
+    }); 
+</script>
+
+

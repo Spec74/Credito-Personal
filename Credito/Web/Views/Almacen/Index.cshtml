@@ -1,0 +1,175 @@
+﻿<h1 class="grid_12">Mantenimiento de Almacen</h1>
+
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Lista de Almacenes</h2>
+        </div>
+
+        <div class="searchbox">
+            <input id="txtBuscar" type="text" placeholder="Ingrese Nombre de Almacen" />
+            <input id="btnBuscar" type="submit" value="Buscar" class="grey" />
+        </div>
+        <a id="btnNuevo" href="#" class="button">Nuevo Almacen</a>
+        <table id="grdBuscar" ></table>
+        <div id="grdpBuscar"></div>
+    </div>
+   
+  </div>
+
+<div style="display: none;" id="dlgNuevo" title="Mantener Lista de Almacenes">
+    <form action="#" class="full validate" >
+        <div class="row">
+            <label for="cboOficina">
+                <strong>Oficina</strong>
+            </label>
+            <div style="margin-left: 130px;">
+                @Html.DropDownList("cboOficina","--SELECCIONE--")  
+            </div>
+        </div>
+
+        <div class="row">
+            <label for="txtAlmacen">
+                <strong>Ingrese Almacen:</strong>
+            </label>
+            <div style="margin-left: 130px;">
+                <input class="required" type="text" name="txtAlmacen" id="txtAlmacen" />
+            </div>
+        </div>
+        <div class="row">
+            <label for="txtDescripcion">
+                <strong>Descripción :</strong>
+            </label>
+            <div style="margin-left: 130px;">
+                <input class="required" type="text" name="txtDescripcion" id="txtDescripcion" />
+            </div>
+        </div>
+        
+        <div class="row">
+            <label for="chkActivo">
+                <strong>Estado:</strong>
+            </label>
+            <div>
+                <div><input type="checkbox" id="chkActivo" /> <label for="chkActivo">Activo</label></div>
+            </div>
+        </div>
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+             <button class="submit">Guardar</button>
+        </div>
+   
+    </div>
+</div>
+
+<script type="text/javascript">
+    $$.ready(function () {
+        
+        $("#btnNuevo").click(function () {
+            $.data(document.body, 'AlmacenId', 0);
+            $("#txtAlmacen").val("").removeAttr('disabled');
+            $("#chkActivo").prop("checked", true);
+            $("#dlgNuevo").dialog("open");
+            return false;
+        });
+        $("#txtBuscar").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $("#grdBuscar").trigger("reloadGrid");
+            }
+        });
+        $("#btnBuscar").click(function () { $("#grdBuscar").trigger("reloadGrid"); });
+
+        $("#dlgNuevo").dialog({
+            autoOpen: false,
+            modal: true,
+            width: 400,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('button.submit').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+                $.ajax({
+                    type: 'POST',
+                    cache: false,
+                    url: "@Url.Action("GuardarAlmacen", "Almacen")",
+                    data: {
+                        'pAlmacenId': $.data(document.body, 'AlmacenId'),
+                        'pOficinaId': $("#cboOficina").val(),
+                        'pDenominacion': $("#txtAlmacen").val(),
+                        'pDescripcion': $("#txtDescripcion").val(),
+                        'pActivo': $("#chkActivo").prop('checked')
+                    },
+                    dataType: 'json',
+                    success: function (data) {
+                        Vendix.Notificar("Modificar");
+                        $("#grdBuscar").trigger("reloadGrid");
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                    },
+                    error: function (jqXHR, exception) {
+                        alert('Error message.');
+                    }
+                });
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+        
+        //    $(document).ready(function(){
+        //    $("div").text("For this type jQuery found.");
+        //    $("div").text($("div").text().toUpperCase());
+        //});
+      
+
+        jQuery("#grdBuscar").jqGrid({
+            url: "@Url.Action("ListarAlmacen", "Almacen")",
+            datatype: "json",
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "Buscar", Value: $("#txtBuscar").val() }]);
+                }
+            },
+            colNames: ['INV NRO', 'DENOMINACION', 'DESCRIPCION', 'OficinaId', 'OFICINA', 'ESTADO', 'ESTADO'],
+            colModel:
+                [
+                    { name: 'AlmacenId', index: 'AlmacenId', width: 75 },
+                    { name: 'Denominacion', index: 'Denominacion', width: 150, align: "left" },
+                    { name: 'Descripcion', index: 'Descripcion', width: 150, align: "left" },
+                    { name: 'OficinaId', index: 'OficinaId', hidden: true },
+                    { name: 'Oficina', index: 'Oficina', width: 150, align: "left" },
+                    { name: 'Estado', index: 'Estado', hidden: true },
+                    { name: 'Activo', index: 'Activo', align: 'center', width: 80, formatter: ActivoFormatter }
+                ],
+            caption: "Lista Almacen",
+            pager: jQuery('#grdpBuscar'),
+            rowNum: 15,
+            rowList: [15, 30, 45],
+            sortname: 'AlmacenId',
+            sortorder: "asc",
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            //paging: true,
+            width: 'auto',
+            height: '347px',
+            ondblClickRow: function () {
+                var id = jQuery("#grdBuscar").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    var ret = $("#grdBuscar").jqGrid('getRowData', id);
+                    $("#txtAlmacen").val(ret.Denominacion);
+                    $("#cboOficina").val(ret.OficinaId).trigger("liszt:updated");
+                    $("#txtDescripcion").val(ret.Descripcion);
+                    $("#chkActivo").prop("checked", ret.Estado == "True" ? true : false);
+                    $.data(document.body, 'AlmacenId', ret.AlmacenId);
+                    $("#dlgNuevo").dialog("open");
+                }
+            }
+        });
+    });
+</script>

@@ -1,0 +1,746 @@
+﻿<div class="grid_12 profile">
+    <div class="header">
+        <div class="title">
+            <h2>Transferencias de Almacen</h2>
+            <h3><span id="lblAlmacenHeader"></span></h3>
+        </div>
+        <div class="avatar">
+            <img src="~/img/icons/packs/fugue/24x24/monitor-sidebar.png" />
+            <a id="lnkCrearEntrada" href="javascript:void(0);">Nueva Transfer.</a>
+        </div>
+        <ul class="info">
+            <li>
+                <a href="javascript:void(0);">
+                    <strong>42</strong>
+                    <small>Tranferencia Confirmadas</small>
+                </a>
+            </li>
+            <li>
+                <a href="javascript:void(0);">
+                    <strong>216</strong>
+                    <small>Tranferencia sin Confirmar</small>
+                </a>
+            </li>
+            <li>
+                <a href="javascript:void(0);">
+                    <strong>106</strong>
+                    <small>Total Tranferencia</small>
+                </a>
+            </li>
+        </ul>
+        <!-- End of ul.info -->
+    </div>
+
+    <div id="tabs">
+        <ul>
+            <li><a href="#tabs-1">Buscar Transferencia</a></li>
+            <li><a href="#tabs-2">Detalle de Transferencia</a></li>
+        </ul>
+        <div id="tabs-1">
+            <br />
+            <div class="searchbox">
+                <table style="margin: 0">
+                    <tr>
+                        <td>@Html.DropDownList("cboAlmacen")</td>
+                        <td style="width: 100%; ">
+                            <input id="txtBuscar" type="search" placeholder="Buscar por Nro. TRA o Fecha (dd/mm/yyyy)" style="width: 40%" autofocus />
+                            <input id="txtBuscarxArt" type="search" placeholder="Buscar por Articulo" style="width: 40%" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table id="grdBuscar"></table>
+            <div id="grdpBuscar"></div>
+        </div>
+        <div id="tabs-2">
+            <br />
+            <div class="details grid_12" >
+                <form id="frm1" method="post" action="#" class="full validate">
+                    <h2 style="padding-top:8px"><a id="lnkagregar" href="javascript:void(0);"><span class="badge icon icon-check" style="cursor: pointer"> Agregar</span></a></h2>
+                    <p class="_50 small">
+                        <label for="txtBuscarSerie" class="inline">Ingrese Serie de Artículo:</label>
+                        <input data-error-type="inline" type="text" class="required" id="txtBuscarSerie" />
+                    </p>
+                    <div id="divAgregar" style="display: none">
+                        <div id="mensaje" class="alert error sticky">
+                            <span class="icon"></span>
+                            <strong id="lblmensaje"></strong>
+                        </div>
+                    </div>
+                </form>
+                @*<a id="lnkDesconfirmar" href="javascript:void(0);"><span class="icon icon-magic"></span>Desconfirmar</a>*@
+                <h1>Detalle transferencia</h1>
+                <table id="grdDetalle" class="grdDelete"></table>
+            </div>
+            <div class="clearfix"></div>    
+            <br>
+            <br>
+            <div class="details grid_6"></div>
+            <div class="details grid_6" style="float:left">
+                <section>
+                    <table>
+                        <tr>
+                            <th>Transferencia:</th>
+                            <td><span id="lblNroEntrada"></span>&nbsp;</td>
+                            
+                            Datos de transferencia
+                        </tr>
+                        <tr>
+                            <th>Fecha Op:</th>
+                            <td>
+                                @*<span id="txtfecha" />*@
+                            <span id="txtfecha"></span>&nbsp;
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Origen:</th>
+                            <td><span id="lblAlmacen"></span>&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <th>Destino:</th>
+                            <td><span id="lblDestino"></span>&nbsp;</td>
+                        </tr>
+
+                        <tr>
+                            <th>Estado:</th>
+                            <td><span id="lblEstado"></span>&nbsp;</td>
+                        </tr>
+
+                        <tr>
+                            <th>Observación:</th>
+                            <td style="width: 100%;">
+                                <textarea id="txtObs" style="width: 100%;height: 66px" placeholder="Ingresa tu observación Aqui...."></textarea>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <td style="float:right">
+                                @*<a id="lnkDesconfirmar" href="javascript:void(0);"><span class="icon icon-magic"></span>Desconfirmar</a>*@
+                                @*<a id="lnkConfirmar" href="javascript:void(0);"><span class="badge icon icon-check" style="cursor: pointer"> Enviar</span></a>*@
+                                <a id="lnkConfirmar" href="javascript:void(0);"><span class="badge green icon icon-check" style="cursor: pointer"> Confirmar</span></a>
+                            </td>
+                        </tr>
+                    </table>
+                </section>
+            </div>
+            <div class="clearfix"></div> 
+        </div>
+
+    </div>
+</div>
+
+<div style="display: none;" id="dlgDocumento" title="Documentos">
+    <form action="#" class="full validate">
+        <div class="row">
+            <label>
+                <strong>Tipo Documento</strong>
+            </label>
+            <div style="margin-left: 130px;">
+                @Html.DropDownList("cboTipoDocumento")
+            </div>
+        </div>
+        <div class="row" style="height: 80px">
+            <label for="txtSerieDoc">
+                <strong>Serie-Numero:</strong>
+            </label>
+            <div>
+                <input class="required" type="text" name="txtSerieDoc" id="txtSerieDoc" style="width: 70px;" />
+                --
+                <input class="required" type="text" name="txtNroDoc" id="txtNroDoc" style="width: 120px;" />
+            </div>
+        </div>
+
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <button class="submit">Guardar</button>
+        </div>
+    </div>
+</div>
+
+<div style="display: none;" id="dlgNuevo" title="Crear Entrada de Almacen">
+    <form action="#" class="full validate">
+        <div class="row">
+            <label for="cboDestino">
+                <strong>Almacen</strong>
+            </label>
+            <div style="margin-left: 130px;">
+                @Html.DropDownList("cboDestino")
+            </div>
+        </div>
+        
+    </form>
+    <div class="actions">
+        <div class="left">
+            <button class="grey cancel">Salir</button>
+        </div>
+        <div class="right">
+            <button class="submit">Crear Entrada</button>
+        </div>
+    </div>
+</div>
+<script>
+    $(function () {
+        $("#tabs").tabs().tabs("option", "disabled", [1]);
+        $.data(document.body, 'TransferenciaId', 0);
+        $.data(document.body, 'ArticuloBuscarId', 0);
+        $("#cboMedida").width('100px');
+
+        $("#lnkCrearEntrada").click(function () {
+            $("#dlgNuevo").dialog("open");
+            return false;
+        });
+
+
+        $("#lnkConfirmar").click(function () {
+            
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("Confirmar", "Transferencia")",
+                data: { pTransferenciaId: $.data(document.body, 'TransferenciaId') },
+            success: function (ret) {
+                if (ret.length==0) {
+                    Vendix.Notificar("Modificar");
+                    VerDetalle();
+                }
+                else {
+                    Vendix.Dialogo(ret, "Aceptar");
+                }
+            }
+        });
+    });
+
+
+
+
+
+    //********************************************* DESCONFIRMAR ********************************
+        $("#lnkDesconfirmar").click(function () {
+            event.preventDefault();
+            $.ajax({
+                type: 'POST',
+                url: "@Url.Action("Desconfirmar", "Entrada")",
+                data: {
+                    pTransferenciaId: $.data(document.body, 'TransferenciaId')
+                },
+                success: function (res) {
+                    if (res == "UPD") {
+                        Vendix.Notificar("Modificar"); 
+                        VerDetalle();
+                    }
+                    else Vendix.Mensaje("No se puede DESCONFIRMAR, existe un árticulo vendido");
+                }
+            });
+        });
+
+
+
+
+        $("#cboAlmacen").change(function () {
+            $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+        });
+
+        $("#dlgNuevo").dialog({
+            autoOpen: false,
+            modal: true,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+        }).find('button.submit').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            if ($el.validate().form()) {
+
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("CrearTransferencia", "Transferencia")",
+                    data: {                      
+                        pAlmacenDestinoId: $("#cboDestino").val()
+                    },
+                    success: function (movid) {
+                        Vendix.Notificar("Modificar");
+                        $.data(document.body, 'TransferenciaId', movid);
+                        VerDetalle();
+                        $el.find('form')[0].reset();
+                        $el.dialog('close');
+                    }
+                });
+            }
+        }).end().find('button.cancel').click(function () {
+            var $el = $(this).parents('.ui-dialog-content');
+            $el.find('form')[0].reset();
+            $el.dialog('close');
+        });
+
+
+
+        $("#txtBuscar").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $("#txtBuscarxArt").val('');
+                $.data(document.body, 'ArticuloBuscarId', 0);
+                $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+            }
+        });
+
+
+
+        $("#txtSerie").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+
+                var serie = $.trim($("#txtSerie").val());
+                if (serie.length == 0) return;
+
+                var lstSeries = $("#txtListaSerie").val();
+                if (lstSeries != null) {
+                    if ($.inArray(serie, lstSeries) != -1) {
+                        Vendix.Dialogo("Serie Duplicada.", "Aceptar");
+                        $("#txtSerie").val('');
+                        return;
+                    }
+                }
+                if ($("#chkCorrelativo").prop('checked')) {
+                    if (lstSeries != null && lstSeries.length >= 1) {
+                        $("#txtSerie").val('');
+                        return;
+                    }
+                }
+
+                var mensaje = ValidarSerie();
+                if (mensaje.length > 0) {
+                    Vendix.Dialogo("Ya existe la lista de serie: " + mensaje, "Aceptar");
+                    return;
+                }
+
+                $('#txtListaSerie').append($('<option>', { value: serie, text: serie, selected: "selected" })).trigger("liszt:updated");
+                $("#txtSerie").val('');
+            }
+        });
+
+        $("#chkCorrelativo").change(function () {
+            if ($("#chkCorrelativo").prop('checked')) {
+                var lstSeries = $("#txtListaSerie").val();
+                if (lstSeries != null && lstSeries.length >= 1) {
+                    $('#txtListaSerie').html($('<option>', { value: lstSeries[0], text: lstSeries[0], selected: "selected" })).trigger("liszt:updated");
+                }
+                $("#spCantidad").show();
+                $("#txtCantidad").focus();
+            }
+            else
+                $("#spCantidad").hide();
+        });
+
+        $("#chkAutogenerar").change(function () {
+            if ($("#chkAutogenerar").prop('checked')) {
+                $("#spCantidadCodigo").show();
+                $("#divCodigoManual").hide();
+                $("#txtCantidadCodigo").focus();
+            }
+            else {
+                $("#spCantidadCodigo").hide();
+                $("#divCodigoManual").show();
+                $("#txtSerie").focus();
+            }
+
+        });
+
+        $('#grdBuscar').jqGrid({
+            url: "@Url.Action("Listar", "Transferencia")",
+            datatype: 'json',
+           // mtype: 'POST',
+            postData: {
+                filters: function () {
+                    return $.toJSON([
+                        { Key: "Buscar", Value: $("#txtBuscar").val() },
+                        { Key: "BuscarxArticuloId", Value: $.data(document.body, 'ArticuloBuscarId') },
+                        { Key: "Almacen", Value: $("#cboAlmacen").val() }
+                    ]);
+                }
+            },
+            colNames: ['TRANS.', 'ORIGEN', 'DESTINO', 'Fecha', 'Estado'],
+            colModel: [
+                { name: 'TransferenciaId', index: 'TransferenciaId', align: 'center', width: 60 },
+                { name: 'AlmacenOrigen', index: 'AlmacenOrigen' },
+                { name: 'AlmacenDestino', index: 'AlmacenDestino' },
+                { name: 'Fecha', index: 'Fecha' },
+                { name: 'Estado', index: 'Estado', align: 'center' },
+      
+            ],
+            caption: "Transferencias de Almacen",
+            pager: $('#grdpBuscar'),
+            rowNum: 10,
+            rowList: [10, 20, 30],
+            sortname: 'TransferenciaId',
+            sortorder: 'desc',
+            gridview: true,
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            width: 'auto',
+            height: '232px',
+            ondblClickRow: function () { mostrardetalle(); }
+        }).jqGrid('bindKeys', { "onEnter": function (rowid) { mostrardetalle(); } });
+
+
+
+        jQuery("#grdDetalle").jqGrid({
+            url: "@Url.Action("ListarDetalle", "Transferencia")",
+            datatype: 'json',
+            postData: {
+                filters: function () {
+                    return $.toJSON([{ Key: "TransferenciaId", Value: $.data(document.body, 'TransferenciaId') }]);
+                }
+            },
+            colNames: ['ID', 'ArticuloId', 'Articulo', 'Cantidad', 'Series', 'Eliminar'],
+            colModel: [
+                { name: 'TransferenciaId', index: 'TransferenciaId', width: 10 },
+                { name: 'ArticuloId', index: 'ArticuloId', hidden: true },
+                { name: 'Articulo', index: 'Articulo' },
+                { name: 'Cantidad', index: 'Cantidad', align: 'center', width: 10 },
+                { name: 'Series', index: 'Series', width: 60 },
+                { name: 'Eliminar', index: 'Eliminar', align: 'center', width: 20, formatter: AccionFormatter }
+            ],
+            sortname: 'ArticuloId',
+            gridview: true,
+            rowNum: 50,
+            height: 'auto',
+            autowidth: true,
+            viewrecords: true,
+            rownumbers: true,
+            ondblClickRow: function () {
+                var id = jQuery("#grdDetalle").jqGrid('getGridParam', 'selrow');
+                if (id) {
+                    
+                    var ret = $("#grdDetalle").jqGrid('getRowData', id);
+                    $.data(document.body, 'TransferenciaId', ret.TransferenciaId);
+                    $.data(document.body, 'ArticuloId', ret.ArticuloId);
+
+                    
+
+                    $("#txtArticulo").val(ret.Descripcion).attr("disabled", "disabled");
+                    $("#lblDenominacionArt").text(ret.Descripcion);
+                    $("#msjEncontrado").show();
+                    $("#txtCantidad").val(ret.Cantidad);
+                    $("#txtPrecio").val(ret.PrecioUnitario);
+                    $("#txtDescuento").val(ret.Descuento);
+                    $("#cboMedida").val(ret.UnidadId).trigger("liszt:updated");
+                    $("#chkCorrelativo").prop("checked", ret.IndCorrelativo == "True" ? true : false);
+
+                    @*$.ajax({
+                        url: "@Url.Action("ObtenerSeriesMovimientoDetalle", "Entrada")",
+                        data: { pTransferenciaId: ret.TransferenciaId },
+                        success: function (series) {
+                            $('#txtListaSerie').html('');
+                            if ($("#chkCorrelativo").prop('checked')) {
+                                $("#spCantidad").show();
+                                if (series[0] != null)
+                                    $('#txtListaSerie').append($('<option>', { value: series[0].NumeroSerie, text: series[0].NumeroSerie, selected: "selected" }));
+                            } else {
+                                $("#spCantidad").hide();
+                                $.each(series, function () {
+                                    $('#txtListaSerie').append($('<option>', { value: this.NumeroSerie, text: this.NumeroSerie, selected: "selected" }));
+                                });
+                            }
+                            $('#txtListaSerie').trigger("liszt:updated");
+                            $("#txtSerie").val('');
+                        }
+                    });*@
+                }
+            }
+        });
+
+        $("#txtBuscarxArt").autocomplete({
+            source: "@Url.Action("BuscarArticuloSelect", "Articulo")",
+            minLength: 2,
+            select: function (event, ui) {
+                // alert(ui.item.id);
+                $("#txtBuscar").val('');
+                $.data(document.body, 'ArticuloBuscarId', ui.item.id);
+                $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
+            }
+        });
+
+        $(window).resize(function () {
+            jQuery("#grdDetalle").jqGrid('setGridWidth', parseInt($("#content").width()) - 62);
+            jQuery("#grdDocumentosAdjuntos").jqGrid('setGridWidth', parseInt($("#content").width()) / 2 - 45);
+            ;
+        });
+
+    });
+
+
+
+    function AccionFormatter(cellvalue, options, rowObject) {
+        
+
+        if (cellvalue.length > 0) {
+            var arr = cellvalue.split(',');
+            return "<a href='#' onclick='EliminarTx(" + arr[0] + "," + arr[1] + ");return false;' class='button small grey tooltip' data-gravity='s' title='Eliminar'><i class='icon-remove'></i></a>";
+        }
+        return "";
+    }
+
+    function EliminarTx(transferenciaId,articuloId) {
+        $.ajax({
+            url: "@Url.Action("EliminarTransferenciaSerie", "Transferencia")",
+            type: 'POST',
+            data: { pTransferenciaId: transferenciaId, pArticuloId: articuloId },
+            success: function (rpt) {
+                Vendix.Notificar('Eliminar');
+                $("#grdDetalle").trigger("reloadGrid");
+                //mostrarTotal();
+            }
+        });
+    }
+
+    function mostrardetalle() {
+        var id = jQuery("#grdBuscar").jqGrid('getGridParam', 'selrow');
+        if (id) {
+            var ret = $("#grdBuscar").jqGrid('getRowData', id);
+            $.data(document.body, 'TransferenciaId', ret.TransferenciaId);
+           
+           
+            VerDetalle();
+
+        }
+    }
+
+    function VerDetalle() {
+        $.ajax({
+            url: "@Url.Action("ObtenerMovimiento", "Transferencia")",
+            data: { pTransferenciaId: $.data(document.body, 'TransferenciaId') },
+            success: function (mov) {                
+
+                $("#lblNroEntrada").text(mov.TransferenciaId);
+                $("#cboTipoMovimiento").val(mov.TipoTransferenciaId).trigger("liszt:updated");
+                //$("#txtfecha").text(mov.fecha);
+                $("#txtObs").val(mov.Observacion);
+                $("#cboDestino").trigger("liszt:updated");
+
+                $.ajax({
+                    url: "@Url.Action("ObtenerMovimientoExt", "Transferencia")",
+                    data: { pTransferenciaId: $.data(document.body, 'TransferenciaId') },
+                    success: function (movext) {
+                        
+                        $("#lblAlmacen").text(movext.AlmacenOrigen);
+                        $("#lblDestino").text(movext.AlmacenDestino);
+                        $("#txtfecha").text(movext.Fecha);
+                        $("#lblEstado").text(movext.Estado);
+                                              
+                    }
+                });
+
+                $("#grdDetalle").trigger("reloadGrid");
+                $("#tabs").tabs({ disabled: [2] });
+                $("#tabs").tabs("option", "selected", 1);
+                if (mov.EstadoId != 1) {
+                    $("#lnkDesconfirmar").show();
+                    $("#cboTipoMovimiento").attr('disabled', 'disabled').trigger("liszt:updated");
+                } else {
+                    $("#lnkDesconfirmar").hide();
+                    $("#cboTipoMovimiento").removeAttr('disabled').trigger("liszt:updated");
+                }
+            }
+        });
+
+
+    }
+
+    function ValidarSerie() {
+        var str = '';
+        $.ajax({
+            async: false,
+            url: "@Url.Action("ValidarExisteSerie", "Entrada")",
+            data: { pListaSerie: $("#txtSerie").val(), pIndCorrelativo: $("#chkCorrelativo").prop('checked'), pCantidad: $("#txtCantidad").val() },
+            success: function (ret) {
+                str = ret;
+            }
+        });
+        return str;
+    }
+
+    @*function EliminarFormatter(cellvalue, options, rowObject) {
+        if (cellvalue.length == 0) return "";
+        return "<a href='#' onclick='Eliminar(" + cellvalue + ");return false;' class='button small grey tooltip' data-gravity='s' title='Eliminar'><i class='icon-remove'></i></a>";
+    }
+    function Eliminar(id) {
+        $.ajax({
+            url: "@Url.Action("EliminarTransferenciaSerie", "Transferencia")",
+            type: 'POST',
+            data: { pid: id },
+            success: function (rpt) {
+                Vendix.Notificar('Eliminar');
+                $(".grdEliminar").trigger("reloadGrid");
+            }
+        });
+    }*@
+
+
+    $("#lnkDesconfirmar").click(function () {
+        event.preventDefault();
+        $.ajax({
+            type: 'POST',
+            url: "@Url.Action("Desconfirmar", "Transferencia")",
+            data: {
+            pMovimientoId: $.data(document.body, 'TransferenciaId')
+            },
+        success: function (res) {
+            if (res=="UPD") {
+                Vendix.Notificar("Modificar");
+                VerDetalle();
+            }
+            else Vendix.Mensaje("No se puede DESCONFIRMAR, existe un árticulo vendido");
+        }
+    });
+    });
+
+
+
+    $("#txtBuscarSerie").keypress(function (event) {
+        if (event.which == 13) {
+            event.preventDefault();
+            $.ajax({
+                url: "@Url.Action("ValidarSerie", "Transferencia")",
+                data: { pNumeroSerie: $.trim(this.value), pTransferenciaId: $.data(document.body, 'TransferenciaId') },
+            success: function (ret) {
+                $("#divAgregar").show('fast');
+
+                if (ret.length > 0) {
+                    $("#mensaje").removeClass('success').addClass('error');
+                    $("#lblmensaje").text(ret);
+                } else {
+                    $("#mensaje").addClass('success');
+                    $("#lblmensaje").text("Articulo Agregado");
+                    $("#grdDetalle").trigger("reloadGrid");
+                    //$.removeData(document.body, 'TransferenciaId');
+                    //$.data(document.body, 'TransferenciaId', ret);
+                    //ListarDetalleOrdenVenta(ret);
+                }
+                
+                $("#txtBuscarSerie").val('');                
+
+            }
+        });
+    }
+    else {
+                $("#divAgregar").hide();
+    }
+    });
+
+    $("#dialogo_buscar_cliente").dialog("open");
+
+  //  });
+
+    $("#txtDescuento").keypress(function (e) {
+        if (e.which == 13) {
+            e.preventDefault();
+            $("#btnSubmit").trigger('click');
+        }
+    });
+
+    $("#dlgAgregarDesc").dialog({
+        autoOpen: false,
+        resizable: false,
+        modal: true,
+        width: 240,
+        open: function () {
+            $(this).parent().css('overflow', 'visible');
+            $$.utils.forms.resize();
+        }
+    }).find('button.submit').click(function () {
+        var $el = $(this).parents('.ui-dialog-content');
+        if ($("#txtDescuento").val() <= $.data(document.body, 'PrecioVenta')) {
+            if ($el.validate().form()) {
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("ActualizarDetalleOrdenVenta", "OrdenVenta")",
+                    data: {
+                    pOrdenVentaDetId: $.data(document.body, 'pOrdenVentaDetid'),
+                    pDescuento: $("#txtDescuento").val(),
+                    },
+                success: function (data) {
+                    var obj = $.data(document.body, 'TransferenciaId');
+                    ListarDetalleOrdenVenta(obj);
+                    $el.dialog('close');
+                    Vendix.Notificar("Modificar");
+                }
+            });
+        }
+    } else {
+            $("#lblValidarDescuento").text("Descuento Mayor al Precio");
+    }
+    }).end().find('button.cancel').click(function () {
+        var $el = $(this).parents('.ui-dialog-content');
+        $el.find('form')[0].reset();
+        $el.dialog('close');
+    });
+
+
+    function ListarDetalleOrdenVenta(ret) {
+
+        $.ajax({
+            url: "@Url.Action("BuscarOrdenVentaDet", "OrdenVenta")",
+            data: { pTransferenciaId: ret },
+        success: function (data) {
+            var html = "";
+            if (data != null) {
+                var totalneto = parseFloat(data.OrdenVenta.TotalNeto).toFixed(2);
+                $("#lblTotalNeto").text(totalneto);
+                $("#lblTotalDescuento").text(parseFloat(data.OrdenVenta.TotalDescuento).toFixed(2));
+                $.data(document.body, 'Items', data.OrdenVentaDet.length);
+                    
+                $.each(data.OrdenVentaDet, function (i, valor) {
+                    html = html +
+                        "<tr>" +
+                        "<td class='center'  style='width: 40px'>" + valor.Cantidad + "</td>" +
+                        "<td>" + valor.Descripcion + "</td>" +
+                        "<td class='center' style='width: 70px'>" + parseFloat(valor.ValorVenta).toFixed(2) + "</td>" +
+                        "<td class='center' style='width: 50px'><a href='#' onclick='EditarDescuento(" + valor.OrdenVentaDetId + ");return false;'><b><u> " + parseFloat(valor.Descuento).toFixed(2) + "</u></b></a></td>" +
+                        "<td class='center' style='width: 80px'>S/. " + parseFloat(valor.Subtotal).toFixed(2) + "</td>" +
+                        "<td class='center' style='width: 50px'><a href='#' onclick='EliminarArticulo(" + valor.OrdenVentaDetId + ");return false;'  class='eliminar button small grey tooltip' data-gravity='s' title='Eliminar'   ><i class='icon-remove'></i></a></td>" +
+                        "</tr>";
+                });
+                html = html +
+                        "<tr>" +
+                        "<td class='center'  style='width: 40px'>" + data.Cantidadov + "</td>" +
+                        "<td style='text-align:right; font-weight:bolder'>TOTAL:</td>" +
+                        "<td class='center' style='width: 70px'></td>" +
+                        "<td class='center' style='width: 50px'></td>" +
+                        "<td class='center' style='width: 80px; font-weight:bolder'>S/. " + totalneto + "</td>" +
+                        "<td class='center' style='width: 50px'></td>" +
+                        "</tr>";
+            }
+            $("#tablaDetalleOrden tbody").html(html);
+        },
+        });
+
+    }
+
+    function EditarDescuento(pOrdenVentaDetId) {
+        $.data(document.body, "pOrdenVentaDetid", pOrdenVentaDetId);
+        $.ajax({
+            url: "@Url.Action("ObtenerDetalleOrdenVenta", "OrdenVenta")",
+            data: { pOrdenVentaDetId: pOrdenVentaDetId },
+        success: function (data) {
+            $("#lblValidarDescuento").text("");
+            $('#txtDescuento').val(parseFloat(data.Descuento).toFixed(2));
+            $.data(document.body, 'PrecioVenta', data.Subtotal);
+            $("#dlgAgregarDesc").dialog("open");
+            $('#txtDescuento').select();
+        },
+            });
+    }
+
+    function EliminarArticulo(pOrdenVentaDetId) {
+        $.ajax({
+            url: "@Url.Action("EliminarDetalleOrdenVenta", "OrdenVenta")",
+            data: { pOrdenVentaDetId: pOrdenVentaDetId },
+        success: function(data) {
+            var obj = $.data(document.body, 'TransferenciaId');
+            ListarDetalleOrdenVenta(obj);
+            Vendix.Notificar("Eliminar");
+        }
+    });
+    }
+</script>

@@ -1,0 +1,545 @@
+/**
+ * Bóveda — paridad Boveda/Index con diseño Credix.
+ */
+
+.boveda-page .credix-page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.boveda-estado-dinero {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.boveda-estado-dinero__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: var(--credix-surface, #fff);
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 8px);
+  box-shadow: var(--credix-shadow-sm);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.boveda-estado-dinero__card:hover {
+  border-color: #c5daf0;
+  box-shadow: var(--credix-shadow-md);
+}
+
+.boveda-estado-dinero__card--total {
+  background: linear-gradient(180deg, #2d3a4f 0%, #3a4454 100%);
+  border-color: #1e293b;
+  color: #fff;
+}
+
+.boveda-estado-dinero__card--total:hover {
+  border-color: #475569;
+}
+
+.boveda-estado-dinero__value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--credix-brand, #114885);
+  line-height: 1.2;
+}
+
+.boveda-estado-dinero__card--total .boveda-estado-dinero__value {
+  color: #fff;
+}
+
+.boveda-estado-dinero__label {
+  font-size: 12px;
+  color: var(--credix-text-muted, #6b7280);
+  margin-top: 4px;
+}
+
+.boveda-estado-dinero__card--total .boveda-estado-dinero__label {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.boveda-operaciones-tabs.ant-tabs-card > .ant-tabs-nav {
+  margin-bottom: 0;
+}
+
+.boveda-operaciones-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+  border-radius: var(--credix-radius, 8px) var(--credix-radius, 8px) 0 0;
+  font-weight: 600;
+  padding: 8px 14px;
+}
+
+.boveda-operaciones-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background: var(--credix-brand-light, #e8f2fc);
+  border-bottom-color: var(--credix-surface, #fff);
+}
+
+.boveda-operaciones-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--credix-brand, #114885);
+}
+
+.boveda-operaciones-tabs .ant-tabs-content-holder {
+  background: var(--credix-surface, #fff);
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-top: none;
+  border-radius: 0 0 var(--credix-radius, 8px) var(--credix-radius, 8px);
+  padding: 16px;
+}
+
+.boveda-operaciones-form {
+  max-width: 480px;
+}
+
+.boveda-operaciones-form__actions {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--credix-border, #e5e7eb);
+}
+
+.boveda-operaciones-form__actions .ant-btn-primary {
+  background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand, #114885) 100%);
+  border: none;
+  font-weight: 600;
+}
+
+.boveda-operaciones-form--cierre {
+  max-width: 560px;
+}
+
+.boveda-historial__section-title {
+  margin: 16px 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--credix-brand, #114885);
+}
+
+.boveda-historial .ant-table-tbody > tr {
+  cursor: pointer;
+}
+
+.boveda-historial .ant-table-tbody > tr.ant-table-row-selected > td {
+  background: var(--credix-brand-light, #e8f2fc) !important;
+}
+
+/* —— Bóveda abierta: saldos + resumen (paridad bloque central legacy) —— */
+.boveda-saldos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.boveda-saldos-grid__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: var(--credix-surface, #fff);
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 8px);
+  box-shadow: var(--credix-shadow-sm);
+}
+
+.boveda-saldos-grid__card--final {
+  background: linear-gradient(180deg, #e8f2fc 0%, #f8fbff 100%);
+  border-color: #b8d4ef;
+}
+
+.boveda-saldos-grid__value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--credix-brand, #114885);
+  line-height: 1.2;
+}
+
+.boveda-saldos-grid__card--final .boveda-saldos-grid__value {
+  font-size: 1.25rem;
+}
+
+.boveda-saldos-grid__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--credix-text-muted, #6b7280);
+  margin-top: 4px;
+}
+
+.boveda-resumen-cuenta {
+  margin-top: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.boveda-resumen-cuenta--loading,
+.boveda-resumen-cuenta--empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--credix-surface-muted, #f9fafb);
+}
+
+.boveda-resumen-cuenta__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: linear-gradient(90deg, #e8f2fc 0%, #f8fbff 100%);
+  border-bottom: 1px solid var(--credix-border, #e5e7eb);
+}
+
+.boveda-resumen-cuenta__title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--credix-brand, #114885);
+}
+
+.boveda-resumen-cuenta__icon {
+  font-size: 18px;
+  color: var(--credix-brand, #114885);
+  opacity: 0.85;
+}
+
+.boveda-resumen-cuenta__body {
+  padding: 14px 18px 16px;
+}
+
+.boveda-resumen-cuenta__texto {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--credix-text, #1f2937);
+  white-space: pre-wrap;
+}
+
+.boveda-resumen-cuenta__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.boveda-resumen-cuenta__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.boveda-resumen-cuenta__item:hover {
+  border-color: #c5daf0;
+  box-shadow: var(--credix-shadow-sm);
+}
+
+.boveda-resumen-cuenta__item-icon {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow:
+    0 2px 8px rgba(15, 23, 42, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+}
+
+.boveda-resumen-cuenta__brand-svg {
+  display: block;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.boveda-resumen-cuenta__item-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.boveda-resumen-cuenta__item-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--credix-text-muted, #6b7280);
+  line-height: 1.2;
+}
+
+.boveda-resumen-cuenta__item-monto {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--credix-brand, #114885);
+  line-height: 1.2;
+}
+
+.boveda-resumen-cuenta__item-monto--neg {
+  color: #b91c1c;
+}
+
+/* Acento lateral por entidad */
+.boveda-resumen-cuenta__item--efectivo {
+  border-left: 3px solid #16a34a;
+}
+
+.boveda-resumen-cuenta__item--yape {
+  border-left: 3px solid #742384;
+}
+
+.boveda-resumen-cuenta__item--plin {
+  border-left: 3px solid #0077b6;
+}
+
+.boveda-resumen-cuenta__item--interbank {
+  border-left: 3px solid #ff5000;
+}
+
+.boveda-resumen-cuenta__item--bcp {
+  border-left: 3px solid #002395;
+}
+
+.boveda-resumen-cuenta__item--banco-nacion {
+  border-left: 3px solid #00a651;
+}
+
+.boveda-resumen-cuenta__item--bbva {
+  border-left: 3px solid #004481;
+}
+
+.boveda-resumen-cuenta__item--scotiabank {
+  border-left: 3px solid #ec111a;
+}
+
+.boveda-resumen-cuenta__item--transferencia {
+  border-left: 3px solid #64748b;
+}
+
+.boveda-resumen-cuenta__item--otro {
+  border-left: 3px solid #114885;
+}
+
+/* —— Bóveda abierta: saldos + resumen (paridad bloque central legacy) —— */
+.boveda-saldos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.boveda-saldos-grid__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: var(--credix-surface, #fff);
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 8px);
+  box-shadow: var(--credix-shadow-sm);
+}
+
+.boveda-saldos-grid__card--final {
+  background: linear-gradient(180deg, #e8f2fc 0%, #f8fbff 100%);
+  border-color: #b8d4ef;
+}
+
+.boveda-saldos-grid__value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--credix-brand, #114885);
+  line-height: 1.2;
+}
+
+.boveda-saldos-grid__card--final .boveda-saldos-grid__value {
+  font-size: 1.25rem;
+}
+
+.boveda-saldos-grid__label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--credix-text-muted, #6b7280);
+  margin-top: 4px;
+}
+
+.boveda-resumen-cuenta {
+  margin-top: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.boveda-resumen-cuenta--loading,
+.boveda-resumen-cuenta--empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: var(--credix-surface-muted, #f9fafb);
+}
+
+.boveda-resumen-cuenta__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: linear-gradient(90deg, #e8f2fc 0%, #f8fbff 100%);
+  border-bottom: 1px solid var(--credix-border, #e5e7eb);
+}
+
+.boveda-resumen-cuenta__title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--credix-brand, #114885);
+}
+
+.boveda-resumen-cuenta__icon {
+  font-size: 18px;
+  color: var(--credix-brand, #114885);
+  opacity: 0.85;
+}
+
+.boveda-resumen-cuenta__body {
+  padding: 14px 18px 16px;
+}
+
+.boveda-resumen-cuenta__texto {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--credix-text, #1f2937);
+  white-space: pre-wrap;
+}
+
+.boveda-resumen-cuenta__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.boveda-resumen-cuenta__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.boveda-resumen-cuenta__item:hover {
+  border-color: #c5daf0;
+  box-shadow: var(--credix-shadow-sm);
+}
+
+.boveda-resumen-cuenta__item-icon {
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-shadow:
+    0 2px 8px rgba(15, 23, 42, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+}
+
+.boveda-resumen-cuenta__brand-svg {
+  display: block;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.boveda-resumen-cuenta__item-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.boveda-resumen-cuenta__item-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--credix-text-muted, #6b7280);
+  line-height: 1.2;
+}
+
+.boveda-resumen-cuenta__item-monto {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--credix-brand, #114885);
+  line-height: 1.2;
+}
+
+.boveda-resumen-cuenta__item-monto--neg {
+  color: #b91c1c;
+}
+
+/* Acento lateral por entidad */
+.boveda-resumen-cuenta__item--efectivo {
+  border-left: 3px solid #16a34a;
+}
+
+.boveda-resumen-cuenta__item--yape {
+  border-left: 3px solid #742384;
+}
+
+.boveda-resumen-cuenta__item--plin {
+  border-left: 3px solid #0077b6;
+}
+
+.boveda-resumen-cuenta__item--interbank {
+  border-left: 3px solid #ff5000;
+}
+
+.boveda-resumen-cuenta__item--bcp {
+  border-left: 3px solid #002395;
+}
+
+.boveda-resumen-cuenta__item--banco-nacion {
+  border-left: 3px solid #00a651;
+}
+
+.boveda-resumen-cuenta__item--bbva {
+  border-left: 3px solid #004481;
+}
+
+.boveda-resumen-cuenta__item--scotiabank {
+  border-left: 3px solid #ec111a;
+}
+
+.boveda-resumen-cuenta__item--transferencia {
+  border-left: 3px solid #64748b;
+}
+
+.boveda-resumen-cuenta__item--otro {
+  border-left: 3px solid #114885;
+}

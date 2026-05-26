@@ -1,0 +1,273 @@
+﻿<h1 class="grid_12">Mantenimiento de Articulos</h1>
+
+
+<div class="grid_12">
+    <div class="box">
+        <form action="" class="full validate" id="frmArticulo">
+            <div class="header">
+                <h2>
+                    <img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png" />Buscar Articulo
+                    <input type="search" name="txtArticulo" id="txtArticulo" placeholder="Nombre de articulo..." style="width: 50%; margin-left: 30px" />
+
+                </h2>
+            </div>
+            <div class="content">
+                <div class="row">
+                    <label for="txtMarca">
+                        <strong>Tipo Articulo:</strong>
+                    </label>
+                    <div>
+                        @Html.DropDownList("cboTipoArticulo", (IEnumerable<SelectListItem>)ViewBag.cboTipoArticulo, new { @class="search"})
+                        @*@Html.DropDownList("cboTipoArticulo", "Seleccione")*@
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label for="txtDescripcionMarca">
+                        <strong>Modelo:</strong>
+                    </label>
+                    <div>
+                        @Html.DropDownList("cboModelo", (IEnumerable<SelectListItem>)ViewBag.cboModelo, new { @class="search"})
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label for="txtCodArticulo">
+                        <strong>Codigo Articulo:</strong>
+                    </label>
+                    <div>
+                        <input type="text" name="txtCodArticulo" id="txtCodArticulo" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label for="txtDenominacion">
+                        <strong>Denominacion:</strong>
+                    </label>
+                    <div>
+                        <input class="required" type="text" name="txtDenominacion" id="txtDenominacion" />
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label for="txtDescripcion">
+                        <strong>Descripcion:</strong>
+                    </label>
+                    <div>
+                        <textarea name="txtDescripcion" id="txtDescripcion"> </textarea>
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="txtPrecio">
+                        <strong>Precio:</strong>
+                    </label>
+                    <div>
+                        <input class="required" style="width: 100px;text-align: center" type="text" value="0.00" name="txtPrecio" id="txtPrecio" />
+                        <strong>Descuento</strong>
+                        <input class="required" style="width: 100px;text-align: center" type="text" value="0.00" name="txtDescuento" id="txtDescuento" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div>
+                        <div>
+                            <input type="checkbox" id="chkIndPerecible" />
+                            <label for="chkIndPerecible">Articulo Perecible </label>
+                            &nbsp;&nbsp;&nbsp;&nbsp;
+                            <input type="checkbox" id="chkIndImportado" />
+                            <label for="chkIndImportado">Articulo Importado </label>
+                            &nbsp;&nbsp;&nbsp;&nbsp;
+                            <input type="checkbox" id="chkCanjeable" />
+                            <label for="chkCanjeable">Articulo Canjeable</label>
+                            &nbsp;&nbsp;&nbsp;&nbsp;
+                            <input type="checkbox" id="chkActivo" />
+                            <label for="chkActivo">Articulo Activo</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="actions">
+                    <div class="left">
+                        <input id="btnNuevo" type="button" value="Nuevo Articulo" />
+                    </div>
+                    <div class="right">
+                        <input id="btnEnviar" type="button" value="Guardar" class="button red block" />
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="grid_12" id="divImagen">
+    <div class="box">
+        <div class="header">
+            <h2>
+                <img class="icon" src="img/icons/packs/fugue/16x16/image-sunset.png" />Imagenes de Artículo
+            </h2>
+            <form id="file-uploader" enctype="multipart/form-data" method="post" action="@Url.Action("GuardarImagen", new { pArticuloId = 5 })">
+                <table style="width: 60%">
+                    <tr>
+                        <td style="width: 50%">
+                            <input type="file" name="archivo" id="fileImagen" />
+                        </td>
+                        <td style="width: 10%; text-align: center">
+                            <input type="submit" id="btnImage" value="Agregar Imagen" /></td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+
+        <div id="resultado" class="content">
+        </div>
+        <!-- End of .box -->
+
+    </div>
+    <!-- End of .grid_6 -->
+
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $.data(document.body, 'ArticuloId', 0);
+        $("#chkActivo").prop("checked", true);
+        $("#divImagen").hide();
+        $("#btnNuevo").click(function () { NuevoArticulo(); });
+        $("#txtBuscar").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $("#jqgProducts").trigger("reloadGrid");
+            }
+        });
+        $("#cboModelo").change(function () {
+            $("#txtDenominacion").val($("#cboModelo option:selected").text() + " ").focus();
+        });
+    });
+
+    function EliminarImagen(pImagen) {
+        $.ajax({
+            url: "@Url.Action("EliminarImagen", "Articulo")",
+            data: {
+                pImagen: pImagen,
+                pArticuloId: $.data(document.body, 'ArticuloId'),
+            },
+            success: function (data) {
+                MostrarImagen($.data(document.body, 'ArticuloId'));
+                Vendix.Notificar("Eliminar");
+            },
+        });
+    }
+    function NuevoArticulo() {
+        $("#cboModelo,#cboTipoArticulo").val("").trigger("liszt:updated");
+        $("#txtArticulo,#txtCodArticulo,#txtDenominacion,#txtDescripcion").val("");
+        $("#txtPrecio,#txtDescuento").val("0.00");
+        $("#chkActivo").prop("checked", true);
+        $("#chkIndPerecible,#chkIndImportado,#chkCanjeable").prop("checked", false);
+        $.data(document.body, 'ArticuloId', 0);
+        $("#resultado").empty();
+        $("#divImagen").hide();
+    }
+
+
+    $("#txtArticulo").autocomplete({
+        source: "@Url.Action("BuscarArticuloAllSelect", "Articulo")",
+        minLength: 2,
+        select: function (event, ui) {
+            // alert(ui.item.id);
+            $.ajax({
+                async: false,
+                url: "@Url.Action("ObtenerArticulo", "Articulo")",
+                data: { pArticuloId: ui.item.id },
+                success: function (rpt) {
+                    if (rpt != null) {
+                        $("#txtCodArticulo").val(rpt.Articulo.CodArticulo);
+                        $("#txtDenominacion").val(rpt.Articulo.Denominacion);
+                        $("#txtDescripcion").val(rpt.Articulo.Descripcion);
+                        $("#cboModelo").val(rpt.Articulo.ModeloId).trigger("liszt:updated");
+                        $("#cboTipoArticulo").val(rpt.Articulo.TipoArticuloId).trigger("liszt:updated");
+                        $("#chkIndPerecible").prop("checked", rpt.Articulo.IndPerecible);
+                        $("#chkIndImportado").prop("checked", rpt.Articulo.IndImportado);
+                        $("#chkCanjeable").prop("checked", rpt.Articulo.IndCanjeable);
+                        $("#chkActivo").prop("checked", rpt.Articulo.Estado);
+                        if (rpt.Precio != null) {
+                            $("#txtPrecio").val(parseFloat(rpt.Precio.Monto).toFixed(2));
+                            $("#txtDescuento").val(parseFloat(rpt.Precio.Descuento).toFixed(2));
+                        }
+                        else
+                            $("#txtPrecio,#txtDescuento").val("0.00");
+
+
+                        $.data(document.body, 'ArticuloId', rpt.Articulo.ArticuloId);
+                        $("#divImagen").show();
+                        MostrarImagen($.data(document.body, 'ArticuloId'));
+                    }
+                }
+            });
+        }
+    });
+
+    function MostrarImagen(pArticuloId) {
+        $.ajax({
+            url: "@Url.Action("ObtenerImagen", "Articulo")",
+            data: { 'pArticuloId': pArticuloId },
+            success: function (img) {
+                var html = "";
+                if (img != null) {
+                    html = " <div class='gallery'>";
+                    $.each(img, function (i, valor) {
+                        html = html +
+                            "<div class='image' style='max-width: 20%; max-height: 25%' >" +
+                            "   <div class='tools'>" +
+                            "       <a href='#' onclick='EliminarImagen(\"" + valor + "\");return false;' class='eliminar button small grey tooltip' data-gravity='s' title='Eliminar'><i class='icon-remove'></i> Eliminar</a>" +
+                            "   </div>" +
+                            "   <a href= 'imgArticulos/" + valor + "'>" +
+                            "   <img src='imgArticulos/" + valor + "'style='max-width: 100%; max-heigh: 100%'/></a>" +
+                            "<span>" + valor + "</span>" +
+                            "</div>";
+                    });
+                    html = html + "</div>";
+                }
+                $("#resultado").html(html);
+            },
+        });
+    }
+
+    $('#file-uploader').ajaxForm({
+        success: function (rpt) {
+            if (rpt == true)
+                MostrarImagen($.data(document.body, 'ArticuloId'));
+        }
+    });
+
+
+    $("#btnEnviar").click(function () {
+        if ($("#frmArticulo").validate().form()) {
+            $.ajax({
+                type: "post",
+                cache: false,
+                url: "@Url.Action("GuardarArticulo", "Articulo")",
+                data: {
+                    'pArticuloId': $.data(document.body, 'ArticuloId'),
+                    'pModeloId': cboModelo.value,
+                    'pTipoArticuloId': cboTipoArticulo.value,
+                    'pCodArticulo': $("#txtCodArticulo").val(),
+                    'pDenominacion': $("#txtDenominacion").val(),
+                    'pDescripcion': $("#txtDescripcion").val(),
+                    'pPrecio': $("#txtPrecio").val(),
+                    'pDescuento': $("#txtDescuento").val(),
+                    'pIndPerecible': $("#chkIndPerecible").prop('checked'),
+                    'pIndImportado': $("#chkIndImportado").prop('checked'),
+                    'pIndCanjeable': $("#chkCanjeable").prop('checked'),
+                    'pActivo': $("#chkActivo").prop('checked'),
+                },
+                dataType: "json",
+                success: function (data) {
+                    NuevoArticulo();
+                    Vendix.Notificar();
+                },
+                error: function (jqXHR, exception) {
+                    alert('Error message.');
+                }
+            });
+        }
+    });
+
+</script>

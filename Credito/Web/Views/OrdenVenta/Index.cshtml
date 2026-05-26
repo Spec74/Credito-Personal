@@ -1,0 +1,384 @@
+﻿@model ITB.VENDIX.DA.OrdenVenta
+
+<div class="grid_12 profile">
+    <div class="header">
+        <div class="title">
+            <h2 id="lblNumOrden">@(Model.Persona==null ? "" : @Model.Persona.NumeroDocumento + " " + @Model.Persona.NombreCompleto + " - ") Orden de Venta N° : @Model.OrdenVentaId</h2>
+        </div>
+        <div class="avatar">
+            <img src="~/img/icons/packs/fugue/24x24/monitor-sidebar.png" />
+            <a id="lnkNuevaOrden" href="javascript:void(0);">Nueva Orden</a>
+        </div>
+        <ul class="info">
+            <li>
+                <a href="javascript:void(0);">
+                    <strong>@switch (Model.Estado)
+                            {
+                                case "PEN": <text>PENDIENTE</text> break;
+                                case "ENV": <text>ENVIADO</text> break;
+                                case "ENT": <text>ENTREGADO</text> break;
+                                case "ANU": <text>ANULADO</text> break;
+                            }</strong>
+                    <small>@Model.Oficina.Denominacion</small>
+                </a>
+            </li>
+            <li>
+                <a href="javascript:void(0);">
+                    <strong>S/. <span id="lblTotalDescuento">@Model.TotalDescuento</span></strong>
+                    <small>Descuento</small>
+                </a>
+            </li>
+            <li>
+                <a href="javascript:void(0);">
+                    <strong>S/. <span id="lblTotalNeto">@Model.TotalNeto</span></strong>
+                    <small>Total Orden Venta</small>
+                </a>
+            </li>
+            <li>
+                <a href="@Url.Action("OrdenesVenta", "OrdenVenta")" class="button">Consultar Ordenes de Venta</a>
+            </li>
+        </ul>
+        <!-- End of ul.info -->
+    </div>
+    <!-- End of .header -->
+
+</div>
+
+@if (Model.OrdenVentaId > 0)
+{
+    <div class="grid_12">
+        <div class="box" @{if (Model.Estado != "PEN" ){<text>style="display: none"</text>}}  >
+            <div class="header">
+                <h2>Orden de Venta</h2>
+            </div>
+            <div class="content">
+                <p>
+                    <input id="txtBuscarSerie" type="text" style="width: 50%" placeholder="INGRESE SERIE DEL ARTICULO LUEGO <ENTER>" autofocus />
+                    <input id="btnBuscarSerie" type="submit" value="Agregar" class="grey" />
+                </p>
+                <div id="divAgregar" style="display: none">
+                    <div id="mensaje" class="alert error sticky">
+                        <span class="icon"></span>
+                        <strong id="lblmensaje"></strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid_12">
+        <div class="box">
+
+            <div class="header">
+                <h2>Detalle de la Orden de Venta</h2>
+            </div>
+
+            <div class="content">
+
+                <table id="tablaDetalleOrden" class="styled">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px">Cant</th>
+                            <th>Descripción</th>
+                            <th style="width: 70px">Precio Unit.</th>
+                            <th style="width: 50px">Dcto.</th>
+                            <th style="width: 80px">Precio Venta</th>
+                            <th style="width: 40px">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrdenVentaDet)
+                        {
+                            <tr>
+                                <td class='center' style='width: 40px'>
+                                    @Html.DisplayFor(modelItem => item.Cantidad)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Descripcion)
+                                </td>
+                                <td class='center' style='width: 70px'>
+                                    @Html.DisplayFor(modelItem => item.ValorVenta)
+                                </td>
+                                <td class='center' style='width: 50px'>
+                                    @if (Model.Estado == "PEN")
+                                    {
+                                        <a href='#' onclick='EditarDescuento(@item.OrdenVentaDetId);return false;'><b><u>@Html.DisplayFor(modelItem => item.Descuento)</u></b></a>
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayFor(modelItem => item.Descuento)
+                                    }
+                                </td>
+                                <td class='center' style='width: 80px'>
+                                    S/. @Html.DisplayFor(modelItem => item.Subtotal)
+                                </td>
+                                <td class='center' style='width: 50px'>
+                                    @if (Model.Estado == "PEN")
+                                    {
+                                        <a href='#' onclick='EliminarArticulo(@item.OrdenVentaDetId);return false;'  class='eliminar button small grey tooltip' data-gravity='s' title='Eliminar'><i class='icon-remove'></i></a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                        <tr>
+                            <td class='center' style='width: 40px'>@Model.OrdenVentaDet.Sum(x => x.Cantidad)</td>
+                            <td style='text-align: right; font-weight: bolder'>TOTAL:</td>
+                            <td class='center' style='width: 70px'></td>
+                            <td class='center' style='width: 50px'></td>
+                            <td class='center' style='width: 80px; font-weight: bolder'>S/. @Model.TotalNeto</td>
+                            <td class='center' style='width: 50px'></td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                
+            </div>
+            <!-- End of .content -->
+            
+        </div>
+        @if (Model.Estado == "PEN")
+        {
+            <button id="btnEnviarContado" style="float: right" class="button red block"><span class="icon icon-play"></span>Enviar al contado</button>
+            <button id="btnEnviarCredito" style="float: right" class="button red block"><span class="icon icon-play"></span>Enviar a créditos</button>
+        }  
+       
+        
+        <!-- End of .box -->
+    </div>
+}
+
+@* Dialogo_Descuento*@
+<div style="display: none;" id="dlgAgregarDesc" title="Modificar Descuento">
+    <form action="#" class="full validate">
+        <div class="row">
+            <label for="txtDescuento">
+                <strong>Descuento : </strong>
+            </label>
+            <div>
+                <input type="text" id="txtDescuento" name="txtDescuento" style="width: 100px; text-align: center" />
+            </div>
+            <strong>
+                <p id="lblValidarDescuento" style="color: red; text-align: center"></p>
+            </strong>
+
+        </div>
+    </form>
+
+    <div class="actions">
+        <div class="right">
+            <button class="grey cancel">Salir</button>
+        </div>
+
+        <div class="left">
+            <button class="submit" id="btnSubmit">Guardar</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    $$.ready(function () {
+        $("#divAgregar").hide();
+        $.data(document.body, 'OrdenVentaid', "@Model.OrdenVentaId");
+        $.data(document.body, 'Items', "@Model.OrdenVentaDet.Count");
+
+        $("#lnkNuevaOrden").click(function () {
+            $("#dialogo_buscar_cliente").dialog("open");
+            return false;
+        });
+        
+        $("#txtCliente").autocomplete({
+            source: "@Url.Action("BuscarCliente", "Cliente")",
+             minLength: 2,
+             select: function (event, ui) {
+                 // alert(ui.item.id);
+                 window.location = '@Url.Action("Index", "OrdenVenta")' + "?id=0&pPersonaid=" + ui.item.id;
+            }
+         });
+
+        $("#btnEnviarCredito").click(function() {
+            if (parseInt($.data(document.body, 'Items')) == 0) {
+                Vendix.Dialogo("Error: La orden de venta debe contener mas de un item para enviar.", "Aceptar");
+                return;
+            }
+            Vendix.Dialogo("Desea generar la venta AL CREDITO?", "SiNo", function() {
+                $.ajax({
+                    url: "@Url.Action("EnviarOrdenVentaCredito", "OrdenVenta")",
+                    data: { pOrdenVentaId: $.data(document.body, 'OrdenVentaid') },
+                    success: function(ret) {
+                        if (ret) {
+                            window.location = '@Url.Action("OrdenesVenta", "OrdenVenta")';
+                        } else {
+                            Vendix.Mensaje("ERROR: Consulte con sistemas");
+                        }
+                    }
+                });
+            });
+        });
+
+        $("#btnEnviarContado").click(function () {
+            
+            if (parseInt($.data(document.body, 'Items')) == 0) {
+                Vendix.Dialogo("Error: La orden de venta debe contener mas de un item para enviar.", "Aceptar");
+                return;
+            }
+            Vendix.Dialogo("Desea generar la venta AL CONTADO?", "SiNo", function () {
+                $.ajax({
+                    url: "@Url.Action("EnviarOrdenVentaContado", "OrdenVenta")",
+                    data: { pOrdenVentaId: $.data(document.body, 'OrdenVentaid') },
+                    success: function(ret) {
+                        if (ret) {
+                            window.location = '@Url.Action("OrdenesVenta", "OrdenVenta")';
+                        } else {
+                            Vendix.Mensaje("ERROR: Consulte con sistemas");
+                        }
+                    }
+                });
+            });
+        });
+
+
+        $("#txtBuscarSerie").keypress(function (event) {
+            if (event.which == 13) {
+                event.preventDefault();
+                $.ajax({
+                    url: "@Url.Action("AgregarOrdenVentaDetalle", "OrdenVenta")",
+                    data: { pNumeroSerie: $.trim(this.value), pOrdenVentaId: $.data(document.body, 'OrdenVentaid') },
+                    success: function (ret) {
+                        $("#divAgregar").show('fast');
+                        if (ret.length > 15) {
+                            $("#mensaje").removeClass('success').addClass('error');
+                            $("#lblmensaje").text(ret);
+                        } else {
+                            $("#mensaje").addClass('success');
+                            $("#lblmensaje").text("Articulo Agregado");
+                            $.removeData(document.body, 'OrdenVentaid');
+                            $.data(document.body, 'OrdenVentaid', ret);
+                            ListarDetalleOrdenVenta(ret);
+                        }
+                        $("#txtBuscarSerie").val('');
+                    }
+                });
+            }
+            else {
+                $("#divAgregar").hide();
+            }
+        });
+
+        $("#dialogo_buscar_cliente").dialog("open");
+
+    });
+
+    $("#txtDescuento").keypress(function (e) {
+        if (e.which == 13) {
+            e.preventDefault();
+            $("#btnSubmit").trigger('click');
+        }
+    });
+
+    $("#dlgAgregarDesc").dialog({
+        autoOpen: false,
+        resizable: false,
+        modal: true,
+        width: 240,
+        open: function () {
+            $(this).parent().css('overflow', 'visible');
+            $$.utils.forms.resize();
+        }
+    }).find('button.submit').click(function () {
+        var $el = $(this).parents('.ui-dialog-content');
+        if ($("#txtDescuento").val() <= $.data(document.body, 'PrecioVenta')) {
+            if ($el.validate().form()) {
+                $.ajax({
+                    type: 'POST',
+                    url: "@Url.Action("ActualizarDetalleOrdenVenta", "OrdenVenta")",
+                    data: {
+                        pOrdenVentaDetId: $.data(document.body, 'pOrdenVentaDetid'),
+                        pDescuento: $("#txtDescuento").val(),
+                    },
+                    success: function (data) {
+                        var obj = $.data(document.body, 'OrdenVentaid');
+                        ListarDetalleOrdenVenta(obj);
+                        $el.dialog('close');
+                        Vendix.Notificar("Modificar");
+                    }
+                });
+            }
+        } else {
+            $("#lblValidarDescuento").text("Descuento Mayor al Precio");
+        }
+    }).end().find('button.cancel').click(function () {
+        var $el = $(this).parents('.ui-dialog-content');
+        $el.find('form')[0].reset();
+        $el.dialog('close');
+    });
+
+
+    function ListarDetalleOrdenVenta(ret) {
+
+        $.ajax({
+            url: "@Url.Action("BuscarOrdenVentaDet", "OrdenVenta")",
+            data: { pOrdenVentaId: ret },
+            success: function (data) {
+                var html = "";
+                if (data != null) {
+                    var totalneto = parseFloat(data.OrdenVenta.TotalNeto).toFixed(2);
+                    $("#lblTotalNeto").text(totalneto);
+                    $("#lblTotalDescuento").text(parseFloat(data.OrdenVenta.TotalDescuento).toFixed(2));
+                    $.data(document.body, 'Items', data.OrdenVentaDet.length);
+                    
+                    $.each(data.OrdenVentaDet, function (i, valor) {
+                        html = html +
+                            "<tr>" +
+                            "<td class='center'  style='width: 40px'>" + valor.Cantidad + "</td>" +
+                            "<td>" + valor.Descripcion + "</td>" +
+                            "<td class='center' style='width: 70px'>" + parseFloat(valor.ValorVenta).toFixed(2) + "</td>" +
+                            "<td class='center' style='width: 50px'><a href='#' onclick='EditarDescuento(" + valor.OrdenVentaDetId + ");return false;'><b><u> " + parseFloat(valor.Descuento).toFixed(2) + "</u></b></a></td>" +
+                            "<td class='center' style='width: 80px'>S/. " + parseFloat(valor.Subtotal).toFixed(2) + "</td>" +
+                            "<td class='center' style='width: 50px'><a href='#' onclick='EliminarArticulo(" + valor.OrdenVentaDetId + ");return false;'  class='eliminar button small grey tooltip' data-gravity='s' title='Eliminar'   ><i class='icon-remove'></i></a></td>" +
+                            "</tr>";
+                    });
+                    html = html +
+                            "<tr>" +
+                            "<td class='center'  style='width: 40px'>" + data.Cantidadov + "</td>" +
+                            "<td style='text-align:right; font-weight:bolder'>TOTAL:</td>" +
+                            "<td class='center' style='width: 70px'></td>" +
+                            "<td class='center' style='width: 50px'></td>" +
+                            "<td class='center' style='width: 80px; font-weight:bolder'>S/. " + totalneto + "</td>" +
+                            "<td class='center' style='width: 50px'></td>" +
+                            "</tr>";
+                }
+                $("#tablaDetalleOrden tbody").html(html);
+            },
+        });
+
+    }
+
+    function EditarDescuento(pOrdenVentaDetId) {
+        $.data(document.body, "pOrdenVentaDetid", pOrdenVentaDetId);
+        $.ajax({
+            url: "@Url.Action("ObtenerDetalleOrdenVenta", "OrdenVenta")",
+                data: { pOrdenVentaDetId: pOrdenVentaDetId },
+                success: function (data) {
+                    $("#lblValidarDescuento").text("");
+                    $('#txtDescuento').val(parseFloat(data.Descuento).toFixed(2));
+                    $.data(document.body, 'PrecioVenta', data.Subtotal);
+                    $("#dlgAgregarDesc").dialog("open");
+                    $('#txtDescuento').select();
+                },
+            });
+        }
+
+        function EliminarArticulo(pOrdenVentaDetId) {
+            $.ajax({
+                url: "@Url.Action("EliminarDetalleOrdenVenta", "OrdenVenta")",
+                data: { pOrdenVentaDetId: pOrdenVentaDetId },
+                success: function(data) {
+                    var obj = $.data(document.body, 'OrdenVentaid');
+                    ListarDetalleOrdenVenta(obj);
+                    Vendix.Notificar("Eliminar");
+                }
+            });
+    }
+
+</script>

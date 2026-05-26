@@ -1,0 +1,112 @@
+﻿<div class="grid_4">
+    <form method="post" action="#" class="box validate" >
+        <div class="header">
+           <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Lista de Precios</h2>
+        </div>
+        <div class="content">
+            <p class="_100 small" style="padding-top: 10px;">
+                @Html.DropDownList("cboMarca","TODOS")
+            </p>
+			
+            <div class="row" >
+                <label></label>
+                <div>
+                    <div><input type="checkbox" name="chklppunto" id="chklppunto" /> <label for="chklppunto">Solo Puntos Canje?</label></div>
+                    <div><input type="checkbox" name="chklpDescuento" id="chklpDescuento" /> <label for="chklpDescuento">Solo Descuentos?</label></div>
+                </div>
+            </div>
+        </div>
+        <div class="actions">
+            <div class="right">
+                <input type="submit" value="Lista Precios PDF" id="btnRptListaPrecio" />
+                <input type="submit" value="Lista Precios EXCEL" id="btnRptListaPrecioXls" />
+            </div>
+        </div>
+    </form>
+</div>
+<div class="grid_4">
+    <form method="post" action="#" class="box validate" >
+        <div class="header">
+           <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Avance de Ventas</h2>
+        </div>
+					
+        <div class="content">
+					
+            <p class="_100 small" style="padding-top: 10px;">
+                @Html.DropDownList("cboOficina","TODOS")
+            </p>
+						
+            <p class="_100 small">
+                <label for="txtFechaIni" class="inline">Fecha Inicial:</label>
+                <input data-error-type="inline" type="date" class="required" name="txtFechaIni" id="txtFechaIni" class="maskDate" placeholder="DD/MM/YYYY" value="@ITB.VENDIX.BL.VendixGlobal.GetFecha().AddDays(- ITB.VENDIX.BL.VendixGlobal.GetFecha().Day + 1).ToShortDateString()" />
+            </p>
+            
+            <p class="_100 small">
+                <label for="txtFechaFin" class="inline">Fecha Final:</label>
+                <input data-error-type="inline" type="date" class="required" name="txtFechaFin" id="txtFechaFin" class="maskDate" placeholder="DD/MM/YYYY" value="@ITB.VENDIX.BL.VendixGlobal.GetFecha().AddDays(- ITB.VENDIX.BL.VendixGlobal.GetFecha().Day +1).AddMonths(1).AddDays(-1).ToShortDateString()" />
+            </p>
+						
+            <p class="_100 small" >
+                <div style="text-align: right">
+                    <input type="checkbox" name="chkPEN" id="chkCON" checked="checked" /><label for="chkPEN">Contado </label>  
+                    <input type="checkbox" name="chkPAG" id="chkCRE" checked="checked" /><label for="chkPAG">Credito </label>
+                </div>    
+            </p>
+        </div>
+        <div class="actions">
+           @* <div class="left">
+                <input type="reset" value="Cancel" />
+            </div>*@
+            <div class="right">
+                <input type="submit" value="Avance de Ventas" id="btnRptAvanceVentas" />
+            </div>
+        </div>
+    </form>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+
+        $("#btnRptListaPrecio").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaListaPrecio('PDF'));
+            return false;
+        });
+
+        $("#btnRptListaPrecioXls").click(function () {
+            event.preventDefault();
+            window.open(obtenerRutaListaPrecio('Excel'));
+            return false;
+        });
+
+        function obtenerRutaListaPrecio(tipo) {
+            var marca = $('#cboMarca').val();
+            if (marca.length == 0) marca = null;
+
+            var ruta = '@Url.Action("ReporteListaPrecio", "Reporte")'
+                + '?pMarcaid=' + marca
+                + '&pIndDescuento=' + $("#chklpDescuento").prop('checked')
+                + '&pIndPuntos=' + $("#chklppunto").prop('checked')
+                + '&pTipo=' + tipo;
+            return ruta;
+        }
+
+        $("#btnRptAvanceVentas").click(function () {
+            event.preventDefault();
+
+            var oficina = $('#cboOficina').val();
+            if (oficina.length == 0) oficina = null;
+
+            var ruta = '@Url.Action("ReporteAvanceVenta", "Reporte")'
+                + '?pFechaIni=' + $('#txtFechaIni').val()
+                + '&pFechaFin=' + $('#txtFechaFin').val()
+                + '&indContado=' + $("#chkCON").prop('checked')
+                + '&indCredito=' + $("#chkCRE").prop('checked')
+                + '&pOficinaid=' + oficina;
+            window.open(ruta);
+            return false;
+        });
+        
+        
+    });
+</script>

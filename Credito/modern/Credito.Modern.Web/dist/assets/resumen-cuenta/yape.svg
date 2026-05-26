@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Yape">
+  <rect width="48" height="48" rx="12" fill="#742384"/>
+  <text x="24" y="30" text-anchor="middle" fill="#fff" font-family="Segoe UI, Arial, sans-serif" font-size="15" font-weight="700" font-style="italic">yape</text>
+  <circle cx="36" cy="14" r="7" fill="#00c7b1"/>
+  <text x="36" y="17" text-anchor="middle" fill="#742384" font-family="Arial,sans-serif" font-size="7" font-weight="800">S/</text>
+</svg>

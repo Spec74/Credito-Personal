@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Ejemplo IIS + ARR (Application Request Routing) — strangler fig Credito.
+  Instalar: URL Rewrite + ARR. Habilitar proxy en ARR Server Proxy Settings.
+
+  Sustituir:
+    MODERN_API_URL   -> http://127.0.0.1:5080  (Kestrel / Credito.Modern.Api)
+    MVC_SITE_URL     -> http://127.0.0.1:4779  (IIS sitio Web MVC existente)
+
+  Colocar en el sitio IIS que actua como fachada unica (mismo host que el navegador).
+  En la API: Hosting:ForwardedHeaders Enabled + KnownProxies con IP del servidor IIS.
+-->
+<configuration>
+  <system.webServer>
+    <rewrite>
+      <rules>
+        <rule name="Strangler-Health" stopProcessing="true">
+          <match url="^health/?$" ignoreCase="true" />
+          <action type="Rewrite" url="MODERN_API_URL/health" />
+          <serverVariables>
+            <set name="HTTP_X_FORWARDED_PROTO" value="https" />
+          </serverVariables>
+        </rule>
+        <rule name="Strangler-Swagger" stopProcessing="true">
+          <match url="^swagger(.*)" ignoreCase="true" />
+          <action type="Rewrite" url="MODERN_API_URL/swagger{R:1}" />
+        </rule>
+        <rule name="Strangler-ApiV1" stopProcessing="true">
+          <match url="^api/v1/(.*)" ignoreCase="true" />
+          <action type="Rewrite" url="MODERN_API_URL/api/v1/{R:1}" />
+        </rule>
+        <rule name="Strangler-MvcLegacy" stopProcessing="true">
+          <match url="(.*)" />
+          <action type="Rewrite" url="MVC_SITE_URL/{R:1}" />
+        </rule>
+      </rules>
+    </rewrite>
+    <proxy enabled="true" preserveHostHeader="false" reverseRewriteHostInResponseHeaders="true" />
+  </system.webServer>
+</configuration>
