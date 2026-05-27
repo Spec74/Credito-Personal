@@ -1,9 +1,4 @@
 ﻿@model ITB.VENDIX.DA.Cliente
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
 
 <style>
@@ -95,19 +90,6 @@
                     <label for="txtNegocioRef" class="inline">Referencia Negocio:</label>
                     <input type="text" name="c.DireccionNegocioRef" id="txtNegocioRef" value="@Model.DireccionNegocioRef" />
                 </p>
-
-                <input type="hidden" name="c.Latitud" id="Latitud" value="@Model.Latitud" />
-                <input type="hidden" name="c.Longitud" id="Longitud" value="@Model.Longitud" />
-
-                <div class="_100 texto">
-                    <label style="font-weight: bold; color: #d32f2f;">📍 Ubicación GPS:</label>
-                    <br />
-                    <button id="btnBuscarEnMapa" class="button small blue" style="margin: 10px 0;">
-                        <span class="icon icon-search"></span> Ubicar Domicilio en el Mapa
-                    </button>
-
-                    <div id="mapa-cliente" style="height: 300px; width: 98%; border: 2px solid #ccc; border-radius: 8px; margin-bottom: 15px;"></div>
-                </div>
 
             </div>
 
@@ -594,149 +576,6 @@
                 }
             });
 
-        // 1. CONFIGURACIÓN INICIAL DEL MAPA
-
-        var tieneCoordenadas = '@Model.Latitud' != '' && '@Model.Longitud' != '';
-        var latInicial = tieneCoordenadas ? parseFloat('@Model.Latitud'.replace(',', '.')) : -13.15878;
-        var lngInicial = tieneCoordenadas ? parseFloat('@Model.Longitud'.replace(',', '.')) : -74.22321;
-
-        var mapa = L.map('mapa-cliente').setView([latInicial, lngInicial], 15);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(mapa);
-
-        var marcador = L.marker([latInicial, lngInicial], { draggable: true }).addTo(mapa);
-
-        // Actualizar coordenadas al arrastrar el marcador
-        marcador.on('dragend', function (e) {
-            var posicion = marcador.getLatLng();
-            $("#Latitud").val(posicion.lat.toFixed(8));
-            $("#Longitud").val(posicion.lng.toFixed(8));
-        });
-
-        // Inicializar el buscador interno del mapa (Lupa superior derecha)
-        var geocoderControl = L.Control.geocoder({
-            defaultMarkGeocode: false,
-            placeholder: "Buscar lugar o referencia..."
-        }).on('markgeocode', function(e) {
-            var centro = e.geocode.center;
-            mapa.setView(centro, 18);
-            marcador.setLatLng(centro);
-            $("#Latitud").val(centro.lat.toFixed(8));
-            $("#Longitud").val(centro.lng.toFixed(8));
-        }).addTo(mapa);
-
-        // EXTRAEMOS EL BUSCADOR SEGURO DEL CONTROL (Esto evita cualquier error de versión)
-        var miBuscador = geocoderControl.options.geocoder;
-
-        // 2. AUTOCOMPLETADO DEL DISTRITO (Conectado al Mapa)
-        $("#txtUbicacion").autocomplete({
-            source: "@Url.Action("BuscarDistrito", "Cliente")",
-            minLength: 2,
-            select: function (event, ui) {
-                event.preventDefault();
-                $("#txtUbicacion").val(ui.item.value);
-                $("#DistritoId").val(ui.item.id);
-
-                // MAGIA: Al seleccionar el distrito, el mapa viaja hacia allá
-                var busquedaDistrito = ui.item.value + ", Ayacucho, Peru";
-                if (typeof Vendix !== 'undefined' && Vendix.Notificar) {
-                    Vendix.Notificar("Ubicando " + ui.item.value + " en el mapa...");
-                }
-
-                miBuscador.geocode(busquedaDistrito, function(results) {
-                    if (results && results.length > 0) {
-                        var centro = results[0].center;
-                        mapa.setView(centro, 15); // Zoom nivel distrito
-                        marcador.setLatLng(centro);
-                        $("#Latitud").val(centro.lat.toFixed(8));
-                        $("#Longitud").val(centro.lng.toFixed(8));
-                    }
-                });
-            }
-        });
-
-        // Si es un cliente sin GPS pero ya tiene un distrito guardado al cargar la página
-        if (!tieneCoordenadas) {
-            var distritoGuardado = $("#txtUbicacion").val().trim();
-            if (distritoGuardado !== "") {
-                miBuscador.geocode(distritoGuardado + ", Ayacucho, Peru", function(results) {
-                    if (results && results.length > 0) {
-                        var centro = results[0].center;
-                        mapa.setView(centro, 15);
-                        marcador.setLatLng(centro);
-                        $("#Latitud").val(centro.lat.toFixed(8));
-                        $("#Longitud").val(centro.lng.toFixed(8));
-                    }
-                });
-            }
-        }
-
-        // 3. BOTÓN BUSCAR EN MAPA (Búsqueda Progresiva)
-        $("#btnBuscarEnMapa").click(function(e) {
-            e.preventDefault();
-
-            var direccion = $("#txtDireccion").val().trim();
-            var distrito = $("#txtUbicacion").val().trim();
-
-            if (distrito === "") {
-                if (typeof Vendix !== 'undefined' && Vendix.Mensaje) {
-                    Vendix.Mensaje("Por favor, ingrese o seleccione al menos el Distrito.");
-                } else {
-                    alert("Por favor, ingrese o seleccione al menos el Distrito.");
-                }
-                return;
-            }
-
-            // Armamos dos opciones: la muy detallada y la general (solo distrito)
-            // Nota: Le quité la tilde a "Perú" porque el buscador en inglés/internacional a veces se confunde.
-            var busquedaExacta = direccion + ", " + distrito + ", Ayacucho, Peru";
-            var busquedaGeneral = distrito + ", Ayacucho, Peru";
-
-            // Función recursiva para procesar resultados
-            function procesarBusqueda(resultados, intentoExacto) {
-                if (resultados && resultados.length > 0) {
-                    var centro = resultados[0].center;
-
-                    // Si es exacta nos acercamos más (zoom 18), si es general (zoom 15)
-                    var zoomNivel = intentoExacto ? 18 : 15;
-                    mapa.setView(centro, zoomNivel);
-                    marcador.setLatLng(centro);
-
-                    $("#Latitud").val(centro.lat.toFixed(8));
-                    $("#Longitud").val(centro.lng.toFixed(8));
-
-                    // Si solo encontró el distrito, avisamos al usuario
-                    if (!intentoExacto && direccion !== "") {
-                        var msj = "No se encontró la calle exacta. Se ubicó en el centro del distrito. Por favor, arrastre el marcador (📍) a su casa.";
-                        if (typeof Vendix !== 'undefined' && Vendix.Mensaje) { Vendix.Mensaje(msj); } else { alert(msj); }
-                    }
-                } else {
-                    if (intentoExacto) {
-                        // Si falló buscando la calle, intentamos buscando SOLO el distrito
-                        miBuscador.geocode(busquedaGeneral, function(resGeneral) {
-                            procesarBusqueda(resGeneral, false);
-                        });
-                    } else {
-                        var msjError = "No se pudo encontrar la ubicación. Intente usar la lupa del mapa o arrastrar el marcador manualmente.";
-                        if (typeof Vendix !== 'undefined' && Vendix.Mensaje) { Vendix.Mensaje(msjError); } else { alert(msjError); }
-                    }
-                }
-            }
-
-            if (typeof Vendix !== 'undefined' && Vendix.Notificar) { Vendix.Notificar("Buscando en el mapa..."); }
-
-            // Lanzamos el primer intento (con la calle)
-            miBuscador.geocode(busquedaExacta, function(results) {
-                procesarBusqueda(results, true);
-            });
-        });
-
-        // Corrección de tamaño del mapa al cargar dentro de pestañas/paneles
-        setTimeout(function () { mapa.invalidateSize(); }, 500);
-
-        });
     </script>
 }
 
