@@ -21,8 +21,6 @@ services:
       Hosting__AllowDevToken: "true"
       Hosting__DisableHttpsRedirection: "true"
       Auth__RequerirClienteAcceso: "false"
-      Auth__MigracionClavePerezosa: "true"
-      Auth__RequerirClienteAcceso: "false"
       # false: no rehash PBKDF2 al login (ClaveUsuario nvarchar(50) no cabe el hash). MVC sigue con clave en claro.
       Auth__MigracionClavePerezosa: "false"
     ports:
@@ -51,10 +49,5 @@ services:
       - ./nginx/spa-legacy-redirects.conf:/etc/nginx/spa-legacy-redirects.conf:ro
       - ../Credito.Modern.Web/dist:/var/www/credito-modern-web:ro
       # Iconos menú SPA (/css, /img) sin depender de MVC en marcha
-      - ../../Web/css:/var/www/legacy-web/css:ro
-      - ../../Web/img:/var/www/legacy-web/img:ro
-      - ./nginx/proxy_params_strangler.conf:/etc/nginx/proxy_params_strangler.conf:ro
-      - ./nginx/spa-legacy-redirects.conf:/etc/nginx/spa-legacy-redirects.conf:ro
-      - ../Credito.Modern.Web/dist:/var/www/credito-modern-web:ro
       - ../../Web/css:/var/www/legacy-web/css:ro
       - ../../Web/img:/var/www/legacy-web/img:ro
