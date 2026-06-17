@@ -16,6 +16,7 @@ const SECTIONS = [
       { to: '/ventas/lista-precios', label: 'Lista de precios' },
       { to: '/ventas/informe-lista-precios', label: 'Informe lista de precios' },
       { to: '/informes/rentabilidad-venta', label: 'Rentabilidad ventas' },
+      { to: '/reportes/venta', label: 'Reportes de venta' },
     ],
   },
 ]

@@ -1,52 +1,64 @@
-# Ejecutar Credito Modern sin código fuente (solo binarios)
+# Ejecutar Credito Modern en local
 
-El árbol `src/` y los `.csproj` **no están en disco** (solo quedan `bin/`, `obj/` y `dist/`). Hasta restaurar el repositorio, use estos comandos.
+El código fuente moderno de esta rama está en `D:\Ebers\GitHub\Credito\modern`. Esta carpeta contiene la API .NET 10, la SPA React/Vite, deploy y documentación de migración.
 
-## API (.NET)
+## API (.NET 10)
 
-`dotnet run --project` falla porque falta `Credito.Modern.Api.csproj`. Use el ejecutable ya compilado:
+Desde la carpeta `Credito\modern`:
 
 ```powershell
-cd D:\GitHub\Credito\modern
-.\scripts\run-api.ps1
+cd D:\Ebers\GitHub\Credito\modern
+dotnet restore Credito.Modern.sln
+dotnet run --project Credito.Modern.Api
 ```
 
-- URL: **http://localhost:5288** (Swagger: `/swagger`)
-- HTTPS: **https://localhost:7288**
+- Swagger (Development): **https://localhost:7288/swagger**
+- Health: **https://localhost:7288/health**
 
-Si arranca en otro puerto (p. ej. 5000), el script fija `ASPNETCORE_URLS` a 5288/7288.
-- Variables: lee `deploy\.env` (cadena SQL, JWT).
+Configure secretos fuera de Git. Ejemplo:
 
-Si SQL está en la máquina local (no Docker), edite en `deploy\.env`:
-
-```env
-CREDITO_DB_CONNECTION_STRING=Server=localhost,14330;Database=CREDITO;User Id=sa;Password=...;TrustServerCertificate=True;Encrypt=True;
+```powershell
+dotnet user-secrets set "CreditoDatabase:ConnectionString" "Server=...;Database=CREDITO;User Id=...;Password=...;TrustServerCertificate=True" --project .\Credito.Modern.Api\Credito.Modern.Api.csproj
 ```
 
 ## Frontend (SPA)
 
-Sin `package.json` no hay `npm run dev`. Sirva el build en `dist/`:
+Para desarrollo SPA:
 
 ```powershell
-cd D:\GitHub\Credito\modern
-.\scripts\run-web.ps1
+cd D:\Ebers\GitHub\Credito\modern\Credito.Modern.Web
+npm install
+npm run dev
 ```
 
-- Abra: **http://localhost:5173/app/**
+- Abra: **http://localhost:5173/login** o **http://localhost:5173/app/login** si usa `VITE_BASE_URL=/app/`.
 - El CSS responsive extra está en `dist/assets/credix-responsive-global.css`.
+
+Para build de producción:
+
+```powershell
+cd D:\Ebers\GitHub\Credito\modern\Credito.Modern.Web
+npm run build
+```
 
 ## Probar responsive
 
-DevTools → ancho ~375px → rutas: `/app/credito/aprobar`, `/app/caja/saldos`, `/app/informes/comprobantes-caja-chica`.
+DevTools → ancho ~375px → rutas: `/credito/aprobar`, `/caja/saldos`, `/informes/comprobantes-caja-chica`, `/reportes/venta`.
 
-## Recuperar código fuente
+## Proxy strangler
 
-1. Copia de otro equipo / OneDrive / backup.
-2. Rama remota si existió: `git fetch` + buscar rama con `modern/`.
-3. **No** hay `modern/` en el stash actual del repo `Credito`.
+Para ejecutar MVC + API moderna detrás del proxy local:
 
-Cuando vuelva el source, importe en `main.tsx`:
-
-```ts
-import './styles/credix-responsive-global.css'
+```powershell
+cd D:\Ebers\GitHub\Credito\modern
+Copy-Item deploy\.env.example deploy\.env
+.\deploy\scripts\start-strangler.ps1 -Build
 ```
+
+## Cierre de migración
+
+Ver:
+
+- `docs/migration/MIGRATION-CLOSURE.md`
+- `docs/migration/DEPLOY-AL-SUBIR.md`
+- `docs/ui_modernizacion_modulos.md`

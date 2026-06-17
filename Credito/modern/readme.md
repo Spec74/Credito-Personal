@@ -1,10 +1,8 @@
 # Credito.Modern
 
-**Migración strangler:** **TERMINADA en repositorio** (API + SPA + deploy). Al subir servidores: [docs/migration/DEPLOY-AL-SUBIR.md](../docs/migration/DEPLOY-AL-SUBIR.md).
+**Migración strangler:** **candidata a cierre / go-live** (API + SPA + deploy). Al subir servidores: [docs/migration/DEPLOY-AL-SUBIR.md](docs/migration/DEPLOY-AL-SUBIR.md).
 
 Arquitectura: **Domain → Application → Infrastructure → Api** + **Credito.Modern.Web** (SPA).
-
-Arquitectura: **Domain → Application → Infrastructure → Api**.
 
 API ASP.NET Core **.NET 10** (TFM `net10.0`) en paralelo al legado (`Web` MVC). Se eligió `net10.0` para que **restauración, compilación y pruebas** funcionen con el runtime ya instalado en el equipo de desarrollo (solo ASP.NET Core 10). Para alinear con la hoja de ruta **.NET 8 LTS**, cambia `<TargetFramework>` a `net8.0` en todos los `.csproj` de esta carpeta e instala el [runtime/hosting bundle 8](https://dotnet.microsoft.com/download/dotnet/8.0); el workflow de GitHub puede usar `8.0.x` en lugar de `10.0.x`.
 
@@ -59,7 +57,7 @@ dotnet run --project Credito.Modern.Api
 - **Rentabilidad de ventas (JWT, política `CreditoUser`):** `GET /api/v1/ventas/rpt-rentabilidad-venta?fechaIni=&fechaFin=&oficinaId=` — **`VENTAS.usp_RptRentabilidadVenta`**; `fechaIni` y `fechaFin` obligatorias (año 1900–2100; `fechaIni` ≤ `fechaFin`); **`oficinaId`** obligatorio y = **`vendix:oficina_id`**; **`indContado`** y **`indCredito`** opcionales (default `false`). Origen: `ReporteBL.ListarReporteRentabilidadVenta` (sin modo “todas las oficinas” desde la API).
 - **Rentabilidad de ventas CSV (JWT, política `CreditoUser`):** `GET /api/v1/ventas/rpt-rentabilidad-venta-csv?fechaIni=&fechaFin=&oficinaId=` — mismos parámetros y datos que **`rpt-rentabilidad-venta`**; respuesta **`text/csv; charset=utf-8`**, descarga **`rentabilidad-venta.csv`** (UTF-8 con BOM).
 - **Rentabilidad de ventas CSV (JWT, política `CreditoUser`):** `GET /api/v1/ventas/rpt-rentabilidad-venta-csv?fechaIni=&fechaFin=&oficinaId=` — mismos parámetros y datos que **`rpt-rentabilidad-venta`**; respuesta **`text/csv; charset=utf-8`**, descarga **`rentabilidad-venta.csv`** (UTF-8 con BOM).
-- **Despliegue y auth MVC:** guía [docs/migration/PROXY-AND-MVC-AUTH-BACKLOG.md](../docs/migration/PROXY-AND-MVC-AUTH-BACKLOG.md) (proxy `/api/v1` + backlog de controladores sin `[Autenticado]`).
+- **Despliegue y auth MVC:** guía [docs/migration/PROXY-AND-MVC-AUTH-BACKLOG.md](docs/migration/PROXY-AND-MVC-AUTH-BACKLOG.md) (proxy `/api/v1` + backlog de controladores sin `[Autenticado]`).
 - **POST cálculo TEM (JWT, política `CreditoUser`):** `POST /api/v1/credito/calcular-tem` — `CREDITO.usp_CalcularTEM`; `formaPago` = **D/M/Q/S** (como el MVC), no el texto "MENSUAL". Otras rutas pueden usar políticas por rol (`CreditoRolAdministrador`, `CreditoRolEncargado`, `CreditoRolAprobador1`) alineadas a `MAESTRO.Rol.Denominacion`.
 - **POST simulador de crédito (JWT, política `CreditoUser`):** `POST /api/v1/credito/simulador-credito` — **`CREDITO.usp_SimuladorCredito`**; cuerpo JSON alineado a **`CreditoBL.SimuladorCredito`** (`monto`, `formaPago` D/M/Q/S, `nroCuotas`, `interesMensual`, `fechaPrimerPago`, `gastosAdm` opcional). Si **`monto` <= 0**, devuelve lista vacía sin llamar al proc (como el MVC). Respuesta: lista de cuotas (`numero`, `capital`, `fechaPago`, `amortizacion`, `interes`, `gastosAdm`, `cuota`).
 - **Estado del plan de pagos (JWT, política `CreditoUser`):** `GET /api/v1/credito/estado-plan-pago?creditoId=` — **`CREDITO.usp_EstadoPlanPago`**; `creditoId` obligatorio (≥ 1).
@@ -120,8 +118,8 @@ dotnet run --project Credito.Modern.Api
 - **Artículo venta rápida (JWT, lectura):** `GET /api/v1/ventas/articulo-venta-rapida?oficinaId=&codigo=` — paridad **`ObtenerArticulo`** (`articuloId`, `precioVenta`, `stock`).
 - **Caja diario venta rápida (JWT, lectura):** `GET /api/v1/ventas/caja-diario-venta-rapida?oficinaId=` — paridad cabecera **`Index`** (`cajaDiarioId`, `cajaDenominacion`, `fechaIniOperacion`).
 - **Catálogo informes MVC (JWT, lectura):** `GET /api/v1/reportes/catalogo` — lista acciones **`ReporteController`** (sin render RDLC); base para BFF/SPA.
-- **Cobertura catálogo vs API (JWT):** `GET /api/v1/reportes/catalogo-cobertura` — matriz 52 ítems (completo-datos / solo-mvc / parcial / …); ver [CATALOGO-INFORMES-COBERTURA.md](../docs/migration/CATALOGO-INFORMES-COBERTURA.md).
-- **Política exportación informes (JWT, lectura):** `GET /api/v1/reportes/politica-exportacion` — fase **`pdf-tabular-completo`**: cada informe con **`-csv`** tiene **`-pdf`** (32 rutas); tres informes solo JSON `{ texto }`; layout `.rdlc` idéntico = **`layout-rdlc-fase4-opcional`** (ver [MIGRATION-CLOSURE.md](../docs/migration/MIGRATION-CLOSURE.md)).
+- **Cobertura catálogo vs API (JWT):** `GET /api/v1/reportes/catalogo-cobertura` — matriz 52 ítems (completo-datos / solo-mvc / parcial / …); ver [CATALOGO-INFORMES-COBERTURA.md](docs/migration/CATALOGO-INFORMES-COBERTURA.md).
+- **Política exportación informes (JWT, lectura):** `GET /api/v1/reportes/politica-exportacion` — fase **`pdf-tabular-completo`**: cada informe con **`-csv`** tiene **`-pdf`** (32 rutas); tres informes solo JSON `{ texto }`; layout `.rdlc` idéntico = **`layout-rdlc-fase4-opcional`** (ver [MIGRATION-CLOSURE.md](docs/migration/MIGRATION-CLOSURE.md)).
 - **Export PDF tabular (JWT):** toda ruta `GET .../*-csv` tiene gemela `GET .../*-pdf` — **`application/pdf`**, columnas = CSV (`TabularPdfDocument` / QuestPDF). Ej.: `rpt-credito-observado-pdf`, `rpt-clientes-bloqueados-pdf`, `almacen/rpt-stock-anulados-pdf`.
 - **Informes texto RDLC (JWT, sin CSV ni PDF):** `GET .../rpt-saldos-caja-resumen-ingreso`, `.../rpt-saldos-caja-resumen-tipo-cuenta`, `.../resumen-cuenta-boveda` — JSON `{ texto }`.
 - **Cerrar cajas diarios / transferir bóveda (JWT, escritura):** `POST /api/v1/credito/cerrar-cajas-diarios` — **`usp_CerrarCajasDiarios`**; body `{ oficinaId, sobrante }` (como **`SaldosController.Transferir`**). Cierre masivo de oficina, no el del cajero.
@@ -192,8 +190,8 @@ dotnet run --project Credito.Modern.Api
 - **Artículo venta rápida (JWT, lectura):** `GET /api/v1/ventas/articulo-venta-rapida?oficinaId=&codigo=` — paridad **`ObtenerArticulo`** (`articuloId`, `precioVenta`, `stock`).
 - **Caja diario venta rápida (JWT, lectura):** `GET /api/v1/ventas/caja-diario-venta-rapida?oficinaId=` — paridad cabecera **`Index`** (`cajaDiarioId`, `cajaDenominacion`, `fechaIniOperacion`).
 - **Catálogo informes MVC (JWT, lectura):** `GET /api/v1/reportes/catalogo` — lista acciones **`ReporteController`** (sin render RDLC); base para BFF/SPA.
-- **Cobertura catálogo vs API (JWT):** `GET /api/v1/reportes/catalogo-cobertura` — matriz 52 ítems (completo-datos / solo-mvc / parcial / …); ver [CATALOGO-INFORMES-COBERTURA.md](../docs/migration/CATALOGO-INFORMES-COBERTURA.md).
-- **Política exportación informes (JWT, lectura):** `GET /api/v1/reportes/politica-exportacion` — fase **`pdf-tabular-completo`**: cada informe con **`-csv`** tiene **`-pdf`** (32 rutas); tres informes solo JSON `{ texto }`; layout `.rdlc` idéntico = **`layout-rdlc-fase4-opcional`** (ver [MIGRATION-CLOSURE.md](../docs/migration/MIGRATION-CLOSURE.md)).
+- **Cobertura catálogo vs API (JWT):** `GET /api/v1/reportes/catalogo-cobertura` — matriz 52 ítems (completo-datos / solo-mvc / parcial / …); ver [CATALOGO-INFORMES-COBERTURA.md](docs/migration/CATALOGO-INFORMES-COBERTURA.md).
+- **Política exportación informes (JWT, lectura):** `GET /api/v1/reportes/politica-exportacion` — fase **`pdf-tabular-completo`**: cada informe con **`-csv`** tiene **`-pdf`** (32 rutas); tres informes solo JSON `{ texto }`; layout `.rdlc` idéntico = **`layout-rdlc-fase4-opcional`** (ver [MIGRATION-CLOSURE.md](docs/migration/MIGRATION-CLOSURE.md)).
 - **Export PDF tabular (JWT):** toda ruta `GET .../*-csv` tiene gemela `GET .../*-pdf` — **`application/pdf`**, columnas = CSV (`TabularPdfDocument` / QuestPDF). Ej.: `rpt-credito-observado-pdf`, `rpt-clientes-bloqueados-pdf`, `almacen/rpt-stock-anulados-pdf`.
 - **Informes texto RDLC (JWT, sin CSV ni PDF):** `GET .../rpt-saldos-caja-resumen-ingreso`, `.../rpt-saldos-caja-resumen-tipo-cuenta`, `.../resumen-cuenta-boveda` — JSON `{ texto }`.
 - **Cerrar cajas diarios / transferir bóveda (JWT, escritura):** `POST /api/v1/credito/cerrar-cajas-diarios` — **`usp_CerrarCajasDiarios`**; body `{ oficinaId, sobrante }` (como **`SaldosController.Transferir`**). Cierre masivo de oficina, no el del cajero.
@@ -307,21 +305,20 @@ dotnet run --project Credito.Modern.Api
 - Cierre E2E login + menú + decisiones `MAESTRO.Acceso`: `docs/migration/MODERN-E2E-LOGIN-MENU.md`.
 - Plan de dejar de usar clave en claro: `docs/migration/PASSWORD-STORAGE-ROADMAP.md`.
 - Proxy `/api/v1` y backlog auth MVC: `docs/migration/PROXY-AND-MVC-AUTH-BACKLOG.md`.
-- Proxy `/api/v1` y backlog auth MVC: `docs/migration/PROXY-AND-MVC-AUTH-BACKLOG.md`.
 
 ### Cadena de conexión
 
 No commitear secretos. Desde la carpeta **`modern`** (donde está la solución), el proyecto se indica con la ruta al `.csproj`:
 
 ```powershell
-cd D:\GitHub\Credito\modern
+cd D:\Ebers\GitHub\Credito\modern
 dotnet user-secrets set "CreditoDatabase:ConnectionString" "Server=.\MSSQLSERVER01;Database=CREDITO;User Id=sa;Password=AQUI_TU_CLAVE;" --project .\Credito.Modern.Api\Credito.Modern.Api.csproj
 ```
 
 **O** entra en la carpeta del API (solo hay un `.csproj`) y omite `--project`:
 
 ```powershell
-cd D:\GitHub\Credito\modern\Credito.Modern.Api
+cd D:\Ebers\GitHub\Credito\modern\Credito.Modern.Api
 dotnet user-secrets set "CreditoDatabase:ConnectionString" "Server=...;Database=...;User Id=...;Password=...;TrustServerCertificate=True"
 ```
 
@@ -339,7 +336,7 @@ La sección en `appsettings` es `CreditoDatabase:ConnectionString` (ver `SqlData
 
 ## CI
 
-Workflow: `.github/workflows/credito-modern-ci.yml` (disparo al cambiar `modern/`). Incluye `docker build` con contexto `modern/` y `Dockerfile` de esa carpeta. Si el remoto es un monorepo cuyo raíz no es esta carpeta, mueve el workflow a la raíz del repo y ajusta `defaults.run.working-directory` y `on.paths`.
+Workflow recomendado: `.github/workflows/credito-modern-ci.yml` (disparo al cambiar `Credito/modern/`). Esta rama no trae el workflow rastreado; antes de go-live conviene agregarlo en la raíz del repo con `defaults.run.working-directory: Credito/modern`.
 
 ## Contenedor
 
@@ -354,7 +351,7 @@ Variables de entorno típicas: `CreditoDatabase__ConnectionString`, `Jwt__Signin
 
 ### Proxy strangler (staging local)
 
-Guía completa: [docs/migration/PHASE-3B-PROXY-E2E.md](../docs/migration/PHASE-3B-PROXY-E2E.md).
+Guía completa: [docs/migration/PHASE-3B-PROXY-E2E.md](docs/migration/PHASE-3B-PROXY-E2E.md).
 
 ```powershell
 cd Credito\modern
@@ -380,19 +377,19 @@ Copy-Item deploy\.env.example deploy\.env
 
 ## Fase 5 — Interfaz (SPA)
 
-Migración **backend** cerrada en repo — [docs/migration/MIGRATION-CLOSURE.md](../docs/migration/MIGRATION-CLOSURE.md). Siguiente trabajo: **UI** consumiendo esta API.
+Migración **backend + SPA** candidata a cierre — [docs/migration/MIGRATION-CLOSURE.md](docs/migration/MIGRATION-CLOSURE.md). La UI moderna consume esta API y conserva puentes RDLC/legacy donde corresponde.
 
 | Documento | Contenido |
 |-----------|-----------|
-| [PHASE-5-UI-START.md](../docs/migration/PHASE-5-UI-START.md) | Hub Fase 5 (subfases 5.0–5.6) |
-| [PHASE-5-UI-STACK-OPTIONS.md](../docs/migration/PHASE-5-UI-STACK-OPTIONS.md) | React/Vue/Blazor, SPA vs BFF |
-| [PHASE-5-UI-ARCHITECTURE.md](../docs/migration/PHASE-5-UI-ARCHITECTURE.md) | Auth, cliente HTTP, carpetas |
-| [PHASE-5-UI-ROADMAP.md](../docs/migration/PHASE-5-UI-ROADMAP.md) | MVC → pantallas (29 controladores) |
-| [PHASE-5-OPERATIONS-CUTOVER.md](../docs/migration/PHASE-5-OPERATIONS-CUTOVER.md) | Preprod/prod (paralelo) |
+| [PHASE-5-UI-START.md](docs/migration/PHASE-5-UI-START.md) | Hub Fase 5 (subfases 5.0–5.6) |
+| [PHASE-5-UI-STACK-OPTIONS.md](docs/migration/PHASE-5-UI-STACK-OPTIONS.md) | React/Vue/Blazor, SPA vs BFF |
+| [PHASE-5-UI-ARCHITECTURE.md](docs/migration/PHASE-5-UI-ARCHITECTURE.md) | Auth, cliente HTTP, carpetas |
+| [PHASE-5-UI-ROADMAP.md](docs/migration/PHASE-5-UI-ROADMAP.md) | MVC → pantallas (29 controladores) |
+| [PHASE-5-OPERATIONS-CUTOVER.md](docs/migration/PHASE-5-OPERATIONS-CUTOVER.md) | Preprod/prod (paralelo) |
 
 **Recomendación:** React + TypeScript + Vite en `Credito.Modern.Web`; `VITE_API_BASE_URL=http://localhost:9080/api/v1` en desarrollo.
 
 ## Operaciones (paralelo a UI)
 
-- Desplegar proxy en preprod/prod: [PHASE-3B-PROXY-E2E.md](../docs/migration/PHASE-3B-PROXY-E2E.md), [PHASE-5-OPERATIONS-CUTOVER.md](../docs/migration/PHASE-5-OPERATIONS-CUTOVER.md).
-- Fase 4 RDLC solo si negocio exige layout idéntico: [PHASE-4-START.md](../docs/migration/PHASE-4-START.md).
+- Desplegar proxy en preprod/prod: [PHASE-3B-PROXY-E2E.md](docs/migration/PHASE-3B-PROXY-E2E.md), [PHASE-5-OPERATIONS-CUTOVER.md](docs/migration/PHASE-5-OPERATIONS-CUTOVER.md).
+- Fase 4 RDLC solo si negocio exige layout idéntico: [PHASE-4-START.md](docs/migration/PHASE-4-START.md).

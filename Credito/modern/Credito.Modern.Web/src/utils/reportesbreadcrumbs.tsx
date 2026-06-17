@@ -28,6 +28,15 @@ export function reportesCobranzaBreadcrumb(): NonNullable<BreadcrumbProps['items
   ]
 }
 
+/** Migas para Reportes → Venta. */
+export function reportesVentaIndexBreadcrumb(): NonNullable<BreadcrumbProps['items']> {
+  return [
+    { title: <Link to="/inicio">Inicio</Link> },
+    { title: 'Reportes' },
+    { title: 'Venta' },
+  ]
+}
+
 /** Migas para la rejilla Reportes → Crédito. */
 /** Migas para Reportes → Cobranza. */
 /** Migas para informes lanzados desde Reportes → Crédito. */

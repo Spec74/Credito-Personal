@@ -123,6 +123,7 @@ export function AppRoutes() {
         <Route path="/reportes/credito" element={<Pages.ReporteCreditoIndexPage />} />
         <Route path="/reportes/almacen" element={<Pages.ReporteAlmacenIndexPage />} />
         <Route path="/reportes/cobranza" element={<Pages.CobranzaPagosPage />} />
+        <Route path="/reportes/venta" element={<Pages.ReporteVentaIndexPage />} />
         <Route path="/credito" element={<Pages.CreditoHubPage />} />
         <Route
           path="/credito/simulador"

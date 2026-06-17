@@ -27,7 +27,7 @@ Auditoría de la SPA **Credito.Modern.Web** (mayo 2026): paridad funcional con M
 | **Maestros** | `/maestros` | Marcas, modelos, tipos, artículos, almacenes | — |
 | **Admin** | `/admin` | Usuarios, roles, oficinas | — |
 | **Informes** | `/informes` | ~30 informes JSON/CSV/PDF | API `catalogo-cobertura` |
-| **Reportes** | `/reportes/*` | Índice crédito/almacén, cobranza, visor RDLC | — |
+| **Reportes** | `/reportes/*` | Índice crédito/almacén/venta, cobranza, visor RDLC | — |
 
 ## Pendientes menores (no bloquean operación)
 
@@ -44,6 +44,7 @@ Auditoría de la SPA **Credito.Modern.Web** (mayo 2026): paridad funcional con M
 - `branding.ts`: colores alineados a `#114885` / Ant Design.
 - Consulta crédito: métricas de vencimiento diferidas tras cargar plan (`planQuery.isSuccess`).
 - Placeholder de menú: tarjetas Credix con sugerencias por módulo (`moduleHubSuggestions.ts`).
+- Reportes de venta: ruta `/reportes/venta` para cubrir `Reporte/Venta` sin caer al hub genérico.
 - Comisiones: panel reservado con iconografía de marca.
 
 ## Checklist de verificación manual
