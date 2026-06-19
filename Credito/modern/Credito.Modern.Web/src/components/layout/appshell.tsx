@@ -7,6 +7,7 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import { fetchMenu } from '../../api/menu'
 import { fetchOficinas } from '../../api/oficinas'
@@ -19,6 +20,7 @@ import { quickActions, type QuickAction } from '../../config/quickActions'
 import {
   buildAntMenuItems,
   defaultOpenMenuKeys,
+  ensureCreditoPrendarioMenuItem,
   filterQuickActionsByMenu,
   findMenuItem,
 } from '../../utils/menuTree'
@@ -68,14 +70,18 @@ export function AppShell() {
   })
 
   const menuData = useMemo(() => menuQuery.data ?? [], [menuQuery.data])
-  const quickActionsVisible = useMemo(
-    () => filterQuickActionsByMenu(quickActions, menuData),
+  const navigationMenuData = useMemo(
+    () => ensureCreditoPrendarioMenuItem(menuData),
     [menuData],
+  )
+  const quickActionsVisible = useMemo(
+    () => filterQuickActionsByMenu(quickActions, navigationMenuData),
+    [navigationMenuData],
   )
 
   const defaultOpenKeys = useMemo(
-    () => (menuData.length > 0 ? defaultOpenMenuKeys(menuData) : []),
-    [menuData],
+    () => (navigationMenuData.length > 0 ? defaultOpenMenuKeys(navigationMenuData) : []),
+    [navigationMenuData],
   )
   const nextMenuStamp = `${session?.oficinaId ?? 0}-${session?.usuarioId ?? 0}-${menuQuery.dataUpdatedAt ?? 0}`
   if (nextMenuStamp !== menuStamp && defaultOpenKeys.length > 0) {
@@ -107,7 +113,7 @@ export function AppShell() {
   const usuarioNombre =
     profile.nombreUsuario ?? (session ? `Usuario ${session.usuarioId}` : '')
 
-  const menuItems = useMemo(() => buildAntMenuItems(menuData), [menuData])
+  const menuItems = useMemo(() => buildAntMenuItems(navigationMenuData), [navigationMenuData])
 
   const closeMobileNav = () => {
     if (isMobile) {
@@ -115,7 +121,7 @@ export function AppShell() {
     }
   }
 
-  const navigateMenuItem = (item: (typeof menuData)[number]) => {
+  const navigateMenuItem = (item: (typeof navigationMenuData)[number]) => {
     const spaFromMenu = resolveSpaPathFromMenuItem(
       item.url,
       item.denominacion,
@@ -163,7 +169,7 @@ export function AppShell() {
       return
     }
 
-    const item = findMenuItem(menuData, menuId)
+    const item = findMenuItem(navigationMenuData, menuId)
     if (item) {
       navigateMenuItem(item)
     }
@@ -209,8 +215,11 @@ export function AppShell() {
             onClick={toggleNav}
             aria-label="Abrir menú"
           />
-          <span className="credix-header-brand">CREDICONFIANZA</span>
+          <span className="credix-header-brand">
+            <strong>CREDICONFIABLE</strong>
+          </span>
           <span className="credix-header-user">
+            <UserOutlined />
             <Text strong style={{ color: '#fff' }}>
               {usuarioNombre}
             </Text>

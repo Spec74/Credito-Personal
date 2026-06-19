@@ -49,9 +49,11 @@ public static class TareaBusquedaTerminos
             Push(first);
         }
 
-        var namePart = t
-            .Replace(System.Text.RegularExpressions.Regex.Match(t, @"^\d+\s*").Value, string.Empty)
-            .Trim();
+        var numericPrefix = System.Text.RegularExpressions.Regex.Match(t, @"^\d+\s*").Value;
+        var namePart = string.IsNullOrEmpty(numericPrefix)
+            ? t
+            : t.Replace(numericPrefix, string.Empty);
+        namePart = namePart.Trim();
         var nameClean = System.Text.RegularExpressions.Regex.Replace(namePart, @"\s*\[[^\]]+\]\s*$", string.Empty).Trim();
         if (nameClean.Length >= 3 && !string.Equals(nameClean, t, StringComparison.OrdinalIgnoreCase))
         {

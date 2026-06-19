@@ -150,6 +150,14 @@ export function AppRoutes() {
           }
         />
         <Route
+          path="/credito/prendario"
+          element={
+            <CreditoOperacionRoute>
+              <Pages.CreditoPrendarioPage />
+            </CreditoOperacionRoute>
+          }
+        />
+        <Route
           path="/credito/persona/:personaId"
           element={
             <CreditoOperacionRoute>

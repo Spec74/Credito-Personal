@@ -64,16 +64,32 @@ public sealed class RptSimuladorPlanPagosReadService(
         var temTxt = tem.HasValue ? $"{tem.Value.ToString(CultureInfo.InvariantCulture)}%" : $"{query.InteresMensual}%";
 
         var inv = CultureInfo.InvariantCulture;
+        var totalInteres = cuotas.Sum(x => x.Interes ?? 0m);
+        var totalDevolver = query.Monto + totalInteres + (ga == "CUO" ? query.GastosAdm : 0m);
+        var cuotaReferencial = cuotas.FirstOrDefault()?.Cuota ?? 0m;
+        var fechaUltimoPago = cuotas.LastOrDefault()?.FechaPago?.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture) ?? "-";
+        var tipoDocumento = MapTipoDocumento(query.TipoDocumento);
         var cabecera = new RptSimuladorPlanPagosCabeceraDto(
             $"S/. {query.Monto.ToString(inv)}",
             query.NroCuotas.ToString(inv),
             producto,
             query.FechaPrimerPago.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture),
             modalidadLabel,
-            query.Cliente ?? string.Empty,
+            string.IsNullOrWhiteSpace(query.Cliente) ? "CLIENTE PROSPECTO" : query.Cliente.Trim(),
             temTxt,
             $"S/. {desemb.ToString(inv)}",
-            $"S/. {Math.Round(query.GastosAdm, 2).ToString("0.00", CultureInfo.InvariantCulture)}");
+            $"S/. {Math.Round(query.GastosAdm, 2).ToString("0.00", CultureInfo.InvariantCulture)}",
+            tipoDocumento,
+            string.IsNullOrWhiteSpace(query.NroDocumento) ? "-" : query.NroDocumento.Trim(),
+            string.IsNullOrWhiteSpace(query.DireccionCliente) ? "No especificado" : query.DireccionCliente.Trim(),
+            string.IsNullOrWhiteSpace(query.DireccionNegocio) ? "No especificado" : query.DireccionNegocio.Trim(),
+            string.IsNullOrWhiteSpace(query.PrendaDescripcion) ? "Ninguna" : query.PrendaDescripcion.Trim(),
+            string.IsNullOrWhiteSpace(query.Asesor) ? "-" : query.Asesor.Trim(),
+            string.IsNullOrWhiteSpace(query.TelefonoCliente) ? "-" : query.TelefonoCliente.Trim(),
+            $"S/. {totalInteres.ToString("N2", inv)}",
+            $"S/. {totalDevolver.ToString("N2", inv)}",
+            $"S/. {cuotaReferencial.ToString("N2", inv)}",
+            fechaUltimoPago);
 
         return new RptSimuladorPlanPagosInformeDto(cabecera, cuotas);
     }
@@ -98,6 +114,14 @@ public sealed class RptSimuladorPlanPagosReadService(
             "Q" => "QUINCENAL",
             "M" => "MENSUAL",
             _ => formaPago,
+        };
+
+    private static string MapTipoDocumento(string? tipoDocumento) =>
+        (tipoDocumento ?? string.Empty).Trim().ToUpperInvariant() switch
+        {
+            "N" or "DNI" => "DNI",
+            "J" or "RUC" => "RUC",
+            _ => "-",
         };
 
     private void EnsureConnection()

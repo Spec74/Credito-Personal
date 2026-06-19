@@ -37,6 +37,20 @@ public sealed record CreditoContextoDto(
     int? PersonaAvalId,
     string? PersonaAvalNombre);
 
+public sealed record SolicitudCreditoDetalleDto(
+    int SolicitudCreditoId,
+    int PersonaId,
+    string Cliente,
+    int? ProductoId,
+    decimal MontoCredito,
+    string? FormaPago,
+    int NumeroCuotas,
+    decimal Interes,
+    DateTime? FechaPrimerPago,
+    decimal MontoGastosAdm,
+    string? Observacion,
+    decimal CentralRiesgo);
+
 public sealed record CondonarCreditoRequest(
     int OficinaId,
     int CreditoId,
@@ -100,5 +114,22 @@ public sealed record ActualizarDescuentoPlanPagoRequest(
 public sealed record ActualizarAvalCreditoRequest(int OficinaId, int CreditoId, int? PersonaAvalId);
 
 public sealed record EliminarEvidenciaRequest(int OficinaId, int CreditoImagenId);
+
+public sealed record CreditoPrendaDto(
+    int CreditoPrendaId,
+    int CreditoId,
+    string Descripcion,
+    decimal MontoTasacion,
+    DateTime FechaRemate,
+    string? Observacion,
+    bool Estado);
+
+public sealed record GuardarCreditoPrendaRequest(
+    int OficinaId,
+    int CreditoId,
+    string Descripcion,
+    decimal MontoTasacion,
+    DateTime FechaRemate,
+    string? Observacion);
 
 public sealed record CreditoGestionOperacionResponse(bool Success, string? Mensaje);

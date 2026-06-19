@@ -38,9 +38,14 @@ function Invoke-DockerComposeUp {
 $modernRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $composeFile = Join-Path $modernRoot "deploy\docker-compose.strangler.yml"
 $envFile = Join-Path $modernRoot "deploy\.env"
+$envLocalFile = Join-Path $modernRoot "deploy\.env.local"
 $envExample = Join-Path $modernRoot "deploy\.env.example"
 
-if (-not (Test-Path $envFile)) {
+if (Test-Path $envLocalFile) {
+    $envFile = $envLocalFile
+    Write-Host 'Usando deploy\.env.local (secretos locales).' -ForegroundColor Gray
+}
+elseif (-not (Test-Path $envFile)) {
     if (-not (Test-Path $envExample)) {
         throw 'No existe deploy\.env ni deploy\.env.example'
     }

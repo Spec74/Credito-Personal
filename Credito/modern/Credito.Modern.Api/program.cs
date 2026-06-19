@@ -5062,6 +5062,135 @@ app.MapGet(
     .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 app.MapGet(
+        "/api/v1/credito/solicitud-credito",
+        async Task<Results<Ok<SolicitudCreditoDetalleDto>, ProblemHttpResult>> (
+            HttpContext httpContext,
+            int oficinaId,
+            int solicitudCreditoId,
+            ICreditoGestionReadService gestionRead,
+            ICreditoOficinaReadService creditoOficina,
+            ILoggerFactory loggerFactory,
+            IHostEnvironment env,
+            CancellationToken ct) =>
+        {
+            var idError = CajaCreditoWriteGuards.ValidateBodyCreditoIds(oficinaId, solicitudCreditoId);
+            if (idError is not null)
+                return idError;
+            var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+            if (oficinaError is not null)
+                return oficinaError;
+            var scopeError = await CajaCreditoWriteGuards
+                .ValidateCreditoOficinaAsync(oficinaId, solicitudCreditoId, creditoOficina, ct)
+                .ConfigureAwait(false);
+            if (scopeError is not null)
+                return scopeError;
+
+            var log = loggerFactory.CreateLogger("SolicitudCreditoDetalle");
+            try
+            {
+                var solicitud = await gestionRead
+                    .ObtenerSolicitudCreditoAsync(solicitudCreditoId, ct)
+                    .ConfigureAwait(false);
+                if (solicitud is null)
+                {
+                    return TypedResults.Problem(
+                        statusCode: StatusCodes.Status404NotFound,
+                        title: "No encontrado",
+                        detail: "Solicitud de crédito CRE no encontrada.");
+                }
+
+                return TypedResults.Ok(solicitud);
+            }
+            catch (InvalidOperationException ex)
+            {
+                log.LogWarning(ex, "Cadena de conexión no configurada");
+                return TypedResults.Problem(
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Configuración incompleta");
+            }
+            catch (DbException ex)
+            {
+                log.LogError(ex, "Error al obtener solicitud de crédito");
+                var detail = "No se pudo obtener la solicitud de crédito.";
+                if (env.IsDevelopment())
+                    detail += $" Detalle: {ex.Message}";
+                return TypedResults.Problem(
+                    detail: detail,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Error de base de datos");
+            }
+        })
+    .WithName("CreditoSolicitudDetalle")
+    .WithTags("credito")
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .WithSummary("Solo lectura: solicitud CRE para continuar originación desde Crédito > Créditos.")
+    .Produces<SolicitudCreditoDetalleDto>(StatusCodes.Status200OK, "application/json")
+    .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
+    .ProducesProblem(StatusCodes.Status403Forbidden)
+    .ProducesProblem(StatusCodes.Status404NotFound)
+    .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+app.MapGet(
+        "/api/v1/credito/credito-prenda",
+        async Task<Results<Ok<CreditoPrendaDto?>, ProblemHttpResult>> (
+            HttpContext httpContext,
+            int oficinaId,
+            int creditoId,
+            ICreditoGestionReadService gestionRead,
+            ICreditoOficinaReadService creditoOficina,
+            ILoggerFactory loggerFactory,
+            IHostEnvironment env,
+            CancellationToken ct) =>
+        {
+            var idError = CajaCreditoWriteGuards.ValidateBodyCreditoIds(oficinaId, creditoId);
+            if (idError is not null)
+                return idError;
+            var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+            if (oficinaError is not null)
+                return oficinaError;
+            var scopeError = await CajaCreditoWriteGuards
+                .ValidateCreditoOficinaAsync(oficinaId, creditoId, creditoOficina, ct)
+                .ConfigureAwait(false);
+            if (scopeError is not null)
+                return scopeError;
+
+            var log = loggerFactory.CreateLogger("CreditoPrenda");
+            try
+            {
+                var prenda = await gestionRead.ObtenerPrendaAsync(creditoId, ct).ConfigureAwait(false);
+                return TypedResults.Ok<CreditoPrendaDto?>(prenda);
+            }
+            catch (InvalidOperationException ex)
+            {
+                log.LogWarning(ex, "Cadena de conexión no configurada");
+                return TypedResults.Problem(
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Configuración incompleta");
+            }
+            catch (DbException ex)
+            {
+                log.LogError(ex, "Error al obtener crédito prenda");
+                var detail = "No se pudo obtener la prenda del crédito.";
+                if (env.IsDevelopment())
+                    detail += $" Detalle: {ex.Message}";
+                return TypedResults.Problem(
+                    detail: detail,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Error de base de datos");
+            }
+        })
+    .WithName("CreditoPrendaObtener")
+    .WithTags("credito")
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .Produces<CreditoPrendaDto?>(StatusCodes.Status200OK, "application/json")
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
+    .ProducesProblem(StatusCodes.Status403Forbidden)
+    .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+app.MapGet(
         "/api/v1/credito/cargos-credito",
         async Task<Results<Ok<List<CargoCreditoRowDto>>, ProblemHttpResult>> (
             HttpContext httpContext,
@@ -6270,6 +6399,88 @@ app.MapPost(
     .ProducesProblem(StatusCodes.Status401Unauthorized)
     .ProducesProblem(StatusCodes.Status403Forbidden)
     .ProducesProblem(StatusCodes.Status404NotFound)
+    .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+app.MapPost(
+        "/api/v1/credito/guardar-prenda-credito",
+        async Task<Results<Ok<CreditoGestionOperacionResponse>, ProblemHttpResult>> (
+            HttpContext httpContext,
+            GuardarCreditoPrendaRequest body,
+            ICreditoGestionWriteService gestionWrite,
+            ICreditoOficinaReadService creditoOficina,
+            IDatabaseTimeProvider databaseTime,
+            ILoggerFactory loggerFactory,
+            IHostEnvironment env,
+            CancellationToken ct) =>
+        {
+            var idError = CajaCreditoWriteGuards.ValidateBodyCreditoIds(body.OficinaId, body.CreditoId);
+            if (idError is not null)
+                return idError;
+            var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
+            if (oficinaError is not null)
+                return oficinaError;
+            var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
+            if (usuarioError is not null)
+                return usuarioError;
+            var scopeError = await CajaCreditoWriteGuards
+                .ValidateCreditoOficinaAsync(body.OficinaId, body.CreditoId, creditoOficina, ct)
+                .ConfigureAwait(false);
+            if (scopeError is not null)
+                return scopeError;
+
+            var log = loggerFactory.CreateLogger("GuardarPrendaCredito");
+            try
+            {
+                var serverTime = await databaseTime.GetServerTimeAsync(ct).ConfigureAwait(false);
+                if (serverTime is null)
+                {
+                    return TypedResults.Problem(
+                        statusCode: StatusCodes.Status503ServiceUnavailable,
+                        title: "Error de base de datos",
+                        detail: "No se pudo obtener la fecha del servidor.");
+                }
+
+                var response = await gestionWrite
+                    .GuardarPrendaAsync(body, usuarioId, serverTime.Value, ct)
+                    .ConfigureAwait(false);
+                if (!response.Success)
+                {
+                    return TypedResults.Problem(
+                        statusCode: StatusCodes.Status409Conflict,
+                        title: "Prenda no guardada",
+                        detail: response.Mensaje ?? "Error al guardar prenda.");
+                }
+
+                return TypedResults.Ok(response);
+            }
+            catch (InvalidOperationException ex)
+            {
+                log.LogWarning(ex, "Cadena de conexión no configurada");
+                return TypedResults.Problem(
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Configuración incompleta");
+            }
+            catch (DbException ex)
+            {
+                log.LogError(ex, "Error al guardar prenda del crédito");
+                var detail = "No se pudo guardar la prenda.";
+                if (env.IsDevelopment())
+                    detail += $" Detalle: {ex.Message}";
+                return TypedResults.Problem(
+                    detail: detail,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Error de base de datos");
+            }
+        })
+    .WithName("CreditoGuardarPrenda")
+    .WithSummary("Modern: registra datos normalizados de Crédito Prendario.")
+    .WithTags("credito")
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
+    .Produces<CreditoGestionOperacionResponse>(StatusCodes.Status200OK, "application/json")
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
+    .ProducesProblem(StatusCodes.Status403Forbidden)
+    .ProducesProblem(StatusCodes.Status409Conflict)
     .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 app.MapPost(
@@ -17816,6 +18027,7 @@ app.MapPost(
                         body.Observacion ?? string.Empty,
                         usuarioId,
                         body.IndCentralRiesgo,
+                        body.Prenda,
                         ct)
                     .ConfigureAwait(false);
                 return TypedResults.Ok(response);
@@ -17834,6 +18046,14 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
+                    detail: ex.Message);
+            }
+            catch (ArgumentException ex)
+            {
+                log.LogWarning(ex, "Solicitud inválida al generar crédito");
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Solicitud inválida",
                     detail: ex.Message);
             }
             catch (DbException ex)

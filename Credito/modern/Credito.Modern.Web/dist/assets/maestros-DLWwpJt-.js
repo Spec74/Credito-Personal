@@ -1,1 +1,0 @@
-import{O as e}from"./index-DMT5Y7yy.js";function t(t){return e(`/valores-tabla?tablaId=${t}&soloItemIdPositivo=true`)}export{t};

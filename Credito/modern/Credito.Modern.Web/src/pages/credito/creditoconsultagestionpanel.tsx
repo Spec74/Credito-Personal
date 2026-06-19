@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
@@ -21,6 +21,8 @@ import {
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { getAccessToken } from '../../auth/tokenStorage'
+import { buscarClientes, crearPersonaRapida } from '../../api/clientes'
+import { fetchEstadoPlanPago } from '../../api/creditoPlanes'
 import {
   actualizarAvalCredito,
   actualizarIrrecuperableCredito,
@@ -30,7 +32,9 @@ import {
   eliminarEvidenciaCredito,
   fetchCargosCredito,
   fetchCreditoContexto,
+  fetchCreditoPrenda,
   fetchEvidenciasCredito,
+  guardarPrendaCredito,
   guardarCargoCredito,
   modificarCentralRiesgoCredito,
   modificarTramiteAdmCredito,
@@ -40,6 +44,7 @@ import {
   type CreditoEvidencia,
 } from '../../api/creditoGestion'
 import { fetchValoresTabla } from '../../api/maestros'
+import { fetchUsuariosGestion } from '../../api/usuariosAdmin'
 import { ApiError } from '../../api/errors'
 import { formatMoney } from '../../utils/formatMoney'
 import {
@@ -51,6 +56,10 @@ import {
   tieneCreditoModoLectura,
 } from '../../utils/creditoOperacionPermisos'
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
+import {
+  extractCreditoPrendarioObservacion,
+} from '../../utils/creditoPrendario'
+import type { EstadoPlanPagoCuota } from '../../types/api'
 
 const { Paragraph, Text } = Typography
 
@@ -79,10 +88,12 @@ export function CreditoConsultaGestionPanel({
   const puedeAnalista = puedeCambiarAnalistaCreditoUi(roles)
   const puedeTramite = puedeEditarTramiteCentralAvalUi(roles)
   const bloqueadoGestion = soloLectura || !puedeGestion
+  const spaBase = import.meta.env.BASE_URL || '/'
   const queryClient = useQueryClient()
   const [modalCondonar, setModalCondonar] = useState(false)
   const [modalObservar, setModalObservar] = useState(false)
   const [modalCargo, setModalCargo] = useState(false)
+  const [modalNuevoAval, setModalNuevoAval] = useState(false)
   const [montoCxc, setMontoCxc] = useState(0)
   const [montoCond, setMontoCond] = useState(0)
   const [obsCondonar, setObsCondonar] = useState('')
@@ -96,6 +107,17 @@ export function CreditoConsultaGestionPanel({
   const [tramiteAdm, setTramiteAdm] = useState(0)
   const [centralRiesgo, setCentralRiesgo] = useState(0)
   const [personaAvalId, setPersonaAvalId] = useState<number | null>(null)
+  const [avalSearch, setAvalSearch] = useState('')
+  const [nuevoAvalDni, setNuevoAvalDni] = useState('')
+  const [nuevoAvalNombre, setNuevoAvalNombre] = useState('')
+  const [nuevoAvalPaterno, setNuevoAvalPaterno] = useState('')
+  const [nuevoAvalMaterno, setNuevoAvalMaterno] = useState('')
+  const [nuevoAvalCelular, setNuevoAvalCelular] = useState('')
+  const [prendario, setPrendario] = useState(false)
+  const [descripcionPrenda, setDescripcionPrenda] = useState('')
+  const [montoTasacionPrenda, setMontoTasacionPrenda] = useState(0)
+  const [fechaRematePrenda, setFechaRematePrenda] = useState('')
+  const [observacionPrenda, setObservacionPrenda] = useState('')
 
   const contexto = useQuery({
     queryKey: ['credito-contexto', creditoId],
@@ -118,11 +140,36 @@ export function CreditoConsultaGestionPanel({
     staleTime: creditoStaleTime.operacion,
   })
 
+  const creditoPrenda = useQuery({
+    queryKey: ['credito-prenda', oficinaId, creditoId],
+    queryFn: () => fetchCreditoPrenda(oficinaId, creditoId),
+    enabled: activo && oficinaId > 0 && creditoId > 0,
+    staleTime: creditoStaleTime.operacion,
+  })
+
   const tiposCargo = useQuery({
     queryKey: ['valores-tabla', 2],
     queryFn: () => fetchValoresTabla(2),
     enabled: activo,
     staleTime: creditoStaleTime.master,
+  })
+
+  const planPago = useQuery({
+    queryKey: ['estado-plan-pago', creditoId],
+    queryFn: () => fetchEstadoPlanPago(creditoId),
+    enabled: activo && puedeCondonar,
+    staleTime: creditoStaleTime.operacion,
+  })
+
+  const usuariosGestion = useQuery({
+    queryKey: ['usuarios-gestion-credito-ajustes'],
+    queryFn: () => fetchUsuariosGestion({ page: 1, pageSize: 500, incluirInactivos: false }),
+    enabled: activo && puedeAnalista,
+    staleTime: creditoStaleTime.master,
+  })
+
+  const buscarAval = useMutation({
+    mutationFn: (term: string) => buscarClientes(term),
   })
 
   const refrescar = () => {
@@ -131,21 +178,26 @@ export function CreditoConsultaGestionPanel({
     void queryClient.invalidateQueries({ queryKey: ['evidencias-credito', oficinaId, creditoId] })
   }
 
-  const ctxSyncKey = contexto.dataUpdatedAt ?? 0
-  const [ctxSyncedAt, setCtxSyncedAt] = useState(-1)
-  if (contexto.data && ctxSyncKey !== ctxSyncedAt) {
-    setCtxSyncedAt(ctxSyncKey)
+  useEffect(() => {
+    if (!contexto.data) return
     setTramiteAdm(contexto.data.montoGastosAdm ?? 0)
     setCentralRiesgo(contexto.data.centralRiesgo ?? 0)
     setPersonaAvalId(contexto.data.personaAvalId ?? null)
-  }
-
-  if (contexto.data && ctxSyncKey !== ctxSyncedAt) {
-    setCtxSyncedAt(ctxSyncKey)
-    setTramiteAdm(contexto.data.montoGastosAdm ?? 0)
-    setCentralRiesgo(contexto.data.centralRiesgo ?? 0)
-    setPersonaAvalId(contexto.data.personaAvalId ?? null)
-  }
+    if (creditoPrenda.data) {
+      setPrendario(true)
+      setDescripcionPrenda(creditoPrenda.data.descripcion ?? '')
+      setMontoTasacionPrenda(creditoPrenda.data.montoTasacion ?? 0)
+      setFechaRematePrenda(creditoPrenda.data.fechaRemate?.slice(0, 10) ?? '')
+      setObservacionPrenda(creditoPrenda.data.observacion ?? '')
+      return
+    }
+    const prendarioActual = extractCreditoPrendarioObservacion(contexto.data.observacion)
+    setPrendario(Boolean(prendarioActual.descripcion))
+    setDescripcionPrenda(prendarioActual.descripcion ?? '')
+    setMontoTasacionPrenda(prendarioActual.montoTasacion ?? 0)
+    setFechaRematePrenda(prendarioActual.fechaRemate ?? '')
+    setObservacionPrenda(prendarioActual.observacion ?? '')
+  }, [contexto.data, creditoPrenda.data])
 
   const condonar = useMutation({
     mutationFn: () =>
@@ -225,7 +277,11 @@ export function CreditoConsultaGestionPanel({
   const cambiarAnalista = useMutation({
     mutationFn: () =>
       cambiarAnalistaCredito({ oficinaId, creditoId, analistaId: analistaId! }),
-    onSuccess: () => message.success('Analista actualizado'),
+    onSuccess: () => {
+      message.success('Analista actualizado')
+      setAnalistaId(null)
+      refrescar()
+    },
     onError: (e) => message.error(errMsg(e)),
   })
 
@@ -270,6 +326,49 @@ export function CreditoConsultaGestionPanel({
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const crearNuevoAval = useMutation({
+    mutationFn: () =>
+      crearPersonaRapida({
+        dni: nuevoAvalDni.trim(),
+        nombre: nuevoAvalNombre.trim().toUpperCase(),
+        apePaterno: nuevoAvalPaterno.trim().toUpperCase(),
+        apeMaterno: nuevoAvalMaterno.trim().toUpperCase(),
+        celular: nuevoAvalCelular.trim() || null,
+      }),
+    onSuccess: (r) => {
+      setPersonaAvalId(r.personaId)
+      setAvalSearch(r.label)
+      setModalNuevoAval(false)
+      setNuevoAvalDni('')
+      setNuevoAvalNombre('')
+      setNuevoAvalPaterno('')
+      setNuevoAvalMaterno('')
+      setNuevoAvalCelular('')
+      message.success('Aval creado; asignando al crédito')
+      guardarAval.mutate(r.personaId)
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const guardarPrendario = useMutation({
+    mutationFn: () =>
+      guardarPrendaCredito({
+        oficinaId,
+        creditoId,
+        descripcion: descripcionPrenda,
+        montoTasacion: montoTasacionPrenda,
+        fechaRemate: fechaRematePrenda,
+        observacion: observacionPrenda || null,
+      }),
+    onSuccess: () => {
+      message.success('Crédito prendario guardado')
+      setPrendario(true)
+      refrescar()
+      void queryClient.invalidateQueries({ queryKey: ['credito-prenda', oficinaId, creditoId] })
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
   const cargoCols: ColumnsType<CargoCreditoRow> = [
     { title: 'Tipo', dataIndex: 'tipoCargo', ellipsis: true },
     { title: 'Cuota', dataIndex: 'numCuota', width: 60 },
@@ -284,6 +383,44 @@ export function CreditoConsultaGestionPanel({
   ]
 
   const ctx = contexto.data
+  const analistaOptions = useMemo(
+    () =>
+      (usuariosGestion.data?.rows ?? []).map((u) => ({
+        value: u.usuarioId,
+        label: `${u.nombreCompleto || u.nombreUsuario} (#${u.usuarioId})`,
+      })),
+    [usuariosGestion.data],
+  )
+  const avalOptions = useMemo(() => {
+    const options = (buscarAval.data ?? []).map((c) => ({
+      value: c.personaId,
+      label: c.label,
+    }))
+    if (
+      ctx?.personaAvalId &&
+      ctx.personaAvalNombre &&
+      !options.some((o) => o.value === ctx.personaAvalId)
+    ) {
+      options.unshift({
+        value: ctx.personaAvalId,
+        label: `${ctx.personaAvalNombre} (#${ctx.personaAvalId})`,
+      })
+    }
+    return options
+  }, [buscarAval.data, ctx?.personaAvalId, ctx?.personaAvalNombre])
+
+  const condonacionResumen = useMemo(() => {
+    const pendientes = (planPago.data ?? []).filter((c: EstadoPlanPagoCuota) =>
+      c.estado?.toUpperCase() === 'PEN',
+    )
+    const capital = pendientes.reduce((s, c) => s + (c.amortizacion ?? c.capital ?? 0), 0)
+    const interes = pendientes.reduce((s, c) => s + (c.interes ?? 0), 0)
+    const mora = pendientes.reduce((s, c) => s + (c.importeMora ?? 0), 0)
+    const cargos = pendientes.reduce((s, c) => s + (c.cargo ?? 0), 0)
+    const descuentos = pendientes.reduce((s, c) => s + (c.descuento ?? 0), 0)
+    const total = Math.max(0, capital + interes + mora + cargos - descuentos)
+    return { capital, interes, mora, cargos, descuentos, total, cuotas: pendientes.length }
+  }, [planPago.data])
 
   return (
     <>
@@ -316,17 +453,7 @@ export function CreditoConsultaGestionPanel({
             disabled={bloqueadoGestion}
             onClick={() => {
               setObservacion(ctx?.observacion ?? '')
-              Modal.confirm({
-                title: 'Observar crédito',
-                content: (
-                  <Input.TextArea
-                    rows={3}
-                    defaultValue={ctx?.observacion ?? ''}
-                    onChange={(e) => setObservacion(e.target.value)}
-                  />
-                ),
-                onOk: () => observar.mutateAsync(),
-              })
+              setModalObservar(true)
             }}
           >
             Observar
@@ -442,14 +569,44 @@ export function CreditoConsultaGestionPanel({
                     Actual: {ctx.personaAvalNombre}
                   </Paragraph>
                 ) : null}
-                <InputNumber
+                <Select
                   style={{ width: '100%', marginBottom: 8 }}
-                  min={1}
-                  placeholder="PersonaId aval (vacío = quitar)"
+                  showSearch
+                  allowClear
+                  filterOption={false}
+                  placeholder="Buscar aval por DNI, código o nombre"
+                  notFoundContent={avalSearch.trim().length < 2 ? 'Ingrese al menos 2 caracteres' : null}
+                  loading={buscarAval.isPending}
+                  options={avalOptions}
                   value={personaAvalId ?? undefined}
+                  onSearch={(term) => {
+                    setAvalSearch(term)
+                    if (term.trim().length >= 2) {
+                      buscarAval.mutate(term.trim())
+                    }
+                  }}
                   onChange={(v) => setPersonaAvalId(v ?? null)}
                 />
                 <Space direction="vertical" style={{ width: '100%' }}>
+                  <Button
+                    block
+                    disabled={bloqueadoGestion}
+                    onClick={() => setModalNuevoAval(true)}
+                  >
+                    Nuevo aval
+                  </Button>
+                  <Button
+                    block
+                    disabled={!personaAvalId}
+                    href={
+                      personaAvalId
+                        ? `${spaBase}informes/reporte-cliente?personaId=${personaAvalId}`
+                        : undefined
+                    }
+                    target="_blank"
+                  >
+                    Detalle aval
+                  </Button>
                   <Button
                     block
                     disabled={bloqueadoGestion}
@@ -476,11 +633,15 @@ export function CreditoConsultaGestionPanel({
           <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
             {puedeAnalista ? (
               <Col xs={24} md={8}>
-                <Paragraph strong>Cambiar analista (UsuarioId)</Paragraph>
-                <InputNumber
+                <Paragraph strong>Cambiar analista</Paragraph>
+                <Select
                   style={{ width: '100%', marginBottom: 8 }}
-                  min={1}
-                  placeholder="ID usuario analista"
+                  showSearch
+                  allowClear
+                  optionFilterProp="label"
+                  loading={usuariosGestion.isLoading}
+                  options={analistaOptions}
+                  placeholder="Buscar gestor/analista activo"
                   value={analistaId ?? undefined}
                   onChange={(v) => setAnalistaId(v ?? null)}
                 />
@@ -517,18 +678,141 @@ export function CreditoConsultaGestionPanel({
         </Card>
       ) : null}
 
+      {puedeTramite ? (
+        <Card title="Crédito prendario" size="small" style={{ marginTop: 16 }}>
+          <Alert
+            type="info"
+            showIcon
+            style={{ marginBottom: 12 }}
+            message="Registro de prenda"
+            description="La información se guarda en CREDITO.CreditoPrenda. Si existe un bloque antiguo en Observación, se usa solo como fallback para precargar."
+          />
+          <Row gutter={[16, 16]}>
+            <Col xs={24} md={6}>
+              <Paragraph strong>Marcar como prendario</Paragraph>
+              <Switch
+                checkedChildren="Prendario"
+                unCheckedChildren="Normal"
+                checked={prendario}
+                disabled={bloqueadoGestion}
+                onChange={setPrendario}
+              />
+            </Col>
+            <Col xs={24} md={18}>
+              <Paragraph strong>Descripción de prenda</Paragraph>
+              <Input
+                disabled={bloqueadoGestion || !prendario}
+                placeholder="Ej. joyas, electrodoméstico, herramienta, vehículo menor"
+                value={descripcionPrenda}
+                onChange={(e) => setDescripcionPrenda(e.target.value)}
+              />
+            </Col>
+            <Col xs={24} md={8}>
+              <Paragraph strong>Monto tasación</Paragraph>
+              <InputNumber
+                style={{ width: '100%' }}
+                min={0}
+                precision={2}
+                disabled={bloqueadoGestion || !prendario}
+                value={montoTasacionPrenda}
+                onChange={(v) => setMontoTasacionPrenda(v ?? 0)}
+              />
+            </Col>
+            <Col xs={24} md={8}>
+              <Paragraph strong>Fecha remate</Paragraph>
+              <Input
+                type="date"
+                disabled={bloqueadoGestion || !prendario}
+                value={fechaRematePrenda}
+                onChange={(e) => setFechaRematePrenda(e.target.value)}
+              />
+            </Col>
+            <Col xs={24} md={8}>
+              <Paragraph strong>Observación prenda</Paragraph>
+              <Input
+                disabled={bloqueadoGestion || !prendario}
+                value={observacionPrenda}
+                onChange={(e) => setObservacionPrenda(e.target.value)}
+              />
+            </Col>
+          </Row>
+          <Button
+            type="primary"
+            style={{ marginTop: 12 }}
+            disabled={
+              bloqueadoGestion ||
+              !prendario ||
+              !descripcionPrenda.trim() ||
+              montoTasacionPrenda <= 0 ||
+              !fechaRematePrenda
+            }
+            loading={guardarPrendario.isPending}
+            onClick={() => guardarPrendario.mutate()}
+          >
+            Guardar prendario
+          </Button>
+        </Card>
+      ) : null}
+
       <Modal
-        title="Observar crédito"
-        open={modalObservar}
-        onCancel={() => setModalObservar(false)}
-        onOk={() => observar.mutate()}
-        confirmLoading={observar.isPending}
+        title="Nuevo aval"
+        open={modalNuevoAval}
+        onCancel={() => setModalNuevoAval(false)}
+        onOk={() => {
+          if (nuevoAvalDni.trim().length !== 8) {
+            message.warning('Ingrese DNI de 8 dígitos')
+            return
+          }
+          if (!nuevoAvalNombre.trim() || !nuevoAvalPaterno.trim() || !nuevoAvalMaterno.trim()) {
+            message.warning('Complete nombres y apellidos del aval')
+            return
+          }
+          crearNuevoAval.mutate()
+        }}
+        confirmLoading={crearNuevoAval.isPending || guardarAval.isPending}
+        okText="Crear y asignar"
       >
-        <Input.TextArea
-          rows={4}
-          value={observacion}
-          onChange={(e) => setObservacion(e.target.value)}
-        />
+        <Paragraph type="secondary">
+          Paridad con <strong>Nuevo Aval</strong> del MVC. Crea la persona y la asigna como aval
+          del crédito actual.
+        </Paragraph>
+        <Form layout="vertical">
+          <Form.Item label="DNI">
+            <Input
+              maxLength={8}
+              value={nuevoAvalDni}
+              onChange={(e) => setNuevoAvalDni(e.target.value.replace(/\D/g, ''))}
+            />
+          </Form.Item>
+          <Form.Item label="Nombres">
+            <Input value={nuevoAvalNombre} onChange={(e) => setNuevoAvalNombre(e.target.value)} />
+          </Form.Item>
+          <Row gutter={12}>
+            <Col span={12}>
+              <Form.Item label="Apellido paterno">
+                <Input
+                  value={nuevoAvalPaterno}
+                  onChange={(e) => setNuevoAvalPaterno(e.target.value)}
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Apellido materno">
+                <Input
+                  value={nuevoAvalMaterno}
+                  onChange={(e) => setNuevoAvalMaterno(e.target.value)}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Form.Item label="Celular">
+            <Input
+              maxLength={15}
+              value={nuevoAvalCelular}
+              onChange={(e) => setNuevoAvalCelular(e.target.value)}
+            />
+          </Form.Item>
+        </Form>
       </Modal>
 
       <Modal
@@ -553,6 +837,67 @@ export function CreditoConsultaGestionPanel({
         confirmLoading={condonar.isPending}
       >
         <Space direction="vertical" style={{ width: '100%' }}>
+          <Alert
+            type="info"
+            showIcon
+            message="Desglose sugerido de deuda pendiente"
+            description={
+              planPago.isLoading
+                ? 'Calculando cuotas pendientes...'
+                : `Capital ${formatMoney(condonacionResumen.capital)} · Interés ${formatMoney(
+                    condonacionResumen.interes,
+                  )} · Mora ${formatMoney(condonacionResumen.mora)} · Cargos ${formatMoney(
+                    condonacionResumen.cargos,
+                  )} · Descuentos ${formatMoney(condonacionResumen.descuentos)}`
+            }
+          />
+          <Row gutter={[8, 8]}>
+            <Col span={8}>
+              <Card size="small">
+                <Text type="secondary">Cuotas pendientes</Text>
+                <Paragraph strong style={{ marginBottom: 0 }}>
+                  {condonacionResumen.cuotas}
+                </Paragraph>
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card size="small">
+                <Text type="secondary">Total deuda</Text>
+                <Paragraph strong style={{ marginBottom: 0 }}>
+                  {formatMoney(condonacionResumen.total)}
+                </Paragraph>
+              </Card>
+            </Col>
+            <Col span={8}>
+              <Card size="small">
+                <Text type="secondary">Mora + cargos</Text>
+                <Paragraph strong style={{ marginBottom: 0 }}>
+                  {formatMoney(condonacionResumen.mora + condonacionResumen.cargos)}
+                </Paragraph>
+              </Card>
+            </Col>
+          </Row>
+          <Space wrap>
+            <Button
+              size="small"
+              onClick={() => {
+                setMontoCxc(condonacionResumen.total)
+                setMontoCond(condonacionResumen.total)
+              }}
+            >
+              Condonar total sugerido
+            </Button>
+            <Button
+              size="small"
+              onClick={() => {
+                const monto = condonacionResumen.mora + condonacionResumen.cargos
+                setMontoCxc(monto)
+                setMontoCond(monto)
+              }}
+            >
+              Solo mora y cargos
+            </Button>
+          </Space>
           <Form.Item label="Monto CxC">
             <InputNumber
               style={{ width: '100%' }}

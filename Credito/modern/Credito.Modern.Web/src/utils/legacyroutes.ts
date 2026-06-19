@@ -47,6 +47,7 @@ const LEGACY_TO_SPA: Array<{ match: RegExp; spaPath: string }> = [
   { match: /\/reporte\/venta$/i, spaPath: '/reportes/venta' },
   { match: /^\/tareas(\/index)?$/i, spaPath: '/credito/tareas' },
   { match: /^\/credito\/tareas/i, spaPath: '/credito/tareas' },
+  { match: /\/credito\/creditos/i, spaPath: '/credito/consulta' },
   { match: /^\/credito$/i, spaPath: '/credito' },
   { match: /^\/caja\/asignar/i, spaPath: '/caja/asignar' },
   { match: /reportestock(?!anulado)/i, spaPath: '/informes/reporte-stock' },
@@ -65,6 +66,7 @@ const LEGACY_TO_SPA: Array<{ match: RegExp; spaPath: string }> = [
     spaPath: '/tesoreria/movimiento-boveda',
   },
   { match: /\/credito\/simulador/i, spaPath: '/credito/simulador' },
+  { match: /\/credito\/prendario|creditoprendario|creditopredario/i, spaPath: '/credito/prendario' },
   {
     match: /\/credito\/parametrossimulador/i,
     spaPath: '/credito/parametros-simulador',
@@ -184,7 +186,6 @@ const LEGACY_TO_SPA: Array<{ match: RegExp; spaPath: string }> = [
     match: /reportesimuladorplanpagos|simuladorplanpagos/i,
     spaPath: '/credito/simulador',
   },
-  { match: /\/credito\/creditos/i, spaPath: '/credito/persona' },
   { match: /\/canjearpuntos/i, spaPath: '/ventas/canjear-puntos' },
   { match: /reportecobrodiario/i, spaPath: '/informes/cobro-diario' },
   { match: /reportecobrodiariodetalle/i, spaPath: '/informes/cobro-diario-detalle' },
@@ -193,7 +194,7 @@ const LEGACY_TO_SPA: Array<{ match: RegExp; spaPath: string }> = [
 function mapQueryToSpaPath(pathOnly: string, query: URLSearchParams): string | null {
   if (/\/credito\/creditos/i.test(pathOnly)) {
     const pid = query.get('pPersonaId') ?? query.get('personaId')
-    if (pid) return `/credito/persona/${pid}`
+    if (pid) return `/credito/consulta?personaId=${pid}`
   }
   if (/\/credito\/(consulta|index)/i.test(pathOnly)) {
     const cid = query.get('pCreditoId') ?? query.get('creditoId')

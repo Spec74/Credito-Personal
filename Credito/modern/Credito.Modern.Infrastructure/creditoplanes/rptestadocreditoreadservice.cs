@@ -30,6 +30,7 @@ public sealed class RptEstadoCreditoReadService(
                 """
                 SELECT
                     c.CreditoId,
+                    c.PersonaId,
                     pr.Denominacion AS Producto,
                     c.FechaPrimerPago,
                     c.FechaVencimiento,
@@ -62,6 +63,7 @@ public sealed class RptEstadoCreditoReadService(
 
         var cabecera = new RptEstadoCreditoCabeceraDto(
             cab.CreditoId,
+            cab.PersonaId,
             cab.Producto,
             cab.FechaPrimerPago,
             cab.FechaVencimiento,
@@ -101,6 +103,7 @@ public sealed class RptEstadoCreditoReadService(
     private sealed class CabeceraRow
     {
         public int CreditoId { get; init; }
+        public int PersonaId { get; init; }
         public string Producto { get; init; } = string.Empty;
         public DateTime FechaPrimerPago { get; init; }
         public DateTime FechaVencimiento { get; init; }

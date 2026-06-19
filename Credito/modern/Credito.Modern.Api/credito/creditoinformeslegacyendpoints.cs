@@ -394,6 +394,13 @@ internal static class CreditoInformesLegacyEndpoints
                     [FromQuery] decimal? gastosAdm,
                     [FromQuery] string? ga,
                     [FromQuery] string? cliente,
+                    [FromQuery] string? tipoDocumento,
+                    [FromQuery] string? nroDocumento,
+                    [FromQuery] string? direccionCliente,
+                    [FromQuery] string? direccionNegocio,
+                    [FromQuery] string? prendaDescripcion,
+                    [FromQuery] string? asesor,
+                    [FromQuery] string? telefonoCliente,
                     IRptSimuladorPlanPagosReadService simuladorPlan,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -408,7 +415,14 @@ internal static class CreditoInformesLegacyEndpoints
                         formaPago,
                         gastosAdm,
                         ga,
-                        cliente);
+                        cliente,
+                        tipoDocumento,
+                        nroDocumento,
+                        direccionCliente,
+                        direccionNegocio,
+                        prendaDescripcion,
+                        asesor,
+                        telefonoCliente);
                     if (error is not null)
                     {
                         return error;
@@ -450,6 +464,13 @@ internal static class CreditoInformesLegacyEndpoints
                     [FromQuery] decimal? gastosAdm,
                     [FromQuery] string? ga,
                     [FromQuery] string? cliente,
+                    [FromQuery] string? tipoDocumento,
+                    [FromQuery] string? nroDocumento,
+                    [FromQuery] string? direccionCliente,
+                    [FromQuery] string? direccionNegocio,
+                    [FromQuery] string? prendaDescripcion,
+                    [FromQuery] string? asesor,
+                    [FromQuery] string? telefonoCliente,
                     IRptSimuladorPlanPagosReadService simuladorPlan,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -464,7 +485,14 @@ internal static class CreditoInformesLegacyEndpoints
                         formaPago,
                         gastosAdm,
                         ga,
-                        cliente);
+                        cliente,
+                        tipoDocumento,
+                        nroDocumento,
+                        direccionCliente,
+                        direccionNegocio,
+                        prendaDescripcion,
+                        asesor,
+                        telefonoCliente);
                     if (error is not null)
                     {
                         return error;
@@ -507,6 +535,13 @@ internal static class CreditoInformesLegacyEndpoints
                     [FromQuery] decimal? gastosAdm,
                     [FromQuery] string? ga,
                     [FromQuery] string? cliente,
+                    [FromQuery] string? tipoDocumento,
+                    [FromQuery] string? nroDocumento,
+                    [FromQuery] string? direccionCliente,
+                    [FromQuery] string? direccionNegocio,
+                    [FromQuery] string? prendaDescripcion,
+                    [FromQuery] string? asesor,
+                    [FromQuery] string? telefonoCliente,
                     IRptSimuladorPlanPagosReadService simuladorPlan,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -521,7 +556,14 @@ internal static class CreditoInformesLegacyEndpoints
                         formaPago,
                         gastosAdm,
                         ga,
-                        cliente);
+                        cliente,
+                        tipoDocumento,
+                        nroDocumento,
+                        direccionCliente,
+                        direccionNegocio,
+                        prendaDescripcion,
+                        asesor,
+                        telefonoCliente);
                     if (error is not null)
                     {
                         return error;
@@ -562,7 +604,14 @@ internal static class CreditoInformesLegacyEndpoints
         string? formaPago,
         decimal? gastosAdm,
         string? ga,
-        string? cliente)
+        string? cliente,
+        string? tipoDocumento,
+        string? nroDocumento,
+        string? direccionCliente,
+        string? direccionNegocio,
+        string? prendaDescripcion,
+        string? asesor,
+        string? telefonoCliente)
     {
         if (productoId < 1)
         {
@@ -632,7 +681,14 @@ internal static class CreditoInformesLegacyEndpoints
             formaPago!,
             gastosAdm ?? 0m,
             gaNorm,
-            cliente));
+            cliente,
+            tipoDocumento,
+            nroDocumento,
+            direccionCliente,
+            direccionNegocio,
+            prendaDescripcion,
+            asesor,
+            telefonoCliente));
     }
     private static ProblemHttpResult ReadError(ILogger log, IHostEnvironment env, Exception ex, string operacion)
     {

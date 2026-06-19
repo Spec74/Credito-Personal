@@ -10,7 +10,18 @@ public sealed record RptSimuladorPlanPagosCabeceraDto(
     string Cliente,
     string Tem,
     string Desembolso,
-    string GastosAdm);
+    string GastosAdm,
+    string TipoDocumento,
+    string NroDocumento,
+    string DireccionCliente,
+    string DireccionNegocio,
+    string PrendaDescripcion,
+    string Asesor,
+    string TelefonoCliente,
+    string InteresesTotales,
+    string TotalDevolver,
+    string CuotaReferencial,
+    string FechaUltimoPago);
 
 public sealed record RptSimuladorPlanPagosInformeDto(
     RptSimuladorPlanPagosCabeceraDto Cabecera,
@@ -26,4 +37,11 @@ public sealed record RptSimuladorPlanPagosQuery(
     string FormaPago,
     decimal GastosAdm,
     string Ga,
-    string? Cliente);
+    string? Cliente,
+    string? TipoDocumento,
+    string? NroDocumento,
+    string? DireccionCliente,
+    string? DireccionNegocio,
+    string? PrendaDescripcion,
+    string? Asesor,
+    string? TelefonoCliente);

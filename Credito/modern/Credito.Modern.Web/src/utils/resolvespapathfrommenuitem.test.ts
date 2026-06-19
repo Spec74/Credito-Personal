@@ -19,4 +19,16 @@ describe('resolveSpaPathFromMenuItem', () => {
   it('mantiene hub /credito solo para ítems genéricos del módulo', () => {
     expect(resolveSpaPathFromMenuItem(null, 'Credito', 'CREDITO')).toBe('/credito')
   })
+
+  it('resuelve Crédito > Créditos directamente al flujo legacy modernizado', () => {
+    expect(resolveSpaPathFromMenuItem('/Credito', 'Creditos', 'CREDITO')).toBe(
+      '/credito/consulta',
+    )
+  })
+
+  it('conserva personaId al abrir Creditos desde una URL legacy', () => {
+    expect(
+      resolveSpaPathFromMenuItem('/Credito/Creditos?pPersonaId=123', 'Creditos', 'CREDITO'),
+    ).toBe('/credito/consulta?personaId=123')
+  })
 })

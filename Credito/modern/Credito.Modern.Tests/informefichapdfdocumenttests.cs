@@ -47,7 +47,18 @@ public class InformeFichaPdfDocumentTests
                 "Cliente",
                 "5%",
                 "950",
-                "50"),
+                "50",
+                "DNI",
+                "12345678",
+                "Av. Principal",
+                "Jr. Negocio",
+                "Ninguna",
+                "Asesor",
+                "999888777",
+                "S/. 20.00",
+                "S/. 1020.00",
+                "S/. 100.00",
+                "01/06/2026"),
             [
                 new SimuladorCreditoCuotaDto
                 {
@@ -58,6 +69,7 @@ public class InformeFichaPdfDocumentTests
                     Interes = 20,
                     GastosAdm = 0,
                     Cuota = 100,
+                    Saldo = 920,
                 },
             ]);
         var bytes = RptSimuladorPlanPagosPdfDocument.Build(dto);

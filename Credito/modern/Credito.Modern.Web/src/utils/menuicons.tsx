@@ -14,6 +14,7 @@ import {
   EnvironmentOutlined,
   FileTextOutlined,
   FolderOutlined,
+  GoldOutlined,
   HomeOutlined,
   InboxOutlined,
   LockOutlined,
@@ -81,6 +82,7 @@ const LEGACY_ICON_MAP: Record<string, IconFactory> = {
   application: () => <AppstoreOutlined />,
   export: () => <InboxOutlined />,
   import: () => <InboxOutlined />,
+  gold: () => <GoldOutlined />,
 }
 
 function normalizeLegacyIconKey(icono: string): string | null {
@@ -98,6 +100,9 @@ function normalizeLegacyIconKey(icono: string): string | null {
 
 function iconFromDenominacion(denominacion: string | null | undefined): ReactNode {
   const d = (denominacion ?? '').toUpperCase().normalize('NFD').replace(/\p{M}/gu, '')
+  if (d.includes('PRENDARIO') || d.includes('PREDARIO') || d.includes('PRENDA')) {
+    return <GoldOutlined />
+  }
   if (d.includes('COBRO') || d.includes('COBRANZA') || d.includes('PAGO')) {
     return <DollarOutlined />
   }

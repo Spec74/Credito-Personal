@@ -72,6 +72,7 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
         string observacion,
         int usuarioId,
         bool indCentralRiesgo,
+        CrearCreditoPrendaRequest? prenda = null,
         CancellationToken cancellationToken = default)
     {
         if (solicitudCreditoId < 1 || productoId < 1 || usuarioId < 1)
@@ -87,6 +88,11 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
 
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        if (prenda is not null)
+        {
+            ValidatePrenda(prenda);
+            await CreditoPrendaSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
         await using var transaction = (SqlTransaction)await connection
             .BeginTransactionAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -117,6 +123,17 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
                     commandType: CommandType.StoredProcedure,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
+            if (prenda is not null)
+            {
+                await UpsertPrendaAsync(
+                    connection,
+                    transaction,
+                    solicitudCreditoId,
+                    prenda,
+                    usuarioId,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new CrearCreditoResponse(mensaje ?? string.Empty);
         }
@@ -126,6 +143,65 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
             throw;
         }
     }
+
+    private static void ValidatePrenda(CrearCreditoPrendaRequest prenda)
+    {
+        if (string.IsNullOrWhiteSpace(prenda.Descripcion))
+        {
+            throw new ArgumentException("La descripción de la prenda es obligatoria.", nameof(prenda));
+        }
+
+        if (prenda.MontoTasacion <= 0)
+        {
+            throw new ArgumentException("El monto de tasación debe ser mayor a cero.", nameof(prenda));
+        }
+    }
+
+    private static Task UpsertPrendaAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        int creditoId,
+        CrearCreditoPrendaRequest prenda,
+        int usuarioId,
+        CancellationToken cancellationToken) =>
+        connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                IF EXISTS (SELECT 1 FROM CREDITO.CreditoPrenda WHERE CreditoId = @CreditoId)
+                BEGIN
+                    UPDATE CREDITO.CreditoPrenda
+                    SET Descripcion = @Descripcion,
+                        MontoTasacion = @MontoTasacion,
+                        FechaRemate = @FechaRemate,
+                        Observacion = @Observacion,
+                        Estado = CAST(1 AS bit),
+                        UsuarioModId = @UsuarioId,
+                        FechaMod = GETDATE()
+                    WHERE CreditoId = @CreditoId;
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO CREDITO.CreditoPrenda (
+                        CreditoId, Descripcion, MontoTasacion, FechaRemate, Observacion,
+                        Estado, UsuarioRegId, FechaReg)
+                    VALUES (
+                        @CreditoId, @Descripcion, @MontoTasacion, @FechaRemate, @Observacion,
+                        CAST(1 AS bit), @UsuarioId, GETDATE());
+                END;
+                """,
+                new
+                {
+                    CreditoId = creditoId,
+                    Descripcion = prenda.Descripcion.Trim().ToUpperInvariant(),
+                    prenda.MontoTasacion,
+                    FechaRemate = prenda.FechaRemate.Date,
+                    Observacion = string.IsNullOrWhiteSpace(prenda.Observacion)
+                        ? null
+                        : prenda.Observacion.Trim().ToUpperInvariant(),
+                    UsuarioId = usuarioId,
+                },
+                transaction: transaction,
+                cancellationToken: cancellationToken));
 
     public async Task<CreditoCicloOperacionResponse> RechazarAsync(
         int creditoId,

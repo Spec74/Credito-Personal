@@ -5,8 +5,8 @@ const SUGGESTIONS: Record<string, CredixHubLink[]> = {
   CREDITO: [
     {
       to: '/credito/consulta',
-      label: 'Consulta de crédito',
-      description: 'Estado, cuotas y gestión',
+      label: 'Créditos',
+      description: 'Buscar cliente, estado, cuotas y gestión',
     },
     {
       to: '/credito/aprobar',

@@ -1,1 +1,0 @@
-import{O as e,x as t}from"./index-DMT5Y7yy.js";async function n(n){return t(await e(`/almacenes${n!=null&&n>=1?`?oficinaId=${n}`:``}`))}export{n as t};

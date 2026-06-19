@@ -12,6 +12,8 @@ const { Text } = Typography
 type Props = {
   creditoId: number
   oficinaId: number
+  puedeCobrar: boolean
+  puedeMora: boolean
   puedeAnular: boolean
   puedeProrrogar: boolean
   puedeReprogramar: boolean
@@ -25,6 +27,8 @@ type Props = {
 export function CreditoConsultaAccionesCredito({
   creditoId,
   oficinaId,
+  puedeCobrar,
+  puedeMora,
   puedeAnular,
   puedeProrrogar,
   puedeReprogramar,
@@ -40,12 +44,16 @@ export function CreditoConsultaAccionesCredito({
           Cobro y mora
         </Text>
         <Space wrap>
-          <Link to={`/caja/diario?creditoId=${creditoId}`}>
-            <Button type="primary">Cobrar en caja</Button>
-          </Link>
-          <Button icon={<HistoryOutlined />} onClick={onMora}>
-            Crédito mora
-          </Button>
+          {puedeCobrar ? (
+            <Link to={`/caja/diario?creditoId=${creditoId}`}>
+              <Button type="primary">Cobrar en caja</Button>
+            </Link>
+          ) : null}
+          {puedeMora ? (
+            <Button icon={<HistoryOutlined />} onClick={onMora}>
+              Crédito mora
+            </Button>
+          ) : null}
         </Space>
       </div>
       <div className="credito-consulta-acciones__col credito-consulta-acciones__col--right">

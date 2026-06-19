@@ -16,6 +16,9 @@ function resolveCreditoOperacionFromLabel(denominacion: string | null | undefine
   if (label === 'creditos' || label.includes('consulta de credito')) {
     return '/credito/consulta'
   }
+  if (label.includes('prendario') || label.includes('predario')) {
+    return '/credito/prendario'
+  }
   if (label.includes('simulador') && !label.includes('parametro')) {
     return '/credito/simulador'
   }
@@ -60,10 +63,10 @@ export function resolveSpaPathFromMenuItem(
   denominacion: string | null | undefined,
   modulo: string | null | undefined,
 ): string | null {
-  if (url?.trim()) {
-    const fromUrl = resolveSpaPathFromLegacyUrl(url)
-    if (fromUrl) {
-      return fromUrl
+  if (url?.trim() && /credito\/creditos/i.test(url)) {
+    const fromCreditoUrl = resolveSpaPathFromLegacyUrl(url)
+    if (fromCreditoUrl) {
+      return fromCreditoUrl
     }
   }
 
@@ -73,6 +76,20 @@ export function resolveSpaPathFromMenuItem(
     .toUpperCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
+
+  if (mod.includes('CREDITO')) {
+    const directo = resolveCreditoOperacionFromLabel(denominacion)
+    if (directo) {
+      return directo
+    }
+  }
+
+  if (url?.trim()) {
+    const fromUrl = resolveSpaPathFromLegacyUrl(url)
+    if (fromUrl) {
+      return fromUrl
+    }
+  }
 
   if (label.includes('cobranza')) {
     return '/reportes/cobranza'
@@ -104,13 +121,6 @@ export function resolveSpaPathFromMenuItem(
   if (mod.includes('MAESTRO')) {
     if (label === 'oficina' || label.includes('oficinas')) {
       return '/mantenimiento/oficinas'
-    }
-  }
-
-  if (mod.includes('CREDITO')) {
-    const directo = resolveCreditoOperacionFromLabel(denominacion)
-    if (directo) {
-      return directo
     }
   }
 

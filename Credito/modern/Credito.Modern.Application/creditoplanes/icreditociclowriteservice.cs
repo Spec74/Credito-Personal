@@ -39,6 +39,7 @@ public interface ICreditoCicloWriteService
         string observacion,
         int usuarioId,
         bool indCentralRiesgo,
+        CrearCreditoPrendaRequest? prenda = null,
         CancellationToken cancellationToken = default);
 
     Task<CreditoCicloOperacionResponse> RechazarAsync(

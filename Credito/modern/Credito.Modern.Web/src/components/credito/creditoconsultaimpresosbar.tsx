@@ -33,24 +33,24 @@ type Props = {
 
 /**
  * Paridad botones `btncImpEstadoCuenta`, `btncImpPlanPago`, `btncImpMovimiento` en Creditos.cshtml.
- * Fase 5: PDF tabla (API) + enlace diseño RDLC legacy.
+ * PDF moderno con branding + enlace al diseño RDLC legacy cuando se requiera.
  */
 export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
   const planPdf = useMutation({
     mutationFn: () => downloadRptPlanPagosPdf(creditoId),
-    onSuccess: () => message.success('Plan de pagos (PDF tabla)'),
+    onSuccess: () => message.success('Plan de pagos PDF generado'),
     onError: (e) => message.error(errMsg(e)),
   })
 
   const estadoPdf = useMutation({
     mutationFn: () => downloadRptEstadoCreditoPdf(creditoId),
-    onSuccess: () => message.success('Estado de cuenta (PDF tabla)'),
+    onSuccess: () => message.success('Estado de cuenta PDF generado'),
     onError: (e) => message.error(errMsg(e)),
   })
 
   const movPdf = useMutation({
     mutationFn: () => downloadMovimientosCreditoPdf(creditoId),
-    onSuccess: () => message.success('Movimientos (PDF tabla)'),
+    onSuccess: () => message.success('Movimientos PDF generado'),
     onError: (e) => message.error(errMsg(e)),
   })
 
@@ -87,16 +87,16 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
         <PrinterOutlined aria-hidden />
         <Text strong>Impresos</Text>
         <Text type="secondary" className="credito-consulta-impresos__hint">
-          Datos vía API (QuestPDF) o diseño clásico ReportViewer (requiere sesión MVC).
+          PDF moderno con logo y colores corporativos, o diseño clásico ReportViewer.
         </Text>
       </div>
 
       <div className="credito-consulta-impresos__group">
         <Text type="secondary" className="credito-consulta-impresos__group-label">
-          Exportación moderna (mismos datos, PDF tabla)
+          Exportación moderna
         </Text>
         <Space wrap size={[8, 8]} className="credito-consulta-impresos__actions">
-          <Tooltip title="PDF tabular — equivalente en datos a Estado cuenta">
+          <Tooltip title="PDF moderno con logo, colores y datos del estado de cuenta">
             <Button
               icon={<FilePdfOutlined />}
               loading={estadoPdf.isPending}
@@ -107,7 +107,7 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
               Estado cuenta
             </Button>
           </Tooltip>
-          <Tooltip title="PDF tabular — plan de cuotas">
+          <Tooltip title="PDF moderno con logo, colores y plan de cuotas">
             <Button
               icon={<FilePdfOutlined />}
               loading={planPdf.isPending}
@@ -118,7 +118,7 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
               Plan de pagos
             </Button>
           </Tooltip>
-          <Tooltip title="PDF tabular — movimientos del crédito">
+          <Tooltip title="PDF moderno de movimientos del crédito">
             <Button
               icon={<FilePdfOutlined />}
               loading={movPdf.isPending}

@@ -44,6 +44,73 @@ public sealed class CreditoGestionReadService(IOptions<SqlDatabaseOptions> optio
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
+    public async Task<SolicitudCreditoDetalleDto?> ObtenerSolicitudCreditoAsync(
+        int solicitudCreditoId,
+        CancellationToken cancellationToken = default)
+    {
+        if (solicitudCreditoId < 1)
+        {
+            return null;
+        }
+
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        return await connection.QueryFirstOrDefaultAsync<SolicitudCreditoDetalleDto>(
+            new CommandDefinition(
+                """
+                SELECT c.CreditoId AS SolicitudCreditoId,
+                       c.PersonaId,
+                       CONCAT(p.NumeroDocumento, ' - ', p.NombreCompleto) AS Cliente,
+                       c.ProductoId,
+                       c.MontoCredito,
+                       c.FormaPago,
+                       c.NumeroCuotas,
+                       c.Interes,
+                       c.FechaPrimerPago,
+                       c.MontoGastosAdm,
+                       c.Observacion,
+                       c.CentralRiesgo
+                FROM CREDITO.Credito AS c
+                INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
+                WHERE c.CreditoId = @SolicitudCreditoId
+                  AND c.Estado = 'CRE';
+                """,
+                new { SolicitudCreditoId = solicitudCreditoId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
+
+    public async Task<CreditoPrendaDto?> ObtenerPrendaAsync(
+        int creditoId,
+        CancellationToken cancellationToken = default)
+    {
+        if (creditoId < 1)
+        {
+            return null;
+        }
+
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await CreditoPrendaSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        return await connection.QueryFirstOrDefaultAsync<CreditoPrendaDto>(
+            new CommandDefinition(
+                """
+                SELECT CreditoPrendaId,
+                       CreditoId,
+                       Descripcion,
+                       MontoTasacion,
+                       FechaRemate,
+                       Observacion,
+                       Estado
+                FROM CREDITO.CreditoPrenda
+                WHERE CreditoId = @CreditoId
+                  AND Estado = CAST(1 AS bit);
+                """,
+                new { CreditoId = creditoId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
+
     public async Task<IReadOnlyList<CargoCreditoRowDto>> ListarCargosAsync(
         int creditoId,
         CancellationToken cancellationToken = default)
@@ -127,7 +194,7 @@ public sealed class CreditoGestionReadService(IOptions<SqlDatabaseOptions> optio
         var offset = (page - 1) * pageSize;
 
         var estados = grupoActivo
-            ? new[] { "PEN", "APR", "DES" }
+            ? new[] { "PEN", "AP1", "APR", "DES" }
             : new[] { "ANU", "PAG", "REP" };
 
         EnsureConnection();

@@ -214,6 +214,8 @@ _pkginfo.txt
 ClientBin/
 ~$*
 *~
+modern/deploy/.env.local
+modern/deploy/.env.*.local
 *.dbmdl
 *.dbproj.schemaview
 *.jfm

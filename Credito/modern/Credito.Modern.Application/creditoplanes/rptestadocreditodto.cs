@@ -2,6 +2,7 @@ namespace Credito.Modern.Application.CreditoPlanes;
 
 public sealed record RptEstadoCreditoCabeceraDto(
     int CreditoId,
+    int PersonaId,
     string Producto,
     DateTime FechaPrimerPago,
     DateTime FechaVencimiento,

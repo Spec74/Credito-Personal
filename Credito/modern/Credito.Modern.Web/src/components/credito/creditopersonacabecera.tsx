@@ -4,13 +4,16 @@ import { Alert, Button, Input, Modal, Space, Statistic, Tag, Typography, message
 import {
   FileAddOutlined,
   FilePdfOutlined,
+  LockOutlined,
   PlayCircleOutlined,
   StopOutlined,
+  UnlockOutlined,
   UserDeleteOutlined,
   UserOutlined,
 } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
 import { crearSolicitudCredito } from '../../api/creditoPlanes'
+import { toggleClienteBloqueado } from '../../api/clientes'
 import { depurarPersonaCredito, fetchPersonaCreditoFicha } from '../../api/creditoGestion'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
@@ -18,6 +21,7 @@ import { cajaConfirm } from '../caja/CajaModal'
 import {
   puedeCrearSolicitudCreditoUi,
   puedeDepurarClienteCredito,
+  puedeEditarTopeCreditoUi,
 } from '../../utils/creditoOperacionPermisos'
 import {
   calificacionTagColor,
@@ -107,6 +111,7 @@ export function CreditoPersonaCabecera({
   const f = fichaQuery.data
   const depurado = Boolean(f?.depuradoDescripcion)
   const puedeDepurar = f ? puedeDepurarClienteCredito(roles, depurado) : false
+  const puedeBloquear = f ? puedeEditarTopeCreditoUi(roles) : false
   const puedeCrear = f
     ? puedeCrearSolicitudCreditoUi(roles, {
         bloqueado: f.bloqueado,
@@ -114,6 +119,17 @@ export function CreditoPersonaCabecera({
         puedeCrearSolicitud: f.puedeCrearSolicitud,
       })
     : false
+
+  const bloquearCliente = useMutation({
+    mutationFn: () => toggleClienteBloqueado(personaId),
+    onSuccess: (bloqueado) => {
+      message.success(bloqueado ? 'Cliente bloqueado' : 'Cliente desbloqueado')
+      void queryClient.invalidateQueries({
+        queryKey: ['persona-credito-ficha', oficinaId, personaId],
+      })
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
 
   if (fichaQuery.isLoading) {
     return (
@@ -215,6 +231,24 @@ export function CreditoPersonaCabecera({
               }}
             >
               Depurar cliente
+            </Button>
+          ) : null}
+          {puedeBloquear ? (
+            <Button
+              danger={!f.bloqueado}
+              icon={f.bloqueado ? <UnlockOutlined /> : <LockOutlined />}
+              loading={bloquearCliente.isPending}
+              onClick={() => {
+                cajaConfirm({
+                  title: f.bloqueado ? 'Desbloquear cliente' : 'Bloquear cliente',
+                  content: f.bloqueado
+                    ? '¿Desea desbloquear este cliente? Volverá a estar disponible para operaciones.'
+                    : '¿Desea bloquear este cliente? Se impedirá crear nuevas solicitudes de crédito.',
+                  onOk: () => bloquearCliente.mutateAsync(),
+                })
+              }}
+            >
+              {f.bloqueado ? 'Desbloquear cliente' : 'Bloquear cliente'}
             </Button>
           ) : null}
           <Link to={`/informes/reporte-cliente?personaId=${personaId}`}>

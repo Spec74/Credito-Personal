@@ -1,0 +1,1 @@
+import{y as e}from"./index-TprigC9J.js";import{t}from"./reporteCreditoAccess-FRHvkhtM.js";function n(){let{session:n}=e();return t(n?.roles??[])}export{n as t};

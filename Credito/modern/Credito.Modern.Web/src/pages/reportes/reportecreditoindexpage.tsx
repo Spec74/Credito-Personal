@@ -55,15 +55,7 @@ import {
 import { reportesCreditoIndexBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { buildInformeScreenQuery } from '../../utils/informeScreenParams'
 import { runOpenReport } from '../../utils/reportExport'
-
-const ESTADOS_CREDITO = [
-  { value: 'CRE', label: 'Solicitud crédito' },
-  { value: 'PEN', label: 'Pendiente' },
-  { value: 'DES', label: 'Desembolsado' },
-  { value: 'PAG', label: 'Pagado' },
-  { value: 'REP', label: 'Reprogramado' },
-  { value: 'ANU', label: 'Anulado' },
-]
+import { CREDITO_ESTADO_REPORTE_OPTIONS } from '../../utils/creditoEstados'
 
 const MESES = [
   { value: 1, label: 'Enero' },
@@ -648,7 +640,13 @@ export function ReporteCreditoIndexPage() {
             <GestorSelect allowAll value={rptGestor} onChange={setRptGestor} />
           </ReporteField>
           <ReporteField label="Estado">
-            <Select size="small" options={ESTADOS_CREDITO} value={rptEstado} onChange={setRptEstado} style={{ width: '100%' }} />
+            <Select
+              size="small"
+              options={CREDITO_ESTADO_REPORTE_OPTIONS}
+              value={rptEstado}
+              onChange={setRptEstado}
+              style={{ width: '100%' }}
+            />
           </ReporteField>
           <ReporteField label="Fechas">
             <DatePicker.RangePicker

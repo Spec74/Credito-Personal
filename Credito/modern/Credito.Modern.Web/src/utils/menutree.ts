@@ -4,9 +4,18 @@ import { formatMenuLabel } from './formatMenuLabel'
 import { readMenuIndPadre } from './normalizeMenu'
 
 type AntMenuItem = Required<MenuProps>['items'][number]
+const CREDITO_PRENDARIO_MENU_ID = -9002
 
 function sortItems(items: MenuItemDto[]): MenuItemDto[] {
   return [...items].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0))
+}
+
+function normalizeText(value: string | null | undefined): string {
+  return (value ?? '')
+    .trim()
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
 }
 
 function toMenuNode(item: MenuItemDto): AntMenuItem {
@@ -70,6 +79,59 @@ export function buildAntMenuItems(items: MenuItemDto[]): AntMenuItem[] {
   }
 
   return [dashboard, ...submenuParents]
+}
+
+export function ensureCreditoPrendarioMenuItem(items: MenuItemDto[]): MenuItemDto[] {
+  if (items.length === 0) {
+    return items
+  }
+
+  const exists = items.some((item) => {
+    const label = normalizeText(item.denominacion)
+    const url = normalizeText(item.url)
+    return (
+      label.includes('PRENDARIO') ||
+      label.includes('PREDARIO') ||
+      url.includes('CREDITO/PRENDARIO') ||
+      url.includes('CREDITOPRENDARIO') ||
+      url.includes('CREDITOPREDARIO')
+    )
+  })
+  if (exists) {
+    return items
+  }
+
+  const creditoParent = sortItems(items).find((item) => {
+    if (!isPadre(item)) {
+      return false
+    }
+    const label = normalizeText(item.denominacion)
+    const modulo = normalizeText(item.modulo)
+    return label === 'CREDITO' || modulo === 'CREDITO'
+  })
+  const parentOrden = ordenKey(creditoParent?.orden)
+  if (!creditoParent || parentOrden == null) {
+    return items
+  }
+
+  const childOrdenes = items
+    .filter((item) => !isPadre(item) && ordenKey(item.referencia) === parentOrden)
+    .map((item) => item.orden ?? 0)
+  const nextOrden = childOrdenes.length > 0 ? Math.max(...childOrdenes) + 1 : parentOrden + 1
+
+  return [
+    ...items,
+    {
+      menuId: CREDITO_PRENDARIO_MENU_ID,
+      denominacion: 'Prendario',
+      modulo: creditoParent.modulo || 'CREDITO',
+      url: '~/Credito/Prendario',
+      icono: 'gold',
+      indPadre: false,
+      orden: nextOrden,
+      referencia: parentOrden,
+    },
+  ]
 }
 
 /** Solo si el SP no marca padres (datos atípicos). */

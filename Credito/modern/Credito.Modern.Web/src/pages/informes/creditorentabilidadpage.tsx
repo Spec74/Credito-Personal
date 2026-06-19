@@ -18,17 +18,9 @@ import { useInformeStats } from '../../hooks/useInformeStats'
 import type { CreditoRentabilidadParams, RptCreditoRentabilidadRow } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { CREDITO_ESTADO_REPORTE_OPTIONS } from '../../utils/creditoEstados'
 
 const { RangePicker } = DatePicker
-
-const ESTADOS_CREDITO = [
-  { value: 'CRE', label: 'Solicitud crédito' },
-  { value: 'PEN', label: 'Pendiente' },
-  { value: 'DES', label: 'Desembolsado' },
-  { value: 'PAG', label: 'Pagado' },
-  { value: 'REP', label: 'Reprogramado' },
-  { value: 'ANU', label: 'Anulado' },
-]
 
 type FormValues = {
   oficinaId: number
@@ -161,7 +153,7 @@ export function CreditoRentabilidadPage() {
             <InputNumber />
           </Form.Item>
           <Form.Item name="estadoCredito" rules={[{ required: true }]}>
-            <Select options={ESTADOS_CREDITO} style={{ width: 200 }} />
+            <Select options={CREDITO_ESTADO_REPORTE_OPTIONS} style={{ width: 200 }} />
           </Form.Item>
           <Form.Item name="rango" rules={[{ required: true }]}>
             <RangePicker format="DD/MM/YYYY" />

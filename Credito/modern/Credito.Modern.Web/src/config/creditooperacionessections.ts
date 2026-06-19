@@ -7,8 +7,13 @@ export const CREDITO_OPERACIONES_SECTIONS: CredixHubSection[] = [
     links: [
       {
         to: '/credito/consulta',
-        label: 'Consulta de crédito',
+        label: 'Créditos',
         description: 'Buscar cliente, elegir crédito, plan y gestión (paridad Creditos MVC)',
+      },
+      {
+        to: '/credito/prendario',
+        label: 'Crédito prendario',
+        description: 'Registrar cliente y prenda antes de simular el crédito',
       },
       {
         to: '/credito/aprobar',

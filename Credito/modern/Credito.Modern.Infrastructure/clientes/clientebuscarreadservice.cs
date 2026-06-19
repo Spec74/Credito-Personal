@@ -38,7 +38,7 @@ public sealed class ClienteBuscarReadService(IOptions<SqlDatabaseOptions> option
             var rows = await connection.QueryAsync<Row>(
                 new CommandDefinition(
                     """
-                    SELECT TOP (10)
+                    SELECT TOP (20)
                         p.PersonaId,
                         p.NumeroDocumento,
                         p.NombreCompleto,
@@ -65,7 +65,7 @@ public sealed class ClienteBuscarReadService(IOptions<SqlDatabaseOptions> option
 
         return porId.Values
             .OrderBy(r => r.NombreCompleto)
-            .Take(10)
+            .Take(20)
             .Select(r =>
             {
                 var codigo = string.IsNullOrWhiteSpace(r.Codigo) ? string.Empty : $" [{r.Codigo}]";

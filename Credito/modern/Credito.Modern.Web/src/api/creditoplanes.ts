@@ -880,6 +880,13 @@ export interface RptSimuladorPlanPagosParams {
   /** CAP | CUO | ADE (legacy pGA). ADE se trata como CAP en API. */
   ga?: string
   cliente?: string
+  tipoDocumento?: string
+  nroDocumento?: string
+  direccionCliente?: string
+  direccionNegocio?: string
+  prendaDescripcion?: string
+  asesor?: string
+  telefonoCliente?: string
 }
 
 function querySimuladorPlanPagos(p: RptSimuladorPlanPagosParams): string {
@@ -891,11 +898,23 @@ function querySimuladorPlanPagos(p: RptSimuladorPlanPagosParams): string {
     fechaPrimerPago: p.fechaPrimerPago.slice(0, 10),
     formaPago: p.formaPago,
     gastosAdm: String(p.gastosAdm ?? 0),
-    ga: p.ga ?? 'CUO',
+    ga: p.ga ?? 'ADE',
   })
-  if (p.cliente?.trim()) {
-    q.set('cliente', p.cliente.trim())
-  }
+  const optionalParams: Array<[string, string | undefined]> = [
+    ['cliente', p.cliente],
+    ['tipoDocumento', p.tipoDocumento],
+    ['nroDocumento', p.nroDocumento],
+    ['direccionCliente', p.direccionCliente],
+    ['direccionNegocio', p.direccionNegocio],
+    ['prendaDescripcion', p.prendaDescripcion],
+    ['asesor', p.asesor],
+    ['telefonoCliente', p.telefonoCliente],
+  ]
+  optionalParams.forEach(([key, value]) => {
+    if (value?.trim()) {
+      q.set(key, value.trim())
+    }
+  })
   return q.toString()
 }
 
@@ -1233,6 +1252,12 @@ export function crearCredito(body: {
   fechaPrimerPago: string
   observacion?: string | null
   indCentralRiesgo: boolean
+  prenda?: {
+    descripcion: string
+    montoTasacion: number
+    fechaRemate: string
+    observacion?: string | null
+  } | null
 }): Promise<CrearCreditoResponse> {
   return apiFetch<CrearCreditoResponse>('/credito/crear-credito', {
     method: 'POST',

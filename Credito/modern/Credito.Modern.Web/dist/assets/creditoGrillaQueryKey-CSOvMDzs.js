@@ -1,0 +1,1 @@
+function e(e,t,n,r,i){return[`creditos-grilla-persona`,e,t,n,r,i]}export{e as t};

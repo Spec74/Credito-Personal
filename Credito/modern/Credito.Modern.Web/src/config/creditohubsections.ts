@@ -11,6 +11,11 @@ export const CREDITO_HUB_QUICK_ACCESS: CredixHubLink[] = [
     description: 'Igual que el acceso rápido del menú lateral',
   },
   {
+    to: '/credito/prendario',
+    label: 'Crédito prendario',
+    description: 'Registro directo de cliente y prenda',
+  },
+  {
     to: '/informes/creditos-observados',
     label: 'Créditos observados',
     description: 'Acceso rápido Observados',
@@ -33,8 +38,13 @@ export const CREDITO_HUB_SECTIONS: CredixHubSection[] = [
     links: [
       {
         to: '/credito/consulta',
-        label: 'Consulta de crédito',
-        description: 'Estado, cuotas, movimientos y gestión',
+        label: 'Créditos',
+        description: 'Buscar cliente, elegir crédito, plan y gestión',
+      },
+      {
+        to: '/credito/prendario',
+        label: 'Crédito prendario',
+        description: 'Registro directo de cliente, prenda y solicitud',
       },
       {
         to: '/credito/aprobar',

@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { Descriptions, Spin, Typography } from 'antd'
+import { Descriptions, Spin, Tag, Typography } from 'antd'
 import { fetchRptEstadoCredito } from '../../api/creditoPlanes'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
+import { getCreditoEstadoMeta } from '../../utils/creditoEstados'
 
 const { Text } = Typography
 
@@ -23,6 +24,7 @@ export function CreditoConsultaResumenCredito({ creditoId }: Props) {
   })
 
   const c = query.data?.cabecera
+  const estadoMeta = getCreditoEstadoMeta(c?.estado)
 
   return (
     <section className="credito-consulta-resumen" aria-label="Resumen del crédito">
@@ -38,7 +40,13 @@ export function CreditoConsultaResumenCredito({ creditoId }: Props) {
             column={{ xs: 1, sm: 2, md: 3, lg: 4 }}
           >
             <Descriptions.Item label="Producto">{c.producto}</Descriptions.Item>
-            <Descriptions.Item label="Estado">{c.estado}</Descriptions.Item>
+            <Descriptions.Item label="Estado">
+              {estadoMeta ? (
+                <Tag color={estadoMeta.color}>{`${estadoMeta.codigo} - ${estadoMeta.label}`}</Tag>
+              ) : (
+                c.estado
+              )}
+            </Descriptions.Item>
             <Descriptions.Item label="Modalidad">{c.modalidad}</Descriptions.Item>
             <Descriptions.Item label="Analista">{c.analista || '—'}</Descriptions.Item>
             <Descriptions.Item label="Monto crédito">

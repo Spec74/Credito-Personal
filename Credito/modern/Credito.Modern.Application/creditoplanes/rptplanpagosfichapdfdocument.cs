@@ -22,12 +22,13 @@ public static class RptPlanPagosFichaPdfDocument
                 page.Size(PageSizes.A4);
                 page.Margin(24);
                 page.DefaultTextStyle(x => x.FontSize(9));
+                page.Footer().Element(CreditoPdfBranding.ComposeFooter);
                 page.Content().Column(col =>
                 {
                     CreditoPdfBranding.ComposeTitleBlock(
                         col,
                         $"PLAN DE PAGOS — CRÉDITO {creditoId}",
-                        "CREDIX — exportación moderna (datos = legacy)");
+                        "Crediconfiable — exportación moderna (datos = legacy)");
                     col.Item().PaddingTop(8).Table(table =>
                     {
                         table.ColumnsDefinition(c =>

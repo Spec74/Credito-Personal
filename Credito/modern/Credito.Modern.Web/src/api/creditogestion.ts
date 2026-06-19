@@ -38,6 +38,21 @@ export interface CreditoContexto {
   personaAvalNombre: string | null
 }
 
+export interface SolicitudCreditoDetalle {
+  solicitudCreditoId: number
+  personaId: number
+  cliente: string
+  productoId: number | null
+  montoCredito: number
+  formaPago: string | null
+  numeroCuotas: number
+  interes: number
+  fechaPrimerPago: string | null
+  montoGastosAdm: number
+  observacion: string | null
+  centralRiesgo: number
+}
+
 export interface CargoCreditoRow {
   cargoId: number
   tipoCargo: string
@@ -53,6 +68,16 @@ export interface CreditoEvidencia {
   creditoId: number
   imagen: string
   url: string | null
+}
+
+export interface CreditoPrenda {
+  creditoPrendaId: number
+  creditoId: number
+  descripcion: string
+  montoTasacion: number
+  fechaRemate: string
+  observacion: string | null
+  estado: boolean
 }
 
 export interface CreditoGrillaPersonaRow {
@@ -94,6 +119,17 @@ export function fetchCreditoContexto(creditoId: number): Promise<CreditoContexto
   return apiFetch<CreditoContexto>(`/credito/credito-contexto?creditoId=${creditoId}`)
 }
 
+export function fetchSolicitudCredito(
+  oficinaId: number,
+  solicitudCreditoId: number,
+): Promise<SolicitudCreditoDetalle> {
+  const q = new URLSearchParams({
+    oficinaId: String(oficinaId),
+    solicitudCreditoId: String(solicitudCreditoId),
+  })
+  return apiFetch<SolicitudCreditoDetalle>(`/credito/solicitud-credito?${q}`)
+}
+
 export function fetchCargosCredito(
   oficinaId: number,
   creditoId: number,
@@ -109,6 +145,15 @@ export function fetchEvidenciasCredito(
 ): Promise<CreditoEvidencia[]> {
   return apiFetch<CreditoEvidencia[]>(
     `/credito/evidencias-credito?oficinaId=${oficinaId}&creditoId=${creditoId}`,
+  )
+}
+
+export function fetchCreditoPrenda(
+  oficinaId: number,
+  creditoId: number,
+): Promise<CreditoPrenda | null> {
+  return apiFetch<CreditoPrenda | null>(
+    `/credito/credito-prenda?oficinaId=${oficinaId}&creditoId=${creditoId}`,
   )
 }
 
@@ -271,6 +316,20 @@ export function actualizarAvalCredito(body: {
 }) {
   return postJson<{ success: boolean; mensaje: string | null }>(
     '/credito/actualizar-aval-credito',
+    body,
+  )
+}
+
+export function guardarPrendaCredito(body: {
+  oficinaId: number
+  creditoId: number
+  descripcion: string
+  montoTasacion: number
+  fechaRemate: string
+  observacion?: string | null
+}) {
+  return postJson<{ success: boolean; mensaje: string | null }>(
+    '/credito/guardar-prenda-credito',
     body,
   )
 }

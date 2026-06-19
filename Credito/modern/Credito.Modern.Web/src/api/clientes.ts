@@ -115,7 +115,7 @@ export interface ListarClientesParams {
   sortDir?: 'asc' | 'desc'
 }
 
-/** Paridad ClienteBL.BuscarCliente: mínimo 2 caracteres, máximo 10 filas. */
+/** Paridad ClienteBL.BuscarCliente modernizada: mínimo 2 caracteres, ranking rápido y hasta 20 filas. */
 export function buscarClientes(term: string): Promise<ClienteBuscarItem[]> {
   return apiFetch<ClienteBuscarItem[]>(
     `/clientes/buscar?term=${encodeURIComponent(term)}`,

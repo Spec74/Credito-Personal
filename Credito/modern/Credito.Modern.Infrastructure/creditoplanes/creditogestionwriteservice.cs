@@ -308,7 +308,7 @@ public sealed class CreditoGestionWriteService(
         var rows = await connection.ExecuteAsync(
             new CommandDefinition(
                 """
-                UPDATE MAESTRO.Persona
+                UPDATE MAESTRO.Cliente
                 SET TopeCredito = @TopeCredito
                 WHERE PersonaId = @PersonaId;
                 """,
@@ -316,7 +316,7 @@ public sealed class CreditoGestionWriteService(
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
         return rows > 0
             ? new CreditoGestionOperacionResponse(true, null)
-            : new CreditoGestionOperacionResponse(false, "Persona no encontrada.");
+            : new CreditoGestionOperacionResponse(false, "Cliente no encontrado.");
     }
 
     public async Task<CreditoGestionOperacionResponse> DepurarPersonaAsync(
@@ -460,6 +460,71 @@ public sealed class CreditoGestionWriteService(
         return rows > 0
             ? new CreditoGestionOperacionResponse(true, null)
             : new CreditoGestionOperacionResponse(false, "Crédito no encontrado.");
+    }
+
+    public async Task<CreditoGestionOperacionResponse> GuardarPrendaAsync(
+        GuardarCreditoPrendaRequest request,
+        int usuarioId,
+        DateTime fechaServidor,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.Descripcion))
+        {
+            return new CreditoGestionOperacionResponse(false, "La descripción de la prenda es obligatoria.");
+        }
+
+        if (request.MontoTasacion <= 0)
+        {
+            return new CreditoGestionOperacionResponse(false, "El monto de tasación debe ser mayor a cero.");
+        }
+
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await CreditoPrendaSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+
+        var rows = await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                IF EXISTS (SELECT 1 FROM CREDITO.CreditoPrenda WHERE CreditoId = @CreditoId)
+                BEGIN
+                    UPDATE CREDITO.CreditoPrenda
+                    SET Descripcion = @Descripcion,
+                        MontoTasacion = @MontoTasacion,
+                        FechaRemate = @FechaRemate,
+                        Observacion = @Observacion,
+                        Estado = CAST(1 AS bit),
+                        UsuarioModId = @UsuarioId,
+                        FechaMod = @FechaServidor
+                    WHERE CreditoId = @CreditoId;
+                END
+                ELSE
+                BEGIN
+                    INSERT INTO CREDITO.CreditoPrenda (
+                        CreditoId, Descripcion, MontoTasacion, FechaRemate, Observacion,
+                        Estado, UsuarioRegId, FechaReg)
+                    VALUES (
+                        @CreditoId, @Descripcion, @MontoTasacion, @FechaRemate, @Observacion,
+                        CAST(1 AS bit), @UsuarioId, @FechaServidor);
+                END;
+                """,
+                new
+                {
+                    request.CreditoId,
+                    Descripcion = request.Descripcion.Trim().ToUpperInvariant(),
+                    request.MontoTasacion,
+                    FechaRemate = request.FechaRemate.Date,
+                    Observacion = string.IsNullOrWhiteSpace(request.Observacion)
+                        ? null
+                        : request.Observacion.Trim().ToUpperInvariant(),
+                    UsuarioId = usuarioId,
+                    FechaServidor = fechaServidor,
+                },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        return rows > 0
+            ? new CreditoGestionOperacionResponse(true, null)
+            : new CreditoGestionOperacionResponse(false, "No se pudo guardar la prenda.");
     }
 
     public static string ResolveStorageRoot(CreditoStorageOptions options)

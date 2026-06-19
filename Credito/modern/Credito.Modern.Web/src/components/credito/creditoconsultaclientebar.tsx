@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Button, Tag, Typography } from 'antd'
+import { Button, Empty, Input, Spin, Tag, Typography, message } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { UserOutlined } from '@ant-design/icons'
+import { SearchOutlined, UserOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import {
   fetchCreditosGrillaPersona,
   type CreditoGrillaPersonaRow,
 } from '../../api/creditoGestion'
-import { CreditoBuscarCliente } from './CreditoBuscarCliente'
+import { buscarClientes } from '../../api/clientes'
 import { CreditoPersonaCabecera } from './CreditoPersonaCabecera'
 import { CreditoPersonaAvalesPanel } from './CreditoPersonaAvalesPanel'
 import { CredixDataTable } from '../credix'
@@ -16,8 +16,22 @@ import { formatMoney } from '../../utils/formatMoney'
 import { formatFecha } from '../../utils/formatFecha'
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
 import { creditosGrillaPersonaQueryKey } from '../../utils/creditoGrillaQueryKey'
+import { getCreditoEstadoMeta } from '../../utils/creditoEstados'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import type { ClienteBuscarItem } from '../../types/api'
 
 const { Text } = Typography
+
+function parseClienteLabel(label: string) {
+  const code = label.match(/\[([^\]]*)\]/)?.[1]?.trim() || null
+  const clean = label.replace(/\s*\[[^\]]*\]\s*$/, '').trim()
+  const [documento = '', ...rest] = clean.split(/\s+/)
+  return {
+    documento,
+    nombre: rest.join(' '),
+    code,
+  }
+}
 
 type Props = {
   oficinaId: number
@@ -36,6 +50,8 @@ export function CreditoConsultaClienteBar({
   const [personaId, setPersonaId] = useState<number | null>(personaIdInicial ?? null)
   const [grupoActivo, setGrupoActivo] = useState(true)
   const autoCargadoPersonaRef = useRef<number | null>(null)
+  const terminoBusqueda = clienteLabel.trim()
+  const terminoDebounced = useDebouncedValue(terminoBusqueda, 220)
 
   useEffect(() => {
     if (personaIdInicial != null && personaIdInicial > 0) {
@@ -58,10 +74,27 @@ export function CreditoConsultaClienteBar({
     staleTime: creditoStaleTime.listado,
   })
 
-  const cargarPersona = (pid: number, label: string) => {
+  const clientesQuery = useQuery({
+    queryKey: ['credito-clientes-buscar', terminoDebounced],
+    queryFn: () => buscarClientes(terminoDebounced),
+    enabled: terminoDebounced.length >= 2,
+    staleTime: 30_000,
+  })
+
+  const clientesEncontrados = clientesQuery.data ?? []
+
+  const cargarPersona = useCallback((pid: number, label: string) => {
     autoCargadoPersonaRef.current = null
     setPersonaId(pid)
     setClienteLabel(label)
+  }, [])
+
+  const buscarAhora = () => {
+    if (terminoBusqueda.length < 2) {
+      message.warning('Ingrese al menos 2 caracteres: DNI, nombre, código o celular')
+      return
+    }
+    void clientesQuery.refetch()
   }
 
   useEffect(() => {
@@ -94,6 +127,13 @@ export function CreditoConsultaClienteBar({
     [personaId, clienteLabel, onSeleccionarCredito],
   )
 
+  const seleccionarCliente = useCallback(
+    (item: ClienteBuscarItem) => {
+      cargarPersona(item.personaId, item.label)
+    },
+    [cargarPersona],
+  )
+
   const columns: ColumnsType<CreditoGrillaPersonaRow> = [
     {
       title: 'Crédito',
@@ -105,7 +145,18 @@ export function CreditoConsultaClienteBar({
         </strong>
       ),
     },
-    { title: 'Estado', dataIndex: 'estado' },
+    {
+      title: 'Estado',
+      dataIndex: 'estado',
+      render: (estado: string | null) => {
+        const meta = getCreditoEstadoMeta(estado)
+        return meta ? (
+          <Tag color={meta.color}>{`${meta.codigo} - ${meta.label}`}</Tag>
+        ) : (
+          estado || '—'
+        )
+      },
+    },
     {
       title: 'Monto',
       dataIndex: 'montoCredito',
@@ -142,14 +193,100 @@ export function CreditoConsultaClienteBar({
         <span className="credito-consulta-cliente__label" id="credito-consulta-cliente-label">
           <UserOutlined aria-hidden /> Buscar cliente
         </span>
-        <CreditoBuscarCliente
-          value={clienteLabel}
-          onChange={setClienteLabel}
-          onSelectPersona={(pid, label) => {
-            cargarPersona(pid, label)
-          }}
-          ariaLabelledBy="credito-consulta-cliente-label"
-        />
+        <div className="credito-cliente-search">
+          <div className="credito-cliente-search__bar">
+            <Input
+              size="large"
+              allowClear
+              value={clienteLabel}
+              prefix={<SearchOutlined />}
+              placeholder="Buscar por DNI, nombre, apellidos, código o celular"
+              aria-labelledby="credito-consulta-cliente-label"
+              onChange={(e) => {
+                setClienteLabel(e.target.value)
+                setPersonaId(null)
+                autoCargadoPersonaRef.current = null
+              }}
+              onPressEnter={() => {
+                const unico = clientesEncontrados[0]
+                if (clientesEncontrados.length === 1 && unico) {
+                  seleccionarCliente(unico)
+                } else {
+                  buscarAhora()
+                }
+              }}
+            />
+            <Button
+              type="primary"
+              size="large"
+              icon={<SearchOutlined />}
+              loading={clientesQuery.isFetching}
+              onClick={buscarAhora}
+            >
+              Buscar cliente
+            </Button>
+          </div>
+
+          <div className="credito-cliente-search__meta">
+            {terminoBusqueda.length < 2 ? (
+              <Text type="secondary">Escriba mínimo 2 caracteres para iniciar la búsqueda.</Text>
+            ) : clientesQuery.isFetching ? (
+              <Text type="secondary">Buscando coincidencias...</Text>
+            ) : clientesEncontrados.length > 0 ? (
+              <Text type="secondary">
+                {clientesEncontrados.length} resultado(s). Seleccione un cliente para cargar su ficha y créditos.
+              </Text>
+            ) : clientesQuery.isSuccess ? (
+              <Text type="secondary">Sin resultados. Pruebe con DNI, primer apellido, código o celular.</Text>
+            ) : (
+              <Text type="secondary">Busca en clientes activos por documento, nombre, código y celular.</Text>
+            )}
+          </div>
+
+          {terminoBusqueda.length >= 2 ? (
+            <Spin spinning={clientesQuery.isFetching}>
+              {clientesEncontrados.length > 0 ? (
+                <div className="credito-cliente-search__results" role="listbox">
+                  {clientesEncontrados.map((item) => {
+                    const parsed = parseClienteLabel(item.label)
+                    const selected = personaId === item.personaId
+                    return (
+                      <button
+                        key={item.personaId}
+                        type="button"
+                        className={
+                          selected
+                            ? 'credito-cliente-search__result credito-cliente-search__result--selected'
+                            : 'credito-cliente-search__result'
+                        }
+                        onClick={() => seleccionarCliente(item)}
+                      >
+                        <span className="credito-cliente-search__avatar" aria-hidden>
+                          <UserOutlined />
+                        </span>
+                        <span className="credito-cliente-search__body">
+                          <strong>{parsed.nombre || item.label}</strong>
+                          <span>
+                            DNI: {parsed.documento || '—'}
+                            {parsed.code ? ` · Código: ${parsed.code}` : ''}
+                          </span>
+                        </span>
+                        <span className="credito-cliente-search__action">
+                          {selected ? 'Seleccionado' : 'Seleccionar'}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              ) : clientesQuery.isSuccess ? (
+                <Empty
+                  image={Empty.PRESENTED_IMAGE_SIMPLE}
+                  description="No encontramos clientes con ese criterio"
+                />
+              ) : null}
+            </Spin>
+          ) : null}
+        </div>
       </div>
 
       {personaId != null && personaId > 0 ? (

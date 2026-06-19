@@ -11,6 +11,14 @@ public interface ICreditoGestionReadService
         int creditoId,
         CancellationToken cancellationToken = default);
 
+    Task<SolicitudCreditoDetalleDto?> ObtenerSolicitudCreditoAsync(
+        int solicitudCreditoId,
+        CancellationToken cancellationToken = default);
+
+    Task<CreditoPrendaDto?> ObtenerPrendaAsync(
+        int creditoId,
+        CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<CargoCreditoRowDto>> ListarCargosAsync(
         int creditoId,
         CancellationToken cancellationToken = default);

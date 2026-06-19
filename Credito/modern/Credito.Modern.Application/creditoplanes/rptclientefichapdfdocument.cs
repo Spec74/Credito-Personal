@@ -22,11 +22,15 @@ public static class RptClienteFichaPdfDocument
                 page.Size(PageSizes.A4);
                 page.Margin(28);
                 page.DefaultTextStyle(x => x.FontSize(9));
+                page.Footer().Element(CreditoPdfBranding.ComposeFooter);
 
                 page.Content().Column(col =>
                 {
                     col.Spacing(8);
-                    col.Item().AlignCenter().Text("FICHA DE CLIENTE").Bold().FontSize(14);
+                    CreditoPdfBranding.ComposeTitleBlock(
+                        col,
+                        "FICHA DE CLIENTE",
+                        $"{f.NumeroDocumento} · {f.Cliente}");
                     col.Item().Text($"Persona ID: {f.PersonaId}  ·  Créditos desembolsados: {f.CreditosDesembolsados}");
 
                     col.Item().Row(row =>
@@ -90,21 +94,21 @@ public static class RptClienteFichaPdfDocument
                             });
                             table.Header(header =>
                             {
-                                header.Cell().Element(CellHeader).Text("Grupo");
-                                header.Cell().Element(CellHeader).Text("Crédito");
-                                header.Cell().Element(CellHeader).Text("Persona");
-                                header.Cell().Element(CellHeader).AlignRight().Text("Monto");
-                                header.Cell().Element(CellHeader).Text("Estado");
-                                header.Cell().Element(CellHeader).Text("DNI");
+                                header.Cell().Element(CreditoPdfBranding.TableHeaderCell).Text("Grupo");
+                                header.Cell().Element(CreditoPdfBranding.TableHeaderCell).Text("Crédito");
+                                header.Cell().Element(CreditoPdfBranding.TableHeaderCell).Text("Persona");
+                                header.Cell().Element(CreditoPdfBranding.TableHeaderCell).AlignRight().Text("Monto");
+                                header.Cell().Element(CreditoPdfBranding.TableHeaderCell).Text("Estado");
+                                header.Cell().Element(CreditoPdfBranding.TableHeaderCell).Text("DNI");
                             });
                             foreach (var a in informe.Avales)
                             {
-                                table.Cell().Element(CellBody).Text(a.Grupo);
-                                table.Cell().Element(CellBody).Text(a.CreditoId.ToString());
-                                table.Cell().Element(CellBody).Text(a.Persona ?? "—");
-                                table.Cell().Element(CellBody).AlignRight().Text(a.MontoCredito.ToString("N2"));
-                                table.Cell().Element(CellBody).Text(a.Estado);
-                                table.Cell().Element(CellBody).Text(a.Dni ?? "—");
+                                table.Cell().Element(CreditoPdfBranding.TableBodyCell).Text(a.Grupo);
+                                table.Cell().Element(CreditoPdfBranding.TableBodyCell).Text(a.CreditoId.ToString());
+                                table.Cell().Element(CreditoPdfBranding.TableBodyCell).Text(a.Persona ?? "—");
+                                table.Cell().Element(CreditoPdfBranding.TableBodyCell).AlignRight().Text(a.MontoCredito.ToString("N2"));
+                                table.Cell().Element(CreditoPdfBranding.TableBodyCell).Text(a.Estado);
+                                table.Cell().Element(CreditoPdfBranding.TableBodyCell).Text(a.Dni ?? "—");
                             }
                         });
                     }

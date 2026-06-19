@@ -23,6 +23,7 @@ public static class RptEstadoCreditoFichaPdfDocument
                 page.Size(PageSizes.A4.Landscape());
                 page.Margin(20);
                 page.DefaultTextStyle(x => x.FontSize(8));
+                page.Footer().Element(CreditoPdfBranding.ComposeFooter);
 
                 page.Content().Column(col =>
                 {
@@ -30,7 +31,7 @@ public static class RptEstadoCreditoFichaPdfDocument
                     CreditoPdfBranding.ComposeTitleBlock(
                         col,
                         $"ESTADO DE CRÉDITO {cab.CreditoId}",
-                        $"{cab.Cliente} · CREDIX");
+                        $"{cab.Cliente} · Crediconfiable");
                     col.Item().Text(
                         $"{cab.Cliente} · {cab.Producto} · {cab.Estado} · Monto {cab.MontoCredito:N2} · Cuotas {cab.NumeroCuotas}");
                     col.Item().Text(

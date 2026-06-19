@@ -10,4 +10,5 @@ public sealed class SimuladorCreditoCuotaDto
     public decimal? Interes { get; set; }
     public decimal? GastosAdm { get; set; }
     public decimal? Cuota { get; set; }
+    public decimal? Saldo { get; set; }
 }

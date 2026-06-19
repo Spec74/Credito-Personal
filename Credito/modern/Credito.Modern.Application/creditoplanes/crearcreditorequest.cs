@@ -4,6 +4,12 @@ namespace Credito.Modern.Application.CreditoPlanes;
 /// Cuerpo de <c>POST /api/v1/credito/crear-credito</c> (paridad <c>GenerarCredito</c>).
 /// <c>solicitudCreditoId</c> sustituye la sesión MVC <c>SolicitudCreditoId</c>.
 /// </summary>
+public sealed record CrearCreditoPrendaRequest(
+    string Descripcion,
+    decimal MontoTasacion,
+    DateTime FechaRemate,
+    string? Observacion);
+
 public sealed record CrearCreditoRequest(
     int OficinaId,
     int SolicitudCreditoId,
@@ -18,4 +24,5 @@ public sealed record CrearCreditoRequest(
     decimal InteresMensual,
     DateTime FechaPrimerPago,
     string? Observacion,
-    bool IndCentralRiesgo);
+    bool IndCentralRiesgo,
+    CrearCreditoPrendaRequest? Prenda = null);

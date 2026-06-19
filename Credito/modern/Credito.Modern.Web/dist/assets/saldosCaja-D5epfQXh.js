@@ -1,1 +1,0 @@
-import{O as e}from"./index-DMT5Y7yy.js";function t(t){return e(`/credito/saldos-caja-diario?oficinaId=${t}`)}function n(){return e(`/credito/saldos-caja-chica-diario`)}function r(t,n){return e(`/credito/saldos-caja-diario-boveda?oficinaId=${t}&bovedaId=${n}`)}export{t as n,r,n as t};

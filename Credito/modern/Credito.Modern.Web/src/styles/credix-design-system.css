@@ -29,10 +29,12 @@ body.credix-app-body {
 
 /* —— App shell —— */
 .credix-app {
+  height: 100vh;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   background: var(--credix-bg);
+  overflow: hidden;
 }
 
 .credix-header {
@@ -63,13 +65,18 @@ body.credix-app-body {
 }
 
 .credix-header-brand {
+  display: inline-flex;
+  align-items: center;
   font-weight: 700;
-  font-size: 13px;
-  letter-spacing: 0.04em;
+  font-size: 14px;
+  letter-spacing: 0.045em;
   white-space: nowrap;
 }
 
 .credix-header-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 13px;
   opacity: 0.95;
   overflow: hidden;
@@ -91,18 +98,22 @@ body.credix-app-body {
 .credix-layout {
   flex: 1;
   display: flex;
-  min-height: 0;
+  height: calc(100vh - var(--credix-header-h));
+  min-height: calc(100vh - var(--credix-header-h));
+  overflow: hidden;
   width: 100%;
 }
 
 .credix-sidebar {
   flex: 0 0 var(--credix-sidebar-w);
   width: var(--credix-sidebar-w);
+  height: 100%;
   display: flex;
   flex-direction: column;
   background: var(--credix-surface);
   border-right: 1px solid var(--credix-border);
   overflow: hidden;
+  box-shadow: 6px 0 18px rgba(15, 23, 42, 0.04);
 }
 
 .credix-sidebar--collapsed {
@@ -113,8 +124,10 @@ body.credix-app-body {
 .credix-main {
   flex: 1;
   min-width: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .credix-content {
@@ -122,7 +135,8 @@ body.credix-app-body {
   width: 100%;
   min-width: 0;
   padding: clamp(12px, 2vw, 20px);
-  overflow-x: auto;
+  overflow: auto;
+  scroll-behavior: smooth;
 }
 
 .credix-footer {
@@ -138,25 +152,52 @@ body.credix-app-body {
 .app-shell-sider-inner {
   display: flex;
   flex-direction: column;
+  width: 100%;
   height: 100%;
   min-height: 0;
+  background: var(--credix-surface);
 }
 
 .app-shell-sider-brand {
-  padding: 14px 12px;
+  min-height: 88px;
+  display: grid;
+  place-items: center;
+  padding: 12px;
   border-bottom: 1px solid var(--credix-border);
+  background:
+    radial-gradient(circle at top left, rgba(46, 105, 174, 0.12), transparent 36%),
+    #fff;
   flex-shrink: 0;
 }
 
 .app-shell-sider-menu {
-  flex: 1;
+  flex: 1 1 auto;
   overflow: auto;
-  padding: 8px 0;
+  min-height: 0;
+  padding: 10px 0;
+  background: var(--credix-surface);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(17, 72, 133, 0.35) transparent;
+}
+
+.app-shell-sider-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.app-shell-sider-menu::-webkit-scrollbar-thumb {
+  background: rgba(17, 72, 133, 0.28);
+  border-radius: 999px;
+}
+
+.app-shell-sider-menu::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .app-shell-sider-quick {
+  margin-top: auto;
   padding: 10px 12px 14px;
   border-top: 1px solid var(--credix-border);
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
   flex-shrink: 0;
 }
 
@@ -190,22 +231,54 @@ body.credix-app-body {
 
 .credix-menu.ant-menu-light .ant-menu-item,
 .credix-menu.ant-menu-light .ant-menu-submenu-title {
-  margin: 2px 8px !important;
+  margin: 3px 10px !important;
   width: calc(100% - 16px) !important;
-  border-radius: 6px !important;
-  height: 40px !important;
-  line-height: 40px !important;
+  border-radius: 12px !important;
+  height: 38px !important;
+  line-height: 38px !important;
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.credix-menu.ant-menu-light .ant-menu-item:hover,
+.credix-menu.ant-menu-light .ant-menu-submenu-title:hover {
+  background: rgba(17, 72, 133, 0.08) !important;
+  color: var(--credix-brand) !important;
+  transform: translateX(2px);
 }
 
 .credix-menu.ant-menu-light .ant-menu-item-selected {
-  background: var(--credix-brand-light) !important;
+  background: linear-gradient(90deg, var(--credix-brand-light), #f7fbff) !important;
   color: var(--credix-brand) !important;
   font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--credix-brand), 0 6px 16px rgba(17, 72, 133, 0.08);
 }
 
 .credix-menu.ant-menu-light .ant-menu-submenu-selected > .ant-menu-submenu-title {
   color: var(--credix-brand) !important;
   font-weight: 600;
+}
+
+.credix-menu.ant-menu-light .ant-menu-submenu-open > .ant-menu-submenu-title {
+  background: rgba(17, 72, 133, 0.06) !important;
+  color: var(--credix-brand) !important;
+}
+
+.credix-menu.ant-menu-light .ant-menu-sub {
+  margin: 0 8px 4px !important;
+  padding: 4px 0 !important;
+  border-left: 1px solid rgba(17, 72, 133, 0.12);
+  background: linear-gradient(180deg, rgba(232, 242, 252, 0.55), rgba(255, 255, 255, 0)) !important;
+  border-radius: 12px;
+}
+
+.credix-menu.ant-menu-light .ant-menu-sub .ant-menu-item {
+  margin-left: 8px !important;
+  width: calc(100% - 20px) !important;
+  font-size: 12.5px;
 }
 
 .credix-menu-label {
@@ -220,6 +293,13 @@ body.credix-app-body {
   font-size: 16px;
   min-width: 16px;
   color: var(--credix-text-muted);
+  transition: color 0.18s ease, transform 0.18s ease;
+}
+
+.credix-menu.ant-menu .ant-menu-item:hover .ant-menu-item-icon,
+.credix-menu.ant-menu .ant-menu-submenu-title:hover .ant-menu-item-icon {
+  color: var(--credix-brand);
+  transform: scale(1.08);
 }
 
 .credix-menu.ant-menu .ant-menu-item-selected .ant-menu-item-icon,

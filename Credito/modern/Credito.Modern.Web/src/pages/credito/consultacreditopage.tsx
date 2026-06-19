@@ -9,6 +9,7 @@ import {
   Modal,
   Space,
   Tabs,
+  Tag,
   Typography,
   message,
 } from 'antd'
@@ -19,6 +20,7 @@ import {
   fetchMoraPendiente,
   fetchMetricasVencimientoCredito,
   fetchMovimientosCredito,
+  fetchRptEstadoCredito,
   prorrogarCredito,
   reprogramarCredito,
   validarAnularCredito,
@@ -36,12 +38,10 @@ import { CreditoConsultaAccionesCredito } from '../../components/credito/Credito
 import { CreditoConsultaImpresosBar } from '../../components/credito/CreditoConsultaImpresosBar'
 import { CreditoConsultaResumenCredito } from '../../components/credito/CreditoConsultaResumenCredito'
 import {
-  puedeAnularCreditoUi,
-  puedeProrrogarCreditoUi,
-  puedeReprogramarCreditoUi,
   tieneCreditoModoLectura,
 } from '../../utils/creditoOperacionPermisos'
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
+import { getCreditoEstadoMeta, resolverCreditoAccionesUi } from '../../utils/creditoEstados'
 import { CreditoMoraModal } from '../../components/caja/CreditoMoraModal'
 import {
   CredixDataTable,
@@ -116,11 +116,8 @@ export function ConsultaCreditoPage() {
   const queryClient = useQueryClient()
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
-  const roles = session?.roles ?? []
+  const roles = useMemo(() => session?.roles ?? [], [session?.roles])
   const soloLectura = tieneCreditoModoLectura(roles)
-  const puedeAnularBtn = puedeAnularCreditoUi(roles)
-  const puedeProrrogarBtn = puedeProrrogarCreditoUi(roles)
-  const puedeReprogramarBtn = puedeReprogramarCreditoUi(roles)
   const [searchParams, setSearchParams] = useSearchParams()
   const [modalAnular, setModalAnular] = useState(false)
   const [modalProrrogar, setModalProrrogar] = useState(false)
@@ -184,6 +181,20 @@ export function ConsultaCreditoPage() {
     enabled: activeId != null && planQuery.isSuccess,
     staleTime: creditoStaleTime.operacion,
   })
+
+  const estadoCreditoQuery = useQuery({
+    queryKey: ['rpt-estado-credito-resumen', activeId],
+    queryFn: () => fetchRptEstadoCredito(activeId!),
+    enabled: activeId != null,
+    staleTime: creditoStaleTime.operacion,
+  })
+
+  const accionesCredito = useMemo(
+    () => resolverCreditoAccionesUi(roles, estadoCreditoQuery.data?.cabecera?.estado),
+    [roles, estadoCreditoQuery.data?.cabecera?.estado],
+  )
+  const personaIdActiva =
+    personaIdFromUrl ?? estadoCreditoQuery.data?.cabecera?.personaId ?? null
 
   const aplicarCredito = useCallback(
     (id: number, personaId?: number) => {
@@ -282,7 +293,14 @@ export function ConsultaCreditoPage() {
       dataIndex: 'fechaVencimiento',
       render: (v: string) => v?.slice(0, 10),
     },
-    { title: 'Estado', dataIndex: 'estado' },
+    {
+      title: 'Estado',
+      dataIndex: 'estado',
+      render: (estado: string | null) => {
+        const meta = getCreditoEstadoMeta(estado)
+        return meta ? <Tag color={meta.color}>{meta.codigo}</Tag> : estado || '—'
+      },
+    },
     {
       title: 'Capital',
       dataIndex: 'capital',
@@ -454,12 +472,12 @@ export function ConsultaCreditoPage() {
   return (
     <CredixPage
       className="credito-consulta-page"
-      title="Consulta de crédito"
-      subtitle="Busque por cliente (como Creditos MVC) o por número de crédito. Plan, gestión, movimientos e impresos."
+      title="Créditos"
+      subtitle="Búsqueda, solicitud, plan de pagos, gestión, movimientos e impresos con paridad del Creditos MVC."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
-        { title: 'Consulta' },
+        { title: 'Créditos' },
       ]}
       stats={creditoStats}
     >
@@ -509,14 +527,16 @@ export function ConsultaCreditoPage() {
         <CredixPanel title={`Crédito ${activeId}`} className="credito-consulta-panel-credito">
           <CreditoConsultaImpresosBar
             creditoId={activeId}
-            personaId={personaIdFromUrl}
+            personaId={personaIdActiva}
           />
           <CreditoConsultaAccionesCredito
             creditoId={activeId}
             oficinaId={oficinaId}
-            puedeAnular={puedeAnularBtn}
-            puedeProrrogar={puedeProrrogarBtn}
-            puedeReprogramar={puedeReprogramarBtn}
+            puedeCobrar={accionesCredito.cobrar}
+            puedeMora={accionesCredito.mora}
+            puedeAnular={accionesCredito.anular}
+            puedeProrrogar={accionesCredito.prorrogar}
+            puedeReprogramar={accionesCredito.reprogramar}
             onAnular={() => void abrirAnular()}
             onProrrogar={() => setModalProrrogar(true)}
             onReprogramar={() => setModalReprogramar(true)}

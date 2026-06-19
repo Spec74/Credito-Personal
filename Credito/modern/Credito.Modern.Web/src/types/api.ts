@@ -277,6 +277,7 @@ export interface SimuladorCreditoCuota {
   interes: number | null
   gastosAdm: number | null
   cuota: number | null
+  saldo: number | null
 }
 
 export interface CalcularTemResult {
@@ -663,6 +664,7 @@ export interface RptPlanPagosRow {
 
 export interface RptEstadoCreditoCabecera {
   creditoId: number
+  personaId: number
   producto: string
   fechaPrimerPago: string
   fechaVencimiento: string
@@ -1056,6 +1058,7 @@ export interface SimuladorCreditoCuota {
   interes: number | null
   gastosAdm: number | null
   cuota: number | null
+  saldo: number | null
 }
 
 export interface CalcularTemResult {
@@ -1404,6 +1407,7 @@ export interface RptPlanPagosRow {
 
 export interface RptEstadoCreditoCabecera {
   creditoId: number
+  personaId: number
   producto: string
   fechaPrimerPago: string
   fechaVencimiento: string

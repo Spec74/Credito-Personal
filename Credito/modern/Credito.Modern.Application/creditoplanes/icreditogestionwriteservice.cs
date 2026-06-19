@@ -63,4 +63,10 @@ public interface ICreditoGestionWriteService
     Task<CreditoGestionOperacionResponse> ActualizarAvalAsync(
         ActualizarAvalCreditoRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<CreditoGestionOperacionResponse> GuardarPrendaAsync(
+        GuardarCreditoPrendaRequest request,
+        int usuarioId,
+        DateTime fechaServidor,
+        CancellationToken cancellationToken = default);
 }

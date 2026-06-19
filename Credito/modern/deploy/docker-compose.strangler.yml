@@ -14,6 +14,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Staging
       CreditoDatabase__ConnectionString: ${CREDITO_DB_CONNECTION_STRING}
+      ApiPeru__Token: ${API_PERU_TOKEN:-}
+      ApiPeru__BaseUrl: ${API_PERU_BASE_URL:-https://apiperu.dev/api/}
       Jwt__SigningKey: ${JWT_SIGNING_KEY}
       Jwt__Issuer: ${JWT_ISSUER:-Credito.Modern.Staging}
       Jwt__Audience: ${JWT_AUDIENCE:-Credito.Modern.Staging}
