@@ -12,3 +12,11 @@ public sealed record BovedaAbiertaDto(
     DateTime? FechaFinOperacion,
     bool IndCierre,
     bool IndTemporal);
+
+/// <summary>Bóveda abierta disponible para transferencia interoficina.</summary>
+public sealed record BovedaDestinoTransferenciaDto(
+    int BovedaId,
+    int OficinaId,
+    string Oficina,
+    decimal SaldoFinal,
+    DateTime FechaIniOperacion);

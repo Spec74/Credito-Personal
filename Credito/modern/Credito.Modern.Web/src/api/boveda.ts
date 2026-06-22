@@ -1,5 +1,5 @@
 import { apiDownload, apiFetch } from './client'
-import type { CajaDiarioOperacionResponse } from '../types/api'
+import type { CajaDiarioOperacionResponse, ClienteBuscarItem } from '../types/api'
 
 export interface BovedaAbiertaDto {
   bovedaId: number
@@ -45,6 +45,75 @@ export interface BovedaEstadoDinero {
   totalFondo: number
 }
 
+export interface BovedaCuadreMedio {
+  tipoPagoId: number
+  tipoPago: string
+  grupo: string
+  monto: number
+  esEfectivo: boolean
+  esDigitalOBanco: boolean
+  requiereVerificacion: boolean
+  pagosNoVerificados: number
+}
+
+export interface BovedaCuadreResponsable {
+  cajaDiarioId: number
+  caja: string
+  responsable: string | null
+  fechaIniOperacion: string
+  fechaFinOperacion: string | null
+  indCierre: boolean
+  transBoveda: boolean
+  saldoInicial: number
+  entradas: number
+  salidas: number
+  saldoFinal: number
+  efectivo: number
+  digitalBancos: number
+  totalSistema: number
+  medios: BovedaCuadreMedio[]
+}
+
+export interface BovedaCuadreValidacion {
+  codigo: string
+  concepto: string
+  sistema: number
+  contraste: number | null
+  diferencia: number | null
+  severidad: 'ok' | 'alerta' | 'info' | string
+  mensaje: string
+}
+
+export interface BovedaCuadreDenominacion {
+  codigo: string
+  etiqueta: string
+  valor: number
+  grupo: string
+}
+
+export interface BovedaCuadreTotales {
+  efectivoBoveda: number
+  efectivoCajas: number
+  efectivoSistema: number
+  digitalBancosSistema: number
+  totalMediosSistema: number
+  totalFondo: number
+  montoALlevarSugerido: number
+  saldoPorLlevarSugerido: number
+  diferenciaSistema: number
+}
+
+export interface BovedaCuadrePreview {
+  boveda: BovedaAbiertaDto
+  estadoDinero: BovedaEstadoDinero
+  totales: BovedaCuadreTotales
+  responsables: BovedaCuadreResponsable[]
+  mediosBoveda: BovedaCuadreMedio[]
+  validaciones: BovedaCuadreValidacion[]
+  denominaciones: BovedaCuadreDenominacion[]
+  pendientes: string[]
+}
+
 export interface BovedaListadoRow {
   bovedaId: number
   tipo: string
@@ -64,10 +133,29 @@ export interface BovedaListadoResult {
   pageSize: number
 }
 
+export interface BovedaDestinoTransferencia {
+  bovedaId: number
+  oficinaId: number
+  oficina: string
+  saldoFinal: number
+  fechaIniOperacion: string
+}
+
 export function fetchBovedaEstadoDinero(oficinaId: number): Promise<BovedaEstadoDinero> {
   return apiFetch<BovedaEstadoDinero>(
     `/credito/boveda-estado-dinero?oficinaId=${oficinaId}`,
   )
+}
+
+export function fetchBovedaCuadrePreview(
+  oficinaId: number,
+  bovedaId?: number,
+): Promise<BovedaCuadrePreview> {
+  const q = new URLSearchParams({ oficinaId: String(oficinaId) })
+  if (bovedaId != null && bovedaId > 0) {
+    q.set('bovedaId', String(bovedaId))
+  }
+  return apiFetch<BovedaCuadrePreview>(`/credito/boveda-cuadre-preview?${q.toString()}`)
 }
 
 export function listarBovedasHistorial(
@@ -88,6 +176,14 @@ export interface ValidarCierreSaldosResponse {
 export function fetchBovedaAbierta(oficinaId: number): Promise<BovedaAbiertaDto> {
   return apiFetch<BovedaAbiertaDto>(
     `/credito/boveda-abierta?oficinaId=${oficinaId}`,
+  )
+}
+
+export function fetchBovedasDestinoTransferencia(
+  oficinaId: number,
+): Promise<BovedaDestinoTransferencia[]> {
+  return apiFetch<BovedaDestinoTransferencia[]>(
+    `/credito/bovedas-destino-transferencia?oficinaId=${oficinaId}`,
   )
 }
 
@@ -258,6 +354,12 @@ export function fetchCajasAbiertasTransferenciaBoveda(
 ): Promise<CajaAbiertaTransferenciaRow[]> {
   return apiFetch<CajaAbiertaTransferenciaRow[]>(
     `/credito/cajas-abiertas-transferencia-boveda?oficinaId=${oficinaId}`,
+  )
+}
+
+export function buscarUsuariosBoveda(term: string): Promise<ClienteBuscarItem[]> {
+  return apiFetch<ClienteBuscarItem[]>(
+    `/usuarios/buscar?term=${encodeURIComponent(term)}`,
   )
 }
 

@@ -108,6 +108,10 @@ export function downloadMovimientosCreditoPdf(creditoId: number): Promise<void> 
   )
 }
 
+export function openMovimientosCreditoPdfInTab(creditoId: number): Promise<void> {
+  return apiOpenInTab(`/credito/rpt-movimiento-credito-pdf?creditoId=${creditoId}`)
+}
+
 function queryGestorInforme(p: GestorInformeParams): string {
   const q = new URLSearchParams({ oficinaId: String(p.oficinaId) })
   if (p.usuarioId != null && p.usuarioId > 0) {
@@ -794,6 +798,10 @@ export function downloadRptPlanPagosPdf(creditoId: number): Promise<void> {
   )
 }
 
+export function openRptPlanPagosPdfInTab(creditoId: number): Promise<void> {
+  return apiOpenInTab(`/credito/rpt-plan-pagos-pdf?${queryCreditoId(creditoId)}`)
+}
+
 export function fetchRptEstadoCredito(
   creditoId: number,
 ): Promise<RptEstadoCreditoInforme> {
@@ -814,6 +822,10 @@ export function downloadRptEstadoCreditoPdf(creditoId: number): Promise<void> {
     `/credito/rpt-estado-credito-pdf?${queryCreditoId(creditoId)}`,
     `estado-credito-${creditoId}.pdf`,
   )
+}
+
+export function openRptEstadoCreditoPdfInTab(creditoId: number): Promise<void> {
+  return apiOpenInTab(`/credito/rpt-estado-credito-pdf?${queryCreditoId(creditoId)}`)
 }
 
 export function fetchRptCreditoTarea(
@@ -867,6 +879,10 @@ export function downloadRptClientePdf(personaId: number): Promise<void> {
     `/credito/rpt-cliente-pdf?${queryPersonaId(personaId)}`,
     `cliente-${personaId}.pdf`,
   )
+}
+
+export function openRptClientePdfInTab(personaId: number): Promise<void> {
+  return apiOpenInTab(`/credito/rpt-cliente-pdf?${queryPersonaId(personaId)}`)
 }
 
 export interface RptSimuladorPlanPagosParams {
@@ -1195,6 +1211,7 @@ export function anularCredito(body: {
   oficinaId: number
   creditoId: number
   observacion: string
+  claveAutorizacion: string
 }): Promise<CreditoCicloOperacionResponse> {
   return apiFetch<CreditoCicloOperacionResponse>('/credito/anular-credito', {
     method: 'POST',

@@ -335,6 +335,110 @@
   border-left: 3px solid #114885;
 }
 
+/* —— Cuadre automático de bóveda (reemplazo del Excel manual) —— */
+.boveda-cuadre {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.boveda-cuadre__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+
+.boveda-cuadre__stat {
+  padding: 14px 16px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fff 0%, #f8fafc 100%);
+  box-shadow: var(--credix-shadow-sm);
+}
+
+.boveda-cuadre__stat .ant-statistic-title {
+  margin-bottom: 4px;
+  color: var(--credix-text-muted, #6b7280);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.boveda-cuadre__stat .ant-statistic-content {
+  color: var(--credix-brand, #114885);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.boveda-cuadre__stat--primary {
+  background: linear-gradient(180deg, #114885 0%, #1d609f 100%);
+  border-color: #114885;
+}
+
+.boveda-cuadre__stat--primary .ant-statistic-title,
+.boveda-cuadre__stat--primary .ant-statistic-content {
+  color: #fff;
+}
+
+.boveda-cuadre__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.boveda-cuadre__split {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.8fr) minmax(420px, 1.2fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.boveda-cuadre__section-title {
+  margin-bottom: 8px;
+  color: var(--credix-brand, #114885);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.boveda-cuadre__pending-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.boveda-cuadre__denoms {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.boveda-cuadre__denom {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.boveda-cuadre__denom--ajuste {
+  background: linear-gradient(180deg, #fff7ed 0%, #fff 100%);
+  border-color: #fed7aa;
+}
+
+@media (max-width: 1100px) {
+  .boveda-cuadre__actions {
+    justify-content: flex-start;
+  }
+
+  .boveda-cuadre__split {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* —— Bóveda abierta: saldos + resumen (paridad bloque central legacy) —— */
 .boveda-saldos-grid {
   display: grid;

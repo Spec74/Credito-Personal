@@ -46,6 +46,8 @@ public sealed class CreditosPorAprobarReadService(IOptions<SqlDatabaseOptions> o
 
     public async Task<CreditosPorAprobarListResponse> ListarAsync(
 
+        int oficinaId,
+
         string? buscar,
 
         int page,
@@ -59,6 +61,11 @@ public sealed class CreditosPorAprobarReadService(IOptions<SqlDatabaseOptions> o
         CancellationToken cancellationToken = default)
 
     {
+
+        if (oficinaId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
+        }
 
         if (page < 1)
 
@@ -108,6 +115,10 @@ public sealed class CreditosPorAprobarReadService(IOptions<SqlDatabaseOptions> o
 
         var parameters = new DynamicParameters();
 
+        parameters.Add("OficinaId", oficinaId);
+
+        parameters.Add("IncluirCre", tokens.Count > 0);
+
         parameters.Add("Offset", offset);
 
         parameters.Add("PageSize", pageSize);
@@ -128,7 +139,28 @@ public sealed class CreditosPorAprobarReadService(IOptions<SqlDatabaseOptions> o
 
             INNER JOIN MAESTRO.Persona AS up ON up.PersonaId = u.PersonaId
 
-            WHERE c.Estado = 'PEN'
+            WHERE (
+                    c.Estado = 'PEN'
+                    OR (
+                        @IncluirCre = CAST(1 AS bit)
+                        AND c.Estado = 'CRE'
+                        AND c.CreditoId = (
+                            SELECT MAX(c2.CreditoId)
+                            FROM CREDITO.Credito AS c2
+                            WHERE c2.PersonaId = c.PersonaId
+                              AND c2.OficinaId = c.OficinaId
+                              AND c2.Estado = 'CRE'
+                        )
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM CREDITO.Credito AS c3
+                            WHERE c3.PersonaId = c.PersonaId
+                              AND c3.OficinaId = c.OficinaId
+                              AND c3.Estado = 'PEN'
+                        )
+                    )
+                )
+              AND c.OficinaId = @OficinaId
 
               AND ({whereBusqueda});
 
@@ -154,6 +186,8 @@ public sealed class CreditosPorAprobarReadService(IOptions<SqlDatabaseOptions> o
 
                 c.Interes,
 
+                c.Estado,
+
                 up.NombreCompleto AS Agente
 
             FROM CREDITO.Credito AS c
@@ -164,7 +198,28 @@ public sealed class CreditosPorAprobarReadService(IOptions<SqlDatabaseOptions> o
 
             INNER JOIN MAESTRO.Persona AS up ON up.PersonaId = u.PersonaId
 
-            WHERE c.Estado = 'PEN'
+            WHERE (
+                    c.Estado = 'PEN'
+                    OR (
+                        @IncluirCre = CAST(1 AS bit)
+                        AND c.Estado = 'CRE'
+                        AND c.CreditoId = (
+                            SELECT MAX(c2.CreditoId)
+                            FROM CREDITO.Credito AS c2
+                            WHERE c2.PersonaId = c.PersonaId
+                              AND c2.OficinaId = c.OficinaId
+                              AND c2.Estado = 'CRE'
+                        )
+                        AND NOT EXISTS (
+                            SELECT 1
+                            FROM CREDITO.Credito AS c3
+                            WHERE c3.PersonaId = c.PersonaId
+                              AND c3.OficinaId = c.OficinaId
+                              AND c3.Estado = 'PEN'
+                        )
+                    )
+                )
+              AND c.OficinaId = @OficinaId
 
               AND ({whereBusqueda})
 

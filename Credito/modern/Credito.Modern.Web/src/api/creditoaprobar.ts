@@ -9,6 +9,7 @@ export interface CreditoPorAprobarRow {
   documento: string | null
   monto: number
   interes: number
+  estado: string
   agente: string | null
 }
 
@@ -18,6 +19,7 @@ export interface CreditosPorAprobarResponse {
 }
 
 export interface CreditosPorAprobarQuery {
+  oficinaId: number
   buscar?: string
   page?: number
   pageSize?: number
@@ -37,6 +39,7 @@ const SORT_API: Record<string, string> = {
 
 function queryParams(q: CreditosPorAprobarQuery): string {
   const p = new URLSearchParams()
+  p.set('oficinaId', String(q.oficinaId))
   p.set('page', String(q.page ?? 1))
   p.set('pageSize', String(q.pageSize ?? 15))
   if (q.buscar?.trim()) {
@@ -52,7 +55,7 @@ function queryParams(q: CreditosPorAprobarQuery): string {
 }
 
 export function fetchCreditosPorAprobar(
-  params: CreditosPorAprobarQuery = {},
+  params: CreditosPorAprobarQuery,
 ): Promise<CreditosPorAprobarResponse> {
   return apiFetch<CreditosPorAprobarResponse>(
     `/credito/creditos-por-aprobar?${queryParams(params)}`,

@@ -35,6 +35,11 @@ public interface ICreditoGestionReadService
         int pageSize,
         CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<CreditoAvalRelacionDto>> ListarAvalesPersonaAsync(
+        int oficinaId,
+        int personaId,
+        CancellationToken cancellationToken = default);
+
     Task<(int CreditoId, string FileName)?> ObtenerEvidenciaArchivoAsync(
         int creditoImagenId,
         CancellationToken cancellationToken = default);

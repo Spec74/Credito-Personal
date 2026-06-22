@@ -3,8 +3,20 @@
 .credito-consulta-page .credix-page-body {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   min-width: 0;
+}
+
+.credito-consulta-page {
+  --credito-brand: var(--credix-brand, #114885);
+  --credito-brand-strong: #0d3a6f;
+  --credito-brand-soft: #e8f2fc;
+  --credito-accent: #00aadd;
+  --credito-accent-soft: #e6f8fd;
+  --credito-success: #217346;
+  --credito-danger: #c41e3a;
+  --credito-card-border: #d7e6f7;
+  --credito-card-shadow: 0 12px 30px rgb(15 23 42 / 7%);
 }
 
 /* —— Buscador cliente (variant crédito) —— */
@@ -111,77 +123,6 @@
   border-radius: 4px;
 }
 
-/* —— Buscador por número de crédito —— */
-.credito-buscar-credito {
-  margin-bottom: 4px;
-  padding: 14px 16px;
-  background: #fff;
-  border: 1px solid #c7daf3;
-  border-radius: var(--credix-radius, 8px);
-  box-shadow: 0 1px 3px rgb(17 72 133 / 6%);
-}
-
-.credito-buscar-credito__head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.credito-buscar-credito__head-icon {
-  color: var(--credix-brand, #114885);
-  font-size: 16px;
-}
-
-.credito-buscar-credito__label {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--credix-brand, #114885);
-}
-
-.credito-buscar-credito__row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: stretch;
-  gap: 10px;
-}
-
-.credito-buscar-credito__input {
-  width: 100% !important;
-  min-width: 0;
-}
-
-.credito-buscar-credito__input .ant-input-number {
-  width: 100%;
-  min-height: 44px;
-  border-radius: 10px;
-  border-color: #94b8e8;
-}
-
-.credito-buscar-credito__input .ant-input-number-input {
-  min-height: 42px;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.credito-buscar-credito__btn.ant-btn-primary {
-  min-height: 44px;
-  padding-inline: 18px;
-  border-radius: 10px;
-  font-weight: 700;
-  background: linear-gradient(180deg, #1a5a9e 0%, var(--credix-brand, #114885) 100%);
-  border: none;
-  box-shadow: 0 2px 8px rgb(17 72 133 / 28%);
-}
-
-.credito-buscar-credito__hint {
-  display: block;
-  margin-top: 8px;
-  font-size: 12px;
-}
-
 /* —— Barra cliente + grilla —— */
 .credito-consulta-cliente {
   display: flex;
@@ -189,11 +130,14 @@
   gap: 14px;
   width: 100%;
   min-width: 0;
-  margin-bottom: 4px;
-  padding: 14px 16px;
-  background: linear-gradient(180deg, #f0f7ff 0%, #f8fafc 100%);
-  border: 1px solid #c7daf3;
-  border-radius: var(--credix-radius, 8px);
+  margin-bottom: 2px;
+  padding: clamp(14px, 2vw, 18px);
+  background:
+    radial-gradient(circle at top right, rgb(0 170 221 / 13%), transparent 28%),
+    linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+  border: 1px solid var(--credito-card-border);
+  border-radius: 18px;
+  box-shadow: var(--credito-card-shadow);
 }
 
 .credito-consulta-cliente__search {
@@ -217,13 +161,13 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 12px;
+  padding: 14px;
   background:
-    radial-gradient(circle at top left, rgb(0 170 221 / 10%), transparent 34%),
+    radial-gradient(circle at top left, rgb(0 170 221 / 14%), transparent 34%),
     #ffffff;
-  border: 1px solid #c7daf3;
-  border-radius: 14px;
-  box-shadow: 0 10px 28px rgb(17 72 133 / 8%);
+  border: 1px solid #cfe2f5;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgb(17 72 133 / 7%);
 }
 
 .credito-cliente-search__bar {
@@ -235,7 +179,7 @@
 .credito-cliente-search__bar .ant-input-affix-wrapper {
   min-height: 46px;
   border-color: #9fc0ea;
-  border-radius: 12px;
+  border-radius: 14px;
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 80%);
 }
 
@@ -248,9 +192,9 @@
 .credito-cliente-search__bar .ant-btn-primary {
   min-height: 46px;
   border: 0;
-  border-radius: 12px;
+  border-radius: 14px;
   font-weight: 700;
-  background: linear-gradient(180deg, #1a5a9e 0%, var(--credix-brand, #114885) 100%);
+  background: linear-gradient(135deg, var(--credito-accent) 0%, #1a5a9e 42%, var(--credito-brand) 100%);
   box-shadow: 0 8px 18px rgb(17 72 133 / 24%);
 }
 
@@ -362,7 +306,8 @@
 }
 
 .credito-consulta-cliente__row--active > td {
-  background: #dbeafe !important;
+  background: linear-gradient(90deg, #dff4fb 0%, #eaf3ff 100%) !important;
+  box-shadow: inset 3px 0 0 var(--credito-accent);
 }
 
 .credito-consulta__credito-id--active {
@@ -374,11 +319,13 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 14px 16px;
-  background: #fff;
-  border: 1px solid #c7daf3;
-  border-radius: 8px;
-  box-shadow: 0 1px 2px rgb(17 72 133 / 6%);
+  padding: clamp(14px, 2vw, 18px);
+  background:
+    radial-gradient(circle at top left, rgb(0 170 221 / 12%), transparent 32%),
+    linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  border: 1px solid var(--credito-card-border);
+  border-radius: 18px;
+  box-shadow: var(--credito-card-shadow);
 }
 
 .credito-persona-cabecera__profile-grid {
@@ -396,11 +343,14 @@
   width: 72px;
   min-height: 72px;
   padding: 10px 8px;
-  background: linear-gradient(180deg, #e8f1fb 0%, #f1f5f9 100%);
-  border: 1px solid #c7daf3;
-  border-radius: 8px;
-  color: var(--credix-brand, #114885);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0)),
+    linear-gradient(135deg, var(--credito-accent-soft), var(--credito-brand-soft));
+  border: 1px solid #b8d8f1;
+  border-radius: 18px;
+  color: var(--credito-brand);
   font-size: 28px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 90%);
 }
 
 .credito-persona-cabecera__avatar-caption {
@@ -433,12 +383,25 @@
 .credito-persona-cabecera__actions {
   width: 100%;
   justify-content: flex-start;
+  gap: 8px !important;
+}
+
+.credito-persona-cabecera__actions .ant-btn {
+  min-height: 38px;
+  border-radius: 11px;
+  font-weight: 600;
+}
+
+.credito-persona-cabecera__actions .ant-btn-primary {
+  border: 0;
+  background: linear-gradient(135deg, var(--credito-accent) 0%, var(--credito-brand) 74%);
+  box-shadow: 0 9px 18px rgb(17 72 133 / 22%);
 }
 
 .credito-persona-cabecera__info-strip {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
-  gap: 12px 20px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
   margin: 0;
   padding: 12px 0 0;
   list-style: none;
@@ -449,12 +412,17 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+  padding: 12px;
+  background: #ffffff;
+  border: 1px solid #e2edf8;
+  border-radius: 14px;
+  box-shadow: 0 6px 16px rgb(15 23 42 / 4%);
 }
 
 .credito-persona-cabecera__info-item strong {
   font-size: clamp(18px, 4vw, 22px);
   line-height: 1.1;
-  color: var(--credix-brand, #114885);
+  color: var(--credito-brand);
 }
 
 .credito-persona-cabecera__info-item--codigo strong {
@@ -503,74 +471,193 @@
 }
 
 .credito-consulta-avales {
-  padding: 12px 14px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  overflow: hidden;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top right, rgb(0 170 221 / 10%), transparent 32%),
+    linear-gradient(180deg, rgb(17 72 133 / 3%) 0%, transparent 46%),
+    #fff;
+  border: 1px solid #d7e6f7;
+  border-radius: 18px;
+  box-shadow: var(--credito-card-shadow);
 }
 
 .credito-consulta-avales__head {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .credito-consulta-avales__hint {
+  display: block;
+  margin-top: 2px;
   font-size: 12px;
 }
 
+.credito-consulta-avales__context-tag {
+  margin-inline-end: 0;
+  white-space: normal;
+}
+
+.credito-consulta-avales__table {
+  overflow: hidden;
+  border: 1px solid #e5edf7;
+  border-radius: 14px;
+}
+
+.credito-consulta-avales__table .ant-table-thead > tr > th {
+  background: linear-gradient(180deg, #e8f7fc 0%, #eef6ff 100%) !important;
+  color: #164a7a !important;
+  font-size: 11px;
+  font-weight: 800 !important;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+}
+
+.credito-consulta-avales__table .ant-table-tbody > tr > td {
+  vertical-align: middle;
+}
+
+.credito-consulta-avales__type {
+  min-width: 72px;
+  margin-inline-end: 0;
+  text-align: center;
+  font-weight: 700;
+}
+
+.credito-consulta-avales__persona.ant-btn-link {
+  height: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.credito-consulta-avales__persona {
+  display: inline-flex !important;
+  max-width: 100%;
+  align-items: center;
+  gap: 6px;
+  color: #164a7a;
+  background: #eef6ff;
+  white-space: normal;
+  text-align: left;
+}
+
+.credito-consulta-avales__persona:hover {
+  background: #dbeafe;
+  color: #0f3d6e !important;
+}
+
 .credito-consulta-impresos {
-  margin-bottom: 14px;
-  padding: 12px 14px;
-  background: #f8fafc;
-  border: 1px dashed #c7daf3;
-  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 16px;
+  padding: 16px 18px;
+  background:
+    linear-gradient(135deg, rgba(0, 96, 160, 0.08), rgba(255, 255, 255, 0) 42%),
+    #ffffff;
+  border: 1px solid #dbe7f3;
+  border-radius: 18px;
+  box-shadow: var(--credito-card-shadow);
 }
 
 .credito-consulta-impresos__head {
   display: flex;
-  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.credito-consulta-impresos__icon {
+  display: inline-flex;
   align-items: center;
-  gap: 8px 12px;
-  margin-bottom: 10px;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  color: var(--credito-brand);
+  background: linear-gradient(135deg, var(--credito-accent-soft), var(--credito-brand-soft));
+  border: 1px solid #cfe4f4;
+  border-radius: 12px;
+}
+
+.credito-consulta-impresos__title {
+  display: block;
+  margin-bottom: 2px;
+  color: #0f172a;
+  font-size: 15px;
+  line-height: 1.25;
 }
 
 .credito-consulta-impresos__hint {
+  display: block;
   margin: 0 !important;
   font-size: 12px;
+  line-height: 1.35;
 }
 
 .credito-consulta-impresos__group-label {
   display: block;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  font-weight: 700;
 }
 
 .credito-consulta-impresos__actions {
   width: 100%;
+  row-gap: 10px !important;
 }
 
 .credito-consulta-impresos__actions .ant-btn {
-  min-height: 36px;
+  min-height: 40px;
+  padding-inline: 14px;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
 }
 
-.credito-consulta-impresos__divider {
-  margin: 10px 0 !important;
+.credito-consulta-impresos__actions .ant-btn .anticon {
+  font-size: 15px;
+}
+
+.credito-consulta-impresos__actions .ant-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.1);
+}
+
+.credito-consulta-impresos .credix-report-btn--pdf {
+  background: #fff7f8;
+  border-color: #f0a9b6;
+  color: #a31830;
+}
+
+.credito-consulta-impresos .credix-report-btn--xls {
+  background: #f3fbf6;
+  border-color: #9ed2b2;
+  color: #17633b;
 }
 
 .credito-consulta-acciones {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px 24px;
-  margin-bottom: 14px;
-  padding: 12px 14px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  gap: 14px 24px;
+  margin-bottom: 16px;
+  padding: 16px;
+  background:
+    linear-gradient(135deg, rgb(232 242 252 / 80%), rgb(255 255 255 / 96%)),
+    #fff;
+  border: 1px solid var(--credito-card-border);
+  border-radius: 18px;
+  box-shadow: var(--credito-card-shadow);
 }
 
 .credito-consulta-acciones__col {
@@ -580,6 +667,16 @@
   min-width: 0;
 }
 
+.credito-consulta-acciones .ant-space {
+  gap: 8px !important;
+}
+
+.credito-consulta-acciones .ant-btn {
+  min-height: 38px;
+  border-radius: 11px;
+  font-weight: 600;
+}
+
 .credito-consulta-acciones__col--right {
   align-items: flex-end;
 }
@@ -587,15 +684,20 @@
 .credito-consulta-acciones__label {
   font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  color: var(--credito-brand);
 }
 
 .credito-consulta-resumen {
-  margin-bottom: 14px;
-  padding: 12px 14px;
-  background: #fafbfc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  margin-bottom: 16px;
+  padding: 16px;
+  background:
+    radial-gradient(circle at top left, rgb(0 170 221 / 8%), transparent 28%),
+    #ffffff;
+  border: 1px solid var(--credito-card-border);
+  border-radius: 18px;
+  box-shadow: var(--credito-card-shadow);
 }
 
 .credito-consulta-resumen__title {
@@ -605,15 +707,23 @@
 
 .credito-consulta-resumen__desc .ant-descriptions-item-label {
   font-weight: 600;
-  background: #f1f5f9 !important;
+  color: var(--credito-brand);
+  background: #f0f7ff !important;
 }
 
 .credito-consulta-panel-credito {
   min-width: 0;
 }
 
+.credito-consulta-panel-credito > .credix-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .credito-consulta-panel-credito .credix-tabs {
-  margin-top: 4px;
+  margin-top: 6px;
+  min-width: 0;
 }
 
 /* Tablas operación: columnas según contenido (paridad jqGrid flexible) */
@@ -631,7 +741,401 @@
 }
 
 .credito-consulta-panel-credito .ant-tabs-nav {
-  margin-bottom: 12px !important;
+  margin-bottom: 14px !important;
+  padding: 6px;
+  background: #f5f9fd;
+  border: 1px solid #e1edf8;
+  border-radius: 14px;
+}
+
+.credito-consulta-panel-credito .ant-tabs-tab {
+  margin: 0 !important;
+  padding: 8px 14px !important;
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.credito-consulta-panel-credito .ant-tabs-tab + .ant-tabs-tab {
+  margin-left: 4px !important;
+}
+
+.credito-consulta-panel-credito .ant-tabs-tab-active {
+  background: #ffffff;
+  box-shadow: 0 6px 14px rgb(17 72 133 / 10%);
+}
+
+.credito-consulta-panel-credito .ant-tabs-ink-bar {
+  display: none;
+}
+
+.credito-gestion-cliente-card {
+  overflow: hidden;
+  border-color: var(--credito-card-border);
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgb(17 72 133 / 6%);
+}
+
+.credito-gestion-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.credito-gestion-card {
+  margin: 0 !important;
+  overflow: hidden;
+  border: 1px solid #dfe8f2 !important;
+  border-radius: 14px !important;
+  background: #ffffff !important;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 5%) !important;
+}
+
+.credito-gestion-tab .ant-card-head {
+  min-height: 42px;
+  padding-inline: 16px;
+  background: #f8fbff !important;
+  border-bottom: 1px solid #e6eef7 !important;
+}
+
+.credito-gestion-tab .ant-card-head-title {
+  color: #123b63;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.015em;
+}
+
+.credito-gestion-tab .ant-card-body {
+  padding: 16px !important;
+}
+
+.credito-gestion-tab .ant-typography {
+  color: #1e293b;
+}
+
+.credito-gestion-context-card {
+  order: 1;
+}
+
+.credito-gestion-cliente-card {
+  order: 2;
+}
+
+.credito-ajustes-card {
+  order: 3;
+}
+
+.credito-gestion-two-col-grid {
+  order: 4;
+}
+
+.credito-prendario-card {
+  order: 5;
+}
+
+.credito-gestion-context-card .ant-card-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px 18px;
+}
+
+.credito-gestion-context-card .ant-typography {
+  margin-bottom: 0 !important;
+}
+
+.credito-gestion-context-card__actions {
+  justify-content: flex-end;
+}
+
+.credito-gestion-context-card__actions .ant-btn,
+.credito-gestion-context-card__actions .ant-switch {
+  border-radius: 10px;
+}
+
+.credito-gestion-two-col-grid > .ant-col {
+  display: flex;
+}
+
+.credito-gestion-two-col-grid .credito-gestion-card {
+  width: 100%;
+}
+
+.credito-gestion-table-card .ant-table {
+  border-radius: 10px;
+}
+
+.credito-gestion-table-card .ant-table-thead > tr > th {
+  background: #f5f8fb !important;
+  color: #334155 !important;
+  font-size: 11px;
+  font-weight: 800 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.credito-gestion-table-card .ant-table-tbody > tr > td {
+  font-size: 12.5px;
+  vertical-align: middle;
+}
+
+.credito-gestion-evidencias-card .ant-upload .ant-btn {
+  border-radius: 10px;
+  font-weight: 700;
+}
+
+.credito-gestion-evidencias-card .ant-card-body {
+  min-height: 126px;
+}
+
+.credito-consulta-panel-credito .ant-card {
+  border-radius: 16px;
+}
+
+.credito-consulta-panel-credito .ant-card-head {
+  min-height: 44px;
+  background: linear-gradient(90deg, #f0f7ff 0%, #ffffff 100%);
+  border-bottom-color: #e4eef8;
+}
+
+.credito-consulta-panel-credito .ant-card-head-title {
+  color: var(--credito-brand);
+  font-weight: 800;
+}
+
+.credito-gestion-tab .ant-card-head {
+  background: #f8fbff !important;
+}
+
+.credito-gestion-tab .ant-card-head-title {
+  color: #123b63 !important;
+  font-size: 13px;
+}
+
+.credito-gestion-cliente-card__desc .ant-descriptions-item-label {
+  width: 150px;
+  font-weight: 700;
+  color: #164a7a;
+  background: #f0f7ff !important;
+}
+
+.credito-ajustes-card {
+  overflow: hidden;
+  border-color: #dfe8f2 !important;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 5%);
+}
+
+.credito-ajustes-card .ant-card-body {
+  padding: 16px !important;
+  background: #ffffff;
+}
+
+.credito-ajustes-grid {
+  align-items: stretch;
+}
+
+.credito-ajustes-grid--secondary {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e4eef8;
+}
+
+.credito-ajustes-item {
+  display: flex !important;
+  flex-direction: column;
+}
+
+.credito-ajustes-item > div {
+  height: 100%;
+  min-height: 0;
+}
+
+.credito-ajustes-item .ant-typography {
+  margin-bottom: 8px !important;
+  color: #123b63;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+}
+
+.credito-ajustes-item .ant-input-number,
+.credito-ajustes-item .ant-select-selector {
+  min-height: 38px;
+  border-radius: 11px !important;
+  border-color: #bfd7ee !important;
+}
+
+.credito-ajustes-item .ant-select-focused .ant-select-selector,
+.credito-ajustes-item .ant-input-number-focused {
+  border-color: var(--credito-brand) !important;
+  box-shadow: 0 0 0 3px rgb(17 72 133 / 10%) !important;
+}
+
+.credito-ajustes-item .ant-btn {
+  min-height: 38px;
+  border-radius: 11px;
+  font-weight: 700;
+}
+
+.credito-ajustes-item .ant-space-vertical {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px !important;
+}
+
+.credito-ajustes-item .ant-space-vertical .ant-space-item,
+.credito-ajustes-item .ant-space-vertical .ant-btn {
+  width: 100%;
+}
+
+.credito-prendario-card .ant-alert {
+  border-radius: 12px;
+  background: #f8fbff;
+  border-color: #dfe8f2;
+}
+
+.credito-prendario-card .ant-input,
+.credito-prendario-card .ant-input-number,
+.credito-prendario-card .ant-picker {
+  border-radius: 10px;
+}
+
+.credito-prendario-card .ant-btn-primary {
+  border-radius: 10px;
+  font-weight: 700;
+  background: #114885;
+  border-color: #114885;
+}
+
+.credito-condonar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.credito-condonar__summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.credito-condonar__summary > div {
+  padding: 12px;
+  background: #f8fbff;
+  border: 1px solid #e2edf8;
+  border-radius: 12px;
+}
+
+.credito-condonar__amount.ant-typography {
+  margin: 4px 0 0 !important;
+  color: #123b63;
+  font-size: 18px;
+}
+
+.credito-condonar__alert {
+  border-radius: 12px;
+}
+
+.credito-condonar__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.credito-condonar__toolbar .ant-btn {
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.credito-condonar__table {
+  overflow: hidden;
+  border: 1px solid #dfe8f2;
+  border-radius: 12px;
+}
+
+.credito-condonar__row {
+  display: grid;
+  grid-template-columns: minmax(115px, 1.1fr) minmax(90px, 0.8fr) minmax(110px, 0.9fr) minmax(120px, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-top: 1px solid #edf2f7;
+}
+
+.credito-condonar__row:first-child {
+  border-top: 0;
+}
+
+.credito-condonar__row--head {
+  background: #f5f8fb;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.credito-condonar__row .ant-input-number {
+  width: 100%;
+  border-radius: 10px;
+}
+
+.credito-condonar__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f8fbff;
+  border: 1px solid #dfe8f2;
+  border-radius: 12px;
+}
+
+.credito-condonar .ant-form-item {
+  margin-bottom: 0;
+}
+
+.credito-condonar .ant-input {
+  border-radius: 10px;
+}
+
+.credito-plan-table .credito-plan-row--pagado > td {
+  background: #f0fdf4 !important;
+  box-shadow: inset 3px 0 0 #22c55e;
+}
+
+.credito-plan-table .credito-plan-row--pendiente > td {
+  background: #fffbeb !important;
+  box-shadow: inset 3px 0 0 #f59e0b;
+}
+
+.credito-plan-table .credito-plan-row--vencido > td {
+  background: #fff1f2 !important;
+  box-shadow: inset 3px 0 0 #e11d48;
+}
+
+.credito-plan-table .credito-plan-row--creado > td {
+  background: #eff6ff !important;
+  box-shadow: inset 3px 0 0 var(--credito-accent);
+}
+
+.credito-plan-table .ant-table-tbody > tr.credito-plan-row:hover > td {
+  filter: brightness(0.98);
+}
+
+.credito-plan-summary-row > td {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, #e8f7fc 0%, #e8f1fb 100%) !important;
+  border-top: 2px solid var(--credito-accent) !important;
+  font-weight: 700;
+  box-shadow: 0 -8px 18px rgb(15 23 42 / 7%);
+}
+
+.credito-plan-ticket-link.ant-btn-link {
+  height: auto;
+  padding: 0;
+  font-weight: 700;
 }
 
 /* —— Tablas modernas (modo operación) —— */
@@ -640,9 +1144,10 @@
   min-width: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  border-radius: var(--credix-radius, 8px);
-  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  border: 1px solid #dbe7f3;
   background: #fff;
+  box-shadow: 0 8px 22px rgb(15 23 42 / 5%);
 }
 
 .credix-table-scroll .credix-table--operacion.ant-table-wrapper {
@@ -651,34 +1156,57 @@
 
 .credix-table--operacion .ant-table {
   table-layout: auto;
+  background: #ffffff;
 }
 
 .credix-table--operacion .ant-table-thead > tr > th {
-  background: linear-gradient(180deg, #e8f1fb 0%, #f1f5f9 100%) !important;
-  color: var(--credix-brand, #114885);
-  font-size: 12px;
-  font-weight: 700;
+  padding: 10px 12px !important;
+  background: linear-gradient(180deg, #e8f7fc 0%, #e8f1fb 100%) !important;
+  color: var(--credito-brand-strong);
+  font-size: 11px;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  border-bottom: 2px solid #c7daf3 !important;
+  letter-spacing: 0.045em;
+  border-bottom: 2px solid #b8d8f1 !important;
   white-space: nowrap;
 }
 
 .credix-table--operacion .ant-table-tbody > tr > td {
+  padding: 9px 12px !important;
   font-size: 13px;
+  color: #1e293b;
+  border-bottom-color: #edf2f7 !important;
   transition: background 0.15s ease;
 }
 
 .credix-table--operacion .ant-table-tbody > tr:hover > td {
-  background: #f0f7ff !important;
+  background: #edf8fc !important;
 }
 
 .credix-table--operacion .ant-table-tbody > tr:nth-child(even) > td {
-  background: #fafbfc;
+  background: #fbfdff;
 }
 
 .credix-table--operacion .ant-table-tbody > tr:nth-child(even):hover > td {
-  background: #f0f7ff !important;
+  background: #edf8fc !important;
+}
+
+.credix-table--operacion .ant-table-tbody > tr.ant-table-row-selected > td {
+  background: #dff4fb !important;
+}
+
+.credix-table--operacion .ant-table-cell-row-hover {
+  background: #edf8fc !important;
+}
+
+.credix-table--operacion .ant-tag {
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.credix-table--operacion .ant-btn {
+  border-radius: 10px;
+  font-weight: 600;
 }
 
 .credito-consulta-cliente__table .ant-table-tbody > tr {
@@ -688,6 +1216,50 @@
 .credito-consulta-panel-credito .ant-pagination {
   flex-wrap: wrap;
   gap: 8px;
+  margin: 14px 8px 10px !important;
+}
+
+.credito-consulta-panel-credito .ant-pagination-item,
+.credito-consulta-panel-credito .ant-pagination-prev .ant-pagination-item-link,
+.credito-consulta-panel-credito .ant-pagination-next .ant-pagination-item-link {
+  border-radius: 10px;
+}
+
+.credito-consulta-panel-credito .ant-pagination-item-active {
+  border-color: var(--credito-brand);
+  box-shadow: 0 4px 12px rgb(17 72 133 / 12%);
+}
+
+.credito-consulta-panel-credito .ant-table-empty .ant-table-tbody > tr > td {
+  padding: 28px 12px !important;
+  color: #64748b;
+}
+
+/* —— Simulador de crédito —— */
+.simulador-plan-panel {
+  min-width: 0;
+}
+
+.simulador-plan-table.credix-table {
+  font-size: 12px;
+}
+
+.simulador-plan-table .ant-table {
+  border-radius: 12px;
+}
+
+.simulador-plan-table .ant-table-thead > tr > th,
+.simulador-plan-table .ant-table-tbody > tr > td {
+  padding: 6px 8px !important;
+  white-space: nowrap;
+}
+
+.simulador-plan-table .ant-table-tbody > tr > td {
+  line-height: 1.25;
+}
+
+.simulador-plan-table .ant-table-container {
+  max-width: 100%;
 }
 
 /* —— Responsive —— */
@@ -699,9 +1271,34 @@
   .credito-consulta-acciones__col--right {
     align-items: flex-start;
   }
+
+  .credito-consulta-panel-credito .ant-tabs-nav {
+    overflow-x: auto;
+  }
+
+  .credito-consulta-panel-credito .ant-tabs-nav-list {
+    min-width: max-content;
+  }
 }
 
 @media (max-width: 768px) {
+  .credito-consulta-page .credix-page-body {
+    gap: 12px;
+  }
+
+  .credito-cliente-search__bar {
+    grid-template-columns: 1fr;
+  }
+
+  .credito-cliente-search__bar .ant-btn-primary {
+    width: 100%;
+  }
+
+  .credito-cliente-search__results {
+    grid-template-columns: 1fr;
+    max-height: 360px;
+  }
+
   .credito-persona-cabecera__profile-grid {
     grid-template-columns: 1fr;
   }
@@ -713,20 +1310,40 @@
     min-height: auto;
   }
 
-  .credito-buscar-cliente-wrap,
-  .credito-buscar-credito__row {
+  .credito-persona-cabecera__main {
+    gap: 12px;
+  }
+
+  .credito-persona-cabecera__actions .ant-space-item,
+  .credito-persona-cabecera__actions .ant-btn,
+  .credito-persona-cabecera__actions a {
+    width: 100%;
+  }
+
+  .credito-buscar-cliente-wrap {
     grid-template-columns: 1fr;
   }
 
-  .credito-buscar-cliente__submit.ant-btn-primary,
-  .credito-buscar-credito__btn.ant-btn-primary {
+  .credito-buscar-cliente__submit.ant-btn-primary {
     width: 100%;
     justify-content: center;
   }
 
-  .credito-consulta-cliente,
-  .credito-buscar-credito {
+  .credito-consulta-cliente {
     padding: 12px;
+  }
+
+  .credito-consulta-avales,
+  .credito-consulta-impresos,
+  .credito-consulta-acciones,
+  .credito-consulta-resumen,
+  .credito-persona-cabecera {
+    border-radius: 14px;
+  }
+
+  .credito-consulta-acciones .ant-space-item,
+  .credito-consulta-acciones .ant-btn {
+    width: 100%;
   }
 
   .credix-table--operacion .ant-table-thead > tr > th,
@@ -734,24 +1351,82 @@
     padding: 8px 10px !important;
     font-size: 12px;
   }
+
+  .credito-ajustes-grid--secondary {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+
+  .credito-gestion-context-card .ant-card-body {
+    grid-template-columns: 1fr;
+  }
+
+  .credito-gestion-context-card__actions {
+    justify-content: flex-start;
+  }
+
+  .credito-gestion-context-card__actions .ant-space-item,
+  .credito-gestion-context-card__actions .ant-btn {
+    width: 100%;
+  }
+
+  .credito-ajustes-item .ant-space-vertical {
+    grid-template-columns: 1fr;
+  }
+
+  .credito-condonar__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .credito-condonar__row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .credito-condonar__row--head {
+    display: none;
+  }
+
+  .credito-condonar__row {
+    align-items: start;
+  }
 }
 
 @media (max-width: 480px) {
-  .credito-buscar-cliente__submit-text,
-  .credito-buscar-credito__btn-text {
+  .credito-buscar-cliente__submit-text {
     display: inline;
   }
 
   .credito-persona-cabecera__info-strip {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .credito-consulta-impresos__actions .ant-btn {
-    flex: 1 1 auto;
-    min-width: calc(50% - 4px);
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .credito-consulta-avales {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .credito-consulta-avales__head {
+    align-items: flex-start;
+  }
+
+  .credito-consulta-avales__context-tag {
+    width: 100%;
   }
 
   .credito-consulta-resumen__desc.ant-descriptions {
     --descriptions-item-padding: 8px 10px;
+  }
+
+  .credito-consulta-panel-credito .ant-tabs-tab {
+    padding: 8px 10px !important;
+  }
+
+  .credito-plan-summary-row > td {
+    position: static;
   }
 }

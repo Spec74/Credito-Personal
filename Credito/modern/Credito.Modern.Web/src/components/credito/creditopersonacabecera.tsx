@@ -273,10 +273,6 @@ export function CreditoPersonaCabecera({
       ) : null}
 
       <ul className="credito-persona-cabecera__info-strip">
-        <li className="credito-persona-cabecera__info-item credito-persona-cabecera__info-item--codigo">
-          <strong>{f.codigo ?? '—'}</strong>
-          <small>Código</small>
-        </li>
         <li className="credito-persona-cabecera__info-item">
           <strong>{f.totalCreditos}</strong>
           <small>Total créditos</small>

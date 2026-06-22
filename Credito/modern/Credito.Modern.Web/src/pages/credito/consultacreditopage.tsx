@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { PrinterOutlined } from '@ant-design/icons'
 import {
   Alert,
   Button,
@@ -8,6 +9,7 @@ import {
   InputNumber,
   Modal,
   Space,
+  Table,
   Tabs,
   Tag,
   Typography,
@@ -25,7 +27,7 @@ import {
   reprogramarCredito,
   validarAnularCredito,
 } from '../../api/creditoPlanes'
-import { fetchCreditoMoraResumen } from '../../api/cajaDiario'
+import { downloadMovimientoCajaTicketPdf, fetchCreditoMoraResumen } from '../../api/cajaDiario'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import type { EstadoPlanPagoCuota, RptMovimientoCreditoRow } from '../../types/api'
@@ -33,7 +35,6 @@ import { formatMoney } from '../../utils/formatMoney'
 import { actualizarDescuentoPlanPago } from '../../api/creditoGestion'
 import { CreditoConsultaGestionPanel } from './CreditoConsultaGestionPanel'
 import { CreditoConsultaClienteBar } from '../../components/credito/CreditoConsultaClienteBar'
-import { CreditoBuscarPorCredito } from '../../components/credito/CreditoBuscarPorCredito'
 import { CreditoConsultaAccionesCredito } from '../../components/credito/CreditoConsultaAccionesCredito'
 import { CreditoConsultaImpresosBar } from '../../components/credito/CreditoConsultaImpresosBar'
 import { CreditoConsultaResumenCredito } from '../../components/credito/CreditoConsultaResumenCredito'
@@ -112,6 +113,16 @@ function errMsg(e: unknown): string {
 
 const { Paragraph, Text } = Typography
 
+function estadoPlanRowClass(row: EstadoPlanPagoCuota): string {
+  const estado = row.estado?.trim().toUpperCase()
+  if (estado === 'PAG') return 'credito-plan-row credito-plan-row--pagado'
+  if ((row.diasAtrazo ?? 0) > 0 && estado !== 'PAG') {
+    return 'credito-plan-row credito-plan-row--vencido'
+  }
+  if (estado === 'CRE') return 'credito-plan-row credito-plan-row--creado'
+  return 'credito-plan-row credito-plan-row--pendiente'
+}
+
 export function ConsultaCreditoPage() {
   const queryClient = useQueryClient()
   const { session } = useAuth()
@@ -124,6 +135,7 @@ export function ConsultaCreditoPage() {
   const [modalReprogramar, setModalReprogramar] = useState(false)
   const [moraModalOpen, setMoraModalOpen] = useState(false)
   const [observacionAnular, setObservacionAnular] = useState('')
+  const [claveAnular, setClaveAnular] = useState('')
   const [diasProrroga, setDiasProrroga] = useState(1)
   const [puedeAnular, setPuedeAnular] = useState<boolean | null>(null)
   const creditoIdParam = searchParams.get('creditoId')
@@ -143,16 +155,14 @@ export function ConsultaCreditoPage() {
     return !Number.isNaN(id) && id > 0 ? id : null
   }, [creditoIdParam])
 
-  const [creditoId, setCreditoId] = useState<number | null>(creditoIdFromUrl)
   const [activeId, setActiveId] = useState<number | null>(creditoIdFromUrl)
   const [tabActiva, setTabActiva] = useState('plan')
 
   useEffect(() => {
-    if (creditoIdFromUrl !== null && creditoIdFromUrl !== creditoId) {
-      setCreditoId(creditoIdFromUrl)
+    if (creditoIdFromUrl !== null && creditoIdFromUrl !== activeId) {
       setActiveId(creditoIdFromUrl)
     }
-  }, [creditoIdFromUrl, creditoId])
+  }, [creditoIdFromUrl, activeId])
 
   const moraQuery = useQuery({
     queryKey: ['mora-pendiente', activeId],
@@ -198,7 +208,6 @@ export function ConsultaCreditoPage() {
 
   const aplicarCredito = useCallback(
     (id: number, personaId?: number) => {
-      setCreditoId(id)
       setActiveId(id)
       const next = new URLSearchParams()
       next.set('creditoId', String(id))
@@ -209,14 +218,6 @@ export function ConsultaCreditoPage() {
     },
     [setSearchParams],
   )
-
-  const buscar = () => {
-    if (!creditoId || creditoId < 1) {
-      message.warning('Ingrese un número de crédito válido')
-      return
-    }
-    aplicarCredito(creditoId, personaIdFromUrl ?? undefined)
-  }
 
   const invalidarConsulta = () => {
     void queryClient.invalidateQueries({ queryKey: ['estado-plan-pago', activeId] })
@@ -235,6 +236,7 @@ export function ConsultaCreditoPage() {
       const v = await validarAnularCredito(oficinaId, activeId)
       setPuedeAnular(v.puedeAnular)
       setObservacionAnular('')
+      setClaveAnular('')
       setModalAnular(true)
     } catch (e) {
       message.error(errMsg(e))
@@ -247,11 +249,13 @@ export function ConsultaCreditoPage() {
         oficinaId,
         creditoId: activeId!,
         observacion: observacionAnular.trim(),
+        claveAutorizacion: claveAnular,
       }),
     onSuccess: () => {
       message.success('Crédito anulado')
       setModalAnular(false)
       setObservacionAnular('')
+      setClaveAnular('')
       invalidarConsulta()
     },
     onError: (e) => message.error(errMsg(e)),
@@ -286,6 +290,13 @@ export function ConsultaCreditoPage() {
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const ticketMovimiento = useMutation({
+    mutationFn: (movimientoCajaId: number) =>
+      downloadMovimientoCajaTicketPdf(oficinaId, movimientoCajaId),
+    onSuccess: () => message.success('Ticket de pago generado'),
+    onError: (e) => message.error(errMsg(e)),
+  })
+
   const planCols: ColumnsType<EstadoPlanPagoCuota> = [
     { title: 'Nro', dataIndex: 'numero' },
     {
@@ -296,9 +307,25 @@ export function ConsultaCreditoPage() {
     {
       title: 'Estado',
       dataIndex: 'estado',
-      render: (estado: string | null) => {
+      render: (estado: string | null, row) => {
         const meta = getCreditoEstadoMeta(estado)
-        return meta ? <Tag color={meta.color}>{meta.codigo}</Tag> : estado || '—'
+        const tag = meta ? <Tag color={meta.color}>{meta.codigo}</Tag> : estado || '—'
+        if (estado?.trim().toUpperCase() !== 'PAG' || !row.movimientoCajaId) {
+          return tag
+        }
+
+        return (
+          <Button
+            type="link"
+            size="small"
+            className="credito-plan-ticket-link"
+            icon={<PrinterOutlined />}
+            loading={ticketMovimiento.isPending}
+            onClick={() => ticketMovimiento.mutate(row.movimientoCajaId!)}
+          >
+            {tag}
+          </Button>
+        )
       },
     },
     {
@@ -415,6 +442,38 @@ export function ConsultaCreditoPage() {
   const pendientes =
     planQuery.data?.filter((c) => c.estado !== 'PAG').length ?? 0
 
+  const planResumen = useMemo(() => {
+    const rows = planQuery.data ?? []
+    return rows.reduce(
+      (acc, row) => ({
+        capital: acc.capital + (row.capital ?? 0),
+        amortizacion: acc.amortizacion + (row.amortizacion ?? 0),
+        interes: acc.interes + (row.interes ?? 0),
+        gastosAdm: acc.gastosAdm + (row.gastosAdm ?? 0),
+        cuota: acc.cuota + (row.cuota ?? 0),
+        mora: acc.mora + (row.importeMora ?? 0),
+        descuento: acc.descuento + (row.descuento ?? 0),
+        cargo: acc.cargo + (row.cargo ?? 0),
+        pagoLibre: acc.pagoLibre + (row.pagoLibre ?? 0),
+        pagado: acc.pagado + (row.pagoCuota ?? 0),
+        pagadas: acc.pagadas + (row.estado?.trim().toUpperCase() === 'PAG' ? 1 : 0),
+      }),
+      {
+        capital: 0,
+        amortizacion: 0,
+        interes: 0,
+        gastosAdm: 0,
+        cuota: 0,
+        mora: 0,
+        descuento: 0,
+        cargo: 0,
+        pagoLibre: 0,
+        pagado: 0,
+        pagadas: 0,
+      },
+    )
+  }, [planQuery.data])
+
   const moraVigente = moraQuery.data?.moraPendiente ?? 0
   const moraPostergada = moraResumenQuery.data?.saldoPostergado ?? 0
   const moraTotal =
@@ -488,15 +547,6 @@ export function ConsultaCreditoPage() {
         onSeleccionarCredito={(id, pid) => aplicarCredito(id, pid)}
       />
 
-      <CreditoBuscarPorCredito
-        creditoId={creditoId}
-        onCreditoIdChange={setCreditoId}
-        onSearch={buscar}
-        loading={
-          planQuery.isFetching && creditoId != null && creditoId === activeId
-        }
-      />
-
       {moraResumenQuery.data?.indMoraProducto &&
       (moraResumenQuery.data.saldoPostergado ?? 0) > 0 ? (
         <Alert
@@ -543,6 +593,22 @@ export function ConsultaCreditoPage() {
             onMora={() => setMoraModalOpen(true)}
           />
           <CreditoConsultaResumenCredito creditoId={activeId} />
+          {estadoCreditoQuery.data?.cabecera?.estado === 'PEN' ? (
+            <Alert
+              type="warning"
+              showIcon
+              style={{ marginBottom: 12 }}
+              message="Crédito pendiente de aprobación"
+              description="La aprobación se gestiona desde la bandeja Crédito > Aprobar para conservar roles, auditoría y flujo de revisión."
+              action={
+                <Link to="/credito/aprobar">
+                  <Button size="small" type="primary">
+                    Ir a aprobación
+                  </Button>
+                </Link>
+              }
+            />
+          ) : null}
           <Tabs
             className="credix-tabs"
             size="small"
@@ -557,10 +623,56 @@ export function ConsultaCreditoPage() {
                   <CredixDataTable<EstadoPlanPagoCuota>
                     mode="operacion"
                     rowKey="planPagoId"
+                    className="credito-plan-table"
                     columns={planCols}
                     dataSource={planQuery.data ?? []}
                     loading={planQuery.isLoading}
                     pagination={{ pageSize: 12 }}
+                    rowClassName={estadoPlanRowClass}
+                    summary={() => (
+                      <Table.Summary fixed>
+                        <Table.Summary.Row className="credito-plan-summary-row">
+                          <Table.Summary.Cell index={0} colSpan={3}>
+                            <Text strong>
+                              Total ({planResumen.pagadas}/{planQuery.data?.length ?? 0} pagadas)
+                            </Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={3} align="right">
+                            <Text strong>{formatMoney(planResumen.capital)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={4} align="right">
+                            <Text strong>{formatMoney(planResumen.amortizacion)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={5} align="right">
+                            <Text strong>{formatMoney(planResumen.interes)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={6} align="right">
+                            <Text strong>{formatMoney(planResumen.gastosAdm)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={7} align="right">
+                            <Text strong>{formatMoney(planResumen.cuota)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={8} align="right">
+                            <Text strong>{formatMoney(planResumen.mora)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={9} align="right">
+                            <Text strong>{formatMoney(planResumen.descuento)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={10} align="right">
+                            <Text strong>{formatMoney(planResumen.cargo)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={11} align="right">
+                            <Text strong>{formatMoney(planResumen.pagoLibre)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={12}>—</Table.Summary.Cell>
+                          <Table.Summary.Cell index={13} align="right">
+                            <Text strong>{formatMoney(planResumen.pagado)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={14}>—</Table.Summary.Cell>
+                          <Table.Summary.Cell index={15}>—</Table.Summary.Cell>
+                        </Table.Summary.Row>
+                      </Table.Summary>
+                    )}
                   />
                 ),
               },
@@ -603,17 +715,28 @@ export function ConsultaCreditoPage() {
       <Modal
         title={`Anular crédito ${activeId ?? ''}`}
         open={modalAnular}
-        onCancel={() => setModalAnular(false)}
-        onOk={() => {
+        onCancel={() => {
+          setModalAnular(false)
+          setClaveAnular('')
+        }}
+        onOk={async () => {
           if (!observacionAnular.trim()) {
             message.warning('La observación es obligatoria')
+            return
+          }
+          if (!claveAnular.trim()) {
+            message.warning('Ingrese la clave de autorización')
             return
           }
           if (puedeAnular === false) {
             message.error('Este crédito no cumple las condiciones para anular')
             return
           }
-          anular.mutate()
+          try {
+            await anular.mutateAsync()
+          } catch (e) {
+            message.error(errMsg(e))
+          }
         }}
         confirmLoading={anular.isPending}
         okText="Anular"
@@ -629,8 +752,14 @@ export function ConsultaCreditoPage() {
         )}
         <Paragraph type="secondary">
           Misma regla que el MVC: todas las cuentas por cobrar deben estar en
-          estado anulable.
+          estado anulable y se requiere clave de autorización.
         </Paragraph>
+        <Input.Password
+          style={{ marginBottom: 12 }}
+          placeholder="Clave de autorización"
+          value={claveAnular}
+          onChange={(e) => setClaveAnular(e.target.value)}
+        />
         <Input.TextArea
           rows={3}
           placeholder="Observación (obligatoria)"

@@ -14,6 +14,15 @@ function norm(roles: string[]): string[] {
 
 }
 
+function hasRoleLike(roles: string[], expected: string): boolean {
+  const exact = expected.trim().toUpperCase()
+  return norm(roles).some((role) => {
+    const compacto = role.replace(/\s+/g, '')
+    const expectedCompacto = exact.replace(/\s+/g, '')
+    return role === exact || compacto === expectedCompacto || role.startsWith(`${exact} `)
+  })
+}
+
 
 
 const ROLES_CREDITO_OPERACION_COMPLETA = [
@@ -44,9 +53,7 @@ export function tieneCreditoModoLectura(roles: string[]): boolean {
 
 export function esCreditoAdministrador(roles: string[]): boolean {
 
-  const r = norm(roles)
-
-  return r.includes('ADMINISTRADOR') || r.includes('ADMIN')
+  return hasRoleLike(roles, 'ADMINISTRADOR') || hasRoleLike(roles, 'ADMIN')
 
 }
 
@@ -54,7 +61,16 @@ export function esCreditoAdministrador(roles: string[]): boolean {
 
 export function esCreditoAprobador1(roles: string[]): boolean {
 
-  return norm(roles).includes('APROBADOR 1')
+  return norm(roles).some((role) => {
+    const compacto = role.replace(/\s+/g, '')
+    return (
+      compacto === 'APROBADOR1' ||
+      compacto === 'APROBADOR01' ||
+      compacto === 'APRO1' ||
+      compacto === 'APRO01' ||
+      (role.startsWith('APROBADOR') && /\b0?1\b/.test(role))
+    )
+  })
 
 }
 
@@ -62,7 +78,7 @@ export function esCreditoAprobador1(roles: string[]): boolean {
 
 export function esCreditoEncargado(roles: string[]): boolean {
 
-  return norm(roles).includes('ENCARGADO')
+  return hasRoleLike(roles, 'ENCARGADO')
 
 }
 

@@ -5309,8 +5309,10 @@ app.MapGet(
 app.MapGet(
         "/api/v1/credito/evidencia-archivo/{creditoImagenId:int}",
         async Task<Results<PhysicalFileHttpResult, ProblemHttpResult>> (
+            HttpContext httpContext,
             int creditoImagenId,
             ICreditoGestionReadService gestionRead,
+            ICreditoOficinaReadService creditoOficina,
             IOptions<CreditoStorageOptions> storageOptions,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
@@ -5337,6 +5339,20 @@ app.MapGet(
                         title: "No encontrado",
                         detail: "Evidencia no encontrada.");
                 }
+
+                if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                {
+                    return TypedResults.Problem(
+                        statusCode: StatusCodes.Status403Forbidden,
+                        title: "Prohibido",
+                        detail: "El token no contiene una oficina válida.");
+                }
+
+                var scopeError = await CajaCreditoWriteGuards
+                    .ValidateCreditoOficinaAsync(jwtOficinaId, meta.Value.CreditoId, creditoOficina, ct)
+                    .ConfigureAwait(false);
+                if (scopeError is not null)
+                    return scopeError;
 
                 var root = CreditoGestionWriteService.ResolveStorageRoot(storageOptions.Value);
                 var path = Path.Combine(root, meta.Value.CreditoId.ToString(), meta.Value.FileName);
@@ -5520,6 +5536,67 @@ app.MapGet(
     .WithTags("credito")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
     .Produces<CreditoGrillaPersonaPageDto>(StatusCodes.Status200OK, "application/json")
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
+    .ProducesProblem(StatusCodes.Status403Forbidden)
+    .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+app.MapGet(
+        "/api/v1/credito/avales-persona",
+        async Task<Results<Ok<IReadOnlyList<CreditoAvalRelacionDto>>, ProblemHttpResult>> (
+            HttpContext httpContext,
+            int oficinaId,
+            int personaId,
+            ICreditoGestionReadService gestionRead,
+            ILoggerFactory loggerFactory,
+            IHostEnvironment env,
+            CancellationToken ct) =>
+        {
+            if (oficinaId < 1 || personaId < 1)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Solicitud inválida",
+                    detail: "oficinaId y personaId deben ser >= 1.");
+            }
+
+            var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+            if (oficinaError is not null)
+                return oficinaError;
+
+            var log = loggerFactory.CreateLogger("AvalesPersona");
+            try
+            {
+                var response = await gestionRead
+                    .ListarAvalesPersonaAsync(oficinaId, personaId, ct)
+                    .ConfigureAwait(false);
+                return TypedResults.Ok(response);
+            }
+            catch (InvalidOperationException ex)
+            {
+                log.LogWarning(ex, "Cadena de conexión no configurada");
+                return TypedResults.Problem(
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Configuración incompleta");
+            }
+            catch (DbException ex)
+            {
+                log.LogError(ex, "Error al listar avales por persona");
+                var detail = "No se pudo listar avales y avalados.";
+                if (env.IsDevelopment())
+                    detail += $" Detalle: {ex.Message}";
+                return TypedResults.Problem(
+                    detail: detail,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Error de base de datos");
+            }
+        })
+    .WithName("CreditoAvalesPersona")
+    .WithSummary("Solo lectura: relaciones reales de aval y avalado para la ficha moderna de crédito.")
+    .WithTags("credito")
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .Produces<IReadOnlyList<CreditoAvalRelacionDto>>(StatusCodes.Status200OK, "application/json")
+    .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
     .ProducesProblem(StatusCodes.Status403Forbidden)
     .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
@@ -5850,7 +5927,7 @@ app.MapPost(
         })
     .WithName("CreditoSubirEvidencia")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .DisableAntiforgery()
     .Produces<CreditoGestionOperacionResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
@@ -5918,7 +5995,7 @@ app.MapPost(
         })
     .WithName("CreditoEliminarEvidencia")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<CreditoGestionOperacionResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status401Unauthorized)
     .ProducesProblem(StatusCodes.Status404NotFound)
@@ -6183,7 +6260,7 @@ app.MapPost(
         })
     .WithName("CreditoActualizarIrrecuperable")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<CreditoGestionOperacionResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status401Unauthorized)
     .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -14756,6 +14833,79 @@ app.MapGet(
     .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 app.MapGet(
+        "/api/v1/credito/bovedas-destino-transferencia",
+        async Task<Results<Ok<List<BovedaDestinoTransferenciaDto>>, ProblemHttpResult>> (
+            HttpContext httpContext,
+            int oficinaId,
+            IBovedaOficinaReadService bovedaOficina,
+            ILoggerFactory loggerFactory,
+            IHostEnvironment env,
+            CancellationToken ct) =>
+        {
+            if (oficinaId < 1)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Solicitud inválida",
+                    detail: "oficinaId debe ser un entero >= 1.");
+            }
+
+            var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+            if (oficinaError is not null)
+            {
+                return oficinaError;
+            }
+
+            var log = loggerFactory.CreateLogger("BovedasDestinoTransferencia");
+            try
+            {
+                var rows = await bovedaOficina
+                    .ListarDestinosTransferenciaAsync(oficinaId, ct)
+                    .ConfigureAwait(false);
+                return TypedResults.Ok(rows.ToList());
+            }
+            catch (InvalidOperationException ex)
+            {
+                log.LogWarning(ex, "Bóvedas destino transferencia: configuración incompleta");
+                return TypedResults.Problem(
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Configuración incompleta");
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                log.LogWarning(ex, "Bóvedas destino transferencia: parámetros inválidos");
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Parámetros inválidos",
+                    detail: ex.Message);
+            }
+            catch (DbException ex)
+            {
+                log.LogError(ex, "Error al listar bóvedas destino para transferencia");
+                var detail = "No se pudo listar bóvedas destino para transferencia.";
+                if (env.IsDevelopment())
+                {
+                    detail += $" Detalle: {ex.Message}";
+                }
+
+                return TypedResults.Problem(
+                    detail: detail,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Error de base de datos");
+            }
+        })
+    .WithName("CreditoBovedasDestinoTransferencia")
+    .WithSummary("Bóvedas principales abiertas de otras oficinas para transferencia interoficina.")
+    .WithTags("credito", "boveda")
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .Produces<List<BovedaDestinoTransferenciaDto>>(StatusCodes.Status200OK, "application/json")
+    .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
+    .ProducesProblem(StatusCodes.Status403Forbidden)
+    .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+app.MapGet(
         "/api/v1/credito/boveda-estado-dinero",
         async Task<Results<Ok<BovedaEstadoDineroDto>, ProblemHttpResult>> (
             HttpContext httpContext,
@@ -14818,6 +14968,90 @@ app.MapGet(
     .WithTags("credito", "boveda")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
     .Produces<BovedaEstadoDineroDto>(StatusCodes.Status200OK, "application/json");
+
+app.MapGet(
+        "/api/v1/credito/boveda-cuadre-preview",
+        async Task<Results<Ok<BovedaCuadrePreviewDto>, ProblemHttpResult>> (
+            HttpContext httpContext,
+            int oficinaId,
+            int? bovedaId,
+            IBovedaCuadrePreviewReadService cuadreRead,
+            ILoggerFactory loggerFactory,
+            IHostEnvironment env,
+            CancellationToken ct) =>
+        {
+            if (oficinaId < 1 || bovedaId is < 1)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Solicitud inválida",
+                    detail: "oficinaId debe ser >= 1 y bovedaId, si se envía, debe ser >= 1.");
+            }
+
+            var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+            if (oficinaError is not null)
+            {
+                return oficinaError;
+            }
+
+            var log = loggerFactory.CreateLogger("BovedaCuadrePreview");
+            try
+            {
+                var preview = await cuadreRead
+                    .ObtenerAsync(oficinaId, bovedaId, ct)
+                    .ConfigureAwait(false);
+                if (preview is null)
+                {
+                    return TypedResults.Problem(
+                        statusCode: StatusCodes.Status404NotFound,
+                        title: "No encontrado",
+                        detail: "No existe bóveda para generar el cuadre.");
+                }
+
+                return TypedResults.Ok(preview);
+            }
+            catch (InvalidOperationException ex)
+            {
+                log.LogWarning(ex, "Cuadre bóveda: configuración incompleta");
+                return TypedResults.Problem(
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Configuración incompleta");
+            }
+            catch (ArgumentOutOfRangeException ex)
+            {
+                log.LogWarning(ex, "Cuadre bóveda: parámetros inválidos");
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Parámetros inválidos",
+                    detail: ex.Message);
+            }
+            catch (DbException ex)
+            {
+                log.LogError(ex, "Error al generar cuadre automático de bóveda");
+                var detail = "No se pudo generar el cuadre automático de bóveda.";
+                if (env.IsDevelopment())
+                {
+                    detail += $" Detalle: {ex.Message}";
+                }
+
+                return TypedResults.Problem(
+                    detail: detail,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Error de base de datos");
+            }
+        })
+    .WithName("CreditoBovedaCuadrePreview")
+    .WithSummary(
+        "Solo lectura: cuadre automático de Bóveda/Caja con responsables, medios, diferencias y pendientes para reemplazar el Excel manual.")
+    .WithTags("credito", "boveda")
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .Produces<BovedaCuadrePreviewDto>(StatusCodes.Status200OK, "application/json")
+    .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
+    .ProducesProblem(StatusCodes.Status403Forbidden)
+    .ProducesProblem(StatusCodes.Status404NotFound)
+    .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 app.MapGet(
         "/api/v1/credito/boveda-listar",
@@ -14958,6 +15192,7 @@ app.MapPost(
             HttpContext httpContext,
             CerrarBovedaRequest body,
             IBovedaWriteService bovedaWrite,
+            ISaldosCierreReadService saldosCierre,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
             CancellationToken ct) =>
@@ -14985,6 +15220,17 @@ app.MapPost(
             var log = loggerFactory.CreateLogger("CerrarBoveda");
             try
             {
+                var validacion = await saldosCierre
+                    .ValidarCierreMasivoAsync(body.OficinaId, ct)
+                    .ConfigureAwait(false);
+                if (!validacion.PuedeCerrar)
+                {
+                    return TypedResults.Problem(
+                        statusCode: StatusCodes.Status409Conflict,
+                        title: "Cierre bloqueado",
+                        detail: validacion.Mensaje);
+                }
+
                 var response = await bovedaWrite
                     .CerrarBovedaAsync(body.OficinaId, usuarioId, ct)
                     .ConfigureAwait(false);
@@ -15026,6 +15272,7 @@ app.MapPost(
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
     .ProducesProblem(StatusCodes.Status403Forbidden)
+    .ProducesProblem(StatusCodes.Status409Conflict)
     .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 app.MapPost(
@@ -17418,6 +17665,8 @@ app.MapGet(
 app.MapGet(
         "/api/v1/credito/creditos-por-aprobar",
         async Task<Results<Ok<CreditosPorAprobarListResponse>, ProblemHttpResult>> (
+            HttpContext httpContext,
+            int? oficinaId,
             string? buscar,
             int? page,
             int? pageSize,
@@ -17428,11 +17677,19 @@ app.MapGet(
             IHostEnvironment env,
             CancellationToken ct) =>
         {
+            var oficina = oficinaId.GetValueOrDefault();
+            var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficina);
+            if (oficinaError is not null)
+            {
+                return oficinaError;
+            }
+
             var log = loggerFactory.CreateLogger("CreditosPorAprobar");
             try
             {
                 var response = await creditosPorAprobar
                     .ListarAsync(
+                        oficina,
                         buscar,
                         page is null or < 1 ? 1 : page.Value,
                         pageSize is null or < 1 ? 15 : pageSize.Value,
@@ -17584,6 +17841,7 @@ app.MapPost(
             ICreditoCicloWriteService creditoCiclo,
             ICreditoAnulacionReadService creditoAnulacion,
             ICreditoOficinaReadService creditoOficina,
+            IConfirmarClaveCajaDiarioService confirmarClave,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
             CancellationToken ct) =>
@@ -17600,6 +17858,14 @@ app.MapPost(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Solicitud inválida",
                     detail: "observacion es obligatoria.");
+            }
+
+            if (string.IsNullOrWhiteSpace(body.ClaveAutorizacion))
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Solicitud inválida",
+                    detail: "claveAutorizacion es obligatoria.");
             }
 
             var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
@@ -17625,6 +17891,17 @@ app.MapPost(
             var log = loggerFactory.CreateLogger("AnularCredito");
             try
             {
+                var autorizacion = await confirmarClave
+                    .VerificarAsync(body.ClaveAutorizacion, ct)
+                    .ConfigureAwait(false);
+                if (!autorizacion.Autorizado)
+                {
+                    return TypedResults.Problem(
+                        statusCode: StatusCodes.Status403Forbidden,
+                        title: "No autorizado",
+                        detail: autorizacion.Mensaje ?? "Clave de autorización no válida.");
+                }
+
                 var validacion = await creditoAnulacion
                     .ValidarAnularAsync(body.CreditoId, ct)
                     .ConfigureAwait(false);

@@ -207,6 +207,7 @@ public static class DependencyInjection
         services.AddScoped<IResumenCuentaBovedaReadService, ResumenCuentaBovedaReadService>();
         services.AddScoped<ICreditoVencidoMetricasReadService, CreditoVencidoMetricasReadService>();
         services.AddScoped<IBovedaEstadoDineroReadService, BovedaEstadoDineroReadService>();
+        services.AddScoped<IBovedaCuadrePreviewReadService, BovedaCuadrePreviewReadService>();
         services.AddScoped<IBovedaListadoReadService, BovedaListadoReadService>();
         services.AddScoped<ICentralRiesgoGenerarReadService, CentralRiesgoGenerarReadService>();
         services.AddScoped<IRptCreditoReadService, RptCreditoReadService>();

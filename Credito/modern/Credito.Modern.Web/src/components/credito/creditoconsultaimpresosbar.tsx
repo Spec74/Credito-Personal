@@ -1,24 +1,14 @@
 import { useMutation } from '@tanstack/react-query'
-import { Button, Divider, Space, Tooltip, Typography, message } from 'antd'
-import {
-  FileExcelOutlined,
-  FilePdfOutlined,
-  PrinterOutlined,
-  ExportOutlined,
-} from '@ant-design/icons'
+import { Button, Space, Tooltip, Typography, message } from 'antd'
+import { FileExcelOutlined, FilePdfOutlined, PrinterOutlined } from '@ant-design/icons'
 import {
   downloadMovimientosCreditoCsv,
-  downloadMovimientosCreditoPdf,
-  downloadRptClientePdf,
-  downloadRptEstadoCreditoPdf,
-  downloadRptPlanPagosPdf,
+  openMovimientosCreditoPdfInTab,
+  openRptClientePdfInTab,
+  openRptEstadoCreditoPdfInTab,
+  openRptPlanPagosPdfInTab,
 } from '../../api/creditoPlanes'
 import { ApiError } from '../../api/errors'
-import {
-  openLegacyReporteCreditoMovimiento,
-  openLegacyReporteEstadoCredito,
-  openLegacyReportePlanPagos,
-} from '../../config/creditoLegacyReports'
 
 const { Text } = Typography
 
@@ -33,24 +23,24 @@ type Props = {
 
 /**
  * Paridad botones `btncImpEstadoCuenta`, `btncImpPlanPago`, `btncImpMovimiento` en Creditos.cshtml.
- * PDF moderno con branding + enlace al diseño RDLC legacy cuando se requiera.
+ * PDF moderno con branding corporativo y visor en pestaña nueva.
  */
 export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
   const planPdf = useMutation({
-    mutationFn: () => downloadRptPlanPagosPdf(creditoId),
-    onSuccess: () => message.success('Plan de pagos PDF generado'),
+    mutationFn: () => openRptPlanPagosPdfInTab(creditoId),
+    onSuccess: () => message.success('Plan de pagos abierto'),
     onError: (e) => message.error(errMsg(e)),
   })
 
   const estadoPdf = useMutation({
-    mutationFn: () => downloadRptEstadoCreditoPdf(creditoId),
-    onSuccess: () => message.success('Estado de cuenta PDF generado'),
+    mutationFn: () => openRptEstadoCreditoPdfInTab(creditoId),
+    onSuccess: () => message.success('Estado de cuenta abierto'),
     onError: (e) => message.error(errMsg(e)),
   })
 
   const movPdf = useMutation({
-    mutationFn: () => downloadMovimientosCreditoPdf(creditoId),
-    onSuccess: () => message.success('Movimientos PDF generado'),
+    mutationFn: () => openMovimientosCreditoPdfInTab(creditoId),
+    onSuccess: () => message.success('Movimientos abierto'),
     onError: (e) => message.error(errMsg(e)),
   })
 
@@ -61,8 +51,8 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
   })
 
   const fichaPdf = useMutation({
-    mutationFn: () => downloadRptClientePdf(personaId!),
-    onSuccess: () => message.success('Ficha cliente PDF'),
+    mutationFn: () => openRptClientePdfInTab(personaId!),
+    onSuccess: () => message.success('Ficha cliente abierta'),
     onError: (e) => message.error(errMsg(e)),
   })
 
@@ -73,30 +63,28 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
     movCsv.isPending ||
     fichaPdf.isPending
 
-  const openLegacy = (fn: () => void, label: string) => {
-    try {
-      fn()
-    } catch (e) {
-      message.error(e instanceof Error ? e.message : `No se pudo abrir ${label}`)
-    }
-  }
-
   return (
     <section className="credito-consulta-impresos" aria-label="Impresos del crédito">
       <div className="credito-consulta-impresos__head">
-        <PrinterOutlined aria-hidden />
-        <Text strong>Impresos</Text>
-        <Text type="secondary" className="credito-consulta-impresos__hint">
-          PDF moderno con logo y colores corporativos, o diseño clásico ReportViewer.
-        </Text>
+        <span className="credito-consulta-impresos__icon" aria-hidden>
+          <PrinterOutlined />
+        </span>
+        <div>
+          <Text strong className="credito-consulta-impresos__title">
+            Reportes del crédito
+          </Text>
+          <Text type="secondary" className="credito-consulta-impresos__hint">
+            PDFs modernos en nueva pestaña, con logo y colores corporativos.
+          </Text>
+        </div>
       </div>
 
       <div className="credito-consulta-impresos__group">
         <Text type="secondary" className="credito-consulta-impresos__group-label">
-          Exportación moderna
+          Documentos disponibles
         </Text>
         <Space wrap size={[8, 8]} className="credito-consulta-impresos__actions">
-          <Tooltip title="PDF moderno con logo, colores y datos del estado de cuenta">
+          <Tooltip title="Abrir PDF moderno con logo, colores y datos del estado de cuenta">
             <Button
               icon={<FilePdfOutlined />}
               loading={estadoPdf.isPending}
@@ -107,7 +95,7 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
               Estado cuenta
             </Button>
           </Tooltip>
-          <Tooltip title="PDF moderno con logo, colores y plan de cuotas">
+          <Tooltip title="Abrir PDF moderno con logo, colores y plan de cuotas">
             <Button
               icon={<FilePdfOutlined />}
               loading={planPdf.isPending}
@@ -118,7 +106,7 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
               Plan de pagos
             </Button>
           </Tooltip>
-          <Tooltip title="PDF moderno de movimientos del crédito">
+          <Tooltip title="Abrir PDF moderno de movimientos del crédito">
             <Button
               icon={<FilePdfOutlined />}
               loading={movPdf.isPending}
@@ -149,55 +137,6 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
               Ficha cliente
             </Button>
           ) : null}
-        </Space>
-      </div>
-
-      <Divider className="credito-consulta-impresos__divider" />
-
-      <div className="credito-consulta-impresos__group">
-        <Text type="secondary" className="credito-consulta-impresos__group-label">
-          Diseño legacy (RDLC / ReportViewer)
-        </Text>
-        <Space wrap size={[8, 8]} className="credito-consulta-impresos__actions">
-          <Tooltip title="Abre ReporteEstadoCredito en el sistema clásico">
-            <Button
-              icon={<ExportOutlined />}
-              disabled={busy}
-              onClick={() =>
-                openLegacy(
-                  () => openLegacyReporteEstadoCredito(creditoId),
-                  'estado de cuenta',
-                )
-              }
-            >
-              Estado cuenta (RDLC)
-            </Button>
-          </Tooltip>
-          <Tooltip title="Abre ReportePlanPagos (rptSimuladorPlanPago)">
-            <Button
-              icon={<ExportOutlined />}
-              disabled={busy}
-              onClick={() =>
-                openLegacy(() => openLegacyReportePlanPagos(creditoId), 'plan de pagos')
-              }
-            >
-              Plan pagos (RDLC)
-            </Button>
-          </Tooltip>
-          <Tooltip title="Abre ReporteCreditoMovimiento">
-            <Button
-              icon={<ExportOutlined />}
-              disabled={busy}
-              onClick={() =>
-                openLegacy(
-                  () => openLegacyReporteCreditoMovimiento(creditoId),
-                  'movimientos',
-                )
-              }
-            >
-              Movimientos (RDLC)
-            </Button>
-          </Tooltip>
         </Space>
       </div>
     </section>

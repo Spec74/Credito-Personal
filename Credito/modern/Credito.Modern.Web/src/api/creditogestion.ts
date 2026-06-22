@@ -96,6 +96,18 @@ export interface CreditoGrillaPersonaPage {
   pageSize: number
 }
 
+export interface CreditoAvalRelacion {
+  grupo: string
+  creditoId: number
+  personaId: number
+  personaRelacionadaId: number | null
+  montoCredito: number
+  estado: string
+  persona: string | null
+  dni: string | null
+  celular: string | null
+}
+
 function postJson<T>(path: string, body: unknown): Promise<T> {
   return apiFetch<T>(path, {
     method: 'POST',
@@ -172,6 +184,17 @@ export function fetchCreditosGrillaPersona(params: {
     pageSize: String(params.pageSize ?? 25),
   })
   return apiFetch<CreditoGrillaPersonaPage>(`/credito/creditos-grilla-persona?${q}`)
+}
+
+export function fetchAvalesPersona(
+  oficinaId: number,
+  personaId: number,
+): Promise<CreditoAvalRelacion[]> {
+  const q = new URLSearchParams({
+    oficinaId: String(oficinaId),
+    personaId: String(personaId),
+  })
+  return apiFetch<CreditoAvalRelacion[]>(`/credito/avales-persona?${q}`)
 }
 
 export function condonarCredito(body: {

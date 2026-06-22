@@ -321,7 +321,7 @@ export const AsignarCajaPage = lazyNamed(
   'AsignarCajaPage',
 )
 export const SaldosPage = lazyNamed(
-  () => import('../pages/caja/SaldosPage'),
+  () => import('../pages/caja/saldospage'),
   'SaldosPage',
 )
 export const VerificarPagosPage = lazyNamed(
@@ -351,14 +351,14 @@ export const ComisionesPage = lazyNamed(
 )
 
 export const TesoreriaHubPage = lazyNamed(
-  () => import('../pages/tesoreria/TesoreriaHubPage'),
+  () => import('../pages/tesoreria/tesoreriahubpage'),
   'TesoreriaHubPage',
 )
 export const BovedaPage = lazyNamed(
-  () => import('../pages/tesoreria/BovedaPage'),
+  () => import('../pages/tesoreria/bovedapage'),
   'BovedaPage',
 )
 export const MovimientoBovedaPage = lazyNamed(
-  () => import('../pages/tesoreria/MovimientoBovedaPage'),
+  () => import('../pages/tesoreria/movimientobovedapage'),
   'MovimientoBovedaPage',
 )

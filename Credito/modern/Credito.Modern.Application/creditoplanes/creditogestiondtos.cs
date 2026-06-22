@@ -93,6 +93,17 @@ public sealed record CreditoGrillaPersonaPageDto(
     int Page,
     int PageSize);
 
+public sealed record CreditoAvalRelacionDto(
+    string Grupo,
+    int CreditoId,
+    int PersonaId,
+    int? PersonaRelacionadaId,
+    decimal MontoCredito,
+    string Estado,
+    string? Persona,
+    string? Dni,
+    string? Celular);
+
 public sealed record CambiarAnalistaCreditoRequest(int OficinaId, int CreditoId, int AnalistaId);
 
 public sealed record ActualizarTopeCreditoRequest(int OficinaId, int PersonaId, decimal TopeCredito);

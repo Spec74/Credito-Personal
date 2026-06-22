@@ -61,4 +61,45 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             cancellationToken: cancellationToken);
         return await connection.ExecuteScalarAsync<bool>(command).ConfigureAwait(false);
     }
+
+    public async Task<IReadOnlyList<BovedaDestinoTransferenciaDto>> ListarDestinosTransferenciaAsync(
+        int oficinaOrigenId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(_connectionString))
+        {
+            throw new InvalidOperationException(
+                "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
+        }
+
+        if (oficinaOrigenId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(oficinaOrigenId), "oficinaOrigenId debe ser >= 1.");
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        const string sql = """
+            SELECT
+                b.BovedaId,
+                b.OficinaId,
+                COALESCE(o.Denominacion, CONCAT('Oficina ', b.OficinaId)) AS Oficina,
+                b.SaldoFinal,
+                b.FechaIniOperacion
+            FROM CREDITO.Boveda AS b
+            LEFT JOIN MAESTRO.Oficina AS o ON o.OficinaId = b.OficinaId
+            WHERE b.IndCierre = CAST(0 AS bit)
+              AND b.IndTemporal = CAST(0 AS bit)
+              AND b.OficinaId <> @OficinaOrigenId
+            ORDER BY o.Denominacion, b.BovedaId;
+            """;
+        var rows = await connection
+            .QueryAsync<BovedaDestinoTransferenciaDto>(
+                new CommandDefinition(
+                    sql,
+                    new { OficinaOrigenId = oficinaOrigenId },
+                    cancellationToken: cancellationToken))
+            .ConfigureAwait(false);
+        return rows.ToList();
+    }
 }

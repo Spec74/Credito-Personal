@@ -10,4 +10,9 @@ public interface IBovedaOficinaReadService
     Task<bool> ExisteBovedaTemporalAbiertaAsync(
         int oficinaId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Bóvedas principales abiertas de otras oficinas, para combo de transferencia.</summary>
+    Task<IReadOnlyList<BovedaDestinoTransferenciaDto>> ListarDestinosTransferenciaAsync(
+        int oficinaOrigenId,
+        CancellationToken cancellationToken = default);
 }

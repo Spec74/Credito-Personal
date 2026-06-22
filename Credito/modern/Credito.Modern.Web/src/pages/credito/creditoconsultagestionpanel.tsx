@@ -6,10 +6,12 @@ import {
   Card,
   Checkbox,
   Col,
+  Descriptions,
   Form,
   Input,
   InputNumber,
   Modal,
+  Radio,
   Row,
   Select,
   Space,
@@ -43,9 +45,11 @@ import {
   type CargoCreditoRow,
   type CreditoEvidencia,
 } from '../../api/creditoGestion'
+import { fetchRptCliente } from '../../api/creditoPlanes'
 import { fetchValoresTabla } from '../../api/maestros'
 import { fetchUsuariosGestion } from '../../api/usuariosAdmin'
 import { ApiError } from '../../api/errors'
+import { consultarDniApiPeru } from '../../api/apiperu'
 import { formatMoney } from '../../utils/formatMoney'
 import {
   puedeCambiarAnalistaCreditoUi,
@@ -75,6 +79,8 @@ interface Props {
   activo?: boolean
 }
 
+type ConceptoCondonacion = 'capital' | 'interes' | 'mora' | 'cargos'
+
 export function CreditoConsultaGestionPanel({
   creditoId,
   oficinaId,
@@ -87,6 +93,7 @@ export function CreditoConsultaGestionPanel({
   const puedeTope = puedeEditarTopeCreditoUi(roles)
   const puedeAnalista = puedeCambiarAnalistaCreditoUi(roles)
   const puedeTramite = puedeEditarTramiteCentralAvalUi(roles)
+  const puedeAval = !soloLectura && (puedeTramite || puedeAnalista || puedeGestion)
   const bloqueadoGestion = soloLectura || !puedeGestion
   const spaBase = import.meta.env.BASE_URL || '/'
   const queryClient = useQueryClient()
@@ -97,6 +104,18 @@ export function CreditoConsultaGestionPanel({
   const [montoCxc, setMontoCxc] = useState(0)
   const [montoCond, setMontoCond] = useState(0)
   const [obsCondonar, setObsCondonar] = useState('')
+  const [condonarPartes, setCondonarPartes] = useState({
+    capital: true,
+    interes: true,
+    mora: true,
+    cargos: true,
+  })
+  const [condonarMontos, setCondonarMontos] = useState({
+    capital: 0,
+    interes: 0,
+    mora: 0,
+    cargos: 0,
+  })
   const [observacion, setObservacion] = useState('')
   const [tipoCargoId, setTipoCargoId] = useState<number | null>(null)
   const [montoCargo, setMontoCargo] = useState(0)
@@ -124,6 +143,14 @@ export function CreditoConsultaGestionPanel({
     queryFn: () => fetchCreditoContexto(creditoId),
     enabled: activo,
     staleTime: creditoStaleTime.operacion,
+  })
+  const ctx = contexto.data
+
+  const fichaCliente = useQuery({
+    queryKey: ['rpt-cliente-gestion', ctx?.personaId],
+    queryFn: () => fetchRptCliente(ctx!.personaId),
+    enabled: activo && (ctx?.personaId ?? 0) > 0,
+    staleTime: creditoStaleTime.ficha,
   })
 
   const cargos = useQuery({
@@ -200,14 +227,28 @@ export function CreditoConsultaGestionPanel({
   }, [contexto.data, creditoPrenda.data])
 
   const condonar = useMutation({
-    mutationFn: () =>
-      condonarCredito({
+    mutationFn: () => {
+      const detalle = [
+        condonarPartes.capital ? `Capital ${formatMoney(condonarMontos.capital)}` : null,
+        condonarPartes.interes ? `Interés ${formatMoney(condonarMontos.interes)}` : null,
+        condonarPartes.mora ? `Mora ${formatMoney(condonarMontos.mora)}` : null,
+        condonarPartes.cargos ? `Cargos ${formatMoney(condonarMontos.cargos)}` : null,
+      ].filter(Boolean)
+      const observacionDetalle = [
+        `CONDONACION: ${detalle.join(' · ') || 'Sin conceptos seleccionados'}`,
+        obsCondonar.trim(),
+      ]
+        .filter(Boolean)
+        .join(' | ')
+
+      return condonarCredito({
         oficinaId,
         creditoId,
         montoCxc,
         montoCondonacion: montoCond,
-        observacion: obsCondonar,
-      }),
+        observacion: observacionDetalle,
+      })
+    },
     onSuccess: () => {
       message.success('Crédito condonado')
       setModalCondonar(false)
@@ -239,6 +280,10 @@ export function CreditoConsultaGestionPanel({
     onSuccess: () => {
       message.success('Cargo registrado')
       setModalCargo(false)
+      setTipoCargoId(null)
+      setMontoCargo(0)
+      setDescCargo('')
+      setCargoFinal(false)
       refrescar()
       void queryClient.invalidateQueries({ queryKey: ['estado-plan-pago', creditoId] })
     },
@@ -350,6 +395,21 @@ export function CreditoConsultaGestionPanel({
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const validarDniAval = useMutation({
+    mutationFn: () => consultarDniApiPeru(nuevoAvalDni.trim()),
+    onSuccess: (r) => {
+      if (!r.success) {
+        message.warning(r.mensaje || 'DNI no encontrado en API Perú')
+        return
+      }
+      setNuevoAvalNombre(r.nombres ?? '')
+      setNuevoAvalPaterno(r.apellidoPaterno ?? '')
+      setNuevoAvalMaterno(r.apellidoMaterno ?? '')
+      message.success('DNI validado')
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
   const guardarPrendario = useMutation({
     mutationFn: () =>
       guardarPrendaCredito({
@@ -382,7 +442,6 @@ export function CreditoConsultaGestionPanel({
     { title: 'Estado', dataIndex: 'estado', width: 70 },
   ]
 
-  const ctx = contexto.data
   const analistaOptions = useMemo(
     () =>
       (usuariosGestion.data?.rows ?? []).map((u) => ({
@@ -422,8 +481,56 @@ export function CreditoConsultaGestionPanel({
     return { capital, interes, mora, cargos, descuentos, total, cuotas: pendientes.length }
   }, [planPago.data])
 
+  const totalCondonacionSeleccionado = useMemo(() => {
+    const total =
+      (condonarPartes.capital ? condonarMontos.capital : 0) +
+      (condonarPartes.interes ? condonarMontos.interes : 0) +
+      (condonarPartes.mora ? condonarMontos.mora : 0) +
+      (condonarPartes.cargos ? condonarMontos.cargos : 0)
+    return Math.max(0, Number(total.toFixed(2)))
+  }, [condonarMontos, condonarPartes])
+
+  const abrirModalCondonar = () => {
+    const montos = {
+      capital: Number(condonacionResumen.capital.toFixed(2)),
+      interes: Number(condonacionResumen.interes.toFixed(2)),
+      mora: Number(condonacionResumen.mora.toFixed(2)),
+      cargos: Number(condonacionResumen.cargos.toFixed(2)),
+    }
+    setCondonarMontos(montos)
+    setCondonarPartes({
+      capital: montos.capital > 0,
+      interes: montos.interes > 0,
+      mora: montos.mora > 0,
+      cargos: montos.cargos > 0,
+    })
+    const total = montos.capital + montos.interes + montos.mora + montos.cargos
+    setMontoCxc(Number(total.toFixed(2)))
+    setMontoCond(Number(total.toFixed(2)))
+    setObsCondonar('')
+    setModalCondonar(true)
+  }
+
+  useEffect(() => {
+    if (!modalCondonar) return
+    setMontoCxc(totalCondonacionSeleccionado)
+    setMontoCond(totalCondonacionSeleccionado)
+  }, [modalCondonar, totalCondonacionSeleccionado])
+
+  const condonacionConceptos: Array<{
+    key: ConceptoCondonacion
+    label: string
+    deuda: number
+  }> = [
+    { key: 'capital', label: 'Capital', deuda: condonacionResumen.capital },
+    { key: 'interes', label: 'Interés', deuda: condonacionResumen.interes },
+    { key: 'mora', label: 'Mora', deuda: condonacionResumen.mora },
+    { key: 'cargos', label: 'Cargos', deuda: condonacionResumen.cargos },
+  ]
+
   return (
     <>
+      <div className="credito-gestion-tab">
       {soloLectura ? (
         <Alert
           type="info"
@@ -434,7 +541,11 @@ export function CreditoConsultaGestionPanel({
         />
       ) : null}
 
-      <Card size="small" style={{ marginBottom: 16 }} loading={contexto.isLoading}>
+      <Card
+        size="small"
+        className="credito-gestion-card credito-gestion-context-card"
+        loading={contexto.isLoading}
+      >
         <Paragraph style={{ marginBottom: 8 }}>
           <Text strong>Cliente:</Text> {ctx?.personaNombre ?? '—'} (persona #{ctx?.personaId})
         </Paragraph>
@@ -443,9 +554,9 @@ export function CreditoConsultaGestionPanel({
             <Text strong>Observación:</Text> {ctx.observacion}
           </Paragraph>
         ) : null}
-        <Space wrap>
+        <Space wrap className="credito-gestion-context-card__actions">
           {puedeCondonar ? (
-            <Button disabled={bloqueadoGestion} onClick={() => setModalCondonar(true)}>
+            <Button disabled={bloqueadoGestion} onClick={abrirModalCondonar}>
               Condonar
             </Button>
           ) : null}
@@ -458,7 +569,16 @@ export function CreditoConsultaGestionPanel({
           >
             Observar
           </Button>
-          <Button disabled={bloqueadoGestion} onClick={() => setModalCargo(true)}>
+          <Button
+            disabled={bloqueadoGestion}
+            onClick={() => {
+              setTipoCargoId(null)
+              setMontoCargo(0)
+              setDescCargo('')
+              setCargoFinal(false)
+              setModalCargo(true)
+            }}
+          >
             Nuevo cargo
           </Button>
           <Switch
@@ -472,9 +592,79 @@ export function CreditoConsultaGestionPanel({
         </Space>
       </Card>
 
-      <Row gutter={[16, 16]}>
+      <Card
+        title="Datos completos del cliente"
+        size="small"
+        className="credito-gestion-cliente-card"
+        loading={fichaCliente.isLoading}
+      >
+        {fichaCliente.data?.ficha ? (
+          <Descriptions
+            size="small"
+            bordered
+            column={{ xs: 1, md: 2, xl: 3 }}
+            className="credito-gestion-cliente-card__desc"
+          >
+            <Descriptions.Item label="Cliente" span={2}>
+              {fichaCliente.data.ficha.cliente}
+            </Descriptions.Item>
+            <Descriptions.Item label="DNI">
+              {fichaCliente.data.ficha.numeroDocumento}
+            </Descriptions.Item>
+            <Descriptions.Item label="Celular">
+              {fichaCliente.data.ficha.celular || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="F. nacimiento">
+              {fichaCliente.data.ficha.fechaNacimiento || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Sexo">
+              {fichaCliente.data.ficha.sexo || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Estado civil">
+              {fichaCliente.data.ficha.estadoCivil || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Tipo vivienda">
+              {fichaCliente.data.ficha.tipoVivienda || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Distrito">
+              {fichaCliente.data.ficha.distrito || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Actividad económica">
+              {fichaCliente.data.ficha.actividadEconomica || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Dirección" span={2}>
+              {fichaCliente.data.ficha.direccion || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Referencia">
+              {fichaCliente.data.ficha.direccionRef || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Dirección negocio" span={2}>
+              {fichaCliente.data.ficha.direccionNegocio || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Ref. negocio">
+              {fichaCliente.data.ficha.direccionNegocioRef || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Cónyuge">
+              {fichaCliente.data.ficha.conyugue || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="DNI cónyuge">
+              {fichaCliente.data.ficha.conyugueDni || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Celular cónyuge">
+              {fichaCliente.data.ficha.conyugueCelular || '—'}
+            </Descriptions.Item>
+            <Descriptions.Item label="Nota" span={3}>
+              {fichaCliente.data.ficha.nota || '—'}
+            </Descriptions.Item>
+          </Descriptions>
+        ) : (
+          <Text type="secondary">Seleccione un crédito para ver la ficha del cliente.</Text>
+        )}
+      </Card>
+
+      <Row gutter={[16, 16]} className="credito-gestion-two-col-grid">
         <Col xs={24} lg={12}>
-          <Card title="Cargos" size="small">
+          <Card title="Cargos" size="small" className="credito-gestion-card credito-gestion-table-card">
             <Table<CargoCreditoRow>
               rowKey="cargoId"
               size="small"
@@ -489,6 +679,7 @@ export function CreditoConsultaGestionPanel({
           <Card
             title="Evidencias"
             size="small"
+            className="credito-gestion-card credito-gestion-evidencias-card"
             extra={
               <Upload
                 disabled={bloqueadoGestion}
@@ -522,117 +713,129 @@ export function CreditoConsultaGestionPanel({
         </Col>
       </Row>
 
-      {puedeTramite || puedeAnalista || puedeTope ? (
-        <Card title="Ajustes administrativos" size="small" style={{ marginTop: 16 }}>
-          {puedeTramite ? (
-            <Row gutter={[16, 16]}>
-              <Col xs={24} md={8}>
-                <Paragraph strong>Trámite administrativo</Paragraph>
-                <InputNumber
-                  style={{ width: '100%', marginBottom: 8 }}
-                  min={0}
-                  precision={2}
-                  value={tramiteAdm}
-                  onChange={(v) => setTramiteAdm(v ?? 0)}
-                />
-                <Button
-                  block
-                  disabled={bloqueadoGestion}
-                  loading={guardarTramite.isPending}
-                  onClick={() => guardarTramite.mutate()}
-                >
-                  Guardar trámite adm.
-                </Button>
-              </Col>
-              <Col xs={24} md={8}>
-                <Paragraph strong>Central de riesgo</Paragraph>
-                <InputNumber
-                  style={{ width: '100%', marginBottom: 8 }}
-                  min={0}
-                  precision={2}
-                  value={centralRiesgo}
-                  onChange={(v) => setCentralRiesgo(v ?? 0)}
-                />
-                <Button
-                  block
-                  disabled={bloqueadoGestion}
-                  loading={guardarCentral.isPending}
-                  onClick={() => guardarCentral.mutate()}
-                >
-                  Guardar central riesgo
-                </Button>
-              </Col>
-              <Col xs={24} md={8}>
-                <Paragraph strong>Aval del crédito</Paragraph>
-                {ctx?.personaAvalNombre ? (
-                  <Paragraph type="secondary" style={{ marginBottom: 8 }}>
-                    Actual: {ctx.personaAvalNombre}
-                  </Paragraph>
-                ) : null}
-                <Select
-                  style={{ width: '100%', marginBottom: 8 }}
-                  showSearch
-                  allowClear
-                  filterOption={false}
-                  placeholder="Buscar aval por DNI, código o nombre"
-                  notFoundContent={avalSearch.trim().length < 2 ? 'Ingrese al menos 2 caracteres' : null}
-                  loading={buscarAval.isPending}
-                  options={avalOptions}
-                  value={personaAvalId ?? undefined}
-                  onSearch={(term) => {
-                    setAvalSearch(term)
-                    if (term.trim().length >= 2) {
-                      buscarAval.mutate(term.trim())
+      {puedeTramite || puedeAnalista || puedeTope || puedeAval ? (
+        <Card
+          title="Ajustes administrativos"
+          size="small"
+          className="credito-gestion-card credito-ajustes-card"
+        >
+          {puedeTramite || puedeAval ? (
+            <Row gutter={[16, 16]} className="credito-ajustes-grid">
+              {puedeTramite ? (
+                <>
+                  <Col xs={24} md={8} className="credito-ajustes-item">
+                    <Paragraph strong>Trámite administrativo</Paragraph>
+                    <InputNumber
+                      style={{ width: '100%', marginBottom: 8 }}
+                      min={0}
+                      precision={2}
+                      value={tramiteAdm}
+                      onChange={(v) => setTramiteAdm(v ?? 0)}
+                    />
+                    <Button
+                      block
+                      disabled={bloqueadoGestion}
+                      loading={guardarTramite.isPending}
+                      onClick={() => guardarTramite.mutate()}
+                    >
+                      Guardar trámite adm.
+                    </Button>
+                  </Col>
+                  <Col xs={24} md={8} className="credito-ajustes-item">
+                    <Paragraph strong>Central de riesgo</Paragraph>
+                    <InputNumber
+                      style={{ width: '100%', marginBottom: 8 }}
+                      min={0}
+                      precision={2}
+                      value={centralRiesgo}
+                      onChange={(v) => setCentralRiesgo(v ?? 0)}
+                    />
+                    <Button
+                      block
+                      disabled={bloqueadoGestion}
+                      loading={guardarCentral.isPending}
+                      onClick={() => guardarCentral.mutate()}
+                    >
+                      Guardar central riesgo
+                    </Button>
+                  </Col>
+                </>
+              ) : null}
+              {puedeAval ? (
+                <Col xs={24} md={puedeTramite ? 8 : 12} className="credito-ajustes-item">
+                  <Paragraph strong>Aval del crédito</Paragraph>
+                  {ctx?.personaAvalNombre ? (
+                    <Paragraph type="secondary" style={{ marginBottom: 8 }}>
+                      Actual: {ctx.personaAvalNombre}
+                    </Paragraph>
+                  ) : null}
+                  <Select
+                    style={{ width: '100%', marginBottom: 8 }}
+                    showSearch
+                    allowClear
+                    filterOption={false}
+                    placeholder="Buscar aval por DNI, código o nombre"
+                    notFoundContent={
+                      avalSearch.trim().length < 2 ? 'Ingrese al menos 2 caracteres' : null
                     }
-                  }}
-                  onChange={(v) => setPersonaAvalId(v ?? null)}
-                />
-                <Space direction="vertical" style={{ width: '100%' }}>
-                  <Button
-                    block
-                    disabled={bloqueadoGestion}
-                    onClick={() => setModalNuevoAval(true)}
-                  >
-                    Nuevo aval
-                  </Button>
-                  <Button
-                    block
-                    disabled={!personaAvalId}
-                    href={
-                      personaAvalId
-                        ? `${spaBase}informes/reporte-cliente?personaId=${personaAvalId}`
-                        : undefined
-                    }
-                    target="_blank"
-                  >
-                    Detalle aval
-                  </Button>
-                  <Button
-                    block
-                    disabled={bloqueadoGestion}
-                    loading={guardarAval.isPending}
-                    onClick={() => guardarAval.mutate(personaAvalId)}
-                  >
-                    Guardar aval
-                  </Button>
-                  <Button
-                    block
-                    disabled={bloqueadoGestion}
-                    loading={guardarAval.isPending}
-                    onClick={() => {
-                      setPersonaAvalId(null)
-                      guardarAval.mutate(null)
+                    loading={buscarAval.isPending}
+                    options={avalOptions}
+                    value={personaAvalId ?? undefined}
+                    onSearch={(term) => {
+                      setAvalSearch(term)
+                      if (term.trim().length >= 2) {
+                        buscarAval.mutate(term.trim())
+                      }
                     }}
-                  >
-                    Quitar aval
-                  </Button>
-                </Space>
-              </Col>
+                    onChange={(v) => setPersonaAvalId(v ?? null)}
+                  />
+                  <Space direction="vertical" style={{ width: '100%' }}>
+                    <Button
+                      block
+                      disabled={soloLectura}
+                      onClick={() => setModalNuevoAval(true)}
+                    >
+                      Nuevo aval
+                    </Button>
+                    <Button
+                      block
+                      disabled={!personaAvalId}
+                      href={
+                        personaAvalId
+                          ? `${spaBase}informes/reporte-cliente?personaId=${personaAvalId}`
+                          : undefined
+                      }
+                      target="_blank"
+                    >
+                      Detalle aval
+                    </Button>
+                    <Button
+                      block
+                      disabled={soloLectura}
+                      loading={guardarAval.isPending}
+                      onClick={() => guardarAval.mutate(personaAvalId)}
+                    >
+                      Guardar aval
+                    </Button>
+                    <Button
+                      block
+                      disabled={soloLectura}
+                      loading={guardarAval.isPending}
+                      onClick={() => {
+                        setPersonaAvalId(null)
+                        guardarAval.mutate(null)
+                      }}
+                    >
+                      Quitar aval
+                    </Button>
+                  </Space>
+                </Col>
+              ) : null}
             </Row>
           ) : null}
-          <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+          <Row gutter={[16, 16]} className="credito-ajustes-grid credito-ajustes-grid--secondary">
             {puedeAnalista ? (
-              <Col xs={24} md={8}>
+              <Col xs={24} md={8} className="credito-ajustes-item">
                 <Paragraph strong>Cambiar analista</Paragraph>
                 <Select
                   style={{ width: '100%', marginBottom: 8 }}
@@ -647,7 +850,7 @@ export function CreditoConsultaGestionPanel({
                 />
                 <Button
                   block
-                  disabled={bloqueadoGestion || !analistaId}
+                  disabled={soloLectura || !analistaId}
                   loading={cambiarAnalista.isPending}
                   onClick={() => cambiarAnalista.mutate()}
                 >
@@ -656,7 +859,7 @@ export function CreditoConsultaGestionPanel({
               </Col>
             ) : null}
             {puedeTope ? (
-              <Col xs={24} md={8}>
+              <Col xs={24} md={8} className="credito-ajustes-item">
                 <Paragraph strong>Tope de crédito (persona)</Paragraph>
                 <InputNumber
                   style={{ width: '100%', marginBottom: 8 }}
@@ -667,7 +870,7 @@ export function CreditoConsultaGestionPanel({
                 <Button
                   block
                   loading={actualizarTope.isPending}
-                  disabled={bloqueadoGestion || !ctx?.personaId}
+                  disabled={soloLectura || !ctx?.personaId}
                   onClick={() => actualizarTope.mutate()}
                 >
                   Guardar tope
@@ -679,7 +882,11 @@ export function CreditoConsultaGestionPanel({
       ) : null}
 
       {puedeTramite ? (
-        <Card title="Crédito prendario" size="small" style={{ marginTop: 16 }}>
+        <Card
+          title="Crédito prendario"
+          size="small"
+          className="credito-gestion-card credito-prendario-card"
+        >
           <Alert
             type="info"
             showIcon
@@ -753,6 +960,7 @@ export function CreditoConsultaGestionPanel({
           </Button>
         </Card>
       ) : null}
+      </div>
 
       <Modal
         title="Nuevo aval"
@@ -773,16 +981,25 @@ export function CreditoConsultaGestionPanel({
         okText="Crear y asignar"
       >
         <Paragraph type="secondary">
-          Paridad con <strong>Nuevo Aval</strong> del MVC. Crea la persona y la asigna como aval
-          del crédito actual.
+          Paridad con <strong>Nuevo Aval</strong> del MVC. Valide el DNI con API Perú,
+          cree la persona y asígnela como aval del crédito actual.
         </Paragraph>
         <Form layout="vertical">
           <Form.Item label="DNI">
-            <Input
-              maxLength={8}
-              value={nuevoAvalDni}
-              onChange={(e) => setNuevoAvalDni(e.target.value.replace(/\D/g, ''))}
-            />
+            <Space.Compact style={{ width: '100%' }}>
+              <Input
+                maxLength={8}
+                value={nuevoAvalDni}
+                onChange={(e) => setNuevoAvalDni(e.target.value.replace(/\D/g, ''))}
+              />
+              <Button
+                loading={validarDniAval.isPending}
+                disabled={nuevoAvalDni.trim().length !== 8}
+                onClick={() => validarDniAval.mutate()}
+              >
+                Validar DNI
+              </Button>
+            </Space.Compact>
           </Form.Item>
           <Form.Item label="Nombres">
             <Input value={nuevoAvalNombre} onChange={(e) => setNuevoAvalNombre(e.target.value)} />
@@ -833,94 +1050,146 @@ export function CreditoConsultaGestionPanel({
         title="Condonar crédito"
         open={modalCondonar}
         onCancel={() => setModalCondonar(false)}
-        onOk={() => condonar.mutate()}
+        onOk={() => {
+          if (totalCondonacionSeleccionado <= 0) {
+            message.warning('Seleccione al menos un concepto con monto mayor a cero')
+            return
+          }
+          condonar.mutate()
+        }}
         confirmLoading={condonar.isPending}
+        okText="Crear cuenta por cobrar y condonar"
+        width={720}
+        className="credito-condonar-modal"
       >
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <Alert
-            type="info"
-            showIcon
-            message="Desglose sugerido de deuda pendiente"
-            description={
-              planPago.isLoading
-                ? 'Calculando cuotas pendientes...'
-                : `Capital ${formatMoney(condonacionResumen.capital)} · Interés ${formatMoney(
-                    condonacionResumen.interes,
-                  )} · Mora ${formatMoney(condonacionResumen.mora)} · Cargos ${formatMoney(
+        <div className="credito-condonar">
+          <div className="credito-condonar__summary">
+            <div>
+              <Text type="secondary">Deuda calculada</Text>
+              <Paragraph strong className="credito-condonar__amount">
+                {formatMoney(
+                  condonacionResumen.capital +
+                    condonacionResumen.interes +
+                    condonacionResumen.mora +
                     condonacionResumen.cargos,
-                  )} · Descuentos ${formatMoney(condonacionResumen.descuentos)}`
-            }
-          />
-          <Row gutter={[8, 8]}>
-            <Col span={8}>
-              <Card size="small">
-                <Text type="secondary">Cuotas pendientes</Text>
-                <Paragraph strong style={{ marginBottom: 0 }}>
-                  {condonacionResumen.cuotas}
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card size="small">
-                <Text type="secondary">Total deuda</Text>
-                <Paragraph strong style={{ marginBottom: 0 }}>
-                  {formatMoney(condonacionResumen.total)}
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card size="small">
-                <Text type="secondary">Mora + cargos</Text>
-                <Paragraph strong style={{ marginBottom: 0 }}>
-                  {formatMoney(condonacionResumen.mora + condonacionResumen.cargos)}
-                </Paragraph>
-              </Card>
-            </Col>
-          </Row>
-          <Space wrap>
+                )}
+              </Paragraph>
+            </div>
+            <div>
+              <Text type="secondary">Cuotas pendientes</Text>
+              <Paragraph strong className="credito-condonar__amount">
+                {condonacionResumen.cuotas}
+              </Paragraph>
+            </div>
+            <div>
+              <Text type="secondary">A condonar</Text>
+              <Paragraph strong className="credito-condonar__amount">
+                {formatMoney(totalCondonacionSeleccionado)}
+              </Paragraph>
+            </div>
+          </div>
+
+          {condonacionResumen.descuentos > 0 ? (
+            <Alert
+              type="info"
+              showIcon
+              message={`Descuentos ya registrados: ${formatMoney(condonacionResumen.descuentos)}`}
+              className="credito-condonar__alert"
+            />
+          ) : null}
+
+          <div className="credito-condonar__toolbar">
             <Button
               size="small"
               onClick={() => {
-                setMontoCxc(condonacionResumen.total)
-                setMontoCond(condonacionResumen.total)
+                setCondonarPartes({ capital: true, interes: true, mora: true, cargos: true })
+                setCondonarMontos({
+                  capital: Number(condonacionResumen.capital.toFixed(2)),
+                  interes: Number(condonacionResumen.interes.toFixed(2)),
+                  mora: Number(condonacionResumen.mora.toFixed(2)),
+                  cargos: Number(condonacionResumen.cargos.toFixed(2)),
+                })
               }}
             >
-              Condonar total sugerido
+              Seleccionar todo
             </Button>
             <Button
               size="small"
               onClick={() => {
-                const monto = condonacionResumen.mora + condonacionResumen.cargos
-                setMontoCxc(monto)
-                setMontoCond(monto)
+                setCondonarPartes({ capital: false, interes: false, mora: true, cargos: true })
+                setCondonarMontos((prev) => ({
+                  ...prev,
+                  mora: Number(condonacionResumen.mora.toFixed(2)),
+                  cargos: Number(condonacionResumen.cargos.toFixed(2)),
+                }))
               }}
             >
               Solo mora y cargos
             </Button>
-          </Space>
-          <Form.Item label="Monto CxC">
-            <InputNumber
-              style={{ width: '100%' }}
-              min={0}
-              value={montoCxc}
-              onChange={(v) => setMontoCxc(v ?? 0)}
+            <Button
+              size="small"
+              onClick={() =>
+                setCondonarPartes({ capital: false, interes: false, mora: false, cargos: false })
+              }
+            >
+              Limpiar selección
+            </Button>
+          </div>
+
+          <div className="credito-condonar__table">
+            <div className="credito-condonar__row credito-condonar__row--head">
+              <span>Concepto</span>
+              <span>Deuda</span>
+              <span>Condonar</span>
+              <span>Monto</span>
+            </div>
+            {condonacionConceptos.map((concepto) => (
+              <div className="credito-condonar__row" key={concepto.key}>
+                <Text strong>{concepto.label}</Text>
+                <Text>{formatMoney(concepto.deuda)}</Text>
+                <Checkbox
+                  checked={condonarPartes[concepto.key]}
+                  disabled={concepto.deuda <= 0}
+                  onChange={(e) =>
+                    setCondonarPartes((prev) => ({
+                      ...prev,
+                      [concepto.key]: e.target.checked,
+                    }))
+                  }
+                >
+                  Aplicar
+                </Checkbox>
+                <InputNumber
+                  min={0}
+                  max={Math.max(0, concepto.deuda)}
+                  precision={2}
+                  disabled={!condonarPartes[concepto.key] || concepto.deuda <= 0}
+                  value={condonarMontos[concepto.key]}
+                  onChange={(v) =>
+                    setCondonarMontos((prev) => ({
+                      ...prev,
+                      [concepto.key]: Number(v ?? 0),
+                    }))
+                  }
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="credito-condonar__total">
+            <Text>Cuenta por cobrar a crear</Text>
+            <Text strong>{formatMoney(montoCxc)}</Text>
+          </div>
+
+          <Form.Item label="Observación">
+            <Input.TextArea
+              rows={3}
+              placeholder="Motivo o sustento de la condonación"
+              value={obsCondonar}
+              onChange={(e) => setObsCondonar(e.target.value)}
             />
           </Form.Item>
-          <Form.Item label="Monto condonación">
-            <InputNumber
-              style={{ width: '100%' }}
-              min={0}
-              value={montoCond}
-              onChange={(v) => setMontoCond(v ?? 0)}
-            />
-          </Form.Item>
-          <Input.TextArea
-            rows={2}
-            placeholder="Observación"
-            value={obsCondonar}
-            onChange={(e) => setObsCondonar(e.target.value)}
-          />
-        </Space>
+        </div>
       </Modal>
 
       <Modal
@@ -932,9 +1201,18 @@ export function CreditoConsultaGestionPanel({
             message.warning('Seleccione tipo de cargo')
             return
           }
+          if (montoCargo <= 0) {
+            message.warning('Ingrese un monto mayor a cero')
+            return
+          }
+          if (!descCargo.trim()) {
+            message.warning('Ingrese la descripción del cargo')
+            return
+          }
           guardarCargo.mutate()
         }}
         confirmLoading={guardarCargo.isPending}
+        okText="Crear cargo"
       >
         <Select
           style={{ width: '100%', marginBottom: 12 }}
@@ -959,9 +1237,15 @@ export function CreditoConsultaGestionPanel({
           value={descCargo}
           onChange={(e) => setDescCargo(e.target.value)}
         />
-        <Checkbox checked={cargoFinal} onChange={(e) => setCargoFinal(e.target.checked)}>
-          Aplicar a última cuota pendiente
-        </Checkbox>
+        <Form.Item label="Aplicar cargo">
+          <Radio.Group
+            value={cargoFinal ? 'final' : 'actual'}
+            onChange={(e) => setCargoFinal(e.target.value === 'final')}
+          >
+            <Radio value="actual">En la cuota actual</Radio>
+            <Radio value="final">En la última cuota pendiente</Radio>
+          </Radio.Group>
+        </Form.Item>
       </Modal>
     </>
   )

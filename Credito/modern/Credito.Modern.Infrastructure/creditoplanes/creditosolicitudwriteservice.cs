@@ -36,6 +36,25 @@ public sealed class CreditoSolicitudWriteService(IOptions<SqlDatabaseOptions> op
 
         try
         {
+            var solicitudExistenteId = await connection.ExecuteScalarAsync<int?>(
+                new CommandDefinition(
+                    """
+                    SELECT TOP (1) CreditoId
+                    FROM CREDITO.Credito
+                    WHERE PersonaId = @PersonaId
+                      AND OficinaId = @OficinaId
+                      AND Estado = 'CRE'
+                    ORDER BY CreditoId DESC;
+                    """,
+                    new { PersonaId = personaId, OficinaId = oficinaId },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+            if (solicitudExistenteId is > 0)
+            {
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+                return new CrearSolicitudCreditoResponse(solicitudExistenteId.Value);
+            }
+
             var personaAvalId = await connection.ExecuteScalarAsync<int?>(
                 new CommandDefinition(
                     """

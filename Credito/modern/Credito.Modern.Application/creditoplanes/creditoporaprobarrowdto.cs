@@ -9,6 +9,7 @@ public sealed record CreditoPorAprobarRowDto(
     string? Documento,
     decimal Monto,
     decimal Interes,
+    string Estado,
     string? Agente);
 
 public sealed record CreditosPorAprobarListResponse(

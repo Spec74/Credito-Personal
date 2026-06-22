@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Button, Modal, Tooltip, message } from 'antd'
+import { Alert, Button, Modal, Tag, Tooltip, message } from 'antd'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import {
   CheckOutlined,
   CloseOutlined,
   FileSearchOutlined,
+  PlayCircleOutlined,
   UserOutlined,
 } from '@ant-design/icons'
 import {
@@ -24,8 +25,13 @@ import {
 } from '../../components/credix'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { resolveAprobarBuscar } from '../../utils/creditoAprobarSearch'
+import { getCreditoEstadoMeta } from '../../utils/creditoEstados'
 import { formatMoney } from '../../utils/formatMoney'
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
+import {
+  esCreditoAdministrador,
+  esCreditoAprobador1,
+} from '../../utils/creditoOperacionPermisos'
 import { AprobarSearchToolbar } from './components/AprobarSearchToolbar'
 import { AprobarTableEmpty } from './components/AprobarTableEmpty'
 
@@ -36,6 +42,8 @@ export function CreditoAprobarPage() {
   const queryClient = useQueryClient()
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
+  const roles = useMemo(() => session?.roles ?? [], [session?.roles])
+  const puedeAprobar = esCreditoAprobador1(roles) || esCreditoAdministrador(roles)
 
   const [buscar, setBuscar] = useState('')
   const buscarResuelto = useMemo(() => resolveAprobarBuscar(buscar), [buscar])
@@ -46,15 +54,25 @@ export function CreditoAprobarPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   const listQuery = useQuery({
-    queryKey: ['creditos-por-aprobar', buscarAplicado, page, pageSize, sortField, sortOrder],
+    queryKey: [
+      'creditos-por-aprobar',
+      oficinaId,
+      buscarAplicado,
+      page,
+      pageSize,
+      sortField,
+      sortOrder,
+    ],
     queryFn: () =>
       fetchCreditosPorAprobar({
+        oficinaId,
         buscar: buscarAplicado || undefined,
         page,
         pageSize,
         sortField,
         sortOrder,
       }),
+    enabled: oficinaId > 0,
     staleTime: creditoStaleTime.listado,
     placeholderData: (prev) => prev,
   })
@@ -89,14 +107,13 @@ export function CreditoAprobarPage() {
       message.error(e instanceof ApiError ? e.message : 'No se pudo rechazar'),
   })
 
-  const confirmarAprobar = (row: CreditoPorAprobarRow, opcion: 0 | 1) => {
-    const titulo = opcion === 0 ? 'Primera aprobación' : 'Segunda aprobación'
+  const confirmarAprobar = (row: CreditoPorAprobarRow) => {
     Modal.confirm({
-      title: titulo,
-      content: `¿Aprobar crédito ${row.creditoId} de ${row.cliente ?? 'cliente'}? (${opcion === 0 ? 'primera' : 'segunda'} aprobación)`,
+      title: 'Aprobar crédito',
+      content: `¿Aprobar crédito ${row.creditoId} de ${row.cliente ?? 'cliente'}? Se usará la aprobación vigente del legacy.`,
       okText: 'Aprobar',
       cancelText: 'Cancelar',
-      onOk: () => aprobar.mutateAsync({ creditoId: row.creditoId, opcion }),
+      onOk: () => aprobar.mutateAsync({ creditoId: row.creditoId, opcion: 1 }),
     })
   }
 
@@ -155,9 +172,19 @@ export function CreditoAprobarPage() {
       },
       { title: 'Gestor', dataIndex: 'agente', width: 132, ellipsis: true, sorter: true },
       {
+        title: 'Estado',
+        dataIndex: 'estado',
+        width: 110,
+        align: 'center',
+        render: (estado: string) => {
+          const meta = getCreditoEstadoMeta(estado)
+          return <Tag color={meta?.color ?? 'default'}>{meta?.label ?? estado}</Tag>
+        },
+      },
+      {
         title: 'Acciones',
         key: 'acciones',
-        width: 300,
+        width: puedeAprobar ? 270 : 170,
         fixed: 'right',
         render: (_, row) => (
           <div className="credito-aprobacion-actions">
@@ -187,56 +214,65 @@ export function CreditoAprobarPage() {
                 Ficha
               </Button>
             </Tooltip>
-            <Tooltip title="Primera aprobación">
-              <Button
-                size="small"
-                type="primary"
-                className="credito-aprobacion-actions__btn credito-aprobacion-actions__btn--aprobar"
-                icon={<CheckOutlined />}
-                loading={aprobar.isPending}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  confirmarAprobar(row, 0)
-                }}
-              >
-                1.ª
-              </Button>
-            </Tooltip>
-            <Tooltip title="Segunda aprobación">
-              <Button
-                size="small"
-                type="primary"
-                className="credito-aprobacion-actions__btn credito-aprobacion-actions__btn--aprobar"
-                icon={<CheckOutlined />}
-                loading={aprobar.isPending}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  confirmarAprobar(row, 1)
-                }}
-              >
-                2.ª
-              </Button>
-            </Tooltip>
-            <Tooltip title="Rechazar solicitud">
-              <Button
-                size="small"
-                danger
-                className="credito-aprobacion-actions__btn credito-aprobacion-actions__btn--rechazar"
-                icon={<CloseOutlined />}
-                loading={rechazar.isPending}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  confirmarRechazar(row)
-                }}
-              >
-                Rechazar
-              </Button>
-            </Tooltip>
+            {row.estado === 'CRE' ? (
+              <Tooltip title="Continuar simulación y generar para aprobación">
+                <Button
+                  size="small"
+                  type="primary"
+                  className="credito-aprobacion-actions__btn credito-aprobacion-actions__btn--aprobar"
+                  icon={<PlayCircleOutlined />}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    navigate(
+                      `/credito/simulador?personaId=${row.personaId}&solicitudCreditoId=${row.creditoId}`,
+                    )
+                  }}
+                >
+                  Continuar
+                </Button>
+              </Tooltip>
+            ) : null}
+            {puedeAprobar && row.estado !== 'CRE' ? (
+              <>
+                <Tooltip title="Aprobar crédito pendiente">
+                  <Button
+                    size="small"
+                    type="primary"
+                    className="credito-aprobacion-actions__btn credito-aprobacion-actions__btn--aprobar"
+                    icon={<CheckOutlined />}
+                    loading={aprobar.isPending}
+                    disabled={row.estado !== 'PEN'}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      confirmarAprobar(row)
+                    }}
+                  >
+                    Aprobar
+                  </Button>
+                </Tooltip>
+                <Tooltip title="Rechazar solicitud">
+                  <Button
+                    size="small"
+                    danger
+                    className="credito-aprobacion-actions__btn credito-aprobacion-actions__btn--rechazar"
+                    icon={<CloseOutlined />}
+                    loading={rechazar.isPending}
+                    disabled={row.estado !== 'PEN'}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      confirmarRechazar(row)
+                    }}
+                  >
+                    Rechazar
+                  </Button>
+                </Tooltip>
+              </>
+            ) : null}
           </div>
         ),
       },
     ],
-    [navigate, aprobar.isPending, rechazar.isPending],
+    [navigate, aprobar.isPending, rechazar.isPending, puedeAprobar],
   )
 
   const onTableChange = (
@@ -255,6 +291,7 @@ export function CreditoAprobarPage() {
 
   const total = listQuery.data?.total ?? 0
   const filtrado = buscarAplicado.length > 0
+  const haySolicitudesCre = (listQuery.data?.items ?? []).some((r) => r.estado === 'CRE')
 
   const aprobarStats: CredixStatItem[] = useMemo(() => {
     const rows = listQuery.data?.items ?? []
@@ -281,7 +318,7 @@ export function CreditoAprobarPage() {
     <CredixCrudPage
       className="credito-aprobacion-page credix-page--stats-3"
       title="Créditos por aprobar"
-      subtitle="Bandeja PEN con búsqueda avanzada y aprobación en la misma pantalla."
+      subtitle="Bandeja PEN de la oficina actual con búsqueda avanzada y aprobación en la misma pantalla."
       panelTitle="CREDITOS POR APROBAR"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -316,6 +353,25 @@ export function CreditoAprobarPage() {
               ? listQuery.error.message
               : 'Error al cargar el listado'
           }
+        />
+      ) : null}
+
+      {!puedeAprobar ? (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="Tu usuario puede consultar esta bandeja, pero solo APROBADOR 1 o ADMINISTRADOR puede aprobar o rechazar."
+        />
+      ) : null}
+
+      {haySolicitudesCre ? (
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="Hay solicitudes en preparación (CRE)"
+          description="Estas filas aún no se pueden aprobar. Abra Continuar, simule el plan y pulse Generar crédito para aprobación para que pasen a PEN."
         />
       ) : null}
 

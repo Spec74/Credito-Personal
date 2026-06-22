@@ -25,6 +25,7 @@ import {
 import {
   EnvironmentOutlined,
   FileSearchOutlined,
+  FileAddOutlined,
   LockOutlined,
   PlusOutlined,
   SaveOutlined,
@@ -124,6 +125,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
   const [nombresBloqueados, setNombresBloqueados] = useState(!esEdicion)
   const [avalOpen, setAvalOpen] = useState(false)
   const [distritoTerm, setDistritoTerm] = useState('')
+  const [guardarDestino, setGuardarDestino] = useState<'listado' | 'credito'>('listado')
   const debouncedDistrito = useDebouncedValue(distritoTerm.trim(), 300)
   const documentoOriginalRef = useRef('')
   const geocodificadoInicialRef = useRef(false)
@@ -256,10 +258,15 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
 
   const guardar = useMutation({
     mutationFn: (values: FormValues) => guardarCliente(buildPayload(values)),
-    onSuccess: () => {
+    onSuccess: (r) => {
       message.success('Cliente guardado')
       void queryClient.invalidateQueries({ queryKey: ['cliente-detalle'] })
       void queryClient.invalidateQueries({ queryKey: ['clientes-listar'] })
+      void queryClient.invalidateQueries({ queryKey: ['credito-clientes-buscar'] })
+      if (guardarDestino === 'credito') {
+        navigate(`/credito/simulador?personaId=${r.personaId}`, { replace: true })
+        return
+      }
       navigate('/clientes', { replace: true })
     },
     onError: (e) => message.error(errMsg(e)),
@@ -782,8 +789,22 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
         />
 
         <div className="cliente-mantener__footer">
-          <Button type="primary" htmlType="submit" icon={<SaveOutlined />} loading={guardar.isPending}>
+          <Button
+            type="primary"
+            htmlType="submit"
+            icon={<SaveOutlined />}
+            loading={guardar.isPending && guardarDestino === 'listado'}
+            onClick={() => setGuardarDestino('listado')}
+          >
             Guardar cliente
+          </Button>
+          <Button
+            htmlType="submit"
+            icon={<FileAddOutlined />}
+            loading={guardar.isPending && guardarDestino === 'credito'}
+            onClick={() => setGuardarDestino('credito')}
+          >
+            Guardar y solicitar crédito
           </Button>
           <Button onClick={() => navigate('/clientes')}>Volver al listado</Button>
           {esEdicion && (

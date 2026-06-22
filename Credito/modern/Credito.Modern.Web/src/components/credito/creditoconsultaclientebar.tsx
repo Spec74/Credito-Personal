@@ -303,7 +303,7 @@ export function CreditoConsultaClienteBar({
             }}
           />
 
-          <CreditoPersonaAvalesPanel personaId={personaId} />
+          <CreditoPersonaAvalesPanel oficinaId={oficinaId} personaId={personaId} />
 
           <div className="credito-consulta-cliente__creditos">
           <div className="credito-consulta-cliente__creditos-head">

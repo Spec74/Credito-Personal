@@ -25,7 +25,7 @@ import {
   UserAddOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
-import { buscarClientes } from '../../api/clientes'
+import { buscarClientes, obtenerCliente } from '../../api/clientes'
 import {
   calcularTem,
   crearCredito,
@@ -50,6 +50,10 @@ import { useAuth } from '../../auth/useAuth'
 import type { ClienteBuscarItem, SimuladorCreditoCuota } from '../../types/api'
 import { formatMoney } from '../../utils/formatMoney'
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
+import {
+  esCreditoAdministrador,
+  esCreditoAprobador1,
+} from '../../utils/creditoOperacionPermisos'
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : 'Error desconocido'
@@ -141,6 +145,8 @@ export function SimuladorCreditoPage() {
   const [searchParams] = useSearchParams()
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
+  const roles = useMemo(() => session?.roles ?? [], [session?.roles])
+  const puedeIrAAprobar = esCreditoAprobador1(roles) || esCreditoAdministrador(roles)
   const [cuotas, setCuotas] = useState<SimuladorCreditoCuota[]>([])
   const [tem, setTem] = useState<number | null>(null)
   const [personaId, setPersonaId] = useState<number | null>(null)
@@ -224,6 +230,25 @@ export function SimuladorCreditoPage() {
     queryFn: fetchProductos,
     staleTime: creditoStaleTime.master,
   })
+
+  const clienteDetalleQuery = useQuery({
+    queryKey: ['cliente-detalle', personaId],
+    queryFn: () => obtenerCliente(personaId!),
+    enabled: personaId != null && personaId > 0 && clienteLabel.startsWith('Persona #'),
+    staleTime: creditoStaleTime.ficha,
+  })
+
+  useEffect(() => {
+    const c = clienteDetalleQuery.data
+    if (!c) return
+
+    const nombreCompleto =
+      c.tipoPersona === 'J'
+        ? c.nombre
+        : [c.nombre, c.apePaterno, c.apeMaterno].filter(Boolean).join(' ')
+    setClienteLabel(`${c.numeroDocumento} ${nombreCompleto}`.trim())
+  }, [clienteDetalleQuery.data])
+
   const productoSeleccionado = useMemo(
     () => productosQuery.data?.find((p) => p.productoId === productoId) ?? null,
     [productoId, productosQuery.data],
@@ -385,10 +410,17 @@ export function SimuladorCreditoPage() {
     },
     onSuccess: (r) => {
       if (r.mensaje?.trim()) {
-        message.warning(r.mensaje)
+        message.info(r.mensaje)
       } else {
         message.success('Crédito generado para aprobación')
+      }
+      if (puedeIrAAprobar) {
         navigate('/credito/aprobar')
+      } else if (personaId) {
+        message.info('La solicitud quedó pendiente para que la apruebe un aprobador autorizado.')
+        navigate(`/credito/consulta?personaId=${personaId}`, { replace: true })
+      } else {
+        navigate('/credito/consulta', { replace: true })
       }
     },
     onError: (e) => message.error(errMsg(e)),
@@ -462,6 +494,7 @@ export function SimuladorCreditoPage() {
     {
       title: 'Capital',
       dataIndex: 'capital',
+      width: 110,
       align: 'right',
       render: formatMoney,
     },
@@ -474,30 +507,35 @@ export function SimuladorCreditoPage() {
     {
       title: 'Amort.',
       dataIndex: 'amortizacion',
+      width: 110,
       align: 'right',
       render: formatMoney,
     },
     {
       title: 'Interés',
       dataIndex: 'interes',
+      width: 100,
       align: 'right',
       render: formatMoney,
     },
     {
       title: 'G.A.',
       dataIndex: 'gastosAdm',
+      width: 90,
       align: 'right',
       render: formatMoney,
     },
     {
       title: 'Cuota',
       dataIndex: 'cuota',
+      width: 110,
       align: 'right',
       render: formatMoney,
     },
     {
       title: 'Saldo',
       dataIndex: 'saldo',
+      width: 110,
       align: 'right',
       render: (v: number | null) => formatMoney(v ?? 0),
     },
@@ -890,6 +928,7 @@ export function SimuladorCreditoPage() {
       </CredixPanel>
 
       <CredixPanel
+        className="simulador-plan-panel"
         title={
           cuotas.length > 0
             ? `Plan simulado — total: ${formatMoney(totalCuota)}`
@@ -897,13 +936,16 @@ export function SimuladorCreditoPage() {
         }
       >
         <CredixDataTable<SimuladorCreditoCuota>
+          mode="operacion"
+          className="simulador-plan-table"
           rowKey={(r, i) => String(r.numero ?? i)}
           columns={columns}
           dataSource={cuotas}
           loading={simular.isPending}
           pagination={false}
           size="small"
-          scroll={{ x: 820 }}
+          tableLayout="fixed"
+          scroll={{ x: 820, y: cuotas.length > 12 ? 440 : undefined }}
           locale={{ emptyText: 'Seleccione cliente/prospecto, producto y pulse Simular' }}
         />
         {cuotas.length > 0 ? (

@@ -34,7 +34,7 @@ export function useModuleHubStats(
 
   const aprobar = useQuery({
     queryKey: ['hub-stats-aprobar', oficinaId],
-    queryFn: () => fetchCreditosPorAprobar({ page: 1, pageSize: 1 }),
+    queryFn: () => fetchCreditosPorAprobar({ oficinaId, page: 1, pageSize: 1 }),
     enabled: moduleId === 'credito' && oficinaId > 0,
     staleTime: 60_000,
   })

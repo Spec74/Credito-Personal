@@ -30,10 +30,13 @@ public sealed class CreditoGestionWriteService(
             var existe = await connection.ExecuteScalarAsync<int?>(
                 new CommandDefinition(
                     """
-                    SELECT CuentaxCobrarId FROM CREDITO.CuentaxCobrar
-                    WHERE CreditoId = @CreditoId;
+                    SELECT cx.CuentaxCobrarId
+                    FROM CREDITO.CuentaxCobrar AS cx
+                    INNER JOIN CREDITO.Credito AS c ON c.CreditoId = cx.CreditoId
+                    WHERE cx.CreditoId = @CreditoId
+                      AND c.OficinaId = @OficinaId;
                     """,
-                    new { request.CreditoId },
+                    new { request.CreditoId, request.OficinaId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
@@ -43,9 +46,15 @@ public sealed class CreditoGestionWriteService(
                     new CommandDefinition(
                         """
                         INSERT INTO CREDITO.CuentaxCobrar (Operacion, Monto, Estado, CreditoId)
-                        VALUES ('CDN', @Monto, 'PEN', @CreditoId);
+                        SELECT 'CDN', @Monto, 'PEN', @CreditoId
+                        WHERE EXISTS (
+                            SELECT 1
+                            FROM CREDITO.Credito
+                            WHERE CreditoId = @CreditoId
+                              AND OficinaId = @OficinaId
+                        );
                         """,
-                        new { Monto = request.MontoCxc, request.CreditoId },
+                        new { Monto = request.MontoCxc, request.CreditoId, request.OficinaId },
                         transaction: transaction,
                         cancellationToken: cancellationToken)).ConfigureAwait(false);
             }
@@ -54,11 +63,14 @@ public sealed class CreditoGestionWriteService(
                 await connection.ExecuteAsync(
                     new CommandDefinition(
                         """
-                        UPDATE CREDITO.CuentaxCobrar
+                        UPDATE cx
                         SET Operacion = 'CDN', Monto = @Monto, Estado = 'PEN'
-                        WHERE CreditoId = @CreditoId;
+                        FROM CREDITO.CuentaxCobrar AS cx
+                        INNER JOIN CREDITO.Credito AS c ON c.CreditoId = cx.CreditoId
+                        WHERE cx.CreditoId = @CreditoId
+                          AND c.OficinaId = @OficinaId;
                         """,
-                        new { Monto = request.MontoCxc, request.CreditoId },
+                        new { Monto = request.MontoCxc, request.CreditoId, request.OficinaId },
                         transaction: transaction,
                         cancellationToken: cancellationToken)).ConfigureAwait(false);
             }
@@ -73,7 +85,8 @@ public sealed class CreditoGestionWriteService(
                         UsuarioModId = @UsuarioModId,
                         IndCondonacion = CAST(1 AS bit),
                         MontoCondonacion = @MontoCondonacion
-                    WHERE CreditoId = @CreditoId;
+                    WHERE CreditoId = @CreditoId
+                      AND OficinaId = @OficinaId;
                     """,
                     new
                     {
@@ -82,6 +95,7 @@ public sealed class CreditoGestionWriteService(
                         UsuarioModId = usuarioId,
                         request.MontoCondonacion,
                         request.CreditoId,
+                        request.OficinaId,
                     },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
@@ -108,9 +122,10 @@ public sealed class CreditoGestionWriteService(
                 """
                 UPDATE CREDITO.Credito
                 SET Observacion = @Obs
-                WHERE CreditoId = @CreditoId;
+                WHERE CreditoId = @CreditoId
+                  AND OficinaId = @OficinaId;
                 """,
-                new { Obs = request.Observacion, request.CreditoId },
+                new { Obs = request.Observacion, request.CreditoId, request.OficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
         return rows > 0
             ? new CreditoGestionOperacionResponse(true, null)
@@ -136,16 +151,24 @@ public sealed class CreditoGestionWriteService(
                 new CommandDefinition(
                     request.Final
                         ? """
-                          SELECT TOP (1) Numero FROM CREDITO.PlanPago
-                          WHERE CreditoId = @CreditoId AND Estado = 'PEN'
+                          SELECT TOP (1) pp.Numero
+                          FROM CREDITO.PlanPago AS pp
+                          INNER JOIN CREDITO.Credito AS c ON c.CreditoId = pp.CreditoId
+                          WHERE pp.CreditoId = @CreditoId
+                            AND pp.Estado = 'PEN'
+                            AND c.OficinaId = @OficinaId
                           ORDER BY Numero DESC;
                           """
                         : """
-                          SELECT TOP (1) Numero FROM CREDITO.PlanPago
-                          WHERE CreditoId = @CreditoId AND Estado = 'PEN'
+                          SELECT TOP (1) pp.Numero
+                          FROM CREDITO.PlanPago AS pp
+                          INNER JOIN CREDITO.Credito AS c ON c.CreditoId = pp.CreditoId
+                          WHERE pp.CreditoId = @CreditoId
+                            AND pp.Estado = 'PEN'
+                            AND c.OficinaId = @OficinaId
                           ORDER BY Numero ASC;
                           """,
-                    new { request.CreditoId },
+                    new { request.CreditoId, request.OficinaId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
@@ -160,13 +183,20 @@ public sealed class CreditoGestionWriteService(
                     INSERT INTO CREDITO.Cargo (
                         CreditoId, NumCuota, Descripcion, TipoCargoT2, Importe,
                         UsuarioId, Fecha, Estado)
-                    VALUES (
+                    SELECT
                         @CreditoId, @NumCuota, @Descripcion, @TipoCargoT2, @Importe,
-                        @UsuarioId, @Fecha, 'PEN');
+                        @UsuarioId, @Fecha, 'PEN'
+                    WHERE EXISTS (
+                        SELECT 1
+                        FROM CREDITO.Credito
+                        WHERE CreditoId = @CreditoId
+                          AND OficinaId = @OficinaId
+                    );
                     """,
                     new
                     {
                         request.CreditoId,
+                        request.OficinaId,
                         NumCuota = numCuota,
                         request.Descripcion,
                         TipoCargoT2 = request.TipoCargoId,
@@ -180,23 +210,31 @@ public sealed class CreditoGestionWriteService(
             var montocargo = await connection.ExecuteScalarAsync<decimal>(
                 new CommandDefinition(
                     """
-                    SELECT ISNULL(SUM(Importe), 0)
-                    FROM CREDITO.Cargo
-                    WHERE CreditoId = @CreditoId AND NumCuota = @NumCuota AND Estado = 'PEN';
+                    SELECT ISNULL(SUM(ca.Importe), 0)
+                    FROM CREDITO.Cargo AS ca
+                    INNER JOIN CREDITO.Credito AS c ON c.CreditoId = ca.CreditoId
+                    WHERE ca.CreditoId = @CreditoId
+                      AND ca.NumCuota = @NumCuota
+                      AND ca.Estado = 'PEN'
+                      AND c.OficinaId = @OficinaId;
                     """,
-                    new { request.CreditoId, NumCuota = numCuota },
+                    new { request.CreditoId, request.OficinaId, NumCuota = numCuota },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
             await connection.ExecuteAsync(
                 new CommandDefinition(
                     """
-                    UPDATE CREDITO.PlanPago
-                    SET Cargo = @Montocargo,
-                        PagoCuota = Cuota + ImporteMora + @Montocargo - PagoLibre
-                    WHERE CreditoId = @CreditoId AND Numero = @NumCuota;
+                    UPDATE pp
+                    SET pp.Cargo = @Montocargo,
+                        pp.PagoCuota = pp.Cuota + pp.ImporteMora + @Montocargo - pp.PagoLibre
+                    FROM CREDITO.PlanPago AS pp
+                    INNER JOIN CREDITO.Credito AS c ON c.CreditoId = pp.CreditoId
+                    WHERE pp.CreditoId = @CreditoId
+                      AND pp.Numero = @NumCuota
+                      AND c.OficinaId = @OficinaId;
                     """,
-                    new { Montocargo = montocargo, request.CreditoId, NumCuota = numCuota },
+                    new { Montocargo = montocargo, request.CreditoId, request.OficinaId, NumCuota = numCuota },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
@@ -229,17 +267,32 @@ public sealed class CreditoGestionWriteService(
         EnsureConnection();
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await connection.ExecuteAsync(
+        var rows = await connection.ExecuteAsync(
             new CommandDefinition(
                 """
                 INSERT INTO CREDITO.CreditoImagen (CreditoId, Imagen)
-                VALUES (@CreditoId, @Imagen);
+                SELECT @CreditoId, @Imagen
+                WHERE EXISTS (
+                    SELECT 1
+                    FROM CREDITO.Credito
+                    WHERE CreditoId = @CreditoId
+                      AND OficinaId = @OficinaId
+                );
                 """,
-                new { CreditoId = creditoId, Imagen = archivo },
+                new { CreditoId = creditoId, OficinaId = oficinaId, Imagen = archivo },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-        _ = oficinaId;
-        return new CreditoGestionOperacionResponse(true, null);
+        if (rows > 0)
+        {
+            return new CreditoGestionOperacionResponse(true, null);
+        }
+
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
+
+        return new CreditoGestionOperacionResponse(false, "Crédito no encontrado para la oficina.");
     }
 
     public async Task<CreditoGestionOperacionResponse> EliminarEvidenciaAsync(
@@ -252,8 +305,14 @@ public sealed class CreditoGestionWriteService(
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
         var row = await connection.QueryFirstOrDefaultAsync<(int CreditoId, string Imagen)>(
             new CommandDefinition(
-                "SELECT CreditoId, Imagen FROM CREDITO.CreditoImagen WHERE Id = @Id;",
-                new { Id = creditoImagenId },
+                """
+                SELECT ci.CreditoId, ci.Imagen
+                FROM CREDITO.CreditoImagen AS ci
+                INNER JOIN CREDITO.Credito AS c ON c.CreditoId = ci.CreditoId
+                WHERE ci.Id = @Id
+                  AND c.OficinaId = @OficinaId;
+                """,
+                new { Id = creditoImagenId, OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
         if (row.CreditoId < 1)
@@ -269,8 +328,14 @@ public sealed class CreditoGestionWriteService(
 
         await connection.ExecuteAsync(
             new CommandDefinition(
-                "DELETE FROM CREDITO.CreditoImagen WHERE Id = @Id;",
-                new { Id = creditoImagenId },
+                """
+                DELETE ci
+                FROM CREDITO.CreditoImagen AS ci
+                INNER JOIN CREDITO.Credito AS c ON c.CreditoId = ci.CreditoId
+                WHERE ci.Id = @Id
+                  AND c.OficinaId = @OficinaId;
+                """,
+                new { Id = creditoImagenId, OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
         _ = oficinaId;
@@ -289,9 +354,10 @@ public sealed class CreditoGestionWriteService(
                 """
                 UPDATE CREDITO.Credito
                 SET UsuarioRegId = @AnalistaId
-                WHERE CreditoId = @CreditoId;
+                WHERE CreditoId = @CreditoId
+                  AND OficinaId = @OficinaId;
                 """,
-                new { request.AnalistaId, request.CreditoId },
+                new { request.AnalistaId, request.CreditoId, request.OficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
         return rows > 0
             ? new CreditoGestionOperacionResponse(true, null)
@@ -359,9 +425,10 @@ public sealed class CreditoGestionWriteService(
                 """
                 UPDATE CREDITO.Credito
                 SET IndIrrecuperable = @IndIrrecuperable
-                WHERE CreditoId = @CreditoId;
+                WHERE CreditoId = @CreditoId
+                  AND OficinaId = @OficinaId;
                 """,
-                new { request.IndIrrecuperable, request.CreditoId },
+                new { request.IndIrrecuperable, request.CreditoId, request.OficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
         return rows > 0
             ? new CreditoGestionOperacionResponse(true, null)
@@ -486,9 +553,15 @@ public sealed class CreditoGestionWriteService(
         var rows = await connection.ExecuteAsync(
             new CommandDefinition(
                 """
-                IF EXISTS (SELECT 1 FROM CREDITO.CreditoPrenda WHERE CreditoId = @CreditoId)
+                IF EXISTS (
+                    SELECT 1
+                    FROM CREDITO.CreditoPrenda AS cp
+                    INNER JOIN CREDITO.Credito AS c ON c.CreditoId = cp.CreditoId
+                    WHERE cp.CreditoId = @CreditoId
+                      AND c.OficinaId = @OficinaId
+                )
                 BEGIN
-                    UPDATE CREDITO.CreditoPrenda
+                    UPDATE cp
                     SET Descripcion = @Descripcion,
                         MontoTasacion = @MontoTasacion,
                         FechaRemate = @FechaRemate,
@@ -496,21 +569,31 @@ public sealed class CreditoGestionWriteService(
                         Estado = CAST(1 AS bit),
                         UsuarioModId = @UsuarioId,
                         FechaMod = @FechaServidor
-                    WHERE CreditoId = @CreditoId;
+                    FROM CREDITO.CreditoPrenda AS cp
+                    INNER JOIN CREDITO.Credito AS c ON c.CreditoId = cp.CreditoId
+                    WHERE cp.CreditoId = @CreditoId
+                      AND c.OficinaId = @OficinaId;
                 END
                 ELSE
                 BEGIN
                     INSERT INTO CREDITO.CreditoPrenda (
                         CreditoId, Descripcion, MontoTasacion, FechaRemate, Observacion,
                         Estado, UsuarioRegId, FechaReg)
-                    VALUES (
+                    SELECT
                         @CreditoId, @Descripcion, @MontoTasacion, @FechaRemate, @Observacion,
-                        CAST(1 AS bit), @UsuarioId, @FechaServidor);
+                        CAST(1 AS bit), @UsuarioId, @FechaServidor
+                    WHERE EXISTS (
+                        SELECT 1
+                        FROM CREDITO.Credito
+                        WHERE CreditoId = @CreditoId
+                          AND OficinaId = @OficinaId
+                    );
                 END;
                 """,
                 new
                 {
                     request.CreditoId,
+                    request.OficinaId,
                     Descripcion = request.Descripcion.Trim().ToUpperInvariant(),
                     request.MontoTasacion,
                     FechaRemate = request.FechaRemate.Date,

@@ -242,6 +242,64 @@ public sealed class CreditoGestionReadService(IOptions<SqlDatabaseOptions> optio
         return new CreditoGrillaPersonaPageDto(items, total, page, pageSize);
     }
 
+    public async Task<IReadOnlyList<CreditoAvalRelacionDto>> ListarAvalesPersonaAsync(
+        int oficinaId,
+        int personaId,
+        CancellationToken cancellationToken = default)
+    {
+        if (oficinaId < 1 || personaId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(personaId));
+        }
+
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var rows = await connection.QueryAsync<CreditoAvalRelacionDto>(
+            new CommandDefinition(
+                """
+                SELECT 'AVAL' AS Grupo,
+                       c.CreditoId,
+                       c.PersonaId,
+                       c.PersonaAvalId AS PersonaRelacionadaId,
+                       c.MontoCredito,
+                       c.Estado,
+                       pa.NombreCompleto AS Persona,
+                       pa.NumeroDocumento AS Dni,
+                       pa.Celular1 AS Celular
+                FROM CREDITO.Credito AS c
+                INNER JOIN MAESTRO.Persona AS pa ON pa.PersonaId = c.PersonaAvalId
+                WHERE c.OficinaId = @OficinaId
+                  AND c.PersonaId = @PersonaId
+                  AND c.PersonaAvalId IS NOT NULL
+                  AND c.Estado <> 'ANU'
+
+                UNION ALL
+
+                SELECT 'AVALADO' AS Grupo,
+                       c.CreditoId,
+                       c.PersonaId,
+                       c.PersonaId AS PersonaRelacionadaId,
+                       c.MontoCredito,
+                       c.Estado,
+                       p.NombreCompleto AS Persona,
+                       p.NumeroDocumento AS Dni,
+                       p.Celular1 AS Celular
+                FROM CREDITO.Credito AS c
+                INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
+                WHERE c.OficinaId = @OficinaId
+                  AND c.PersonaAvalId = @PersonaId
+                  AND c.Estado <> 'ANU'
+
+                ORDER BY CreditoId DESC;
+                """,
+                new { OficinaId = oficinaId, PersonaId = personaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        return rows.ToList();
+    }
+
     public async Task<(int CreditoId, string FileName)?> ObtenerEvidenciaArchivoAsync(
         int creditoImagenId,
         CancellationToken cancellationToken = default)
