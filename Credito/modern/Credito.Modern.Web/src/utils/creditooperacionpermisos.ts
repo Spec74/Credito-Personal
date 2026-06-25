@@ -33,11 +33,11 @@ const ROLES_CREDITO_OPERACION_COMPLETA = [
 
   'ENCARGADO',
 
+  'ANALISTA',
+
   'GESTOR',
 
   'CAJERO',
-
-  'PARCIAL',
 
 ] as const
 

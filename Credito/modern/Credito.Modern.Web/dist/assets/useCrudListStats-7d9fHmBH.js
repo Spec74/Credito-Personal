@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-jpDsebLB.js";import{$t as t}from"./vendor-antd-Bh7dNMhm.js";import{o as n}from"./credix-8YksHo1o.js";var r=e(t(),1);function i(e,t,i){return(0,r.useMemo)(()=>n(e,{entityLabel:t,activeCount:i}),[e,t,i])}export{i as t};

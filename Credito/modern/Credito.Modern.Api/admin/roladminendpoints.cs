@@ -34,7 +34,7 @@ internal static class RolAdminEndpoints
                 })
             .WithName("RolesGestion")
             .WithTags("roles-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<List<RolGestionListItemDto>>();
 
         app.MapGet(
@@ -67,7 +67,7 @@ internal static class RolAdminEndpoints
                 })
             .WithName("RolMenusDetalle")
             .WithTags("roles-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<RolMenusDetalleDto>();
 
         app.MapPost(
@@ -96,7 +96,7 @@ internal static class RolAdminEndpoints
                 })
             .WithName("GuardarRol")
             .WithTags("roles-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -125,7 +125,7 @@ internal static class RolAdminEndpoints
                 })
             .WithName("ActivarRol")
             .WithTags("roles-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -155,7 +155,7 @@ internal static class RolAdminEndpoints
                 })
             .WithName("AsignarRolMenus")
             .WithTags("roles-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
     }
 

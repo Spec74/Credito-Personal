@@ -1,1 +1,0 @@
-import{O as e,S as t}from"./index-DgiPbVVj.js";async function n(){return t(await e(`/marcas`))}export{n as t};

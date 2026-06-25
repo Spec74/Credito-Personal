@@ -1,0 +1,1 @@
+import{O as e,S as t}from"./index-Un5499bd.js";async function n(){return t(await e(`/marcas`))}export{n as t};

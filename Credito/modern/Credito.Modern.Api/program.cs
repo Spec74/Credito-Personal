@@ -151,63 +151,61 @@ builder.Services.AddAuthorization(options =>
         static policy =>
         {
             policy.RequireAuthenticatedUser();
-            policy.RequireRole(CreditoAuthorizationPolicies.RolesAdministrador);
+            policy.RequireAssertion(ctx => CreditoAuthorizationPolicies.HasAdministrador(GetRoleClaims(ctx.User)));
         });
     options.AddPolicy(
         CreditoAuthorizationPolicies.CreditoRolEncargado,
         static policy =>
         {
             policy.RequireAuthenticatedUser();
-            policy.RequireRole(CreditoAuthorizationPolicies.RolDenominacionEncargado);
+            policy.RequireAssertion(ctx => CreditoAuthorizationPolicies.HasEncargado(GetRoleClaims(ctx.User)));
         });
     options.AddPolicy(
         CreditoAuthorizationPolicies.CreditoRolAprobador1,
         static policy =>
         {
             policy.RequireAuthenticatedUser();
-            policy.RequireRole(CreditoAuthorizationPolicies.RolDenominacionAprobador1);
+            policy.RequireAssertion(ctx => CreditoAuthorizationPolicies.HasAprobador1(GetRoleClaims(ctx.User)));
         });
     options.AddPolicy(
         CreditoAuthorizationPolicies.CreditoRolAprobador1OAdministrador,
         static policy =>
         {
             policy.RequireAuthenticatedUser();
-            policy.RequireRole(CreditoAuthorizationPolicies.RolesAprobador1OAdministrador);
+            policy.RequireAssertion(ctx => CreditoAuthorizationPolicies.HasAprobador1OAdministrador(GetRoleClaims(ctx.User)));
         });
     options.AddPolicy(
         CreditoAuthorizationPolicies.CreditoRolSoloAdministrador,
         static policy =>
         {
             policy.RequireAuthenticatedUser();
-            policy.RequireRole(CreditoAuthorizationPolicies.RolesAdministrador);
+            policy.RequireAssertion(ctx => CreditoAuthorizationPolicies.HasAdministrador(GetRoleClaims(ctx.User)));
         });
     options.AddPolicy(
         CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador,
         static policy =>
         {
             policy.RequireAuthenticatedUser();
-            policy.RequireRole(CreditoAuthorizationPolicies.RolesEncargadoOAdministrador);
+            policy.RequireAssertion(ctx => CreditoAuthorizationPolicies.HasEncargadoOAdministrador(GetRoleClaims(ctx.User)));
+        });
+    options.AddPolicy(
+        CreditoAuthorizationPolicies.CreditoRolAnularMovimientoCaja,
+        static policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.RequireAssertion(ctx => CreditoAuthorizationPolicies.HasAnulacionMovimientoCaja(GetRoleClaims(ctx.User)));
         });
     options.AddPolicy(
         CreditoAuthorizationPolicies.CreditoRolOperador,
         static policy =>
         {
             policy.RequireAuthenticatedUser();
-            policy.RequireAssertion(ctx =>
-            {
-                var roles = ctx.User
-                    .FindAll(System.Security.Claims.ClaimTypes.Role)
-                    .Select(c => c.Value.Trim().ToUpperInvariant())
-                    .ToList();
-                if (roles.Count == 0)
-                {
-                    return false;
-                }
-
-                return roles.Any(r => r != CreditoAuthorizationPolicies.RolDenominacionLectura);
-            });
+            policy.RequireAssertion(ctx => CreditoAuthorizationPolicies.HasRolOperador(GetRoleClaims(ctx.User)));
         });
 });
+
+static IEnumerable<string> GetRoleClaims(ClaimsPrincipal user) =>
+    user.FindAll(ClaimTypes.Role).Select(static c => c.Value);
 
 builder.Services.AddModernInfrastructure(builder.Configuration);
 builder.Services.AddMemoryCache();
@@ -13868,7 +13866,7 @@ app.MapPost(
     .WithSummary(
         "Escritura: CREDITO.usp_MovimientoCaja_Del. Paridad CajaDiarioBL.AnularMovimientoCaja / CreditoController.AnularMovimientoCaja.")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAnularMovimientoCaja)
     .Produces<AnularMovimientoCajaResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)

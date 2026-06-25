@@ -31,4 +31,44 @@ describe('resolveSpaPathFromMenuItem', () => {
       resolveSpaPathFromMenuItem('/Credito/Creditos?pPersonaId=123', 'Creditos', 'CREDITO'),
     ).toBe('/credito/consulta?personaId=123')
   })
+
+  it('prioriza Simulador por etiqueta aunque la URL legacy sea generica', () => {
+    expect(resolveSpaPathFromMenuItem('/Credito/Index', 'Simulador', null)).toBe(
+      '/credito/simulador',
+    )
+  })
+
+  it('resuelve Simular por etiqueta alternativa legacy', () => {
+    expect(resolveSpaPathFromMenuItem('/Credito/Index', 'Simular crédito', null)).toBe(
+      '/credito/simulador',
+    )
+  })
+
+  it('resuelve Simulador por URL aunque la etiqueta venga generica', () => {
+    expect(resolveSpaPathFromMenuItem('/Credito/Simulador', 'Crédito', null)).toBe(
+      '/credito/simulador',
+    )
+  })
+
+  it('resuelve Prendario por etiqueta aunque no venga modulo Credito', () => {
+    expect(resolveSpaPathFromMenuItem(null, 'Crédito prendario', null)).toBe(
+      '/credito/prendario',
+    )
+  })
+
+  it('resuelve Prendario por URL aunque la etiqueta venga generica', () => {
+    expect(resolveSpaPathFromMenuItem('~/Credito/Prendario', 'Crédito', null)).toBe(
+      '/credito/prendario',
+    )
+  })
+
+  it('resuelve Tareas por etiqueta aunque el modulo venga vacio', () => {
+    expect(resolveSpaPathFromMenuItem(null, 'Tareas', '')).toBe('/credito/tareas')
+  })
+
+  it('resuelve Tareas por URL aunque la etiqueta venga generica', () => {
+    expect(resolveSpaPathFromMenuItem('/Credito/Tareas', 'Crédito', null)).toBe(
+      '/credito/tareas',
+    )
+  })
 })

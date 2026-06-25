@@ -39,7 +39,9 @@ public class AnularMovimientoCajaEndpointTests : IClassFixture<CreditoModernWebA
             return;
         }
 
-        var tokenRes = await _client.PostAsJsonAsync("/api/v1/dev/token", new { usuarioId = 1, oficinaId = 1 });
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles = new[] { "ADMINISTRADOR" } });
         using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
         var token = doc.RootElement.GetProperty("accessToken").GetString();
 
@@ -53,14 +55,16 @@ public class AnularMovimientoCajaEndpointTests : IClassFixture<CreditoModernWebA
     }
 
     [Fact]
-    public async Task Anular_movimiento_caja_parametros_alineados_no_es_401()
+    public async Task Anular_movimiento_caja_rol_gestor_devuelve_403()
     {
         if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
-        var tokenRes = await _client.PostAsJsonAsync("/api/v1/dev/token", new { usuarioId = 1, oficinaId = 1 });
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles = new[] { "GESTOR" } });
         using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
         var token = doc.RootElement.GetProperty("accessToken").GetString();
 
@@ -70,6 +74,29 @@ public class AnularMovimientoCajaEndpointTests : IClassFixture<CreditoModernWebA
         };
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var res = await _client.SendAsync(req);
-        Assert.NotEqual(HttpStatusCode.Unauthorized, res.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Anular_movimiento_caja_rol_anulacion_mov_no_devuelve_403_por_rol()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles = new[] { "ANULACION_MOV" } });
+        using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
+        var token = doc.RootElement.GetProperty("accessToken").GetString();
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/credito/anular-movimiento-caja")
+        {
+            Content = JsonContent.Create(new { oficinaId = 1, movimientoCajaId = 1, observacion = "smoke" }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res = await _client.SendAsync(req);
+        Assert.NotEqual(HttpStatusCode.Forbidden, res.StatusCode);
     }
 }

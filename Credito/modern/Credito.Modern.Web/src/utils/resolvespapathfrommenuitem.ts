@@ -19,7 +19,12 @@ function resolveCreditoOperacionFromLabel(denominacion: string | null | undefine
   if (label.includes('prendario') || label.includes('predario')) {
     return '/credito/prendario'
   }
-  if (label.includes('simulador') && !label.includes('parametro')) {
+  if (
+    (label.includes('simulador') ||
+      label.includes('simular') ||
+      label.includes('simulacion')) &&
+    !label.includes('parametro')
+  ) {
     return '/credito/simulador'
   }
   if (label.includes('aprobacion') || label.includes('aprobar')) {
@@ -47,6 +52,33 @@ function resolveCreditoOperacionFromLabel(denominacion: string | null | undefine
   return null
 }
 
+function resolveCreditoOperacionFromUrl(url: string | null | undefined): string | null {
+  const normalized = normalizeLabel(url ?? '').replace(/^~\//, '/')
+  if (!normalized) {
+    return null
+  }
+
+  if (normalized.includes('/credito/tareas') || normalized.includes('/tareas')) {
+    return '/credito/tareas'
+  }
+  if (
+    normalized.includes('/credito/prendario') ||
+    normalized.includes('/credito/predario') ||
+    normalized.includes('creditoprendario') ||
+    normalized.includes('creditopredario')
+  ) {
+    return '/credito/prendario'
+  }
+  if (normalized.includes('/credito/simulador') || normalized.includes('reportesimuladorplanpagos')) {
+    return '/credito/simulador'
+  }
+  if (normalized.includes('/credito/parametrossimulador')) {
+    return '/credito/parametros-simulador'
+  }
+
+  return null
+}
+
 function normalizeLabel(value: string): string {
   return value
     .trim()
@@ -63,13 +95,6 @@ export function resolveSpaPathFromMenuItem(
   denominacion: string | null | undefined,
   modulo: string | null | undefined,
 ): string | null {
-  if (url?.trim() && /credito\/creditos/i.test(url)) {
-    const fromCreditoUrl = resolveSpaPathFromLegacyUrl(url)
-    if (fromCreditoUrl) {
-      return fromCreditoUrl
-    }
-  }
-
   const label = normalizeLabel(denominacion ?? '')
   const mod = (modulo ?? '')
     .trim()
@@ -77,10 +102,20 @@ export function resolveSpaPathFromMenuItem(
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
 
-  if (mod.includes('CREDITO')) {
-    const directo = resolveCreditoOperacionFromLabel(denominacion)
-    if (directo) {
-      return directo
+  const creditoOperacionDirecta = resolveCreditoOperacionFromLabel(denominacion)
+  if (creditoOperacionDirecta && (mod.includes('CREDITO') || isCreditoOperacionLabel(label))) {
+    return creditoOperacionDirecta
+  }
+
+  const creditoOperacionUrl = resolveCreditoOperacionFromUrl(url)
+  if (creditoOperacionUrl) {
+    return creditoOperacionUrl
+  }
+
+  if (url?.trim() && /credito\/creditos/i.test(url)) {
+    const fromCreditoUrl = resolveSpaPathFromLegacyUrl(url)
+    if (fromCreditoUrl) {
+      return fromCreditoUrl
     }
   }
 
@@ -125,4 +160,22 @@ export function resolveSpaPathFromMenuItem(
   }
 
   return resolveSpaPathFromModulo(modulo)
+}
+
+function isCreditoOperacionLabel(label: string): boolean {
+  return (
+    label === 'tareas' ||
+    label.includes('tarea') ||
+    label === 'cliente' ||
+    label === 'clientes' ||
+    label === 'creditos' ||
+    label.includes('consulta de credito') ||
+    label.includes('prendario') ||
+    label.includes('predario') ||
+    label.includes('simulador') ||
+    label.includes('simular') ||
+    label.includes('simulacion') ||
+    label.includes('aprobacion') ||
+    label.includes('aprobar')
+  )
 }

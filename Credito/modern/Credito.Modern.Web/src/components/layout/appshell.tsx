@@ -1,7 +1,7 @@
 import { Suspense, useEffect, useMemo, useState } from 'react'
-import { Outlet, useNavigate } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button, Drawer, Grid, Menu, Spin, Tag, Typography } from 'antd'
+import { Button, Drawer, Grid, Menu, Result, Spin, Tag, Typography } from 'antd'
 import './app-shell.css'
 import {
   LogoutOutlined,
@@ -26,11 +26,13 @@ import {
 } from '../../utils/menuTree'
 import { resolveSpaPathFromModulo } from '../../utils/legacyRoutes'
 import { resolveSpaPathFromMenuItem } from '../../utils/resolveSpaPathFromMenuItem'
+import { hasMenuRouteAccess } from '../../utils/menuRouteAccess'
 
 const { Text } = Typography
 
 export function AppShell() {
   const navigate = useNavigate()
+  const location = useLocation()
   const queryClient = useQueryClient()
   const { session, logout } = useAuth()
   const screens = Grid.useBreakpoint()
@@ -77,6 +79,10 @@ export function AppShell() {
   const quickActionsVisible = useMemo(
     () => filterQuickActionsByMenu(quickActions, navigationMenuData),
     [navigationMenuData],
+  )
+  const hasCurrentRouteAccess = useMemo(
+    () => hasMenuRouteAccess(location.pathname, navigationMenuData),
+    [location.pathname, navigationMenuData],
   )
 
   const defaultOpenKeys = useMemo(
@@ -279,7 +285,20 @@ export function AppShell() {
         <div className="credix-main">
           <main className="credix-content app-shell-content">
             <Suspense fallback={<RouteFallback />}>
-              <Outlet />
+              {menuQuery.isLoading || hasCurrentRouteAccess ? (
+                <Outlet />
+              ) : (
+                <Result
+                  status="403"
+                  title="Sin permiso"
+                  subTitle="Esta ruta no está habilitada en el menú asignado a su rol/oficina."
+                  extra={
+                    <Button type="primary" onClick={() => navigate('/inicio')}>
+                      Ir al inicio
+                    </Button>
+                  }
+                />
+              )}
             </Suspense>
           </main>
           <footer className="credix-footer app-shell-footer">

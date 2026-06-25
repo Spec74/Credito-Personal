@@ -102,6 +102,66 @@ public class CreditoRolAuthorizationEndpointTests : IClassFixture<CreditoModernW
         Assert.NotEqual(HttpStatusCode.Forbidden, res.StatusCode);
     }
 
+    [Fact]
+    public async Task Aprobar_credito_apro1_alias_no_devuelve_403_por_rol()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var token = await DevTokenAsync(["APRO1"]);
+        using var req = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/v1/credito/aprobar-credito")
+        {
+            Content = JsonContent.Create(new { oficinaId = 1, creditoId = 1, opcion = 0 }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res = await _client.SendAsync(req);
+        Assert.NotEqual(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Crear_solicitud_reporteparcial_devuelve_403()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var token = await DevTokenAsync(["REPORTEPARCIAL"]);
+        using var req = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/v1/credito/crear-solicitud-credito")
+        {
+            Content = JsonContent.Create(new { oficinaId = 1, personaId = 1 }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Crear_solicitud_analista_con_aprobadores_no_devuelve_403_por_rol()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var token = await DevTokenAsync(["ANALISTA", "APROBADOR 1", "APROBADOR 2"]);
+        using var req = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/v1/credito/crear-solicitud-credito")
+        {
+            Content = JsonContent.Create(new { oficinaId = 1, personaId = 1 }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res = await _client.SendAsync(req);
+        Assert.NotEqual(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
     private async Task<string> DevTokenAsync(string[] roles)
     {
         var tokenRes = await _client.PostAsJsonAsync(

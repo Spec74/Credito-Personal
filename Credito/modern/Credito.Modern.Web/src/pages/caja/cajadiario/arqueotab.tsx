@@ -32,6 +32,8 @@ import { TransferirSaldosDrawer } from './TransferirSaldosDrawer'
 import { MovimientoDetalleModal } from './MovimientoDetalleModal'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
+import { useAuth } from '../../../auth/useAuth'
+import { puedeAnularMovimientoCaja } from '../../../utils/cajaSaldosPermisos'
 
 const { Paragraph, Text } = Typography
 
@@ -72,6 +74,8 @@ export function ArqueoTab({
   onChanged: () => void
   onGoCierre: () => void
 }) {
+  const { session } = useAuth()
+  const puedeAnularMovimiento = puedeAnularMovimientoCaja(session?.roles ?? [])
   const [filtro, setFiltro] = useState('')
   const [anularId, setAnularId] = useState<number | null>(null)
   const [observacion, setObservacion] = useState('')
@@ -181,13 +185,15 @@ export function ArqueoTab({
           >
             Ticket
           </Button>
-          <Button
-            size="small"
-            danger
-            onClick={() => setAnularId(r.movimientoCajaId)}
-          >
-            Anular
-          </Button>
+          {puedeAnularMovimiento ? (
+            <Button
+              size="small"
+              danger
+              onClick={() => setAnularId(r.movimientoCajaId)}
+            >
+              Anular
+            </Button>
+          ) : null}
         </Space>
       ),
     },

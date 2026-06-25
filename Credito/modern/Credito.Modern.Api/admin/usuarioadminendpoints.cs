@@ -37,7 +37,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("UsuariosGestion")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<UsuarioGestionPageDto>();
 
         app.MapGet(
@@ -102,7 +102,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("UsuarioDetalle")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<UsuarioPersonaDetalleDto>();
 
         app.MapGet(
@@ -143,7 +143,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("PersonaPorDni")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<PersonaPorDniDto>();
 
         app.MapGet(
@@ -178,7 +178,7 @@ internal static class UsuarioAdminEndpoints
             .WithName("ValidarUsuarioDni")
             .WithSummary("Paridad ValidarUsuarioDNI: existe=true si ya hay usuario con ese DNI.")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<ValidarDniResponse>();
 
         app.MapGet(
@@ -212,7 +212,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("UsuarioRolesAsignacion")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<List<RolAsignacionDto>>();
 
         app.MapPost(
@@ -233,7 +233,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("GuardarUsuario")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -262,7 +262,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("ActivarUsuario")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -292,7 +292,7 @@ internal static class UsuarioAdminEndpoints
             .WithName("ResetearClaveUsuario")
             .WithSummary("Paridad ResetearClave (clave 123456 hasheada para login moderno).")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -322,7 +322,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("AsignarOficinasUsuario")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -352,7 +352,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("AsignarRolesUsuario")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
     }
 

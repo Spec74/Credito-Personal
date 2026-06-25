@@ -1,0 +1,1 @@
+function e(e){return e.some(e=>e.trim().toUpperCase()===`LECTURA_SALDO`)}function t(t){return!e(t)}function n(e){return e.trim().toUpperCase().replace(/\s+/g,``)}function r(e){let t=e.map(n);return t.includes(`ADMINISTRADOR`)||t.includes(`ADMIN`)||t.includes(`ANULACION_MOV`)}export{r as n,t as r,e as t};

@@ -6,3 +6,16 @@ export function esLecturaSaldoCaja(roles: string[]): boolean {
 export function puedeOperarCierreSaldos(roles: string[]): boolean {
   return !esLecturaSaldoCaja(roles)
 }
+
+function normalizeRole(role: string): string {
+  return role.trim().toUpperCase().replace(/\s+/g, '')
+}
+
+export function puedeAnularMovimientoCaja(roles: string[]): boolean {
+  const normalized = roles.map(normalizeRole)
+  return (
+    normalized.includes('ADMINISTRADOR') ||
+    normalized.includes('ADMIN') ||
+    normalized.includes('ANULACION_MOV')
+  )
+}
