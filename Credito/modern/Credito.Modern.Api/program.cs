@@ -12683,9 +12683,9 @@ app.MapPost(
         })
     .WithName("CreditoCompletarImpagos")
     .WithSummary(
-        "Escritura: CREDITO.usp_CompletarImpagos(CajaDiarioId). Body { oficinaId, cajaDiarioId }; oficinaId = vendix:oficina_id. Rechaza 409 si usp_CompletarImpagosValidacion > 0. CreditoUser. Paridad CreditoBL.CompletarImpagos.")
+        "Escritura: CREDITO.usp_CompletarImpagos(CajaDiarioId). Body { oficinaId, cajaDiarioId }; oficinaId = vendix:oficina_id. Rechaza 409 si usp_CompletarImpagosValidacion > 0. Rol operativo. Paridad CreditoBL.CompletarImpagos.")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<CompletarImpagosResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -12703,6 +12703,7 @@ app.MapPost(
             ICajaPagoMoraOrchestrator moraOrchestrator,
             ICajaDiarioOficinaReadService cajaDiarioOficina,
             ICreditoOficinaReadService creditoOficina,
+            IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
             IDatabaseTimeProvider databaseTime,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
@@ -12762,6 +12763,14 @@ app.MapPost(
             if (scopeError is not null)
             {
                 return scopeError;
+            }
+
+            if (await entradaSalidaRead.CajaDiarioEstaCerradaAsync(body.CajaDiarioId, ct).ConfigureAwait(false))
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Conflicto",
+                    detail: "La caja diario está cerrada.");
             }
 
             var serverTime = await databaseTime.GetServerTimeAsync(ct).ConfigureAwait(false);
@@ -12839,7 +12848,7 @@ app.MapPost(
     .WithSummary(
         "Escritura: CREDITO.usp_PagarCuotas. usuarioId y fechaPago desde JWT y usp_FechaBD. Paridad CajaDiarioBL.PagarCuotas / CreditoController.PagarCuotas.")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<PagoCajaResultResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -12856,6 +12865,7 @@ app.MapPost(
             ICajaPagoWriteService cajaPago,
             ICajaDiarioOficinaReadService cajaDiarioOficina,
             ICreditoOficinaReadService creditoOficina,
+            IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
             CancellationToken ct) =>
@@ -12908,6 +12918,14 @@ app.MapPost(
                 return scopeError;
             }
 
+            if (await entradaSalidaRead.CajaDiarioEstaCerradaAsync(body.CajaDiarioId, ct).ConfigureAwait(false))
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Conflicto",
+                    detail: "La caja diario está cerrada.");
+            }
+
             var log = loggerFactory.CreateLogger("PagarCuotaPagoLibre");
             try
             {
@@ -12953,7 +12971,7 @@ app.MapPost(
     .WithSummary(
         "Escritura: CREDITO.usp_PagarCuotaPagoLibre. Paridad CajaDiarioBL.PagarCuotaPagoLibre / CreditoController.PagarCuotasImporteLibre.")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<PagoCajaResultResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -12970,6 +12988,7 @@ app.MapPost(
             ICajaPagoMoraOrchestrator moraOrchestrator,
             ICajaDiarioOficinaReadService cajaDiarioOficina,
             ICreditoOficinaReadService creditoOficina,
+            IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
             CancellationToken ct) =>
@@ -13012,6 +13031,14 @@ app.MapPost(
             if (scopeError is not null)
             {
                 return scopeError;
+            }
+
+            if (await entradaSalidaRead.CajaDiarioEstaCerradaAsync(body.CajaDiarioId, ct).ConfigureAwait(false))
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Conflicto",
+                    detail: "La caja diario está cerrada.");
             }
 
             var log = loggerFactory.CreateLogger("PagarCuotaConMora");
@@ -13067,7 +13094,7 @@ app.MapPost(
     .WithSummary(
         "Escritura: paridad CajaDiarioBL.ProcesarPagoCompleto / ProcesarPagoCuotaConMora (pago libre + liquidación mora).")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<PagarCuotaConMoraResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -13084,6 +13111,7 @@ app.MapPost(
             ICajaPagoWriteService cajaPago,
             ICajaDiarioOficinaReadService cajaDiarioOficina,
             ICreditoOficinaReadService creditoOficina,
+            IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
             IDatabaseTimeProvider databaseTime,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
@@ -13119,6 +13147,14 @@ app.MapPost(
             if (scopeError is not null)
             {
                 return scopeError;
+            }
+
+            if (await entradaSalidaRead.CajaDiarioEstaCerradaAsync(body.CajaDiarioId, ct).ConfigureAwait(false))
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status409Conflict,
+                    title: "Conflicto",
+                    detail: "La caja diario está cerrada.");
             }
 
             var serverTime = await databaseTime.GetServerTimeAsync(ct).ConfigureAwait(false);
@@ -13173,7 +13209,7 @@ app.MapPost(
     .WithSummary(
         "Escritura: CREDITO.usp_PagarCuotasCancelacion. Paridad CajaDiarioBL.PagarCuotasCancelacion / CreditoController.PagarCuotasCancelacion.")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<PagoCajaResultResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -13371,7 +13407,7 @@ app.MapPost(
     .WithSummary(
         "Escritura: paridad CajaDiarioBL.CerrarCajaDiario (UPDATE CajaDiario/Caja + CREDITO.ActualizarClientesNuevos). Rechaza 409 si validar-cierre falla. usuarioModId = vendix:usuario_id; fecha = usp_FechaBD. Distinto de cerrar-cajas-diarios (transferencia bóveda).")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<CerrarCajaDiarioResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -13451,7 +13487,7 @@ app.MapPost(
     .WithSummary(
         "Escritura: CREDITO.usp_ReconciliarCajaDiario(CajaDiarioId). Paridad CajaDiarioBL.ConciliarCajaDiario / CreditoController.ConciliarCajaDiario.")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<CajaDiarioOperacionResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -13650,7 +13686,7 @@ app.MapPost(
     .WithSummary(
         "Escritura: paridad CajaDiarioController.TransferirSaldos (caja→caja o caja→bóveda).")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -14150,7 +14186,7 @@ app.MapPost(
     .WithSummary(
         "Escritura: paridad CajaDiarioBL.RealizarDesembolso (UPDATE Credito DES + MovimientoCaja + saldos caja). Idempotente si ya existe movimiento DES.")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<RealizarDesembolsoResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -14281,7 +14317,7 @@ app.MapPost(
     .WithSummary(
         "Escritura: CREDITO.usp_EntradaSalidaCajaDiario. Paridad CajaDiarioBL.EntradaSalida / RealizarEntradaSalidaCajaDiario. Param SQL Decripcion (typo legado).")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<EntradaSalidaCajaDiarioResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -14740,7 +14776,7 @@ app.MapPost(
     .WithSummary(
         "Escritura: CREDITO.usp_PagarCuentaxCobrar. Paridad CajaDiarioBL.RealizarPagarCuentaxCobrar. cuentaxCobrarId=0 = orden venta CON.")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<PagoCajaResultResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)

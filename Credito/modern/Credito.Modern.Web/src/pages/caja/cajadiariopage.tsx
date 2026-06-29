@@ -148,8 +148,12 @@ export function CajaDiarioPage() {
     void queryClient.invalidateQueries({ queryKey: ['caja-resumen-ingreso'] })
     void queryClient.invalidateQueries({ queryKey: ['caja-cxc'] })
     void queryClient.invalidateQueries({ queryKey: ['caja-cxc-inline'] })
-    void queryClient.invalidateQueries({ queryKey: ['caja-cxc-inline'] })
     void queryClient.invalidateQueries({ queryKey: ['caja-desembolsos'] })
+  }
+
+  const refreshCaja = () => {
+    invalidateCaja()
+    void cajaQuery.refetch()
   }
 
 
@@ -362,7 +366,7 @@ export function CajaDiarioPage() {
                         <DesembolsosTab
                           ctx={ctx}
                           active={activeTab === 'desembolsos'}
-                          onChanged={invalidateCaja}
+                          onChanged={refreshCaja}
                         />
                       ),
                     },
@@ -372,7 +376,7 @@ export function CajaDiarioPage() {
                       children: (
                         <EntradaSalidaTab
                           ctx={ctx}
-                          onChanged={invalidateCaja}
+                          onChanged={refreshCaja}
                         />
                       ),
                     },
@@ -401,7 +405,7 @@ export function CajaDiarioPage() {
                         <CxcTab
                           ctx={ctx}
                           active={activeTab === 'cxc'}
-                          onChanged={invalidateCaja}
+                          onChanged={refreshCaja}
                         />
                       ),
                     },

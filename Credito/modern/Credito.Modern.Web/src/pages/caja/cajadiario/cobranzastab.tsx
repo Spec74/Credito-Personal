@@ -141,13 +141,10 @@ export function CobranzasTab({
     onError: (e) => message.error(errMsg(e)),
   })
 
-  const cargarCuotas = useCallback(
-    (id: number, options?: { silent?: boolean }) => {
-      setCreditoId(id)
-      buscar.mutate({ creditoId: id, silent: options?.silent })
-    },
-    [buscar.mutate],
-  )
+  const cargarCuotas = (id: number, options?: { silent?: boolean }) => {
+    setCreditoId(id)
+    buscar.mutate({ creditoId: id, silent: options?.silent })
+  }
 
   useEffect(() => {
     if (!creditoIdInicial) {
@@ -517,31 +514,6 @@ export function CobranzasTab({
           action={
             <Button size="small" onClick={() => setMoraModalOpen(true)}>
               Ver historial
-            </Button>
-          }
-        />
-      ) : null}
-
-      {moraResumenQuery.data?.indMoraProducto &&
-      (resumenCuotas.moraVigente > 0 ||
-        (moraResumenQuery.data.saldoPostergado ?? 0) > 0) ? (
-        <Alert
-          type="warning"
-          showIcon
-          className="caja-diario-mora-banner"
-          message={
-            <>
-              Mora del crédito:{' '}
-              <strong>{formatMoney(resumenCuotas.moraVigente)}</strong> en cuotas
-              {(moraResumenQuery.data.saldoPostergado ?? 0) > 0
-                ? ` · ${formatMoney(moraResumenQuery.data.saldoPostergado)} postergada`
-                : ''}
-            </>
-          }
-          description="La mora postergada se liquida al cobrar la última cuota. Use «Crédito mora» para el detalle y reportes PDF."
-          action={
-            <Button size="small" onClick={() => setMoraModalOpen(true)}>
-              Ver detalle
             </Button>
           }
         />

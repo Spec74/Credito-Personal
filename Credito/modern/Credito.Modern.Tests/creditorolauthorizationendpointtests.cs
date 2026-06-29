@@ -162,6 +162,62 @@ public class CreditoRolAuthorizationEndpointTests : IClassFixture<CreditoModernW
         Assert.NotEqual(HttpStatusCode.Forbidden, res.StatusCode);
     }
 
+    [Fact]
+    public async Task Pagar_cuotas_reporteparcial_devuelve_403()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var token = await DevTokenAsync(["REPORTEPARCIAL"]);
+        using var req = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/v1/credito/pagar-cuotas")
+        {
+            Content = JsonContent.Create(new
+            {
+                oficinaId = 1,
+                cajaDiarioId = 1,
+                creditoId = 1,
+                listaPlanPagoId = "1",
+                importeRecibido = 10m,
+                tipoPagoId = 1,
+            }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Pagar_cuotas_analista_no_devuelve_403_por_rol()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var token = await DevTokenAsync(["ANALISTA"]);
+        using var req = new HttpRequestMessage(
+            HttpMethod.Post,
+            "/api/v1/credito/pagar-cuotas")
+        {
+            Content = JsonContent.Create(new
+            {
+                oficinaId = 1,
+                cajaDiarioId = 1,
+                creditoId = 1,
+                listaPlanPagoId = "1",
+                importeRecibido = 10m,
+                tipoPagoId = 1,
+            }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res = await _client.SendAsync(req);
+        Assert.NotEqual(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
     private async Task<string> DevTokenAsync(string[] roles)
     {
         var tokenRes = await _client.PostAsJsonAsync(
