@@ -218,6 +218,136 @@ public class CreditoRolAuthorizationEndpointTests : IClassFixture<CreditoModernW
         Assert.NotEqual(HttpStatusCode.Forbidden, res.StatusCode);
     }
 
+    [Fact]
+    public async Task Guardar_marca_analista_devuelve_403()
+    {
+        var token = await DevTokenAsync(["ANALISTA"]);
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/marcas/guardar")
+        {
+            Content = JsonContent.Create(new
+            {
+                marcaId = 0,
+                denominacion = "MARCA TEST",
+                estado = true,
+            }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var res = await _client.SendAsync(req);
+
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Guardar_articulo_analista_devuelve_403()
+    {
+        var token = await DevTokenAsync(["ANALISTA"]);
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/articulos/guardar")
+        {
+            Content = JsonContent.Create(new
+            {
+                articuloId = 0,
+                modeloId = 1,
+                tipoArticuloId = 1,
+                codArticulo = "TEST",
+                denominacion = "ARTICULO TEST",
+                descripcion = "TEST",
+                precio = 1m,
+                descuento = 0m,
+                indPerecible = false,
+                indImportado = false,
+                indCanjeable = false,
+                estado = true,
+            }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var res = await _client.SendAsync(req);
+
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Modificar_tramite_adm_analista_devuelve_403()
+    {
+        var token = await DevTokenAsync(["ANALISTA"]);
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/credito/modificar-tramite-adm-credito")
+        {
+            Content = JsonContent.Create(new { oficinaId = 1, creditoId = 1, montoGastosAdm = 10m }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var res = await _client.SendAsync(req);
+
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Actualizar_descuento_plan_pago_aprobador_devuelve_403()
+    {
+        var token = await DevTokenAsync(["APROBADOR 1"]);
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/credito/actualizar-descuento-plan-pago")
+        {
+            Content = JsonContent.Create(new
+            {
+                oficinaId = 1,
+                creditoId = 1,
+                planPagoId = 1,
+                descuento = 1m,
+            }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var res = await _client.SendAsync(req);
+
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Verificar_pago_transferencia_analista_devuelve_403()
+    {
+        var token = await DevTokenAsync(["ANALISTA"]);
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/credito/verificar-pago-transferencia")
+        {
+            Content = JsonContent.Create(new { oficinaId = 1, movimientoCajaId = 1 }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var res = await _client.SendAsync(req);
+
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Recalcular_caja_diario_analista_devuelve_403()
+    {
+        var token = await DevTokenAsync(["ANALISTA"]);
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/credito/recalcular-caja-diario")
+        {
+            Content = JsonContent.Create(new { oficinaId = 1, cajaDiarioId = 1 }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var res = await _client.SendAsync(req);
+
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Canjear_puntos_reporteparcial_devuelve_403()
+    {
+        var token = await DevTokenAsync(["REPORTEPARCIAL"]);
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/ventas/canjear-puntos")
+        {
+            Content = JsonContent.Create(new { personaId = 1, numeroSerie = "TEST" }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var res = await _client.SendAsync(req);
+
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
     private async Task<string> DevTokenAsync(string[] roles)
     {
         var tokenRes = await _client.PostAsJsonAsync(

@@ -56,7 +56,7 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
                 new CommandDefinition(
                     """
                     SELECT CajaId, OficinaId, Denominacion, Estado, IndAbierto, CajeroId
-                    FROM CREDITO.Caja
+                    FROM CREDITO.Caja WITH (UPDLOCK, HOLDLOCK)
                     WHERE CajaId = @CajaId;
                     """,
                     new { CajaId = cajaId },
@@ -101,7 +101,7 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
                 new CommandDefinition(
                     """
                     SELECT BovedaId, SaldoInicial, SaldoFinal
-                    FROM CREDITO.Boveda
+                    FROM CREDITO.Boveda WITH (UPDLOCK, HOLDLOCK)
                     WHERE OficinaId = @OficinaId
                       AND IndCierre = CAST(0 AS bit)
                       AND IndTemporal = @IndTemporal;
@@ -225,16 +225,23 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
                         cancellationToken: cancellationToken)).ConfigureAwait(false);
             }
 
-            await connection.ExecuteAsync(
+            var cajasAbiertas = await connection.ExecuteAsync(
                 new CommandDefinition(
                     """
                     UPDATE CREDITO.Caja
                     SET IndAbierto = CAST(1 AS bit)
-                    WHERE CajaId = @CajaId;
+                    WHERE CajaId = @CajaId
+                      AND IndAbierto = CAST(0 AS bit);
                     """,
                     new { CajaId = cajaId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+            if (cajasAbiertas != 1)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ("La caja no está disponible para asignación.", null);
+            }
 
             if (saldoInicial > 0)
             {
@@ -283,7 +290,7 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
                         SELECT
                             ISNULL(SUM(CASE WHEN IndEntrada = CAST(1 AS bit) THEN Importe ELSE 0 END), 0) AS Entradas,
                             ISNULL(SUM(CASE WHEN IndEntrada = CAST(0 AS bit) THEN Importe ELSE 0 END), 0) AS Salidas
-                        FROM CREDITO.BovedaMov
+                        FROM CREDITO.BovedaMov WITH (UPDLOCK, HOLDLOCK)
                         WHERE BovedaId = @BovedaId
                           AND Estado = CAST(1 AS bit);
                         """,

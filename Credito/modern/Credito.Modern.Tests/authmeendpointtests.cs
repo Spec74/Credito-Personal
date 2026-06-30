@@ -44,4 +44,34 @@ public class AuthMeEndpointTests : IClassFixture<CreditoModernWebApplicationFact
         Assert.Equal(3, meDoc.RootElement.GetProperty("oficinaId").GetInt32());
         Assert.Equal(JsonValueKind.Array, meDoc.RootElement.GetProperty("roles").ValueKind);
     }
+
+    [Fact]
+    public async Task Registrar_acceso_ip_sin_bearer_devuelve_401()
+    {
+        var response = await _client.PostAsync("/api/v1/auth/registrar-acceso-ip", null);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Registrar_acceso_ip_analista_devuelve_403()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 7, oficinaId = 3, roles = new[] { "ANALISTA" } });
+        Assert.Equal(HttpStatusCode.OK, tokenRes.StatusCode);
+        using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
+        var token = doc.RootElement.GetProperty("accessToken").GetString();
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/auth/registrar-acceso-ip");
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _client.SendAsync(req);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
 }

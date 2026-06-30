@@ -5,6 +5,7 @@ import {
   saveTokens,
 } from '../auth/tokenStorage'
 import type { LoginTokenResponse, RefreshRequest } from '../types/api'
+import { openReportVisorInTab } from '../utils/reportVisor'
 import { ApiError, parseApiError } from './errors'
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL as string
@@ -126,19 +127,6 @@ async function authorizedFetch(
   return res
 }
 
-/** Descarga binaria (CSV, PDF) con Bearer y refresh. */
-/** Paridad Home/CrearAcceso — sin JWT (pantalla login). */
-export async function registrarAccesoIp(direccionIp: string): Promise<void> {
-  const res = await fetch(`${baseUrl}/auth/registrar-acceso-ip`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-    body: JSON.stringify({ direccionIp }),
-  })
-  if (!res.ok) {
-    throw await parseApiError(res)
-  }
-}
-
 function assertBinaryPayload(fileName: string, buffer: ArrayBuffer): void {
   const lower = fileName.toLowerCase()
   const bytes = new Uint8Array(buffer)
@@ -164,6 +152,12 @@ function assertBinaryPayload(fileName: string, buffer: ArrayBuffer): void {
 }
 
 export async function apiDownload(path: string, fileName: string): Promise<void> {
+  const openPdfInTab = fileName.toLowerCase().endsWith('.pdf')
+  const pdfTab = openPdfInTab ? window.open('about:blank', '_blank') : null
+  if (openPdfInTab && !pdfTab) {
+    throw new ApiError('Permita ventanas emergentes para ver el informe.', 400)
+  }
+
   const res = await authorizedFetch(path, {
     method: 'GET',
     headers: { Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/octet-stream, */*' },
@@ -179,6 +173,12 @@ export async function apiDownload(path: string, fileName: string): Promise<void>
       : 'application/octet-stream')
   const blob = new Blob([buffer], { type: mime })
   const url = URL.createObjectURL(blob)
+  if (pdfTab) {
+    pdfTab.location.href = url
+    window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
+    return
+  }
+
   const a = document.createElement('a')
   a.href = url
   a.download = downloadName
@@ -201,7 +201,7 @@ function parseContentDispositionFileName(header: string | null): string | null {
 }
 
 /** Abre PDF/Excel en pestaña nueva vía visor SPA (mismo origen; evita blob inválido con noopener). */
-export async function apiOpenInTab(path: string): Promise<void> {
-  const { openReportVisorInTab } = await import('../utils/reportVisor')
+export function apiOpenInTab(path: string): Promise<void> {
   openReportVisorInTab(path)
+  return Promise.resolve()
 }

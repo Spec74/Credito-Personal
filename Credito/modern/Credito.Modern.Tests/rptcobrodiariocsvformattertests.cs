@@ -12,7 +12,10 @@ public class RptCobroDiarioCsvFormatterTests
     {
         var bytes = RptCobroDiarioCsvFormatter.ToUtf8BomCsv(Array.Empty<RptCobroDiarioRowDto>());
         AssertUtf8Bom(bytes);
-        Assert.StartsWith("Nro,Orden,CreditoId,Cliente", HeaderLine(bytes), StringComparison.Ordinal);
+        var header = HeaderLine(bytes);
+        Assert.StartsWith("Nro,Cliente,Celular", header, StringComparison.Ordinal);
+        Assert.DoesNotContain("Orden", header);
+        Assert.DoesNotContain("CreditoId", header);
     }
 
     [Fact]

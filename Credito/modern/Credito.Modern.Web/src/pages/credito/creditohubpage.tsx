@@ -22,7 +22,7 @@ export function CreditoHubPage() {
 
   const { session } = useAuth()
 
-  const roles = session?.roles ?? []
+  const roles = useMemo(() => session?.roles ?? [], [session?.roles])
 
   const soloBandeja = esCreditoPerfilSoloBandeja(roles)
 

@@ -102,7 +102,7 @@ export function CreditoAprobacionPage() {
     },
   })
 
-  const filas = consulta.data ?? []
+  const filas = useMemo(() => consulta.data ?? [], [consulta.data])
   const queried = consulta.isSuccess || consulta.isError
 
   const statsExtras = useMemo((): CredixStatItem[] => {

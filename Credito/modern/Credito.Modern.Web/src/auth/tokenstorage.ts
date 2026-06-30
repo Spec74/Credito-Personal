@@ -2,34 +2,47 @@ const ACCESS_KEY = 'credito.access'
 const REFRESH_KEY = 'credito.refresh'
 const EXPIRES_AT_KEY = 'credito.accessExpiresAt'
 
-/** localStorage: misma sesión en pestañas nuevas (informes PDF en /reportes/visor). */
-const store = localStorage
+/**
+ * Access token en localStorage: permite abrir informes en pestañas nuevas.
+ * Refresh token en sessionStorage: reduce el impacto de XSS persistente y no se hereda al visor.
+ */
+const accessStore = localStorage
+const refreshStore = sessionStorage
 
 let accessTokenMemory: string | null = null
 
-/** Migra tokens guardados en sessionStorage (versión anterior). */
-function migrateFromSessionStorage(key: string): string | null {
-  const legacy = sessionStorage.getItem(key)
+/** Migra access tokens guardados en sessionStorage (versión anterior). */
+function migrateAccessFromSessionStorage(key: string): string | null {
+  const legacy = refreshStore.getItem(key)
   if (!legacy) return null
-  store.setItem(key, legacy)
-  sessionStorage.removeItem(key)
+  accessStore.setItem(key, legacy)
+  refreshStore.removeItem(key)
   return legacy
 }
 
-function readKey(key: string): string | null {
-  return store.getItem(key) ?? migrateFromSessionStorage(key)
+/** Migra refresh tokens persistidos en localStorage y elimina la copia persistente. */
+function migrateRefreshFromLocalStorage(): string | null {
+  const legacy = accessStore.getItem(REFRESH_KEY)
+  if (!legacy) return null
+  refreshStore.setItem(REFRESH_KEY, legacy)
+  accessStore.removeItem(REFRESH_KEY)
+  return legacy
+}
+
+function readAccessKey(key: string): string | null {
+  return accessStore.getItem(key) ?? migrateAccessFromSessionStorage(key)
 }
 
 export function getAccessToken(): string | null {
-  return accessTokenMemory ?? readKey(ACCESS_KEY)
+  return accessTokenMemory ?? readAccessKey(ACCESS_KEY)
 }
 
 export function getRefreshToken(): string | null {
-  return readKey(REFRESH_KEY)
+  return refreshStore.getItem(REFRESH_KEY) ?? migrateRefreshFromLocalStorage()
 }
 
 export function getAccessExpiresAt(): number | null {
-  const raw = readKey(EXPIRES_AT_KEY)
+  const raw = readAccessKey(EXPIRES_AT_KEY)
   return raw ? Number(raw) : null
 }
 
@@ -39,25 +52,25 @@ export function saveTokens(
   expiresInSeconds: number,
 ): void {
   accessTokenMemory = accessToken
-  store.setItem(ACCESS_KEY, accessToken)
-  store.setItem(REFRESH_KEY, refreshToken)
+  accessStore.setItem(ACCESS_KEY, accessToken)
+  refreshStore.setItem(REFRESH_KEY, refreshToken)
   const expiresAt = Date.now() + expiresInSeconds * 1000
-  store.setItem(EXPIRES_AT_KEY, String(expiresAt))
-  sessionStorage.removeItem(ACCESS_KEY)
-  sessionStorage.removeItem(REFRESH_KEY)
-  sessionStorage.removeItem(EXPIRES_AT_KEY)
+  accessStore.setItem(EXPIRES_AT_KEY, String(expiresAt))
+  refreshStore.removeItem(ACCESS_KEY)
+  accessStore.removeItem(REFRESH_KEY)
+  refreshStore.removeItem(EXPIRES_AT_KEY)
 }
 
 export function clearTokens(): void {
   accessTokenMemory = null
-  store.removeItem(ACCESS_KEY)
-  store.removeItem(REFRESH_KEY)
-  store.removeItem(EXPIRES_AT_KEY)
-  sessionStorage.removeItem(ACCESS_KEY)
-  sessionStorage.removeItem(REFRESH_KEY)
-  sessionStorage.removeItem(EXPIRES_AT_KEY)
+  accessStore.removeItem(ACCESS_KEY)
+  accessStore.removeItem(REFRESH_KEY)
+  accessStore.removeItem(EXPIRES_AT_KEY)
+  refreshStore.removeItem(ACCESS_KEY)
+  refreshStore.removeItem(REFRESH_KEY)
+  refreshStore.removeItem(EXPIRES_AT_KEY)
 }
 
 export function hasStoredSession(): boolean {
-  return Boolean(getAccessToken() && getRefreshToken())
+  return Boolean(getAccessToken())
 }

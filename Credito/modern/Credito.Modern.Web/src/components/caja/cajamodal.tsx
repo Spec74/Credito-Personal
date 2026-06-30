@@ -1,4 +1,4 @@
-import { Modal, type ModalFuncProps, type ModalProps } from 'antd'
+import { Modal, type ModalProps } from 'antd'
 
 const ROOT = 'caja-modal-root'
 
@@ -11,16 +11,4 @@ export function CajaModal({ rootClassName, centered = true, ...props }: ModalPro
       rootClassName={[ROOT, rootClassName].filter(Boolean).join(' ')}
     />
   )
-}
-
-export function cajaConfirm(options: ModalFuncProps) {
-  return Modal.confirm({
-    centered: true,
-    okText: 'Confirmar',
-    cancelText: 'Cancelar',
-    ...options,
-    rootClassName: [ROOT, 'caja-modal-root--confirm', options.rootClassName]
-      .filter(Boolean)
-      .join(' '),
-  })
 }

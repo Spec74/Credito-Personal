@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -250,6 +250,11 @@ export function CajaChicaPage() {
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const descargarTicket = useCallback(
+    (movimientoCajaChicaId: number) => ticket.mutate(movimientoCajaChicaId),
+    [ticket],
+  )
+
   const pendientesFiltrados = useMemo(
     () => filterTableRows(pendientes.data ?? [], filtroRendDebounced, rendPendText),
     [pendientes.data, filtroRendDebounced],
@@ -292,14 +297,14 @@ export function CajaChicaPage() {
             size="small"
             icon={<FilePdfOutlined />}
             loading={ticket.isPending}
-            onClick={() => ticket.mutate(row.movimientoCajaChicaId)}
+            onClick={() => descargarTicket(row.movimientoCajaChicaId)}
           >
             Ticket
           </Button>
         ),
       },
     ],
-    [ticket.isPending],
+    [descargarTicket, ticket.isPending],
   )
 
   const colsPend: ColumnsType<RendicionPendienteRow> = [

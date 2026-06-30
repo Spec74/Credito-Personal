@@ -12,6 +12,7 @@ public sealed class RptCreditoVencidoReadService(IOptions<SqlDatabaseOptions> op
     private readonly string _connectionString = options.Value.ConnectionString;
 
     public async Task<IReadOnlyList<RptCreditoVencidoRowDto>> ListarAsync(
+        int oficinaId,
         string? vencidoMenor60,
         string? vencidoMayor60,
         string? vencidoIrrecuperable,
@@ -21,6 +22,11 @@ public sealed class RptCreditoVencidoReadService(IOptions<SqlDatabaseOptions> op
         {
             throw new InvalidOperationException(
                 "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
+        }
+
+        if (oficinaId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
         }
 
         var p1 = NormalizeFlag(nameof(vencidoMenor60), vencidoMenor60);
@@ -39,8 +45,24 @@ public sealed class RptCreditoVencidoReadService(IOptions<SqlDatabaseOptions> op
             },
             commandType: CommandType.StoredProcedure,
             cancellationToken: cancellationToken);
-        var rows = await connection.QueryAsync<RptCreditoVencidoRowDto>(command).ConfigureAwait(false);
-        return rows.ToList();
+        var rows = (await connection.QueryAsync<RptCreditoVencidoRowDto>(command).ConfigureAwait(false)).ToList();
+        if (rows.Count == 0)
+        {
+            return rows;
+        }
+
+        var allowedIds = await connection.QueryAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT c.CreditoId
+                FROM CREDITO.Credito AS c
+                WHERE c.OficinaId = @OficinaId
+                  AND c.CreditoId IN @CreditoIds;
+                """,
+                new { OficinaId = oficinaId, CreditoIds = rows.Select(r => r.CreditoId).Distinct().ToArray() },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+        var allowed = allowedIds.ToHashSet();
+        return rows.Where(r => allowed.Contains(r.CreditoId)).ToList();
     }
 
     private static string? NormalizeFlag(string paramName, string? raw)

@@ -14,7 +14,7 @@ public sealed class StranglerStagingContractTests
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
         var root = doc.RootElement;
 
-        Assert.True(root.GetProperty("Hosting").GetProperty("AllowDevToken").GetBoolean());
+        Assert.False(root.GetProperty("Hosting").GetProperty("AllowDevToken").GetBoolean());
         Assert.True(root.GetProperty("Hosting").GetProperty("DisableHttpsRedirection").GetBoolean());
         Assert.False(root.GetProperty("Hosting").GetProperty("ForwardedHeaders").GetProperty("Enabled").GetBoolean());
 

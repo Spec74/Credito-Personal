@@ -270,39 +270,55 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
             throw new ArgumentOutOfRangeException(nameof(usuarioRegId));
         }
 
-        var dni = request.Dni.Trim();
+        var dni = OnlyDigits(request.Dni);
         if (dni.Length != 8)
         {
             return new CrearPersonaRapidaResponse(false, 0, "El DNI debe tener 8 dígitos.");
         }
 
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-
-        var existe = await connection.ExecuteScalarAsync<bool>(
-            new CommandDefinition(
-                """
-                SELECT CASE WHEN EXISTS (
-                    SELECT 1 FROM MAESTRO.Persona WHERE NumeroDocumento = @Dni
-                ) THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END;
-                """,
-                new { Dni = dni },
-                cancellationToken: cancellationToken)).ConfigureAwait(false);
-        if (existe)
+        var nombre = NormalizeName(request.Nombre);
+        var apePat = NormalizeName(request.ApePaterno);
+        var apeMat = NormalizeName(request.ApeMaterno);
+        if (string.IsNullOrWhiteSpace(nombre)
+            || string.IsNullOrWhiteSpace(apePat)
+            || string.IsNullOrWhiteSpace(apeMat))
         {
-            return new CrearPersonaRapidaResponse(false, 0, "Ya existe una persona con este DNI.");
+            return new CrearPersonaRapidaResponse(false, 0, "Nombres y apellidos son obligatorios.");
         }
 
-        var nombre = request.Nombre.Trim().ToUpperInvariant();
-        var apePat = request.ApePaterno.Trim().ToUpperInvariant();
-        var apeMat = request.ApeMaterno.Trim().ToUpperInvariant();
+        var celular = OnlyDigits(request.Celular ?? string.Empty);
+        if (!string.IsNullOrEmpty(celular) && (celular.Length != 9 || celular[0] != '9'))
+        {
+            return new CrearPersonaRapidaResponse(false, 0, "El celular debe tener 9 dígitos y empezar con 9.");
+        }
+
         var nombreCompleto = $"{apePat} {apeMat}, {nombre}";
 
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
         await using var tx = (SqlTransaction)await connection
             .BeginTransactionAsync(cancellationToken)
             .ConfigureAwait(false);
         try
         {
+            var existe = await connection.ExecuteScalarAsync<bool>(
+                new CommandDefinition(
+                    """
+                    SELECT CASE WHEN EXISTS (
+                        SELECT 1
+                        FROM MAESTRO.Persona WITH (UPDLOCK, HOLDLOCK)
+                        WHERE NumeroDocumento = @Dni
+                    ) THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END;
+                    """,
+                    new { Dni = dni },
+                    transaction: tx,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+            if (existe)
+            {
+                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return new CrearPersonaRapidaResponse(false, 0, "Ya existe una persona con este DNI.");
+            }
+
             var personaId = await connection.ExecuteScalarAsync<int>(
                 new CommandDefinition(
                     """
@@ -314,7 +330,7 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
                         '', 'M', 'N', @Celular, CAST(1 AS bit));
                     SELECT CAST(SCOPE_IDENTITY() AS int);
                     """,
-                    new { Nombre = nombre, ApePaterno = apePat, ApeMaterno = apeMat, NombreCompleto = nombreCompleto, Dni = dni, Celular = request.Celular?.Trim() },
+                    new { Nombre = nombre, ApePaterno = apePat, ApeMaterno = apeMat, NombreCompleto = nombreCompleto, Dni = dni, Celular = string.IsNullOrEmpty(celular) ? null : celular },
                     transaction: tx,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
@@ -340,6 +356,12 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
             throw;
         }
     }
+
+    private static string OnlyDigits(string value) =>
+        new(value.Where(char.IsDigit).ToArray());
+
+    private static string NormalizeName(string value) =>
+        value.Trim().ToUpperInvariant();
 
     public async Task<bool> HabilitarDepuradoAsync(int personaId, CancellationToken cancellationToken = default)
     {

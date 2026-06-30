@@ -5,9 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace Credito.Modern.Infrastructure.CreditoPlanes;
 
-public sealed class CajaDiarioTransferWriteService(
-    IOptions<SqlDatabaseOptions> options,
-    IObtenerSaldoCuentaCajaDiarioReadService saldoCuenta)
+public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> options)
     : ICajaDiarioTransferWriteService
 {
     private readonly string _connectionString = options.Value.ConnectionString;
@@ -38,16 +36,6 @@ public sealed class CajaDiarioTransferWriteService(
                 "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
         }
 
-        var saldo = await saldoCuenta
-            .ObtenerAsync(cajaDiarioOrigenId, 1, cancellationToken)
-            .ConfigureAwait(false);
-        if (saldo is null || saldo < importe)
-        {
-            return (
-                "El monto a transferir debe ser menor o igual al saldo en caja.",
-                false);
-        }
-
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
         await using var transaction = (SqlTransaction)await connection
@@ -59,8 +47,8 @@ public sealed class CajaDiarioTransferWriteService(
             var origen = await connection.QueryFirstOrDefaultAsync<CajaDiarioRow>(
                 new CommandDefinition(
                     """
-                    SELECT cd.CajaDiarioId, cd.CajaId, cd.IndCierre, c.Denominacion
-                    FROM CREDITO.CajaDiario AS cd
+                    SELECT cd.CajaDiarioId, cd.CajaId, cd.IndCierre, c.Denominacion, cd.SaldoFinal
+                    FROM CREDITO.CajaDiario AS cd WITH (UPDLOCK, HOLDLOCK)
                     INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
                     WHERE cd.CajaDiarioId = @CajaDiarioId
                       AND c.OficinaId = @OficinaId;
@@ -73,6 +61,17 @@ public sealed class CajaDiarioTransferWriteService(
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
                 return ("La caja diario de origen no está abierta.", false);
+            }
+
+            var saldoOrigen = await ObtenerSaldoCajaDiarioBloqueadoAsync(
+                connection,
+                transaction,
+                origen.CajaDiarioId,
+                cancellationToken).ConfigureAwait(false);
+            if (saldoOrigen < importe)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ("El monto a transferir debe ser menor o igual al saldo en caja.", false);
             }
 
             var desc = descripcion.Trim();
@@ -141,7 +140,7 @@ public sealed class CajaDiarioTransferWriteService(
             new CommandDefinition(
                 """
                 SELECT cd.CajaDiarioId, cd.IndCierre, c.Denominacion
-                FROM CREDITO.CajaDiario AS cd
+                FROM CREDITO.CajaDiario AS cd WITH (UPDLOCK, HOLDLOCK)
                 INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
                 WHERE cd.CajaId = @CajaId
                   AND c.OficinaId = @OficinaId
@@ -305,7 +304,7 @@ public sealed class CajaDiarioTransferWriteService(
             new CommandDefinition(
                 """
                 SELECT TOP 1 BovedaId, IndCierre
-                FROM CREDITO.Boveda
+                FROM CREDITO.Boveda WITH (UPDLOCK, HOLDLOCK)
                 WHERE OficinaId = @OficinaId
                 ORDER BY IndTemporal, BovedaId;
                 """,
@@ -450,6 +449,31 @@ public sealed class CajaDiarioTransferWriteService(
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
+    private static async Task<decimal> ObtenerSaldoCajaDiarioBloqueadoAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        int cajaDiarioId,
+        CancellationToken cancellationToken)
+    {
+        return await connection.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(
+                """
+                SELECT
+                    cd.SaldoInicial
+                    + ISNULL(SUM(CASE WHEN mc.IndEntrada = CAST(1 AS bit) THEN mc.ImportePago ELSE 0 END), 0)
+                    - ISNULL(SUM(CASE WHEN mc.IndEntrada = CAST(0 AS bit) THEN mc.ImportePago ELSE 0 END), 0)
+                FROM CREDITO.CajaDiario AS cd WITH (UPDLOCK, HOLDLOCK)
+                LEFT JOIN CREDITO.MovimientoCaja AS mc WITH (UPDLOCK, HOLDLOCK)
+                    ON mc.CajaDiarioId = cd.CajaDiarioId
+                   AND mc.Estado = CAST(1 AS bit)
+                WHERE cd.CajaDiarioId = @CajaDiarioId
+                GROUP BY cd.CajaDiarioId, cd.SaldoInicial;
+                """,
+                new { CajaDiarioId = cajaDiarioId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
+
     private static async Task ActualizarSaldosCajaDiarioAsync(
         SqlConnection connection,
         SqlTransaction transaction,
@@ -485,6 +509,7 @@ public sealed class CajaDiarioTransferWriteService(
         public int CajaDiarioId { get; init; }
         public int CajaId { get; init; }
         public bool IndCierre { get; init; }
+        public decimal SaldoFinal { get; init; }
         public string Denominacion { get; init; } = string.Empty;
     }
 

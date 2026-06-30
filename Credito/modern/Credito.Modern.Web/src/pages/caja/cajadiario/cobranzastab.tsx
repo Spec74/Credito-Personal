@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useState, type Key } from 'react'
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type Key,
+} from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Alert,
@@ -10,19 +18,17 @@ import {
   message,
 } from 'antd'
 import {
-  CheckCircleOutlined,
   CreditCardOutlined,
   DollarOutlined,
   FilePdfOutlined,
   FileSearchOutlined,
   HistoryOutlined,
   SearchOutlined,
+  TeamOutlined,
   UnorderedListOutlined,
   WalletOutlined,
 } from '@ant-design/icons'
 import {
-  completarImpagos,
-  completarImpagosValidacion,
   fetchCreditoMoraResumen,
   fetchCreditosPorPersona,
   fetchCuentasPorCobrarPendientes,
@@ -31,7 +37,8 @@ import {
   pagarCuotas,
 } from '../../../api/cajaDiario'
 import { downloadMovimientosCreditoPdf } from '../../../api/creditoPlanes'
-import { CajaModal, cajaConfirm } from '../../../components/caja/CajaModal'
+import { CajaModal } from '../../../components/caja/CajaModal'
+import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import { CreditoMoraModal } from '../../../components/caja/CreditoMoraModal'
 import { fetchValoresTabla } from '../../../api/maestros'
 import { CajaCuotasTable } from '../../../components/caja/CajaCuotasTable'
@@ -59,9 +66,12 @@ import {
   maybeDownloadCajaTicket,
 } from './cajaPagoHelpers'
 
+const CobranzaBloqueDrawer = lazy(() => import('./cobranzabloquedrawer'))
+
 export function CobranzasTab({
   ctx,
   creditoIdInicial,
+  usuarioId,
   onChanged,
 }: {
   ctx: CajaSession
@@ -91,6 +101,7 @@ export function CobranzasTab({
   const [fechaPagoLibre, setFechaPagoLibre] = useState('')
   const [showCxc, setShowCxc] = useState(false)
   const [cuotasModalOpen, setCuotasModalOpen] = useState(false)
+  const [cobranzaBloqueOpen, setCobranzaBloqueOpen] = useState(false)
   const [fechaLibreModalOpen, setFechaLibreModalOpen] = useState(false)
   const [fechaCuotaModalOpen, setFechaCuotaModalOpen] = useState(false)
   const [moraModalOpen, setMoraModalOpen] = useState(false)
@@ -250,28 +261,6 @@ export function CobranzasTab({
       if (creditoId) {
         buscar.mutate({ creditoId, silent: true })
       }
-    },
-    onError: (e) => message.error(errMsg(e)),
-  })
-
-  const impagos = useMutation({
-    mutationFn: async () => {
-      const v = await completarImpagosValidacion(
-        ctx.oficinaId,
-        ctx.cajaDiarioId,
-      )
-      if (v.cantidadImpagosPendientes > 0) {
-        return completarImpagos({
-          oficinaId: ctx.oficinaId,
-          cajaDiarioId: ctx.cajaDiarioId,
-        })
-      }
-      message.info('No hay impagos pendientes de completar')
-      return { success: true }
-    },
-    onSuccess: () => {
-      message.success('Impagos completados')
-      onChanged()
     },
     onError: (e) => message.error(errMsg(e)),
   })
@@ -453,18 +442,12 @@ export function CobranzasTab({
             Cuotas pendientes
           </Button>
           <Button
-            icon={<CheckCircleOutlined />}
-            loading={impagos.isPending}
-            onClick={() => {
-              cajaConfirm({
-                title: 'Completar impagos',
-                content:
-                  '¿Desea completar las cuotas impagas pendientes de validación?',
-                onOk: () => impagos.mutateAsync(),
-              })
-            }}
+            icon={<TeamOutlined />}
+            type="primary"
+            ghost
+            onClick={() => setCobranzaBloqueOpen(true)}
           >
-            Completar impagos
+            Cobranza en bloque
           </Button>
         </div>
       </div>
@@ -738,6 +721,18 @@ export function CobranzasTab({
           })()
         }}
       />
+
+      {cobranzaBloqueOpen ? (
+        <Suspense fallback={null}>
+          <CobranzaBloqueDrawer
+            open={cobranzaBloqueOpen}
+            ctx={ctx}
+            usuarioId={usuarioId}
+            onClose={() => setCobranzaBloqueOpen(false)}
+            onChanged={onChanged}
+          />
+        </Suspense>
+      ) : null}
 
       <CajaModal
         title="Fecha y hora de transferencia"

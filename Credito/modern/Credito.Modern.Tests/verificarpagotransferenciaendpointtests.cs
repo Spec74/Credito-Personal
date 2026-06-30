@@ -33,7 +33,9 @@ public class VerificarPagoTransferenciaEndpointTests : IClassFixture<CreditoMode
             return;
         }
 
-        var tokenRes = await _client.PostAsJsonAsync("/api/v1/dev/token", new { usuarioId = 1, oficinaId = 1 });
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles = new[] { "ADMINISTRADOR" } });
         Assert.Equal(HttpStatusCode.OK, tokenRes.StatusCode);
         using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
         var token = doc.RootElement.GetProperty("accessToken").GetString();
@@ -55,7 +57,9 @@ public class VerificarPagoTransferenciaEndpointTests : IClassFixture<CreditoMode
             return;
         }
 
-        var tokenRes = await _client.PostAsJsonAsync("/api/v1/dev/token", new { usuarioId = 1, oficinaId = 1 });
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles = new[] { "ADMINISTRADOR" } });
         using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
         var token = doc.RootElement.GetProperty("accessToken").GetString();
 

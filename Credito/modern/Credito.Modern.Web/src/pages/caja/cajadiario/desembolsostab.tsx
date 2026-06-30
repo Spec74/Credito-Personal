@@ -3,7 +3,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { Button, message } from 'antd'
 import { BankOutlined, ReloadOutlined } from '@ant-design/icons'
 import { CajaSection } from '../../../components/caja/CajaSection'
-import { cajaConfirm } from '../../../components/caja/CajaModal'
+import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import type { ColumnsType } from 'antd/es/table'
 import {
   fetchDesembolsosPendientes,

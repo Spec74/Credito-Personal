@@ -31,7 +31,9 @@ public class CompletarImpagosEndpointTests : IClassFixture<CreditoModernWebAppli
             return;
         }
 
-        var tokenRes = await _client.PostAsJsonAsync("/api/v1/dev/token", new { usuarioId = 1, oficinaId = 1 });
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles = new[] { "ADMINISTRADOR" } });
         using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
         var token = doc.RootElement.GetProperty("accessToken").GetString();
 
@@ -52,7 +54,9 @@ public class CompletarImpagosEndpointTests : IClassFixture<CreditoModernWebAppli
             return;
         }
 
-        var tokenRes = await _client.PostAsJsonAsync("/api/v1/dev/token", new { usuarioId = 1, oficinaId = 1 });
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles = new[] { "ADMINISTRADOR" } });
         using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
         var token = doc.RootElement.GetProperty("accessToken").GetString();
 

@@ -42,12 +42,14 @@ public sealed class BovedaEstadoDineroReadService(
         var montoCajaChica = await connection.ExecuteScalarAsync<decimal?>(
             new CommandDefinition(
                 """
-                SELECT TOP (1) ccd.SaldoFinal
+                SELECT ISNULL(SUM(ccd.SaldoFinal), 0)
                 FROM CREDITO.CajaChicaDiario AS ccd
+                INNER JOIN CREDITO.Caja AS c ON c.CajaId = ccd.Id
                 WHERE ccd.IndCierre = CAST(0 AS bit)
                   AND ccd.TransBoveda = CAST(0 AS bit)
-                ORDER BY ccd.Id DESC;
+                  AND c.OficinaId = @OficinaId;
                 """,
+                new { OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false) ?? 0m;
 
         var montoPlan = await connection.ExecuteScalarAsync<decimal?>(

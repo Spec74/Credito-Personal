@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Application.CreditoPlanes;
@@ -43,19 +44,30 @@ internal static class CreditoConfigEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (string.IsNullOrWhiteSpace(body.FactorVariable)
-                        || string.IsNullOrWhiteSpace(body.FactorFijo))
+                    if (!TryNormalizeFactor(body.FactorVariable, out var factorVariable, out var factorVariableError))
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
-                            detail: "factorVariable y factorFijo son obligatorios.");
+                            detail: factorVariableError);
+                    }
+
+                    if (!TryNormalizeFactor(body.FactorFijo, out var factorFijo, out var factorFijoError))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: factorFijoError);
                     }
 
                     var log = loggerFactory.CreateLogger("ParametrosSimuladorPost");
                     try
                     {
-                        var ok = await parametros.ActualizarAsync(body, ct).ConfigureAwait(false);
+                        var ok = await parametros
+                            .ActualizarAsync(
+                                new ActualizarParametrosSimuladorRequest(factorVariable, factorFijo),
+                                ct)
+                            .ConfigureAwait(false);
                         return TypedResults.Ok(ok);
                     }
                     catch (Exception ex) when (ex is InvalidOperationException or DbException)
@@ -65,7 +77,7 @@ internal static class CreditoConfigEndpoints
                 })
             .WithName("ParametrosSimuladorPost")
             .WithTags("credito-config")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<bool>();
 
         app.MapPost(
@@ -135,7 +147,7 @@ internal static class CreditoConfigEndpoints
         {
             log.LogWarning(ioe, "Cadena de conexión no configurada");
             return TypedResults.Problem(
-                detail: ioe.Message,
+                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }
@@ -148,5 +160,37 @@ internal static class CreditoConfigEndpoints
             detail: detail,
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Error de base de datos");
+    }
+
+    private static bool TryNormalizeFactor(string? raw, out string normalized, out string? error)
+    {
+        normalized = string.Empty;
+        error = null;
+
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            error = "factorVariable y factorFijo son obligatorios.";
+            return false;
+        }
+
+        var valueText = raw.Trim().Replace(',', '.');
+        if (!decimal.TryParse(
+                valueText,
+                NumberStyles.Number,
+                CultureInfo.InvariantCulture,
+                out var value))
+        {
+            error = "factorVariable y factorFijo deben ser valores numericos.";
+            return false;
+        }
+
+        if (value <= 0 || value > 1_000_000m)
+        {
+            error = "factorVariable y factorFijo deben ser mayores que cero y menores o iguales a 1000000.";
+            return false;
+        }
+
+        normalized = value.ToString("0.#############################", CultureInfo.InvariantCulture);
+        return true;
     }
 }

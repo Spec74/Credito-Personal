@@ -117,7 +117,7 @@ builder.Services.AddOptions<JwtOptions>()
             && j.RefreshTokenLifetimeDays <= 90
             && j.RefreshTokenVersion >= 1
             && j.RefreshTokenVersion <= 999_999,
-        "Jwt: SigningKey (≥32 bytes UTF-8), AccessTokenLifetimeHours (1-168), RefreshAudience no vacío, RefreshTokenLifetimeDays (1-90) y RefreshTokenVersion (1-999999) son obligatorios.")
+        "Jwt: SigningKey (â‰¥32 bytes UTF-8), AccessTokenLifetimeHours (1-168), RefreshAudience no vacío, RefreshTokenLifetimeDays (1-90) y RefreshTokenVersion (1-999999) son obligatorios.")
     .ValidateOnStart();
 
 builder.Services.AddSingleton<JwtTokenIssuer>();
@@ -271,7 +271,7 @@ app.MapGet("/api/v1/database-time", async Task<Results<Ok<DatabaseTimeResponse>,
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -341,7 +341,7 @@ app.MapPost("/api/v1/auth/refresh", async Task<Results<Ok<LoginTokenResponse>, P
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -498,7 +498,7 @@ app.MapPost("/api/v1/auth/login", async Task<Results<Ok<LoginTokenResponse>, Pro
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -527,19 +527,19 @@ app.MapPost("/api/v1/auth/login", async Task<Results<Ok<LoginTokenResponse>, Pro
 app.MapPost(
         "/api/v1/auth/registrar-acceso-ip",
         async Task<Results<Ok, ProblemHttpResult>> (
-            RegistrarAccesoIpRequest body,
+            HttpContext httpContext,
             IAccesoIpWriteService accesoWrite,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
             CancellationToken ct) =>
         {
-            var ip = body.DireccionIp?.Trim();
+            var ip = httpContext.Connection.RemoteIpAddress?.ToString();
             if (string.IsNullOrWhiteSpace(ip))
             {
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Solicitud inválida",
-                    detail: "direccionIp es obligatoria.");
+                    detail: "No se pudo determinar la IP del cliente.");
             }
 
             var log = loggerFactory.CreateLogger("RegistrarAccesoIp");
@@ -552,7 +552,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -572,11 +572,13 @@ app.MapPost(
             }
         })
     .WithName("AuthRegistrarAccesoIp")
-    .WithSummary("Paridad HomeController.CrearAcceso — autoriza equipo por IP.")
+    .WithSummary("Alta administrada de MAESTRO.Acceso usando la IP real del request.")
     .WithTags("auth")
-    .AllowAnonymous()
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
     .Produces(StatusCodes.Status200OK)
     .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
+    .ProducesProblem(StatusCodes.Status403Forbidden)
     .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 app.MapGet(
@@ -648,7 +650,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -703,7 +705,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -713,7 +715,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -766,7 +768,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -776,7 +778,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -869,7 +871,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -879,7 +881,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Solicitud inválida",
-                    detail: ex.Message);
+                    detail: "La solicitud enviada no es válida.");
             }
             catch (ArgumentException ex)
             {
@@ -887,7 +889,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Solicitud inválida",
-                    detail: ex.Message);
+                    detail: "La solicitud enviada no es válida.");
             }
             catch (DbException ex)
             {
@@ -933,7 +935,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -997,7 +999,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1064,7 +1066,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1074,7 +1076,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Solicitud inválida",
-                    detail: ex.Message);
+                    detail: "La solicitud enviada no es válida.");
             }
             catch (DbException ex)
             {
@@ -1118,7 +1120,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: "oficinaId, anio y mes son obligatorios (anio 1900–2100, mes 1–12).");
+                    detail: "oficinaId, anio y mes son obligatorios (anio 1900â€“2100, mes 1â€“12).");
             }
 
             if (anio.Value < 1900 || anio.Value > 2100 || mes.Value < 1 || mes.Value > 12)
@@ -1156,7 +1158,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1166,7 +1168,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -1221,7 +1223,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1231,7 +1233,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -1284,7 +1286,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1294,7 +1296,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -1355,7 +1357,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1413,7 +1415,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1471,7 +1473,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1481,7 +1483,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Solicitud inválida",
-                    detail: ex.Message);
+                    detail: "La solicitud enviada no es válida.");
             }
             catch (DbException ex)
             {
@@ -1501,7 +1503,7 @@ app.MapPost(
     .WithName("VentasCanjearPuntos")
     .WithSummary("Paridad CanjearPuntosController.CanjearArticulo (usp_CanjearPuntos). Mensaje vacío = éxito.")
     .WithTags("ventas")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<CanjearPuntosResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -1534,7 +1536,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1544,7 +1546,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -1598,7 +1600,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1608,7 +1610,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -1654,7 +1656,7 @@ app.MapGet(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
                     detail:
-                        "anio (1900–2100), mes (1–12), oficinaId y usuarioId (>= 1) son obligatorios.");
+                        "anio (1900â€“2100), mes (1â€“12), oficinaId y usuarioId (>= 1) son obligatorios.");
             }
 
             if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
@@ -1701,7 +1703,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1711,7 +1713,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -1758,7 +1760,7 @@ app.MapGet(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
                     detail:
-                        "anio (1900–2100), mes (1–12), oficinaId y usuarioId (>= 1) son obligatorios.");
+                        "anio (1900â€“2100), mes (1â€“12), oficinaId y usuarioId (>= 1) son obligatorios.");
             }
 
             if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
@@ -1806,7 +1808,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1816,7 +1818,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -1863,7 +1865,7 @@ app.MapGet(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
                     detail:
-                        "anio (1900–2100), mes (1–12), oficinaId y usuarioId (>= 1) son obligatorios.");
+                        "anio (1900â€“2100), mes (1â€“12), oficinaId y usuarioId (>= 1) son obligatorios.");
             }
 
             if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
@@ -1912,7 +1914,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1922,7 +1924,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -1974,7 +1976,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -1984,7 +1986,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -2035,7 +2037,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2092,7 +2094,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2147,7 +2149,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2157,7 +2159,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -2209,7 +2211,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2219,7 +2221,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -2272,7 +2274,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2282,7 +2284,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -2350,7 +2352,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2360,7 +2362,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -2429,7 +2431,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2439,7 +2441,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -2508,7 +2510,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2518,7 +2520,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -2588,7 +2590,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2598,7 +2600,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -2669,7 +2671,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2679,7 +2681,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -2712,6 +2714,8 @@ app.MapGet(
             int? oficinaId,
             bool? soloMora,
             IRptCobroDiarioReadService rptCobroDiario,
+            IUsuarioAdminReadService usuarios,
+            ICajaMaestroReadService cajas,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
             CancellationToken ct) =>
@@ -2739,7 +2743,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2749,7 +2753,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -2782,6 +2786,8 @@ app.MapGet(
             int? oficinaId,
             bool? soloMora,
             IRptCobroDiarioReadService rptCobroDiario,
+            IUsuarioAdminReadService usuarios,
+            ICajaMaestroReadService cajas,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
             CancellationToken ct) =>
@@ -2811,7 +2817,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2821,7 +2827,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -2854,6 +2860,8 @@ app.MapGet(
             int? oficinaId,
             bool? soloMora,
             IRptCobroDiarioReadService rptCobroDiario,
+            IUsuarioAdminReadService usuarios,
+            ICajaMaestroReadService cajas,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
             CancellationToken ct) =>
@@ -2875,7 +2883,10 @@ app.MapGet(
                 var items = CobroDiarioReportAccess.ApplySoloMora(
                     await rptCobroDiario.ListarAsync(uid, oid, ct).ConfigureAwait(false),
                     filtrarSoloMora);
-                var bytes = RptCobroDiarioCsvFormatter.ToUtf8BomCsv(items);
+                var pdfContext = await GestorInformePdfContextBuilder
+                    .BuildCobroDiarioAsync(items, uid, filtrarSoloMora, usuarios, cajas, ct)
+                    .ConfigureAwait(false);
+                var bytes = RptCobroDiarioPdfDocument.Build(items, pdfContext, filtrarSoloMora);
                 var fileName = filtrarSoloMora ? "morosidad-gestor.pdf" : "cobro-diario.pdf";
                 return TypedResults.File(bytes, "application/pdf", fileDownloadName: fileName);
             }
@@ -2883,7 +2894,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2893,7 +2904,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -2979,7 +2990,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -2989,7 +3000,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3076,7 +3087,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3086,7 +3097,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3174,7 +3185,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3184,7 +3195,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3237,7 +3248,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3247,7 +3258,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3301,7 +3312,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3311,7 +3322,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3366,7 +3377,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3376,7 +3387,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3429,7 +3440,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3439,7 +3450,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3493,7 +3504,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3503,7 +3514,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3558,7 +3569,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3568,7 +3579,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3620,7 +3631,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3630,7 +3641,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3682,7 +3693,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3692,7 +3703,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3745,7 +3756,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3755,7 +3766,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3808,7 +3819,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3818,7 +3829,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3872,7 +3883,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3882,7 +3893,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -3937,7 +3948,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -3947,7 +3958,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -4008,7 +4019,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4018,7 +4029,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -4089,7 +4100,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4099,7 +4110,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -4168,7 +4179,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4178,7 +4189,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -4240,7 +4251,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4250,7 +4261,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -4289,7 +4300,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4299,7 +4310,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -4377,7 +4388,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4427,7 +4438,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4473,7 +4484,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4538,7 +4549,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4593,7 +4604,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4636,7 +4647,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4705,7 +4716,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4781,29 +4792,29 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status403Forbidden,
                     title: "Prohibido",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("acceso", StringComparison.OrdinalIgnoreCase))
             {
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status403Forbidden,
                     title: "Prohibido",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (InvalidOperationException ex)
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
-            catch (ArgumentOutOfRangeException ex)
+            catch (ArgumentOutOfRangeException)
             {
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Solicitud inválida",
-                    detail: ex.Message);
+                    detail: "La solicitud enviada no es válida.");
             }
             catch (DbException ex)
             {
@@ -4874,13 +4885,13 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status403Forbidden,
                     title: "Prohibido",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (InvalidOperationException ex)
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -4966,13 +4977,13 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status403Forbidden,
                     title: "Prohibido",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (InvalidOperationException ex)
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5034,7 +5045,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5103,7 +5114,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5164,7 +5175,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5222,7 +5233,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5280,7 +5291,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5377,7 +5388,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5443,7 +5454,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5514,7 +5525,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5573,7 +5584,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5655,7 +5666,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5721,7 +5732,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5802,7 +5813,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5907,7 +5918,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -5975,7 +5986,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6040,7 +6051,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6105,7 +6116,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6176,7 +6187,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6240,7 +6251,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6306,7 +6317,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6325,7 +6336,7 @@ app.MapPost(
     .WithName("CreditoModificarTramiteAdm")
     .WithSummary("Paridad CreditoController.ModificarTramiteAdmCredito (MontoGastosAdm).")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAprobador1OAdministrador)
     .Produces<CreditoGestionOperacionResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status401Unauthorized)
     .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -6373,7 +6384,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6392,7 +6403,7 @@ app.MapPost(
     .WithName("CreditoModificarCentralRiesgo")
     .WithSummary("Paridad CreditoController.ModificarCentralRieagoCredito (CentralRiesgo).")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAprobador1OAdministrador)
     .Produces<CreditoGestionOperacionResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status401Unauthorized)
     .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -6450,7 +6461,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6469,7 +6480,7 @@ app.MapPost(
     .WithName("CreditoActualizarDescuentoPlanPago")
     .WithSummary("Paridad CreditoController.ActualizarDescuentoPlanPago.")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolSoloAdministrador)
     .Produces<CreditoGestionOperacionResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status401Unauthorized)
     .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -6532,7 +6543,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6599,7 +6610,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6618,7 +6629,7 @@ app.MapPost(
     .WithName("CreditoActualizarAval")
     .WithSummary("Paridad CreditoController.ActualizarAvalCredito (PersonaAvalId).")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<CreditoGestionOperacionResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status401Unauthorized)
     .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -6668,7 +6679,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6734,7 +6745,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6744,7 +6755,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -6784,7 +6795,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6794,7 +6805,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -6857,7 +6868,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6867,7 +6878,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -6908,7 +6919,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6918,7 +6929,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -6981,7 +6992,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -6991,7 +7002,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -7030,7 +7041,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -7040,7 +7051,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -7103,7 +7114,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -7113,7 +7124,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -7152,7 +7163,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -7162,7 +7173,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -7205,7 +7216,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: "oficinaId, anio y mes son obligatorios (anio 1900–2100, mes 1–12).");
+                    detail: "oficinaId, anio y mes son obligatorios (anio 1900â€“2100, mes 1â€“12).");
             }
 
             if (anio.Value < 1900 || anio.Value > 2100 || mes.Value < 1 || mes.Value > 12)
@@ -7242,7 +7253,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -7252,7 +7263,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -7294,7 +7305,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: "oficinaId, anio y mes son obligatorios (anio 1900–2100, mes 1–12).");
+                    detail: "oficinaId, anio y mes son obligatorios (anio 1900â€“2100, mes 1â€“12).");
             }
 
             if (anio.Value < 1900 || anio.Value > 2100 || mes.Value < 1 || mes.Value > 12)
@@ -7332,7 +7343,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -7342,7 +7353,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -7387,7 +7398,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: "oficinaId, anio y mes son obligatorios (anio 1900–2100, mes 1–12).");
+                    detail: "oficinaId, anio y mes son obligatorios (anio 1900â€“2100, mes 1â€“12).");
             }
 
             if (anio.Value < 1900 || anio.Value > 2100 || mes.Value < 1 || mes.Value > 12)
@@ -7426,7 +7437,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -7436,7 +7447,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -7588,7 +7599,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -7598,7 +7609,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -7748,7 +7759,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -7758,7 +7769,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -7909,7 +7920,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -7919,7 +7930,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -8039,7 +8050,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -8049,7 +8060,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -8171,7 +8182,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -8181,7 +8192,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -8304,7 +8315,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -8314,7 +8325,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -8434,7 +8445,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -8444,7 +8455,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -8565,7 +8576,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -8575,7 +8586,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -8697,7 +8708,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -8707,7 +8718,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -8828,7 +8839,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -8838,7 +8849,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -8959,7 +8970,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -8969,7 +8980,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -9091,7 +9102,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -9101,7 +9112,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -9232,7 +9243,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -9242,7 +9253,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -9374,7 +9385,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -9384,7 +9395,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -9517,7 +9528,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -9527,7 +9538,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -9658,7 +9669,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -9668,7 +9679,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -9800,7 +9811,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -9810,7 +9821,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -9943,7 +9954,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -9953,7 +9964,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -10084,7 +10095,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -10094,7 +10105,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -10226,7 +10237,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -10236,7 +10247,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -10369,7 +10380,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -10379,7 +10390,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -10479,7 +10490,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -10489,7 +10500,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -10588,7 +10599,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -10598,7 +10609,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -10698,7 +10709,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -10708,7 +10719,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -10839,7 +10850,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -10849,7 +10860,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -10981,7 +10992,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -10991,7 +11002,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -11124,7 +11135,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -11134,7 +11145,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -11200,7 +11211,7 @@ app.MapGet(
             try
             {
                 var items = await rptCreditoVencido
-                    .ListarAsync(vencidoMenor60, vencidoMayor60, vencidoIrrecuperable, ct)
+                    .ListarAsync(oficinaId.Value, vencidoMenor60, vencidoMayor60, vencidoIrrecuperable, ct)
                     .ConfigureAwait(false);
                 return TypedResults.Ok(items.ToList());
             }
@@ -11208,7 +11219,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -11218,7 +11229,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -11237,7 +11248,7 @@ app.MapGet(
         })
     .WithName("CreditoRptCreditoVencido")
     .WithSummary(
-        "Solo lectura: CREDITO.usp_RptCreditoVencido(VencidoMenor60, VencidoMayor60, VencidoIrrecuperable) — parámetros char opcionales S/N (como Boveda/Index: un botón pone S y el resto null). oficinaId obligatorio y = vendix:oficina_id (el proc **no** filtra por oficina; misma amplitud que ReporteController.ReporteCreditoVencido). CreditoUser.")
+        "Solo lectura: CREDITO.usp_RptCreditoVencido(VencidoMenor60, VencidoMayor60, VencidoIrrecuperable) con post-filtro por oficina JWT.")
     .WithTags("credito")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
     .Produces<List<RptCreditoVencidoRowDto>>(StatusCodes.Status200OK, "application/json")
@@ -11287,7 +11298,7 @@ app.MapGet(
             try
             {
                 var items = await rptCreditoVencido
-                    .ListarAsync(vencidoMenor60, vencidoMayor60, vencidoIrrecuperable, ct)
+                    .ListarAsync(oficinaId.Value, vencidoMenor60, vencidoMayor60, vencidoIrrecuperable, ct)
                     .ConfigureAwait(false);
                 var bytes = RptCreditoVencidoCsvFormatter.ToUtf8BomCsv(items);
                 return TypedResults.File(bytes, "text/csv; charset=utf-8", fileDownloadName: "credito-vencido.csv");
@@ -11296,7 +11307,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -11306,7 +11317,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -11375,7 +11386,7 @@ app.MapGet(
             try
             {
                 var items = await rptCreditoVencido
-                    .ListarAsync(vencidoMenor60, vencidoMayor60, vencidoIrrecuperable, ct)
+                    .ListarAsync(oficinaId.Value, vencidoMenor60, vencidoMayor60, vencidoIrrecuperable, ct)
                     .ConfigureAwait(false);
                 var csvBytes = RptCreditoVencidoCsvFormatter.ToUtf8BomCsv(items);
                 var bytes = TabularPdfDocument.FromUtf8BomCsv("Crédito vencido", csvBytes);
@@ -11385,7 +11396,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -11395,7 +11406,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -11489,7 +11500,7 @@ app.MapGet(
             try
             {
                 var items = await rptMovimientoCajaAnulado
-                    .ListarAsync(fechaIni.Value, fechaFin.Value, ct)
+                    .ListarAsync(oficinaId.Value, fechaIni.Value, fechaFin.Value, ct)
                     .ConfigureAwait(false);
                 return TypedResults.Ok(items.ToList());
             }
@@ -11497,7 +11508,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -11507,7 +11518,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -11526,7 +11537,7 @@ app.MapGet(
         })
     .WithName("CreditoRptMovimientoCajaAnulado")
     .WithSummary(
-        "Solo lectura: CREDITO.usp_RptMovimientoCajaAnulado(FechaIni, FechaFin). fechaIni/fechaFin obligatorias (año 1900–2100; fechaIni ≤ fechaFin). oficinaId obligatorio y = vendix:oficina_id (el proc **no** filtra por oficina; misma fuente que ReporteController.ReporteComprobantesCajaAnulados / MovimientoCajaBL.ReporteComprobantesCajaAnulados). CreditoUser.")
+        "Solo lectura: CREDITO.usp_RptMovimientoCajaAnulado(FechaIni, FechaFin) con post-filtro por oficina JWT.")
     .WithTags("credito")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
     .Produces<List<RptMovimientoCajaAnuladoRowDto>>(StatusCodes.Status200OK, "application/json")
@@ -11601,7 +11612,7 @@ app.MapGet(
             try
             {
                 var items = await rptMovimientoCajaAnulado
-                    .ListarAsync(fechaIni.Value, fechaFin.Value, ct)
+                    .ListarAsync(oficinaId.Value, fechaIni.Value, fechaFin.Value, ct)
                     .ConfigureAwait(false);
                 var bytes = RptMovimientoCajaAnuladoCsvFormatter.ToUtf8BomCsv(items);
                 return TypedResults.File(bytes, "text/csv; charset=utf-8", fileDownloadName: "movimiento-caja-anulado.csv");
@@ -11610,7 +11621,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -11620,7 +11631,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -11714,7 +11725,7 @@ app.MapGet(
             try
             {
                 var items = await rptMovimientoCajaAnulado
-                    .ListarAsync(fechaIni.Value, fechaFin.Value, ct)
+                    .ListarAsync(oficinaId.Value, fechaIni.Value, fechaFin.Value, ct)
                     .ConfigureAwait(false);
                 var csvBytes = RptMovimientoCajaAnuladoCsvFormatter.ToUtf8BomCsv(items);
                 var bytes = TabularPdfDocument.FromUtf8BomCsv("Movimiento caja anulado", csvBytes);
@@ -11724,7 +11735,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -11734,7 +11745,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -11855,7 +11866,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -11865,7 +11876,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -11884,7 +11895,7 @@ app.MapGet(
         })
     .WithName("CreditoRptSaldoCarteraCajaDiario")
     .WithSummary(
-        "Solo lectura: CREDITO.usp_RptSaldoCarteraCajaDiario(UsuarioId, OficinaId, AnioIni, MesIni, AnioFin, MesFin). anioIni/mesIni/anioFin/mesFin y oficinaId obligatorios; oficinaId = vendix:oficina_id. usuarioId opcional; si se envía debe = vendix:usuario_id (como filtro gestor en el MVC). Meses 1–12; periodo inicial no posterior al final. CreditoUser. Equivale a CajaDiarioBL.ReporteSaldoCarteraCajaDiario / ReporteController.ReporteSaldoCarteraCajaDiario (sin oficina/usuario null para \"todos\" en oficina). Distinto de GET .../listar-saldo-cartera (usp_ListarSaldoCartera).")
+        "Solo lectura: CREDITO.usp_RptSaldoCarteraCajaDiario(UsuarioId, OficinaId, AnioIni, MesIni, AnioFin, MesFin). anioIni/mesIni/anioFin/mesFin y oficinaId obligatorios; oficinaId = vendix:oficina_id. usuarioId opcional; si se envía debe = vendix:usuario_id (como filtro gestor en el MVC). Meses 1â€“12; periodo inicial no posterior al final. CreditoUser. Equivale a CajaDiarioBL.ReporteSaldoCarteraCajaDiario / ReporteController.ReporteSaldoCarteraCajaDiario (sin oficina/usuario null para \"todos\" en oficina). Distinto de GET .../listar-saldo-cartera (usp_ListarSaldoCartera).")
     .WithTags("credito")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
     .Produces<List<RptSaldoCarteraCajaDiarioRowDto>>(StatusCodes.Status200OK, "application/json")
@@ -11987,7 +11998,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -11997,7 +12008,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -12120,7 +12131,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -12130,7 +12141,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -12195,14 +12206,14 @@ app.MapGet(
             var log = loggerFactory.CreateLogger("PagosNoVerificados");
             try
             {
-                var items = await pagosNoVerificados.ListarAsync(ct).ConfigureAwait(false);
+                var items = await pagosNoVerificados.ListarAsync(oficinaId.Value, ct).ConfigureAwait(false);
                 return TypedResults.Ok(items.ToList());
             }
             catch (InvalidOperationException ex)
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -12223,7 +12234,7 @@ app.MapGet(
         })
     .WithName("CreditoPagosNoVerificados")
     .WithSummary(
-        "Solo lectura: CREDITO.usp_PagosNoVerificados() sin parámetros SQL. oficinaId obligatorio y = vendix:oficina_id (el proc **no** filtra por oficina; misma lista que CreditoBL.LstVerificarPagosJGrid / grilla VerificarPagos). Distinto de ValidarPagosNoVerificados (conteo LINQ solo caja diario sesión). CreditoUser.")
+        "Solo lectura: CREDITO.usp_PagosNoVerificados() con post-filtro por oficina JWT.")
     .WithTags("credito")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
     .Produces<List<PagosNoVerificadosRowDto>>(StatusCodes.Status200OK, "application/json")
@@ -12269,7 +12280,7 @@ app.MapGet(
             var log = loggerFactory.CreateLogger("PagosNoVerificadosCsv");
             try
             {
-                var items = await pagosNoVerificados.ListarAsync(ct).ConfigureAwait(false);
+                var items = await pagosNoVerificados.ListarAsync(oficinaId.Value, ct).ConfigureAwait(false);
                 var bytes = PagosNoVerificadosCsvFormatter.ToUtf8BomCsv(items);
                 return TypedResults.File(bytes, "text/csv; charset=utf-8", fileDownloadName: "pagos-no-verificados.csv");
             }
@@ -12277,7 +12288,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -12341,7 +12352,7 @@ app.MapGet(
             var log = loggerFactory.CreateLogger("PagosNoVerificadosPdf");
             try
             {
-                var items = await pagosNoVerificados.ListarAsync(ct).ConfigureAwait(false);
+                var items = await pagosNoVerificados.ListarAsync(oficinaId.Value, ct).ConfigureAwait(false);
                 var csvBytes = PagosNoVerificadosCsvFormatter.ToUtf8BomCsv(items);
                 var bytes = TabularPdfDocument.FromUtf8BomCsv("Pagos no verificados", csvBytes);
                 return TypedResults.File(bytes, "application/pdf", fileDownloadName: "pagos-no-verificados.pdf");
@@ -12350,7 +12361,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -12433,7 +12444,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: status,
                     title: status == StatusCodes.Status404NotFound ? "No encontrado" : "Error de operación",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (ArgumentOutOfRangeException ex)
             {
@@ -12441,7 +12452,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -12460,9 +12471,9 @@ app.MapPost(
         })
     .WithName("CreditoVerificarPagoTransferencia")
     .WithSummary(
-        "Escritura: marca IndTransferenciaVerificada en MovimientoCajaExtension (paridad VerificarPagosController.Verificar). CreditoUser; oficinaId = JWT.")
+        "Escritura: marca IndTransferenciaVerificada en MovimientoCajaExtension (paridad VerificarPagosController.Verificar). oficinaId = JWT.")
     .WithTags("credito", "caja")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
     .Produces<VerificarPagoTransferenciaResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -12538,7 +12549,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -12548,7 +12559,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -12654,7 +12665,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -12664,7 +12675,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -12828,7 +12839,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -12951,7 +12962,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -13071,7 +13082,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -13189,7 +13200,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -13266,13 +13277,13 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status404NotFound,
                     title: "No encontrado",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (InvalidOperationException ex)
             {
                 log.LogWarning(ex, "Configuración incompleta");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -13373,7 +13384,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status404NotFound,
                     title: "No encontrado",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (InvalidOperationException ex)
             {
@@ -13381,7 +13392,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status409Conflict,
                     title: "No se puede cerrar la caja",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (ArgumentOutOfRangeException ex)
             {
@@ -13389,7 +13400,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -13459,7 +13470,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -13469,7 +13480,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -13538,7 +13549,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -13548,7 +13559,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -13566,7 +13577,7 @@ app.MapPost(
     .WithSummary(
         "Escritura: CREDITO.usp_RecalcularCajaDiario(CajaDiarioId). Mantenimiento de saldos de caja diario (edmx / inventario Fase 0).")
     .WithTags("credito")
-    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
     .Produces<CajaDiarioOperacionResponse>(StatusCodes.Status200OK, "application/json")
     .ProducesProblem(StatusCodes.Status400BadRequest)
     .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -13666,7 +13677,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -13684,7 +13695,7 @@ app.MapPost(
         })
     .WithName("CreditoTransferirSaldosCajaDiario")
     .WithSummary(
-        "Escritura: paridad CajaDiarioController.TransferirSaldos (caja→caja o caja→bóveda).")
+        "Escritura: paridad CajaDiarioController.TransferirSaldos (cajaâ†’caja o cajaâ†’bóveda).")
     .WithTags("credito")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces(StatusCodes.Status200OK)
@@ -13715,7 +13726,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -13782,7 +13793,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -13792,7 +13803,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -13874,7 +13885,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -13884,7 +13895,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -13962,7 +13973,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -13972,7 +13983,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -14042,7 +14053,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -14052,7 +14063,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -14152,7 +14163,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status404NotFound,
                     title: "No encontrado",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (InvalidOperationException ex)
             {
@@ -14160,7 +14171,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status409Conflict,
                     title: "Desembolso no permitido",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (ArgumentOutOfRangeException ex)
             {
@@ -14168,7 +14179,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -14289,7 +14300,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -14299,7 +14310,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -14379,7 +14390,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -14389,7 +14400,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -14499,7 +14510,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -14509,7 +14520,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -14620,7 +14631,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -14630,7 +14641,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -14748,7 +14759,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -14758,7 +14769,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -14830,7 +14841,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -14840,7 +14851,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -14856,7 +14867,7 @@ app.MapGet(
         })
     .WithName("CreditoBovedaAbierta")
     .WithSummary(
-        "Solo lectura: bóveda abierta de la oficina (IndCierre=0), ORDER BY IndTemporal, BovedaId — paridad operaciones de escritura y BovedaController.Index.")
+        "Solo lectura: bóveda abierta de la oficina (IndCierre=0), ORDER BY IndTemporal, BovedaId â€” paridad operaciones de escritura y BovedaController.Index.")
     .WithTags("credito")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
     .Produces<BovedaAbiertaDto>(StatusCodes.Status200OK, "application/json")
@@ -14902,7 +14913,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Bóvedas destino transferencia: configuración incompleta");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -14912,7 +14923,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -14978,7 +14989,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Boveda estado dinero");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -14998,7 +15009,7 @@ app.MapGet(
             }
         })
     .WithName("CreditoBovedaEstadoDinero")
-    .WithSummary("Paridad Boveda/Index — KPIs estado de dinero y total fondo.")
+    .WithSummary("Paridad Boveda/Index â€” KPIs estado de dinero y total fondo.")
     .WithTags("credito", "boveda")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
     .Produces<BovedaEstadoDineroDto>(StatusCodes.Status200OK, "application/json");
@@ -15048,7 +15059,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cuadre bóveda: configuración incompleta");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -15058,7 +15069,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -15125,7 +15136,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Boveda listar");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -15145,7 +15156,7 @@ app.MapGet(
             }
         })
     .WithName("CreditoBovedaListar")
-    .WithSummary("Paridad ListarBovedaJgrid — historial de cierres de bóveda.")
+    .WithSummary("Paridad ListarBovedaJgrid â€” historial de cierres de bóveda.")
     .WithTags("credito", "boveda")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
     .Produces<BovedaListadoResultDto>(StatusCodes.Status200OK, "application/json");
@@ -15186,7 +15197,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -15196,7 +15207,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -15274,7 +15285,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -15284,7 +15295,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -15351,7 +15362,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -15361,7 +15372,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -15497,7 +15508,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -15507,7 +15518,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -15569,7 +15580,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -15579,7 +15590,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -15646,7 +15657,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -15656,7 +15667,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -15756,7 +15767,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -15766,7 +15777,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -15828,7 +15839,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -15838,7 +15849,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -15897,7 +15908,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -15941,7 +15952,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -16000,7 +16011,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -16054,7 +16065,7 @@ app.MapGet(
             try
             {
                 var response = await saldosCierre
-                    .ValidarCierreCajaChicaAsync(ct)
+                    .ValidarCierreCajaChicaAsync(oficinaId, ct)
                     .ConfigureAwait(false);
                 return TypedResults.Ok(response);
             }
@@ -16062,7 +16073,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -16080,7 +16091,7 @@ app.MapGet(
         })
     .WithName("CreditoValidarCierreCajaChica")
     .WithSummary(
-        "Solo lectura: paridad SaldosController.ValidarCierreCajaChica (sin filtro oficina en BD, como MVC).")
+        "Solo lectura: valida cierre de caja chica filtrado por oficina.")
     .WithTags("credito")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
     .Produces<ValidarCierreSaldosResponse>(StatusCodes.Status200OK, "application/json")
@@ -16125,7 +16136,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -16135,7 +16146,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -16196,7 +16207,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -16206,7 +16217,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -16221,7 +16232,7 @@ app.MapGet(
             }
         })
     .WithName("CreditoCajasAbiertasTransferenciaBoveda")
-    .WithSummary("Solo lectura: paridad CajaBL.ListarCajasAbiertas (combo transferir bóveda → caja).")
+    .WithSummary("Solo lectura: paridad CajaBL.ListarCajasAbiertas (combo transferir bóveda â†’ caja).")
     .WithTags("credito")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
     .Produces<List<CajaAbiertaTransferenciaRowDto>>(StatusCodes.Status200OK, "application/json")
@@ -16315,7 +16326,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -16325,7 +16336,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -16435,7 +16446,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -16445,7 +16456,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -16554,7 +16565,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -16564,7 +16575,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -16622,7 +16633,7 @@ app.MapPost(
                 return usuarioError;
             }
 
-            var validacion = await saldosCierre.ValidarCierreCajaChicaAsync(ct).ConfigureAwait(false);
+            var validacion = await saldosCierre.ValidarCierreCajaChicaAsync(body.OficinaId, ct).ConfigureAwait(false);
             if (!validacion.PuedeCerrar)
             {
                 return TypedResults.Problem(
@@ -16661,7 +16672,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -16671,7 +16682,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -16790,7 +16801,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -16800,7 +16811,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -16900,7 +16911,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -16910,7 +16921,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -16969,7 +16980,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17029,7 +17040,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17080,7 +17091,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17134,7 +17145,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17184,7 +17195,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17242,7 +17253,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17295,7 +17306,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17305,7 +17316,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Solicitud inválida",
-                    detail: ex.Message);
+                    detail: "La solicitud enviada no es válida.");
             }
             catch (DbException ex)
             {
@@ -17356,7 +17367,7 @@ app.MapDelete(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17425,7 +17436,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17497,7 +17508,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17590,7 +17601,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17661,7 +17672,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17671,7 +17682,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -17737,7 +17748,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17747,7 +17758,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -17831,7 +17842,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17841,7 +17852,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -17956,7 +17967,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -17966,7 +17977,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -18041,7 +18052,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -18051,7 +18062,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -18127,7 +18138,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -18137,7 +18148,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -18214,7 +18225,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -18224,7 +18235,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -18255,6 +18266,7 @@ app.MapPost(
             CrearCreditoRequest body,
             ICreditoCicloWriteService creditoCiclo,
             ICreditoScopeReadService creditoScope,
+            IProductoReadService productos,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
             CancellationToken ct) =>
@@ -18322,6 +18334,24 @@ app.MapPost(
             var log = loggerFactory.CreateLogger("CrearCredito");
             try
             {
+                var producto = await productos.GetActivoByIdAsync(body.ProductoId, ct).ConfigureAwait(false);
+                if (producto is null)
+                {
+                    return TypedResults.Problem(
+                        statusCode: StatusCodes.Status400BadRequest,
+                        title: "Solicitud inválida",
+                        detail: "El producto de crédito no existe o no está activo.");
+                }
+
+                if (body.InteresMensual < producto.InteresMinima
+                    || body.InteresMensual > producto.InteresMaxima)
+                {
+                    return TypedResults.Problem(
+                        statusCode: StatusCodes.Status400BadRequest,
+                        title: "Solicitud inválida",
+                        detail: $"El interés debe estar entre {producto.InteresMinima:N2}% y {producto.InteresMaxima:N2}%.");
+                }
+
                 var response = await creditoCiclo
                     .CrearDesdeSolicitudAsync(
                         body.SolicitudCreditoId,
@@ -18347,7 +18377,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -18357,7 +18387,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (ArgumentException ex)
             {
@@ -18365,7 +18395,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Solicitud inválida",
-                    detail: ex.Message);
+                    detail: "La solicitud enviada no es válida.");
             }
             catch (DbException ex)
             {
@@ -18444,7 +18474,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -18454,7 +18484,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -18522,7 +18552,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -18532,7 +18562,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -18597,7 +18627,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -18607,7 +18637,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -18674,7 +18704,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -18684,7 +18714,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -18786,7 +18816,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -18796,7 +18826,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -18913,7 +18943,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -18923,7 +18953,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -19041,7 +19071,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -19051,7 +19081,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -19169,7 +19199,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -19179,7 +19209,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -19278,7 +19308,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -19288,7 +19318,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -19396,7 +19426,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -19406,7 +19436,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -19515,7 +19545,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -19525,7 +19555,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -19568,7 +19598,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -19612,7 +19642,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -19657,7 +19687,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -19713,7 +19743,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -19723,7 +19753,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -19779,7 +19809,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -19789,7 +19819,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -19846,7 +19876,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -19856,7 +19886,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -19923,7 +19953,7 @@ app.MapGet("/api/v1/menu", async Task<Results<Ok<List<MenuItemDto>>, ProblemHttp
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -19963,7 +19993,7 @@ app.MapGet("/api/v1/oficinas", async Task<Results<Ok<List<OficinaListItemDto>>, 
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20000,7 +20030,7 @@ app.MapGet("/api/v1/productos", async Task<Results<Ok<List<ProductoListItemDto>>
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20037,7 +20067,7 @@ app.MapGet("/api/v1/marcas", async Task<Results<Ok<List<MarcaListItemDto>>, Prob
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20075,7 +20105,7 @@ app.MapGet("/api/v1/modelos", async Task<Results<Ok<List<ModeloListItemDto>>, Pr
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20113,7 +20143,7 @@ app.MapGet("/api/v1/tipos-articulo", async Task<Results<Ok<List<TipoArticuloList
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20150,7 +20180,7 @@ app.MapGet("/api/v1/tipo-operaciones", async Task<Results<Ok<List<TipoOperacionL
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20189,7 +20219,7 @@ app.MapGet("/api/v1/tipos-documento", async Task<Results<Ok<List<TipoDocumentoLi
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20226,7 +20256,7 @@ app.MapGet("/api/v1/tipos-documento-almacen-mov", async Task<Results<Ok<List<Tip
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20264,7 +20294,7 @@ app.MapGet("/api/v1/departamentos", async Task<Results<Ok<List<DepartamentoListI
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20302,7 +20332,7 @@ app.MapGet("/api/v1/provincias", async Task<Results<Ok<List<ProvinciaListItemDto
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20341,7 +20371,7 @@ app.MapGet("/api/v1/distritos", async Task<Results<Ok<List<DistritoListItemDto>>
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20379,7 +20409,7 @@ app.MapGet("/api/v1/tipos-movimiento-almacen", async Task<Results<Ok<List<TipoMo
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20418,7 +20448,7 @@ app.MapGet("/api/v1/almacenes", async Task<Results<Ok<List<AlmacenListItemDto>>,
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -20484,7 +20514,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -20494,7 +20524,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -20563,7 +20593,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -20573,7 +20603,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -20644,7 +20674,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -20654,7 +20684,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -20747,7 +20777,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -20757,7 +20787,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -20855,7 +20885,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -20865,7 +20895,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -20961,7 +20991,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -20971,7 +21001,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -21005,6 +21035,7 @@ app.MapGet(
             int? movimientoDetalleId,
             bool? indStock,
             IListarSerieKardexReadService listarSerieKardex,
+            IMovimientoDetOficinaReadService movimientoDetOficina,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
             CancellationToken ct) =>
@@ -21036,6 +21067,21 @@ app.MapGet(
             var log = loggerFactory.CreateLogger("ListarSerieKardex");
             try
             {
+                var movimientoOficinaId = await movimientoDetOficina
+                    .GetOficinaIdByMovimientoDetIdAsync(movimientoDetalleId.Value, ct)
+                    .ConfigureAwait(false);
+                if (movimientoOficinaId != oficinaId.Value)
+                {
+                    return TypedResults.Problem(
+                        statusCode: movimientoOficinaId is null
+                            ? StatusCodes.Status404NotFound
+                            : StatusCodes.Status403Forbidden,
+                        title: movimientoOficinaId is null ? "No encontrado" : "Prohibido",
+                        detail: movimientoOficinaId is null
+                            ? "No existe el detalle de movimiento solicitado."
+                            : "El detalle de movimiento no pertenece a la oficina del token JWT.");
+                }
+
                 var response = await listarSerieKardex
                     .ObtenerPrimeraFilaAsync(movimientoDetalleId.Value, indStock == true, ct)
                     .ConfigureAwait(false);
@@ -21045,7 +21091,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -21055,7 +21101,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -21074,7 +21120,7 @@ app.MapGet(
         })
     .WithName("AlmacenSerieKardex")
     .WithSummary(
-        "Solo lectura: ALMACEN.usp_ListarSerieKardex(MovimientoDetalleId, IndStock). oficinaId obligatorio = vendix:oficina_id (el proc no filtra por oficina). indStock opcional (default false). texto = primera fila. CreditoUser. Equivale a AlmacenBL.ObtenerSerieKardex / KardexController.ObtenerSerieKardex.")
+        "Solo lectura: ALMACEN.usp_ListarSerieKardex(MovimientoDetalleId, IndStock) con validación previa de oficina por MovimientoDetId.")
     .WithTags("read-only")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
     .Produces<ListarSerieKardexResponse>(StatusCodes.Status200OK, "application/json")
@@ -21148,7 +21194,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -21158,7 +21204,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -21202,7 +21248,7 @@ app.MapGet("/api/v1/ocupaciones", async Task<Results<Ok<List<OcupacionListItemDt
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -21241,7 +21287,7 @@ app.MapGet("/api/v1/articulos", async Task<Results<Ok<List<ArticuloListItemDto>>
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -21280,7 +21326,7 @@ app.MapGet("/api/v1/lista-precios", async Task<Results<Ok<List<ListaPrecioListIt
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -21329,7 +21375,7 @@ app.MapGet("/api/v1/valores-tabla", async Task<Results<Ok<List<ValorTablaListIte
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -21339,7 +21385,7 @@ app.MapGet("/api/v1/valores-tabla", async Task<Results<Ok<List<ValorTablaListIte
         return TypedResults.Problem(
             statusCode: StatusCodes.Status400BadRequest,
             title: "Parámetros inválidos",
-            detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
     }
     catch (DbException ex)
     {
@@ -21405,7 +21451,7 @@ app.MapGet("/api/v1/series-articulo", async Task<Results<Ok<List<SerieArticuloLi
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -21415,7 +21461,7 @@ app.MapGet("/api/v1/series-articulo", async Task<Results<Ok<List<SerieArticuloLi
         return TypedResults.Problem(
             statusCode: StatusCodes.Status400BadRequest,
             title: "Parámetros inválidos",
-            detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
     }
     catch (DbException ex)
     {
@@ -21461,7 +21507,7 @@ app.MapGet("/api/v1/ventas/codigo-barras-lst", async Task<Results<Ok<List<Codigo
     {
         log.LogWarning(ex, "Cadena de conexión no configurada");
         return TypedResults.Problem(
-            detail: ex.Message,
+            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
             statusCode: StatusCodes.Status503ServiceUnavailable,
             title: "Configuración incompleta");
     }
@@ -21471,7 +21517,7 @@ app.MapGet("/api/v1/ventas/codigo-barras-lst", async Task<Results<Ok<List<Codigo
         return TypedResults.Problem(
             statusCode: StatusCodes.Status400BadRequest,
             title: "Parámetros inválidos",
-            detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
     }
     catch (DbException ex)
     {
@@ -21522,7 +21568,7 @@ app.MapGet(
                 {
                     log.LogWarning(ioe, "Configuración");
                     return TypedResults.Problem(
-                        detail: ioe.Message,
+                        detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                         statusCode: StatusCodes.Status503ServiceUnavailable,
                         title: "Configuración incompleta");
                 }
@@ -21579,7 +21625,7 @@ app.MapGet(
                 {
                     log.LogWarning(ioe, "Configuración");
                     return TypedResults.Problem(
-                        detail: ioe.Message,
+                        detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                         statusCode: StatusCodes.Status503ServiceUnavailable,
                         title: "Configuración incompleta");
                 }
@@ -21687,7 +21733,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -21697,7 +21743,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -21762,7 +21808,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -21772,7 +21818,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -21847,7 +21893,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -21932,7 +21978,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -21942,7 +21988,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -22028,7 +22074,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -22038,7 +22084,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -22117,7 +22163,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -22198,7 +22244,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -22279,7 +22325,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -22384,7 +22430,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -22510,7 +22556,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -22591,7 +22637,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -22601,7 +22647,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -22678,7 +22724,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -22688,7 +22734,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -22814,7 +22860,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -22824,7 +22870,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -22907,7 +22953,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -22917,7 +22963,7 @@ app.MapGet(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -23002,7 +23048,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -23092,7 +23138,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -23178,13 +23224,13 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status409Conflict,
                     title: "Conflicto",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (InvalidOperationException ex)
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -23249,13 +23295,13 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status409Conflict,
                     title: "Conflicto",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (InvalidOperationException ex)
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -23337,13 +23383,13 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status409Conflict,
                     title: "Conflicto",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (InvalidOperationException ex)
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -23398,7 +23444,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -23500,13 +23546,13 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status409Conflict,
                     title: "Conflicto",
-                    detail: ex.Message);
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.");
             }
             catch (InvalidOperationException ex)
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -23516,7 +23562,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -23590,7 +23636,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -23661,7 +23707,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -23725,7 +23771,7 @@ app.MapGet(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -23805,7 +23851,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -23815,14 +23861,14 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Solicitud inválida",
-                    detail: ex.Message);
+                    detail: "La solicitud enviada no es válida.");
             }
-            catch (ArgumentOutOfRangeException ex)
+            catch (ArgumentOutOfRangeException)
             {
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Solicitud inválida",
-                    detail: ex.Message);
+                    detail: "La solicitud enviada no es válida.");
             }
             catch (DbException ex)
             {
@@ -23886,7 +23932,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -23952,7 +23998,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -24014,7 +24060,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -24084,7 +24130,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -24163,7 +24209,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -24242,7 +24288,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -24328,7 +24374,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -24420,7 +24466,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -24430,7 +24476,7 @@ app.MapPost(
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                    detail: ex.Message);
+                    detail: "Los parámetros enviados no son válidos.");
             }
             catch (DbException ex)
             {
@@ -24509,7 +24555,7 @@ app.MapPost(
             {
                 log.LogWarning(ex, "Cadena de conexión no configurada");
                 return TypedResults.Problem(
-                    detail: ex.Message,
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                     statusCode: StatusCodes.Status503ServiceUnavailable,
                     title: "Configuración incompleta");
             }
@@ -24541,7 +24587,7 @@ var hostingForDevToken = app.Configuration.GetSection(HostingPipelineOptions.Sec
 if (!app.Environment.IsProduction()
     && !runningInCi
     && hostingForDevToken.AllowDevToken
-    && (app.Environment.IsDevelopment() || app.Environment.IsStaging()))
+    && app.Environment.IsDevelopment())
 {
     app.MapPost(
             "/api/v1/dev/token",
@@ -24566,7 +24612,7 @@ if (!app.Environment.IsProduction()
             })
         .WithName("DevToken")
         .WithTags("auth")
-        .WithSummary("Emite JWT de desarrollo (Development/Staging local, no CI, con Hosting:AllowDevToken).")
+        .WithSummary("Emite JWT de desarrollo (solo Development local, no CI, con Hosting:AllowDevToken).")
         .Produces<DevTokenResponse>(StatusCodes.Status200OK, "application/json")
         .ProducesProblem(StatusCodes.Status400BadRequest);
 }
@@ -24593,3 +24639,4 @@ public partial class Program { }
 
 /// <summary>Respuesta JSON de la hora devuelta por SQL Server (<c>usp_FechaBD</c>).</summary>
 public sealed record DatabaseTimeResponse(DateTime? DatabaseTime);
+

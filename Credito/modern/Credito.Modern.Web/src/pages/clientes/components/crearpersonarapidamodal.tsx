@@ -10,6 +10,10 @@ function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : 'Error desconocido'
 }
 
+function onlyDigits(value: string): string {
+  return value.replace(/\D/g, '')
+}
+
 type Props = {
   onCreated: (personaId: number, label: string) => void
 }
@@ -24,11 +28,11 @@ export function CrearPersonaRapidaModal({ onCreated }: Props) {
   const crear = useMutation({
     mutationFn: () =>
       crearPersonaRapida({
-        dni: dni.trim(),
+        dni: onlyDigits(dni),
         nombre: nombre.trim(),
         apePaterno: paterno.trim(),
         apeMaterno: materno.trim(),
-        celular: celular.trim() || null,
+        celular: onlyDigits(celular) || null,
       }),
     onSuccess: (r) => {
       if (!r.success) {
@@ -46,13 +50,20 @@ export function CrearPersonaRapidaModal({ onCreated }: Props) {
       <Input
         placeholder="DNI 8 dígitos"
         value={dni}
-        onChange={(e) => setDni(e.target.value)}
+        onChange={(e) => setDni(onlyDigits(e.target.value))}
+        inputMode="numeric"
+        pattern="[0-9]*"
         maxLength={8}
       />
       <Button
         icon={<FileSearchOutlined />}
         onClick={async () => {
-          const r = await consultarDniApiPeru(dni.trim())
+          const documento = onlyDigits(dni)
+          if (documento.length !== 8) {
+            message.warning('Ingrese un DNI de 8 dígitos')
+            return
+          }
+          const r = await consultarDniApiPeru(documento)
           if (r.success) {
             setNombre(r.nombres ?? '')
             setPaterno(r.apellidoPaterno ?? '')
@@ -67,7 +78,14 @@ export function CrearPersonaRapidaModal({ onCreated }: Props) {
       <Input placeholder="Nombres" value={nombre} onChange={(e) => setNombre(e.target.value)} />
       <Input placeholder="Paterno" value={paterno} onChange={(e) => setPaterno(e.target.value)} />
       <Input placeholder="Materno" value={materno} onChange={(e) => setMaterno(e.target.value)} />
-      <Input placeholder="Celular" value={celular} onChange={(e) => setCelular(e.target.value)} maxLength={10} />
+      <Input
+        placeholder="Celular 9 dígitos"
+        value={celular}
+        onChange={(e) => setCelular(onlyDigits(e.target.value))}
+        inputMode="numeric"
+        pattern="[0-9]*"
+        maxLength={9}
+      />
       <Button type="primary" loading={crear.isPending} onClick={() => crear.mutate()}>
         Guardar persona
       </Button>

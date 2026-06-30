@@ -8,7 +8,7 @@ import {
 } from '../../../api/cajaDiario'
 import { CajaCuotasTable } from '../../../components/caja/CajaCuotasTable'
 import { CajaSection } from '../../../components/caja/CajaSection'
-import { cajaConfirm } from '../../../components/caja/CajaModal'
+import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import { formatMoney } from '../../../utils/formatMoney'
 import {
   assertSinCxcPendiente,
@@ -51,7 +51,7 @@ export function CancelacionCreditoPanel({
     onError: (e) => message.error(errMsg(e)),
   })
 
-  const rows = query.data ?? []
+  const rows = useMemo(() => query.data ?? [], [query.data])
 
   const totales = useMemo(
     () => ({

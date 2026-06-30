@@ -362,7 +362,7 @@ internal static class UsuarioAdminEndpoints
         {
             log.LogWarning(ioe, "Cadena de conexión no configurada");
             return TypedResults.Problem(
-                detail: ioe.Message,
+                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }
@@ -394,7 +394,7 @@ internal static class UsuarioAdminEndpoints
         {
             log.LogWarning(ex, "Cadena de conexión no configurada");
             return TypedResults.Problem(
-                detail: ex.Message,
+                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }
@@ -411,3 +411,4 @@ internal static class UsuarioAdminEndpoints
         }
     }
 }
+

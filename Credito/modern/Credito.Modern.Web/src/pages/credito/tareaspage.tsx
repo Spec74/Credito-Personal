@@ -82,7 +82,7 @@ export function TareasPage() {
   }
 
   const puedeEditar = permisos.data?.puedeEditar ?? false
-  const rows = listQuery.data ?? []
+  const rows = useMemo(() => listQuery.data ?? [], [listQuery.data])
 
   const analistas = useMemo(() => {
     const set = new Set<string>()

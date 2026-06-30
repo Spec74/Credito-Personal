@@ -1,0 +1,1 @@
+import{y as e}from"./index-CuoiQQB3.js";import{t}from"./reporteCreditoAccess-JLaIclea.js";function n(){let{session:n}=e();return t(n?.roles??[])}export{n as t};

@@ -24,7 +24,7 @@ import {
 } from '@ant-design/icons'
 import type { ReactNode } from 'react'
 
-function IconAprobar() {
+function renderAprobarIcon() {
   // Icono moderno de "aprobación": check en escudo.
   return (
     <svg
@@ -51,7 +51,7 @@ function IconAprobar() {
   )
 }
 
-function IconSaldosCaja() {
+function renderSaldosCajaIcon() {
   // Icono moderno de "saldos/cierres": caja/moneda en bloque.
   return (
     <svg
@@ -108,14 +108,14 @@ export function hubLinkIcon(to: string, label?: string): ReactNode {
     return <DollarOutlined />
   }
   if (path.includes('/caja/chica')) return <WalletOutlined />
-  if (path.includes('/caja/saldos') || text.includes('saldos')) return <IconSaldosCaja />
+  if (path.includes('/caja/saldos') || text.includes('saldos')) return renderSaldosCajaIcon()
   if (path.includes('/caja/asignar')) return <CheckCircleOutlined />
   if (path.includes('/caja/verificar')) return <AuditOutlined />
   if (path.includes('/caja/maestro')) return <SettingOutlined />
   if (path.includes('/credito/simulador')) return <CalculatorOutlined />
   if (path.includes('/credito/prendario') || text.includes('prendario')) return <GoldOutlined />
   if (path.includes('/credito/consulta')) return <SearchOutlined />
-  if (path.includes('/credito/aprobar')) return <IconAprobar />
+  if (path.includes('/credito/aprobar')) return renderAprobarIcon()
   if (path.includes('/credito/tareas')) return <TableOutlined />
   if (path.includes('/clientes')) return <TeamOutlined />
   if (path.includes('/ventas/venta-rapida')) return <ShoppingCartOutlined />

@@ -78,7 +78,7 @@ export function HomePage() {
 
   const { session } = useAuth()
 
-  const roles = session?.roles ?? []
+  const roles = useMemo(() => session?.roles ?? [], [session?.roles])
 
 
 

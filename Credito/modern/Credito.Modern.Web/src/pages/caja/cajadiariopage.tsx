@@ -302,16 +302,28 @@ export function CajaDiarioPage() {
                 <dt>Estado</dt>
                 <dd>{ctx.indCierre ? 'Cerrado' : 'Abierto'}</dd>
               </dl>
-              <nav className="caja-diario-quick-links">
+              <div className="caja-diario-side-section">
+                <span className="caja-diario-side-section__eyebrow">
+                  Gestión de caja
+                </span>
                 <Button
-                  type="link"
+                  className="caja-diario-recalc-btn"
                   size="small"
+                  block
                   loading={recalcular.isPending}
                   onClick={() => recalcular.mutate()}
-                  style={{ padding: 0, height: 'auto' }}
                 >
                   Recalcular saldos
                 </Button>
+              </div>
+
+              <nav
+                className="caja-diario-quick-links"
+                aria-label="Reportes y cierres de caja"
+              >
+                <span className="caja-diario-side-section__eyebrow">
+                  Reportes y cierre
+                </span>
                 <Link to="/informes/caja-diario">Informe caja diario</Link>
                 <Link to="/informes/saldo-cartera-caja-diario">
                   Saldo cartera por caja

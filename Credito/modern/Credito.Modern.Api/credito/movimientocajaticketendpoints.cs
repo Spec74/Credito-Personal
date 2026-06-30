@@ -73,7 +73,7 @@ internal static class MovimientoCajaTicketEndpoints
                         {
                             log.LogWarning(ioe, "Ticket movimiento caja: configuración");
                             return TypedResults.Problem(
-                                detail: ioe.Message,
+                                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                                 statusCode: StatusCodes.Status503ServiceUnavailable,
                                 title: "Configuración incompleta");
                         }
@@ -150,7 +150,7 @@ internal static class MovimientoCajaTicketEndpoints
                         {
                             log.LogWarning(ioe, "Ticket movimiento caja chica: configuración");
                             return TypedResults.Problem(
-                                detail: ioe.Message,
+                                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                                 statusCode: StatusCodes.Status503ServiceUnavailable,
                                 title: "Configuración incompleta");
                         }
@@ -216,7 +216,7 @@ internal static class MovimientoCajaTicketEndpoints
                         {
                             log.LogWarning(ioe, "Ticket bóveda: configuración");
                             return TypedResults.Problem(
-                                detail: ioe.Message,
+                                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                                 statusCode: StatusCodes.Status503ServiceUnavailable,
                                 title: "Configuración incompleta");
                         }

@@ -17,7 +17,7 @@ import { toggleClienteBloqueado } from '../../api/clientes'
 import { depurarPersonaCredito, fetchPersonaCreditoFicha } from '../../api/creditoGestion'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
-import { cajaConfirm } from '../caja/CajaModal'
+import { cajaConfirm } from '../caja/cajaConfirm'
 import {
   puedeCrearSolicitudCreditoUi,
   puedeDepurarClienteCredito,

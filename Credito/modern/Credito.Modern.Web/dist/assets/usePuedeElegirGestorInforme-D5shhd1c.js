@@ -1,1 +1,0 @@
-import{y as e}from"./index-Un5499bd.js";import{t}from"./reporteCreditoAccess-C7184vC2.js";function n(){let{session:n}=e();return t(n?.roles??[])}export{n as t};

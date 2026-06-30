@@ -62,9 +62,14 @@ public sealed class SaldosCierreReadService(IOptions<SqlDatabaseOptions> options
     }
 
     public async Task<ValidarCierreSaldosResponse> ValidarCierreCajaChicaAsync(
+        int oficinaId,
         CancellationToken cancellationToken = default)
     {
         EnsureConnection();
+        if (oficinaId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
+        }
 
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -73,10 +78,13 @@ public sealed class SaldosCierreReadService(IOptions<SqlDatabaseOptions> options
             new CommandDefinition(
                 """
                 SELECT COUNT(1)
-                FROM CREDITO.CajaChicaDiario
-                WHERE IndCierre = CAST(0 AS bit)
-                  AND TransBoveda = CAST(0 AS bit);
+                FROM CREDITO.CajaChicaDiario AS ccd
+                INNER JOIN CREDITO.Caja AS c ON c.CajaId = ccd.Id
+                WHERE ccd.IndCierre = CAST(0 AS bit)
+                  AND ccd.TransBoveda = CAST(0 AS bit)
+                  AND c.OficinaId = @OficinaId;
                 """,
+                new { OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
         if (abiertas > 0)
@@ -88,10 +96,13 @@ public sealed class SaldosCierreReadService(IOptions<SqlDatabaseOptions> options
             new CommandDefinition(
                 """
                 SELECT COUNT(1)
-                FROM CREDITO.CajaChicaDiario
-                WHERE IndCierre = CAST(1 AS bit)
-                  AND TransBoveda = CAST(0 AS bit);
+                FROM CREDITO.CajaChicaDiario AS ccd
+                INNER JOIN CREDITO.Caja AS c ON c.CajaId = ccd.Id
+                WHERE ccd.IndCierre = CAST(1 AS bit)
+                  AND ccd.TransBoveda = CAST(0 AS bit)
+                  AND c.OficinaId = @OficinaId;
                 """,
+                new { OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
         if (porCerrar == 0)

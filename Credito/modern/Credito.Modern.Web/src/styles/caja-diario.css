@@ -35,7 +35,7 @@
 
 @media (min-width: 1100px) {
   .caja-diario-workspace {
-    grid-template-columns: minmax(200px, 228px) minmax(0, 1fr);
+    grid-template-columns: minmax(238px, 268px) minmax(0, 1fr);
     align-items: start;
   }
 }
@@ -155,14 +155,16 @@
 
 /* —— Sidebar sesión —— */
 .caja-diario-session-card {
-  background: linear-gradient(180deg, var(--caja-brand-light) 0%, #fff 48%);
-  border: 1px solid var(--credix-border, #e5e7eb);
-  border-radius: var(--credix-radius, 8px);
-  padding: 14px;
+  background:
+    linear-gradient(180deg, rgba(232, 242, 252, 0.78) 0%, #fff 42%),
+    #fff;
+  border: 1px solid #d9e4f2;
+  border-radius: 14px;
+  padding: 14px 12px;
   font-size: 12px;
   position: sticky;
   top: 12px;
-  box-shadow: var(--credix-shadow-sm);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
 }
 
 .caja-diario-session-name {
@@ -188,7 +190,9 @@
   margin: 0;
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 5px 10px;
+  gap: 6px 12px;
+  padding: 10px 0 12px;
+  border-bottom: 1px solid #e5edf7;
 }
 
 .caja-diario-session-card dt {
@@ -203,28 +207,102 @@
   color: var(--credix-text);
 }
 
+.caja-diario-side-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.caja-diario-side-section__eyebrow {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #55708f;
+}
+
+.caja-diario-recalc-btn.ant-btn {
+  justify-content: flex-start;
+  min-height: 36px;
+  border-color: #c9d8ea;
+  background: #f8fbff;
+  color: var(--caja-brand);
+  font-weight: 700;
+}
+
+.caja-diario-recalc-btn.ant-btn:hover {
+  border-color: var(--caja-brand);
+  color: var(--caja-brand-hover);
+}
+
 .caja-diario-quick-links {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--credix-border);
+  padding: 12px 0;
+  border-top: 1px solid #e5edf7;
+  border-bottom: 1px solid #e5edf7;
+}
+
+.caja-diario-quick-links a {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: #245176;
+  font-weight: 600;
+}
+
+.caja-diario-quick-links a:hover {
+  background: #eef6ff;
+  color: var(--caja-brand);
 }
 
 .caja-diario-ops-stack {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--credix-border);
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #dbe7f5;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.caja-diario-ops-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 2px;
+}
+
+.caja-diario-ops-heading__hint {
+  color: var(--credix-text-muted);
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .caja-diario-ops-stack .ant-btn {
   justify-content: flex-start;
   height: auto;
   min-height: 38px;
+  border-radius: 9px;
+  font-weight: 700;
+}
+
+.caja-diario-ops-report.ant-btn {
+  border-color: #bfd4ec;
+  background: #fff;
+  color: var(--caja-brand);
+}
+
+.caja-diario-ops-report.ant-btn:hover {
+  border-color: var(--caja-brand);
+  color: var(--caja-brand-hover);
 }
 
 .caja-diario-ops-ruta.ant-btn {

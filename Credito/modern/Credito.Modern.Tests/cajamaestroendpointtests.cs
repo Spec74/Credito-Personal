@@ -1,5 +1,7 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Credito.Modern.Tests;
 
@@ -47,5 +49,50 @@ public class CajaMaestroEndpointTests : IClassFixture<CreditoModernWebApplicatio
     {
         var response = await _client.PostAsync("/api/v1/cajas/1/activar", null);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Guardar_caja_analista_devuelve_403()
+    {
+        var token = await DevTokenAsync(["ANALISTA"]);
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/cajas/guardar")
+        {
+            Content = JsonContent.Create(new
+            {
+                cajaId = 0,
+                oficinaId = 1,
+                denominacion = "Test",
+                cajeroId = (int?)null,
+                estado = true,
+            }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _client.SendAsync(req);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Activar_caja_analista_devuelve_403()
+    {
+        var token = await DevTokenAsync(["ANALISTA"]);
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/cajas/1/activar");
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _client.SendAsync(req);
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    private async Task<string> DevTokenAsync(string[] roles)
+    {
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles });
+        tokenRes.EnsureSuccessStatusCode();
+        using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
+        return doc.RootElement.GetProperty("accessToken").GetString()
+            ?? throw new InvalidOperationException("accessToken vacío");
     }
 }

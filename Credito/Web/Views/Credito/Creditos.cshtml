@@ -920,7 +920,14 @@
 
         </div>
         <script>
-            var tokenApiperu = 'Bearer bbd78886dd0b93fe2282ef3f919b1a0f662dfada35d422b8212891a931b37f98';
+            function apiPeruHeaders() {
+                var token = window.localStorage ? window.localStorage.getItem('credito.access') : null;
+                return token ? { 'Authorization': 'Bearer ' + token } : {};
+            }
+
+            function apiPeruDniUrl(dni) {
+                return "/api/v1/integraciones/apiperu/dni/" + encodeURIComponent((dni || '').replace(/\D/g, ''));
+            }
 
             $(function () {
                 mostrarCredito(@(Model.Creditos.FirstOrDefault() == null ? 0 : Model.Creditos.First().CreditoId));
@@ -1070,17 +1077,20 @@
                 $("#btnAvalBuscarDni").click(function(){
                     $.ajax({
                         type: 'GET',
-                        url: "https://apiperu.dev/api/dni/" + $("#txtAvalDni").val(),
+                        url: apiPeruDniUrl($("#txtAvalDni").val()),
                         data: {},
-                        headers: { 'Authorization': tokenApiperu },
+                        headers: apiPeruHeaders(),
                         success: function(ret) {
                             if (ret.success) {
-                                $("#txtAvalNombre").val(ret.data.nombres);
-                                $("#txtAvalApePaterno").val(ret.data.apellido_paterno);
-                                $("#txtAvalApeMaterno").val(ret.data.apellido_materno);
+                                $("#txtAvalNombre").val(ret.nombres);
+                                $("#txtAvalApePaterno").val(ret.apellidoPaterno);
+                                $("#txtAvalApeMaterno").val(ret.apellidoMaterno);
                             } else {
-                                Vendix.Mensaje("DNI NO ENCONTRADO EN RENIEC");
+                                Vendix.Mensaje(ret.mensaje || "DNI NO ENCONTRADO EN RENIEC");
                             }
+                        },
+                        error: function () {
+                            Vendix.Mensaje("No se pudo validar el DNI. Inicie sesión en el módulo moderno o configure API Perú.");
                         }
                     });
                 });

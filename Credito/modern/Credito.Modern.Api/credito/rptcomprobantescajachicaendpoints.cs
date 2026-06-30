@@ -159,7 +159,7 @@ internal static class RptComprobantesCajaChicaEndpoints
         {
             log.LogWarning(ioe, "Comprobantes caja chica: configuración");
             return TypedResults.Problem(
-                detail: ioe.Message,
+                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }
@@ -170,7 +170,7 @@ internal static class RptComprobantesCajaChicaEndpoints
             return TypedResults.Problem(
                 statusCode: StatusCodes.Status400BadRequest,
                 title: "Parámetros inválidos",
-                detail: aor.Message);
+                detail: "El rango de fechas solicitado no es válido.");
         }
 
         log.LogError(ex, "Comprobantes caja chica");

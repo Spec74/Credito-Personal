@@ -1,0 +1,1 @@
+import{O as e}from"./index-CuoiQQB3.js";function t(t){return e(`/integraciones/apiperu/dni/${encodeURIComponent(t.trim())}`)}function n(t){return e(`/integraciones/apiperu/ruc/${encodeURIComponent(t.trim())}`)}export{n,t};

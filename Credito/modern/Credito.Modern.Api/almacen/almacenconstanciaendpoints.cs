@@ -195,7 +195,7 @@ internal static class AlmacenConstanciaEndpoints
         {
             log.LogWarning(ioe, "Configuración");
             return TypedResults.Problem(
-                detail: ioe.Message,
+                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }

@@ -1,5 +1,7 @@
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Credito.Modern.Tests;
 
@@ -78,5 +80,30 @@ public class ClienteEndpointsTests : IClassFixture<CreditoModernWebApplicationFa
     {
         var response = await _client.PostAsync("/api/v1/clientes/1/bloquear", null);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ApiPeru_dni_sin_token_no_filtra_configuracion_interna()
+    {
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles = new[] { "ANALISTA" } });
+        Assert.Equal(HttpStatusCode.OK, tokenRes.StatusCode);
+
+        using var tokenDoc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
+        var token = tokenDoc.RootElement.GetProperty("accessToken").GetString();
+        using var req = new HttpRequestMessage(
+            HttpMethod.Get,
+            "/api/v1/integraciones/apiperu/dni/12345678");
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _client.SendAsync(req);
+        var content = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("\"success\":false", content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("ApiPeru:Token", content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("user-secrets", content, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("variables de entorno", content, StringComparison.OrdinalIgnoreCase);
     }
 }

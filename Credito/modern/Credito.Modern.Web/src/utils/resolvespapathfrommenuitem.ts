@@ -102,6 +102,13 @@ export function resolveSpaPathFromMenuItem(
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
 
+  if (url?.includes('?')) {
+    const fromUrlWithQuery = resolveSpaPathFromLegacyUrl(url)
+    if (fromUrlWithQuery?.includes('?')) {
+      return fromUrlWithQuery
+    }
+  }
+
   const creditoOperacionDirecta = resolveCreditoOperacionFromLabel(denominacion)
   if (creditoOperacionDirecta && (mod.includes('CREDITO') || isCreditoOperacionLabel(label))) {
     return creditoOperacionDirecta

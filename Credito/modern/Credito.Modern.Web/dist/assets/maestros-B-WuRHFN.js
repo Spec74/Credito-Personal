@@ -1,1 +1,0 @@
-import{O as e}from"./index-Un5499bd.js";function t(t){return e(`/valores-tabla?tablaId=${t}&soloItemIdPositivo=true`)}export{t};

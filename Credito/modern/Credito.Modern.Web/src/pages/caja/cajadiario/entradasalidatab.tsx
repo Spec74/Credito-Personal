@@ -15,7 +15,8 @@ import {
   fetchTipoOperaciones,
 } from '../../../api/cajaDiario'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
-import { CajaModal, cajaConfirm } from '../../../components/caja/CajaModal'
+import { CajaModal } from '../../../components/caja/CajaModal'
+import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import type { TipoOperacionListItem } from '../../../types/api'
 import type { CajaSession } from './types'
 import { errMsg } from './types'

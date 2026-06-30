@@ -58,11 +58,14 @@ public sealed class CajaChicaDiarioWriteService(IOptions<SqlDatabaseOptions> opt
                 .QueryAsync<CajaChicaCerradaRow>(
                     new CommandDefinition(
                         """
-                        SELECT Id, SaldoFinal
-                        FROM CREDITO.CajaChicaDiario
-                        WHERE IndCierre = CAST(1 AS bit)
-                          AND TransBoveda = CAST(0 AS bit);
+                        SELECT ccd.Id, ccd.SaldoFinal
+                        FROM CREDITO.CajaChicaDiario AS ccd WITH (UPDLOCK, HOLDLOCK)
+                        INNER JOIN CREDITO.Caja AS c ON c.CajaId = ccd.Id
+                        WHERE ccd.IndCierre = CAST(1 AS bit)
+                          AND ccd.TransBoveda = CAST(0 AS bit)
+                          AND c.OficinaId = @OficinaId;
                         """,
+                        new { OficinaId = oficinaId },
                         transaction: transaction,
                         cancellationToken: cancellationToken))
                 .ConfigureAwait(false)).ToList();
@@ -81,7 +84,8 @@ public sealed class CajaChicaDiarioWriteService(IOptions<SqlDatabaseOptions> opt
                         """
                         UPDATE CREDITO.CajaChicaDiario
                         SET TransBoveda = CAST(1 AS bit)
-                        WHERE Id = @Id;
+                        WHERE Id = @Id
+                          AND TransBoveda = CAST(0 AS bit);
                         """,
                         new { caja.Id },
                         transaction: transaction,
@@ -210,9 +214,10 @@ public sealed class CajaChicaDiarioWriteService(IOptions<SqlDatabaseOptions> opt
                     SET IndAbierto = CAST(0 AS bit),
                         FechaMod = @Fecha,
                         UsuarioModId = @UsuarioId
-                    WHERE Denominacion LIKE '%CAJA CHICA%';
+                    WHERE CajaId = @CajaChicaId
+                      AND Denominacion LIKE '%CAJA CHICA%';
                     """,
-                    new { Fecha = fechaOperacion, UsuarioId = usuarioId },
+                    new { Fecha = fechaOperacion, UsuarioId = usuarioId, CajaChicaId = cajaChicaId.Value },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
@@ -279,12 +284,14 @@ public sealed class CajaChicaDiarioWriteService(IOptions<SqlDatabaseOptions> opt
             var cajaChica = await connection.QueryFirstOrDefaultAsync<CajaChicaAbiertaRow>(
                 new CommandDefinition(
                     """
-                    SELECT Id, SaldoFinal
-                    FROM CREDITO.CajaChicaDiario
-                    WHERE UsuarioId = @UsuarioId
-                      AND IndCierre = CAST(0 AS bit);
+                    SELECT ccd.Id, ccd.SaldoFinal
+                    FROM CREDITO.CajaChicaDiario AS ccd WITH (UPDLOCK, HOLDLOCK)
+                    INNER JOIN CREDITO.Caja AS c ON c.CajaId = ccd.Id
+                    WHERE ccd.UsuarioId = @UsuarioId
+                      AND ccd.IndCierre = CAST(0 AS bit)
+                      AND c.OficinaId = @OficinaId;
                     """,
-                    new { UsuarioId = usuarioId },
+                    new { UsuarioId = usuarioId, OficinaId = oficinaId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 

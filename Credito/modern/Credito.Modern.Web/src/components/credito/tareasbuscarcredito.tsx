@@ -28,9 +28,9 @@ export function TareasBuscarCredito({ onSelect }: Props) {
 
   const buscar = useMutation({
     mutationFn: (t: string) => buscarCreditosTarea(t),
-    onSuccess: (hits) => {
+    onSuccess: (hits, searchedTerm) => {
       setOptions(hits)
-      lastFetchRef.current = term.trim()
+      lastFetchRef.current = searchedTerm
       if (hits.length > 0) {
         setOpen(true)
       }
@@ -48,7 +48,7 @@ export function TareasBuscarCredito({ onSelect }: Props) {
       return
     }
     buscar.mutate(debounced)
-  }, [debounced])
+  }, [debounced, buscar])
 
   const ejecutarBusqueda = useCallback(() => {
     const t = term.trim()

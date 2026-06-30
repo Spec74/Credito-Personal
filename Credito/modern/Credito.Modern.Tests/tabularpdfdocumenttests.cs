@@ -46,6 +46,46 @@ public sealed class TabularPdfDocumentTests
         Assert.True(pdf.Length > 300);
     }
 
+    [Fact]
+    public void CobroDiarioPdfDocument_con_fila_genera_pdf_profesional_valido()
+    {
+        var rows = new[]
+        {
+            new RptCobroDiarioRowDto
+            {
+                Nro = 1,
+                Cliente = "CLIENTE PRUEBA",
+                Celular = "999999999",
+                MontoCredito = 1000m,
+                Interes = 8m,
+                CuotaPlan = 108m,
+                Saldo = 432m,
+                DiasAtrazo = 10,
+                NroCuotasPen = 4,
+                CuotaTotal = 108m,
+                Direccion = "JR PRUEBA 123",
+                FechaPrimerPago = new DateTime(2026, 1, 1),
+                FechaVencimiento = new DateTime(2026, 6, 1),
+                Mora = 12.5m,
+                MontoTotal = 120.5m,
+                Negocio = "BODEGA",
+                FormaPago = "D",
+                TopeCredito = 1000m,
+                ClasificacionRiesgoSBS = "NOR",
+            },
+        };
+        var context = new CredixLegacyReportContext
+        {
+            Agente = "GESTOR PRUEBA",
+            Caja = "CAJA PRUEBA",
+        };
+
+        var pdf = RptCobroDiarioPdfDocument.Build(rows, context, soloMora: false);
+
+        AssertPdfMagic(pdf);
+        Assert.True(pdf.Length > 1000);
+    }
+
     private static void AssertPdfMagic(byte[] bytes)
     {
         Assert.Equal((byte)'%', bytes[0]);

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
@@ -101,7 +101,7 @@ export function VerificarPagosPage() {
     enabled: oficinaId > 0,
   })
 
-  const pendientes = listQuery.data ?? []
+  const pendientes = useMemo(() => listQuery.data ?? [], [listQuery.data])
 
   const filtrados = useMemo(
     () => filterTableRows(pendientes, buscarDebounced, pagoRowText),
@@ -128,9 +128,9 @@ export function VerificarPagosPage() {
     onError: (e) => message.error(errMsg(e)),
   })
 
-  const pedirVerificar = (row: PagosNoVerificadosRow) => {
+  const pedirVerificar = useCallback((row: PagosNoVerificadosRow) => {
     confirmarVerificacion(row, () => verificar.mutate(row.movimientoCajaId))
-  }
+  }, [verificar])
 
   const csv = useMutation({
     mutationFn: () => downloadPagosNoVerificadosCsv(oficinaId),
@@ -207,7 +207,7 @@ export function VerificarPagosPage() {
         ),
       },
     ],
-    [verificar.isPending],
+    [pedirVerificar, verificar.isPending],
   )
 
   const stats: CredixStatItem[] = useMemo(() => {

@@ -5,7 +5,7 @@ import {
   EnvironmentOutlined,
   UnorderedListOutlined,
 } from '@ant-design/icons'
-import { downloadCobroDiarioPdf } from '../../../api/creditoPlanes'
+import { openCobroDiarioPdfInTab } from '../../../api/creditoPlanes'
 import { toCobroDiarioQuery } from '../../../utils/gestorInformeForm'
 import type { CajaSession } from './types'
 import { MovimientosCajaModal } from './MovimientosCajaModal'
@@ -31,7 +31,7 @@ export function CajaDiarioOperacionesBar({
     }
     setPdfLoading(true)
     try {
-      await downloadCobroDiarioPdf(
+      await openCobroDiarioPdfInTab(
         toCobroDiarioQuery(ctx.oficinaId, usuarioId),
       )
     } finally {
@@ -47,8 +47,17 @@ export function CajaDiarioOperacionesBar({
   return (
     <>
       <nav className={cls} aria-label="Operaciones de caja">
+        <div className="caja-diario-ops-heading">
+          <span className="caja-diario-side-section__eyebrow">
+            Acciones rápidas
+          </span>
+          <span className="caja-diario-ops-heading__hint">
+            Reportes, ruta y movimientos de la sesión.
+          </span>
+        </div>
         <Button
           block={variant === 'stack'}
+          className="caja-diario-ops-report"
           icon={<FilePdfOutlined />}
           loading={pdfLoading}
           onClick={() => void cobrosDiaPdf()}

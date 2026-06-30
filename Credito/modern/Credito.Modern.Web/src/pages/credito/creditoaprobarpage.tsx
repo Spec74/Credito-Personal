@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Modal, Tag, Tooltip, message } from 'antd'
@@ -107,7 +107,7 @@ export function CreditoAprobarPage() {
       message.error(e instanceof ApiError ? e.message : 'No se pudo rechazar'),
   })
 
-  const confirmarAprobar = (row: CreditoPorAprobarRow) => {
+  const confirmarAprobar = useCallback((row: CreditoPorAprobarRow) => {
     Modal.confirm({
       title: 'Aprobar crédito',
       content: `¿Aprobar crédito ${row.creditoId} de ${row.cliente ?? 'cliente'}? Se usará la aprobación vigente del legacy.`,
@@ -115,9 +115,9 @@ export function CreditoAprobarPage() {
       cancelText: 'Cancelar',
       onOk: () => aprobar.mutateAsync({ creditoId: row.creditoId, opcion: 1 }),
     })
-  }
+  }, [aprobar])
 
-  const confirmarRechazar = (row: CreditoPorAprobarRow) => {
+  const confirmarRechazar = useCallback((row: CreditoPorAprobarRow) => {
     Modal.confirm({
       title: 'Rechazar solicitud',
       content: `¿Rechazar crédito ${row.creditoId}? Esta acción usa la misma lógica que el MVC (orden/solicitud).`,
@@ -126,7 +126,7 @@ export function CreditoAprobarPage() {
       cancelText: 'Cancelar',
       onOk: () => rechazar.mutateAsync(row.creditoId),
     })
-  }
+  }, [rechazar])
 
   const columns: ColumnsType<CreditoPorAprobarRow> = useMemo(
     () => [
@@ -272,7 +272,7 @@ export function CreditoAprobarPage() {
         ),
       },
     ],
-    [navigate, aprobar.isPending, rechazar.isPending, puedeAprobar],
+    [navigate, aprobar.isPending, rechazar.isPending, puedeAprobar, confirmarAprobar, confirmarRechazar],
   )
 
   const onTableChange = (

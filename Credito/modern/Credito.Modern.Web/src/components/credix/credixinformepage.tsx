@@ -51,22 +51,26 @@ export function CredixInformePage({
   const [tableSearch, setTableSearch] = useState('')
   const prominent = tableSearchVariant === 'prominent'
 
-  const searchInput = enableTableSearch ? (
-    <Input
-      allowClear
-      size={prominent ? 'middle' : 'small'}
-      prefix={<SearchOutlined />}
-      placeholder={searchPlaceholder}
-      value={tableSearch}
-      onChange={(e) => setTableSearch(e.target.value)}
-      className={
-        prominent
-          ? 'credix-cobranza-table-search'
-          : 'credix-informe-panel-search credix-informe-panel-search--wide'
-      }
-      aria-label="Buscar en resultados"
-    />
-  ) : null
+  const searchInput = useMemo(
+    () =>
+      enableTableSearch ? (
+        <Input
+          allowClear
+          size={prominent ? 'middle' : 'small'}
+          prefix={<SearchOutlined />}
+          placeholder={searchPlaceholder}
+          value={tableSearch}
+          onChange={(e) => setTableSearch(e.target.value)}
+          className={
+            prominent
+              ? 'credix-cobranza-table-search'
+              : 'credix-informe-panel-search credix-informe-panel-search--wide'
+          }
+          aria-label="Buscar en resultados"
+        />
+      ) : null,
+    [enableTableSearch, prominent, searchPlaceholder, tableSearch],
+  )
 
   const panelExtra = useMemo(() => {
     if (prominent) {

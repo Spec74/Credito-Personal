@@ -95,7 +95,7 @@ export function CreditoObservadoPage() {
     },
   })
 
-  const filas = consulta.data ?? []
+  const filas = useMemo(() => consulta.data ?? [], [consulta.data])
   const queried = consulta.isSuccess || consulta.isError
   const exportDisabled = !consulta.isSuccess || filas.length === 0
 

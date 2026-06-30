@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { Alert, Button, Form, InputNumber, Typography } from 'antd'
@@ -93,7 +93,7 @@ export function ClientesTopeCreditoPage() {
     },
   })
 
-  const filas = consulta.data ?? []
+  const filas = useMemo(() => consulta.data ?? [], [consulta.data])
   const queried = consulta.isSuccess || consulta.isError
   const exportDisabled = !consulta.isSuccess || filas.length === 0
   const stats = useInformeStats(consulta, session?.oficinaId)

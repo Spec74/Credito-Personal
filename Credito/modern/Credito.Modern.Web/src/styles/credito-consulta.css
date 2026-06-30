@@ -1236,6 +1236,37 @@
 }
 
 /* —— Simulador de crédito —— */
+.simulador-prospecto-grid,
+.simulador-parametros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px 16px;
+  align-items: start;
+}
+
+.simulador-prospecto-grid .ant-form-item,
+.simulador-parametros-grid .ant-form-item {
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.simulador-prospecto-grid .ant-input,
+.simulador-prospecto-grid .ant-input-number,
+.simulador-prospecto-grid .ant-select,
+.simulador-parametros-grid .ant-input,
+.simulador-parametros-grid .ant-input-number,
+.simulador-parametros-grid .ant-select,
+.simulador-field-fluid {
+  width: 100% !important;
+}
+
+@media (max-width: 640px) {
+  .simulador-prospecto-grid,
+  .simulador-parametros-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .simulador-plan-panel {
   min-width: 0;
 }

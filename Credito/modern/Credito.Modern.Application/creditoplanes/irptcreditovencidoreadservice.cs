@@ -6,6 +6,7 @@ public interface IRptCreditoVencidoReadService
     /// Ejecuta <c>CREDITO.usp_RptCreditoVencido</c>. Cada indicador opcional debe ser <c>null</c>, <c>S</c> o <c>N</c> (un carácter, sin distinguir mayúsculas).
     /// </summary>
     Task<IReadOnlyList<RptCreditoVencidoRowDto>> ListarAsync(
+        int oficinaId,
         string? vencidoMenor60,
         string? vencidoMayor60,
         string? vencidoIrrecuperable,

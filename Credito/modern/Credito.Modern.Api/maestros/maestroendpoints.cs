@@ -78,7 +78,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("GuardarMarca")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -107,7 +107,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("ActivarMarca")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
     }
 
@@ -167,7 +167,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("GuardarModelo")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -196,7 +196,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("ActivarModelo")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
     }
 
@@ -253,7 +253,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("GuardarTipoArticulo")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -282,7 +282,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("ActivarTipoArticulo")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
     }
 
@@ -342,7 +342,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("GuardarOficina")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -371,7 +371,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("ActivarOficina")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
     }
 
@@ -431,7 +431,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("GuardarAlmacen")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -460,7 +460,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("ActivarAlmacen")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
     }
 
@@ -518,7 +518,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("GuardarListaPrecio")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -547,7 +547,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("ActivarListaPrecio")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
     }
 
@@ -561,7 +561,7 @@ internal static class MaestroEndpoints
         {
             log.LogWarning(ioe, "Cadena de conexión no configurada");
             return TypedResults.Problem(
-                detail: ioe.Message,
+                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }
@@ -593,7 +593,7 @@ internal static class MaestroEndpoints
         {
             log.LogWarning(ex, "Cadena de conexión no configurada");
             return TypedResults.Problem(
-                detail: ex.Message,
+                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }

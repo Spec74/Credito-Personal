@@ -9,7 +9,7 @@ import {
 } from '../../../api/cajaDiario'
 import { CajaSection } from '../../../components/caja/CajaSection'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
-import { cajaConfirm } from '../../../components/caja/CajaModal'
+import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import type { CuentaPorCobrarPendienteRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
 import { formatFecha } from '../../../utils/formatFecha'

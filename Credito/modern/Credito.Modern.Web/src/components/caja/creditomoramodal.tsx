@@ -103,7 +103,7 @@ export function CreditoMoraModal({
     [cuotasEfectivas],
   )
 
-  const historial = historialQuery.data ?? []
+  const historial = useMemo(() => historialQuery.data ?? [], [historialQuery.data])
   const saldoHistorial = useMemo(
     () => sumarSaldoPostergadoHistorial(historial),
     [historial],

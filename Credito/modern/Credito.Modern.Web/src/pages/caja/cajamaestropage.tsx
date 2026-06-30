@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -100,7 +100,7 @@ export function CajaMaestroPage() {
     setModalOpen(true)
   }
 
-  const openEdit = (row: CajaGestionRow) => {
+  const openEdit = useCallback((row: CajaGestionRow) => {
     setEditing(row)
     form.setFieldsValue({
       oficinaId: row.oficinaId,
@@ -109,7 +109,7 @@ export function CajaMaestroPage() {
       estado: row.estado,
     })
     setModalOpen(true)
-  }
+  }, [form])
 
   const columns: ColumnsType<CajaGestionRow> = useMemo(
     () => [
@@ -169,7 +169,7 @@ export function CajaMaestroPage() {
         ),
       },
     ],
-    [activar],
+    [activar, openEdit],
   )
 
   const cajasRows = cajasQuery.data?.rows ?? []

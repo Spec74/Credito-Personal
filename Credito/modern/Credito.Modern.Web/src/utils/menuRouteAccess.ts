@@ -23,6 +23,20 @@ const HUB_CHILDREN: Record<string, string[]> = {
   '/admin': ['/admin/', '/mantenimiento/'],
 }
 
+const EXACT_MENU_ROUTES = new Set([
+  '/admin/usuarios',
+  '/admin/roles',
+  '/admin/comisiones',
+  '/mantenimiento/oficinas',
+  '/mantenimiento/cajas',
+  '/caja/maestro',
+  '/caja/asignar',
+  '/caja/saldos',
+  '/caja/verificar-pagos',
+  '/credito/aprobar',
+  '/credito/parametros-simulador',
+])
+
 function normalizePath(path: string): string {
   const clean = path.split('?')[0]?.split('#')[0] ?? '/'
   if (clean.length > 1 && clean.endsWith('/')) {
@@ -31,9 +45,13 @@ function normalizePath(path: string): string {
   return clean
 }
 
-function hasPathAccess(path: string, allowed: string): boolean {
+function hasPathAccess(path: string, allowed: string, exactAllowedPaths: Set<string>): boolean {
   if (path === allowed) {
     return true
+  }
+
+  if (EXACT_MENU_ROUTES.has(path) && !exactAllowedPaths.has(path)) {
+    return false
   }
 
   const children = HUB_CHILDREN[allowed] ?? []
@@ -55,5 +73,5 @@ export function hasMenuRouteAccess(pathname: string, menuItems: MenuItemDto[]): 
     }
   }
 
-  return [...allowedPaths].some((allowed) => hasPathAccess(path, allowed))
+  return [...allowedPaths].some((allowed) => hasPathAccess(path, allowed, allowedPaths))
 }

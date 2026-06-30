@@ -24,7 +24,8 @@ import {
   validarAnularMovimientoCaja,
 } from '../../../api/cajaDiario'
 import { CredixDataTable } from '../../../components/credix'
-import { CajaModal, cajaConfirm } from '../../../components/caja/CajaModal'
+import { CajaModal } from '../../../components/caja/CajaModal'
+import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import type { RptSaldosCajaRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
 import { formatFechaHora } from '../../../utils/formatFecha'

@@ -31,7 +31,7 @@ import {
   crearCredito,
   crearSolicitudCredito,
   downloadRptSimuladorPlanPagosCsv,
-  downloadRptSimuladorPlanPagosPdf,
+  openRptSimuladorPlanPagosPdfInTab,
   simularCredito,
   type RptSimuladorPlanPagosParams,
 } from '../../api/creditoPlanes'
@@ -314,7 +314,8 @@ export function SimuladorCreditoPage() {
   const validarDocumento = useMutation({
     mutationFn: async () => {
       const { numeroDocumento, tipoPersona: tipo } = form.getFieldsValue()
-      const documento = numeroDocumento?.trim() ?? ''
+      const documento = (numeroDocumento ?? '').replace(/\D/g, '')
+      form.setFieldValue('numeroDocumento', documento)
       if (tipo === 'J') {
         if (documento.length !== 11) throw new Error('Ingrese un RUC de 11 dígitos')
         return { tipo, data: await consultarRucApiPeru(documento) }
@@ -341,7 +342,7 @@ export function SimuladorCreditoPage() {
           apeMaterno: ret.data.apellidoMaterno ?? '',
         })
       }
-      message.success('Documento validado')
+      message.success('Documento validado con API Perú')
     },
     onError: (e) => message.error(e instanceof Error ? e.message : errMsg(e)),
   })
@@ -418,9 +419,9 @@ export function SimuladorCreditoPage() {
         navigate('/credito/aprobar')
       } else if (personaId) {
         message.info('La solicitud quedó pendiente para que la apruebe un aprobador autorizado.')
-        navigate(`/credito/consulta?personaId=${personaId}`, { replace: true })
+        navigate(`/credito/consulta?personaId=${personaId}`)
       } else {
-        navigate('/credito/consulta', { replace: true })
+        navigate('/credito/consulta')
       }
     },
     onError: (e) => message.error(errMsg(e)),
@@ -431,7 +432,7 @@ export function SimuladorCreditoPage() {
   })
 
   const exportPdf = useMutation({
-    mutationFn: (p: RptSimuladorPlanPagosParams) => downloadRptSimuladorPlanPagosPdf(p),
+    mutationFn: (p: RptSimuladorPlanPagosParams) => openRptSimuladorPlanPagosPdfInTab(p),
   })
 
 
@@ -748,7 +749,7 @@ export function SimuladorCreditoPage() {
           {!personaId ? (
             <Card size="small" title="Prospecto para simulación rápida">
               <Form form={form} layout="vertical">
-                <Space wrap align="start" size="large">
+                <div className="simulador-prospecto-grid">
                   <Form.Item name="tipoPersona" label="Tipo persona">
                     <Radio.Group
                       options={[
@@ -778,7 +779,12 @@ export function SimuladorCreditoPage() {
                   >
                     <Input
                       maxLength={tipoPersona === 'J' ? 11 : 8}
-                      style={{ width: 180 }}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder={tipoPersona === 'J' ? '11 dígitos' : '8 dígitos'}
+                      onChange={(e) =>
+                        form.setFieldValue('numeroDocumento', e.target.value.replace(/\D/g, ''))
+                      }
                       onPressEnter={() => validarDocumento.mutate()}
                     />
                   </Form.Item>
@@ -796,32 +802,40 @@ export function SimuladorCreditoPage() {
                     label="Teléfono"
                     rules={[{ pattern: /^9\d{8}$/, message: 'Celular peruano de 9 dígitos' }]}
                   >
-                    <Input maxLength={9} style={{ width: 160 }} />
+                    <Input
+                      maxLength={9}
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder="9 dígitos"
+                      onChange={(e) =>
+                        form.setFieldValue('telefono', e.target.value.replace(/\D/g, ''))
+                      }
+                    />
                   </Form.Item>
                   <Form.Item
                     name="nombre"
                     label={tipoPersona === 'J' ? 'Razón social' : 'Nombres'}
                     rules={[{ required: !personaId, message: 'Dato requerido' }]}
                   >
-                    <Input style={{ width: 280 }} />
+                    <Input />
                   </Form.Item>
                   {tipoPersona === 'N' ? (
                     <>
                       <Form.Item name="apePaterno" label="Apellido paterno">
-                        <Input style={{ width: 180 }} />
+                        <Input />
                       </Form.Item>
                       <Form.Item name="apeMaterno" label="Apellido materno">
-                        <Input style={{ width: 180 }} />
+                        <Input />
                       </Form.Item>
                     </>
                   ) : null}
                   <Form.Item name="direccionCliente" label="Dirección domicilio">
-                    <Input style={{ width: 320 }} />
+                    <Input />
                   </Form.Item>
                   <Form.Item name="direccionNegocio" label="Dirección negocio / empresa">
-                    <Input style={{ width: 320 }} />
+                    <Input />
                   </Form.Item>
-                </Space>
+                </div>
               </Form>
             </Card>
           ) : null}
@@ -843,11 +857,11 @@ export function SimuladorCreditoPage() {
           }}
           onFinish={(v) => simular.mutate(v)}
         >
-          <Space wrap align="start" size="large">
+          <div className="simulador-parametros-grid">
             <Form.Item label="Producto" required>
               <Select
                 placeholder="Producto de crédito"
-                style={{ width: 280 }}
+                className="simulador-field-fluid"
                 loading={productosQuery.isLoading}
                 options={productoOpts}
                 value={productoId ?? undefined}
@@ -865,24 +879,24 @@ export function SimuladorCreditoPage() {
               label="Monto crédito"
               rules={[{ required: true, type: 'number', min: 0.01 }]}
             >
-              <InputNumber min={0.01} step={100} style={{ width: 140 }} />
+              <InputNumber min={0.01} step={100} className="simulador-field-fluid" />
             </Form.Item>
             <Form.Item name="formaPago" label="Modalidad" rules={[{ required: true }]}>
-              <Select options={FORMAS_PAGO} style={{ width: 160 }} />
+              <Select options={FORMAS_PAGO} className="simulador-field-fluid" />
             </Form.Item>
             <Form.Item
               name="nroCuotas"
               label="Cuotas"
               rules={[{ required: true, type: 'number', min: 1 }]}
             >
-              <InputNumber min={1} style={{ width: 100 }} />
+              <InputNumber min={1} className="simulador-field-fluid" />
             </Form.Item>
             <Form.Item
               name="interesMensual"
               label="Interés mensual (%)"
               rules={[{ required: true, type: 'number', min: 0 }]}
             >
-              <InputNumber min={0} step={0.1} style={{ width: 120 }} />
+              <InputNumber min={0} step={0.1} className="simulador-field-fluid" />
             </Form.Item>
             {esPrendario ? (
               <Form.Item
@@ -907,7 +921,7 @@ export function SimuladorCreditoPage() {
             <Form.Item name="gastosAdm" label="Trámite adm.">
               <InputNumber min={0} step={1} style={{ width: 120 }} />
             </Form.Item>
-          </Space>
+          </div>
           <Form.Item style={{ marginBottom: 0 }}>
             <Button
               type="primary"

@@ -20,7 +20,7 @@ services:
       Jwt__Issuer: ${JWT_ISSUER:-Credito.Modern.Staging}
       Jwt__Audience: ${JWT_AUDIENCE:-Credito.Modern.Staging}
       Jwt__RefreshAudience: ${JWT_REFRESH_AUDIENCE:-Credito.Modern.Staging.Refresh}
-      Hosting__AllowDevToken: "true"
+      Hosting__AllowDevToken: "false"
       Hosting__DisableHttpsRedirection: "true"
       Auth__RequerirClienteAcceso: "false"
       # false: no rehash PBKDF2 al login (ClaveUsuario nvarchar(50) no cabe el hash). MVC sigue con clave en claro.

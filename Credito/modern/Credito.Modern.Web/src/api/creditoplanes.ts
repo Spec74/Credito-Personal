@@ -952,6 +952,14 @@ export function downloadRptSimuladorPlanPagosPdf(
   )
 }
 
+export function openRptSimuladorPlanPagosPdfInTab(
+  params: RptSimuladorPlanPagosParams,
+): Promise<void> {
+  return apiOpenInTab(
+    `/credito/rpt-simulador-plan-pagos-pdf?${querySimuladorPlanPagos(params)}`,
+  )
+}
+
 export function fetchMovimientoCajaAnulado(
   params: MovimientoCajaAnuladoParams,
 ): Promise<RptMovimientoCajaAnuladoRow[]> {

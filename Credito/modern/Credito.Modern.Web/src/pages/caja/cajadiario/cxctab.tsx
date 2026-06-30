@@ -7,7 +7,7 @@ import {
   pagarCuentaPorCobrar,
 } from '../../../api/cajaDiario'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
-import { cajaConfirm } from '../../../components/caja/CajaModal'
+import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import { CredixDataTable } from '../../../components/credix'
 import type { CuentaPorCobrarPendienteRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'

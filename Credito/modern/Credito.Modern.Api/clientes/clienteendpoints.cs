@@ -160,10 +160,13 @@ internal static class ClienteEndpoints
                     catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException)
                     {
                         log.LogWarning(ex, "ApiPeru DNI");
-                        return TypedResults.Problem(
-                            detail: ex.Message,
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "ApiPeru no disponible");
+                        return TypedResults.Ok(
+                            new ApiPeruDniDto(
+                                false,
+                                null,
+                                null,
+                                null,
+                                "Servicio de validación no disponible. Ingrese los datos manualmente y verifique la configuración de API Perú."));
                     }
                 })
             .WithName("ApiPeruConsultarDni")
@@ -187,10 +190,12 @@ internal static class ClienteEndpoints
                     catch (Exception ex) when (ex is InvalidOperationException or HttpRequestException)
                     {
                         log.LogWarning(ex, "ApiPeru RUC");
-                        return TypedResults.Problem(
-                            detail: ex.Message,
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "ApiPeru no disponible");
+                        return TypedResults.Ok(
+                            new ApiPeruRucDto(
+                                false,
+                                null,
+                                null,
+                                "Servicio de validación no disponible. Ingrese los datos manualmente y verifique la configuración de API Perú."));
                     }
                 })
             .WithName("ApiPeruConsultarRuc")
@@ -264,7 +269,7 @@ internal static class ClienteEndpoints
         {
             log.LogWarning(ioe, "Clientes {Accion}: configuración", accion);
             return TypedResults.Problem(
-                detail: ioe.Message,
+                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }

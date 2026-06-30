@@ -6,11 +6,11 @@ import { Alert, Button, Form, InputNumber, Typography, message } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import {
-  downloadCobroDiarioCsv,
-  downloadCobroDiarioPdf,
   fetchCajaPorCajero,
   fetchCobroDiario,
   generarRutaCobros,
+  openCobroDiarioCsvInTab,
+  openCobroDiarioPdfInTab,
 } from '../../api/creditoPlanes'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError } from '../../api/errors'
@@ -84,21 +84,25 @@ export function CobroDiarioPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta desde índice reportes
   }, [session, searchParams.toString(), puedeElegirGestor])
 
-  const csv = useMutation({
-    mutationFn: async (v: FormValues) => {
-      if (!session?.oficinaId || !v.usuarioId) return
-      await downloadCobroDiarioCsv(toCobroDiarioQuery(session.oficinaId, v.usuarioId))
-    },
-  })
+  const openExport = (kind: 'csv' | 'pdf') => {
+    if (!session?.oficinaId) {
+      message.error('Sin oficina en sesión')
+      return
+    }
+    const usuarioId = form.getFieldValue('usuarioId') as number | undefined
+    if (!usuarioId || usuarioId < 1) {
+      message.error('Seleccione un gestor')
+      return
+    }
+    const query = toCobroDiarioQuery(session.oficinaId, usuarioId)
+    if (kind === 'csv') {
+      void openCobroDiarioCsvInTab(query)
+      return
+    }
+    void openCobroDiarioPdfInTab(query)
+  }
 
-  const pdf = useMutation({
-    mutationFn: async (v: FormValues) => {
-      if (!session?.oficinaId || !v.usuarioId) return
-      await downloadCobroDiarioPdf(toCobroDiarioQuery(session.oficinaId, v.usuarioId))
-    },
-  })
-
-  const filas = consulta.data ?? []
+  const filas = useMemo(() => consulta.data ?? [], [consulta.data])
   const queried = consulta.isSuccess || consulta.isError
   const exportDisabled = !consulta.isSuccess || filas.length === 0
   const gestorId = form.getFieldValue('usuarioId') as number | undefined
@@ -200,12 +204,12 @@ export function CobroDiarioPage() {
       }
       exportBar={
         <InformeExportBar
-          csvLoading={csv.isPending}
-          pdfLoading={pdf.isPending}
+          csvLoading={false}
+          pdfLoading={false}
           csvDisabled={exportDisabled}
           pdfDisabled={exportDisabled}
-          onCsv={async () => csv.mutate(await form.validateFields())}
-          onPdfTabular={async () => pdf.mutate(await form.validateFields())}
+          onCsv={() => openExport('csv')}
+          onPdfTabular={() => openExport('pdf')}
         />
       }
       error={

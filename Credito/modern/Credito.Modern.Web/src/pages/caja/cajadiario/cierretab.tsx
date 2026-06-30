@@ -5,7 +5,7 @@ import {
   downloadRptSaldosCajaPdf,
   validarCierreCajaDiario,
 } from '../../../api/cajaDiario'
-import { cajaConfirm } from '../../../components/caja/CajaModal'
+import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
 

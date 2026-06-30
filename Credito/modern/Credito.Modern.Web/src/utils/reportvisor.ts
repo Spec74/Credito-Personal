@@ -4,7 +4,7 @@ function appBasePath(): string {
   return trimmed === '' ? '' : trimmed
 }
 
-/** Abre el visor SPA en pestaña nueva (mismo origen + JWT en localStorage). */
+/** Abre el visor SPA en pestaña nueva usando el access token de corta vida del mismo origen. */
 export function buildReportVisorUrl(apiPath: string): string {
   const normalized = apiPath.startsWith('/') ? apiPath : `/${apiPath}`
   const visorPath = `${appBasePath()}/reportes/visor`.replace(/\/+/g, '/')

@@ -6,7 +6,7 @@ public interface ISaldosCierreReadService
         int oficinaId,
         CancellationToken cancellationToken = default);
 
-    /// <summary>Paridad MVC: no filtra por oficina en <c>CajaChicaDiario</c>.</summary>
     Task<ValidarCierreSaldosResponse> ValidarCierreCajaChicaAsync(
+        int oficinaId,
         CancellationToken cancellationToken = default);
 }

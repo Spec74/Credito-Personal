@@ -131,7 +131,7 @@ internal static class CreditoTareasReportEndpoints
         {
             log.LogWarning(ioe, "Rpt crédito tarea: configuración");
             return TypedResults.Problem(
-                detail: ioe.Message,
+                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }

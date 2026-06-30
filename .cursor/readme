@@ -1,0 +1,5 @@
+SPA/proxy: http://localhost:9080/app/
+Health proxy: http://localhost:9080/health
+API directa: http://localhost:5080/health
+Ruta nueva: http://localhost:9080/app/reportes/venta
+Legacy redirect probado: http://localhost:9080/Reporte/Venta 

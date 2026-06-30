@@ -173,7 +173,7 @@ internal static class CajaMaestroEndpoints
             .WithName("GuardarCaja")
             .WithSummary("Paridad CajaController.GuardarCaja (alta: IndAbierto=0, UsuarioReg/FechaReg).")
             .WithTags("caja")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -220,7 +220,7 @@ internal static class CajaMaestroEndpoints
             .WithName("ActivarCaja")
             .WithSummary("Paridad CajaController.Activar (toggle Estado).")
             .WithTags("caja")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
     }
 
@@ -230,7 +230,7 @@ internal static class CajaMaestroEndpoints
         {
             log.LogWarning(ioe, "Cadena de conexión no configurada");
             return TypedResults.Problem(
-                detail: ioe.Message,
+                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }
@@ -262,7 +262,7 @@ internal static class CajaMaestroEndpoints
         {
             log.LogWarning(ex, "Cadena de conexión no configurada");
             return TypedResults.Problem(
-                detail: ex.Message,
+                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }

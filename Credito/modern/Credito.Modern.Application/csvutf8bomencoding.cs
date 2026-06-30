@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Credito.Modern.Application;
 
-/// <summary>CSV en UTF-8 con BOM (Excel); escape de campos tipo RFC 4180.</summary>
+/// <summary>CSV en UTF-8 con BOM (Excel); escape de campos tipo RFC 4180 y neutralización de fórmulas.</summary>
 public static class CsvUtf8BomEncoding
 {
     /// <summary>Primera línea para Excel con separador regional distinto de coma (p. ej. es-PE).</summary>
@@ -39,8 +39,33 @@ public static class CsvUtf8BomEncoding
             return string.Empty;
         }
 
-        var needsQuotes = value.AsSpan().IndexOfAny([',', '"', '\r', '\n']) >= 0;
-        var escaped = value.Replace("\"", "\"\"", StringComparison.Ordinal);
+        var safeValue = NeutralizeFormula(value);
+        var needsQuotes = safeValue.AsSpan().IndexOfAny([',', '"', '\r', '\n']) >= 0;
+        var escaped = safeValue.Replace("\"", "\"\"", StringComparison.Ordinal);
         return needsQuotes ? $"\"{escaped}\"" : escaped;
+    }
+
+    private static string NeutralizeFormula(string value)
+    {
+        var first = FirstNonWhitespace(value);
+        if (first is '=' or '+' or '-' or '@')
+        {
+            return "'" + value;
+        }
+
+        return value;
+    }
+
+    private static char? FirstNonWhitespace(string value)
+    {
+        foreach (var c in value)
+        {
+            if (!char.IsWhiteSpace(c))
+            {
+                return c;
+            }
+        }
+
+        return null;
     }
 }

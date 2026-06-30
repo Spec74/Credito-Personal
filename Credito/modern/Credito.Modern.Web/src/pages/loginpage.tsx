@@ -5,9 +5,7 @@ import {
   Alert,
   Button,
   Card,
-  message,
   Checkbox,
-  Collapse,
   Form,
   Input,
   Select,
@@ -21,7 +19,6 @@ import { useAuth } from '../auth/useAuth'
 import { saveLoginProfile } from '../auth/sessionProfile'
 import { BrandLogo } from '../components/brand/BrandLogo'
 import { branding } from '../config/branding'
-import { registrarAccesoIp } from '../api/client'
 import { fetchClientPublicIp } from '../utils/clientIp'
 
 const { Text } = Typography
@@ -31,7 +28,6 @@ interface LoginFormValues {
   nombreUsuario: string
   clave: string
   oficinaId: number
-  clienteAccesoManual?: string
   recordar?: boolean
 }
 
@@ -41,7 +37,6 @@ export function LoginPage() {
   const { isAuthenticated, isLoading, login } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [registrandoIp, setRegistrandoIp] = useState(false)
   const [clientIp, setClientIp] = useState<string | null>(null)
   const [form] = Form.useForm<LoginFormValues>()
 
@@ -100,13 +95,11 @@ export function LoginPage() {
     setError(null)
     setSubmitting(true)
     try {
-      const clienteAcceso =
-        values.clienteAccesoManual?.trim() || clientIp || undefined
       await login({
         nombreUsuario: values.nombreUsuario.trim(),
         clave: values.clave,
         oficinaId: values.oficinaId,
-        clienteAcceso: clienteAcceso ?? null,
+        clienteAcceso: clientIp ?? null,
       })
       const oficinaLabel =
         oficinaOptions.find((o) => o.value === values.oficinaId)?.label ??
@@ -205,56 +198,10 @@ export function LoginPage() {
             <Checkbox>Recordar sesión en este equipo</Checkbox>
           </Form.Item>
 
-          <Collapse
-            ghost
-            size="small"
-            items={[
-              {
-                key: 'acceso',
-                label: 'Acceso por IP (equipo autorizado)',
-                children: (
-                  <>
-                    <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                      Equivalente al campo oculto del login clásico. IP detectada:{' '}
-                      <strong>{clientIp ?? 'obteniendo…'}</strong>
-                    </Text>
-                    <Form.Item
-                      name="clienteAccesoManual"
-                      label="IP manual (opcional)"
-                      style={{ marginBottom: 8 }}
-                    >
-                      <Input placeholder="Solo si la detección automática falla" />
-                    </Form.Item>
-                    <Button
-                      size="small"
-                      loading={registrandoIp}
-                      onClick={async () => {
-                        const manual = form.getFieldValue('clienteAccesoManual')?.trim()
-                        const ip = manual || clientIp
-                        if (!ip) {
-                          setError('No hay IP detectada; ingrese IP manual.')
-                          return
-                        }
-                        setRegistrandoIp(true)
-                        try {
-                          await registrarAccesoIp(ip)
-                          message.success(`IP ${ip} registrada en MAESTRO.Acceso`)
-                        } catch (e) {
-                          setError(
-                            e instanceof ApiError ? e.message : 'No se pudo registrar la IP',
-                          )
-                        } finally {
-                          setRegistrandoIp(false)
-                        }
-                      }}
-                    >
-                      Registrar equipo (Acceso)
-                    </Button>
-                  </>
-                ),
-              },
-            ]}
-          />
+          <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+            IP detectada para control de acceso: <strong>{clientIp ?? 'obteniendo...'}</strong>.
+            Si el equipo no está autorizado, solicite el alta a un administrador.
+          </Text>
 
           <Button
             type="primary"
