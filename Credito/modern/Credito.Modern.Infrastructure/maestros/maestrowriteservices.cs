@@ -18,7 +18,7 @@ public sealed class MarcaWriteService(IOptions<SqlDatabaseOptions> options) : IM
         {
             var id = await c.ExecuteScalarAsync<int>(
                 new CommandDefinition(
-                    "INSERT INTO MAESTRO.Marca (Denominacion, Estado) VALUES (@Denominacion, @Estado); SELECT CAST(SCOPE_IDENTITY() AS int);",
+                    "INSERT INTO ALMACEN.Marca (Denominacion, Estado) VALUES (@Denominacion, @Estado); SELECT CAST(SCOPE_IDENTITY() AS int);",
                     new { request.Denominacion, request.Estado },
                     cancellationToken: ct)).ConfigureAwait(false);
             return new MaestroOperacionResponse(true, id, null);
@@ -26,7 +26,7 @@ public sealed class MarcaWriteService(IOptions<SqlDatabaseOptions> options) : IM
 
         var n = await c.ExecuteAsync(
             new CommandDefinition(
-                "UPDATE MAESTRO.Marca SET Denominacion = @Denominacion, Estado = @Estado WHERE MarcaId = @MarcaId;",
+                "UPDATE ALMACEN.Marca SET Denominacion = @Denominacion, Estado = @Estado WHERE MarcaId = @MarcaId;",
                 new { request.MarcaId, request.Denominacion, request.Estado },
                 cancellationToken: ct)).ConfigureAwait(false);
         return n > 0
@@ -42,7 +42,7 @@ public sealed class MarcaWriteService(IOptions<SqlDatabaseOptions> options) : IM
         var n = await c.ExecuteAsync(
             new CommandDefinition(
                 """
-                UPDATE MAESTRO.Marca
+                UPDATE ALMACEN.Marca
                 SET Estado = CASE WHEN Estado = CAST(1 AS bit) THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END
                 WHERE MarcaId = @MarcaId;
                 """,
@@ -74,7 +74,7 @@ public sealed class ModeloWriteService(IOptions<SqlDatabaseOptions> options) : I
             var id = await c.ExecuteScalarAsync<int>(
                 new CommandDefinition(
                     """
-                    INSERT INTO MAESTRO.Modelo (MarcaId, Denominacion, Estado)
+                    INSERT INTO ALMACEN.Modelo (MarcaId, Denominacion, Estado)
                     VALUES (@MarcaId, @Denominacion, @Estado);
                     SELECT CAST(SCOPE_IDENTITY() AS int);
                     """,
@@ -86,7 +86,7 @@ public sealed class ModeloWriteService(IOptions<SqlDatabaseOptions> options) : I
         var n = await c.ExecuteAsync(
             new CommandDefinition(
                 """
-                UPDATE MAESTRO.Modelo
+                UPDATE ALMACEN.Modelo
                 SET MarcaId = @MarcaId, Denominacion = @Denominacion, Estado = @Estado
                 WHERE ModeloId = @ModeloId;
                 """,
@@ -105,7 +105,7 @@ public sealed class ModeloWriteService(IOptions<SqlDatabaseOptions> options) : I
         var n = await c.ExecuteAsync(
             new CommandDefinition(
                 """
-                UPDATE MAESTRO.Modelo
+                UPDATE ALMACEN.Modelo
                 SET Estado = CASE WHEN Estado = CAST(1 AS bit) THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END
                 WHERE ModeloId = @ModeloId;
                 """,
@@ -137,7 +137,7 @@ public sealed class TipoArticuloWriteService(IOptions<SqlDatabaseOptions> option
             var id = await c.ExecuteScalarAsync<int>(
                 new CommandDefinition(
                     """
-                    INSERT INTO MAESTRO.TipoArticulo (Denominacion, Descripcion, Estado)
+                    INSERT INTO ALMACEN.TipoArticulo (Denominacion, Descripcion, Estado)
                     VALUES (@Denominacion, @Descripcion, @Estado);
                     SELECT CAST(SCOPE_IDENTITY() AS int);
                     """,
@@ -149,7 +149,7 @@ public sealed class TipoArticuloWriteService(IOptions<SqlDatabaseOptions> option
         var n = await c.ExecuteAsync(
             new CommandDefinition(
                 """
-                UPDATE MAESTRO.TipoArticulo
+                UPDATE ALMACEN.TipoArticulo
                 SET Denominacion = @Denominacion, Descripcion = @Descripcion, Estado = @Estado
                 WHERE TipoArticuloId = @TipoArticuloId;
                 """,
@@ -168,7 +168,7 @@ public sealed class TipoArticuloWriteService(IOptions<SqlDatabaseOptions> option
         var n = await c.ExecuteAsync(
             new CommandDefinition(
                 """
-                UPDATE MAESTRO.TipoArticulo
+                UPDATE ALMACEN.TipoArticulo
                 SET Estado = CASE WHEN Estado = CAST(1 AS bit) THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END
                 WHERE TipoArticuloId = @TipoArticuloId;
                 """,

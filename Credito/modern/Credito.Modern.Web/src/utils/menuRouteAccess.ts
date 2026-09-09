@@ -35,6 +35,8 @@ const EXACT_MENU_ROUTES = new Set([
   '/caja/verificar-pagos',
   '/credito/aprobar',
   '/credito/parametros-simulador',
+  '/credito/prendario',
+  '/credito/prendario/nuevo',
 ])
 
 function normalizePath(path: string): string {
@@ -73,5 +75,26 @@ export function hasMenuRouteAccess(pathname: string, menuItems: MenuItemDto[]): 
     }
   }
 
+  const prendario = prendarioAccess(path, allowedPaths)
+  if (prendario !== null) {
+    return prendario
+  }
+
   return [...allowedPaths].some((allowed) => hasPathAccess(path, allowed, allowedPaths))
+}
+
+function prendarioAccess(path: string, allowedPaths: Set<string>): boolean | null {
+  if (path !== '/credito/prendario' && !path.startsWith('/credito/prendario/')) {
+    return null
+  }
+
+  const hasListado = allowedPaths.has('/credito/prendario')
+  const hasNuevo = allowedPaths.has('/credito/prendario/nuevo')
+  if (path === '/credito/prendario/nuevo') {
+    return hasNuevo
+  }
+  if (path === '/credito/prendario') {
+    return hasListado
+  }
+  return hasListado || hasNuevo
 }

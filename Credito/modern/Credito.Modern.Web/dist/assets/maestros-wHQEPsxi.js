@@ -1,1 +1,0 @@
-import{O as e}from"./index-CuoiQQB3.js";function t(t){return e(`/valores-tabla?tablaId=${t}&soloItemIdPositivo=true`)}export{t};

@@ -124,7 +124,7 @@ public sealed class TransferenciaWriteService(IOptions<SqlDatabaseOptions> optio
                        s.EstadoId,
                        a.Denominacion
                 FROM ALMACEN.SerieArticulo AS s
-                INNER JOIN MAESTRO.Articulo AS a ON a.ArticuloId = s.ArticuloId
+                INNER JOIN ALMACEN.Articulo AS a ON a.ArticuloId = s.ArticuloId
                 WHERE s.NumeroSerie = @NumeroSerie;
                 """,
                 new { NumeroSerie = numeroSerie.Trim() },

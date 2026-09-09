@@ -14,7 +14,7 @@ public sealed class TipoArticuloReadService(IOptions<SqlDatabaseOptions> options
                t.IndTieneCodigo,
                t.Estado,
                t.IndMovimientoAlmacen
-        FROM MAESTRO.TipoArticulo AS t
+        FROM ALMACEN.TipoArticulo AS t
         WHERE t.Estado = CAST(1 AS bit)
         ORDER BY t.Denominacion;
         """;
@@ -62,7 +62,7 @@ public sealed class TipoArticuloReadService(IOptions<SqlDatabaseOptions> options
                      t.IndTieneCodigo,
                      t.Estado,
                      t.IndMovimientoAlmacen
-              FROM MAESTRO.TipoArticulo AS t
+              FROM ALMACEN.TipoArticulo AS t
               ORDER BY t.Denominacion;
               """
             : SqlActivas;

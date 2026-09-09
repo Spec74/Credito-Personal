@@ -1,0 +1,1 @@
+import{r as e}from"./index-Cf58x7EX.js";var t=`/credito/aprobar`;function n(n,r){return e(r)?n.map(e=>({...e,links:e.links.filter(e=>e.to===t)})).filter(e=>e.links.length>0):n}function r(n,r){return e(r)?n.filter(e=>e.to===t):n}export{n,r as t};

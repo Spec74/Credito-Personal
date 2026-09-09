@@ -34,9 +34,9 @@ import {
   eliminarEvidenciaCredito,
   fetchCargosCredito,
   fetchCreditoContexto,
-  fetchCreditoPrenda,
+  fetchPrendas,
   fetchEvidenciasCredito,
-  guardarPrendaCredito,
+  guardarPrendas,
   guardarCargoCredito,
   modificarCentralRiesgoCredito,
   modificarTramiteAdmCredito,
@@ -44,7 +44,14 @@ import {
   subirEvidenciaCredito,
   type CargoCreditoRow,
   type CreditoEvidencia,
+  type PrendaItem,
 } from '../../api/creditoGestion'
+import { PrendasEditor } from '../../components/credito/PrendasEditor'
+import { prendaAItem, prendaVacia, prendasValidas } from '../../utils/prendas'
+import {
+  downloadActaEntregaPrendarioPdf,
+  downloadContratoPrendarioPdf,
+} from '../../api/prendario'
 import { fetchRptCliente } from '../../api/creditoPlanes'
 import { fetchValoresTabla } from '../../api/maestros'
 import { fetchUsuariosGestion } from '../../api/usuariosAdmin'
@@ -60,9 +67,6 @@ import {
   tieneCreditoModoLectura,
 } from '../../utils/creditoOperacionPermisos'
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
-import {
-  extractCreditoPrendarioObservacion,
-} from '../../utils/creditoPrendario'
 import type { EstadoPlanPagoCuota } from '../../types/api'
 
 const { Paragraph, Text } = Typography
@@ -133,10 +137,8 @@ export function CreditoConsultaGestionPanel({
   const [nuevoAvalMaterno, setNuevoAvalMaterno] = useState('')
   const [nuevoAvalCelular, setNuevoAvalCelular] = useState('')
   const [prendario, setPrendario] = useState(false)
-  const [descripcionPrenda, setDescripcionPrenda] = useState('')
-  const [montoTasacionPrenda, setMontoTasacionPrenda] = useState(0)
   const [fechaRematePrenda, setFechaRematePrenda] = useState('')
-  const [observacionPrenda, setObservacionPrenda] = useState('')
+  const [prendas, setPrendas] = useState<PrendaItem[]>([prendaVacia()])
 
   const contexto = useQuery({
     queryKey: ['credito-contexto', creditoId],
@@ -167,9 +169,9 @@ export function CreditoConsultaGestionPanel({
     staleTime: creditoStaleTime.operacion,
   })
 
-  const creditoPrenda = useQuery({
-    queryKey: ['credito-prenda', oficinaId, creditoId],
-    queryFn: () => fetchCreditoPrenda(oficinaId, creditoId),
+  const prendasCredito = useQuery({
+    queryKey: ['prendas', oficinaId, creditoId],
+    queryFn: () => fetchPrendas(oficinaId, creditoId),
     enabled: activo && oficinaId > 0 && creditoId > 0,
     staleTime: creditoStaleTime.operacion,
   })
@@ -210,21 +212,11 @@ export function CreditoConsultaGestionPanel({
     setTramiteAdm(contexto.data.montoGastosAdm ?? 0)
     setCentralRiesgo(contexto.data.centralRiesgo ?? 0)
     setPersonaAvalId(contexto.data.personaAvalId ?? null)
-    if (creditoPrenda.data) {
-      setPrendario(true)
-      setDescripcionPrenda(creditoPrenda.data.descripcion ?? '')
-      setMontoTasacionPrenda(creditoPrenda.data.montoTasacion ?? 0)
-      setFechaRematePrenda(creditoPrenda.data.fechaRemate?.slice(0, 10) ?? '')
-      setObservacionPrenda(creditoPrenda.data.observacion ?? '')
-      return
-    }
-    const prendarioActual = extractCreditoPrendarioObservacion(contexto.data.observacion)
-    setPrendario(Boolean(prendarioActual.descripcion))
-    setDescripcionPrenda(prendarioActual.descripcion ?? '')
-    setMontoTasacionPrenda(prendarioActual.montoTasacion ?? 0)
-    setFechaRematePrenda(prendarioActual.fechaRemate ?? '')
-    setObservacionPrenda(prendarioActual.observacion ?? '')
-  }, [contexto.data, creditoPrenda.data])
+    setFechaRematePrenda(contexto.data.fechaRemate?.slice(0, 10) ?? '')
+    const guardadas = prendasCredito.data ?? []
+    setPrendario(guardadas.length > 0)
+    setPrendas(guardadas.length > 0 ? guardadas.map(prendaAItem) : [prendaVacia()])
+  }, [contexto.data, prendasCredito.data])
 
   const condonar = useMutation({
     mutationFn: () => {
@@ -412,19 +404,17 @@ export function CreditoConsultaGestionPanel({
 
   const guardarPrendario = useMutation({
     mutationFn: () =>
-      guardarPrendaCredito({
+      guardarPrendas({
         oficinaId,
         creditoId,
-        descripcion: descripcionPrenda,
-        montoTasacion: montoTasacionPrenda,
-        fechaRemate: fechaRematePrenda,
-        observacion: observacionPrenda || null,
+        prendas: prendasValidas(prendas),
+        fechaRemate: fechaRematePrenda || null,
       }),
     onSuccess: () => {
-      message.success('Crédito prendario guardado')
+      message.success('Bienes en custodia guardados')
       setPrendario(true)
       refrescar()
-      void queryClient.invalidateQueries({ queryKey: ['credito-prenda', oficinaId, creditoId] })
+      void queryClient.invalidateQueries({ queryKey: ['prendas', oficinaId, creditoId] })
     },
     onError: (e) => message.error(errMsg(e)),
   })
@@ -887,15 +877,8 @@ export function CreditoConsultaGestionPanel({
           size="small"
           className="credito-gestion-card credito-prendario-card"
         >
-          <Alert
-            type="info"
-            showIcon
-            style={{ marginBottom: 12 }}
-            message="Registro de prenda"
-            description="La información se guarda en CREDITO.CreditoPrenda. Si existe un bloque antiguo en Observación, se usa solo como fallback para precargar."
-          />
-          <Row gutter={[16, 16]}>
-            <Col xs={24} md={6}>
+          <Row gutter={[16, 16]} style={{ marginBottom: 12 }}>
+            <Col xs={24} md={8}>
               <Paragraph strong>Marcar como prendario</Paragraph>
               <Switch
                 checkedChildren="Prendario"
@@ -903,26 +886,6 @@ export function CreditoConsultaGestionPanel({
                 checked={prendario}
                 disabled={bloqueadoGestion}
                 onChange={setPrendario}
-              />
-            </Col>
-            <Col xs={24} md={18}>
-              <Paragraph strong>Descripción de prenda</Paragraph>
-              <Input
-                disabled={bloqueadoGestion || !prendario}
-                placeholder="Ej. joyas, electrodoméstico, herramienta, vehículo menor"
-                value={descripcionPrenda}
-                onChange={(e) => setDescripcionPrenda(e.target.value)}
-              />
-            </Col>
-            <Col xs={24} md={8}>
-              <Paragraph strong>Monto tasación</Paragraph>
-              <InputNumber
-                style={{ width: '100%' }}
-                min={0}
-                precision={2}
-                disabled={bloqueadoGestion || !prendario}
-                value={montoTasacionPrenda}
-                onChange={(v) => setMontoTasacionPrenda(v ?? 0)}
               />
             </Col>
             <Col xs={24} md={8}>
@@ -933,31 +896,52 @@ export function CreditoConsultaGestionPanel({
                 value={fechaRematePrenda}
                 onChange={(e) => setFechaRematePrenda(e.target.value)}
               />
+              <Text type="secondary">Si se deja vacía, el vencimiento más 30 días.</Text>
             </Col>
             <Col xs={24} md={8}>
-              <Paragraph strong>Observación prenda</Paragraph>
-              <Input
-                disabled={bloqueadoGestion || !prendario}
-                value={observacionPrenda}
-                onChange={(e) => setObservacionPrenda(e.target.value)}
-              />
+              <Paragraph strong>Contrato</Paragraph>
+              <Text>{contexto.data?.numeroContratoPrendario ?? '(se asigna al guardar)'}</Text>
             </Col>
           </Row>
-          <Button
-            type="primary"
-            style={{ marginTop: 12 }}
-            disabled={
-              bloqueadoGestion ||
-              !prendario ||
-              !descripcionPrenda.trim() ||
-              montoTasacionPrenda <= 0 ||
-              !fechaRematePrenda
-            }
-            loading={guardarPrendario.isPending}
-            onClick={() => guardarPrendario.mutate()}
-          >
-            Guardar prendario
-          </Button>
+          <PrendasEditor
+            value={prendas}
+            onChange={setPrendas}
+            disabled={bloqueadoGestion || !prendario}
+          />
+          <Space wrap style={{ marginTop: 12 }}>
+            <Button
+              type="primary"
+              disabled={bloqueadoGestion || !prendario || prendasValidas(prendas).length === 0}
+              loading={guardarPrendario.isPending}
+              onClick={() => guardarPrendario.mutate()}
+            >
+              Guardar bienes
+            </Button>
+            <Button
+              disabled={prendasValidas(prendas).length === 0}
+              onClick={() => {
+                void downloadContratoPrendarioPdf(
+                  oficinaId,
+                  creditoId,
+                  contexto.data?.numeroContratoPrendario || String(creditoId),
+                ).catch((e) => message.error(errMsg(e)))
+              }}
+            >
+              Contrato PDF
+            </Button>
+            <Button
+              disabled={prendasValidas(prendas).length === 0}
+              onClick={() => {
+                void downloadActaEntregaPrendarioPdf(
+                  oficinaId,
+                  creditoId,
+                  contexto.data?.numeroContratoPrendario || String(creditoId),
+                ).catch((e) => message.error(errMsg(e)))
+              }}
+            >
+              Acta PDF
+            </Button>
+          </Space>
         </Card>
       ) : null}
       </div>

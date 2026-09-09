@@ -56,6 +56,15 @@ describe('resolveSpaPathFromMenuItem', () => {
     )
   })
 
+  it('resuelve PRENDARIO - Nuevo a la alta y Listado al índice', () => {
+    expect(resolveSpaPathFromMenuItem('Prendario/Create', 'PRENDARIO - Nuevo', 'PRENDARIO')).toBe(
+      '/credito/prendario/nuevo',
+    )
+    expect(resolveSpaPathFromMenuItem('Prendario', 'PRENDARIO - Listado', 'PRENDARIO')).toBe(
+      '/credito/prendario',
+    )
+  })
+
   it('resuelve Prendario por URL aunque la etiqueta venga generica', () => {
     expect(resolveSpaPathFromMenuItem('~/Credito/Prendario', 'Crédito', null)).toBe(
       '/credito/prendario',

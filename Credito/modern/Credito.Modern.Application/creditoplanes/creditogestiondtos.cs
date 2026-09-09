@@ -35,7 +35,12 @@ public sealed record CreditoContextoDto(
     decimal MontoGastosAdm,
     decimal CentralRiesgo,
     int? PersonaAvalId,
-    string? PersonaAvalNombre);
+    string? PersonaAvalNombre,
+    bool EsPrendario,
+    decimal? MontoTasacion,
+    string? NumeroContratoPrendario,
+    DateTime? FechaRemate,
+    DateTime FechaVencimiento);
 
 public sealed record SolicitudCreditoDetalleDto(
     int SolicitudCreditoId,
@@ -126,21 +131,41 @@ public sealed record ActualizarAvalCreditoRequest(int OficinaId, int CreditoId, 
 
 public sealed record EliminarEvidenciaRequest(int OficinaId, int CreditoImagenId);
 
-public sealed record CreditoPrendaDto(
-    int CreditoPrendaId,
+/// <summary>Bien en custodia de un crédito prendario (<c>CREDITO.Prenda</c>).</summary>
+public sealed record PrendaDto(
+    long PrendaId,
     int CreditoId,
     string Descripcion,
-    decimal MontoTasacion,
-    DateTime FechaRemate,
-    string? Observacion,
-    bool Estado);
+    string? Marca,
+    string? Modelo,
+    string? Serie,
+    string? Color,
+    decimal ValorTasacion,
+    string? Observaciones,
+    string? FotoPath,
+    string Estado,
+    DateTime FechaRegistro,
+    string? CodigoInterno);
 
-public sealed record GuardarCreditoPrendaRequest(
+/// <summary>Renglón del formulario de bienes (paridad <c>ITB.VENDIX.BL.PrendaDto</c>).</summary>
+public sealed record PrendaItemRequest(
+    string Descripcion,
+    string? Marca,
+    string? Modelo,
+    string? Serie,
+    string? Color,
+    decimal ValorTasacion,
+    string? Observaciones,
+    string? CodigoInterno);
+
+/// <summary>
+/// Cuerpo del guardado de bienes. El formulario envía siempre el detalle completo: la operación
+/// reemplaza las prendas del crédito, no las acumula (paridad <c>CreditoBL.GuardarPrendario</c>).
+/// </summary>
+public sealed record GuardarPrendasRequest(
     int OficinaId,
     int CreditoId,
-    string Descripcion,
-    decimal MontoTasacion,
-    DateTime FechaRemate,
-    string? Observacion);
+    IReadOnlyList<PrendaItemRequest> Prendas,
+    DateTime? FechaRemate);
 
 public sealed record CreditoGestionOperacionResponse(bool Success, string? Mensaje);

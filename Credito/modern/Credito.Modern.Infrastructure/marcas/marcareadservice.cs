@@ -11,7 +11,7 @@ public sealed class MarcaReadService(IOptions<SqlDatabaseOptions> options) : IMa
         SELECT m.MarcaId,
                m.Denominacion,
                m.Estado
-        FROM MAESTRO.Marca AS m
+        FROM ALMACEN.Marca AS m
         WHERE m.Estado = CAST(1 AS bit)
         ORDER BY m.Denominacion;
         """;
@@ -54,7 +54,7 @@ public sealed class MarcaReadService(IOptions<SqlDatabaseOptions> options) : IMa
         var sql = incluirInactivos
             ? """
               SELECT m.MarcaId, m.Denominacion, m.Estado
-              FROM MAESTRO.Marca AS m
+              FROM ALMACEN.Marca AS m
               ORDER BY m.Denominacion;
               """
             : SqlActivas;

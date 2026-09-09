@@ -177,7 +177,7 @@ public sealed class TransferenciaReadService(IOptions<SqlDatabaseOptions> option
                        STRING_AGG(sa.NumeroSerie, ', ') WITHIN GROUP (ORDER BY sa.NumeroSerie) AS Series
                 FROM ALMACEN.TransferenciaSerie AS ts
                 INNER JOIN ALMACEN.SerieArticulo AS sa ON sa.SerieArticuloId = ts.SerieArticuloId
-                INNER JOIN MAESTRO.Articulo AS a ON a.ArticuloId = sa.ArticuloId
+                INNER JOIN ALMACEN.Articulo AS a ON a.ArticuloId = sa.ArticuloId
                 WHERE ts.TransferenciaId = @TransferenciaId
                 GROUP BY sa.ArticuloId, a.Denominacion
                 ORDER BY sa.ArticuloId;

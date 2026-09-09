@@ -2,7 +2,6 @@ using System.Data.Common;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Application.CreditoPlanes;
 using Credito.Modern.Application.CreditoTasas;
-using Credito.Modern.Application.CreditoTasas;
 using Credito.Modern.Application.Reportes;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;

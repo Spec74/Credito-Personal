@@ -13,7 +13,7 @@ export const CREDITO_OPERACIONES_SECTIONS: CredixHubSection[] = [
       {
         to: '/credito/prendario',
         label: 'Crédito prendario',
-        description: 'Registrar cliente y prenda antes de simular el crédito',
+        description: 'Listado de cartera prendaria, bienes en custodia, contrato y acta',
       },
       {
         to: '/credito/aprobar',

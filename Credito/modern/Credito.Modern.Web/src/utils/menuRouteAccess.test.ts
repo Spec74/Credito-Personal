@@ -15,6 +15,17 @@ function menu(spaPath: string, denominacion = 'Menu'): MenuItemDto {
   }
 }
 
+// Filas reales de MAESTRO.Menu creadas por deploy/sql/2026-09-prendario-modulo.sql.
+const menuPrendarioListado: MenuItemDto = {
+  ...menu('Prendario', 'PRENDARIO - Listado'),
+  modulo: 'PRENDARIO',
+}
+
+const menuPrendarioNuevo: MenuItemDto = {
+  ...menu('Prendario/Create', 'PRENDARIO - Nuevo'),
+  modulo: 'PRENDARIO',
+}
+
 describe('menuRouteAccess', () => {
   it('hub admin no habilita rutas administrativas exactas', () => {
     expect(hasMenuRouteAccess('/admin/usuarios', [menu('/administracion')])).toBe(false)
@@ -43,5 +54,24 @@ describe('menuRouteAccess', () => {
   it('hub credito no habilita aprobacion ni parametros de simulador', () => {
     expect(hasMenuRouteAccess('/credito/aprobar', [menu('/credito')])).toBe(false)
     expect(hasMenuRouteAccess('/credito/parametros-simulador', [menu('/credito')])).toBe(false)
+  })
+
+  // Prendario es exclusivo del rol ANALISTA: tener el hub de credito no debe alcanzar.
+  it('hub credito no habilita prendario', () => {
+    expect(hasMenuRouteAccess('/credito/prendario', [menu('/credito')])).toBe(false)
+    expect(hasMenuRouteAccess('/credito/prendario', [menu('/credito/creditos')])).toBe(false)
+    expect(hasMenuRouteAccess('/credito/prendario', [menu('/tareas')])).toBe(false)
+  })
+
+  it('menu prendario del analista habilita la ruta', () => {
+    expect(hasMenuRouteAccess('/credito/prendario', [menuPrendarioListado])).toBe(true)
+    expect(hasMenuRouteAccess('/credito/prendario/nuevo', [menuPrendarioNuevo])).toBe(true)
+    expect(hasMenuRouteAccess('/credito/prendario/gestionar/8', [menuPrendarioListado])).toBe(true)
+  })
+
+  it('listado no alcanza para el alta, y el hub de credito no alcanza gestionar', () => {
+    expect(hasMenuRouteAccess('/credito/prendario/nuevo', [menuPrendarioListado])).toBe(false)
+    expect(hasMenuRouteAccess('/credito/prendario/gestionar/8', [menu('/credito')])).toBe(false)
+    expect(hasMenuRouteAccess('/credito/prendario/gestionar/8', [menu('/credito/creditos')])).toBe(false)
   })
 })

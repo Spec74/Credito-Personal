@@ -17,8 +17,8 @@ public sealed class RptListaPrecioGeneralReadService(IOptions<SqlDatabaseOptions
                lp.PuntosCanje
         FROM VENTAS.ListaPrecio AS lp
         INNER JOIN ALMACEN.Articulo AS a ON a.ArticuloId = lp.ArticuloId
-        INNER JOIN MAESTRO.TipoArticulo AS ta ON ta.TipoArticuloId = a.TipoArticuloId
-        INNER JOIN MAESTRO.Modelo AS mo ON mo.ModeloId = a.ModeloId
+        INNER JOIN ALMACEN.TipoArticulo AS ta ON ta.TipoArticuloId = a.TipoArticuloId
+        INNER JOIN ALMACEN.Modelo AS mo ON mo.ModeloId = a.ModeloId
         WHERE lp.Estado = CAST(1 AS bit)
           AND (@MarcaId IS NULL OR mo.MarcaId = @MarcaId)
           AND (@IndDescuento = 0 OR lp.Descuento > 0)

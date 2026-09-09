@@ -1,7 +1,5 @@
 using Credito.Modern.Application.Maestros;
 
-using Credito.Modern.Application.Maestros;
-
 namespace Credito.Modern.Application.Modelos;
 
 public interface IModeloReadService

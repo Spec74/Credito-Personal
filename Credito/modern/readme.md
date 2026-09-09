@@ -42,11 +42,11 @@ dotnet run --project Credito.Modern.Api
 - **Tipos de documento (solo lectura, Fase 2):** `GET /api/v1/tipos-documento` — activos (`Estado = 1`). Query opcional **`paraVenta=true`** filtra `IndVenta = 1` (como en ventas del legado).
 - **Tipos de documento (solo lectura, Fase 2):** `GET /api/v1/tipos-documento` — activos (`Estado = 1`). Query opcional **`paraVenta=true`** filtra `IndVenta = 1` (como en ventas del legado).
 - **Productos de crédito (solo lectura):** `GET /api/v1/productos` — `CREDITO.Producto` con `Estado = 1`.
-- **Marcas (solo lectura, maestro):** `GET /api/v1/marcas` — `MAESTRO.Marca` con `Estado = 1` (strangler: catálogo para inventario / ventas).
-- **Modelos (solo lectura, maestro):** `GET /api/v1/modelos` — `MAESTRO.Modelo` activos; query opcional **`marcaId`** (≥ 1) filtra por marca.
-- **Tipos de artículo (solo lectura, maestro):** `GET /api/v1/tipos-articulo` — `MAESTRO.TipoArticulo` con `Estado = 1`.
+- **Marcas (solo lectura, maestro):** `GET /api/v1/marcas` — `ALMACEN.Marca` con `Estado = 1` (strangler: catálogo para inventario / ventas).
+- **Modelos (solo lectura, maestro):** `GET /api/v1/modelos` — `ALMACEN.Modelo` activos; query opcional **`marcaId`** (≥ 1) filtra por marca.
+- **Tipos de artículo (solo lectura, maestro):** `GET /api/v1/tipos-articulo` — `ALMACEN.TipoArticulo` con `Estado = 1`.
 - **Ubigeo (solo lectura, maestro):** `GET /api/v1/departamentos`; `GET /api/v1/provincias` con query opcional **`departamentoId`** (≥ 1); `GET /api/v1/distritos` con query opcional **`provinciaId`** (≥ 1).
-- **Tipos de movimiento de almacén (solo lectura):** `GET /api/v1/tipos-movimiento-almacen` — `MAESTRO.TipoMovimiento` con `Estado = 1` (no confundir con `GET /api/v1/tipo-operaciones`, que es crédito).
+- **Tipos de movimiento de almacén (solo lectura):** `GET /api/v1/tipos-movimiento-almacen` — `ALMACEN.TipoMovimiento` con `Estado = 1` (no confundir con `GET /api/v1/tipo-operaciones`, que es crédito).
 - **Almacenes (solo lectura):** `GET /api/v1/almacenes` — **`ALMACEN.Almacen`** activos (`Estado = 1`); query opcional **`oficinaId`** (≥ 1), como entradas/salidas en MVC.
 - **Ocupaciones / actividad económica (solo lectura):** `GET /api/v1/ocupaciones` — `MAESTRO.Ocupacion` con `Estado = 1` (combos de cliente).
 - **Artículos (solo lectura, inventario):** `GET /api/v1/articulos` — **`ALMACEN.Articulo`** activos; queries opcionales **`modeloId`** y **`tipoArticuloId`** (≥ 1). La lista no incluye la columna `Imagen` (varchar(max)).

@@ -26,6 +26,13 @@ public static class CreditoAuthorizationPolicies
     /// <summary>Escritura de crédito: roles operativos reales, no permisos solo lectura/reporte.</summary>
     public const string CreditoRolOperador = "CreditoRolOperador";
 
+    /// <summary>
+    /// ANALISTA o ADMINISTRADOR. El módulo prendario es del analista por pedido de gerencia; el
+    /// administrador entra porque de todos modos puede concederse el menú desde Seguridad.
+    /// En el legacy el controlador solo exigía estar autenticado y el control quedaba en el menú.
+    /// </summary>
+    public const string CreditoRolPrendario = "CreditoRolPrendario";
+
     public const string RolDenominacionAdministrador = "ADMINISTRADOR";
     public const string RolDenominacionAdminLegacy = "ADMIN";
     public const string RolDenominacionEncargado = "ENCARGADO";
@@ -105,6 +112,9 @@ public static class CreditoAuthorizationPolicies
         || HasRoleLike(roles, RolDenominacionAnalista)
         || HasRoleLike(roles, RolDenominacionGestor)
         || HasRoleLike(roles, RolDenominacionCajero);
+
+    public static bool HasPrendario(IEnumerable<string> roles) =>
+        HasRoleLike(roles, RolDenominacionAnalista) || HasAdministrador(roles);
 
     public static bool HasSoloLectura(IEnumerable<string> roles) =>
         HasRoleLike(roles, RolDenominacionLectura);

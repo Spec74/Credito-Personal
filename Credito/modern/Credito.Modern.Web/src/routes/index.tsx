@@ -158,6 +158,22 @@ export function AppRoutes() {
           }
         />
         <Route
+          path="/credito/prendario/nuevo"
+          element={
+            <CreditoOperacionRoute>
+              <Pages.CreditoPrendarioNuevoPage />
+            </CreditoOperacionRoute>
+          }
+        />
+        <Route
+          path="/credito/prendario/gestionar/:personaId"
+          element={
+            <CreditoOperacionRoute>
+              <Pages.CreditoPrendarioGestionPage />
+            </CreditoOperacionRoute>
+          }
+        />
+        <Route
           path="/credito/persona/:personaId"
           element={
             <CreditoOperacionRoute>

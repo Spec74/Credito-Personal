@@ -17,6 +17,9 @@ function resolveCreditoOperacionFromLabel(denominacion: string | null | undefine
     return '/credito/consulta'
   }
   if (label.includes('prendario') || label.includes('predario')) {
+    if (label.includes('nuevo')) {
+      return '/credito/prendario/nuevo'
+    }
     return '/credito/prendario'
   }
   if (
@@ -62,10 +65,17 @@ function resolveCreditoOperacionFromUrl(url: string | null | undefined): string 
     return '/credito/tareas'
   }
   if (
+    normalized.includes('/prendario/create') ||
+    normalized.endsWith('prendario/create')
+  ) {
+    return '/credito/prendario/nuevo'
+  }
+  if (
     normalized.includes('/credito/prendario') ||
     normalized.includes('/credito/predario') ||
     normalized.includes('creditoprendario') ||
-    normalized.includes('creditopredario')
+    normalized.includes('creditopredario') ||
+    normalized.includes('/prendario')
   ) {
     return '/credito/prendario'
   }

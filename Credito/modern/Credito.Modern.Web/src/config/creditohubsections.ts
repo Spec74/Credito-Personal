@@ -13,7 +13,7 @@ export const CREDITO_HUB_QUICK_ACCESS: CredixHubLink[] = [
   {
     to: '/credito/prendario',
     label: 'Crédito prendario',
-    description: 'Registro directo de cliente y prenda',
+    description: 'Listado, bienes en custodia, contrato y acta',
   },
   {
     to: '/informes/creditos-observados',

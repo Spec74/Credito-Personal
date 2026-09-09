@@ -529,86 +529,123 @@ public sealed class CreditoGestionWriteService(
             : new CreditoGestionOperacionResponse(false, "Crédito no encontrado.");
     }
 
-    public async Task<CreditoGestionOperacionResponse> GuardarPrendaAsync(
-        GuardarCreditoPrendaRequest request,
+    public async Task<CreditoGestionOperacionResponse> GuardarPrendasAsync(
+        GuardarPrendasRequest request,
         int usuarioId,
         DateTime fechaServidor,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(request.Descripcion))
+        // El legacy descarta los renglones sin descripcion: son filas vacias del formulario.
+        var prendas = (request.Prendas ?? Array.Empty<PrendaItemRequest>())
+            .Where(p => !string.IsNullOrWhiteSpace(p.Descripcion))
+            .ToList();
+
+        if (prendas.Count == 0)
         {
-            return new CreditoGestionOperacionResponse(false, "La descripción de la prenda es obligatoria.");
+            return new CreditoGestionOperacionResponse(false, "Registre al menos un bien con descripción.");
         }
 
-        if (request.MontoTasacion <= 0)
+        if (prendas.Any(p => p.ValorTasacion <= 0))
         {
-            return new CreditoGestionOperacionResponse(false, "El monto de tasación debe ser mayor a cero.");
+            return new CreditoGestionOperacionResponse(false, "Cada bien debe tener un valor de tasación mayor a cero.");
         }
 
         EnsureConnection();
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await CreditoPrendaSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+        await using var transaction = (SqlTransaction)await connection
+            .BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
-        var rows = await connection.ExecuteAsync(
+        var existeCredito = await connection.ExecuteScalarAsync<int>(
             new CommandDefinition(
                 """
-                IF EXISTS (
-                    SELECT 1
-                    FROM CREDITO.CreditoPrenda AS cp
-                    INNER JOIN CREDITO.Credito AS c ON c.CreditoId = cp.CreditoId
-                    WHERE cp.CreditoId = @CreditoId
-                      AND c.OficinaId = @OficinaId
-                )
-                BEGIN
-                    UPDATE cp
-                    SET Descripcion = @Descripcion,
-                        MontoTasacion = @MontoTasacion,
-                        FechaRemate = @FechaRemate,
-                        Observacion = @Observacion,
-                        Estado = CAST(1 AS bit),
-                        UsuarioModId = @UsuarioId,
-                        FechaMod = @FechaServidor
-                    FROM CREDITO.CreditoPrenda AS cp
-                    INNER JOIN CREDITO.Credito AS c ON c.CreditoId = cp.CreditoId
-                    WHERE cp.CreditoId = @CreditoId
-                      AND c.OficinaId = @OficinaId;
-                END
-                ELSE
-                BEGIN
-                    INSERT INTO CREDITO.CreditoPrenda (
-                        CreditoId, Descripcion, MontoTasacion, FechaRemate, Observacion,
-                        Estado, UsuarioRegId, FechaReg)
-                    SELECT
-                        @CreditoId, @Descripcion, @MontoTasacion, @FechaRemate, @Observacion,
-                        CAST(1 AS bit), @UsuarioId, @FechaServidor
-                    WHERE EXISTS (
-                        SELECT 1
-                        FROM CREDITO.Credito
-                        WHERE CreditoId = @CreditoId
-                          AND OficinaId = @OficinaId
-                    );
-                END;
+                SELECT COUNT(*)
+                FROM CREDITO.Credito WITH (UPDLOCK, HOLDLOCK)
+                WHERE CreditoId = @CreditoId AND OficinaId = @OficinaId;
+                """,
+                new { request.CreditoId, request.OficinaId },
+                transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (existeCredito == 0)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return new CreditoGestionOperacionResponse(false, "Crédito no encontrado.");
+        }
+
+        // El formulario envia el detalle completo, asi que se reemplaza en bloque.
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                "DELETE FROM CREDITO.Prenda WHERE CreditoId = @CreditoId;",
+                new { request.CreditoId },
+                transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                INSERT INTO CREDITO.Prenda (
+                    CreditoId, Descripcion, Marca, Modelo, Serie, Color, ValorTasacion,
+                    Observaciones, Estado, FechaRegistro, CodigoInterno, UsuarioRegId)
+                VALUES (
+                    @CreditoId, @Descripcion, @Marca, @Modelo, @Serie, @Color, @ValorTasacion,
+                    @Observaciones, @Estado, @FechaRegistro, @CodigoInterno, @UsuarioRegId);
+                """,
+                prendas.Select(p => new
+                {
+                    request.CreditoId,
+                    Descripcion = Mayusculas(p.Descripcion)!,
+                    Marca = Mayusculas(p.Marca),
+                    Modelo = Mayusculas(p.Modelo),
+                    // "N/T" (no tiene) es el centinela que usa el legacy para serie ausente.
+                    Serie = Mayusculas(p.Serie) ?? "N/T",
+                    Color = Mayusculas(p.Color),
+                    p.ValorTasacion,
+                    Observaciones = Mayusculas(p.Observaciones),
+                    Estado = PrendaEstadoEnCustodia,
+                    FechaRegistro = fechaServidor,
+                    CodigoInterno = Mayusculas(p.CodigoInterno),
+                    UsuarioRegId = usuarioId,
+                }).ToList(),
+                transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        // MontoTasacion se deriva de las prendas guardadas, no de lo que llego en el cuerpo:
+        // el legacy sumaba tambien los renglones descartados e inflaba el monto garantizado.
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                UPDATE c
+                SET EsPrendario = CAST(1 AS bit),
+                    MontoTasacion = ISNULL((
+                        SELECT SUM(p.ValorTasacion)
+                        FROM CREDITO.Prenda AS p
+                        WHERE p.CreditoId = c.CreditoId), 0),
+                    NumeroContratoPrendario = ISNULL(
+                        NULLIF(LTRIM(RTRIM(c.NumeroContratoPrendario)), ''),
+                        CAST(c.CreditoId AS nvarchar(50))),
+                    FechaRemate = COALESCE(@FechaRemate, DATEADD(DAY, 30, c.FechaVencimiento))
+                FROM CREDITO.Credito AS c
+                WHERE c.CreditoId = @CreditoId
+                  AND c.OficinaId = @OficinaId;
                 """,
                 new
                 {
                     request.CreditoId,
                     request.OficinaId,
-                    Descripcion = request.Descripcion.Trim().ToUpperInvariant(),
-                    request.MontoTasacion,
-                    FechaRemate = request.FechaRemate.Date,
-                    Observacion = string.IsNullOrWhiteSpace(request.Observacion)
-                        ? null
-                        : request.Observacion.Trim().ToUpperInvariant(),
-                    UsuarioId = usuarioId,
-                    FechaServidor = fechaServidor,
+                    FechaRemate = request.FechaRemate?.Date,
                 },
+                transaction,
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-        return rows > 0
-            ? new CreditoGestionOperacionResponse(true, null)
-            : new CreditoGestionOperacionResponse(false, "No se pudo guardar la prenda.");
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return new CreditoGestionOperacionResponse(true, null);
     }
+
+    internal const string PrendaEstadoEnCustodia = "EN CUSTODIA";
+
+    internal static string? Mayusculas(string? valor) =>
+        string.IsNullOrWhiteSpace(valor) ? null : valor.Trim().ToUpperInvariant();
 
     public static string ResolveStorageRoot(CreditoStorageOptions options)
     {

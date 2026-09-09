@@ -31,7 +31,7 @@ public sealed class SalidaAlmacenReadService(IOptions<SqlDatabaseOptions> option
                        s.EstadoId,
                        a.Denominacion
                 FROM ALMACEN.SerieArticulo AS s
-                INNER JOIN MAESTRO.Articulo AS a ON a.ArticuloId = s.ArticuloId
+                INNER JOIN ALMACEN.Articulo AS a ON a.ArticuloId = s.ArticuloId
                 WHERE s.NumeroSerie = @NumeroSerie;
                 """,
                 new { NumeroSerie = numeroSerie.Trim() },
@@ -128,7 +128,7 @@ public sealed class SalidaAlmacenReadService(IOptions<SqlDatabaseOptions> option
             new CommandDefinition(
                 """
                 SELECT CASE WHEN EXISTS (
-                    SELECT 1 FROM MAESTRO.TipoMovimiento
+                    SELECT 1 FROM ALMACEN.TipoMovimiento
                     WHERE TipoMovimientoId = @TipoMovimientoId
                       AND Estado = CAST(1 AS bit)
                       AND IndEntrada = CAST(0 AS bit)

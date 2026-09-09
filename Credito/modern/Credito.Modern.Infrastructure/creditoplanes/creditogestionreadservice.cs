@@ -34,7 +34,12 @@ public sealed class CreditoGestionReadService(IOptions<SqlDatabaseOptions> optio
                        c.MontoGastosAdm,
                        c.CentralRiesgo,
                        c.PersonaAvalId,
-                       pa.NombreCompleto AS PersonaAvalNombre
+                       pa.NombreCompleto AS PersonaAvalNombre,
+                       c.EsPrendario,
+                       c.MontoTasacion,
+                       c.NumeroContratoPrendario,
+                       c.FechaRemate,
+                       c.FechaVencimiento
                 FROM CREDITO.Credito AS c
                 INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
                 LEFT JOIN MAESTRO.Persona AS pa ON pa.PersonaId = c.PersonaAvalId
@@ -80,35 +85,41 @@ public sealed class CreditoGestionReadService(IOptions<SqlDatabaseOptions> optio
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
-    public async Task<CreditoPrendaDto?> ObtenerPrendaAsync(
+    public async Task<IReadOnlyList<PrendaDto>> ListarPrendasAsync(
         int creditoId,
         CancellationToken cancellationToken = default)
     {
         if (creditoId < 1)
         {
-            return null;
+            return Array.Empty<PrendaDto>();
         }
 
         EnsureConnection();
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await CreditoPrendaSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
-        return await connection.QueryFirstOrDefaultAsync<CreditoPrendaDto>(
+        var prendas = await connection.QueryAsync<PrendaDto>(
             new CommandDefinition(
                 """
-                SELECT CreditoPrendaId,
+                SELECT PrendaId,
                        CreditoId,
                        Descripcion,
-                       MontoTasacion,
-                       FechaRemate,
-                       Observacion,
-                       Estado
-                FROM CREDITO.CreditoPrenda
+                       Marca,
+                       Modelo,
+                       Serie,
+                       Color,
+                       ValorTasacion,
+                       Observaciones,
+                       FotoPath,
+                       Estado,
+                       FechaRegistro,
+                       CodigoInterno
+                FROM CREDITO.Prenda
                 WHERE CreditoId = @CreditoId
-                  AND Estado = CAST(1 AS bit);
+                ORDER BY PrendaId;
                 """,
                 new { CreditoId = creditoId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
+        return prendas.AsList();
     }
 
     public async Task<IReadOnlyList<CargoCreditoRowDto>> ListarCargosAsync(

@@ -35,7 +35,7 @@ public sealed class MovimientoBovedaTicketReadService(IOptions<SqlDatabaseOption
                     m.FechaReg,
                     m.Estado,
                     m.CajaDiarioId
-                FROM CREDITO.MovimientoBoveda AS m
+                FROM CREDITO.BovedaMov AS m
                 WHERE m.MovimientoBovedaId = @MovimientoBovedaId;
                 """,
                 new { MovimientoBovedaId = movimientoBovedaId },

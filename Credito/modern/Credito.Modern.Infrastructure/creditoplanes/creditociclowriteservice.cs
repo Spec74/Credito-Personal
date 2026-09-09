@@ -91,7 +91,6 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
         if (prenda is not null)
         {
             ValidatePrenda(prenda);
-            await CreditoPrendaSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         }
         await using var transaction = (SqlTransaction)await connection
             .BeginTransactionAsync(cancellationToken)
@@ -125,7 +124,7 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
 
             if (prenda is not null)
             {
-                await UpsertPrendaAsync(
+                await GuardarPrendaAsync(
                     connection,
                     transaction,
                     solicitudCreditoId,
@@ -157,51 +156,57 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
         }
     }
 
-    private static Task UpsertPrendaAsync(
+    /// <summary>
+    /// Registra el bien del credito prendario y marca el credito, en la misma transaccion que
+    /// <c>usp_Credito_Ins</c>. Reemplaza el detalle previo: el alta envia la ficha completa.
+    /// </summary>
+    private static async Task GuardarPrendaAsync(
         SqlConnection connection,
         SqlTransaction transaction,
         int creditoId,
         CrearCreditoPrendaRequest prenda,
         int usuarioId,
-        CancellationToken cancellationToken) =>
-        connection.ExecuteAsync(
+        CancellationToken cancellationToken)
+    {
+        await connection.ExecuteAsync(
             new CommandDefinition(
                 """
-                IF EXISTS (SELECT 1 FROM CREDITO.CreditoPrenda WHERE CreditoId = @CreditoId)
-                BEGIN
-                    UPDATE CREDITO.CreditoPrenda
-                    SET Descripcion = @Descripcion,
-                        MontoTasacion = @MontoTasacion,
-                        FechaRemate = @FechaRemate,
-                        Observacion = @Observacion,
-                        Estado = CAST(1 AS bit),
-                        UsuarioModId = @UsuarioId,
-                        FechaMod = GETDATE()
-                    WHERE CreditoId = @CreditoId;
-                END
-                ELSE
-                BEGIN
-                    INSERT INTO CREDITO.CreditoPrenda (
-                        CreditoId, Descripcion, MontoTasacion, FechaRemate, Observacion,
-                        Estado, UsuarioRegId, FechaReg)
-                    VALUES (
-                        @CreditoId, @Descripcion, @MontoTasacion, @FechaRemate, @Observacion,
-                        CAST(1 AS bit), @UsuarioId, GETDATE());
-                END;
+                DELETE FROM CREDITO.Prenda WHERE CreditoId = @CreditoId;
+
+                INSERT INTO CREDITO.Prenda (
+                    CreditoId, Descripcion, Marca, Modelo, Serie, Color, ValorTasacion,
+                    Observaciones, Estado, FechaRegistro, CodigoInterno, UsuarioRegId)
+                VALUES (
+                    @CreditoId, @Descripcion, @Marca, @Modelo, @Serie, @Color, @ValorTasacion,
+                    @Observaciones, @Estado, GETDATE(), @CodigoInterno, @UsuarioId);
+
+                UPDATE CREDITO.Credito
+                SET EsPrendario = CAST(1 AS bit),
+                    MontoTasacion = @ValorTasacion,
+                    NumeroContratoPrendario = ISNULL(
+                        NULLIF(LTRIM(RTRIM(NumeroContratoPrendario)), ''),
+                        CAST(CreditoId AS nvarchar(50))),
+                    FechaRemate = @FechaRemate
+                WHERE CreditoId = @CreditoId;
                 """,
                 new
                 {
                     CreditoId = creditoId,
-                    Descripcion = prenda.Descripcion.Trim().ToUpperInvariant(),
-                    prenda.MontoTasacion,
+                    Descripcion = CreditoGestionWriteService.Mayusculas(prenda.Descripcion)!,
+                    Marca = CreditoGestionWriteService.Mayusculas(prenda.Marca),
+                    Modelo = CreditoGestionWriteService.Mayusculas(prenda.Modelo),
+                    Serie = CreditoGestionWriteService.Mayusculas(prenda.Serie) ?? "N/T",
+                    Color = CreditoGestionWriteService.Mayusculas(prenda.Color),
+                    ValorTasacion = prenda.MontoTasacion,
+                    Observaciones = CreditoGestionWriteService.Mayusculas(prenda.Observacion),
+                    Estado = CreditoGestionWriteService.PrendaEstadoEnCustodia,
+                    CodigoInterno = CreditoGestionWriteService.Mayusculas(prenda.CodigoInterno),
                     FechaRemate = prenda.FechaRemate.Date,
-                    Observacion = string.IsNullOrWhiteSpace(prenda.Observacion)
-                        ? null
-                        : prenda.Observacion.Trim().ToUpperInvariant(),
                     UsuarioId = usuarioId,
                 },
                 transaction: transaction,
-                cancellationToken: cancellationToken));
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
 
     public async Task<CreditoCicloOperacionResponse> RechazarAsync(
         int creditoId,

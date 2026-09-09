@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -19,52 +20,83 @@ export default defineConfig(({ mode }) => {
   }
 
   return {
-  base,
-  plugins: [react()],
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          const n = normId(id)
-          if (n.includes('/node_modules/')) {
-            if (isAntDesignDep(n)) return 'vendor-antd'
-            if (n.includes('/node_modules/@tanstack/')) return 'vendor-query'
-            if (
-              n.includes('/node_modules/react-dom/') ||
-              n.includes('/node_modules/react-router')
-            ) {
-              return 'vendor-react'
+    base,
+    plugins: [
+      react(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+        manifest: {
+          name: 'Crédito Moderno',
+          short_name: 'CreditoMod',
+          description: 'Sistema Modernizado de Gestión de Créditos',
+          theme_color: '#1677ff', // Color azul por defecto de Ant Design
+          background_color: '#ffffff',
+          display: 'standalone',
+          start_url: base, // Se sincroniza dinámicamente con tu /app/ o / configurado
+          icons: [
+            {
+              src: 'pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png'
+            },
+            {
+              src: 'pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png'
+            },
+            {
+              src: 'pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable'
             }
-            return 'vendor-misc'
-          }
-          // Rutas: un chunk por import() lazy (sin agrupar carpetas — evita megachunks).
+          ]
+        }
+      })
+    ],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            const n = normId(id)
+            if (n.includes('/node_modules/')) {
+              if (isAntDesignDep(n)) return 'vendor-antd'
+              if (n.includes('/node_modules/@tanstack/')) return 'vendor-query'
+              if (
+                n.includes('/node_modules/react-dom/') ||
+                n.includes('/node_modules/react-router')
+              ) {
+                return 'vendor-react'
+              }
+              return 'vendor-misc'
+            }
+          },
+        },
+      },
+      chunkSizeWarningLimit: 600,
+    },
+    server: {
+      port: 5173,
+      proxy: {
+        '/api': {
+          target: apiProxyTarget,
+          changeOrigin: true,
+        },
+        '/css': {
+          target: apiProxyTarget,
+          changeOrigin: true,
+        },
+        '/img': {
+          target: apiProxyTarget,
+          changeOrigin: true,
+        },
+        '/Reporte': {
+          target: legacyMvcTarget,
+          changeOrigin: true,
+          headers: { Host: new URL(legacyMvcTarget).host },
         },
       },
     },
-    chunkSizeWarningLimit: 600,
-  },
-  server: {
-    port: 5173,
-    proxy: {
-      '/api': {
-        target: apiProxyTarget,
-        changeOrigin: true,
-      },
-      '/css': {
-        target: apiProxyTarget,
-        changeOrigin: true,
-      },
-      '/img': {
-        target: apiProxyTarget,
-        changeOrigin: true,
-      },
-      /** ReportViewer RDLC directo al MVC (evita redirect nginx /Reporte → /app/informes). */
-      '/Reporte': {
-        target: legacyMvcTarget,
-        changeOrigin: true,
-        headers: { Host: new URL(legacyMvcTarget).host },
-      },
-    },
-  },
   }
 })

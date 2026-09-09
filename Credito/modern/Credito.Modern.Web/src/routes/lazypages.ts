@@ -287,6 +287,14 @@ export const CreditoPrendarioPage = lazyNamed(
   () => import('../pages/credito/CreditoPrendarioPage'),
   'CreditoPrendarioPage',
 )
+export const CreditoPrendarioNuevoPage = lazyNamed(
+  () => import('../pages/credito/CreditoPrendarioNuevoPage'),
+  'CreditoPrendarioNuevoPage',
+)
+export const CreditoPrendarioGestionPage = lazyNamed(
+  () => import('../pages/credito/CreditoPrendarioGestionPage'),
+  'CreditoPrendarioGestionPage',
+)
 export const CreditoPersonaPage = lazyNamed(
   () => import('../pages/credito/CreditoPersonaPage'),
   'CreditoPersonaPage',

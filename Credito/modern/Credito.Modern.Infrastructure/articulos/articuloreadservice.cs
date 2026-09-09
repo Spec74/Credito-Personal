@@ -82,8 +82,8 @@ public sealed class ArticuloReadService(IOptions<SqlDatabaseOptions> options) : 
                    lp.Monto,
                    lp.Descuento
             FROM ALMACEN.Articulo AS a
-            LEFT JOIN MAESTRO.Modelo AS m ON m.ModeloId = a.ModeloId
-            LEFT JOIN MAESTRO.TipoArticulo AS t ON t.TipoArticuloId = a.TipoArticuloId
+            LEFT JOIN ALMACEN.Modelo AS m ON m.ModeloId = a.ModeloId
+            LEFT JOIN ALMACEN.TipoArticulo AS t ON t.TipoArticuloId = a.TipoArticuloId
             OUTER APPLY (
                 SELECT TOP (1) lp2.Monto, lp2.Descuento
                 FROM VENTAS.ListaPrecio AS lp2

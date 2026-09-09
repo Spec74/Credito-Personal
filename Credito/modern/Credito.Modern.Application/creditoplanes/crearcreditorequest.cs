@@ -8,7 +8,12 @@ public sealed record CrearCreditoPrendaRequest(
     string Descripcion,
     decimal MontoTasacion,
     DateTime FechaRemate,
-    string? Observacion);
+    string? Observacion,
+    string? Marca = null,
+    string? Modelo = null,
+    string? Serie = null,
+    string? Color = null,
+    string? CodigoInterno = null);
 
 public sealed record CrearCreditoRequest(
     int OficinaId,

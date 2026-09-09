@@ -13,7 +13,7 @@ public sealed class ModeloReadService(IOptions<SqlDatabaseOptions> options) : IM
                m.Denominacion,
                m.MarcaId,
                m.Estado
-        FROM MAESTRO.Modelo AS m
+        FROM ALMACEN.Modelo AS m
         WHERE m.Estado = CAST(1 AS bit)
           AND (@MarcaId IS NULL OR m.MarcaId = @MarcaId)
         ORDER BY m.Denominacion;
@@ -67,8 +67,8 @@ public sealed class ModeloReadService(IOptions<SqlDatabaseOptions> options) : IM
                        m.MarcaId,
                        ma.Denominacion AS MarcaDenominacion,
                        m.Estado
-                FROM MAESTRO.Modelo AS m
-                LEFT JOIN MAESTRO.Marca AS ma ON ma.MarcaId = m.MarcaId
+                FROM ALMACEN.Modelo AS m
+                LEFT JOIN ALMACEN.Marca AS ma ON ma.MarcaId = m.MarcaId
                 WHERE (@MarcaId IS NULL OR m.MarcaId = @MarcaId)
                 ORDER BY m.Denominacion;
                 """;
@@ -81,8 +81,8 @@ public sealed class ModeloReadService(IOptions<SqlDatabaseOptions> options) : IM
                        m.MarcaId,
                        ma.Denominacion AS MarcaDenominacion,
                        m.Estado
-                FROM MAESTRO.Modelo AS m
-                LEFT JOIN MAESTRO.Marca AS ma ON ma.MarcaId = m.MarcaId
+                FROM ALMACEN.Modelo AS m
+                LEFT JOIN ALMACEN.Marca AS ma ON ma.MarcaId = m.MarcaId
                 WHERE m.Estado = CAST(1 AS bit)
                   AND (@MarcaId IS NULL OR m.MarcaId = @MarcaId)
                 ORDER BY m.Denominacion;

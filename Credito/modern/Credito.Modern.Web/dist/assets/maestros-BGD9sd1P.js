@@ -1,0 +1,1 @@
+import{O as e}from"./index-Cf58x7EX.js";function t(t){return e(`/valores-tabla?tablaId=${t}&soloItemIdPositivo=true`)}export{t};

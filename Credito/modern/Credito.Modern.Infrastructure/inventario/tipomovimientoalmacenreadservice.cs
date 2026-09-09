@@ -16,7 +16,7 @@ public sealed class TipoMovimientoAlmacenReadService(IOptions<SqlDatabaseOptions
                t.IndTransferencia,
                t.IndDevolucion,
                t.Estado
-        FROM MAESTRO.TipoMovimiento AS t
+        FROM ALMACEN.TipoMovimiento AS t
         WHERE t.Estado = CAST(1 AS bit)
         ORDER BY t.Denominacion;
         """;

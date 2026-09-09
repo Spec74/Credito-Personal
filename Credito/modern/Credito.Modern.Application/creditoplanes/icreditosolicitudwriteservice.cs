@@ -8,4 +8,11 @@ public interface ICreditoSolicitudWriteService
         int usuarioId,
         DateTime fechaReg,
         CancellationToken cancellationToken = default);
+
+    Task<CrearSolicitudCreditoResponse> CrearSolicitudPrendariaAsync(
+        int oficinaId,
+        int personaId,
+        int usuarioId,
+        DateTime fechaReg,
+        CancellationToken cancellationToken = default);
 }

@@ -16,7 +16,7 @@ public sealed class RptStockAnuladosReadService(IOptions<SqlDatabaseOptions> opt
                md.Descripcion AS Detalle
         FROM ALMACEN.MovimientoDet AS md
         INNER JOIN ALMACEN.Movimiento AS m ON m.MovimientoId = md.MovimientoId
-        INNER JOIN MAESTRO.TipoMovimiento AS tm ON tm.TipoMovimientoId = m.TipoMovimientoId
+        INNER JOIN ALMACEN.TipoMovimiento AS tm ON tm.TipoMovimientoId = m.TipoMovimientoId
         WHERE m.EstadoId = 3
           AND m.TipoMovimientoId <> 2
           AND tm.IndEntrada = CAST(0 AS bit)

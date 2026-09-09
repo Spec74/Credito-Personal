@@ -20,7 +20,6 @@ import { quickActions, type QuickAction } from '../../config/quickActions'
 import {
   buildAntMenuItems,
   defaultOpenMenuKeys,
-  ensureCreditoPrendarioMenuItem,
   filterQuickActionsByMenu,
   findMenuItem,
 } from '../../utils/menuTree'
@@ -71,11 +70,7 @@ export function AppShell() {
     staleTime: 5 * 60_000,
   })
 
-  const menuData = useMemo(() => menuQuery.data ?? [], [menuQuery.data])
-  const navigationMenuData = useMemo(
-    () => ensureCreditoPrendarioMenuItem(menuData),
-    [menuData],
-  )
+  const navigationMenuData = useMemo(() => menuQuery.data ?? [], [menuQuery.data])
   const quickActionsVisible = useMemo(
     () => filterQuickActionsByMenu(quickActions, navigationMenuData),
     [navigationMenuData],

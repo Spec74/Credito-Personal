@@ -36,6 +36,11 @@ export interface CreditoContexto {
   centralRiesgo: number
   personaAvalId: number | null
   personaAvalNombre: string | null
+  esPrendario: boolean
+  montoTasacion: number | null
+  numeroContratoPrendario: string | null
+  fechaRemate: string | null
+  fechaVencimiento: string
 }
 
 export interface SolicitudCreditoDetalle {
@@ -70,14 +75,33 @@ export interface CreditoEvidencia {
   url: string | null
 }
 
-export interface CreditoPrenda {
-  creditoPrendaId: number
+/** Bien en custodia de un crédito prendario (CREDITO.Prenda). */
+export interface Prenda {
+  prendaId: number
   creditoId: number
   descripcion: string
-  montoTasacion: number
-  fechaRemate: string
-  observacion: string | null
-  estado: boolean
+  marca: string | null
+  modelo: string | null
+  serie: string | null
+  color: string | null
+  valorTasacion: number
+  observaciones: string | null
+  fotoPath: string | null
+  estado: string
+  fechaRegistro: string
+  codigoInterno: string | null
+}
+
+/** Renglón del formulario de bienes. */
+export interface PrendaItem {
+  descripcion: string
+  marca?: string | null
+  modelo?: string | null
+  serie?: string | null
+  color?: string | null
+  valorTasacion: number
+  observaciones?: string | null
+  codigoInterno?: string | null
 }
 
 export interface CreditoGrillaPersonaRow {
@@ -160,12 +184,9 @@ export function fetchEvidenciasCredito(
   )
 }
 
-export function fetchCreditoPrenda(
-  oficinaId: number,
-  creditoId: number,
-): Promise<CreditoPrenda | null> {
-  return apiFetch<CreditoPrenda | null>(
-    `/credito/credito-prenda?oficinaId=${oficinaId}&creditoId=${creditoId}`,
+export function fetchPrendas(oficinaId: number, creditoId: number): Promise<Prenda[]> {
+  return apiFetch<Prenda[]>(
+    `/credito/prendas?oficinaId=${oficinaId}&creditoId=${creditoId}`,
   )
 }
 
@@ -343,16 +364,18 @@ export function actualizarAvalCredito(body: {
   )
 }
 
-export function guardarPrendaCredito(body: {
+/**
+ * Reemplaza los bienes del crédito: envíe siempre el detalle completo.
+ * Si se omite fechaRemate, el servidor usa el vencimiento del crédito más 30 días.
+ */
+export function guardarPrendas(body: {
   oficinaId: number
   creditoId: number
-  descripcion: string
-  montoTasacion: number
-  fechaRemate: string
-  observacion?: string | null
+  prendas: PrendaItem[]
+  fechaRemate?: string | null
 }) {
   return postJson<{ success: boolean; mensaje: string | null }>(
-    '/credito/guardar-prenda-credito',
+    '/credito/guardar-prendas',
     body,
   )
 }

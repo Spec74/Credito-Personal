@@ -66,7 +66,8 @@ const LEGACY_TO_SPA: Array<{ match: RegExp; spaPath: string }> = [
     spaPath: '/tesoreria/movimiento-boveda',
   },
   { match: /\/credito\/simulador/i, spaPath: '/credito/simulador' },
-  { match: /\/credito\/prendario|creditoprendario|creditopredario/i, spaPath: '/credito/prendario' },
+  { match: /\/prendario\/create/i, spaPath: '/credito/prendario/nuevo' },
+  { match: /\/credito\/prendario|\/prendario|creditoprendario|creditopredario/i, spaPath: '/credito/prendario' },
   {
     match: /\/credito\/parametrossimulador/i,
     spaPath: '/credito/parametros-simulador',
