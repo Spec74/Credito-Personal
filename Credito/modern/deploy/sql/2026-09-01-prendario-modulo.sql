@@ -104,6 +104,8 @@ GO
 -- 4. Indices
 -- =============================================
 
+-- Indice filtrado: exige QUOTED_IDENTIFIER ON en todo modulo que haga UPDATE/INSERT
+-- sobre CREDITO.Credito. Ver 2026-09-03-usp-credito-ins-quoted-identifier.sql.
 IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = N'IX_Credito_EsPrendario' AND object_id = OBJECT_ID(N'CREDITO.Credito'))
 BEGIN
     CREATE INDEX IX_Credito_EsPrendario ON CREDITO.Credito (EsPrendario) WHERE EsPrendario = 1;

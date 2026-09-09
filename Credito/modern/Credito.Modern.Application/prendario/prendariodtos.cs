@@ -67,7 +67,8 @@ public sealed record PrendarioBienDocumentoDto(
     string Serie,
     string? Color,
     decimal ValorTasacion,
-    string? CodigoInterno);
+    string? CodigoInterno,
+    string? Observaciones);
 
 public sealed record PrendarioContratoDto(
     int CreditoId,
@@ -111,3 +112,28 @@ public sealed record PrendarioDocumentoConsulta<T>(
     PrendarioDocumentoEstado Estado,
     T? Documento)
     where T : class;
+
+/// <summary>Paridad <c>CreditoBL.CreditoPorVencerWhatsapp</c>.</summary>
+public sealed record PrendarioAvisoVencimientoDto(
+    int CreditoId,
+    int OficinaId,
+    string NombreCliente,
+    string? Celular,
+    DateTime FechaVencimiento,
+    decimal MontoCredito,
+    decimal Interes,
+    decimal MontoCancelar);
+
+public sealed record PrendarioAvisoEnvioItemDto(
+    int CreditoId,
+    bool Exito,
+    string Mensaje);
+
+public sealed record PrendarioAvisoEnvioResumenDto(
+    int Enviados,
+    int Fallidos,
+    int Omitidos,
+    IReadOnlyList<PrendarioAvisoEnvioItemDto> Detalle);
+
+public sealed record EnviarAvisosPrendarioRequest(int OficinaId, int DiasAntes = 3, int? CreditoId = null);
+

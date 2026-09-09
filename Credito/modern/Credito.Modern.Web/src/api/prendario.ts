@@ -89,3 +89,44 @@ export function downloadActaEntregaPrendarioPdf(oficinaId: number, creditoId: nu
   const q = new URLSearchParams({ oficinaId: String(oficinaId), creditoId: String(creditoId) })
   return apiDownload(`/prendario/acta-entrega-pdf?${q}`, `ActaEntregaPrendario_${numeroContrato}.pdf`)
 }
+
+export interface PrendarioAvisoVencimiento {
+  creditoId: number
+  oficinaId: number
+  nombreCliente: string
+  celular: string | null
+  fechaVencimiento: string
+  montoCredito: number
+  interes: number
+  montoCancelar: number
+}
+
+export interface PrendarioAvisoEnvioResumen {
+  enviados: number
+  fallidos: number
+  omitidos: number
+  detalle: { creditoId: number; exito: boolean; mensaje: string }[]
+}
+
+export function fetchPrendarioAvisosVencimiento(
+  oficinaId: number,
+  diasAntes = 3,
+): Promise<PrendarioAvisoVencimiento[]> {
+  const q = new URLSearchParams({
+    oficinaId: String(oficinaId),
+    diasAntes: String(diasAntes),
+  })
+  return apiFetch<PrendarioAvisoVencimiento[]>(`/prendario/avisos-vencimiento?${q}`)
+}
+
+export function enviarAvisosVencimientoPrendario(body: {
+  oficinaId: number
+  diasAntes?: number
+  creditoId?: number
+}): Promise<PrendarioAvisoEnvioResumen> {
+  return apiFetch<PrendarioAvisoEnvioResumen>('/prendario/avisos-vencimiento/enviar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}

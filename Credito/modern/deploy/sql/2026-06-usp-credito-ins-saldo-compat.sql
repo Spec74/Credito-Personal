@@ -1,3 +1,8 @@
+SET ANSI_NULLS ON;
+GO
+SET QUOTED_IDENTIFIER ON;
+GO
+
 CREATE OR ALTER PROC [CREDITO].[usp_Credito_Ins]
 @SolicitudCreditoId INT,
 @ProductoId INT,

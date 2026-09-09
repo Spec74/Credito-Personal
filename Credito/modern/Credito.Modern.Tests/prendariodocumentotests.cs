@@ -1,4 +1,5 @@
 using Credito.Modern.Application.Prendario;
+using Credito.Modern.Application.Reportes;
 
 namespace Credito.Modern.Tests;
 
@@ -17,15 +18,30 @@ public sealed class PrendarioDocumentoTests
     }
 
     [Fact]
-    public void Contrato_genera_pdf_valido()
+    public void Fecha_de_clausula_usa_mes_en_espanol()
     {
-        var dto = DocumentoDePrueba();
-        var pdf = RptContratoPrendarioPdfDocument.Build(dto);
-        AssertPdf(pdf);
+        Assert.Equal(
+            "Ayacucho, 18 de junio de 2026",
+            PrendarioPdfTexto.FechaCiudad(new DateTime(2026, 6, 18)));
     }
 
     [Fact]
-    public void Acta_genera_pdf_valido()
+    public void Contrato_anexa_clausulas_oficiales_y_estampa_fecha()
+    {
+        var soloAnexo = CredixReportAssets.LoadClausulasPrendario();
+        Assert.NotNull(soloAnexo);
+        var pdf = RptContratoPrendarioPdfDocument.Build(DocumentoDePrueba());
+        AssertPdf(pdf);
+        Assert.True(pdf.Length > soloAnexo!.Length);
+
+        AssertPdf(PrendarioPdfMerge.BuildSello(
+            new DateTime(2026, 6, 18),
+            "CLIENTE PRUEBA",
+            "12345678"));
+    }
+
+    [Fact]
+    public void Acta_incluye_fecha_y_secciones_del_rdlc()
     {
         var contrato = DocumentoDePrueba();
         var acta = new PrendarioActaDto(
@@ -39,8 +55,7 @@ public sealed class PrendarioDocumentoTests
             "HUAMANGA",
             "AYACUCHO",
             contrato.Bienes);
-        var pdf = RptActaEntregaPrendarioPdfDocument.Build(acta);
-        AssertPdf(pdf);
+        AssertPdf(RptActaEntregaPrendarioPdfDocument.Build(acta));
     }
 
     private static PrendarioContratoDto DocumentoDePrueba() =>
@@ -69,7 +84,7 @@ public sealed class PrendarioDocumentoTests
             10m,
             "ANALISTA PRUEBA",
             [
-                new PrendarioBienDocumentoDto("JOYA", null, null, "N/T", null, 300m, null),
+                new PrendarioBienDocumentoDto("JOYA", null, null, "N/T", null, 300m, null, null),
             ]);
 
     private static void AssertPdf(byte[] bytes)

@@ -48,6 +48,7 @@ import {
 } from '../../api/creditoGestion'
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { prendaAItem, prendaVacia, prendasValidas } from '../../utils/prendas'
+import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 import {
   downloadActaEntregaPrendarioPdf,
   downloadContratoPrendarioPdf,
@@ -373,6 +374,10 @@ export function CreditoConsultaGestionPanel({
         celular: nuevoAvalCelular.trim() || null,
       }),
     onSuccess: (r) => {
+      if (!r.success || r.personaId < 1) {
+        message.error(r.label || 'No se pudo crear el aval')
+        return
+      }
       setPersonaAvalId(r.personaId)
       setAvalSearch(r.label)
       setModalNuevoAval(false)
@@ -940,6 +945,20 @@ export function CreditoConsultaGestionPanel({
               }}
             >
               Acta PDF
+            </Button>
+            <Button
+              onClick={() => {
+                const ok = abrirWhatsAppPrendario(
+                  contexto.data?.personaCelular,
+                  contexto.data?.personaNombre ?? '',
+                  creditoId,
+                )
+                if (!ok) {
+                  message.warning('Este cliente no tiene celular registrado')
+                }
+              }}
+            >
+              WhatsApp
             </Button>
           </Space>
         </Card>

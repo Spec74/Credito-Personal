@@ -22,4 +22,14 @@ public interface IPrendarioReadService
         int oficinaId,
         int creditoId,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<PrendarioAvisoVencimientoDto>> ListarAvisosVencimientoAsync(
+        int? oficinaId,
+        int diasAntes,
+        CancellationToken cancellationToken = default);
+
+    Task<bool> MarcarNotificadoWhatsAppAsync(
+        int oficinaId,
+        int creditoId,
+        CancellationToken cancellationToken = default);
 }

@@ -14,5 +14,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ReportAssets\logocredito.jpg" />
+    <EmbeddedResource Include="ReportAssets\ClausulasPrendario.pdf" />
   </ItemGroup>
 </Project>

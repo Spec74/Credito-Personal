@@ -1,26 +1,26 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
-import { PlusOutlined, SearchOutlined } from '@ant-design/icons'
-import { Button, Input, Space, Tag, Typography } from 'antd'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { PlusOutlined, SearchOutlined, WhatsAppOutlined } from '@ant-design/icons'
+import { Button, Input, Modal, Space, Table, Tag, Tooltip, Typography, message } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { fetchPrendarioCreditos, fetchPrendarioResumen, type PrendarioCategoria, type PrendarioCreditoRow } from '../../api/prendario'
+import {
+  enviarAvisosVencimientoPrendario,
+  fetchPrendarioAvisosVencimiento,
+  fetchPrendarioCreditos,
+  fetchPrendarioResumen,
+  type PrendarioAvisoVencimiento,
+  type PrendarioCreditoRow,
+} from '../../api/prendario'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CredixDataTable, CredixPage, type CredixStatItem } from '../../components/credix'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
+import { situacionPrendario } from '../../utils/prendarioSituacion'
 
 const { Text } = Typography
-
-const CATEGORIA: Record<PrendarioCategoria, { color: string; label: string }> = {
-  Vigente: { color: 'green', label: 'Vigente' },
-  PorVencer: { color: 'gold', label: 'Por vencer' },
-  Vencido: { color: 'red', label: 'Vencido' },
-  Rematado: { color: 'magenta', label: 'Rematado' },
-  SinBienes: { color: 'default', label: 'Sin bienes' },
-  Otro: { color: 'blue', label: 'En trámite' },
-}
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error desconocido'
@@ -33,6 +33,8 @@ export function CreditoPrendarioPage() {
   const [buscar, setBuscar] = useState('')
   const [termino, setTermino] = useState('')
   const [page, setPage] = useState(1)
+  const [avisosOpen, setAvisosOpen] = useState(false)
+  const queryClient = useQueryClient()
 
   const resumen = useQuery({
     queryKey: ['prendario-resumen', oficinaId],
@@ -44,6 +46,30 @@ export function CreditoPrendarioPage() {
     queryKey: ['prendario-creditos', oficinaId, termino, page],
     queryFn: () => fetchPrendarioCreditos({ oficinaId, buscar: termino, page, pageSize: 20 }),
     enabled: oficinaId > 0,
+  })
+
+  const avisos = useQuery({
+    queryKey: ['prendario-avisos', oficinaId],
+    queryFn: () => fetchPrendarioAvisosVencimiento(oficinaId, 3),
+    enabled: oficinaId > 0 && avisosOpen,
+  })
+
+  const enviarAvisos = useMutation({
+    mutationFn: (creditoId?: number) =>
+      enviarAvisosVencimientoPrendario({
+        oficinaId,
+        diasAntes: 3,
+        creditoId,
+      }),
+    onSuccess: (r) => {
+      void queryClient.invalidateQueries({ queryKey: ['prendario-avisos', oficinaId] })
+      if (r.enviados === 0 && r.fallidos === 0 && r.omitidos === 0) {
+        message.info(r.detalle[0]?.mensaje ?? 'No hay avisos pendientes')
+        return
+      }
+      message.success(`Enviados ${r.enviados}. Fallidos ${r.fallidos}. Omitidos ${r.omitidos}.`)
+    },
+    onError: (e) => message.error(errMsg(e)),
   })
 
   const stats: CredixStatItem[] = useMemo(() => {
@@ -107,27 +133,44 @@ export function CreditoPrendarioPage() {
     },
     {
       title: 'Situación',
-      dataIndex: 'categoria',
-      width: 120,
-      render: (v: PrendarioCategoria) => {
-        const cat = CATEGORIA[v] ?? CATEGORIA.Otro
-        return <Tag color={cat.color}>{cat.label}</Tag>
+      key: 'situacion',
+      width: 130,
+      render: (_, row) => {
+        const s = situacionPrendario(row)
+        return (
+          <Tooltip title={s.hint}>
+            <Tag color={s.color}>{s.label}</Tag>
+          </Tooltip>
+        )
       },
     },
     {
       title: '',
       key: 'acciones',
-      width: 90,
+      width: 170,
       render: (_, row) => (
-        <Button
-          type="link"
-          size="small"
-          onClick={() =>
-            navigate(`/credito/prendario/gestionar/${row.personaId}?creditoId=${row.creditoId}`)
-          }
-        >
-          Gestionar
-        </Button>
+        <Space size={0}>
+          <Button
+            type="link"
+            size="small"
+            onClick={() =>
+              navigate(`/credito/prendario/gestionar/${row.personaId}?creditoId=${row.creditoId}`)
+            }
+          >
+            Gestionar
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            icon={<WhatsAppOutlined />}
+            onClick={() => {
+              const ok = abrirWhatsAppPrendario(row.celular, row.nombreCompleto ?? '', row.creditoId)
+              if (!ok) {
+                message.warning('Este cliente no tiene celular registrado')
+              }
+            }}
+          />
+        </Space>
       ),
     },
   ],
@@ -145,9 +188,12 @@ export function CreditoPrendarioPage() {
       ]}
       stats={stats}
       actions={
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/credito/prendario/nuevo')}>
-          Nuevo
-        </Button>
+        <Space wrap>
+          <Button onClick={() => setAvisosOpen(true)}>Avisos a 3 días</Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/credito/prendario/nuevo')}>
+            Nuevo
+          </Button>
+        </Space>
       }
     >
       <Space.Compact style={{ width: 'min(480px, 100%)', marginBottom: 16 }}>
@@ -189,6 +235,65 @@ export function CreditoPrendarioPage() {
         locale={{ emptyText: 'No hay créditos prendarios en esta oficina' }}
         scroll={{ x: 'max-content' }}
       />
+      <Modal
+        title="Avisos de vencimiento (3 días)"
+        open={avisosOpen}
+        onCancel={() => setAvisosOpen(false)}
+        width={720}
+        footer={
+          <Button
+            type="primary"
+            icon={<WhatsAppOutlined />}
+            loading={enviarAvisos.isPending}
+            disabled={(avisos.data?.length ?? 0) === 0}
+            onClick={() => enviarAvisos.mutate(undefined)}
+          >
+            Enviar plantilla WhatsApp
+          </Button>
+        }
+      >
+        <Text type="secondary">
+          Se envía la plantilla aviso_vencimiento_prendario por WhatsApp Business a quienes vencen
+          exactamente en 3 días y aún no fueron avisados hoy.
+        </Text>
+        <Table<PrendarioAvisoVencimiento>
+          rowKey="creditoId"
+          size="small"
+          style={{ marginTop: 12 }}
+          loading={avisos.isFetching}
+          pagination={false}
+          dataSource={avisos.data ?? []}
+          locale={{ emptyText: 'Nadie vence en 3 días o ya fueron avisados hoy' }}
+          columns={[
+            { title: 'Crédito', dataIndex: 'creditoId', width: 90 },
+            { title: 'Cliente', dataIndex: 'nombreCliente', ellipsis: true },
+            { title: 'Celular', dataIndex: 'celular', width: 120 },
+            {
+              title: 'A cancelar',
+              dataIndex: 'montoCancelar',
+              width: 110,
+              align: 'right',
+              render: (v: number) => formatMoney(v),
+            },
+            {
+              title: '',
+              key: 'wa',
+              width: 90,
+              render: (_, row) => (
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<WhatsAppOutlined />}
+                  loading={enviarAvisos.isPending}
+                  onClick={() => enviarAvisos.mutate(row.creditoId)}
+                >
+                  Enviar
+                </Button>
+              ),
+            },
+          ]}
+        />
+      </Modal>
     </CredixPage>
   )
 }

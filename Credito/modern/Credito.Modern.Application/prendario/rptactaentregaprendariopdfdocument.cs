@@ -1,11 +1,10 @@
-using System.Globalization;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 
 namespace Credito.Modern.Application.Prendario;
 
-/// <summary>Acta de entrega voluntaria (sustituto de <c>rptActaEntregaPrendario.rdlc</c>).</summary>
+/// <summary>Acta de entrega voluntaria, texto y bloques del RDLC.</summary>
 public static class RptActaEntregaPrendarioPdfDocument
 {
     static RptActaEntregaPrendarioPdfDocument()
@@ -15,112 +14,110 @@ public static class RptActaEntregaPrendarioPdfDocument
 
     public static byte[] Build(PrendarioActaDto d)
     {
-        var cultura = CultureInfo.GetCultureInfo("es-PE");
         return Document.Create(document =>
         {
             document.Page(page =>
             {
                 page.Size(PageSizes.A4);
-                page.Margin(18);
+                page.MarginHorizontal(18);
+                page.MarginVertical(16);
                 page.DefaultTextStyle(x => x.FontSize(9));
-                page.Footer().Element(CreditoPlanes.CreditoPdfBranding.ComposeFooter);
 
                 page.Content().Column(col =>
                 {
-                    col.Spacing(8);
-                    CreditoPlanes.CreditoPdfBranding.ComposeTitleBlock(
-                        col,
-                        "ACTA DE ENTREGA VOLUNTARIA",
-                        $"Contrato N.º {d.NumeroContrato}");
+                    PrendarioPdfLayout.Encabezado(col, "ACTA DE ENTREGA VOLUNTARIA", d.NumeroContrato);
 
-                    col.Item().Text(text =>
+                    col.Item().PaddingTop(10).Text(text =>
                     {
-                        text.Span("En ");
-                        text.Span(Texto(d.Distrito)).Bold();
-                        text.Span(", provincia de ");
-                        text.Span(Texto(d.Provincia)).Bold();
-                        text.Span(", departamento de ");
-                        text.Span(Texto(d.Departamento)).Bold();
-                        text.Span(", a los ");
-                        text.Span(d.FechaContrato.Day.ToString("00", CultureInfo.InvariantCulture)).Bold();
-                        text.Span(" días del mes de ");
-                        text.Span(d.FechaContrato.ToString("MMMM", cultura)).Bold();
-                        text.Span(" de ");
-                        text.Span(d.FechaContrato.Year.ToString(CultureInfo.InvariantCulture)).Bold();
-                        text.Span(".");
+                        text.Span("Yo, " + d.ApellidosNombres);
+                        text.Span(", identificado(a) con DNI N° " + d.DniCliente);
+                        text.Span(", con domicilio en " + PrendarioPdfTexto.Valor(d.Domicilio));
+                        text.Span(", distrito de " + PrendarioPdfTexto.Valor(d.Distrito));
+                        text.Span(", provincia de " + PrendarioPdfTexto.Valor(d.Provincia));
+                        text.Span(", departamento de " + PrendarioPdfTexto.Valor(d.Departamento));
+                        text.Span(", de la ciudad de Ayacucho, a los " + PrendarioPdfTexto.Dia(d.FechaContrato));
+                        text.Span(" días del mes de " + PrendarioPdfTexto.MesNombre(d.FechaContrato));
+                        text.Span(" del " + PrendarioPdfTexto.Anio(d.FechaContrato) + ",");
                     });
 
-                    col.Item().Text(text =>
-                    {
-                        text.Span("Yo, ");
-                        text.Span(d.ApellidosNombres).Bold();
-                        text.Span(", identificado(a) con DNI ");
-                        text.Span(d.DniCliente).Bold();
-                        text.Span(", con domicilio en ");
-                        text.Span(Texto(d.Domicilio)).Bold();
-                        text.Span(", declaro entregar de manera voluntaria a CREDICONFIABLE los bienes que se detallan, en garantía del contrato de crédito prendario N.º ");
-                        text.Span(d.NumeroContrato).Bold();
-                        text.Span(".");
-                    });
+                    col.Item().PaddingTop(6).Text(
+                        "por medio de la presente, realizo la ENTREGA VOLUNTARIA de la(s) mercadería(s) detallada(s) en el presente documento, en calidad de garantía prendaria, a favor de "
+                        + PrendarioPdfTexto.EmpresaActa
+                        + ", en virtud del Contrato de Préstamo Prendario N° "
+                        + d.NumeroContrato
+                        + " que suscribimos con fecha "
+                        + PrendarioPdfTexto.FechaCorta(d.FechaContrato)
+                        + ", autorizando expresamente a "
+                        + PrendarioPdfTexto.EmpresaActa
+                        + " a ejercer los derechos que le correspondan conforme a dicho contrato, incluyendo, de ser el caso, la custodia, conservación, valorización, venta o disposición de los bienes entregados, de acuerdo con la normativa aplicable.");
 
-                    col.Item().Element(c =>
-                        c.Background(Color.FromHex("#114885")).Padding(4)
-                            .Text("Bienes entregados en custodia")
-                            .FontColor(Colors.White).SemiBold().FontSize(9));
-
+                    col.Item().PaddingTop(8).Element(c =>
+                        PrendarioPdfLayout.Banda(c, "I. DETALLE DE MERCADERÍAS ENTREGADAS"));
                     col.Item().Table(table =>
                     {
                         table.ColumnsDefinition(c =>
                         {
-                            c.ConstantColumn(28);
-                            c.RelativeColumn(2.4f);
+                            c.ConstantColumn(24);
+                            c.RelativeColumn(2.2f);
                             c.RelativeColumn(1);
+                            c.RelativeColumn(1.1f);
+                            c.RelativeColumn(0.8f);
                             c.RelativeColumn(1);
-                            c.RelativeColumn(1);
-                            c.RelativeColumn(1);
+                            c.RelativeColumn(1.1f);
                         });
-                        table.Header(h =>
-                        {
-                            h.Cell().Element(CreditoPlanes.CreditoPdfBranding.TableHeaderCell).Text("N.º");
-                            h.Cell().Element(CreditoPlanes.CreditoPdfBranding.TableHeaderCell).Text("Descripción");
-                            h.Cell().Element(CreditoPlanes.CreditoPdfBranding.TableHeaderCell).Text("Marca");
-                            h.Cell().Element(CreditoPlanes.CreditoPdfBranding.TableHeaderCell).Text("Modelo");
-                            h.Cell().Element(CreditoPlanes.CreditoPdfBranding.TableHeaderCell).Text("Serie");
-                            h.Cell().Element(CreditoPlanes.CreditoPdfBranding.TableHeaderCell).AlignRight().Text("Tasación");
-                        });
+                        Cabecera(table, "N°");
+                        Cabecera(table, "Descripción del bien");
+                        Cabecera(table, "Marca");
+                        Cabecera(table, "Serie / IMEI");
+                        Cabecera(table, "Color");
+                        Cabecera(table, "Código interno");
+                        Cabecera(table, "Valor referencial S/.");
                         var i = 1;
                         foreach (var bien in d.Bienes)
                         {
-                            table.Cell().Element(CreditoPlanes.CreditoPdfBranding.TableBodyCell).Text(i.ToString(CultureInfo.InvariantCulture));
-                            table.Cell().Element(CreditoPlanes.CreditoPdfBranding.TableBodyCell).Text(bien.Descripcion);
-                            table.Cell().Element(CreditoPlanes.CreditoPdfBranding.TableBodyCell).Text(Texto(bien.Marca));
-                            table.Cell().Element(CreditoPlanes.CreditoPdfBranding.TableBodyCell).Text(Texto(bien.Modelo));
-                            table.Cell().Element(CreditoPlanes.CreditoPdfBranding.TableBodyCell).Text(bien.Serie);
-                            table.Cell().Element(CreditoPlanes.CreditoPdfBranding.TableBodyCell).AlignRight()
-                                .Text(bien.ValorTasacion.ToString("C2", cultura));
+                            Cuerpo(table, i.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                            Cuerpo(table, bien.Descripcion);
+                            Cuerpo(table, PrendarioPdfTexto.Valor(bien.Marca));
+                            Cuerpo(table, bien.Serie);
+                            Cuerpo(table, PrendarioPdfTexto.Valor(bien.Color));
+                            Cuerpo(table, PrendarioPdfTexto.Valor(bien.CodigoInterno));
+                            table.Cell().Border(0.6f).BorderColor(Colors.Black).Padding(3).AlignRight()
+                                .Text(bien.ValorTasacion.ToString("N2", PrendarioPdfTexto.Cultura));
                             i++;
                         }
                     });
 
-                    col.Item().PaddingTop(6).Text(
-                        "Declaro que los bienes son de mi propiedad, se encuentran libres de gravamen y los entrego en el estado en que se hallan, autorizando su custodia hasta la cancelación de la obligación o hasta la fecha de remate pactada.")
-                        .FontSize(8)
-                        .FontColor(Colors.Grey.Darken2);
+                    col.Item().PaddingTop(8).Element(c =>
+                        PrendarioPdfLayout.Banda(c, "II. DECLARACIÓN DEL PRESTATARIO"));
+                    col.Item().Border(0.6f).BorderColor(Colors.Black).Padding(4).Text(
+                        "El prestatario declara bajo juramento que los bienes entregados son de su exclusiva propiedad, que se encuentran libres de todo gravamen, carga, embargo, litigio o restricción de cualquier naturaleza, y que la información proporcionada en la presente acta es verdadera, completa y exacta.");
 
-                    col.Item().PaddingTop(36).Row(row =>
+                    col.Item().PaddingTop(8).Element(c => PrendarioPdfLayout.Banda(c, "III. ACEPTACIÓN"));
+                    col.Item().Border(0.6f).BorderColor(Colors.Black).Padding(4).Text(
+                        "La entrega voluntaria de los bienes descritos se realiza en señal de garantía prendaria por el cumplimiento de la obligación asumida por el prestatario en el Contrato de Préstamo Prendario suscrito con "
+                        + PrendarioPdfTexto.EmpresaActa
+                        + ". En señal de conformidad, suscribimos la presente acta en dos (02) ejemplares del mismo tenor en la ciudad de Ayacucho, a los "
+                        + PrendarioPdfTexto.Dia(d.FechaContrato)
+                        + " días del mes de "
+                        + PrendarioPdfTexto.MesNombre(d.FechaContrato)
+                        + " del "
+                        + PrendarioPdfTexto.Anio(d.FechaContrato)
+                        + ".");
+
+                    col.Item().PaddingTop(6).Border(0.6f).BorderColor(Colors.Black).Padding(4).Text(text =>
                     {
-                        row.RelativeItem().AlignCenter().Column(c =>
+                        text.Span("NOTA: ").Bold();
+                        text.Span("La presente acta no constituye novación ni modificación de la obligación contraída. Es parte integrante del Contrato de Préstamo Prendario suscrito entre las partes.");
+                    });
+
+                    col.Item().PaddingTop(20).Row(row =>
+                    {
+                        FirmaActa(row, "PRESTATARIO", "DNI N°: " + d.DniCliente, "FIRMA");
+                        FirmaActa(row, "REPRESENTANTE DE " + PrendarioPdfTexto.EmpresaActa, string.Empty, "FIRMA Y SELLO");
+                        row.ConstantItem(100).Column(c =>
                         {
-                            c.Item().Width(200).BorderTop(0.5f).BorderColor(Colors.Grey.Darken1);
-                            c.Item().PaddingTop(4).Text(d.ApellidosNombres).Bold().FontSize(8);
-                            c.Item().Text($"DNI {d.DniCliente}").FontSize(8);
-                            c.Item().Text("Entregué conforme").FontSize(8).FontColor(Colors.Grey.Darken2);
-                        });
-                        row.RelativeItem().AlignCenter().Column(c =>
-                        {
-                            c.Item().Width(200).BorderTop(0.5f).BorderColor(Colors.Grey.Darken1);
-                            c.Item().PaddingTop(4).Text("CREDICONFIABLE").Bold().FontSize(8);
-                            c.Item().Text("Recibí conforme").FontSize(8).FontColor(Colors.Grey.Darken2);
+                            c.Item().Element(x => PrendarioPdfLayout.Banda(x, "HUELLA DIGITAL"));
+                            c.Item().Height(58).Border(0.6f).BorderColor(Colors.Black);
                         });
                     });
                 });
@@ -128,5 +125,25 @@ public static class RptActaEntregaPrendarioPdfDocument
         }).GeneratePdf();
     }
 
-    private static string Texto(string? valor) => string.IsNullOrWhiteSpace(valor) ? "—" : valor.Trim();
+    private static void Cabecera(TableDescriptor table, string titulo) =>
+        table.Cell().Element(c => PrendarioPdfLayout.Banda(c, titulo));
+
+    private static void Cuerpo(TableDescriptor table, string valor) =>
+        table.Cell().Border(0.6f).BorderColor(Colors.Black).Padding(3).Text(valor).FontSize(8);
+
+    private static void FirmaActa(RowDescriptor row, string titulo, string linea, string pie)
+    {
+        row.RelativeItem().PaddingRight(8).Column(c =>
+        {
+            c.Item().Element(x => PrendarioPdfLayout.Banda(x, titulo));
+            c.Item().Height(46);
+            c.Item().BorderTop(0.7f).BorderColor(Colors.Black);
+            if (!string.IsNullOrWhiteSpace(linea))
+            {
+                c.Item().PaddingTop(3).AlignCenter().Text(linea).FontSize(8);
+            }
+
+            c.Item().AlignCenter().Text(pie).FontSize(8);
+        });
+    }
 }

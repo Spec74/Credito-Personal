@@ -41,6 +41,7 @@ export interface CreditoContexto {
   numeroContratoPrendario: string | null
   fechaRemate: string | null
   fechaVencimiento: string
+  personaCelular: string | null
 }
 
 export interface SolicitudCreditoDetalle {

@@ -76,43 +76,57 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                 DECLARE @Hoy date = dbo.ufnFecha();
                 DECLARE @Limite date = DATEADD(DAY, @DiasAviso, @Hoy);
 
-                WITH Base AS (
-                    SELECT c.CreditoId,
-                           c.PersonaId,
-                           p.NumeroDocumento,
-                           p.NombreCompleto,
-                           p.Celular1 AS Celular,
-                           c.NumeroContratoPrendario,
-                           ISNULL(c.MontoTasacion, 0) AS MontoTasacion,
-                           c.MontoCredito,
-                           c.FechaVencimiento,
-                           c.FechaRemate,
-                           c.Estado,
-                           c.EsPrendario,
-                           (SELECT COUNT(*) FROM CREDITO.Prenda AS pr
-                            WHERE pr.CreditoId = c.CreditoId) AS Bienes,
-                           CASE
-                               WHEN c.EsPrendario = CAST(0 AS bit) THEN 0
-                               WHEN c.Estado <> 'DES' THEN 1
-                               WHEN c.FechaRemate IS NOT NULL AND c.FechaRemate < @Hoy THEN 2
-                               WHEN c.FechaVencimiento < @Hoy THEN 3
-                               WHEN c.FechaVencimiento <= @Limite THEN 4
-                               ELSE 5
-                           END AS Categoria,
-                           DATEDIFF(DAY, @Hoy, c.FechaVencimiento) AS DiasParaVencer
-                    FROM CREDITO.Credito AS c
-                    INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
-                    WHERE c.OficinaId = @OficinaId
-                      AND (c.EsPrendario = CAST(1 AS bit) OR c.ProductoId = 2)
-                      AND (@Buscar IS NULL
-                           OR p.NombreCompleto LIKE '%' + @Buscar + '%'
-                           OR p.NumeroDocumento LIKE '%' + @Buscar + '%'
-                           OR c.NumeroContratoPrendario LIKE '%' + @Buscar + '%')
-                )
-                SELECT COUNT(*) FROM Base;
+                SELECT c.CreditoId,
+                       c.PersonaId,
+                       p.NumeroDocumento,
+                       p.NombreCompleto,
+                       p.Celular1 AS Celular,
+                       c.NumeroContratoPrendario,
+                       ISNULL(c.MontoTasacion, 0) AS MontoTasacion,
+                       c.MontoCredito,
+                       c.FechaVencimiento,
+                       c.FechaRemate,
+                       c.Estado,
+                       c.EsPrendario,
+                       (SELECT COUNT(*) FROM CREDITO.Prenda AS pr
+                        WHERE pr.CreditoId = c.CreditoId) AS Bienes,
+                       CASE
+                           WHEN c.EsPrendario = CAST(0 AS bit) THEN 0
+                           WHEN c.Estado <> 'DES' THEN 1
+                           WHEN c.FechaRemate IS NOT NULL AND c.FechaRemate < @Hoy THEN 2
+                           WHEN c.FechaVencimiento < @Hoy THEN 3
+                           WHEN c.FechaVencimiento <= @Limite THEN 4
+                           ELSE 5
+                       END AS Categoria,
+                       DATEDIFF(DAY, @Hoy, c.FechaVencimiento) AS DiasParaVencer
+                INTO #PrendarioListado
+                FROM CREDITO.Credito AS c
+                INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
+                WHERE c.OficinaId = @OficinaId
+                  AND (c.EsPrendario = CAST(1 AS bit) OR c.ProductoId = 2)
+                  AND (@Buscar IS NULL
+                       OR p.NombreCompleto LIKE '%' + @Buscar + '%'
+                       OR p.NumeroDocumento LIKE '%' + @Buscar + '%'
+                       OR c.NumeroContratoPrendario LIKE '%' + @Buscar + '%');
 
-                SELECT *
-                FROM Base
+                SELECT COUNT(*) FROM #PrendarioListado;
+
+                SELECT CreditoId,
+                       PersonaId,
+                       NumeroDocumento,
+                       NombreCompleto,
+                       Celular,
+                       NumeroContratoPrendario,
+                       MontoTasacion,
+                       MontoCredito,
+                       FechaVencimiento,
+                       FechaRemate,
+                       Estado,
+                       EsPrendario,
+                       Bienes,
+                       Categoria,
+                       DiasParaVencer
+                FROM #PrendarioListado
                 ORDER BY CreditoId DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
                 """,
@@ -277,7 +291,8 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                        Serie,
                        Color,
                        ValorTasacion,
-                       CodigoInterno
+                       CodigoInterno,
+                       Observaciones
                 FROM CREDITO.Prenda
                 WHERE CreditoId = @CreditoId
                 ORDER BY PrendaId;
@@ -288,6 +303,81 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
         var cabecera = await multi.ReadFirstOrDefaultAsync<DocumentoCabeceraRow>().ConfigureAwait(false);
         var bienes = (await multi.ReadAsync<PrendarioBienDocumentoDto>().ConfigureAwait(false)).AsList();
         return (cabecera, bienes);
+    }
+
+    public async Task<IReadOnlyList<PrendarioAvisoVencimientoDto>> ListarAvisosVencimientoAsync(
+        int? oficinaId,
+        int diasAntes,
+        CancellationToken cancellationToken = default)
+    {
+        if (diasAntes < 1 || diasAntes > 30)
+        {
+            throw new ArgumentOutOfRangeException(nameof(diasAntes));
+        }
+
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var rows = await connection.QueryAsync<PrendarioAvisoVencimientoRow>(
+            new CommandDefinition(
+                """
+                DECLARE @Hoy date = dbo.ufnFecha();
+                DECLARE @Objetivo date = DATEADD(DAY, @DiasAntes, @Hoy);
+
+                SELECT c.CreditoId,
+                       c.OficinaId,
+                       p.NombreCompleto AS NombreCliente,
+                       p.Celular1 AS Celular,
+                       c.FechaVencimiento,
+                       c.MontoCredito,
+                       c.Interes
+                FROM CREDITO.Credito AS c
+                INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
+                WHERE (@OficinaId IS NULL OR c.OficinaId = @OficinaId)
+                  AND c.EsPrendario = CAST(1 AS bit)
+                  AND c.Estado = 'DES'
+                  AND c.FechaVencimiento = @Objetivo
+                  AND (c.FechaNotifWhatsapp3d IS NULL
+                       OR CAST(c.FechaNotifWhatsapp3d AS date) <> @Hoy)
+                ORDER BY c.CreditoId;
+                """,
+                new { OficinaId = oficinaId, DiasAntes = diasAntes },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        return rows
+            .Select(r => new PrendarioAvisoVencimientoDto(
+                r.CreditoId,
+                r.OficinaId,
+                r.NombreCliente,
+                r.Celular,
+                r.FechaVencimiento,
+                r.MontoCredito,
+                r.Interes,
+                r.MontoCredito + (r.MontoCredito * r.Interes / 100m)))
+            .ToList();
+    }
+
+    public async Task<bool> MarcarNotificadoWhatsAppAsync(
+        int oficinaId,
+        int creditoId,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var n = await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                UPDATE CREDITO.Credito
+                SET FechaNotifWhatsapp3d = dbo.ufnFecha()
+                WHERE CreditoId = @CreditoId
+                  AND OficinaId = @OficinaId
+                  AND EsPrendario = CAST(1 AS bit);
+                """,
+                new { OficinaId = oficinaId, CreditoId = creditoId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+        return n > 0;
     }
 
     private sealed class DocumentoCabeceraRow
@@ -315,6 +405,17 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
         public string? ConyugeNombre { get; init; }
         public string? ConyugeDni { get; init; }
         public string? EjecutivoNombre { get; init; }
+    }
+
+    private sealed class PrendarioAvisoVencimientoRow
+    {
+        public int CreditoId { get; init; }
+        public int OficinaId { get; init; }
+        public string NombreCliente { get; init; } = "";
+        public string? Celular { get; init; }
+        public DateTime FechaVencimiento { get; init; }
+        public decimal MontoCredito { get; init; }
+        public decimal Interes { get; init; }
     }
 
     private void EnsureConnection()

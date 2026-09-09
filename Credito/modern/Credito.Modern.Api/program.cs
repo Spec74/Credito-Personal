@@ -5477,6 +5477,214 @@ app.MapGet(
     .ProducesProblem(StatusCodes.Status409Conflict)
     .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
+app.MapGet(
+        "/api/v1/prendario/avisos-vencimiento",
+        async Task<Results<Ok<IReadOnlyList<PrendarioAvisoVencimientoDto>>, ProblemHttpResult>> (
+            HttpContext httpContext,
+            int oficinaId,
+            IPrendarioReadService prendarioRead,
+            ILoggerFactory loggerFactory,
+            IHostEnvironment env,
+            int diasAntes = 3,
+            CancellationToken ct = default) =>
+        {
+            if (oficinaId < 1)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Solicitud inválida",
+                    detail: "oficinaId debe ser >= 1.");
+            }
+
+            if (diasAntes < 1 || diasAntes > 30)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Solicitud inválida",
+                    detail: "diasAntes debe estar entre 1 y 30.");
+            }
+
+            var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+            if (oficinaError is not null)
+                return oficinaError;
+
+            var log = loggerFactory.CreateLogger("PrendarioAvisosVencimiento");
+            try
+            {
+                var avisos = await prendarioRead
+                    .ListarAvisosVencimientoAsync(oficinaId, diasAntes, ct)
+                    .ConfigureAwait(false);
+                return TypedResults.Ok(avisos);
+            }
+            catch (InvalidOperationException ex)
+            {
+                log.LogWarning(ex, "Cadena de conexión no configurada");
+                return TypedResults.Problem(
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Configuración incompleta");
+            }
+            catch (DbException ex)
+            {
+                log.LogError(ex, "Error al listar avisos de vencimiento prendario");
+                var detail = "No se pudieron listar los avisos de vencimiento.";
+                if (env.IsDevelopment())
+                    detail += $" Detalle: {ex.Message}";
+                return TypedResults.Problem(
+                    detail: detail,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Error de base de datos");
+            }
+        })
+    .WithName("PrendarioAvisosVencimiento")
+    .WithSummary("Créditos prendarios desembolsados que vencen en N días y aún no fueron avisados hoy. Paridad CreditoBL.ObtenerCreditosPrendariosPorVencer, acotado a la oficina.")
+    .WithTags("prendario")
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario)
+    .Produces<IReadOnlyList<PrendarioAvisoVencimientoDto>>(StatusCodes.Status200OK, "application/json")
+    .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
+    .ProducesProblem(StatusCodes.Status403Forbidden)
+    .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+app.MapPost(
+        "/api/v1/prendario/avisos-vencimiento/marcar",
+        async Task<Results<Ok, ProblemHttpResult>> (
+            HttpContext httpContext,
+            int oficinaId,
+            int creditoId,
+            IPrendarioReadService prendarioRead,
+            ILoggerFactory loggerFactory,
+            IHostEnvironment env,
+            CancellationToken ct) =>
+        {
+            if (oficinaId < 1 || creditoId < 1)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Solicitud inválida",
+                    detail: "oficinaId y creditoId deben ser >= 1.");
+            }
+
+            var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+            if (oficinaError is not null)
+                return oficinaError;
+
+            var log = loggerFactory.CreateLogger("PrendarioMarcarWhatsApp");
+            try
+            {
+                var ok = await prendarioRead
+                    .MarcarNotificadoWhatsAppAsync(oficinaId, creditoId, ct)
+                    .ConfigureAwait(false);
+                if (!ok)
+                {
+                    return TypedResults.Problem(
+                        statusCode: StatusCodes.Status404NotFound,
+                        title: "No encontrado",
+                        detail: "El crédito prendario no existe en esta oficina.");
+                }
+
+                return TypedResults.Ok();
+            }
+            catch (InvalidOperationException ex)
+            {
+                log.LogWarning(ex, "Cadena de conexión no configurada");
+                return TypedResults.Problem(
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Configuración incompleta");
+            }
+            catch (DbException ex)
+            {
+                log.LogError(ex, "Error al marcar el aviso WhatsApp prendario");
+                var detail = "No se pudo registrar el aviso.";
+                if (env.IsDevelopment())
+                    detail += $" Detalle: {ex.Message}";
+                return TypedResults.Problem(
+                    detail: detail,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Error de base de datos");
+            }
+        })
+    .WithName("PrendarioMarcarAvisoVencimiento")
+    .WithSummary("Paridad CreditoBL.MarcarNotificadoWhatsapp: deja constancia de que el aviso de hoy ya se envió.")
+    .WithTags("prendario")
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario)
+    .Produces(StatusCodes.Status200OK)
+    .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
+    .ProducesProblem(StatusCodes.Status403Forbidden)
+    .ProducesProblem(StatusCodes.Status404NotFound)
+    .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+app.MapPost(
+        "/api/v1/prendario/avisos-vencimiento/enviar",
+        async Task<Results<Ok<PrendarioAvisoEnvioResumenDto>, ProblemHttpResult>> (
+            HttpContext httpContext,
+            EnviarAvisosPrendarioRequest body,
+            IPrendarioAvisoEnvioService envio,
+            ILoggerFactory loggerFactory,
+            IHostEnvironment env,
+            CancellationToken ct) =>
+        {
+            if (body.OficinaId < 1)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Solicitud inválida",
+                    detail: "oficinaId debe ser >= 1.");
+            }
+
+            var diasAntes = body.DiasAntes < 1 ? 3 : body.DiasAntes;
+            if (diasAntes > 30)
+            {
+                return TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Solicitud inválida",
+                    detail: "diasAntes debe estar entre 1 y 30.");
+            }
+
+            var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
+            if (oficinaError is not null)
+                return oficinaError;
+
+            var log = loggerFactory.CreateLogger("PrendarioEnviarAvisos");
+            try
+            {
+                var resumen = await envio
+                    .EnviarPendientesAsync(body.OficinaId, diasAntes, body.CreditoId, ct)
+                    .ConfigureAwait(false);
+                return TypedResults.Ok(resumen);
+            }
+            catch (InvalidOperationException ex)
+            {
+                log.LogWarning(ex, "Cadena de conexión no configurada");
+                return TypedResults.Problem(
+                    detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Configuración incompleta");
+            }
+            catch (DbException ex)
+            {
+                log.LogError(ex, "Error al enviar avisos WhatsApp prendarios");
+                var detail = "No se pudieron enviar los avisos.";
+                if (env.IsDevelopment())
+                    detail += $" Detalle: {ex.Message}";
+                return TypedResults.Problem(
+                    detail: detail,
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Error de base de datos");
+            }
+        })
+    .WithName("PrendarioEnviarAvisosVencimiento")
+    .WithSummary("Envía la plantilla aviso_vencimiento_prendario por WhatsApp Cloud API a quienes vencen en N días.")
+    .WithTags("prendario")
+    .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario)
+    .Produces<PrendarioAvisoEnvioResumenDto>(StatusCodes.Status200OK, "application/json")
+    .ProducesProblem(StatusCodes.Status400BadRequest)
+    .ProducesProblem(StatusCodes.Status401Unauthorized)
+    .ProducesProblem(StatusCodes.Status403Forbidden)
+    .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
 static async Task<(T? Documento, ProblemHttpResult? Error)> ConsultarDocumentoPrendarioAsync<T>(
     HttpContext httpContext,
     int oficinaId,

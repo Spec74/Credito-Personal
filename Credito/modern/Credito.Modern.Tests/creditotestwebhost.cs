@@ -47,6 +47,9 @@ internal static class CreditoTestWebHost
                     ["Hosting:AllowDevToken"] = "true",
                     ["Menu:PermiteParametrosQuery"] = "true",
                     ["RateLimiting:Disabled"] = "true",
+                    ["WhatsApp:Enabled"] = "false",
+                    ["WhatsApp:RunOnStartupIfPending"] = "false",
+                    ["WhatsApp:Token"] = "",
                     // El Api trae appsettings.Development.json (Default=Debug) y el host de prueba usa Development:
                     // sin esto, el ruido de Hosting, DataProtection, cada request y JwtBearer (caso negativo) vuelve a salir.
                     ["Logging:LogLevel:Default"] = "Warning",

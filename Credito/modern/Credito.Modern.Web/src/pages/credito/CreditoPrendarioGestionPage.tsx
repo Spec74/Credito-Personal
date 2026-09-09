@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { FilePdfOutlined, PlusOutlined } from '@ant-design/icons'
+import { FilePdfOutlined, PlusOutlined, WhatsAppOutlined } from '@ant-design/icons'
 import { Alert, Button, Input, Space, Typography, message } from 'antd'
 import {
   fetchCreditoContexto,
@@ -23,6 +23,7 @@ import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { prendaAItem, prendaVacia, prendasValidas, totalTasacion } from '../../utils/prendas'
+import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 
 const { Paragraph, Text } = Typography
 
@@ -209,6 +210,21 @@ export function CreditoPrendarioGestionPage() {
                 onClick={() => imprimirActa.mutate()}
               >
                 Acta de entrega
+              </Button>
+              <Button
+                icon={<WhatsAppOutlined />}
+                onClick={() => {
+                  const ok = abrirWhatsAppPrendario(
+                    contexto.data?.personaCelular,
+                    ficha.data?.nombreCompleto ?? '',
+                    creditoId,
+                  )
+                  if (!ok) {
+                    message.warning('Este cliente no tiene celular registrado')
+                  }
+                }}
+              >
+                WhatsApp
               </Button>
             </Space>
           }

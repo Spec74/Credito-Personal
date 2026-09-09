@@ -64,4 +64,20 @@ public class PrendarioEndpointTests : IClassFixture<CreditoModernWebApplicationF
         var response = await _client.GetAsync("/api/v1/prendario/acta-entrega-pdf?oficinaId=1&creditoId=1");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Avisos_vencimiento_sin_jwt_devuelve_401()
+    {
+        var response = await _client.GetAsync("/api/v1/prendario/avisos-vencimiento?oficinaId=1");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Enviar_avisos_sin_jwt_devuelve_401()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/prendario/avisos-vencimiento/enviar",
+            new { oficinaId = 1, diasAntes = 3 });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
 }

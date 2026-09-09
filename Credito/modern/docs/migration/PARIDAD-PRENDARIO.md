@@ -99,6 +99,10 @@ Categoría calculada por fila, en este orden:
 
 `días` = `FechaVencimiento - hoy`, puede ser negativo.
 
+En la columna Situación, `OTRO` no se muestra como «En trámite»: se usa el estado del
+ciclo (`CRE` solicitud, `PEN` pendiente, `APR` aprobado, etc.). Vigente / vencido /
+rematado solo aplican a `Estado = 'DES'`. Aprobado no es vigente hasta el desembolso en Caja.
+
 ## Tarjetas de resumen
 
 Todas sobre `EsPrendario = 1 AND Estado = 'DES'`:
@@ -118,18 +122,31 @@ tarjetas miden cartera desembolsada.
 Ambos exigen al menos un bien guardado; si no hay prendas responden 409 pidiendo guardar
 primero. Formato A4 vertical con márgenes de 0.25 pulgadas.
 
-- **Contrato prendario**: titular y cónyuge, detalle de bienes, importes en números y letras.
-  El departamento/provincia se leen del catálogo, no se asumen Ayacucho.
-- **Acta de entrega**: mismo encabezado y detalle de bienes, con lugar y fecha en texto.
+- **Contrato prendario**: Anexo A (cliente, prendas, observaciones) y Anexo B (tasas,
+  R.G.ADM 1 %, IGV 18 %, comisión de venta 5 %, montos en números y letras). El
+  departamento/provincia se leen del catálogo, no se asumen Ayacucho.
+- **Acta de entrega**: texto legal del RDLC (entrega voluntaria, declaración jurada,
+  aceptación con día/mes/año y recuadro de huella).
 
 `NumeroContrato` cae al `CreditoId` cuando `NumeroContratoPrendario` es nulo.
 
-Las cláusulas fijas (`ClausulasPrendario.pdf`) aún no se anexan al PDF del contrato.
+Las cláusulas oficiales (`ClausulasPrendario.pdf`) se anexan sin reescribirse. En la
+última página se estampa `Ayacucho, {día} de {mes} de {año}`, el nombre y el DNI sobre
+los blancos del PDF legal (`ReporteController.MergePdf` + sello). El archivo vive como
+recurso embebido `ReportAssets/ClausulasPrendario.pdf`.
 
 ## Notificaciones
 
-`ObtenerCreditosPrendariosPorVencer(diasAntes)` alimenta el aviso por WhatsApp de créditos
-prendarios próximos a vencer.
+`GET /api/v1/prendario/avisos-vencimiento` equivale a `ObtenerCreditosPrendariosPorVencer`:
+créditos `EsPrendario = 1`, `Estado = 'DES'`, que vencen exactamente en N días (por defecto 3)
+y que todavía no tienen `FechaNotifWhatsapp3d` de hoy. El moderno acota además a la oficina
+de la sesión.
+
+El botón **WhatsApp** de gestión abre `wa.me` para un recordatorio puntual. El aviso
+automático a 3 días usa WhatsApp Cloud API y la plantilla `aviso_vencimiento_prendario`
+(`{{1}}` nombre, `{{2}}` fecha, `{{3}}` importe). Corre a las 08:00 hora de Lima y, en
+desarrollo, una pasada al arrancar. `POST /avisos-vencimiento/enviar` permite dispararlo
+a mano. El token no se guarda en Git (user-secrets / variables de entorno).
 
 ## Acceso
 
@@ -137,5 +154,6 @@ Solo el rol `ANALISTA` (`RolId = 6`). En la base se concede con `MAESTRO.RolMenu
 `PRENDARIO - Listado` y `PRENDARIO - Nuevo`; en la SPA, `/credito/prendario` está en
 `EXACT_MENU_ROUTES` para que el hub de crédito no alcance a habilitarla.
 
-En el legacy, `PRENDARIO - Nuevo` (`Prendario/Create`) redirige a `Cliente/Mantener` con `id = 0`,
-es decir, arranca creando el cliente.
+En el legacy, `PRENDARIO - Nuevo` (`Prendario/Create`) redirige a `Cliente/Mantener` con `id = 0`.
+En modern no hay alta paralela: se busca un cliente existente o se abre `/clientes/nuevo` (ApiPerú
+y `guardarCliente`). Al guardar, vuelve a `/credito/prendario/nuevo?personaId=`.

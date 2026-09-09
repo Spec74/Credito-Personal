@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
@@ -60,6 +60,7 @@ import { type MapLatLng, toMapLatLng } from '../../config/googleMaps'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { ConyugueAutoComplete } from './components/ConyugueAutoComplete'
 import { CrearPersonaRapidaModal } from './components/CrearPersonaRapidaModal'
+import { buildPrendarioNuevoHref, parseInternalPath, withSearchParam } from '../../utils/internalReturnTo'
 import {
   CALIFICACIONES,
   ESTADO_CIVIL_CONYUGE,
@@ -110,6 +111,10 @@ type Props = {
 
 export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const returnTo = parseInternalPath(searchParams.get('returnTo'))
+  const dniPrefill = (searchParams.get('dni') ?? '').replace(/\D/g, '')
+  const dniPrefillDone = useRef(false)
   const queryClient = useQueryClient()
   const { session } = useAuth()
   const roles = session?.roles ?? []
@@ -125,7 +130,9 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
   const [nombresBloqueados, setNombresBloqueados] = useState(!esEdicion)
   const [avalOpen, setAvalOpen] = useState(false)
   const [distritoTerm, setDistritoTerm] = useState('')
-  const [guardarDestino, setGuardarDestino] = useState<'listado' | 'credito'>('listado')
+  const [guardarDestino, setGuardarDestino] = useState<'listado' | 'credito' | 'prendario'>('listado')
+  const puedePrendario =
+    esCreditoAdministrador(roles) || roles.some((r) => r.trim().toUpperCase() === 'ANALISTA')
   const debouncedDistrito = useDebouncedValue(distritoTerm.trim(), 300)
   const documentoOriginalRef = useRef('')
   const geocodificadoInicialRef = useRef(false)
@@ -263,6 +270,17 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
       void queryClient.invalidateQueries({ queryKey: ['cliente-detalle'] })
       void queryClient.invalidateQueries({ queryKey: ['clientes-listar'] })
       void queryClient.invalidateQueries({ queryKey: ['credito-clientes-buscar'] })
+      if (returnTo) {
+        navigate(
+          withSearchParam(withSearchParam(returnTo, 'personaId', String(r.personaId)), 'origen', 'alta'),
+          { replace: true },
+        )
+        return
+      }
+      if (guardarDestino === 'prendario') {
+        navigate(buildPrendarioNuevoHref(r.personaId, 'alta'), { replace: true })
+        return
+      }
       if (guardarDestino === 'credito') {
         navigate(`/credito/simulador?personaId=${r.personaId}`, { replace: true })
         return
@@ -322,6 +340,39 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
       message.error(errMsg(e))
     }
   }
+
+  useEffect(() => {
+    if (esEdicion || dniPrefillDone.current || dniPrefill.length !== 8) return
+    dniPrefillDone.current = true
+    form.setFieldValue('numeroDocumento', dniPrefill)
+    void (async () => {
+      try {
+        const p = await obtenerPersonaPorDocumento(dniPrefill)
+        if (p?.tieneCliente) {
+          message.info('Este DNI ya está registrado como cliente')
+          if (returnTo) {
+            navigate(withSearchParam(returnTo, 'personaId', String(p.personaId)), { replace: true })
+            return
+          }
+          navigate(`/clientes/editar/${p.personaId}`, { replace: true })
+          return
+        }
+        if (p) {
+          form.setFieldsValue({
+            nombre: p.nombre,
+            apePaterno: p.apePaterno ?? undefined,
+            apeMaterno: p.apeMaterno ?? undefined,
+            sexoMasculino: p.sexo !== 'F',
+          })
+          setNombresBloqueados(false)
+          return
+        }
+        await validarReniec()
+      } catch (e) {
+        message.error(errMsg(e))
+      }
+    })()
+  }, [dniPrefill, esEdicion, form, navigate, returnTo])
 
   const ubicarMapa = async () => {
     const distrito = form.getFieldValue('distritoLabel')?.trim() ?? distritoTerm.trim()
@@ -415,12 +466,14 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
         <>
           Identificación, domicilio con <strong>Google Maps</strong> y calificación crediticia.
           Validación <Tag className="cliente-mantener__doc-tag">ApiPeru</Tag> en servidor.
+          {returnTo ? ' Tras guardar volverá a la solicitud de origen.' : null}
         </>
       }
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/clientes">Clientes</Link> },
+        ...(returnTo ? [{ title: <Link to={returnTo}>Volver</Link> }] : []),
         { title: esEdicion ? `Cliente #${personaId}` : 'Nuevo' },
       ]}
     >
@@ -793,20 +846,35 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
             type="primary"
             htmlType="submit"
             icon={<SaveOutlined />}
-            loading={guardar.isPending && guardarDestino === 'listado'}
+            loading={guardar.isPending && (returnTo != null || guardarDestino === 'listado')}
             onClick={() => setGuardarDestino('listado')}
           >
-            Guardar cliente
+            {returnTo ? 'Guardar y continuar' : 'Guardar cliente'}
           </Button>
-          <Button
-            htmlType="submit"
-            icon={<FileAddOutlined />}
-            loading={guardar.isPending && guardarDestino === 'credito'}
-            onClick={() => setGuardarDestino('credito')}
-          >
-            Guardar y solicitar crédito
+          {!returnTo && (
+            <>
+              <Button
+                htmlType="submit"
+                icon={<FileAddOutlined />}
+                loading={guardar.isPending && guardarDestino === 'credito'}
+                onClick={() => setGuardarDestino('credito')}
+              >
+                Guardar y solicitar crédito
+              </Button>
+              {puedePrendario && (
+                <Button
+                  htmlType="submit"
+                  loading={guardar.isPending && guardarDestino === 'prendario'}
+                  onClick={() => setGuardarDestino('prendario')}
+                >
+                  Guardar y crédito prendario
+                </Button>
+              )}
+            </>
+          )}
+          <Button onClick={() => navigate(returnTo ?? '/clientes')}>
+            {returnTo ? 'Cancelar y volver' : 'Volver al listado'}
           </Button>
-          <Button onClick={() => navigate('/clientes')}>Volver al listado</Button>
           {esEdicion && (
             <>
               <Button

@@ -305,9 +305,51 @@ fijo `ClausulasPrendario.pdf` al contrato. El moderno los sustituye por QuestPDF
 guardado (409 si no hay). El departamento y la provincia salen del catálogo
 (`MAESTRO.Distrito` → `Provincia` → `Departamento`), no del literal `AYACUCHO` del legacy.
 
-Las cláusulas fijas no se anexan todavía: el contrato indica que forman parte del documento, y
-falta incorporar el PDF legal como recurso embebido para no mezclar un binario de terceros sin
-confirmar la versión vigente.
+Las cláusulas fijas se anexan con `PrendarioPdfMerge` sobre el PDF oficial de la rama
+`Prendario-Eber` (`Web/Reporte/ClausulasPrendario.pdf`), embebido en
+`ReportAssets/ClausulasPrendario.pdf`. El moderno estampa fecha, nombre y DNI sobre
+los blancos de la última página (`Ayacucho, __ de __ de ____`) para no rellenar a
+mano; el texto legal no se transcribe.
 
 El importe en letras corrige el "VEINTIuno" del legacy y emite `VEINTIUN`.
+
+Anexo A / Anexo B y el acta reproducen los campos y el texto legal del RDLC
+(`rptContratoPrendario.rdlc`, `rptActaEntregaPrendario.rdlc`). No se transcriben las
+19 cláusulas: el PDF oficial se anexa y se le estampa la fecha de generación.
+
+### 2026-09-09 — Aviso WhatsApp de vencimiento prendario
+
+**Tipo:** paridad con desviación deliberada
+
+El legado envía plantillas de WhatsApp Business (Meta) al arrancar IIS
+(`Global.asax`) y con `TareasProgramadas/ProbarWhatsapp?pClave=`. El moderno usa un
+`BackgroundService` diario a las 08:00 (zona Lima) y opcionalmente una pasada al
+arrancar. La plantilla es `aviso_vencimiento_prendario` (`{{1}}` nombre, `{{2}}`
+fecha `dd/MM/yyyy`, `{{3}}` importe `MontoCredito + MontoCredito * Interes / 100`).
+El token vive en user-secrets, no en el repositorio. Con credenciales de prueba Meta
+solo entrega a números agregados como testers.
+
+### 2026-09-09 — `usp_Credito_Ins` y el índice filtrado de prendario
+
+**Tipo:** defecto de despliegue
+
+`IX_Credito_EsPrendario` es un índice filtrado (`WHERE EsPrendario = 1`). Cualquier
+`UPDATE`/`INSERT` sobre `CREDITO.Credito` desde un módulo creado con
+`QUOTED_IDENTIFIER OFF` falla con el error 1934. `usp_Credito_Ins` (generar crédito,
+prendario y ordinario) nació así en la base del cliente; la solicitud en `CRE` sí
+insertaba porque Dapper abre la sesión con `QUOTED_IDENTIFIER ON`.
+
+`2026-09-03-usp-credito-ins-quoted-identifier.sql` recrea el procedimiento con las
+opciones correctas y deja el cuerpo intacto. `2026-06-usp-credito-ins-saldo-compat.sql`
+pasa a emitir `SET QUOTED_IDENTIFIER ON` antes del `CREATE OR ALTER` para que una
+restauración posterior no vuelva a dejarlo apagado.
+
+### 2026-09-09 — CTE `Base` en el listado prendario
+
+**Tipo:** defecto
+
+`ListarAsync` usaba un CTE `Base` y luego dos `SELECT` (conteo y página). Un CTE solo
+vive para la sentencia inmediata, así que el segundo `SELECT` respondía
+«El nombre de objeto 'Base' no es válido». El conjunto intermedio pasa a una tabla
+temporal `#PrendarioListado`.
 

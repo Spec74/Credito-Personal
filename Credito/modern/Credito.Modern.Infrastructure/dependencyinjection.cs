@@ -239,6 +239,15 @@ public static class DependencyInjection
         services.AddHttpClient(nameof(ApiPeruService));
         services.Configure<ApiPeruOptions>(configuration.GetSection(ApiPeruOptions.SectionName));
         services.AddScoped<IApiPeruService, ApiPeruService>();
+        services.Configure<WhatsAppOptions>(configuration.GetSection(WhatsAppOptions.SectionName));
+        services.AddHttpClient(WhatsAppCloudClient.HttpClientName, client =>
+        {
+            client.BaseAddress = new Uri("https://graph.facebook.com/");
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+        services.AddSingleton<WhatsAppCloudClient>();
+        services.AddScoped<IPrendarioAvisoEnvioService, PrendarioAvisoEnvioService>();
+        services.AddHostedService<PrendarioVencimientoWhatsAppHostedService>();
         services.AddScoped<IUsuarioBuscarReadService, UsuarioBuscarReadService>();
         services.AddScoped<IClienteDetalleReadService, ClienteDetalleReadService>();
         services.AddScoped<IClienteWriteService, ClienteWriteService>();

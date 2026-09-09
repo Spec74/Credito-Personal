@@ -22,4 +22,25 @@ public static class CredixReportAssets
         _logoBytes = ms.ToArray();
         return _logoBytes;
     }
+
+    public static byte[]? LoadClausulasPrendario()
+    {
+        var asm = typeof(CredixReportAssets).Assembly;
+        var name = asm.GetManifestResourceNames()
+            .FirstOrDefault(n => n.EndsWith("ClausulasPrendario.pdf", StringComparison.OrdinalIgnoreCase));
+        if (name is null)
+        {
+            return null;
+        }
+
+        using var stream = asm.GetManifestResourceStream(name);
+        if (stream is null)
+        {
+            return null;
+        }
+
+        using var ms = new MemoryStream();
+        stream.CopyTo(ms);
+        return ms.ToArray();
+    }
 }

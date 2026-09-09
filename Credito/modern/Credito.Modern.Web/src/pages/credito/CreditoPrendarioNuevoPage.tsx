@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { FileAddOutlined, SearchOutlined, UserAddOutlined } from '@ant-design/icons'
-import { Alert, Button, Col, Form, Input, Row, Space, Steps, Typography, message } from 'antd'
-import { buscarClientes, crearPersonaRapida } from '../../api/clientes'
+import { FileAddOutlined, FileSearchOutlined, SearchOutlined, UserAddOutlined } from '@ant-design/icons'
+import { Alert, Button, Col, Input, Row, Space, Steps, Typography, message } from 'antd'
+import { consultarDniApiPeru } from '../../api/apiperu'
+import { buscarClientes, obtenerCliente, obtenerPersonaPorDocumento } from '../../api/clientes'
 import { crearSolicitudPrendaria, guardarBienesPrendario } from '../../api/prendario'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
@@ -13,58 +14,140 @@ import { CredixDataTable, CredixPage, CredixPanel, type CredixStatItem } from '.
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { prendaVacia, prendasValidas, totalTasacion } from '../../utils/prendas'
 import { formatMoney } from '../../utils/formatMoney'
+import {
+  PRENDARIO_NUEVO_PATH,
+  buildClientesNuevoHref,
+  labelClienteFicha,
+} from '../../utils/internalReturnTo'
 
 const { Paragraph, Text } = Typography
 
-type ClienteRapidoForm = {
-  dni: string
-  nombre: string
-  apePaterno: string
-  apeMaterno: string
-  celular?: string
-}
+type ConsultaDni =
+  | { kind: 'existente'; personaId: number; label: string }
+  | { kind: 'nuevo'; dni: string; nombres: string; apePaterno: string; apeMaterno: string }
+  | { kind: 'sinReniec'; dni: string }
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error desconocido'
 }
 
+function onlyDigits(value: string): string {
+  return value.replace(/\D/g, '')
+}
+
 export function CreditoPrendarioNuevoPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
-  const [clienteForm] = Form.useForm<ClienteRapidoForm>()
+  const personaIdUrl = Number(searchParams.get('personaId') ?? 0)
+  const recienRegistrado = searchParams.get('origen') === 'alta'
+
   const [terminoCliente, setTerminoCliente] = useState('')
+  const [dniConsulta, setDniConsulta] = useState('')
+  const [consulta, setConsulta] = useState<ConsultaDni | null>(null)
   const [personaId, setPersonaId] = useState<number | null>(null)
   const [clienteLabel, setClienteLabel] = useState('')
   const [prendas, setPrendas] = useState<PrendaItem[]>([prendaVacia()])
   const [fechaRemate, setFechaRemate] = useState('')
 
+  const elegirCliente = (id: number, label: string) => {
+    setPersonaId(id)
+    setClienteLabel(label)
+    buscar.reset()
+    setConsulta(null)
+    const next = new URLSearchParams(searchParams)
+    next.set('personaId', String(id))
+    setSearchParams(next, { replace: true })
+  }
+
+  const limpiarCliente = () => {
+    setPersonaId(null)
+    setClienteLabel('')
+    if (!searchParams.has('personaId')) return
+    const next = new URLSearchParams(searchParams)
+    next.delete('personaId')
+    setSearchParams(next, { replace: true })
+  }
+
+  useEffect(() => {
+    if (personaIdUrl < 1) return
+    if (personaId === personaIdUrl) return
+    let cancelled = false
+    void obtenerCliente(personaIdUrl)
+      .then((c) => {
+        if (cancelled) return
+        const label = labelClienteFicha(c)
+        setPersonaId(c.personaId)
+        setClienteLabel(label)
+        if (recienRegistrado) {
+          message.success(`Cliente listo: ${label}`)
+        }
+      })
+      .catch((e) => {
+        if (!cancelled) message.error(errMsg(e))
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [personaIdUrl, personaId, recienRegistrado])
+
   const buscar = useMutation({
     mutationFn: (term: string) => buscarClientes(term),
   })
 
-  const crearCliente = useMutation({
-    mutationFn: (v: ClienteRapidoForm) =>
-      crearPersonaRapida({
-        dni: v.dni.trim(),
-        nombre: v.nombre.trim().toUpperCase(),
-        apePaterno: v.apePaterno.trim().toUpperCase(),
-        apeMaterno: v.apeMaterno.trim().toUpperCase(),
-        celular: v.celular?.trim() || null,
-      }),
+  const consultarDni = useMutation({
+    mutationFn: async (dniRaw: string): Promise<ConsultaDni> => {
+      const dni = onlyDigits(dniRaw)
+      if (dni.length !== 8) {
+        throw new Error('Ingrese un DNI de 8 dígitos')
+      }
+      const existente = await obtenerPersonaPorDocumento(dni)
+      if (existente?.tieneCliente) {
+        return {
+          kind: 'existente',
+          personaId: existente.personaId,
+          label: labelClienteFicha(existente),
+        }
+      }
+      const reniec = await consultarDniApiPeru(dni)
+      if (reniec.success) {
+        return {
+          kind: 'nuevo',
+          dni,
+          nombres: reniec.nombres ?? '',
+          apePaterno: reniec.apellidoPaterno ?? '',
+          apeMaterno: reniec.apellidoMaterno ?? '',
+        }
+      }
+      return { kind: 'sinReniec', dni }
+    },
     onSuccess: (r) => {
-      setPersonaId(r.personaId)
-      setClienteLabel(r.label)
-      clienteForm.resetFields()
-      message.success('Cliente creado para crédito prendario')
+      setConsulta(r)
+      if (r.kind === 'existente') {
+        message.info('Este DNI ya es cliente')
+      } else if (r.kind === 'nuevo') {
+        message.success('Datos validados con ApiPerú')
+      } else {
+        message.warning('DNI no encontrado en RENIEC. Complete la ficha en Clientes.')
+      }
     },
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const irAFichaCliente = (dni?: string) => {
+    navigate(
+      buildClientesNuevoHref({
+        returnTo: PRENDARIO_NUEVO_PATH,
+        dni,
+      }),
+    )
+  }
+
   const crear = useMutation({
     mutationFn: async () => {
       if (!personaId) {
-        throw new Error('Seleccione o cree un cliente')
+        throw new Error('Seleccione o registre un cliente')
       }
       const bienes = prendasValidas(prendas)
       if (bienes.length === 0) {
@@ -98,7 +181,7 @@ export function CreditoPrendarioNuevoPage() {
   return (
     <CredixPage
       title="Nuevo crédito prendario"
-      subtitle="Alta de cliente, bienes en custodia y solicitud en estado CRE. El monto se define en el simulador."
+      subtitle="El cliente se registra en Clientes (ApiPerú). Luego se cargan los bienes y la solicitud queda en CRE."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -119,7 +202,7 @@ export function CreditoPrendarioNuevoPage() {
           <CredixPanel title="Buscar cliente existente">
             <Space.Compact style={{ width: '100%', marginBottom: 12 }}>
               <Input
-                placeholder="DNI, código o nombre"
+                placeholder="DNI de 8 dígitos o un apellido"
                 value={terminoCliente}
                 onChange={(e) => setTerminoCliente(e.target.value)}
                 onPressEnter={() => {
@@ -146,22 +229,16 @@ export function CreditoPrendarioNuevoPage() {
               dataSource={buscar.data ?? []}
               loading={buscar.isPending}
               pagination={false}
-              locale={{ emptyText: 'Busque y elija un cliente' }}
+              locale={{
+                emptyText: 'Sin coincidencias. Use el DNI o un apellido, no nombres pegados.',
+              }}
               columns={[
                 { title: 'Cliente', dataIndex: 'label', ellipsis: true },
                 {
                   title: '',
                   width: 90,
                   render: (_, row) => (
-                    <Button
-                      size="small"
-                      type="link"
-                      onClick={() => {
-                        setPersonaId(row.personaId)
-                        setClienteLabel(row.label)
-                        buscar.reset()
-                      }}
-                    >
+                    <Button size="small" type="link" onClick={() => elegirCliente(row.personaId, row.label)}>
                       Elegir
                     </Button>
                   ),
@@ -172,46 +249,77 @@ export function CreditoPrendarioNuevoPage() {
         </Col>
 
         <Col xs={24} lg={12}>
-          <CredixPanel title="Nuevo cliente rápido">
-            <Form form={clienteForm} layout="vertical" onFinish={(v) => crearCliente.mutate(v)}>
-              <Row gutter={12}>
-                <Col span={12}>
-                  <Form.Item
-                    name="dni"
-                    label="DNI"
-                    rules={[
-                      { required: true, message: 'Ingrese DNI' },
-                      { len: 8, message: 'DNI debe tener 8 dígitos' },
-                    ]}
-                  >
-                    <Input maxLength={8} />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="celular" label="Celular">
-                    <Input maxLength={15} />
-                  </Form.Item>
-                </Col>
-              </Row>
-              <Form.Item name="nombre" label="Nombres" rules={[{ required: true }]}>
-                <Input />
-              </Form.Item>
-              <Row gutter={12}>
-                <Col span={12}>
-                  <Form.Item name="apePaterno" label="Apellido paterno" rules={[{ required: true }]}>
-                    <Input />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item name="apeMaterno" label="Apellido materno" rules={[{ required: true }]}>
-                    <Input />
-                  </Form.Item>
-                </Col>
-              </Row>
-              <Button type="primary" htmlType="submit" icon={<UserAddOutlined />} loading={crearCliente.isPending}>
-                Crear cliente
+          <CredixPanel title="Nuevo cliente (Clientes + ApiPerú)">
+            <Paragraph type="secondary" style={{ marginBottom: 12 }}>
+              El alta vive en el módulo de Clientes: consulta RENIEC y guarda la ficha completa. Aquí
+              solo se consulta el DNI para no duplicar.
+            </Paragraph>
+            <Space.Compact style={{ width: '100%', marginBottom: 12 }}>
+              <Input
+                placeholder="DNI 8 dígitos"
+                value={dniConsulta}
+                maxLength={8}
+                inputMode="numeric"
+                onChange={(e) => setDniConsulta(onlyDigits(e.target.value))}
+                onPressEnter={() => {
+                  if (dniConsulta.length === 8) consultarDni.mutate(dniConsulta)
+                }}
+              />
+              <Button
+                icon={<FileSearchOutlined />}
+                loading={consultarDni.isPending}
+                onClick={() => consultarDni.mutate(dniConsulta)}
+              >
+                Consultar DNI
               </Button>
-            </Form>
+            </Space.Compact>
+
+            {consulta?.kind === 'existente' ? (
+              <Alert
+                type="info"
+                showIcon
+                style={{ marginBottom: 12 }}
+                message={consulta.label}
+                action={
+                  <Button size="small" type="primary" onClick={() => elegirCliente(consulta.personaId, consulta.label)}>
+                    Elegir
+                  </Button>
+                }
+              />
+            ) : null}
+
+            {consulta?.kind === 'nuevo' ? (
+              <Alert
+                type="success"
+                showIcon
+                style={{ marginBottom: 12 }}
+                message={`${consulta.nombres} ${consulta.apePaterno} ${consulta.apeMaterno}`.trim()}
+                description="Nombres desde RENIEC. Complete celular, domicilio y calificación en Clientes."
+              />
+            ) : null}
+
+            {consulta?.kind === 'sinReniec' ? (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginBottom: 12 }}
+                message="RENIEC no devolvió datos. Puede registrar la ficha a mano en Clientes."
+              />
+            ) : null}
+
+            <Space wrap>
+              <Button
+                type="primary"
+                icon={<UserAddOutlined />}
+                onClick={() =>
+                  irAFichaCliente(
+                    consulta && consulta.kind !== 'existente' ? consulta.dni : dniConsulta || undefined,
+                  )
+                }
+              >
+                Completar ficha en Clientes
+              </Button>
+            </Space>
           </CredixPanel>
         </Col>
       </Row>
@@ -222,15 +330,18 @@ export function CreditoPrendarioNuevoPage() {
             type="success"
             showIcon
             style={{ marginBottom: 12 }}
-            message={`Cliente seleccionado: ${clienteLabel || `Persona #${personaId}`}`}
+            message={
+              recienRegistrado
+                ? `Cliente registrado y seleccionado: ${clienteLabel || `Persona #${personaId}`}`
+                : `Cliente seleccionado: ${clienteLabel || `Persona #${personaId}`}`
+            }
+            description={
+              recienRegistrado
+                ? 'No hace falta buscarlo de nuevo. Continúe con los bienes en custodia.'
+                : undefined
+            }
             action={
-              <Button
-                size="small"
-                onClick={() => {
-                  setPersonaId(null)
-                  setClienteLabel('')
-                }}
-              >
+              <Button size="small" onClick={limpiarCliente}>
                 Cambiar
               </Button>
             }
@@ -240,7 +351,7 @@ export function CreditoPrendarioNuevoPage() {
             type="warning"
             showIcon
             style={{ marginBottom: 12 }}
-            message="Seleccione o cree el cliente antes de registrar los bienes."
+            message="Seleccione un cliente existente o regístrelo en Clientes antes de cargar los bienes."
           />
         )}
         <Paragraph type="secondary" style={{ marginBottom: 8 }}>
@@ -255,8 +366,8 @@ export function CreditoPrendarioNuevoPage() {
         />
         <PrendasEditor value={prendas} onChange={setPrendas} disabled={!personaId} />
         <Paragraph style={{ marginTop: 12, marginBottom: 4 }}>
-          <Text strong>Resultado:</Text> se crea una solicitud prendaria (ProductoId 2, estado CRE) y se abrirá el
-          simulador. El préstamo se define ahí.
+          <Text strong>Resultado:</Text> se crea una solicitud prendaria (ProductoId 2, estado CRE) y se
+          abrirá el simulador. El préstamo se define ahí.
         </Paragraph>
         <Button
           type="primary"
