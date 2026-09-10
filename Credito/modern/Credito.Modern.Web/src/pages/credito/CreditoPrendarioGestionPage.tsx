@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { FilePdfOutlined, PlusOutlined, WhatsAppOutlined } from '@ant-design/icons'
+import { CalculatorOutlined, FilePdfOutlined, PlusOutlined, WhatsAppOutlined } from '@ant-design/icons'
 import { Alert, Button, Input, Space, Typography, message } from 'antd'
 import {
   fetchCreditoContexto,
@@ -22,7 +22,7 @@ import { CredixPage, CredixPanel, type CredixStatItem } from '../../components/c
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
-import { prendaAItem, prendaVacia, prendasValidas, totalTasacion } from '../../utils/prendas'
+import { prendaAItem, prendaVacia, prendasValidas, totalTasacion, buildSimuladorPrendarioPath } from '../../utils/prendas'
 import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 
 const { Paragraph, Text } = Typography
@@ -169,8 +169,16 @@ export function CreditoPrendarioGestionPage() {
           </Button>
           {creditoId > 0 ? (
             <Button
+              icon={<CalculatorOutlined />}
               onClick={() =>
-                navigate(`/credito/simulador?personaId=${personaId}&solicitudCreditoId=${creditoId}&productoId=2`)
+                navigate(
+                  buildSimuladorPrendarioPath({
+                    personaId,
+                    solicitudCreditoId: creditoId,
+                    prendas,
+                    fechaRemate,
+                  }),
+                )
               }
             >
               Simulador

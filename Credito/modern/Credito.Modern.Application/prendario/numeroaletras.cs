@@ -38,8 +38,14 @@ public static class NumeroALetras
             centavos = 0;
         }
 
+        var fraccion = centavos.ToString("00", CultureInfo.InvariantCulture);
+        if (entero == 0 && centavos > 0)
+        {
+            return $"CON {fraccion}/100 SOL";
+        }
+
         var letras = entero == 0 ? "CERO" : ConvertirEntero(entero);
-        return $"{letras} CON {centavos.ToString("00", CultureInfo.InvariantCulture)}/100 SOLES";
+        return $"{letras} CON {fraccion}/100 SOLES";
     }
 
     private static string ConvertirEntero(long n)

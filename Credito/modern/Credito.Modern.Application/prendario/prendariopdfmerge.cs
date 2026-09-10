@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -6,7 +8,7 @@ namespace Credito.Modern.Application.Prendario;
 
 /// <summary>
 /// Anexa el PDF fijo de cláusulas al contrato (paridad <c>ReporteController.MergePdf</c>)
-/// y estampa fecha, nombre y DNI sobre los blancos de la última página.
+/// y estampa fecha, nombre, DNI y numeración «Página X de Y» del documento completo.
 /// </summary>
 public static class PrendarioPdfMerge
 {
@@ -35,10 +37,16 @@ public static class PrendarioPdfMerge
             var principal = Path.Combine(dir, "contrato.pdf");
             var anexo = Path.Combine(dir, "clausulas.pdf");
             var sello = Path.Combine(dir, "sello.pdf");
+            var numeracion = Path.Combine(dir, "numeracion.pdf");
             var salida = Path.Combine(dir, "final.pdf");
             File.WriteAllBytes(principal, contrato);
             File.WriteAllBytes(anexo, clausulas);
             File.WriteAllBytes(sello, BuildSello(fechaEmision, cliente, dni));
+
+            var paginasClausulas = ContarPaginas(clausulas);
+            var total = 2 + Math.Max(paginasClausulas, 1);
+            File.WriteAllBytes(numeracion, BuildNumeracion(total));
+
             DocumentOperation
                 .LoadFile(principal)
                 .MergeFile(anexo)
@@ -47,6 +55,12 @@ public static class PrendarioPdfMerge
                     FilePath = sello,
                     TargetPages = "z",
                     SourcePages = "1",
+                })
+                .OverlayFile(new DocumentOperation.LayerConfiguration
+                {
+                    FilePath = numeracion,
+                    TargetPages = "1-z",
+                    SourcePages = "1-z",
                 })
                 .Save(salida);
             return File.ReadAllBytes(salida);
@@ -61,6 +75,37 @@ public static class PrendarioPdfMerge
             {
             }
         }
+    }
+
+    public static int ContarPaginas(byte[] pdf)
+    {
+        var s = Encoding.ASCII.GetString(pdf);
+        var n = 0;
+        var i = 0;
+        while (i < s.Length)
+        {
+            var conEspacio = s.IndexOf("/Type /Page", i, StringComparison.Ordinal);
+            var sinEspacio = s.IndexOf("/Type/Page", i, StringComparison.Ordinal);
+            var idx = MinIndice(conEspacio, sinEspacio);
+            if (idx < 0)
+            {
+                break;
+            }
+
+            var after = s.AsSpan(idx).StartsWith("/Type /Page")
+                ? idx + "/Type /Page".Length
+                : idx + "/Type/Page".Length;
+            if (after < s.Length && s[after] == 's')
+            {
+                i = after + 1;
+                continue;
+            }
+
+            n++;
+            i = after;
+        }
+
+        return n;
     }
 
     public static byte[] BuildSello(DateTime fechaEmision, string cliente, string dni)
@@ -101,6 +146,46 @@ public static class PrendarioPdfMerge
                 });
             });
         }).GeneratePdf();
+    }
+
+    public static byte[] BuildNumeracion(int total)
+    {
+        QuestPDF.Settings.License = LicenseType.Community;
+        var inv = CultureInfo.InvariantCulture;
+        return Document.Create(document =>
+        {
+            for (var i = 1; i <= total; i++)
+            {
+                var texto = "Página " + i.ToString(inv) + " de " + total.ToString(inv);
+                document.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(0);
+                    page.Content().Layers(layers =>
+                    {
+                        Tap(layers, 448, 808, 130, 18);
+                        layers.PrimaryLayer().AlignBottom().AlignRight()
+                            .PaddingRight(22).PaddingBottom(16)
+                            .Text(texto).FontSize(8).FontColor(Color.FromHex("#333333"));
+                    });
+                });
+            }
+        }).GeneratePdf();
+    }
+
+    private static int MinIndice(int a, int b)
+    {
+        if (a < 0)
+        {
+            return b;
+        }
+
+        if (b < 0)
+        {
+            return a;
+        }
+
+        return Math.Min(a, b);
     }
 
     private static void Tap(LayersDescriptor layers, float x, float y, float width, float height) =>

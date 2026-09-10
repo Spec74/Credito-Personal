@@ -34,3 +34,69 @@ export function prendaAItem(prenda: Prenda): PrendaItem {
     codigoInterno: prenda.codigoInterno,
   }
 }
+
+export type PrendaSimuladorPrecarga = {
+  descripcion: string
+  montoTasacion: number
+  fechaRemate: string
+  observacion: string | null
+}
+
+/** Une los bienes del formulario para el simulador (descripción, tasación, remate). */
+export function prendaSimuladorDesdeBienes(
+  prendas: PrendaItem[],
+  fechaRemate?: string | null,
+): PrendaSimuladorPrecarga | null {
+  const bienes = prendasValidas(prendas)
+  if (bienes.length === 0) {
+    return null
+  }
+
+  const remate = (fechaRemate ?? '').trim().slice(0, 10) || fechaRematePorDefecto()
+  const observacion =
+    bienes
+      .map((p) => p.observaciones?.trim())
+      .filter((v): v is string => Boolean(v))
+      .join(' / ') || null
+
+  return {
+    descripcion: bienes.map((p) => p.descripcion.trim()).join(' / '),
+    montoTasacion: totalTasacion(prendas),
+    fechaRemate: remate,
+    observacion,
+  }
+}
+
+export function buildSimuladorPrendarioPath(opts: {
+  personaId: number
+  solicitudCreditoId: number
+  prendas: PrendaItem[]
+  fechaRemate?: string | null
+}): string {
+  const q = new URLSearchParams({
+    personaId: String(opts.personaId),
+    solicitudCreditoId: String(opts.solicitudCreditoId),
+    productoId: '2',
+  })
+  const pre = prendaSimuladorDesdeBienes(opts.prendas, opts.fechaRemate)
+  if (pre) {
+    q.set('prendaDescripcion', pre.descripcion)
+    q.set('prendaMontoTasacion', String(pre.montoTasacion))
+    q.set('prendaFechaRemate', pre.fechaRemate)
+    if (pre.observacion) {
+      q.set('prendaObservacion', pre.observacion)
+    }
+  }
+  return `/credito/simulador?${q.toString()}`
+}
+
+function fechaRematePorDefecto(): string {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  d.setMonth(d.getMonth() + 1)
+  d.setDate(d.getDate() + 30)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}

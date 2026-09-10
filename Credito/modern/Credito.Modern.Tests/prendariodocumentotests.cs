@@ -26,6 +26,17 @@ public sealed class PrendarioDocumentoTests
     }
 
     [Fact]
+    public void Anexo_B_usa_mes_capitalizado_y_plazo_en_partes()
+    {
+        Assert.Equal(
+            "jueves, 30 de Enero de 2025",
+            PrendarioPdfTexto.FechaLargaConDia(new DateTime(2025, 1, 30)));
+        Assert.Equal("18%", PrendarioPdfTexto.PorcentajeEntero(18m));
+        Assert.Equal(("1", "MES"), PrendarioPdfTexto.PartesPlazo("1 MES"));
+        Assert.Equal("CON 80/100 SOL", NumeroALetras.EnSoles(0.80m));
+    }
+
+    [Fact]
     public void Contrato_anexa_clausulas_oficiales_y_estampa_fecha()
     {
         var soloAnexo = CredixReportAssets.LoadClausulasPrendario();
@@ -38,6 +49,11 @@ public sealed class PrendarioDocumentoTests
             new DateTime(2026, 6, 18),
             "CLIENTE PRUEBA",
             "12345678"));
+
+        var paginasClausulas = PrendarioPdfMerge.ContarPaginas(soloAnexo);
+        Assert.True(paginasClausulas >= 1);
+        Assert.Equal(2 + paginasClausulas, PrendarioPdfMerge.ContarPaginas(pdf));
+        AssertPdf(PrendarioPdfMerge.BuildNumeracion(2 + paginasClausulas));
     }
 
     [Fact]

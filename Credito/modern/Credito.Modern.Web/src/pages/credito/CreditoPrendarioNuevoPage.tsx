@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { FileAddOutlined, FileSearchOutlined, SearchOutlined, UserAddOutlined } from '@ant-design/icons'
+import {
+  FileAddOutlined,
+  FileSearchOutlined,
+  SearchOutlined,
+  UserAddOutlined,
+} from '@ant-design/icons'
 import { Alert, Button, Col, Input, Row, Space, Steps, Typography, message } from 'antd'
 import { consultarDniApiPeru } from '../../api/apiperu'
 import { buscarClientes, obtenerCliente, obtenerPersonaPorDocumento } from '../../api/clientes'
@@ -12,7 +17,12 @@ import type { ClienteBuscarItem } from '../../types/api'
 import type { PrendaItem } from '../../api/creditoGestion'
 import { CredixDataTable, CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
-import { prendaVacia, prendasValidas, totalTasacion } from '../../utils/prendas'
+import {
+  buildSimuladorPrendarioPath,
+  prendaVacia,
+  prendasValidas,
+  totalTasacion,
+} from '../../utils/prendas'
 import { formatMoney } from '../../utils/formatMoney'
 import {
   PRENDARIO_NUEVO_PATH,
@@ -160,11 +170,19 @@ export function CreditoPrendarioNuevoPage() {
         prendas: bienes,
         fechaRemate: fechaRemate || null,
       })
-      return solicitud.solicitudCreditoId
+      return { solicitudCreditoId: solicitud.solicitudCreditoId, bienes }
     },
-    onSuccess: (solicitudCreditoId) => {
+    onSuccess: ({ solicitudCreditoId, bienes }) => {
       message.success(`Solicitud prendaria #${solicitudCreditoId} creada`)
-      navigate(`/credito/simulador?personaId=${personaId}&solicitudCreditoId=${solicitudCreditoId}&productoId=2`)
+      if (!personaId) return
+      navigate(
+        buildSimuladorPrendarioPath({
+          personaId,
+          solicitudCreditoId,
+          prendas: bienes,
+          fechaRemate,
+        }),
+      )
     },
     onError: (e) => message.error(errMsg(e)),
   })
@@ -366,8 +384,8 @@ export function CreditoPrendarioNuevoPage() {
         />
         <PrendasEditor value={prendas} onChange={setPrendas} disabled={!personaId} />
         <Paragraph style={{ marginTop: 12, marginBottom: 4 }}>
-          <Text strong>Resultado:</Text> se crea una solicitud prendaria (ProductoId 2, estado CRE) y se
-          abrirá el simulador. El préstamo se define ahí.
+          <Text strong>Resultado:</Text> se guardan los bienes y se abre el simulador con la
+          descripción de la prenda ya cargada, para definir monto, plazo y tasa.
         </Paragraph>
         <Button
           type="primary"

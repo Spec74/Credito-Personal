@@ -32,13 +32,12 @@ public static class RptContratoPrendarioPdfDocument
 
         page.Content().Column(col =>
         {
-            PrendarioPdfLayout.Encabezado(col, "ANEXO A - HOJA RESUMEN", d.NumeroContrato);
-            col.Item().PaddingTop(8).Table(table =>
-                PrendarioPdfLayout.EncabezadoFecha(
-                    table,
-                    PrendarioPdfTexto.FechaCorta(d.FechaEmision),
-                    d.PlazoTexto,
-                    PrendarioPdfTexto.FechaCorta(d.FechaVencimiento)));
+            PrendarioPdfLayout.Encabezado(col, "ANEXO A", d.NumeroContrato, "HOJA RESUMEN");
+            PrendarioPdfLayout.EncabezadoFecha(
+                col,
+                PrendarioPdfTexto.FechaCorta(d.FechaEmision),
+                d.PlazoTexto,
+                PrendarioPdfTexto.FechaCorta(d.FechaVencimiento));
 
             col.Item().PaddingTop(8);
             PrendarioPdfLayout.Par(
@@ -67,65 +66,62 @@ public static class RptContratoPrendarioPdfDocument
                 PrendarioPdfTexto.Valor(d.Distrito));
             PrendarioPdfLayout.Entero(col, "REFERENCIA", PrendarioPdfTexto.Valor(d.Referencia));
 
-            col.Item().PaddingTop(8).Text(
+            col.Item().PaddingTop(6).Text(
                     "GRUPO CREDICONFIANZA S.A.C. recibió del CLIENTE en garantía prendaria del préstamo que le ha otorgado los bienes detallados a continuación, de acuerdo a las condiciones establecidas en los anexos y en el contrato adjunto.")
-                .FontSize(9);
+                .FontSize(8);
 
-            col.Item().PaddingTop(8).Table(table =>
+            col.Item().PaddingTop(6).Table(table =>
             {
                 table.ColumnsDefinition(c =>
                 {
-                    c.RelativeColumn(4.2f);
-                    c.RelativeColumn(1.2f);
-                    c.RelativeColumn(1.2f);
+                    c.RelativeColumn(1.15f);
+                    c.RelativeColumn(3.05f);
+                    c.RelativeColumn(1.15f);
+                    c.RelativeColumn(1.15f);
                 });
-                table.Cell().Element(c => PrendarioPdfLayout.Banda(c, "DETALLE DE LA PRENDA AFECTADA"));
+                table.Cell().ColumnSpan(2).Element(c => PrendarioPdfLayout.Banda(c, "DETALLE DE LA PRENDA AFECTADA"));
                 table.Cell().Element(c => PrendarioPdfLayout.Banda(c, "TASACIÓN"));
                 table.Cell().Element(c => PrendarioPdfLayout.Banda(c, "PRÉSTAMO"));
 
-                table.Cell().Element(c =>
-                    c.Border(0.6f).BorderColor(Colors.Black).Padding(4).Column(detalle =>
-                    {
-                        var i = 1;
-                        foreach (var bien in d.Bienes)
-                        {
-                            if (d.Bienes.Count > 1)
-                            {
-                                detalle.Item().Text("PRENDA " + i.ToString(System.Globalization.CultureInfo.InvariantCulture))
-                                    .SemiBold().FontSize(8);
-                            }
-                            else
-                            {
-                                Linea(detalle, "PRENDA", string.IsNullOrWhiteSpace(bien.CodigoInterno) ? "A/A" : bien.CodigoInterno);
-                            }
+                var filas = d.Bienes.Count * 7;
+                var primera = true;
+                foreach (var bien in d.Bienes)
+                {
+                    var codigo = string.IsNullOrWhiteSpace(bien.CodigoInterno) ? "A/A" : bien.CodigoInterno;
+                    FilaPrenda(table, "PRENDA", codigo, primera, filas, d);
+                    primera = false;
+                    FilaPrenda(table, "DESCRIPCIÓN", bien.Descripcion, false, filas, d, 28);
+                    FilaPrenda(table, "MARCA", PrendarioPdfTexto.Valor(bien.Marca), false, filas, d);
+                    FilaPrenda(table, "MODELO", PrendarioPdfTexto.Valor(bien.Modelo), false, filas, d);
+                    FilaPrenda(table, "SERIE", bien.Serie, false, filas, d);
+                    FilaPrenda(table, "COLOR", PrendarioPdfTexto.Valor(bien.Color), false, filas, d);
+                    FilaPrenda(table, "OBSERVACIONES", PrendarioPdfTexto.Valor(bien.Observaciones), false, filas, d, 22);
+                }
 
-                            Linea(detalle, "DESCRIPCIÓN", bien.Descripcion);
-                            Linea(detalle, "MARCA", PrendarioPdfTexto.Valor(bien.Marca));
-                            Linea(detalle, "MODELO", PrendarioPdfTexto.Valor(bien.Modelo));
-                            Linea(detalle, "SERIE", bien.Serie);
-                            Linea(detalle, "COLOR", PrendarioPdfTexto.Valor(bien.Color));
-                            Linea(detalle, "OBSERVACIONES", PrendarioPdfTexto.Valor(bien.Observaciones));
-                            i++;
-                        }
-                    }));
-                table.Cell().Element(c =>
-                    c.Border(0.6f).BorderColor(Colors.Black).AlignMiddle().AlignCenter()
-                        .Text(PrendarioPdfTexto.Money(d.MontoTasacion)).FontSize(10));
-                table.Cell().Element(c =>
-                    c.Border(0.6f).BorderColor(Colors.Black).AlignMiddle().AlignCenter()
-                        .Text(PrendarioPdfTexto.Money(d.MontoPrestamo)).FontSize(10));
-
-                table.Cell().Element(c => PrendarioPdfLayout.Banda(c, "TOTAL"));
-                table.Cell().Element(c =>
-                    c.Border(0.6f).BorderColor(Colors.Black).Padding(3).AlignCenter()
-                        .Text(d.MontoTasacion.ToString("N2", PrendarioPdfTexto.Cultura)).FontSize(9));
-                table.Cell().Element(c =>
-                    c.Border(0.6f).BorderColor(Colors.Black).Padding(3).AlignCenter()
-                        .Text(d.MontoPrestamo.ToString("N2", PrendarioPdfTexto.Cultura)).FontSize(9));
+                table.Cell().ColumnSpan(2).Element(c => PrendarioPdfLayout.Banda(c, "TOTAL"));
+                table.Cell().Element(c => PrendarioPdfLayout.MontoTotal(c, d.MontoTasacion));
+                table.Cell().Element(c => PrendarioPdfLayout.MontoTotal(c, d.MontoPrestamo));
             });
 
             PrendarioPdfLayout.Firmas(col);
         });
+    }
+
+    private static void FilaPrenda(
+        TableDescriptor table,
+        string label,
+        string valor,
+        bool conMontos,
+        int filas,
+        PrendarioContratoDto d,
+        int minHeight = 16)
+    {
+        PrendarioPdfLayout.FilaPrenda(table, label, valor, minHeight);
+        if (conMontos)
+        {
+            table.Cell().RowSpan((uint)filas).Element(c => PrendarioPdfLayout.MontoPrenda(c, d.MontoTasacion));
+            table.Cell().RowSpan((uint)filas).Element(c => PrendarioPdfLayout.MontoPrenda(c, d.MontoPrestamo));
+        }
     }
 
     private static void ComposeAnexoB(PageDescriptor page, PrendarioContratoDto d)
@@ -135,9 +131,11 @@ public static class RptContratoPrendarioPdfDocument
         page.MarginVertical(16);
         page.DefaultTextStyle(x => x.FontSize(9));
 
+        var plazo = PrendarioPdfTexto.PartesPlazo(d.PlazoTexto);
+
         page.Content().Column(col =>
         {
-            PrendarioPdfLayout.Encabezado(col, "ANEXO B - HOJA RESUMEN", d.NumeroContrato);
+            PrendarioPdfLayout.Encabezado(col, "ANEXO B", d.NumeroContrato, "HOJA RESUMEN");
 
             col.Item().PaddingTop(8).Element(c => PrendarioPdfLayout.Banda(c, "INFORMACIÓN DEL CRÉDITO"));
             col.Item().Table(table =>
@@ -153,8 +151,8 @@ public static class RptContratoPrendarioPdfDocument
                     "MONTO DE PRÉSTAMO",
                     PrendarioPdfTexto.Money(d.MontoPrestamo),
                     NumeroALetras.EnSoles(d.MontoPrestamo));
-                PrendarioPdfLayout.FilaMonto(table, "PLAZO", d.PlazoTexto, string.Empty);
-                PrendarioPdfLayout.FilaMonto(table, "CUOTAS", "1", string.Empty);
+                PrendarioPdfLayout.FilaMonto(table, "PLAZO", plazo.Numero, "MESES");
+                PrendarioPdfLayout.FilaMonto(table, "CUOTAS", "1", "CUOTAS");
                 PrendarioPdfLayout.FilaMonto(
                     table,
                     "TASA DE INTERÉS COMPENSATORIA EFECTIVA MENSUAL",
@@ -164,16 +162,16 @@ public static class RptContratoPrendarioPdfDocument
                     table,
                     "R. G. ADM.",
                     PrendarioPdfTexto.PorcentajeFijo(PrendarioPdfTexto.RgAdmPorcentaje),
-                    "(Uno por ciento del monto de préstamo)");
+                    "(Uno porciento del monto de préstamo)");
                 PrendarioPdfLayout.FilaMonto(
                     table,
                     "IGV",
-                    PrendarioPdfTexto.PorcentajeFijo(PrendarioPdfTexto.IgvPorcentaje),
+                    PrendarioPdfTexto.PorcentajeEntero(PrendarioPdfTexto.IgvPorcentaje),
                     "Dieciocho por ciento");
                 PrendarioPdfLayout.FilaMonto(
                     table,
                     "COMISIÓN DE VENTA",
-                    PrendarioPdfTexto.PorcentajeFijo(PrendarioPdfTexto.ComisionVentaPorcentaje),
+                    PrendarioPdfTexto.PorcentajeEntero(PrendarioPdfTexto.ComisionVentaPorcentaje),
                     "Cinco por ciento");
                 PrendarioPdfLayout.FilaFecha(table, "FECHA DE DESEMBOLSO", PrendarioPdfTexto.FechaLargaConDia(d.FechaDesembolso));
                 PrendarioPdfLayout.FilaFecha(table, "FECHA DE VENCIMIENTO", PrendarioPdfTexto.FechaLargaConDia(d.FechaVencimiento));
@@ -220,11 +218,4 @@ public static class RptContratoPrendarioPdfDocument
             PrendarioPdfLayout.Firmas(col);
         });
     }
-
-    private static void Linea(ColumnDescriptor col, string label, string valor) =>
-        col.Item().PaddingBottom(2).Text(text =>
-        {
-            text.Span(label + ": ").SemiBold().FontSize(8);
-            text.Span(valor).FontSize(9);
-        });
 }

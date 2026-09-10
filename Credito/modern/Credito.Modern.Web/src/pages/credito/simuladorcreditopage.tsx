@@ -35,7 +35,7 @@ import {
   simularCredito,
   type RptSimuladorPlanPagosParams,
 } from '../../api/creditoPlanes'
-import { fetchSolicitudCredito } from '../../api/creditoGestion'
+import { fetchCreditoContexto, fetchPrendas, fetchSolicitudCredito } from '../../api/creditoGestion'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import {
   CredixDataTable,
@@ -54,6 +54,7 @@ import {
   esCreditoAdministrador,
   esCreditoAprobador1,
 } from '../../utils/creditoOperacionPermisos'
+import { prendaAItem, prendaSimuladorDesdeBienes } from '../../utils/prendas'
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : 'Error desconocido'
@@ -200,6 +201,34 @@ export function SimuladorCreditoPage() {
     }
   }, [searchParams])
 
+  const esConsultaPrendario = productoFromUrl === 2
+
+  const prendasGuardadasQuery = useQuery({
+    queryKey: ['prendas', oficinaId, solicitudFromUrl],
+    queryFn: () => fetchPrendas(oficinaId, solicitudFromUrl!),
+    enabled: oficinaId > 0 && solicitudFromUrl != null && esConsultaPrendario,
+    staleTime: creditoStaleTime.operacion,
+  })
+
+  const contextoPrendarioQuery = useQuery({
+    queryKey: ['credito-contexto', solicitudFromUrl],
+    queryFn: () => fetchCreditoContexto(solicitudFromUrl!),
+    enabled: oficinaId > 0 && solicitudFromUrl != null && esConsultaPrendario,
+    staleTime: creditoStaleTime.operacion,
+  })
+
+  const prendaPrecarga = useMemo<PrendaPreCarga | null>(() => {
+    if (prendaFromUrl) return prendaFromUrl
+    const items = prendasGuardadasQuery.data ?? []
+    if (items.length === 0) return null
+    return prendaSimuladorDesdeBienes(
+      items.map(prendaAItem),
+      contextoPrendarioQuery.data?.fechaRemate,
+    )
+  }, [prendaFromUrl, prendasGuardadasQuery.data, contextoPrendarioQuery.data?.fechaRemate])
+
+  const bienesYaGuardados = (prendasGuardadasQuery.data?.length ?? 0) > 0
+
   useEffect(() => {
     if (observacionFromUrl && !observacion.trim()) {
       setObservacion(observacionFromUrl)
@@ -254,8 +283,9 @@ export function SimuladorCreditoPage() {
     [productoId, productosQuery.data],
   )
   const esPrendario = Boolean(
-    prendaFromUrl ||
-      productoSeleccionado?.denominacion?.toLowerCase().includes('prendario'),
+    prendaPrecarga ||
+      productoSeleccionado?.denominacion?.toLowerCase().includes('prendario') ||
+      esConsultaPrendario,
   )
   const clienteParaReporte =
     personaId != null
@@ -287,7 +317,7 @@ export function SimuladorCreditoPage() {
     setClienteLabel(solicitud.cliente)
     setSolicitudCreditoId(solicitud.solicitudCreditoId)
 
-    if (!prendaFromUrl) {
+    if (!prendaPrecarga) {
       if (solicitud.productoId && solicitud.productoId > 0) {
         setProductoId(solicitud.productoId)
       }
@@ -305,7 +335,12 @@ export function SimuladorCreditoPage() {
       fechaPrimerPago: solicitud.fechaPrimerPago?.slice(0, 10) || defaultFecha(),
       gastosAdm: solicitud.montoGastosAdm ?? 0,
     })
-  }, [form, prendaFromUrl, solicitudQuery.data])
+  }, [form, prendaPrecarga, solicitudQuery.data])
+
+  useEffect(() => {
+    if (!prendaPrecarga) return
+    form.setFieldValue('prendaDescripcion', prendaPrecarga.descripcion)
+  }, [form, prendaPrecarga])
 
   const busquedaCliente = useMutation({
     mutationFn: (t: string) => buscarClientes(t),
@@ -399,14 +434,15 @@ export function SimuladorCreditoPage() {
         fechaPrimerPago: `${v.fechaPrimerPago}T00:00:00`,
         observacion: observacion.trim() || null,
         indCentralRiesgo,
-        prenda: prendaFromUrl
-          ? {
-              descripcion: prendaFromUrl.descripcion,
-              montoTasacion: prendaFromUrl.montoTasacion,
-              fechaRemate: `${prendaFromUrl.fechaRemate}T00:00:00`,
-              observacion: prendaFromUrl.observacion,
-            }
-          : null,
+        prenda:
+          bienesYaGuardados || !prendaPrecarga
+            ? null
+            : {
+                descripcion: prendaPrecarga.descripcion,
+                montoTasacion: prendaPrecarga.montoTasacion,
+                fechaRemate: `${prendaPrecarga.fechaRemate}T00:00:00`,
+                observacion: prendaPrecarga.observacion,
+              },
       })
     },
     onSuccess: (r) => {
@@ -452,7 +488,7 @@ export function SimuladorCreditoPage() {
           throw new Error(`El interés debe estar entre ${min.toFixed(2)}% y ${max.toFixed(2)}%`)
         }
       }
-      if (esPrendario && !values.prendaDescripcion?.trim() && !prendaFromUrl) {
+      if (esPrendario && !values.prendaDescripcion?.trim() && !prendaPrecarga) {
         throw new Error('Ingrese la descripción de la prenda')
       }
       // Paridad CreditoController.Simulador con cboGA=ADE: gastos no van al SP (solo en cabecera informe).
@@ -564,8 +600,8 @@ export function SimuladorCreditoPage() {
     if (solicitudCreditoId != null) {
       items.push({ value: solicitudCreditoId, label: 'Solicitud' })
     }
-    if (prendaFromUrl) {
-      items.push({ value: formatMoney(prendaFromUrl.montoTasacion), label: 'Tasación prenda' })
+    if (prendaPrecarga) {
+      items.push({ value: formatMoney(prendaPrecarga.montoTasacion), label: 'Tasación prenda' })
     }
     if (cuotas.length > 0) {
       items.push(
@@ -594,7 +630,7 @@ export function SimuladorCreditoPage() {
     clienteLabel,
     clienteParaReporte,
     solicitudCreditoId,
-    prendaFromUrl,
+    prendaPrecarga,
     cuotas.length,
     totalInteres,
     totalCuota,
@@ -627,7 +663,7 @@ export function SimuladorCreditoPage() {
       nroDocumento: v.numeroDocumento,
       direccionCliente: v.direccionCliente,
       direccionNegocio: v.direccionNegocio,
-      prendaDescripcion: prendaFromUrl?.descripcion ?? v.prendaDescripcion,
+      prendaDescripcion: prendaPrecarga?.descripcion ?? v.prendaDescripcion,
       asesor: asesorNombre,
       telefonoCliente: v.telefono,
     }
@@ -656,13 +692,13 @@ export function SimuladorCreditoPage() {
         ]}
       />
 
-      {prendaFromUrl ? (
+      {prendaPrecarga ? (
         <Alert
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
           message="Crédito prendario"
-          description={`Prenda: ${prendaFromUrl.descripcion.toUpperCase()} | Tasación: ${formatMoney(prendaFromUrl.montoTasacion)} | Fecha remate: ${prendaFromUrl.fechaRemate}`}
+          description={`Prenda: ${prendaPrecarga.descripcion.toUpperCase()} | Tasación: ${formatMoney(prendaPrecarga.montoTasacion)} | Fecha remate: ${prendaPrecarga.fechaRemate}`}
         />
       ) : null}
 
@@ -902,11 +938,11 @@ export function SimuladorCreditoPage() {
               <Form.Item
                 name="prendaDescripcion"
                 label="Descripción de prenda"
-                rules={[{ required: !prendaFromUrl, message: 'Prenda obligatoria' }]}
+                rules={[{ required: !prendaPrecarga, message: 'Prenda obligatoria' }]}
               >
                 <Input
                   placeholder="Ej. laptop, joya, artefacto..."
-                  disabled={Boolean(prendaFromUrl)}
+                  disabled={Boolean(prendaPrecarga)}
                   style={{ width: 300 }}
                 />
               </Form.Item>

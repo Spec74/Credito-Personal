@@ -20,8 +20,12 @@ public static class PrendarioPdfTexto
     public static string FechaLarga(DateTime fecha) =>
         fecha.ToString("dd 'de' MMMM 'de' yyyy", Cultura);
 
-    public static string FechaLargaConDia(DateTime fecha) =>
-        fecha.ToString("dddd, dd 'de' MMMM 'de' yyyy", Cultura);
+    public static string FechaLargaConDia(DateTime fecha)
+    {
+        var diaSemana = fecha.ToString("dddd", Cultura);
+        var mes = MesNombre(fecha);
+        return $"{diaSemana}, {fecha.Day.ToString(CultureInfo.InvariantCulture)} de {mes} de {fecha.Year.ToString(CultureInfo.InvariantCulture)}";
+    }
 
     public static string FechaCiudad(DateTime fecha) =>
         "Ayacucho, " + FechaLarga(fecha);
@@ -43,7 +47,19 @@ public static class PrendarioPdfTexto
         fecha.Day.ToString(CultureInfo.InvariantCulture);
 
     public static string MesNombre(DateTime fecha) =>
-        fecha.ToString("MMMM", Cultura);
+        Cultura.TextInfo.ToTitleCase(fecha.ToString("MMMM", Cultura));
+
+    public static string PorcentajeEntero(decimal valor) =>
+        valor.ToString("0", Cultura) + "%";
+
+    public static (string Numero, string Unidad) PartesPlazo(string plazoTexto)
+    {
+        var t = (plazoTexto ?? string.Empty).Trim();
+        var partes = t.Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+        return partes.Length == 2
+            ? (partes[0], partes[1].ToUpperInvariant())
+            : (t, string.Empty);
+    }
 
     public static string Anio(DateTime fecha) =>
         fecha.Year.ToString(CultureInfo.InvariantCulture);
