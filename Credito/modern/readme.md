@@ -71,7 +71,7 @@ dotnet run --project Credito.Modern.Api
 - **Pagos no verificados Yape/Plin/transferencias (JWT, política `CreditoUser`):** `GET /api/v1/credito/pagos-no-verificados?oficinaId=` — **`CREDITO.usp_PagosNoVerificados`**; misma fuente que **`CreditoBL.LstVerificarPagosJGrid`**. **`oficinaId`** = token; el SP no tiene parámetros (no filtra por oficina). No equivale al conteo **`ValidarPagosNoVerificados`** (solo caja diario de sesión).
 - **Pagos no verificados CSV (JWT, política `CreditoUser`):** `GET /api/v1/credito/pagos-no-verificados-csv?oficinaId=` — mismos datos y reglas que **`pagos-no-verificados`**; **`text/csv; charset=utf-8`**, **`pagos-no-verificados.csv`** (UTF-8 con BOM).
 - **Validar impagos pendientes caja (JWT, política `CreditoUser`):** `GET /api/v1/credito/completar-impagos-validacion?oficinaId=&cajaDiarioId=` — **`CREDITO.usp_CompletarImpagosValidacion`**; devuelve `cantidadImpagosPendientes` (como **`CreditoBL.CompletarImpagosValidar`**). La caja diario debe pertenecer a la oficina del token. **No** ejecuta **`usp_CompletarImpagos`** (escritura).
-- **Completar impagos caja (JWT, escritura, política `CreditoUser`):** `POST /api/v1/credito/completar-impagos` — body JSON `{ "oficinaId", "cajaDiarioId" }`; ejecuta **`CREDITO.usp_CompletarImpagos`**. Devuelve **409** si la validación previa reporta impagos pendientes. Paridad **`CreditoBL.CompletarImpagos`**.
+- **Completar impagos caja (JWT, escritura, política `CreditoUser`):** `POST /api/v1/credito/completar-impagos` — body JSON `{ "oficinaId", "cajaDiarioId" }`; ejecuta **`CREDITO.usp_CompletarImpagos`** (pago libre 0 en créditos sin cobro del día). La validación GET se usa al **cerrar** la caja, no para rechazar esta escritura. Paridad **`CreditoBL.CompletarImpagos`**.
 - **Pagar cuotas (JWT, escritura):** `POST /api/v1/credito/pagar-cuotas` — **`CREDITO.usp_PagarCuotas`**; body con `listaPlanPagoId`, `importeRecibido`, `tipoPagoId`, etc.; `usuarioId`/`fechaPago` desde token y `usp_FechaBD`. **422** si el proc devuelve resultado negativo.
 - **Pagar cuota importe libre (JWT, escritura):** `POST /api/v1/credito/pagar-cuota-importe-libre` — **`usp_PagarCuotaPagoLibre`**.
 - **Pagar cuotas cancelación (JWT, escritura):** `POST /api/v1/credito/pagar-cuotas-cancelacion` — **`usp_PagarCuotasCancelacion`**.
@@ -143,7 +143,7 @@ dotnet run --project Credito.Modern.Api
 - **Pagos no verificados Yape/Plin/transferencias (JWT, política `CreditoUser`):** `GET /api/v1/credito/pagos-no-verificados?oficinaId=` — **`CREDITO.usp_PagosNoVerificados`**; misma fuente que **`CreditoBL.LstVerificarPagosJGrid`**. **`oficinaId`** = token; el SP no tiene parámetros (no filtra por oficina). No equivale al conteo **`ValidarPagosNoVerificados`** (solo caja diario de sesión).
 - **Pagos no verificados CSV (JWT, política `CreditoUser`):** `GET /api/v1/credito/pagos-no-verificados-csv?oficinaId=` — mismos datos y reglas que **`pagos-no-verificados`**; **`text/csv; charset=utf-8`**, **`pagos-no-verificados.csv`** (UTF-8 con BOM).
 - **Validar impagos pendientes caja (JWT, política `CreditoUser`):** `GET /api/v1/credito/completar-impagos-validacion?oficinaId=&cajaDiarioId=` — **`CREDITO.usp_CompletarImpagosValidacion`**; devuelve `cantidadImpagosPendientes` (como **`CreditoBL.CompletarImpagosValidar`**). La caja diario debe pertenecer a la oficina del token. **No** ejecuta **`usp_CompletarImpagos`** (escritura).
-- **Completar impagos caja (JWT, escritura, política `CreditoUser`):** `POST /api/v1/credito/completar-impagos` — body JSON `{ "oficinaId", "cajaDiarioId" }`; ejecuta **`CREDITO.usp_CompletarImpagos`**. Devuelve **409** si la validación previa reporta impagos pendientes. Paridad **`CreditoBL.CompletarImpagos`**.
+- **Completar impagos caja (JWT, escritura, política `CreditoUser`):** `POST /api/v1/credito/completar-impagos` — body JSON `{ "oficinaId", "cajaDiarioId" }`; ejecuta **`CREDITO.usp_CompletarImpagos`** (pago libre 0 en créditos sin cobro del día). La validación GET se usa al **cerrar** la caja, no para rechazar esta escritura. Paridad **`CreditoBL.CompletarImpagos`**.
 - **Pagar cuotas (JWT, escritura):** `POST /api/v1/credito/pagar-cuotas` — **`CREDITO.usp_PagarCuotas`**; body con `listaPlanPagoId`, `importeRecibido`, `tipoPagoId`, etc.; `usuarioId`/`fechaPago` desde token y `usp_FechaBD`. **422** si el proc devuelve resultado negativo.
 - **Pagar cuota importe libre (JWT, escritura):** `POST /api/v1/credito/pagar-cuota-importe-libre` — **`usp_PagarCuotaPagoLibre`**.
 - **Pagar cuotas cancelación (JWT, escritura):** `POST /api/v1/credito/pagar-cuotas-cancelacion` — **`usp_PagarCuotasCancelacion`**.
@@ -393,3 +393,20 @@ Migración **backend + SPA** candidata a cierre — [docs/migration/MIGRATION-CL
 
 - Desplegar proxy en preprod/prod: [PHASE-3B-PROXY-E2E.md](docs/migration/PHASE-3B-PROXY-E2E.md), [PHASE-5-OPERATIONS-CUTOVER.md](docs/migration/PHASE-5-OPERATIONS-CUTOVER.md).
 - Fase 4 RDLC solo si negocio exige layout idéntico: [PHASE-4-START.md](docs/migration/PHASE-4-START.md).
+
+
+
+##Cómo correr
+Dos terminales en PowerShell.
+
+1 — API
+
+cd D:\Ebers\GitHub\Credito\modern
+$env:ASPNETCORE_ENVIRONMENT='Development'
+dotnet run --project Credito.Modern.Api --launch-profile Credito.Modern.Api
+
+2 — Front
+
+cd D:\Ebers\GitHub\Credito\modern\Credito.Modern.Web
+npm run dev
+Abre http://localhost:5173/login. La API queda en https://localhost:7288. Entra con un usuario ANALISTA.

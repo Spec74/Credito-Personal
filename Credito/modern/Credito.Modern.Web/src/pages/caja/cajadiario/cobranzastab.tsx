@@ -1,6 +1,4 @@
 import {
-  lazy,
-  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -18,17 +16,19 @@ import {
   message,
 } from 'antd'
 import {
+  CheckCircleOutlined,
   CreditCardOutlined,
   DollarOutlined,
   FilePdfOutlined,
   FileSearchOutlined,
   HistoryOutlined,
   SearchOutlined,
-  TeamOutlined,
   UnorderedListOutlined,
   WalletOutlined,
 } from '@ant-design/icons'
 import {
+  completarImpagos,
+  completarImpagosValidacion,
   fetchCreditoMoraResumen,
   fetchCreditosPorPersona,
   fetchCuentasPorCobrarPendientes,
@@ -66,17 +66,13 @@ import {
   maybeDownloadCajaTicket,
 } from './cajaPagoHelpers'
 
-const CobranzaBloqueDrawer = lazy(() => import('./cobranzabloquedrawer'))
-
 export function CobranzasTab({
   ctx,
   creditoIdInicial,
-  usuarioId,
   onChanged,
 }: {
   ctx: CajaSession
   creditoIdInicial: string | null
-  usuarioId: number
   onChanged: () => void
 }) {
   const [clienteLabel, setClienteLabel] = useState('')
@@ -101,7 +97,7 @@ export function CobranzasTab({
   const [fechaPagoLibre, setFechaPagoLibre] = useState('')
   const [showCxc, setShowCxc] = useState(false)
   const [cuotasModalOpen, setCuotasModalOpen] = useState(false)
-  const [cobranzaBloqueOpen, setCobranzaBloqueOpen] = useState(false)
+  const [consultandoImpagos, setConsultandoImpagos] = useState(false)
   const [fechaLibreModalOpen, setFechaLibreModalOpen] = useState(false)
   const [fechaCuotaModalOpen, setFechaCuotaModalOpen] = useState(false)
   const [moraModalOpen, setMoraModalOpen] = useState(false)
@@ -312,6 +308,49 @@ export function CobranzasTab({
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const ejecutarCompletarImpagos = useMutation({
+    mutationFn: () =>
+      completarImpagos({
+        oficinaId: ctx.oficinaId,
+        cajaDiarioId: ctx.cajaDiarioId,
+      }),
+    onSuccess: (r) => {
+      if (r.success) {
+        message.success('Impagos completados')
+      } else {
+        message.warning(
+          'La base de datos no completó los impagos. Consulte con sistemas.',
+        )
+      }
+      onChanged()
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const solicitarCompletarImpagos = async () => {
+    setConsultandoImpagos(true)
+    try {
+      const validacion = await completarImpagosValidacion(
+        ctx.oficinaId,
+        ctx.cajaDiarioId,
+      )
+      const pendientes = validacion.cantidadImpagosPendientes ?? 0
+      if (pendientes <= 0) {
+        message.info('No hay créditos impagos pendientes para completar.')
+        return
+      }
+      cajaConfirm({
+        title: 'Completar impagos',
+        content: `Hay ${pendientes} crédito(s) sin cobro registrado hoy. Se registrará un movimiento CUO de S/ 0.00 (pago libre 0) en cada uno, para poder cerrar la caja. ¿Continuar?`,
+        onOk: () => ejecutarCompletarImpagos.mutateAsync(),
+      })
+    } catch (e) {
+      message.error(errMsg(e))
+    } finally {
+      setConsultandoImpagos(false)
+    }
+  }
+
   const solicitarPagoLibre = async () => {
     if (!creditoId || !pagoLibre || pagoLibre <= 0) {
       return
@@ -442,12 +481,11 @@ export function CobranzasTab({
             Cuotas pendientes
           </Button>
           <Button
-            icon={<TeamOutlined />}
-            type="primary"
-            ghost
-            onClick={() => setCobranzaBloqueOpen(true)}
+            icon={<CheckCircleOutlined />}
+            loading={consultandoImpagos || ejecutarCompletarImpagos.isPending}
+            onClick={() => void solicitarCompletarImpagos()}
           >
-            Cobranza en bloque
+            Completar impagos
           </Button>
         </div>
       </div>
@@ -721,18 +759,6 @@ export function CobranzasTab({
           })()
         }}
       />
-
-      {cobranzaBloqueOpen ? (
-        <Suspense fallback={null}>
-          <CobranzaBloqueDrawer
-            open={cobranzaBloqueOpen}
-            ctx={ctx}
-            usuarioId={usuarioId}
-            onClose={() => setCobranzaBloqueOpen(false)}
-            onChanged={onChanged}
-          />
-        </Suspense>
-      ) : null}
 
       <CajaModal
         title="Fecha y hora de transferencia"

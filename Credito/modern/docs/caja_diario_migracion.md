@@ -32,7 +32,7 @@ Documento de verificación de migración (`Credito/Web/Views/Credito/CajaDiario.
 | Sesión / saldos en pantalla | Sidebar + KPIs `CajaDiarioPage` | + recalcular, enlaces informes |
 | `btnCxcPendiente` GAD | Cobranzas → GAD / tab CxC | |
 | `btnCuotaPendiente` | Cobranzas → Cuotas pendientes | `GET creditos-gestor-desembolsados` (DES gestor) |
-| `btnCompletarCoutaPendienteImpago` | Completar impagos + confirmación | |
+| `btnCompletarCoutaPendienteImpago` | Cobranzas → Completar impagos | Confirmación + `POST completar-impagos`. La cobranza en bloque se retiró: los gestores registran en campo. |
 | Buscar cliente + chips crédito | `ClienteBuscarAutoComplete` + chips | + PDF movimientos crédito |
 | `btnPagar` cuotas | Pagar cuota + TieneCxc + confirm + ticket | |
 | `btnPagoLibre` | Pago libre + mismas reglas | |

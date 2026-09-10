@@ -13146,7 +13146,6 @@ app.MapPost(
         async Task<Results<Ok<CompletarImpagosResponse>, ProblemHttpResult>> (
             HttpContext httpContext,
             CompletarImpagosRequest body,
-            ICompletarImpagosValidacionReadService completarImpagosValidacion,
             ICompletarImpagosWriteService completarImpagos,
             ICajaDiarioOficinaReadService cajaDiarioOficina,
             ILoggerFactory loggerFactory,
@@ -13199,18 +13198,6 @@ app.MapPost(
             var log = loggerFactory.CreateLogger("CompletarImpagos");
             try
             {
-                var validacion = await completarImpagosValidacion
-                    .ValidarAsync(body.CajaDiarioId, ct)
-                    .ConfigureAwait(false);
-                if (validacion.CantidadImpagosPendientes is > 0)
-                {
-                    return TypedResults.Problem(
-                        statusCode: StatusCodes.Status409Conflict,
-                        title: "Impagos pendientes",
-                        detail:
-                            $"La caja diario tiene {validacion.CantidadImpagosPendientes} crédito(s) impago(s) pendiente(s). Ejecute primero el flujo de cobro o use GET completar-impagos-validacion.");
-                }
-
                 var response = await completarImpagos.EjecutarAsync(body.CajaDiarioId, ct).ConfigureAwait(false);
                 return TypedResults.Ok(response);
             }
@@ -13247,7 +13234,7 @@ app.MapPost(
         })
     .WithName("CreditoCompletarImpagos")
     .WithSummary(
-        "Escritura: CREDITO.usp_CompletarImpagos(CajaDiarioId). Body { oficinaId, cajaDiarioId }; oficinaId = vendix:oficina_id. Rechaza 409 si usp_CompletarImpagosValidacion > 0. Rol operativo. Paridad CreditoBL.CompletarImpagos.")
+        "Escritura: CREDITO.usp_CompletarImpagos(CajaDiarioId). Body { oficinaId, cajaDiarioId }; oficinaId = vendix:oficina_id. Paridad CreditoBL.CompletarImpagos (el SP registra CUO 0 en créditos sin cobro del día). GET completar-impagos-validacion se usa en cierre, no como rechazo de esta escritura.")
     .WithTags("credito")
     .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
     .Produces<CompletarImpagosResponse>(StatusCodes.Status200OK, "application/json")
@@ -13255,7 +13242,6 @@ app.MapPost(
     .ProducesProblem(StatusCodes.Status401Unauthorized)
     .ProducesProblem(StatusCodes.Status403Forbidden)
     .ProducesProblem(StatusCodes.Status404NotFound)
-    .ProducesProblem(StatusCodes.Status409Conflict)
     .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 app.MapPost(

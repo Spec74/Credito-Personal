@@ -363,7 +363,6 @@ export function CajaDiarioPage() {
                         <CobranzasTab
                           ctx={ctx}
                           creditoIdInicial={creditoIdQuery}
-                          usuarioId={session?.usuarioId ?? 0}
                           onChanged={() => {
                             invalidateCaja()
                             void cajaQuery.refetch()
