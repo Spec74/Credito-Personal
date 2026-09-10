@@ -10,6 +10,7 @@ using Credito.Modern.Api.Almacen;
 using Credito.Modern.Api.Articulos;
 using Credito.Modern.Api.Clientes;
 using Credito.Modern.Api.Caja;
+using Credito.Modern.Api.Dashboard;
 using Credito.Modern.Api.Credito;
 using Credito.Modern.Api.Maestros;
 using Credito.Modern.Application.Auth;
@@ -25181,6 +25182,7 @@ app.MapCreditoInformesLegacyEndpoints();
 app.MapCobranzaPagosEndpoints();
 
 app.MapCreditoTareasReportEndpoints();
+app.MapDashboardAnalistaEndpoints();
 app.MapClienteExtensionEndpoints();
 app.MapAlmacenConstanciaEndpoints();
 app.MapHostingEndpoints();

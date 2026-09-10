@@ -1,0 +1,401 @@
+.dash-analista {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dash-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dash-kicker {
+  margin: 0 0 4px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--credix-text-muted);
+  font-weight: 600;
+}
+
+.dash-hello {
+  margin: 0;
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 700;
+  color: var(--credix-text);
+  letter-spacing: -0.02em;
+}
+
+.dash-sub {
+  margin: 6px 0 0;
+  color: var(--credix-text-muted);
+}
+
+.dash-date {
+  font-size: 13px;
+  color: var(--credix-text-muted);
+  background: #fff;
+  border: 1px solid var(--credix-border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+
+.dash-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dash-kpi {
+  background: #fff;
+  border: 1px solid var(--credix-border);
+  border-radius: 12px;
+  padding: 14px 16px 16px;
+  box-shadow: var(--credix-shadow-sm);
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.dash-kpi::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--dash-accent, var(--credix-brand));
+}
+
+.dash-kpi-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--credix-text-muted);
+}
+
+.dash-kpi-value {
+  margin: 8px 0 0;
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
+  font-weight: 700;
+  color: var(--credix-text);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.dash-kpi-meta {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--credix-text-muted);
+}
+
+.dash-var {
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+.dash-var.is-up {
+  color: #047857;
+  background: #ecfdf5;
+}
+
+.dash-var.is-down {
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.dash-var.is-new {
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+  gap: 12px;
+}
+
+.dash-panel {
+  background: #fff;
+  border: 1px solid var(--credix-border);
+  border-radius: 12px;
+  box-shadow: var(--credix-shadow-sm);
+  min-width: 0;
+}
+
+.dash-panel-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 16px 0;
+}
+
+.dash-panel-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.dash-panel-head p,
+.dash-panel-caption {
+  margin: 0;
+  font-size: 12px;
+  color: var(--credix-text-muted);
+}
+
+.dash-panel-body {
+  padding: 12px 16px 16px;
+}
+
+.dash-chart {
+  position: relative;
+}
+
+.dash-chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.dash-chart-grid {
+  stroke: #eef2f7;
+  stroke-width: 1;
+}
+
+.dash-chart-line {
+  fill: none;
+  stroke: #114885;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.dash-chart-dot {
+  fill: #fff;
+  stroke: #114885;
+  stroke-width: 2;
+}
+
+.dash-chart-dot.is-active {
+  fill: #114885;
+}
+
+.dash-chart-axis {
+  fill: #94a3b8;
+  font-size: 11px;
+}
+
+.dash-chart-tooltip {
+  min-height: 36px;
+  margin-top: 4px;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 13px;
+}
+
+.dash-chart-tooltip.is-hint {
+  color: var(--credix-text-muted);
+}
+
+.dash-chart-empty {
+  margin: 24px 0;
+  text-align: center;
+  color: var(--credix-text-muted);
+}
+
+.dash-rank-pos {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.dash-rank-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dash-rank-table th {
+  text-align: left;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--credix-text-muted);
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--credix-border);
+}
+
+.dash-rank-table td {
+  padding: 9px 6px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 13px;
+}
+
+.dash-rank-table td:last-child,
+.dash-rank-table th:last-child {
+  text-align: right;
+}
+
+.dash-rank-table tr.is-me {
+  background: #eef6ff;
+  font-weight: 600;
+}
+
+.dash-medal {
+  display: inline-flex;
+  width: 22px;
+  justify-content: center;
+}
+
+.dash-podium {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+  min-height: 180px;
+}
+
+.dash-podium-item {
+  border: 1px solid var(--credix-border);
+  border-radius: 12px;
+  padding: 14px 12px;
+  text-align: center;
+  background: #f8fafc;
+}
+
+.dash-podium-item.is-1 {
+  background: linear-gradient(180deg, #fff7d6 0%, #fff 70%);
+  border-color: #f3d27a;
+  padding-top: 22px;
+  padding-bottom: 22px;
+}
+
+.dash-podium-item.is-2 {
+  background: linear-gradient(180deg, #eef2f7 0%, #fff 70%);
+}
+
+.dash-podium-item.is-3 {
+  background: linear-gradient(180deg, #f8efe4 0%, #fff 70%);
+}
+
+.dash-podium-place {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--credix-text-muted);
+}
+
+.dash-podium-name {
+  margin: 8px 0 4px;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.dash-podium-amt {
+  font-weight: 700;
+  color: var(--credix-brand);
+}
+
+.dash-insights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dash-insight {
+  display: flex;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--credix-border);
+  background: #fafbfc;
+}
+
+.dash-insight.is-success {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+.dash-insight.is-warning {
+  border-color: #fde68a;
+  background: #fffbeb;
+}
+
+.dash-insight.is-danger {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.dash-insight.is-info {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.dash-insight h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+}
+
+.dash-insight p {
+  margin: 0;
+  font-size: 13px;
+  color: #374151;
+}
+
+.dash-insight a {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.dash-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dash-empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--credix-text-muted);
+  font-size: 13px;
+}
+
+.dash-admin-banner {
+  margin-bottom: 12px;
+}
+
+@media (max-width: 1100px) {
+  .dash-kpis,
+  .dash-grid,
+  .dash-insights,
+  .dash-podium {
+    grid-template-columns: 1fr;
+  }
+
+  .dash-podium {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .dash-kpis {
+    grid-template-columns: 1fr;
+  }
+}

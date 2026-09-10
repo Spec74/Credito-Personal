@@ -29,6 +29,7 @@ using Credito.Modern.Application.SerieArticulos;
 using Credito.Modern.Application.Ventas;
 using Credito.Modern.Application.Reportes;
 using Credito.Modern.Application.Prendario;
+using Credito.Modern.Application.Dashboard;
 using Credito.Modern.Infrastructure.Auth;
 using Credito.Modern.Infrastructure.CreditoTasas;
 using Credito.Modern.Infrastructure.CreditoCartera;
@@ -40,6 +41,7 @@ using Credito.Modern.Infrastructure.RolAdmin;
 using Credito.Modern.Infrastructure.UsuariosAdmin;
 using Credito.Modern.Infrastructure.CreditoPlanes;
 using Credito.Modern.Infrastructure.Prendario;
+using Credito.Modern.Infrastructure.Dashboard;
 using Credito.Modern.Infrastructure.Data;
 using Credito.Modern.Infrastructure.Documentos;
 using Credito.Modern.Infrastructure.Maestros;
@@ -261,6 +263,7 @@ public static class DependencyInjection
         services.AddScoped<IReportesExportPoliticaReadService, ReportesExportPoliticaReadService>();
         services.AddScoped<IReportesCatalogoCoberturaReadService, ReportesCatalogoCoberturaReadService>();
         services.AddScoped<IPrendarioReadService, PrendarioReadService>();
+        services.AddScoped<IDashboardAnalistaReadService, DashboardAnalistaReadService>();
         return services;
     }
 }

@@ -57,6 +57,21 @@ export function esCreditoAdministrador(roles: string[]): boolean {
 
 }
 
+export function esCreditoAnalista(roles: string[]): boolean {
+  return hasRoleLike(roles, 'ANALISTA')
+}
+
+/** Inicio operativo: el analista ve su tablero; el admin conserva el hub de accesos. */
+export function debeMostrarDashboardAnalista(roles: string[], vista?: string | null): boolean {
+  if (!esCreditoAnalista(roles)) {
+    return false
+  }
+  if (esCreditoAdministrador(roles)) {
+    return vista === 'analista'
+  }
+  return true
+}
+
 
 
 export function esCreditoAprobador1(roles: string[]): boolean {
