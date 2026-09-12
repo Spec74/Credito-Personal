@@ -24,8 +24,6 @@ public sealed class StranglerStagingContractTests
         Assert.Contains("http://127.0.0.1:9080", allowed);
         Assert.Contains("http://localhost:5173", allowed);
         Assert.Contains("http://127.0.0.1:5173", allowed);
-        Assert.Contains("http://localhost:5173", allowed);
-        Assert.Contains("http://127.0.0.1:5173", allowed);
     }
 
     private static string FindStagingSettingsPath()

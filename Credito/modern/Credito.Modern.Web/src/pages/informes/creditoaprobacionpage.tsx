@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { CheckCircleOutlined, SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, DatePicker, Form, InputNumber, Typography } from 'antd'
+import { Alert, Button, DatePicker, Form, Typography } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
   downloadCreditoAprobacionCsv,
@@ -14,7 +14,7 @@ import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage } from '../../components/credix'
 import type { CredixStatItem } from '../../components/credix'
-import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import { buildAprobacionInformeColumns } from '../../config/aprobacionInformeColumns'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import type {
@@ -160,8 +160,8 @@ export function CreditoAprobacionPage() {
           initialValues={defaultValues}
           onFinish={(v) => consulta.mutate(v)}
         >
-          <Form.Item name="oficinaId" hidden>
-            <InputNumber />
+          <Form.Item name="oficinaId" label="Oficina">
+            <OficinaSelect disabled size="middle" />
           </Form.Item>
           <Form.Item name="usuarioId" label="Gestor">
             <GestorSelect allowAll legacyList size="middle" />

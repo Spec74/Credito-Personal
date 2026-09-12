@@ -37,4 +37,5 @@ public enum CredixLegacyReportKey
     ListaPrecio,
     Kardex,
     RentabilidadVenta,
+    CreditoMorosidad,
 }

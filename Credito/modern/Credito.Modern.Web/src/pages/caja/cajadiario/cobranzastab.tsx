@@ -41,6 +41,10 @@ import { CajaModal } from '../../../components/caja/CajaModal'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import { CreditoMoraModal } from '../../../components/caja/CreditoMoraModal'
 import { fetchValoresTabla } from '../../../api/maestros'
+import {
+  fetchCondonacionPendienteCredito,
+  solicitarCondonacion,
+} from '../../../api/creditoCondonacion'
 import { CajaCuotasTable } from '../../../components/caja/CajaCuotasTable'
 import {
   loadCuotasCobranzaGrid,
@@ -101,9 +105,16 @@ export function CobranzasTab({
   const [fechaLibreModalOpen, setFechaLibreModalOpen] = useState(false)
   const [fechaCuotaModalOpen, setFechaCuotaModalOpen] = useState(false)
   const [moraModalOpen, setMoraModalOpen] = useState(false)
+  const [solicitarOpen, setSolicitarOpen] = useState(false)
+  const [moraSolicitar, setMoraSolicitar] = useState<number | null>(null)
   const moraResumenQuery = useQuery({
     queryKey: ['credito-mora-resumen', creditoId],
     queryFn: () => fetchCreditoMoraResumen(creditoId!),
+    enabled: creditoId != null && creditoId > 0,
+  })
+  const condonacionPendienteQuery = useQuery({
+    queryKey: ['condonacion-pendiente', creditoId],
+    queryFn: () => fetchCondonacionPendienteCredito(creditoId!),
     enabled: creditoId != null && creditoId > 0,
   })
   const tiposPagoQuery = useQuery({
@@ -257,6 +268,22 @@ export function CobranzasTab({
       if (creditoId) {
         buscar.mutate({ creditoId, silent: true })
       }
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const solicitar = useMutation({
+    mutationFn: () =>
+      solicitarCondonacion({
+        oficinaId: ctx.oficinaId,
+        cajaDiarioId: ctx.cajaDiarioId,
+        creditoId: creditoId!,
+        moraCondonacion: moraSolicitar ?? 0,
+      }),
+    onSuccess: () => {
+      message.success('Solicitud de condonación registrada')
+      setSolicitarOpen(false)
+      void condonacionPendienteQuery.refetch()
     },
     onError: (e) => message.error(errMsg(e)),
   })
@@ -617,6 +644,20 @@ export function CobranzasTab({
               Crédito mora
             </Button>
           ) : null}
+          {creditoId ? (
+            <Button
+              onClick={() => {
+                const mora =
+                  condonacionPendienteQuery.data?.tienePendiente
+                    ? condonacionPendienteQuery.data.moraCondonacion
+                    : sumarMoraVigente(cuotas)
+                setMoraSolicitar(Number(mora.toFixed(2)))
+                setSolicitarOpen(true)
+              }}
+            >
+              Solicitar condonación
+            </Button>
+          ) : null}
         </Space>
 
         <div className="caja-diario-pago-libre-band">
@@ -810,6 +851,36 @@ export function CobranzasTab({
           value={fechaTransferencia}
           onChange={(e) => setFechaTransferencia(e.target.value)}
           style={{ width: '100%' }}
+        />
+      </CajaModal>
+
+      <CajaModal
+        title="Solicitar condonación de mora"
+        open={solicitarOpen}
+        onCancel={() => setSolicitarOpen(false)}
+        onOk={() => solicitar.mutateAsync()}
+        confirmLoading={solicitar.isPending}
+        okText="Registrar solicitud"
+      >
+        {condonacionPendienteQuery.data?.tienePendiente ? (
+          <Alert
+            type="warning"
+            showIcon
+            style={{ marginBottom: 12 }}
+            message="Ya hay una solicitud pendiente para este crédito."
+          />
+        ) : null}
+        <p>
+          Se registra la mora a condonar en la caja abierta. El administrador la aprueba en la
+          ficha del crédito.
+        </p>
+        <InputNumber
+          min={0}
+          step={0.01}
+          style={{ width: '100%' }}
+          value={moraSolicitar}
+          onChange={(v) => setMoraSolicitar(v)}
+          prefix="S/"
         />
       </CajaModal>
 

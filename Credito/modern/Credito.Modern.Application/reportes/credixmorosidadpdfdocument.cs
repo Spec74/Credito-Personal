@@ -33,7 +33,8 @@ public static class CredixMorosidadPdfDocument
         var metadata = new CredixLegacyPdfDocument.MetadataLine[]
         {
             new("Oficina: ", header.Oficina),
-            new("Dias atrazo del: ", $"{header.DiasAtrazoIni} al {header.DiasAtrazoFin}"),
+            new("Fecha corte: ", header.HastaFecha),
+            new("Días de atraso: ", $"{header.DiasAtrazoIni} al {header.DiasAtrazoFin}"),
         };
 
         return Document.Create(document =>
@@ -62,7 +63,7 @@ public static class CredixMorosidadPdfDocument
                             h.Cell().Element(CredixLegacyPdfDocument.HeaderCell)
                                 .Text(label).Bold().FontSize(CredixLegacyPdfDocument.FontSizeBody);
 
-                        H("Cred");
+                        H("N° créd.");
                         H("Artículo");
                         H("Fecha Desembolso");
                         H("Fecha Vencimiento");

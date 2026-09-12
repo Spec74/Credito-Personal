@@ -133,7 +133,28 @@ public sealed record PrendarioAvisoEnvioResumenDto(
     int Enviados,
     int Fallidos,
     int Omitidos,
-    IReadOnlyList<PrendarioAvisoEnvioItemDto> Detalle);
+    IReadOnlyList<PrendarioAvisoEnvioItemDto> Detalle,
+    string? Advertencia = null);
 
 public sealed record EnviarAvisosPrendarioRequest(int OficinaId, int DiasAntes = 3, int? CreditoId = null);
+
+/// <summary>Última pasada del aviso de 3 días (automática o manual). Sin token ni PhoneNumberId.</summary>
+public sealed record PrendarioWhatsAppPasadaDto(
+    DateTimeOffset Fecha,
+    string Origen,
+    int Enviados,
+    int Fallidos,
+    int Omitidos,
+    string? Advertencia);
+
+/// <summary>Estado del canal oficial de vencimiento prendario para la UI del analista.</summary>
+public sealed record PrendarioWhatsAppEstadoDto(
+    bool Enabled,
+    bool Configurado,
+    bool AutomaticoActivo,
+    int DiasAntes,
+    int DailyHourLocal,
+    DateTimeOffset ProximaCorrida,
+    bool CorreAlArrancar,
+    PrendarioWhatsAppPasadaDto? UltimaPasada);
 

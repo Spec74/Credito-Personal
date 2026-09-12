@@ -1,3 +1,4 @@
+using System.Data;
 using Credito.Modern.Application.CreditoPlanes;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -99,6 +100,53 @@ public sealed class CreditoGestionWriteService(
                     },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+            var pendiente = await connection.QueryFirstOrDefaultAsync<CondonacionAprobarRow>(
+                new CommandDefinition(
+                    """
+                    SELECT TOP (1)
+                           cc.Id,
+                           cc.CajaDiarioId,
+                           cx.CuentaxCobrarId
+                    FROM CREDITO.CreditoCondonacion AS cc
+                    INNER JOIN CREDITO.Credito AS c ON c.CreditoId = cc.CreditoId
+                    INNER JOIN CREDITO.CuentaxCobrar AS cx ON cx.CreditoId = cc.CreditoId
+                    WHERE cc.CreditoId = @CreditoId
+                      AND c.OficinaId = @OficinaId
+                      AND cc.IndAprobado = CAST(0 AS bit)
+                    ORDER BY cc.Id;
+                    """,
+                    new { request.CreditoId, request.OficinaId },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+            if (pendiente is not null)
+            {
+                await connection.ExecuteAsync(
+                    new CommandDefinition(
+                        """
+                        UPDATE CREDITO.CreditoCondonacion
+                        SET IndAprobado = CAST(1 AS bit)
+                        WHERE Id = @Id;
+                        """,
+                        new { pendiente.Id },
+                        transaction: transaction,
+                        cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+                await connection.ExecuteAsync(
+                    new CommandDefinition(
+                        "CREDITO.usp_PagarCuentaxCobrar",
+                        new
+                        {
+                            OrdenVentaId = 0,
+                            pendiente.CuentaxCobrarId,
+                            pendiente.CajaDiarioId,
+                            UsuarioId = usuarioId,
+                        },
+                        transaction: transaction,
+                        commandType: CommandType.StoredProcedure,
+                        cancellationToken: cancellationToken)).ConfigureAwait(false);
+            }
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new CreditoGestionOperacionResponse(true, null);
@@ -664,5 +712,12 @@ public sealed class CreditoGestionWriteService(
             throw new InvalidOperationException(
                 "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
         }
+    }
+
+    private sealed class CondonacionAprobarRow
+    {
+        public int Id { get; init; }
+        public int CajaDiarioId { get; init; }
+        public int CuentaxCobrarId { get; init; }
     }
 }

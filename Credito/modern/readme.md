@@ -328,7 +328,15 @@ O variables de entorno: `CreditoDatabase__ConnectionString`.
 
 **JWT (HS256):** en `appsettings.Development.json` hay una clave solo para local; en **producción** define `Jwt__SigningKey` (≥ 32 bytes UTF-8), `Jwt__Issuer`, `Jwt__Audience` (access), `Jwt__RefreshAudience`, opcionalmente `Jwt__AccessTokenLifetimeHours` (1–168), `Jwt__RefreshTokenLifetimeDays` (1–90) y **`Jwt__RefreshTokenVersion`** (entero ≥ 1; súbelo para invalidar masivamente refresh tokens antiguos). Sin clave válida la aplicación no arranca (`ValidateOnStart`).
 
-**Auth (login legado):** `Auth__RequerirClienteAcceso` (por defecto `true` en `appsettings.json`) replica la comprobación de `tk` contra `MAESTRO.Acceso`. En Development local está en `false` para poder probar sin fila de acceso. **`Auth__MigracionClavePerezosa`:** si es `true`, tras un login exitoso con clave en claro en `MAESTRO.Usuario.ClaveUsuario`, la API moderna la sustituye por hash PBKDF2 con prefijo `$pbk2$` (misma columna). Por defecto `false`. El MVC (`Web/HomeController.Autenticar`) acepta el mismo hash tras desplegar `Web` con `UsuarioPasswordHasherCompat`. **`Auth__MigracionClavePerezosa`:** si es `true`, tras un login exitoso con clave en claro en `MAESTRO.Usuario.ClaveUsuario`, la API moderna la sustituye por hash PBKDF2 con prefijo `$pbk2$` (misma columna). Por defecto `false`. El MVC (`Web/HomeController.Autenticar`) acepta el mismo hash tras desplegar `Web` con `UsuarioPasswordHasherCompat`.
+**Auth (login legado):** `Auth__RequerirClienteAcceso` (por defecto `true` en `appsettings.json`) replica la comprobación de `tk` contra `MAESTRO.Acceso`. En Development local está en `false` para poder probar sin fila de acceso. **`Auth__MigracionClavePerezosa`:** si es `true`, tras un login exitoso con clave en claro en `MAESTRO.Usuario.ClaveUsuario`, la API moderna la sustituye por hash PBKDF2 (`$pbk2$`). Está en `true` en Development, Staging, PreProduction y Production; el host de pruebas lo deja en `false`. El MVC acepta el mismo hash con `UsuarioPasswordHasherCompat`. Requiere `ClaveUsuario nvarchar(256)` (`deploy/sql/2026-09-10-usuario-clave-pbkdf2.sql`).
+
+**WhatsApp (prendario):** `WhatsApp:Enabled` y `WhatsApp:PhoneNumberId` pueden ir en `appsettings.Development.json`. El token **no** va a Git:
+
+```powershell
+dotnet user-secrets set "WhatsApp:Token" "PEGAR-TOKEN-META" --project .\Credito.Modern.Api\Credito.Modern.Api.csproj
+```
+
+En servidores: `WhatsApp__Token`, `WhatsApp__PhoneNumberId`, `WhatsApp__Enabled`. Cloud API `v25.0`. Un 401 código 190 es token inválido o vencido.
 
 **Menú / dev token:** `Menu__PermiteParametrosQuery` (por defecto `false` en plantilla base; `true` en Development). `Hosting__AllowDevToken` debe ser `true` para exponer `POST /api/v1/dev/token` en Development.
 

@@ -12,11 +12,13 @@ export function OficinaSelect({
   value,
   onChange,
   allowAll,
+  disabled,
   size = 'small',
 }: {
   value?: number
   onChange?: (v: number | undefined) => void
   allowAll?: boolean
+  disabled?: boolean
   size?: 'small' | 'middle' | 'large'
 }) {
   const oficinas = useQuery({ queryKey: ['oficinas-list'], queryFn: fetchOficinas })
@@ -30,6 +32,7 @@ export function OficinaSelect({
   return (
     <Select
       size={size}
+      disabled={disabled}
       loading={oficinas.isLoading}
       options={options}
       value={value ?? (allowAll ? 0 : undefined)}

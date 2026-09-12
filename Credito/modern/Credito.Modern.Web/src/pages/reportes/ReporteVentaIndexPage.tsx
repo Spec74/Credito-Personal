@@ -1,26 +1,28 @@
-import { message } from 'antd'
+import dayjs from 'dayjs'
 import { CredixPage } from '../../components/credix'
 import { CredixReportBox } from '../../components/reportes/CredixReportBox'
 import { ReportExportActions } from '../../components/reportes/ReportExportActions'
-import { openLegacyReporteVentaIndex } from '../../config/legacyReportUrls'
+import { useAuth } from '../../auth/useAuth'
+import { downloadListaPrecioInformeCsv, downloadListaPrecioInformePdf } from '../../api/ventasinformes'
+import { downloadRentabilidadVentaCsv, downloadRentabilidadVentaPdf } from '../../api/ventas'
 import { reportesVentaIndexBreadcrumb } from '../../utils/reportesBreadcrumbs'
+import { runOpenReport } from '../../utils/reportExport'
 
 export function ReporteVentaIndexPage() {
-  const openLegacyIndex = () => {
-    openLegacyReporteVentaIndex()
-    message.success('Reporte legacy abierto en nueva pestaña')
-  }
+  const { session } = useAuth()
+  const oficinaId = session?.oficinaId ?? 0
+  const fechaIni = dayjs().startOf('month').format('YYYY-MM-DD')
+  const fechaFin = dayjs().endOf('month').format('YYYY-MM-DD')
 
   return (
     <CredixPage
       title="Reportes de venta"
-      subtitle="Rentabilidad de ventas y lista de precios con datos modernos; RDLC legacy disponible como respaldo operativo."
+      subtitle="Rentabilidad de ventas y lista de precios. PDF y Excel (CSV) usan la API moderna."
       breadcrumb={reportesVentaIndexBreadcrumb()}
     >
       <p className="credix-reportes-intro">
-        Paridad con <strong>Reporte → Venta</strong> del sistema anterior. Los informes
-        principales ya tienen pantalla SPA; el índice RDLC queda disponible durante el
-        cutover strangler.
+        Paridad con <strong>Reporte → Venta</strong> del sistema anterior. Los filtros completos
+        están en cada pantalla; desde aquí se exporta el mes en curso de la oficina de la sesión.
       </p>
 
       <div className="credix-reporte-grid">
@@ -32,18 +34,35 @@ export function ReporteVentaIndexPage() {
               screenLabel="Ver informe"
               exports={[
                 {
-                  label: 'RDLC legacy',
+                  label: 'PDF',
                   format: 'pdf',
-                  onClick: openLegacyIndex,
-                  title: 'Abre el índice MVC Reporte/Venta como respaldo',
+                  onClick: () =>
+                    runOpenReport('Rentabilidad PDF', () =>
+                      downloadRentabilidadVentaPdf({
+                        oficinaId,
+                        fechaIni,
+                        fechaFin,
+                      }),
+                    ),
+                },
+                {
+                  label: 'XLS',
+                  format: 'xls',
+                  onClick: () =>
+                    runOpenReport('Rentabilidad Excel', () =>
+                      downloadRentabilidadVentaCsv({
+                        oficinaId,
+                        fechaIni,
+                        fechaFin,
+                      }),
+                    ),
                 },
               ]}
             />
           }
         >
           <p className="credix-report-card-hint">
-            Equivale a <strong>ReporteAvanceVenta</strong>; permite filtrar fechas,
-            contado/crédito y oficina desde la pantalla moderna.
+            Equivale a <strong>ReporteAvanceVenta</strong> (<code>usp_RptRentabilidadVenta</code>).
           </p>
         </CredixReportBox>
 
@@ -55,18 +74,34 @@ export function ReporteVentaIndexPage() {
               screenLabel="Ver informe"
               exports={[
                 {
-                  label: 'Índice legacy',
+                  label: 'PDF',
                   format: 'pdf',
-                  onClick: openLegacyIndex,
-                  title: 'Mantiene acceso al índice MVC hasta retirar RDLC',
+                  onClick: () =>
+                    runOpenReport('Lista precios PDF', () =>
+                      downloadListaPrecioInformePdf({
+                        indDescuento: false,
+                        indPuntos: false,
+                      }),
+                    ),
+                },
+                {
+                  label: 'XLS',
+                  format: 'xls',
+                  onClick: () =>
+                    runOpenReport('Lista precios Excel', () =>
+                      downloadListaPrecioInformeCsv({
+                        indDescuento: false,
+                        indPuntos: false,
+                      }),
+                    ),
                 },
               ]}
             />
           }
         >
           <p className="credix-report-card-hint">
-            Informe comercial conectado al módulo Ventas; usa los mismos filtros
-            operativos que el legado.
+            Informe comercial del módulo Ventas. Marca y flags de descuento/puntos se eligen en
+            pantalla.
           </p>
         </CredixReportBox>
       </div>

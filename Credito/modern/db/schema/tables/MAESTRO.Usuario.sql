@@ -4,7 +4,7 @@ CREATE TABLE [MAESTRO].[Usuario] (
     [UsuarioId] int IDENTITY NOT NULL,
     [PersonaId] int NOT NULL,
     [NombreUsuario] nvarchar(50) NOT NULL,
-    [ClaveUsuario] nvarchar(50) NOT NULL,
+    [ClaveUsuario] nvarchar(256) NOT NULL,
     [Estado] bit NOT NULL
 );
 

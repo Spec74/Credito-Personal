@@ -16,4 +16,6 @@ public sealed record CredixLegacyReportContext
     public string? SaldoVencido { get; init; }
     public string? SaldoMoroso { get; init; }
     public string? FechaReporte { get; init; }
+    /// <summary>Referencia de consulta (crédito, persona, caja) cuando no hay filtros de oficina/periodo.</summary>
+    public string? Referencia { get; init; }
 }

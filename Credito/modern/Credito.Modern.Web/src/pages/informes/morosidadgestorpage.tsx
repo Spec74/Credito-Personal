@@ -2,12 +2,12 @@ import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { Alert, Button, Form, InputNumber, Typography, message } from 'antd'
+import { Alert, Button, Form, Typography, message } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import {
-  downloadCobroDiarioCsv,
-  downloadCobroDiarioPdf,
+  downloadMorosidadGestorCsv,
+  downloadMorosidadGestorPdf,
   fetchCajaPorCajero,
   fetchCobroDiario,
 } from '../../api/creditoPlanes'
@@ -17,7 +17,7 @@ import { ApiError } from '../../api/errors'
 import type { RptCobroDiarioRow } from '../../types/api'
 import { CredixDataTable, CredixInformePage } from '../../components/credix'
 import type { CredixStatItem } from '../../components/credix'
-import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import { buildCobroDiarioInformeColumns } from '../../config/cobroDiarioInformeColumns'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import { buildCobroDiarioKpiExtras } from '../../utils/cobroDiarioKpis'
@@ -79,14 +79,14 @@ export function MorosidadGestorPage() {
   const csv = useMutation({
     mutationFn: async (v: FormValues) => {
       if (!session?.oficinaId) return
-      await downloadCobroDiarioCsv(toCobroDiarioQuery(session.oficinaId, v.usuarioId, true))
+      await downloadMorosidadGestorCsv(toCobroDiarioQuery(session.oficinaId, v.usuarioId, true))
     },
   })
 
   const pdf = useMutation({
     mutationFn: async (v: FormValues) => {
       if (!session?.oficinaId) return
-      await downloadCobroDiarioPdf(toCobroDiarioQuery(session.oficinaId, v.usuarioId, true))
+      await downloadMorosidadGestorPdf(toCobroDiarioQuery(session.oficinaId, v.usuarioId, true))
     },
   })
 
@@ -136,8 +136,8 @@ export function MorosidadGestorPage() {
           initialValues={defaultValues}
           onFinish={(v) => consulta.mutate(v)}
         >
-          <Form.Item name="oficinaId" hidden>
-            <InputNumber />
+          <Form.Item name="oficinaId" label="Oficina">
+            <OficinaSelect disabled size="middle" />
           </Form.Item>
           <Form.Item name="usuarioId" label="Gestor">
             <GestorSelect allowAll legacyList size="middle" />

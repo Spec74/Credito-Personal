@@ -1,5 +1,7 @@
 # Deploy al subir servidores
 
+Spec SSD: [SSD-00-cutover.md](../ssd/SSD-00-cutover.md).
+
 ## Pre-requisitos
 
 - Publicar desde `D:\Ebers\GitHub\Credito\modern`.

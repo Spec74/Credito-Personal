@@ -74,4 +74,41 @@ describe('menuRouteAccess', () => {
     expect(hasMenuRouteAccess('/credito/prendario/gestionar/8', [menu('/credito')])).toBe(false)
     expect(hasMenuRouteAccess('/credito/prendario/gestionar/8', [menu('/credito/creditos')])).toBe(false)
   })
+
+  it('menu boveda habilita el informe de movimientos de la misma oficina', () => {
+    expect(hasMenuRouteAccess('/tesoreria/boveda', [menu('/boveda')])).toBe(true)
+    expect(hasMenuRouteAccess('/tesoreria/movimiento-boveda', [menu('/boveda')])).toBe(true)
+    expect(hasMenuRouteAccess('/tesoreria/movimiento-boveda', [menu('/tesoreria')])).toBe(true)
+  })
+
+  it('caja diario no habilita informe de movimiento boveda', () => {
+    expect(hasMenuRouteAccess('/tesoreria/movimiento-boveda', [menu('/cajadiario')])).toBe(false)
+  })
+
+  it('hub admin habilita la pantalla reservada de comisiones', () => {
+    expect(hasMenuRouteAccess('/admin/comisiones', [menu('/administracion')])).toBe(true)
+    expect(hasMenuRouteAccess('/admin/comisiones', [menu('/comision')])).toBe(true)
+  })
+
+  it('el padre SEGURIDAD del SP no habilita usuarios ni roles', () => {
+    const padre: MenuItemDto = {
+      ...menu('', 'SEGURIDAD'),
+      modulo: null,
+      url: null,
+      indPadre: true,
+    }
+    expect(hasMenuRouteAccess('/admin/usuarios', [padre])).toBe(false)
+    expect(hasMenuRouteAccess('/admin/roles', [padre])).toBe(false)
+  })
+
+  it('el padre CREDITO del SP no habilita consulta ni simulador', () => {
+    const padre: MenuItemDto = {
+      ...menu('', 'CREDITO'),
+      modulo: null,
+      url: null,
+      indPadre: true,
+    }
+    expect(hasMenuRouteAccess('/credito/consulta', [padre])).toBe(false)
+    expect(hasMenuRouteAccess('/credito/simulador', [padre])).toBe(false)
+  })
 })

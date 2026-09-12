@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ExclamationCircleOutlined } from '@ant-design/icons'
 import {
@@ -25,11 +25,13 @@ import {
   fetchValidarCierreSaldos,
   ingresoEgresoBoveda,
   transferirBoveda,
+  transferirBovedaBancos,
   transferirBovedaCaja,
   transferirBovedaCajaChica,
   type BovedaAbiertaDto,
 } from '../../api/boveda'
 import { fetchTipoOperaciones } from '../../api/cajaDiario'
+import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import type { TipoOperacionListItem } from '../../types/api'
@@ -85,6 +87,21 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   })
   const tiposBoveda = (tiposQuery.data ?? []).filter((t) => t.indBoveda)
 
+  const tiposPagoQuery = useQuery({
+    queryKey: ['valores-tabla', 13],
+    queryFn: () => fetchValoresTabla(13),
+    enabled: oficinaOk,
+    staleTime: 5 * 60_000,
+  })
+  const tipoPagoOptions = useMemo(
+    () =>
+      (tiposPagoQuery.data ?? []).map((t) => ({
+        value: t.itemId,
+        label: t.denominacion,
+      })),
+    [tiposPagoQuery.data],
+  )
+
   const cajasQuery = useQuery({
     queryKey: ['cajas-transferencia-boveda', oficinaId],
     queryFn: () => fetchCajasAbiertasTransferenciaBoveda(oficinaId),
@@ -132,6 +149,12 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   const aCajaChica = useMutation({
     mutationFn: transferirBovedaCajaChica,
     onSuccess: (r) => onOk(`Transferido a caja chica (mov. #${r.movimientoBovedaId})`),
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const entreBancos = useMutation({
+    mutationFn: transferirBovedaBancos,
+    onSuccess: (r) => onOk(r.mensaje || 'Transferencia realizada con éxito.'),
     onError: (e) => message.error(errMsg(e)),
   })
 
@@ -351,6 +374,88 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           {importeDescripcionFields}
           {formActions('Transferir a caja chica', aCajaChica.isPending)}
         </Form>
+      ),
+    },
+    {
+      key: 'bancos',
+      label: 'Entre bancos',
+      children: (
+        <>
+          <Paragraph type="secondary">
+            Mueve saldo entre medios de pago de esta bóveda (efectivo, Yape, bancos,
+            etc.). Origen y destino deben ser distintos.
+          </Paragraph>
+          <Form
+            className="boveda-operaciones-form"
+            layout="vertical"
+            onFinish={(v) =>
+              entreBancos.mutate({
+                oficinaId,
+                tipoPagoOrigenId: v.tipoPagoOrigenId,
+                tipoPagoDestinoId: v.tipoPagoDestinoId,
+                importe: v.importe,
+                glosa: v.glosa,
+              })
+            }
+          >
+            <Form.Item
+              name="tipoPagoOrigenId"
+              label="Origen"
+              rules={[{ required: true, message: 'Seleccione el origen' }]}
+            >
+              <Select
+                loading={tiposPagoQuery.isLoading}
+                showSearch
+                optionFilterProp="label"
+                placeholder="Medio de pago origen"
+                options={tipoPagoOptions}
+              />
+            </Form.Item>
+            <Form.Item
+              name="tipoPagoDestinoId"
+              label="Destino"
+              dependencies={['tipoPagoOrigenId']}
+              rules={[
+                { required: true, message: 'Seleccione el destino' },
+                ({ getFieldValue }) => ({
+                  validator(_, value) {
+                    if (value != null && value === getFieldValue('tipoPagoOrigenId')) {
+                      return Promise.reject(
+                        new Error(
+                          'El banco de origen y el de destino no pueden ser iguales.',
+                        ),
+                      )
+                    }
+                    return Promise.resolve()
+                  },
+                }),
+              ]}
+            >
+              <Select
+                loading={tiposPagoQuery.isLoading}
+                showSearch
+                optionFilterProp="label"
+                placeholder="Medio de pago destino"
+                options={tipoPagoOptions}
+              />
+            </Form.Item>
+            <Form.Item
+              name="importe"
+              label="Importe"
+              rules={[{ required: true, type: 'number', min: 0.01 }]}
+            >
+              <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item
+              name="glosa"
+              label="Glosa"
+              rules={[{ required: true, message: 'Obligatorio' }]}
+            >
+              <Input.TextArea rows={2} />
+            </Form.Item>
+            {formActions('Transferir entre bancos', entreBancos.isPending)}
+          </Form>
+        </>
       ),
     },
     {

@@ -2166,6 +2166,7 @@
     </Compile>
     <Compile Include="Helper\AdminFilter.cs" />
     <Compile Include="Helper\session.cs" />
+    <Compile Include="Helper\UsuarioPasswordHasherCompat.cs" />
     <Compile Include="Models\ReporteConstanciaAlmacen.cs" />
     <Compile Include="Models\ResponseModel.cs" />
     <Compile Include="Models\Respuesta.cs" />

@@ -25,6 +25,7 @@ import type { ColumnsType } from 'antd/es/table'
 import { getAccessToken } from '../../auth/tokenStorage'
 import { buscarClientes, crearPersonaRapida } from '../../api/clientes'
 import { fetchEstadoPlanPago } from '../../api/creditoPlanes'
+import { fetchCondonacionPendienteCredito } from '../../api/creditoCondonacion'
 import {
   actualizarAvalCredito,
   actualizarIrrecuperableCredito,
@@ -191,6 +192,13 @@ export function CreditoConsultaGestionPanel({
     staleTime: creditoStaleTime.operacion,
   })
 
+  const condonacionPendiente = useQuery({
+    queryKey: ['condonacion-pendiente', creditoId],
+    queryFn: () => fetchCondonacionPendienteCredito(creditoId),
+    enabled: activo && puedeCondonar,
+    staleTime: creditoStaleTime.operacion,
+  })
+
   const usuariosGestion = useQuery({
     queryKey: ['usuarios-gestion-credito-ajustes'],
     queryFn: () => fetchUsuariosGestion({ page: 1, pageSize: 500, incluirInactivos: false }),
@@ -206,6 +214,7 @@ export function CreditoConsultaGestionPanel({
     void queryClient.invalidateQueries({ queryKey: ['credito-contexto', creditoId] })
     void queryClient.invalidateQueries({ queryKey: ['cargos-credito', oficinaId, creditoId] })
     void queryClient.invalidateQueries({ queryKey: ['evidencias-credito', oficinaId, creditoId] })
+    void queryClient.invalidateQueries({ queryKey: ['condonacion-pendiente', creditoId] })
   }
 
   useEffect(() => {
@@ -499,6 +508,17 @@ export function CreditoConsultaGestionPanel({
       mora: montos.mora > 0,
       cargos: montos.cargos > 0,
     })
+    const pendiente = condonacionPendiente.data
+    if (pendiente?.tienePendiente) {
+      montos.mora = Number(pendiente.moraCondonacion.toFixed(2))
+      setCondonarMontos({ ...montos })
+      setCondonarPartes({
+        capital: montos.capital > 0,
+        interes: montos.interes > 0,
+        mora: true,
+        cargos: montos.cargos > 0,
+      })
+    }
     const total = montos.capital + montos.interes + montos.mora + montos.cargos
     setMontoCxc(Number(total.toFixed(2)))
     setMontoCond(Number(total.toFixed(2)))
@@ -548,6 +568,15 @@ export function CreditoConsultaGestionPanel({
           <Paragraph type="secondary" style={{ marginBottom: 8 }}>
             <Text strong>Observación:</Text> {ctx.observacion}
           </Paragraph>
+        ) : null}
+        {condonacionPendiente.data?.tienePendiente ? (
+          <Alert
+            type="warning"
+            showIcon
+            style={{ marginBottom: 8 }}
+            message="Hay una solicitud de condonación pendiente"
+            description={`Mora pedida S/ ${formatMoney(condonacionPendiente.data.moraCondonacion)}. Al condonar se aprueba y se cobra la cuenta por cobrar en la caja que la originó.`}
+          />
         ) : null}
         <Space wrap className="credito-gestion-context-card__actions">
           {puedeCondonar ? (

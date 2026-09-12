@@ -1,0 +1,1 @@
+import{j as e}from"./index-zk2-nEVp.js";function t(t){return e(`/valores-tabla?tablaId=${t}&soloItemIdPositivo=true`)}export{t};

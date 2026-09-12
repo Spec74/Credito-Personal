@@ -299,6 +299,21 @@ export function transferirBovedaCajaChica(body: {
   return postJson('/credito/transferir-boveda-caja-chica', body)
 }
 
+export interface TransferirBovedaBancosResponse {
+  success: boolean
+  mensaje: string
+}
+
+export function transferirBovedaBancos(body: {
+  oficinaId: number
+  tipoPagoOrigenId: number
+  tipoPagoDestinoId: number
+  importe: number
+  glosa: string
+}): Promise<TransferirBovedaBancosResponse> {
+  return postJson('/credito/transferir-boveda-bancos', body)
+}
+
 export function cerrarBoveda(oficinaId: number): Promise<CajaDiarioOperacionResponse> {
   return postJson('/credito/cerrar-boveda', { oficinaId })
 }

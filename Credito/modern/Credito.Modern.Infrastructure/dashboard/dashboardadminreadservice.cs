@@ -1,0 +1,771 @@
+using Credito.Modern.Application.Dashboard;
+using Dapper;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Options;
+
+namespace Credito.Modern.Infrastructure.Dashboard;
+
+/// <summary>
+/// Tablero gerencial en un solo roundtrip. Replica <c>usp_DashboardAdminResumen</c>,
+/// <c>AdminAnalistas</c>, <c>AdminFlujoCaja</c>, <c>AdminHistorico</c> y
+/// <c>AdminHistoricoMensual</c> sin llamar esos SP (no versionados; el legado no
+/// filtraba oficina). Aquí todo se acota a <c>OficinaId</c> del JWT.
+/// </summary>
+public sealed class DashboardAdminReadService(IOptions<SqlDatabaseOptions> options)
+    : IDashboardAdminReadService
+{
+    private const int CommandTimeoutSeconds = 90;
+
+    private static readonly string Sql = """
+        DECLARE @Hoy date = dbo.ufnFecha();
+        DECLARE @Ayer date = DATEADD(DAY, -1, @Hoy);
+        DECLARE @Anteayer date = DATEADD(DAY, -2, @Hoy);
+        DECLARE @Manana date = DATEADD(DAY, 1, @Hoy);
+        DECLARE @InicioMes date = DATEFROMPARTS(YEAR(@Hoy), MONTH(@Hoy), 1);
+        DECLARE @InicioMesAnterior date = DATEADD(MONTH, -1, @InicioMes);
+        DECLARE @DiasTranscurridos int = DATEDIFF(DAY, @InicioMes, @Manana);
+        DECLARE @FinComparableAnterior date = DATEADD(DAY, @DiasTranscurridos, @InicioMesAnterior);
+        DECLARE @InicioHist date = DATEADD(DAY, -29, @Hoy);
+        DECLARE @InicioMensual date = DATEADD(MONTH, -11, @InicioMes);
+        DECLARE @LimiteVencer date = DATEADD(DAY, 8, @Hoy);
+
+        IF OBJECT_ID('tempdb..#Creditos') IS NOT NULL DROP TABLE #Creditos;
+        IF OBJECT_ID('tempdb..#Saldos') IS NOT NULL DROP TABLE #Saldos;
+
+        CREATE TABLE #Creditos (
+            CreditoId int NOT NULL PRIMARY KEY,
+            PersonaId int NOT NULL,
+            UsuarioRegId int NOT NULL,
+            Estado char(3) NOT NULL,
+            IndIrrecuperable bit NOT NULL,
+            FechaDesembolso datetime NULL,
+            FechaVencimiento date NOT NULL,
+            MontoDesembolso decimal(16, 2) NOT NULL
+        );
+
+        INSERT INTO #Creditos (
+            CreditoId, PersonaId, UsuarioRegId, Estado, IndIrrecuperable,
+            FechaDesembolso, FechaVencimiento, MontoDesembolso)
+        SELECT c.CreditoId,
+               c.PersonaId,
+               c.UsuarioRegId,
+               c.Estado,
+               c.IndIrrecuperable,
+               c.FechaDesembolso,
+               c.FechaVencimiento,
+               c.MontoDesembolso
+        FROM CREDITO.Credito AS c
+        WHERE c.OficinaId = @OficinaId
+          AND c.FechaDesembolso IS NOT NULL
+          AND c.FechaDesembolso < @Manana;
+
+        CREATE TABLE #Saldos (
+            CreditoId int NOT NULL PRIMARY KEY,
+            PersonaId int NOT NULL,
+            UsuarioRegId int NOT NULL,
+            FechaVencimiento date NOT NULL,
+            Saldo decimal(16, 2) NOT NULL
+        );
+
+        INSERT INTO #Saldos (CreditoId, PersonaId, UsuarioRegId, FechaVencimiento, Saldo)
+        SELECT cr.CreditoId,
+               cr.PersonaId,
+               cr.UsuarioRegId,
+               cr.FechaVencimiento,
+               CASE
+                   WHEN ISNULL(prog.Programado, 0) - ISNULL(pag.Pagado, 0) > 0
+                       THEN ISNULL(prog.Programado, 0) - ISNULL(pag.Pagado, 0)
+                   ELSE 0
+               END
+        FROM #Creditos AS cr
+        LEFT JOIN (
+            SELECT pp.CreditoId, SUM(pp.Cuota + pp.Cargo) AS Programado
+            FROM CREDITO.PlanPago AS pp
+            INNER JOIN #Creditos AS cr2 ON cr2.CreditoId = pp.CreditoId
+            WHERE cr2.Estado = 'DES' AND cr2.IndIrrecuperable = 0
+            GROUP BY pp.CreditoId
+        ) AS prog ON prog.CreditoId = cr.CreditoId
+        LEFT JOIN (
+            SELECT m.CreditoId, SUM(m.ImportePago) AS Pagado
+            FROM CREDITO.MovimientoCaja AS m
+            INNER JOIN #Creditos AS cr3 ON cr3.CreditoId = m.CreditoId
+            WHERE cr3.Estado = 'DES'
+              AND cr3.IndIrrecuperable = 0
+              AND m.Operacion = 'CUO'
+              AND m.Estado = 1
+              AND m.ImportePago > 0
+            GROUP BY m.CreditoId
+        ) AS pag ON pag.CreditoId = cr.CreditoId
+        WHERE cr.Estado = 'DES'
+          AND cr.IndIrrecuperable = 0;
+
+        SELECT ISNULL((
+                   SELECT o.Denominacion
+                   FROM MAESTRO.Oficina AS o
+                   WHERE o.OficinaId = @OficinaId
+               ), N'Oficina') AS NombreOficina,
+               CAST(@Hoy AS datetime) AS FechaConsulta,
+               (
+                   SELECT COUNT(DISTINCT u.UsuarioId)
+                   FROM MAESTRO.UsuarioRol AS ur
+                   INNER JOIN MAESTRO.Rol AS r ON r.RolId = ur.RolId
+                   INNER JOIN MAESTRO.Usuario AS u ON u.UsuarioId = ur.UsuarioId
+                   WHERE ur.OficinaId = @OficinaId
+                     AND r.Denominacion = N'ANALISTA'
+                     AND r.Estado = CAST(1 AS bit)
+                     AND u.Estado = CAST(1 AS bit)
+                     AND u.NombreUsuario <> N'IRRECUPERABLE'
+               ) AS TotalAnalistas,
+               (SELECT COUNT(DISTINCT PersonaId) FROM #Saldos) AS TotalClientes,
+               (
+                   SELECT COUNT(*) FROM #Creditos
+                   WHERE Estado IN ('DES', 'PAG', 'REP')
+                     AND FechaDesembolso >= @Hoy AND FechaDesembolso < @Manana
+               ) AS CreditosHoy,
+               (
+                   SELECT COUNT(*) FROM #Creditos
+                   WHERE Estado IN ('DES', 'PAG', 'REP')
+                     AND FechaDesembolso >= @Ayer AND FechaDesembolso < @Hoy
+               ) AS CreditosAyer,
+               (
+                   SELECT COUNT(*) FROM #Creditos
+                   WHERE Estado IN ('DES', 'PAG', 'REP')
+                     AND FechaDesembolso >= @Anteayer AND FechaDesembolso < @Ayer
+               ) AS CreditosAnteayer,
+               (
+                   SELECT COUNT(*) FROM #Creditos
+                   WHERE Estado IN ('DES', 'PAG', 'REP')
+                     AND FechaDesembolso >= @InicioMes AND FechaDesembolso < @Manana
+               ) AS CreditosMesActual,
+               (
+                   SELECT COUNT(*) FROM #Creditos
+                   WHERE Estado IN ('DES', 'PAG', 'REP')
+                     AND FechaDesembolso >= @InicioMesAnterior
+                     AND FechaDesembolso < @FinComparableAnterior
+               ) AS CreditosMesAnteriorComparable,
+               ISNULL((
+                   SELECT SUM(MontoDesembolso) FROM #Creditos
+                   WHERE Estado IN ('DES', 'PAG', 'REP')
+                     AND FechaDesembolso >= @Hoy AND FechaDesembolso < @Manana
+               ), 0) AS DesembolsoHoy,
+               ISNULL((
+                   SELECT SUM(MontoDesembolso) FROM #Creditos
+                   WHERE Estado IN ('DES', 'PAG', 'REP')
+                     AND FechaDesembolso >= @Ayer AND FechaDesembolso < @Hoy
+               ), 0) AS DesembolsoAyer,
+               ISNULL((
+                   SELECT SUM(MontoDesembolso) FROM #Creditos
+                   WHERE Estado IN ('DES', 'PAG', 'REP')
+                     AND FechaDesembolso >= @Anteayer AND FechaDesembolso < @Ayer
+               ), 0) AS DesembolsoAnteayer,
+               ISNULL((
+                   SELECT SUM(MontoDesembolso) FROM #Creditos
+                   WHERE Estado IN ('DES', 'PAG', 'REP')
+                     AND FechaDesembolso >= @InicioMes AND FechaDesembolso < @Manana
+               ), 0) AS DesembolsoMesActual,
+               ISNULL((
+                   SELECT SUM(MontoDesembolso) FROM #Creditos
+                   WHERE Estado IN ('DES', 'PAG', 'REP')
+                     AND FechaDesembolso >= @InicioMesAnterior
+                     AND FechaDesembolso < @FinComparableAnterior
+               ), 0) AS DesembolsoMesAnteriorComparable,
+               ISNULL((
+                   SELECT SUM(m.ImportePago)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
+                   WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                     AND m.FechaReg >= @Hoy AND m.FechaReg < @Manana
+               ), 0) AS CobradoHoy,
+               ISNULL((
+                   SELECT SUM(m.ImportePago)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
+                   WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                     AND m.FechaReg >= @Ayer AND m.FechaReg < @Hoy
+               ), 0) AS CobradoAyer,
+               ISNULL((
+                   SELECT SUM(m.ImportePago)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
+                   WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                     AND m.FechaReg >= @Anteayer AND m.FechaReg < @Ayer
+               ), 0) AS CobradoAnteayer,
+               ISNULL((
+                   SELECT SUM(m.ImportePago)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
+                   WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                     AND m.FechaReg >= @InicioMes AND m.FechaReg < @Manana
+               ), 0) AS CobradoMesActual,
+               ISNULL((
+                   SELECT SUM(m.ImportePago)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
+                   WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                     AND m.FechaReg >= @InicioMesAnterior
+                     AND m.FechaReg < @FinComparableAnterior
+               ), 0) AS CobradoMesAnteriorComparable,
+               ISNULL((
+                   SELECT SUM(CASE WHEN m.IndEntrada = 1 THEN m.ImportePago ELSE 0 END)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+                   INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+                   WHERE ca.OficinaId = @OficinaId AND m.Estado = 1
+                     AND m.FechaReg >= @Hoy AND m.FechaReg < @Manana
+               ), 0) AS EntradasHoy,
+               ISNULL((
+                   SELECT SUM(CASE WHEN m.IndEntrada = 0 THEN m.ImportePago ELSE 0 END)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+                   INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+                   WHERE ca.OficinaId = @OficinaId AND m.Estado = 1
+                     AND m.FechaReg >= @Hoy AND m.FechaReg < @Manana
+               ), 0) AS SalidasHoy,
+               ISNULL((
+                   SELECT SUM(CASE WHEN m.IndEntrada = 1 THEN m.ImportePago ELSE 0 END)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+                   INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+                   WHERE ca.OficinaId = @OficinaId AND m.Estado = 1
+                     AND m.FechaReg >= @Ayer AND m.FechaReg < @Hoy
+               ), 0) AS EntradasAyer,
+               ISNULL((
+                   SELECT SUM(CASE WHEN m.IndEntrada = 0 THEN m.ImportePago ELSE 0 END)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+                   INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+                   WHERE ca.OficinaId = @OficinaId AND m.Estado = 1
+                     AND m.FechaReg >= @Ayer AND m.FechaReg < @Hoy
+               ), 0) AS SalidasAyer,
+               ISNULL((
+                   SELECT SUM(CASE WHEN m.IndEntrada = 1 THEN m.ImportePago ELSE 0 END)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+                   INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+                   WHERE ca.OficinaId = @OficinaId AND m.Estado = 1
+                     AND m.FechaReg >= @Anteayer AND m.FechaReg < @Ayer
+               ), 0) AS EntradasAnteayer,
+               ISNULL((
+                   SELECT SUM(CASE WHEN m.IndEntrada = 0 THEN m.ImportePago ELSE 0 END)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+                   INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+                   WHERE ca.OficinaId = @OficinaId AND m.Estado = 1
+                     AND m.FechaReg >= @Anteayer AND m.FechaReg < @Ayer
+               ), 0) AS SalidasAnteayer,
+               ISNULL((
+                   SELECT SUM(CASE WHEN m.IndEntrada = 1 THEN m.ImportePago ELSE 0 END)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+                   INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+                   WHERE ca.OficinaId = @OficinaId AND m.Estado = 1
+                     AND m.FechaReg >= @InicioMes AND m.FechaReg < @Manana
+               ), 0) AS EntradasMesActual,
+               ISNULL((
+                   SELECT SUM(CASE WHEN m.IndEntrada = 0 THEN m.ImportePago ELSE 0 END)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+                   INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+                   WHERE ca.OficinaId = @OficinaId AND m.Estado = 1
+                     AND m.FechaReg >= @InicioMes AND m.FechaReg < @Manana
+               ), 0) AS SalidasMesActual,
+               ISNULL((
+                   SELECT SUM(CASE WHEN m.IndEntrada = 1 THEN m.ImportePago ELSE 0 END)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+                   INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+                   WHERE ca.OficinaId = @OficinaId AND m.Estado = 1
+                     AND m.FechaReg >= @InicioMesAnterior
+                     AND m.FechaReg < @FinComparableAnterior
+               ), 0) AS EntradasMesAnteriorComparable,
+               ISNULL((
+                   SELECT SUM(CASE WHEN m.IndEntrada = 0 THEN m.ImportePago ELSE 0 END)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+                   INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+                   WHERE ca.OficinaId = @OficinaId AND m.Estado = 1
+                     AND m.FechaReg >= @InicioMesAnterior
+                     AND m.FechaReg < @FinComparableAnterior
+               ), 0) AS SalidasMesAnteriorComparable,
+               ISNULL((SELECT SUM(Saldo) FROM #Saldos), 0) AS SaldoCartera,
+               ISNULL((
+                   SELECT SUM(s.Saldo)
+                   FROM #Saldos AS s
+                   WHERE NOT EXISTS (
+                       SELECT 1 FROM CREDITO.PlanPago AS pp
+                       WHERE pp.CreditoId = s.CreditoId
+                         AND pp.Estado = 'PEN'
+                         AND pp.FechaVencimiento < @Hoy)
+               ), 0) AS SaldoCreditos,
+               ISNULL((
+                   SELECT SUM(s.Saldo)
+                   FROM #Saldos AS s
+                   WHERE EXISTS (
+                       SELECT 1 FROM CREDITO.PlanPago AS pp
+                       WHERE pp.CreditoId = s.CreditoId
+                         AND pp.Estado = 'PEN'
+                         AND pp.FechaVencimiento < @Hoy)
+               ), 0) AS SaldoMoraCartera,
+               ISNULL((
+                   SELECT SUM(s.Saldo) FROM #Saldos AS s
+                   WHERE s.FechaVencimiento < @Hoy
+               ), 0) AS SaldoVencido,
+               ISNULL((
+                   SELECT SUM(pp.Cuota + pp.Cargo)
+                   FROM #Saldos AS s
+                   INNER JOIN CREDITO.PlanPago AS pp ON pp.CreditoId = s.CreditoId
+                   WHERE pp.Estado = 'PEN' AND pp.FechaVencimiento < @Hoy
+               ), 0) AS SaldoMorosidad,
+               (
+                   SELECT COUNT(DISTINCT s.PersonaId)
+                   FROM #Saldos AS s
+                   INNER JOIN CREDITO.PlanPago AS pp ON pp.CreditoId = s.CreditoId
+                   WHERE s.Saldo > 0
+                     AND pp.Estado = 'PEN'
+                     AND pp.FechaVencimiento < @Hoy
+               ) AS ClientesMora,
+               (
+                   SELECT COUNT(*) FROM #Creditos AS cr
+                   WHERE cr.Estado = 'DES'
+                     AND cr.IndIrrecuperable = 0
+                     AND cr.FechaVencimiento >= @Hoy
+                     AND cr.FechaVencimiento < @LimiteVencer
+               ) AS CreditosPorVencerSemana;
+
+        SELECT m.Operacion,
+               m.IndEntrada,
+               ISNULL(t.Denominacion, m.Operacion) AS Concepto,
+               CAST(CASE
+                   WHEN t.Denominacion LIKE N'%TRANSFERENCIA%'
+                     OR m.Operacion IN ('TRB', 'TRA', 'TBO', 'TCH', 'TRS')
+                   THEN 1 ELSE 0 END AS bit) AS EsTransferencia,
+               SUM(CASE WHEN m.FechaReg >= @Hoy AND m.FechaReg < @Manana THEN 1 ELSE 0 END) AS CantidadHoy,
+               SUM(CASE WHEN m.FechaReg >= @Hoy AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END) AS ImporteHoy,
+               SUM(CASE WHEN m.FechaReg >= @Ayer AND m.FechaReg < @Hoy THEN 1 ELSE 0 END) AS CantidadAyer,
+               SUM(CASE WHEN m.FechaReg >= @Ayer AND m.FechaReg < @Hoy THEN m.ImportePago ELSE 0 END) AS ImporteAyer,
+               SUM(CASE WHEN m.FechaReg >= @InicioMes AND m.FechaReg < @Manana THEN 1 ELSE 0 END) AS CantidadMesActual,
+               SUM(CASE WHEN m.FechaReg >= @InicioMes AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END) AS ImporteMesActual,
+               SUM(CASE WHEN m.FechaReg >= @InicioMesAnterior AND m.FechaReg < @FinComparableAnterior THEN 1 ELSE 0 END) AS CantidadMesAnteriorComparable,
+               SUM(CASE WHEN m.FechaReg >= @InicioMesAnterior AND m.FechaReg < @FinComparableAnterior THEN m.ImportePago ELSE 0 END) AS ImporteMesAnteriorComparable
+        FROM CREDITO.MovimientoCaja AS m
+        INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+        INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+        LEFT JOIN MAESTRO.TipoOperacion AS t ON t.Codigo = m.Operacion
+        WHERE ca.OficinaId = @OficinaId
+          AND m.Estado = 1
+          AND m.FechaReg >= @InicioMesAnterior
+          AND m.FechaReg < @Manana
+        GROUP BY m.Operacion, m.IndEntrada, t.Denominacion
+        HAVING SUM(m.ImportePago) <> 0
+        ORDER BY m.IndEntrada DESC, ISNULL(t.Denominacion, m.Operacion);
+
+        ;WITH Dias AS (
+            SELECT DATEADD(DAY, n.n, @InicioHist) AS Fecha
+            FROM (VALUES
+                (0),(1),(2),(3),(4),(5),(6),(7),(8),(9),
+                (10),(11),(12),(13),(14),(15),(16),(17),(18),(19),
+                (20),(21),(22),(23),(24),(25),(26),(27),(28),(29)
+            ) AS n(n)
+        ),
+        ColocDia AS (
+            SELECT CAST(cr.FechaDesembolso AS date) AS Fecha,
+                   COUNT(*) AS Colocaciones,
+                   SUM(cr.MontoDesembolso) AS Desembolsado
+            FROM #Creditos AS cr
+            WHERE cr.Estado IN ('DES', 'PAG', 'REP')
+              AND cr.FechaDesembolso >= @InicioHist
+              AND cr.FechaDesembolso < @Manana
+            GROUP BY CAST(cr.FechaDesembolso AS date)
+        ),
+        CobradoDia AS (
+            SELECT CAST(m.FechaReg AS date) AS Fecha,
+                   SUM(m.ImportePago) AS Cobrado
+            FROM CREDITO.MovimientoCaja AS m
+            INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
+            WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+              AND m.FechaReg >= @InicioHist AND m.FechaReg < @Manana
+            GROUP BY CAST(m.FechaReg AS date)
+        ),
+        FlujoDia AS (
+            SELECT CAST(m.FechaReg AS date) AS Fecha,
+                   SUM(CASE WHEN m.IndEntrada = 1 THEN m.ImportePago ELSE 0 END) AS Entradas,
+                   SUM(CASE WHEN m.IndEntrada = 0 THEN m.ImportePago ELSE 0 END) AS Salidas,
+                   SUM(CASE
+                       WHEN t.Denominacion LIKE N'%TRANSFERENCIA%'
+                         OR m.Operacion IN ('TRB', 'TRA', 'TBO', 'TCH', 'TRS')
+                       THEN 0
+                       WHEN m.IndEntrada = 1 THEN m.ImportePago
+                       ELSE -m.ImportePago
+                   END) AS FlujoOperativo
+            FROM CREDITO.MovimientoCaja AS m
+            INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+            INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+            LEFT JOIN MAESTRO.TipoOperacion AS t ON t.Codigo = m.Operacion
+            WHERE ca.OficinaId = @OficinaId AND m.Estado = 1
+              AND m.FechaReg >= @InicioHist AND m.FechaReg < @Manana
+            GROUP BY CAST(m.FechaReg AS date)
+        )
+        SELECT CAST(d.Fecha AS datetime) AS Fecha,
+               CONVERT(char(5), d.Fecha, 103) AS Etiqueta,
+               ISNULL(c.Colocaciones, 0) AS Colocaciones,
+               ISNULL(c.Desembolsado, 0) AS Desembolsado,
+               ISNULL(b.Cobrado, 0) AS Cobrado,
+               ISNULL(f.Entradas, 0) AS Entradas,
+               ISNULL(f.Salidas, 0) AS Salidas,
+               ISNULL(f.Entradas, 0) - ISNULL(f.Salidas, 0) AS FlujoNeto,
+               ISNULL(f.FlujoOperativo, 0) AS FlujoOperativo
+        FROM Dias AS d
+        LEFT JOIN ColocDia AS c ON c.Fecha = d.Fecha
+        LEFT JOIN CobradoDia AS b ON b.Fecha = d.Fecha
+        LEFT JOIN FlujoDia AS f ON f.Fecha = d.Fecha
+        ORDER BY d.Fecha;
+
+        ;WITH Meses AS (
+            SELECT DATEADD(MONTH, -n.n, @InicioMes) AS FechaMes
+            FROM (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11)) AS n(n)
+        ),
+        ColocMes AS (
+            SELECT DATEFROMPARTS(YEAR(cr.FechaDesembolso), MONTH(cr.FechaDesembolso), 1) AS FechaMes,
+                   COUNT(*) AS Colocaciones,
+                   SUM(cr.MontoDesembolso) AS Desembolsado
+            FROM #Creditos AS cr
+            WHERE cr.Estado IN ('DES', 'PAG', 'REP')
+              AND cr.FechaDesembolso >= @InicioMensual
+              AND cr.FechaDesembolso < @Manana
+            GROUP BY DATEFROMPARTS(YEAR(cr.FechaDesembolso), MONTH(cr.FechaDesembolso), 1)
+        ),
+        CobradoMes AS (
+            SELECT DATEFROMPARTS(YEAR(m.FechaReg), MONTH(m.FechaReg), 1) AS FechaMes,
+                   SUM(m.ImportePago) AS Cobrado
+            FROM CREDITO.MovimientoCaja AS m
+            INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
+            WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+              AND m.FechaReg >= @InicioMensual AND m.FechaReg < @Manana
+            GROUP BY DATEFROMPARTS(YEAR(m.FechaReg), MONTH(m.FechaReg), 1)
+        ),
+        FlujoMes AS (
+            SELECT DATEFROMPARTS(YEAR(m.FechaReg), MONTH(m.FechaReg), 1) AS FechaMes,
+                   SUM(CASE WHEN m.IndEntrada = 1 THEN m.ImportePago ELSE 0 END) AS Entradas,
+                   SUM(CASE WHEN m.IndEntrada = 0 THEN m.ImportePago ELSE 0 END) AS Salidas,
+                   SUM(CASE
+                       WHEN t.Denominacion LIKE N'%TRANSFERENCIA%'
+                         OR m.Operacion IN ('TRB', 'TRA', 'TBO', 'TCH', 'TRS')
+                       THEN 0
+                       WHEN m.IndEntrada = 1 THEN m.ImportePago
+                       ELSE -m.ImportePago
+                   END) AS FlujoOperativo
+            FROM CREDITO.MovimientoCaja AS m
+            INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+            INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+            LEFT JOIN MAESTRO.TipoOperacion AS t ON t.Codigo = m.Operacion
+            WHERE ca.OficinaId = @OficinaId AND m.Estado = 1
+              AND m.FechaReg >= @InicioMensual AND m.FechaReg < @Manana
+            GROUP BY DATEFROMPARTS(YEAR(m.FechaReg), MONTH(m.FechaReg), 1)
+        )
+        SELECT CAST(me.FechaMes AS datetime) AS FechaMes,
+               CAST(CASE WHEN me.FechaMes = @InicioMes THEN 1 ELSE 0 END AS bit) AS EsMesActual,
+               DATENAME(MONTH, me.FechaMes) + ' ' + CAST(YEAR(me.FechaMes) AS varchar(4)) AS Etiqueta,
+               ISNULL(c.Colocaciones, 0) AS Colocaciones,
+               ISNULL(c.Desembolsado, 0) AS Desembolsado,
+               ISNULL(b.Cobrado, 0) AS Cobrado,
+               ISNULL(f.Entradas, 0) AS Entradas,
+               ISNULL(f.Salidas, 0) AS Salidas,
+               ISNULL(f.Entradas, 0) - ISNULL(f.Salidas, 0) AS FlujoNeto,
+               ISNULL(f.FlujoOperativo, 0) AS FlujoOperativo
+        FROM Meses AS me
+        LEFT JOIN ColocMes AS c ON c.FechaMes = me.FechaMes
+        LEFT JOIN CobradoMes AS b ON b.FechaMes = me.FechaMes
+        LEFT JOIN FlujoMes AS f ON f.FechaMes = me.FechaMes
+        ORDER BY me.FechaMes;
+
+        ;WITH Analistas AS (
+            SELECT DISTINCT
+                   u.UsuarioId,
+                   ISNULL(p.NombreCompleto, u.NombreUsuario) AS NombreCompleto
+            FROM MAESTRO.UsuarioRol AS ur
+            INNER JOIN MAESTRO.Rol AS r ON r.RolId = ur.RolId
+            INNER JOIN MAESTRO.Usuario AS u ON u.UsuarioId = ur.UsuarioId
+            LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+            WHERE ur.OficinaId = @OficinaId
+              AND r.Denominacion = N'ANALISTA'
+              AND r.Estado = CAST(1 AS bit)
+              AND u.Estado = CAST(1 AS bit)
+              AND u.NombreUsuario <> N'IRRECUPERABLE'
+        )
+        SELECT a.UsuarioId,
+               a.NombreCompleto,
+               (
+                   SELECT COUNT(DISTINCT s.PersonaId)
+                   FROM #Saldos AS s
+                   WHERE s.UsuarioRegId = a.UsuarioId
+               ) AS TotalClientes,
+               (
+                   SELECT COUNT(*)
+                   FROM (
+                       SELECT cr.PersonaId, MIN(cr.FechaDesembolso) AS PrimeraFecha
+                       FROM #Creditos AS cr
+                       WHERE cr.UsuarioRegId = a.UsuarioId
+                         AND cr.Estado IN ('DES', 'PAG', 'REP')
+                       GROUP BY cr.PersonaId
+                   ) AS primera
+                   WHERE primera.PrimeraFecha >= @InicioMes
+                     AND primera.PrimeraFecha < @Manana
+               ) AS ClientesNuevosMes,
+               (
+                   SELECT COUNT(*) FROM #Creditos AS cr
+                   WHERE cr.UsuarioRegId = a.UsuarioId
+                     AND cr.Estado IN ('DES', 'PAG', 'REP')
+                     AND cr.FechaDesembolso >= @Hoy AND cr.FechaDesembolso < @Manana
+               ) AS ColocacionesHoy,
+               (
+                   SELECT COUNT(*) FROM #Creditos AS cr
+                   WHERE cr.UsuarioRegId = a.UsuarioId
+                     AND cr.Estado IN ('DES', 'PAG', 'REP')
+                     AND cr.FechaDesembolso >= @InicioMes AND cr.FechaDesembolso < @Manana
+               ) AS ColocacionesMes,
+               ISNULL((
+                   SELECT SUM(cr.MontoDesembolso) FROM #Creditos AS cr
+                   WHERE cr.UsuarioRegId = a.UsuarioId
+                     AND cr.Estado IN ('DES', 'PAG', 'REP')
+                     AND cr.FechaDesembolso >= @Hoy AND cr.FechaDesembolso < @Manana
+               ), 0) AS DesembolsoHoy,
+               ISNULL((
+                   SELECT SUM(cr.MontoDesembolso) FROM #Creditos AS cr
+                   WHERE cr.UsuarioRegId = a.UsuarioId
+                     AND cr.Estado IN ('DES', 'PAG', 'REP')
+                     AND cr.FechaDesembolso >= @InicioMes AND cr.FechaDesembolso < @Manana
+               ), 0) AS DesembolsoMes,
+               ISNULL((
+                   SELECT SUM(m.ImportePago)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
+                   WHERE cr.UsuarioRegId = a.UsuarioId
+                     AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                     AND m.FechaReg >= @Hoy AND m.FechaReg < @Manana
+               ), 0) AS CobradoHoy,
+               ISNULL((
+                   SELECT SUM(m.ImportePago)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
+                   WHERE cr.UsuarioRegId = a.UsuarioId
+                     AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                     AND m.FechaReg >= @InicioMes AND m.FechaReg < @Manana
+               ), 0) AS CobradoMes,
+               ISNULL((
+                   SELECT SUM(m.ImportePago)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
+                   WHERE cr.UsuarioRegId = a.UsuarioId
+                     AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                     AND m.FechaReg >= @InicioMesAnterior
+                     AND m.FechaReg < @FinComparableAnterior
+               ), 0) AS CobradoMesAnteriorComparable,
+               (
+                   SELECT COUNT(DISTINCT s.PersonaId)
+                   FROM #Saldos AS s
+                   INNER JOIN CREDITO.PlanPago AS pp ON pp.CreditoId = s.CreditoId
+                   WHERE s.UsuarioRegId = a.UsuarioId
+                     AND s.Saldo > 0
+                     AND pp.Estado = 'PEN'
+                     AND pp.FechaVencimiento < @Hoy
+               ) AS ClientesMora,
+               ISNULL((
+                   SELECT SUM(s.Saldo)
+                   FROM #Saldos AS s
+                   WHERE s.UsuarioRegId = a.UsuarioId
+                     AND EXISTS (
+                         SELECT 1 FROM CREDITO.PlanPago AS pp
+                         WHERE pp.CreditoId = s.CreditoId
+                           AND pp.Estado = 'PEN'
+                           AND pp.FechaVencimiento < @Hoy)
+               ), 0) AS MontoMora
+        FROM Analistas AS a
+        ORDER BY a.NombreCompleto;
+        """;
+
+    private readonly string _connectionString = options.Value.ConnectionString;
+
+    public async Task<DashboardAdminDto> ObtenerAsync(
+        int oficinaId,
+        CancellationToken cancellationToken = default)
+    {
+        if (oficinaId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
+        }
+
+        if (string.IsNullOrWhiteSpace(_connectionString))
+        {
+            throw new InvalidOperationException(
+                "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        using var multi = await connection.QueryMultipleAsync(
+            new CommandDefinition(
+                Sql,
+                new { OficinaId = oficinaId },
+                commandTimeout: CommandTimeoutSeconds,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        var raw = await multi.ReadSingleAsync<ResumenRow>().ConfigureAwait(false);
+        var flujo = (await multi.ReadAsync<DashboardAdminFlujoRowDto>().ConfigureAwait(false)).AsList();
+        var historico = (await multi.ReadAsync<DashboardAdminHistoricoPuntoDto>().ConfigureAwait(false)).AsList();
+        var mensual = (await multi.ReadAsync<DashboardAdminHistoricoMensualDto>().ConfigureAwait(false)).AsList();
+        var analistasRaw = (await multi.ReadAsync<AnalistaRow>().ConfigureAwait(false)).AsList();
+
+        var resumen = MapResumen(raw);
+        var analistas = analistasRaw.Select(MapAnalista).ToList();
+
+        return new DashboardAdminDto(
+            NombreOficina: string.IsNullOrWhiteSpace(raw.NombreOficina)
+                ? "Oficina"
+                : raw.NombreOficina.Trim(),
+            FechaConsulta: raw.FechaConsulta,
+            Resumen: resumen,
+            FlujoCaja: flujo,
+            Historico: historico,
+            HistoricoMensual: mensual,
+            Analistas: analistas);
+    }
+
+    private static DashboardAdminResumenDto MapResumen(ResumenRow r)
+    {
+        var flujoHoy = r.EntradasHoy - r.SalidasHoy;
+        var flujoAyer = r.EntradasAyer - r.SalidasAyer;
+        var flujoAnteayer = r.EntradasAnteayer - r.SalidasAnteayer;
+        var flujoMes = r.EntradasMesActual - r.SalidasMesActual;
+        var flujoMesAnt = r.EntradasMesAnteriorComparable - r.SalidasMesAnteriorComparable;
+
+        return new DashboardAdminResumenDto(
+            r.TotalAnalistas,
+            r.TotalClientes,
+            r.CreditosHoy,
+            r.CreditosAyer,
+            r.CreditosAnteayer,
+            r.CreditosMesActual,
+            r.CreditosMesAnteriorComparable,
+            DashboardAnalistaInsights.VariacionPorcentaje(r.CreditosHoy, r.CreditosAyer),
+            DashboardAnalistaInsights.VariacionPorcentaje(r.CreditosMesActual, r.CreditosMesAnteriorComparable),
+            r.DesembolsoHoy,
+            r.DesembolsoAyer,
+            r.DesembolsoAnteayer,
+            r.DesembolsoMesActual,
+            r.DesembolsoMesAnteriorComparable,
+            DashboardAnalistaInsights.VariacionPorcentaje(r.DesembolsoHoy, r.DesembolsoAyer),
+            DashboardAnalistaInsights.VariacionPorcentaje(r.DesembolsoMesActual, r.DesembolsoMesAnteriorComparable),
+            r.CobradoHoy,
+            r.CobradoAyer,
+            r.CobradoAnteayer,
+            r.CobradoMesActual,
+            r.CobradoMesAnteriorComparable,
+            DashboardAnalistaInsights.VariacionPorcentaje(r.CobradoHoy, r.CobradoAyer),
+            DashboardAnalistaInsights.VariacionPorcentaje(r.CobradoMesActual, r.CobradoMesAnteriorComparable),
+            r.EntradasHoy,
+            r.SalidasHoy,
+            flujoHoy,
+            r.EntradasAyer,
+            r.SalidasAyer,
+            flujoAyer,
+            r.EntradasAnteayer,
+            r.SalidasAnteayer,
+            flujoAnteayer,
+            r.EntradasMesActual,
+            r.SalidasMesActual,
+            flujoMes,
+            r.EntradasMesAnteriorComparable,
+            r.SalidasMesAnteriorComparable,
+            flujoMesAnt,
+            DashboardAnalistaInsights.VariacionPorcentaje(flujoHoy, flujoAyer),
+            DashboardAnalistaInsights.VariacionPorcentaje(flujoMes, flujoMesAnt),
+            r.SaldoCartera,
+            r.SaldoCreditos,
+            r.SaldoMoraCartera,
+            r.SaldoVencido,
+            r.SaldoMorosidad,
+            r.ClientesMora,
+            r.CreditosPorVencerSemana);
+    }
+
+    private static DashboardAdminAnalistaRowDto MapAnalista(AnalistaRow a)
+    {
+        var pctMora = a.TotalClientes > 0
+            ? Math.Round((a.ClientesMora / (decimal)a.TotalClientes) * 100m, 1, MidpointRounding.AwayFromZero)
+            : 0m;
+        return new DashboardAdminAnalistaRowDto(
+            a.UsuarioId,
+            string.IsNullOrWhiteSpace(a.NombreCompleto) ? "Analista" : a.NombreCompleto.Trim(),
+            a.TotalClientes,
+            a.ClientesNuevosMes,
+            a.ColocacionesHoy,
+            a.ColocacionesMes,
+            a.DesembolsoHoy,
+            a.DesembolsoMes,
+            a.CobradoHoy,
+            a.CobradoMes,
+            a.CobradoMesAnteriorComparable,
+            DashboardAnalistaInsights.VariacionPorcentaje(a.CobradoMes, a.CobradoMesAnteriorComparable),
+            a.ClientesMora,
+            a.MontoMora,
+            pctMora);
+    }
+
+    private sealed class ResumenRow
+    {
+        public string NombreOficina { get; init; } = "Oficina";
+        public DateTime FechaConsulta { get; init; }
+        public int TotalAnalistas { get; init; }
+        public int TotalClientes { get; init; }
+        public int CreditosHoy { get; init; }
+        public int CreditosAyer { get; init; }
+        public int CreditosAnteayer { get; init; }
+        public int CreditosMesActual { get; init; }
+        public int CreditosMesAnteriorComparable { get; init; }
+        public decimal DesembolsoHoy { get; init; }
+        public decimal DesembolsoAyer { get; init; }
+        public decimal DesembolsoAnteayer { get; init; }
+        public decimal DesembolsoMesActual { get; init; }
+        public decimal DesembolsoMesAnteriorComparable { get; init; }
+        public decimal CobradoHoy { get; init; }
+        public decimal CobradoAyer { get; init; }
+        public decimal CobradoAnteayer { get; init; }
+        public decimal CobradoMesActual { get; init; }
+        public decimal CobradoMesAnteriorComparable { get; init; }
+        public decimal EntradasHoy { get; init; }
+        public decimal SalidasHoy { get; init; }
+        public decimal EntradasAyer { get; init; }
+        public decimal SalidasAyer { get; init; }
+        public decimal EntradasAnteayer { get; init; }
+        public decimal SalidasAnteayer { get; init; }
+        public decimal EntradasMesActual { get; init; }
+        public decimal SalidasMesActual { get; init; }
+        public decimal EntradasMesAnteriorComparable { get; init; }
+        public decimal SalidasMesAnteriorComparable { get; init; }
+        public decimal SaldoCartera { get; init; }
+        public decimal SaldoCreditos { get; init; }
+        public decimal SaldoMoraCartera { get; init; }
+        public decimal SaldoVencido { get; init; }
+        public decimal SaldoMorosidad { get; init; }
+        public int ClientesMora { get; init; }
+        public int CreditosPorVencerSemana { get; init; }
+    }
+
+    private sealed class AnalistaRow
+    {
+        public int UsuarioId { get; init; }
+        public string NombreCompleto { get; init; } = "";
+        public int TotalClientes { get; init; }
+        public int ClientesNuevosMes { get; init; }
+        public int ColocacionesHoy { get; init; }
+        public int ColocacionesMes { get; init; }
+        public decimal DesembolsoHoy { get; init; }
+        public decimal DesembolsoMes { get; init; }
+        public decimal CobradoHoy { get; init; }
+        public decimal CobradoMes { get; init; }
+        public decimal CobradoMesAnteriorComparable { get; init; }
+        public int ClientesMora { get; init; }
+        public decimal MontoMora { get; init; }
+    }
+}

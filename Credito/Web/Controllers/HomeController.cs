@@ -39,8 +39,10 @@ namespace VendixWeb.Controllers
             }          
 
             int oficinaId = int.Parse(Request.Form["cboOficina"]);
-            var usuarioOficina = UsuarioOficinaBL.Listar(x => x.Usuario.NombreUsuario == login_name && x.Usuario.ClaveUsuario == login_pw
-                                         && x.OficinaId == oficinaId && x.Estado && x.Usuario.Estado, null, "Usuario,Oficina").FirstOrDefault();
+            var usuarioOficina = UsuarioOficinaBL.Listar(x => x.Usuario.NombreUsuario == login_name
+                                         && x.OficinaId == oficinaId && x.Estado && x.Usuario.Estado, null, "Usuario,Oficina")
+                .ToList()
+                .FirstOrDefault(x => UsuarioPasswordHasherCompat.Verify(x.Usuario.ClaveUsuario, login_pw));
             if (usuarioOficina != null)
             {
                 SessionHelper.AddUserToSession(usuarioOficina.UsuarioId.ToString());
@@ -98,8 +100,8 @@ namespace VendixWeb.Controllers
         public ActionResult ConfirmarClave(string clave)
         {
             var rpta = new Respuesta() { Error = false };
-            var admin = UsuarioBL.Contar(x => x.ClaveUsuario == clave && x.NombreUsuario == "ADMVENDIX");
-            if (admin <= 0)
+            var admin = UsuarioBL.Listar(x => x.NombreUsuario == "ADMVENDIX").FirstOrDefault();
+            if (admin == null || !UsuarioPasswordHasherCompat.Verify(admin.ClaveUsuario, clave))
             {
                 rpta.Error = true;
                 rpta.Mensaje = "NO AUTORIZADO!!!!";

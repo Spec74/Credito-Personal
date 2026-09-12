@@ -21,6 +21,11 @@ export const CREDITO_OPERACIONES_SECTIONS: CredixHubSection[] = [
         description: 'Bandeja de solicitudes pendientes',
       },
       {
+        to: '/credito/condonaciones',
+        label: 'Solicitudes de condonación',
+        description: 'Mora pedida en caja, pendiente de aprobación',
+      },
+      {
         to: '/credito/simulador',
         label: 'Simulador',
         description: 'Plan de pagos y alta de solicitud',

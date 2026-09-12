@@ -12,7 +12,6 @@ public sealed class WhatsAppCloudClient(
     ILogger<WhatsAppCloudClient> logger)
 {
     public const string HttpClientName = "WhatsAppCloud";
-    private readonly WhatsAppOptions _opts = options.Value;
 
     public async Task<(bool Exito, string Mensaje)> EnviarAvisoVencimientoAsync(
         string celular,
@@ -21,7 +20,8 @@ public sealed class WhatsAppCloudClient(
         decimal montoCancelar,
         CancellationToken cancellationToken)
     {
-        if (!_opts.EstaConfigurado)
+        var opts = options.Value;
+        if (!opts.TieneCredenciales)
         {
             return (false, "WhatsApp Business no está configurado.");
         }
@@ -37,14 +37,15 @@ public sealed class WhatsAppCloudClient(
             nombreCliente,
             fechaVencimiento,
             montoCancelar,
-            _opts.TemplateVencimientoPrendario,
-            _opts.TemplateLang);
+            opts.TemplateVencimientoPrendario,
+            opts.TemplateLang);
 
+        var version = string.IsNullOrWhiteSpace(opts.ApiVersion) ? "v25.0" : opts.ApiVersion.Trim('/');
         var client = httpClientFactory.CreateClient(HttpClientName);
         using var req = new HttpRequestMessage(
             HttpMethod.Post,
-            $"{_opts.ApiVersion.Trim('/')}/{_opts.PhoneNumberId}/messages");
-        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _opts.Token);
+            $"{version}/{opts.PhoneNumberId.Trim()}/messages");
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", opts.Token.Trim());
         req.Content = new StringContent(json, Encoding.UTF8, "application/json");
 
         try
@@ -61,7 +62,7 @@ public sealed class WhatsAppCloudClient(
                 (int)resp.StatusCode,
                 e164[^4..].PadLeft(e164.Length, '*'),
                 TruncarCuerpo(body));
-            return (false, MensajeUsuarioMeta(body, (int)resp.StatusCode));
+            return (false, MensajeParaUsuario(body, (int)resp.StatusCode));
         }
         catch (HttpRequestException ex)
         {
@@ -73,19 +74,33 @@ public sealed class WhatsAppCloudClient(
     private static string TruncarCuerpo(string body) =>
         body.Length <= 400 ? body : body[..400];
 
-    private static string MensajeUsuarioMeta(string body, int status)
+    public static string MensajeParaUsuario(string body, int status)
     {
-        if (body.Contains("template", StringComparison.OrdinalIgnoreCase)
-            && (body.Contains("not exist", StringComparison.OrdinalIgnoreCase)
-                || body.Contains("approved", StringComparison.OrdinalIgnoreCase)
-                || body.Contains("paused", StringComparison.OrdinalIgnoreCase)))
+        var texto = body ?? string.Empty;
+        if (status == 401
+            || texto.Contains("(#190)", StringComparison.Ordinal)
+            || texto.Contains("\"code\":190", StringComparison.Ordinal)
+            || texto.Contains("Authentication Error", StringComparison.OrdinalIgnoreCase)
+            || texto.Contains("Invalid OAuth", StringComparison.OrdinalIgnoreCase)
+            || (texto.Contains("access token", StringComparison.OrdinalIgnoreCase)
+                && texto.Contains("expired", StringComparison.OrdinalIgnoreCase)))
+        {
+            return "El token de WhatsApp no es válido o expiró. En local: user-secrets WhatsApp:Token. En servidores: variable WhatsApp__Token.";
+        }
+
+        if (texto.Contains("template", StringComparison.OrdinalIgnoreCase)
+            && (texto.Contains("not exist", StringComparison.OrdinalIgnoreCase)
+                || texto.Contains("approved", StringComparison.OrdinalIgnoreCase)
+                || texto.Contains("paused", StringComparison.OrdinalIgnoreCase)
+                || texto.Contains("(#132001)", StringComparison.Ordinal)
+                || texto.Contains("(#132015)", StringComparison.Ordinal)))
         {
             return "La plantilla aviso_vencimiento_prendario aún no está aprobada o no coincide con el idioma configurado.";
         }
 
-        if (body.Contains("recipient", StringComparison.OrdinalIgnoreCase)
-            || body.Contains("(#131030)", StringComparison.Ordinal)
-            || body.Contains("not a valid WhatsApp", StringComparison.OrdinalIgnoreCase))
+        if (texto.Contains("recipient", StringComparison.OrdinalIgnoreCase)
+            || texto.Contains("(#131030)", StringComparison.Ordinal)
+            || texto.Contains("not a valid WhatsApp", StringComparison.OrdinalIgnoreCase))
         {
             return "El destino no está habilitado para este número de prueba de WhatsApp.";
         }

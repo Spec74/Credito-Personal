@@ -80,4 +80,11 @@ public class PrendarioEndpointTests : IClassFixture<CreditoModernWebApplicationF
             new { oficinaId = 1, diasAntes = 3 });
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Estado_avisos_sin_jwt_devuelve_401()
+    {
+        var response = await _client.GetAsync("/api/v1/prendario/avisos-vencimiento/estado");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
 }

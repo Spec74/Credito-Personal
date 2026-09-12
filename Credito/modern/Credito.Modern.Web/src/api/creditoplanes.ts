@@ -177,6 +177,20 @@ export function downloadCobroDiarioPdf(params: CobroDiarioQueryParams): Promise<
   return apiDownload(`/credito/rpt-cobro-diario-pdf?${queryCobroDiario(params)}`, name)
 }
 
+export function downloadMorosidadGestorCsv(params: CobroDiarioQueryParams): Promise<void> {
+  return apiDownload(
+    `/credito/rpt-morosidad-gestor-csv?${queryCobroDiario({ ...params, soloMora: true })}`,
+    'morosidad-gestor.csv',
+  )
+}
+
+export function downloadMorosidadGestorPdf(params: CobroDiarioQueryParams): Promise<void> {
+  return apiDownload(
+    `/credito/rpt-morosidad-gestor-pdf?${queryCobroDiario({ ...params, soloMora: true })}`,
+    'morosidad-gestor.pdf',
+  )
+}
+
 export interface GenerarRutaCobrosResponse {
   exito: boolean
   urlCortita: string | null

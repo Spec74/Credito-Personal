@@ -1,83 +1,64 @@
-# Checklist interactivo — Corte preprod/prod (Corte A + B)
-# Uso: .\preprod-cutover-checklist.ps1 [-SkipInteractive]
+# Checklist corte preprod/prod (A + B + C)
+# Uso:
+#   .\preprod-cutover-checklist.ps1 -SkipInteractive
+# Runbook: docs/migration/PHASE-5-OPERATIONS-CUTOVER.md
+# Spec:    docs/ssd/SSD-00-cutover.md
 
 param(
     [switch]$SkipInteractive
 )
 
 $ErrorActionPreference = "Stop"
-$root = Split-Path (Split-Path $PSScriptRoot -Parent) -Parent
-$repoRoot = Split-Path $root -Parent
+$modernRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 
 Write-Host ""
-Write-Host "=== Credito — Checklist corte preprod/prod ===" -ForegroundColor Cyan
-Write-Host "Repo: $repoRoot"
-Write-Host "Docs: docs/migration/PHASE-5-OPERATIONS-CUTOVER.md"
+Write-Host "=== Credito - Checklist corte preprod/prod ===" -ForegroundColor Cyan
+Write-Host "Repo: $modernRoot"
+Write-Host "Runbook: docs/migration/PHASE-5-OPERATIONS-CUTOVER.md"
 Write-Host ""
 
 $sections = @(
     @{
-        Title = "Corte A — API y proxy"
+        Title = "Corte A - API y proxy"
         Items = @(
-            "SQL Server accesible desde host API"
-            "deploy/.env.production desde .env.production.example (secretos fuera de git)"
-            "Jwt:SigningKey >= 32 caracteres; AllowDevToken=false"
+            "SQL Server accesible desde el host API"
+            "deploy/.env.production desde .env.production.example (secretos fuera de Git)"
+            "Jwt:SigningKey de al menos 32 caracteres; AllowDevToken=false"
             "nginx o IIS ARR segun production.conf.example / iis-arr-web.config.example"
-            "Headers X-Forwarded-* y ForwardedHeaders en API"
-            "verify-production-config.ps1 -RequireForwardedHeaders OK"
+            "Headers X-Forwarded-* y ForwardedHeaders en API (KnownProxies = IP del proxy)"
+            "verify-production-config.ps1 -RequireForwardedHeaders OK (en el servidor, no contra la plantilla del repo)"
             "smoke-strangler-proxy.ps1 contra URL preprod"
-            "test-auth-login.ps1 contra preprod"
+            "test-auth-login.ps1 contra preprod (usuario real, no dev/token)"
+            "Scripts deploy/sql pendientes aplicados (ClaveUsuario 256, condonacion, TRF bancos)"
         )
     },
     @{
-        Title = "Corte B — SPA (/app/)"
+        Title = "Corte B - SPA /app/"
         Items = @(
             "npm run build en Credito.Modern.Web (VITE_BASE_URL=/app/)"
-            "Static files en location /app/ del proxy"
+            "Estaticos en location /app/ del proxy"
             "BrowserRouter basename = import.meta.env.BASE_URL"
-            "CORS: origen prod en BrowserCors:AllowedOrigins"
-            "Login SPA probado contra API preprod"
-            "Piloto: 1 oficina o rol (caja, aprobar credito, consulta)"
-            "Comunicar brechas MVC: docs/migration/PHASE-5-BRECHAS-NEGOCIO.md"
+            "CORS: origen real en BrowserCors:AllowedOrigins"
+            "Login SPA + menu usp_MenuLst"
+            "Piloto: 1 oficina (caja, aprobar credito, consulta). Ventas/almacen solo si el menu las tiene"
         )
     },
     @{
-        Title = "Corte C — 5C-7 Retiro MVC (ops)"
+        Title = "Corte C - retiro gradual MVC"
         Items = @(
-            "Ui:UseSpaForModule y DefaultLoginToSpa en appsettings.Production (piloto)"
-            "GET /api/v1/hosting/ui-config responde fase cutover"
-            "Incluir deploy/nginx/spa-legacy-redirects.conf en nginx preprod"
-            "Opcional: location = / return 302 /app/login"
             "Observacion 14 dias (404, tickets) antes de apagar vistas MVC"
-            "Mantener ReporteController para layout RDLC opcional (Fase 4 §6B)"
-            "test-local-cutover.ps1 OK en entorno de piloto antes de prod"
-            "docs/migration/PHASE-5C-7-CUTOVER.md"
+            "Incluir deploy/nginx/spa-legacy-redirects.conf cuando el piloto este firmado"
+            "Mantener ReporteController mientras negocio exija RDLC identico"
+            "test-local-cutover.ps1 OK en Docker local antes de prod"
+            "Ui:UseSpaForModule / DefaultLoginToSpa alineados al entorno (PreProduction arranca en false)"
         )
     },
     @{
-        Title = "Corte C — 5C-7 Retiro MVC (ops)"
+        Title = "Verificacion local (Development)"
         Items = @(
-            "Ui:UseSpaForModule y DefaultLoginToSpa en appsettings.Production (piloto)"
-            "GET /api/v1/hosting/ui-config responde fase cutover"
-            "Incluir deploy/nginx/spa-legacy-redirects.conf en nginx preprod"
-            "Opcional: location = / return 302 /app/login"
-            "Observacion 14 dias (404, tickets) antes de apagar vistas MVC"
-            "Mantener ReporteController para layout RDLC opcional (Fase 4 §6B)"
-            "test-local-cutover.ps1 OK en entorno de piloto antes de prod"
-            "docs/migration/PHASE-5C-7-CUTOVER.md"
-        )
-    },
-    @{
-        Title = "Verificacion local (opcional)"
-        Items = @(
-            "dotnet test en modern/"
-            "npm run build en Credito.Modern.Web"
-            "migration-status.ps1"
-            "finalize-migration.ps1 -RunDockerChecks (con Docker + MVC)"
-            "test-local-cutover.ps1 (cutover local Docker)"
-            "verify-preprod-cutover.ps1 -BaseUrl <URL preprod>"
-            "test-local-cutover.ps1 (cutover local Docker)"
-            "verify-preprod-cutover.ps1 -BaseUrl <URL preprod>"
+            "verify-production-config.ps1 (sin -RequireForwardedHeaders)"
+            "smoke-local-api.ps1 contra la API ya en marcha (no segundo dotnet run)"
+            "dotnet test filtro Strangler (OutputPath aislado si la API esta ocupando la DLL)"
         )
     }
 )
@@ -96,32 +77,15 @@ if (-not $SkipInteractive) {
     Write-Host "Ejecutar verificaciones locales ahora? (s/N): " -NoNewline
     $r = Read-Host
     if ($r -eq "s" -or $r -eq "S") {
-        Push-Location (Join-Path $repoRoot "modern")
-        try {
-            Write-Host "`n>> dotnet test" -ForegroundColor Green
-            dotnet test --no-restore 2>$null
-            if ($LASTEXITCODE -ne 0) { dotnet test }
-            Write-Host "`n>> migration-status.ps1" -ForegroundColor Green
-            & (Join-Path $PSScriptRoot "migration-status.ps1")
-        }
-        finally {
-            Pop-Location
-        }
-        $web = Join-Path $repoRoot "modern\Credito.Modern.Web"
-        if (Test-Path $web) {
-            Push-Location $web
-            try {
-                Write-Host "`n>> npm run build" -ForegroundColor Green
-                npm run build
-            }
-            finally {
-                Pop-Location
-            }
-        }
+        Write-Host "`n>> verify-production-config.ps1" -ForegroundColor Green
+        & (Join-Path $PSScriptRoot "verify-production-config.ps1")
+        $smoke = Join-Path $PSScriptRoot "smoke-local-api.ps1"
+        Write-Host "`n>> smoke-local-api.ps1 (http://localhost:5288)" -ForegroundColor Green
+        & $smoke -BaseUrl "http://localhost:5288"
     }
 }
 
 Write-Host ""
-Write-Host "Referencia piloto UI: docs/migration/PHASE-5-PILOT-PACK.md" -ForegroundColor Cyan
-Write-Host "Listo. Marque items en su runbook institucional antes del go-live." -ForegroundColor Gray
+Write-Host "Spec: docs/ssd/SSD-00-cutover.md" -ForegroundColor Cyan
+Write-Host "Marque los items en el runbook institucional antes del go-live." -ForegroundColor Gray
 Write-Host ""

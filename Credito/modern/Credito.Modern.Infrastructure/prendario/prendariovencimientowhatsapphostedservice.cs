@@ -25,7 +25,7 @@ public sealed class PrendarioVencimientoWhatsAppHostedService(
             return;
         }
 
-        if (!cfg.EstaConfigurado)
+        if (!cfg.TieneCredenciales)
         {
             logger.LogWarning(
                 "WhatsApp prendario está Enabled pero faltan WhatsApp:Token o WhatsApp:PhoneNumberId (user-secrets). No se enviará nada.");
@@ -42,7 +42,7 @@ public sealed class PrendarioVencimientoWhatsAppHostedService(
             logger.LogInformation(
                 "Próximo aviso WhatsApp prendario en {Horas:0.0} h (hora local {Hora}:00).",
                 espera.TotalHours,
-                cfg.DailyHourLocal);
+                Math.Clamp(cfg.DailyHourLocal, 0, 23));
             try
             {
                 await Task.Delay(espera, stoppingToken).ConfigureAwait(false);
@@ -64,7 +64,7 @@ public sealed class PrendarioVencimientoWhatsAppHostedService(
             var envio = scope.ServiceProvider.GetRequiredService<IPrendarioAvisoEnvioService>();
             var dias = Math.Clamp(options.Value.DiasAntes, 1, 30);
             var resumen = await envio
-                .EnviarPendientesAsync(oficinaId: null, dias, creditoId: null, stoppingToken)
+                .EnviarPendientesAsync(oficinaId: null, dias, creditoId: null, origen, stoppingToken)
                 .ConfigureAwait(false);
             logger.LogInformation(
                 "Pasada WhatsApp prendario ({Origen}): enviados {Enviados}, fallidos {Fallidos}, omitidos {Omitidos}.",
@@ -85,31 +85,9 @@ public sealed class PrendarioVencimientoWhatsAppHostedService(
 
     internal static TimeSpan TiempoHastaProximaCorrida(WhatsAppOptions cfg)
     {
-        var tz = ResolverZona(cfg.TimeZoneId);
+        var tz = WhatsAppZonaHoraria.Resolver(cfg.TimeZoneId);
         var ahora = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, tz);
-        var hora = Math.Clamp(cfg.DailyHourLocal, 0, 23);
-        var proxima = new DateTimeOffset(
-            ahora.Year, ahora.Month, ahora.Day, hora, 0, 0, ahora.Offset);
-        if (proxima <= ahora)
-        {
-            proxima = proxima.AddDays(1);
-        }
-
+        var proxima = PrendarioWhatsAppProgramacion.ProximaCorrida(ahora, cfg.DailyHourLocal);
         return proxima - ahora;
-    }
-
-    private static TimeZoneInfo ResolverZona(string timeZoneId)
-    {
-        try
-        {
-            return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
-        }
-        catch (TimeZoneNotFoundException)
-        {
-            var fallback = OperatingSystem.IsWindows()
-                ? "SA Pacific Standard Time"
-                : "America/Lima";
-            return TimeZoneInfo.FindSystemTimeZoneById(fallback);
-        }
     }
 }

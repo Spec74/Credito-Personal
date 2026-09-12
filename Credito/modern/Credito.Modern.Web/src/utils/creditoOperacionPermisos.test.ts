@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  debeMostrarDashboardAdmin,
   debeMostrarDashboardAnalista,
   esCreditoPerfilSoloBandeja,
   puedeOperarCreditoCompleto,
@@ -25,5 +26,17 @@ describe('dashboard analista en inicio', () => {
     expect(debeMostrarDashboardAnalista(['ADMINISTRADOR', 'ANALISTA'])).toBe(false)
     expect(debeMostrarDashboardAnalista(['ADMINISTRADOR', 'ANALISTA'], 'analista')).toBe(true)
     expect(debeMostrarDashboardAnalista(['CAJERO'])).toBe(false)
+  })
+})
+
+describe('dashboard admin en inicio', () => {
+  it('muestra el tablero gerencial al admin salvo mapa o tablero personal', () => {
+    expect(debeMostrarDashboardAdmin(['ADMINISTRADOR'])).toBe(true)
+    expect(debeMostrarDashboardAdmin(['ADMIN'])).toBe(true)
+    expect(debeMostrarDashboardAdmin(['ADMINISTRADOR'], 'modulos')).toBe(false)
+    expect(debeMostrarDashboardAdmin(['ADMINISTRADOR', 'ANALISTA'], 'analista')).toBe(false)
+    expect(debeMostrarDashboardAdmin(['ADMINISTRADOR', 'ANALISTA'])).toBe(true)
+    expect(debeMostrarDashboardAdmin(['ANALISTA'])).toBe(false)
+    expect(debeMostrarDashboardAdmin(['CAJERO'])).toBe(false)
   })
 })

@@ -3,6 +3,8 @@ const LEGACY_TO_SPA: Array<{ match: RegExp; spaPath: string }> = [
   { match: /^\/home\/index$/i, spaPath: '/inicio' },
   { match: /^\/home$/i, spaPath: '/inicio' },
   { match: /^\/home\/login$/i, spaPath: '/login' },
+  { match: /\/dashboard\/(admin|gestor)/i, spaPath: '/inicio' },
+  { match: /^\/dashboard(\/index)?$/i, spaPath: '/inicio' },
   { match: /^\/administracion$/i, spaPath: '/admin' },
   { match: /^\/tesoreria$/i, spaPath: '/tesoreria' },
   { match: /\/entrada(\/index)?$/i, spaPath: '/almacen/entrada' },
@@ -47,6 +49,7 @@ const LEGACY_TO_SPA: Array<{ match: RegExp; spaPath: string }> = [
   { match: /\/reporte\/venta$/i, spaPath: '/reportes/venta' },
   { match: /^\/tareas(\/index)?$/i, spaPath: '/credito/tareas' },
   { match: /^\/credito\/tareas/i, spaPath: '/credito/tareas' },
+  { match: /\/condonacion(\/index)?$/i, spaPath: '/credito/condonaciones' },
   { match: /\/credito\/creditos/i, spaPath: '/credito/consulta' },
   { match: /^\/credito$/i, spaPath: '/credito' },
   { match: /^\/caja\/asignar/i, spaPath: '/caja/asignar' },
@@ -240,8 +243,10 @@ const MODULO_HUB: Record<string, string> = {
   CREDITO: '/credito',
   REPORTES: '/informes',
   REPORTE: '/informes',
+  INFORMES: '/informes',
   CAJA: '/caja',
   VENTAS: '/ventas',
+  VENTA: '/ventas',
   ALMACEN: '/almacen',
   ADMINISTRACION: '/admin',
   TESORERIA: '/tesoreria',
@@ -249,6 +254,7 @@ const MODULO_HUB: Record<string, string> = {
   CLIENTES: '/clientes',
   MAESTRO: '/maestros',
   MAESTROS: '/maestros',
+  PRENDARIO: '/credito/prendario',
 }
 
 export function resolveSpaPathFromModulo(modulo: string | null | undefined): string | null {

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Credito.Modern.Api.Auth;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -39,14 +38,41 @@ internal static class GestorInformeReportAccess
             return (0, null, error);
         }
 
-        return (oficinaId!.Value, usuarioId, null);
+        if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+        {
+            return (0, null, Forbidden("El token no contiene una oficina válida (vendix:oficina_id)."));
+        }
+
+        // El índice SPA fija la oficina de sesión; el token no autoriza otra.
+        if (oficinaId is not null && oficinaId.Value != jwtOficinaId)
+        {
+            return (0, null, Forbidden("oficinaId debe coincidir con la oficina del token JWT."));
+        }
+
+        return (oficinaId ?? jwtOficinaId, usuarioId, null);
     }
+
+    /// <summary>
+    /// Oficina = JWT. Gestor: TODOS o uno concreto si el rol es ADMIN/APROBADOR/PARCIAL;
+    /// si no, solo el usuario del token.
+    /// </summary>
+    internal static ProblemHttpResult? Validate(
+        HttpContext httpContext,
+        int? oficinaId,
+        int? usuarioId) =>
+        Resolve(httpContext, oficinaId, usuarioId).Error;
 
     internal static ProblemHttpResult? ValidateOficinaUsuario(
         HttpContext httpContext,
         int oficinaId,
         int? usuarioId) =>
         Resolve(httpContext, oficinaId, usuarioId).Error;
+
+    private static ProblemHttpResult Forbidden(string detail) =>
+        TypedResults.Problem(
+            statusCode: StatusCodes.Status403Forbidden,
+            title: "Prohibido",
+            detail: detail);
 
     private static ProblemHttpResult BadRequest(string detail) =>
         TypedResults.Problem(

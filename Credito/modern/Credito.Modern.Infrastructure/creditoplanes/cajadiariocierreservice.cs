@@ -86,6 +86,21 @@ public sealed class CajaDiarioCierreService(
             blockers.Add("Tiene Creditos por Aprobar Pendientes");
         }
 
+        var condonaciones = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT COUNT(1)
+                FROM CREDITO.CreditoCondonacion
+                WHERE IndAprobado = CAST(0 AS bit)
+                  AND CajaDiarioId = @CajaDiarioId;
+                """,
+                new { CajaDiarioId = cajaDiarioId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+        if (condonaciones > 0)
+        {
+            blockers.Add("Tiene Condonaciones Pendientes");
+        }
+
         var impagos = await impagosValidacion.ValidarAsync(cajaDiarioId, cancellationToken).ConfigureAwait(false);
         if (impagos.CantidadImpagosPendientes is > 0)
         {

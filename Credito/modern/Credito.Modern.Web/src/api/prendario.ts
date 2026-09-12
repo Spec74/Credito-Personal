@@ -106,6 +106,7 @@ export interface PrendarioAvisoEnvioResumen {
   fallidos: number
   omitidos: number
   detalle: { creditoId: number; exito: boolean; mensaje: string }[]
+  advertencia?: string | null
 }
 
 export function fetchPrendarioAvisosVencimiento(
@@ -129,4 +130,28 @@ export function enviarAvisosVencimientoPrendario(body: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
+}
+
+export interface PrendarioWhatsAppPasada {
+  fecha: string
+  origen: string
+  enviados: number
+  fallidos: number
+  omitidos: number
+  advertencia: string | null
+}
+
+export interface PrendarioWhatsAppEstado {
+  enabled: boolean
+  configurado: boolean
+  automaticoActivo: boolean
+  diasAntes: number
+  dailyHourLocal: number
+  proximaCorrida: string
+  correAlArrancar: boolean
+  ultimaPasada: PrendarioWhatsAppPasada | null
+}
+
+export function fetchPrendarioAvisosEstado(): Promise<PrendarioWhatsAppEstado> {
+  return apiFetch<PrendarioWhatsAppEstado>('/prendario/avisos-vencimiento/estado')
 }

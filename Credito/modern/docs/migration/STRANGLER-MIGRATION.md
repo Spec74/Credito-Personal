@@ -1,5 +1,7 @@
 # Estrategia strangler fig
 
+Spec SSD del corte: [SSD-00-cutover.md](../ssd/SSD-00-cutover.md).
+
 La modernización convive con el MVC legacy. Las rutas nuevas se atienden por la SPA y la API .NET 10, mientras que funcionalidades no retiradas siguen disponibles por proxy o por enlaces RDLC legacy.
 
 ## Rebanadas migradas

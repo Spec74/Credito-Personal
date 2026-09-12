@@ -137,7 +137,7 @@ public sealed class LegacyLoginService(
             }
             catch (Exception ex) when (IsClaveUsuarioColumnTruncate(ex))
             {
-                // MAESTRO.Usuario.ClaveUsuario suele ser nvarchar(50); el hash $pbk2$ requiere ~90+ caracteres.
+                // Si ClaveUsuario sigue en nvarchar(50), el hash $pbk2$ (~85 chars) no cabe.
                 logger.LogWarning(
                     ex,
                     "MigracionClavePerezosa: no se pudo guardar hash (columna ClaveUsuario demasiado corta). Login continúa con clave legado.");

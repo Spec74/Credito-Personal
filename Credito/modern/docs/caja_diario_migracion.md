@@ -1,5 +1,7 @@
 # Caja Diario — Paridad Legacy MVC ↔ Modern
 
+Spec SSD del módulo caja: [docs/ssd/SSD-03-caja.md](ssd/SSD-03-caja.md).
+
 Documento de verificación de migración (`Credito/Web/Views/Credito/CajaDiario.cshtml` → `Credito.Modern.Web` `/caja/diario`).
 
 **Última revisión:** 2026-05-18  

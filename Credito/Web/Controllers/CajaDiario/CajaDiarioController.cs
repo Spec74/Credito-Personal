@@ -85,8 +85,8 @@ namespace VendixWeb.Controllers.CajaDiario
         public ActionResult ConfirmarClave(string clave)
         {
             var rpta = new Respuesta() { Error = false };
-            var admin = UsuarioBL.Contar(x => x.ClaveUsuario == clave && x.NombreUsuario == "ADMVENDIX");
-            if (admin <= 0)
+            var admin = UsuarioBL.Listar(x => x.NombreUsuario == "ADMVENDIX").FirstOrDefault();
+            if (admin == null || !UsuarioPasswordHasherCompat.Verify(admin.ClaveUsuario, clave))
             {
                 rpta.Error = true;
                 rpta.Mensaje = "NO AUTORIZADO!!!!";

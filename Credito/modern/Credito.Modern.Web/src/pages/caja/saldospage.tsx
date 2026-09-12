@@ -21,13 +21,18 @@ import {
 } from '@ant-design/icons'
 import {
   actualizarDatosPostCierreBoveda,
+  downloadRptMovimientoBovedaPdf,
   fetchBovedaAbierta,
   fetchValidarCierreCajaChica,
   fetchValidarCierreSaldos,
   transferirCierreCajaChica,
 } from '../../api/boveda'
 import { downloadRptSaldosCajaPdf } from '../../api/cajaDiario'
-import { cerrarCajasDiarios, fetchCajasAsignadas } from '../../api/creditoPlanes'
+import {
+  cerrarCajasDiarios,
+  downloadCajasAsignadasPdf,
+  fetchCajasAsignadas,
+} from '../../api/creditoPlanes'
 import { ApiError } from '../../api/errors'
 import {
   fetchSaldosCajaChicaDiario,
@@ -36,11 +41,6 @@ import {
   type SaldoCajaSesionRow,
 } from '../../api/saldosCaja'
 import { useAuth } from '../../auth/useAuth'
-import {
-  openLegacyCajasAsignadas,
-  openLegacyMovimientoBoveda,
-  openLegacyReporteSaldoCaja,
-} from '../../config/legacyReportUrls'
 import type { RptCajasAsignadasRow } from '../../types/api'
 import {
   CredixDataTable,
@@ -52,6 +52,7 @@ import { puedeOperarCierreSaldos, esLecturaSaldoCaja } from '../../utils/cajaSal
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { filterTableRows } from '../../utils/tableClientFilter'
+import { runOpenReport } from '../../utils/reportExport'
 import { ConteoBilletesModal } from './components/ConteoBilletesModal'
 import { SaldosTableToolbar } from './components/SaldosTableToolbar'
 
@@ -196,12 +197,8 @@ export function SaldosPage() {
   const imprimirSaldo = async (cajaDiarioId: number) => {
     try {
       await downloadRptSaldosCajaPdf(cajaDiarioId)
-    } catch {
-      try {
-        openLegacyReporteSaldoCaja(cajaDiarioId)
-      } catch (e) {
-        message.error(e instanceof Error ? e.message : 'No se pudo abrir el reporte')
-      }
+    } catch (e) {
+      message.error(e instanceof Error ? e.message : 'No se pudo abrir el reporte')
     }
   }
 
@@ -492,19 +489,31 @@ export function SaldosPage() {
                 )}
                 {puedeOperar ? (
                   <div className="caja-saldos-asignadas-actions">
-                    <Button icon={<FilePdfOutlined />} onClick={() => openLegacyCajasAsignadas()}>
+                    <Button
+                      icon={<FilePdfOutlined />}
+                      onClick={() => {
+                        void runOpenReport('Cajas asignadas', () =>
+                          downloadCajasAsignadasPdf(oficinaId),
+                        )
+                      }}
+                    >
                       Reporte cajas
                     </Button>
                     <Button
                       icon={<FilePdfOutlined />}
                       onClick={() => {
                         const id = boveda.data?.bovedaId
+                        const openBoveda = (bovedaId: number) => {
+                          void runOpenReport('Movimiento bóveda', () =>
+                            downloadRptMovimientoBovedaPdf(bovedaId),
+                          )
+                        }
                         if (id) {
-                          openLegacyMovimientoBoveda(id)
+                          openBoveda(id)
                         } else {
                           void boveda.refetch().then((r) => {
                             if (r.data?.bovedaId) {
-                              openLegacyMovimientoBoveda(r.data.bovedaId)
+                              openBoveda(r.data.bovedaId)
                             } else {
                               message.warning('No hay bóveda abierta para el reporte.')
                             }

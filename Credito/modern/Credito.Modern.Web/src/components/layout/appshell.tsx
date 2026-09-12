@@ -136,7 +136,11 @@ export function AppShell() {
 
     if (item.url?.trim()) {
       navigate(`/modulo/${item.menuId}`, {
-        state: { titulo: item.denominacion, modulo: item.modulo },
+        state: {
+          titulo: item.denominacion,
+          modulo: item.modulo,
+          legacyUrl: item.url,
+        },
       })
       closeMobileNav()
       return
@@ -150,7 +154,11 @@ export function AppShell() {
     }
 
     navigate(`/modulo/${item.menuId}`, {
-      state: { titulo: item.denominacion, modulo: item.modulo },
+      state: {
+        titulo: item.denominacion,
+        modulo: item.modulo,
+        legacyUrl: item.url,
+      },
     })
     closeMobileNav()
   }

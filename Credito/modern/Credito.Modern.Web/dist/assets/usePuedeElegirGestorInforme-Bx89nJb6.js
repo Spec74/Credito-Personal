@@ -1,1 +1,0 @@
-import{y as e}from"./index-Cf58x7EX.js";import{t}from"./reporteCreditoAccess-JLaIclea.js";function n(){let{session:n}=e();return t(n?.roles??[])}export{n as t};

@@ -9,22 +9,27 @@ public sealed class PrendarioAvisoEnvioService(
     IPrendarioReadService prendarioRead,
     WhatsAppCloudClient whatsApp,
     IOptions<WhatsAppOptions> options,
+    IPrendarioWhatsAppPasadaStore pasadas,
     ILogger<PrendarioAvisoEnvioService> logger) : IPrendarioAvisoEnvioService
 {
     public async Task<PrendarioAvisoEnvioResumenDto> EnviarPendientesAsync(
         int? oficinaId,
         int diasAntes,
-        int? creditoId = null,
+        int? creditoId,
+        string origen,
         CancellationToken cancellationToken = default)
     {
         var cfg = options.Value;
-        if (!cfg.EstaConfigurado)
+        if (!cfg.TieneCredenciales)
         {
-            return new PrendarioAvisoEnvioResumenDto(
+            var sinCredenciales = new PrendarioAvisoEnvioResumenDto(
                 0,
                 0,
                 0,
-                [new PrendarioAvisoEnvioItemDto(0, false, "WhatsApp Business no está configurado.")]);
+                [],
+                "WhatsApp Business no está configurado. Falta el token o el número de envío (user-secrets).");
+            RegistrarPasada(origen, sinCredenciales);
+            return sinCredenciales;
         }
 
         var pendientes = await prendarioRead
@@ -39,10 +44,12 @@ public sealed class PrendarioAvisoEnvioService(
         var enviados = 0;
         var fallidos = 0;
         var omitidos = 0;
+        var delayMs = Math.Clamp(cfg.DelayBetweenMessagesMs, 0, 2000);
 
-        foreach (var aviso in pendientes)
+        for (var i = 0; i < pendientes.Count; i++)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            var aviso = pendientes[i];
             var (exito, mensaje) = await whatsApp
                 .EnviarAvisoVencimientoAsync(
                     aviso.Celular ?? "",
@@ -73,8 +80,30 @@ public sealed class PrendarioAvisoEnvioService(
                 "Aviso prendario crédito {CreditoId}: {Resultado}",
                 aviso.CreditoId,
                 exito ? "enviado" : mensaje);
+
+            if (delayMs > 0 && i < pendientes.Count - 1)
+            {
+                await Task.Delay(delayMs, cancellationToken).ConfigureAwait(false);
+            }
         }
 
-        return new PrendarioAvisoEnvioResumenDto(enviados, fallidos, omitidos, detalle);
+        var resumen = new PrendarioAvisoEnvioResumenDto(enviados, fallidos, omitidos, detalle);
+        RegistrarPasada(origen, resumen);
+        return resumen;
+    }
+
+    private void RegistrarPasada(string origen, PrendarioAvisoEnvioResumenDto resumen)
+    {
+        var etiqueta = string.IsNullOrWhiteSpace(origen) ? "manual" : origen.Trim();
+        var tz = WhatsAppZonaHoraria.Resolver(options.Value.TimeZoneId);
+        var ahora = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow, tz);
+        pasadas.Registrar(
+            new PrendarioWhatsAppPasadaDto(
+                ahora,
+                etiqueta,
+                resumen.Enviados,
+                resumen.Fallidos,
+                resumen.Omitidos,
+                resumen.Advertencia));
     }
 }

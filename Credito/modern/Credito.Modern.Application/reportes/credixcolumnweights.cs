@@ -60,6 +60,8 @@ public static class CredixColumnWeights
         || name.Equals("Oficina", StringComparison.OrdinalIgnoreCase)
         || name.Equals("Caja", StringComparison.OrdinalIgnoreCase)
         || name.Equals("Operacion", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("CodOperacion", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("TipoPago", StringComparison.OrdinalIgnoreCase)
         || name.Equals("Estado", StringComparison.OrdinalIgnoreCase)
         || name.Equals("Modalidad", StringComparison.OrdinalIgnoreCase);
 

@@ -1,5 +1,7 @@
 # Saldos y cierres — Paridad Legacy MVC ↔ Modern
 
+Spec SSD: [docs/ssd/SSD-03-caja.md](ssd/SSD-03-caja.md).
+
 Documento de verificación de migración (`Credito/Web/Views/Saldos/Index.cshtml` → `Credito.Modern.Web` `/caja/saldos`).
 
 **Última revisión:** 2026-05-26  

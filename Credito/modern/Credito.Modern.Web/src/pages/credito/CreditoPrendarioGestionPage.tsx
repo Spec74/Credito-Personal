@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalculatorOutlined, FilePdfOutlined, PlusOutlined, WhatsAppOutlined } from '@ant-design/icons'
-import { Alert, Button, Input, Space, Typography, message } from 'antd'
+import { Alert, Button, Input, Space, Tooltip, Typography, message } from 'antd'
 import {
   fetchCreditoContexto,
   fetchCreditosGrillaPersona,
@@ -25,7 +25,7 @@ import { formatMoney } from '../../utils/formatMoney'
 import { prendaAItem, prendaVacia, prendasValidas, totalTasacion, buildSimuladorPrendarioPath } from '../../utils/prendas'
 import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 
-const { Paragraph, Text } = Typography
+const { Paragraph } = Typography
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error desconocido'
@@ -219,21 +219,23 @@ export function CreditoPrendarioGestionPage() {
               >
                 Acta de entrega
               </Button>
-              <Button
-                icon={<WhatsAppOutlined />}
-                onClick={() => {
-                  const ok = abrirWhatsAppPrendario(
-                    contexto.data?.personaCelular,
-                    ficha.data?.nombreCompleto ?? '',
-                    creditoId,
-                  )
-                  if (!ok) {
-                    message.warning('Este cliente no tiene celular registrado')
-                  }
-                }}
-              >
-                WhatsApp
-              </Button>
+              <Tooltip title="Abre un chat libre con el cliente. El aviso oficial de vencimiento (plantilla a 3 días) se envía desde el listado o de forma automática a las 08:00.">
+                <Button
+                  icon={<WhatsAppOutlined />}
+                  onClick={() => {
+                    const ok = abrirWhatsAppPrendario(
+                      contexto.data?.personaCelular,
+                      ficha.data?.nombreCompleto ?? '',
+                      creditoId,
+                    )
+                    if (!ok) {
+                      message.warning('Este cliente no tiene celular registrado')
+                    }
+                  }}
+                >
+                  Chat WhatsApp
+                </Button>
+              </Tooltip>
             </Space>
           }
         >

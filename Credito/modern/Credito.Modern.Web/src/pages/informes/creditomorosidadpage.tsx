@@ -23,6 +23,7 @@ import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { readUrlDay, readUrlInt, readUrlOfficeId } from '../../utils/informeUrlParams'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
+import { OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 
 type FormValues = {
   oficinaId: number
@@ -148,8 +149,8 @@ export function CreditoMorosidadPage() {
       searchPlaceholder="Buscar por crédito, artículo o contacto…"
       filters={
         <Form form={form} layout="inline" initialValues={defaultValues} onFinish={(v) => consulta.mutate(v)}>
-          <Form.Item name="oficinaId" hidden>
-            <InputNumber />
+          <Form.Item name="oficinaId" label="Oficina">
+            <OficinaSelect disabled size="middle" />
           </Form.Item>
           <Form.Item
             name="hastaFecha"

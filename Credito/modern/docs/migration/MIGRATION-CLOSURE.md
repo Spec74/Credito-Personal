@@ -1,5 +1,7 @@
 # Cierre de migración strangler
 
+Spec SSD (criterios de corte, proxy, rollback): [SSD-00-cutover.md](../ssd/SSD-00-cutover.md).
+
 ## Veredicto
 
 La migración está en estado **candidato a go-live**. La API .NET 10 y la SPA moderna cubren los módulos operativos principales del MVC legacy, manteniendo la lógica de negocio mediante los mismos procedimientos almacenados y reglas documentadas por módulo.
@@ -9,11 +11,11 @@ No se declara cierre irreversible hasta completar smoke tests con base real, pro
 ## Evidencia técnica
 
 - Backend: `dotnet build Credito.Modern.sln` correcto.
-- Tests backend: `dotnet test Credito.Modern.Tests/Credito.Modern.Tests.csproj` con 714 pruebas correctas.
+- Tests backend: `dotnet test Credito.Modern.Tests/Credito.Modern.Tests.csproj`. Al 2026-09-11 hay **738** métodos `[Fact]`/`[Theory]` (la cifra 714 de un cierre anterior quedó atrás; los `[Theory]` expanden más casos al ejecutar).
 - SPA: `npm run build` correcto.
 - UI: rutas modernas para Crédito, Clientes, Caja, Tesorería/Bóveda, Ventas, Almacén, Maestros, Admin, Informes y Reportes.
 - Strangler: proxy y scripts en `deploy/`; mapeo MVC → SPA en `Credito.Modern.Web/src/utils/legacyRoutes.ts`.
-- Puentes aceptados: RDLC legacy vía `VITE_LEGACY_ORIGIN` para reportes donde el layout exacto sigue siendo requerido.
+- Puentes aceptados: RDLC legacy vía `VITE_LEGACY_ORIGIN` solo si negocio exige el layout idéntico. Las pantallas de informe exportan por la API JWT (PDF tabular Credix).
 
 ## Pendientes no bloqueantes
 

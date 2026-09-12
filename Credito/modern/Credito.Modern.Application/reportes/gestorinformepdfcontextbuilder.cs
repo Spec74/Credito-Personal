@@ -15,7 +15,9 @@ public static class GestorInformePdfContextBuilder
         bool soloMora,
         IUsuarioAdminReadService usuarios,
         ICajaMaestroReadService cajas,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IOficinaReadService? oficinas = null,
+        int? oficinaId = null)
     {
         var saldoPendiente = items.Sum(x => x.Saldo ?? 0m);
         var saldoMora = items.Where(x => (x.Mora ?? 0m) > 0).Sum(x => x.Saldo ?? 0m);
@@ -29,9 +31,17 @@ public static class GestorInformePdfContextBuilder
                 ?? string.Empty
             : string.Empty;
 
+        string? oficina = null;
+        if (oficinas is not null && oficinaId is > 0)
+        {
+            var list = await oficinas.GetActivasAsync(cancellationToken).ConfigureAwait(false);
+            oficina = list.FirstOrDefault(o => o.OficinaId == oficinaId.Value)?.Denominacion;
+        }
+
         return new CredixLegacyReportContext
         {
             Fecha = DateTime.Now.ToString("d", cult),
+            Oficina = oficina,
             Agente = agente,
             Caja = caja,
             NroClientes = items.Count.ToString(inv),

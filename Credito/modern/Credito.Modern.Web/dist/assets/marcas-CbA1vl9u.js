@@ -1,0 +1,1 @@
+import{T as e,j as t}from"./index-zk2-nEVp.js";async function n(){let n=await t(`/marcas`);return e(n)}export{n as t};

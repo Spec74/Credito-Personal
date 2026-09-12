@@ -17,7 +17,7 @@ if (-not (Test-Path $ProductionSettingsPath)) {
     throw "No existe $ProductionSettingsPath"
 }
 
-Write-Host "== appsettings.Production.json" -ForegroundColor Cyan
+Write-Host "== $(Split-Path $ProductionSettingsPath -Leaf)" -ForegroundColor Cyan
 $json = Get-Content -Raw -Path $ProductionSettingsPath | ConvertFrom-Json
 
 $errors = [System.Collections.Generic.List[string]]::new()

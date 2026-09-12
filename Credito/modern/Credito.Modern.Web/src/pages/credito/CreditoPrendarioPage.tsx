@@ -2,28 +2,100 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PlusOutlined, SearchOutlined, WhatsAppOutlined } from '@ant-design/icons'
-import { Button, Input, Modal, Space, Table, Tag, Tooltip, Typography, message } from 'antd'
+import { Alert, Badge, Button, Input, Modal, Space, Table, Tag, Tooltip, Typography, message } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   enviarAvisosVencimientoPrendario,
+  fetchPrendarioAvisosEstado,
   fetchPrendarioAvisosVencimiento,
   fetchPrendarioCreditos,
   fetchPrendarioResumen,
+  type PrendarioAvisoEnvioResumen,
   type PrendarioAvisoVencimiento,
   type PrendarioCreditoRow,
+  type PrendarioWhatsAppEstado,
+  type PrendarioWhatsAppPasada,
 } from '../../api/prendario'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CredixDataTable, CredixPage, type CredixStatItem } from '../../components/credix'
-import { formatFecha } from '../../utils/formatFecha'
+import { formatFecha, formatFechaHora } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
-import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
+import { celularPrendarioEsValido } from '../../utils/prendarioWhatsapp'
 import { situacionPrendario } from '../../utils/prendarioSituacion'
 
 const { Text } = Typography
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error desconocido'
+}
+
+function etiquetaOrigen(origen: string): string {
+  if (origen === 'programada') {
+    return 'automática'
+  }
+  if (origen === 'arranque') {
+    return 'al arrancar el servidor'
+  }
+  if (origen === 'manual') {
+    return 'manual'
+  }
+  return origen
+}
+
+function textoPasada(pasada: PrendarioWhatsAppPasada): string {
+  const conteo = `${pasada.enviados} enviados, ${pasada.fallidos} fallidos, ${pasada.omitidos} omitidos`
+  const aviso = pasada.advertencia ? ` ${pasada.advertencia}` : ''
+  return `Última pasada (${etiquetaOrigen(pasada.origen)}): ${formatFechaHora(pasada.fecha)} — ${conteo}.${aviso}`
+}
+
+function AvisosCanalAlert({
+  estado,
+  pendientes,
+}: {
+  estado: PrendarioWhatsAppEstado | undefined
+  pendientes: number
+}) {
+  if (!estado) {
+    return null
+  }
+
+  const hora = `${String(estado.dailyHourLocal).padStart(2, '0')}:00`
+  const pasada = estado.ultimaPasada ? textoPasada(estado.ultimaPasada) : 'Aún no hay una pasada registrada en este servidor.'
+
+  if (!estado.configurado) {
+    return (
+      <Alert
+        type="warning"
+        showIcon
+        style={{ marginTop: 12 }}
+        message="WhatsApp Business no está configurado"
+        description="Falta el token o el número de envío en el servidor. El aviso automático y el envío de la plantilla quedan en pausa hasta completar user-secrets."
+      />
+    )
+  }
+
+  if (!estado.automaticoActivo) {
+    return (
+      <Alert
+        type="warning"
+        showIcon
+        style={{ marginTop: 12 }}
+        message="El envío automático está desactivado"
+        description={`Puede enviar la plantilla a mano desde esta ventana. ${pasada}`}
+      />
+    )
+  }
+
+  return (
+    <Alert
+      type="info"
+      showIcon
+      style={{ marginTop: 12 }}
+      message={`Envío automático todos los días a las ${hora} (hora de Lima).`}
+      description={`Próxima corrida ${formatFechaHora(estado.proximaCorrida)}. ${pendientes} pendiente${pendientes === 1 ? '' : 's'} en esta oficina. ${pasada}`}
+    />
+  )
 }
 
 export function CreditoPrendarioPage() {
@@ -34,6 +106,7 @@ export function CreditoPrendarioPage() {
   const [termino, setTermino] = useState('')
   const [page, setPage] = useState(1)
   const [avisosOpen, setAvisosOpen] = useState(false)
+  const [ultimoEnvio, setUltimoEnvio] = useState<PrendarioAvisoEnvioResumen | null>(null)
   const queryClient = useQueryClient()
 
   const resumen = useQuery({
@@ -51,8 +124,25 @@ export function CreditoPrendarioPage() {
   const avisos = useQuery({
     queryKey: ['prendario-avisos', oficinaId],
     queryFn: () => fetchPrendarioAvisosVencimiento(oficinaId, 3),
-    enabled: oficinaId > 0 && avisosOpen,
+    enabled: oficinaId > 0,
   })
+
+  const estadoAvisos = useQuery({
+    queryKey: ['prendario-avisos-estado'],
+    queryFn: fetchPrendarioAvisosEstado,
+    enabled: oficinaId > 0,
+    staleTime: 30_000,
+  })
+
+  const resultadoPorCredito = useMemo(() => {
+    const map = new Map<number, { exito: boolean; mensaje: string }>()
+    for (const item of ultimoEnvio?.detalle ?? []) {
+      if (item.creditoId > 0) {
+        map.set(item.creditoId, { exito: item.exito, mensaje: item.mensaje })
+      }
+    }
+    return map
+  }, [ultimoEnvio])
 
   const enviarAvisos = useMutation({
     mutationFn: (creditoId?: number) =>
@@ -62,9 +152,15 @@ export function CreditoPrendarioPage() {
         creditoId,
       }),
     onSuccess: (r) => {
+      setUltimoEnvio(r)
       void queryClient.invalidateQueries({ queryKey: ['prendario-avisos', oficinaId] })
+      void queryClient.invalidateQueries({ queryKey: ['prendario-avisos-estado'] })
+      if (r.advertencia) {
+        message.warning(r.advertencia)
+        return
+      }
       if (r.enviados === 0 && r.fallidos === 0 && r.omitidos === 0) {
-        message.info(r.detalle[0]?.mensaje ?? 'No hay avisos pendientes')
+        message.info('No hay avisos pendientes')
         return
       }
       message.success(`Enviados ${r.enviados}. Fallidos ${r.fallidos}. Omitidos ${r.omitidos}.`)
@@ -147,35 +243,26 @@ export function CreditoPrendarioPage() {
     {
       title: '',
       key: 'acciones',
-      width: 170,
+      width: 110,
       render: (_, row) => (
-        <Space size={0}>
-          <Button
-            type="link"
-            size="small"
-            onClick={() =>
-              navigate(`/credito/prendario/gestionar/${row.personaId}?creditoId=${row.creditoId}`)
-            }
-          >
-            Gestionar
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            icon={<WhatsAppOutlined />}
-            onClick={() => {
-              const ok = abrirWhatsAppPrendario(row.celular, row.nombreCompleto ?? '', row.creditoId)
-              if (!ok) {
-                message.warning('Este cliente no tiene celular registrado')
-              }
-            }}
-          />
-        </Space>
+        <Button
+          type="link"
+          size="small"
+          onClick={() =>
+            navigate(`/credito/prendario/gestionar/${row.personaId}?creditoId=${row.creditoId}`)
+          }
+        >
+          Gestionar
+        </Button>
       ),
     },
   ],
     [navigate],
   )
+
+  const pendientes = avisos.data?.length ?? 0
+  const canalListo = estadoAvisos.data?.configurado !== false
+  const puedeEnviar = canalListo && pendientes > 0
 
   return (
     <CredixPage
@@ -189,7 +276,9 @@ export function CreditoPrendarioPage() {
       stats={stats}
       actions={
         <Space wrap>
-          <Button onClick={() => setAvisosOpen(true)}>Avisos a 3 días</Button>
+          <Badge count={pendientes} overflowCount={99} size="small">
+            <Button onClick={() => setAvisosOpen(true)}>Avisos a 3 días</Button>
+          </Badge>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/credito/prendario/nuevo')}>
             Nuevo
           </Button>
@@ -238,14 +327,17 @@ export function CreditoPrendarioPage() {
       <Modal
         title="Avisos de vencimiento (3 días)"
         open={avisosOpen}
-        onCancel={() => setAvisosOpen(false)}
-        width={720}
+        onCancel={() => {
+          setAvisosOpen(false)
+          setUltimoEnvio(null)
+        }}
+        width={800}
         footer={
           <Button
             type="primary"
             icon={<WhatsAppOutlined />}
             loading={enviarAvisos.isPending}
-            disabled={(avisos.data?.length ?? 0) === 0}
+            disabled={!puedeEnviar}
             onClick={() => enviarAvisos.mutate(undefined)}
           >
             Enviar plantilla WhatsApp
@@ -253,9 +345,24 @@ export function CreditoPrendarioPage() {
         }
       >
         <Text type="secondary">
-          Se envía la plantilla aviso_vencimiento_prendario por WhatsApp Business a quienes vencen
-          exactamente en 3 días y aún no fueron avisados hoy.
+          Se envía la plantilla aprobada aviso_vencimiento_prendario por WhatsApp Business a quienes
+          vencen exactamente en 3 días y aún no fueron avisados hoy. Un crédito avisado no se vuelve
+          a notificar hasta mañana.
         </Text>
+        <AvisosCanalAlert estado={estadoAvisos.data} pendientes={pendientes} />
+        {ultimoEnvio && (ultimoEnvio.enviados > 0 || ultimoEnvio.fallidos > 0 || ultimoEnvio.omitidos > 0) ? (
+          <Alert
+            type={ultimoEnvio.fallidos > 0 ? 'warning' : 'success'}
+            showIcon
+            style={{ marginTop: 12 }}
+            message={`Resultado: ${ultimoEnvio.enviados} enviados, ${ultimoEnvio.fallidos} fallidos, ${ultimoEnvio.omitidos} omitidos.`}
+          />
+        ) : null}
+        {estadoAvisos.error ? (
+          <Text type="danger" style={{ display: 'block', marginTop: 8 }}>
+            {errMsg(estadoAvisos.error)}
+          </Text>
+        ) : null}
         <Table<PrendarioAvisoVencimiento>
           rowKey="creditoId"
           size="small"
@@ -263,17 +370,54 @@ export function CreditoPrendarioPage() {
           loading={avisos.isFetching}
           pagination={false}
           dataSource={avisos.data ?? []}
-          locale={{ emptyText: 'Nadie vence en 3 días o ya fueron avisados hoy' }}
+          locale={{
+            emptyText: canalListo
+              ? 'Nadie vence en 3 días o el aviso de hoy ya se envió. El automático cubre el resto a las 08:00.'
+              : 'No hay pendientes. Configure WhatsApp Business para enviar la plantilla.',
+          }}
           columns={[
             { title: 'Crédito', dataIndex: 'creditoId', width: 90 },
             { title: 'Cliente', dataIndex: 'nombreCliente', ellipsis: true },
-            { title: 'Celular', dataIndex: 'celular', width: 120 },
+            {
+              title: 'Celular',
+              dataIndex: 'celular',
+              width: 130,
+              render: (v: string | null) =>
+                celularPrendarioEsValido(v) ? (
+                  v
+                ) : (
+                  <Tooltip title="Sin celular válido; se omite en el envío de plantilla">
+                    <Tag color="orange">{v?.trim() ? v : 'Sin celular'}</Tag>
+                  </Tooltip>
+                ),
+            },
             {
               title: 'A cancelar',
               dataIndex: 'montoCancelar',
               width: 110,
               align: 'right',
               render: (v: number) => formatMoney(v),
+            },
+            {
+              title: 'Estado',
+              key: 'estado',
+              width: 110,
+              render: (_, row) => {
+                const r = resultadoPorCredito.get(row.creditoId)
+                if (r?.exito) {
+                  return <Tag color="green">Enviado</Tag>
+                }
+                if (r && !r.exito) {
+                  return (
+                    <Tooltip title={r.mensaje}>
+                      <Tag color={r.mensaje.toLowerCase().includes('celular') ? 'orange' : 'red'}>
+                        {r.mensaje.toLowerCase().includes('celular') ? 'Omitido' : 'Falló'}
+                      </Tag>
+                    </Tooltip>
+                  )
+                }
+                return <Tag>Pendiente</Tag>
+              },
             },
             {
               title: '',
@@ -285,6 +429,7 @@ export function CreditoPrendarioPage() {
                   size="small"
                   icon={<WhatsAppOutlined />}
                   loading={enviarAvisos.isPending}
+                  disabled={!canalListo || !celularPrendarioEsValido(row.celular)}
                   onClick={() => enviarAvisos.mutate(row.creditoId)}
                 >
                   Enviar

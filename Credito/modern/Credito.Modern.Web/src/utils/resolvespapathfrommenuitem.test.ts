@@ -80,4 +80,84 @@ describe('resolveSpaPathFromMenuItem', () => {
       '/credito/tareas',
     )
   })
+
+  it('resuelve CONDONACION al listado de solicitudes pendientes', () => {
+    expect(resolveSpaPathFromMenuItem('/Condonacion/Index', 'CONDONACION', 'CREDITO')).toBe(
+      '/credito/condonaciones',
+    )
+    expect(resolveSpaPathFromMenuItem(null, 'Condonación', 'CREDITO')).toBe(
+      '/credito/condonaciones',
+    )
+  })
+
+  it('resuelve Bóveda e informe de movimientos sin mezclarlos', () => {
+    expect(resolveSpaPathFromMenuItem('/Boveda/Index', 'BOVEDA', 'CREDITO')).toBe(
+      '/tesoreria/boveda',
+    )
+    expect(resolveSpaPathFromMenuItem(null, 'BOVEDA', 'CREDITO')).toBe('/tesoreria/boveda')
+    expect(
+      resolveSpaPathFromMenuItem(null, 'Reporte movimiento bóveda', 'CREDITO'),
+    ).toBe('/tesoreria/movimiento-boveda')
+    expect(
+      resolveSpaPathFromMenuItem('/Reporte/ReporteMovimientoBoveda', 'Informes', 'REPORTES'),
+    ).toBe('/tesoreria/movimiento-boveda')
+  })
+
+  it('resuelve Dashboard/Admin y Dashboard/Gestor al inicio (tablero por rol)', () => {
+    expect(
+      resolveSpaPathFromMenuItem('Dashboard/Admin', 'DASHBOARD', 'REPORTES'),
+    ).toBe('/inicio')
+    expect(
+      resolveSpaPathFromMenuItem('/Dashboard/Gestor', 'Dashboard gestor', 'REPORTES'),
+    ).toBe('/inicio')
+    expect(resolveSpaPathFromMenuItem(null, 'DASHBOARD', 'REPORTES')).toBe('/inicio')
+  })
+
+  it('no convierte padres de menú vacíos en hubs (el SP los une y ampliaría permisos)', () => {
+    expect(resolveSpaPathFromMenuItem(null, 'CREDITO', '')).toBeNull()
+    expect(resolveSpaPathFromMenuItem(null, 'SEGURIDAD', '')).toBeNull()
+    expect(resolveSpaPathFromMenuItem(null, 'REPORTES', '')).toBeNull()
+    expect(resolveSpaPathFromMenuItem(null, 'MANTENIMIENTO', '')).toBeNull()
+  })
+
+  it('resuelve hijos de seguridad y catálogo por etiqueta si falta URL', () => {
+    expect(resolveSpaPathFromMenuItem(null, 'USUARIO', 'SEGURIDAD')).toBe('/admin/usuarios')
+    expect(resolveSpaPathFromMenuItem(null, 'ROL', 'SEGURIDAD')).toBe('/admin/roles')
+    expect(resolveSpaPathFromMenuItem(null, 'Marcas', 'MAESTRO')).toBe('/maestros/marcas')
+    expect(resolveSpaPathFromMenuItem(null, 'Venta rápida', 'VENTAS')).toBe(
+      '/ventas/venta-rapida',
+    )
+  })
+
+  it('resuelve el índice de reportes de venta sin caer al hub de informes', () => {
+    expect(resolveSpaPathFromMenuItem(null, 'VENTA', 'REPORTES')).toBe('/reportes/venta')
+  })
+
+  it('cubre los hijos del menú vivo CREDITO (oficina 1) sin null', () => {
+    const hijos: Array<[string, string, string, string]> = [
+      ['CreditoAprobar', 'APROBACION', 'CREDITO', '/credito/aprobar'],
+      ['Boveda', 'BOVEDA', 'CREDITO', '/tesoreria/boveda'],
+      ['Credito/CajaDiario', 'CAJA DIARIO', 'CREDITO', '/caja/diario'],
+      ['CajaChica', 'CAJACHICA', 'CREDITO', '/caja/chica'],
+      ['Cliente', 'CLIENTE', 'CREDITO', '/clientes'],
+      ['Condonacion', 'CONDONACION', 'CREDITO', '/credito/condonaciones'],
+      ['Credito/Creditos', 'CREDITOS', 'CREDITO', '/credito/consulta'],
+      ['Saldos', 'SALDOS CAJA', 'CREDITO', '/caja/saldos'],
+      ['Credito/Simulador', 'SIMULADOR', 'CREDITO', '/credito/simulador'],
+      ['Tareas', 'TAREAS', 'CREDITO', '/credito/tareas'],
+      ['VerificarPagos', 'VERIFICAR PAGOS', 'CREDITO', '/caja/verificar-pagos'],
+      ['Caja', 'CAJA', 'MANTENIMIENTO', '/mantenimiento/cajas'],
+      ['Oficina', 'OFICINA', 'MANTENIMIENTO', '/mantenimiento/oficinas'],
+      ['Reporte/CobranzaPagos', 'COBRANZA', 'REPORTES', '/reportes/cobranza'],
+      ['Reporte/Credito', 'CREDITO', 'REPORTES', '/reportes/credito'],
+      ['Dashboard/Admin', 'DASHBOARD', 'REPORTES', '/inicio'],
+      ['Rol', 'ROL', 'SEGURIDAD', '/admin/roles'],
+      ['Usuario', 'USUARIO', 'SEGURIDAD', '/admin/usuarios'],
+      ['Prendario', 'PRENDARIO - Listado', 'PRENDARIO', '/credito/prendario'],
+      ['Prendario/Create', 'PRENDARIO - Nuevo', 'PRENDARIO', '/credito/prendario/nuevo'],
+    ]
+    for (const [url, label, mod, expected] of hijos) {
+      expect(resolveSpaPathFromMenuItem(url, label, mod), `${label} (${url})`).toBe(expected)
+    }
+  })
 })

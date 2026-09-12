@@ -1,5 +1,7 @@
 # Paridad funcional: módulo de crédito prendario
 
+Spec SSD (actores, aceptación, go-live): [SSD-06-prendario.md](../ssd/SSD-06-prendario.md). Este archivo conserva las tablas de valores fijos de alta.
+
 Reglas de negocio extraídas del legacy para que el sistema moderno se comporte igual.
 
 **Fuente:** repositorio `https://github.com/RichardZC/Credito`, rama `Prendario-Eber`
@@ -142,11 +144,17 @@ créditos `EsPrendario = 1`, `Estado = 'DES'`, que vencen exactamente en N días
 y que todavía no tienen `FechaNotifWhatsapp3d` de hoy. El moderno acota además a la oficina
 de la sesión.
 
-El botón **WhatsApp** de gestión abre `wa.me` para un recordatorio puntual. El aviso
-automático a 3 días usa WhatsApp Cloud API y la plantilla `aviso_vencimiento_prendario`
+El botón **Chat WhatsApp** de gestión abre `wa.me` para un recordatorio puntual. El aviso
+oficial a 3 días usa WhatsApp Cloud API y la plantilla `aviso_vencimiento_prendario`
 (`{{1}}` nombre, `{{2}}` fecha, `{{3}}` importe). Corre a las 08:00 hora de Lima y, en
-desarrollo, una pasada al arrancar. `POST /avisos-vencimiento/enviar` permite dispararlo
-a mano. El token no se guarda en Git (user-secrets / variables de entorno).
+desarrollo, una pasada al arrancar. `GET /avisos-vencimiento/estado` expone si el canal
+está configurado, la próxima corrida y la última pasada (sin token).
+`POST /avisos-vencimiento/enviar` permite dispararlo a mano desde el listado. El token
+no se guarda en Git (user-secrets `WhatsApp:Token` / `WhatsApp__Token`). Phone Number ID
+de desarrollo puede ir en `appsettings.Development.json`. Cloud API usa `v25.0`. Un 401
+código 190 es token inválido o vencido, no un fallo de plantilla. Entre mensajes masivos hay
+una pausa de 300 ms para no saturar Cloud API. El número de prueba de Meta solo entrega a
+destinos agregados en la consola (lista de testers).
 
 ## Acceso
 

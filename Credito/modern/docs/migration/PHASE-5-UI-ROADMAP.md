@@ -6,6 +6,6 @@ La SPA cubre los hubs y pantallas principales de Crédito, Clientes, Caja, Tesor
 
 ## Pendientes opcionales
 
-- Sustituir puentes RDLC restantes cuando negocio acepte PDF tabular.
-- Pulir paridad visual pixel-perfect solo en pantallas donde usuarios lo pidan.
-- Completar reglas futuras de Comisiones si el legacy incorpora lógica nueva.
+- Puente RDLC (`VITE_LEGACY_ORIGIN`) solo si un informe concreto exige el layout del ReportViewer.
+- PDFs tabulares: catálogo Credix (2026-09-10); no se persigue copia píxel a píxel.
+- Comisiones: paridad del vacío del MVC (2026-09-10). Solo avanzar si aparece `usp_*` o tabla.

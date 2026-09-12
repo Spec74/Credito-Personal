@@ -539,9 +539,98 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
         }
     }
 
+    public async Task<TransferirBovedaBancosResponse> TransferirEntreBancosAsync(
+        int oficinaId,
+        short tipoPagoOrigenId,
+        short tipoPagoDestinoId,
+        decimal importe,
+        string glosa,
+        int usuarioRegId,
+        CancellationToken cancellationToken = default)
+    {
+        if (oficinaId < 1 || usuarioRegId < 1 || tipoPagoOrigenId < 1 || tipoPagoDestinoId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(oficinaId), "Parámetros inválidos.");
+        }
+
+        if (tipoPagoOrigenId == tipoPagoDestinoId)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(tipoPagoDestinoId),
+                "El banco de origen y el de destino no pueden ser iguales.");
+        }
+
+        if (importe <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(importe), "El importe debe ser mayor a cero.");
+        }
+
+        if (string.IsNullOrWhiteSpace(glosa))
+        {
+            throw new ArgumentOutOfRangeException(nameof(glosa), "glosa es obligatoria.");
+        }
+
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var bovedaId = await GetBovedaAbiertaIdAsync(connection, transaction: null, oficinaId, cancellationToken)
+            .ConfigureAwait(false);
+        if (bovedaId is null)
+        {
+            throw new InvalidOperationException(
+                "Operación rechazada: La Bóveda de la oficina no está abierta o la sesión expiró.");
+        }
+
+        SpResultadoRow? row;
+        try
+        {
+            row = await connection.QueryFirstOrDefaultAsync<SpResultadoRow>(
+                new CommandDefinition(
+                    "CREDITO.usp_RegistrarTransferenciaBancos",
+                    new
+                    {
+                        BovedaId = bovedaId.Value,
+                        TipoPagoOrigenId = tipoPagoOrigenId,
+                        TipoPagoDestinoId = tipoPagoDestinoId,
+                        Importe = importe,
+                        Glosa = glosa.Trim(),
+                        UsuarioRegId = usuarioRegId,
+                    },
+                    commandType: CommandType.StoredProcedure,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+        }
+        catch (SqlException ex)
+        {
+            throw new InvalidOperationException(ex.Message, ex);
+        }
+
+        if (row is null)
+        {
+            throw new InvalidOperationException("El procedimiento de transferencia no devolvió resultado.");
+        }
+
+        if (row.Resultado != 1)
+        {
+            throw new InvalidOperationException(
+                string.IsNullOrWhiteSpace(row.Mensaje)
+                    ? "No se pudo registrar la transferencia entre bancos."
+                    : row.Mensaje);
+        }
+
+        await ActualizarSaldosBovedaAsync(connection, transaction: null, bovedaId.Value, cancellationToken)
+            .ConfigureAwait(false);
+
+        return new TransferirBovedaBancosResponse(
+            true,
+            string.IsNullOrWhiteSpace(row.Mensaje)
+                ? "Transferencia realizada con éxito."
+                : row.Mensaje);
+    }
+
     private static async Task<int?> GetBovedaAbiertaIdAsync(
         SqlConnection connection,
-        SqlTransaction transaction,
+        SqlTransaction? transaction,
         int oficinaId,
         CancellationToken cancellationToken)
     {
@@ -561,7 +650,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
 
     private static async Task ActualizarSaldosBovedaAsync(
         SqlConnection connection,
-        SqlTransaction transaction,
+        SqlTransaction? transaction,
         int bovedaId,
         CancellationToken cancellationToken)
     {
@@ -602,5 +691,11 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
     private sealed class CajaChicaAbiertaRow
     {
         public int Id { get; init; }
+    }
+
+    private sealed class SpResultadoRow
+    {
+        public int Resultado { get; init; }
+        public string Mensaje { get; init; } = string.Empty;
     }
 }

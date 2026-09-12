@@ -72,6 +72,14 @@ export function debeMostrarDashboardAnalista(roles: string[], vista?: string | n
   return true
 }
 
+/** Inicio gerencial: el administrador ve el tablero de oficina; ?vista=modulos abre el hub. */
+export function debeMostrarDashboardAdmin(roles: string[], vista?: string | null): boolean {
+  if (!esCreditoAdministrador(roles)) {
+    return false
+  }
+  return vista !== 'modulos' && vista !== 'analista'
+}
+
 
 
 export function esCreditoAprobador1(roles: string[]): boolean {

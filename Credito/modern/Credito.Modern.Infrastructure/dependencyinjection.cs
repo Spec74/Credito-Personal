@@ -248,6 +248,8 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromSeconds(30);
         });
         services.AddSingleton<WhatsAppCloudClient>();
+        services.AddSingleton<IPrendarioWhatsAppPasadaStore, PrendarioWhatsAppPasadaStore>();
+        services.AddSingleton<IPrendarioWhatsAppEstadoService, PrendarioWhatsAppEstadoService>();
         services.AddScoped<IPrendarioAvisoEnvioService, PrendarioAvisoEnvioService>();
         services.AddHostedService<PrendarioVencimientoWhatsAppHostedService>();
         services.AddScoped<IUsuarioBuscarReadService, UsuarioBuscarReadService>();
@@ -258,12 +260,14 @@ public static class DependencyInjection
         services.AddScoped<ITareasWriteService, TareasWriteService>();
         services.AddScoped<ICreditoGestionReadService, CreditoGestionReadService>();
         services.AddScoped<ICreditoGestionWriteService, CreditoGestionWriteService>();
+        services.AddScoped<ICreditoCondonacionService, CreditoCondonacionService>();
         services.AddScoped<IListarSaldoCarteraReadService, ListarSaldoCarteraReadService>();
         services.AddScoped<IReportesCatalogoReadService, ReportesCatalogoReadService>();
         services.AddScoped<IReportesExportPoliticaReadService, ReportesExportPoliticaReadService>();
         services.AddScoped<IReportesCatalogoCoberturaReadService, ReportesCatalogoCoberturaReadService>();
         services.AddScoped<IPrendarioReadService, PrendarioReadService>();
         services.AddScoped<IDashboardAnalistaReadService, DashboardAnalistaReadService>();
+        services.AddScoped<IDashboardAdminReadService, DashboardAdminReadService>();
         return services;
     }
 }

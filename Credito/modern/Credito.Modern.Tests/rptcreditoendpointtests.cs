@@ -67,6 +67,30 @@ public class RptCreditoEndpointTests : IClassFixture<CreditoModernWebApplication
     }
 
     [Fact]
+    public async Task Rpt_credito_gestor_distinto_con_rol_admin_no_es_403()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles = new[] { "ADMIN" } });
+        Assert.Equal(HttpStatusCode.OK, tokenRes.StatusCode);
+        using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
+        var token = doc.RootElement.GetProperty("accessToken").GetString();
+
+        using var req = new HttpRequestMessage(
+            HttpMethod.Get,
+            "/api/v1/credito/rpt-credito?oficinaId=1&fechaIni=2026-01-01&fechaFin=2026-01-31&estadoCredito=DES&gestorId=999");
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res = await _client.SendAsync(req);
+        Assert.NotEqual(HttpStatusCode.Unauthorized, res.StatusCode);
+        Assert.NotEqual(HttpStatusCode.Forbidden, res.StatusCode);
+    }
+
+    [Fact]
     public async Task Rpt_credito_sin_estado_credito_con_token_devuelve_400()
     {
         if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))

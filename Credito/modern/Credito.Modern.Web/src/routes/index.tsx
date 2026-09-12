@@ -190,6 +190,14 @@ export function AppRoutes() {
           }
         />
         <Route path="/credito/aprobar" element={<Pages.CreditoAprobarPage />} />
+        <Route
+          path="/credito/condonaciones"
+          element={
+            <CreditoOperacionRoute>
+              <Pages.CreditoCondonacionesPage />
+            </CreditoOperacionRoute>
+          }
+        />
         <Route path="/caja" element={<Pages.CajaHubPage />} />
         <Route path="/caja/maestro" element={<Pages.CajaMaestroPage />} />
         <Route path="/caja/diario" element={<Pages.CajaDiarioPage />} />

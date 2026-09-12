@@ -5,6 +5,7 @@ public interface IPrendarioAvisoEnvioService
     Task<PrendarioAvisoEnvioResumenDto> EnviarPendientesAsync(
         int? oficinaId,
         int diasAntes,
-        int? creditoId = null,
+        int? creditoId,
+        string origen,
         CancellationToken cancellationToken = default);
 }

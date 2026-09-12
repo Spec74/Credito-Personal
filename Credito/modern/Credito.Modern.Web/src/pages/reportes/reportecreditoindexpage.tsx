@@ -1,6 +1,15 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { AuditOutlined, CheckCircleOutlined } from '@ant-design/icons'
+import {
+  AuditOutlined,
+  BankOutlined,
+  CheckCircleOutlined,
+  FileProtectOutlined,
+  FundOutlined,
+  StopOutlined,
+  TeamOutlined,
+  WalletOutlined,
+} from '@ant-design/icons'
 import { Alert, Checkbox, DatePicker, InputNumber, Select, Space, message } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
 import { useAuth } from '../../auth/useAuth'
@@ -13,34 +22,41 @@ import {
   ReporteField,
 } from '../../components/reportes/ReporteFiltrosMaestros'
 import {
+  downloadCajaDiarioInformePdf,
+  downloadCentralRiesgoGenerarTxt,
   downloadClientesBloqueadosPdf,
-
+  downloadClientesInactivosPdf,
   downloadClientesInactivosPdfGestor,
   downloadClientesNuevosMesPdf,
   downloadClientesNuevosMesPdfGestor,
-  downloadClientesInactivosPdf,
   downloadClientesTopeCreditoPdf,
   downloadCobroDiarioCsv,
   downloadCobroDiarioPdf,
+  downloadComprobantesCajaChicaCsv,
+  downloadComprobantesCajaChicaPdf,
+  downloadCreditoAprobacionCsv,
+  downloadCreditoAprobacionPdf,
+  downloadCreditoCondonadoCsv,
+  downloadCreditoCondonadoPdf,
+  downloadCreditoMorosidadCsv,
+  downloadCreditoMorosidadPdf,
   downloadCreditoObservadoCsv,
   downloadCreditoObservadoPdf,
+  downloadCreditoRentabilidadCsv,
+  downloadCreditoRentabilidadPdf,
+  downloadCreditosActivosCsv,
+  downloadCreditosActivosPdf,
+  downloadCreditosCierresCsv,
+  downloadCreditosCierresPdf,
+  downloadCreditosMorososPagadosCsv,
+  downloadCreditosMorososPagadosPdf,
+  downloadMorosidadGestorCsv,
+  downloadMorosidadGestorPdf,
+  downloadMovimientoCajaAnuladoPdf,
+  downloadReporteCreditoCsv,
+  downloadReporteCreditoPdf,
+  downloadSaldoCarteraCajaDiarioPdf,
 } from '../../api/creditoPlanes'
-import {
-  openLegacyCentralRiesgoTxt,
-  openLegacyComprobantesCajaAnulados,
-  openLegacyComprobantesCajaChica,
-  openLegacyCreditoAprobacion,
-  openLegacyCreditoCondonado,
-  openLegacyCreditoMorosidad,
-  openLegacyCreditoRentabilidad,
-  openLegacyCreditosActivos,
-  openLegacyCreditosCierres,
-  openLegacyCreditosMorososPagados,
-  openLegacyCajaDiarioInforme,
-  openLegacyReporteCredito,
-  openLegacySaldoCarteraCajaDiario,
-  type InformeRangoGestorLegacyParams,
-} from '../../config/legacyReportUrls'
 import {
   toGestorInformeParams,
   toCobroDiarioQuery,
@@ -77,69 +93,57 @@ function monthRangeDefaults(): [Dayjs, Dayjs] {
   return [now.startOf('month'), now.endOf('month')]
 }
 
-function legacyDate(d: Dayjs): string {
-  return d.format('DD/MM/YYYY')
+function isoDate(d: Dayjs): string {
+  return d.format('YYYY-MM-DD')
 }
 
-function legacyRango(params: {
-  oficinaId: number
-  usuarioId?: number
-  fechaIni: string
-  fechaFin: string
-}): InformeRangoGestorLegacyParams {
-  return {
-    oficinaId: params.oficinaId,
-    usuarioId: params.usuarioId,
-    fechaIni: legacyDate(dayjs(params.fechaIni)),
-    fechaFin: legacyDate(dayjs(params.fechaFin)),
-  }
+function yearOptions(from: number, to: number): { value: number; label: string }[] {
+  const end = Math.max(from, to)
+  return Array.from({ length: end - from + 1 }, (_, i) => {
+    const y = from + i
+    return { value: y, label: String(y) }
+  })
 }
 
 export function ReporteCreditoIndexPage() {
   const { session } = useAuth()
   const roles = session?.roles ?? []
   const oficinaSesion = session?.oficinaId ?? 0
+  const anioActual = dayjs().year()
 
-  const [moraOficina, setMoraOficina] = useState<number | undefined>(oficinaSesion)
   const [moraHasta, setMoraHasta] = useState(dayjs())
   const [moraIni, setMoraIni] = useState(1)
   const [moraFin, setMoraFin] = useState(9999)
 
-  const [aprobOficina, setAprobOficina] = useState<number | undefined>(oficinaSesion)
   const [aprobGestor, setAprobGestor] = useState<number | undefined>()
   const [aprobFecha, setAprobFecha] = useState(dayjs())
 
-  const [gestorOficina, setGestorOficina] = useState<number | undefined>(oficinaSesion)
   const [gestorUsuario, setGestorUsuario] = useState<number | undefined>()
 
-  const [rptOficina, setRptOficina] = useState<number | undefined>(oficinaSesion)
   const [rptGestor, setRptGestor] = useState<number | undefined>()
   const [rptEstado, setRptEstado] = useState('CRE')
   const [rentabilidadTodos, setRentabilidadTodos] = useState(false)
   const [rptRango, setRptRango] = useState<[Dayjs, Dayjs]>(monthRangeDefaults)
 
-  const [variosOficina, setVariosOficina] = useState<number | undefined>(oficinaSesion)
   const [variosGestor, setVariosGestor] = useState<number | undefined>()
   const [variosRango, setVariosRango] = useState<[Dayjs, Dayjs]>(monthRangeDefaults)
 
   const [cajaChicaRango, setCajaChicaRango] = useState<[Dayjs, Dayjs]>(monthRangeDefaults)
   const [anuladoRango, setAnuladoRango] = useState<[Dayjs, Dayjs]>(monthRangeDefaults)
-  const [saldoOficina, setSaldoOficina] = useState<number | undefined>(oficinaSesion)
   const [saldoAnioIni, setSaldoAnioIni] = useState(dayjs().subtract(1, 'month').year())
   const [saldoMesIni, setSaldoMesIni] = useState(dayjs().subtract(1, 'month').month() + 1)
   const [saldoAnioFin, setSaldoAnioFin] = useState(dayjs().year())
   const [saldoMesFin, setSaldoMesFin] = useState(dayjs().month() + 1)
-  const [riesgoOficina, setRiesgoOficina] = useState<number | undefined>(oficinaSesion)
-  const [riesgoAnio, setRiesgoAnio] = useState(dayjs().year())
-  const [riesgoMes, setRiesgoMes] = useState(dayjs().month() + 1)
+  const [riesgoAnio, setRiesgoAnio] = useState(dayjs().subtract(1, 'month').year())
+  const [riesgoMes, setRiesgoMes] = useState(dayjs().subtract(1, 'month').month() + 1)
 
   const gestorParams = useMemo(
     () => ({
-      oficinaId: gestorOficina ?? oficinaSesion,
+      oficinaId: oficinaSesion,
       usuarioId:
         gestorUsuario != null && gestorUsuario > 0 ? gestorUsuario : undefined,
     }),
-    [gestorOficina, gestorUsuario, oficinaSesion],
+    [gestorUsuario, oficinaSesion],
   )
 
   const gestorScreenParams = useMemo(
@@ -186,43 +190,40 @@ export function ReporteCreditoIndexPage() {
   )
 
   const variosScreenParams = useMemo(() => {
-    const oficinaId = variosOficina ?? oficinaSesion
     const usuarioId =
       variosGestor != null && variosGestor > 0 ? variosGestor : undefined
     const fechaIni = variosRango[0].format('YYYY-MM-DD')
     const fechaFin = variosRango[1].format('YYYY-MM-DD')
     return {
-      oficinaId,
+      oficinaId: oficinaSesion,
       usuarioId,
-      pOficinaId: oficinaId,
+      pOficinaId: oficinaSesion,
       pUsuarioId: usuarioId,
       fechaIni,
       fechaFin,
       pFechaIni: fechaIni,
       pFechaFin: fechaFin,
     }
-  }, [variosOficina, variosGestor, variosRango, oficinaSesion])
-
-
-
-
-
-
+  }, [variosGestor, variosRango, oficinaSesion])
 
   const saldoAnios = useMemo(
-    () => Array.from({ length: 11 }, (_, i) => 2022 + i),
-    [],
+    () => yearOptions(2022, Math.max(2032, anioActual + 2)),
+    [anioActual],
   )
 
-  const variosLegacy = useMemo(
-    () =>
-      legacyRango({
-        oficinaId: variosOficina ?? oficinaSesion,
-        usuarioId: variosGestor,
-        fechaIni: variosRango[0].format('YYYY-MM-DD'),
-        fechaFin: variosRango[1].format('YYYY-MM-DD'),
-      }),
-    [variosOficina, variosGestor, variosRango, oficinaSesion],
+  const riesgoAnios = useMemo(
+    () => yearOptions(2014, anioActual + 1),
+    [anioActual],
+  )
+
+  const variosApi = useMemo(
+    () => ({
+      oficinaId: oficinaSesion,
+      usuarioId: variosGestor != null && variosGestor > 0 ? variosGestor : undefined,
+      fechaIni: isoDate(variosRango[0]),
+      fechaFin: isoDate(variosRango[1]),
+    }),
+    [variosGestor, variosRango, oficinaSesion],
   )
 
   if (!canViewReporteCredito(roles)) {
@@ -251,15 +252,13 @@ export function ReporteCreditoIndexPage() {
   return (
     <CredixPage
       title="Reportes de crédito"
-      subtitle="Informes por oficina y gestor. Use Ver pantalla para consultar en tabla; PDF y Excel (CSV) descargan con su sesión."
+      subtitle="Cada caja abre el mismo informe que el MVC, con PDF y Excel de la API. La oficina es la de su sesión (el token no autoriza otra). El gestor admite TODOS salvo cobro diario, que exige uno concreto."
       breadcrumb={reportesCreditoIndexBreadcrumb()}
     >
       <p className="credix-reportes-intro">
         Operaciones diarias en <Link to="/credito">Crédito → Operaciones</Link>.{' '}
-        <strong>Ver pantalla</strong> abre el informe moderno (filtros, búsqueda en tabla, exportación
-        rápida). Los botones PDF / Excel generan el mismo dataset que la tabla; Excel es CSV UTF-8
-        salvo <Link to="/reportes/cobranza">Cobranza pagos</Link> (.xlsx nativo). Colores y columnas
-        siguen la marca Credix (#114885).
+        <strong>Ver pantalla</strong> consulta en tabla. PDF y Excel descargan el mismo dataset
+        (sesión JWT). Excel es CSV UTF-8, salvo <Link to="/reportes/cobranza">Cobranza pagos</Link>.
       </p>
 
       <div className="credix-reporte-grid">
@@ -270,20 +269,33 @@ export function ReporteCreditoIndexPage() {
             <ReportExportActions
               screenTo="/informes/credito-morosidad"
               screenSearchParams={{
-                oficinaId: moraOficina ?? oficinaSesion,
+                oficinaId: oficinaSesion,
                 hastaFecha: moraHasta.format('YYYY-MM-DD'),
                 diasAtrazoIni: moraIni,
                 diasAtrazoFin: moraFin,
               }}
               exports={[
                 {
-                  label: 'PDF morosidad',
+                  label: 'PDF',
                   format: 'pdf',
                   onClick: () =>
                     runOpenReport('Morosidad PDF', () =>
-                      openLegacyCreditoMorosidad({
-                        oficinaId: moraOficina ?? 0,
-                        hastaFecha: legacyDate(moraHasta),
+                      downloadCreditoMorosidadPdf({
+                        oficinaId: oficinaSesion,
+                        hastaFecha: isoDate(moraHasta),
+                        diasAtrazoIni: moraIni,
+                        diasAtrazoFin: moraFin,
+                      }),
+                    ),
+                },
+                {
+                  label: 'XLS',
+                  format: 'xls',
+                  onClick: () =>
+                    runOpenReport('Morosidad Excel', () =>
+                      downloadCreditoMorosidadCsv({
+                        oficinaId: oficinaSesion,
+                        hastaFecha: isoDate(moraHasta),
                         diasAtrazoIni: moraIni,
                         diasAtrazoFin: moraFin,
                       }),
@@ -294,7 +306,7 @@ export function ReporteCreditoIndexPage() {
           }
         >
           <ReporteField label="Oficina">
-            <OficinaSelect allowAll value={moraOficina} onChange={setMoraOficina} />
+            <OficinaSelect disabled value={oficinaSesion} />
           </ReporteField>
           <ReporteField label="Hasta la fecha">
             <DatePicker
@@ -320,7 +332,7 @@ export function ReporteCreditoIndexPage() {
             <ReportExportActions
               screenTo="/informes/credito-aprobacion"
               screenSearchParams={{
-                oficinaId: aprobOficina ?? oficinaSesion,
+                oficinaId: oficinaSesion,
                 usuarioId: aprobGestor,
                 fechaAprobacion: aprobFecha.format('YYYY-MM-DD'),
               }}
@@ -330,11 +342,10 @@ export function ReporteCreditoIndexPage() {
                   format: 'pdf',
                   onClick: () =>
                     runOpenReport('Aprobados PDF', () =>
-                      openLegacyCreditoAprobacion({
-                        oficinaId: aprobOficina ?? oficinaSesion,
+                      downloadCreditoAprobacionPdf({
+                        oficinaId: oficinaSesion,
                         usuarioId: aprobGestor,
-                        fecha: legacyDate(aprobFecha),
-                        formato: 'PDF',
+                        fechaAprobacion: isoDate(aprobFecha),
                       }),
                     ),
                 },
@@ -343,11 +354,10 @@ export function ReporteCreditoIndexPage() {
                   format: 'xls',
                   onClick: () =>
                     runOpenReport('Aprobados Excel', () =>
-                      openLegacyCreditoAprobacion({
-                        oficinaId: aprobOficina ?? oficinaSesion,
+                      downloadCreditoAprobacionCsv({
+                        oficinaId: oficinaSesion,
                         usuarioId: aprobGestor,
-                        fecha: legacyDate(aprobFecha),
-                        formato: 'Excel',
+                        fechaAprobacion: isoDate(aprobFecha),
                       }),
                     ),
                 },
@@ -356,10 +366,10 @@ export function ReporteCreditoIndexPage() {
           }
         >
           <ReporteField label="Oficina">
-            <OficinaSelect allowAll value={aprobOficina} onChange={setAprobOficina} />
+            <OficinaSelect disabled value={oficinaSesion} />
           </ReporteField>
           <ReporteField label="Gestor">
-            <GestorSelect allowAll value={aprobGestor} onChange={setAprobGestor} />
+            <GestorSelect allowAll legacyList value={aprobGestor} onChange={setAprobGestor} />
           </ReporteField>
           <ReporteField label="Fecha aprobación">
             <DatePicker
@@ -374,6 +384,7 @@ export function ReporteCreditoIndexPage() {
 
         <CredixReportBox
           title="Cobro diario, observados y morosos por gestor"
+          icon={<TeamOutlined />}
           className="credix-report-card--wide"
           actions={
             <ReportExportActions
@@ -474,11 +485,10 @@ export function ReporteCreditoIndexPage() {
                   format: 'pdf',
                   onClick: () =>
                     runOpenReport('Morosidad gestor', () =>
-                      downloadCobroDiarioPdf(
+                      downloadMorosidadGestorPdf(
                         toCobroDiarioQuery(
                           gestorParams.oficinaId,
                           gestorParams.usuarioId,
-                          true,
                         ),
                       ),
                     ),
@@ -488,11 +498,10 @@ export function ReporteCreditoIndexPage() {
                   format: 'xls',
                   onClick: () =>
                     runOpenReport('Morosidad gestor XLS', () =>
-                      downloadCobroDiarioCsv(
+                      downloadMorosidadGestorCsv(
                         toCobroDiarioQuery(
                           gestorParams.oficinaId,
                           gestorParams.usuarioId,
-                          true,
                         ),
                       ),
                     ),
@@ -556,18 +565,26 @@ export function ReporteCreditoIndexPage() {
           }
         >
           <ReporteField label="Oficina">
-            <OficinaSelect allowAll value={gestorOficina} onChange={setGestorOficina} />
+            <OficinaSelect disabled value={oficinaSesion} />
           </ReporteField>
           <ReporteField label="Gestor">
-            <GestorSelect allowAll value={gestorUsuario} onChange={setGestorUsuario} />
+            <GestorSelect allowAll legacyList value={gestorUsuario} onChange={setGestorUsuario} />
           </ReporteField>
         </CredixReportBox>
 
         <CredixReportBox
           title="Reporte créditos"
+          icon={<FundOutlined />}
           actions={
             <ReportExportActions
               screenTo="/informes/reporte-creditos"
+              screenSearchParams={{
+                oficinaId: oficinaSesion,
+                usuarioId: rptGestor,
+                estadoCredito: rptEstado,
+                fechaIni: isoDate(rptRango[0]),
+                fechaFin: isoDate(rptRango[1]),
+              }}
               extra={
                 <Checkbox
                   checked={rentabilidadTodos}
@@ -578,16 +595,30 @@ export function ReporteCreditoIndexPage() {
               }
               exports={[
                 {
-                  label: 'Reporte créditos',
-                  format: 'primary',
+                  label: 'PDF',
+                  format: 'pdf',
                   onClick: () =>
                     runOpenReport('Reporte créditos', () =>
-                      openLegacyReporteCredito({
-                        oficinaId: rptOficina ?? oficinaSesion,
+                      downloadReporteCreditoPdf({
+                        oficinaId: oficinaSesion,
                         gestorId: rptGestor,
                         estadoCredito: rptEstado,
-                        fechaIni: legacyDate(rptRango[0]),
-                        fechaFin: legacyDate(rptRango[1]),
+                        fechaIni: isoDate(rptRango[0]),
+                        fechaFin: isoDate(rptRango[1]),
+                      }),
+                    ),
+                },
+                {
+                  label: 'XLS',
+                  format: 'xls',
+                  onClick: () =>
+                    runOpenReport('Reporte créditos Excel', () =>
+                      downloadReporteCreditoCsv({
+                        oficinaId: oficinaSesion,
+                        gestorId: rptGestor,
+                        estadoCredito: rptEstado,
+                        fechaIni: isoDate(rptRango[0]),
+                        fechaFin: isoDate(rptRango[1]),
                       }),
                     ),
                 },
@@ -596,17 +627,11 @@ export function ReporteCreditoIndexPage() {
                   format: 'pdf',
                   onClick: () =>
                     runOpenReport('Rentabilidad PDF', () =>
-                      openLegacyCreditoRentabilidad({
-                        oficinaId: rptOficina ?? oficinaSesion,
-                        fechaIni: rentabilidadTodos
-                          ? '01/01/2018'
-                          : legacyDate(rptRango[0]),
-                        fechaFin: rentabilidadTodos
-                          ? legacyDate(dayjs())
-                          : legacyDate(rptRango[1]),
+                      downloadCreditoRentabilidadPdf({
+                        oficinaId: oficinaSesion,
+                        fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
+                        fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
                         estadoCredito: rptEstado,
-                        indTodos: rentabilidadTodos,
-                        formato: 'PDF',
                       }),
                     ),
                 },
@@ -615,17 +640,11 @@ export function ReporteCreditoIndexPage() {
                   format: 'xls',
                   onClick: () =>
                     runOpenReport('Rentabilidad XLS', () =>
-                      openLegacyCreditoRentabilidad({
-                        oficinaId: rptOficina ?? oficinaSesion,
-                        fechaIni: rentabilidadTodos
-                          ? '01/01/2018'
-                          : legacyDate(rptRango[0]),
-                        fechaFin: rentabilidadTodos
-                          ? legacyDate(dayjs())
-                          : legacyDate(rptRango[1]),
+                      downloadCreditoRentabilidadCsv({
+                        oficinaId: oficinaSesion,
+                        fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
+                        fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
                         estadoCredito: rptEstado,
-                        indTodos: rentabilidadTodos,
-                        formato: 'Excel',
                       }),
                     ),
                 },
@@ -634,10 +653,10 @@ export function ReporteCreditoIndexPage() {
           }
         >
           <ReporteField label="Oficina">
-            <OficinaSelect allowAll value={rptOficina} onChange={setRptOficina} />
+            <OficinaSelect disabled value={oficinaSesion} />
           </ReporteField>
           <ReporteField label="Gestor">
-            <GestorSelect allowAll value={rptGestor} onChange={setRptGestor} />
+            <GestorSelect allowAll legacyList value={rptGestor} onChange={setRptGestor} />
           </ReporteField>
           <ReporteField label="Estado">
             <Select
@@ -662,6 +681,7 @@ export function ReporteCreditoIndexPage() {
         {showVarios ? (
           <CredixReportBox
             title="Reporte varios"
+            icon={<WalletOutlined />}
             className="credix-report-card--wide"
             actions={
               <ReportExportActions
@@ -672,11 +692,7 @@ export function ReporteCreditoIndexPage() {
                     <Link
                       to={{
                         pathname: '/informes/clientes-nuevos-mes',
-                        search: new URLSearchParams(
-                          Object.entries(variosScreenParams)
-                            .filter(([, v]) => v != null)
-                            .map(([k, v]) => [k, String(v)]),
-                        ).toString(),
+                        search: buildInformeScreenQuery(variosScreenParams).slice(1),
                       }}
                     >
                       Clientes nuevos
@@ -715,7 +731,10 @@ export function ReporteCreditoIndexPage() {
                           format: 'pdf' as const,
                           onClick: () =>
                             runOpenReport('Condonación PDF', () =>
-                              openLegacyCreditoCondonado(variosLegacy, 'PDF'),
+                              downloadCreditoCondonadoPdf({
+                                ...variosApi,
+                                usuarioId: variosApi.usuarioId ?? session?.usuarioId ?? 0,
+                              }),
                             ),
                         },
                         {
@@ -723,7 +742,18 @@ export function ReporteCreditoIndexPage() {
                           format: 'xls' as const,
                           onClick: () =>
                             runOpenReport('Condonación XLS', () =>
-                              openLegacyCreditoCondonado(variosLegacy, 'Excel'),
+                              downloadCreditoCondonadoCsv({
+                                ...variosApi,
+                                usuarioId: variosApi.usuarioId ?? session?.usuarioId ?? 0,
+                              }),
+                            ),
+                        },
+                        {
+                          label: 'Activos PDF',
+                          format: 'pdf' as const,
+                          onClick: () =>
+                            runOpenReport('Activos PDF', () =>
+                              downloadCreditosActivosPdf(variosApi),
                             ),
                         },
                         {
@@ -731,10 +761,7 @@ export function ReporteCreditoIndexPage() {
                           format: 'xls' as const,
                           onClick: () =>
                             runOpenReport('Activos XLS', () =>
-                              openLegacyCreditosActivos({
-                                ...variosLegacy,
-                                formato: 'Excel',
-                              }),
+                              downloadCreditosActivosCsv(variosApi),
                             ),
                         },
                         {
@@ -742,10 +769,7 @@ export function ReporteCreditoIndexPage() {
                           format: 'pdf' as const,
                           onClick: () =>
                             runOpenReport('Cierre PDF', () =>
-                              openLegacyCreditosCierres({
-                                ...variosLegacy,
-                                formato: 'PDF',
-                              }),
+                              downloadCreditosCierresPdf(variosApi),
                             ),
                         },
                         {
@@ -753,10 +777,7 @@ export function ReporteCreditoIndexPage() {
                           format: 'xls' as const,
                           onClick: () =>
                             runOpenReport('Cierre XLS', () =>
-                              openLegacyCreditosCierres({
-                                ...variosLegacy,
-                                formato: 'Excel',
-                              }),
+                              downloadCreditosCierresCsv(variosApi),
                             ),
                         },
                         {
@@ -764,10 +785,7 @@ export function ReporteCreditoIndexPage() {
                           format: 'pdf' as const,
                           onClick: () =>
                             runOpenReport('Morosos pagados PDF', () =>
-                              openLegacyCreditosMorososPagados({
-                                ...variosLegacy,
-                                formato: 'PDF',
-                              }),
+                              downloadCreditosMorososPagadosPdf(variosApi),
                             ),
                         },
                         {
@@ -775,10 +793,7 @@ export function ReporteCreditoIndexPage() {
                           format: 'xls' as const,
                           onClick: () =>
                             runOpenReport('Morosos pagados XLS', () =>
-                              openLegacyCreditosMorososPagados({
-                                ...variosLegacy,
-                                formato: 'Excel',
-                              }),
+                              downloadCreditosMorososPagadosCsv(variosApi),
                             ),
                         },
                         {
@@ -788,7 +803,7 @@ export function ReporteCreditoIndexPage() {
                             runOpenReport('Clientes nuevos', () =>
                               downloadClientesNuevosMesPdf(
                                 toClientesNuevosMesParams(
-                                  variosOficina ?? oficinaSesion,
+                                  oficinaSesion,
                                   variosGestor,
                                   variosRango[0].format('YYYY-MM-DD'),
                                   variosRango[1].format('YYYY-MM-DD'),
@@ -801,13 +816,7 @@ export function ReporteCreditoIndexPage() {
                           format: 'pdf' as const,
                           onClick: () =>
                             runOpenReport('Caja diario', () =>
-                              openLegacyCajaDiarioInforme({
-                                oficinaId: variosLegacy.oficinaId,
-                                usuarioId: variosLegacy.usuarioId,
-                                fechaIni: variosLegacy.fechaIni,
-                                fechaFin: variosLegacy.fechaFin,
-                                formato: 'PDF',
-                              }),
+                              downloadCajaDiarioInformePdf(variosApi),
                             ),
                         },
                       ]
@@ -819,7 +828,7 @@ export function ReporteCreditoIndexPage() {
                       runOpenReport('Clientes inactivos pagados', () =>
                         downloadClientesInactivosPdf(
                           toClientesInactivosParams(
-                            variosOficina ?? oficinaSesion,
+                            oficinaSesion,
                             variosGestor ?? session?.usuarioId,
                             variosRango[0].format('YYYY-MM-DD'),
                             variosRango[1].format('YYYY-MM-DD'),
@@ -832,10 +841,10 @@ export function ReporteCreditoIndexPage() {
             }
           >
             <ReporteField label="Oficina">
-              <OficinaSelect allowAll value={variosOficina} onChange={setVariosOficina} />
+              <OficinaSelect disabled value={oficinaSesion} />
             </ReporteField>
             <ReporteField label="Gestor">
-              <GestorSelect allowAll value={variosGestor} onChange={setVariosGestor} />
+              <GestorSelect allowAll legacyList value={variosGestor} onChange={setVariosGestor} />
             </ReporteField>
             <ReporteField label="Rango fechas">
               <DatePicker.RangePicker
@@ -853,6 +862,7 @@ export function ReporteCreditoIndexPage() {
           <div className="credix-reporte-grid credix-reporte-grid--secondary">
             <CredixReportBox
               title="Comprobantes caja chica"
+              icon={<BankOutlined />}
               actions={
                 <ReportExportActions
                   screenTo="/informes/comprobantes-caja-chica"
@@ -862,10 +872,9 @@ export function ReporteCreditoIndexPage() {
                       format: 'pdf',
                       onClick: () =>
                         runOpenReport('Comprobantes PDF', () =>
-                          openLegacyComprobantesCajaChica({
-                            fechaIni: legacyDate(cajaChicaRango[0]),
-                            fechaFin: legacyDate(cajaChicaRango[1]),
-                            formato: 'PDF',
+                          downloadComprobantesCajaChicaPdf({
+                            fechaIni: isoDate(cajaChicaRango[0]),
+                            fechaFin: isoDate(cajaChicaRango[1]),
                           }),
                         ),
                     },
@@ -874,10 +883,9 @@ export function ReporteCreditoIndexPage() {
                       format: 'xls',
                       onClick: () =>
                         runOpenReport('Comprobantes XLS', () =>
-                          openLegacyComprobantesCajaChica({
-                            fechaIni: legacyDate(cajaChicaRango[0]),
-                            fechaFin: legacyDate(cajaChicaRango[1]),
-                            formato: 'Excel',
+                          downloadComprobantesCajaChicaCsv({
+                            fechaIni: isoDate(cajaChicaRango[0]),
+                            fechaFin: isoDate(cajaChicaRango[1]),
                           }),
                         ),
                     },
@@ -898,6 +906,7 @@ export function ReporteCreditoIndexPage() {
 
             <CredixReportBox
               title="Movimientos anulados"
+              icon={<StopOutlined />}
               actions={
                 <ReportExportActions
                   screenTo="/informes/movimientos-caja-anulados"
@@ -907,11 +916,10 @@ export function ReporteCreditoIndexPage() {
                       format: 'pdf',
                       onClick: () =>
                         runOpenReport('Anulados PDF', () =>
-                          openLegacyComprobantesCajaAnulados({
+                          downloadMovimientoCajaAnuladoPdf({
                             oficinaId: oficinaSesion,
-                            fechaIni: legacyDate(anuladoRango[0]),
-                            fechaFin: legacyDate(anuladoRango[1]),
-                            formato: 'PDF',
+                            fechaIni: isoDate(anuladoRango[0]),
+                            fechaFin: isoDate(anuladoRango[1]),
                           }),
                         ),
                     },
@@ -932,6 +940,7 @@ export function ReporteCreditoIndexPage() {
 
             <CredixReportBox
               title="Saldo cartera"
+              icon={<FundOutlined />}
               actions={
                 <ReportExportActions
                   screenTo="/informes/saldo-cartera-caja-diario"
@@ -941,8 +950,8 @@ export function ReporteCreditoIndexPage() {
                       format: 'primary',
                       onClick: () =>
                         runOpenReport('Saldo cartera', () =>
-                          openLegacySaldoCarteraCajaDiario({
-                            oficinaId: saldoOficina ?? oficinaSesion,
+                          downloadSaldoCarteraCajaDiarioPdf({
+                            oficinaId: oficinaSesion,
                             anioIni: saldoAnioIni,
                             mesIni: saldoMesIni,
                             anioFin: saldoAnioFin,
@@ -955,7 +964,7 @@ export function ReporteCreditoIndexPage() {
               }
             >
               <ReporteField label="Oficina">
-                <OficinaSelect allowAll value={saldoOficina} onChange={setSaldoOficina} />
+                <OficinaSelect disabled value={oficinaSesion} />
               </ReporteField>
               <Space wrap>
                 <Select
@@ -963,10 +972,7 @@ export function ReporteCreditoIndexPage() {
                   style={{ width: 90 }}
                   value={saldoAnioIni}
                   onChange={setSaldoAnioIni}
-                  options={saldoAnios.map((y) => ({
-                    value: y,
-                    label: String(y),
-                  }))}
+                  options={saldoAnios}
                 />
                 <Select
                   size="small"
@@ -981,10 +987,7 @@ export function ReporteCreditoIndexPage() {
                   style={{ width: 90 }}
                   value={saldoAnioFin}
                   onChange={setSaldoAnioFin}
-                  options={saldoAnios.map((y) => ({
-                    value: y,
-                    label: String(y),
-                  }))}
+                  options={saldoAnios}
                 />
                 <Select
                   size="small"
@@ -998,6 +1001,7 @@ export function ReporteCreditoIndexPage() {
 
             <CredixReportBox
               title="Central de riesgos"
+              icon={<FileProtectOutlined />}
               actions={
                 <ReportExportActions
                   screenTo="/informes/central-riesgo"
@@ -1007,8 +1011,8 @@ export function ReporteCreditoIndexPage() {
                       format: 'primary',
                       onClick: () =>
                         runOpenReport('Central de riesgo', () =>
-                          openLegacyCentralRiesgoTxt({
-                            oficinaId: riesgoOficina ?? oficinaSesion,
+                          downloadCentralRiesgoGenerarTxt({
+                            oficinaId: oficinaSesion,
                             anio: riesgoAnio,
                             mes: riesgoMes,
                           }),
@@ -1019,7 +1023,7 @@ export function ReporteCreditoIndexPage() {
               }
             >
               <ReporteField label="Oficina">
-                <OficinaSelect allowAll value={riesgoOficina} onChange={setRiesgoOficina} />
+                <OficinaSelect disabled value={oficinaSesion} />
               </ReporteField>
               <Space wrap>
                 <Select
@@ -1027,10 +1031,7 @@ export function ReporteCreditoIndexPage() {
                   style={{ width: 100 }}
                   value={riesgoAnio}
                   onChange={setRiesgoAnio}
-                  options={Array.from({ length: 12 }, (_, i) => 2014 + i).map((y) => ({
-                    value: y,
-                    label: String(y),
-                  }))}
+                  options={riesgoAnios}
                 />
                 <Select
                   size="small"

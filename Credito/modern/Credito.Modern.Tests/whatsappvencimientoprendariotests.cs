@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Credito.Modern.Application.Prendario;
+using Credito.Modern.Infrastructure.Integraciones;
 
 namespace Credito.Modern.Tests;
 
@@ -37,5 +38,55 @@ public sealed class WhatsAppVencimientoPrendarioTests
         Assert.Equal("JUAN PEREZ", parametros[0].GetProperty("text").GetString());
         Assert.Equal("15/10/2026", parametros[1].GetProperty("text").GetString());
         Assert.Equal("540.00", parametros[2].GetProperty("text").GetString());
+    }
+
+    [Fact]
+    public void Proxima_corrida_hoy_si_aun_no_son_las_ocho()
+    {
+        var ahora = new DateTimeOffset(2026, 9, 10, 7, 30, 0, TimeSpan.FromHours(-5));
+        var proxima = PrendarioWhatsAppProgramacion.ProximaCorrida(ahora, 8);
+        Assert.Equal(new DateTimeOffset(2026, 9, 10, 8, 0, 0, TimeSpan.FromHours(-5)), proxima);
+    }
+
+    [Fact]
+    public void Proxima_corrida_manana_si_ya_pasaron_las_ocho()
+    {
+        var ahora = new DateTimeOffset(2026, 9, 10, 8, 0, 0, TimeSpan.FromHours(-5));
+        var proxima = PrendarioWhatsAppProgramacion.ProximaCorrida(ahora, 8);
+        Assert.Equal(new DateTimeOffset(2026, 9, 11, 8, 0, 0, TimeSpan.FromHours(-5)), proxima);
+    }
+
+    [Fact]
+    public void Kill_switch_no_borra_credenciales()
+    {
+        var opts = new WhatsAppOptions
+        {
+            Enabled = false,
+            Token = "token",
+            PhoneNumberId = "123",
+        };
+        Assert.True(opts.TieneCredenciales);
+        Assert.False(opts.EstaConfigurado);
+    }
+
+    [Theory]
+    [InlineData(401, "{\"error\":{\"message\":\"Authentication Error\",\"code\":190}}", true)]
+    [InlineData(401, "Authentication Error", true)]
+    [InlineData(400, "(#190) Invalid OAuth 2.0 Access Token", true)]
+    [InlineData(400, "Template name does not exist in the translation", false)]
+    [InlineData(400, "(#131030) Recipient is not a valid WhatsApp", false)]
+    public void Mensaje_meta_distingue_token_plantilla_y_destino(int status, string body, bool esToken)
+    {
+        var msg = WhatsAppCloudClient.MensajeParaUsuario(body, status);
+        if (esToken)
+        {
+            Assert.Contains("token", msg, StringComparison.OrdinalIgnoreCase);
+            return;
+        }
+
+        Assert.DoesNotContain("user-secrets", msg, StringComparison.OrdinalIgnoreCase);
+        Assert.True(
+            msg.Contains("plantilla", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("destino", StringComparison.OrdinalIgnoreCase));
     }
 }

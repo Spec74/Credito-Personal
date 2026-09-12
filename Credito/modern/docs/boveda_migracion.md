@@ -1,5 +1,7 @@
 # Módulo Bóveda — Legacy → Modern
 
+Spec SSD (actores, aceptación, go-live): [docs/ssd/SSD-04-boveda.md](ssd/SSD-04-boveda.md). Este archivo conserva el mapa fino de pantallas y fases.
+
 Paridad con `Web/Controllers/BovedaController.cs` y `Views/Boveda/Index.cshtml`.
 
 ## Mapa
@@ -19,13 +21,14 @@ Paridad con `Web/Controllers/BovedaController.cs` y `Views/Boveda/Index.cshtml`.
 
 1. **Estado de dinero** — KPIs: bóveda, caja chica, cajas, plan pago, vencidos (total y franjas), total fondo. Enlaces a caja, saldos e informe vencido.
 2. **Bóveda abierta** — saldos, temporal, resumen cuenta.
-3. **Operaciones** — ingreso/egreso, transferencia caja/caja chica, cierre, bóveda temporal (si aplica).
+3. **Operaciones** — ingreso/egreso, transferencia caja/caja chica, **entre bancos**, cierre, bóveda temporal (si aplica).
 4. **Historial** — selección de bóveda + movimientos + saldos caja diario de la sesión.
 
 ## API nuevas (2026)
 
 - `GET /api/v1/credito/boveda-estado-dinero?oficinaId=` — `BovedaEstadoDineroReadService` (cajas abiertas, caja chica, `usp_ObtenerMontoPendientePlanPago`, cartera vencida).
 - `GET /api/v1/credito/boveda-listar?oficinaId=&page=&pageSize=` — historial paginado por oficina.
+- `POST /api/v1/credito/transferir-boveda-bancos` — `usp_RegistrarTransferenciaBancos` + `usp_ActualizarSaldosBoveda`.
 
 ## UI
 
@@ -44,6 +47,7 @@ Paridad con `Web/Controllers/BovedaController.cs` y `Views/Boveda/Index.cshtml`.
 | Ingreso / egreso | Completo |
 | Transferir a caja | Completo |
 | Transferir a caja chica | Completo |
+| Transferir entre bancos | Completo (`usp_RegistrarTransferenciaBancos`, catálogo tabla 13) |
 | Bóveda temporal (asignar / transferir / cerrar) | Completo |
 | Transferir bóveda inter-oficina | Completo (ID destino, ver diferencia) |
 | Aceptar / rechazar transferencia | Completo |
@@ -63,6 +67,7 @@ Paridad con `Web/Controllers/BovedaController.cs` y `Views/Boveda/Index.cshtml`.
 | Ingreso / egreso | Completo |
 | Transferir a caja | Completo |
 | Transferir a caja chica | Completo |
+| Transferir entre bancos | Completo (`usp_RegistrarTransferenciaBancos`, catálogo tabla 13) |
 | Bóveda temporal (asignar / transferir / cerrar) | Completo |
 | Transferir bóveda inter-oficina | Completo (ID destino, ver diferencia) |
 | Aceptar / rechazar transferencia | Completo |
@@ -76,6 +81,8 @@ Paridad con `Web/Controllers/BovedaController.cs` y `Views/Boveda/Index.cshtml`.
 
 - Transferencia inter-oficina: legacy combo de oficina destino; moderno usa **ID bóveda destino** (`transferir-boveda`).
 - Aceptación de transferencias pendientes: `aceptarTransferenciaBoveda` con `bovedaMovTempId`.
+- Transferencia entre bancos: el MVC hardcodea IDs 1–8 de Huanta; el moderno lista `MAESTRO.ValorTabla` tabla 13. Tras el SP se llama `usp_ActualizarSaldosBoveda` (el BL legado no lo hacía).
+- `POST /api/v1/credito/transferir-boveda-bancos` — paridad `Boveda/RegistrarTransferenciaBancos`.
 
 ## Pruebas
 

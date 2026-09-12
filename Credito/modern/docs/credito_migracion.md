@@ -1,5 +1,7 @@
 # Módulo Crédito — Legacy → Modern
 
+Spec SSD (actores, aceptación, go-live): [docs/ssd/SSD-02-credito.md](ssd/SSD-02-credito.md). Este archivo conserva el mapa fino de pantallas y fases.
+
 Paridad con `Web/Views/Credito/Creditos.cshtml`, `CreditoController`, `CreditoBL` y menú **Reportes → Crédito**.
 
 ## Mapa rápido
@@ -17,6 +19,7 @@ Paridad con `Web/Views/Credito/Creditos.cshtml`, `CreditoController`, `CreditoBL
 | Informes cartera | `/informes/*`, `/reportes/credito` | `rpt-credito-*` | **Hecho** |
 | Evidencias | Panel gestión + `/credito/evidencias` (ruta legacy) | `evidencias-credito`, `subir-evidencia-credito` | **Hecho** |
 | Condonar, cargos, aval, tope | `CreditoConsultaGestionPanel` | `condonar-credito`, `guardar-cargo`, … | **Hecho** |
+| Solicitud de condonación (caja → bandeja → aprobar) | `/credito/condonaciones` + caja diario | `usp_SolicitarCondonacion`, `condonaciones-pendientes` | **Hecho** |
 | Mora postergada | `CreditoMoraModal` | `credito-mora`, `credito-mora-resumen` | **Hecho** |
 | `ListarCreditoMoraGrd` (MVC sin action) | Modal mora + SQL directo | `GET credito-mora` | **Hecho** |
 

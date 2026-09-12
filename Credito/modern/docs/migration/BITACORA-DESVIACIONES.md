@@ -353,3 +353,85 @@ vive para la sentencia inmediata, así que el segundo `SELECT` respondía
 «El nombre de objeto 'Base' no es válido». El conjunto intermedio pasa a una tabla
 temporal `#PrendarioListado`.
 
+### 2026-09-10 — Tableros de Inicio (analista y gerencial) acotados a la oficina del JWT
+
+**Tipo:** paridad con desviación deliberada
+
+El legado `Dashboard/Gestor` y `Dashboard/Admin` invoca SPs del bak 2026-09-01
+(`usp_DashboardGestor*`, `usp_DashboardAdmin*`) que no están versionados en git y, en
+producción, los de gestor llegaron a timeout. El moderno no los llama: un batch Dapper
+por tablero replica la semántica (colocaciones DES/PAG/REP, cobro CUO, saldos de plan
+de pago, flujo por caja de la oficina, analistas de `UsuarioRol`).
+
+Desviación: los SP de Admin del cliente reciben solo `fechaCorte` y agregan toda la
+compañía. Aquí `GET /api/v1/dashboard/admin` y `GET /api/v1/dashboard/analista` usan
+`OficinaId` (y `UsuarioId` en analista) del JWT, igual que el resto de la API. Un
+administrador ve el tablero gerencial en `/inicio`; `?vista=modulos` abre el mapa de
+módulos y `?vista=analista` el tablero personal si también tiene rol ANALISTA.
+
+### 2026-09-10 — Solicitud de condonación (`CreditoCondonacion`)
+
+**Tipo:** paridad con el bak 2026-09-01
+
+El legado tiene bandeja `Condonacion/Index` y, al aprobar, marca `IndAprobado` y cobra
+la CxC en la caja que originó el pedido. El procedimiento `usp_SolicitarCondonacion`
+(caja, crédito, mora) no estaba en el moderno. Se versiona tal cual en
+`deploy/sql/2026-09-10-credito-condonacion.sql`. El C# no recalcula `TotalPago`.
+
+Desviación deliberada: el listado y el alta se acotan a la oficina del JWT (el MVC
+listaba todas las pendientes de la compañía). El cierre de caja bloquea si esa caja
+tiene solicitudes sin aprobar, igual que `ValidarCierreCajaDiario`.
+
+### 2026-09-10 — Transferencia entre bancos de bóveda
+
+**Tipo:** paridad con el bak 2026-09-01, con endurecimiento de saldos
+
+El legado `Boveda/RegistrarTransferenciaBancos` llama `usp_RegistrarTransferenciaBancos`
+(dos `BovedaMov` `TRF`, salida origen / entrada destino) y no recalcula saldos. El SP no
+estaba versionado. Se deja el cuerpo tal cual en
+`deploy/sql/2026-09-10-boveda-transferencia-bancos.sql`. El C# no arma los movimientos.
+
+Desviaciones deliberadas:
+
+- Combos de origen/destino: catálogo `MAESTRO.ValorTabla` tabla 13 (incluye efectivo), no
+  los ocho IDs fijos de Huanta del `Index.cshtml`.
+- Tras un `Resultado = 1` se ejecuta `usp_ActualizarSaldosBoveda`, igual que el resto de
+  escrituras modernas de bóveda.
+- La glosa es obligatoria (el MVC la enviaba vacía y el SP concatenaba `Trf. Salida: `).
+- `POST /api/v1/credito/transferir-boveda-bancos` lee `Resultado`/`Mensaje` del SP; el BL
+  legado usaba `ExecuteSqlCommand` y trataba un `SELECT 0` como éxito.
+
+### 2026-09-10 — Informe de movimientos de bóveda exigía un ítem de menú extra
+
+**Tipo:** defecto (moderno)
+
+Quien tiene Bóveda ya consulta `usp_RptMovimientoBoveda` (grilla y PDF) en
+`/tesoreria/boveda`. El enlace «Ver movimientos bóveda» iba a
+`/tesoreria/movimiento-boveda`, ruta que el guardia de menú no heredaba del ítem
+Bóveda. Un ADMIN sin el reporte suelto veía «Sin permiso». Ahora Bóveda abre ese
+informe; la API sigue acotada a la oficina del JWT.
+
+### 2026-09-10 — Comisiones: paridad del vacío del MVC
+
+**Tipo:** paridad (sin lógica que migrar)
+
+`ComisionController.Index` solo renderiza `<h2>Comisiones</h2>`. No hay BL, SP ni
+tabla. `/admin/comisiones` deja constancia de eso; no se inventa liquidación. El hub
+Administración puede abrir esa pantalla reservada (usuarios, roles y oficinas siguen
+exigiendo su ítem de menú).
+
+### 2026-09-10 — PDFs tabulares: catálogo RDLC por título (tildes) y layout usable
+
+**Tipo:** defecto de presentación (moderno)
+
+`TabularPdfDocument` ya tenía mapeo de columnas al estilo RDLC, pero
+`TryGetByLegacyTitle` comparaba el título literal. La API envía «Movimiento bóveda»
+y el mapa tenía «Movimiento boveda»: el PDF caía al fallback genérico (cabeceras
+camelCase, columnas iguales, hoja vertical). El listado que se imprimió desde
+bóveda salía ilegible.
+
+Se normalizan tildes/mayúsculas, se añaden los alias que usa `Program.cs`
+(saldo cartera, avales, morosidad crédito, etc.) y movimiento de bóveda vuelve a
+A4 apaisado. Importes y fechas se formatean solo en pantalla (`es-PE` / `dd/MM/yyyy`);
+los `usp_*` no cambian. No se replica el RDLC píxel a píxel.
+

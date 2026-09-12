@@ -1,5 +1,7 @@
 # Caja chica y Verificar pagos — Estado y siguiente sprint
 
+Spec SSD: [docs/ssd/SSD-03-caja.md](ssd/SSD-03-caja.md).
+
 **Última revisión:** 2026-05-26  
 Rutas: `/caja/chica`, `/caja/verificar-pagos`
 

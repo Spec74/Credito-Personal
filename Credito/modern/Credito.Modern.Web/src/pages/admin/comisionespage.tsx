@@ -6,15 +6,15 @@ import { CredixCrudPage, type CredixStatItem } from '../../components/credix'
 const { Paragraph } = Typography
 
 const comisionesStats: CredixStatItem[] = [
-  { value: '—', label: 'Reglas activas' },
-  { value: 'Reservado', label: 'Estado del módulo' },
+  { value: '0', label: 'Procedimientos usp_*' },
+  { value: 'Paridad', label: 'Estado del módulo' },
 ]
 
 export function ComisionesPage() {
   return (
     <CredixCrudPage
       title="Comisiones"
-      subtitle="Espacio reservado para liquidación y reportes de comisiones cuando el negocio lo defina."
+      subtitle="Misma pantalla que Comision/Index del sistema anterior: no hay cálculo ni liquidación."
       stats={comisionesStats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -35,13 +35,13 @@ export function ComisionesPage() {
           <PercentageOutlined />
         </span>
         <Paragraph style={{ marginBottom: 8 }}>
-          En el sistema anterior no existía lógica operativa de comisiones en esta pantalla.
-          Cuando se formalice el cálculo, liquidación o informes, se implementará aquí con el
-          patrón strangler: API dedicada + UI Credix responsiva.
+          El MVC solo muestra el título «Comisiones». No hay tabla, procedimiento ni regla de
+          negocio en la base. No se inventa un motor de liquidación aquí.
         </Paragraph>
         <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-          Mientras tanto, use Usuarios y Roles para permisos, e Informes para reportes de
-          cartera y ventas relacionados.
+          Los cargos de un crédito se gestionan en la ficha del crédito. Si más adelante el
+          negocio define porcentajes, liquidación o informes, se versionan primero en SQL y
+          después se cablean en esta pantalla.
         </Paragraph>
       </div>
     </CredixCrudPage>

@@ -116,6 +116,7 @@ export function hubLinkIcon(to: string, label?: string): ReactNode {
   if (path.includes('/credito/prendario') || text.includes('prendario')) return <GoldOutlined />
   if (path.includes('/credito/consulta')) return <SearchOutlined />
   if (path.includes('/credito/aprobar')) return renderAprobarIcon()
+  if (path.includes('/credito/condonaciones')) return <FileTextOutlined />
   if (path.includes('/credito/tareas')) return <TableOutlined />
   if (path.includes('/clientes')) return <TeamOutlined />
   if (path.includes('/ventas/venta-rapida')) return <ShoppingCartOutlined />

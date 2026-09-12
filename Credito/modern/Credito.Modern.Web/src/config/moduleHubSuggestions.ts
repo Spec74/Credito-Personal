@@ -74,6 +74,28 @@ const SUGGESTIONS: Record<string, CredixHubLink[]> = {
     { to: '/maestros/almacenes', label: 'Almacenes', description: 'Puntos de stock' },
     { to: '/maestros/marcas', label: 'Marcas', description: 'Fabricantes' },
   ],
+  INFORMES: [
+    { to: '/informes', label: 'Informes', description: 'Catálogo completo' },
+    { to: '/reportes/credito', label: 'Reportes crédito', description: 'Exportaciones cartera' },
+  ],
+  VENTA: [
+    { to: '/ventas/venta-rapida', label: 'Venta rápida', description: 'Mostrador' },
+    { to: '/ventas/orden-venta', label: 'Orden de venta', description: 'Pedidos' },
+    { to: '/ventas/lista-precios', label: 'Lista de precios', description: 'Mantenimiento' },
+  ],
+  PRENDARIO: [
+    { to: '/credito/prendario', label: 'Listado prendario', description: 'Cartera prendaria' },
+    { to: '/credito/prendario/nuevo', label: 'Nuevo prendario', description: 'Alta de solicitud' },
+  ],
+  SEGURIDAD: [
+    { to: '/admin/usuarios', label: 'Usuarios', description: 'Accesos y oficinas' },
+    { to: '/admin/roles', label: 'Roles', description: 'Permisos' },
+  ],
+  MANTENIMIENTO: [
+    { to: '/mantenimiento/oficinas', label: 'Oficinas', description: 'Sedes' },
+    { to: '/mantenimiento/cajas', label: 'Cajas', description: 'Maestro de cajas' },
+    { to: '/maestros/articulos', label: 'Artículos', description: 'Catálogo' },
+  ],
 }
 
 function normalizeModuloKey(modulo: string | null | undefined): string | null {

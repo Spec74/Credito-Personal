@@ -81,9 +81,14 @@ export function AnalystDashboardPage() {
       actions={
         <>
           {desdeAdmin ? (
-            <Link to="/inicio">
-              <Button>Volver al hub</Button>
-            </Link>
+            <>
+              <Link to="/inicio">
+                <Button>Tablero gerencial</Button>
+              </Link>
+              <Link to="/inicio?vista=modulos">
+                <Button>Mapa de módulos</Button>
+              </Link>
+            </>
           ) : null}
           <Button icon={<ReloadOutlined />} onClick={() => void query.refetch()} loading={query.isFetching}>
             Actualizar

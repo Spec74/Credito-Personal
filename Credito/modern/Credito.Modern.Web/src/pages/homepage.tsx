@@ -7,10 +7,12 @@ import { useModuleHubStats } from '../hooks/useModuleHubStats'
 import { useAuth } from '../auth/useAuth'
 import { filterCreditoHomeLinks } from '../utils/creditoHubFilter'
 import {
+  debeMostrarDashboardAdmin,
   debeMostrarDashboardAnalista,
   esCreditoAdministrador,
   esCreditoAnalista,
 } from '../utils/creditoOperacionPermisos'
+import { AdminDashboardPage } from './dashboard/AdminDashboardPage'
 import { AnalystDashboardPage } from './dashboard/AnalystDashboardPage'
 import '../styles/dashboard-analista.css'
 
@@ -49,8 +51,12 @@ export function HomePage() {
   const [params] = useSearchParams()
   const roles = useMemo(() => session?.roles ?? [], [session?.roles])
 
-  if (debeMostrarDashboardAnalista(roles, params.get('vista'))) {
+  const vista = params.get('vista')
+  if (debeMostrarDashboardAnalista(roles, vista)) {
     return <AnalystDashboardPage />
+  }
+  if (debeMostrarDashboardAdmin(roles, vista)) {
+    return <AdminDashboardPage />
   }
 
   return <HomeHubPage roles={roles} />
@@ -71,7 +77,8 @@ function HomeHubPage({ roles }: { roles: string[] }) {
   )
 
   const stats = useModuleHubStats('inicio', branding.appShortName, sections)
-  const mostrarAtajoAnalista = esCreditoAdministrador(roles) && esCreditoAnalista(roles)
+  const esAdmin = esCreditoAdministrador(roles)
+  const esAnalista = esCreditoAnalista(roles)
 
   return (
     <CredixPage
@@ -81,23 +88,30 @@ function HomeHubPage({ roles }: { roles: string[] }) {
       statsVariant="module"
       breadcrumb={[{ title: <Link to="/inicio">Inicio</Link> }]}
     >
-      {mostrarAtajoAnalista ? (
+      {esAdmin ? (
         <Alert
           className="dash-admin-banner"
           type="info"
           showIcon
-          message="También tienes rol de analista"
-          description="El hub de accesos queda para administración. Tus indicadores personales están en el tablero operativo."
+          message="Mapa de módulos"
+          description="El tablero gerencial de la oficina es la pantalla de inicio. Aquí quedan los accesos al resto de la operación."
           action={
-            <Link to="/inicio?vista=analista">
-              <Button type="primary">Ver mi tablero</Button>
-            </Link>
+            <>
+              <Link to="/inicio">
+                <Button type="primary">Tablero gerencial</Button>
+              </Link>
+              {esAnalista ? (
+                <Link to="/inicio?vista=analista">
+                  <Button>Mi tablero</Button>
+                </Link>
+              ) : null}
+            </>
           }
         />
       ) : null}
       <CredixHubIntro>
-        Panel principal con los mismos accesos que el menú lateral. El analista ve sus indicadores al
-        entrar; aquí se mantiene el mapa de módulos para administración y el resto de perfiles.
+        El administrador ve el tablero de la oficina al entrar; el analista, el suyo. Este mapa
+        queda para el resto de perfiles y para quien lo abra con «Mapa de módulos».
       </CredixHubIntro>
       <CredixHubGrid sections={sections} variant="module" />
     </CredixPage>

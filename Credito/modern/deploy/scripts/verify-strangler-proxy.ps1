@@ -1,5 +1,9 @@
 # Comprueba que el proxy strangler esta operativo (archivos + contenedor + nginx + health).
 # Uso: desde Credito\modern -> .\deploy\scripts\verify-strangler-proxy.ps1
+#
+# Docker Desktop puede haber levantado el stack con otro nombre de proyecto
+# (p. ej. credito-modern-current). Este script resuelve ese nombre; no recrea
+# contenedores salvo -TryStartProxy.
 
 param(
     [string]$BaseUrl = "http://localhost:9080",
@@ -12,13 +16,16 @@ function Invoke-DockerCompose {
     param(
         [Parameter(Mandatory = $true)][string[]]$ComposeArgs,
         [string]$ComposeFile,
-        [string]$EnvFile
+        [string]$EnvFile,
+        [string]$ProjectName
     )
     # docker compose escribe progreso en stderr; con Stop eso no debe abortar el script.
     $prevEap = $ErrorActionPreference
     $ErrorActionPreference = 'SilentlyContinue'
     try {
-        $lines = & docker compose -f $ComposeFile --env-file $EnvFile @ComposeArgs 2>&1
+        $prefix = @()
+        if ($ProjectName) { $prefix = @('-p', $ProjectName) }
+        $lines = & docker compose @prefix -f $ComposeFile --env-file $EnvFile @ComposeArgs 2>&1
         foreach ($line in $lines) {
             if ($null -eq $line) { continue }
             if ($line -is [System.Management.Automation.ErrorRecord]) {
@@ -36,6 +43,44 @@ function Invoke-DockerCompose {
     finally {
         $ErrorActionPreference = $prevEap
     }
+}
+
+function Get-StranglerComposeProjectName {
+    param([string]$ComposeFile)
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'SilentlyContinue'
+    try {
+        $raw = & docker compose ls --format json 2>$null
+        if (-not $raw) { return $null }
+        $items = $raw | ConvertFrom-Json
+        $want = ((Resolve-Path $ComposeFile).Path).Replace('\', '/').ToLowerInvariant()
+        foreach ($item in @($items)) {
+            $cfg = [string]$item.ConfigFiles
+            if (-not $cfg) { continue }
+            $cfgNorm = $cfg.Replace('\', '/').ToLowerInvariant()
+            if ($cfgNorm -eq $want) {
+                return [string]$item.Name
+            }
+        }
+    }
+    finally {
+        $ErrorActionPreference = $prevEap
+    }
+    return $null
+}
+
+function Get-RunningStranglerProxyName {
+    $prevEap = $ErrorActionPreference
+    $ErrorActionPreference = 'SilentlyContinue'
+    try {
+        $name = & docker ps --filter "name=strangler-proxy" --filter "status=running" --format "{{.Names}}" 2>$null |
+            Select-Object -First 1
+        if ($name) { return [string]$name }
+    }
+    finally {
+        $ErrorActionPreference = $prevEap
+    }
+    return $null
 }
 
 $modernRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
@@ -77,15 +122,31 @@ try {
             Write-Host "  - API directa sin proxy: http://localhost:5080/health" -ForegroundColor Gray
         }
         else {
+        $composeProject = Get-StranglerComposeProjectName -ComposeFile $composeFile
+        if ($composeProject) {
+            Write-Host "Proyecto compose: $composeProject" -ForegroundColor Gray
+        }
+
         Write-Host "`n== Estado contenedores" -ForegroundColor Cyan
-        Invoke-DockerCompose -ComposeFile $composeFile -EnvFile $envFile -ComposeArgs @(
-            'ps', 'strangler-proxy', 'credito-modern-api'
-        )
+        if ($composeProject) {
+            Invoke-DockerCompose -ComposeFile $composeFile -EnvFile $envFile -ProjectName $composeProject -ComposeArgs @(
+                'ps', 'strangler-proxy', 'credito-modern-api'
+            )
+        }
+        else {
+            Write-Host "(sin proyecto compose coincidente; listando docker ps name=strangler-proxy)" -ForegroundColor Gray
+            $psLines = & docker ps --filter "name=strangler-proxy" --filter "name=credito-modern-api" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+            foreach ($line in $psLines) { Write-Host $line -ForegroundColor Gray }
+        }
 
         function Test-StranglerProxyRunning {
-            $id = (& docker compose -f $composeFile --env-file $envFile ps -q strangler-proxy 2>$null | Select-Object -First 1)
-            if (-not $id) { return $false }
-            return (& docker inspect -f '{{.State.Running}}' $id 2>$null) -eq 'true'
+            if ($composeProject) {
+                $id = (& docker compose -p $composeProject -f $composeFile --env-file $envFile ps -q strangler-proxy 2>$null | Select-Object -First 1)
+                if ($id -and ((& docker inspect -f '{{.State.Running}}' $id 2>$null) -eq 'true')) {
+                    return $true
+                }
+            }
+            return [bool](Get-RunningStranglerProxyName)
         }
 
         $running = Test-StranglerProxyRunning
@@ -93,24 +154,27 @@ try {
         if (-not $running) {
             Write-Host "`nstrangler-proxy NO esta corriendo." -ForegroundColor Yellow
             Write-Host "Ultimas lineas del servicio:" -ForegroundColor Gray
-            Invoke-DockerCompose -ComposeFile $composeFile -EnvFile $envFile -ComposeArgs @(
-                'logs', 'strangler-proxy', '--tail', '40'
-            )
+            if ($composeProject) {
+                Invoke-DockerCompose -ComposeFile $composeFile -EnvFile $envFile -ProjectName $composeProject -ComposeArgs @(
+                    'logs', 'strangler-proxy', '--tail', '40'
+                )
+            }
 
             if ($TryStartProxy) {
                 Write-Host "`nIntentando: docker compose up -d strangler-proxy --force-recreate ..." -ForegroundColor Cyan
-                Invoke-DockerCompose -ComposeFile $composeFile -EnvFile $envFile -ComposeArgs @(
+                Invoke-DockerCompose -ComposeFile $composeFile -EnvFile $envFile -ProjectName $composeProject -ComposeArgs @(
                     'up', '-d', 'strangler-proxy', '--force-recreate'
                 )
                 Start-Sleep -Seconds 5
-                Invoke-DockerCompose -ComposeFile $composeFile -EnvFile $envFile -ComposeArgs @(
+                Invoke-DockerCompose -ComposeFile $composeFile -EnvFile $envFile -ProjectName $composeProject -ComposeArgs @(
                     'ps', 'strangler-proxy', 'credito-modern-api'
                 )
                 $running = Test-StranglerProxyRunning
             }
             else {
                 Write-Host "`nSiguiente paso (desde modern\):" -ForegroundColor Cyan
-                Write-Host '  docker compose -f deploy/docker-compose.strangler.yml --env-file deploy/.env up -d strangler-proxy --force-recreate' -ForegroundColor White
+                Write-Host '  docker compose -f deploy/docker-compose.strangler.yml --env-file deploy/.env up -d strangler-proxy' -ForegroundColor White
+                Write-Host "Si Docker Desktop ya muestra el stack (p. ej. credito-modern-current), no lo recrees: el verify debe detectarlo." -ForegroundColor Cyan
                 Write-Host "Si Docker Desktop muestra error al montar volumenes:" -ForegroundColor Cyan
                 Write-Host "  - Settings -> Resources -> File sharing: incluir la unidad D:\" -ForegroundColor White
                 Write-Host "  - Usar este compose: deploy/docker-compose.strangler.yml desde carpeta modern\" -ForegroundColor White
@@ -120,11 +184,17 @@ try {
 
         if ($running) {
             Write-Host "`n== nginx -t en el contenedor" -ForegroundColor Cyan
-            # nginx escribe por stderr; en PS 5.1 eso llega como ErrorRecord al usar 2>&1.
             $prevEap = $ErrorActionPreference
             $ErrorActionPreference = 'SilentlyContinue'
             try {
-                $ngxLines = & docker compose -f $composeFile --env-file $envFile exec -T strangler-proxy nginx -t 2>&1
+                $ngxLines = $null
+                if ($composeProject) {
+                    $ngxLines = & docker compose -p $composeProject -f $composeFile --env-file $envFile exec -T strangler-proxy nginx -t 2>&1
+                }
+                else {
+                    $proxyName = Get-RunningStranglerProxyName
+                    $ngxLines = & docker exec $proxyName nginx -t 2>&1
+                }
                 foreach ($line in $ngxLines) {
                     if ($null -eq $line) { continue }
                     if ($line -is [System.Management.Automation.ErrorRecord]) {
@@ -175,8 +245,6 @@ $unauthPaths = @(
     "/api/v1/credito/rpt-credito-condonado-pdf?oficinaId=1&fechaIni=2020-01-01&fechaFin=2020-01-31",
     "/api/v1/almacen/generar-kardex-csv?oficinaId=1&articuloId=1&almacenId=1",
     "/api/v1/almacen/generar-kardex-pdf?oficinaId=1&articuloId=1&almacenId=1",
-    "/api/v1/almacen/generar-kardex-csv?oficinaId=1&articuloId=1&almacenId=1",
-    "/api/v1/almacen/generar-kardex-pdf?oficinaId=1&articuloId=1&almacenId=1",
     "/api/v1/almacen/reporte-stock-csv?oficinaId=1",
     "/api/v1/almacen/reporte-stock-pdf?oficinaId=1"
 )
@@ -192,35 +260,6 @@ foreach ($path in $unauthPaths) {
         if ($code -eq 404) {
             throw "Sin JWT ($url): HTTP 404 - la imagen API puede estar desactualizada. Ejecuta: docker compose -f deploy/docker-compose.strangler.yml --env-file deploy/.env up -d --build credito-modern-api"
         }
-        if ($code -eq 404) {
-            throw "Sin JWT ($url): HTTP 404 - la imagen API puede estar desactualizada. Ejecuta: docker compose -f deploy/docker-compose.strangler.yml --env-file deploy/.env up -d --build credito-modern-api"
-        }
-        if ($code -ne 401) {
-            throw "Sin JWT ($url): HTTP $code (esperado 401)"
-        }
-        Write-Host "  OK 401 $path" -ForegroundColor Gray
-    }
-}
-
-Write-Host "`n== Rutas API modernas (401 sin JWT, via proxy)" -ForegroundColor Cyan
-$unauthPaths = @(
-    "/api/v1/reportes/catalogo",
-    "/api/v1/reportes/politica-exportacion",
-    "/api/v1/credito/rpt-credito-csv?oficinaId=1&fechaIni=2020-01-01&fechaFin=2020-01-31&estadoCredito=ACT",
-    "/api/v1/credito/rpt-credito-observado-pdf?oficinaId=1",
-    "/api/v1/credito/rpt-credito-condonado-pdf?oficinaId=1&fechaIni=2020-01-01&fechaFin=2020-01-31",
-    "/api/v1/almacen/reporte-stock-csv?oficinaId=1",
-    "/api/v1/almacen/reporte-stock-pdf?oficinaId=1"
-)
-foreach ($path in $unauthPaths) {
-    $url = $BaseUrl.TrimEnd("/") + $path
-    try {
-        Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 10 | Out-Null
-        throw "Se esperaba 401 sin JWT: $url"
-    }
-    catch {
-        $code = 0
-        if ($_.Exception.Response) { $code = [int]$_.Exception.Response.StatusCode }
         if ($code -ne 401) {
             throw "Sin JWT ($url): HTTP $code (esperado 401)"
         }

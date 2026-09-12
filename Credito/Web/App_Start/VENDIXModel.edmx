@@ -459,7 +459,7 @@ advertencia 6002: La tabla o vista 'VENDIX.CREDITO.PlanPagoLibre' no tiene defin
           <Property Name="UsuarioId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
           <Property Name="PersonaId" Type="int" Nullable="false" />
           <Property Name="NombreUsuario" Type="nvarchar" MaxLength="50" Nullable="false" />
-          <Property Name="ClaveUsuario" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="ClaveUsuario" Type="nvarchar" MaxLength="256" Nullable="false" />
           <Property Name="Estado" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="UsuarioOficina">
@@ -3112,7 +3112,7 @@ FROM [CREDITO].[PlanPagoLibre] AS [PlanPagoLibre]</DefiningQuery>
           <Property Name="UsuarioId" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
           <Property Name="PersonaId" Type="Int32" Nullable="false" />
           <Property Name="NombreUsuario" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
-          <Property Name="ClaveUsuario" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ClaveUsuario" Type="String" Nullable="false" MaxLength="256" FixedLength="false" Unicode="true" />
           <Property Name="Estado" Type="Boolean" Nullable="false" />
           <NavigationProperty Name="Caja" Relationship="VENDIXModel.FK_Caja_Usuario" FromRole="Usuario" ToRole="Caja" />
           <NavigationProperty Name="Caja1" Relationship="VENDIXModel.FK_Caja_Usuario1" FromRole="Usuario" ToRole="Caja" />

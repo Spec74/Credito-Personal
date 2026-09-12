@@ -17,6 +17,7 @@ const HUB_CHILDREN: Record<string, string[]> = {
   '/clientes': ['/clientes/'],
   '/caja': ['/caja/'],
   '/tesoreria': ['/tesoreria/'],
+  '/tesoreria/boveda': ['/tesoreria/movimiento-boveda'],
   '/maestros': ['/maestros/', '/mantenimiento/'],
   '/almacen': ['/almacen/'],
   '/ventas': ['/ventas/'],
@@ -26,7 +27,6 @@ const HUB_CHILDREN: Record<string, string[]> = {
 const EXACT_MENU_ROUTES = new Set([
   '/admin/usuarios',
   '/admin/roles',
-  '/admin/comisiones',
   '/mantenimiento/oficinas',
   '/mantenimiento/cajas',
   '/caja/maestro',

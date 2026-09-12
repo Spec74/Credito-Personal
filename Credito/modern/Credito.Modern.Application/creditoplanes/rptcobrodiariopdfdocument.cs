@@ -112,17 +112,32 @@ public static class RptCobroDiarioPdfDocument
                 {
                     row.RelativeItem().Text(t =>
                     {
-                        t.Span("Representante: ").Bold();
-                        t.Span(context.Agente ?? "TODOS");
+                        t.Span("Oficina: ").Bold();
+                        t.Span(string.IsNullOrWhiteSpace(context.Oficina) ? "—" : context.Oficina);
                     });
                     row.RelativeItem().AlignCenter().Text(t =>
                     {
-                        t.Span("Caja: ").Bold();
-                        t.Span(string.IsNullOrWhiteSpace(context.Caja) ? "-" : context.Caja);
+                        t.Span("Gestor: ").Bold();
+                        t.Span(context.Agente ?? "TODOS");
                     });
                     row.RelativeItem().AlignRight().Text(t =>
                     {
-                        t.Span("Nro Clientes: ").Bold();
+                        t.Span("Caja: ").Bold();
+                        t.Span(string.IsNullOrWhiteSpace(context.Caja) ? "—" : context.Caja);
+                    });
+                });
+
+                meta.Item().PaddingTop(3).Row(row =>
+                {
+                    row.RelativeItem().Text(t =>
+                    {
+                        t.Span("Fecha: ").Bold();
+                        t.Span(string.IsNullOrWhiteSpace(context.Fecha) ? "—" : context.Fecha);
+                    });
+                    row.RelativeItem().AlignCenter();
+                    row.RelativeItem().AlignRight().Text(t =>
+                    {
+                        t.Span("N° clientes: ").Bold();
                         t.Span(clientes.ToString(CultureInfo.InvariantCulture));
                     });
                 });

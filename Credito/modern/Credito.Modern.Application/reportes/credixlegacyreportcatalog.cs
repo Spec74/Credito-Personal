@@ -12,7 +12,7 @@ public static class CredixLegacyReportCatalog
         BuildTitleMap();
 
     public static bool TryGetByLegacyTitle(string title, out CredixLegacyReportKey key) =>
-        TitleMap.TryGetValue(title.Trim(), out key);
+        TitleMap.TryGetValue(CredixReportTitle.Normalize(title), out key);
 
     public static CredixLegacyReportDefinition Get(CredixLegacyReportKey key) =>
         Definitions.TryGetValue(key, out var def)
@@ -35,104 +35,134 @@ public static class CredixLegacyReportCatalog
             case CredixLegacyReportKey.CobranzaPagos:
             case CredixLegacyReportKey.CobroDiario:
             case CredixLegacyReportKey.MorosidadGestor:
+                Add("Oficina: ", ctx.Oficina);
                 Add("Fecha: ", ctx.Fecha ?? ctx.FechaReporte);
-                Add("Agente: ", ctx.Agente);
+                Add("Agente: ", ctx.Agente ?? ctx.Gestor);
                 Add("Caja: ", ctx.Caja);
                 Add("Saldo vencido: ", ctx.SaldoVencido);
                 Add("Saldo moroso: ", ctx.SaldoMoroso);
                 Add("N° clientes: ", ctx.NroClientes);
                 break;
             case CredixLegacyReportKey.ClientesNuevosMes:
-                Add("Oficina: ", ctx.Oficina);
-                Add("Agente: ", ctx.Agente ?? ctx.Gestor);
-                if (!string.IsNullOrWhiteSpace(ctx.FechaIni) && !string.IsNullOrWhiteSpace(ctx.FechaFin))
-                    lines.Add(new CredixLegacyPdfDocument.MetadataLine(
-                        "Periodo: ",
-                        $"{ctx.FechaIni} al {ctx.FechaFin}"));
-                break;
             case CredixLegacyReportKey.CajaDiario:
             case CredixLegacyReportKey.ComprobantesCajaChica:
             case CredixLegacyReportKey.CreditoRentabilidad:
             case CredixLegacyReportKey.ReporteCredito:
             case CredixLegacyReportKey.SaldoCarteraCajaDiario:
+            case CredixLegacyReportKey.CreditoCondonado:
+            case CredixLegacyReportKey.CreditosActivos:
+            case CredixLegacyReportKey.CreditosCierres:
+            case CredixLegacyReportKey.CreditosMorososPagados:
+            case CredixLegacyReportKey.ClientesInactivos:
                 Add("Oficina: ", ctx.Oficina);
                 Add("Agente: ", ctx.Agente ?? ctx.Gestor);
-                Add("Desde: ", ctx.FechaIni);
-                Add("Hasta: ", ctx.FechaFin);
+                AddPeriodo(ctx.FechaIni, ctx.FechaFin);
+                Add("Estado: ", ctx.Estado);
                 break;
             case CredixLegacyReportKey.ClientesTopeCredito:
             case CredixLegacyReportKey.ClientesBloqueados:
-            case CredixLegacyReportKey.ClientesInactivos:
-                Add("Fecha: ", ctx.Fecha);
                 Add("Oficina: ", ctx.Oficina);
                 Add("Agente: ", ctx.Agente ?? ctx.Gestor);
+                Add("Fecha: ", ctx.Fecha);
                 break;
             case CredixLegacyReportKey.CreditoObservado:
                 Add("Oficina: ", ctx.Oficina);
                 Add("Agente: ", ctx.Agente ?? ctx.Gestor);
                 break;
+            case CredixLegacyReportKey.CreditoMorosidad:
+                Add("Oficina: ", ctx.Oficina);
+                Add("Fecha corte: ", ctx.Fecha);
+                break;
+            case CredixLegacyReportKey.CreditoAprobacion:
+                Add("Oficina: ", ctx.Oficina);
+                Add("Agente: ", ctx.Agente ?? ctx.Gestor);
+                Add("Fecha aprobación: ", ctx.Fecha);
+                break;
+            case CredixLegacyReportKey.CentralRiesgoGenerar:
+            case CredixLegacyReportKey.ListarSaldoCartera:
+                Add("Oficina: ", ctx.Oficina);
+                Add("Agente: ", ctx.Agente ?? ctx.Gestor);
+                Add("Periodo: ", ctx.Fecha ?? ctx.FechaReporte);
+                break;
             default:
                 Add("Oficina: ", ctx.Oficina);
                 Add("Agente: ", ctx.Agente ?? ctx.Gestor);
+                Add("Caja: ", ctx.Caja);
                 Add("Estado: ", ctx.Estado);
-                Add("Desde: ", ctx.FechaIni);
-                Add("Hasta: ", ctx.FechaFin);
+                AddPeriodo(ctx.FechaIni, ctx.FechaFin);
                 Add("Fecha: ", ctx.Fecha ?? ctx.FechaReporte);
+                Add("Referencia: ", ctx.Referencia);
                 break;
         }
 
         return lines;
+
+        void AddPeriodo(string? ini, string? fin)
+        {
+            if (!string.IsNullOrWhiteSpace(ini) && !string.IsNullOrWhiteSpace(fin))
+                Add("Periodo: ", $"{ini} al {fin}");
+            else
+            {
+                Add("Desde: ", ini);
+                Add("Hasta: ", fin);
+            }
+        }
     }
 
-    private static Dictionary<string, CredixLegacyReportKey> BuildTitleMap() =>
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Cobro diario"] = CredixLegacyReportKey.CobroDiario,
-            ["Morosidad por gestor"] = CredixLegacyReportKey.MorosidadGestor,
-            ["Clientes inactivos"] = CredixLegacyReportKey.ClientesInactivos,
-            ["Clientes bloqueados"] = CredixLegacyReportKey.ClientesBloqueados,
-            ["Clientes tope credito"] = CredixLegacyReportKey.ClientesTopeCredito,
-            ["Credito observado"] = CredixLegacyReportKey.CreditoObservado,
-            ["Créditos observados"] = CredixLegacyReportKey.CreditoObservado,
-            ["Crédito observado"] = CredixLegacyReportKey.CreditoObservado,
-            ["Créditos observados"] = CredixLegacyReportKey.CreditoObservado,
-            ["Crédito observado"] = CredixLegacyReportKey.CreditoObservado,
-            ["Clientes nuevos mes"] = CredixLegacyReportKey.ClientesNuevosMes,
-            ["Credito condonado"] = CredixLegacyReportKey.CreditoCondonado,
-            ["Créditos condonados"] = CredixLegacyReportKey.CreditoCondonado,
-            ["Crédito condonado"] = CredixLegacyReportKey.CreditoCondonado,
-            ["Créditos condonados"] = CredixLegacyReportKey.CreditoCondonado,
-            ["Crédito condonado"] = CredixLegacyReportKey.CreditoCondonado,
-            ["Credito rentabilidad"] = CredixLegacyReportKey.CreditoRentabilidad,
-            ["Credito aprobacion"] = CredixLegacyReportKey.CreditoAprobacion,
-            ["Creditos activos"] = CredixLegacyReportKey.CreditosActivos,
-            ["Creditos cierres"] = CredixLegacyReportKey.CreditosCierres,
-            ["Creditos morosos pagados"] = CredixLegacyReportKey.CreditosMorososPagados,
-            ["Reporte credito"] = CredixLegacyReportKey.ReporteCredito,
-            ["Caja diario"] = CredixLegacyReportKey.CajaDiario,
-            ["Credito vencido"] = CredixLegacyReportKey.CreditoVencido,
-            ["Movimiento caja anulado"] = CredixLegacyReportKey.MovimientoCajaAnulado,
-            ["Saldo cartera caja diario"] = CredixLegacyReportKey.SaldoCarteraCajaDiario,
-            ["Comprobantes caja chica"] = CredixLegacyReportKey.ComprobantesCajaChica,
-            ["Cajas asignadas"] = CredixLegacyReportKey.CajasAsignadas,
-            ["Cobro diario detalle"] = CredixLegacyReportKey.CobroDiarioDetalle,
-            ["Cobranza pagos por gestor"] = CredixLegacyReportKey.CobranzaPagos,
-            ["Reporte de cobranza por gestor"] = CredixLegacyReportKey.CobranzaPagos,
-            ["Cobranza pagos por gestor"] = CredixLegacyReportKey.CobranzaPagos,
-            ["Reporte de cobranza por gestor"] = CredixLegacyReportKey.CobranzaPagos,
-            ["Movimiento credito"] = CredixLegacyReportKey.MovimientoCredito,
-            ["Listar saldo cartera"] = CredixLegacyReportKey.ListarSaldoCartera,
-            ["Aval persona"] = CredixLegacyReportKey.AvalPersona,
-            ["Saldos caja"] = CredixLegacyReportKey.SaldosCaja,
-            ["Movimiento boveda"] = CredixLegacyReportKey.MovimientoBoveda,
-            ["Central riesgo generar"] = CredixLegacyReportKey.CentralRiesgoGenerar,
-            ["Pagos no verificados"] = CredixLegacyReportKey.PagosNoVerificados,
-            ["Reporte stock"] = CredixLegacyReportKey.ReporteStock,
-            ["Stock anulados"] = CredixLegacyReportKey.StockAnulados,
-            ["Lista precio"] = CredixLegacyReportKey.ListaPrecio,
-            ["Kardex"] = CredixLegacyReportKey.Kardex,
-            ["Rentabilidad venta"] = CredixLegacyReportKey.RentabilidadVenta,
-        };
+    private static Dictionary<string, CredixLegacyReportKey> BuildTitleMap()
+    {
+        var map = new Dictionary<string, CredixLegacyReportKey>(StringComparer.Ordinal);
+        void Add(string title, CredixLegacyReportKey key) =>
+            map[CredixReportTitle.Normalize(title)] = key;
+
+        Add("Cobro diario", CredixLegacyReportKey.CobroDiario);
+        Add("Morosidad por gestor", CredixLegacyReportKey.MorosidadGestor);
+        Add("Clientes inactivos", CredixLegacyReportKey.ClientesInactivos);
+        Add("Clientes bloqueados", CredixLegacyReportKey.ClientesBloqueados);
+        Add("Clientes tope credito", CredixLegacyReportKey.ClientesTopeCredito);
+        Add("Credito observado", CredixLegacyReportKey.CreditoObservado);
+        Add("Creditos observados", CredixLegacyReportKey.CreditoObservado);
+        Add("Clientes nuevos mes", CredixLegacyReportKey.ClientesNuevosMes);
+        Add("Clientes nuevos del mes", CredixLegacyReportKey.ClientesNuevosMes);
+        Add("Credito condonado", CredixLegacyReportKey.CreditoCondonado);
+        Add("Creditos condonados", CredixLegacyReportKey.CreditoCondonado);
+        Add("Credito rentabilidad", CredixLegacyReportKey.CreditoRentabilidad);
+        Add("Rentabilidad credito", CredixLegacyReportKey.CreditoRentabilidad);
+        Add("Credito aprobacion", CredixLegacyReportKey.CreditoAprobacion);
+        Add("Aprobacion credito", CredixLegacyReportKey.CreditoAprobacion);
+        Add("Creditos activos", CredixLegacyReportKey.CreditosActivos);
+        Add("Creditos cierres", CredixLegacyReportKey.CreditosCierres);
+        Add("Creditos morosos pagados", CredixLegacyReportKey.CreditosMorososPagados);
+        Add("Morosos pagados", CredixLegacyReportKey.CreditosMorososPagados);
+        Add("Reporte credito", CredixLegacyReportKey.ReporteCredito);
+        Add("Caja diario", CredixLegacyReportKey.CajaDiario);
+        Add("Credito vencido", CredixLegacyReportKey.CreditoVencido);
+        Add("Movimiento caja anulado", CredixLegacyReportKey.MovimientoCajaAnulado);
+        Add("Saldo cartera caja diario", CredixLegacyReportKey.SaldoCarteraCajaDiario);
+        Add("Comprobantes caja chica", CredixLegacyReportKey.ComprobantesCajaChica);
+        Add("Cajas asignadas", CredixLegacyReportKey.CajasAsignadas);
+        Add("Cobro diario detalle", CredixLegacyReportKey.CobroDiarioDetalle);
+        Add("Cobranza pagos por gestor", CredixLegacyReportKey.CobranzaPagos);
+        Add("Reporte de cobranza por gestor", CredixLegacyReportKey.CobranzaPagos);
+        Add("Movimiento credito", CredixLegacyReportKey.MovimientoCredito);
+        Add("Listar saldo cartera", CredixLegacyReportKey.ListarSaldoCartera);
+        Add("Saldo cartera", CredixLegacyReportKey.ListarSaldoCartera);
+        Add("Aval persona", CredixLegacyReportKey.AvalPersona);
+        Add("Avales", CredixLegacyReportKey.AvalPersona);
+        Add("Saldos caja", CredixLegacyReportKey.SaldosCaja);
+        Add("Movimiento boveda", CredixLegacyReportKey.MovimientoBoveda);
+        Add("Central riesgo generar", CredixLegacyReportKey.CentralRiesgoGenerar);
+        Add("Central de riesgo", CredixLegacyReportKey.CentralRiesgoGenerar);
+        Add("Pagos no verificados", CredixLegacyReportKey.PagosNoVerificados);
+        Add("Reporte stock", CredixLegacyReportKey.ReporteStock);
+        Add("Stock anulados", CredixLegacyReportKey.StockAnulados);
+        Add("Lista precio", CredixLegacyReportKey.ListaPrecio);
+        Add("Lista de precios", CredixLegacyReportKey.ListaPrecio);
+        Add("Kardex", CredixLegacyReportKey.Kardex);
+        Add("Rentabilidad venta", CredixLegacyReportKey.RentabilidadVenta);
+        Add("Morosidad credito", CredixLegacyReportKey.CreditoMorosidad);
+        return map;
+    }
 
     private static Dictionary<CredixLegacyReportKey, CredixLegacyReportDefinition> BuildDefinitions() =>
         new()
@@ -146,38 +176,37 @@ public static class CredixLegacyReportCatalog
             [CredixLegacyReportKey.ClientesInactivos] = Def(
                 "CLIENTES INACTIVOS",
                 Cols(
-                    L("PersonaId", "Persona"),
                     L("Agente", "Agente"),
-                    L("Codigo", "Código"),
-                    L("Dni", "DNI"),
+                    C("Codigo", "Código"),
+                    C("Dni", "DNI"),
                     L("Cliente", "Cliente"),
                     L("Direccion", "Dirección"),
                     L("DireccionRef", "Dir. ref."),
-                    L("Celular", "Celular"),
-                    L("Calificacion", "Calificación"),
+                    C("Celular", "Celular"),
+                    C("Calificacion", "Calificación"),
                     L("DireccionNegocio", "Dir. negocio"),
                     L("DireccionNegocioRef", "Dir. neg. ref."))),
             [CredixLegacyReportKey.ClientesBloqueados] = Def(
                 "CLIENTES BLOQUEADOS",
                 Cols(
                     L("Agente", "Agente"),
-                    L("NumeroDocumento", "N° documento"),
+                    C("NumeroDocumento", "N° documento"),
                     L("Cliente", "Cliente"),
                     L("Direccion", "Dirección"),
                     L("DireccionRef", "Dir. ref."),
-                    L("Celular", "Celular"),
-                    L("Calificacion", "Calificación"),
+                    C("Celular", "Celular"),
+                    C("Calificacion", "Calificación"),
                     L("Nota", "Nota"))),
             [CredixLegacyReportKey.ClientesTopeCredito] = Def(
                 "CLIENTES TOPE CRÉDITO",
                 Cols(
                     L("Agente", "Agente"),
-                    L("NumeroDocumento", "N° documento"),
+                    C("NumeroDocumento", "N° documento"),
                     L("Cliente", "Cliente"),
                     L("Direccion", "Dirección"),
                     L("DireccionRef", "Dir. ref."),
-                    L("Celular", "Celular"),
-                    L("Calificacion", "Calificación"),
+                    C("Celular", "Celular"),
+                    C("Calificacion", "Calificación"),
                     N("TopeCredito", "Tope crédito"),
                     L("Nota", "Nota"))),
             [CredixLegacyReportKey.CreditoObservado] = Def(
@@ -185,38 +214,36 @@ public static class CredixLegacyReportCatalog
                 ObservadoCols()),
             [CredixLegacyReportKey.ClientesNuevosMes] = Def(
                 "CLIENTES NUEVOS DEL MES",
-                ObservadoCols()),
+                ClientesNuevosCols()),
             [CredixLegacyReportKey.CreditoCondonado] = Def(
                 "CRÉDITOS CONDONADOS",
                 Cols(
-                    L("OficinaId", "Oficina Id"),
                     L("Oficina", "Oficina"),
-                    N("CreditoId", "Cred"),
+                    C("CreditoId", "N° créd."),
                     L("Cliente", "Cliente"),
-                    L("FechaPrimerPago", "F. primer pago"),
-                    L("FechaVencimiento", "F. vencimiento"),
+                    C("FechaPrimerPago", "F. primer pago"),
+                    C("FechaVencimiento", "F. vencimiento"),
                     N("MontoCredito", "Monto crédito"),
                     N("Interes", "Interés"),
                     N("MontoCondonado", "Monto condonado"),
-                    L("AgenteId", "Agente Id"),
                     L("Agente", "Agente"),
                     L("Observacion", "Observación"))),
             [CredixLegacyReportKey.CreditoRentabilidad] = Def(
                 "RENTABILIDAD DE CRÉDITOS",
                 Cols(
-                    N("CreditoId", "Cred"),
+                    C("CreditoId", "N° créd."),
                     L("Oficina", "Oficina"),
-                    L("Codigo", "Código"),
+                    C("Codigo", "Código"),
                     L("Cliente", "Cliente"),
-                    L("FechaDesembolso", "F. desembolso"),
-                    L("FechaPago", "F. pago"),
-                    N("NumeroCuotas", "N° cuotas"),
-                    L("FormaPago", "Forma pago"),
-                    L("Estado", "Estado"),
+                    C("FechaDesembolso", "F. desembolso"),
+                    C("FechaPago", "F. pago"),
+                    C("NumeroCuotas", "N° cuotas"),
+                    C("FormaPago", "Forma pago"),
+                    C("Estado", "Estado"),
                     N("MontoCredito", "Monto crédito"),
                     N("Interes", "Interés"),
                     N("SumCuota", "Σ cuota"),
-                    N("CuotasPagadas", "Cuotas pag."),
+                    C("CuotasPagadas", "Cuotas pag."),
                     N("MontoGastosAdm", "Gastos adm."),
                     N("SumInteres", "Σ interés"),
                     N("SumMora", "Σ mora"),
@@ -224,13 +251,13 @@ public static class CredixLegacyReportCatalog
             [CredixLegacyReportKey.CreditoAprobacion] = Def(
                 "CRÉDITOS APROBADOS",
                 Cols(
-                    N("CreditoId", "Cred"),
+                    C("CreditoId", "N° créd."),
                     L("Oficina", "Oficina"),
                     L("Cliente", "Cliente"),
-                    L("FechaAprobacion", "F. aprobación"),
+                    C("FechaAprobacion", "F. aprobación"),
                     N("MontoCredito", "Monto crédito"),
                     N("Interes", "Interés"),
-                    N("NumeroCuotas", "N° cuotas"),
+                    C("NumeroCuotas", "N° cuotas"),
                     N("MontoDesembolso", "Desembolso"),
                     L("Gestor", "Gestor"))),
             [CredixLegacyReportKey.CreditosActivos] = Def(
@@ -239,50 +266,50 @@ public static class CredixLegacyReportCatalog
             [CredixLegacyReportKey.CreditosCierres] = Def(
                 "CRÉDITOS CIERRES",
                 Cols(
-                    N("CreditoId", "Cred"),
-                    L("Estado", "Estado"),
+                    C("CreditoId", "N° créd."),
+                    C("Estado", "Estado"),
                     L("Agente", "Agente"),
-                    L("Codigo", "Código"),
+                    C("Codigo", "Código"),
                     L("Cliente", "Cliente"),
                     N("MontoCredito", "Monto crédito"),
-                    L("FormaPago", "Forma pago"),
-                    N("NumeroCuotas", "N° cuotas"),
+                    C("FormaPago", "Forma pago"),
+                    C("NumeroCuotas", "N° cuotas"),
                     N("Interes", "Interés"),
                     N("MontoGastosAdm", "Gastos adm."),
-                    L("CentralRiesgo", "Cent. riesgo"),
-                    L("FechaPrimerPago", "F. primer pago"),
-                    L("FechaVencimiento", "F. vencimiento"),
+                    C("CentralRiesgo", "Cent. riesgo"),
+                    C("FechaPrimerPago", "F. primer pago"),
+                    C("FechaVencimiento", "F. vencimiento"),
                     N("SumAmortizacion", "Σ capital"),
                     N("SumInteres", "Σ interés"),
                     N("SumCuota", "Σ cuota"),
-                    N("SumNroCuota", "Σ n° cuota"))),
+                    C("SumNroCuota", "Σ n° cuota"))),
             [CredixLegacyReportKey.CreditosMorososPagados] = Def(
                 "CRÉDITOS MOROSOS PAGADOS",
                 Cols(
-                    N("CreditoId", "Cred"),
+                    C("CreditoId", "N° créd."),
                     L("Cliente", "Cliente"),
                     N("MontoCredito", "Monto crédito"),
                     N("Interes", "Interés"),
-                    L("FormaPago", "Forma pago"),
-                    N("NumeroCuotas", "N° cuotas"),
+                    C("FormaPago", "Forma pago"),
+                    C("NumeroCuotas", "N° cuotas"),
                     N("MontoGastosAdm", "Gastos adm."),
-                    L("CentralRiesgo", "Cent. riesgo"),
-                    L("FechaPrimerPago", "F. primer pago"),
-                    L("FechaVencimiento", "F. vencimiento"),
-                    L("FechaPagado", "F. pagado"),
+                    C("CentralRiesgo", "Cent. riesgo"),
+                    C("FechaPrimerPago", "F. primer pago"),
+                    C("FechaVencimiento", "F. vencimiento"),
+                    C("FechaPagado", "F. pagado"),
                     L("Agente", "Agente"))),
             [CredixLegacyReportKey.ReporteCredito] = Def(
                 "REPORTE DE CRÉDITOS",
                 Cols(
                     L("Producto", "Producto"),
                     L("Cliente", "Cliente"),
-                    N("CreditoId", "Cred"),
-                    L("FechaDesembolso", "F. desembolso"),
-                    L("FechaVcto", "F. vcto"),
-                    L("FormaPago", "Forma pago"),
-                    N("NumeroCuotas", "N° cuotas"),
+                    C("CreditoId", "N° créd."),
+                    C("FechaDesembolso", "F. desembolso"),
+                    C("FechaVcto", "F. vcto"),
+                    C("FormaPago", "Forma pago"),
+                    C("NumeroCuotas", "N° cuotas"),
                     N("Interes", "Interés"),
-                    L("Estado", "Estado"),
+                    C("Estado", "Estado"),
                     N("MontoProducto", "Monto producto"),
                     N("MontoInicial", "Monto inicial"),
                     N("MontoCredito", "Monto crédito"),
@@ -293,7 +320,7 @@ public static class CredixLegacyReportCatalog
             [CredixLegacyReportKey.CajaDiario] = Def(
                 "REPORTE CAJA DIARIO",
                 Cols(
-                    N("CajaDiarioId", "Id"),
+                    C("CajaDiarioId", "N°"),
                     L("Oficina", "Oficina"),
                     L("Caja", "Caja"),
                     L("Agente", "Agente"),
@@ -301,17 +328,17 @@ public static class CredixLegacyReportCatalog
                     N("Entradas", "Entradas"),
                     N("Salidas", "Salidas"),
                     N("SaldoFinal", "Saldo final"),
-                    L("FechaIniOperacion", "Inicio op."),
-                    L("FechaFinOperacion", "Fin op."))),
+                    C("FechaIniOperacion", "Inicio op."),
+                    C("FechaFinOperacion", "Fin op."))),
             [CredixLegacyReportKey.CreditoVencido] = Def(
                 "CRÉDITO VENCIDO",
                 Cols(
                     L("Gestor", "Gestor"),
-                    N("CreditoId", "Cred"),
+                    C("CreditoId", "N° créd."),
                     L("Cliente", "Cliente"),
                     N("MontoCredito", "Monto crédito"),
-                    L("FormaPago", "Forma pago"),
-                    L("FechaVencimiento", "F. vencimiento"),
+                    C("FormaPago", "Forma pago"),
+                    C("FechaVencimiento", "F. vencimiento"),
                     N("CreditoVencido", "Vencido"),
                     N("VencidoMenor60", "< 60 días"),
                     N("VencidoMayor60", "> 60 días"),
@@ -319,15 +346,15 @@ public static class CredixLegacyReportCatalog
             [CredixLegacyReportKey.MovimientoCajaAnulado] = Def(
                 "MOVIMIENTOS CAJA ANULADOS",
                 Cols(
-                    N("MovimientoCajaId", "Id"),
+                    C("MovimientoCajaId", "N°"),
                     L("Operacion", "Operación"),
                     N("ImportePago", "Importe"),
                     L("Persona", "Persona"),
                     L("Descripcion", "Descripción"),
-                    L("FechaReg", "F. registro"),
+                    C("FechaReg", "F. registro"),
                     L("UsuarioRegistro", "Usuario reg."),
                     L("MotivoAnulacion", "Motivo"),
-                    L("FechaAnulacion", "F. anulación"),
+                    C("FechaAnulacion", "F. anulación"),
                     L("UsuarioAnulacion", "Usuario anul."))),
             [CredixLegacyReportKey.SaldoCarteraCajaDiario] = Def(
                 "SALDO CARTERA Y CAJA DIARIO",
@@ -336,23 +363,23 @@ public static class CredixLegacyReportCatalog
                 "COMPROBANTES CAJA CHICA",
                 Cols(
                     L("Gasto", "Gasto"),
-                    L("Fecha", "Fecha"),
-                    L("Documento", "Documento"),
-                    L("Serie", "Serie"),
-                    L("Numero", "Número"),
-                    L("RUC", "RUC"),
+                    C("Fecha", "Fecha"),
+                    C("Documento", "Documento"),
+                    C("Serie", "Serie"),
+                    C("Numero", "Número"),
+                    C("RUC", "RUC"),
                     L("RazonSocial", "Razón social"),
                     L("DetalleGasto", "Detalle"),
                     N("Importe", "Importe"))),
             [CredixLegacyReportKey.CajasAsignadas] = Def(
                 "CAJAS ASIGNADAS",
                 Cols(
-                    N("CajaDiarioId", "Id"),
+                    C("CajaDiarioId", "N°"),
                     L("Caja", "Caja"),
-                    L("Modo", "Modo"),
+                    C("Modo", "Modo"),
                     L("Cajero", "Cajero"),
-                    L("FechaIniOperacion", "Inicio"),
-                    L("FechaFinOperacion", "Fin"),
+                    C("FechaIniOperacion", "Inicio"),
+                    C("FechaFinOperacion", "Fin"),
                     N("SaldoInicial", "Saldo ini."),
                     N("Salidas", "Salidas"),
                     N("Entradas", "Entradas"),
@@ -367,8 +394,7 @@ public static class CredixLegacyReportCatalog
             [CredixLegacyReportKey.MovimientoCredito] = Def(
                 "MOVIMIENTO CRÉDITO",
                 Cols(
-                    N("MovimientoCajaId", "Id"),
-                    L("Fecha", "Fecha"),
+                    C("Fecha", "Fecha"),
                     L("Operacion", "Operación"),
                     L("Glosa", "Glosa"),
                     N("ImportePago", "Importe"),
@@ -377,257 +403,277 @@ public static class CredixLegacyReportCatalog
             [CredixLegacyReportKey.ListarSaldoCartera] = Def(
                 "SALDO CARTERA",
                 Cols(
-                    L("AgenteId", "Agente Id"),
-                    L("OficinaId", "Oficina Id"),
-                    N("NroDesembolsos", "N° desembolsos"),
+                    C("AgenteId", "N° agente"),
+                    C("OficinaId", "N° oficina"),
+                    C("NroDesembolsos", "N° desembolsos"),
                     N("MontoDesembolsos", "Monto desembolsos"),
                     N("SaldoCartera", "Saldo cartera"),
-                    N("NroClientesSaldoCartera", "Cli. cartera"),
+                    C("NroClientesSaldoCartera", "Cli. cartera"),
                     N("SaldoMoraCartera", "Saldo mora"),
-                    N("NroClientesSaldoMoraCartera", "Cli. mora"),
+                    C("NroClientesSaldoMoraCartera", "Cli. mora"),
                     N("SaldoVencido", "Saldo vencido"),
                     N("SaldoMorosidad", "Saldo morosidad"),
-                    N("NroClientesNuevos", "Cli. nuevos"),
-                    L("FechaCierre", "F. cierre"))),
+                    C("NroClientesNuevos", "Cli. nuevos"),
+                    C("FechaCierre", "F. cierre"))),
             [CredixLegacyReportKey.AvalPersona] = Def(
                 "AVAL PERSONA",
                 Cols(
                     L("Grupo", "Grupo"),
-                    N("CreditoId", "Cred"),
+                    C("CreditoId", "N° créd."),
                     N("MontoCredito", "Monto"),
-                    L("Estado", "Estado"),
+                    C("Estado", "Estado"),
                     L("Persona", "Persona"),
-                    L("Dni", "DNI"),
-                    L("Celular", "Celular"))),
+                    C("Dni", "DNI"),
+                    C("Celular", "Celular"))),
             [CredixLegacyReportKey.SaldosCaja] = Def(
                 "SALDOS CAJA",
                 Cols(
-                    N("MovimientoCajaId", "Id"),
+                    C("FechaReg", "Fecha"),
                     L("Operacion", "Operación"),
-                    L("FechaReg", "Fecha"),
-                    L("Codigo", "Código"),
+                    C("Codigo", "Código"),
                     L("Cliente", "Cliente"),
                     N("ImportePago", "Importe"),
-                    L("IndEntrada", "Entrada"),
+                    C("IndEntrada", "Entrada"),
                     L("Glosa", "Glosa"),
-                    L("TipoPago", "Tipo pago"))),
+                    C("TipoPago", "Tipo pago"))),
             [CredixLegacyReportKey.MovimientoBoveda] = Def(
                 "MOVIMIENTO BÓVEDA",
                 Cols(
-                    N("MovimientoBovedaId", "Id"),
-                    L("FechaReg", "Fecha"),
-                    L("CodOperacion", "Cód. op."),
+                    C("FechaReg", "Fecha"),
+                    C("CodOperacion", "Cód. op."),
                     L("Glosa", "Glosa"),
                     N("Entrada", "Entrada"),
                     N("Salida", "Salida"),
-                    L("TipoPago", "Tipo pago"),
-                    L("Agente", "Agente")),
-                landscape: false),
+                    C("TipoPago", "Tipo pago"),
+                    L("Agente", "Agente"))),
+            [CredixLegacyReportKey.CreditoMorosidad] = Def(
+                "MOROSIDAD DE CRÉDITOS",
+                Cols(
+                    C("CreditoId", "N° créd."),
+                    L("Cliente", "Cliente"),
+                    L("Direccion", "Dirección"),
+                    C("Celular", "Celular"),
+                    C("FechaDesembolso", "F. desembolso"),
+                    C("FechaVcto", "F. vcto"),
+                    L("Articulo", "Artículo"),
+                    N("MontoCredito", "Monto crédito"),
+                    N("SaldoCredito", "Saldo"),
+                    C("FechaUltPago", "Últ. pago"),
+                    N("CapitalAtrazo", "Cap. atraso"),
+                    N("GA", "GA"),
+                    N("InteresAtrazo", "Int. atraso"),
+                    N("Mora", "Mora"),
+                    N("ImporteLibre", "Imp. libre"),
+                    C("DiasAtrazo", "Días"),
+                    C("CuotasAtrazo", "Cuotas"),
+                    N("DeudaAtrazo", "Deuda atraso"))),
             [CredixLegacyReportKey.CentralRiesgoGenerar] = Def(
                 "CENTRAL DE RIESGO",
                 Cols(
-                    L("Anio", "Año"),
-                    L("Mes", "Mes"),
-                    N("CreditoId", "Cred"),
-                    L("Periodo", "Periodo"),
+                    C("Anio", "Año"),
+                    C("Mes", "Mes"),
+                    C("CreditoId", "N° créd."),
+                    C("Periodo", "Periodo"),
                     L("Entidad", "Entidad"),
-                    L("TipoDoc", "Tipo doc."),
-                    L("NumDoc", "N° doc."),
+                    C("TipoDoc", "Tipo doc."),
+                    C("NumDoc", "N° doc."),
                     L("RazonSocial", "Razón social"),
                     L("ApePat", "Ap. paterno"),
                     L("ApeMat", "Ap. materno"),
                     L("Nombres", "Nombres"),
-                    L("TipoPersona", "Tipo persona"),
-                    L("ModalidadCredito", "Modalidad"),
+                    C("TipoPersona", "Tipo persona"),
+                    C("ModalidadCredito", "Modalidad"),
                     N("DeudaMenor30", "Deuda < 30"),
                     N("DeudaMayor30", "Deuda > 30"),
-                    L("Calificacion", "Calificación"),
-                    N("DiasAtrazo", "Días atraso"),
+                    C("Calificacion", "Calificación"),
+                    C("DiasAtrazo", "Días atraso"),
                     L("Direccion", "Dirección"),
-                    L("celular", "Celular"))),
+                    C("celular", "Celular"))),
             [CredixLegacyReportKey.PagosNoVerificados] = Def(
                 "PAGOS NO VERIFICADOS",
                 Cols(
-                    N("MovimientoCajaId", "Id"),
                     L("Cliente", "Cliente"),
                     L("Movimiento", "Movimiento"),
                     N("ImportePago", "Importe"),
-                    L("TipoPago", "Tipo pago"),
-                    L("FechaTransferencia", "F. transferencia"),
+                    C("TipoPago", "Tipo pago"),
+                    C("FechaTransferencia", "F. transferencia"),
                     L("Registro", "Registro"))),
             [CredixLegacyReportKey.ReporteStock] = Def(
                 "REPORTE STOCK",
                 Cols(
-                    N("Nro", "Nro"),
-                    L("TipoArticulo", "Tipo"),
-                    N("ArticuloId", "Art. Id"),
+                    C("Nro", "Nro"),
+                    C("TipoArticulo", "Tipo"),
                     L("Articulo", "Artículo"),
-                    N("Stock", "Stock"),
+                    C("Stock", "Stock"),
                     L("Series", "Series"))),
             [CredixLegacyReportKey.StockAnulados] = Def(
                 "STOCK ANULADOS",
                 Cols(
-                    N("MovimientoId", "Mov. Id"),
                     L("Movimiento", "Movimiento"),
                     L("Observacion", "Observación"),
-                    L("Fecha", "Fecha"),
-                    N("Cantidad", "Cantidad"),
+                    C("Fecha", "Fecha"),
+                    C("Cantidad", "Cantidad"),
                     L("Detalle", "Detalle"))),
             [CredixLegacyReportKey.ListaPrecio] = Def(
                 "LISTA DE PRECIOS",
                 Cols(
-                    N("ArticuloId", "Art. Id"),
-                    L("TipoArticulo", "Tipo"),
+                    C("TipoArticulo", "Tipo"),
                     L("ArticuloDes", "Artículo"),
                     N("Monto", "Monto"),
                     N("Descuento", "Descuento"),
-                    N("PuntosCanje", "Puntos")),
+                    C("PuntosCanje", "Puntos")),
                 landscape: false),
             [CredixLegacyReportKey.Kardex] = Def(
                 "KARDEX",
                 Cols(
-                    N("MovimientoDetId", "Det. Id"),
-                    L("Fecha", "Fecha"),
+                    C("Fecha", "Fecha"),
                     L("Concepto", "Concepto"),
-                    N("CantEnt", "Cant. ent."),
+                    C("CantEnt", "Cant. ent."),
                     N("PUEnt", "PU ent."),
                     N("TotalEnt", "Total ent."),
-                    N("CantSal", "Cant. sal."),
+                    C("CantSal", "Cant. sal."),
                     N("PUSal", "PU sal."),
                     N("TotalSal", "Total sal."),
-                    N("CantSaldo", "Cant. saldo"),
+                    C("CantSaldo", "Cant. saldo"),
                     N("PUSaldo", "PU saldo"),
                     N("TotalSaldo", "Total saldo")),
                 landscape: false),
             [CredixLegacyReportKey.RentabilidadVenta] = Def(
                 "RENTABILIDAD VENTA",
                 Cols(
-                    N("Nro", "Nro"),
-                    L("Codigo", "Código"),
+                    C("Nro", "Nro"),
+                    C("Codigo", "Código"),
                     L("Articulo", "Artículo"),
-                    N("MovimientoId", "Mov. Id"),
-                    L("FechaEnt", "F. entrada"),
+                    C("FechaEnt", "F. entrada"),
                     N("PrecioEnt", "P. entrada"),
-                    N("OrdenVentaId", "Orden"),
-                    L("FechaSal", "F. salida"),
+                    C("FechaSal", "F. salida"),
                     N("PrecioSal", "P. salida"),
-                    L("Modalidad", "Modalidad"),
+                    C("Modalidad", "Modalidad"),
                     N("Rentabilidad", "Rentabilidad"),
                     L("Cliente", "Cliente"))),
         };
 
     private static CredixLegacyColumnSpec[] CobranzaDetalleCols() =>
         Cols(
-            N("Nro", "Nro"),
+            C("Nro", "Nro"),
             L("Cliente", "Cliente"),
-            L("FormaPago", "Tipo"),
+            C("FormaPago", "Tipo"),
             N("MontoCredito", "Crédito"),
             N("Interes", "Interés"),
-            N("MontoTotal", "Monto Total"),
-            L("FechaPrimerPago", "1er Pago"),
-            L("FechaVencimiento", "Vencimiento"),
-            N("TotalPago", "Total Pagado"),
+            N("MontoTotal", "Monto total"),
+            C("FechaPrimerPago", "1er pago"),
+            C("FechaVencimiento", "Vencimiento"),
+            N("TotalPago", "Total pagado"),
             N("Saldo", "Saldo"),
-            N("DiasAtrazoMora", "Días mora"),
+            C("DiasAtrazoMora", "Días mora"),
             L("Pagos", "Pagos"));
 
     private static CredixLegacyColumnSpec[] CobroDiarioCols() =>
         Cols(
-            N("Nro", "Nro"),
-            N("Orden", "Ord."),
-            N("CreditoId", "Cred"),
+            C("Nro", "Nro"),
+            C("Orden", "Ord."),
+            C("CreditoId", "N° créd."),
             L("Cliente", "Cliente"),
-            L("Celular", "Celular"),
+            C("Celular", "Celular"),
             N("MontoCredito", "Monto crédito"),
             N("Interes", "Interés"),
             N("CuotaPlan", "Cuota plan"),
             N("Saldo", "Saldo"),
-            N("DiasAtrazo", "Días atraso"),
-            N("NroCuotasPen", "Cuotas pend."),
+            C("DiasAtrazo", "Días atraso"),
+            C("NroCuotasPen", "Cuotas pend."),
             N("CuotaTotal", "Cuota total"),
             L("Direccion", "Dirección"),
-            L("FechaPago", "F. pago"),
-            L("FechaPrimerPago", "F. 1er pago"),
-            L("FechaVencimiento", "F. vcto"),
+            C("FechaPago", "F. pago"),
+            C("FechaPrimerPago", "F. 1er pago"),
+            C("FechaVencimiento", "F. vcto"),
             N("Mora", "Mora"),
             N("MontoTotal", "Monto total"),
             L("Negocio", "Negocio"),
-            L("FormaPago", "Forma pago"),
+            C("FormaPago", "Forma pago"),
             N("TopeCredito", "Tope crédito"),
-            L("ClasificacionRiesgoSBS", "Clasif. SBS"));
+            C("ClasificacionRiesgoSBS", "Clasif. SBS"));
 
     private static CredixLegacyColumnSpec[] ObservadoCols() =>
         Cols(
-            L("OficinaId", "Of. Id"),
             L("Oficina", "Oficina"),
-            N("CreditoId", "Cred"),
+            C("CreditoId", "N° créd."),
             L("Cliente", "Cliente"),
-            L("FechaPrimerPago", "F. 1er pago"),
-            L("FechaVencimiento", "F. vcto"),
+            C("FechaPrimerPago", "F. 1er pago"),
+            C("FechaVencimiento", "F. vcto"),
             N("MontoCredito", "Monto crédito"),
             N("Interes", "Interés"),
-            L("AgenteId", "Ag. Id"),
             L("Agente", "Agente"),
             L("Observacion", "Observación"),
-            L("TramiteAdm", "Trámite adm."),
-            L("CentralRiesgo", "Cent. riesgo"));
+            N("TramiteAdm", "Trámite adm."),
+            C("CentralRiesgo", "Cent. riesgo"));
+
+    private static CredixLegacyColumnSpec[] ClientesNuevosCols() =>
+        Cols(
+            L("Oficina", "Oficina"),
+            C("CreditoId", "N° créd."),
+            L("Cliente", "Cliente"),
+            C("FechaPrimerPago", "F. 1er pago"),
+            C("FechaVencimiento", "F. vcto"),
+            N("MontoCredito", "Monto crédito"),
+            N("Interes", "Interés"),
+            L("Agente", "Agente"),
+            L("Observacion", "Observación"));
 
     private static CredixLegacyColumnSpec[] CreditosActivosCols() =>
         Cols(
-            N("Nro", "Nro"),
-            L("Estado", "Estado"),
+            C("Nro", "Nro"),
+            C("Estado", "Estado"),
             L("Agente", "Agente"),
-            N("CreditoId", "Cred"),
-            L("Codigo", "Código"),
+            C("CreditoId", "N° créd."),
+            C("Codigo", "Código"),
             L("Cliente", "Cliente"),
             N("MontoCredito", "Monto crédito"),
-            L("FormaPago", "Forma pago"),
-            N("NumeroCuotas", "N° cuotas"),
+            C("FormaPago", "Forma pago"),
+            C("NumeroCuotas", "N° cuotas"),
             N("Interes", "Interés"),
             N("MontoInteres", "Monto int."),
             N("MontoCreditoTotal", "Total crédito"),
             N("MontoGastosAdm", "Gastos adm."),
-            L("CentralRiesgo", "Cent. riesgo"),
-            L("FechaPrimerPago", "F. 1er pago"),
-            L("FechaVencimiento", "F. vcto"),
-            N("NroCuotasPagado", "Cuotas pag."),
+            C("CentralRiesgo", "Cent. riesgo"),
+            C("FechaPrimerPago", "F. 1er pago"),
+            C("FechaVencimiento", "F. vcto"),
+            C("NroCuotasPagado", "Cuotas pag."),
             N("Pagado", "Pagado"),
             N("InteresPagado", "Int. pagado"),
-            N("NroCuotasPen", "Cuotas pend."),
+            C("NroCuotasPen", "Cuotas pend."),
             N("SaldoCapital", "Saldo cap."),
             N("SaldoInteres", "Saldo int."),
             N("Saldo", "Saldo"),
-            N("DiasAtrazo", "Días atraso"),
+            C("DiasAtrazo", "Días atraso"),
             N("Mora", "Mora"));
 
     private static CredixLegacyColumnSpec[] SaldoCarteraCols() =>
         Cols(
-            L("AgenteId", "Ag. Id"),
             L("Oficina", "Oficina"),
             L("Caja", "Caja"),
             L("Agente", "Agente"),
-            L("FechaCierreIni", "Cierre ini."),
-            N("SalidasIni", "Salidas ini."),
-            N("MontoCobradoIni", "Cobrado ini."),
-            N("PocentajeCobroIni", "% cobro ini."),
-            N("SaldoCarteraSinMoraIni", "Cartera s/mora ini."),
-            N("NroClientesCarteraSinMoraIni", "Cli. s/mora ini."),
-            N("SaldoMoraCarteraIni", "Mora cartera ini."),
-            N("NroClientesSaldoMoraCarteraIni", "Cli. mora ini."),
-            N("NroClientesNuevosIni", "Cli. nuevos ini."),
-            N("SaldoVencidoIni", "Vencido ini."),
-            N("SaldoMorosidadIni", "Morosidad ini."),
-            L("FechaCierreFin", "Cierre fin"),
-            N("SalidasFin", "Salidas fin"),
-            N("MontoCobradoFin", "Cobrado fin"),
-            N("PocentajeCobroFin", "% cobro fin"),
-            N("SaldoCarteraSinMoraFin", "Cartera s/mora fin"),
-            N("NroClientesCarteraSinMoraFin", "Cli. s/mora fin."),
-            N("SaldoMoraCarteraFin", "Mora cartera fin"),
-            N("NroClientesSaldoMoraCarteraFin", "Cli. mora fin."),
-            N("NroClientesNuevosFin", "Cli. nuevos fin."),
-            N("SaldoVencidoFin", "Vencido fin"),
-            N("SaldoMorosidadFin", "Morosidad fin"));
+            C("FechaCierreIni", "Cierre\nini."),
+            N("SalidasIni", "Desemb.\nini."),
+            N("MontoCobradoIni", "Cobrado\nini."),
+            N("PocentajeCobroIni", "% cobro\nini."),
+            N("SaldoCarteraSinMoraIni", "Cart. s/mora\nini."),
+            N("NroClientesCarteraSinMoraIni", "Cli. s/mora\nini."),
+            N("SaldoMoraCarteraIni", "Mora\nini."),
+            N("NroClientesSaldoMoraCarteraIni", "Cli. mora\nini."),
+            N("NroClientesNuevosIni", "Nuevos\nini."),
+            N("SaldoVencidoIni", "Vencido\nini."),
+            N("SaldoMorosidadIni", "Morosid.\nini."),
+            C("FechaCierreFin", "Cierre\nfin"),
+            N("SalidasFin", "Desemb.\nfin"),
+            N("MontoCobradoFin", "Cobrado\nfin"),
+            N("PocentajeCobroFin", "% cobro\nfin"),
+            N("SaldoCarteraSinMoraFin", "Cart. s/mora\nfin"),
+            N("NroClientesCarteraSinMoraFin", "Cli. s/mora\nfin"),
+            N("SaldoMoraCarteraFin", "Mora\nfin"),
+            N("NroClientesSaldoMoraCarteraFin", "Cli. mora\nfin"),
+            N("NroClientesNuevosFin", "Nuevos\nfin"),
+            N("SaldoVencidoFin", "Vencido\nfin"),
+            N("SaldoMorosidadFin", "Morosid.\nfin"));
 
     private static CredixLegacyReportDefinition Def(
         string title,
@@ -639,6 +685,9 @@ public static class CredixLegacyReportCatalog
 
     private static CredixLegacyColumnSpec L(string csv, string label) =>
         new(csv, label, CredixColumnAlign.Left, CredixColumnWeights.For(csv, CredixColumnAlign.Left));
+
+    private static CredixLegacyColumnSpec C(string csv, string label) =>
+        new(csv, label, CredixColumnAlign.Center, CredixColumnWeights.For(csv, CredixColumnAlign.Center));
 
     private static CredixLegacyColumnSpec N(string csv, string label) =>
         new(csv, label, CredixColumnAlign.Right, CredixColumnWeights.For(csv, CredixColumnAlign.Right));

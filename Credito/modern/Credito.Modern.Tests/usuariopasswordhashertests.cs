@@ -33,4 +33,11 @@ public class UsuarioPasswordHasherTests
     {
         Assert.False(UsuarioPasswordHasher.LooksLikeStoredHash("password12"));
     }
+
+    [Fact]
+    public void CreateHash_cabe_en_nvarchar_256_y_no_en_50()
+    {
+        var hash = UsuarioPasswordHasher.CreateHash("MiClave_S3gura");
+        Assert.InRange(hash.Length, 51, 256);
+    }
 }

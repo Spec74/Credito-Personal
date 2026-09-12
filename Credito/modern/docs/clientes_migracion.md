@@ -1,5 +1,7 @@
 # Módulo Clientes — Legacy → Modern
 
+Spec SSD (actores, aceptación, go-live): [docs/ssd/SSD-05-clientes.md](ssd/SSD-05-clientes.md). Este archivo conserva el mapa fino de pantallas y fases.
+
 Paridad con `Web/Controllers/ClienteController.cs`, `Views/Cliente/Index.cshtml` y `Mantener.cshtml`.
 
 ## Mapa

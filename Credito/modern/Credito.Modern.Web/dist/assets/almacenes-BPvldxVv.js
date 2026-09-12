@@ -1,1 +1,0 @@
-import{O as e,x as t}from"./index-Cf58x7EX.js";async function n(n){let r=n!=null&&n>=1?`?oficinaId=${n}`:``,i=await e(`/almacenes${r}`);return t(i)}export{n as t};

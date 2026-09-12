@@ -307,6 +307,10 @@ export const CreditoAprobarPage = lazyNamed(
   () => import('../pages/credito/CreditoAprobarPage'),
   'CreditoAprobarPage',
 )
+export const CreditoCondonacionesPage = lazyNamed(
+  () => import('../pages/credito/CreditoCondonacionesPage'),
+  'CreditoCondonacionesPage',
+)
 
 export const CajaHubPage = lazyNamed(
   () => import('../pages/caja/CajaHubPage'),

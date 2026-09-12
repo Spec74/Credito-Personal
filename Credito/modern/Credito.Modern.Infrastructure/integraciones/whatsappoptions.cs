@@ -10,7 +10,7 @@ public sealed class WhatsAppOptions
 
     public string PhoneNumberId { get; set; } = string.Empty;
 
-    public string ApiVersion { get; set; } = "v21.0";
+    public string ApiVersion { get; set; } = "v25.0";
 
     public string TemplateVencimientoPrendario { get; set; } = "aviso_vencimiento_prendario";
 
@@ -26,8 +26,12 @@ public sealed class WhatsAppOptions
     /// <summary>Si es true, corre una pasada al arrancar la API (sin esperar a las 08:00).</summary>
     public bool RunOnStartupIfPending { get; set; }
 
-    public bool EstaConfigurado =>
-        Enabled
-        && !string.IsNullOrWhiteSpace(Token)
+    /// <summary>Pausa entre llamadas a Cloud API en un envío masivo (0–2000 ms).</summary>
+    public int DelayBetweenMessagesMs { get; set; } = 300;
+
+    public bool TieneCredenciales =>
+        !string.IsNullOrWhiteSpace(Token)
         && !string.IsNullOrWhiteSpace(PhoneNumberId);
+
+    public bool EstaConfigurado => Enabled && TieneCredenciales;
 }

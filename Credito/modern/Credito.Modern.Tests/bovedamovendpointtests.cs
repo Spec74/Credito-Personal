@@ -88,4 +88,104 @@ public class BovedaMovEndpointTests : IClassFixture<CreditoModernWebApplicationF
         var res = await _client.SendAsync(req);
         Assert.NotEqual(HttpStatusCode.Unauthorized, res.StatusCode);
     }
+
+    [Fact]
+    public async Task Transferir_boveda_bancos_sin_jwt_devuelve_401()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/credito/transferir-boveda-bancos",
+            new
+            {
+                oficinaId = 1,
+                tipoPagoOrigenId = (short)1,
+                tipoPagoDestinoId = (short)2,
+                importe = 1m,
+                glosa = "test",
+            });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Transferir_boveda_bancos_mismo_origen_destino_devuelve_400()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var tokenRes = await _client.PostAsJsonAsync("/api/v1/dev/token", new { usuarioId = 1, oficinaId = 1 });
+        using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
+        var token = doc.RootElement.GetProperty("accessToken").GetString();
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/credito/transferir-boveda-bancos")
+        {
+            Content = JsonContent.Create(new
+            {
+                oficinaId = 1,
+                tipoPagoOrigenId = (short)2,
+                tipoPagoDestinoId = (short)2,
+                importe = 10m,
+                glosa = "misma cuenta",
+            }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Transferir_boveda_bancos_glosa_vacia_devuelve_400()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var tokenRes = await _client.PostAsJsonAsync("/api/v1/dev/token", new { usuarioId = 1, oficinaId = 1 });
+        using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
+        var token = doc.RootElement.GetProperty("accessToken").GetString();
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/credito/transferir-boveda-bancos")
+        {
+            Content = JsonContent.Create(new
+            {
+                oficinaId = 1,
+                tipoPagoOrigenId = (short)1,
+                tipoPagoDestinoId = (short)2,
+                importe = 10m,
+                glosa = "   ",
+            }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task Transferir_boveda_bancos_importe_cero_devuelve_400()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var tokenRes = await _client.PostAsJsonAsync("/api/v1/dev/token", new { usuarioId = 1, oficinaId = 1 });
+        using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
+        var token = doc.RootElement.GetProperty("accessToken").GetString();
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/credito/transferir-boveda-bancos")
+        {
+            Content = JsonContent.Create(new
+            {
+                oficinaId = 1,
+                tipoPagoOrigenId = (short)1,
+                tipoPagoDestinoId = (short)2,
+                importe = 0m,
+                glosa = "cero",
+            }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+    }
 }

@@ -36,6 +36,12 @@ function resolveCreditoOperacionFromLabel(denominacion: string | null | undefine
   if (label.includes('caja diario')) {
     return '/caja/diario'
   }
+  if (label.includes('condonacion')) {
+    return '/credito/condonaciones'
+  }
+  if (label.includes('movimiento') && label.includes('boveda')) {
+    return '/tesoreria/movimiento-boveda'
+  }
   if (label.includes('boveda')) {
     return '/tesoreria/boveda'
   }
@@ -78,6 +84,9 @@ function resolveCreditoOperacionFromUrl(url: string | null | undefined): string 
     normalized.includes('/prendario')
   ) {
     return '/credito/prendario'
+  }
+  if (normalized.includes('/condonacion')) {
+    return '/credito/condonaciones'
   }
   if (normalized.includes('/credito/simulador') || normalized.includes('reportesimuladorplanpagos')) {
     return '/credito/simulador'
@@ -148,6 +157,14 @@ export function resolveSpaPathFromMenuItem(
   }
 
   if (
+    label === 'dashboard' ||
+    label.includes('dashboard admin') ||
+    label.includes('dashboard gestor')
+  ) {
+    return '/inicio'
+  }
+
+  if (
     (label === 'credito' || label.includes('reporte credito') || label.includes('creditos')) &&
     (mod.includes('REPORTE') || mod === 'REPORTES')
   ) {
@@ -159,6 +176,13 @@ export function resolveSpaPathFromMenuItem(
     (mod.includes('REPORTE') || mod === 'REPORTES')
   ) {
     return '/reportes/almacen'
+  }
+
+  if (
+    (label === 'venta' || label.includes('reporte venta')) &&
+    (mod.includes('REPORTE') || mod === 'REPORTES')
+  ) {
+    return '/reportes/venta'
   }
 
   if (mod.includes('MANTENIMIENTO')) {
@@ -176,7 +200,74 @@ export function resolveSpaPathFromMenuItem(
     }
   }
 
+  const catalogo = resolveCatalogoOperacionFromLabel(label, mod)
+  if (catalogo) {
+    return catalogo
+  }
+
   return resolveSpaPathFromModulo(modulo)
+}
+
+/** Hijos de maestros / ventas / almacén / seguridad. No mapear padres (CREDITO, SEGURIDAD): el SP los une al menú y el hub ampliaría permisos. */
+function resolveCatalogoOperacionFromLabel(label: string, mod: string): string | null {
+  if (mod.includes('SEGURIDAD') || mod.includes('ADMINISTRACION')) {
+    if (label === 'usuario' || label === 'usuarios') {
+      return '/admin/usuarios'
+    }
+    if (label === 'rol' || label === 'roles') {
+      return '/admin/roles'
+    }
+    if (label.includes('comision')) {
+      return '/admin/comisiones'
+    }
+  }
+
+  if (label === 'marca' || label === 'marcas') {
+    return '/maestros/marcas'
+  }
+  if (label === 'modelo' || label === 'modelos') {
+    return '/maestros/modelos'
+  }
+  if (label.includes('tipo articulo') || label === 'tipoarticulo') {
+    return '/maestros/tipos-articulo'
+  }
+  if (label === 'articulo' || label === 'articulos') {
+    return '/maestros/articulos'
+  }
+  if (label === 'almacenes' || (label === 'almacen' && mod.includes('MAESTRO'))) {
+    return '/maestros/almacenes'
+  }
+
+  if (label.includes('venta rapida')) {
+    return '/ventas/venta-rapida'
+  }
+  if (label.includes('orden venta') || label.includes('ordenes de venta')) {
+    return '/ventas/orden-venta'
+  }
+  if (label.includes('canje') && label.includes('punto')) {
+    return '/ventas/canjear-puntos'
+  }
+  if (label.includes('lista precio') && !mod.includes('REPORTE')) {
+    return '/ventas/lista-precios'
+  }
+
+  if (label.includes('kardex')) {
+    return '/almacen/kardex'
+  }
+  if (label.includes('entrada') && label.includes('almacen')) {
+    return '/almacen/entrada'
+  }
+  if (label.includes('salida') && label.includes('almacen')) {
+    return '/almacen/salida'
+  }
+  if (label.includes('transferencia') && label.includes('almacen')) {
+    return '/almacen/transferencia'
+  }
+  if (label.includes('asignar') && label.includes('caja')) {
+    return '/caja/asignar'
+  }
+
+  return null
 }
 
 function isCreditoOperacionLabel(label: string): boolean {
@@ -193,6 +284,8 @@ function isCreditoOperacionLabel(label: string): boolean {
     label.includes('simular') ||
     label.includes('simulacion') ||
     label.includes('aprobacion') ||
-    label.includes('aprobar')
+    label.includes('aprobar') ||
+    label.includes('condonacion') ||
+    label.includes('boveda')
   )
 }

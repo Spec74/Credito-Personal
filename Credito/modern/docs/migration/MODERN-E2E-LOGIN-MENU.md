@@ -1,5 +1,7 @@
 # Modern E2E — Login y menú
 
+Spec SSD: [SSD-01-auth-inicio.md](../ssd/SSD-01-auth-inicio.md).
+
 ## Flujo
 
 1. `POST /api/v1/auth/login` valida usuario, oficina y acceso.
