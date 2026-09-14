@@ -60,6 +60,7 @@ import {
 import { sumarMoraVigente } from '../../../components/caja/creditoMoraVista'
 import type { CreditoPorPersonaRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
+import { toLegacyFechaTransferencia } from '../../../utils/formatFecha'
 import { CancelacionCreditoPanel } from './CancelacionCreditoPanel'
 import { CxcInlinePanel } from './CxcInlinePanel'
 import { CreditosPendientesModal } from './CreditosPendientesModal'
@@ -254,7 +255,7 @@ export function CobranzasTab({
         tipoPagoId,
         fechaPagoTransferencia:
           tipoPagoId > 1 && fechaTransferencia
-            ? fechaTransferencia
+            ? toLegacyFechaTransferencia(fechaTransferencia)
             : undefined,
         esUltimaCuota:
           selectedKeys.length > 0 && selectedKeys.length === cuotasPagables.length,
@@ -302,7 +303,9 @@ export function CobranzasTab({
           esUltimaCuota: true,
           tipoPagoId: tipoPagoLibreId,
           fechaPagoTransferencia:
-            tipoPagoLibreId > 1 && fechaPagoLibre ? fechaPagoLibre : null,
+            tipoPagoLibreId > 1 && fechaPagoLibre
+              ? toLegacyFechaTransferencia(fechaPagoLibre) ?? null
+              : null,
         })
       }
       return pagarCuotaImporteLibre({
@@ -312,7 +315,9 @@ export function CobranzasTab({
         importeRecibido: pagoLibre ?? 0,
         tipoPagoId: tipoPagoLibreId,
         fechaPagoTransferencia:
-          tipoPagoLibreId > 1 && fechaPagoLibre ? fechaPagoLibre : null,
+          tipoPagoLibreId > 1 && fechaPagoLibre
+            ? toLegacyFechaTransferencia(fechaPagoLibre) ?? null
+            : null,
       })
     },
     onSuccess: async (r) => {

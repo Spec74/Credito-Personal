@@ -1,24 +1,24 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import {
   Alert,
   Button,
   Modal,
   Space,
   Spin,
-  Table,
   Tabs,
   Tag,
   Typography,
   message,
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import {
-  ExclamationCircleOutlined,
-  FilePdfOutlined,
-  PrinterOutlined,
-} from '@ant-design/icons'
+import { ExclamationCircleOutlined, FilePdfOutlined } from '@ant-design/icons'
 import {
   actualizarDatosPostCierreBoveda,
   downloadRptMovimientoBovedaPdf,
@@ -38,32 +38,43 @@ import {
   fetchSaldosCajaChicaDiario,
   fetchSaldosCajaDiario,
   fetchSaldosCajaDiarioBoveda,
-  type SaldoCajaSesionRow,
 } from '../../api/saldosCaja'
 import { useAuth } from '../../auth/useAuth'
+import { getLoginProfile } from '../../auth/sessionProfile'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { useResponsiveColumns } from '../../hooks/useResponsiveColumns'
 import type { RptCajasAsignadasRow } from '../../types/api'
 import {
   CredixDataTable,
   CredixPage,
   CredixPanel,
+  CredixTotalsRow,
+  CredixWideTable,
   type CredixStatItem,
+  type CredixTotals,
 } from '../../components/credix'
-import { puedeOperarCierreSaldos, esLecturaSaldoCaja } from '../../utils/cajaSaldosPermisos'
+import {
+  puedeAnularMovimientoCaja,
+  puedeOperarCierreSaldos,
+  esLecturaSaldoCaja,
+} from '../../utils/cajaSaldosPermisos'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { filterTableRows } from '../../utils/tableClientFilter'
+import { compararMonto, compararTexto } from '../../utils/tableSorters'
 import { runOpenReport } from '../../utils/reportExport'
+import { AnularMovimientoSaldosPanel } from './components/AnularMovimientoSaldosPanel'
+import { AsignarCajaModal } from './components/asignarcajamodal'
 import { ConteoBilletesModal } from './components/ConteoBilletesModal'
+import { ResumenCuentaCaja } from './components/resumencuentacaja'
+import { SaldosSesionTable } from './components/saldossesiontable'
+import { SALDOS_ASIGNADAS_SCROLL } from './components/saldosTableLayout'
 import { SaldosTableToolbar } from './components/SaldosTableToolbar'
 
 const { Paragraph } = Typography
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : 'Error desconocido'
-}
-
-function saldoRowText(r: SaldoCajaSesionRow): string {
-  return [r.id, r.caja, r.usuario, r.saldoInicial, r.saldoFinal].join(' ')
 }
 
 function asignadaRowText(r: RptCajasAsignadasRow): string {
@@ -77,10 +88,26 @@ export function SaldosPage() {
   const roles = session?.roles ?? []
   const lectura = esLecturaSaldoCaja(roles)
   const puedeOperar = puedeOperarCierreSaldos(roles)
+  const puedeAnular = puedeAnularMovimientoCaja(roles)
+  const oficinaLabel = getLoginProfile().oficinaLabel ?? `Oficina #${oficinaId}`
 
   const [tab, setTab] = useState('asignadas')
   const [filtro, setFiltro] = useState('')
   const [conteoOpen, setConteoOpen] = useState(false)
+  const [asignarOpen, setAsignarOpen] = useState(false)
+  // Los tabs de historial paginan en servidor: la búsqueda viaja con debounce.
+  const busqueda = useDebouncedValue(filtro.trim(), 350)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
+
+  useEffect(() => {
+    setPage(1)
+  }, [tab, busqueda])
+
+  const onPageChange = useCallback((nextPage: number, nextPageSize: number) => {
+    setPage(nextPage)
+    setPageSize(nextPageSize)
+  }, [])
 
   const asignadas = useQuery({
     queryKey: ['cajas-asignadas', oficinaId],
@@ -89,15 +116,17 @@ export function SaldosPage() {
   })
 
   const cajaDiario = useQuery({
-    queryKey: ['saldos-caja-diario', oficinaId],
-    queryFn: () => fetchSaldosCajaDiario(oficinaId),
+    queryKey: ['saldos-caja-diario', oficinaId, busqueda, page, pageSize],
+    queryFn: () => fetchSaldosCajaDiario(oficinaId, { buscar: busqueda, page, pageSize }),
     enabled: oficinaId > 0 && tab === 'caja-diario',
+    placeholderData: keepPreviousData,
   })
 
   const cajaChica = useQuery({
-    queryKey: ['saldos-caja-chica-diario'],
-    queryFn: fetchSaldosCajaChicaDiario,
+    queryKey: ['saldos-caja-chica-diario', busqueda, page, pageSize],
+    queryFn: () => fetchSaldosCajaChicaDiario({ buscar: busqueda, page, pageSize }),
     enabled: tab === 'caja-chica',
+    placeholderData: keepPreviousData,
   })
 
   const boveda = useQuery({
@@ -108,10 +137,23 @@ export function SaldosPage() {
   })
 
   const bovedaSaldos = useQuery({
-    queryKey: ['saldos-caja-diario-boveda', oficinaId, boveda.data?.bovedaId],
-    queryFn: () => fetchSaldosCajaDiarioBoveda(oficinaId, boveda.data!.bovedaId),
+    queryKey: [
+      'saldos-caja-diario-boveda',
+      oficinaId,
+      boveda.data?.bovedaId,
+      busqueda,
+      page,
+      pageSize,
+    ],
+    queryFn: () =>
+      fetchSaldosCajaDiarioBoveda(oficinaId, boveda.data!.bovedaId, {
+        buscar: busqueda,
+        page,
+        pageSize,
+      }),
     enabled:
       oficinaId > 0 && tab === 'boveda' && boveda.data != null && boveda.data.bovedaId > 0,
+    placeholderData: keepPreviousData,
   })
 
   const validacion = useQuery({
@@ -136,28 +178,16 @@ export function SaldosPage() {
     [asignadas.data, filtro],
   )
 
-  const cajaDiarioFiltradas = useMemo(
-    () => filterTableRows(cajaDiario.data ?? [], filtro, saldoRowText),
-    [cajaDiario.data, filtro],
-  )
-
-  const cajaChicaFiltradas = useMemo(
-    () => filterTableRows(cajaChica.data ?? [], filtro, saldoRowText),
-    [cajaChica.data, filtro],
-  )
-
-  const bovedaSaldosFiltradas = useMemo(
-    () => filterTableRows(bovedaSaldos.data ?? [], filtro, saldoRowText),
-    [bovedaSaldos.data, filtro],
-  )
-
-  const totalesAsignadas = useMemo(() => {
+  const totalesAsignadasRow = useMemo<CredixTotals>(() => {
     const rows = asignadasFiltradas
+    const suma = (pick: (r: RptCajasAsignadasRow) => number | null | undefined) =>
+      rows.reduce((s, r) => s + (pick(r) ?? 0), 0)
     return {
-      saldoInicial: rows.reduce((s, r) => s + (r.saldoInicial ?? 0), 0),
-      entradas: rows.reduce((s, r) => s + (r.entradas ?? 0), 0),
-      salidas: rows.reduce((s, r) => s + (r.salidas ?? 0), 0),
-      saldoFinal: rows.reduce((s, r) => s + (r.saldoFinal ?? 0), 0),
+      cajaDiarioId: <strong>TOTAL</strong>,
+      saldoInicial: formatMoney(suma((r) => r.saldoInicial)),
+      entradas: formatMoney(suma((r) => r.entradas)),
+      salidas: formatMoney(suma((r) => r.salidas)),
+      saldoFinal: <strong>{formatMoney(suma((r) => r.saldoFinal))}</strong>,
     }
   }, [asignadasFiltradas])
 
@@ -194,126 +224,120 @@ export function SaldosPage() {
     onError: (err) => message.error(errMsg(err)),
   })
 
-  const imprimirSaldo = async (cajaDiarioId: number) => {
+  const imprimirSaldo = useCallback(async (id: number, cajaChica: boolean) => {
     try {
-      await downloadRptSaldosCajaPdf(cajaDiarioId)
+      await downloadRptSaldosCajaPdf(id, cajaChica)
     } catch (e) {
       message.error(e instanceof Error ? e.message : 'No se pudo abrir el reporte')
     }
-  }
+  }, [])
 
-  const saldoColumns: ColumnsType<SaldoCajaSesionRow> = useMemo(
-    () => [
-      { title: 'Nro', dataIndex: 'id', width: 72 },
-      { title: 'Caja', dataIndex: 'caja', width: 140, ellipsis: true },
-      { title: 'Responsable', dataIndex: 'usuario', width: 130, ellipsis: true },
-      {
-        title: 'Saldo ini.',
-        dataIndex: 'saldoInicial',
-        width: 100,
-        align: 'right',
-        render: formatMoney,
-      },
-      {
-        title: 'Saldo final',
-        dataIndex: 'saldoFinal',
-        width: 100,
-        align: 'right',
-        render: formatMoney,
-      },
-      {
-        title: 'Inicio',
-        dataIndex: 'fechaIniOperacion',
-        width: 100,
-        render: formatFecha,
-      },
-      {
-        title: 'Fin',
-        dataIndex: 'fechaFinOperacion',
-        width: 100,
-        render: formatFecha,
-      },
-      {
-        title: 'Cerrado',
-        dataIndex: 'indCierre',
-        width: 76,
-        render: (v: boolean) => (v ? <Tag color="green">Sí</Tag> : <Tag>No</Tag>),
-      },
-      {
-        title: 'Bóveda',
-        dataIndex: 'transBoveda',
-        width: 76,
-        render: (v: boolean) => (v ? <Tag color="blue">Sí</Tag> : <Tag>No</Tag>),
-      },
-      {
-        title: '',
-        key: 'pdf',
-        width: 52,
-        fixed: 'right',
-        render: (_, row) => (
-          <Button
-            type="text"
-            size="small"
-            icon={<PrinterOutlined />}
-            aria-label="Imprimir saldo"
-            onClick={() => void imprimirSaldo(row.id)}
-          />
-        ),
-      },
-    ],
-    [],
+  const onImprimirSaldo = useCallback(
+    (id: number, cajaChica: boolean) => void imprimirSaldo(id, cajaChica),
+    [imprimirSaldo],
   )
 
   const asignadasColumns: ColumnsType<RptCajasAsignadasRow> = useMemo(
     () => [
-      { title: 'Id', dataIndex: 'cajaDiarioId', width: 72 },
-      { title: 'Caja', dataIndex: 'caja', width: 120, ellipsis: true },
-      { title: 'Modo', dataIndex: 'modo', width: 80 },
-      { title: 'Cajero', dataIndex: 'cajero', width: 140, ellipsis: true },
+      {
+        title: 'N°',
+        dataIndex: 'cajaDiarioId',
+        align: 'center',
+        width: 76,
+        sorter: (a, b) => a.cajaDiarioId - b.cajaDiarioId,
+      },
+      {
+        title: 'Caja',
+        dataIndex: 'caja',
+        ellipsis: true,
+        width: 150,
+        sorter: (a, b) => compararTexto(a.caja, b.caja),
+      },
+      {
+        title: 'Modo',
+        dataIndex: 'modo',
+        align: 'center',
+        width: 108,
+        responsive: ['md'],
+        render: (v: string) =>
+          v === 'ABIERTO' ? <Tag color="green">{v}</Tag> : <Tag>{v}</Tag>,
+      },
+      {
+        title: 'Cajero',
+        dataIndex: 'cajero',
+        ellipsis: true,
+        width: 190,
+        sorter: (a, b) => compararTexto(a.cajero, b.cajero),
+      },
       {
         title: 'Inicio',
         dataIndex: 'fechaIniOperacion',
-        width: 100,
+        align: 'center',
+        width: 128,
         render: formatFecha,
+        sorter: (a, b) => compararTexto(a.fechaIniOperacion, b.fechaIniOperacion),
+        responsive: ['lg'],
       },
       {
         title: 'Fin',
         dataIndex: 'fechaFinOperacion',
-        width: 100,
+        align: 'center',
+        width: 128,
         render: formatFecha,
+        sorter: (a, b) => compararTexto(a.fechaFinOperacion, b.fechaFinOperacion),
+        responsive: ['xl'],
       },
       {
         title: 'Saldo ini.',
         dataIndex: 'saldoInicial',
-        width: 100,
         align: 'right',
+        width: 108,
         render: formatMoney,
+        sorter: (a, b) => compararMonto(a.saldoInicial, b.saldoInicial),
+        responsive: ['md'],
       },
       {
         title: 'Entradas',
         dataIndex: 'entradas',
-        width: 100,
         align: 'right',
+        width: 108,
         render: formatMoney,
+        sorter: (a, b) => compararMonto(a.entradas, b.entradas),
+        responsive: ['lg'],
       },
       {
         title: 'Salidas',
         dataIndex: 'salidas',
-        width: 100,
         align: 'right',
+        width: 108,
         render: formatMoney,
+        sorter: (a, b) => compararMonto(a.salidas, b.salidas),
+        responsive: ['lg'],
       },
+      // Ancladas a la derecha: el dato que cierra la caja y su desglose quedan siempre visibles,
+      // sin depender del scroll horizontal.
       {
         title: 'Saldo final',
         dataIndex: 'saldoFinal',
-        width: 100,
         align: 'right',
-        render: formatMoney,
+        width: 124,
+        fixed: 'right',
+        sorter: (a, b) => compararMonto(a.saldoFinal, b.saldoFinal),
+        render: (v: number) => <strong>{formatMoney(v)}</strong>,
       },
-      { title: 'Resumen', dataIndex: 'resumen', ellipsis: true },
+      {
+        title: '',
+        key: 'resumen',
+        align: 'center',
+        width: 52,
+        fixed: 'right',
+        render: (_, row) => <ResumenCuentaCaja resumen={row.resumen} caja={row.caja} />,
+      },
     ],
     [],
   )
+
+  const asignadasVisibles = useResponsiveColumns(asignadasColumns)
 
   const refrescarTab = () => {
     if (tab === 'asignadas' || tab === 'cierre') void asignadas.refetch()
@@ -351,17 +375,22 @@ export function SaldosPage() {
       ]
     }
     if (tab === 'caja-diario') {
-      const rows = cajaDiario.data ?? []
       return [
-        { value: rows.length, label: 'Sesiones caja diario' },
+        { value: cajaDiario.data?.totalRecords ?? 0, label: 'Sesiones caja diario' },
         {
-          value: formatMoney(rows.reduce((s, r) => s + (r.saldoFinal ?? 0), 0)),
+          value: formatMoney(cajaDiario.data?.totalSaldoFinal ?? 0),
           label: 'Saldo final acumulado',
         },
       ]
     }
     if (tab === 'caja-chica') {
-      return [{ value: (cajaChica.data ?? []).length, label: 'Sesiones caja chica' }]
+      return [
+        { value: cajaChica.data?.totalRecords ?? 0, label: 'Sesiones caja chica' },
+        {
+          value: formatMoney(cajaChica.data?.totalSaldoFinal ?? 0),
+          label: 'Saldo final acumulado',
+        },
+      ]
     }
     if (tab === 'boveda' && boveda.data) {
       return [
@@ -370,7 +399,7 @@ export function SaldosPage() {
           label: 'Bóveda',
           detail: `#${boveda.data.bovedaId}`,
         },
-        { value: (bovedaSaldos.data ?? []).length, label: 'Sesiones en bóveda' },
+        { value: bovedaSaldos.data?.totalRecords ?? 0, label: 'Sesiones en bóveda' },
       ]
     }
     if (tab === 'cierre' && puedeOperar) {
@@ -422,13 +451,29 @@ export function SaldosPage() {
     })
   }
 
-  const toolbarForTab = (placeholder: string, total: number, filtered: number) => (
+  /** Cajas asignadas ya está en memoria (conjunto del día): filtro instantáneo en cliente. */
+  const toolbarAsignadas = (placeholder: string, total: number, filtered: number) => (
     <SaldosTableToolbar
       value={filtro}
       onChange={setFiltro}
       placeholder={placeholder}
+      hint="La rueda del mouse desplaza las columnas. El saldo final queda fijo a la derecha."
+      hintShort="Rueda: desplazar columnas."
       filteredCount={filtered}
       totalCount={total}
+      loading={tabLoading}
+      onRefresh={refrescarTab}
+    />
+  )
+
+  /** Historial: la búsqueda va al servidor (el resultado está paginado). */
+  const toolbarHistorial = (placeholder: string) => (
+    <SaldosTableToolbar
+      value={filtro}
+      onChange={setFiltro}
+      placeholder={placeholder}
+      hint="Busca en el historial del servidor. La rueda del mouse desplaza las columnas."
+      hintShort="Rueda: desplazar columnas."
       loading={tabLoading}
       onRefresh={refrescarTab}
     />
@@ -437,20 +482,20 @@ export function SaldosPage() {
   return (
     <CredixPage
       className="caja-saldos-page credix-page--stats-3"
-      title="Saldos y cierres"
-      subtitle="Lista de cajas asignadas, saldos por sesión y cierre masivo — misma lógica que Saldos/Index del MVC."
+      title="Saldos caja"
+      subtitle={`${oficinaLabel} · cajas asignadas, saldos por sesión y cierre masivo.`}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/caja">Caja</Link> },
-        { title: 'Saldos y cierres' },
+        { title: 'Saldos caja' },
       ]}
       stats={saldosStats}
       actions={
         puedeOperar ? (
           <Space wrap>
-            <Link to="/caja/asignar">
-              <Button type="primary">Asignar caja</Button>
-            </Link>
+            <Button type="primary" onClick={() => setAsignarOpen(true)}>
+              Asignar caja
+            </Button>
             <Link to="/caja/chica">
               <Button>Operar caja chica</Button>
             </Link>
@@ -482,88 +527,83 @@ export function SaldosPage() {
             label: 'Cajas asignadas',
             children: (
               <>
-                {toolbarForTab(
+                {toolbarAsignadas(
                   'Caja, cajero, modo',
                   (asignadas.data ?? []).length,
                   asignadasFiltradas.length,
                 )}
-                {puedeOperar ? (
-                  <div className="caja-saldos-asignadas-actions">
-                    <Button
-                      icon={<FilePdfOutlined />}
-                      onClick={() => {
-                        void runOpenReport('Cajas asignadas', () =>
-                          downloadCajasAsignadasPdf(oficinaId),
+                <div className="caja-saldos-asignadas-actions">
+                  <Button
+                    icon={<FilePdfOutlined />}
+                    onClick={() => {
+                      void runOpenReport('Cajas asignadas', () =>
+                        downloadCajasAsignadasPdf(oficinaId),
+                      )
+                    }}
+                  >
+                    Reporte cajas
+                  </Button>
+                  <Button
+                    icon={<FilePdfOutlined />}
+                    onClick={() => {
+                      const id = boveda.data?.bovedaId
+                      const openBoveda = (bovedaId: number) => {
+                        void runOpenReport('Movimiento bóveda', () =>
+                          downloadRptMovimientoBovedaPdf(bovedaId),
                         )
-                      }}
-                    >
-                      Reporte cajas
-                    </Button>
-                    <Button
-                      icon={<FilePdfOutlined />}
-                      onClick={() => {
-                        const id = boveda.data?.bovedaId
-                        const openBoveda = (bovedaId: number) => {
-                          void runOpenReport('Movimiento bóveda', () =>
-                            downloadRptMovimientoBovedaPdf(bovedaId),
-                          )
-                        }
-                        if (id) {
-                          openBoveda(id)
-                        } else {
-                          void boveda.refetch().then((r) => {
-                            if (r.data?.bovedaId) {
-                              openBoveda(r.data.bovedaId)
-                            } else {
-                              message.warning('No hay bóveda abierta para el reporte.')
-                            }
-                          })
-                        }
-                      }}
-                    >
-                      Reporte bóveda
-                    </Button>
+                      }
+                      if (id) {
+                        openBoveda(id)
+                      } else {
+                        void boveda.refetch().then((r) => {
+                          if (r.data?.bovedaId) {
+                            openBoveda(r.data.bovedaId)
+                          } else {
+                            message.warning('No hay bóveda abierta para el reporte.')
+                          }
+                        })
+                      }
+                    }}
+                  >
+                    Reporte bóveda
+                  </Button>
+                  {puedeOperar ? (
                     <Button type="primary" danger onClick={() => setTab('cierre')}>
                       Ir a cierre masivo
                     </Button>
-                  </div>
-                ) : null}
+                  ) : null}
+                </div>
                 {asignadas.isError ? (
                   <Alert type="error" showIcon message={errMsg(asignadas.error)} />
                 ) : (
-                  <CredixDataTable<RptCajasAsignadasRow>
-                    mode="operacion"
-                    className="caja-saldos-table"
-                    rowKey="cajaDiarioId"
-                    size="small"
-                    scroll={{ x: 'max-content' }}
-                    loading={asignadas.isLoading}
-                    dataSource={asignadasFiltradas}
-                    columns={asignadasColumns}
-                    pagination={{ pageSize: 25, showSizeChanger: true }}
-                    summary={() => (
-                      <Table.Summary fixed>
-                        <Table.Summary.Row>
-                          <Table.Summary.Cell index={0} colSpan={6}>
-                            <strong>TOTAL CAJAS</strong>
-                          </Table.Summary.Cell>
-                          <Table.Summary.Cell index={6} align="right">
-                            {formatMoney(totalesAsignadas.saldoInicial)}
-                          </Table.Summary.Cell>
-                          <Table.Summary.Cell index={7} align="right">
-                            {formatMoney(totalesAsignadas.entradas)}
-                          </Table.Summary.Cell>
-                          <Table.Summary.Cell index={8} align="right">
-                            {formatMoney(totalesAsignadas.salidas)}
-                          </Table.Summary.Cell>
-                          <Table.Summary.Cell index={9} align="right">
-                            <strong>{formatMoney(totalesAsignadas.saldoFinal)}</strong>
-                          </Table.Summary.Cell>
-                          <Table.Summary.Cell index={10} />
-                        </Table.Summary.Row>
-                      </Table.Summary>
-                    )}
-                  />
+                  <CredixWideTable>
+                    <CredixDataTable<RptCajasAsignadasRow>
+                      mode="operacion"
+                      className="caja-saldos-table"
+                      rowKey="cajaDiarioId"
+                      tableLayout="fixed"
+                      scroll={SALDOS_ASIGNADAS_SCROLL}
+                      loading={asignadas.isLoading}
+                      dataSource={asignadasFiltradas}
+                      columns={asignadasVisibles}
+                      pagination={{ pageSize: 25 }}
+                      locale={{
+                        emptyText: filtro
+                          ? 'Ninguna caja coincide con el filtro.'
+                          : 'No hay cajas asignadas hoy en la oficina.',
+                      }}
+                      summary={
+                        asignadasFiltradas.length
+                          ? () => (
+                              <CredixTotalsRow
+                                columns={asignadasVisibles}
+                                totals={totalesAsignadasRow}
+                              />
+                            )
+                          : undefined
+                      }
+                    />
+                  </CredixWideTable>
                 )}
               </>
             ),
@@ -573,24 +613,23 @@ export function SaldosPage() {
             label: 'Saldos caja diario',
             children: (
               <>
-                {toolbarForTab(
-                  'Caja, responsable, nro',
-                  (cajaDiario.data ?? []).length,
-                  cajaDiarioFiltradas.length,
-                )}
+                {toolbarHistorial('Caja, responsable o N° de sesión')}
                 {cajaDiario.isError ? (
                   <Alert type="error" showIcon message={errMsg(cajaDiario.error)} />
                 ) : (
-                  <CredixDataTable<SaldoCajaSesionRow>
-                    mode="operacion"
-                    className="caja-saldos-table"
-                    rowKey="id"
-                    size="small"
-                    scroll={{ x: 'max-content' }}
-                    loading={cajaDiario.isLoading}
-                    dataSource={cajaDiarioFiltradas}
-                    columns={saldoColumns}
-                    pagination={{ pageSize: 25, showSizeChanger: true }}
+                  <SaldosSesionTable
+                    pagina={cajaDiario.data}
+                    loading={cajaDiario.isFetching}
+                    esCajaChica={false}
+                    page={page}
+                    pageSize={pageSize}
+                    onPageChange={onPageChange}
+                    onImprimir={onImprimirSaldo}
+                    emptyText={
+                      busqueda
+                        ? 'Ninguna sesión coincide con la búsqueda.'
+                        : 'Sin sesiones de caja diario en la oficina.'
+                    }
                   />
                 )}
               </>
@@ -601,24 +640,23 @@ export function SaldosPage() {
             label: 'Saldos caja chica',
             children: (
               <>
-                {toolbarForTab(
-                  'Caja, responsable',
-                  (cajaChica.data ?? []).length,
-                  cajaChicaFiltradas.length,
-                )}
+                {toolbarHistorial('Responsable o N° de sesión')}
                 {cajaChica.isError ? (
                   <Alert type="error" showIcon message={errMsg(cajaChica.error)} />
                 ) : (
-                  <CredixDataTable<SaldoCajaSesionRow>
-                    mode="operacion"
-                    className="caja-saldos-table"
-                    rowKey="id"
-                    size="small"
-                    scroll={{ x: 'max-content' }}
-                    loading={cajaChica.isLoading}
-                    dataSource={cajaChicaFiltradas}
-                    columns={saldoColumns}
-                    pagination={{ pageSize: 25, showSizeChanger: true }}
+                  <SaldosSesionTable
+                    pagina={cajaChica.data}
+                    loading={cajaChica.isFetching}
+                    esCajaChica
+                    page={page}
+                    pageSize={pageSize}
+                    onPageChange={onPageChange}
+                    onImprimir={onImprimirSaldo}
+                    emptyText={
+                      busqueda
+                        ? 'Ninguna sesión coincide con la búsqueda.'
+                        : 'Sin sesiones de caja chica.'
+                    }
                   />
                 )}
               </>
@@ -629,11 +667,7 @@ export function SaldosPage() {
             label: 'Saldos por bóveda',
             children: (
               <>
-                {toolbarForTab(
-                  'Filtrar sesiones',
-                  (bovedaSaldos.data ?? []).length,
-                  bovedaSaldosFiltradas.length,
-                )}
+                {toolbarHistorial('Caja, responsable o N° de sesión')}
                 {boveda.isError ? (
                   <Alert
                     type="warning"
@@ -651,16 +685,21 @@ export function SaldosPage() {
                 {bovedaSaldos.isError ? (
                   <Alert type="error" showIcon message={errMsg(bovedaSaldos.error)} />
                 ) : (
-                  <CredixDataTable<SaldoCajaSesionRow>
-                    mode="operacion"
-                    className="caja-saldos-table"
-                    rowKey="id"
-                    size="small"
-                    scroll={{ x: 'max-content' }}
-                    loading={bovedaSaldos.isLoading}
-                    dataSource={bovedaSaldosFiltradas}
-                    columns={saldoColumns}
-                    pagination={{ pageSize: 25, showSizeChanger: true }}
+                  <SaldosSesionTable
+                    pagina={bovedaSaldos.data}
+                    loading={bovedaSaldos.isFetching}
+                    esCajaChica={false}
+                    page={page}
+                    pageSize={pageSize}
+                    onPageChange={onPageChange}
+                    onImprimir={onImprimirSaldo}
+                    emptyText={
+                      busqueda
+                        ? 'Ninguna sesión coincide con la búsqueda.'
+                        : boveda.data
+                          ? 'La bóveda abierta no tiene sesiones de caja.'
+                          : 'Sin bóveda abierta en la oficina.'
+                    }
                   />
                 )}
               </>
@@ -751,6 +790,23 @@ export function SaldosPage() {
               </div>
             ),
           },
+          ...(puedeAnular
+            ? [
+                {
+                  key: 'anular',
+                  label: 'Anular movimiento',
+                  children: (
+                    <AnularMovimientoSaldosPanel
+                      oficinaId={oficinaId}
+                      onAnulado={() => {
+                        void cajaDiario.refetch()
+                        void asignadas.refetch()
+                      }}
+                    />
+                  ),
+                },
+              ]
+            : []),
         ]}
       />
 
@@ -761,6 +817,21 @@ export function SaldosPage() {
         onCancel={() => setConteoOpen(false)}
         onConfirm={async (sobrante) => {
           await cerrar.mutateAsync(sobrante)
+        }}
+      />
+
+      <AsignarCajaModal
+        open={asignarOpen}
+        oficinaId={oficinaId}
+        onClose={() => setAsignarOpen(false)}
+        onSuccess={(r) => {
+          message.success(
+            r.esCajaChica
+              ? 'Caja chica asignada.'
+              : `Caja diario abierta${r.cajaDiarioId ? ` (ID ${r.cajaDiarioId})` : ''}.`,
+          )
+          setAsignarOpen(false)
+          setTab('asignadas')
         }}
       />
     </CredixPage>

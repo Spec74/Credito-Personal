@@ -201,7 +201,11 @@ public sealed class CajaPagoMoraOrchestrator(
                 .ConfigureAwait(false);
         }
 
-        if (esUltimaCuota)
+        // Tras el SP las cuotas ya están PAG: última = no quedan PEN (no confiar en el flag del cliente).
+        _ = esUltimaCuota;
+        var esUltimaReal = await CreditoSinCuotasPendientesAsync(creditoId, cancellationToken)
+            .ConfigureAwait(false);
+        if (esUltimaReal)
         {
             await moraWrite
                 .LiquidarAcumuladasAsync(creditoId, cajaDiarioId, usuarioId, tipoPagoId, cancellationToken)
@@ -249,7 +253,20 @@ public sealed class CajaPagoMoraOrchestrator(
                     commandType: CommandType.StoredProcedure,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-            if (movimientoCuotaId is > 0 && esUltimaCuota
+            _ = esUltimaCuota;
+            var quedanPendientes = await connection.ExecuteScalarAsync<bool>(
+                new CommandDefinition(
+                    """
+                    SELECT CASE WHEN EXISTS (
+                        SELECT 1 FROM CREDITO.PlanPago
+                        WHERE CreditoId = @CreditoId AND Estado = 'PEN'
+                    ) THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END;
+                    """,
+                    new { CreditoId = creditoId },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+            var esUltimaReal = movimientoCuotaId is > 0 && !quedanPendientes;
+            if (esUltimaReal
                 && await moraRead.CreditoTieneMoraPostergadaHabilitadaAsync(creditoId, cancellationToken)
                     .ConfigureAwait(false))
             {
@@ -307,6 +324,27 @@ public sealed class CajaPagoMoraOrchestrator(
                     cancellationToken: cancellationToken))
             .ConfigureAwait(false);
         return rows.AsList();
+    }
+
+    private async Task<bool> CreditoSinCuotasPendientesAsync(
+        int creditoId,
+        CancellationToken cancellationToken)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        const string sql = """
+            SELECT CASE WHEN EXISTS (
+                SELECT 1 FROM CREDITO.PlanPago
+                WHERE CreditoId = @CreditoId AND Estado = 'PEN'
+            ) THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END;
+            """;
+        return await connection
+            .ExecuteScalarAsync<bool>(
+                new CommandDefinition(
+                    sql,
+                    new { CreditoId = creditoId },
+                    cancellationToken: cancellationToken))
+            .ConfigureAwait(false);
     }
 
     private sealed class CuotaMoraSnapshot

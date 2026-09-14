@@ -85,6 +85,33 @@ public sealed class TabularPdfDocumentTests
         Assert.True(pdf.Length > 1000);
     }
 
+    [Fact]
+    public void FromUtf8BomCsv_cajas_asignadas_renderiza_fila_de_totales()
+    {
+        var rows = new[]
+        {
+            new RptCajasAsignadasRowDto
+            {
+                CajaDiarioId = 29087,
+                Caja = "SAN JOSE",
+                Modo = "ABIERTO",
+                Cajero = "JARA CACERES, KEYLA",
+                FechaIniOperacion = new DateTime(2026, 9, 1, 9, 27, 0),
+                SaldoInicial = 100m,
+                Entradas = 1065m,
+                Salidas = 500m,
+                SaldoFinal = 665m,
+                Resumen = "EFECTIVO = 665.00",
+            },
+        };
+        var csv = RptCajasAsignadasCsvFormatter.ToUtf8BomCsv(rows);
+
+        var pdf = TabularPdfDocument.FromUtf8BomCsv("Cajas asignadas", csv);
+
+        AssertPdfMagic(pdf);
+        Assert.True(pdf.Length > 1000);
+    }
+
     private static void AssertPdfMagic(byte[] bytes)
     {
         Assert.Equal((byte)'%', bytes[0]);

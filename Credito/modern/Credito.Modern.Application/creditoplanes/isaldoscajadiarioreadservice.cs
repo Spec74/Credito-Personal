@@ -2,14 +2,23 @@ namespace Credito.Modern.Application.CreditoPlanes;
 
 public interface ISaldosCajaDiarioReadService
 {
-    Task<IReadOnlyList<SaldoCajaSesionRowDto>> ListarCajaDiarioPorOficinaAsync(
+    Task<SaldoCajaSesionPageDto> ListarCajaDiarioPorOficinaAsync(
         int oficinaId,
+        string? buscar,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<SaldoCajaSesionRowDto>> ListarCajaChicaDiarioAsync(
+    Task<SaldoCajaSesionPageDto> ListarCajaChicaDiarioAsync(
+        string? buscar,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<SaldoCajaSesionRowDto>> ListarCajaDiarioBovedaAsync(
+    Task<SaldoCajaSesionPageDto> ListarCajaDiarioBovedaAsync(
         int bovedaId,
+        string? buscar,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default);
 }

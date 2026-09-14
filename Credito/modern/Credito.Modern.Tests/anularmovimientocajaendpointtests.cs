@@ -32,6 +32,14 @@ public class AnularMovimientoCajaEndpointTests : IClassFixture<CreditoModernWebA
     }
 
     [Fact]
+    public async Task Movimiento_caja_anular_sin_jwt_devuelve_401()
+    {
+        var response = await _client.GetAsync(
+            "/api/v1/credito/movimiento-caja-anular?oficinaId=1&movimientoCajaId=1");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Anular_movimiento_caja_oficina_distinta_al_token_devuelve_403()
     {
         if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))

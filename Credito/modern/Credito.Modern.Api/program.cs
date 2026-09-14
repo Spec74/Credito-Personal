@@ -200,6 +200,13 @@ builder.Services.AddAuthorization(options =>
             policy.RequireAssertion(ctx => CreditoAuthorizationPolicies.HasRolOperador(GetRoleClaims(ctx.User)));
         });
     options.AddPolicy(
+        CreditoAuthorizationPolicies.CreditoNoLecturaSaldo,
+        static policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.RequireAssertion(ctx => !CreditoAuthorizationPolicies.HasLecturaSaldo(GetRoleClaims(ctx.User)));
+        });
+    options.AddPolicy(
         CreditoAuthorizationPolicies.CreditoRolPrendario,
         static policy =>
         {

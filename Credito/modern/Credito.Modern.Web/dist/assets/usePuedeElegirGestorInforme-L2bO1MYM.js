@@ -1,1 +1,0 @@
-import{S as e}from"./index-zk2-nEVp.js";import{t}from"./reporteCreditoAccess-JLaIclea.js";function n(){let{session:n}=e();return t(n?.roles??[])}export{n as t};

@@ -5,4 +5,6 @@ public sealed class CajaParaAsignarRowDto
 {
     public int CajaId { get; init; }
     public string Denominacion { get; init; } = string.Empty;
+    public int? CajeroId { get; init; }
+    public string? CajeroNombre { get; init; }
 }

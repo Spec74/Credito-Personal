@@ -32,6 +32,70 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         return await connection.QueryFirstOrDefaultAsync<int?>(command).ConfigureAwait(false);
     }
 
+    public async Task<BovedaAbiertaDto?> GetCabeceraReporteAsync(
+        int bovedaId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(_connectionString))
+        {
+            throw new InvalidOperationException(
+                "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
+        }
+
+        if (bovedaId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(bovedaId), "bovedaId debe ser >= 1.");
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        const string sql = """
+            SELECT BovedaId,
+                   OficinaId,
+                   SaldoInicial,
+                   Entradas,
+                   Salidas,
+                   SaldoFinal,
+                   FechaIniOperacion,
+                   FechaFinOperacion,
+                   IndCierre,
+                   IndTemporal
+            FROM CREDITO.Boveda
+            WHERE BovedaId = @BovedaId;
+            """;
+        var row = await connection
+            .QueryFirstOrDefaultAsync<BovedaCabRow>(
+                new CommandDefinition(sql, new { BovedaId = bovedaId }, cancellationToken: cancellationToken))
+            .ConfigureAwait(false);
+        return row is null
+            ? null
+            : new BovedaAbiertaDto(
+                row.BovedaId,
+                row.OficinaId,
+                row.SaldoInicial,
+                row.Entradas,
+                row.Salidas,
+                row.SaldoFinal,
+                row.FechaIniOperacion,
+                row.FechaFinOperacion,
+                row.IndCierre,
+                row.IndTemporal);
+    }
+
+    private sealed class BovedaCabRow
+    {
+        public int BovedaId { get; init; }
+        public int OficinaId { get; init; }
+        public decimal SaldoInicial { get; init; }
+        public decimal Entradas { get; init; }
+        public decimal Salidas { get; init; }
+        public decimal SaldoFinal { get; init; }
+        public DateTime FechaIniOperacion { get; init; }
+        public DateTime? FechaFinOperacion { get; init; }
+        public bool IndCierre { get; init; }
+        public bool IndTemporal { get; init; }
+    }
+
     public async Task<bool> ExisteBovedaTemporalAbiertaAsync(
         int oficinaId,
         CancellationToken cancellationToken = default)

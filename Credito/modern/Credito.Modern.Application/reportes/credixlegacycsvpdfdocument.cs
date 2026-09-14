@@ -26,7 +26,8 @@ public static class CredixLegacyCsvPdfDocument
                 mapped.Rows,
                 def.Landscape,
                 RowCountFooter: mapped.Rows.Count,
-                ColumnSpecs: def.Columns));
+                ColumnSpecs: def.Columns,
+                TotalColumns: def.TotalColumns));
     }
 
     private static (IReadOnlyList<string> Headers, IReadOnlyList<IReadOnlyList<string>> Rows) MapRows(

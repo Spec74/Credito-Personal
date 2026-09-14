@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Button,
@@ -14,6 +14,7 @@ import {
   entradaSalidaCajaDiario,
   fetchTipoOperaciones,
 } from '../../../api/cajaDiario'
+import { fetchValoresTabla } from '../../../api/maestros'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
 import { CajaModal } from '../../../components/caja/CajaModal'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
@@ -45,6 +46,20 @@ export function EntradaSalidaTab({
     queryKey: ['tipo-operaciones'],
     queryFn: fetchTipoOperaciones,
   })
+  const tiposPagoQuery = useQuery({
+    queryKey: ['valores-tabla', 13],
+    queryFn: () => fetchValoresTabla(13),
+    staleTime: 5 * 60_000,
+  })
+
+  const tipoPagoOptions = useMemo(
+    () =>
+      (tiposPagoQuery.data ?? []).map((t) => ({
+        value: t.itemId,
+        label: t.denominacion,
+      })),
+    [tiposPagoQuery.data],
+  )
 
   const tiposCaja = (tiposQuery.data ?? []).filter((t) => t.indCajaDiario)
 
@@ -147,10 +162,11 @@ export function EntradaSalidaTab({
             rules={[{ required: true }]}
           >
             <Select
-              options={[
-                { value: 1, label: 'Efectivo' },
-                { value: 2, label: 'Transferencia' },
-              ]}
+              loading={tiposPagoQuery.isLoading}
+              options={tipoPagoOptions}
+              showSearch
+              optionFilterProp="label"
+              placeholder="Tipo de pago"
             />
           </Form.Item>
           <Form.Item name="descripcion" label="Descripción">
@@ -164,9 +180,7 @@ export function EntradaSalidaTab({
       <aside>
         {esEgreso ? (
           <Paragraph type="warning">
-            Los egresos en el sistema anterior pueden pedir clave de
-            administrador. La API moderna aplica permisos del usuario
-            autenticado; si falla, contacte a un supervisor.
+            Los egresos requieren clave de administrador (paridad MVC).
           </Paragraph>
         ) : (
           <Paragraph type="secondary">

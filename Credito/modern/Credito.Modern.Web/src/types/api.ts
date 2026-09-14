@@ -198,6 +198,8 @@ export interface RptSaldosCajaRow {
   indEntrada: boolean
   glosa: string | null
   tipoPago: string
+  /** false = anulado (arqueo con incluirAnulados) */
+  estadoActivo?: boolean
 }
 
 export interface CuentaPorCobrarPendienteRow {
@@ -979,6 +981,8 @@ export interface RptSaldosCajaRow {
   indEntrada: boolean
   glosa: string | null
   tipoPago: string
+  /** false = anulado (arqueo con incluirAnulados) */
+  estadoActivo?: boolean
 }
 
 export interface CuentaPorCobrarPendienteRow {

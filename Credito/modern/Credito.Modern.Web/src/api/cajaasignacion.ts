@@ -3,6 +3,8 @@ import { apiFetch } from './client'
 export interface CajaParaAsignarRow {
   cajaId: number
   denominacion: string
+  cajeroId?: number | null
+  cajeroNombre?: string | null
 }
 
 export interface AsignarCajaResult {

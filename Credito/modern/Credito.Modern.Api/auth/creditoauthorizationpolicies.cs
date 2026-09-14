@@ -26,6 +26,9 @@ public static class CreditoAuthorizationPolicies
     /// <summary>Escritura de crédito: roles operativos reales, no permisos solo lectura/reporte.</summary>
     public const string CreditoRolOperador = "CreditoRolOperador";
 
+    /// <summary>Autenticado sin rol LECTURA_SALDO (asignar/cerrar en Saldos, paridad ViewBag.EsLectura).</summary>
+    public const string CreditoNoLecturaSaldo = "CreditoNoLecturaSaldo";
+
     /// <summary>
     /// ANALISTA o ADMINISTRADOR. El módulo prendario es del analista por pedido de gerencia; el
     /// administrador entra porque de todos modos puede concederse el menú desde Seguridad.
@@ -118,6 +121,9 @@ public static class CreditoAuthorizationPolicies
 
     public static bool HasSoloLectura(IEnumerable<string> roles) =>
         HasRoleLike(roles, RolDenominacionLectura);
+
+    public static bool HasLecturaSaldo(IEnumerable<string> roles) =>
+        HasRoleLike(roles, RolDenominacionLecturaSaldo);
 
     private static bool HasRoleLike(IEnumerable<string> roles, string expected)
     {

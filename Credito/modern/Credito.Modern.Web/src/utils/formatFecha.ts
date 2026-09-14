@@ -34,6 +34,28 @@ export function formatFechaHora(value: string | null | undefined): string {
   return `${day}/${m}/${y} ${hh}:${mm}`
 }
 
+/**
+ * Valor de `<input type="datetime-local">` → mascara legacy `dd/MM/yyyy HH:mm`
+ * (varchar(16) en MovimientoCajaExtension.FechaTransferencia).
+ */
+export function toLegacyFechaTransferencia(
+  value: string | null | undefined,
+): string | undefined {
+  if (!value?.trim()) {
+    return undefined
+  }
+  const trimmed = value.trim()
+  const m = trimmed.match(
+    /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::\d{2})?/,
+  )
+  if (!m) {
+    // Ya viene en formato legacy u otro; truncar a 16 chars
+    return trimmed.slice(0, 16)
+  }
+  const [, y, mo, d, hh, mm] = m
+  return `${d}/${mo}/${y} ${hh}:${mm}`
+}
+
 /** True si el valor trae hora distinta de medianoche (export CSV/PDF y UI). */
 export function hasInformeTime(value: string | null | undefined): boolean {
   if (!value) {

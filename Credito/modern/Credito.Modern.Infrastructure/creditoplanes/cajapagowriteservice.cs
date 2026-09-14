@@ -20,7 +20,7 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
         int tipoPagoId,
         string fechaPagoTransferencia,
         CancellationToken cancellationToken = default) =>
-        ExecuteScalarProcAsync(
+        ExecutePagarCuotasWithExtensionAsync(
             "CREDITO.usp_PagarCuotas",
             new
             {
@@ -33,6 +33,8 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
                 TipoPagoId = tipoPagoId,
                 FechaPagoTransferencia = fechaPagoTransferencia ?? string.Empty,
             },
+            tipoPagoId,
+            fechaPagoTransferencia ?? string.Empty,
             cancellationToken);
 
     public Task<PagoCajaResultResponse> PagarCuotaPagoLibreAsync(
@@ -72,6 +74,68 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
                 FechaPago = fechaPago.Date,
             },
             cancellationToken);
+
+    /// <summary>
+    /// Paridad operativa: si TipoPagoId &gt; 1, el movimiento debe tener Extension
+    /// (Verificar pagos / bloqueo de cierre). El SP histórico solo lo hacía en pago libre;
+    /// aquí se garantiza también para cobro de cuotas (idempotente si el SP ya lo insertó).
+    /// </summary>
+    private async Task<PagoCajaResultResponse> ExecutePagarCuotasWithExtensionAsync(
+        string procedureName,
+        object parameters,
+        int tipoPagoId,
+        string fechaPagoTransferencia,
+        CancellationToken cancellationToken)
+    {
+        EnsureConnectionConfigured();
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = (SqlTransaction)await connection
+            .BeginTransactionAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        try
+        {
+            var command = new CommandDefinition(
+                procedureName,
+                parameters,
+                transaction: transaction,
+                commandType: CommandType.StoredProcedure,
+                cancellationToken: cancellationToken);
+            var resultId = await connection.QueryFirstOrDefaultAsync<int?>(command).ConfigureAwait(false);
+
+            if (tipoPagoId > 1 && resultId is > 0)
+            {
+                await connection.ExecuteAsync(
+                    new CommandDefinition(
+                        """
+                        IF NOT EXISTS (
+                            SELECT 1 FROM CREDITO.MovimientoCajaExtension
+                            WHERE MovimientoCajaId = @MovimientoCajaId
+                        )
+                        INSERT INTO CREDITO.MovimientoCajaExtension
+                            (MovimientoCajaId, FechaTransferencia, IndTransferenciaVerificada)
+                        VALUES (@MovimientoCajaId, @FechaTransferencia, 0);
+                        """,
+                        new
+                        {
+                            MovimientoCajaId = resultId.Value,
+                            FechaTransferencia = fechaPagoTransferencia,
+                        },
+                        transaction: transaction,
+                        cancellationToken: cancellationToken)).ConfigureAwait(false);
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new PagoCajaResultResponse(resultId);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+    }
 
     private async Task<PagoCajaResultResponse> ExecuteScalarProcAsync(
         string procedureName,

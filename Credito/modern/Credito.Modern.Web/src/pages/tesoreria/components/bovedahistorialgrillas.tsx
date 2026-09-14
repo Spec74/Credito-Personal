@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Button, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
@@ -20,8 +20,11 @@ type Props = {
   bovedaAbiertaId?: number
 }
 
+const CAJAS_PAGE_SIZE = 10
+
 export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
   const [page, setPage] = useState(1)
+  const [cajasPage, setCajasPage] = useState(1)
   const [selectedId, setSelectedId] = useState<number | undefined>(bovedaAbiertaId)
 
   const historial = useQuery({
@@ -39,9 +42,14 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
   })
 
   const cajas = useQuery({
-    queryKey: ['saldos-caja-diario-boveda', oficinaId, bovedaId],
-    queryFn: () => fetchSaldosCajaDiarioBoveda(oficinaId, bovedaId!),
+    queryKey: ['saldos-caja-diario-boveda', oficinaId, bovedaId, cajasPage],
+    queryFn: () =>
+      fetchSaldosCajaDiarioBoveda(oficinaId, bovedaId!, {
+        page: cajasPage,
+        pageSize: CAJAS_PAGE_SIZE,
+      }),
     enabled: oficinaId > 0 && !!bovedaId,
+    placeholderData: keepPreviousData,
   })
 
   const colsBoveda: ColumnsType<BovedaListadoRow> = [
@@ -173,9 +181,15 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
             rowKey="id"
             size="small"
             columns={colsCaja}
-            dataSource={cajas.data ?? []}
-            loading={cajas.isLoading}
-            pagination={{ pageSize: 10, showSizeChanger: true }}
+            dataSource={cajas.data?.rows ?? []}
+            loading={cajas.isFetching}
+            pagination={{
+              current: cajasPage,
+              pageSize: CAJAS_PAGE_SIZE,
+              total: cajas.data?.totalRecords ?? 0,
+              showSizeChanger: false,
+              onChange: setCajasPage,
+            }}
             locale={{ emptyText: 'Sin cajas vinculadas' }}
           />
         </>

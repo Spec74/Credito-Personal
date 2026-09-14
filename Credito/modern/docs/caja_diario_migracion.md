@@ -4,7 +4,7 @@ Spec SSD del módulo caja: [docs/ssd/SSD-03-caja.md](ssd/SSD-03-caja.md).
 
 Documento de verificación de migración (`Credito/Web/Views/Credito/CajaDiario.cshtml` → `Credito.Modern.Web` `/caja/diario`).
 
-**Última revisión:** 2026-05-18  
+**Última revisión:** 2026-09-14 (cierre auditoría P0/P1)  
 **Ruta SPA:** `/caja/diario`  
 **API base:** `/api/v1/credito/*`, `/api/v1/ventas/caja-diario-venta-rapida`
 
@@ -16,14 +16,16 @@ Documento de verificación de migración (`Credito/Web/Views/Credito/CajaDiario.
 |-----------|--------|
 | Operaciones de cobro (cuotas, libre, CxC, cancelación) | ✅ Completo |
 | Desembolsos y validaciones | ✅ Completo |
-| Entrada/salida + clave egreso | ✅ Completo |
-| Arqueo, anular, transferir, conciliar | ✅ Completo |
-| Cierre + PDF saldo | ✅ Completo |
+| Entrada/salida + clave egreso + tipo pago `ValorTabla` 13 | ✅ Completo |
+| Arqueo (activos+anulados), anular INI+PAG, transferir, conciliar | ✅ Completo |
+| Cierre (validar → confirmar) + PDF saldo | ✅ Completo |
 | Informes laterales (cobros día, ruta QR, movimientos) | ✅ Completo |
 | Modales / confirmaciones Si-No | ✅ Completo |
 | Tickets PDF automáticos | ✅ Completo (cuando el SP devuelve `MovimientoCajaId`) |
+| Cuotas digitales → Verificar pagos / bloqueo cierre | ✅ Completo |
+| Mora postergada (última cuota server-side) | ✅ Completo |
 
-**Conclusión:** La migración de **Caja Diario** está **funcionalmente completa** para uso operativo por gestores y administradores. Las diferencias restantes son de **UX/layout** (tabs vs pestañas jQuery) o **mejoras** respecto al legacy.
+**Conclusión:** **Caja Diario** queda **cerrado para go-live** en lógica de negocio y paridad operativa. Diferencias restantes son UX/layout aceptadas o mejoras deliberadas (documentadas abajo).
 
 ---
 
@@ -42,11 +44,11 @@ Documento de verificación de migración (`Credito/Web/Views/Credito/CajaDiario.
 | `btnDesembolso` / pendientes | Tab Desembolsos (APR) | Grid vs formulario único legacy |
 | `btnPagarSalida` E/S | Tab Egreso/Ingreso | Confirm + clave egreso |
 | `grdEntradas` / `grdSalidas` | Tab Arqueo | Dblclick → detalle movimiento |
-| Anular movimiento | Arqueo → Anular | |
+| Anular movimiento | Arqueo → Anular | INI+PAG bloquea; observación obligatoria |
 | `btnTransFerirSaldos` | `TransferirSaldosDrawer` | Bóveda / otra caja |
 | `btnConciliar` | Arqueo (solo caja central) | |
 | `btnPrevSaldoCaja` | Arqueo PDF + auto al cerrar | |
-| `btnCerrar` | Tab Cierre | |
+| `btnCerrar` | Tab Cierre | Valida blockers antes de confirmar |
 | Cobros del día PDF | Ops bar | `rpt-cobro-diario-pdf` |
 | Ruta QR | `RutaCobranzaDrawer` + `RutaQrModal` | QR visual + enlace |
 | `btnMovimientosCaja` | `MovimientosCajaModal` | `rpt-saldos-caja` + ticket/fila |
@@ -103,6 +105,20 @@ Paridad consulta pendiente: mora vigente (`usp_CalcularMoraPendiente`) + mora po
 
 ---
 
+## Correcciones de paridad (2026-09-14)
+
+| Tema | Antes (incorrecto) | Ahora (paridad / negocio correcto) |
+|------|--------------------|-------------------------------------|
+| Anular INI con cuotas PAG | Se trataba como “pedir confirmación” | Bloqueo UI + API **409** (`bloqueadoPorPagosCuota`) |
+| Observación al anular | Opcional / solo a veces | Obligatoria (paridad `DialogoObs`) |
+| Tipo pago E/S | Hardcoded Efectivo/Transferencia | Catálogo `ValorTabla` 13 (igual cobranzas) |
+| Cierre | Confirmación sin revalidar | `Validar` → blockers o confirmar cierre |
+| Cuotas digitales (Yape/Plin) | Sin `MovimientoCajaExtension` → fuera de Verificar/cierre | Extension en SP + safety-net API |
+| Mora última cuota | Flag del cliente | Servidor: sin `PlanPago` PEN |
+| Fecha transferencia | `datetime-local` ISO | `dd/MM/yyyy HH:mm` (varchar 16 legacy) |
+| Arqueo anulados | Solo `Estado=1` (usp reporte) | `incluirAnulados` en grilla; PDF/CSV sin anulados |
+| Detalle doble clic | Solo campos del rpt | + líneas OV (`MostrarDetalleOvMovCaja`) |
+
 ## Diferencias aceptadas (no bloquean migración)
 
 1. **Movimientos modal:** Legacy `ListarMovimientoCajaGrd` solo lista si hay `PersonaId`; modern muestra todos los movimientos de la caja (`rpt-saldos-caja`) con filtro cliente — **más útil en operación diaria**.
@@ -110,6 +126,7 @@ Paridad consulta pendiente: mora vigente (`usp_CalcularMoraPendiente`) + mora po
 3. **Layout:** Tabs Ant Design vs pestañas jQuery UI; colores cuotas alineados a `Creditos.cshtml`.
 4. **Tickets auto-impresión:** En legacy muchos `ImprimirMovCaja` estaban comentados; modern los activa cuando el SP devuelve ID de movimiento.
 5. **Cierre:** Legacy recarga toda la página; modern navega a inicio tras cerrar (sesión ya no tiene caja).
+6. **Saldos → Anular movimiento:** En MVC el `ValidarAnular` estaba comentado; modern aplica el mismo bloqueo INI+PAG que Caja Diario (más seguro).
 
 ---
 

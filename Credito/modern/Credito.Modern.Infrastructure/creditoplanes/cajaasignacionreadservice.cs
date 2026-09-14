@@ -22,12 +22,17 @@ public sealed class CajaAsignacionReadService(IOptions<SqlDatabaseOptions> optio
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
         const string sql = """
-            SELECT CajaId, Denominacion
-            FROM CREDITO.Caja
-            WHERE Estado = CAST(1 AS bit)
-              AND IndAbierto = CAST(0 AS bit)
-              AND OficinaId = @OficinaId
-            ORDER BY Denominacion;
+            SELECT c.CajaId,
+                   c.Denominacion,
+                   c.CajeroId,
+                   p.NombreCompleto AS CajeroNombre
+            FROM CREDITO.Caja AS c
+            LEFT JOIN MAESTRO.Usuario AS u ON u.UsuarioId = c.CajeroId
+            LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+            WHERE c.Estado = CAST(1 AS bit)
+              AND c.IndAbierto = CAST(0 AS bit)
+              AND c.OficinaId = @OficinaId
+            ORDER BY c.Denominacion;
             """;
         var rows = await connection
             .QueryAsync<CajaParaAsignarRowDto>(

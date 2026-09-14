@@ -124,19 +124,22 @@ export function ArqueoTab({
   })
   const anular = useMutation({
     mutationFn: async () => {
+      if (!observacion.trim()) {
+        throw new Error('Ingrese la observación para anular.')
+      }
       const validacion = await validarAnularMovimientoCaja(
         ctx.oficinaId,
         anularId!,
       )
-      if (validacion.requiereConfirmacion && !observacion.trim()) {
+      if (validacion.bloqueadoPorPagosCuota) {
         throw new Error(
-          'Este movimiento requiere observación o confirmación adicional (paridad MVC).',
+          'Tiene Pagos de cuotas, No se Puede Anular el Crédito',
         )
       }
       return anularMovimientoCaja({
         oficinaId: ctx.oficinaId,
         movimientoCajaId: anularId!,
-        observacion: observacion || null,
+        observacion: observacion.trim(),
       })
     },
     onSuccess: () => {
@@ -157,14 +160,27 @@ export function ArqueoTab({
       width: 140,
       render: (v: string) => formatFechaHora(v),
     },
-    { title: 'Operación', dataIndex: 'operacion', ellipsis: true },
+    {
+      title: 'Operación',
+      dataIndex: 'operacion',
+      ellipsis: true,
+      render: (v: string, r) => (
+        <Space size={4}>
+          <span>{v}</span>
+          {r.estadoActivo === false ? <Tag>ANULADO</Tag> : null}
+        </Space>
+      ),
+    },
     { title: 'Cliente', dataIndex: 'cliente', ellipsis: true },
     {
       title: 'Importe',
       dataIndex: 'importePago',
       align: 'right',
       render: (v: number, r) => (
-        <Text type={r.indEntrada ? 'success' : 'danger'}>
+        <Text
+          type={r.estadoActivo === false ? 'secondary' : r.indEntrada ? 'success' : 'danger'}
+          delete={r.estadoActivo === false}
+        >
           {r.indEntrada ? '+' : '-'}
           {formatMoney(v)}
         </Text>
@@ -186,7 +202,7 @@ export function ArqueoTab({
           >
             Ticket
           </Button>
-          {puedeAnularMovimiento ? (
+          {puedeAnularMovimiento && r.estadoActivo !== false ? (
             <Button
               size="small"
               danger
@@ -320,6 +336,7 @@ export function ArqueoTab({
 
       <MovimientoDetalleModal
         movement={detalleMov}
+        oficinaId={ctx.oficinaId}
         onClose={() => setDetalleMov(null)}
       />
 
@@ -333,12 +350,12 @@ export function ArqueoTab({
         okButtonProps={{ danger: true }}
       >
         <Paragraph type="secondary">
-          En el sistema anterior puede requerir clave de administrador. La API
-          registra la anulación según permisos del token.
+          Paridad Caja Diario: si el movimiento INI tiene cuotas pagadas, la
+          anulación se bloquea. La observación es obligatoria.
         </Paragraph>
         <Input.TextArea
           rows={2}
-          placeholder="Observación (opcional)"
+          placeholder="Observación (obligatoria)"
           value={observacion}
           onChange={(e) => setObservacion(e.target.value)}
         />

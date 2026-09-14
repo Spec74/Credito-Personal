@@ -20,4 +20,7 @@ public sealed class RptSaldosCajaRowDto
     public string? Glosa { get; init; }
 
     public string TipoPago { get; init; } = string.Empty;
+
+    /// <summary>Paridad grillas CajaDiario (ACTIVO/ANULADO). En el SP de reporte siempre true.</summary>
+    public bool EstadoActivo { get; init; } = true;
 }

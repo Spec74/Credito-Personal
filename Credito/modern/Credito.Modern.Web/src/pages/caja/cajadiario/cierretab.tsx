@@ -41,6 +41,29 @@ export function CierreTab({
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const pedirCierre = async () => {
+    try {
+      const resultado = await validar.mutateAsync()
+      if (!resultado.puedeCerrar) {
+        message.warning(
+          resultado.blockers[0] ??
+            'No puede cerrar la caja todavía. Revise los bloqueos.',
+        )
+        return
+      }
+      cajaConfirm({
+        title: '¿Cerrar caja diario?',
+        content:
+          'Esta acción cierra la operación del día para esta caja. Se descargará el PDF de saldo.',
+        okText: 'Cerrar',
+        okType: 'danger',
+        onOk: () => cerrar.mutateAsync(),
+      })
+    } catch {
+      // error ya notificado en validar.onError
+    }
+  }
+
   return (
     <>
       <Space wrap style={{ marginBottom: 16 }}>
@@ -50,18 +73,9 @@ export function CierreTab({
         <Button
           type="primary"
           danger
-          loading={cerrar.isPending}
+          loading={cerrar.isPending || validar.isPending}
           disabled={validar.data != null && !validar.data.puedeCerrar}
-          onClick={() => {
-            cajaConfirm({
-              title: '¿Cerrar caja diario?',
-              content:
-                'Esta acción cierra la operación del día para esta caja. Se descargará el PDF de saldo.',
-              okText: 'Cerrar',
-              okType: 'danger',
-              onOk: () => cerrar.mutateAsync(),
-            })
-          }}
+          onClick={() => void pedirCierre()}
         >
           Cerrar caja
         </Button>

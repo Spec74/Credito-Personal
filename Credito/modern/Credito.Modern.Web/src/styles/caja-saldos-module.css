@@ -29,8 +29,133 @@
   letter-spacing: 0.02em;
 }
 
+/**
+ * El scroll vive en `.ant-table-body`. El wrapper no debe scrollear por su cuenta (eso
+ * escondía la barra horizontal al final de la página).
+ */
+.caja-saldos-page .credix-table-scroll {
+  overflow: hidden;
+}
+
+.caja-saldos-page .credix-wide-table {
+  position: relative;
+}
+
+.caja-saldos-page .credix-wide-table::before,
+.caja-saldos-page .credix-wide-table::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 48px;
+  width: 28px;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.caja-saldos-page .credix-wide-table::before {
+  left: 0;
+  background: linear-gradient(90deg, rgb(17 72 133 / 14%), transparent);
+}
+
+.caja-saldos-page .credix-wide-table::after {
+  right: 0;
+  background: linear-gradient(270deg, rgb(17 72 133 / 16%), transparent);
+}
+
+.caja-saldos-page .credix-wide-table--start::before,
+.caja-saldos-page .credix-wide-table--end::after {
+  opacity: 1;
+}
+
+.caja-saldos-page .caja-saldos-table .ant-table-cell-fix-right {
+  background: #fff;
+  box-shadow: -8px 0 12px rgb(15 23 42 / 6%);
+}
+
 .caja-saldos-table .ant-table-tbody > tr {
   transition: background-color 0.12s ease;
+}
+
+.caja-saldos-table .ant-table-cell {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Barra horizontal siempre perceptible: en Windows suele quedar demasiado fina. */
+.caja-saldos-table .ant-table-body {
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+}
+
+.caja-saldos-table .ant-table-body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.caja-saldos-table .ant-table-body::-webkit-scrollbar-thumb {
+  background: #b9c9dc;
+  border-radius: 8px;
+}
+
+.caja-saldos-table .ant-table-body::-webkit-scrollbar-thumb:hover {
+  background: var(--credix-brand, #114885);
+}
+
+.caja-saldos-table .ant-table-body::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.caja-saldos-resumen__boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--credix-brand, #114885);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.caja-saldos-resumen__boton:hover,
+.caja-saldos-resumen__boton:focus-visible {
+  background: var(--credix-brand-light, #e8f2fc);
+}
+
+.caja-saldos-resumen__vacio {
+  color: var(--credix-text-muted, #94a3b8);
+}
+
+.caja-saldos-resumen__lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 200px;
+}
+
+.caja-saldos-resumen__lista li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 3px 0;
+  font-size: 13px;
+}
+
+.caja-saldos-resumen__lista li + li {
+  border-top: 1px dashed var(--credix-border, #e5e7eb);
+}
+
+.caja-saldos-resumen__lista strong {
+  color: var(--credix-brand, #114885);
+  font-variant-numeric: tabular-nums;
+}
+
+.caja-saldos-resumen__crudo {
+  margin: 0;
+  max-width: 280px;
+  font-size: 13px;
 }
 
 .caja-saldos-table .ant-table-tbody > tr:hover > td {
@@ -45,6 +170,20 @@
 .caja-saldos-table .ant-table-summary .ant-table-cell {
   color: var(--credix-brand, #114885);
   font-variant-numeric: tabular-nums;
+}
+
+.caja-saldos-anular-panel__busca {
+  margin-bottom: 12px;
+}
+
+.caja-saldos-anular-panel__detalle {
+  margin: 12px 0;
+}
+
+.caja-saldos-anular-panel__hint {
+  margin: 8px 0 0;
+  color: var(--credix-text-muted, #64748b);
+  font-size: 13px;
 }
 
 .caja-saldos-cierre-panel {
@@ -99,7 +238,21 @@
   font-size: 14px;
 }
 
+.caja-asignar-modal .ant-modal-content {
+  max-width: 100%;
+}
+
+.caja-asignar-modal .ant-select,
+.caja-asignar-modal .ant-input-number {
+  width: 100%;
+}
+
 @media (max-width: 640px) {
+  .caja-asignar-modal {
+    max-width: calc(100vw - 24px);
+    margin: 8px auto;
+  }
+
   .caja-saldos-page__rol-badge {
     flex-direction: column;
     align-items: flex-start;

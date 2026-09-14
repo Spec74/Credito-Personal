@@ -380,11 +380,13 @@ public static class CredixLegacyReportCatalog
                     L("Cajero", "Cajero"),
                     C("FechaIniOperacion", "Inicio"),
                     C("FechaFinOperacion", "Fin"),
+                    // Orden del RDLC legacy (entradas antes de salidas), no el del SP.
                     N("SaldoInicial", "Saldo ini."),
-                    N("Salidas", "Salidas"),
                     N("Entradas", "Entradas"),
+                    N("Salidas", "Salidas"),
                     N("SaldoFinal", "Saldo final"),
-                    L("Resumen", "Resumen"))),
+                    L("Resumen", "Resumen")),
+                totals: ["SaldoInicial", "Entradas", "Salidas", "SaldoFinal"]),
             [CredixLegacyReportKey.CobroDiarioDetalle] = Def(
                 "COBRO DIARIO DETALLE",
                 CobranzaDetalleCols()),
@@ -435,7 +437,8 @@ public static class CredixLegacyReportCatalog
                     N("ImportePago", "Importe"),
                     C("IndEntrada", "Entrada"),
                     L("Glosa", "Glosa"),
-                    C("TipoPago", "Tipo pago"))),
+                    C("TipoPago", "Tipo pago")),
+                totals: ["ImportePago"]),
             [CredixLegacyReportKey.MovimientoBoveda] = Def(
                 "MOVIMIENTO BÓVEDA",
                 Cols(
@@ -445,7 +448,8 @@ public static class CredixLegacyReportCatalog
                     N("Entrada", "Entrada"),
                     N("Salida", "Salida"),
                     C("TipoPago", "Tipo pago"),
-                    L("Agente", "Agente"))),
+                    L("Agente", "Agente")),
+                totals: ["Entrada", "Salida"]),
             [CredixLegacyReportKey.CreditoMorosidad] = Def(
                 "MOROSIDAD DE CRÉDITOS",
                 Cols(
@@ -678,8 +682,9 @@ public static class CredixLegacyReportCatalog
     private static CredixLegacyReportDefinition Def(
         string title,
         CredixLegacyColumnSpec[] columns,
-        bool landscape = true) =>
-        new(title, columns, landscape);
+        bool landscape = true,
+        string[]? totals = null) =>
+        new(title, columns, landscape, totals);
 
     private static CredixLegacyColumnSpec[] Cols(params CredixLegacyColumnSpec[] cols) => cols;
 
@@ -699,14 +704,19 @@ public sealed class CredixLegacyReportDefinition
     public CredixLegacyReportDefinition(
         string title,
         IReadOnlyList<CredixLegacyColumnSpec> columns,
-        bool landscape = true)
+        bool landscape = true,
+        IReadOnlyList<string>? totalColumns = null)
     {
         Title = title;
         Columns = columns;
         Landscape = landscape;
+        TotalColumns = totalColumns ?? Array.Empty<string>();
     }
 
     public string Title { get; }
     public IReadOnlyList<CredixLegacyColumnSpec> Columns { get; }
     public bool Landscape { get; }
+
+    /// <summary>Columnas (nombre CSV) que se suman en la fila «TOTAL» del PDF.</summary>
+    public IReadOnlyList<string> TotalColumns { get; }
 }

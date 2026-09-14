@@ -135,6 +135,8 @@ public static class DependencyInjection
         services.AddScoped<IRptClientesTopeCreditoReadService, RptClientesTopeCreditoReadService>();
         services.AddScoped<IRptAvalReadService, RptAvalReadService>();
         services.AddScoped<IRptSaldosCajaReadService, RptSaldosCajaReadService>();
+        services.AddScoped<IMovimientoCajaDetalleOvReadService, MovimientoCajaDetalleOvReadService>();
+        services.AddScoped<IRptSaldoCajaCabReadService, RptSaldoCajaCabReadService>();
         services.AddScoped<IObtenerSaldoCuentaCajaDiarioReadService, ObtenerSaldoCuentaCajaDiarioReadService>();
         services.AddScoped<IRptSaldosCajaResumenIngresoReadService, RptSaldosCajaResumenIngresoReadService>();
         services.AddScoped<IRptSaldosCajaResumenTipoCuentaReadService, RptSaldosCajaResumenTipoCuentaReadService>();

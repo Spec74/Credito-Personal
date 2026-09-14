@@ -329,7 +329,7 @@ export const CajaChicaPage = lazyNamed(
   'CajaChicaPage',
 )
 export const AsignarCajaPage = lazyNamed(
-  () => import('../pages/caja/AsignarCajaPage'),
+  () => import('../pages/caja/asignarcajapage'),
   'AsignarCajaPage',
 )
 export const SaldosPage = lazyNamed(

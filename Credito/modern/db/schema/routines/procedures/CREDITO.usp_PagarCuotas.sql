@@ -119,14 +119,7 @@ BEGIN
 			  'CREDITO ' + CAST(@CreditoId AS VARCHAR(20)) + ISNULL(' CUOTA ' + @Cuotas,'') + ' PAGO LIBRE ' + CAST(@ImporteRecibido AS VARCHAR(20)) , 
 			  1, 1,@OrdenVentaId,@CreditoId, @UsuarioId , @FechaActual,@TipoPagoId)
 	SET @MovimientoCajaId = @@IDENTITY
-	
-	IF @TipoPagoId>1 -- SOLO PAGOS POR YAPE, PLIN, BCP, NACION
-		INSERT INTO	CREDITO.MovimientoCajaExtension
-		(	MovimientoCajaId, FechaTransferencia, IndTransferenciaVerificada )
-		VALUES	(   @MovimientoCajaId, @FechaPagoTransferencia, 0 )
 
-	
-	
 	IF @ImporteRecibido>@SumaPagoCuotaUlt 
 	BEGIN
 		SET @PlanPagoIdUlt = NULL
@@ -149,6 +142,17 @@ BEGIN
 		
 			
 END	
+        
+-- Yape/Plin/transferencia: cuotas y pago libre deben entrar a Verificar pagos / bloqueo de cierre
+IF @TipoPagoId > 1 AND @MovimientoCajaId IS NOT NULL
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM CREDITO.MovimientoCajaExtension WHERE MovimientoCajaId = @MovimientoCajaId
+	)
+		INSERT INTO CREDITO.MovimientoCajaExtension
+			(MovimientoCajaId, FechaTransferencia, IndTransferenciaVerificada)
+		VALUES (@MovimientoCajaId, @FechaPagoTransferencia, 0)
+END
         
 UPDATE PP
 SET Estado = 'PAG',MovimientoCajaId=@MovimientoCajaId,

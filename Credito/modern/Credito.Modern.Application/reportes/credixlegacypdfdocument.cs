@@ -33,7 +33,9 @@ public static class CredixLegacyPdfDocument
         IReadOnlyList<IReadOnlyList<string>> Rows,
         bool Landscape = true,
         int? RowCountFooter = null,
-        IReadOnlyList<CredixLegacyColumnSpec>? ColumnSpecs = null);
+        IReadOnlyList<CredixLegacyColumnSpec>? ColumnSpecs = null,
+        /// <summary>Columnas (nombre CSV) a totalizar en la última fila.</summary>
+        IReadOnlyList<string>? TotalColumns = null);
 
     public static byte[] FromTable(ReportTable report)
     {
@@ -65,7 +67,13 @@ public static class CredixLegacyPdfDocument
                 });
 
                 page.Content().PaddingTop(6).Element(c =>
-                    ComposeDataTable(c, report.Headers, report.Rows, report.ColumnSpecs, bodyFont));
+                    ComposeDataTable(
+                        c,
+                        report.Headers,
+                        report.Rows,
+                        report.ColumnSpecs,
+                        bodyFont,
+                        report.TotalColumns));
 
                 page.Footer().Row(row =>
                 {
@@ -170,10 +178,12 @@ public static class CredixLegacyPdfDocument
         IReadOnlyList<string> headers,
         IReadOnlyList<IReadOnlyList<string>> rows,
         IReadOnlyList<CredixLegacyColumnSpec>? columnSpecs = null,
-        float fontSize = FontSizeBody)
+        float fontSize = FontSizeBody,
+        IReadOnlyList<string>? totalColumns = null)
     {
         var colCount = Math.Max(1, headers.Count);
         var weights = ComputeContentWeights(headers, rows, columnSpecs);
+        var totals = CredixReportTotals.Compute(columnSpecs, rows, totalColumns);
         container.Table(table =>
         {
             table.ColumnsDefinition(columns =>
@@ -209,8 +219,60 @@ public static class CredixLegacyPdfDocument
                         .FontSize(fontSize);
                 }
             }
+
+            if (totals.Count > 0)
+            {
+                ComposeTotalsRow(table, colCount, headers, columnSpecs, totals, fontSize);
+            }
         });
     }
+
+    /// <summary>Fila «TOTAL» al cierre de la tabla, con el mismo realce que la cabecera.</summary>
+    private static void ComposeTotalsRow(
+        TableDescriptor table,
+        int colCount,
+        IReadOnlyList<string> headers,
+        IReadOnlyList<CredixLegacyColumnSpec>? columnSpecs,
+        IReadOnlyDictionary<int, decimal> totals,
+        float fontSize)
+    {
+        var firstTotal = totals.Keys.Min();
+        if (firstTotal > 0)
+        {
+            table.Cell()
+                .ColumnSpan((uint)firstTotal)
+                .Element(TotalsCell)
+                .AlignRight()
+                .Text("TOTAL")
+                .Bold()
+                .FontSize(fontSize);
+        }
+
+        for (var c = firstTotal; c < colCount; c++)
+        {
+            var cell = table.Cell().Element(TotalsCell);
+            if (totals.TryGetValue(c, out var total))
+            {
+                cell.AlignRight()
+                    .Text(CredixReportTotals.Format(total))
+                    .Bold()
+                    .FontSize(fontSize);
+                continue;
+            }
+
+            // Columna sin total: se mantiene la celda para no descuadrar la fila.
+            cell.Text(string.Empty).FontSize(fontSize);
+        }
+    }
+
+    private static IContainer TotalsCell(IContainer container) =>
+        container
+            .Background(Color.FromHex("#E4ECF5"))
+            .Border(HeaderBorderPt)
+            .BorderColor(BorderColor)
+            .PaddingVertical(3)
+            .PaddingHorizontal(4)
+            .AlignMiddle();
 
     /// <summary>
     /// A4 para tablas cortas; A3 o hoja extra-ancha cuando hay muchas columnas

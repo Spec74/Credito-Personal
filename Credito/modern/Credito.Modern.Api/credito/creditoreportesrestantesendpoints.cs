@@ -829,6 +829,7 @@ internal static class CreditoReportesRestantesEndpoints
                     HttpContext httpContext,
                     int? oficinaId,
                     IRptCajasAsignadasReadService rptCajas,
+                    IRptSaldosCajaResumenTipoCuentaReadService resumenTipo,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -861,11 +862,13 @@ internal static class CreditoReportesRestantesEndpoints
                     try
                     {
                         var items = await rptCajas.ListarPorOficinaAsync(oficinaId.Value, ct).ConfigureAwait(false);
-                        var csvBytes = RptCajasAsignadasCsvFormatter.ToUtf8BomCsv(items);
+                        var resumenOficina = await resumenTipo
+                            .ObtenerPrimerTextoAsync(oficinaId.Value, ct)
+                            .ConfigureAwait(false);
                         var pdfContext = await LegacyReportPdf.ResolveAsync(
                                 httpContext, oficinaId, cancellationToken: ct)
                             .ConfigureAwait(false);
-                        var bytes = TabularPdfDocument.FromUtf8BomCsv("Cajas asignadas", csvBytes, context: pdfContext);
+                        var bytes = RptCajasAsignadasPdfDocument.Build(items, pdfContext, resumenOficina);
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "cajas-asignadas.pdf");
                     }
                     catch (InvalidOperationException ex)
@@ -898,7 +901,7 @@ internal static class CreditoReportesRestantesEndpoints
                 })
             .WithName("CreditoRptCajasAsignadasPdf")
             .WithSummary(
-                "Export lectura: mismos datos que GET rpt-cajas-asignadas en PDF tabular (QuestPDF). usp_RptCajasAsignadas sin motor RDLC. CreditoUser.")
+                "Export lectura: paridad rptCajasAsignadas.rdlc (QuestPDF). usp_RptCajasAsignadas + usp_RptSaldosCajaResumenTipoCuenta. CreditoUser.")
             .WithTags("credito", "reportes")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
@@ -2050,6 +2053,7 @@ internal static class CreditoReportesRestantesEndpoints
                 async Task<Results<Ok<List<RptSaldosCajaRowDto>>, ProblemHttpResult>> (
                     int? cajaDiarioId,
                     bool? indCajaChica,
+                    bool? incluirAnulados,
                     IRptSaldosCajaReadService rptSaldos,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -2067,7 +2071,18 @@ internal static class CreditoReportesRestantesEndpoints
                     var log = loggerFactory.CreateLogger("RptSaldosCaja");
                     try
                     {
-                        var items = await rptSaldos.ListarAsync(cajaDiarioId.Value, indChica, ct).ConfigureAwait(false);
+                        List<RptSaldosCajaRowDto> items;
+                        if (!indChica && incluirAnulados == true)
+                        {
+                            items = await rptSaldos
+                                .ListarArqueoAsync(cajaDiarioId.Value, incluirAnulados: true, ct)
+                                .ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            items = await rptSaldos.ListarAsync(cajaDiarioId.Value, indChica, ct).ConfigureAwait(false);
+                        }
+
                         return TypedResults.Ok(items);
                     }
                     catch (InvalidOperationException ex)
@@ -2100,7 +2115,7 @@ internal static class CreditoReportesRestantesEndpoints
                 })
             .WithName("CreditoRptSaldosCaja")
             .WithSummary(
-                "Solo lectura: CREDITO.usp_RptSaldosCaja(CajaDiarioId, IndCajaChica). cajaDiarioId obligatorio (>=1). indCajaChica opcional (default false = caja normal; true = caja chica, como CajaChicaDiarioBL). CreditoUser.")
+                "Solo lectura: CREDITO.usp_RptSaldosCaja o arqueo con anulados (incluirAnulados). PDF/CSV no usan anulados.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<List<RptSaldosCajaRowDto>>(StatusCodes.Status200OK, "application/json")
@@ -2179,9 +2194,12 @@ internal static class CreditoReportesRestantesEndpoints
         app.MapGet(
                 "/api/v1/credito/rpt-saldos-caja-pdf",
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     int? cajaDiarioId,
                     bool? indCajaChica,
                     IRptSaldosCajaReadService rptSaldos,
+                    IRptSaldoCajaCabReadService cabSaldos,
+                    IRptSaldosCajaResumenIngresoReadService resumenIngreso,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -2199,13 +2217,20 @@ internal static class CreditoReportesRestantesEndpoints
                     try
                     {
                         var items = await rptSaldos.ListarAsync(cajaDiarioId.Value, indChica, ct).ConfigureAwait(false);
-                        var csvBytes = RptSaldosCajaCsvFormatter.ToUtf8BomCsv(items);
-                        var pdfContext = new CredixLegacyReportContext
+                        var cab = await cabSaldos
+                            .ObtenerAsync(cajaDiarioId.Value, indChica, ct)
+                            .ConfigureAwait(false);
+                        string? resumen = null;
+                        if (!indChica
+                            && MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId)
+                            && jwtOficinaId > 0)
                         {
-                            Caja = $"Caja diario N° {cajaDiarioId.Value}",
-                            Referencia = indChica ? "Caja chica" : "Caja",
-                        };
-                        var bytes = TabularPdfDocument.FromUtf8BomCsv("Saldos caja", csvBytes, context: pdfContext);
+                            resumen = await resumenIngreso
+                                .ObtenerPrimerTextoAsync(cajaDiarioId.Value, jwtOficinaId, ct)
+                                .ConfigureAwait(false);
+                        }
+
+                        var bytes = RptSaldosCajaPdfDocument.Build(items, cab, resumen, indChica);
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "saldos-caja.pdf");
                     }
                     catch (InvalidOperationException ex)
@@ -2238,7 +2263,7 @@ internal static class CreditoReportesRestantesEndpoints
                 })
             .WithName("CreditoRptSaldosCajaPdf")
             .WithSummary(
-                "Export lectura: mismos datos que GET rpt-saldos-caja en PDF tabular (QuestPDF). usp_RptSaldosCaja sin motor RDLC. CreditoUser.")
+                "Export lectura: paridad rptSaldoCaja.rdlc (QuestPDF). usp_RptSaldosCaja + cabecera de sesión. CreditoUser.")
             .WithTags("credito", "reportes")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
@@ -2669,6 +2694,7 @@ internal static class CreditoReportesRestantesEndpoints
                     int? bovedaId,
                     IBovedaOficinaReadService bovedaOficina,
                     IRptMovimientoBovedaReadService rptMovimientoBoveda,
+                    IResumenCuentaBovedaReadService resumenCuentaBoveda,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -2742,14 +2768,19 @@ internal static class CreditoReportesRestantesEndpoints
                     try
                     {
                         var items = await rptMovimientoBoveda.ListarAsync(bovedaId.Value, ct).ConfigureAwait(false);
-                        var csvBytes = RptMovimientoBovedaCsvFormatter.ToUtf8BomCsv(items);
+                        var cab = await bovedaOficina
+                            .GetCabeceraReporteAsync(bovedaId.Value, ct)
+                            .ConfigureAwait(false);
+                        var resumenCuenta = await resumenCuentaBoveda
+                            .ObtenerPrimerTextoAsync(bovedaId.Value, ct)
+                            .ConfigureAwait(false);
                         var pdfContext = await LegacyReportPdf.ResolveAsync(
                                 httpContext,
                                 jwtOficinaId,
                                 referencia: $"Bóveda N° {bovedaId.Value}",
                                 cancellationToken: ct)
                             .ConfigureAwait(false);
-                        var bytes = TabularPdfDocument.FromUtf8BomCsv("Movimiento bóveda", csvBytes, context: pdfContext);
+                        var bytes = RptMovimientoBovedaPdfDocument.Build(items, pdfContext, cab, resumenCuenta);
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "movimiento-boveda.pdf");
                     }
                     catch (InvalidOperationException ex)
@@ -2782,7 +2813,7 @@ internal static class CreditoReportesRestantesEndpoints
                 })
             .WithName("CreditoRptMovimientoBovedaPdf")
             .WithSummary(
-                "Export lectura: mismos datos que GET rpt-movimiento-boveda en PDF tabular (QuestPDF). usp_RptMovimientoBoveda sin motor RDLC. CreditoUser.")
+                "Export lectura: paridad rptMovimientoBoveda.rdlc (QuestPDF). usp_RptMovimientoBoveda + cabecera de saldos + usp_ResumenCuentaBoveda (efectivo / medios digitales). CreditoUser.")
             .WithTags("credito", "reportes")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")

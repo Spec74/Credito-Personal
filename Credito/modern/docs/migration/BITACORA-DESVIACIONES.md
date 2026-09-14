@@ -18,6 +18,35 @@ Ante una diferencia entre legacy y moderno se aplica este criterio:
 Nunca se cambia lógica financiera en silencio. Toda corrección que altere un importe, un saldo
 o un estado contable debe aparecer en esta bitácora.
 
+### 2026-09-14 — Caja diario: cierre de auditoría (cuotas digitales, mora, arqueo)
+
+**Defecto corregido — P0:** cobro de **cuotas** con `TipoPagoId > 1` (Yape/Plin/…)
+escribía el tipo en `MovimientoCaja` pero **no** creaba `MovimientoCajaExtension`
+(`usp_PagarCuotas` solo lo hacía en pago libre). Esos pagos no entraban a Verificar
+pagos ni bloqueaban el cierre. Se corrigió el SP (schema) y un safety-net en
+`CajaPagoWriteService` (INSERT Extension idempotente tras el SP).
+
+**Defecto corregido — P1:** liquidación de mora postergada ya no confía en
+`esUltimaCuota` del cliente; el servidor verifica que no queden `PlanPago` PEN.
+
+**Paridad UX:** fecha transferencia se envía como `dd/MM/yyyy HH:mm` (legacy);
+arqueo lista anulados (`incluirAnulados`); doble clic muestra líneas OV
+(`MostrarDetalleOvMovCaja`).
+
+### 2026-09-14 — Caja diario: anular INI+PAG, tipo pago E/S, cierre
+
+**Defecto corregido:** el endpoint `validar-anular-movimiento-caja` devolvía
+`requiereConfirmacion=true` cuando un movimiento **INI** tenía cuotas **PAG**, y la SPA lo
+trataba como “pedir confirmación”. En `CajaDiario.cshtml` ese `true` **bloquea** la anulación
+(«Tiene Pagos de cuotas…»). Ahora la respuesta es `bloqueadoPorPagosCuota`; la SPA y el
+`POST anular-movimiento-caja` rechazan con **409**. Observación siempre obligatoria.
+
+**Paridad UX:** Egreso/Ingreso usa catálogo `ValorTabla` 13 (no hardcoded). Cierre ejecuta
+validación antes de confirmar.
+
+**Desviación deliberada (Saldos):** en MVC Saldos el `ValidarAnular` estaba comentado; modern
+aplica el mismo bloqueo INI+PAG en el panel Anular de Saldos.
+
 ## Fuente de verdad
 
 La base de datos es el contrato. La lógica de negocio vive en los procedimientos almacenados
@@ -30,6 +59,55 @@ Ver `deploy/scripts/export-db-schema.ps1` y `deploy/scripts/restore-db-backup.ps
 ---
 
 ## Registro
+
+### 2026-09-13 — Saldos: PDF de módulo con layout RDLC (no tabular genérico)
+
+**Tipo:** hueco funcional (los importes no cambian de origen)
+
+Los tres PDF del módulo (`rpt-cajas-asignadas-pdf`, `rpt-saldos-caja-pdf`,
+`rpt-movimiento-boveda-pdf`) salían por el generador tabular CSV→PDF. El RDLC de
+producción (`rptCajasAsignadas`, `rptSaldoCaja`, `rptMovimientoBoveda`) tiene cabecera
+de oficina/cajero/saldos, grupos INGRESOS/EGRESOS y totales. El moderno ahora genera
+esos layouts en QuestPDF con los mismos SP y la misma cabecera (`ObtenerRptSaldoCajaCab`,
+`usp_RptSaldosCajaResumenTipoCuenta`, saldos de `CREDITO.Boveda` + `usp_ResumenCuentaBoveda`
+con total efectivo y medios digitales al inicio del PDF). Fechas e importes van en formato
+`es-PE`.
+
+### 2026-09-13 — Saldos caja: totales del historial calculados en servidor
+
+**Tipo:** hueco funcional (los importes no cambian de origen)
+
+El jqGrid del legado paginaba en servidor (`rowNum: 10` + `Skip/Take` en
+`CajaDiarioBL.LstSaldosCajaDiarioJGrid`) y **no mostraba totales** en las grillas de historial
+(solo en cajas asignadas). La SPA había pasado a traer el historial completo para poder sumar
+en el cliente, lo que crece sin límite con los años.
+
+Se restituye la paginación en servidor (`page`, `pageSize`, `buscar`) y los totales de saldo
+inicial/final se calculan en SQL sobre **todo el filtro**, no sobre la página visible: así el
+total es correcto y el navegador nunca recibe el historial entero. La consulta de bóveda pasó de
+`JOIN ... DISTINCT` sobre `BovedaMov` a `EXISTS`, que da el mismo conjunto sin depender del
+`DISTINCT` para deduplicar.
+
+Se conserva una particularidad del legado: la grilla de caja chica **no filtra por oficina**
+(`CajaChicaDiarioBL.LstSaldosCajaChicaDiarioJGrid` tampoco lo hace).
+
+### 2026-09-13 — Asignar caja: cajero editable por administrador
+
+**Tipo:** mejora de producto (la regla de negocio no cambia)
+
+El MVC (`Saldos/Index.cshtml`) tiene el combo de usuario comentado y manda
+`pUsuarioAsignadoId: 0`; `CajaDiarioBL.AsignarUsuarioCaja` ignora ese parámetro y abre la caja
+a nombre de `Caja.CajeroId`. Si la caja no tenía cajero, el legado recién avisaba después de
+guardar con «No tiene adignado un Cajero.».
+
+La SPA mantiene la regla (`UsuarioAsignadoId = Caja.CajeroId`) y agrega dos cosas: el modal
+muestra el cajero de la caja elegida, y el **administrador** puede corregirlo sin salir de la
+pantalla (`POST /api/v1/cajas/guardar`, política `CreditoRolAdministrador`, antes de asignar).
+Para los demás perfiles el cajero es de solo lectura y las cajas sin cajero quedan
+deshabilitadas. Sin impacto en importes.
+
+Además, `POST /api/v1/credito/asignar-caja` pasa a exigir la política `CreditoNoLecturaSaldo`:
+antes cualquier autenticado podía asignar aunque la UI lo ocultara para `LECTURA_SALDO`.
 
 ### 2026-09-09 — Corrección de esquema en catálogos de almacén
 

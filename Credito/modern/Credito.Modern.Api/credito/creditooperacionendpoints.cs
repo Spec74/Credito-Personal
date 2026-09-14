@@ -53,7 +53,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: fpError);
                     }
 
@@ -64,11 +64,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -83,8 +83,8 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CalcularTem")
-            .WithSummary("Calcula TEM vía CREDITO.usp_CalcularTEM (formaPago = D|M|Q|S, como el MVC).")
-            .WithSummary("Calcula TEM vía CREDITO.usp_CalcularTEM (formaPago = D|M|Q|S, como el MVC).")
+            .WithSummary("Calcula TEM v?a CREDITO.usp_CalcularTEM (formaPago = D|M|Q|S, como el MVC).")
+            .WithSummary("Calcula TEM v?a CREDITO.usp_CalcularTEM (formaPago = D|M|Q|S, como el MVC).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<CalcularTemResponse>(StatusCodes.Status200OK, "application/json")
@@ -107,7 +107,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "creditoId debe ser un entero >= 1.");
                     }
 
@@ -121,23 +121,23 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al consultar CxC pendiente por crédito");
+                        log.LogError(ex, "Error al consultar CxC pendiente por cr?dito");
                         var detail = "No se pudo consultar cuentas por cobrar pendientes.";
                         if (env.IsDevelopment())
                         {
@@ -151,7 +151,7 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoTieneCxcPendiente")
-            .WithSummary("Solo lectura: paridad CreditoController.TieneCxcPendiente (CxC PEN del crédito).")
+            .WithSummary("Solo lectura: paridad CreditoController.TieneCxcPendiente (CxC PEN del cr?dito).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<TieneCxcPendienteResponse>(StatusCodes.Status200OK, "application/json")
@@ -186,24 +186,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al listar créditos DES del gestor");
-                        var detail = "No se pudo listar créditos del gestor.";
+                        log.LogError(ex, "Error al listar cr?ditos DES del gestor");
+                        var detail = "No se pudo listar cr?ditos del gestor.";
                         if (env.IsDevelopment())
                         {
                             detail += $" Detalle: {ex.Message}";
@@ -217,7 +217,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoCreditosGestorDesembolsados")
             .WithSummary(
-                "Solo lectura: paridad CajaDiarioBL.LstCreditoPendienteJGrid (créditos DES registrados por el gestor).")
+                "Solo lectura: paridad CajaDiarioBL.LstCreditoPendienteJGrid (cr?ditos DES registrados por el gestor).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<List<CreditoGestorPendienteRowDto>>(StatusCodes.Status200OK, "application/json")
@@ -245,7 +245,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: fpError);
                     }
 
@@ -253,7 +253,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "nroCuotas debe ser un entero >= 1 cuando monto > 0.");
                     }
 
@@ -261,7 +261,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "interesMensual no puede ser negativo.");
                     }
 
@@ -270,8 +270,8 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "fechaPrimerPago debe tener un año entre 1900 y 2100.");
+                            title: "Solicitud inv?lida",
+                            detail: "fechaPrimerPago debe tener un a?o entre 1900 y 2100.");
                     }
 
                     var gastosAdm = body.GastosAdm ?? 0m;
@@ -291,32 +291,32 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros fuera de rango");
+                        log.LogWarning(ex, "Par?metros fuera de rango");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "La solicitud enviada no es válida.");
+                            title: "Solicitud inv?lida",
+                            detail: "La solicitud enviada no es v?lida.");
                     }
                     catch (ArgumentException ex)
                     {
-                        log.LogWarning(ex, "Argumento inválido");
+                        log.LogWarning(ex, "Argumento inv?lido");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "La solicitud enviada no es válida.");
+                            title: "Solicitud inv?lida",
+                            detail: "La solicitud enviada no es v?lida.");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al ejecutar CREDITO.usp_SimuladorCredito");
-                        var detail = "No se pudo ejecutar el simulador de crédito.";
+                        var detail = "No se pudo ejecutar el simulador de cr?dito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -327,7 +327,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoSimuladorCredito")
             .WithSummary(
-                "Solo lectura: CREDITO.usp_SimuladorCredito (plan simulado). formaPago = D|M|Q|S como calcular-tem / MVC. monto <= 0 devuelve lista vacía sin llamar a SQL (como CreditoController.Simulador). gastosAdm opcional (default 0). CreditoUser.")
+                "Solo lectura: CREDITO.usp_SimuladorCredito (plan simulado). formaPago = D|M|Q|S como calcular-tem / MVC. monto <= 0 devuelve lista vac?a sin llamar a SQL (como CreditoController.Simulador). gastosAdm opcional (default 0). CreditoUser.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<List<SimuladorCreditoCuotaDto>>(StatusCodes.Status200OK, "application/json")
@@ -350,7 +350,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "creditoId es obligatorio y debe ser un entero >= 1.");
                     }
 
@@ -362,19 +362,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "creditoId inválido");
+                        log.LogWarning(ex, "creditoId inv?lido");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -414,7 +414,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "creditoId es obligatorio y debe ser un entero >= 1.");
                     }
 
@@ -428,19 +428,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "creditoId inválido");
+                        log.LogWarning(ex, "creditoId inv?lido");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -479,7 +479,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "creditoId es obligatorio y debe ser un entero >= 1.");
                     }
 
@@ -491,19 +491,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "creditoId inválido");
+                        log.LogWarning(ex, "creditoId inv?lido");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -542,7 +542,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "creditoId debe ser un entero >= 1.");
                     }
 
@@ -554,16 +554,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al listar CreditoMora");
-                        var detail = "No se pudo listar el historial de moras del crédito.";
+                        var detail = "No se pudo listar el historial de moras del cr?dito.";
                         if (env.IsDevelopment())
                         {
                             detail += $" Detalle: {ex.Message}";
@@ -576,7 +576,7 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoMoraListar")
-            .WithSummary("Solo lectura: historial CREDITO.CreditoMora por crédito (paridad ListarCreditoMoraGrd).")
+            .WithSummary("Solo lectura: historial CREDITO.CreditoMora por cr?dito (paridad ListarCreditoMoraGrd).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<List<CreditoMoraRowDto>>(StatusCodes.Status200OK, "application/json")
@@ -598,7 +598,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "creditoId debe ser un entero >= 1.");
                     }
 
@@ -613,16 +613,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al consultar resumen CreditoMora");
-                        var detail = "No se pudo consultar mora postergada del crédito.";
+                        var detail = "No se pudo consultar mora postergada del cr?dito.";
                         if (env.IsDevelopment())
                         {
                             detail += $" Detalle: {ex.Message}";
@@ -659,7 +659,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
@@ -668,7 +668,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status403Forbidden,
                             title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
+                            detail: "El token no contiene una oficina v?lida (vendix:oficina_id).");
                     }
 
                     if (jwtOficinaId != oficinaId.Value)
@@ -687,19 +687,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "oficinaId inválido");
+                        log.LogWarning(ex, "oficinaId inv?lido");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -740,7 +740,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
@@ -749,7 +749,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status403Forbidden,
                             title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
+                            detail: "El token no contiene una oficina v?lida (vendix:oficina_id).");
                     }
 
                     if (jwtOficinaId != oficinaId.Value)
@@ -768,19 +768,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "oficinaId inválido");
+                        log.LogWarning(ex, "oficinaId inv?lido");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -821,7 +821,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "cajaDiarioId es obligatorio y debe ser un entero >= 1.");
                     }
 
@@ -830,7 +830,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "tipoPagoId debe ser un entero >= 1 cuando se indica.");
                     }
 
@@ -842,19 +842,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros fuera de rango");
+                        log.LogWarning(ex, "Par?metros fuera de rango");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -894,7 +894,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -909,7 +909,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status401Unauthorized,
                             title: "No autorizado",
-                            detail: "El token no contiene un usuario válido (vendix:usuario_id).");
+                            detail: "El token no contiene un usuario v?lido (vendix:usuario_id).");
                     }
 
                     var log = loggerFactory.CreateLogger("CajaDiarioSesion");
@@ -930,16 +930,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al leer sesión de caja diario");
-                        var detail = "No se pudo obtener la sesión de caja diario.";
+                        log.LogError(ex, "Error al leer sesi?n de caja diario");
+                        var detail = "No se pudo obtener la sesi?n de caja diario.";
                         if (env.IsDevelopment())
                         {
                             detail += $" Detalle: {ex.Message}";
@@ -978,7 +978,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "creditoId debe ser >= 1.");
                     }
 
@@ -991,22 +991,22 @@ internal static class CreditoOperacionEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status404NotFound,
                                 title: "No encontrado",
-                                detail: "Crédito no encontrado.");
+                                detail: "Cr?dito no encontrado.");
                         }
 
                         return TypedResults.Ok(ctx);
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al obtener contexto de crédito");
+                        log.LogError(ex, "Error al obtener contexto de cr?dito");
                         var detail = "No se pudo obtener el contexto.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
@@ -1062,23 +1062,23 @@ internal static class CreditoOperacionEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status404NotFound,
                                 title: "No encontrado",
-                                detail: "Solicitud de crédito CRE no encontrada.");
+                                detail: "Solicitud de cr?dito CRE no encontrada.");
                         }
 
                         return TypedResults.Ok(solicitud);
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al obtener solicitud de crédito");
-                        var detail = "No se pudo obtener la solicitud de crédito.";
+                        log.LogError(ex, "Error al obtener solicitud de cr?dito");
+                        var detail = "No se pudo obtener la solicitud de cr?dito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -1090,7 +1090,7 @@ internal static class CreditoOperacionEndpoints
             .WithName("CreditoSolicitudDetalle")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
-            .WithSummary("Solo lectura: solicitud CRE para continuar originación desde Crédito > Créditos.")
+            .WithSummary("Solo lectura: solicitud CRE para continuar originaci?n desde Cr?dito > Cr?ditos.")
             .Produces<SolicitudCreditoDetalleDto>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -1132,16 +1132,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al listar prendas del crédito");
-                        var detail = "No se pudieron obtener los bienes del crédito.";
+                        log.LogError(ex, "Error al listar prendas del cr?dito");
+                        var detail = "No se pudieron obtener los bienes del cr?dito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -1192,11 +1192,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -1252,11 +1252,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -1296,8 +1296,8 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "creditoImagenId inválido.");
+                            title: "Solicitud inv?lida",
+                            detail: "creditoImagenId inv?lido.");
                     }
 
                     var log = loggerFactory.CreateLogger("EvidenciaArchivo");
@@ -1319,7 +1319,7 @@ internal static class CreditoOperacionEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status403Forbidden,
                                 title: "Prohibido",
-                                detail: "El token no contiene una oficina válida.");
+                                detail: "El token no contiene una oficina v?lida.");
                         }
 
                         var scopeError = await CajaCreditoWriteGuards
@@ -1351,11 +1351,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -1393,7 +1393,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y personaId deben ser >= 1.");
                     }
 
@@ -1419,15 +1419,15 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al obtener ficha persona crédito");
+                        log.LogError(ex, "Error al obtener ficha persona cr?dito");
                         var detail = "No se pudo obtener la ficha del cliente.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
@@ -1440,7 +1440,7 @@ internal static class CreditoOperacionEndpoints
             .WithName("PersonaCreditoFicha")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
-            .WithSummary("Cabecera cliente en consulta crédito (paridad Creditos.cshtml con pPersonaId).")
+            .WithSummary("Cabecera cliente en consulta cr?dito (paridad Creditos.cshtml con pPersonaId).")
             .Produces<PersonaCreditoFichaDto>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -1468,7 +1468,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y personaId deben ser >= 1.");
                     }
 
@@ -1492,16 +1492,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al listar créditos por persona");
-                        var detail = "No se pudo listar créditos.";
+                        log.LogError(ex, "Error al listar cr?ditos por persona");
+                        var detail = "No se pudo listar cr?ditos.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -1535,7 +1535,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y personaId deben ser >= 1.");
                     }
 
@@ -1553,11 +1553,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -1572,7 +1572,7 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoAvalesPersona")
-            .WithSummary("Solo lectura: relaciones reales de aval y avalado para la ficha moderna de crédito.")
+            .WithSummary("Solo lectura: relaciones reales de aval y avalado para la ficha moderna de cr?dito.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<IReadOnlyList<CreditoAvalRelacionDto>>(StatusCodes.Status200OK, "application/json")
@@ -1637,16 +1637,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al condonar crédito");
-                        var detail = "No se pudo condonar el crédito.";
+                        log.LogError(ex, "Error al condonar cr?dito");
+                        var detail = "No se pudo condonar el cr?dito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -1705,16 +1705,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al observar crédito");
-                        var detail = "No se pudo guardar la observación.";
+                        log.LogError(ex, "Error al observar cr?dito");
+                        var detail = "No se pudo guardar la observaci?n.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -1788,11 +1788,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -1832,7 +1832,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "Se requiere multipart/form-data.");
                     }
 
@@ -1842,7 +1842,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y creditoId son obligatorios.");
                     }
 
@@ -1851,7 +1851,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "Seleccione una imagen (campo imagen).");
                     }
 
@@ -1860,7 +1860,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "Formato de imagen no permitido.");
                     }
 
@@ -1895,11 +1895,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -1939,7 +1939,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y creditoImagenId son obligatorios.");
                     }
 
@@ -1965,11 +1965,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -2032,11 +2032,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -2075,7 +2075,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y personaId son obligatorios.");
                     }
 
@@ -2099,11 +2099,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -2142,7 +2142,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y personaId son obligatorios.");
                     }
 
@@ -2172,11 +2172,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -2238,11 +2238,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -2306,16 +2306,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al modificar trámite administrativo");
-                        var detail = "No se pudo modificar el trámite administrativo.";
+                        log.LogError(ex, "Error al modificar tr?mite administrativo");
+                        var detail = "No se pudo modificar el tr?mite administrativo.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -2375,11 +2375,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -2420,7 +2420,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "planPagoId es obligatorio.");
                     }
 
@@ -2454,11 +2454,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -2538,15 +2538,15 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al guardar los bienes del crédito prendario");
+                        log.LogError(ex, "Error al guardar los bienes del cr?dito prendario");
                         var detail = "No se pudieron guardar los bienes.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
@@ -2557,7 +2557,7 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("PrendasGuardar")
-            .WithSummary("Modern: reemplaza los bienes en custodia de un crédito prendario.")
+            .WithSummary("Modern: reemplaza los bienes en custodia de un cr?dito prendario.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario)
             .Produces<CreditoGestionOperacionResponse>(StatusCodes.Status200OK, "application/json")
@@ -2607,15 +2607,15 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al actualizar aval del crédito");
+                        log.LogError(ex, "Error al actualizar aval del cr?dito");
                         var detail = "No se pudo actualizar el aval.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
@@ -2652,7 +2652,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "personaId es obligatorio y debe ser un entero >= 1.");
                     }
 
@@ -2661,7 +2661,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status401Unauthorized,
                             title: "No autorizado",
-                            detail: "El token no contiene un usuario válido (vendix:usuario_id).");
+                            detail: "El token no contiene un usuario v?lido (vendix:usuario_id).");
                     }
 
                     var log = loggerFactory.CreateLogger("CreditosPorPersona");
@@ -2678,16 +2678,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al listar créditos por persona");
-                        var detail = "No se pudo listar los créditos.";
+                        log.LogError(ex, "Error al listar cr?ditos por persona");
+                        var detail = "No se pudo listar los cr?ditos.";
                         if (env.IsDevelopment())
                         {
                             detail += $" Detalle: {ex.Message}";
@@ -2701,7 +2701,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoCreditosPorPersona")
             .WithSummary(
-                "Créditos estado DES por persona (paridad ListarCreditosPendientesCombo). esCajaCentral omite filtro UsuarioRegId.")
+                "Cr?ditos estado DES por persona (paridad ListarCreditosPendientesCombo). esCajaCentral omite filtro UsuarioRegId.")
             .WithTags("credito", "caja")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<List<CreditoPorPersonaRowDto>>(StatusCodes.Status200OK, "application/json")
@@ -2725,7 +2725,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
@@ -2734,7 +2734,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status403Forbidden,
                             title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
+                            detail: "El token no contiene una oficina v?lida (vendix:oficina_id).");
                     }
 
                     if (jwtOficinaId != oficinaId.Value)
@@ -2753,11 +2753,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -2837,21 +2837,21 @@ internal static class CreditoOperacionEndpoints
                     catch (InvalidOperationException ex)
                     {
                         log.LogWarning(ex, "Verificar pago transferencia");
-                        var status = ex.Message.Contains("No existe extensión", StringComparison.OrdinalIgnoreCase)
+                        var status = ex.Message.Contains("No existe extensi?n", StringComparison.OrdinalIgnoreCase)
                             ? StatusCodes.Status404NotFound
                             : StatusCodes.Status503ServiceUnavailable;
                         return TypedResults.Problem(
                             statusCode: status,
-                            title: status == StatusCodes.Status404NotFound ? "No encontrado" : "Error de operación",
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.");
+                            title: status == StatusCodes.Status404NotFound ? "No encontrado" : "Error de operaci?n",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -2899,7 +2899,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "oficinaId y cajaDiarioId son obligatorios y deben ser enteros >= 1.");
                     }
 
@@ -2908,7 +2908,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status403Forbidden,
                             title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
+                            detail: "El token no contiene una oficina v?lida (vendix:oficina_id).");
                     }
 
                     if (jwtOficinaId != oficinaId.Value)
@@ -2948,19 +2948,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "cajaDiarioId inválido");
+                        log.LogWarning(ex, "cajaDiarioId inv?lido");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -3006,7 +3006,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y cajaDiarioId deben ser enteros >= 1.");
                     }
 
@@ -3015,7 +3015,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status403Forbidden,
                             title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
+                            detail: "El token no contiene una oficina v?lida (vendix:oficina_id).");
                     }
 
                     if (jwtOficinaId != body.OficinaId)
@@ -3053,19 +3053,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -3084,7 +3084,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoCompletarImpagos")
             .WithSummary(
-                "Escritura: CREDITO.usp_CompletarImpagos(CajaDiarioId). Body { oficinaId, cajaDiarioId }; oficinaId = vendix:oficina_id. Paridad CreditoBL.CompletarImpagos (el SP registra CUO 0 en créditos sin cobro del día). GET completar-impagos-validacion se usa en cierre, no como rechazo de esta escritura.")
+                "Escritura: CREDITO.usp_CompletarImpagos(CajaDiarioId). Body { oficinaId, cajaDiarioId }; oficinaId = vendix:oficina_id. Paridad CreditoBL.CompletarImpagos (el SP registra CUO 0 en cr?ditos sin cobro del d?a). GET completar-impagos-validacion se usa en cierre, no como rechazo de esta escritura.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
             .Produces<CompletarImpagosResponse>(StatusCodes.Status200OK, "application/json")
@@ -3121,7 +3121,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "listaPlanPagoId es obligatorio.");
                     }
 
@@ -3129,7 +3129,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "importeRecibido debe ser > 0.");
                     }
 
@@ -3137,7 +3137,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "tipoPagoId debe ser >= 1.");
                     }
 
@@ -3172,7 +3172,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status409Conflict,
                             title: "Conflicto",
-                            detail: "La caja diario está cerrada.");
+                            detail: "La caja diario est? cerrada.");
                     }
 
                     var serverTime = await databaseTime.GetServerTimeAsync(ct).ConfigureAwait(false);
@@ -3228,11 +3228,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -3284,7 +3284,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "importeRecibido debe ser > 0.");
                     }
 
@@ -3292,7 +3292,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "tipoPagoId debe ser >= 1.");
                     }
 
@@ -3327,7 +3327,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status409Conflict,
                             title: "Conflicto",
-                            detail: "La caja diario está cerrada.");
+                            detail: "La caja diario est? cerrada.");
                     }
 
                     var log = loggerFactory.CreateLogger("PagarCuotaPagoLibre");
@@ -3353,11 +3353,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -3409,7 +3409,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "importeRecibido debe ser > 0.");
                     }
 
@@ -3444,7 +3444,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status409Conflict,
                             title: "Conflicto",
-                            detail: "La caja diario está cerrada.");
+                            detail: "La caja diario est? cerrada.");
                     }
 
                     var log = loggerFactory.CreateLogger("PagarCuotaConMora");
@@ -3468,18 +3468,18 @@ internal static class CreditoOperacionEndpoints
                         }
 
                         var mensaje = body.EsUltimaCuota
-                            ? "Cuota final procesada y moras acumuladas liquidadas con éxito."
+                            ? "Cuota final procesada y moras acumuladas liquidadas con ?xito."
                             : $"Pago registrado (mov. {response.ResultId}).";
                         return TypedResults.Ok(
                             new PagarCuotaConMoraResponse(response.ResultId, mensaje, body.EsUltimaCuota));
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -3498,7 +3498,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoPagarCuotaConMora")
             .WithSummary(
-                "Escritura: paridad CajaDiarioBL.ProcesarPagoCompleto / ProcesarPagoCuotaConMora (pago libre + liquidación mora).")
+                "Escritura: paridad CajaDiarioBL.ProcesarPagoCompleto / ProcesarPagoCuotaConMora (pago libre + liquidaci?n mora).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
             .Produces<PagarCuotaConMoraResponse>(StatusCodes.Status200OK, "application/json")
@@ -3562,7 +3562,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status409Conflict,
                             title: "Conflicto",
-                            detail: "La caja diario está cerrada.");
+                            detail: "La caja diario est? cerrada.");
                     }
 
                     var serverTime = await databaseTime.GetServerTimeAsync(ct).ConfigureAwait(false);
@@ -3595,16 +3595,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al ejecutar CREDITO.usp_PagarCuotasCancelacion");
-                        var detail = "No se pudo registrar el pago por cancelación.";
+                        var detail = "No se pudo registrar el pago por cancelaci?n.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -3644,7 +3644,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "oficinaId y cajaDiarioId son obligatorios y deben ser enteros >= 1.");
                     }
 
@@ -3676,15 +3676,15 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status404NotFound,
                             title: "No encontrado",
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.");
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.");
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Configuración incompleta");
+                        log.LogWarning(ex, "Configuraci?n incompleta");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -3785,7 +3785,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status404NotFound,
                             title: "No encontrado",
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.");
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.");
                     }
                     catch (InvalidOperationException ex)
                     {
@@ -3793,15 +3793,15 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status409Conflict,
                             title: "No se puede cerrar la caja",
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.");
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -3817,7 +3817,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoCerrarCajaDiario")
             .WithSummary(
-                "Escritura: paridad CajaDiarioBL.CerrarCajaDiario (UPDATE CajaDiario/Caja + CREDITO.ActualizarClientesNuevos). Rechaza 409 si validar-cierre falla. usuarioModId = vendix:usuario_id; fecha = usp_FechaBD. Distinto de cerrar-cajas-diarios (transferencia bóveda).")
+                "Escritura: paridad CajaDiarioBL.CerrarCajaDiario (UPDATE CajaDiario/Caja + CREDITO.ActualizarClientesNuevos). Rechaza 409 si validar-cierre falla. usuarioModId = vendix:usuario_id; fecha = usp_FechaBD. Distinto de cerrar-cajas-diarios (transferencia b?veda).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
             .Produces<CerrarCajaDiarioResponse>(StatusCodes.Status200OK, "application/json")
@@ -3871,19 +3871,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -3952,19 +3952,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -4014,7 +4014,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "importe debe ser > 0.");
                     }
 
@@ -4022,7 +4022,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "descripcion es obligatoria.");
                     }
 
@@ -4082,11 +4082,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -4102,7 +4102,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoTransferirSaldosCajaDiario")
             .WithSummary(
-                "Escritura: paridad CajaDiarioController.TransferirSaldos (cajaâ†’caja o cajaâ†’bóveda).")
+                "Escritura: paridad CajaDiarioController.TransferirSaldos (caja???caja o caja???b?veda).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
             .Produces(StatusCodes.Status200OK)
@@ -4133,11 +4133,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -4195,31 +4195,31 @@ internal static class CreditoOperacionEndpoints
                             return scopeError;
                         }
 
-                        var requiere = await movimientoScope
-                            .RequiereConfirmacionAnularAsync(movimientoCajaId, ct)
+                        var bloqueado = await movimientoScope
+                            .EsBloqueoAnularPorPagosCuotaAsync(movimientoCajaId, ct)
                             .ConfigureAwait(false);
-                        return TypedResults.Ok(new ValidarAnularMovimientoCajaResponse(requiere));
+                        return TypedResults.Ok(new ValidarAnularMovimientoCajaResponse(bloqueado));
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al validar anulación de movimiento de caja");
-                        var detail = "No se pudo validar la anulación del movimiento.";
+                        log.LogError(ex, "Error al validar anulaci?n de movimiento de caja");
+                        var detail = "No se pudo validar la anulaci?n del movimiento.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -4230,10 +4230,185 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoValidarAnularMovimientoCaja")
             .WithSummary(
-                "Lectura previa: paridad CreditoController.ValidarAnularMovimientoCaja (INI con cuotas PAG requiere confirmación en UI).")
+                "Lectura previa: paridad CreditoController.ValidarAnularMovimientoCaja + CajaDiario (INI con cuotas PAG ? bloqueado).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<ValidarAnularMovimientoCajaResponse>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+
+
+        app.MapGet(
+                "/api/v1/credito/movimiento-caja-anular",
+                async Task<Results<Ok<MovimientoCajaAnularPreviewDto>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    int oficinaId,
+                    int movimientoCajaId,
+                    IMovimientoCajaScopeReadService movimientoScope,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    var idError = CajaCreditoWriteGuards.ValidateBodyMovimientoIds(oficinaId, movimientoCajaId);
+                    if (idError is not null)
+                    {
+                        return idError;
+                    }
+
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+                    if (oficinaError is not null)
+                    {
+                        return oficinaError;
+                    }
+
+                    var log = loggerFactory.CreateLogger("MovimientoCajaAnular");
+                    try
+                    {
+                        var preview = await movimientoScope
+                            .GetAnularPreviewAsync(movimientoCajaId, ct)
+                            .ConfigureAwait(false);
+                        if (preview is null)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status404NotFound,
+                                title: "No encontrado",
+                                detail: "Movimiento no encontrado.");
+                        }
+
+                        if (preview.OficinaId != oficinaId)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status403Forbidden,
+                                title: "Prohibido",
+                                detail: "El movimiento de caja no pertenece a la oficina del token JWT.");
+                        }
+
+                        return TypedResults.Ok(preview);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuraci?n incompleta");
+                    }
+                    catch (ArgumentOutOfRangeException ex)
+                    {
+                        log.LogWarning(ex, "Par?metros inv?lidos");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error al consultar movimiento de caja para anular");
+                        var detail = "No se pudo consultar el movimiento de caja.";
+                        if (env.IsDevelopment())
+                            detail += $" Detalle: {ex.Message}";
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("CreditoMovimientoCajaAnular")
+            .WithSummary(
+                "Lectura: paridad CajaDiarioController.ObtenerMovimientoCajaAnular (detalle antes de anular en Saldos).")
+            .WithTags("credito", "caja")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .Produces<MovimientoCajaAnularPreviewDto>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+
+
+        app.MapGet(
+                "/api/v1/credito/movimiento-caja-detalle-ov",
+                async Task<Results<Ok<MovimientoCajaDetalleOvDto>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    int oficinaId,
+                    int movimientoCajaId,
+                    IMovimientoCajaDetalleOvReadService detalleOv,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    var idError = CajaCreditoWriteGuards.ValidateBodyMovimientoIds(oficinaId, movimientoCajaId);
+                    if (idError is not null)
+                    {
+                        return idError;
+                    }
+
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+                    if (oficinaError is not null)
+                    {
+                        return oficinaError;
+                    }
+
+                    var log = loggerFactory.CreateLogger("MovimientoCajaDetalleOv");
+                    try
+                    {
+                        var dto = await detalleOv.GetAsync(movimientoCajaId, ct).ConfigureAwait(false);
+                        if (dto is null)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status404NotFound,
+                                title: "No encontrado",
+                                detail: "Movimiento no encontrado.");
+                        }
+
+                        if (dto.OficinaId != oficinaId)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status403Forbidden,
+                                title: "Prohibido",
+                                detail: "El movimiento de caja no pertenece a la oficina del token JWT.");
+                        }
+
+                        return TypedResults.Ok(dto);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuraci?n incompleta");
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error al consultar detalle OV del movimiento");
+                        var detail = "No se pudo consultar el detalle de la orden de venta.";
+                        if (env.IsDevelopment())
+                            detail += $" Detalle: {ex.Message}";
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("CreditoMovimientoCajaDetalleOv")
+            .WithSummary(
+                "Lectura: paridad CajaDiarioBL.MostrarDetalleOvMovCaja (INI/CON/CUO ? l?neas OrdenVentaDet).")
+            .WithTags("credito", "caja")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .Produces<MovimientoCajaDetalleOvDto>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -4288,7 +4463,26 @@ internal static class CreditoOperacionEndpoints
                             return anulableError;
                         }
 
+                        var bloqueadoPorPagos = await movimientoScope
+                            .EsBloqueoAnularPorPagosCuotaAsync(body.MovimientoCajaId, ct)
+                            .ConfigureAwait(false);
+                        if (bloqueadoPorPagos)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status409Conflict,
+                                title: "Conflicto",
+                                detail: "Tiene Pagos de cuotas, No se Puede Anular el Cr?dito");
+                        }
+
                         var observacion = body.Observacion?.Trim() ?? string.Empty;
+                        if (string.IsNullOrEmpty(observacion))
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status400BadRequest,
+                                title: "Par?metros inv?lidos",
+                                detail: "Ingrese la observaci?n para anular.");
+                        }
+
                         var response = await movimientoCajaWrite
                             .AnularAsync(body.MovimientoCajaId, observacion, usuarioId, ct)
                             .ConfigureAwait(false);
@@ -4296,19 +4490,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -4352,7 +4546,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -4360,7 +4554,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "personaId debe ser >= 0.");
                     }
 
@@ -4386,19 +4580,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -4414,7 +4608,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoDesembolsosPendientes")
             .WithSummary(
-                "Solo lectura: créditos APR pendientes de desembolso (paridad CajaDiarioBL.LstDesembolsoJGrid). personaId=0 filtra por usuario del token.")
+                "Solo lectura: cr?ditos APR pendientes de desembolso (paridad CajaDiarioBL.LstDesembolsoJGrid). personaId=0 filtra por usuario del token.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<List<DesembolsoPendienteRowDto>>(StatusCodes.Status200OK, "application/json")
@@ -4468,19 +4662,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -4559,7 +4753,7 @@ internal static class CreditoOperacionEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status409Conflict,
                                 title: "Desembolso no permitido",
-                                detail: validacion.Mensaje ?? "Validación de desembolso fallida.");
+                                detail: validacion.Mensaje ?? "Validaci?n de desembolso fallida.");
                         }
 
                         var serverTime = await databaseTime.GetServerTimeAsync(ct).ConfigureAwait(false);
@@ -4578,11 +4772,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (KeyNotFoundException ex)
                     {
-                        log.LogWarning(ex, "Crédito no encontrado");
+                        log.LogWarning(ex, "Cr?dito no encontrado");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status404NotFound,
                             title: "No encontrado",
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.");
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.");
                     }
                     catch (InvalidOperationException ex)
                     {
@@ -4590,15 +4784,15 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status409Conflict,
                             title: "Desembolso no permitido",
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.");
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -4643,7 +4837,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "descripcion es obligatoria.");
                     }
 
@@ -4657,7 +4851,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "personaId y tipoOperacionId deben ser enteros >= 1.");
                     }
 
@@ -4719,19 +4913,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -4777,7 +4971,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y cajaDiarioId deben ser enteros >= 1.");
                     }
 
@@ -4785,7 +4979,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "personaId debe ser >= 0.");
                     }
 
@@ -4811,19 +5005,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -4873,7 +5067,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "cuentaxCobrarId debe ser >= 0.");
                     }
 
@@ -4881,7 +5075,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "ordenVentaId debe ser >= 1 cuando cuentaxCobrarId es 0.");
                     }
 
@@ -4913,7 +5107,7 @@ internal static class CreditoOperacionEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status409Conflict,
                                 title: "Conflicto",
-                                detail: "La caja diario está cerrada.");
+                                detail: "La caja diario est? cerrada.");
                         }
 
                         var puedeCobrar = await cuentaPorCobrarPagoRead
@@ -4924,7 +5118,7 @@ internal static class CreditoOperacionEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status404NotFound,
                                 title: "No encontrado",
-                                detail: "La cuenta por cobrar u orden de venta no existe, no está pendiente o no pertenece a la oficina.");
+                                detail: "La cuenta por cobrar u orden de venta no existe, no est? pendiente o no pertenece a la oficina.");
                         }
 
                         var response = await cuentaPorCobrarPagoWrite
@@ -4941,19 +5135,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -4997,7 +5191,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -5018,31 +5212,31 @@ internal static class CreditoOperacionEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status404NotFound,
                                 title: "No encontrado",
-                                detail: "No existe bóveda abierta para la oficina.");
+                                detail: "No existe b?veda abierta para la oficina.");
                         }
 
                         return TypedResults.Ok(boveda);
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al consultar bóveda abierta");
-                        var detail = "No se pudo consultar la bóveda abierta.";
+                        log.LogError(ex, "Error al consultar b?veda abierta");
+                        var detail = "No se pudo consultar la b?veda abierta.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -5053,7 +5247,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoBovedaAbierta")
             .WithSummary(
-                "Solo lectura: bóveda abierta de la oficina (IndCierre=0), ORDER BY IndTemporal, BovedaId â€” paridad operaciones de escritura y BovedaController.Index.")
+                "Solo lectura: b?veda abierta de la oficina (IndCierre=0), ORDER BY IndTemporal, BovedaId ??? paridad operaciones de escritura y BovedaController.Index.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<BovedaAbiertaDto>(StatusCodes.Status200OK, "application/json")
@@ -5079,7 +5273,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -5099,24 +5293,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Bóvedas destino transferencia: configuración incompleta");
+                        log.LogWarning(ex, "B?vedas destino transferencia: configuraci?n incompleta");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Bóvedas destino transferencia: parámetros inválidos");
+                        log.LogWarning(ex, "B?vedas destino transferencia: par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al listar bóvedas destino para transferencia");
-                        var detail = "No se pudo listar bóvedas destino para transferencia.";
+                        log.LogError(ex, "Error al listar b?vedas destino para transferencia");
+                        var detail = "No se pudo listar b?vedas destino para transferencia.";
                         if (env.IsDevelopment())
                         {
                             detail += $" Detalle: {ex.Message}";
@@ -5129,7 +5323,7 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoBovedasDestinoTransferencia")
-            .WithSummary("Bóvedas principales abiertas de otras oficinas para transferencia interoficina.")
+            .WithSummary("B?vedas principales abiertas de otras oficinas para transferencia interoficina.")
             .WithTags("credito", "boveda")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<List<BovedaDestinoTransferenciaDto>>(StatusCodes.Status200OK, "application/json")
@@ -5155,7 +5349,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -5179,9 +5373,9 @@ internal static class CreditoOperacionEndpoints
                     {
                         log.LogWarning(ex, "Boveda estado dinero");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -5199,7 +5393,7 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoBovedaEstadoDinero")
-            .WithSummary("Paridad Boveda/Index â€” KPIs estado de dinero y total fondo.")
+            .WithSummary("Paridad Boveda/Index ??? KPIs estado de dinero y total fondo.")
             .WithTags("credito", "boveda")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<BovedaEstadoDineroDto>(StatusCodes.Status200OK, "application/json");
@@ -5221,8 +5415,8 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "oficinaId debe ser >= 1 y bovedaId, si se envía, debe ser >= 1.");
+                            title: "Solicitud inv?lida",
+                            detail: "oficinaId debe ser >= 1 y bovedaId, si se env?a, debe ser >= 1.");
                     }
 
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
@@ -5242,31 +5436,31 @@ internal static class CreditoOperacionEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status404NotFound,
                                 title: "No encontrado",
-                                detail: "No existe bóveda para generar el cuadre.");
+                                detail: "No existe b?veda para generar el cuadre.");
                         }
 
                         return TypedResults.Ok(preview);
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cuadre bóveda: configuración incompleta");
+                        log.LogWarning(ex, "Cuadre b?veda: configuraci?n incompleta");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Cuadre bóveda: parámetros inválidos");
+                        log.LogWarning(ex, "Cuadre b?veda: par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al generar cuadre automático de bóveda");
-                        var detail = "No se pudo generar el cuadre automático de bóveda.";
+                        log.LogError(ex, "Error al generar cuadre autom?tico de b?veda");
+                        var detail = "No se pudo generar el cuadre autom?tico de b?veda.";
                         if (env.IsDevelopment())
                         {
                             detail += $" Detalle: {ex.Message}";
@@ -5280,7 +5474,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoBovedaCuadrePreview")
             .WithSummary(
-                "Solo lectura: cuadre automático de Bóveda/Caja con responsables, medios, diferencias y pendientes para reemplazar el Excel manual.")
+                "Solo lectura: cuadre autom?tico de B?veda/Caja con responsables, medios, diferencias y pendientes para reemplazar el Excel manual.")
             .WithTags("credito", "boveda")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<BovedaCuadrePreviewDto>(StatusCodes.Status200OK, "application/json")
@@ -5308,7 +5502,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -5330,14 +5524,14 @@ internal static class CreditoOperacionEndpoints
                     {
                         log.LogWarning(ex, "Boveda listar");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Boveda listar");
-                        var detail = "No se pudo listar bóvedas.";
+                        var detail = "No se pudo listar b?vedas.";
                         if (env.IsDevelopment())
                         {
                             detail += $" Detalle: {ex.Message}";
@@ -5350,7 +5544,7 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoBovedaListar")
-            .WithSummary("Paridad ListarBovedaJgrid â€” historial de cierres de bóveda.")
+            .WithSummary("Paridad ListarBovedaJgrid ??? historial de cierres de b?veda.")
             .WithTags("credito", "boveda")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<BovedaListadoResultDto>(StatusCodes.Status200OK, "application/json");
@@ -5371,7 +5565,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -5391,24 +5585,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al consultar bóveda temporal");
-                        var detail = "No se pudo consultar la bóveda temporal.";
+                        log.LogError(ex, "Error al consultar b?veda temporal");
+                        var detail = "No se pudo consultar la b?veda temporal.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -5418,7 +5612,7 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoExisteBovedaTemporal")
-            .WithSummary("Solo lectura: paridad BovedaController.ExisteBovedaTemporal (bóveda abierta IndTemporal=1).")
+            .WithSummary("Solo lectura: paridad BovedaController.ExisteBovedaTemporal (b?veda abierta IndTemporal=1).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<ExisteBovedaTemporalResponse>(StatusCodes.Status200OK, "application/json")
@@ -5444,7 +5638,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -5481,24 +5675,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al ejecutar CREDITO.usp_CerrarBoveda");
-                        var detail = "No se pudo cerrar la bóveda.";
+                        var detail = "No se pudo cerrar la b?veda.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -5534,7 +5728,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -5560,24 +5754,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al ejecutar CREDITO.usp_CerrarBovedaTemporal");
-                        var detail = "No se pudo cerrar la bóveda temporal.";
+                        var detail = "No se pudo cerrar la b?veda temporal.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -5613,7 +5807,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -5636,7 +5830,7 @@ internal static class CreditoOperacionEndpoints
                         {
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status400BadRequest,
-                                title: "Solicitud inválida",
+                                title: "Solicitud inv?lida",
                                 detail: "bovedaInicioId y bovedaDestinoId deben ser >= 1.");
                         }
 
@@ -5644,7 +5838,7 @@ internal static class CreditoOperacionEndpoints
                         {
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status400BadRequest,
-                                title: "Solicitud inválida",
+                                title: "Solicitud inv?lida",
                                 detail: "monto debe ser > 0.");
                         }
 
@@ -5652,7 +5846,7 @@ internal static class CreditoOperacionEndpoints
                         {
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status400BadRequest,
-                                title: "Solicitud inválida",
+                                title: "Solicitud inv?lida",
                                 detail: "glosa es obligatoria.");
                         }
                     }
@@ -5670,7 +5864,7 @@ internal static class CreditoOperacionEndpoints
                                 return TypedResults.Problem(
                                     statusCode: StatusCodes.Status404NotFound,
                                     title: "No encontrado",
-                                    detail: "No existe la bóveda de origen indicada.");
+                                    detail: "No existe la b?veda de origen indicada.");
                             }
 
                             if (oficinaInicio.Value != body.OficinaId)
@@ -5678,7 +5872,7 @@ internal static class CreditoOperacionEndpoints
                                 return TypedResults.Problem(
                                     statusCode: StatusCodes.Status403Forbidden,
                                     title: "Prohibido",
-                                    detail: "La bóveda de origen no pertenece a la oficina del token.");
+                                    detail: "La b?veda de origen no pertenece a la oficina del token.");
                             }
 
                             var oficinaDestino = await bovedaOficina
@@ -5689,7 +5883,7 @@ internal static class CreditoOperacionEndpoints
                                 return TypedResults.Problem(
                                     statusCode: StatusCodes.Status404NotFound,
                                     title: "No encontrado",
-                                    detail: "No existe la bóveda de destino indicada.");
+                                    detail: "No existe la b?veda de destino indicada.");
                             }
                         }
 
@@ -5708,24 +5902,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al ejecutar CREDITO.usp_TransferirBoveda");
-                        var detail = "No se pudo transferir entre bóvedas.";
+                        var detail = "No se pudo transferir entre b?vedas.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -5736,7 +5930,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoTransferirBoveda")
             .WithSummary(
-                "Escritura: CREDITO.usp_TransferirBoveda. Transferencia entre bóvedas (origen en oficina JWT) o aceptación temporal (bovedaMovTempId > 0).")
+                "Escritura: CREDITO.usp_TransferirBoveda. Transferencia entre b?vedas (origen en oficina JWT) o aceptaci?n temporal (bovedaMovTempId > 0).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<CajaDiarioOperacionResponse>(StatusCodes.Status200OK, "application/json")
@@ -5762,7 +5956,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -5782,19 +5976,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -5835,7 +6029,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -5861,24 +6055,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al obtener monto de bóveda");
-                        var detail = "No se pudo obtener el monto de bóveda.";
+                        log.LogError(ex, "Error al obtener monto de b?veda");
+                        var detail = "No se pudo obtener el monto de b?veda.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -5889,7 +6083,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoMontoBovedaAsignacion")
             .WithSummary(
-                "Solo lectura: paridad SaldosController.MostrarMontoBoveda (bóveda temporal si rol ENCARGADO).")
+                "Solo lectura: paridad SaldosController.MostrarMontoBoveda (b?veda temporal si rol ENCARGADO).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<MontoBovedaAsignacionResponse>(StatusCodes.Status200OK, "application/json")
@@ -5915,7 +6109,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y cajaId deben ser enteros >= 1.");
                     }
 
@@ -5923,7 +6117,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "saldoInicial debe ser >= 0.");
                     }
 
@@ -5973,19 +6167,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -6001,9 +6195,9 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoAsignarCaja")
             .WithSummary(
-                "Escritura: paridad CajaDiarioBL.AsignarUsuarioCaja / SaldosController.AsignarCaja (EF + usp_CalcularMontoPorCobrar). Cajero desde Caja.CajeroId.")
+                "Escritura: paridad CajaDiarioBL.AsignarUsuarioCaja / SaldosController.AsignarCaja (EF + usp_CalcularMontoPorCobrar). Cajero desde Caja.CajeroId. Bloquea LECTURA_SALDO.")
             .WithTags("credito")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoNoLecturaSaldo)
             .Produces<AsignarCajaResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
@@ -6027,7 +6221,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -6047,19 +6241,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -6088,19 +6282,22 @@ internal static class CreditoOperacionEndpoints
 
         app.MapGet(
                 "/api/v1/credito/saldos-caja-diario",
-                async Task<Results<Ok<List<SaldoCajaSesionRowDto>>, ProblemHttpResult>> (
+                async Task<Results<Ok<SaldoCajaSesionPageDto>, ProblemHttpResult>> (
                     HttpContext httpContext,
                     int oficinaId,
                     ISaldosCajaDiarioReadService saldos,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
-                    CancellationToken ct) =>
+                    CancellationToken ct,
+                    string? buscar = null,
+                    int page = 1,
+                    int pageSize = 25) =>
                 {
                     if (oficinaId < 1)
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser >= 1.");
                     }
 
@@ -6113,16 +6310,18 @@ internal static class CreditoOperacionEndpoints
                     var log = loggerFactory.CreateLogger("SaldosCajaDiario");
                     try
                     {
-                        var items = await saldos.ListarCajaDiarioPorOficinaAsync(oficinaId, ct).ConfigureAwait(false);
-                        return TypedResults.Ok(items.ToList());
+                        var pagina = await saldos
+                            .ListarCajaDiarioPorOficinaAsync(oficinaId, buscar, page, pageSize, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(pagina);
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -6137,10 +6336,11 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoSaldosCajaDiario")
-            .WithSummary("Paridad SaldosController.ListarSaldoCajaDiario.")
+            .WithSummary(
+                "Paridad SaldosController.ListarSaldoCajaDiario (paginado en servidor como el jqGrid; totales sobre el filtro completo).")
             .WithTags("credito", "caja")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
-            .Produces<List<SaldoCajaSesionRowDto>>(StatusCodes.Status200OK, "application/json")
+            .Produces<SaldoCajaSesionPageDto>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -6150,25 +6350,30 @@ internal static class CreditoOperacionEndpoints
 
         app.MapGet(
                 "/api/v1/credito/saldos-caja-chica-diario",
-                async Task<Results<Ok<List<SaldoCajaSesionRowDto>>, ProblemHttpResult>> (
+                async Task<Results<Ok<SaldoCajaSesionPageDto>, ProblemHttpResult>> (
                     ISaldosCajaDiarioReadService saldos,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
-                    CancellationToken ct) =>
+                    CancellationToken ct,
+                    string? buscar = null,
+                    int page = 1,
+                    int pageSize = 25) =>
                 {
                     var log = loggerFactory.CreateLogger("SaldosCajaChicaDiario");
                     try
                     {
-                        var items = await saldos.ListarCajaChicaDiarioAsync(ct).ConfigureAwait(false);
-                        return TypedResults.Ok(items.ToList());
+                        var pagina = await saldos
+                            .ListarCajaChicaDiarioAsync(buscar, page, pageSize, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(pagina);
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -6183,10 +6388,11 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoSaldosCajaChicaDiario")
-            .WithSummary("Paridad SaldosController.ListarSaldoCajaChicaDiario.")
+            .WithSummary(
+                "Paridad SaldosController.ListarSaldoCajaChicaDiario (paginado en servidor; el legado tampoco filtra por oficina).")
             .WithTags("credito", "caja")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
-            .Produces<List<SaldoCajaSesionRowDto>>(StatusCodes.Status200OK, "application/json")
+            .Produces<SaldoCajaSesionPageDto>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
@@ -6194,20 +6400,23 @@ internal static class CreditoOperacionEndpoints
 
         app.MapGet(
                 "/api/v1/credito/saldos-caja-diario-boveda",
-                async Task<Results<Ok<List<SaldoCajaSesionRowDto>>, ProblemHttpResult>> (
+                async Task<Results<Ok<SaldoCajaSesionPageDto>, ProblemHttpResult>> (
                     HttpContext httpContext,
                     int bovedaId,
                     int oficinaId,
                     ISaldosCajaDiarioReadService saldos,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
-                    CancellationToken ct) =>
+                    CancellationToken ct,
+                    string? buscar = null,
+                    int page = 1,
+                    int pageSize = 25) =>
                 {
                     if (bovedaId < 1 || oficinaId < 1)
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "bovedaId y oficinaId deben ser >= 1.");
                     }
 
@@ -6220,21 +6429,23 @@ internal static class CreditoOperacionEndpoints
                     var log = loggerFactory.CreateLogger("SaldosCajaDiarioBoveda");
                     try
                     {
-                        var items = await saldos.ListarCajaDiarioBovedaAsync(bovedaId, ct).ConfigureAwait(false);
-                        return TypedResults.Ok(items.ToList());
+                        var pagina = await saldos
+                            .ListarCajaDiarioBovedaAsync(bovedaId, buscar, page, pageSize, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(pagina);
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al listar saldos caja diario bóveda");
-                        var detail = "No se pudo listar saldos por bóveda.";
+                        log.LogError(ex, "Error al listar saldos caja diario b?veda");
+                        var detail = "No se pudo listar saldos por b?veda.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -6244,10 +6455,10 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoSaldosCajaDiarioBoveda")
-            .WithSummary("Paridad SaldosController.ListarSaldoCajaDiarioBoveda.")
+            .WithSummary("Paridad SaldosController.ListarSaldoCajaDiarioBoveda (paginado en servidor).")
             .WithTags("credito", "caja")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
-            .Produces<List<SaldoCajaSesionRowDto>>(StatusCodes.Status200OK, "application/json")
+            .Produces<SaldoCajaSesionPageDto>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
@@ -6269,7 +6480,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -6289,11 +6500,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -6334,7 +6545,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -6354,24 +6565,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al actualizar datos post cierre bóveda");
-                        var detail = "No se pudieron actualizar saldos de cartera ni calificación.";
+                        log.LogError(ex, "Error al actualizar datos post cierre b?veda");
+                        var detail = "No se pudieron actualizar saldos de cartera ni calificaci?n.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -6407,7 +6618,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -6427,19 +6638,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -6454,7 +6665,7 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoCajasAbiertasTransferenciaBoveda")
-            .WithSummary("Solo lectura: paridad CajaBL.ListarCajasAbiertas (combo transferir bóveda â†’ caja).")
+            .WithSummary("Solo lectura: paridad CajaBL.ListarCajasAbiertas (combo transferir b?veda ??? caja).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<List<CajaAbiertaTransferenciaRowDto>>(StatusCodes.Status200OK, "application/json")
@@ -6480,7 +6691,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y tipoOperacionId deben ser >= 1.");
                     }
 
@@ -6488,7 +6699,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "importe debe ser > 0.");
                     }
 
@@ -6496,7 +6707,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "descripcion es obligatoria.");
                     }
 
@@ -6541,31 +6752,31 @@ internal static class CreditoOperacionEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status422UnprocessableEntity,
                                 title: "No se pudo registrar",
-                                detail: "Tipo de operación inválido, bóveda no disponible o error de negocio.");
+                                detail: "Tipo de operaci?n inv?lido, b?veda no disponible o error de negocio.");
                         }
 
                         return TypedResults.Ok(result);
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error en ingreso/egreso bóveda");
-                        var detail = "No se pudo registrar ingreso/egreso de bóveda.";
+                        log.LogError(ex, "Error en ingreso/egreso b?veda");
+                        var detail = "No se pudo registrar ingreso/egreso de b?veda.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -6576,7 +6787,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoIngresoEgresoBoveda")
             .WithSummary(
-                "Escritura: paridad BovedaMovBL.IngresoEgresoBovedaCaja + usp_ActualizarSaldosBoveda. Tipo operación debe tener IndBoveda.")
+                "Escritura: paridad BovedaMovBL.IngresoEgresoBovedaCaja + usp_ActualizarSaldosBoveda. Tipo operaci?n debe tener IndBoveda.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<BovedaMovOperacionResponse>(StatusCodes.Status200OK, "application/json")
@@ -6603,7 +6814,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y cajaId deben ser >= 1.");
                     }
 
@@ -6611,7 +6822,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "importe debe ser > 0.");
                     }
 
@@ -6619,7 +6830,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "descripcion es obligatoria.");
                     }
 
@@ -6663,31 +6874,31 @@ internal static class CreditoOperacionEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status422UnprocessableEntity,
                                 title: "No se pudo transferir",
-                                detail: "Bóveda o caja diario no disponible en la oficina.");
+                                detail: "B?veda o caja diario no disponible en la oficina.");
                         }
 
                         return TypedResults.Ok(result);
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al transferir bóveda a caja");
-                        var detail = "No se pudo transferir de bóveda a caja.";
+                        log.LogError(ex, "Error al transferir b?veda a caja");
+                        var detail = "No se pudo transferir de b?veda a caja.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -6725,7 +6936,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser >= 1.");
                     }
 
@@ -6733,7 +6944,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "importe debe ser > 0.");
                     }
 
@@ -6741,7 +6952,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "descripcion es obligatoria.");
                     }
 
@@ -6791,24 +7002,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al transferir bóveda a caja chica");
-                        var detail = "No se pudo transferir de bóveda a caja chica.";
+                        log.LogError(ex, "Error al transferir b?veda a caja chica");
+                        var detail = "No se pudo transferir de b?veda a caja chica.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -6847,7 +7058,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -6900,24 +7111,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al transferir cierre caja chica a bóveda");
-                        var detail = "No se pudo transferir el cierre de caja chica a bóveda.";
+                        log.LogError(ex, "Error al transferir cierre caja chica a b?veda");
+                        var detail = "No se pudo transferir el cierre de caja chica a b?veda.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -6956,7 +7167,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser >= 1.");
                     }
 
@@ -6964,7 +7175,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "importe debe ser > 0.");
                     }
 
@@ -6972,7 +7183,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "descripcion es obligatoria.");
                     }
 
@@ -6980,7 +7191,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "usuarioId debe ser >= 0.");
                     }
 
@@ -7023,7 +7234,7 @@ internal static class CreditoOperacionEndpoints
                         {
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status422UnprocessableEntity,
-                                title: "No se pudo asignar bóveda temporal",
+                                title: "No se pudo asignar b?veda temporal",
                                 detail: error);
                         }
 
@@ -7031,24 +7242,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al asignar bóveda temporal");
-                        var detail = "No se pudo asignar o transferir a bóveda temporal.";
+                        log.LogError(ex, "Error al asignar b?veda temporal");
+                        var detail = "No se pudo asignar o transferir a b?veda temporal.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -7085,7 +7296,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId, personaId y tipoOperacionId deben ser >= 1.");
                     }
 
@@ -7093,7 +7304,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "importe debe ser > 0.");
                     }
 
@@ -7136,26 +7347,26 @@ internal static class CreditoOperacionEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status422UnprocessableEntity,
                                 title: "No se pudo registrar movimiento",
-                                detail: $"El procedimiento devolvió código {result.ResultCode}.");
+                                detail: $"El procedimiento devolvi? c?digo {result.ResultCode}.");
                         }
 
                         return TypedResults.Ok(result);
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
@@ -7171,7 +7382,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoEntradaSalidaCajaChicaDiario")
             .WithSummary(
-                "Escritura: CREDITO.usp_EntradaSalidaCajaChicaDiario. Caja chica abierta del usuario JWT. Parámetro SQL Decripcion.")
+                "Escritura: CREDITO.usp_EntradaSalidaCajaChicaDiario. Caja chica abierta del usuario JWT. Par?metro SQL Decripcion.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<EntradaSalidaCajaDiarioResponse>(StatusCodes.Status200OK, "application/json")
@@ -7214,16 +7425,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al obtener sesión caja chica");
-                        var detail = "No se pudo obtener la sesión de caja chica.";
+                        log.LogError(ex, "Error al obtener sesi?n caja chica");
+                        var detail = "No se pudo obtener la sesi?n de caja chica.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -7258,7 +7469,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "tipo debe ser E (entrada) o S (salida).");
                     }
 
@@ -7276,11 +7487,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -7329,11 +7540,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -7371,7 +7582,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "movimientoCajaChicaId debe ser >= 1.");
                     }
 
@@ -7385,16 +7596,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al listar rendiciones");
-                        var detail = "No se pudo listar comprobantes de rendición.";
+                        var detail = "No se pudo listar comprobantes de rendici?n.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -7437,11 +7648,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -7497,11 +7708,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -7544,7 +7755,7 @@ internal static class CreditoOperacionEndpoints
                         {
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status422UnprocessableEntity,
-                                title: "Rendición no registrada",
+                                title: "Rendici?n no registrada",
                                 detail: mensaje);
                         }
 
@@ -7552,24 +7763,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentException ex)
                     {
-                        log.LogWarning(ex, "Solicitud inválida");
+                        log.LogWarning(ex, "Solicitud inv?lida");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "La solicitud enviada no es válida.");
+                            title: "Solicitud inv?lida",
+                            detail: "La solicitud enviada no es v?lida.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al crear rendición");
-                        var detail = "No se pudo registrar la rendición.";
+                        log.LogError(ex, "Error al crear rendici?n");
+                        var detail = "No se pudo registrar la rendici?n.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -7603,7 +7814,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "rendicionId debe ser >= 1.");
                     }
 
@@ -7615,15 +7826,15 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al eliminar rendición");
+                        log.LogError(ex, "Error al eliminar rendici?n");
                         var detail = "No se pudo eliminar el comprobante.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
@@ -7658,7 +7869,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
+                            title: "Par?metros inv?lidos",
                             detail: "movimientoCajaChicaId debe ser >= 1.");
                     }
 
@@ -7678,7 +7889,7 @@ internal static class CreditoOperacionEndpoints
                         {
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status422UnprocessableEntity,
-                                title: "No se pudo cerrar rendición",
+                                title: "No se pudo cerrar rendici?n",
                                 detail: error);
                         }
 
@@ -7686,16 +7897,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al cerrar rendición");
-                        var detail = "No se pudo cerrar la rendición.";
+                        log.LogError(ex, "Error al cerrar rendici?n");
+                        var detail = "No se pudo cerrar la rendici?n.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -7760,11 +7971,11 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
@@ -7805,7 +8016,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId >= 1 e importe > 0 son obligatorios.");
                     }
 
@@ -7855,16 +8066,16 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al transferir saldos caja chica a bóveda");
-                        var detail = "No se pudo transferir a bóveda.";
+                        log.LogError(ex, "Error al transferir saldos caja chica a b?veda");
+                        var detail = "No se pudo transferir a b?veda.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -7928,24 +8139,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al validar anulación de crédito");
-                        var detail = "No se pudo validar la anulación del crédito.";
+                        log.LogError(ex, "Error al validar anulaci?n de cr?dito");
+                        var detail = "No se pudo validar la anulaci?n del cr?dito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -8006,24 +8217,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al listar créditos por aprobar");
-                        var detail = "No se pudo obtener el listado de créditos pendientes de aprobación.";
+                        log.LogError(ex, "Error al listar cr?ditos por aprobar");
+                        var detail = "No se pudo obtener el listado de cr?ditos pendientes de aprobaci?n.";
                         if (env.IsDevelopment())
                         {
                             detail += $" Detalle: {ex.Message}";
@@ -8037,7 +8248,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoCreditosPorAprobar")
             .WithSummary(
-                "Solo lectura: créditos Estado=PEN (paridad CreditoBL.LstCreditoAprobarJGrid / CreditoAprobarController).")
+                "Solo lectura: cr?ditos Estado=PEN (paridad CreditoBL.LstCreditoAprobarJGrid / CreditoAprobarController).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<CreditosPorAprobarListResponse>(StatusCodes.Status200OK, "application/json")
@@ -8068,8 +8279,8 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "opcion debe ser 0 (primera aprobación) o 1 (segunda aprobación).");
+                            title: "Solicitud inv?lida",
+                            detail: "opcion debe ser 0 (primera aprobaci?n) o 1 (segunda aprobaci?n).");
                     }
 
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
@@ -8102,24 +8313,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al ejecutar CREDITO.usp_Credito_Upd");
-                        var detail = "No se pudo aprobar el crédito.";
+                        var detail = "No se pudo aprobar el cr?dito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -8165,7 +8376,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "observacion es obligatoria.");
                     }
 
@@ -8173,7 +8384,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "claveAutorizacion es obligatoria.");
                     }
 
@@ -8208,7 +8419,7 @@ internal static class CreditoOperacionEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status403Forbidden,
                                 title: "No autorizado",
-                                detail: autorizacion.Mensaje ?? "Clave de autorización no válida.");
+                                detail: autorizacion.Mensaje ?? "Clave de autorizaci?n no v?lida.");
                         }
 
                         var validacion = await creditoAnulacion
@@ -8218,8 +8429,8 @@ internal static class CreditoOperacionEndpoints
                         {
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status409Conflict,
-                                title: "Anulación no permitida",
-                                detail: "El crédito no cumple las condiciones para anular (paridad ValidarAnularCredito).");
+                                title: "Anulaci?n no permitida",
+                                detail: "El cr?dito no cumple las condiciones para anular (paridad ValidarAnularCredito).");
                         }
 
                         var response = await creditoCiclo
@@ -8229,24 +8440,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al ejecutar CREDITO.usp_Credito_Del");
-                        var detail = "No se pudo anular el crédito.";
+                        var detail = "No se pudo anular el cr?dito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -8316,24 +8527,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al ejecutar CREDITO.usp_ReprogramarCredito");
-                        var detail = "No se pudo reprogramar el crédito.";
+                        var detail = "No se pudo reprogramar el cr?dito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -8376,7 +8587,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "dias debe ser >= 1.");
                     }
 
@@ -8404,24 +8615,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al ejecutar CREDITO.usp_ProrrogarCredito");
-                        var detail = "No se pudo prorrogar el crédito.";
+                        var detail = "No se pudo prorrogar el cr?dito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -8458,7 +8669,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId y personaId deben ser >= 1.");
                     }
 
@@ -8493,24 +8704,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al crear solicitud de crédito");
-                        var detail = "No se pudo crear la solicitud de crédito.";
+                        log.LogError(ex, "Error al crear solicitud de cr?dito");
+                        var detail = "No se pudo crear la solicitud de cr?dito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -8553,7 +8764,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "productoId y numeroCuotas deben ser >= 1.");
                     }
 
@@ -8562,7 +8773,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "tipoCuota, modalidad e indGastosAdm son obligatorios.");
                     }
 
@@ -8584,7 +8795,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status404NotFound,
                             title: "No encontrado",
-                            detail: "No existe la solicitud de crédito indicada.");
+                            detail: "No existe la solicitud de cr?dito indicada.");
                     }
 
                     if (scope.OficinaId != body.OficinaId)
@@ -8600,7 +8811,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status409Conflict,
                             title: "Conflicto",
-                            detail: $"La solicitud no está en estado CRE (actual: {scope.Estado}).");
+                            detail: $"La solicitud no est? en estado CRE (actual: {scope.Estado}).");
                     }
 
                     var log = loggerFactory.CreateLogger("CrearCredito");
@@ -8611,8 +8822,8 @@ internal static class CreditoOperacionEndpoints
                         {
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status400BadRequest,
-                                title: "Solicitud inválida",
-                                detail: "El producto de crédito no existe o no está activo.");
+                                title: "Solicitud inv?lida",
+                                detail: "El producto de cr?dito no existe o no est? activo.");
                         }
 
                         if (body.InteresMensual < producto.InteresMinima
@@ -8620,8 +8831,8 @@ internal static class CreditoOperacionEndpoints
                         {
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status400BadRequest,
-                                title: "Solicitud inválida",
-                                detail: $"El interés debe estar entre {producto.InteresMinima:N2}% y {producto.InteresMaxima:N2}%.");
+                                title: "Solicitud inv?lida",
+                                detail: $"El inter?s debe estar entre {producto.InteresMinima:N2}% y {producto.InteresMaxima:N2}%.");
                         }
 
                         var response = await creditoCiclo
@@ -8647,32 +8858,32 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (ArgumentException ex)
                     {
-                        log.LogWarning(ex, "Solicitud inválida al generar crédito");
+                        log.LogWarning(ex, "Solicitud inv?lida al generar cr?dito");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "La solicitud enviada no es válida.");
+                            title: "Solicitud inv?lida",
+                            detail: "La solicitud enviada no es v?lida.");
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al ejecutar CREDITO.usp_Credito_Ins");
-                        var detail = "No se pudo generar el crédito.";
+                        var detail = "No se pudo generar el cr?dito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -8683,7 +8894,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoCrearCredito")
             .WithSummary(
-                "Escritura: CREDITO.usp_Credito_Ins. Paridad GenerarCredito; solicitudCreditoId en body (no sesión MVC).")
+                "Escritura: CREDITO.usp_Credito_Ins. Paridad GenerarCredito; solicitudCreditoId en body (no sesi?n MVC).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
             .Produces<CrearCreditoResponse>(StatusCodes.Status200OK, "application/json")
@@ -8725,7 +8936,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status404NotFound,
                             title: "No encontrado",
-                            detail: "No existe el crédito indicado.");
+                            detail: "No existe el cr?dito indicado.");
                     }
 
                     if (scope.OficinaId != body.OficinaId)
@@ -8733,7 +8944,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status403Forbidden,
                             title: "Prohibido",
-                            detail: "El crédito no pertenece a la oficina del token JWT.");
+                            detail: "El cr?dito no pertenece a la oficina del token JWT.");
                     }
 
                     var log = loggerFactory.CreateLogger("RechazarCredito");
@@ -8746,24 +8957,24 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al rechazar crédito");
-                        var detail = "No se pudo rechazar el crédito.";
+                        log.LogError(ex, "Error al rechazar cr?dito");
+                        var detail = "No se pudo rechazar el cr?dito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -8800,7 +9011,7 @@ internal static class CreditoOperacionEndpoints
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
+                            title: "Solicitud inv?lida",
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
@@ -8826,19 +9037,19 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
+                            title: "Configuraci?n incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Par?metros inv?lidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            title: "Par?metros inv?lidos",
+                            detail: "Los par?metros enviados no son v?lidos.");
                     }
                     catch (DbException ex)
                     {

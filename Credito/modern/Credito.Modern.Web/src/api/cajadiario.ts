@@ -99,7 +99,7 @@ export function pagarCuotaImporteLibre(body: {
 export function validarAnularMovimientoCaja(
   oficinaId: number,
   movimientoCajaId: number,
-): Promise<{ requiereConfirmacion: boolean }> {
+): Promise<{ bloqueadoPorPagosCuota: boolean }> {
   return apiFetch(
     `/credito/validar-anular-movimiento-caja?oficinaId=${oficinaId}&movimientoCajaId=${movimientoCajaId}`,
   )
@@ -147,23 +147,71 @@ export function fetchResumenIngresoCaja(
 export function fetchRptSaldosCaja(
   cajaDiarioId: number,
   indCajaChica = false,
+  incluirAnulados = false,
 ): Promise<RptSaldosCajaRow[]> {
-  return apiFetch<RptSaldosCajaRow[]>(
-    `/credito/rpt-saldos-caja?cajaDiarioId=${cajaDiarioId}&indCajaChica=${indCajaChica}`,
+  const q = new URLSearchParams({
+    cajaDiarioId: String(cajaDiarioId),
+    indCajaChica: String(indCajaChica),
+  })
+  if (incluirAnulados) {
+    q.set('incluirAnulados', 'true')
+  }
+  return apiFetch<RptSaldosCajaRow[]>(`/credito/rpt-saldos-caja?${q}`)
+}
+
+export function fetchMovimientoCajaDetalleOv(
+  oficinaId: number,
+  movimientoCajaId: number,
+): Promise<{
+  movimientoCajaId: number
+  oficinaId: number
+  operacion: string
+  lineas: string[]
+}> {
+  return apiFetch(
+    `/credito/movimiento-caja-detalle-ov?oficinaId=${oficinaId}&movimientoCajaId=${movimientoCajaId}`,
   )
 }
 
-export function downloadRptSaldosCajaCsv(cajaDiarioId: number): Promise<void> {
+export function downloadRptSaldosCajaCsv(
+  cajaDiarioId: number,
+  indCajaChica = false,
+): Promise<void> {
   return apiDownload(
-    `/credito/rpt-saldos-caja-csv?cajaDiarioId=${cajaDiarioId}&indCajaChica=false`,
+    `/credito/rpt-saldos-caja-csv?cajaDiarioId=${cajaDiarioId}&indCajaChica=${indCajaChica}`,
     `arqueo-caja-${cajaDiarioId}.csv`,
   )
 }
 
-export function downloadRptSaldosCajaPdf(cajaDiarioId: number): Promise<void> {
+export function downloadRptSaldosCajaPdf(
+  cajaDiarioId: number,
+  indCajaChica = false,
+): Promise<void> {
   return apiDownload(
-    `/credito/rpt-saldos-caja-pdf?cajaDiarioId=${cajaDiarioId}&indCajaChica=false`,
+    `/credito/rpt-saldos-caja-pdf?cajaDiarioId=${cajaDiarioId}&indCajaChica=${indCajaChica}`,
     `arqueo-caja-${cajaDiarioId}.pdf`,
+  )
+}
+
+export type MovimientoCajaAnularPreview = {
+  movimientoCajaId: number
+  cajaDiarioId: number
+  oficinaId: number
+  operacion: string
+  descripcion: string | null
+  persona: string | null
+  fechaReg: string
+  importePago: number
+  puedeAnular: boolean
+  bloqueo: string | null
+}
+
+export function fetchMovimientoCajaAnular(
+  oficinaId: number,
+  movimientoCajaId: number,
+): Promise<MovimientoCajaAnularPreview> {
+  return apiFetch(
+    `/credito/movimiento-caja-anular?oficinaId=${oficinaId}&movimientoCajaId=${movimientoCajaId}`,
   )
 }
 

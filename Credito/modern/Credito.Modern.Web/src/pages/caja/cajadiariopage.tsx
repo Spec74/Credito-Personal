@@ -111,7 +111,7 @@ export function CajaDiarioPage() {
 
   const movimientosQuery = useQuery({
     queryKey: ['caja-movimientos', ctx?.cajaDiarioId],
-    queryFn: () => fetchRptSaldosCaja(ctx!.cajaDiarioId),
+    queryFn: () => fetchRptSaldosCaja(ctx!.cajaDiarioId, false, true),
     enabled: !!ctx,
   })
 

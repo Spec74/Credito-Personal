@@ -99,4 +99,28 @@ public class AsignarCajaEndpointTests : IClassFixture<CreditoModernWebApplicatio
         var res = await _client.SendAsync(req);
         Assert.NotEqual(HttpStatusCode.Unauthorized, res.StatusCode);
     }
+
+    [Fact]
+    public async Task Asignar_caja_lectura_saldo_devuelve_403()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles = new[] { "LECTURA_SALDO" } });
+        tokenRes.EnsureSuccessStatusCode();
+        using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
+        var token = doc.RootElement.GetProperty("accessToken").GetString();
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/credito/asignar-caja")
+        {
+            Content = JsonContent.Create(new { oficinaId = 1, cajaId = 1, saldoInicial = 0m }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+    }
 }
