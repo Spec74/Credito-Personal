@@ -22,6 +22,7 @@ import { ApiError } from '../../api/errors'
 import { CredixCrudPage, CredixDataTable } from '../../components/credix'
 import { hasValidCoordinates } from '../../config/googleMaps'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { mantenimientoOficinasBreadcrumb } from '../../utils/mantenimientoBreadcrumbs'
 import { OficinaFormModal } from './OficinaFormModal'
 
@@ -30,6 +31,7 @@ export function OficinasPage() {
   const isMantenimiento = location.pathname.startsWith('/mantenimiento/')
 
   const [buscar, setBuscar] = useState('')
+  const buscarDebounced = useDebouncedValue(buscar.trim(), 350)
   const [incluirInactivos, setIncluirInactivos] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState<OficinaGestionRow | null>(null)
@@ -49,8 +51,8 @@ export function OficinasPage() {
   }, [gestoresQuery.data])
 
   const query = useQuery({
-    queryKey: ['oficinas-gestion', incluirInactivos, buscar],
-    queryFn: () => fetchOficinasGestion({ incluirInactivos, buscar }),
+    queryKey: ['oficinas-gestion', incluirInactivos, buscarDebounced],
+    queryFn: () => fetchOficinasGestion({ incluirInactivos, buscar: buscarDebounced }),
   })
 
   const activar = useMutation({

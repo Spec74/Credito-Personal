@@ -83,7 +83,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (request: LoginRequest) => {
     const tokens = await apiLogin(request)
-    saveTokens(tokens.accessToken, tokens.refreshToken, tokens.expiresInSeconds)
+    saveTokens(
+      tokens.accessToken,
+      tokens.refreshToken,
+      tokens.expiresInSeconds,
+      request.recordarSesion === true,
+    )
     setSession({
       usuarioId: tokens.usuarioId,
       oficinaId: tokens.oficinaId,

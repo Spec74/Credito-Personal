@@ -49,6 +49,8 @@ export function CreditoConsultaClienteBar({
   const [clienteLabel, setClienteLabel] = useState('')
   const [personaId, setPersonaId] = useState<number | null>(personaIdInicial ?? null)
   const [grupoActivo, setGrupoActivo] = useState(true)
+  const [creditosPage, setCreditosPage] = useState(1)
+  const creditosPageSize = 25
   const autoCargadoPersonaRef = useRef<number | null>(null)
   const terminoBusqueda = clienteLabel.trim()
   const terminoDebounced = useDebouncedValue(terminoBusqueda, 220)
@@ -60,15 +62,25 @@ export function CreditoConsultaClienteBar({
     }
   }, [personaIdInicial])
 
+  useEffect(() => {
+    setCreditosPage(1)
+  }, [personaId, grupoActivo])
+
   const creditosQuery = useQuery({
-    queryKey: creditosGrillaPersonaQueryKey(oficinaId, personaId!, grupoActivo, 1, 25),
+    queryKey: creditosGrillaPersonaQueryKey(
+      oficinaId,
+      personaId!,
+      grupoActivo,
+      creditosPage,
+      creditosPageSize,
+    ),
     queryFn: () =>
       fetchCreditosGrillaPersona({
         oficinaId,
         personaId: personaId!,
         grupoActivo,
-        page: 1,
-        pageSize: 25,
+        page: creditosPage,
+        pageSize: creditosPageSize,
       }),
     enabled: oficinaId > 0 && personaId != null && personaId > 0,
     staleTime: creditoStaleTime.listado,
@@ -186,6 +198,7 @@ export function CreditoConsultaClienteBar({
   ]
 
   const items = creditosQuery.data?.items ?? []
+  const totalCreditos = creditosQuery.data?.totalCount ?? items.length
 
   return (
     <section className="credito-consulta-cliente" aria-labelledby="credito-consulta-cliente-label">
@@ -309,7 +322,7 @@ export function CreditoConsultaClienteBar({
           <div className="credito-consulta-cliente__creditos-head">
             <Text strong>Créditos del cliente</Text>
             <div className="credito-consulta-cliente__creditos-meta">
-              <Tag color="processing">{items.length} crédito(s)</Tag>
+              <Tag color="processing">{totalCreditos} crédito(s)</Tag>
               <Button
                 type="link"
                 size="small"
@@ -328,10 +341,18 @@ export function CreditoConsultaClienteBar({
             mode="operacion"
             className="credito-consulta-cliente__table"
             rowKey="creditoId"
-            loading={creditosQuery.isLoading}
+            loading={creditosQuery.isLoading || creditosQuery.isFetching}
             columns={columns}
             dataSource={items}
-            pagination={false}
+            pagination={{
+              current: creditosPage,
+              pageSize: creditosPageSize,
+              total: totalCreditos,
+              showSizeChanger: false,
+              size: 'small',
+              onChange: setCreditosPage,
+              showTotal: (t) => `${t} crédito(s)`,
+            }}
             locale={{ emptyText: 'Sin créditos en esta vista' }}
             onRow={(row) => ({
               onDoubleClick: () => seleccionarCredito(row),

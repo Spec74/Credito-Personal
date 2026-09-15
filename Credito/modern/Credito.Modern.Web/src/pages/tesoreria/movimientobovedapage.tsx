@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { PrinterOutlined, SearchOutlined } from '@ant-design/icons'
@@ -27,6 +27,7 @@ export function MovimientoBovedaPage() {
   const [searchParams] = useSearchParams()
   const [form] = Form.useForm<FormValues>()
   const oficinaId = session?.oficinaId ?? 0
+  const autoConsultadoRef = useRef<number | null>(null)
 
   const bovedaParam = searchParams.get('bovedaId')
   const bovedaFromUrl =
@@ -41,16 +42,21 @@ export function MovimientoBovedaPage() {
     retry: false,
   })
 
-  useEffect(() => {
-    const id = bovedaFromUrl ?? bovedaAbierta.data?.bovedaId
-    if (id) {
-      form.setFieldsValue({ bovedaId: id })
-    }
-  }, [bovedaFromUrl, bovedaAbierta.data, form])
-
   const consulta = useMutation({
     mutationFn: (v: FormValues) => fetchRptMovimientoBoveda(v.bovedaId),
   })
+
+  useEffect(() => {
+    const id = bovedaFromUrl ?? bovedaAbierta.data?.bovedaId
+    if (!id || autoConsultadoRef.current === id) {
+      return
+    }
+    autoConsultadoRef.current = id
+    form.setFieldsValue({ bovedaId: id })
+    consulta.mutate({ bovedaId: id })
+    // Solo al resolver bóveda desde URL o sesión; no re-disparar por identidad de mutate.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta única por bovedaId
+  }, [bovedaFromUrl, bovedaAbierta.data?.bovedaId, form])
 
   const csv = useMutation({
     mutationFn: (v: FormValues) => downloadRptMovimientoBovedaCsv(v.bovedaId),

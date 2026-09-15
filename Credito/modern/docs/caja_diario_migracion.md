@@ -155,3 +155,19 @@ dotnet build Credito.Modern.Api/Credito.Modern.Api.csproj
 ```
 
 Probar con API en marcha y usuario con caja abierta: `/caja/diario`.
+
+### Humo end-to-end (obligatorio antes de cutover)
+
+Con sesión de **cajero** (caja abierta) en `http://localhost:5173`:
+
+1. **Cuota efectivo** — `/caja/diario` → Cobranzas → cliente → seleccionar cuota → tipo **Efectivo** → Pagar → ticket OK.
+2. **Cuota Yape (circuito Verificar)**  
+   - Mismo flujo con tipo **Yape** (o Plin/transferencia) + fecha/hora.  
+   - Ir a `/caja/verificar-pagos`: el movimiento **debe listarse**.  
+   - Verificar el pago → desaparece de la lista.  
+   - (Opcional SQL) `SELECT * FROM CREDITO.MovimientoCajaExtension WHERE MovimientoCajaId = <id>` → `IndTransferenciaVerificada = 1`.
+3. **Sin verificar bloquea cierre** — cobrar otra cuota digital y **no** verificar → Tab Cierre → Validar/Cerrar debe mostrar *Pagos no Verificados…*.
+4. **Anular** — Arqueo: anular un movimiento no-INI (obs obligatoria); INI con cuotas PAG debe **bloquear**.
+5. **Cierre** — sin pendientes → Cerrar caja → PDF saldo → sesión sin caja.
+
+Con **encargado/admin**: `/caja/saldos` (asignar, reportes) y `/caja/verificar-pagos` de la oficina.

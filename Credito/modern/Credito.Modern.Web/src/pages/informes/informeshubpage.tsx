@@ -7,6 +7,8 @@ export function InformesHubPage() {
     <CredixModuleHubPage
       moduleId="informes"
       title="Informes"
+      searchable
+      searchPlaceholder="Buscar informe (cobro, mora, caja, cliente…)"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Informes' },

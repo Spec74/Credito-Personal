@@ -23,11 +23,22 @@ public sealed class CajaMaestroReadService(IOptions<SqlDatabaseOptions> options)
         var term = string.IsNullOrWhiteSpace(buscar) ? null : buscar.Trim();
 
         var estadoFilter = incluirInactivos ? "" : "AND c.Estado = CAST(1 AS bit)";
-        var buscarFilter = term is null ? "" : "AND c.Denominacion LIKE '%' + @Buscar + '%'";
+        var buscarFilter = term is null
+            ? ""
+            : """
+              AND (
+                c.Denominacion LIKE '%' + @Buscar + '%'
+                OR o.Denominacion LIKE '%' + @Buscar + '%'
+                OR ISNULL(p.NombreCompleto, N'') LIKE '%' + @Buscar + '%'
+              )
+              """;
 
         var countSql = $"""
             SELECT COUNT(1)
             FROM CREDITO.Caja AS c
+            INNER JOIN MAESTRO.Oficina AS o ON o.OficinaId = c.OficinaId
+            LEFT JOIN MAESTRO.Usuario AS u ON u.UsuarioId = c.CajeroId
+            LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
             WHERE 1 = 1
               {estadoFilter}
               {buscarFilter};

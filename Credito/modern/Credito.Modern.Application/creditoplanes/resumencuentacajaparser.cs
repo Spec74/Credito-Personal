@@ -32,6 +32,13 @@ public static class ResumenCuentaCajaParser
             return Array.Empty<Item>();
         }
 
+        // Prefijos de SP: "RESUMEN CAJA DIARIO: …", "RESUMEN BOVEDA: …", "RESUMEN CUENTA: …"
+        texto = Regex.Replace(
+            texto,
+            @"^RESUMEN\s+(?:CAJA\s+DIARIO|BOVEDA|CUENTA)\s*:\s*",
+            string.Empty,
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
         var items = new List<Item>();
         foreach (Match match in PairRegex.Matches(texto))
         {

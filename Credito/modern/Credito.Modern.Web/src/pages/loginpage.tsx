@@ -23,7 +23,6 @@ import { fetchClientPublicIp } from '../utils/clientIp'
 
 const { Text } = Typography
 
-
 interface LoginFormValues {
   nombreUsuario: string
   clave: string
@@ -38,6 +37,7 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [clientIp, setClientIp] = useState<string | null>(null)
+  const [ipResolved, setIpResolved] = useState(false)
   const [form] = Form.useForm<LoginFormValues>()
 
   const oficinasQuery = useQuery({
@@ -50,7 +50,16 @@ export function LoginPage() {
     (location.state as { from?: string } | null)?.from ?? '/inicio'
 
   useEffect(() => {
-    void fetchClientPublicIp().then(setClientIp)
+    let cancelled = false
+    void fetchClientPublicIp().then((ip) => {
+      if (!cancelled) {
+        setClientIp(ip)
+        setIpResolved(true)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   useEffect(() => {
@@ -88,18 +97,25 @@ export function LoginPage() {
   const oficinasError = oficinasQuery.isError
     ? oficinasQuery.error instanceof ApiError
       ? oficinasQuery.error.message
-      : 'No se pudo cargar oficinas. Verifique que el proxy (puerto 9080) esté en marcha.'
+      : 'No se pudo cargar oficinas. Compruebe la conexión con la API o recargue la página.'
     : null
 
   const onFinish = async (values: LoginFormValues) => {
     setError(null)
     setSubmitting(true)
     try {
+      let ip = clientIp
+      if (!ipResolved) {
+        ip = await fetchClientPublicIp()
+        setClientIp(ip)
+        setIpResolved(true)
+      }
       await login({
         nombreUsuario: values.nombreUsuario.trim(),
         clave: values.clave,
         oficinaId: values.oficinaId,
-        clienteAcceso: clientIp ?? null,
+        clienteAcceso: ip ?? null,
+        recordarSesion: values.recordar === true,
       })
       const oficinaLabel =
         oficinaOptions.find((o) => o.value === values.oficinaId)?.label ??
@@ -132,6 +148,11 @@ export function LoginPage() {
             style={{ marginTop: 16 }}
             message="Oficinas no disponibles"
             description={oficinasError}
+            action={
+              <Button size="small" onClick={() => void oficinasQuery.refetch()}>
+                Reintentar
+              </Button>
+            }
           />
         )}
 
@@ -199,7 +220,8 @@ export function LoginPage() {
           </Form.Item>
 
           <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-            IP detectada para control de acceso: <strong>{clientIp ?? 'obteniendo...'}</strong>.
+            IP detectada para control de acceso:{' '}
+            <strong>{ipResolved ? (clientIp ?? 'no disponible') : 'obteniendo…'}</strong>.
             Si el equipo no está autorizado, solicite el alta a un administrador.
           </Text>
 

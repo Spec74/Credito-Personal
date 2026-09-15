@@ -259,7 +259,7 @@ export function CobranzasTab({
             : undefined,
         esUltimaCuota:
           selectedKeys.length > 0 && selectedKeys.length === cuotasPagables.length,
-        aplicarMoraPostergada: moraResumenQuery.data?.indMoraProducto ?? true,
+        aplicarMoraPostergada: moraResumenQuery.data?.indMoraProducto === true,
       }),
     onSuccess: async (r) => {
       message.success(`Pago registrado (${r.resultId ?? 'OK'})`)

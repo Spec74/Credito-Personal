@@ -11,7 +11,7 @@ SELECT * FROM CREDITO.MovimientoCaja
 SELECT * FROM VENTAS.OrdenVenta
 
 */
-CREATE PROC [CREDITO].[usp_PagarCuotas]
+ALTER PROC [CREDITO].[usp_PagarCuotas]
 @CajaDiarioId INT ,
 @CreditoId INT,
 @ListaPlanPagoId VARCHAR(MAX),
@@ -182,5 +182,5 @@ UPDATE	CREDITO.Credito
 SET		Estado='PAG', FechaPagado=@FechaActual, UsuarioModId=@UsuarioId, FechaMod=@FechaActual
 WHERE	CreditoId=@CreditoId AND
 		NOT EXISTS(SELECT 1 FROM CREDITO.PlanPago WHERE CreditoId= @CreditoId AND Estado='PEN')
-
 SELECT @MovimientoCajaId
+

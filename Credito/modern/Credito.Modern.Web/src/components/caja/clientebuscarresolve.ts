@@ -62,6 +62,25 @@ export function extractSearchTermsFromInput(term: string): string[] {
   return out
 }
 
+/**
+ * Un solo término para APIs de listado (un LIKE).
+ * Preferencia: DNI/código → siguiente token útil → texto completo.
+ */
+export function primaryCatalogSearchTerm(term: string): string {
+  const terms = extractSearchTermsFromInput(term)
+  if (terms.length === 0) {
+    return ''
+  }
+  const digits = terms.find((t) => /^\d{6,12}$/.test(t))
+  if (digits) {
+    return digits
+  }
+  if (terms.length > 1) {
+    return terms[1]
+  }
+  return terms[0]
+}
+
 export function findHitInList(
   term: string,
   hits: ClienteHit[],

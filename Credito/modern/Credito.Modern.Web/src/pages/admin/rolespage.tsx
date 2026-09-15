@@ -6,6 +6,7 @@ import {
   Checkbox,
   Drawer,
   Form,
+  Grid,
   Input,
   Modal,
   Select,
@@ -33,6 +34,7 @@ import { useCrudListStats } from '../../hooks/useCrudListStats'
 const { Paragraph } = Typography
 
 export function RolesPage() {
+  const screens = Grid.useBreakpoint()
   const [filtro, setFiltro] = useState('')
   const [incluirInactivos, setIncluirInactivos] = useState(true)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -232,7 +234,7 @@ export function RolesPage() {
       extra={
         <Drawer
           title={rolId >= 1 ? `Rol #${rolId}` : 'Nuevo rol'}
-          width={560}
+          width={screens.md ? 560 : '100%'}
           open={drawerOpen}
           onClose={closeDrawer}
           destroyOnClose
@@ -259,11 +261,12 @@ export function RolesPage() {
                       type="primary"
                       loading={guardar.isPending}
                       onClick={() => {
-                        const v = form.getFieldsValue()
-                        guardar.mutate({
-                          rolId,
-                          denominacion: v.denominacion,
-                          estado: v.estado ?? true,
+                        void form.validateFields().then((v) => {
+                          guardar.mutate({
+                            rolId,
+                            denominacion: v.denominacion,
+                            estado: v.estado ?? true,
+                          })
                         })
                       }}
                     >

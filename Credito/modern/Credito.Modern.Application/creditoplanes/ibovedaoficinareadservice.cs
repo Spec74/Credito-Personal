@@ -18,4 +18,9 @@ public interface IBovedaOficinaReadService
     Task<IReadOnlyList<BovedaDestinoTransferenciaDto>> ListarDestinosTransferenciaAsync(
         int oficinaOrigenId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Transferencias pendientes hacia la bóveda destino (paridad <c>ListarTransferencias</c>).</summary>
+    Task<IReadOnlyList<BovedaTransferenciaPendienteDto>> ListarTransferenciasPendientesAsync(
+        int bovedaDestinoId,
+        CancellationToken cancellationToken = default);
 }

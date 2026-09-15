@@ -2070,8 +2070,9 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-informe-panel-search--wide {
-  width: min(300px, 38vw);
-  min-width: 200px;
+  width: min(300px, 100%);
+  min-width: 0;
+  flex: 1 1 180px;
 }
 
 .credix-informe-panel-actions--header {
@@ -2228,8 +2229,9 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-informe-panel-search--wide {
-  width: min(300px, 38vw);
-  min-width: 200px;
+  width: min(300px, 100%);
+  min-width: 0;
+  flex: 1 1 180px;
 }
 
 .credix-informe-panel-actions--header {

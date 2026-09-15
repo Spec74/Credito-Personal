@@ -20,6 +20,7 @@ import {
   buscarUsuariosBoveda,
   cerrarBoveda,
   cerrarBovedaTemporal,
+  fetchBovedaTransferenciasPendientes,
   fetchBovedasDestinoTransferencia,
   fetchCajasAbiertasTransferenciaBoveda,
   fetchValidarCierreSaldos,
@@ -36,7 +37,7 @@ import { ApiError } from '../../api/errors'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import type { TipoOperacionListItem } from '../../types/api'
 
-const { Paragraph, Text } = Typography
+const { Paragraph } = Typography
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : 'Error desconocido'
@@ -58,6 +59,7 @@ function invalidateBoveda(
   void queryClient.invalidateQueries({ queryKey: ['validar-cierre-saldos', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['cajas-transferencia-boveda', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['bovedas-destino-transferencia', oficinaId] })
+  void queryClient.invalidateQueries({ queryKey: ['boveda-transferencias-pendientes', bovedaId] })
 }
 
 type Props = {
@@ -112,6 +114,13 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     queryKey: ['bovedas-destino-transferencia', oficinaId],
     queryFn: () => fetchBovedasDestinoTransferencia(oficinaId),
     enabled: oficinaOk,
+  })
+
+  const transferenciasPendientesQuery = useQuery({
+    queryKey: ['boveda-transferencias-pendientes', bovedaId],
+    queryFn: () => fetchBovedaTransferenciasPendientes(bovedaId),
+    enabled: oficinaOk && bovedaId > 0,
+    staleTime: 15_000,
   })
 
   const usuariosQuery = useQuery({
@@ -226,9 +235,9 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             />
           ) : null}
           <Paragraph style={{ marginBottom: 0 }}>
-            Ejecuta{' '}
-            {temporalOnly ? 'usp_CerrarBovedaTemporal' : 'usp_CerrarBoveda'} para la
-            oficina actual.
+            {temporalOnly
+              ? 'Se cerrará la bóveda temporal de esta oficina. Confirme solo si ya no hay operaciones pendientes en ella.'
+              : 'Se cerrará la bóveda principal de esta oficina. Confirme solo si el cuadre y las cajas están en orden.'}
           </Paragraph>
         </>
       ),
@@ -297,7 +306,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
         >
           <Form.Item
             name="tipoOperacionId"
-            label="Tipo operación (IndBoveda)"
+            label="Tipo de operación"
             rules={[{ required: true }]}
           >
             <Select
@@ -311,12 +320,13 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             />
           </Form.Item>
           {importeDescripcionFields}
-          <Form.Item name="tipoPagoId" label="Tipo pago" rules={[{ required: true }]}>
+          <Form.Item name="tipoPagoId" label="Tipo de pago" rules={[{ required: true }]}>
             <Select
-              options={[
-                { value: 1, label: 'Efectivo (1)' },
-                { value: 2, label: 'Transferencia (2)' },
-              ]}
+              loading={tiposPagoQuery.isLoading}
+              showSearch
+              optionFilterProp="label"
+              placeholder="Efectivo, Yape, banco…"
+              options={tipoPagoOptions}
             />
           </Form.Item>
           {formActions('Registrar movimiento', ingresoEgreso.isPending)}
@@ -464,8 +474,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       children: (
         <>
           <Paragraph type="secondary">
-            <Text code>usuarioId &gt; 0</Text>: asignar encargado (crea temporal si no
-            existe). <Text code>usuarioId = 0</Text>: transferir a temporal existente.
+            <strong>Asignar encargado:</strong> cree la bóveda temporal si aún no existe.{' '}
+            <strong>Transferir:</strong> mueva saldo a la temporal ya abierta.
           </Paragraph>
           <Form
             className="boveda-operaciones-form"
@@ -527,9 +537,9 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       children: (
         <>
           <Paragraph type="secondary">
-            Origen: bóveda #{bovedaId}. Seleccione la oficina destino con bóveda
-            principal abierta; el sistema enviará el <Text code>BovedaDestinoId</Text>
-            correcto al SP.
+            Origen: bóveda #{bovedaId}. Elija la oficina destino con bóveda principal
+            abierta; el monto saldrá de esta bóveda hasta que la oficina destino acepte
+            o rechace.
           </Paragraph>
           {bovedasDestinoQuery.data?.length === 0 ? (
             <Alert
@@ -591,38 +601,64 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       key: 'aceptar',
       label: 'Aceptar / rechazar',
       children: (
-        <Form
-          className="boveda-operaciones-form"
-          layout="vertical"
-          onFinish={(v) =>
-            aceptar.mutate({
-              bovedaMovTempId: v.bovedaMovTempId,
-              flagAceptar: v.flagAceptar,
-            })
-          }
-        >
-          <Form.Item
-            name="bovedaMovTempId"
-            label="BovedaMovTempId"
-            rules={[{ required: true, type: 'number', min: 1 }]}
-          >
-            <InputNumber style={{ width: '100%' }} />
-          </Form.Item>
-          <Form.Item
-            name="flagAceptar"
-            label="Acción"
-            rules={[{ required: true }]}
-            initialValue={1}
-          >
-            <Select
-              options={[
-                { value: 1, label: 'Aceptar (1)' },
-                { value: 0, label: 'Rechazar (0)' },
-              ]}
+        <>
+          <Paragraph type="secondary">
+            Transferencias enviadas por otras oficinas hacia esta bóveda. Elija la
+            pendiente y acepte o rechace.
+          </Paragraph>
+          {(transferenciasPendientesQuery.data?.length ?? 0) === 0 &&
+          !transferenciasPendientesQuery.isLoading ? (
+            <Alert
+              type="info"
+              showIcon
+              style={{ marginBottom: 12 }}
+              message="No hay transferencias pendientes hacia esta bóveda."
             />
-          </Form.Item>
-          {formActions('Confirmar', aceptar.isPending)}
-        </Form>
+          ) : null}
+          <Form
+            className="boveda-operaciones-form"
+            layout="vertical"
+            onFinish={(v) =>
+              aceptar.mutate({
+                bovedaMovTempId: v.bovedaMovTempId,
+                flagAceptar: v.flagAceptar,
+              })
+            }
+          >
+            <Form.Item
+              name="bovedaMovTempId"
+              label="Transferencia pendiente"
+              rules={[{ required: true, message: 'Seleccione una transferencia' }]}
+            >
+              <Select
+                loading={transferenciasPendientesQuery.isLoading}
+                showSearch
+                optionFilterProp="label"
+                placeholder="Oficina origen · monto · glosa"
+                options={(transferenciasPendientesQuery.data ?? []).map((t) => ({
+                  value: t.bovedaMovTempId,
+                  label: `${t.oficinaOrigen} · S/ ${Number(t.monto).toFixed(2)} · ${
+                    t.descripcion?.trim() || 'Sin glosa'
+                  } · ${t.usuarioReg}`,
+                }))}
+              />
+            </Form.Item>
+            <Form.Item
+              name="flagAceptar"
+              label="Acción"
+              rules={[{ required: true }]}
+              initialValue={1}
+            >
+              <Select
+                options={[
+                  { value: 1, label: 'Aceptar' },
+                  { value: 0, label: 'Rechazar' },
+                ]}
+              />
+            </Form.Item>
+            {formActions('Confirmar', aceptar.isPending)}
+          </Form>
+        </>
       ),
     },
     {
@@ -647,8 +683,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             />
           ) : null}
           <Paragraph type="secondary">
-            Valida cajas con <code>validar-cierre-saldos</code> antes de cerrar la bóveda
-            principal (paridad <code>BovedaController.ValidarCierre</code>).
+            Antes de cerrar la bóveda principal, todas las cajas diarias de la oficina
+            deben estar cerradas y sin pendientes de verificación.
           </Paragraph>
           <Space wrap>
             <Button
@@ -688,7 +724,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           type="warning"
           showIcon
           style={{ marginBottom: 16 }}
-          message="No hay tipos de operación con IndBoveda activos."
+          message="No hay tipos de operación de bóveda activos. Revise el catálogo de operaciones."
         />
       ) : null}
       <Tabs

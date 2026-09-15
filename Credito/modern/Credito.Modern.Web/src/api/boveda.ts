@@ -187,6 +187,23 @@ export function fetchBovedasDestinoTransferencia(
   )
 }
 
+export interface BovedaTransferenciaPendiente {
+  bovedaMovTempId: number
+  monto: number
+  oficinaOrigen: string
+  descripcion: string | null
+  usuarioReg: string
+  fechaReg: string
+}
+
+export function fetchBovedaTransferenciasPendientes(
+  bovedaId: number,
+): Promise<BovedaTransferenciaPendiente[]> {
+  return apiFetch<BovedaTransferenciaPendiente[]>(
+    `/credito/boveda-transferencias-pendientes?bovedaId=${bovedaId}`,
+  )
+}
+
 export function fetchExisteBovedaTemporal(
   oficinaId: number,
 ): Promise<ExisteBovedaTemporalResponse> {

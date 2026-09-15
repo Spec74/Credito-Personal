@@ -12,9 +12,13 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage } from '../../components/credix'
+import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
+import { canViewReporteCredito } from '../../utils/reporteCreditoAccess'
 import type { CobroDiarioParams, GestorInformeParams, RptCobroDiarioDetalleRow } from '../../types/api'
+import { formatFecha } from '../../utils/formatFecha'
+import { formatMoney } from '../../utils/formatMoney'
 
 function toCobroDiarioParams(p: GestorInformeParams): CobroDiarioParams {
   if (!p.usuarioId || p.usuarioId < 1) {
@@ -22,12 +26,11 @@ function toCobroDiarioParams(p: GestorInformeParams): CobroDiarioParams {
   }
   return { oficinaId: p.oficinaId, usuarioId: p.usuarioId }
 }
-import { formatFecha } from '../../utils/formatFecha'
-import { formatMoney } from '../../utils/formatMoney'
 
 export function CobroDiarioDetallePage() {
   const { session } = useAuth()
   const [form] = Form.useForm<GestorInformeParams>()
+  const puedeElegirGestor = canViewReporteCredito(session?.roles ?? [])
 
   useEffect(() => {
     if (session) {
@@ -50,6 +53,7 @@ export function CobroDiarioDetallePage() {
     mutationFn: downloadCobroDiarioDetallePdf,
   })
 
+  const sinFilas = !consulta.data?.length
   const stats = useInformeStats(consulta, session?.oficinaId)
   const columns: ColumnsType<RptCobroDiarioDetalleRow> = [
     { title: 'N°', dataIndex: 'nro', width: 55 },
@@ -109,7 +113,7 @@ export function CobroDiarioDetallePage() {
   return (
     <CredixInformePage
       title="Cobro diario (detalle)"
-      subtitle="Detalle de cartera del día por gestor y oficina de la sesión."
+      subtitle="Detalle de cartera del día por gestor y oficina."
       breadcrumb={reportesCreditoBreadcrumb('Cobro diario detalle')}
       stats={stats}
       filters={
@@ -125,9 +129,19 @@ export function CobroDiarioDetallePage() {
           <Form.Item name="oficinaId" hidden>
             <InputNumber />
           </Form.Item>
-          <Form.Item name="usuarioId" hidden>
-            <InputNumber />
-          </Form.Item>
+          {puedeElegirGestor ? (
+            <Form.Item
+              name="usuarioId"
+              label="Gestor"
+              rules={[{ required: true, message: 'Seleccione un gestor' }]}
+            >
+              <GestorSelect legacyList size="middle" />
+            </Form.Item>
+          ) : (
+            <Form.Item name="usuarioId" hidden>
+              <InputNumber />
+            </Form.Item>
+          )}
           <Form.Item>
             <Button
               type="primary"
@@ -144,6 +158,8 @@ export function CobroDiarioDetallePage() {
         <InformeExportBar
           csvLoading={csv.isPending}
           pdfLoading={pdf.isPending}
+          csvDisabled={sinFilas}
+          pdfDisabled={sinFilas}
           onCsv={async () => csv.mutate(toCobroDiarioParams(await form.validateFields()))}
           onPdfTabular={async () => pdf.mutate(toCobroDiarioParams(await form.validateFields()))}
         />

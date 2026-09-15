@@ -136,6 +136,18 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .credix-informe-panel-actions--header {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .credix-informe-panel-search,
+  .credix-informe-panel-search--wide {
+    width: 100%;
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
   .boveda-resumen-cuenta__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -310,5 +322,17 @@
 
   .credix-informe-export-row .ant-btn {
     width: 100%;
+  }
+}
+
+/* —— Drawers / modales en móvil —— */
+@media (max-width: 640px) {
+  .ant-drawer-content-wrapper {
+    max-width: 100vw !important;
+  }
+
+  .ant-modal {
+    max-width: calc(100vw - 16px) !important;
+    margin: 8px auto;
   }
 }

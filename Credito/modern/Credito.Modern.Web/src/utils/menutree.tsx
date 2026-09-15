@@ -1,8 +1,10 @@
 import type { MenuProps } from 'antd'
 import type { MenuItemDto } from '../types/api'
 import { formatMenuLabel } from './formatMenuLabel'
+import { resolveSpaPathFromModulo } from './legacyRoutes'
 import { dashboardMenuIcon, menuItemIcon, parentMenuIcon } from './menuIcons'
 import { readMenuIndPadre } from './normalizeMenu'
+import { resolveSpaPathFromMenuItem } from './resolveSpaPathFromMenuItem'
 
 type AntMenuItem = Required<MenuProps>['items'][number]
 
@@ -108,6 +110,40 @@ export function findMenuItem(
   menuId: number,
 ): MenuItemDto | undefined {
   return items.find((i) => i.menuId === menuId)
+}
+
+/**
+ * Resalta el ítem del menú cuya ruta SPA coincide con la ubicación actual.
+ * Prefiere la coincidencia más larga (p. ej. `/caja/diario` sobre `/caja`).
+ */
+export function findSelectedMenuKeys(
+  pathname: string,
+  items: MenuItemDto[],
+): string[] {
+  const path = pathname.replace(/\/+$/, '') || '/'
+  if (path === '/inicio') {
+    return ['dashboard']
+  }
+
+  let best: { key: string; len: number } | null = null
+  for (const item of items) {
+    if (isPadre(item)) {
+      continue
+    }
+    const spa =
+      resolveSpaPathFromMenuItem(item.url, item.denominacion, item.modulo) ??
+      resolveSpaPathFromModulo(item.modulo)
+    if (!spa) {
+      continue
+    }
+    const target = spa.replace(/\/+$/, '') || '/'
+    if (path === target || path.startsWith(`${target}/`)) {
+      if (!best || target.length > best.len) {
+        best = { key: String(item.menuId), len: target.length }
+      }
+    }
+  }
+  return best ? [best.key] : path.startsWith('/inicio') ? ['dashboard'] : []
 }
 
 /** Abrir todos los módulos padre por defecto (acordeón legacy suele mostrar varias secciones visibles). */

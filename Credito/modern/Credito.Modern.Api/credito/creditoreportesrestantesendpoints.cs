@@ -2221,12 +2221,16 @@ internal static class CreditoReportesRestantesEndpoints
                             .ObtenerAsync(cajaDiarioId.Value, indChica, ct)
                             .ConfigureAwait(false);
                         string? resumen = null;
-                        if (!indChica
-                            && MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId)
-                            && jwtOficinaId > 0)
+                        if (!indChica)
                         {
+                            // usp_RptSaldosCajaResumenIngreso usa ufnResumenCuentaCajaDiario(caja);
+                            // oficinaId es obligatorio en el contrato API pero no altera el texto.
+                            var oficinaResumen = MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOid)
+                                && jwtOid > 0
+                                    ? jwtOid
+                                    : 1;
                             resumen = await resumenIngreso
-                                .ObtenerPrimerTextoAsync(cajaDiarioId.Value, jwtOficinaId, ct)
+                                .ObtenerPrimerTextoAsync(cajaDiarioId.Value, oficinaResumen, ct)
                                 .ConfigureAwait(false);
                         }
 
@@ -2263,7 +2267,7 @@ internal static class CreditoReportesRestantesEndpoints
                 })
             .WithName("CreditoRptSaldosCajaPdf")
             .WithSummary(
-                "Export lectura: paridad rptSaldoCaja.rdlc (QuestPDF). usp_RptSaldosCaja + cabecera de sesión. CreditoUser.")
+                "Export lectura: paridad rptSaldoCaja.rdlc (QuestPDF). usp_RptSaldosCaja + cabecera + resumen efectivo/digitales (ufnResumenCuentaCajaDiario). CreditoUser.")
             .WithTags("credito", "reportes")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")

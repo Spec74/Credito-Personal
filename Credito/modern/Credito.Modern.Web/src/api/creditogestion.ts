@@ -42,6 +42,7 @@ export interface CreditoContexto {
   fechaRemate: string | null
   fechaVencimiento: string
   personaCelular: string | null
+  estado: string
 }
 
 export interface SolicitudCreditoDetalle {

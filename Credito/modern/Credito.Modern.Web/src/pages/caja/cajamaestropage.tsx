@@ -215,7 +215,7 @@ export function CajaMaestroPage() {
             setBuscar(v)
             setPage(1)
           }}
-          placeholder="Nombre de caja"
+          placeholder="Caja, gestor u oficina"
           hint="Búsqueda al servidor (400 ms). Doble clic en fila para editar."
           hintShort="Doble clic para editar."
           totalCount={totalRecords}

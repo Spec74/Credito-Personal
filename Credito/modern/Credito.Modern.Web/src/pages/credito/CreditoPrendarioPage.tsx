@@ -331,7 +331,7 @@ export function CreditoPrendarioPage() {
           setAvisosOpen(false)
           setUltimoEnvio(null)
         }}
-        width={800}
+        width="min(800px, 96vw)"
         footer={
           <Button
             type="primary"
@@ -369,6 +369,7 @@ export function CreditoPrendarioPage() {
           style={{ marginTop: 12 }}
           loading={avisos.isFetching}
           pagination={false}
+          scroll={{ x: 'max-content' }}
           dataSource={avisos.data ?? []}
           locale={{
             emptyText: canalListo

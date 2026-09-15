@@ -74,7 +74,6 @@ export function CierreTab({
           type="primary"
           danger
           loading={cerrar.isPending || validar.isPending}
-          disabled={validar.data != null && !validar.data.puedeCerrar}
           onClick={() => void pedirCierre()}
         >
           Cerrar caja

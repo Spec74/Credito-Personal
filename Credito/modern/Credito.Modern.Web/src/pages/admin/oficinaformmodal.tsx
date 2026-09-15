@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Form, Input, Modal, Select, Switch, message } from 'antd'
+import { Form, Grid, Input, Modal, Select, Switch, message } from 'antd'
 import { fetchCajaGestores } from '../../api/cajaMaestro'
 import { guardarOficina, type OficinaGestionRow } from '../../api/maestrosCrud'
 import { ApiError } from '../../api/errors'
@@ -28,6 +28,7 @@ export function OficinaFormModal({
   onClose: () => void
   onSaved: () => void
 }) {
+  const screens = Grid.useBreakpoint()
   const [form] = Form.useForm<FormValues>()
   const [mapLocation, setMapLocation] = useState<MapLatLng | null>(null)
 
@@ -84,7 +85,7 @@ export function OficinaFormModal({
       onCancel={onClose}
       onOk={() => form.submit()}
       confirmLoading={guardar.isPending}
-      width={760}
+      width={screens.md ? 760 : '100%'}
       destroyOnHidden
       styles={{ body: { maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' } }}
     >

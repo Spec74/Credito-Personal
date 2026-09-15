@@ -40,7 +40,8 @@ public sealed class CreditoGestionReadService(IOptions<SqlDatabaseOptions> optio
                        c.NumeroContratoPrendario,
                        c.FechaRemate,
                        c.FechaVencimiento,
-                       p.Celular1 AS PersonaCelular
+                       p.Celular1 AS PersonaCelular,
+                       c.Estado
                 FROM CREDITO.Credito AS c
                 INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
                 LEFT JOIN MAESTRO.Persona AS pa ON pa.PersonaId = c.PersonaAvalId

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalculatorOutlined, FilePdfOutlined, PlusOutlined, WhatsAppOutlined } from '@ant-design/icons'
-import { Alert, Button, Input, Space, Tooltip, Typography, message } from 'antd'
+import { Alert, Button, Input, Select, Space, Tooltip, Typography, message } from 'antd'
 import {
   fetchCreditoContexto,
   fetchCreditosGrillaPersona,
@@ -22,6 +22,7 @@ import { CredixPage, CredixPanel, type CredixStatItem } from '../../components/c
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { getCreditoEstadoMeta } from '../../utils/creditoEstados'
 import { prendaAItem, prendaVacia, prendasValidas, totalTasacion, buildSimuladorPrendarioPath } from '../../utils/prendas'
 import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 
@@ -31,10 +32,12 @@ function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error desconocido'
 }
 
+const ESTADOS_SOLICITUD = new Set(['CRE', 'PEN', 'AP1', 'APR'])
+
 export function CreditoPrendarioGestionPage() {
   const navigate = useNavigate()
   const { personaId: personaParam } = useParams()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { session } = useAuth()
   const queryClient = useQueryClient()
   const oficinaId = session?.oficinaId ?? 0
@@ -57,13 +60,26 @@ export function CreditoPrendarioGestionPage() {
     enabled: oficinaId > 0 && personaId > 0,
   })
 
+  const creditosOpciones = useMemo(() => grilla.data?.items ?? [], [grilla.data])
+
   const creditoId = useMemo(() => {
     if (creditoIdUrl > 0) {
       return creditoIdUrl
     }
-    const items = grilla.data?.items ?? []
-    return items[0]?.creditoId ?? ficha.data?.solicitudCreditoId ?? 0
-  }, [creditoIdUrl, grilla.data, ficha.data])
+    if (ficha.data?.solicitudCreditoId) {
+      return ficha.data.solicitudCreditoId
+    }
+    const solicitudes = creditosOpciones.filter((c) =>
+      ESTADOS_SOLICITUD.has((c.estado ?? '').toUpperCase()),
+    )
+    if (solicitudes.length === 1) {
+      return solicitudes[0].creditoId
+    }
+    if (creditosOpciones.length === 1) {
+      return creditosOpciones[0].creditoId
+    }
+    return 0
+  }, [creditoIdUrl, ficha.data, creditosOpciones])
 
   const contexto = useQuery({
     queryKey: ['credito-contexto', creditoId],
@@ -87,9 +103,15 @@ export function CreditoPrendarioGestionPage() {
     mutationFn: () => crearSolicitudPrendaria({ oficinaId, personaId }),
     onSuccess: (r) => {
       message.success(`Solicitud #${r.solicitudCreditoId} lista`)
-      navigate(`/credito/prendario/gestionar/${personaId}?creditoId=${r.solicitudCreditoId}`, { replace: true })
-      void queryClient.invalidateQueries({ queryKey: ['creditos-grilla-persona', oficinaId, personaId] })
-      void queryClient.invalidateQueries({ queryKey: ['persona-credito-ficha', oficinaId, personaId] })
+      navigate(`/credito/prendario/gestionar/${personaId}?creditoId=${r.solicitudCreditoId}`, {
+        replace: true,
+      })
+      void queryClient.invalidateQueries({
+        queryKey: ['creditos-grilla-persona', oficinaId, personaId],
+      })
+      void queryClient.invalidateQueries({
+        queryKey: ['persona-credito-ficha', oficinaId, personaId],
+      })
     },
     onError: (e) => message.error(errMsg(e)),
   })
@@ -130,6 +152,16 @@ export function CreditoPrendarioGestionPage() {
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const bienesPersistidos = (bienes.data ?? []).length > 0
+  const puedeImprimir =
+    bienesPersistidos && Boolean(contexto.data?.numeroContratoPrendario)
+  const estadoMeta = getCreditoEstadoMeta(contexto.data?.estado)
+  const necesitaElegirCredito =
+    creditoIdUrl < 1 &&
+    !ficha.data?.solicitudCreditoId &&
+    creditosOpciones.length > 1 &&
+    creditoId < 1
+
   const stats: CredixStatItem[] = []
   if (ficha.data) {
     stats.push({ label: 'Cliente', value: ficha.data.nombreCompleto })
@@ -145,7 +177,10 @@ export function CreditoPrendarioGestionPage() {
 
   if (personaId < 1) {
     return (
-      <CredixPage title="Gestión prendaria" breadcrumb={[{ title: <Link to="/credito/prendario">Prendario</Link> }]}>
+      <CredixPage
+        title="Gestión prendaria"
+        breadcrumb={[{ title: <Link to="/credito/prendario">Prendario</Link> }]}
+      >
         <Alert type="error" message="Persona no indicada." />
       </CredixPage>
     )
@@ -187,18 +222,44 @@ export function CreditoPrendarioGestionPage() {
         </Space>
       }
     >
-      {!creditoId ? (
+      {necesitaElegirCredito ? (
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="Seleccione el crédito prendario a gestionar"
+          description={
+            <Select
+              style={{ width: '100%', maxWidth: 420, marginTop: 8 }}
+              placeholder="Crédito activo"
+              options={creditosOpciones.map((c) => ({
+                value: c.creditoId,
+                label: `#${c.creditoId} · ${c.estado} · S/ ${formatMoney(c.montoCredito)}`,
+              }))}
+              onChange={(id: number) => {
+                setSearchParams({ creditoId: String(id) }, { replace: true })
+              }}
+            />
+          }
+        />
+      ) : null}
+
+      {!creditoId && !necesitaElegirCredito ? (
         <Alert
           type="info"
           showIcon
           message="Este cliente no tiene una solicitud prendaria."
           action={
-            <Button type="primary" loading={crearSolicitud.isPending} onClick={() => crearSolicitud.mutate()}>
+            <Button
+              type="primary"
+              loading={crearSolicitud.isPending}
+              onClick={() => crearSolicitud.mutate()}
+            >
               Crear solicitud
             </Button>
           }
         />
-      ) : (
+      ) : creditoId > 0 ? (
         <CredixPanel
           title={`Crédito #${creditoId}`}
           extra={
@@ -206,7 +267,7 @@ export function CreditoPrendarioGestionPage() {
               <Button
                 icon={<FilePdfOutlined />}
                 loading={imprimirContrato.isPending}
-                disabled={prendasValidas(prendas).length === 0}
+                disabled={!puedeImprimir}
                 onClick={() => imprimirContrato.mutate()}
               >
                 Contrato
@@ -214,7 +275,7 @@ export function CreditoPrendarioGestionPage() {
               <Button
                 icon={<FilePdfOutlined />}
                 loading={imprimirActa.isPending}
-                disabled={prendasValidas(prendas).length === 0}
+                disabled={!puedeImprimir}
                 onClick={() => imprimirActa.mutate()}
               >
                 Acta de entrega
@@ -239,8 +300,26 @@ export function CreditoPrendarioGestionPage() {
             </Space>
           }
         >
+          {creditosOpciones.length > 1 ? (
+            <Select
+              style={{ width: '100%', maxWidth: 420, marginBottom: 12 }}
+              value={creditoId}
+              options={creditosOpciones.map((c) => ({
+                value: c.creditoId,
+                label: `#${c.creditoId} · ${c.estado} · S/ ${formatMoney(c.montoCredito)}`,
+              }))}
+              onChange={(id: number) => {
+                setSearchParams({ creditoId: String(id) }, { replace: true })
+              }}
+            />
+          ) : null}
           <Paragraph type="secondary">
-            Estado {contexto.data ? '' : '…'}
+            Estado{' '}
+            {contexto.isLoading
+              ? '…'
+              : estadoMeta
+                ? `${estadoMeta.codigo} — ${estadoMeta.label}`
+                : (contexto.data?.estado ?? '—')}
             {contexto.data ? (
               <>
                 . Vence {formatFecha(contexto.data.fechaVencimiento)}. Contrato{' '}
@@ -248,6 +327,14 @@ export function CreditoPrendarioGestionPage() {
               </>
             ) : null}
           </Paragraph>
+          {!puedeImprimir ? (
+            <Alert
+              type="info"
+              showIcon
+              style={{ marginBottom: 12 }}
+              message="Guarde los bienes en custodia antes de imprimir contrato o acta."
+            />
+          ) : null}
           <Paragraph type="secondary">Fecha de remate (vacía = vencimiento + 30 días)</Paragraph>
           <Input
             type="date"
@@ -266,7 +353,7 @@ export function CreditoPrendarioGestionPage() {
             Guardar bienes
           </Button>
         </CredixPanel>
-      )}
+      ) : null}
     </CredixPage>
   )
 }

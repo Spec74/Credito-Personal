@@ -20,3 +20,12 @@ public sealed record BovedaDestinoTransferenciaDto(
     string Oficina,
     decimal SaldoFinal,
     DateTime FechaIniOperacion);
+
+/// <summary>Transferencia interoficina pendiente de aceptar/rechazar (paridad <c>BovedaMovBL.ListarTransferencias</c>).</summary>
+public sealed record BovedaTransferenciaPendienteDto(
+    int BovedaMovTempId,
+    decimal Monto,
+    string OficinaOrigen,
+    string? Descripcion,
+    string UsuarioReg,
+    DateTime FechaReg);

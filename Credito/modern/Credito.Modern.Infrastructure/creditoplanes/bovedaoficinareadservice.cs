@@ -166,4 +166,47 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             .ConfigureAwait(false);
         return rows.ToList();
     }
+
+    public async Task<IReadOnlyList<BovedaTransferenciaPendienteDto>> ListarTransferenciasPendientesAsync(
+        int bovedaDestinoId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(_connectionString))
+        {
+            throw new InvalidOperationException(
+                "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
+        }
+
+        if (bovedaDestinoId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(bovedaDestinoId), "bovedaDestinoId debe ser >= 1.");
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        const string sql = """
+            SELECT
+                t.BovedaMovTempId,
+                t.Importe AS Monto,
+                COALESCE(o.Denominacion, CONCAT('Oficina ', b.OficinaId)) AS OficinaOrigen,
+                t.Glosa AS Descripcion,
+                COALESCE(p.NombreCompleto, CONCAT('Usuario ', t.UsuarioRegId)) AS UsuarioReg,
+                t.FechaReg
+            FROM CREDITO.BovedaMovTemp AS t
+            INNER JOIN CREDITO.Boveda AS b ON b.BovedaId = t.BovedaInicioId
+            LEFT JOIN MAESTRO.Oficina AS o ON o.OficinaId = b.OficinaId
+            LEFT JOIN MAESTRO.Usuario AS u ON u.UsuarioId = t.UsuarioRegId
+            LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+            WHERE t.BovedaDestinoId = @BovedaDestinoId
+            ORDER BY t.FechaReg DESC, t.BovedaMovTempId DESC;
+            """;
+        var rows = await connection
+            .QueryAsync<BovedaTransferenciaPendienteDto>(
+                new CommandDefinition(
+                    sql,
+                    new { BovedaDestinoId = bovedaDestinoId },
+                    cancellationToken: cancellationToken))
+            .ConfigureAwait(false);
+        return rows.ToList();
+    }
 }

@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Modal, Tag, message } from 'antd'
@@ -10,12 +10,34 @@ import {
   type CondonacionPendiente,
 } from '../../api/creditoCondonacion'
 import { ApiError } from '../../api/errors'
-import { CredixCrudPage, CredixDataTable, type CredixStatItem } from '../../components/credix'
+import {
+  CredixCrudPage,
+  CredixCrudToolbar,
+  CredixDataTable,
+  type CredixStatItem,
+} from '../../components/credix'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { formatMoney } from '../../utils/formatMoney'
+import { filterTableRows } from '../../utils/tableClientFilter'
+
+function condonacionRowText(row: CondonacionPendiente): string {
+  return [
+    row.nombreCliente,
+    row.creditoId,
+    row.personaId,
+    row.nombreUsuario,
+    row.moraCondonacion,
+    row.totalPago,
+    row.montoCredito,
+  ].join(' ')
+}
 
 export function CreditoCondonacionesPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [buscar, setBuscar] = useState('')
+  const buscarDebounced = useDebouncedValue(buscar, 200)
+
   const listQuery = useQuery({
     queryKey: ['condonaciones-pendientes'],
     queryFn: fetchCondonacionesPendientes,
@@ -34,6 +56,11 @@ export function CreditoCondonacionesPage() {
   })
 
   const rows = listQuery.data ?? []
+  const filtrados = useMemo(
+    () => filterTableRows(rows, buscarDebounced, condonacionRowText),
+    [rows, buscarDebounced],
+  )
+
   const stats: CredixStatItem[] = useMemo(
     () => [
       { label: 'Pendientes', value: String(rows.length) },
@@ -124,12 +151,28 @@ export function CreditoCondonacionesPage() {
         { title: 'Condonaciones' },
       ]}
       stats={stats}
+      toolbar={
+        <CredixCrudToolbar
+          value={buscar}
+          onChange={setBuscar}
+          placeholder="Cliente, crédito, usuario…"
+          hint="Doble clic en fila abre la ficha del crédito."
+          filteredCount={filtrados.length}
+          totalCount={rows.length}
+          loading={listQuery.isFetching}
+          onRefresh={() => void listQuery.refetch()}
+        />
+      }
     >
       {listQuery.isError ? (
         <Alert
           type="error"
           showIcon
-          message={listQuery.error instanceof ApiError ? listQuery.error.message : 'No se pudo cargar la bandeja.'}
+          message={
+            listQuery.error instanceof ApiError
+              ? listQuery.error.message
+              : 'No se pudo cargar la bandeja.'
+          }
         />
       ) : (
         <CredixDataTable<CondonacionPendiente>
@@ -137,8 +180,8 @@ export function CreditoCondonacionesPage() {
           rowKey="id"
           loading={listQuery.isFetching}
           columns={columns}
-          dataSource={rows}
-          pagination={false}
+          dataSource={filtrados}
+          pagination={{ pageSize: 20, showSizeChanger: false, size: 'small' }}
           locale={{ emptyText: 'No hay solicitudes de condonación pendientes.' }}
           onRow={(row) => ({
             onDoubleClick: () =>

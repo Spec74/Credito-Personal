@@ -196,5 +196,17 @@
 
   .cliente-mantener__footer {
     position: static;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cliente-mantener__footer .ant-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .cliente-mantener__footer .ant-btn-primary {
+    min-width: 0;
+    order: -1;
   }
 }

@@ -3,6 +3,8 @@ export interface LoginRequest {
   clave: string
   oficinaId: number
   clienteAcceso?: string | null
+  /** Solo SPA: persiste el refresh en localStorage. No se envía al API. */
+  recordarSesion?: boolean
 }
 
 export interface LoginTokenResponse {

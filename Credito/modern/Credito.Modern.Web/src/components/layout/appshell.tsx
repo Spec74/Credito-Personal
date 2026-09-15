@@ -22,6 +22,7 @@ import {
   defaultOpenMenuKeys,
   filterQuickActionsByMenu,
   findMenuItem,
+  findSelectedMenuKeys,
 } from '../../utils/menuTree'
 import { resolveSpaPathFromModulo } from '../../utils/legacyRoutes'
 import { resolveSpaPathFromMenuItem } from '../../utils/resolveSpaPathFromMenuItem'
@@ -115,6 +116,10 @@ export function AppShell() {
     profile.nombreUsuario ?? (session ? `Usuario ${session.usuarioId}` : '')
 
   const menuItems = useMemo(() => buildAntMenuItems(navigationMenuData), [navigationMenuData])
+  const selectedKeys = useMemo(
+    () => findSelectedMenuKeys(location.pathname, navigationMenuData),
+    [location.pathname, navigationMenuData],
+  )
 
   const closeMobileNav = () => {
     if (isMobile) {
@@ -199,9 +204,11 @@ export function AppShell() {
       menuExpanded={isMobile || !collapsed}
       menuQuery={menuQuery}
       menuItems={menuItems}
+      selectedKeys={selectedKeys}
       openKeys={openKeys}
       setOpenKeys={setOpenKeysUser}
       onMenuClick={onMenuClick}
+      onRetryMenu={() => void menuQuery.refetch()}
       quickActionsVisible={quickActionsVisible}
       onQuickAction={(qa) => {
         if (qa.spaPath) {
@@ -317,18 +324,22 @@ function NavPanel({
   menuExpanded,
   menuQuery,
   menuItems,
+  selectedKeys,
   openKeys,
   setOpenKeys,
   onMenuClick,
+  onRetryMenu,
   quickActionsVisible,
   onQuickAction,
 }: {
   menuExpanded: boolean
   menuQuery: { isLoading: boolean; isError: boolean }
   menuItems: ReturnType<typeof buildAntMenuItems>
+  selectedKeys: string[]
   openKeys: string[]
   setOpenKeys: (keys: string[]) => void
   onMenuClick: (info: { key: string }) => void
+  onRetryMenu: () => void
   quickActionsVisible: typeof quickActions
   onQuickAction: (qa: QuickAction) => void
 }) {
@@ -351,7 +362,12 @@ function NavPanel({
           </div>
         ) : menuQuery.isError ? (
           <div style={{ padding: 16 }}>
-            <Text type="danger">No se pudo cargar el menú.</Text>
+            <Text type="danger" style={{ display: 'block', marginBottom: 8 }}>
+              No se pudo cargar el menú.
+            </Text>
+            <Button size="small" onClick={onRetryMenu}>
+              Reintentar
+            </Button>
           </div>
         ) : (
           <Menu
@@ -359,6 +375,7 @@ function NavPanel({
             mode="inline"
             inlineCollapsed={!menuExpanded}
             items={menuItems}
+            selectedKeys={selectedKeys}
             openKeys={menuExpanded ? openKeys : []}
             onOpenChange={(keys) => setOpenKeys(keys as string[])}
             onClick={onMenuClick}

@@ -79,9 +79,24 @@ public sealed class RptCajaSaldosModulePdfDocumentTests
             },
         };
 
-        var bytes = RptSaldosCajaPdfDocument.Build(rows, cab, "EFECTIVO = 200.00", cajaChica: false);
+        var bytes = RptSaldosCajaPdfDocument.Build(
+            rows,
+            cab,
+            "RESUMEN CAJA DIARIO: EFECTIVO = 200.00  YAPE = 85.00  PLIN = 40.00",
+            cajaChica: false);
         AssertPdfMagic(bytes);
         Assert.True(bytes.Length > 1400);
+    }
+
+    [Fact]
+    public void Resumen_caja_diario_compone_efectivo_y_medios_digitales()
+    {
+        var c = ResumenCuentaCajaParser.Compose(
+            "RESUMEN CAJA DIARIO: EFECTIVO = 200.00  YAPE = 85.00  PLIN = 40.00");
+        Assert.Equal(200.00m, c.Efectivo);
+        Assert.Equal(125.00m, c.MediosDigitales);
+        Assert.Equal(3, c.Items.Count);
+        Assert.Equal("EFECTIVO", c.Items[0].Cuenta);
     }
 
     [Fact]

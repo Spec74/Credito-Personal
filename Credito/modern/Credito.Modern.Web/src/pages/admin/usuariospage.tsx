@@ -7,6 +7,7 @@ import {
   DatePicker,
   Drawer,
   Form,
+  Grid,
   Input,
   Modal,
   Select,
@@ -35,11 +36,14 @@ import {
 import { ApiError } from '../../api/errors'
 import { CredixCrudPage, CredixDataTable } from '../../components/credix'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 
 const { Paragraph } = Typography
 
 export function UsuariosPage() {
+  const screens = Grid.useBreakpoint()
   const [buscar, setBuscar] = useState('')
+  const buscarDebounced = useDebouncedValue(buscar.trim(), 350)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
   const [incluirInactivos, setIncluirInactivos] = useState(true)
@@ -50,8 +54,14 @@ export function UsuariosPage() {
   const queryClient = useQueryClient()
 
   const usuariosQuery = useQuery({
-    queryKey: ['usuarios-gestion', buscar, page, pageSize, incluirInactivos],
-    queryFn: () => fetchUsuariosGestion({ buscar, page, pageSize, incluirInactivos }),
+    queryKey: ['usuarios-gestion', buscarDebounced, page, pageSize, incluirInactivos],
+    queryFn: () =>
+      fetchUsuariosGestion({
+        buscar: buscarDebounced,
+        page,
+        pageSize,
+        incluirInactivos,
+      }),
   })
 
   const detalleQuery = useQuery({
@@ -280,7 +290,7 @@ export function UsuariosPage() {
       extra={
         <Drawer
           title={usuarioId >= 1 ? `Usuario #${usuarioId}` : 'Nuevo usuario'}
-          width={640}
+          width={screens.md ? 640 : '100%'}
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
         >
@@ -361,23 +371,24 @@ export function UsuariosPage() {
                         type="primary"
                         loading={guardar.isPending}
                         onClick={() => {
-                          const v = form.getFieldsValue()
-                          guardar.mutate({
-                            usuarioId,
-                            apePaterno: v.apePaterno,
-                            apeMaterno: v.apeMaterno,
-                            nombre: v.nombre,
-                            numeroDocumento: v.numeroDocumento,
-                            sexo: v.sexo,
-                            fechaNacimiento: v.fechaNacimiento
-                              ? (v.fechaNacimiento as dayjs.Dayjs).format('YYYY-MM-DD')
-                              : null,
-                            telefonoMovil: v.telefonoMovil,
-                            emailPersonal: v.emailPersonal,
-                            direccion: v.direccion,
-                            nombreUsuario: v.nombreUsuario,
-                            claveUsuario: (v.claveUsuario as string) ?? '',
-                            estado: v.estado,
+                          void form.validateFields().then((v) => {
+                            guardar.mutate({
+                              usuarioId,
+                              apePaterno: v.apePaterno,
+                              apeMaterno: v.apeMaterno,
+                              nombre: v.nombre,
+                              numeroDocumento: v.numeroDocumento,
+                              sexo: v.sexo,
+                              fechaNacimiento: v.fechaNacimiento
+                                ? (v.fechaNacimiento as dayjs.Dayjs).format('YYYY-MM-DD')
+                                : null,
+                              telefonoMovil: v.telefonoMovil,
+                              emailPersonal: v.emailPersonal,
+                              direccion: v.direccion,
+                              nombreUsuario: v.nombreUsuario,
+                              claveUsuario: (v.claveUsuario as string) ?? '',
+                              estado: v.estado,
+                            })
                           })
                         }}
                       >

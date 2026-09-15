@@ -716,7 +716,7 @@ export function SimuladorCreditoPage() {
                     busquedaCliente.mutate(terminoCliente.trim())
                   }
                 }}
-                style={{ width: 320 }}
+                style={{ width: '100%', maxWidth: 420, minWidth: 220 }}
               />
               <Button
                 onClick={() => {

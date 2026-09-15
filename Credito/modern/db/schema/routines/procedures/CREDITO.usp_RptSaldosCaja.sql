@@ -1,6 +1,6 @@
 -- EXEC CREDITO.usp_RptSaldosCaja 13728  
   
-CREATE PROC [CREDITO].[usp_RptSaldosCaja]  
+ALTER PROC [CREDITO].[usp_RptSaldosCaja]  
 @CajaDiarioId INT,
 @IndCajaChica BIT = 0
 AS  

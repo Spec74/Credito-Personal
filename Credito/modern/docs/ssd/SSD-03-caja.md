@@ -107,7 +107,7 @@ Aceptadas de producto: grilla de desembolsos APR (el MVC era un formulario); mod
 
 - API: `pagarcuotasendpointtests`, `pagarcuotascancelacionendpointtests`, `completarimpagosvalidacionendpointtests`, `cerrarcajadiarioendpointtests`, `validarcierrecajadiarioendpointtests`, `reconciliarcajadiarioendpointtests`, `transferirsaldoscajadiarioendpointtests`, `saldoscierreendpointtests`, `asignarcajaendpointtests`, `cajachicaoperacionendpointtests`, `creditocondonacionendpointtests`
 - SPA: `menuRouteAccess.test.ts` (hub caja vs asignar/saldos/verificar)
-- Smoke: abrir diario, cobrar cuota efectivo + Yape (aparece en Verificar), anular, arqueo con anulados, cierre; encargado en saldos
+- Smoke: abrir diario, cobrar cuota efectivo + Yape (aparece en Verificar), verificar pago, intentar cierre con pendiente digital (bloquea), anular, cierre limpio; encargado en saldos
 
 ## 10. Go-live
 

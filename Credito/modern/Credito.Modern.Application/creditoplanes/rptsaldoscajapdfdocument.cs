@@ -67,6 +67,8 @@ public static class RptSaldosCajaPdfDocument
         RptSaldoCajaCabDto cab,
         string? resumenIngreso)
     {
+        var composicion = ResumenCuentaCajaParser.Compose(resumenIngreso);
+
         container.Background(CajaSaldosPdfStyle.BandBg)
             .Border(0.6f)
             .BorderColor(CajaSaldosPdfStyle.Border)
@@ -109,7 +111,27 @@ public static class RptSaldosCajaPdfDocument
                         t.Span(cab.PorcentajeCobro.ToString("N1", CajaSaldosPdfStyle.Pe) + " %");
                     });
                 });
-                if (!string.IsNullOrWhiteSpace(resumenIngreso))
+
+                // Misma composición que bóveda / pantalla caja: efectivo vs digitales + detalle.
+                if (composicion.Items.Count > 0)
+                {
+                    col.Item().PaddingTop(8).Row(row =>
+                    {
+                        Kpi(row, "Total efectivo", composicion.Efectivo, bold: true);
+                        Kpi(row, "Total medios digitales", composicion.MediosDigitales, bold: true);
+                    });
+
+                    var detalle = string.Join(
+                        " · ",
+                        composicion.Items.Select(i =>
+                            $"{i.Cuenta} {CajaSaldosPdfStyle.Money(i.Importe)}"));
+                    col.Item().PaddingTop(4).Text(t =>
+                    {
+                        t.Span("Detalle por medio: ").Bold().FontSize(7);
+                        t.Span(detalle).FontSize(7);
+                    });
+                }
+                else if (!string.IsNullOrWhiteSpace(resumenIngreso))
                 {
                     col.Item().PaddingTop(4).Text(t =>
                     {
@@ -118,6 +140,17 @@ public static class RptSaldosCajaPdfDocument
                     });
                 }
             });
+    }
+
+    private static void Kpi(RowDescriptor row, string label, decimal value, bool bold = false)
+    {
+        row.RelativeItem().Column(col =>
+        {
+            col.Item().Text(label).FontSize(7).FontColor(Colors.Grey.Darken2);
+            var text = col.Item().Text(CajaSaldosPdfStyle.Money(value)).FontSize(10);
+            if (bold)
+                text.Bold().FontColor(CajaSaldosPdfStyle.Brand);
+        });
     }
 
     private static void ComposeGrupo(
@@ -138,21 +171,20 @@ public static class RptSaldosCajaPdfDocument
             {
                 table.ColumnsDefinition(columns =>
                 {
-                    columns.ConstantColumn(42);
-                    columns.ConstantColumn(36);
-                    columns.ConstantColumn(82);
-                    columns.ConstantColumn(52);
-                    columns.RelativeColumn(1.4f);
-                    columns.RelativeColumn(1.6f);
-                    columns.ConstantColumn(62);
+                    columns.ConstantColumn(48);
+                    columns.ConstantColumn(40);
+                    columns.ConstantColumn(88);
+                    columns.RelativeColumn(1.5f);
+                    columns.RelativeColumn(2.0f);
                     columns.ConstantColumn(68);
+                    columns.ConstantColumn(72);
                 });
 
                 table.Header(h =>
                 {
                     foreach (var label in new[]
                     {
-                        "Mov.", "Op.", "Fecha", "Cód.", "Cliente", "Glosa", "Importe", "Tipo pago",
+                        "Mov.", "Op.", "Fecha", "Cliente", "Glosa", "Importe", "Tipo pago",
                     })
                     {
                         h.Cell().Element(CajaSaldosPdfStyle.HeaderCell)
@@ -168,14 +200,13 @@ public static class RptSaldosCajaPdfDocument
                     Cell(table, r.MovimientoCajaId.ToString(System.Globalization.CultureInfo.InvariantCulture), bg, center: true);
                     Cell(table, r.Operacion, bg, center: true);
                     Cell(table, CajaSaldosPdfStyle.DateTime(r.FechaReg), bg, center: true);
-                    Cell(table, r.Codigo, bg, center: true);
                     Cell(table, r.Cliente, bg);
                     Cell(table, r.Glosa, bg);
                     Money(table, r.ImportePago, bg);
                     Cell(table, r.TipoPago, bg, center: true);
                 }
 
-                table.Cell().ColumnSpan(6).Element(CajaSaldosPdfStyle.TotalsCell)
+                table.Cell().ColumnSpan(5).Element(CajaSaldosPdfStyle.TotalsCell)
                     .AlignRight()
                     .Text(titulo == "INGRESOS" ? "Total ingreso" : "Total egreso")
                     .Bold();

@@ -194,7 +194,11 @@ export function VerificarPagosPage() {
                 type="primary"
                 size="small"
                 icon={<CheckOutlined />}
-                loading={verificar.isPending}
+                loading={
+                  verificar.isPending &&
+                  verificar.variables === row.movimientoCajaId
+                }
+                disabled={verificar.isPending}
                 onClick={(e) => {
                   e.stopPropagation()
                   pedirVerificar(row)
@@ -207,7 +211,7 @@ export function VerificarPagosPage() {
         ),
       },
     ],
-    [pedirVerificar, verificar.isPending],
+    [pedirVerificar, verificar.isPending, verificar.variables],
   )
 
   const stats: CredixStatItem[] = useMemo(() => {

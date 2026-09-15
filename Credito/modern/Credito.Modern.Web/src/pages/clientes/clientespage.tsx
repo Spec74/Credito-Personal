@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { PlusOutlined } from '@ant-design/icons'
@@ -7,7 +7,10 @@ import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import type { SorterResult } from 'antd/es/table/interface'
 import { listarClientes, type ClienteListadoRow } from '../../api/clientes'
 import { ApiError } from '../../api/errors'
-import { extractSearchTermsFromInput } from '../../components/caja/clienteBuscarResolve'
+import {
+  extractSearchTermsFromInput,
+  primaryCatalogSearchTerm,
+} from '../../components/caja/clienteBuscarResolve'
 import {
   CredixCrudPage,
   CredixDataTable,
@@ -25,13 +28,22 @@ export function ClientesPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [termino, setTermino] = useState('')
+  const [buscarFlush, setBuscarFlush] = useState<string | null>(null)
   const debounced = useDebouncedValue(termino.trim(), 400)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<number>(15)
   const [sortField, setSortField] = useState('Codigo')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
-  const buscarAplicado = debounced.length >= 2 ? debounced : ''
+  useEffect(() => {
+    if (buscarFlush != null && buscarFlush === debounced) {
+      setBuscarFlush(null)
+    }
+  }, [debounced, buscarFlush])
+
+  const terminoEfectivo = buscarFlush ?? debounced
+  const buscarRaw = terminoEfectivo.length >= 2 ? terminoEfectivo : ''
+  const buscarAplicado = buscarRaw ? primaryCatalogSearchTerm(buscarRaw) : ''
   const terminoCorto = termino.trim().length > 0 && termino.trim().length < 2
 
   const listado = useQuery({
@@ -115,8 +127,8 @@ export function ClientesPage() {
   }
 
   const terminos = useMemo(
-    () => (buscarAplicado ? extractSearchTermsFromInput(buscarAplicado) : []),
-    [buscarAplicado],
+    () => (buscarRaw ? extractSearchTermsFromInput(buscarRaw) : []),
+    [buscarRaw],
   )
 
   const stats: CredixStatItem[] = useMemo(() => {
@@ -166,9 +178,13 @@ export function ClientesPage() {
           value={termino}
           onChange={(v) => {
             setTermino(v)
+            setBuscarFlush(null)
             setPage(1)
           }}
-          onSubmit={() => setPage(1)}
+          onSubmit={() => {
+            setBuscarFlush(termino.trim())
+            setPage(1)
+          }}
           placeholder="Apellidos, DNI, código, celular, email"
           hint={
             buscarAplicado

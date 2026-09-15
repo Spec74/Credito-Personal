@@ -18,7 +18,25 @@ Ante una diferencia entre legacy y moderno se aplica este criterio:
 Nunca se cambia lógica financiera en silencio. Toda corrección que altere un importe, un saldo
 o un estado contable debe aparecer en esta bitácora.
 
-### 2026-09-14 — Caja diario: cierre de auditoría (cuotas digitales, mora, arqueo)
+### 2026-09-14 — PDF saldo caja (cierre): Total efectivo / medios digitales
+
+El PDF de `rpt-saldos-caja-pdf` (arqueo y auto al cerrar) ya traía
+`usp_RptSaldosCajaResumenIngreso` como una sola línea. Ahora la cabecera muestra
+**Total efectivo**, **Total medios digitales** y **detalle por medio** (misma
+composición que el PDF de bóveda), parseando `ufnResumenCuentaCajaDiario`.
+
+### 2026-09-14 — Pago OK + error falso por mora postergada ausente en BD
+
+**Defecto UX:** tras restaurar BD 2026-09-01, faltan `usp_CreditoMora_Registrar` /
+`_Liquidar` (script `deploy/sql/2026-06-credito-mora-postergada.sql`). El cobro
+`usp_PagarCuotas` **sí confirmaba**, pero el orquestador de mora lanzaba excepción y la
+API respondía 503/422 como si el pago hubiera fallado; un reintento devolvía nulo porque
+la cuota ya estaba `PAG`.
+
+**Corrección:** el endpoint `pagar-cuotas` no falla el cobro si la mora postergada falla
+(se registra en log). Reaplicar el script de deploy tras cada restore. SPA solo pide mora
+si `indMoraProducto === true`.
+
 
 **Defecto corregido — P0:** cobro de **cuotas** con `TipoPagoId > 1` (Yape/Plin/…)
 escribía el tipo en `MovimientoCaja` pero **no** creaba `MovimientoCajaExtension`

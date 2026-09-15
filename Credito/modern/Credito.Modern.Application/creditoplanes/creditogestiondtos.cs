@@ -41,7 +41,8 @@ public sealed record CreditoContextoDto(
     string? NumeroContratoPrendario,
     DateTime? FechaRemate,
     DateTime FechaVencimiento,
-    string? PersonaCelular);
+    string? PersonaCelular,
+    string Estado);
 
 public sealed record SolicitudCreditoDetalleDto(
     int SolicitudCreditoId,

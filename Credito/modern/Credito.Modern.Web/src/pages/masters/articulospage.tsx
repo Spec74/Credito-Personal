@@ -2,12 +2,12 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  AutoComplete,
   Button,
   Checkbox,
   Col,
   Drawer,
   Form,
+  Grid,
   Input,
   InputNumber,
   Row,
@@ -24,7 +24,6 @@ import type { ColumnsType } from 'antd/es/table'
 import { fetchModelos } from '../../api/modelos'
 import { fetchTiposArticulo } from '../../api/tiposArticulo'
 import {
-  buscarArticulos,
   eliminarImagenArticulo,
   fetchArticuloDetalle,
   fetchArticuloImagenBlobUrl,
@@ -92,13 +91,13 @@ function ArticuloImagenThumb({
 }
 
 export function ArticulosPage() {
+  const screens = Grid.useBreakpoint()
   const [modeloId, setModeloId] = useState<number | undefined>()
   const [tipoArticuloId, setTipoArticuloId] = useState<number | undefined>()
   const [filtro, setFiltro] = useState('')
   const [incluirInactivos, setIncluirInactivos] = useState(true)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [articuloId, setArticuloId] = useState(0)
-  const [buscarTerm, setBuscarTerm] = useState('')
   const [form] = Form.useForm()
   const queryClient = useQueryClient()
 
@@ -116,11 +115,6 @@ export function ArticulosPage() {
     enabled: articuloId >= 1,
   })
 
-  const buscarQuery = useQuery({
-    queryKey: ['articulos-buscar', buscarTerm],
-    queryFn: () => buscarArticulos(buscarTerm, !incluirInactivos),
-    enabled: buscarTerm.trim().length >= 2,
-  })
 
   const guardar = useMutation({
     mutationFn: guardarArticulo,
@@ -246,17 +240,6 @@ export function ArticulosPage() {
       }
       toolbar={
         <Space wrap>
-          <AutoComplete
-            style={{ minWidth: 280 }}
-            placeholder="Buscar artículo por nombre..."
-            value={buscarTerm}
-            onChange={setBuscarTerm}
-            onSelect={(v) => void cargarDetalle(Number(v))}
-            options={(buscarQuery.data ?? []).map((a) => ({
-              value: String(a.articuloId),
-              label: `${a.articuloId} — ${a.denominacion}`,
-            }))}
-          />
           <Select
             allowClear
             placeholder="Modelo"
@@ -281,8 +264,8 @@ export function ArticulosPage() {
           />
           <Input.Search
             allowClear
-            placeholder="Filtrar lista"
-            style={{ width: '100%', maxWidth: 220 }}
+            placeholder="Buscar en lista (nombre / id)"
+            style={{ width: '100%', maxWidth: 280 }}
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
           />
@@ -307,7 +290,7 @@ export function ArticulosPage() {
       extra={
         <Drawer
           title={articuloId >= 1 ? `Artículo #${articuloId}` : 'Nuevo artículo'}
-          width={560}
+          width={screens.md ? 560 : '100%'}
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
           extra={

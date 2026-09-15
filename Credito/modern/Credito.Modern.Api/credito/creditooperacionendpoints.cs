@@ -3207,21 +3207,32 @@ internal static class CreditoOperacionEndpoints
 
                         if (body.AplicarMoraPostergada && response.ResultId is > 0)
                         {
-                            var planIds = body.ListaPlanPagoId
-                                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                                .Select(s => int.TryParse(s, out var id) ? id : 0)
-                                .Where(id => id > 0)
-                                .ToList();
-                            await moraOrchestrator
-                                .AplicarTrasPagoCuotasAsync(
-                                    body.CreditoId,
-                                    body.CajaDiarioId,
-                                    usuarioId,
-                                    body.TipoPagoId,
-                                    planIds,
-                                    body.EsUltimaCuota,
-                                    ct)
-                                .ConfigureAwait(false);
+                            try
+                            {
+                                var planIds = body.ListaPlanPagoId
+                                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                                    .Select(s => int.TryParse(s, out var id) ? id : 0)
+                                    .Where(id => id > 0)
+                                    .ToList();
+                                await moraOrchestrator
+                                    .AplicarTrasPagoCuotasAsync(
+                                        body.CreditoId,
+                                        body.CajaDiarioId,
+                                        usuarioId,
+                                        body.TipoPagoId,
+                                        planIds,
+                                        body.EsUltimaCuota,
+                                        ct)
+                                    .ConfigureAwait(false);
+                            }
+                            catch (DbException ex)
+                            {
+                                // El pago ya está confirmado; no devolver error de cobro por falla de mora postergada.
+                                log.LogError(
+                                    ex,
+                                    "Pago {ResultId} OK; falló mora postergada (¿falta usp_CreditoMora_Registrar/Liquidar en BD?)",
+                                    response.ResultId);
+                            }
                         }
 
                         return TypedResults.Ok(response);
@@ -5330,6 +5341,96 @@ internal static class CreditoOperacionEndpoints
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+
+
+        app.MapGet(
+                "/api/v1/credito/boveda-transferencias-pendientes",
+                async Task<Results<Ok<List<BovedaTransferenciaPendienteDto>>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    int bovedaId,
+                    IBovedaOficinaReadService bovedaOficina,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (bovedaId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "bovedaId debe ser un entero >= 1.");
+                    }
+
+                    try
+                    {
+                        var oficinaBoveda = await bovedaOficina
+                            .GetOficinaIdByBovedaIdAsync(bovedaId, ct)
+                            .ConfigureAwait(false);
+                        if (oficinaBoveda is null)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status404NotFound,
+                                title: "No encontrado",
+                                detail: "No existe la bóveda indicada.");
+                        }
+
+                        var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(
+                            httpContext,
+                            oficinaBoveda.Value);
+                        if (oficinaError is not null)
+                        {
+                            return oficinaError;
+                        }
+
+                        var rows = await bovedaOficina
+                            .ListarTransferenciasPendientesAsync(bovedaId, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(rows.ToList());
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        var log = loggerFactory.CreateLogger("BovedaTransferenciasPendientes");
+                        log.LogWarning(ex, "Transferencias pendientes: configuración incompleta");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (ArgumentOutOfRangeException)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Parámetros inválidos",
+                            detail: "Los parámetros enviados no son válidos.");
+                    }
+                    catch (DbException ex)
+                    {
+                        var log = loggerFactory.CreateLogger("BovedaTransferenciasPendientes");
+                        log.LogError(ex, "Error al listar transferencias pendientes de bóveda");
+                        var detail = "No se pudo listar transferencias pendientes.";
+                        if (env.IsDevelopment())
+                        {
+                            detail += $" Detalle: {ex.Message}";
+                        }
+
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("CreditoBovedaTransferenciasPendientes")
+            .WithSummary(
+                "Transferencias interoficina pendientes hacia la bóveda (paridad ListarTransferencias).")
+            .WithTags("credito", "boveda")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .Produces<List<BovedaTransferenciaPendienteDto>>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 
