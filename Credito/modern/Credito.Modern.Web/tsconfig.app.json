@@ -16,7 +16,7 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "forceConsistentCasingInFileNames": false
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src"],
   "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"]
