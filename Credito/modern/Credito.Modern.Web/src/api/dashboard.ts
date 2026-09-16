@@ -188,6 +188,17 @@ export interface DashboardAdminDetalle {
   historico: DashboardAdminHistoricoPunto[]
   historicoMensual: DashboardAdminHistoricoMensual[]
   analistas: DashboardAdminAnalistaRow[]
+  cartera: DashboardAdminCartera
+}
+
+export interface DashboardAdminCartera {
+  totalClientes: number
+  saldoCartera: number
+  saldoCreditos: number
+  saldoMoraCartera: number
+  saldoVencido: number
+  saldoMorosidad: number
+  clientesMora: number
 }
 
 export function fetchDashboardAdmin(): Promise<DashboardAdmin> {

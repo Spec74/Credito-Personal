@@ -13,18 +13,28 @@ public sealed record DashboardAdminDto(
     IReadOnlyList<DashboardAdminHistoricoMensualDto> HistoricoMensual,
     IReadOnlyList<DashboardAdminAnalistaRowDto> Analistas);
 
-/// <summary>KPIs + cartera para progressive load del tablero gerencial.</summary>
+/// <summary>KPIs only; cartera arrives with detalle (progressive load).</summary>
 public sealed record DashboardAdminShellDto(
     string NombreOficina,
     DateTime FechaConsulta,
     DashboardAdminResumenDto Resumen);
 
-/// <summary>Flujo, históricos y analistas (carga diferida).</summary>
+/// <summary>Cartera, flujo, históricos y analistas (carga diferida).</summary>
 public sealed record DashboardAdminDetalleDto(
     IReadOnlyList<DashboardAdminFlujoRowDto> FlujoCaja,
     IReadOnlyList<DashboardAdminHistoricoPuntoDto> Historico,
     IReadOnlyList<DashboardAdminHistoricoMensualDto> HistoricoMensual,
-    IReadOnlyList<DashboardAdminAnalistaRowDto> Analistas);
+    IReadOnlyList<DashboardAdminAnalistaRowDto> Analistas,
+    DashboardAdminCarteraDto Cartera);
+
+public sealed record DashboardAdminCarteraDto(
+    int TotalClientes,
+    decimal SaldoCartera,
+    decimal SaldoCreditos,
+    decimal SaldoMoraCartera,
+    decimal SaldoVencido,
+    decimal SaldoMorosidad,
+    int ClientesMora);
 
 public sealed record DashboardAdminResumenDto(
     int TotalAnalistas,

@@ -57,8 +57,33 @@ export function AdminDashboardPage() {
   })
 
   const shell = shellQuery.data
-  const r = shell?.resumen
   const detalle = detalleQuery.data
+
+  /** KPIs del día/mes al instante; saldos de cartera se completan con detalle. */
+  const r = useMemo(() => {
+    const base = shell?.resumen
+    if (!base) {
+      return null
+    }
+    const c = detalle?.cartera
+    if (!c) {
+      return base
+    }
+    return {
+      ...base,
+      totalClientes: c.totalClientes,
+      saldoCartera: c.saldoCartera,
+      saldoCreditos: c.saldoCreditos,
+      saldoMoraCartera: c.saldoMoraCartera,
+      saldoVencido: c.saldoVencido,
+      saldoMorosidad: c.saldoMorosidad,
+      clientesMora: c.clientesMora,
+    }
+  }, [shell?.resumen, detalle?.cartera])
+
+  const carteraReady = !!detalle?.cartera
+  const detalleReady = !!detalle
+  const detalleError = detalleQuery.isError
 
   const analistas = useMemo(() => {
     const q = buscar.trim().toLowerCase()
@@ -200,8 +225,8 @@ export function AdminDashboardPage() {
 
   if (shellQuery.isLoading && !shell) {
     return (
-      <CredixPage title="Inicio" subtitle="Cargando el tablero gerencial…">
-        <Skeleton active paragraph={{ rows: 12 }} />
+      <CredixPage title="Inicio" subtitle="Cargando indicadores del día…">
+        <Skeleton active paragraph={{ rows: 8 }} />
       </CredixPage>
     )
   }
@@ -224,8 +249,6 @@ export function AdminDashboardPage() {
 
   const fechaLarga = formatFechaLarga(shell.fechaConsulta)
   const esAnalista = esCreditoAnalista(session?.roles ?? [])
-  const detalleReady = !!detalle
-  const detalleError = detalleQuery.isError
 
   return (
     <CredixPage
@@ -250,7 +273,9 @@ export function AdminDashboardPage() {
       <div className="dash-analista dash-admin">
         {isFetching && shell ? (
           <p className="dash-refresh-hint" role="status">
-            Actualizando indicadores…
+            {detalleReady
+              ? 'Actualizando indicadores…'
+              : 'KPIs listos · cargando cartera, gráficos y analistas…'}
           </p>
         ) : null}
         <header className="dash-head">
@@ -463,19 +488,27 @@ export function AdminDashboardPage() {
         </div>
 
         <h3 className="dash-section-title">Situación de cartera</h3>
-        <section className="dash-kpis dash-kpis-status" aria-label="Cartera">
-          <StatusItem label="Cartera total" value={`S/ ${formatMoney(r.saldoCartera)}`} hint="Saldo pendiente" />
-          <StatusItem label="Sin mora" value={`S/ ${formatMoney(r.saldoCreditos)}`} hint="Créditos al día" />
-          <StatusItem label="Con mora" value={`S/ ${formatMoney(r.saldoMoraCartera)}`} hint="Créditos con cuota vencida" />
-          <StatusItem label="Saldo vencido" value={`S/ ${formatMoney(r.saldoVencido)}`} hint="Vencimiento del crédito" />
-          <StatusItem label="Cuotas en atraso" value={`S/ ${formatMoney(r.saldoMorosidad)}`} hint="Importe de cuotas PEN vencidas" />
-          <StatusItem
-            label="Clientes activos"
-            value={formatEntero(r.totalClientes)}
-            hint={`${formatEntero(r.clientesMora)} en mora · ${formatEntero(r.creditosPorVencerSemana)} vencen esta semana · ${formatEntero(r.totalAnalistas)} analistas`}
-            icon={<TeamOutlined />}
-          />
-        </section>
+        {carteraReady ? (
+          <section className="dash-kpis dash-kpis-status" aria-label="Cartera">
+            <StatusItem label="Cartera total" value={`S/ ${formatMoney(r.saldoCartera)}`} hint="Saldo pendiente" />
+            <StatusItem label="Sin mora" value={`S/ ${formatMoney(r.saldoCreditos)}`} hint="Créditos al día" />
+            <StatusItem label="Con mora" value={`S/ ${formatMoney(r.saldoMoraCartera)}`} hint="Créditos con cuota vencida" />
+            <StatusItem label="Saldo vencido" value={`S/ ${formatMoney(r.saldoVencido)}`} hint="Vencimiento del crédito" />
+            <StatusItem label="Cuotas en atraso" value={`S/ ${formatMoney(r.saldoMorosidad)}`} hint="Importe de cuotas PEN vencidas" />
+            <StatusItem
+              label="Clientes activos"
+              value={formatEntero(r.totalClientes)}
+              hint={`${formatEntero(r.clientesMora)} en mora · ${formatEntero(r.creditosPorVencerSemana)} vencen esta semana · ${formatEntero(r.totalAnalistas)} analistas`}
+              icon={<TeamOutlined />}
+            />
+          </section>
+        ) : (
+          <section className="dash-panel" aria-label="Cartera cargando">
+            <div className="dash-panel-body">
+              <Skeleton active paragraph={{ rows: 3 }} />
+            </div>
+          </section>
+        )}
 
         <section className="dash-panel">
           <div className="dash-panel-head">

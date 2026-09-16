@@ -9,17 +9,21 @@ namespace Credito.Modern.Infrastructure.Dashboard;
 /// <summary>
 /// Tablero gerencial optimizado. Replica la semántica de salida de
 /// <c>usp_DashboardAdmin*</c> acotada a <c>OficinaId</c> del JWT.
-/// Cartera vía PlanPago PEN; colocaciones/cobranza por filtros directos en Credito/MovimientoCaja.
+/// Shell: KPIs sin PlanPago. Detalle: cartera vía #Saldos + flujo/históricos/analistas.
 /// </summary>
 public sealed class DashboardAdminReadService(
     IOptions<SqlDatabaseOptions> options,
     IMemoryCache cache) : IDashboardAdminReadService
 {
-    private const int CommandTimeoutSeconds = 45;
-    private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(90);
+    private const int ShellCommandTimeoutSeconds = 20;
+    private const int DetalleCommandTimeoutSeconds = 60;
+    private static readonly TimeSpan ShellCacheTtl = TimeSpan.FromSeconds(90);
+    private static readonly TimeSpan DetalleCacheTtl = TimeSpan.FromSeconds(180);
+    private static readonly TimeSpan CombinedCacheTtl = TimeSpan.FromSeconds(90);
 
     /// <summary>
-    /// Shell sin #temp: 4 scans acotados por fecha/oficina. Evita 20+ subconsultas escalares.
+    /// Shell sin PlanPago ni #temp: Coloc/Cob/Flujo/Vencer + conteo barato de clientes.
+    /// Saldos de cartera llegan en cero; detalle los completa vía #Saldos.
     /// </summary>
     private static readonly string SqlShell = """
         DECLARE @Hoy date = dbo.ufnFecha();
@@ -95,41 +99,9 @@ public sealed class DashboardAdminReadService(
               AND m.FechaReg >= @InicioMesAnterior
               AND m.FechaReg < @Manana
         ),
-        Cartera AS (
-            SELECT
-                COUNT(DISTINCT c.PersonaId) AS TotalClientes,
-                ISNULL(SUM(pend.Saldo), 0) AS SaldoCartera,
-                ISNULL(SUM(CASE WHEN pend.EnMora = 0 THEN pend.Saldo ELSE 0 END), 0) AS SaldoCreditos,
-                ISNULL(SUM(CASE WHEN pend.EnMora = 1 THEN pend.Saldo ELSE 0 END), 0) AS SaldoMoraCartera,
-                ISNULL(SUM(CASE WHEN c.FechaVencimiento < @Hoy THEN pend.Saldo ELSE 0 END), 0) AS SaldoVencido,
-                ISNULL(SUM(pend.Morosidad), 0) AS SaldoMorosidad,
-                COUNT(DISTINCT CASE WHEN pend.Saldo > 0 AND pend.EnMora = 1 THEN c.PersonaId END) AS ClientesMora
+        Clientes AS (
+            SELECT COUNT(DISTINCT c.PersonaId) AS TotalClientes
             FROM CREDITO.Credito AS c
-            LEFT JOIN (
-                -- Acotar PlanPago a créditos de la oficina (sin esto se agrega toda la tabla PEN).
-                SELECT pp.CreditoId,
-                       SUM(CASE
-                           WHEN pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre > 0
-                               THEN pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre
-                           ELSE 0
-                       END) AS Saldo,
-                       MAX(CASE WHEN pp.FechaVencimiento < @Hoy THEN 1 ELSE 0 END) AS EnMora,
-                       SUM(CASE
-                           WHEN pp.FechaVencimiento < @Hoy
-                                AND pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre > 0
-                               THEN pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre
-                           ELSE 0
-                       END) AS Morosidad
-                FROM CREDITO.PlanPago AS pp
-                INNER JOIN CREDITO.Credito AS cOficina
-                    ON cOficina.CreditoId = pp.CreditoId
-                WHERE pp.Estado = 'PEN'
-                  AND cOficina.OficinaId = @OficinaId
-                  AND cOficina.Estado = 'DES'
-                  AND cOficina.IndIrrecuperable = 0
-                  AND cOficina.FechaDesembolso IS NOT NULL
-                GROUP BY pp.CreditoId
-            ) AS pend ON pend.CreditoId = c.CreditoId
             WHERE c.OficinaId = @OficinaId
               AND c.Estado = 'DES'
               AND c.IndIrrecuperable = 0
@@ -150,7 +122,7 @@ public sealed class DashboardAdminReadService(
                      AND u.Estado = CAST(1 AS bit)
                      AND u.NombreUsuario <> N'IRRECUPERABLE'
                ) AS TotalAnalistas,
-               ISNULL((SELECT TotalClientes FROM Cartera), 0) AS TotalClientes,
+               ISNULL((SELECT TotalClientes FROM Clientes), 0) AS TotalClientes,
                ISNULL((SELECT CreditosHoy FROM Coloc), 0) AS CreditosHoy,
                ISNULL((SELECT CreditosAyer FROM Coloc), 0) AS CreditosAyer,
                ISNULL((SELECT CreditosAnteayer FROM Coloc), 0) AS CreditosAnteayer,
@@ -176,12 +148,12 @@ public sealed class DashboardAdminReadService(
                ISNULL((SELECT SalidasMesActual FROM Flujo), 0) AS SalidasMesActual,
                ISNULL((SELECT EntradasMesAnteriorComparable FROM Flujo), 0) AS EntradasMesAnteriorComparable,
                ISNULL((SELECT SalidasMesAnteriorComparable FROM Flujo), 0) AS SalidasMesAnteriorComparable,
-               ISNULL((SELECT SaldoCartera FROM Cartera), 0) AS SaldoCartera,
-               ISNULL((SELECT SaldoCreditos FROM Cartera), 0) AS SaldoCreditos,
-               ISNULL((SELECT SaldoMoraCartera FROM Cartera), 0) AS SaldoMoraCartera,
-               ISNULL((SELECT SaldoVencido FROM Cartera), 0) AS SaldoVencido,
-               ISNULL((SELECT SaldoMorosidad FROM Cartera), 0) AS SaldoMorosidad,
-               ISNULL((SELECT ClientesMora FROM Cartera), 0) AS ClientesMora,
+               CAST(0 AS decimal(16, 2)) AS SaldoCartera,
+               CAST(0 AS decimal(16, 2)) AS SaldoCreditos,
+               CAST(0 AS decimal(16, 2)) AS SaldoMoraCartera,
+               CAST(0 AS decimal(16, 2)) AS SaldoVencido,
+               CAST(0 AS decimal(16, 2)) AS SaldoMorosidad,
+               0 AS ClientesMora,
                ISNULL((SELECT CreditosPorVencerSemana FROM Vencer), 0) AS CreditosPorVencerSemana;
         """;
 
@@ -236,16 +208,18 @@ public sealed class DashboardAdminReadService(
             UsuarioRegId int NOT NULL,
             FechaVencimiento date NOT NULL,
             Saldo decimal(16, 2) NOT NULL,
-            EnMora bit NOT NULL
+            EnMora bit NOT NULL,
+            Morosidad decimal(16, 2) NOT NULL
         );
 
-        INSERT INTO #Saldos (CreditoId, PersonaId, UsuarioRegId, FechaVencimiento, Saldo, EnMora)
+        INSERT INTO #Saldos (CreditoId, PersonaId, UsuarioRegId, FechaVencimiento, Saldo, EnMora, Morosidad)
         SELECT cr.CreditoId,
                cr.PersonaId,
                cr.UsuarioRegId,
                cr.FechaVencimiento,
                ISNULL(pen.Saldo, 0),
-               CAST(ISNULL(pen.EnMora, 0) AS bit)
+               CAST(ISNULL(pen.EnMora, 0) AS bit),
+               ISNULL(pen.Morosidad, 0)
         FROM #Creditos AS cr
         LEFT JOIN (
             SELECT pp.CreditoId,
@@ -254,7 +228,12 @@ public sealed class DashboardAdminReadService(
                            THEN pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre
                        ELSE 0
                    END) AS Saldo,
-                   MAX(CASE WHEN pp.FechaVencimiento < @Hoy THEN 1 ELSE 0 END) AS EnMora
+                   MAX(CASE WHEN pp.FechaVencimiento < @Hoy THEN 1 ELSE 0 END) AS EnMora,
+                   SUM(CASE
+                       WHEN pp.FechaVencimiento < @Hoy
+                            AND pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre > 0
+                       THEN pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre
+                       ELSE 0 END) AS Morosidad
             FROM CREDITO.PlanPago AS pp
             INNER JOIN #Creditos AS cr2 ON cr2.CreditoId = pp.CreditoId
             WHERE pp.Estado = 'PEN'
@@ -263,6 +242,16 @@ public sealed class DashboardAdminReadService(
         """;
 
     private static readonly string SqlDetalle = SqlPreamble + """
+
+        SELECT
+          COUNT(DISTINCT s.PersonaId) AS TotalClientes,
+          ISNULL(SUM(s.Saldo), 0) AS SaldoCartera,
+          ISNULL(SUM(CASE WHEN s.EnMora = 0 THEN s.Saldo ELSE 0 END), 0) AS SaldoCreditos,
+          ISNULL(SUM(CASE WHEN s.EnMora = 1 THEN s.Saldo ELSE 0 END), 0) AS SaldoMoraCartera,
+          ISNULL(SUM(CASE WHEN s.FechaVencimiento < @Hoy THEN s.Saldo ELSE 0 END), 0) AS SaldoVencido,
+          ISNULL(SUM(s.Morosidad), 0) AS SaldoMorosidad,
+          COUNT(DISTINCT CASE WHEN s.Saldo > 0 AND s.EnMora = 1 THEN s.PersonaId END) AS ClientesMora
+        FROM #Saldos AS s;
 
         SELECT m.Operacion,
                m.IndEntrada,
@@ -527,16 +516,17 @@ public sealed class DashboardAdminReadService(
         var shell = await shellTask.ConfigureAwait(false);
         var detalle = await detalleTask.ConfigureAwait(false);
 
+        var resumen = MergeCartera(shell.Resumen, detalle.Cartera);
         var dto = new DashboardAdminDto(
             shell.NombreOficina,
             shell.FechaConsulta,
-            shell.Resumen,
+            resumen,
             detalle.FlujoCaja,
             detalle.Historico,
             detalle.HistoricoMensual,
             detalle.Analistas);
 
-        cache.Set(cacheKey, dto, CacheTtl);
+        cache.Set(cacheKey, dto, CombinedCacheTtl);
         return dto;
     }
 
@@ -560,7 +550,7 @@ public sealed class DashboardAdminReadService(
             new CommandDefinition(
                 SqlShell,
                 new { OficinaId = oficinaId },
-                commandTimeout: CommandTimeoutSeconds,
+                commandTimeout: ShellCommandTimeoutSeconds,
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
         var dto = new DashboardAdminShellDto(
@@ -570,7 +560,7 @@ public sealed class DashboardAdminReadService(
             FechaConsulta: raw.FechaConsulta,
             Resumen: MapResumen(raw));
 
-        cache.Set(cacheKey, dto, CacheTtl);
+        cache.Set(cacheKey, dto, ShellCacheTtl);
         return dto;
     }
 
@@ -594,17 +584,18 @@ public sealed class DashboardAdminReadService(
             new CommandDefinition(
                 SqlDetalle,
                 new { OficinaId = oficinaId },
-                commandTimeout: CommandTimeoutSeconds,
+                commandTimeout: DetalleCommandTimeoutSeconds,
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
+        var cartera = await multi.ReadSingleAsync<DashboardAdminCarteraDto>().ConfigureAwait(false);
         var flujo = (await multi.ReadAsync<DashboardAdminFlujoRowDto>().ConfigureAwait(false)).AsList();
         var historico = (await multi.ReadAsync<DashboardAdminHistoricoPuntoDto>().ConfigureAwait(false)).AsList();
         var mensual = (await multi.ReadAsync<DashboardAdminHistoricoMensualDto>().ConfigureAwait(false)).AsList();
         var analistasRaw = (await multi.ReadAsync<AnalistaRow>().ConfigureAwait(false)).AsList();
         var analistas = analistasRaw.Select(MapAnalista).ToList();
 
-        var dto = new DashboardAdminDetalleDto(flujo, historico, mensual, analistas);
-        cache.Set(cacheKey, dto, CacheTtl);
+        var dto = new DashboardAdminDetalleDto(flujo, historico, mensual, analistas, cartera);
+        cache.Set(cacheKey, dto, DetalleCacheTtl);
         return dto;
     }
 
@@ -624,6 +615,20 @@ public sealed class DashboardAdminReadService(
             throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
         }
     }
+
+    private static DashboardAdminResumenDto MergeCartera(
+        DashboardAdminResumenDto resumen,
+        DashboardAdminCarteraDto cartera) =>
+        resumen with
+        {
+            TotalClientes = cartera.TotalClientes,
+            SaldoCartera = cartera.SaldoCartera,
+            SaldoCreditos = cartera.SaldoCreditos,
+            SaldoMoraCartera = cartera.SaldoMoraCartera,
+            SaldoVencido = cartera.SaldoVencido,
+            SaldoMorosidad = cartera.SaldoMorosidad,
+            ClientesMora = cartera.ClientesMora
+        };
 
     private static DashboardAdminResumenDto MapResumen(ResumenRow r)
     {

@@ -79,7 +79,7 @@ internal static class DashboardAdminEndpoints
                     }
                 })
             .WithName("DashboardAdminShell")
-            .WithSummary("KPIs y cartera del tablero gerencial (carga rápida).")
+            .WithSummary("KPIs del tablero gerencial (carga rápida; cartera en detalle).")
             .WithTags("dashboard")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<DashboardAdminShellDto>(StatusCodes.Status200OK, "application/json")
@@ -118,7 +118,7 @@ internal static class DashboardAdminEndpoints
                     }
                 })
             .WithName("DashboardAdminDetalle")
-            .WithSummary("Flujo, históricos y analistas del tablero gerencial.")
+            .WithSummary("Cartera, flujo, históricos y analistas del tablero gerencial.")
             .WithTags("dashboard")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<DashboardAdminDetalleDto>(StatusCodes.Status200OK, "application/json")

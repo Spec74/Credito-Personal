@@ -11,14 +11,14 @@ public interface IDashboardAdminReadService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// KPIs + cartera (respuesta rápida para progressive load).
+    /// KPIs only (respuesta rápida para progressive load; cartera llega en detalle).
     /// </summary>
     Task<DashboardAdminShellDto> ObtenerShellAsync(
         int oficinaId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Flujo, históricos y analistas (carga diferida).
+    /// Cartera, flujo, históricos y analistas (carga diferida).
     /// </summary>
     Task<DashboardAdminDetalleDto> ObtenerDetalleAsync(
         int oficinaId,
