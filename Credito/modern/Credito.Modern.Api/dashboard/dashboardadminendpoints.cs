@@ -34,7 +34,7 @@ internal static class DashboardAdminEndpoints
                             .ConfigureAwait(false);
                         return TypedResults.Ok(dto);
                     }
-                    catch (Exception ex) when (ex is InvalidOperationException or DbException)
+                    catch (Exception ex) when (ex is InvalidOperationException or DbException or TimeoutException)
                     {
                         return ReadError(log, env, ex);
                     }
@@ -73,7 +73,7 @@ internal static class DashboardAdminEndpoints
                             .ConfigureAwait(false);
                         return TypedResults.Ok(dto);
                     }
-                    catch (Exception ex) when (ex is InvalidOperationException or DbException)
+                    catch (Exception ex) when (ex is InvalidOperationException or DbException or TimeoutException)
                     {
                         return ReadError(log, env, ex);
                     }
@@ -112,7 +112,7 @@ internal static class DashboardAdminEndpoints
                             .ConfigureAwait(false);
                         return TypedResults.Ok(dto);
                     }
-                    catch (Exception ex) when (ex is InvalidOperationException or DbException)
+                    catch (Exception ex) when (ex is InvalidOperationException or DbException or TimeoutException)
                     {
                         return ReadError(log, env, ex);
                     }
@@ -129,17 +129,21 @@ internal static class DashboardAdminEndpoints
 
     private static ProblemHttpResult ReadError(ILogger log, IHostEnvironment env, Exception ex)
     {
-        if (ex is InvalidOperationException ioe)
+        if (ex is InvalidOperationException)
         {
-            log.LogWarning(ioe, "Dashboard admin: configuración");
+            log.LogWarning(ex, "Dashboard admin: configuración");
             return TypedResults.Problem(
                 detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }
 
+        var isTimeout = ex is TimeoutException
+            || (ex is Microsoft.Data.SqlClient.SqlException sql && (sql.Number == -2 || sql.Number == 1222));
         log.LogError(ex, "Dashboard admin");
-        var detail = "No se pudieron obtener los indicadores gerenciales.";
+        var detail = isTimeout
+            ? "El tablero tardó demasiado en responder. Reintente; si persiste, revise el plan de Azure SQL / índices."
+            : "No se pudieron obtener los indicadores gerenciales.";
         if (env.IsDevelopment())
         {
             detail += $" Detalle: {ex.Message}";
@@ -148,6 +152,6 @@ internal static class DashboardAdminEndpoints
         return TypedResults.Problem(
             detail: detail,
             statusCode: StatusCodes.Status503ServiceUnavailable,
-            title: "Error de base de datos");
+            title: isTimeout ? "Tiempo de espera agotado" : "Error de base de datos");
     }
 }
