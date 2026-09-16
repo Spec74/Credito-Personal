@@ -25,11 +25,11 @@ jobs:
 
       - name: Build with dotnet
         working-directory: Credito/modern
-        run: dotnet build credito.modern.sln --configuration Release
+        run: dotnet build Credito.Modern.sln --configuration Release
 
       - name: dotnet publish
         working-directory: Credito/modern
-        run: dotnet publish Credito.Modern.Api/credito.modern.api.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish Credito.Modern.Api/Credito.Modern.Api.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
