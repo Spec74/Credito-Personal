@@ -64,19 +64,25 @@ internal static class HostSecurityExtensions
             .ValidateOnStart();
 
         var corsSnapshot = builder.Configuration.GetSection(BrowserCorsOptions.SectionName).Get<BrowserCorsOptions>() ?? new();
+        var corsOrigins = (corsSnapshot.AllowedOrigins ?? [])
+            .Select(static o => o?.Trim())
+            .Where(static o => !string.IsNullOrEmpty(o))
+            .Cast<string>()
+            .Distinct(StringComparer.Ordinal)
+            .ToArray();
         builder.Services.AddCors(options =>
         {
             options.AddPolicy(
                 "browser",
                 policy =>
                 {
-                    if (builder.Environment.IsDevelopment() && corsSnapshot.AllowedOrigins.Length == 0)
+                    if (builder.Environment.IsDevelopment() && corsOrigins.Length == 0)
                     {
                         policy.SetIsOriginAllowed(_ => true);
                     }
-                    else if (corsSnapshot.AllowedOrigins.Length > 0)
+                    else if (corsOrigins.Length > 0)
                     {
-                        policy.WithOrigins(corsSnapshot.AllowedOrigins);
+                        policy.WithOrigins(corsOrigins);
                     }
                     else
                     {

@@ -1,6 +1,7 @@
 using Credito.Modern.Application.Dashboard;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
 namespace Credito.Modern.Infrastructure.Dashboard;
@@ -11,10 +12,12 @@ namespace Credito.Modern.Infrastructure.Dashboard;
 /// <c>AdminHistoricoMensual</c> sin llamar esos SP (no versionados; el legado no
 /// filtraba oficina). Aquí todo se acota a <c>OficinaId</c> del JWT.
 /// </summary>
-public sealed class DashboardAdminReadService(IOptions<SqlDatabaseOptions> options)
-    : IDashboardAdminReadService
+public sealed class DashboardAdminReadService(
+    IOptions<SqlDatabaseOptions> options,
+    IMemoryCache cache) : IDashboardAdminReadService
 {
     private const int CommandTimeoutSeconds = 90;
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(90);
 
     private static readonly string Sql = """
         DECLARE @Hoy date = dbo.ufnFecha();
@@ -57,7 +60,11 @@ public sealed class DashboardAdminReadService(IOptions<SqlDatabaseOptions> optio
         FROM CREDITO.Credito AS c
         WHERE c.OficinaId = @OficinaId
           AND c.FechaDesembolso IS NOT NULL
-          AND c.FechaDesembolso < @Manana;
+          AND c.FechaDesembolso < @Manana
+          AND (
+                (c.Estado = 'DES' AND c.IndIrrecuperable = 0)
+             OR (c.Estado IN ('DES', 'PAG', 'REP') AND c.FechaDesembolso >= @InicioMensual)
+              );
 
         CREATE TABLE #Saldos (
             CreditoId int NOT NULL PRIMARY KEY,
@@ -172,36 +179,41 @@ public sealed class DashboardAdminReadService(IOptions<SqlDatabaseOptions> optio
                ISNULL((
                    SELECT SUM(m.ImportePago)
                    FROM CREDITO.MovimientoCaja AS m
-                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
-                   WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                   INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
+                   WHERE c.OficinaId = @OficinaId
+                     AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
                      AND m.FechaReg >= @Hoy AND m.FechaReg < @Manana
                ), 0) AS CobradoHoy,
                ISNULL((
                    SELECT SUM(m.ImportePago)
                    FROM CREDITO.MovimientoCaja AS m
-                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
-                   WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                   INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
+                   WHERE c.OficinaId = @OficinaId
+                     AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
                      AND m.FechaReg >= @Ayer AND m.FechaReg < @Hoy
                ), 0) AS CobradoAyer,
                ISNULL((
                    SELECT SUM(m.ImportePago)
                    FROM CREDITO.MovimientoCaja AS m
-                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
-                   WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                   INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
+                   WHERE c.OficinaId = @OficinaId
+                     AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
                      AND m.FechaReg >= @Anteayer AND m.FechaReg < @Ayer
                ), 0) AS CobradoAnteayer,
                ISNULL((
                    SELECT SUM(m.ImportePago)
                    FROM CREDITO.MovimientoCaja AS m
-                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
-                   WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                   INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
+                   WHERE c.OficinaId = @OficinaId
+                     AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
                      AND m.FechaReg >= @InicioMes AND m.FechaReg < @Manana
                ), 0) AS CobradoMesActual,
                ISNULL((
                    SELECT SUM(m.ImportePago)
                    FROM CREDITO.MovimientoCaja AS m
-                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
-                   WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+                   INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
+                   WHERE c.OficinaId = @OficinaId
+                     AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
                      AND m.FechaReg >= @InicioMesAnterior
                      AND m.FechaReg < @FinComparableAnterior
                ), 0) AS CobradoMesAnteriorComparable,
@@ -381,8 +393,9 @@ public sealed class DashboardAdminReadService(IOptions<SqlDatabaseOptions> optio
             SELECT CAST(m.FechaReg AS date) AS Fecha,
                    SUM(m.ImportePago) AS Cobrado
             FROM CREDITO.MovimientoCaja AS m
-            INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
-            WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+            INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
+            WHERE c.OficinaId = @OficinaId
+              AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
               AND m.FechaReg >= @InicioHist AND m.FechaReg < @Manana
             GROUP BY CAST(m.FechaReg AS date)
         ),
@@ -438,8 +451,9 @@ public sealed class DashboardAdminReadService(IOptions<SqlDatabaseOptions> optio
             SELECT DATEFROMPARTS(YEAR(m.FechaReg), MONTH(m.FechaReg), 1) AS FechaMes,
                    SUM(m.ImportePago) AS Cobrado
             FROM CREDITO.MovimientoCaja AS m
-            INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
-            WHERE m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+            INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
+            WHERE c.OficinaId = @OficinaId
+              AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
               AND m.FechaReg >= @InicioMensual AND m.FechaReg < @Manana
             GROUP BY DATEFROMPARTS(YEAR(m.FechaReg), MONTH(m.FechaReg), 1)
         ),
@@ -502,11 +516,13 @@ public sealed class DashboardAdminReadService(IOptions<SqlDatabaseOptions> optio
                (
                    SELECT COUNT(*)
                    FROM (
-                       SELECT cr.PersonaId, MIN(cr.FechaDesembolso) AS PrimeraFecha
-                       FROM #Creditos AS cr
-                       WHERE cr.UsuarioRegId = a.UsuarioId
-                         AND cr.Estado IN ('DES', 'PAG', 'REP')
-                       GROUP BY cr.PersonaId
+                       SELECT c.PersonaId, MIN(c.FechaDesembolso) AS PrimeraFecha
+                       FROM CREDITO.Credito AS c
+                       WHERE c.OficinaId = @OficinaId
+                         AND c.UsuarioRegId = a.UsuarioId
+                         AND c.Estado IN ('DES', 'PAG', 'REP')
+                         AND c.FechaDesembolso IS NOT NULL
+                       GROUP BY c.PersonaId
                    ) AS primera
                    WHERE primera.PrimeraFecha >= @InicioMes
                      AND primera.PrimeraFecha < @Manana
@@ -538,24 +554,27 @@ public sealed class DashboardAdminReadService(IOptions<SqlDatabaseOptions> optio
                ISNULL((
                    SELECT SUM(m.ImportePago)
                    FROM CREDITO.MovimientoCaja AS m
-                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
-                   WHERE cr.UsuarioRegId = a.UsuarioId
+                   INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.UsuarioRegId = a.UsuarioId
                      AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
                      AND m.FechaReg >= @Hoy AND m.FechaReg < @Manana
                ), 0) AS CobradoHoy,
                ISNULL((
                    SELECT SUM(m.ImportePago)
                    FROM CREDITO.MovimientoCaja AS m
-                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
-                   WHERE cr.UsuarioRegId = a.UsuarioId
+                   INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.UsuarioRegId = a.UsuarioId
                      AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
                      AND m.FechaReg >= @InicioMes AND m.FechaReg < @Manana
                ), 0) AS CobradoMes,
                ISNULL((
                    SELECT SUM(m.ImportePago)
                    FROM CREDITO.MovimientoCaja AS m
-                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
-                   WHERE cr.UsuarioRegId = a.UsuarioId
+                   INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.UsuarioRegId = a.UsuarioId
                      AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
                      AND m.FechaReg >= @InicioMesAnterior
                      AND m.FechaReg < @FinComparableAnterior
@@ -600,6 +619,12 @@ public sealed class DashboardAdminReadService(IOptions<SqlDatabaseOptions> optio
                 "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
         }
 
+        var cacheKey = $"dashboard:admin:{oficinaId}";
+        if (cache.TryGetValue(cacheKey, out DashboardAdminDto? cached) && cached is not null)
+        {
+            return cached;
+        }
+
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
@@ -619,7 +644,7 @@ public sealed class DashboardAdminReadService(IOptions<SqlDatabaseOptions> optio
         var resumen = MapResumen(raw);
         var analistas = analistasRaw.Select(MapAnalista).ToList();
 
-        return new DashboardAdminDto(
+        var dto = new DashboardAdminDto(
             NombreOficina: string.IsNullOrWhiteSpace(raw.NombreOficina)
                 ? "Oficina"
                 : raw.NombreOficina.Trim(),
@@ -629,6 +654,9 @@ public sealed class DashboardAdminReadService(IOptions<SqlDatabaseOptions> optio
             Historico: historico,
             HistoricoMensual: mensual,
             Analistas: analistas);
+
+        cache.Set(cacheKey, dto, CacheTtl);
+        return dto;
     }
 
     private static DashboardAdminResumenDto MapResumen(ResumenRow r)

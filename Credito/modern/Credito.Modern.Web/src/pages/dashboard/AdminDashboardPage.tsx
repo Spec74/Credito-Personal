@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import {
   CalendarOutlined,
   ReloadOutlined,
@@ -33,7 +33,9 @@ export function AdminDashboardPage() {
   const query = useQuery({
     queryKey: ['dashboard-admin', session?.oficinaId],
     queryFn: fetchDashboardAdmin,
-    staleTime: 60_000,
+    staleTime: 5 * 60_000,
+    gcTime: 15 * 60_000,
+    placeholderData: keepPreviousData,
     enabled: (session?.oficinaId ?? 0) > 0,
   })
 
@@ -123,7 +125,7 @@ export function AdminDashboardPage() {
     [],
   )
 
-  if (query.isLoading) {
+  if (query.isLoading && !data) {
     return (
       <CredixPage title="Inicio" subtitle="Cargando el tablero gerencial…">
         <Skeleton active paragraph={{ rows: 12 }} />
