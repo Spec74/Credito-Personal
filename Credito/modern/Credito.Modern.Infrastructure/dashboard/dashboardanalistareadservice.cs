@@ -1,6 +1,7 @@
 using Credito.Modern.Application.Dashboard;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
 namespace Credito.Modern.Infrastructure.Dashboard;
@@ -11,10 +12,12 @@ namespace Credito.Modern.Infrastructure.Dashboard;
 /// <c>usp_DashboardRanking</c> y <c>usp_DashboardTopAnterior</c> sin depender
 /// de esos SP (no versionados y con timeouts en producción).
 /// </summary>
-public sealed class DashboardAnalistaReadService(IOptions<SqlDatabaseOptions> options)
-    : IDashboardAnalistaReadService
+public sealed class DashboardAnalistaReadService(
+    IOptions<SqlDatabaseOptions> options,
+    IMemoryCache cache) : IDashboardAnalistaReadService
 {
     private const int CommandTimeoutSeconds = 60;
+    private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(90);
 
     private static readonly string Sql = """
         DECLARE @Hoy date = dbo.ufnFecha();
@@ -52,39 +55,31 @@ public sealed class DashboardAnalistaReadService(IOptions<SqlDatabaseOptions> op
         CREATE TABLE #Saldos (
             CreditoId int NOT NULL PRIMARY KEY,
             PersonaId int NOT NULL,
-            Saldo decimal(16, 2) NOT NULL
+            Saldo decimal(16, 2) NOT NULL,
+            EnMora bit NOT NULL
         );
 
-        INSERT INTO #Saldos (CreditoId, PersonaId, Saldo)
+        INSERT INTO #Saldos (CreditoId, PersonaId, Saldo, EnMora)
         SELECT cr.CreditoId,
                cr.PersonaId,
-               CASE
-                   WHEN ISNULL(prog.Programado, 0) - ISNULL(pag.Pagado, 0) > 0
-                       THEN ISNULL(prog.Programado, 0) - ISNULL(pag.Pagado, 0)
-                   ELSE 0
-               END
+               ISNULL(pen.Saldo, 0),
+               CAST(ISNULL(pen.EnMora, 0) AS bit)
         FROM #Creditos AS cr
         LEFT JOIN (
             SELECT pp.CreditoId,
-                   SUM(pp.Cuota + pp.Cargo) AS Programado
+                   SUM(CASE
+                       WHEN pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre > 0
+                           THEN pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre
+                       ELSE 0
+                   END) AS Saldo,
+                   MAX(CASE WHEN pp.FechaVencimiento < @Hoy THEN 1 ELSE 0 END) AS EnMora
             FROM CREDITO.PlanPago AS pp
             INNER JOIN #Creditos AS cr2 ON cr2.CreditoId = pp.CreditoId
             WHERE cr2.Estado = 'DES'
               AND cr2.IndIrrecuperable = 0
+              AND pp.Estado = 'PEN'
             GROUP BY pp.CreditoId
-        ) AS prog ON prog.CreditoId = cr.CreditoId
-        LEFT JOIN (
-            SELECT m.CreditoId,
-                   SUM(m.ImportePago) AS Pagado
-            FROM CREDITO.MovimientoCaja AS m
-            INNER JOIN #Creditos AS cr3 ON cr3.CreditoId = m.CreditoId
-            WHERE cr3.Estado = 'DES'
-              AND cr3.IndIrrecuperable = 0
-              AND m.Operacion = 'CUO'
-              AND m.Estado = 1
-              AND m.ImportePago > 0
-            GROUP BY m.CreditoId
-        ) AS pag ON pag.CreditoId = cr.CreditoId
+        ) AS pen ON pen.CreditoId = cr.CreditoId
         WHERE cr.Estado = 'DES'
           AND cr.IndIrrecuperable = 0;
 
@@ -163,10 +158,7 @@ public sealed class DashboardAnalistaReadService(IOptions<SqlDatabaseOptions> op
                (
                    SELECT COUNT(DISTINCT s.PersonaId)
                    FROM #Saldos AS s
-                   INNER JOIN CREDITO.PlanPago AS pp ON pp.CreditoId = s.CreditoId
-                   WHERE s.Saldo > 0
-                     AND pp.Estado = 'PEN'
-                     AND pp.FechaVencimiento < @Hoy
+                   WHERE s.Saldo > 0 AND s.EnMora = 1
                ) AS ClientesMora,
                (
                    SELECT COUNT(*)
@@ -306,6 +298,13 @@ public sealed class DashboardAnalistaReadService(IOptions<SqlDatabaseOptions> op
         }
 
         EnsureConnection();
+
+        var cacheKey = $"dashboard:analista:{usuarioId}:{oficinaId}";
+        if (cache.TryGetValue(cacheKey, out DashboardAnalistaDto? cached) && cached is not null)
+        {
+            return cached;
+        }
+
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
@@ -333,7 +332,7 @@ public sealed class DashboardAnalistaReadService(IOptions<SqlDatabaseOptions> op
             kpisRow.ClientesMora,
             kpisRow.PorVencerSemana);
 
-        return new DashboardAnalistaDto(
+        var dto = new DashboardAnalistaDto(
             NombreAnalista: string.IsNullOrWhiteSpace(kpisRow.NombreAnalista)
                 ? "Analista"
                 : kpisRow.NombreAnalista.Trim(),
@@ -343,6 +342,9 @@ public sealed class DashboardAnalistaReadService(IOptions<SqlDatabaseOptions> op
             Ranking: ranking,
             PodioMesAnterior: podio,
             Insights: DashboardAnalistaInsights.Build(kpis));
+
+        cache.Set(cacheKey, dto, CacheTtl);
+        return dto;
     }
 
     private void EnsureConnection()

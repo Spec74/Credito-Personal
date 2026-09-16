@@ -177,6 +177,27 @@ export interface DashboardAdmin {
   analistas: DashboardAdminAnalistaRow[]
 }
 
+export interface DashboardAdminShell {
+  nombreOficina: string
+  fechaConsulta: string
+  resumen: DashboardAdminResumen
+}
+
+export interface DashboardAdminDetalle {
+  flujoCaja: DashboardAdminFlujoRow[]
+  historico: DashboardAdminHistoricoPunto[]
+  historicoMensual: DashboardAdminHistoricoMensual[]
+  analistas: DashboardAdminAnalistaRow[]
+}
+
 export function fetchDashboardAdmin(): Promise<DashboardAdmin> {
   return apiFetch<DashboardAdmin>('/dashboard/admin')
+}
+
+export function fetchDashboardAdminShell(): Promise<DashboardAdminShell> {
+  return apiFetch<DashboardAdminShell>('/dashboard/admin/shell')
+}
+
+export function fetchDashboardAdminDetalle(): Promise<DashboardAdminDetalle> {
+  return apiFetch<DashboardAdminDetalle>('/dashboard/admin/detalle')
 }

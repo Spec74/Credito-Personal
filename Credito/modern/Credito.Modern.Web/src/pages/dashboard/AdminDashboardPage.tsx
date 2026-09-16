@@ -13,7 +13,8 @@ import {
 import { Alert, Button, Input, Skeleton, Table, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
-  fetchDashboardAdmin,
+  fetchDashboardAdminDetalle,
+  fetchDashboardAdminShell,
   type DashboardAdminAnalistaRow,
   type DashboardAdminFlujoRow,
 } from '../../api/dashboard'
@@ -27,61 +28,77 @@ import '../../styles/dashboard-analista.css'
 
 const { Text } = Typography
 
+const queryOpts = {
+  staleTime: 5 * 60_000,
+  gcTime: 15 * 60_000,
+  placeholderData: keepPreviousData,
+} as const
+
 export function AdminDashboardPage() {
   const { session } = useAuth()
   const [buscar, setBuscar] = useState('')
-  const query = useQuery({
-    queryKey: ['dashboard-admin', session?.oficinaId],
-    queryFn: fetchDashboardAdmin,
-    staleTime: 5 * 60_000,
-    gcTime: 15 * 60_000,
-    placeholderData: keepPreviousData,
-    enabled: (session?.oficinaId ?? 0) > 0,
+  const oficinaKey = session?.oficinaId
+  const enabled = (oficinaKey ?? 0) > 0
+
+  const shellQuery = useQuery({
+    queryKey: ['dashboard-admin-shell', oficinaKey],
+    queryFn: fetchDashboardAdminShell,
+    ...queryOpts,
+    enabled,
   })
 
-  const data = query.data
-  const r = data?.resumen
+  const detalleQuery = useQuery({
+    queryKey: ['dashboard-admin-detalle', oficinaKey],
+    queryFn: fetchDashboardAdminDetalle,
+    ...queryOpts,
+    enabled,
+  })
+
+  const shell = shellQuery.data
+  const r = shell?.resumen
+  const detalle = detalleQuery.data
+
   const analistas = useMemo(() => {
     const q = buscar.trim().toLowerCase()
-    const rows = data?.analistas ?? []
+    const rows = detalle?.analistas ?? []
     if (!q) {
       return rows
     }
     return rows.filter((a) => a.nombreCompleto.toLowerCase().includes(q))
-  }, [data?.analistas, buscar])
+  }, [detalle?.analistas, buscar])
 
   const entradas = useMemo(
-    () => (data?.flujoCaja ?? []).filter((x) => x.indEntrada && !x.esTransferencia),
-    [data?.flujoCaja],
+    () => (detalle?.flujoCaja ?? []).filter((x) => x.indEntrada && !x.esTransferencia),
+    [detalle?.flujoCaja],
   )
   const salidas = useMemo(
-    () => (data?.flujoCaja ?? []).filter((x) => !x.indEntrada && !x.esTransferencia),
-    [data?.flujoCaja],
+    () => (detalle?.flujoCaja ?? []).filter((x) => !x.indEntrada && !x.esTransferencia),
+    [detalle?.flujoCaja],
   )
   const transferencias = useMemo(
-    () => (data?.flujoCaja ?? []).filter((x) => x.esTransferencia),
-    [data?.flujoCaja],
+    () => (detalle?.flujoCaja ?? []).filter((x) => x.esTransferencia),
+    [detalle?.flujoCaja],
   )
 
   const histPuntos = useMemo(
     () =>
-      (data?.historico ?? []).map((p) => ({
+      (detalle?.historico ?? []).map((p) => ({
         fecha: p.fecha,
         etiqueta: p.etiqueta,
         cobrado: p.cobrado,
         desembolsado: p.desembolsado,
       })),
-    [data?.historico],
+    [detalle?.historico],
   )
   const mesPuntos = useMemo(
     () =>
-      (data?.historicoMensual ?? []).map((p) => ({
+      (detalle?.historicoMensual ?? []).map((p) => ({
         fecha: p.fechaMes,
         etiqueta: p.etiqueta.replace(/^\w/, (c) => c.toUpperCase()),
         cobrado: p.cobrado,
         desembolsado: p.desembolsado,
       })),
-    [data?.historicoMensual],
+    [detalle?.historicoMensual],
   )
 
   const columns: ColumnsType<DashboardAdminAnalistaRow> = useMemo(
@@ -159,7 +176,14 @@ export function AdminDashboardPage() {
     [],
   )
 
-  if (query.isLoading && !data) {
+  const refetchAll = () => {
+    void shellQuery.refetch()
+    void detalleQuery.refetch()
+  }
+
+  const isFetching = shellQuery.isFetching || detalleQuery.isFetching
+
+  if (shellQuery.isLoading && !shell) {
     return (
       <CredixPage title="Inicio" subtitle="Cargando el tablero gerencial…">
         <Skeleton active paragraph={{ rows: 12 }} />
@@ -167,29 +191,31 @@ export function AdminDashboardPage() {
     )
   }
 
-  if (query.isError || !data || !r) {
+  if (shellQuery.isError || !shell || !r) {
     return (
       <CredixPage
         title="Inicio"
         subtitle="No se pudieron cargar los indicadores de la oficina."
         actions={
-          <Button icon={<ReloadOutlined />} onClick={() => void query.refetch()}>
+          <Button icon={<ReloadOutlined />} onClick={refetchAll}>
             Reintentar
           </Button>
         }
       >
-        <Alert type="error" showIcon message={errMsg(query.error)} />
+        <Alert type="error" showIcon message={errMsg(shellQuery.error)} />
       </CredixPage>
     )
   }
 
-  const fechaLarga = formatFechaLarga(data.fechaConsulta)
+  const fechaLarga = formatFechaLarga(shell.fechaConsulta)
   const esAnalista = esCreditoAnalista(session?.roles ?? [])
+  const detalleReady = !!detalle
+  const detalleError = detalleQuery.isError
 
   return (
     <CredixPage
       title="Inicio"
-      subtitle={`Indicadores de cobranza, colocación y cartera · ${data.nombreOficina}`}
+      subtitle={`Indicadores de cobranza, colocación y cartera · ${shell.nombreOficina}`}
       actions={
         <>
           <Link to="/inicio?vista=modulos">
@@ -200,14 +226,14 @@ export function AdminDashboardPage() {
               <Button>Mi tablero</Button>
             </Link>
           ) : null}
-          <Button icon={<ReloadOutlined />} onClick={() => void query.refetch()} loading={query.isFetching}>
+          <Button icon={<ReloadOutlined />} onClick={refetchAll} loading={isFetching}>
             Actualizar
           </Button>
         </>
       }
     >
       <div className="dash-analista dash-admin">
-        {query.isFetching && data ? (
+        {isFetching && shell ? (
           <p className="dash-refresh-hint" role="status">
             Actualizando indicadores…
           </p>
@@ -215,7 +241,7 @@ export function AdminDashboardPage() {
         <header className="dash-head">
           <div>
             <p className="dash-kicker">Tablero gerencial</p>
-            <h2 className="dash-hello">{data.nombreOficina}</h2>
+            <h2 className="dash-hello">{shell.nombreOficina}</h2>
             <p className="dash-sub">
               Vista completa de la oficina: operación del día, acumulado del mes, flujo de caja, tendencia y
               rendimiento por analista.
@@ -338,6 +364,21 @@ export function AdminDashboardPage() {
           />
         </section>
 
+        {detalleError ? (
+          <Alert
+            type="warning"
+            showIcon
+            style={{ marginBottom: 16 }}
+            message="No se pudo cargar el detalle (flujo, gráficos y analistas)."
+            description={errMsg(detalleQuery.error)}
+            action={
+              <Button size="small" onClick={() => void detalleQuery.refetch()}>
+                Reintentar detalle
+              </Button>
+            }
+          />
+        ) : null}
+
         <div className="dash-grid">
           <section className="dash-panel">
             <div className="dash-panel-head">
@@ -345,10 +386,10 @@ export function AdminDashboardPage() {
                 <h2>Entradas de caja (hoy)</h2>
                 <p>Sin transferencias internas</p>
               </div>
-              <Text type="secondary">S/ {formatMoney(sumaHoy(entradas))}</Text>
+              {detalleReady ? <Text type="secondary">S/ {formatMoney(sumaHoy(entradas))}</Text> : null}
             </div>
             <div className="dash-panel-body">
-              <FlujoLista rows={entradas} />
+              {detalleReady ? <FlujoLista rows={entradas} /> : <Skeleton active paragraph={{ rows: 4 }} />}
             </div>
           </section>
           <section className="dash-panel">
@@ -357,15 +398,15 @@ export function AdminDashboardPage() {
                 <h2>Salidas de caja (hoy)</h2>
                 <p>Sin transferencias internas</p>
               </div>
-              <Text type="secondary">S/ {formatMoney(sumaHoy(salidas))}</Text>
+              {detalleReady ? <Text type="secondary">S/ {formatMoney(sumaHoy(salidas))}</Text> : null}
             </div>
             <div className="dash-panel-body">
-              <FlujoLista rows={salidas} />
+              {detalleReady ? <FlujoLista rows={salidas} /> : <Skeleton active paragraph={{ rows: 4 }} />}
             </div>
           </section>
         </div>
 
-        {transferencias.length > 0 ? (
+        {detalleReady && transferencias.length > 0 ? (
           <p className="dash-section-hint">
             Transferencias hoy: S/{' '}
             {formatMoney(sumaHoy(transferencias.filter((x) => x.indEntrada)))} entrada · S/{' '}
@@ -382,7 +423,11 @@ export function AdminDashboardPage() {
               </div>
             </div>
             <div className="dash-panel-body">
-              <DualMetricChart puntos={histPuntos} ariaLabel="Cobranza y desembolso de los últimos 30 días" />
+              {detalleReady ? (
+                <DualMetricChart puntos={histPuntos} ariaLabel="Cobranza y desembolso de los últimos 30 días" />
+              ) : (
+                <Skeleton active paragraph={{ rows: 6 }} />
+              )}
             </div>
           </section>
           <section className="dash-panel">
@@ -393,7 +438,11 @@ export function AdminDashboardPage() {
               </div>
             </div>
             <div className="dash-panel-body">
-              <DualMetricChart puntos={mesPuntos} ariaLabel="Cobranza y desembolso de los últimos 12 meses" />
+              {detalleReady ? (
+                <DualMetricChart puntos={mesPuntos} ariaLabel="Cobranza y desembolso de los últimos 12 meses" />
+              ) : (
+                <Skeleton active paragraph={{ rows: 6 }} />
+              )}
             </div>
           </section>
         </div>
@@ -428,15 +477,19 @@ export function AdminDashboardPage() {
             />
           </div>
           <div className="dash-panel-body">
-            <Table<DashboardAdminAnalistaRow>
-              rowKey="usuarioId"
-              size="small"
-              pagination={false}
-              columns={columns}
-              dataSource={analistas}
-              locale={{ emptyText: 'No hay analistas activos en esta oficina' }}
-              scroll={{ x: 1400 }}
-            />
+            {detalleReady ? (
+              <Table<DashboardAdminAnalistaRow>
+                rowKey="usuarioId"
+                size="small"
+                pagination={false}
+                columns={columns}
+                dataSource={analistas}
+                locale={{ emptyText: 'No hay analistas activos en esta oficina' }}
+                scroll={{ x: 1400 }}
+              />
+            ) : (
+              <Skeleton active paragraph={{ rows: 8 }} />
+            )}
           </div>
         </section>
 

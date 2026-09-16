@@ -47,6 +47,84 @@ internal static class DashboardAdminEndpoints
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+        app.MapGet(
+                "/api/v1/dashboard/admin/shell",
+                async Task<Results<Ok<DashboardAdminShellDto>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    IDashboardAdminReadService dashboard,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oficinaId))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status403Forbidden,
+                            title: "Prohibido",
+                            detail: "El token debe incluir vendix:oficina_id.");
+                    }
+
+                    var log = loggerFactory.CreateLogger("DashboardAdmin");
+                    try
+                    {
+                        var dto = await dashboard
+                            .ObtenerShellAsync(oficinaId, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(dto);
+                    }
+                    catch (Exception ex) when (ex is InvalidOperationException or DbException)
+                    {
+                        return ReadError(log, env, ex);
+                    }
+                })
+            .WithName("DashboardAdminShell")
+            .WithSummary("KPIs y cartera del tablero gerencial (carga rápida).")
+            .WithTags("dashboard")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .Produces<DashboardAdminShellDto>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+        app.MapGet(
+                "/api/v1/dashboard/admin/detalle",
+                async Task<Results<Ok<DashboardAdminDetalleDto>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    IDashboardAdminReadService dashboard,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oficinaId))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status403Forbidden,
+                            title: "Prohibido",
+                            detail: "El token debe incluir vendix:oficina_id.");
+                    }
+
+                    var log = loggerFactory.CreateLogger("DashboardAdmin");
+                    try
+                    {
+                        var dto = await dashboard
+                            .ObtenerDetalleAsync(oficinaId, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(dto);
+                    }
+                    catch (Exception ex) when (ex is InvalidOperationException or DbException)
+                    {
+                        return ReadError(log, env, ex);
+                    }
+                })
+            .WithName("DashboardAdminDetalle")
+            .WithSummary("Flujo, históricos y analistas del tablero gerencial.")
+            .WithTags("dashboard")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .Produces<DashboardAdminDetalleDto>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
     }
 
     private static ProblemHttpResult ReadError(ILogger log, IHostEnvironment env, Exception ex)

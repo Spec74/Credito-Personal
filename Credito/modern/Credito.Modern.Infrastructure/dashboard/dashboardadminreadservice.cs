@@ -7,19 +7,18 @@ using Microsoft.Extensions.Options;
 namespace Credito.Modern.Infrastructure.Dashboard;
 
 /// <summary>
-/// Tablero gerencial en un solo roundtrip. Replica <c>usp_DashboardAdminResumen</c>,
-/// <c>AdminAnalistas</c>, <c>AdminFlujoCaja</c>, <c>AdminHistorico</c> y
-/// <c>AdminHistoricoMensual</c> sin llamar esos SP (no versionados; el legado no
-/// filtraba oficina). Aquí todo se acota a <c>OficinaId</c> del JWT.
+/// Tablero gerencial optimizado. Replica la semántica de salida de
+/// <c>usp_DashboardAdmin*</c> acotada a <c>OficinaId</c> del JWT.
+/// Cartera vía PlanPago PEN; colocaciones/cobranza por filtros directos en Credito/MovimientoCaja.
 /// </summary>
 public sealed class DashboardAdminReadService(
     IOptions<SqlDatabaseOptions> options,
     IMemoryCache cache) : IDashboardAdminReadService
 {
-    private const int CommandTimeoutSeconds = 90;
+    private const int CommandTimeoutSeconds = 45;
     private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(90);
 
-    private static readonly string Sql = """
+    private const string SqlPreamble = """
         DECLARE @Hoy date = dbo.ufnFecha();
         DECLARE @Ayer date = DATEADD(DAY, -1, @Hoy);
         DECLARE @Anteayer date = DATEADD(DAY, -2, @Hoy);
@@ -59,52 +58,44 @@ public sealed class DashboardAdminReadService(
                c.MontoDesembolso
         FROM CREDITO.Credito AS c
         WHERE c.OficinaId = @OficinaId
+          AND c.Estado = 'DES'
+          AND c.IndIrrecuperable = 0
           AND c.FechaDesembolso IS NOT NULL
-          AND c.FechaDesembolso < @Manana
-          AND (
-                (c.Estado = 'DES' AND c.IndIrrecuperable = 0)
-             OR (c.Estado IN ('DES', 'PAG', 'REP') AND c.FechaDesembolso >= @InicioMensual)
-              );
+          AND c.FechaDesembolso < @Manana;
 
         CREATE TABLE #Saldos (
             CreditoId int NOT NULL PRIMARY KEY,
             PersonaId int NOT NULL,
             UsuarioRegId int NOT NULL,
             FechaVencimiento date NOT NULL,
-            Saldo decimal(16, 2) NOT NULL
+            Saldo decimal(16, 2) NOT NULL,
+            EnMora bit NOT NULL
         );
 
-        INSERT INTO #Saldos (CreditoId, PersonaId, UsuarioRegId, FechaVencimiento, Saldo)
+        INSERT INTO #Saldos (CreditoId, PersonaId, UsuarioRegId, FechaVencimiento, Saldo, EnMora)
         SELECT cr.CreditoId,
                cr.PersonaId,
                cr.UsuarioRegId,
                cr.FechaVencimiento,
-               CASE
-                   WHEN ISNULL(prog.Programado, 0) - ISNULL(pag.Pagado, 0) > 0
-                       THEN ISNULL(prog.Programado, 0) - ISNULL(pag.Pagado, 0)
-                   ELSE 0
-               END
+               ISNULL(pen.Saldo, 0),
+               CAST(ISNULL(pen.EnMora, 0) AS bit)
         FROM #Creditos AS cr
         LEFT JOIN (
-            SELECT pp.CreditoId, SUM(pp.Cuota + pp.Cargo) AS Programado
+            SELECT pp.CreditoId,
+                   SUM(CASE
+                       WHEN pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre > 0
+                           THEN pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre
+                       ELSE 0
+                   END) AS Saldo,
+                   MAX(CASE WHEN pp.FechaVencimiento < @Hoy THEN 1 ELSE 0 END) AS EnMora
             FROM CREDITO.PlanPago AS pp
             INNER JOIN #Creditos AS cr2 ON cr2.CreditoId = pp.CreditoId
-            WHERE cr2.Estado = 'DES' AND cr2.IndIrrecuperable = 0
+            WHERE pp.Estado = 'PEN'
             GROUP BY pp.CreditoId
-        ) AS prog ON prog.CreditoId = cr.CreditoId
-        LEFT JOIN (
-            SELECT m.CreditoId, SUM(m.ImportePago) AS Pagado
-            FROM CREDITO.MovimientoCaja AS m
-            INNER JOIN #Creditos AS cr3 ON cr3.CreditoId = m.CreditoId
-            WHERE cr3.Estado = 'DES'
-              AND cr3.IndIrrecuperable = 0
-              AND m.Operacion = 'CUO'
-              AND m.Estado = 1
-              AND m.ImportePago > 0
-            GROUP BY m.CreditoId
-        ) AS pag ON pag.CreditoId = cr.CreditoId
-        WHERE cr.Estado = 'DES'
-          AND cr.IndIrrecuperable = 0;
+        ) AS pen ON pen.CreditoId = cr.CreditoId;
+        """;
+
+    private static readonly string SqlShell = SqlPreamble + """
 
         SELECT ISNULL((
                    SELECT o.Denominacion
@@ -125,56 +116,66 @@ public sealed class DashboardAdminReadService(
                ) AS TotalAnalistas,
                (SELECT COUNT(DISTINCT PersonaId) FROM #Saldos) AS TotalClientes,
                (
-                   SELECT COUNT(*) FROM #Creditos
-                   WHERE Estado IN ('DES', 'PAG', 'REP')
-                     AND FechaDesembolso >= @Hoy AND FechaDesembolso < @Manana
+                   SELECT COUNT(*) FROM CREDITO.Credito AS c
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.Estado IN ('DES', 'PAG', 'REP')
+                     AND c.FechaDesembolso >= @Hoy AND c.FechaDesembolso < @Manana
                ) AS CreditosHoy,
                (
-                   SELECT COUNT(*) FROM #Creditos
-                   WHERE Estado IN ('DES', 'PAG', 'REP')
-                     AND FechaDesembolso >= @Ayer AND FechaDesembolso < @Hoy
+                   SELECT COUNT(*) FROM CREDITO.Credito AS c
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.Estado IN ('DES', 'PAG', 'REP')
+                     AND c.FechaDesembolso >= @Ayer AND c.FechaDesembolso < @Hoy
                ) AS CreditosAyer,
                (
-                   SELECT COUNT(*) FROM #Creditos
-                   WHERE Estado IN ('DES', 'PAG', 'REP')
-                     AND FechaDesembolso >= @Anteayer AND FechaDesembolso < @Ayer
+                   SELECT COUNT(*) FROM CREDITO.Credito AS c
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.Estado IN ('DES', 'PAG', 'REP')
+                     AND c.FechaDesembolso >= @Anteayer AND c.FechaDesembolso < @Ayer
                ) AS CreditosAnteayer,
                (
-                   SELECT COUNT(*) FROM #Creditos
-                   WHERE Estado IN ('DES', 'PAG', 'REP')
-                     AND FechaDesembolso >= @InicioMes AND FechaDesembolso < @Manana
+                   SELECT COUNT(*) FROM CREDITO.Credito AS c
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.Estado IN ('DES', 'PAG', 'REP')
+                     AND c.FechaDesembolso >= @InicioMes AND c.FechaDesembolso < @Manana
                ) AS CreditosMesActual,
                (
-                   SELECT COUNT(*) FROM #Creditos
-                   WHERE Estado IN ('DES', 'PAG', 'REP')
-                     AND FechaDesembolso >= @InicioMesAnterior
-                     AND FechaDesembolso < @FinComparableAnterior
+                   SELECT COUNT(*) FROM CREDITO.Credito AS c
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.Estado IN ('DES', 'PAG', 'REP')
+                     AND c.FechaDesembolso >= @InicioMesAnterior
+                     AND c.FechaDesembolso < @FinComparableAnterior
                ) AS CreditosMesAnteriorComparable,
                ISNULL((
-                   SELECT SUM(MontoDesembolso) FROM #Creditos
-                   WHERE Estado IN ('DES', 'PAG', 'REP')
-                     AND FechaDesembolso >= @Hoy AND FechaDesembolso < @Manana
+                   SELECT SUM(c.MontoDesembolso) FROM CREDITO.Credito AS c
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.Estado IN ('DES', 'PAG', 'REP')
+                     AND c.FechaDesembolso >= @Hoy AND c.FechaDesembolso < @Manana
                ), 0) AS DesembolsoHoy,
                ISNULL((
-                   SELECT SUM(MontoDesembolso) FROM #Creditos
-                   WHERE Estado IN ('DES', 'PAG', 'REP')
-                     AND FechaDesembolso >= @Ayer AND FechaDesembolso < @Hoy
+                   SELECT SUM(c.MontoDesembolso) FROM CREDITO.Credito AS c
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.Estado IN ('DES', 'PAG', 'REP')
+                     AND c.FechaDesembolso >= @Ayer AND c.FechaDesembolso < @Hoy
                ), 0) AS DesembolsoAyer,
                ISNULL((
-                   SELECT SUM(MontoDesembolso) FROM #Creditos
-                   WHERE Estado IN ('DES', 'PAG', 'REP')
-                     AND FechaDesembolso >= @Anteayer AND FechaDesembolso < @Ayer
+                   SELECT SUM(c.MontoDesembolso) FROM CREDITO.Credito AS c
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.Estado IN ('DES', 'PAG', 'REP')
+                     AND c.FechaDesembolso >= @Anteayer AND c.FechaDesembolso < @Ayer
                ), 0) AS DesembolsoAnteayer,
                ISNULL((
-                   SELECT SUM(MontoDesembolso) FROM #Creditos
-                   WHERE Estado IN ('DES', 'PAG', 'REP')
-                     AND FechaDesembolso >= @InicioMes AND FechaDesembolso < @Manana
+                   SELECT SUM(c.MontoDesembolso) FROM CREDITO.Credito AS c
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.Estado IN ('DES', 'PAG', 'REP')
+                     AND c.FechaDesembolso >= @InicioMes AND c.FechaDesembolso < @Manana
                ), 0) AS DesembolsoMesActual,
                ISNULL((
-                   SELECT SUM(MontoDesembolso) FROM #Creditos
-                   WHERE Estado IN ('DES', 'PAG', 'REP')
-                     AND FechaDesembolso >= @InicioMesAnterior
-                     AND FechaDesembolso < @FinComparableAnterior
+                   SELECT SUM(c.MontoDesembolso) FROM CREDITO.Credito AS c
+                   WHERE c.OficinaId = @OficinaId
+                     AND c.Estado IN ('DES', 'PAG', 'REP')
+                     AND c.FechaDesembolso >= @InicioMesAnterior
+                     AND c.FechaDesembolso < @FinComparableAnterior
                ), 0) AS DesembolsoMesAnteriorComparable,
                ISNULL((
                    SELECT SUM(m.ImportePago)
@@ -301,22 +302,10 @@ public sealed class DashboardAdminReadService(
                ), 0) AS SalidasMesAnteriorComparable,
                ISNULL((SELECT SUM(Saldo) FROM #Saldos), 0) AS SaldoCartera,
                ISNULL((
-                   SELECT SUM(s.Saldo)
-                   FROM #Saldos AS s
-                   WHERE NOT EXISTS (
-                       SELECT 1 FROM CREDITO.PlanPago AS pp
-                       WHERE pp.CreditoId = s.CreditoId
-                         AND pp.Estado = 'PEN'
-                         AND pp.FechaVencimiento < @Hoy)
+                   SELECT SUM(s.Saldo) FROM #Saldos AS s WHERE s.EnMora = 0
                ), 0) AS SaldoCreditos,
                ISNULL((
-                   SELECT SUM(s.Saldo)
-                   FROM #Saldos AS s
-                   WHERE EXISTS (
-                       SELECT 1 FROM CREDITO.PlanPago AS pp
-                       WHERE pp.CreditoId = s.CreditoId
-                         AND pp.Estado = 'PEN'
-                         AND pp.FechaVencimiento < @Hoy)
+                   SELECT SUM(s.Saldo) FROM #Saldos AS s WHERE s.EnMora = 1
                ), 0) AS SaldoMoraCartera,
                ISNULL((
                    SELECT SUM(s.Saldo) FROM #Saldos AS s
@@ -331,18 +320,16 @@ public sealed class DashboardAdminReadService(
                (
                    SELECT COUNT(DISTINCT s.PersonaId)
                    FROM #Saldos AS s
-                   INNER JOIN CREDITO.PlanPago AS pp ON pp.CreditoId = s.CreditoId
-                   WHERE s.Saldo > 0
-                     AND pp.Estado = 'PEN'
-                     AND pp.FechaVencimiento < @Hoy
+                   WHERE s.Saldo > 0 AND s.EnMora = 1
                ) AS ClientesMora,
                (
                    SELECT COUNT(*) FROM #Creditos AS cr
-                   WHERE cr.Estado = 'DES'
-                     AND cr.IndIrrecuperable = 0
-                     AND cr.FechaVencimiento >= @Hoy
+                   WHERE cr.FechaVencimiento >= @Hoy
                      AND cr.FechaVencimiento < @LimiteVencer
                ) AS CreditosPorVencerSemana;
+        """;
+
+    private static readonly string SqlDetalle = SqlPreamble + """
 
         SELECT m.Operacion,
                m.IndEntrada,
@@ -380,14 +367,15 @@ public sealed class DashboardAdminReadService(
             ) AS n(n)
         ),
         ColocDia AS (
-            SELECT CAST(cr.FechaDesembolso AS date) AS Fecha,
+            SELECT CAST(c.FechaDesembolso AS date) AS Fecha,
                    COUNT(*) AS Colocaciones,
-                   SUM(cr.MontoDesembolso) AS Desembolsado
-            FROM #Creditos AS cr
-            WHERE cr.Estado IN ('DES', 'PAG', 'REP')
-              AND cr.FechaDesembolso >= @InicioHist
-              AND cr.FechaDesembolso < @Manana
-            GROUP BY CAST(cr.FechaDesembolso AS date)
+                   SUM(c.MontoDesembolso) AS Desembolsado
+            FROM CREDITO.Credito AS c
+            WHERE c.OficinaId = @OficinaId
+              AND c.Estado IN ('DES', 'PAG', 'REP')
+              AND c.FechaDesembolso >= @InicioHist
+              AND c.FechaDesembolso < @Manana
+            GROUP BY CAST(c.FechaDesembolso AS date)
         ),
         CobradoDia AS (
             SELECT CAST(m.FechaReg AS date) AS Fecha,
@@ -438,14 +426,15 @@ public sealed class DashboardAdminReadService(
             FROM (VALUES (0),(1),(2),(3),(4),(5),(6),(7),(8),(9),(10),(11)) AS n(n)
         ),
         ColocMes AS (
-            SELECT DATEFROMPARTS(YEAR(cr.FechaDesembolso), MONTH(cr.FechaDesembolso), 1) AS FechaMes,
+            SELECT DATEFROMPARTS(YEAR(c.FechaDesembolso), MONTH(c.FechaDesembolso), 1) AS FechaMes,
                    COUNT(*) AS Colocaciones,
-                   SUM(cr.MontoDesembolso) AS Desembolsado
-            FROM #Creditos AS cr
-            WHERE cr.Estado IN ('DES', 'PAG', 'REP')
-              AND cr.FechaDesembolso >= @InicioMensual
-              AND cr.FechaDesembolso < @Manana
-            GROUP BY DATEFROMPARTS(YEAR(cr.FechaDesembolso), MONTH(cr.FechaDesembolso), 1)
+                   SUM(c.MontoDesembolso) AS Desembolsado
+            FROM CREDITO.Credito AS c
+            WHERE c.OficinaId = @OficinaId
+              AND c.Estado IN ('DES', 'PAG', 'REP')
+              AND c.FechaDesembolso >= @InicioMensual
+              AND c.FechaDesembolso < @Manana
+            GROUP BY DATEFROMPARTS(YEAR(c.FechaDesembolso), MONTH(c.FechaDesembolso), 1)
         ),
         CobradoMes AS (
             SELECT DATEFROMPARTS(YEAR(m.FechaReg), MONTH(m.FechaReg), 1) AS FechaMes,
@@ -505,100 +494,79 @@ public sealed class DashboardAdminReadService(
               AND r.Estado = CAST(1 AS bit)
               AND u.Estado = CAST(1 AS bit)
               AND u.NombreUsuario <> N'IRRECUPERABLE'
+        ),
+        SaldosAgg AS (
+            SELECT s.UsuarioRegId,
+                   COUNT(DISTINCT s.PersonaId) AS TotalClientes,
+                   COUNT(DISTINCT CASE WHEN s.Saldo > 0 AND s.EnMora = 1 THEN s.PersonaId END) AS ClientesMora,
+                   SUM(CASE WHEN s.EnMora = 1 THEN s.Saldo ELSE 0 END) AS MontoMora
+            FROM #Saldos AS s
+            GROUP BY s.UsuarioRegId
+        ),
+        ColocAgg AS (
+            SELECT c.UsuarioRegId,
+                   SUM(CASE WHEN c.FechaDesembolso >= @Hoy AND c.FechaDesembolso < @Manana THEN 1 ELSE 0 END) AS ColocacionesHoy,
+                   SUM(CASE WHEN c.FechaDesembolso >= @InicioMes AND c.FechaDesembolso < @Manana THEN 1 ELSE 0 END) AS ColocacionesMes,
+                   SUM(CASE WHEN c.FechaDesembolso >= @Hoy AND c.FechaDesembolso < @Manana THEN c.MontoDesembolso ELSE 0 END) AS DesembolsoHoy,
+                   SUM(CASE WHEN c.FechaDesembolso >= @InicioMes AND c.FechaDesembolso < @Manana THEN c.MontoDesembolso ELSE 0 END) AS DesembolsoMes
+            FROM CREDITO.Credito AS c
+            WHERE c.OficinaId = @OficinaId
+              AND c.Estado IN ('DES', 'PAG', 'REP')
+              AND c.FechaDesembolso IS NOT NULL
+              AND c.FechaDesembolso >= @InicioMes
+              AND c.FechaDesembolso < @Manana
+            GROUP BY c.UsuarioRegId
+        ),
+        ClientesNuevos AS (
+            SELECT primera.UsuarioRegId,
+                   COUNT(*) AS ClientesNuevosMes
+            FROM (
+                SELECT c.UsuarioRegId,
+                       c.PersonaId,
+                       MIN(c.FechaDesembolso) AS PrimeraFecha
+                FROM CREDITO.Credito AS c
+                WHERE c.OficinaId = @OficinaId
+                  AND c.Estado IN ('DES', 'PAG', 'REP')
+                  AND c.FechaDesembolso IS NOT NULL
+                GROUP BY c.UsuarioRegId, c.PersonaId
+            ) AS primera
+            WHERE primera.PrimeraFecha >= @InicioMes
+              AND primera.PrimeraFecha < @Manana
+            GROUP BY primera.UsuarioRegId
+        ),
+        CobradoAgg AS (
+            SELECT c.UsuarioRegId,
+                   SUM(CASE WHEN m.FechaReg >= @Hoy AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END) AS CobradoHoy,
+                   SUM(CASE WHEN m.FechaReg >= @InicioMes AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END) AS CobradoMes,
+                   SUM(CASE
+                       WHEN m.FechaReg >= @InicioMesAnterior AND m.FechaReg < @FinComparableAnterior
+                       THEN m.ImportePago ELSE 0 END) AS CobradoMesAnteriorComparable
+            FROM CREDITO.MovimientoCaja AS m
+            INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
+            WHERE c.OficinaId = @OficinaId
+              AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
+              AND m.FechaReg >= @InicioMesAnterior
+              AND m.FechaReg < @Manana
+            GROUP BY c.UsuarioRegId
         )
         SELECT a.UsuarioId,
                a.NombreCompleto,
-               (
-                   SELECT COUNT(DISTINCT s.PersonaId)
-                   FROM #Saldos AS s
-                   WHERE s.UsuarioRegId = a.UsuarioId
-               ) AS TotalClientes,
-               (
-                   SELECT COUNT(*)
-                   FROM (
-                       SELECT c.PersonaId, MIN(c.FechaDesembolso) AS PrimeraFecha
-                       FROM CREDITO.Credito AS c
-                       WHERE c.OficinaId = @OficinaId
-                         AND c.UsuarioRegId = a.UsuarioId
-                         AND c.Estado IN ('DES', 'PAG', 'REP')
-                         AND c.FechaDesembolso IS NOT NULL
-                       GROUP BY c.PersonaId
-                   ) AS primera
-                   WHERE primera.PrimeraFecha >= @InicioMes
-                     AND primera.PrimeraFecha < @Manana
-               ) AS ClientesNuevosMes,
-               (
-                   SELECT COUNT(*) FROM #Creditos AS cr
-                   WHERE cr.UsuarioRegId = a.UsuarioId
-                     AND cr.Estado IN ('DES', 'PAG', 'REP')
-                     AND cr.FechaDesembolso >= @Hoy AND cr.FechaDesembolso < @Manana
-               ) AS ColocacionesHoy,
-               (
-                   SELECT COUNT(*) FROM #Creditos AS cr
-                   WHERE cr.UsuarioRegId = a.UsuarioId
-                     AND cr.Estado IN ('DES', 'PAG', 'REP')
-                     AND cr.FechaDesembolso >= @InicioMes AND cr.FechaDesembolso < @Manana
-               ) AS ColocacionesMes,
-               ISNULL((
-                   SELECT SUM(cr.MontoDesembolso) FROM #Creditos AS cr
-                   WHERE cr.UsuarioRegId = a.UsuarioId
-                     AND cr.Estado IN ('DES', 'PAG', 'REP')
-                     AND cr.FechaDesembolso >= @Hoy AND cr.FechaDesembolso < @Manana
-               ), 0) AS DesembolsoHoy,
-               ISNULL((
-                   SELECT SUM(cr.MontoDesembolso) FROM #Creditos AS cr
-                   WHERE cr.UsuarioRegId = a.UsuarioId
-                     AND cr.Estado IN ('DES', 'PAG', 'REP')
-                     AND cr.FechaDesembolso >= @InicioMes AND cr.FechaDesembolso < @Manana
-               ), 0) AS DesembolsoMes,
-               ISNULL((
-                   SELECT SUM(m.ImportePago)
-                   FROM CREDITO.MovimientoCaja AS m
-                   INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
-                   WHERE c.OficinaId = @OficinaId
-                     AND c.UsuarioRegId = a.UsuarioId
-                     AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
-                     AND m.FechaReg >= @Hoy AND m.FechaReg < @Manana
-               ), 0) AS CobradoHoy,
-               ISNULL((
-                   SELECT SUM(m.ImportePago)
-                   FROM CREDITO.MovimientoCaja AS m
-                   INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
-                   WHERE c.OficinaId = @OficinaId
-                     AND c.UsuarioRegId = a.UsuarioId
-                     AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
-                     AND m.FechaReg >= @InicioMes AND m.FechaReg < @Manana
-               ), 0) AS CobradoMes,
-               ISNULL((
-                   SELECT SUM(m.ImportePago)
-                   FROM CREDITO.MovimientoCaja AS m
-                   INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
-                   WHERE c.OficinaId = @OficinaId
-                     AND c.UsuarioRegId = a.UsuarioId
-                     AND m.Operacion = 'CUO' AND m.Estado = 1 AND m.ImportePago > 0
-                     AND m.FechaReg >= @InicioMesAnterior
-                     AND m.FechaReg < @FinComparableAnterior
-               ), 0) AS CobradoMesAnteriorComparable,
-               (
-                   SELECT COUNT(DISTINCT s.PersonaId)
-                   FROM #Saldos AS s
-                   INNER JOIN CREDITO.PlanPago AS pp ON pp.CreditoId = s.CreditoId
-                   WHERE s.UsuarioRegId = a.UsuarioId
-                     AND s.Saldo > 0
-                     AND pp.Estado = 'PEN'
-                     AND pp.FechaVencimiento < @Hoy
-               ) AS ClientesMora,
-               ISNULL((
-                   SELECT SUM(s.Saldo)
-                   FROM #Saldos AS s
-                   WHERE s.UsuarioRegId = a.UsuarioId
-                     AND EXISTS (
-                         SELECT 1 FROM CREDITO.PlanPago AS pp
-                         WHERE pp.CreditoId = s.CreditoId
-                           AND pp.Estado = 'PEN'
-                           AND pp.FechaVencimiento < @Hoy)
-               ), 0) AS MontoMora
+               ISNULL(s.TotalClientes, 0) AS TotalClientes,
+               ISNULL(n.ClientesNuevosMes, 0) AS ClientesNuevosMes,
+               ISNULL(col.ColocacionesHoy, 0) AS ColocacionesHoy,
+               ISNULL(col.ColocacionesMes, 0) AS ColocacionesMes,
+               ISNULL(col.DesembolsoHoy, 0) AS DesembolsoHoy,
+               ISNULL(col.DesembolsoMes, 0) AS DesembolsoMes,
+               ISNULL(cob.CobradoHoy, 0) AS CobradoHoy,
+               ISNULL(cob.CobradoMes, 0) AS CobradoMes,
+               ISNULL(cob.CobradoMesAnteriorComparable, 0) AS CobradoMesAnteriorComparable,
+               ISNULL(s.ClientesMora, 0) AS ClientesMora,
+               ISNULL(s.MontoMora, 0) AS MontoMora
         FROM Analistas AS a
+        LEFT JOIN SaldosAgg AS s ON s.UsuarioRegId = a.UsuarioId
+        LEFT JOIN ColocAgg AS col ON col.UsuarioRegId = a.UsuarioId
+        LEFT JOIN ClientesNuevos AS n ON n.UsuarioRegId = a.UsuarioId
+        LEFT JOIN CobradoAgg AS cob ON cob.UsuarioRegId = a.UsuarioId
         ORDER BY a.NombreCompleto;
         """;
 
@@ -608,19 +576,78 @@ public sealed class DashboardAdminReadService(
         int oficinaId,
         CancellationToken cancellationToken = default)
     {
-        if (oficinaId < 1)
-        {
-            throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
-        }
-
-        if (string.IsNullOrWhiteSpace(_connectionString))
-        {
-            throw new InvalidOperationException(
-                "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
-        }
+        EnsureOficina(oficinaId);
+        EnsureConnection();
 
         var cacheKey = $"dashboard:admin:{oficinaId}";
         if (cache.TryGetValue(cacheKey, out DashboardAdminDto? cached) && cached is not null)
+        {
+            return cached;
+        }
+
+        var shellTask = ObtenerShellAsync(oficinaId, cancellationToken);
+        var detalleTask = ObtenerDetalleAsync(oficinaId, cancellationToken);
+        await Task.WhenAll(shellTask, detalleTask).ConfigureAwait(false);
+
+        var shell = await shellTask.ConfigureAwait(false);
+        var detalle = await detalleTask.ConfigureAwait(false);
+
+        var dto = new DashboardAdminDto(
+            shell.NombreOficina,
+            shell.FechaConsulta,
+            shell.Resumen,
+            detalle.FlujoCaja,
+            detalle.Historico,
+            detalle.HistoricoMensual,
+            detalle.Analistas);
+
+        cache.Set(cacheKey, dto, CacheTtl);
+        return dto;
+    }
+
+    public async Task<DashboardAdminShellDto> ObtenerShellAsync(
+        int oficinaId,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureOficina(oficinaId);
+        EnsureConnection();
+
+        var cacheKey = $"dashboard:admin:shell:{oficinaId}";
+        if (cache.TryGetValue(cacheKey, out DashboardAdminShellDto? cached) && cached is not null)
+        {
+            return cached;
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var raw = await connection.QuerySingleAsync<ResumenRow>(
+            new CommandDefinition(
+                SqlShell,
+                new { OficinaId = oficinaId },
+                commandTimeout: CommandTimeoutSeconds,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        var dto = new DashboardAdminShellDto(
+            NombreOficina: string.IsNullOrWhiteSpace(raw.NombreOficina)
+                ? "Oficina"
+                : raw.NombreOficina.Trim(),
+            FechaConsulta: raw.FechaConsulta,
+            Resumen: MapResumen(raw));
+
+        cache.Set(cacheKey, dto, CacheTtl);
+        return dto;
+    }
+
+    public async Task<DashboardAdminDetalleDto> ObtenerDetalleAsync(
+        int oficinaId,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureOficina(oficinaId);
+        EnsureConnection();
+
+        var cacheKey = $"dashboard:admin:detalle:{oficinaId}";
+        if (cache.TryGetValue(cacheKey, out DashboardAdminDetalleDto? cached) && cached is not null)
         {
             return cached;
         }
@@ -630,33 +657,37 @@ public sealed class DashboardAdminReadService(
 
         using var multi = await connection.QueryMultipleAsync(
             new CommandDefinition(
-                Sql,
+                SqlDetalle,
                 new { OficinaId = oficinaId },
                 commandTimeout: CommandTimeoutSeconds,
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-        var raw = await multi.ReadSingleAsync<ResumenRow>().ConfigureAwait(false);
         var flujo = (await multi.ReadAsync<DashboardAdminFlujoRowDto>().ConfigureAwait(false)).AsList();
         var historico = (await multi.ReadAsync<DashboardAdminHistoricoPuntoDto>().ConfigureAwait(false)).AsList();
         var mensual = (await multi.ReadAsync<DashboardAdminHistoricoMensualDto>().ConfigureAwait(false)).AsList();
         var analistasRaw = (await multi.ReadAsync<AnalistaRow>().ConfigureAwait(false)).AsList();
-
-        var resumen = MapResumen(raw);
         var analistas = analistasRaw.Select(MapAnalista).ToList();
 
-        var dto = new DashboardAdminDto(
-            NombreOficina: string.IsNullOrWhiteSpace(raw.NombreOficina)
-                ? "Oficina"
-                : raw.NombreOficina.Trim(),
-            FechaConsulta: raw.FechaConsulta,
-            Resumen: resumen,
-            FlujoCaja: flujo,
-            Historico: historico,
-            HistoricoMensual: mensual,
-            Analistas: analistas);
-
+        var dto = new DashboardAdminDetalleDto(flujo, historico, mensual, analistas);
         cache.Set(cacheKey, dto, CacheTtl);
         return dto;
+    }
+
+    private void EnsureConnection()
+    {
+        if (string.IsNullOrWhiteSpace(_connectionString))
+        {
+            throw new InvalidOperationException(
+                "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
+        }
+    }
+
+    private static void EnsureOficina(int oficinaId)
+    {
+        if (oficinaId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
+        }
     }
 
     private static DashboardAdminResumenDto MapResumen(ResumenRow r)
