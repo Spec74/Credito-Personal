@@ -15,7 +15,7 @@ public sealed class DashboardAdminReadService(
     IOptions<SqlDatabaseOptions> options,
     IMemoryCache cache) : IDashboardAdminReadService
 {
-    private const int CommandTimeoutSeconds = 30;
+    private const int CommandTimeoutSeconds = 45;
     private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(90);
 
     /// <summary>
@@ -43,16 +43,21 @@ public sealed class DashboardAdminReadService(
                 SUM(CASE WHEN c.FechaDesembolso >= @Ayer AND c.FechaDesembolso < @Hoy THEN c.MontoDesembolso ELSE 0 END) AS DesembolsoAyer,
                 SUM(CASE WHEN c.FechaDesembolso >= @Anteayer AND c.FechaDesembolso < @Ayer THEN c.MontoDesembolso ELSE 0 END) AS DesembolsoAnteayer,
                 SUM(CASE WHEN c.FechaDesembolso >= @InicioMes AND c.FechaDesembolso < @Manana THEN c.MontoDesembolso ELSE 0 END) AS DesembolsoMesActual,
-                SUM(CASE WHEN c.FechaDesembolso >= @InicioMesAnterior AND c.FechaDesembolso < @FinComparableAnterior THEN c.MontoDesembolso ELSE 0 END) AS DesembolsoMesAnteriorComparable,
-                SUM(CASE
-                    WHEN c.Estado = 'DES' AND c.IndIrrecuperable = 0
-                         AND c.FechaVencimiento >= @Hoy AND c.FechaVencimiento < @LimiteVencer
-                    THEN 1 ELSE 0 END) AS CreditosPorVencerSemana
+                SUM(CASE WHEN c.FechaDesembolso >= @InicioMesAnterior AND c.FechaDesembolso < @FinComparableAnterior THEN c.MontoDesembolso ELSE 0 END) AS DesembolsoMesAnteriorComparable
             FROM CREDITO.Credito AS c
             WHERE c.OficinaId = @OficinaId
-              AND c.FechaDesembolso IS NOT NULL
+              AND c.FechaDesembolso >= @InicioMesAnterior
               AND c.FechaDesembolso < @Manana
               AND c.Estado IN ('DES', 'PAG', 'REP')
+        ),
+        Vencer AS (
+            SELECT COUNT(*) AS CreditosPorVencerSemana
+            FROM CREDITO.Credito AS c
+            WHERE c.OficinaId = @OficinaId
+              AND c.Estado = 'DES'
+              AND c.IndIrrecuperable = 0
+              AND c.FechaVencimiento >= @Hoy
+              AND c.FechaVencimiento < @LimiteVencer
         ),
         Cob AS (
             SELECT
@@ -101,6 +106,7 @@ public sealed class DashboardAdminReadService(
                 COUNT(DISTINCT CASE WHEN pend.Saldo > 0 AND pend.EnMora = 1 THEN c.PersonaId END) AS ClientesMora
             FROM CREDITO.Credito AS c
             LEFT JOIN (
+                -- Acotar PlanPago a créditos de la oficina (sin esto se agrega toda la tabla PEN).
                 SELECT pp.CreditoId,
                        SUM(CASE
                            WHEN pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre > 0
@@ -115,7 +121,13 @@ public sealed class DashboardAdminReadService(
                            ELSE 0
                        END) AS Morosidad
                 FROM CREDITO.PlanPago AS pp
+                INNER JOIN CREDITO.Credito AS cOficina
+                    ON cOficina.CreditoId = pp.CreditoId
                 WHERE pp.Estado = 'PEN'
+                  AND cOficina.OficinaId = @OficinaId
+                  AND cOficina.Estado = 'DES'
+                  AND cOficina.IndIrrecuperable = 0
+                  AND cOficina.FechaDesembolso IS NOT NULL
                 GROUP BY pp.CreditoId
             ) AS pend ON pend.CreditoId = c.CreditoId
             WHERE c.OficinaId = @OficinaId
@@ -170,7 +182,7 @@ public sealed class DashboardAdminReadService(
                ISNULL((SELECT SaldoVencido FROM Cartera), 0) AS SaldoVencido,
                ISNULL((SELECT SaldoMorosidad FROM Cartera), 0) AS SaldoMorosidad,
                ISNULL((SELECT ClientesMora FROM Cartera), 0) AS ClientesMora,
-               ISNULL((SELECT CreditosPorVencerSemana FROM Coloc), 0) AS CreditosPorVencerSemana;
+               ISNULL((SELECT CreditosPorVencerSemana FROM Vencer), 0) AS CreditosPorVencerSemana;
         """;
 
     private const string SqlPreamble = """

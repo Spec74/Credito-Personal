@@ -45,6 +45,7 @@ export function AdminDashboardPage() {
     queryFn: fetchDashboardAdminShell,
     ...queryOpts,
     enabled,
+    retry: 1,
   })
 
   const detalleQuery = useQuery({
@@ -52,6 +53,7 @@ export function AdminDashboardPage() {
     queryFn: fetchDashboardAdminDetalle,
     ...queryOpts,
     enabled,
+    retry: 1,
   })
 
   const shell = shellQuery.data
@@ -182,6 +184,19 @@ export function AdminDashboardPage() {
   }
 
   const isFetching = shellQuery.isFetching || detalleQuery.isFetching
+
+  if (!enabled) {
+    return (
+      <CredixPage title="Inicio" subtitle="Seleccione una oficina para ver el tablero gerencial.">
+        <Alert
+          type="warning"
+          showIcon
+          message="Sin oficina en la sesión"
+          description="El token no trae oficina activa. Cierre sesión e ingrese de nuevo, o cambie de oficina si su usuario tiene varias."
+        />
+      </CredixPage>
+    )
+  }
 
   if (shellQuery.isLoading && !shell) {
     return (
