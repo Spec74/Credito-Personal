@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { Table, Tag, Typography } from 'antd'
+import { Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { TeamOutlined } from '@ant-design/icons'
 import { fetchCreditosGestorDesembolsados } from '../../../api/cajaDiario'
 import type { CreditoGestorPendienteRow } from '../../../api/cajaDiario'
 import { CajaModal } from '../../../components/caja/CajaModal'
+import { CredixDataTable } from '../../../components/credix'
 import { formatMoney } from '../../../utils/formatMoney'
 
 const { Text } = Typography
@@ -62,21 +63,19 @@ export function CreditosPendientesModal({
         </Tag>
       </div>
 
-      <Table<CreditoGestorPendienteRow>
-        className="caja-creditos-pendientes-table credix-table"
+      <CredixDataTable<CreditoGestorPendienteRow>
+        mode="operacion"
+        className="caja-creditos-pendientes-table"
         rowKey="creditoId"
         columns={columns}
         dataSource={query.data ?? []}
         loading={query.isLoading}
-        size="small"
-        bordered
-        tableLayout="auto"
         pagination={{
           defaultPageSize: 15,
           showSizeChanger: true,
           showTotal: (t) => `${t} registro(s)`,
         }}
-        scroll={{ x: 'max-content' }}
+        scroll={{ x: 720 }}
         rowClassName={() => 'caja-creditos-pendientes-table__row'}
         onRow={(row) => ({
           onDoubleClick: () => {

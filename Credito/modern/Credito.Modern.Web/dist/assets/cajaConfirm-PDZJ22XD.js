@@ -1,1 +1,0 @@
-import{St as e}from"./vendor-antd-C7gWrHDi.js";var t=`caja-modal-root`;function n(n){return e.confirm({centered:!0,okText:`Confirmar`,cancelText:`Cancelar`,...n,rootClassName:[t,`caja-modal-root--confirm`,n.rootClassName].filter(Boolean).join(` `)})}export{n as t};

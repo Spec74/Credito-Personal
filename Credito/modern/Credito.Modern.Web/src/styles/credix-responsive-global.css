@@ -15,7 +15,7 @@
 .credix-informe-page .credix-panel,
 .credix-crud-page .credix-panel {
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .credix-page .credix-panel-body,
@@ -24,7 +24,145 @@
 .credix-informe-results-panel .credix-box-content {
   min-width: 0;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
+
+/* —— Tablas / tarjetas móvil (CredixDataTable) —— */
+.credix-table-scroll {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.credix-mobile-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.credix-mobile-cards__empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--credix-text-muted, #64748b);
+  background: #fff;
+  border: 1px dashed var(--credix-border, #dbe7f3);
+  border-radius: 14px;
+}
+
+.credix-mobile-card {
+  background: #fff;
+  border: 1px solid var(--credix-border, #dbe7f3);
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgb(15 23 42 / 5%);
+  padding: 12px 14px;
+  min-width: 0;
+}
+
+.credix-mobile-cards--loading {
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.credix-mobile-card[ondblclick],
+.credix-mobile-card[onclick] {
+  cursor: pointer;
+}
+
+.credix-mobile-card__title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-bottom: 10px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid #e8eef5;
+}
+
+.credix-mobile-card__title-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--credix-text-muted, #64748b);
+}
+
+.credix-mobile-card__title-value {
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.credix-mobile-card__row {
+  display: grid;
+  grid-template-columns: minmax(88px, 34%) minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: start;
+  padding: 8px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.credix-mobile-card__row:last-of-type {
+  border-bottom: none;
+}
+
+.credix-mobile-card__label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--credix-text-muted, #64748b);
+  padding-top: 2px;
+}
+
+.credix-mobile-card__value {
+  min-width: 0;
+  font-size: 13px;
+  color: #0f172a;
+  word-break: break-word;
+}
+
+.credix-mobile-card__actions {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e8eef5;
+}
+
+.credix-mobile-card__actions-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.credix-mobile-card__actions-inner .ant-space {
+  flex-wrap: wrap !important;
+  width: 100%;
+}
+
+.credix-mobile-card__actions-inner .ant-btn {
+  flex: 1 1 auto;
+  min-height: 36px;
+}
+
+.credix-mobile-cards__pager {
+  display: flex;
+  justify-content: center;
+  padding: 4px 0 8px;
+}
+
+.credix-wide-table {
+  width: 100%;
+  min-width: 0;
+  position: relative;
+}
+
+.credix-wide-table .ant-table-container,
+.credix-wide-table .ant-table-content {
+  -webkit-overflow-scrolling: touch;
+}
+
 
 /* —— Informes (CredixInformePage) —— */
 .credix-informe-filter-row {

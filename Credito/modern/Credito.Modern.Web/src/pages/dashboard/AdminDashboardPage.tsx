@@ -10,7 +10,7 @@ import {
   WalletOutlined,
   WarningOutlined,
 } from '@ant-design/icons'
-import { Alert, Button, Input, Skeleton, Table, Tag, Typography } from 'antd'
+import { Alert, Button, Input, Skeleton, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   fetchDashboardAdminDetalle,
@@ -20,7 +20,7 @@ import {
 } from '../../api/dashboard'
 import { ApiError } from '../../api/errors'
 import { DualMetricChart } from '../../components/dashboard/DualMetricChart'
-import { CredixPage } from '../../components/credix'
+import { CredixDataTable, CredixPage } from '../../components/credix'
 import { useAuth } from '../../auth/useAuth'
 import { esCreditoAnalista } from '../../utils/creditoOperacionPermisos'
 import { formatMoney } from '../../utils/formatMoney'
@@ -103,7 +103,7 @@ export function AdminDashboardPage() {
 
   const columns: ColumnsType<DashboardAdminAnalistaRow> = useMemo(
     () => [
-      { title: 'Analista', dataIndex: 'nombreCompleto', ellipsis: true, fixed: 'left', width: 180 },
+      { title: 'Analista', dataIndex: 'nombreCompleto', ellipsis: true, width: 180 },
       { title: 'Clientes', dataIndex: 'totalClientes', width: 88, align: 'right', render: (v: number) => formatEntero(v) },
       { title: 'Nuevos', dataIndex: 'clientesNuevosMes', width: 80, align: 'right', render: (v: number) => formatEntero(v) },
       {
@@ -478,9 +478,9 @@ export function AdminDashboardPage() {
           </div>
           <div className="dash-panel-body">
             {detalleReady ? (
-              <Table<DashboardAdminAnalistaRow>
+              <CredixDataTable<DashboardAdminAnalistaRow>
+                mode="operacion"
                 rowKey="usuarioId"
-                size="small"
                 pagination={false}
                 columns={columns}
                 dataSource={analistas}

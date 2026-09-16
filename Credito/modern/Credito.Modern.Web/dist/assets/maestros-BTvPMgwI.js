@@ -1,1 +1,0 @@
-import{j as e}from"./index-CDAOhse-.js";function t(t){return e(`/valores-tabla?tablaId=${t}&soloItemIdPositivo=true`)}export{t};

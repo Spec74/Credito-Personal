@@ -215,8 +215,8 @@ export function TareasPage() {
     },
     {
       title: 'Acciones',
-      key: 'act',
-      fixed: 'right',
+      key: 'acciones',
+      width: 280,
       render: (_, r) => (
         <Space size={4} wrap>
           <Link to={`/credito/consulta?creditoId=${r.creditoId}`}>
@@ -391,6 +391,7 @@ export function TareasPage() {
         columns={columns}
         dataSource={filasFiltradas}
         loading={listQuery.isLoading}
+        scroll={{ x: 980 }}
         pagination={{
           pageSize: 15,
           showSizeChanger: true,

@@ -16,7 +16,6 @@ import {
   Select,
   Space,
   Switch,
-  Table,
   Typography,
   Upload,
   message,
@@ -48,6 +47,7 @@ import {
   type PrendaItem,
 } from '../../api/creditoGestion'
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
+import { CredixDataTable } from '../../components/credix'
 import { prendaAItem, prendaVacia, prendasValidas } from '../../utils/prendas'
 import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 import {
@@ -689,13 +689,14 @@ export function CreditoConsultaGestionPanel({
       <Row gutter={[16, 16]} className="credito-gestion-two-col-grid">
         <Col xs={24} lg={12}>
           <Card title="Cargos" size="small" className="credito-gestion-card credito-gestion-table-card">
-            <Table<CargoCreditoRow>
+            <CredixDataTable<CargoCreditoRow>
+              mode="operacion"
               rowKey="cargoId"
-              size="small"
               columns={cargoCols}
               dataSource={cargos.data ?? []}
               loading={cargos.isLoading}
               pagination={false}
+              scroll={{ x: 560 }}
             />
           </Card>
         </Col>

@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, type Key } from 'react'
-import { Segmented, Table, Tag, Typography, type TableProps } from 'antd'
+import { Segmented, Tag, Typography, type TableProps } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { CuotaCobranzaRow } from './cuotasGridMerge'
 import { formatMoney } from '../../utils/formatMoney'
@@ -18,6 +18,7 @@ import {
   type CuotaVistaFiltro,
 } from './cuotaRowStyle'
 import { CajaCuotasLegend } from './CajaCuotasLegend'
+import { CredixDataTable } from '../credix'
 
 const { Text } = Typography
 
@@ -195,10 +196,10 @@ function CajaCuotasTableInner({
         ) : null}
       </div>
 
-      <Table<CuotaCobranzaRow>
-        className="caja-cuotas-table credix-table caja-cuotas-table--auto"
-        size={compact ? 'small' : 'small'}
-        bordered
+      <CredixDataTable<CuotaCobranzaRow>
+        mode="operacion"
+        mobileCards={false}
+        className="caja-cuotas-table caja-cuotas-table--auto"
         tableLayout="auto"
         rowKey={(row, index) => cuotaRowKey(row, index)}
         rowClassName={cuotaRowClassName}
@@ -212,7 +213,7 @@ function CajaCuotasTableInner({
           pageSizeOptions: ['10', '25', '50', '100'],
           showTotal: (t) => `${t} fila(s)`,
         }}
-        scroll={{ x: 'max-content', y: compact ? 280 : 380 }}
+        scroll={{ x: 980, y: compact ? 280 : 380 }}
         onRow={(row) =>
           isCuotaFilaResumen(row) ? { 'aria-label': 'Fila de resumen' } : {}
         }

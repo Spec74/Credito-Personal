@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PlusOutlined, SearchOutlined, WhatsAppOutlined } from '@ant-design/icons'
-import { Alert, Badge, Button, Input, Modal, Space, Table, Tag, Tooltip, Typography, message } from 'antd'
+import { Alert, Badge, Button, Input, Modal, Space, Tag, Tooltip, Typography, message } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   enviarAvisosVencimientoPrendario,
@@ -363,13 +363,13 @@ export function CreditoPrendarioPage() {
             {errMsg(estadoAvisos.error)}
           </Text>
         ) : null}
-        <Table<PrendarioAvisoVencimiento>
+        <CredixDataTable<PrendarioAvisoVencimiento>
+          mode="operacion"
           rowKey="creditoId"
-          size="small"
           style={{ marginTop: 12 }}
           loading={avisos.isFetching}
           pagination={false}
-          scroll={{ x: 'max-content' }}
+          scroll={{ x: 720 }}
           dataSource={avisos.data ?? []}
           locale={{
             emptyText: canalListo
@@ -421,8 +421,8 @@ export function CreditoPrendarioPage() {
               },
             },
             {
-              title: '',
-              key: 'wa',
+              title: 'Acciones',
+              key: 'acciones',
               width: 90,
               render: (_, row) => (
                 <Button

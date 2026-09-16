@@ -1,0 +1,1 @@
+import{Ct as e}from"./vendor-antd-zupJ3-5H.js";function t(t,n){try{let r=n();if(r instanceof Promise){r.then(()=>e.success(`${t}: se abrió en una nueva pestaña`)).catch(n=>e.error(n instanceof Error?n.message:`No se pudo abrir ${t}`));return}e.success(`${t}: se abrió en una nueva pestaña`)}catch(n){e.error(n instanceof Error?n.message:`No se pudo abrir ${t}`)}}export{t};

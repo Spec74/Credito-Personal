@@ -1,7 +1,8 @@
 import { useCallback, useMemo } from 'react'
-import { Button, Col, Input, InputNumber, Row, Space, Table, Typography } from 'antd'
+import { Button, Col, Input, InputNumber, Row, Space, Typography } from 'antd'
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import type { PrendaItem } from '../../api/creditoGestion'
+import { CredixDataTable } from '../credix'
 import { formatMoney } from '../../utils/formatMoney'
 import { prendaVacia, totalTasacion } from '../../utils/prendas'
 
@@ -46,16 +47,16 @@ export function PrendasEditor({ value, onChange, disabled = false }: Props) {
 
   return (
     <>
-      <Table
-        size="small"
+      <CredixDataTable
+        mode="operacion"
         pagination={false}
         dataSource={filas}
-        scroll={{ x: 'max-content' }}
+        rowKey="key"
+        scroll={{ x: 1100 }}
         columns={[
           {
             title: 'Descripción',
             width: 240,
-            fixed: 'left',
             render: (_, { indice, prenda }) => (
               <Input
                 disabled={disabled}
@@ -148,9 +149,9 @@ export function PrendasEditor({ value, onChange, disabled = false }: Props) {
             ),
           },
           {
-            title: '',
+            title: 'Acciones',
+            key: 'acciones',
             width: 48,
-            fixed: 'right',
             render: (_, { indice }) => (
               <Button
                 type="text"

@@ -1,1 +1,0 @@
-import{n as e}from"./vendor-react-DJGOJ3GI.js";import{r as t}from"./vendor-misc-Api02ENL.js";var n=t();function r(){return[{title:(0,n.jsx)(e,{to:`/inicio`,children:`Inicio`})},{title:`Mantenimiento`},{title:`Oficinas`}]}function i(){return[{title:(0,n.jsx)(e,{to:`/inicio`,children:`Inicio`})},{title:`Mantenimiento`},{title:`Cajas`}]}export{r as n,i as t};

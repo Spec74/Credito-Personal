@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Button, Table, message } from 'antd'
+import { Button, message } from 'antd'
 import { AccountBookOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import {
@@ -10,6 +10,7 @@ import {
 import { CajaSection } from '../../../components/caja/CajaSection'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
+import { CredixDataTable } from '../../../components/credix'
 import type { CuentaPorCobrarPendienteRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
 import { formatFecha } from '../../../utils/formatFecha'
@@ -79,7 +80,8 @@ export function CxcInlinePanel({
       render: (v: string) => formatFecha(v),
     },
     {
-      title: '',
+      title: 'Acciones',
+      key: 'acciones',
       width: 100,
       render: (_, row) => (
         <Button
@@ -130,14 +132,13 @@ export function CxcInlinePanel({
           Ver todos
         </Button>
       </div>
-      <Table<CuentaPorCobrarPendienteRow>
-        className="caja-cxc-table credix-table"
+      <CredixDataTable<CuentaPorCobrarPendienteRow>
+        mode="operacion"
+        className="caja-cxc-table"
         rowKey={(r) => `${r.ordenVentaId}-${r.cuentaxCobrarId}`}
         columns={columns}
         dataSource={query.data ?? []}
         loading={query.isLoading}
-        size="small"
-        bordered
         pagination={{ pageSize: 10, showSizeChanger: true }}
         scroll={{ x: 860 }}
       />

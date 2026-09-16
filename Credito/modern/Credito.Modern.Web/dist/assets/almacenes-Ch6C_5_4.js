@@ -1,0 +1,1 @@
+import{j as e,w as t}from"./index-BlHLkyR_.js";async function n(n){let r=n!=null&&n>=1?`?oficinaId=${n}`:``,i=await e(`/almacenes${r}`);return t(i)}export{n as t};
