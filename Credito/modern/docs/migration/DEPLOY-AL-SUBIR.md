@@ -17,7 +17,8 @@ Módulos SSD-01…09 pulidos para piloto (auth, crédito, caja, bóveda, cliente
 |-------|--------|
 | Azure SQL `CREDITO` | Reanudar si está *Paused*; importar `.bacpac` desde SQL Server local |
 | App Service `crediconfiable-api` | Connection string + `Jwt__SigningKey` (≥32) |
-| CORS | `BrowserCors__AllowedOrigins__0=https://<proyecto>.vercel.app` (y dominio custom si hay) |
+| CORS | `BrowserCors__AllowedOrigins__0=https://credito-personal.vercel.app` (y dominio custom si hay) |
+| API URL (Vercel) | Dominio real App Service, p.ej. `https://crediconfiable-api-….azurewebsites.net/api/v1` (no el nombre corto) |
 | Acceso IP (piloto) | `Auth__RequerirClienteAcceso=false` **o** IPs del gerente en `MAESTRO.Acceso` |
 | Forwarded headers | Recomendado en App Service: `Hosting__ForwardedHeaders__Enabled=true` |
 | Vercel | Root `Credito/modern/Credito.Modern.Web`; env de `.env.vercel.example`; `vercel.json` ya hace SPA fallback |
