@@ -64,4 +64,18 @@ jobs:
           app-name: 'crediconfiable-api'
           slot-name: 'Production'
           package: .
-          
+
+      - name: Configure startup and restart
+        run: |
+          RG=$(az webapp list --query "[?name=='crediconfiable-api'].resourceGroup | [0]" -o tsv)
+          echo "Resource group: $RG"
+          az webapp config set \
+            --resource-group "$RG" \
+            --name crediconfiable-api \
+            --startup-file "dotnet Credito.Modern.Api.dll"
+          az webapp restart --resource-group "$RG" --name crediconfiable-api
+          sleep 15
+          curl -sS -o /tmp/health.txt -w "health_http=%{http_code}\n" \
+            "https://crediconfiable-api-g3h7fja3dydsbbb7.centralus-01.azurewebsites.net/health" || true
+          head -c 400 /tmp/health.txt || true
+          echo          
