@@ -5,9 +5,9 @@ public sealed class ForwardedHeadersBindingOptions
 {
     public const string SectionName = "Hosting:ForwardedHeaders";
 
-    /// <summary>Si es <c>true</c>, se usa el middleware y debe haber al menos una IP en <see cref="KnownProxies"/>.</summary>
+    /// <summary>Si es <c>true</c>, se usa el middleware. Con <see cref="KnownProxies"/> vacío se confía en el proxy de plataforma (App Service).</summary>
     public bool Enabled { get; set; }
 
-    /// <summary>IPs del proxy inmediato (balanceador, ARR, nginx) que pueden enviar <c>X-Forwarded-*</c>.</summary>
+    /// <summary>IPs del proxy inmediato (opcional). Vacío = confiar en X-Forwarded-* detrás de Azure/nginx.</summary>
     public string[] KnownProxies { get; set; } = [];
 }

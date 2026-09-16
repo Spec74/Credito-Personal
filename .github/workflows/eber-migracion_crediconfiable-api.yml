@@ -65,17 +65,19 @@ jobs:
           slot-name: 'Production'
           package: .
 
-      - name: Configure startup and restart
+      - name: Configure runtime, startup and restart
         run: |
           RG=$(az webapp list --query "[?name=='crediconfiable-api'].resourceGroup | [0]" -o tsv)
           echo "Resource group: $RG"
+          # net10.0 publish requiere el stack DOTNETCORE|10.0 (si queda en 8.0 el contenedor no arranca → 503).
           az webapp config set \
             --resource-group "$RG" \
             --name crediconfiable-api \
+            --linux-fx-version "DOTNETCORE|10.0" \
             --startup-file "dotnet Credito.Modern.Api.dll"
           az webapp restart --resource-group "$RG" --name crediconfiable-api
-          sleep 15
+          sleep 25
           curl -sS -o /tmp/health.txt -w "health_http=%{http_code}\n" \
             "https://crediconfiable-api-g3h7fja3dydsbbb7.centralus-01.azurewebsites.net/health" || true
           head -c 400 /tmp/health.txt || true
-          echo          
+          echo

@@ -252,18 +252,28 @@ app.UseCreditoHostSecurity();
 app.UseAuthentication();
 app.UseAuthorization();
 
+static Task WriteHealthJson(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json";
+    var payload = System.Text.Json.JsonSerializer.Serialize(new
+    {
+        status = report.Status.ToString(),
+        checks = report.Entries.Select(e => new { name = e.Key, status = e.Value.Status.ToString() }),
+    });
+    return context.Response.WriteAsync(payload);
+}
+
+// Liveness: proceso vivo (App Service / balanceador). No incluye SQL.
 app.MapHealthChecks("/health", new HealthCheckOptions
 {
-    ResponseWriter = async (context, report) =>
-    {
-        context.Response.ContentType = "application/json";
-        var payload = System.Text.Json.JsonSerializer.Serialize(new
-        {
-            status = report.Status.ToString(),
-            checks = report.Entries.Select(e => new { name = e.Key, status = e.Value.Status.ToString() }),
-        });
-        await context.Response.WriteAsync(payload);
-    },
+    Predicate = static r => r.Name == "self",
+    ResponseWriter = WriteHealthJson,
+});
+
+// Readiness: self + SQL si hay connection string.
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    ResponseWriter = WriteHealthJson,
 });
 
 app.MapAuthEndpoints();

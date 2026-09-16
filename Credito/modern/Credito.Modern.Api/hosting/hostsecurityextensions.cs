@@ -21,27 +21,27 @@ internal static class HostSecurityExtensions
             .AddOptions<MenuNavigationOptions>()
             .BindConfiguration(MenuNavigationOptions.SectionName);
 
+        // Enabled=true con KnownProxies vacío = confiar en el proxy de App Service (se limpian Known*).
+        // Si se listan IPs, cada una debe ser parseable; no tumbar el arranque por lista vacía.
         builder.Services
             .AddOptions<ForwardedHeadersBindingOptions>()
             .BindConfiguration(ForwardedHeadersBindingOptions.SectionName)
             .Validate(
                 o =>
                 {
-                    if (!o.Enabled)
+                    if (!o.Enabled || o.KnownProxies is not { Length: > 0 })
                         return true;
-                    if (o.KnownProxies is not { Length: > 0 })
-                        return false;
                     foreach (var s in o.KnownProxies)
                     {
                         if (string.IsNullOrWhiteSpace(s))
                             continue;
-                        if (IPAddress.TryParse(s.Trim(), out _))
-                            return true;
+                        if (!IPAddress.TryParse(s.Trim(), out _))
+                            return false;
                     }
 
-                    return false;
+                    return true;
                 },
-                "Hosting:ForwardedHeaders: con Enabled=true, KnownProxies debe incluir al menos una IP válida.")
+                "Hosting:ForwardedHeaders: KnownProxies solo admite IPs válidas (o lista vacía detrás de Azure App Service).")
             .ValidateOnStart();
 
         builder.Services.AddSingleton<IConfigureOptions<ForwardedHeadersOptions>, ConfigureForwardedHeadersOptions>();
