@@ -59,27 +59,87 @@ export function AdminDashboardPage() {
   const shell = shellQuery.data
   const detalle = detalleQuery.data
 
-  /** KPIs del día/mes al instante; saldos de cartera se completan con detalle. */
+  /** Colocación desde shell; cobranza/flujo/cartera se completan con detalle. */
   const r = useMemo(() => {
     const base = shell?.resumen
-    if (!base) {
+    if (!base || !shell) {
       return null
     }
+
+    let next = { ...base }
     const c = detalle?.cartera
-    if (!c) {
-      return base
+    if (c) {
+      next = {
+        ...next,
+        totalClientes: c.totalClientes,
+        saldoCartera: c.saldoCartera,
+        saldoCreditos: c.saldoCreditos,
+        saldoMoraCartera: c.saldoMoraCartera,
+        saldoVencido: c.saldoVencido,
+        saldoMorosidad: c.saldoMorosidad,
+        clientesMora: c.clientesMora,
+      }
     }
-    return {
-      ...base,
-      totalClientes: c.totalClientes,
-      saldoCartera: c.saldoCartera,
-      saldoCreditos: c.saldoCreditos,
-      saldoMoraCartera: c.saldoMoraCartera,
-      saldoVencido: c.saldoVencido,
-      saldoMorosidad: c.saldoMorosidad,
-      clientesMora: c.clientesMora,
+
+    const hist = detalle?.historico
+    if (hist && hist.length > 0) {
+      const hoy = dayKey(shell.fechaConsulta)
+      const byDay = new Map(hist.map((h) => [dayKey(h.fecha), h]))
+      const hHoy = byDay.get(hoy)
+      const hAyer = byDay.get(shiftDay(hoy, -1))
+      const hAnte = byDay.get(shiftDay(hoy, -2))
+      if (hHoy) {
+        next.cobradoHoy = hHoy.cobrado
+        next.entradasHoy = hHoy.entradas
+        next.salidasHoy = hHoy.salidas
+        next.flujoNetoHoy = hHoy.flujoNeto
+      }
+      if (hAyer) {
+        next.cobradoAyer = hAyer.cobrado
+        next.entradasAyer = hAyer.entradas
+        next.salidasAyer = hAyer.salidas
+        next.flujoNetoAyer = hAyer.flujoNeto
+      }
+      if (hAnte) {
+        next.cobradoAnteayer = hAnte.cobrado
+        next.entradasAnteayer = hAnte.entradas
+        next.salidasAnteayer = hAnte.salidas
+        next.flujoNetoAnteayer = hAnte.flujoNeto
+      }
+      next.variacionCobradoHoyPct = variacionPct(next.cobradoHoy, next.cobradoAyer)
+      next.variacionFlujoHoyPct = variacionPct(next.flujoNetoHoy, next.flujoNetoAyer)
     }
-  }, [shell?.resumen, detalle?.cartera])
+
+    const mensual = detalle?.historicoMensual
+    if (mensual && mensual.length > 0) {
+      const actual = mensual.find((m) => m.esMesActual)
+      const anterior = mensual
+        .filter((m) => !m.esMesActual)
+        .sort((a, b) => dayKey(b.fechaMes).localeCompare(dayKey(a.fechaMes)))[0]
+      if (actual) {
+        next.cobradoMesActual = actual.cobrado
+        next.entradasMesActual = actual.entradas
+        next.salidasMesActual = actual.salidas
+        next.flujoNetoMesActual = actual.flujoNeto
+      }
+      if (anterior) {
+        next.cobradoMesAnteriorComparable = anterior.cobrado
+        next.entradasMesAnteriorComparable = anterior.entradas
+        next.salidasMesAnteriorComparable = anterior.salidas
+        next.flujoNetoMesAnteriorComparable = anterior.flujoNeto
+      }
+      next.variacionCobradoMesPct = variacionPct(
+        next.cobradoMesActual,
+        next.cobradoMesAnteriorComparable,
+      )
+      next.variacionFlujoMesPct = variacionPct(
+        next.flujoNetoMesActual,
+        next.flujoNetoMesAnteriorComparable,
+      )
+    }
+
+    return next
+  }, [shell, detalle?.cartera, detalle?.historico, detalle?.historicoMensual])
 
   const carteraReady = !!detalle?.cartera
   const detalleReady = !!detalle
@@ -275,7 +335,7 @@ export function AdminDashboardPage() {
           <p className="dash-refresh-hint" role="status">
             {detalleReady
               ? 'Actualizando indicadores…'
-              : 'KPIs listos · cargando cartera, gráficos y analistas…'}
+              : 'Colocación lista · cargando cobranza, cartera, gráficos y analistas…'}
           </p>
         ) : null}
         <header className="dash-head">
@@ -568,6 +628,26 @@ export function AdminDashboardPage() {
       </div>
     </CredixPage>
   )
+}
+
+function dayKey(iso: string): string {
+  return iso.slice(0, 10)
+}
+
+function shiftDay(isoDay: string, delta: number): string {
+  const d = new Date(`${isoDay}T12:00:00`)
+  d.setDate(d.getDate() + delta)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+function variacionPct(actual: number, anterior: number): number | null {
+  if (anterior === 0) {
+    return actual === 0 ? 0 : null
+  }
+  return Math.round(((actual - anterior) / Math.abs(anterior)) * 1000) / 10
 }
 
 function FlujoLista({ rows }: { rows: DashboardAdminFlujoRow[] }) {

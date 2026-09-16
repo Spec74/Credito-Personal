@@ -9,21 +9,24 @@ namespace Credito.Modern.Infrastructure.Dashboard;
 /// <summary>
 /// Tablero gerencial optimizado. Replica la semántica de salida de
 /// <c>usp_DashboardAdmin*</c> acotada a <c>OficinaId</c> del JWT.
-/// Shell: KPIs sin PlanPago. Detalle: cartera vía #Saldos + flujo/históricos/analistas.
+/// Shell: solo colocación/meta (CREDITO.Credito + MAESTRO). Cobranza/flujo
+/// y cartera llegan vía detalle histórico (#Saldos + MovimientoCaja).
 /// </summary>
 public sealed class DashboardAdminReadService(
     IOptions<SqlDatabaseOptions> options,
     IMemoryCache cache) : IDashboardAdminReadService
 {
-    private const int ShellCommandTimeoutSeconds = 20;
+    private const int ShellCommandTimeoutSeconds = 15;
+    private const int OpsCommandTimeoutSeconds = 8;
     private const int DetalleCommandTimeoutSeconds = 60;
     private static readonly TimeSpan ShellCacheTtl = TimeSpan.FromSeconds(90);
     private static readonly TimeSpan DetalleCacheTtl = TimeSpan.FromSeconds(180);
     private static readonly TimeSpan CombinedCacheTtl = TimeSpan.FromSeconds(90);
 
     /// <summary>
-    /// Shell sin PlanPago ni #temp: Coloc/Cob/Flujo/Vencer + conteo barato de clientes.
-    /// Saldos de cartera llegan en cero; detalle los completa vía #Saldos.
+    /// Shell = colocación/meta only (Coloc, Vencer, Clientes, TotalAnalistas).
+    /// Cobrado*/Entradas*/Salidas* y saldos de cartera van en cero;
+    /// cobranza/flujo llegan vía detalle histórico.
     /// </summary>
     private static readonly string SqlShell = """
         DECLARE @Hoy date = dbo.ufnFecha();
@@ -63,42 +66,6 @@ public sealed class DashboardAdminReadService(
               AND c.FechaVencimiento >= @Hoy
               AND c.FechaVencimiento < @LimiteVencer
         ),
-        Cob AS (
-            SELECT
-                SUM(CASE WHEN m.FechaReg >= @Hoy AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END) AS CobradoHoy,
-                SUM(CASE WHEN m.FechaReg >= @Ayer AND m.FechaReg < @Hoy THEN m.ImportePago ELSE 0 END) AS CobradoAyer,
-                SUM(CASE WHEN m.FechaReg >= @Anteayer AND m.FechaReg < @Ayer THEN m.ImportePago ELSE 0 END) AS CobradoAnteayer,
-                SUM(CASE WHEN m.FechaReg >= @InicioMes AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END) AS CobradoMesActual,
-                SUM(CASE WHEN m.FechaReg >= @InicioMesAnterior AND m.FechaReg < @FinComparableAnterior THEN m.ImportePago ELSE 0 END) AS CobradoMesAnteriorComparable
-            FROM CREDITO.MovimientoCaja AS m
-            INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
-            WHERE c.OficinaId = @OficinaId
-              AND m.Operacion = 'CUO'
-              AND m.Estado = 1
-              AND m.ImportePago > 0
-              AND m.FechaReg >= @InicioMesAnterior
-              AND m.FechaReg < @Manana
-        ),
-        Flujo AS (
-            SELECT
-                SUM(CASE WHEN m.IndEntrada = 1 AND m.FechaReg >= @Hoy AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END) AS EntradasHoy,
-                SUM(CASE WHEN m.IndEntrada = 0 AND m.FechaReg >= @Hoy AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END) AS SalidasHoy,
-                SUM(CASE WHEN m.IndEntrada = 1 AND m.FechaReg >= @Ayer AND m.FechaReg < @Hoy THEN m.ImportePago ELSE 0 END) AS EntradasAyer,
-                SUM(CASE WHEN m.IndEntrada = 0 AND m.FechaReg >= @Ayer AND m.FechaReg < @Hoy THEN m.ImportePago ELSE 0 END) AS SalidasAyer,
-                SUM(CASE WHEN m.IndEntrada = 1 AND m.FechaReg >= @Anteayer AND m.FechaReg < @Ayer THEN m.ImportePago ELSE 0 END) AS EntradasAnteayer,
-                SUM(CASE WHEN m.IndEntrada = 0 AND m.FechaReg >= @Anteayer AND m.FechaReg < @Ayer THEN m.ImportePago ELSE 0 END) AS SalidasAnteayer,
-                SUM(CASE WHEN m.IndEntrada = 1 AND m.FechaReg >= @InicioMes AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END) AS EntradasMesActual,
-                SUM(CASE WHEN m.IndEntrada = 0 AND m.FechaReg >= @InicioMes AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END) AS SalidasMesActual,
-                SUM(CASE WHEN m.IndEntrada = 1 AND m.FechaReg >= @InicioMesAnterior AND m.FechaReg < @FinComparableAnterior THEN m.ImportePago ELSE 0 END) AS EntradasMesAnteriorComparable,
-                SUM(CASE WHEN m.IndEntrada = 0 AND m.FechaReg >= @InicioMesAnterior AND m.FechaReg < @FinComparableAnterior THEN m.ImportePago ELSE 0 END) AS SalidasMesAnteriorComparable
-            FROM CREDITO.MovimientoCaja AS m
-            INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
-            INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
-            WHERE ca.OficinaId = @OficinaId
-              AND m.Estado = 1
-              AND m.FechaReg >= @InicioMesAnterior
-              AND m.FechaReg < @Manana
-        ),
         Clientes AS (
             SELECT COUNT(DISTINCT c.PersonaId) AS TotalClientes
             FROM CREDITO.Credito AS c
@@ -133,21 +100,21 @@ public sealed class DashboardAdminReadService(
                ISNULL((SELECT DesembolsoAnteayer FROM Coloc), 0) AS DesembolsoAnteayer,
                ISNULL((SELECT DesembolsoMesActual FROM Coloc), 0) AS DesembolsoMesActual,
                ISNULL((SELECT DesembolsoMesAnteriorComparable FROM Coloc), 0) AS DesembolsoMesAnteriorComparable,
-               ISNULL((SELECT CobradoHoy FROM Cob), 0) AS CobradoHoy,
-               ISNULL((SELECT CobradoAyer FROM Cob), 0) AS CobradoAyer,
-               ISNULL((SELECT CobradoAnteayer FROM Cob), 0) AS CobradoAnteayer,
-               ISNULL((SELECT CobradoMesActual FROM Cob), 0) AS CobradoMesActual,
-               ISNULL((SELECT CobradoMesAnteriorComparable FROM Cob), 0) AS CobradoMesAnteriorComparable,
-               ISNULL((SELECT EntradasHoy FROM Flujo), 0) AS EntradasHoy,
-               ISNULL((SELECT SalidasHoy FROM Flujo), 0) AS SalidasHoy,
-               ISNULL((SELECT EntradasAyer FROM Flujo), 0) AS EntradasAyer,
-               ISNULL((SELECT SalidasAyer FROM Flujo), 0) AS SalidasAyer,
-               ISNULL((SELECT EntradasAnteayer FROM Flujo), 0) AS EntradasAnteayer,
-               ISNULL((SELECT SalidasAnteayer FROM Flujo), 0) AS SalidasAnteayer,
-               ISNULL((SELECT EntradasMesActual FROM Flujo), 0) AS EntradasMesActual,
-               ISNULL((SELECT SalidasMesActual FROM Flujo), 0) AS SalidasMesActual,
-               ISNULL((SELECT EntradasMesAnteriorComparable FROM Flujo), 0) AS EntradasMesAnteriorComparable,
-               ISNULL((SELECT SalidasMesAnteriorComparable FROM Flujo), 0) AS SalidasMesAnteriorComparable,
+               CAST(0 AS decimal(16, 2)) AS CobradoHoy,
+               CAST(0 AS decimal(16, 2)) AS CobradoAyer,
+               CAST(0 AS decimal(16, 2)) AS CobradoAnteayer,
+               CAST(0 AS decimal(16, 2)) AS CobradoMesActual,
+               CAST(0 AS decimal(16, 2)) AS CobradoMesAnteriorComparable,
+               CAST(0 AS decimal(16, 2)) AS EntradasHoy,
+               CAST(0 AS decimal(16, 2)) AS SalidasHoy,
+               CAST(0 AS decimal(16, 2)) AS EntradasAyer,
+               CAST(0 AS decimal(16, 2)) AS SalidasAyer,
+               CAST(0 AS decimal(16, 2)) AS EntradasAnteayer,
+               CAST(0 AS decimal(16, 2)) AS SalidasAnteayer,
+               CAST(0 AS decimal(16, 2)) AS EntradasMesActual,
+               CAST(0 AS decimal(16, 2)) AS SalidasMesActual,
+               CAST(0 AS decimal(16, 2)) AS EntradasMesAnteriorComparable,
+               CAST(0 AS decimal(16, 2)) AS SalidasMesAnteriorComparable,
                CAST(0 AS decimal(16, 2)) AS SaldoCartera,
                CAST(0 AS decimal(16, 2)) AS SaldoCreditos,
                CAST(0 AS decimal(16, 2)) AS SaldoMoraCartera,
@@ -155,6 +122,64 @@ public sealed class DashboardAdminReadService(
                CAST(0 AS decimal(16, 2)) AS SaldoMorosidad,
                0 AS ClientesMora,
                ISNULL((SELECT CreditosPorVencerSemana FROM Vencer), 0) AS CreditosPorVencerSemana;
+        """;
+
+    /// <summary>Cobranza CUO acotada (best-effort, no bloquea el shell).</summary>
+    private static readonly string SqlShellCob = """
+        DECLARE @Hoy date = dbo.ufnFecha();
+        DECLARE @Ayer date = DATEADD(DAY, -1, @Hoy);
+        DECLARE @Anteayer date = DATEADD(DAY, -2, @Hoy);
+        DECLARE @Manana date = DATEADD(DAY, 1, @Hoy);
+        DECLARE @InicioMes date = DATEFROMPARTS(YEAR(@Hoy), MONTH(@Hoy), 1);
+        DECLARE @InicioMesAnterior date = DATEADD(MONTH, -1, @InicioMes);
+        DECLARE @DiasTranscurridos int = DATEDIFF(DAY, @InicioMes, @Manana);
+        DECLARE @FinComparableAnterior date = DATEADD(DAY, @DiasTranscurridos, @InicioMesAnterior);
+
+        SELECT
+            ISNULL(SUM(CASE WHEN m.FechaReg >= @Hoy AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END), 0) AS CobradoHoy,
+            ISNULL(SUM(CASE WHEN m.FechaReg >= @Ayer AND m.FechaReg < @Hoy THEN m.ImportePago ELSE 0 END), 0) AS CobradoAyer,
+            ISNULL(SUM(CASE WHEN m.FechaReg >= @Anteayer AND m.FechaReg < @Ayer THEN m.ImportePago ELSE 0 END), 0) AS CobradoAnteayer,
+            ISNULL(SUM(CASE WHEN m.FechaReg >= @InicioMes AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END), 0) AS CobradoMesActual,
+            ISNULL(SUM(CASE WHEN m.FechaReg >= @InicioMesAnterior AND m.FechaReg < @FinComparableAnterior THEN m.ImportePago ELSE 0 END), 0) AS CobradoMesAnteriorComparable
+        FROM CREDITO.MovimientoCaja AS m
+        INNER JOIN CREDITO.Credito AS c ON c.CreditoId = m.CreditoId
+        WHERE c.OficinaId = @OficinaId
+          AND m.Operacion = 'CUO'
+          AND m.Estado = 1
+          AND m.ImportePago > 0
+          AND m.FechaReg >= @InicioMesAnterior
+          AND m.FechaReg < @Manana;
+        """;
+
+    /// <summary>Flujo de caja por oficina (best-effort, no bloquea el shell).</summary>
+    private static readonly string SqlShellFlujo = """
+        DECLARE @Hoy date = dbo.ufnFecha();
+        DECLARE @Ayer date = DATEADD(DAY, -1, @Hoy);
+        DECLARE @Anteayer date = DATEADD(DAY, -2, @Hoy);
+        DECLARE @Manana date = DATEADD(DAY, 1, @Hoy);
+        DECLARE @InicioMes date = DATEFROMPARTS(YEAR(@Hoy), MONTH(@Hoy), 1);
+        DECLARE @InicioMesAnterior date = DATEADD(MONTH, -1, @InicioMes);
+        DECLARE @DiasTranscurridos int = DATEDIFF(DAY, @InicioMes, @Manana);
+        DECLARE @FinComparableAnterior date = DATEADD(DAY, @DiasTranscurridos, @InicioMesAnterior);
+
+        SELECT
+            ISNULL(SUM(CASE WHEN m.IndEntrada = 1 AND m.FechaReg >= @Hoy AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END), 0) AS EntradasHoy,
+            ISNULL(SUM(CASE WHEN m.IndEntrada = 0 AND m.FechaReg >= @Hoy AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END), 0) AS SalidasHoy,
+            ISNULL(SUM(CASE WHEN m.IndEntrada = 1 AND m.FechaReg >= @Ayer AND m.FechaReg < @Hoy THEN m.ImportePago ELSE 0 END), 0) AS EntradasAyer,
+            ISNULL(SUM(CASE WHEN m.IndEntrada = 0 AND m.FechaReg >= @Ayer AND m.FechaReg < @Hoy THEN m.ImportePago ELSE 0 END), 0) AS SalidasAyer,
+            ISNULL(SUM(CASE WHEN m.IndEntrada = 1 AND m.FechaReg >= @Anteayer AND m.FechaReg < @Ayer THEN m.ImportePago ELSE 0 END), 0) AS EntradasAnteayer,
+            ISNULL(SUM(CASE WHEN m.IndEntrada = 0 AND m.FechaReg >= @Anteayer AND m.FechaReg < @Ayer THEN m.ImportePago ELSE 0 END), 0) AS SalidasAnteayer,
+            ISNULL(SUM(CASE WHEN m.IndEntrada = 1 AND m.FechaReg >= @InicioMes AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END), 0) AS EntradasMesActual,
+            ISNULL(SUM(CASE WHEN m.IndEntrada = 0 AND m.FechaReg >= @InicioMes AND m.FechaReg < @Manana THEN m.ImportePago ELSE 0 END), 0) AS SalidasMesActual,
+            ISNULL(SUM(CASE WHEN m.IndEntrada = 1 AND m.FechaReg >= @InicioMesAnterior AND m.FechaReg < @FinComparableAnterior THEN m.ImportePago ELSE 0 END), 0) AS EntradasMesAnteriorComparable,
+            ISNULL(SUM(CASE WHEN m.IndEntrada = 0 AND m.FechaReg >= @InicioMesAnterior AND m.FechaReg < @FinComparableAnterior THEN m.ImportePago ELSE 0 END), 0) AS SalidasMesAnteriorComparable
+        FROM CREDITO.MovimientoCaja AS m
+        INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = m.CajaDiarioId
+        INNER JOIN CREDITO.Caja AS ca ON ca.CajaId = cd.CajaId
+        WHERE ca.OficinaId = @OficinaId
+          AND m.Estado = 1
+          AND m.FechaReg >= @InicioMesAnterior
+          AND m.FechaReg < @Manana;
         """;
 
     private const string SqlPreamble = """
@@ -530,6 +555,10 @@ public sealed class DashboardAdminReadService(
         return dto;
     }
 
+    /// <summary>
+    /// Shell rápido: colocación/meta siempre. Cobranza/flujo en paralelo best-effort (8s);
+    /// si Azure SQL tarda, el shell igual responde y el detalle completa los huecos.
+    /// </summary>
     public async Task<DashboardAdminShellDto> ObtenerShellAsync(
         int oficinaId,
         CancellationToken cancellationToken = default)
@@ -543,25 +572,59 @@ public sealed class DashboardAdminReadService(
             return cached;
         }
 
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var coreTask = QueryCoreShellAsync(oficinaId, cancellationToken);
+        var cobTask = TryQueryAsync<CobRow>(SqlShellCob, oficinaId, OpsCommandTimeoutSeconds, cancellationToken);
+        var flujoTask = TryQueryAsync<FlujoRow>(SqlShellFlujo, oficinaId, OpsCommandTimeoutSeconds, cancellationToken);
+        await Task.WhenAll(coreTask, cobTask, flujoTask).ConfigureAwait(false);
 
-        var raw = await connection.QuerySingleAsync<ResumenRow>(
-            new CommandDefinition(
-                SqlShell,
-                new { OficinaId = oficinaId },
-                commandTimeout: ShellCommandTimeoutSeconds,
-                cancellationToken: cancellationToken)).ConfigureAwait(false);
-
+        var raw = await coreTask.ConfigureAwait(false);
+        var resumen = MapResumen(raw, await cobTask.ConfigureAwait(false), await flujoTask.ConfigureAwait(false));
         var dto = new DashboardAdminShellDto(
             NombreOficina: string.IsNullOrWhiteSpace(raw.NombreOficina)
                 ? "Oficina"
                 : raw.NombreOficina.Trim(),
             FechaConsulta: raw.FechaConsulta,
-            Resumen: MapResumen(raw));
+            Resumen: resumen);
 
         cache.Set(cacheKey, dto, ShellCacheTtl);
         return dto;
+    }
+
+    private async Task<ResumenRow> QueryCoreShellAsync(int oficinaId, CancellationToken cancellationToken)
+    {
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        return await connection.QuerySingleAsync<ResumenRow>(
+            new CommandDefinition(
+                SqlShell,
+                new { OficinaId = oficinaId },
+                commandTimeout: ShellCommandTimeoutSeconds,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
+
+    private async Task<T?> TryQueryAsync<T>(
+        string sql,
+        int oficinaId,
+        int timeoutSeconds,
+        CancellationToken cancellationToken)
+        where T : class
+    {
+        try
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return await connection.QuerySingleOrDefaultAsync<T>(
+                new CommandDefinition(
+                    sql,
+                    new { OficinaId = oficinaId },
+                    commandTimeout: timeoutSeconds,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+        }
+        catch (Exception)
+        {
+            // Best-effort: el shell no debe fallar por cobranza/flujo lentos.
+            return null;
+        }
     }
 
     public async Task<DashboardAdminDetalleDto> ObtenerDetalleAsync(
@@ -630,13 +693,33 @@ public sealed class DashboardAdminReadService(
             ClientesMora = cartera.ClientesMora
         };
 
-    private static DashboardAdminResumenDto MapResumen(ResumenRow r)
+    private static DashboardAdminResumenDto MapResumen(
+        ResumenRow r,
+        CobRow? cob = null,
+        FlujoRow? flujo = null)
     {
-        var flujoHoy = r.EntradasHoy - r.SalidasHoy;
-        var flujoAyer = r.EntradasAyer - r.SalidasAyer;
-        var flujoAnteayer = r.EntradasAnteayer - r.SalidasAnteayer;
-        var flujoMes = r.EntradasMesActual - r.SalidasMesActual;
-        var flujoMesAnt = r.EntradasMesAnteriorComparable - r.SalidasMesAnteriorComparable;
+        var cobradoHoy = cob?.CobradoHoy ?? r.CobradoHoy;
+        var cobradoAyer = cob?.CobradoAyer ?? r.CobradoAyer;
+        var cobradoAnteayer = cob?.CobradoAnteayer ?? r.CobradoAnteayer;
+        var cobradoMes = cob?.CobradoMesActual ?? r.CobradoMesActual;
+        var cobradoMesAnt = cob?.CobradoMesAnteriorComparable ?? r.CobradoMesAnteriorComparable;
+
+        var entradasHoy = flujo?.EntradasHoy ?? r.EntradasHoy;
+        var salidasHoy = flujo?.SalidasHoy ?? r.SalidasHoy;
+        var entradasAyer = flujo?.EntradasAyer ?? r.EntradasAyer;
+        var salidasAyer = flujo?.SalidasAyer ?? r.SalidasAyer;
+        var entradasAnteayer = flujo?.EntradasAnteayer ?? r.EntradasAnteayer;
+        var salidasAnteayer = flujo?.SalidasAnteayer ?? r.SalidasAnteayer;
+        var entradasMes = flujo?.EntradasMesActual ?? r.EntradasMesActual;
+        var salidasMes = flujo?.SalidasMesActual ?? r.SalidasMesActual;
+        var entradasMesAnt = flujo?.EntradasMesAnteriorComparable ?? r.EntradasMesAnteriorComparable;
+        var salidasMesAnt = flujo?.SalidasMesAnteriorComparable ?? r.SalidasMesAnteriorComparable;
+
+        var flujoHoy = entradasHoy - salidasHoy;
+        var flujoAyer = entradasAyer - salidasAyer;
+        var flujoAnteayer = entradasAnteayer - salidasAnteayer;
+        var flujoMes = entradasMes - salidasMes;
+        var flujoMesAnt = entradasMesAnt - salidasMesAnt;
 
         return new DashboardAdminResumenDto(
             r.TotalAnalistas,
@@ -655,27 +738,27 @@ public sealed class DashboardAdminReadService(
             r.DesembolsoMesAnteriorComparable,
             DashboardAnalistaInsights.VariacionPorcentaje(r.DesembolsoHoy, r.DesembolsoAyer),
             DashboardAnalistaInsights.VariacionPorcentaje(r.DesembolsoMesActual, r.DesembolsoMesAnteriorComparable),
-            r.CobradoHoy,
-            r.CobradoAyer,
-            r.CobradoAnteayer,
-            r.CobradoMesActual,
-            r.CobradoMesAnteriorComparable,
-            DashboardAnalistaInsights.VariacionPorcentaje(r.CobradoHoy, r.CobradoAyer),
-            DashboardAnalistaInsights.VariacionPorcentaje(r.CobradoMesActual, r.CobradoMesAnteriorComparable),
-            r.EntradasHoy,
-            r.SalidasHoy,
+            cobradoHoy,
+            cobradoAyer,
+            cobradoAnteayer,
+            cobradoMes,
+            cobradoMesAnt,
+            DashboardAnalistaInsights.VariacionPorcentaje(cobradoHoy, cobradoAyer),
+            DashboardAnalistaInsights.VariacionPorcentaje(cobradoMes, cobradoMesAnt),
+            entradasHoy,
+            salidasHoy,
             flujoHoy,
-            r.EntradasAyer,
-            r.SalidasAyer,
+            entradasAyer,
+            salidasAyer,
             flujoAyer,
-            r.EntradasAnteayer,
-            r.SalidasAnteayer,
+            entradasAnteayer,
+            salidasAnteayer,
             flujoAnteayer,
-            r.EntradasMesActual,
-            r.SalidasMesActual,
+            entradasMes,
+            salidasMes,
             flujoMes,
-            r.EntradasMesAnteriorComparable,
-            r.SalidasMesAnteriorComparable,
+            entradasMesAnt,
+            salidasMesAnt,
             flujoMesAnt,
             DashboardAnalistaInsights.VariacionPorcentaje(flujoHoy, flujoAyer),
             DashboardAnalistaInsights.VariacionPorcentaje(flujoMes, flujoMesAnt),
@@ -766,5 +849,28 @@ public sealed class DashboardAdminReadService(
         public decimal CobradoMesAnteriorComparable { get; init; }
         public int ClientesMora { get; init; }
         public decimal MontoMora { get; init; }
+    }
+
+    private sealed class CobRow
+    {
+        public decimal CobradoHoy { get; init; }
+        public decimal CobradoAyer { get; init; }
+        public decimal CobradoAnteayer { get; init; }
+        public decimal CobradoMesActual { get; init; }
+        public decimal CobradoMesAnteriorComparable { get; init; }
+    }
+
+    private sealed class FlujoRow
+    {
+        public decimal EntradasHoy { get; init; }
+        public decimal SalidasHoy { get; init; }
+        public decimal EntradasAyer { get; init; }
+        public decimal SalidasAyer { get; init; }
+        public decimal EntradasAnteayer { get; init; }
+        public decimal SalidasAnteayer { get; init; }
+        public decimal EntradasMesActual { get; init; }
+        public decimal SalidasMesActual { get; init; }
+        public decimal EntradasMesAnteriorComparable { get; init; }
+        public decimal SalidasMesAnteriorComparable { get; init; }
     }
 }
