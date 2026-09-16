@@ -86,34 +86,68 @@ export function AdminDashboardPage() {
 
   const columns: ColumnsType<DashboardAdminAnalistaRow> = useMemo(
     () => [
-      { title: 'Analista', dataIndex: 'nombreCompleto', ellipsis: true },
-      { title: 'Clientes', dataIndex: 'totalClientes', width: 90, align: 'right', render: (v: number) => formatEntero(v) },
+      { title: 'Analista', dataIndex: 'nombreCompleto', ellipsis: true, fixed: 'left', width: 180 },
+      { title: 'Clientes', dataIndex: 'totalClientes', width: 88, align: 'right', render: (v: number) => formatEntero(v) },
       { title: 'Nuevos', dataIndex: 'clientesNuevosMes', width: 80, align: 'right', render: (v: number) => formatEntero(v) },
-      { title: 'Coloc.', dataIndex: 'colocacionesMes', width: 80, align: 'right', render: (v: number) => formatEntero(v) },
       {
-        title: 'Desembolsado',
-        dataIndex: 'desembolsoMes',
-        width: 120,
+        title: 'Coloc. hoy',
+        dataIndex: 'colocacionesHoy',
+        width: 88,
+        align: 'right',
+        render: (v: number) => formatEntero(v),
+      },
+      {
+        title: 'Coloc. mes',
+        dataIndex: 'colocacionesMes',
+        width: 88,
+        align: 'right',
+        render: (v: number) => formatEntero(v),
+      },
+      {
+        title: 'Desemb. hoy',
+        dataIndex: 'desembolsoHoy',
+        width: 118,
         align: 'right',
         render: (v: number) => `S/ ${formatMoney(v)}`,
       },
       {
-        title: 'Cobrado',
+        title: 'Desemb. mes',
+        dataIndex: 'desembolsoMes',
+        width: 118,
+        align: 'right',
+        render: (v: number) => `S/ ${formatMoney(v)}`,
+      },
+      {
+        title: 'Cobrado hoy',
+        dataIndex: 'cobradoHoy',
+        width: 118,
+        align: 'right',
+        render: (v: number) => `S/ ${formatMoney(v)}`,
+      },
+      {
+        title: 'Cobrado mes',
         dataIndex: 'cobradoMes',
-        width: 120,
+        width: 118,
         align: 'right',
         render: (v: number) => `S/ ${formatMoney(v)}`,
       },
       {
         title: 'Mora',
         dataIndex: 'clientesMora',
-        width: 90,
+        width: 100,
         align: 'right',
         render: (_: number, row) => (
           <Tag color={row.porcentajeMora >= 30 ? 'red' : row.clientesMora > 0 ? 'gold' : 'green'}>
             {formatEntero(row.clientesMora)} ({row.porcentajeMora.toFixed(1)}%)
           </Tag>
         ),
+      },
+      {
+        title: 'Monto mora',
+        dataIndex: 'montoMora',
+        width: 118,
+        align: 'right',
+        render: (v: number) => `S/ ${formatMoney(v)}`,
       },
       {
         title: 'Tendencia',
@@ -155,7 +189,7 @@ export function AdminDashboardPage() {
   return (
     <CredixPage
       title="Inicio"
-      subtitle={`Seguimiento diario y mensual de ${data.nombreOficina}.`}
+      subtitle={`Indicadores de cobranza, colocación y cartera · ${data.nombreOficina}`}
       actions={
         <>
           <Link to="/inicio?vista=modulos">
@@ -173,12 +207,18 @@ export function AdminDashboardPage() {
       }
     >
       <div className="dash-analista dash-admin">
+        {query.isFetching && data ? (
+          <p className="dash-refresh-hint" role="status">
+            Actualizando indicadores…
+          </p>
+        ) : null}
         <header className="dash-head">
           <div>
             <p className="dash-kicker">Tablero gerencial</p>
             <h2 className="dash-hello">{data.nombreOficina}</h2>
             <p className="dash-sub">
-              Toda la oficina de la sesión. El legado no filtraba oficina; aquí sí, con el JWT.
+              Vista completa de la oficina: operación del día, acumulado del mes, flujo de caja, tendencia y
+              rendimiento por analista.
             </p>
           </div>
           <div className="dash-date">{fechaLarga}</div>
@@ -395,7 +435,7 @@ export function AdminDashboardPage() {
               columns={columns}
               dataSource={analistas}
               locale={{ emptyText: 'No hay analistas activos en esta oficina' }}
-              scroll={{ x: 900 }}
+              scroll={{ x: 1400 }}
             />
           </div>
         </section>
@@ -403,8 +443,8 @@ export function AdminDashboardPage() {
         <section className="dash-panel">
           <div className="dash-panel-head">
             <div>
-              <h2>Atajos</h2>
-              <p>El mapa de módulos sigue disponible para el resto de la operación.</p>
+              <h2>Atajos operativos</h2>
+              <p>Acceso rápido a las pantallas que el gerente usa después de revisar el tablero.</p>
             </div>
           </div>
           <div className="dash-panel-body">

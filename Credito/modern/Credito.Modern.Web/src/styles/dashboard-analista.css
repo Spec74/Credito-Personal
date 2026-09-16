@@ -71,6 +71,15 @@
   color: var(--credix-text-muted);
 }
 
+.dash-refresh-hint {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--credix-primary, #1d4ed8);
+}
+
 .dash-kpi {
   background: #fff;
   border: 1px solid var(--credix-border);
