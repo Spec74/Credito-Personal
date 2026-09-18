@@ -166,7 +166,7 @@ internal static class ClienteEndpoints
                                 null,
                                 null,
                                 null,
-                                "Servicio de validación no disponible. Ingrese los datos manualmente y verifique la configuración de API Perú."));
+                                "No se pudo validar el DNI en este momento. Puede completar los nombres manualmente."));
                     }
                 })
             .WithName("ApiPeruConsultarDni")
@@ -195,7 +195,7 @@ internal static class ClienteEndpoints
                                 false,
                                 null,
                                 null,
-                                "Servicio de validación no disponible. Ingrese los datos manualmente y verifique la configuración de API Perú."));
+                                "No se pudo validar el RUC en este momento. Puede completar los datos manualmente."));
                     }
                 })
             .WithName("ApiPeruConsultarRuc")

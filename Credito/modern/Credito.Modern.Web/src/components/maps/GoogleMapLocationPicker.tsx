@@ -80,7 +80,9 @@ export function GoogleMapLocationPicker({
 
   useEffect(() => {
     if (!isGoogleMapsConfigured()) {
-      setError('Falta VITE_GOOGLE_MAPS_API_KEY en el entorno de la SPA.')
+      setError(
+        'Google Maps no está configurado en este entorno. Redeploye la SPA con VITE_GOOGLE_MAPS_API_KEY (Vercel → Environment Variables o build.env) y restrinja la clave al dominio en Google Cloud.',
+      )
       setLoading(false)
       return
     }

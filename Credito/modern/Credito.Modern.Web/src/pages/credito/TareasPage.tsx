@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  UnorderedListOutlined,
   CheckOutlined,
   EditOutlined,
   FilePdfOutlined,
@@ -318,7 +319,7 @@ export function TareasPage() {
               Actualizar
             </Button>
             <Link to={`/informes/credito-tarea?estado=${filtro === 'TODAS' ? 'PEN' : filtro}`}>
-              <Button>Informe detallado</Button>
+              <Button icon={<UnorderedListOutlined />}>Informe detallado</Button>
             </Link>
             {puedeEditar ? (
               <>

@@ -359,27 +359,37 @@ export function SimuladorCreditoPage() {
       return { tipo: 'N' as const, data: await consultarDniApiPeru(documento) }
     },
     onSuccess: (ret) => {
-      if (!ret.data.success) {
-        message.warning(ret.data.mensaje ?? 'Documento no encontrado')
+      const data = ret.data
+      const tieneDatos =
+        ret.tipo === 'J'
+          ? Boolean(data.success && data.razonSocial?.trim())
+          : Boolean(
+              data.success &&
+                (data.nombres?.trim() ||
+                  data.apellidoPaterno?.trim() ||
+                  data.apellidoMaterno?.trim()),
+            )
+      if (!tieneDatos) {
+        message.info(data.mensaje?.trim() || 'Documento no encontrado. Complete los datos manualmente.')
         return
       }
       if (ret.tipo === 'J') {
         form.setFieldsValue({
-          nombre: ret.data.razonSocial ?? '',
+          nombre: data.razonSocial ?? '',
           apePaterno: '',
           apeMaterno: '',
-          direccionNegocio: ret.data.direccion ?? undefined,
+          direccionNegocio: data.direccion ?? undefined,
         })
       } else {
         form.setFieldsValue({
-          nombre: ret.data.nombres ?? '',
-          apePaterno: ret.data.apellidoPaterno ?? '',
-          apeMaterno: ret.data.apellidoMaterno ?? '',
+          nombre: data.nombres ?? '',
+          apePaterno: data.apellidoPaterno ?? '',
+          apeMaterno: data.apellidoMaterno ?? '',
         })
       }
-      message.success('Documento validado con API Perú')
+      message.success('Documento validado correctamente')
     },
-    onError: (e) => message.error(e instanceof Error ? e.message : errMsg(e)),
+    onError: (e) => message.info(e instanceof Error ? e.message : errMsg(e)),
   })
 
   useEffect(() => {

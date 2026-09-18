@@ -314,10 +314,14 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
       }
       if (tipoPersona === 'N') {
         const r = await consultarDniApiPeru(doc)
-        if (!r.success) {
+        const tieneDatos = Boolean(
+          r.success && (r.nombres?.trim() || r.apellidoPaterno?.trim() || r.apellidoMaterno?.trim()),
+        )
+        if (!tieneDatos) {
           setNombresBloqueados(false)
-          message.warning(
-            `${r.mensaje ?? 'DNI no encontrado en RENIEC'}. Puede completar los nombres manualmente.`,
+          message.info(
+            r.mensaje?.trim() ||
+              'No se encontraron datos para este DNI. Puede completar los nombres manualmente.',
           )
           return
         }
@@ -328,10 +332,12 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
         })
       } else {
         const r = await consultarRucApiPeru(doc)
-        if (!r.success) {
+        const tieneDatos = Boolean(r.success && r.razonSocial?.trim())
+        if (!tieneDatos) {
           setNombresBloqueados(false)
-          message.warning(
-            `${r.mensaje ?? 'RUC no encontrado en SUNAT'}. Puede completar los datos manualmente.`,
+          message.info(
+            r.mensaje?.trim() ||
+              'No se encontraron datos para este RUC. Puede completar los datos manualmente.',
           )
           return
         }
@@ -341,10 +347,10 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
         })
       }
       setNombresBloqueados(false)
-      message.success('Datos validados con ApiPeru')
+      message.success('Datos validados correctamente')
     } catch (e) {
       setNombresBloqueados(false)
-      message.error(
+      message.info(
         `${errMsg(e)}. Puede completar nombre y apellidos manualmente.`,
       )
     }

@@ -64,12 +64,16 @@ export function CrearPersonaRapidaModal({ onCreated }: Props) {
             return
           }
           const r = await consultarDniApiPeru(documento)
-          if (r.success) {
+          const ok = Boolean(
+            r.success && (r.nombres?.trim() || r.apellidoPaterno?.trim() || r.apellidoMaterno?.trim()),
+          )
+          if (ok) {
             setNombre(r.nombres ?? '')
             setPaterno(r.apellidoPaterno ?? '')
             setMaterno(r.apellidoMaterno ?? '')
+            message.success('Datos validados correctamente')
           } else {
-            message.warning(r.mensaje ?? 'DNI no encontrado')
+            message.info(r.mensaje ?? 'DNI no encontrado. Complete los datos manualmente.')
           }
         }}
       >

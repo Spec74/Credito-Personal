@@ -52,11 +52,43 @@
 }
 
 .credix-mobile-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
   background: #fff;
   border: 1px solid var(--credix-border, #dbe7f3);
   border-radius: 14px;
   box-shadow: 0 6px 18px rgb(15 23 42 / 5%);
   padding: 12px 14px;
+  min-width: 0;
+}
+
+.credix-mobile-card--selected {
+  border-color: var(--credix-brand, #1677ff);
+  box-shadow: 0 0 0 1px var(--credix-brand, #1677ff), 0 6px 18px rgb(15 23 42 / 8%);
+  background: #f5f9ff;
+}
+
+.credix-mobile-card__select {
+  flex: 0 0 auto;
+  padding-top: 2px;
+}
+
+.credix-mobile-card__select .ant-checkbox-wrapper {
+  min-width: 28px;
+  min-height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.credix-mobile-card__select .ant-checkbox-inner {
+  width: 20px;
+  height: 20px;
+}
+
+.credix-mobile-card__body {
+  flex: 1 1 auto;
   min-width: 0;
 }
 

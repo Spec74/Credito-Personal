@@ -147,6 +147,8 @@
 
   .credix-list-toolbar__actions .ant-space .ant-btn {
     width: 100%;
+    min-height: 40px;
+    justify-content: center;
   }
 
   .credix-list-toolbar__hint-long {
@@ -155,14 +157,6 @@
 
   .credix-list-toolbar__hint-short {
     display: inline;
-  }
-
-  .credix-list-toolbar__actions .ant-btn > span:not(.anticon) {
-    display: none;
-  }
-
-  .credix-list-toolbar__actions .ant-btn {
-    padding-inline: 10px;
   }
 
   .credix-list-toolbar__buscar .ant-input-search-button > span:not(.anticon) {

@@ -243,15 +243,25 @@
 
   .credito-tareas-toolbar__actions {
     justify-content: stretch;
+    width: 100%;
+  }
+
+  .credito-tareas-toolbar__actions .ant-space {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px !important;
+  }
+
+  .credito-tareas-toolbar__actions .ant-space-item {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 140px;
   }
 
   .credito-tareas-toolbar__actions .ant-btn {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .credito-tareas-toolbar__actions .ant-btn > span:not(.anticon) {
-    display: none;
+    width: 100%;
+    min-height: 40px;
+    justify-content: center;
   }
 
   .credito-tareas-buscar__row {

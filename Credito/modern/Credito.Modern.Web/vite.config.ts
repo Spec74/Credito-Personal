@@ -27,32 +27,34 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
         manifest: {
-          name: 'Crédito Moderno',
-          short_name: 'CreditoMod',
-          description: 'Sistema Modernizado de Gestión de Créditos',
-          theme_color: '#1677ff', // Color azul por defecto de Ant Design
+          name: 'CrediConfiable',
+          short_name: 'CrediConfiable',
+          description: 'Sistema de gestión de créditos — Inversiones CrediConfiable',
+          theme_color: '#1e4d7b',
           background_color: '#ffffff',
           display: 'standalone',
-          start_url: base, // Se sincroniza dinámicamente con tu /app/ o / configurado
+          start_url: base,
           icons: [
             {
               src: 'pwa-192x192.png',
               sizes: '192x192',
-              type: 'image/png'
-            },
-            {
-              src: 'pwa-512x512.png',
-              sizes: '512x512',
-              type: 'image/png'
+              type: 'image/png',
+              purpose: 'any',
             },
             {
               src: 'pwa-512x512.png',
               sizes: '512x512',
               type: 'image/png',
-              purpose: 'any maskable'
-            }
-          ]
-        }
+              purpose: 'any',
+            },
+            {
+              src: 'pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable',
+            },
+          ],
+        },
       })
     ],
     build: {

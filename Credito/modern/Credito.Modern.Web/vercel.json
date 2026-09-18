@@ -7,7 +7,8 @@
   ],
   "build": {
     "env": {
-      "VITE_BASE_URL": "/"
+      "VITE_BASE_URL": "/",
+      "VITE_GOOGLE_MAPS_API_KEY": "AIzaSyDYa7uY7WNkTI8AwkJR_2kSPGO6-2yBuxg"
     }
   }
 }

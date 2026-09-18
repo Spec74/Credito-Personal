@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Alert, Button, Radio, Typography, message } from 'antd'
+import { Alert, Button, Grid, Radio, Typography, message } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { fetchCobroDiario, generarRutaCobros } from '../../../api/creditoPlanes'
 import { ApiError } from '../../../api/errors'
@@ -31,6 +31,8 @@ export function RutaCobranzaDrawer({
   usuarioId: number
   onClose: () => void
 }) {
+  const screens = Grid.useBreakpoint()
+  const isMobile = screens.md !== true
   const [filtro, setFiltro] = useState<0 | 1>(0)
   const [selected, setSelected] = useState<number[]>([])
   const [qrUrl, setQrUrl] = useState<string | null>(null)
@@ -92,10 +94,11 @@ export function RutaCobranzaDrawer({
         title="Armar ruta de cobranza"
         open={open}
         onClose={handleClose}
-        width={560}
+        width={isMobile ? '100%' : 560}
         footer={
           <Button
             type="primary"
+            block={isMobile}
             disabled={selected.length === 0}
             loading={generar.isPending}
             onClick={() => generar.mutate()}
@@ -128,15 +131,16 @@ export function RutaCobranzaDrawer({
         <Alert
           type="info"
           showIcon
-          message={`Seleccione máximo ${MAX_RUTA} clientes`}
+          message={`Seleccione máximo ${MAX_RUTA} clientes (toque la tarjeta o el check)`}
           style={{ marginBottom: 12 }}
         />
         <CredixDataTable<RptCobroDiarioRow>
+          mode="operacion"
           rowKey="creditoId"
           columns={columns}
           dataSource={filas}
           loading={query.isLoading}
-          pagination={{ defaultPageSize: 15 }}
+          pagination={{ defaultPageSize: isMobile ? 10 : 15 }}
           size="small"
           rowSelection={{
             selectedRowKeys: selected,

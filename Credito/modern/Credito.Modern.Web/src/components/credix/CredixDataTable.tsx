@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type Key, type ReactNode } from 'react'
-import { Grid, Pagination, Table, type TableProps } from 'antd'
+import { Checkbox, Grid, Pagination, Table, type TableProps } from 'antd'
 import type { ColumnType, ColumnsType } from 'antd/es/table'
+import type { TableRowSelection } from 'antd/es/table/interface'
 import { useInformeTableSearch } from '../informes/InformeTableContext'
 import { enhanceInformeColumns, informeTableScrollX } from '../../utils/informeColumns'
 import { filterInformeTableRows } from '../../utils/informeTableFilter'
@@ -153,6 +154,7 @@ export function CredixDataTable<T extends object>(props: CredixDataTableProps<T>
     tableLayout,
     mobileCards = true,
     rowKey,
+    rowSelection,
     ...rest
   } = props
 
@@ -239,6 +241,7 @@ export function CredixDataTable<T extends object>(props: CredixDataTableProps<T>
         dataColumns={dataCols}
         actionColumns={actionCols}
         rowKey={rowKey}
+        rowSelection={rowSelection}
         onRow={rest.onRow}
         loading={rest.loading}
         locale={rest.locale}
@@ -266,6 +269,7 @@ export function CredixDataTable<T extends object>(props: CredixDataTableProps<T>
       tableLayout={tableLayout ?? (mode === 'operacion' ? 'auto' : undefined)}
       pagination={defaultPagination}
       scroll={resolvedScroll}
+      rowSelection={rowSelection}
       columns={enhancedColumns}
       dataSource={filteredData}
       rowKey={rowKey}
@@ -290,6 +294,7 @@ function CredixMobileCardList<T extends object>({
   dataColumns,
   actionColumns,
   rowKey,
+  rowSelection,
   pagination,
   onRow,
   loading,
@@ -300,6 +305,7 @@ function CredixMobileCardList<T extends object>({
   dataColumns: ColumnType<T>[]
   actionColumns: ColumnType<T>[]
   rowKey: TableProps<T>['rowKey']
+  rowSelection?: TableRowSelection<T>
   pagination:
     | false
     | {
@@ -326,6 +332,27 @@ function CredixMobileCardList<T extends object>({
         ? locale.emptyText()
         : locale.emptyText
   const isLoading = Boolean(loading)
+  const selectedKeys = new Set((rowSelection?.selectedRowKeys ?? []).map(String))
+  const selectionEnabled = Boolean(rowSelection)
+
+  const emitSelectionChange = (nextKeys: Key[], nextRows: T[]) => {
+    rowSelection?.onChange?.(nextKeys, nextRows, { type: 'all' })
+  }
+
+  const toggleKey = (key: Key, record: T, checked: boolean) => {
+    if (!rowSelection) return
+    const currentKeys = [...(rowSelection.selectedRowKeys ?? [])]
+    const keyStr = String(key)
+    let nextKeys: Key[]
+    if (checked) {
+      nextKeys = currentKeys.some((k) => String(k) === keyStr) ? currentKeys : [...currentKeys, key]
+    } else {
+      nextKeys = currentKeys.filter((k) => String(k) !== keyStr)
+    }
+    const keySet = new Set(nextKeys.map(String))
+    const nextRows = records.filter((r, i) => keySet.has(String(resolveRowKey(r, i, rowKey))))
+    emitSelectionChange(nextKeys, nextRows)
+  }
 
   return (
     <div
@@ -340,41 +367,69 @@ function CredixMobileCardList<T extends object>({
           const absoluteIndex = start + index
           const key = resolveRowKey(record, absoluteIndex, rowKey)
           const rowProps = onRow?.(record, absoluteIndex) ?? {}
+          const checkboxProps = rowSelection?.getCheckboxProps?.(record) ?? {}
+          const checked = selectedKeys.has(String(key))
+          const selectedClass = checked ? 'credix-mobile-card--selected' : ''
           return (
             <article
               key={key}
-              className={['credix-mobile-card', rowProps.className].filter(Boolean).join(' ')}
-              onClick={rowProps.onClick}
+              className={['credix-mobile-card', selectedClass, rowProps.className]
+                .filter(Boolean)
+                .join(' ')}
+              onClick={(e) => {
+                if (selectionEnabled && !(checkboxProps.disabled)) {
+                  const target = e.target as HTMLElement
+                  if (!target.closest('.credix-mobile-card__actions, a, button, .ant-btn')) {
+                    toggleKey(key, record, !checked)
+                  }
+                }
+                rowProps.onClick?.(e)
+              }}
               onDoubleClick={rowProps.onDoubleClick}
               style={rowProps.style}
             >
-              {dataColumns.map((col, colIdx) => {
-                const label = columnLabel(col) || `Campo ${colIdx + 1}`
-                const content = renderColumnCell(col, record, absoluteIndex)
-                if (colIdx === 0) {
-                  return (
-                    <div key={`${String(key)}-title`} className="credix-mobile-card__title">
-                      <span className="credix-mobile-card__title-label">{label}</span>
-                      <div className="credix-mobile-card__title-value">{content}</div>
-                    </div>
-                  )
-                }
-                return (
-                  <div key={`${String(key)}-${label}-${colIdx}`} className="credix-mobile-card__row">
-                    <span className="credix-mobile-card__label">{label}</span>
-                    <div className="credix-mobile-card__value">{content}</div>
-                  </div>
-                )
-              })}
-              {actionColumns.length > 0 ? (
-                <div className="credix-mobile-card__actions">
-                  {actionColumns.map((col, colIdx) => (
-                    <div key={`act-${String(key)}-${colIdx}`} className="credix-mobile-card__actions-inner">
-                      {renderColumnCell(col, record, absoluteIndex)}
-                    </div>
-                  ))}
+              {selectionEnabled ? (
+                <div className="credix-mobile-card__select">
+                  <Checkbox
+                    checked={checked}
+                    disabled={Boolean(checkboxProps.disabled)}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={(e) => toggleKey(key, record, e.target.checked)}
+                  />
                 </div>
               ) : null}
+              <div className="credix-mobile-card__body">
+                {dataColumns.map((col, colIdx) => {
+                  const label = columnLabel(col) || `Campo ${colIdx + 1}`
+                  const content = renderColumnCell(col, record, absoluteIndex)
+                  if (colIdx === 0) {
+                    return (
+                      <div key={`${String(key)}-title`} className="credix-mobile-card__title">
+                        <span className="credix-mobile-card__title-label">{label}</span>
+                        <div className="credix-mobile-card__title-value">{content}</div>
+                      </div>
+                    )
+                  }
+                  return (
+                    <div key={`${String(key)}-${label}-${colIdx}`} className="credix-mobile-card__row">
+                      <span className="credix-mobile-card__label">{label}</span>
+                      <div className="credix-mobile-card__value">{content}</div>
+                    </div>
+                  )
+                })}
+                {actionColumns.length > 0 ? (
+                  <div className="credix-mobile-card__actions">
+                    {actionColumns.map((col, colIdx) => (
+                      <div
+                        key={`act-${String(key)}-${colIdx}`}
+                        className="credix-mobile-card__actions-inner"
+                      >
+                        {renderColumnCell(col, record, absoluteIndex)}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
             </article>
           )
         })

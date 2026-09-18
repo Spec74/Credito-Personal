@@ -43,21 +43,29 @@
     padding: 8px 10px;
   }
 
-  .caja-verificar-pagos-actions .ant-btn > span:not(.anticon) {
-    display: none;
+  .caja-verificar-pagos-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .caja-verificar-pagos-actions .ant-btn {
-    padding-inline: 8px;
+    flex: 1 1 auto;
+    min-height: 40px;
+    justify-content: center;
   }
 }
 
 @media (max-width: 640px) {
-  .caja-verificar-pagos-actions .ant-btn > span:not(.anticon) {
-    display: none;
+  .caja-verificar-pagos-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .caja-verificar-pagos-actions .ant-btn {
-    padding-inline: 8px;
+    flex: 1 1 auto;
+    min-height: 40px;
+    justify-content: center;
   }
 }

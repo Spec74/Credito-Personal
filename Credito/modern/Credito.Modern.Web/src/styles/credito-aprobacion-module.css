@@ -421,12 +421,16 @@
     display: inline;
   }
 
-  .credito-aprobacion-actions .ant-btn span:not(.anticon) {
-    display: none;
+  .credito-aprobacion-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .credito-aprobacion-actions .ant-btn {
-    padding-inline: 8px;
+    flex: 1 1 auto;
+    min-height: 40px;
+    justify-content: center;
   }
 }
 

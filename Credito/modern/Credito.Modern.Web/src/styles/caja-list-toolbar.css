@@ -216,19 +216,12 @@
     display: inline;
   }
 
-  .caja-list-toolbar__actions .ant-btn > span:not(.anticon),
-  .caja-saldos-toolbar__actions .ant-btn > span:not(.anticon),
-  .caja-verificar-pagos-toolbar__actions .ant-btn > span:not(.anticon),
-  .caja-chica-toolbar__actions .ant-btn > span:not(.anticon),
-  .caja-maestro-toolbar__actions .ant-btn > span:not(.anticon) {
-    display: none;
-  }
-
   .caja-list-toolbar__actions .ant-btn,
   .caja-saldos-toolbar__actions .ant-btn,
   .caja-verificar-pagos-toolbar__actions .ant-btn,
   .caja-chica-toolbar__actions .ant-btn,
   .caja-maestro-toolbar__actions .ant-btn {
-    padding-inline: 10px;
+    min-height: 40px;
+    justify-content: center;
   }
 }

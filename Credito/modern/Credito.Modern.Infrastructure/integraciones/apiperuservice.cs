@@ -69,7 +69,7 @@ public sealed class ApiPeruService(IHttpClientFactory httpClientFactory, IOption
 
         return new ApiPeruRucDto(
             true,
-            envelope.Data.NombreORazonSocial,
+            envelope.Data.ResolvedNombre,
             envelope.Data.Direccion,
             null);
     }
@@ -80,8 +80,12 @@ public sealed class ApiPeruService(IHttpClientFactory httpClientFactory, IOption
     {
         if (string.IsNullOrWhiteSpace(_opts.Token))
         {
-            throw new InvalidOperationException(
-                "Configure ApiPeru:Token (user-secrets o variables de entorno).");
+            return new ApiPeruEnvelope<T>
+            {
+                Success = false,
+                Message =
+                    "Validación externa no configurada. Complete los datos manualmente.",
+            };
         }
 
         var client = httpClientFactory.CreateClient(nameof(ApiPeruService));
@@ -93,8 +97,12 @@ public sealed class ApiPeruService(IHttpClientFactory httpClientFactory, IOption
         var json = await res.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
         if (!res.IsSuccessStatusCode)
         {
-            throw new InvalidOperationException(
-                $"ApiPeru respondió {(int)res.StatusCode}.");
+            return new ApiPeruEnvelope<T>
+            {
+                Success = false,
+                Message =
+                    "No se pudo consultar el documento en este momento. Complete los datos manualmente.",
+            };
         }
 
         var envelope = JsonSerializer.Deserialize<ApiPeruEnvelope<T>>(json, JsonOpts);
@@ -129,6 +137,14 @@ public sealed class ApiPeruService(IHttpClientFactory httpClientFactory, IOption
     private sealed class RucPayload
     {
         public string? NombreORazonSocial { get; init; }
+        public string? Nombre { get; init; }
+        public string? RazonSocial { get; init; }
         public string? Direccion { get; init; }
+
+        public string? ResolvedNombre =>
+            FirstNonEmpty(NombreORazonSocial, Nombre, RazonSocial);
     }
+
+    private static string? FirstNonEmpty(params string?[] values) =>
+        values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
 }
