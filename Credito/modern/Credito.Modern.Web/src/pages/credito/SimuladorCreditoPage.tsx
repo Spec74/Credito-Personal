@@ -359,21 +359,12 @@ export function SimuladorCreditoPage() {
       return { tipo: 'N' as const, data: await consultarDniApiPeru(documento) }
     },
     onSuccess: (ret) => {
-      const data = ret.data
-      const tieneDatos =
-        ret.tipo === 'J'
-          ? Boolean(data.success && data.razonSocial?.trim())
-          : Boolean(
-              data.success &&
-                (data.nombres?.trim() ||
-                  data.apellidoPaterno?.trim() ||
-                  data.apellidoMaterno?.trim()),
-            )
-      if (!tieneDatos) {
-        message.info(data.mensaje?.trim() || 'Documento no encontrado. Complete los datos manualmente.')
-        return
-      }
       if (ret.tipo === 'J') {
+        const data = ret.data
+        if (!data.success || !data.razonSocial?.trim()) {
+          message.info(data.mensaje?.trim() || 'Documento no encontrado. Complete los datos manualmente.')
+          return
+        }
         form.setFieldsValue({
           nombre: data.razonSocial ?? '',
           apePaterno: '',
@@ -381,6 +372,14 @@ export function SimuladorCreditoPage() {
           direccionNegocio: data.direccion ?? undefined,
         })
       } else {
+        const data = ret.data
+        if (
+          !data.success ||
+          !(data.nombres?.trim() || data.apellidoPaterno?.trim() || data.apellidoMaterno?.trim())
+        ) {
+          message.info(data.mensaje?.trim() || 'Documento no encontrado. Complete los datos manualmente.')
+          return
+        }
         form.setFieldsValue({
           nombre: data.nombres ?? '',
           apePaterno: data.apellidoPaterno ?? '',

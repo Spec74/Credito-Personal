@@ -341,7 +341,7 @@ function CredixMobileCardList<T extends object>({
     rowSelection?.onChange?.(nextKeys, nextRows, { type: 'all' })
   }
 
-  const toggleKey = (key: Key, record: T, checked: boolean) => {
+  const toggleKey = (key: Key, checked: boolean) => {
     if (!rowSelection) return
     const currentKeys = [...(rowSelection.selectedRowKeys ?? [])]
     const keyStr = String(key)
@@ -382,7 +382,7 @@ function CredixMobileCardList<T extends object>({
                 if (selectionEnabled && !(checkboxProps.disabled)) {
                   const target = e.target as HTMLElement
                   if (!target.closest('.credix-mobile-card__actions, a, button, .ant-btn')) {
-                    toggleKey(key, record, !checked)
+                    toggleKey(key, !checked)
                   }
                 }
                 rowProps.onClick?.(e)
@@ -396,7 +396,7 @@ function CredixMobileCardList<T extends object>({
                     checked={checked}
                     disabled={Boolean(checkboxProps.disabled)}
                     onClick={(e) => e.stopPropagation()}
-                    onChange={(e) => toggleKey(key, record, e.target.checked)}
+                    onChange={(e) => toggleKey(key, e.target.checked)}
                   />
                 </div>
               ) : null}
