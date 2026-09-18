@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, DatePicker, Form, Select } from 'antd'
+import { Alert, Button, Form, Select } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
@@ -13,7 +13,8 @@ import {
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
-import { CredixDataTable, CredixInformePage } from '../../components/credix'
+import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../components/credix'
+
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import type { ReporteCreditoParams, RptCreditoRow } from '../../types/api'
@@ -23,7 +24,6 @@ import { CREDITO_ESTADO_REPORTE_OPTIONS } from '../../utils/creditoEstados'
 import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import { readUrlDay, readUrlUserId } from '../../utils/informeUrlParams'
 
-const { RangePicker } = DatePicker
 
 type FormValues = {
   oficinaId: number
@@ -165,7 +165,7 @@ export function ReporteCreditoPage() {
             <Select options={CREDITO_ESTADO_REPORTE_OPTIONS} style={{ width: 180 }} />
           </Form.Item>
           <Form.Item name="rango" rules={[{ required: true }]}>
-            <RangePicker format="DD/MM/YYYY" />
+            <CredixRangePicker format="DD/MM/YYYY" />
           </Form.Item>
           <Form.Item>
             <Button

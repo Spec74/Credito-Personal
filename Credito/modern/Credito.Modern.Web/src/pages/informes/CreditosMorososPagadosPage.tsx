@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, Checkbox, DatePicker, Form, InputNumber } from 'antd'
+import { Alert, Button, Checkbox, Form, InputNumber } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
@@ -12,7 +12,8 @@ import {
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
-import { CredixDataTable, CredixInformePage } from '../../components/credix'
+import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../components/credix'
+
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import type {
@@ -22,7 +23,6 @@ import type {
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 
-const { RangePicker } = DatePicker
 
 type FormValues = {
   oficinaId: number
@@ -129,7 +129,7 @@ export function CreditosMorososPagadosPage() {
             <InputNumber />
           </Form.Item>
           <Form.Item name="rango" rules={[{ required: true }]}>
-            <RangePicker format="DD/MM/YYYY" />
+            <CredixRangePicker format="DD/MM/YYYY" />
           </Form.Item>
           <Form.Item name="soloMiGestor" valuePropName="checked">
             <Checkbox>Solo mi gestión</Checkbox>

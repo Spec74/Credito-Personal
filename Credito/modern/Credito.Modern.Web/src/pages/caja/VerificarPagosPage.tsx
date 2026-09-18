@@ -6,8 +6,6 @@ import {
   Button,
   Modal,
   Space,
-  Tag,
-  Tooltip,
   Typography,
   message,
 } from 'antd'
@@ -183,30 +181,29 @@ export function VerificarPagosPage() {
         ellipsis: true,
       },
       {
-        title: 'Acción',
-        key: 'accion',
-        width: 108,
-        fixed: 'right',
+        title: 'Acciones',
+        key: 'acciones',
+        width: 120,
         render: (_, row) => (
           <div className="caja-verificar-pagos-actions">
-            <Tooltip title="Marcar como verificado">
-              <Button
-                type="primary"
-                size="small"
-                icon={<CheckOutlined />}
-                loading={
-                  verificar.isPending &&
-                  verificar.variables === row.movimientoCajaId
-                }
-                disabled={verificar.isPending}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  pedirVerificar(row)
-                }}
-              >
-                Verificar
-              </Button>
-            </Tooltip>
+            <Button
+              type="primary"
+              size="small"
+              block
+              icon={<CheckOutlined />}
+              title="Marcar como verificado"
+              loading={
+                verificar.isPending &&
+                verificar.variables === row.movimientoCajaId
+              }
+              disabled={verificar.isPending}
+              onClick={(e) => {
+                e.stopPropagation()
+                pedirVerificar(row)
+              }}
+            >
+              Verificar
+            </Button>
           </div>
         ),
       },

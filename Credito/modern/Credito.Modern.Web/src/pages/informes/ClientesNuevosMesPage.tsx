@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { Alert, Button, DatePicker, Form, InputNumber, Typography } from 'antd'
+import { Alert, Button, Form, InputNumber, Typography } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
@@ -13,8 +13,8 @@ import {
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
-import { CredixDataTable, CredixInformePage } from '../../components/credix'
-import type { CredixStatItem } from '../../components/credix'
+import { CredixDataTable, CredixInformePage, CredixRangePicker, type CredixStatItem } from '../../components/credix'
+
 import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import { buildClientesNuevosMesInformeColumns } from '../../config/clientesNuevosMesInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
@@ -29,7 +29,6 @@ import {
   toClientesNuevosMesParams,
 } from '../../utils/gestorInformeForm'
 
-const { RangePicker } = DatePicker
 
 const NUEVOS_COLUMNS = buildClientesNuevosMesInformeColumns()
 
@@ -190,7 +189,7 @@ export function ClientesNuevosMesPage() {
               },
             ]}
           >
-            <RangePicker format="DD/MM/YYYY" allowClear={false} />
+            <CredixRangePicker format="DD/MM/YYYY" allowClear={false} />
           </Form.Item>
           <Form.Item>
             <Button

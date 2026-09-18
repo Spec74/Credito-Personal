@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
-import { Alert, Button, Checkbox, DatePicker, Form, InputNumber, Typography } from 'antd'
+import { Alert, Button, Checkbox, Form, InputNumber, Typography } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
@@ -14,7 +14,8 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 
-import { CredixDataTable, CredixInformePage } from '../../components/credix'
+import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../components/credix'
+
 import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import { buildClientesInactivosInformeColumns } from '../../config/clientesInactivosInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
@@ -28,7 +29,6 @@ import {
 import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
 import { readUrlDay, readUrlOfficeId, readUrlUserId } from '../../utils/informeUrlParams'
 
-const { RangePicker } = DatePicker
 
 const INACTIVOS_COLUMNS = buildClientesInactivosInformeColumns()
 
@@ -162,7 +162,7 @@ export function ClientesInactivosPage() {
               label="Rango"
               rules={[{ required: true, message: 'Indique el rango de fechas' }]}
             >
-              <RangePicker format="DD/MM/YYYY" allowClear={false} />
+              <CredixRangePicker format="DD/MM/YYYY" allowClear={false} />
             </Form.Item>
           ) : null}
           <Form.Item>

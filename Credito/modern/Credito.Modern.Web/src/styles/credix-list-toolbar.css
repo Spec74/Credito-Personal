@@ -123,8 +123,17 @@
     min-width: 44px;
   }
 
-  .credix-list-toolbar__buscar .ant-input-search-button > span:not(.anticon) {
-    display: none;
+  /* Ant Design 5: no ocultar .ant-btn-icon (antes span:not(.anticon) vaciaba el botón) */
+  .credix-list-toolbar__buscar .ant-input-search-button > span:not(.ant-btn-icon):not(.anticon) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .credix-list-toolbar__actions {
@@ -157,9 +166,5 @@
 
   .credix-list-toolbar__hint-short {
     display: inline;
-  }
-
-  .credix-list-toolbar__buscar .ant-input-search-button > span:not(.anticon) {
-    display: none;
   }
 }

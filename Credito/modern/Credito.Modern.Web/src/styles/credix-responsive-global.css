@@ -160,22 +160,48 @@
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid #e8eef5;
+  width: 100%;
+  min-width: 0;
 }
 
 .credix-mobile-card__actions-inner {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  flex-wrap: nowrap;
   gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.credix-mobile-card__actions-inner .ant-space,
+.credix-mobile-card__actions-inner .ant-space-item,
+.credix-mobile-card__actions-inner > div,
+.credix-mobile-card__actions-inner > span {
+  width: 100% !important;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .credix-mobile-card__actions-inner .ant-space {
   flex-wrap: wrap !important;
-  width: 100%;
 }
 
-.credix-mobile-card__actions-inner .ant-btn {
-  flex: 1 1 auto;
-  min-height: 36px;
+.credix-mobile-card__actions-inner .ant-btn,
+.credix-mobile-card__actions .ant-btn {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 40px;
+  justify-content: center;
+  gap: 8px;
+  overflow: visible !important;
+}
+
+.credix-mobile-card__actions .ant-btn > span,
+.credix-mobile-card__actions .ant-btn .ant-btn-icon,
+.credix-mobile-card__actions .ant-btn .anticon {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .credix-mobile-cards__pager {
@@ -504,5 +530,156 @@
   .ant-modal {
     max-width: calc(100vw - 16px) !important;
     margin: 8px auto;
+  }
+}
+
+/* —— Botones: nunca vacíos en móvil (Ant Design 5 usa .ant-btn-icon) —— */
+@media (max-width: 991px) {
+  .ant-btn {
+    overflow: visible !important;
+  }
+
+  .ant-btn > .ant-btn-icon,
+  .ant-btn > span,
+  .ant-btn .anticon {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .ant-btn .anticon {
+    font-size: 14px;
+  }
+
+  /* Toolbars / exportaciones: ancho completo y etiqueta legible */
+  .credix-list-toolbar__actions .ant-btn,
+  .caja-list-toolbar__actions .ant-btn,
+  .caja-saldos-toolbar__actions .ant-btn,
+  .caja-verificar-pagos-toolbar__actions .ant-btn,
+  .caja-chica-toolbar__actions .ant-btn,
+  .caja-maestro-toolbar__actions .ant-btn,
+  .credito-aprobacion-actions .ant-btn,
+  .credix-report-actions .ant-btn,
+  .credix-page-actions .ant-btn {
+    min-height: 40px;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .credix-report-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .credix-report-actions__exports,
+  .credix-report-actions__exports.ant-space {
+    width: 100%;
+    display: flex !important;
+    flex-wrap: wrap !important;
+  }
+
+  .credix-report-actions__exports .ant-space-item,
+  .credix-report-actions__exports .ant-btn {
+    flex: 1 1 auto;
+    min-width: min(100%, 140px);
+  }
+
+  .credix-report-actions__exports .ant-btn {
+    width: 100%;
+  }
+
+  .credix-report-actions__screens {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+/* —— DatePicker / RangePicker: usable en viewport estrecho —— */
+.ant-picker,
+.ant-picker-range {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.credix-report-card__body .ant-picker,
+.credix-report-card__body .ant-picker-range,
+.credix-informe-filter-row .ant-picker,
+.credix-informe-filter-row .ant-picker-range {
+  width: 100% !important;
+}
+
+.credix-report-period-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.credix-report-period-row .ant-select {
+  flex: 1 1 120px;
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .ant-picker-dropdown {
+    max-width: calc(100vw - 12px) !important;
+    z-index: 1200;
+  }
+
+  .ant-picker-dropdown .ant-picker-panel-container {
+    max-width: calc(100vw - 12px) !important;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Dos meses apilados en vez de lado a lado (evita corte horizontal) */
+  .ant-picker-dropdown .ant-picker-panels {
+    flex-direction: column !important;
+  }
+
+  .ant-picker-dropdown .ant-picker-panel {
+    width: min(100%, 328px) !important;
+    max-width: 100%;
+    border-inline-end: none !important;
+  }
+
+  .ant-picker-range {
+    width: 100% !important;
+  }
+
+  .ant-picker-input > input {
+    font-size: 16px; /* evita zoom iOS */
+  }
+
+  .credix-report-card__body .ant-space {
+    width: 100%;
+  }
+
+  .credix-report-period-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .credix-report-period-row__sep {
+    display: none;
+  }
+
+  .credix-reporte-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Tarjetas de reporte: no recortar controles internos en el eje X */
+  .credix-report-card {
+    overflow: visible;
+  }
+
+  .credix-report-card__body {
+    overflow-x: visible;
+    min-width: 0;
   }
 }

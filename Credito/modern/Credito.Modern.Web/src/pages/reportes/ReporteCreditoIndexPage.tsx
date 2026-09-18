@@ -10,12 +10,13 @@ import {
   TeamOutlined,
   WalletOutlined,
 } from '@ant-design/icons'
-import { Alert, Checkbox, DatePicker, InputNumber, Select, Space, message } from 'antd'
+import { Alert, Checkbox, DatePicker, InputNumber, Select, message } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage } from '../../components/credix'
 import { CredixReportBox } from '../../components/reportes/CredixReportBox'
 import { ReportExportActions } from '../../components/reportes/ReportExportActions'
+import { CredixRangePicker } from '../../components/credix/CredixRangePicker'
 import {
   GestorSelect,
   OficinaSelect,
@@ -668,7 +669,7 @@ export function ReporteCreditoIndexPage() {
             />
           </ReporteField>
           <ReporteField label="Fechas">
-            <DatePicker.RangePicker
+            <CredixRangePicker
               size="small"
               value={rptRango}
               onChange={(v) => v && setRptRango(v as [Dayjs, Dayjs])}
@@ -847,7 +848,7 @@ export function ReporteCreditoIndexPage() {
               <GestorSelect allowAll legacyList value={variosGestor} onChange={setVariosGestor} />
             </ReporteField>
             <ReporteField label="Rango fechas">
-              <DatePicker.RangePicker
+              <CredixRangePicker
                 size="small"
                 value={variosRango}
                 onChange={(v) => v && setVariosRango(v as [Dayjs, Dayjs])}
@@ -894,7 +895,7 @@ export function ReporteCreditoIndexPage() {
               }
             >
               <ReporteField label="Rango fechas">
-                <DatePicker.RangePicker
+                <CredixRangePicker
                   size="small"
                   value={cajaChicaRango}
                   onChange={(v) => v && setCajaChicaRango(v as [Dayjs, Dayjs])}
@@ -928,7 +929,7 @@ export function ReporteCreditoIndexPage() {
               }
             >
               <ReporteField label="Rango fechas">
-                <DatePicker.RangePicker
+                <CredixRangePicker
                   size="small"
                   value={anuladoRango}
                   onChange={(v) => v && setAnuladoRango(v as [Dayjs, Dayjs])}
@@ -966,37 +967,35 @@ export function ReporteCreditoIndexPage() {
               <ReporteField label="Oficina">
                 <OficinaSelect disabled value={oficinaSesion} />
               </ReporteField>
-              <Space wrap>
-                <Select
-                  size="small"
-                  style={{ width: 90 }}
-                  value={saldoAnioIni}
-                  onChange={setSaldoAnioIni}
-                  options={saldoAnios}
-                />
-                <Select
-                  size="small"
-                  style={{ width: 110 }}
-                  value={saldoMesIni}
-                  onChange={setSaldoMesIni}
-                  options={MESES}
-                />
-                <span>→</span>
-                <Select
-                  size="small"
-                  style={{ width: 90 }}
-                  value={saldoAnioFin}
-                  onChange={setSaldoAnioFin}
-                  options={saldoAnios}
-                />
-                <Select
-                  size="small"
-                  style={{ width: 110 }}
-                  value={saldoMesFin}
-                  onChange={setSaldoMesFin}
-                  options={MESES}
-                />
-              </Space>
+              <ReporteField label="Periodo">
+                <div className="credix-report-period-row">
+                  <Select
+                    size="small"
+                    value={saldoAnioIni}
+                    onChange={setSaldoAnioIni}
+                    options={saldoAnios}
+                  />
+                  <Select
+                    size="small"
+                    value={saldoMesIni}
+                    onChange={setSaldoMesIni}
+                    options={MESES}
+                  />
+                  <span className="credix-report-period-row__sep">→</span>
+                  <Select
+                    size="small"
+                    value={saldoAnioFin}
+                    onChange={setSaldoAnioFin}
+                    options={saldoAnios}
+                  />
+                  <Select
+                    size="small"
+                    value={saldoMesFin}
+                    onChange={setSaldoMesFin}
+                    options={MESES}
+                  />
+                </div>
+              </ReporteField>
             </CredixReportBox>
 
             <CredixReportBox
@@ -1025,22 +1024,22 @@ export function ReporteCreditoIndexPage() {
               <ReporteField label="Oficina">
                 <OficinaSelect disabled value={oficinaSesion} />
               </ReporteField>
-              <Space wrap>
-                <Select
-                  size="small"
-                  style={{ width: 100 }}
-                  value={riesgoAnio}
-                  onChange={setRiesgoAnio}
-                  options={riesgoAnios}
-                />
-                <Select
-                  size="small"
-                  style={{ width: 120 }}
-                  value={riesgoMes}
-                  onChange={setRiesgoMes}
-                  options={MESES}
-                />
-              </Space>
+              <ReporteField label="Periodo">
+                <div className="credix-report-period-row">
+                  <Select
+                    size="small"
+                    value={riesgoAnio}
+                    onChange={setRiesgoAnio}
+                    options={riesgoAnios}
+                  />
+                  <Select
+                    size="small"
+                    value={riesgoMes}
+                    onChange={setRiesgoMes}
+                    options={MESES}
+                  />
+                </div>
+              </ReporteField>
             </CredixReportBox>
           </div>
         ) : null}

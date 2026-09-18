@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { CalendarOutlined, SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, DatePicker, Form, Typography } from 'antd'
+import { Alert, Button, Form, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
@@ -10,7 +10,8 @@ import {
   fetchComprobantesCajaChica,
 } from '../../api/creditoPlanes'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
-import { CredixDataTable, CredixInformePage } from '../../components/credix'
+import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../components/credix'
+
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import type {
@@ -20,7 +21,6 @@ import type {
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 
-const { RangePicker } = DatePicker
 const { Text } = Typography
 
 type FormValues = {
@@ -112,7 +112,7 @@ export function ComprobantesCajaChicaPage() {
             name="rango"
             rules={[{ required: true, message: 'Seleccione fechas' }]}
           >
-            <RangePicker
+            <CredixRangePicker
               format="DD/MM/YYYY"
               style={{ maxWidth: 360 }}
               suffixIcon={<CalendarOutlined />}

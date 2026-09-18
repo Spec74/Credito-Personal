@@ -310,7 +310,7 @@ export function TareasPage() {
               { label: 'Todas', value: 'TODAS' },
             ]}
           />
-          <Space wrap className="credito-tareas-toolbar__actions">
+          <div className="credito-tareas-toolbar__actions">
             <Button
               icon={<ReloadOutlined />}
               onClick={refrescar}
@@ -319,7 +319,9 @@ export function TareasPage() {
               Actualizar
             </Button>
             <Link to={`/informes/credito-tarea?estado=${filtro === 'TODAS' ? 'PEN' : filtro}`}>
-              <Button icon={<UnorderedListOutlined />}>Informe detallado</Button>
+              <Button block icon={<UnorderedListOutlined />}>
+                Informe detallado
+              </Button>
             </Link>
             {puedeEditar ? (
               <>
@@ -344,7 +346,7 @@ export function TareasPage() {
             ) : (
               <Text type="secondary">Creación: Administrador o Aprobador</Text>
             )}
-          </Space>
+          </div>
         </div>
       }
       extra={

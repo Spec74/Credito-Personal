@@ -52,9 +52,11 @@ function isActionsColumn<T extends object>(col: ColumnType<T>): boolean {
   const title = columnLabel(col).toLowerCase()
   return (
     key === 'acciones' ||
+    key === 'accion' ||
     key === 'action' ||
     key === 'actions' ||
     dataIndex === 'acciones' ||
+    dataIndex === 'accion' ||
     dataIndex === 'action' ||
     dataIndex === 'actions' ||
     /acci[oó]n(es)?/.test(title) ||

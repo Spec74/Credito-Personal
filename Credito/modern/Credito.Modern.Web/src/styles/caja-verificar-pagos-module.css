@@ -20,6 +20,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  width: 100%;
+  min-width: 0;
 }
 
 .caja-verificar-pagos-empty {
@@ -44,27 +46,17 @@
   }
 
   .caja-verificar-pagos-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+    width: 100%;
   }
 
   .caja-verificar-pagos-actions .ant-btn {
-    flex: 1 1 auto;
-    min-height: 40px;
+    width: 100% !important;
+    min-height: 44px;
     justify-content: center;
-  }
-}
-
-@media (max-width: 640px) {
-  .caja-verificar-pagos-actions {
-    display: flex;
-    flex-wrap: wrap;
     gap: 8px;
   }
 
-  .caja-verificar-pagos-actions .ant-btn {
-    flex: 1 1 auto;
+  .caja-verificar-pagos-toolbar__actions .ant-btn {
     min-height: 40px;
     justify-content: center;
   }

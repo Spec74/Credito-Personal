@@ -242,26 +242,33 @@
   }
 
   .credito-tareas-toolbar__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    width: 100%;
     justify-content: stretch;
-    width: 100%;
   }
 
-  .credito-tareas-toolbar__actions .ant-space {
+  .credito-tareas-toolbar__actions a {
+    display: block;
     width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px !important;
-  }
-
-  .credito-tareas-toolbar__actions .ant-space-item {
-    flex: 1 1 calc(50% - 8px);
-    min-width: 140px;
+    min-width: 0;
   }
 
   .credito-tareas-toolbar__actions .ant-btn {
-    width: 100%;
-    min-height: 40px;
+    width: 100% !important;
+    min-height: 44px;
     justify-content: center;
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .credito-tareas-toolbar__actions .ant-btn > span,
+  .credito-tareas-toolbar__actions .ant-btn .ant-btn-icon,
+  .credito-tareas-toolbar__actions .ant-btn .anticon {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
   .credito-tareas-buscar__row {
