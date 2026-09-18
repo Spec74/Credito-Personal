@@ -137,8 +137,10 @@ export function OficinaFormModal({
         <Form.Item label="Ubicación (Google Maps)">
           <GoogleMapLocationPicker
             value={mapLocation}
-            layoutKey={editing?.oficinaId ?? 'nueva'}
+            layoutKey={`oficina-${open ? 'open' : 'closed'}-${editing?.oficinaId ?? 'nueva'}`}
+            active={open}
             onChange={setMapLocation}
+            height={280}
           />
         </Form.Item>
       </Form>

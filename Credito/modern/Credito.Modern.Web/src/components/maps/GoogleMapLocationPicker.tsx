@@ -12,8 +12,10 @@ import './google-map-location-picker.css'
 export type GoogleMapLocationPickerProps = {
   value?: MapLatLng | null
   onChange?: (value: MapLatLng | null) => void
-  /** Cambia al abrir/cerrar modal para forzar contenedor DOM limpio. */
+  /** Cambia al abrir/cerrar modal o al mostrar la pestaña para forzar contenedor DOM limpio. */
   layoutKey?: string | number
+  /** Si false, no inicializa (p. ej. pestaña oculta). Default true. */
+  active?: boolean
   disabled?: boolean
   height?: number
   searchPlaceholder?: string
@@ -44,10 +46,17 @@ function disposeMap(
   marker?.setMap(null)
 }
 
+function containerHasSize(el: HTMLElement | null): boolean {
+  if (!el) return false
+  const rect = el.getBoundingClientRect()
+  return rect.width >= 40 && rect.height >= 40
+}
+
 export function GoogleMapLocationPicker({
   value,
   onChange,
   layoutKey = 'default',
+  active = true,
   disabled = false,
   height = 260,
   searchPlaceholder = 'Buscar dirección en Google Maps…',
@@ -78,10 +87,25 @@ export function GoogleMapLocationPicker({
     onChangeRef.current?.(pos)
   }, [])
 
+  const triggerResize = useCallback(() => {
+    const maps = getGoogleMaps()
+    const map = mapRef.current
+    if (!maps?.event || !map) return
+    maps.event.trigger(map, 'resize')
+    if (value) map.panTo(value)
+    else map.panTo(DEFAULT_MAP_CENTER)
+  }, [value])
+
   useEffect(() => {
+    if (!active) {
+      setLoading(false)
+      setReady(false)
+      return
+    }
+
     if (!isGoogleMapsConfigured()) {
       setError(
-        'Google Maps no está configurado en este entorno. Redeploye la SPA con VITE_GOOGLE_MAPS_API_KEY (Vercel → Environment Variables o build.env) y restrinja la clave al dominio en Google Cloud.',
+        'Google Maps no está configurado en este entorno. En Vercel use tipo Config (no Secret) para VITE_GOOGLE_MAPS_API_KEY y restrinja la clave al dominio en Google Cloud.',
       )
       setLoading(false)
       return
@@ -89,6 +113,7 @@ export function GoogleMapLocationPicker({
 
     let cancelled = false
     let retryTimer: ReturnType<typeof setTimeout> | undefined
+    let attempts = 0
 
     const initMap = () => {
       if (cancelled) return
@@ -97,8 +122,14 @@ export function GoogleMapLocationPicker({
       const inputEl = searchRef.current?.input
       const mapEl = mapDivRef.current
 
-      if (!maps || !mapEl || !inputEl) {
-        retryTimer = setTimeout(initMap, 80)
+      if (!maps || !mapEl || !inputEl || !containerHasSize(mapEl)) {
+        attempts += 1
+        if (attempts > 40) {
+          setError('No se pudo preparar el contenedor del mapa. Cambie de pestaña y vuelva a Ubicar.')
+          setLoading(false)
+          return
+        }
+        retryTimer = setTimeout(initMap, 100)
         return
       }
 
@@ -110,7 +141,7 @@ export function GoogleMapLocationPicker({
           mapTypeControl: false,
           streetViewControl: false,
           fullscreenControl: !disabled,
-          gestureHandling: disabled ? 'none' : 'auto',
+          gestureHandling: disabled ? 'none' : 'cooperative',
         })
         mapRef.current = map
 
@@ -149,6 +180,12 @@ export function GoogleMapLocationPicker({
 
         setReady(true)
         setLoading(false)
+        window.setTimeout(() => {
+          if (!cancelled) triggerResize()
+        }, 120)
+        window.setTimeout(() => {
+          if (!cancelled) triggerResize()
+        }, 400)
       } catch (err: unknown) {
         if (cancelled) return
         setError(err instanceof Error ? err.message : 'No se pudo inicializar el mapa')
@@ -180,7 +217,7 @@ export function GoogleMapLocationPicker({
       setReady(false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [layoutKey])
+  }, [layoutKey, active])
 
   useEffect(() => {
     if (!ready || !value || !markerRef.current) return
@@ -195,21 +232,34 @@ export function GoogleMapLocationPicker({
   }, [value, ready])
 
   useEffect(() => {
-    if (!ready || !mapRef.current) return
-    const maps = getGoogleMaps()
-    if (!maps?.event) return
-
-    const id = window.setTimeout(() => {
-      maps.event.trigger(mapRef.current!, 'resize')
-      if (value) mapRef.current?.panTo(value)
-      else mapRef.current?.panTo(DEFAULT_MAP_CENTER)
-    }, 250)
-    return () => window.clearTimeout(id)
-  }, [layoutKey, ready, value])
+    if (!ready || !mapRef.current || !active) return
+    const el = mapDivRef.current
+    if (!el || typeof ResizeObserver === 'undefined') {
+      const id = window.setTimeout(triggerResize, 250)
+      return () => window.clearTimeout(id)
+    }
+    const ro = new ResizeObserver(() => {
+      if (containerHasSize(el)) triggerResize()
+    })
+    ro.observe(el)
+    const id = window.setTimeout(triggerResize, 200)
+    return () => {
+      ro.disconnect()
+      window.clearTimeout(id)
+    }
+  }, [layoutKey, ready, active, triggerResize])
 
   useEffect(() => {
     markerRef.current?.setDraggable(!disabled)
   }, [disabled, ready])
+
+  if (!active) {
+    return (
+      <div className="gmaps-picker gmaps-picker--inactive" style={{ minHeight: height }}>
+        <p className="gmaps-picker__hint">El mapa se carga al mostrar esta sección.</p>
+      </div>
+    )
+  }
 
   if (error) {
     return <Alert type="warning" showIcon title={error} />
@@ -222,7 +272,7 @@ export function GoogleMapLocationPicker({
       <Input
         ref={searchRef}
         className="gmaps-picker__search"
-          placeholder={searchPlaceholder}
+        placeholder={searchPlaceholder}
         disabled={disabled || loading}
         allowClear
       />
@@ -232,7 +282,6 @@ export function GoogleMapLocationPicker({
             <Spin size="large" />
           </div>
         ) : null}
-        {/* Contenedor vacío: Google Maps toma control del DOM; React no debe renderizar hijos aquí. */}
         <div key={mapHostKey} ref={mapDivRef} className="gmaps-picker__map-host" />
       </div>
       <p className="gmaps-picker__hint">{hintText}</p>

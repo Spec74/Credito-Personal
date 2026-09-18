@@ -49,7 +49,7 @@ import {
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { CredixDataTable } from '../../components/credix'
 import { prendaAItem, prendaVacia, prendasValidas } from '../../utils/prendas'
-import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
+import { abrirWhatsAppLibre, abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 import {
   downloadActaEntregaPrendarioPdf,
   downloadContratoPrendarioPdf,
@@ -814,7 +814,7 @@ export function CreditoConsultaGestionPanel({
                     }}
                     onChange={(v) => setPersonaAvalId(v ?? null)}
                   />
-                  <Space direction="vertical" style={{ width: '100%' }}>
+                  <div className="credito-ajustes-actions">
                     <Button
                       block
                       disabled={soloLectura}
@@ -853,7 +853,7 @@ export function CreditoConsultaGestionPanel({
                     >
                       Quitar aval
                     </Button>
-                  </Space>
+                  </div>
                 </Col>
               ) : null}
             </Row>
@@ -943,7 +943,7 @@ export function CreditoConsultaGestionPanel({
             onChange={setPrendas}
             disabled={bloqueadoGestion || !prendario}
           />
-          <Space wrap style={{ marginTop: 12 }}>
+          <Space wrap className="credito-prendario-actions" style={{ marginTop: 12 }}>
             <Button
               type="primary"
               disabled={bloqueadoGestion || !prendario || prendasValidas(prendas).length === 0}
@@ -953,7 +953,7 @@ export function CreditoConsultaGestionPanel({
               Guardar bienes
             </Button>
             <Button
-              disabled={prendasValidas(prendas).length === 0}
+              disabled={!prendario || prendasValidas(prendas).length === 0}
               onClick={() => {
                 void downloadContratoPrendarioPdf(
                   oficinaId,
@@ -965,7 +965,7 @@ export function CreditoConsultaGestionPanel({
               Contrato PDF
             </Button>
             <Button
-              disabled={prendasValidas(prendas).length === 0}
+              disabled={!prendario || prendasValidas(prendas).length === 0}
               onClick={() => {
                 void downloadActaEntregaPrendarioPdf(
                   oficinaId,
@@ -977,18 +977,24 @@ export function CreditoConsultaGestionPanel({
               Acta PDF
             </Button>
             <Button
+              disabled={bloqueadoGestion}
+              title={
+                prendario
+                  ? 'Abre WhatsApp con mensaje de aviso prendario'
+                  : 'Abre WhatsApp con saludo (sin plantilla de remate)'
+              }
               onClick={() => {
-                const ok = abrirWhatsAppPrendario(
-                  contexto.data?.personaCelular,
-                  contexto.data?.personaNombre ?? '',
-                  creditoId,
-                )
+                const celular = contexto.data?.personaCelular
+                const nombre = contexto.data?.personaNombre ?? ''
+                const ok = prendario
+                  ? abrirWhatsAppPrendario(celular, nombre, creditoId)
+                  : abrirWhatsAppLibre(celular, nombre)
                 if (!ok) {
                   message.warning('Este cliente no tiene celular registrado')
                 }
               }}
             >
-              WhatsApp
+              {prendario ? 'WhatsApp (aviso)' : 'Chat WhatsApp'}
             </Button>
           </Space>
         </Card>

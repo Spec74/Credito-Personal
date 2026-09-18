@@ -53,7 +53,7 @@ export const credixLegacyTheme: ThemeConfig = {
       borderRadiusLG: 8,
     },
     Drawer: {
-      paddingLG: 0,
+      paddingLG: 16,
     },
   },
 }

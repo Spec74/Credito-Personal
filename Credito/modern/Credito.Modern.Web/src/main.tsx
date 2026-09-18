@@ -31,11 +31,23 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
       staleTime: 30_000,
+      networkMode: 'online',
+    },
+    mutations: {
+      networkMode: 'online',
     },
   },
 })
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    void queryClient.invalidateQueries()
+    void queryClient.refetchQueries({ type: 'active' })
+  })
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

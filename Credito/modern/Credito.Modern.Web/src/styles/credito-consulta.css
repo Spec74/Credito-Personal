@@ -919,7 +919,7 @@
 }
 
 .credito-ajustes-card {
-  overflow: hidden;
+  overflow: visible;
   border-color: #dfe8f2 !important;
   box-shadow: 0 6px 18px rgb(15 23 42 / 5%);
 }
@@ -930,7 +930,7 @@
 }
 
 .credito-ajustes-grid {
-  align-items: stretch;
+  align-items: start;
 }
 
 .credito-ajustes-grid--secondary {
@@ -942,11 +942,29 @@
 .credito-ajustes-item {
   display: flex !important;
   flex-direction: column;
+  gap: 8px;
+  min-width: 0;
 }
 
-.credito-ajustes-item > div {
-  height: 100%;
-  min-height: 0;
+.credito-ajustes-item > .ant-typography {
+  margin-bottom: 0 !important;
+}
+
+.credito-ajustes-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.credito-ajustes-actions .ant-btn {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+  height: auto;
+  min-height: 38px;
+  padding-block: 8px;
 }
 
 .credito-ajustes-item .ant-typography {
@@ -976,21 +994,52 @@
   font-weight: 700;
 }
 
-.credito-ajustes-item .ant-space-vertical {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px !important;
-}
-
-.credito-ajustes-item .ant-space-vertical .ant-space-item,
-.credito-ajustes-item .ant-space-vertical .ant-btn {
-  width: 100%;
-}
-
 .credito-prendario-card .ant-alert {
   border-radius: 12px;
   background: #f8fbff;
   border-color: #dfe8f2;
+}
+
+.prendas-editor-mobile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.prendas-editor-mobile__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #dfe8f2;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.prendas-editor-mobile__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.prendas-editor-mobile__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.prendas-editor-mobile__field > span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
 }
 
 .credito-prendario-card .ant-input,
@@ -1388,6 +1437,27 @@
     padding-top: 12px;
   }
 
+  .credito-ajustes-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .credito-prendario-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .credito-prendario-actions .ant-btn {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .credito-prendario-actions .ant-btn-primary {
+    color: #fff !important;
+  }
+
   .credito-gestion-context-card .ant-card-body {
     grid-template-columns: 1fr;
   }
@@ -1431,9 +1501,24 @@
     grid-template-columns: 1fr;
   }
 
+  .credito-consulta-impresos__actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    width: 100%;
+  }
+
   .credito-consulta-impresos__actions .ant-btn {
     width: 100%;
     min-width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .credito-consulta-acciones .ant-space {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
   }
 
   .credito-consulta-avales {

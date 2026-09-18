@@ -1,4 +1,4 @@
-/** Paridad del botón Enviar WhatsApp en Prendario/Gestionar.cshtml (chat libre, no plantilla). */
+/** Chat WhatsApp: libre o plantilla de aviso prendario. */
 export function normalizarCelularPeru(celular: string | null | undefined): string | null {
   const limpio = (celular ?? '').replace(/\D/g, '')
   if (limpio.length === 9) {
@@ -12,6 +12,30 @@ export function normalizarCelularPeru(celular: string | null | undefined): strin
 
 export function celularPrendarioEsValido(celular: string | null | undefined): boolean {
   return normalizarCelularPeru(celular) !== null
+}
+
+export function urlWhatsAppLibre(
+  celular: string | null | undefined,
+  nombreCliente: string,
+): string | null {
+  const e164 = normalizarCelularPeru(celular)
+  if (!e164) {
+    return null
+  }
+  const mensaje = `Hola ${nombreCliente}, le saludamos de CrediConfiable.`
+  return `https://wa.me/${e164}?text=${encodeURIComponent(mensaje)}`
+}
+
+export function abrirWhatsAppLibre(
+  celular: string | null | undefined,
+  nombreCliente: string,
+): boolean {
+  const url = urlWhatsAppLibre(celular, nombreCliente)
+  if (!url) {
+    return false
+  }
+  window.open(url, '_blank', 'noopener,noreferrer')
+  return true
 }
 
 export function urlWhatsAppPrendario(

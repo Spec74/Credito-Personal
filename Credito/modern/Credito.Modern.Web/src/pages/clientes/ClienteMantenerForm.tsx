@@ -127,6 +127,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
   const [distritoId, setDistritoId] = useState<number | null>(null)
   const [conyuguePersonaId, setConyuguePersonaId] = useState<number | null>(null)
   const [mapLocation, setMapLocation] = useState<MapLatLng | null>(null)
+  const [clienteTab, setClienteTab] = useState('identidad')
   const [nombresBloqueados, setNombresBloqueados] = useState(!esEdicion)
   const [avalOpen, setAvalOpen] = useState(false)
   const [distritoTerm, setDistritoTerm] = useState('')
@@ -533,7 +534,9 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
         <Tabs
           className="cliente-mantener-tabs"
           type="card"
-          defaultActiveKey="identidad"
+          activeKey={clienteTab}
+          onChange={setClienteTab}
+          destroyOnHidden
           items={[
             {
               key: 'identidad',
@@ -700,7 +703,8 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                       </Button>
                     </div>
                     <GoogleMapLocationPicker
-                      layoutKey={`cliente-${personaId}-${esEdicion}`}
+                      layoutKey={`cliente-${personaId}-${esEdicion}-${clienteTab}`}
+                      active={clienteTab === 'ubicacion'}
                       value={mapLocation}
                       onChange={setMapLocation}
                       height={320}

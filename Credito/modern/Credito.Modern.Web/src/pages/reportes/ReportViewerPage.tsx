@@ -1,10 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { Button, Space } from 'antd'
+import { DownloadOutlined, FilePdfOutlined } from '@ant-design/icons'
 import { getApiBaseUrl } from '../../api/client'
 import { getAccessToken, getRefreshToken, saveTokens } from '../../auth/tokenStorage'
 import { useAuth } from '../../auth/useAuth'
 import type { LoginTokenResponse } from '../../types/api'
 import { parseApiError } from '../../api/errors'
+
+function isMobileViewer(): boolean {
+  if (typeof navigator === 'undefined') return false
+  return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+}
 
 async function fetchReportBlob(apiPath: string): Promise<Blob> {
   const baseUrl = getApiBaseUrl()
@@ -29,7 +36,12 @@ async function fetchReportBlob(apiPath: string): Promise<Blob> {
   }
 
   if (!res.ok) throw await parseApiError(res)
-  return res.blob()
+  const blob = await res.blob()
+  // Algunos móviles no embeben blobs sin MIME PDF explícito.
+  if (blob.type !== 'application/pdf') {
+    return new Blob([blob], { type: 'application/pdf' })
+  }
+  return blob
 }
 
 export function ReportViewerPage() {
@@ -39,6 +51,7 @@ export function ReportViewerPage() {
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const mobile = useMemo(() => isMobileViewer(), [])
 
   useEffect(() => {
     if (authLoading) return
@@ -113,6 +126,41 @@ export function ReportViewerPage() {
 
   if (!objectUrl) {
     return null
+  }
+
+  if (mobile) {
+    return (
+      <div className="report-viewer report-viewer--mobile">
+        <FilePdfOutlined className="report-viewer__icon" />
+        <p>El visor PDF del navegador móvil no embebe el archivo. Ábralo o descárguelo:</p>
+        <Space direction="vertical" size="middle" style={{ width: 'min(100%, 320px)' }}>
+          <Button
+            type="primary"
+            block
+            size="large"
+            icon={<FilePdfOutlined />}
+            href={objectUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => {
+              // Algunos WebViews bloquean el primer tap; forzar navegación.
+              window.open(objectUrl, '_blank', 'noopener,noreferrer')
+            }}
+          >
+            Abrir PDF
+          </Button>
+          <Button
+            block
+            size="large"
+            icon={<DownloadOutlined />}
+            href={objectUrl}
+            download="informe-credix.pdf"
+          >
+            Descargar PDF
+          </Button>
+        </Space>
+      </div>
+    )
   }
 
   return (

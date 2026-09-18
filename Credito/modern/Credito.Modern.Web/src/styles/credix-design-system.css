@@ -2422,6 +2422,25 @@ ul.credix-stats--module li span.red {
   padding: 1rem;
 }
 
+.report-viewer--mobile {
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.report-viewer--mobile p {
+  margin: 0;
+  max-width: 22rem;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+.report-viewer__icon {
+  font-size: 48px;
+  color: #93c5fd;
+}
+
 /* Módulo reservado (p. ej. comisiones) */
 .credix-module-reserved {
   display: flex;
