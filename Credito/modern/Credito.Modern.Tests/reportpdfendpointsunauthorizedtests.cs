@@ -14,7 +14,20 @@ public sealed class ReportPdfEndpointsUnauthorizedTests : IClassFixture<CreditoM
         _client = factory.CreateClient();
     }
 
-    public static TheoryData<string> PdfRoutes => new(
+    /// <summary>Rutas PDF/TXT export sin duplicados (xUnit omite TheoryData con el mismo ID).</summary>
+    public static TheoryData<string> PdfRoutes
+    {
+        get
+        {
+            var data = new TheoryData<string>();
+            foreach (var path in PdfRouteList.Distinct(StringComparer.Ordinal))
+                data.Add(path);
+            return data;
+        }
+    }
+
+    private static readonly string[] PdfRouteList =
+    [
         "/api/v1/credito/listar-saldo-cartera-pdf?anio=2026&mes=1&oficinaId=1&usuarioId=1",
         "/api/v1/credito/rpt-movimiento-credito-pdf?creditoId=1",
         "/api/v1/credito/rpt-cajas-asignadas-pdf?oficinaId=1&usuarioId=1",
@@ -26,7 +39,6 @@ public sealed class ReportPdfEndpointsUnauthorizedTests : IClassFixture<CreditoM
         "/api/v1/credito/rpt-saldos-caja-pdf?cajaDiarioId=1",
         "/api/v1/credito/rpt-movimiento-boveda-pdf?bovedaId=1",
         "/api/v1/credito/central-riesgo-generar-pdf?oficinaId=1&anio=2026&mes=1",
-        "/api/v1/credito/central-riesgo-generar-txt?oficinaId=1&anio=2026&mes=1",
         "/api/v1/credito/central-riesgo-generar-txt?oficinaId=1&anio=2026&mes=1",
         "/api/v1/credito/rpt-credito-pdf?oficinaId=1&fechaIni=2026-01-01&fechaFin=2026-01-31&estadoCredito=ACT",
         "/api/v1/credito/rpt-credito-morosidad-pdf?oficinaId=1&hastaFecha=2026-01-31&diasAtrazoIni=0&diasAtrazoFin=999",
@@ -50,29 +62,17 @@ public sealed class ReportPdfEndpointsUnauthorizedTests : IClassFixture<CreditoM
         "/api/v1/ventas/codigo-barras-lst-pdf?movimientoId=1",
         "/api/v1/almacen/rpt-constancia-almacen-pdf?movimientoId=1&oficinaId=1",
         "/api/v1/credito/rpt-simulador-plan-pagos-pdf?productoId=1&monto=1000&nroCuotas=12&interesMensual=5&fechaPrimerPago=2026-06-01&formaPago=M",
-        "/api/v1/credito/movimiento-caja-ticket-pdf?oficinaId=1&movimientoCajaId=1",
-        "/api/v1/credito/movimiento-caja-chica-ticket-pdf?movimientoCajaChicaId=1",
-        "/api/v1/credito/rpt-comprobantes-caja-chica-pdf?fechaIni=2026-01-01&fechaFin=2026-01-31",
-        "/api/v1/credito/rpt-plan-pagos-pdf?creditoId=1",
-        "/api/v1/credito/rpt-estado-credito-pdf?creditoId=1",
-        "/api/v1/credito/rpt-credito-tarea-pdf",
-        "/api/v1/credito/movimiento-boveda-ticket-pdf?movimientoBovedaId=1",
-        "/api/v1/credito/rpt-cliente-pdf?personaId=1",
-        "/api/v1/ventas/codigo-barras-lst-pdf?movimientoId=1",
-        "/api/v1/almacen/rpt-constancia-almacen-pdf?movimientoId=1&oficinaId=1",
-        "/api/v1/credito/rpt-simulador-plan-pagos-pdf?productoId=1&monto=1000&nroCuotas=12&interesMensual=5&fechaPrimerPago=2026-06-01&formaPago=M",
         "/api/v1/credito/rpt-saldo-cartera-caja-diario-pdf?oficinaId=1&anioIni=2026&mesIni=1&anioFin=2026&mesFin=1",
         "/api/v1/credito/pagos-no-verificados-pdf?oficinaId=1",
         "/api/v1/credito/rpt-credito-observado-pdf?oficinaId=1",
         "/api/v1/credito/rpt-credito-condonado-pdf?oficinaId=1&fechaIni=2026-01-01&fechaFin=2026-01-31",
         "/api/v1/credito/rpt-clientes-nuevos-mes-pdf?oficinaId=1",
         "/api/v1/almacen/generar-kardex-pdf?oficinaId=1&articuloId=1&almacenId=1",
-        "/api/v1/almacen/generar-kardex-pdf?oficinaId=1&articuloId=1&almacenId=1",
-        "/api/v1/almacen/reporte-stock-pdf?oficinaId=1",
         "/api/v1/almacen/reporte-stock-pdf?oficinaId=1",
         "/api/v1/almacen/rpt-stock-anulados-pdf",
         "/api/v1/ventas/rpt-lista-precio-pdf",
-        "/api/v1/ventas/rpt-rentabilidad-venta-pdf?oficinaId=1&fechaIni=2026-01-01&fechaFin=2026-01-31");
+        "/api/v1/ventas/rpt-rentabilidad-venta-pdf?oficinaId=1&fechaIni=2026-01-01&fechaFin=2026-01-31",
+    ];
 
     [Theory]
     [MemberData(nameof(PdfRoutes))]
