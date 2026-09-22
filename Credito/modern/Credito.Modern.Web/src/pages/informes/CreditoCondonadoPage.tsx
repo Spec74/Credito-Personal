@@ -73,6 +73,7 @@ export function CreditoCondonadoPage() {
 
   const stats = useInformeStats(consulta, session?.oficinaId)
   const columns: ColumnsType<RptCreditoCondonadoRow> = [
+    { title: 'Oficina', dataIndex: 'oficina', width: 110, ellipsis: true },
     { title: 'Crédito', dataIndex: 'creditoId', width: 80 },
     { title: 'Cliente', dataIndex: 'cliente', ellipsis: true },
     { title: 'Agente', dataIndex: 'agente', width: 120, ellipsis: true },

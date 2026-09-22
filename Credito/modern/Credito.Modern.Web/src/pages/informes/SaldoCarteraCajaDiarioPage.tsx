@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
 import { Alert, Button, Checkbox, Form, InputNumber, Select } from 'antd'
-import type { ColumnsType } from 'antd/es/table'
 import {
   downloadSaldoCarteraCajaDiarioCsv,
   downloadSaldoCarteraCajaDiarioPdf,
@@ -12,15 +11,15 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage } from '../../components/credix'
+import { buildSaldoCarteraCajaDiarioInformeColumns } from '../../config/saldoCarteraCajaDiarioInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import type {
   RptSaldoCarteraCajaDiarioRow,
   SaldoCarteraCajaDiarioParams,
 } from '../../types/api'
-import { formatFecha } from '../../utils/formatFecha'
-import { formatMoney } from '../../utils/formatMoney'
 
+const COLUMNS = buildSaldoCarteraCajaDiarioInformeColumns()
 const MESES = Array.from({ length: 12 }, (_, i) => ({
   value: i + 1,
   label: String(i + 1).padStart(2, '0'),
@@ -77,58 +76,6 @@ export function SaldoCarteraCajaDiarioPage() {
   })
 
   const stats = useInformeStats(consulta, session?.oficinaId)
-  const columns: ColumnsType<RptSaldoCarteraCajaDiarioRow> = [
-    { title: 'Caja', dataIndex: 'caja', width: 100, fixed: 'left', ellipsis: true },
-    { title: 'Agente', dataIndex: 'agente', width: 120, ellipsis: true },
-    {
-      title: 'Cierre ini.',
-      dataIndex: 'fechaCierreIni',
-      width: 100,
-      render: formatFecha,
-    },
-    {
-      title: 'Cobrado ini.',
-      dataIndex: 'montoCobradoIni',
-      width: 95,
-      align: 'right',
-      render: formatMoney,
-    },
-    {
-      title: 'Morosidad ini.',
-      dataIndex: 'saldoMorosidadIni',
-      width: 100,
-      align: 'right',
-      render: formatMoney,
-    },
-    {
-      title: 'Cierre fin',
-      dataIndex: 'fechaCierreFin',
-      width: 100,
-      render: formatFecha,
-    },
-    {
-      title: 'Cobrado fin',
-      dataIndex: 'montoCobradoFin',
-      width: 95,
-      align: 'right',
-      render: formatMoney,
-    },
-    {
-      title: 'Morosidad fin',
-      dataIndex: 'saldoMorosidadFin',
-      width: 100,
-      align: 'right',
-      render: formatMoney,
-    },
-    {
-      title: '% cobro fin',
-      dataIndex: 'pocentajeCobroFin',
-      width: 85,
-      align: 'right',
-      render: (v: number | null) =>
-        v != null ? `${v.toLocaleString('es-PE', { maximumFractionDigits: 2 })}%` : '—',
-    },
-  ]
 
   return (
     <CredixInformePage
@@ -203,10 +150,11 @@ export function SaldoCarteraCajaDiarioPage() {
     >
       <CredixDataTable<RptSaldoCarteraCajaDiarioRow>
         rowKey={(r) => `${r.agenteId}-${r.caja ?? ''}`}
-        columns={columns}
+        columns={COLUMNS}
         dataSource={consulta.data ?? []}
         loading={consulta.isPending}
         pagination={{ pageSize: 25 }}
+        scroll={{ x: 2600 }}
         locale={{ emptyText: 'Consulte para ver el informe' }}
       />
     </CredixInformePage>

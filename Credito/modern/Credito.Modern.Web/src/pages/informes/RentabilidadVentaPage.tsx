@@ -72,6 +72,19 @@ export function RentabilidadVentaPage() {
     { title: 'Artículo', dataIndex: 'articulo', ellipsis: true },
     { title: 'OV', dataIndex: 'ordenVentaId', width: 70 },
     {
+      title: 'F. entrada',
+      dataIndex: 'fechaEnt',
+      width: 95,
+      render: (v) => (v ? formatFecha(v) : '—'),
+    },
+    {
+      title: 'P. entrada',
+      dataIndex: 'precioEnt',
+      width: 90,
+      align: 'right',
+      render: (v) => (v != null ? formatMoney(v) : '—'),
+    },
+    {
       title: 'F. salida',
       dataIndex: 'fechaSal',
       width: 95,

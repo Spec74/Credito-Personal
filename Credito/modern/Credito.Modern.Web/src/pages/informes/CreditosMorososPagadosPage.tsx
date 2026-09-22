@@ -89,6 +89,20 @@ export function CreditosMorososPagadosPage() {
     { title: 'Forma pago', dataIndex: 'formaPago', width: 90 },
     { title: 'Cuotas', dataIndex: 'numeroCuotas', width: 65 },
     {
+      title: 'Gastos adm.',
+      dataIndex: 'montoGastosAdm',
+      width: 95,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
+      title: 'Cent. riesgo',
+      dataIndex: 'centralRiesgo',
+      width: 90,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
       title: '1er pago',
       dataIndex: 'fechaPrimerPago',
       width: 100,

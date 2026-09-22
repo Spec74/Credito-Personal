@@ -74,6 +74,13 @@ export function KardexPage() {
     { title: 'Concepto', dataIndex: 'concepto', ellipsis: true },
     { title: 'Cant. ent.', dataIndex: 'cantEnt', width: 75 },
     {
+      title: 'PU ent.',
+      dataIndex: 'puEnt',
+      width: 85,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
       title: 'Total ent.',
       dataIndex: 'totalEnt',
       width: 90,
@@ -82,6 +89,13 @@ export function KardexPage() {
     },
     { title: 'Cant. sal.', dataIndex: 'cantSal', width: 75 },
     {
+      title: 'PU sal.',
+      dataIndex: 'puSal',
+      width: 85,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
       title: 'Total sal.',
       dataIndex: 'totalSal',
       width: 90,
@@ -89,6 +103,13 @@ export function KardexPage() {
       render: formatMoney,
     },
     { title: 'Saldo cant.', dataIndex: 'cantSaldo', width: 85 },
+    {
+      title: 'PU saldo',
+      dataIndex: 'puSaldo',
+      width: 85,
+      align: 'right',
+      render: formatMoney,
+    },
     {
       title: 'Saldo total',
       dataIndex: 'totalSaldo',
@@ -182,7 +203,7 @@ export function KardexPage() {
       <CredixDataTable<GenerarKardexRow>
         rowKey={(r, i) => String(r.movimientoDetId ?? i)}
         size="small"
-        scroll={{ x: 1000 }}
+        scroll={{ x: 1200 }}
         loading={consulta.isPending}
         dataSource={consulta.data ?? []}
         columns={columns}

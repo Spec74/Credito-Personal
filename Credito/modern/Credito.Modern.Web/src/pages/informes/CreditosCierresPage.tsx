@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
 import { Alert, Button, Checkbox, Form, InputNumber } from 'antd'
-import type { ColumnsType } from 'antd/es/table'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
   downloadCreditosCierresCsv,
@@ -13,12 +12,12 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../components/credix'
-
+import { buildCreditosCierresInformeColumns } from '../../config/creditosCierresInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import type { InformeRangoGestorParams, RptCreditosCierresRow } from '../../types/api'
-import { formatFecha } from '../../utils/formatFecha'
-import { formatMoney } from '../../utils/formatMoney'
+
+const COLUMNS = buildCreditosCierresInformeColumns()
 
 
 type FormValues = {
@@ -62,39 +61,6 @@ export function CreditosCierresPage() {
   })
 
   const stats = useInformeStats(consulta, session?.oficinaId)
-  const columns: ColumnsType<RptCreditosCierresRow> = [
-    { title: 'Crédito', dataIndex: 'creditoId', width: 75 },
-    { title: 'Cliente', dataIndex: 'cliente', ellipsis: true },
-    { title: 'Agente', dataIndex: 'agente', width: 120, ellipsis: true },
-    {
-      title: 'Monto',
-      dataIndex: 'montoCredito',
-      width: 95,
-      align: 'right',
-      render: formatMoney,
-    },
-    {
-      title: 'Interés',
-      dataIndex: 'interes',
-      width: 85,
-      align: 'right',
-      render: formatMoney,
-    },
-    { title: 'Forma pago', dataIndex: 'formaPago', width: 90 },
-    { title: 'Cuotas', dataIndex: 'numeroCuotas', width: 65 },
-    {
-      title: '1er pago',
-      dataIndex: 'fechaPrimerPago',
-      width: 100,
-      render: formatFecha,
-    },
-    {
-      title: 'Vencimiento',
-      dataIndex: 'fechaVencimiento',
-      width: 100,
-      render: formatFecha,
-    },
-  ]
 
   return (
     <CredixInformePage
@@ -157,10 +123,11 @@ export function CreditosCierresPage() {
     >
       <CredixDataTable<RptCreditosCierresRow>
         rowKey="creditoId"
-        columns={columns}
+        columns={COLUMNS}
         dataSource={consulta.data ?? []}
         loading={consulta.isPending}
         pagination={{ pageSize: 25 }}
+        scroll={{ x: 1600 }}
         locale={{ emptyText: 'Consulte para ver créditos cierres' }}
       />
     </CredixInformePage>

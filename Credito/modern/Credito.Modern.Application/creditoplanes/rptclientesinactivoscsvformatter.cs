@@ -11,9 +11,11 @@ public static class RptClientesInactivosCsvFormatter
 {
     public static byte[] ToUtf8BomCsv(IReadOnlyList<RptClientesInactivosRowDto> rows)
     {
-        var sb = new StringBuilder(capacity: Math.Max(256, rows.Count * 96));
+        var sb = new StringBuilder(capacity: Math.Max(256, rows.Count * 160));
         sb.AppendLine(
-            "PersonaId,Agente,Codigo,Dni,Cliente,Direccion,DireccionRef,Celular,Calificacion,DireccionNegocio,DireccionNegocioRef");
+            "PersonaId,Agente,Codigo,Dni,Cliente,Direccion,DireccionRef,Celular,Calificacion," +
+            "ClasificacionRiesgoSBS,Depurado,DireccionNegocio,DireccionNegocioRef," +
+            "MontoCredito,TotalCreditos,FechaCancelacion,TopeCredito,DiasInactividad");
         var inv = CultureInfo.InvariantCulture;
         foreach (var r in rows)
         {
@@ -26,8 +28,15 @@ public static class RptClientesInactivosCsvFormatter
                 .Append(CsvUtf8BomEncoding.EscapeField(r.DireccionRef)).Append(',')
                 .Append(CsvUtf8BomEncoding.EscapeField(r.Celular)).Append(',')
                 .Append(CsvUtf8BomEncoding.EscapeField(r.Calificacion)).Append(',')
+                .Append(CsvUtf8BomEncoding.EscapeField(r.ClasificacionRiesgoSBS)).Append(',')
+                .Append(CsvUtf8BomEncoding.EscapeField(r.Depurado)).Append(',')
                 .Append(CsvUtf8BomEncoding.EscapeField(r.DireccionNegocio)).Append(',')
-                .Append(CsvUtf8BomEncoding.EscapeField(r.DireccionNegocioRef))
+                .Append(CsvUtf8BomEncoding.EscapeField(r.DireccionNegocioRef)).Append(',')
+                .Append(r.MontoCredito.ToString(inv)).Append(',')
+                .Append(r.TotalCreditos.ToString(inv)).Append(',')
+                .Append(r.FechaCancelacion?.ToString("yyyy-MM-dd", inv) ?? string.Empty).Append(',')
+                .Append(r.TopeCredito.ToString(inv)).Append(',')
+                .Append(r.DiasInactividad.ToString(inv))
                 .AppendLine();
         }
 

@@ -121,9 +121,38 @@ export function ReporteCreditoPage() {
     { title: 'Forma pago', dataIndex: 'formaPago', width: 85 },
     { title: 'Cuotas', dataIndex: 'numeroCuotas', width: 60 },
     {
+      title: 'Interés',
+      dataIndex: 'interes',
+      width: 85,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
+      title: 'Monto producto',
+      dataIndex: 'montoProducto',
+      width: 105,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
+      title: 'Monto inicial',
+      dataIndex: 'montoInicial',
+      width: 100,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
       title: 'Monto crédito',
       dataIndex: 'montoCredito',
       width: 100,
+      align: 'right',
+      render: formatMoney,
+    },
+    { title: 'Tipo gasto adm.', dataIndex: 'tipoGastoAdm', width: 110, ellipsis: true },
+    {
+      title: 'Gastos adm.',
+      dataIndex: 'montoGastosAdm',
+      width: 95,
       align: 'right',
       render: formatMoney,
     },
@@ -206,6 +235,7 @@ export function ReporteCreditoPage() {
         dataSource={consulta.data ?? []}
         loading={consulta.isPending}
         pagination={{ pageSize: 25 }}
+        scroll={{ x: 1600 }}
         locale={{ emptyText: 'Consulte para ver créditos' }}
       />
     </CredixInformePage>

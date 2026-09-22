@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { FileTextOutlined, SearchOutlined } from '@ant-design/icons'
 import { Alert, Button, Form, InputNumber, Select } from 'antd'
-import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
 import {
   downloadCentralRiesgoGenerarCsv,
@@ -16,9 +15,11 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage } from '../../components/credix'
+import { buildCentralRiesgoInformeColumns } from '../../config/centralRiesgoInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
 
+const COLUMNS = buildCentralRiesgoInformeColumns()
 const MESES = [
   { value: 1, label: 'Enero' },
   { value: 2, label: 'Febrero' },
@@ -75,25 +76,6 @@ export function CentralRiesgoPage() {
   })
 
   const stats = useInformeStats(consulta, session?.oficinaId)
-  const columns: ColumnsType<CentralRiesgoGenerarRow> = [
-    { title: 'Crédito', dataIndex: 'creditoId', width: 75, fixed: 'left' },
-    { title: 'Periodo', dataIndex: 'periodo', width: 80 },
-    { title: 'Entidad', dataIndex: 'entidad', width: 70 },
-    { title: 'Doc.', dataIndex: 'numDoc', width: 100 },
-    {
-      title: 'Cliente',
-      key: 'nombre',
-      ellipsis: true,
-      render: (_, r) =>
-        [r.razonSocial, r.apePat, r.apeMat, r.nombres].filter(Boolean).join(' ') ||
-        '—',
-    },
-    { title: 'Deuda <30', dataIndex: 'deudaMenor30', width: 95 },
-    { title: 'Deuda >30', dataIndex: 'deudaMayor30', width: 95 },
-    { title: 'Calif.', dataIndex: 'calificacion', width: 55 },
-    { title: 'Días', dataIndex: 'diasAtrazo', width: 55 },
-    { title: 'Celular', dataIndex: 'celular', width: 100 },
-  ]
 
   return (
     <CredixInformePage
@@ -162,10 +144,11 @@ export function CentralRiesgoPage() {
       ) : null}
       <CredixDataTable<CentralRiesgoGenerarRow>
         rowKey={(r) => String(r.creditoId)}
-        columns={columns}
+        columns={COLUMNS}
         dataSource={consulta.data ?? []}
         loading={consulta.isPending}
         pagination={{ pageSize: 25 }}
+        scroll={{ x: 1800 }}
         locale={{ emptyText: 'Seleccione año y mes' }}
       />
     </CredixInformePage>

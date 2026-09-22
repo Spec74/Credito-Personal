@@ -14,11 +14,13 @@ public static class RptCobroDiarioCsvFormatter
     {
         var sb = new StringBuilder(capacity: Math.Max(512, rows.Count * 128));
         sb.AppendLine(
-            "Nro,Cliente,Celular,MontoCredito,Interes,CuotaPlan,Saldo,DiasAtrazo,NroCuotasPen,CuotaTotal,Direccion,FechaPago,FechaPrimerPago,FechaVencimiento,Mora,MontoTotal,Negocio,FormaPago,TopeCredito,ClasificacionRiesgoSBS");
+            "Nro,Orden,CreditoId,Cliente,Celular,MontoCredito,Interes,CuotaPlan,Saldo,DiasAtrazo,NroCuotasPen,CuotaTotal,Direccion,FechaPago,FechaPrimerPago,FechaVencimiento,Mora,MontoTotal,Negocio,FormaPago,TopeCredito,ClasificacionRiesgoSBS");
         var inv = CultureInfo.InvariantCulture;
         foreach (var r in rows)
         {
             sb.Append(r.Nro?.ToString(inv) ?? string.Empty).Append(',')
+                .Append(r.Orden?.ToString(inv) ?? string.Empty).Append(',')
+                .Append(r.CreditoId.ToString(inv)).Append(',')
                 .Append(CsvUtf8BomEncoding.EscapeField(r.Cliente)).Append(',')
                 .Append(CsvUtf8BomEncoding.EscapeField(r.Celular)).Append(',')
                 .Append(r.MontoCredito.ToString(inv)).Append(',')

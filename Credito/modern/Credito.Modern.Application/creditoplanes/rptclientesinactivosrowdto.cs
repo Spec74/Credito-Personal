@@ -1,6 +1,6 @@
 namespace Credito.Modern.Application.CreditoPlanes;
 
-/// <summary>Fila de <c>CREDITO.usp_RptClientesInactivos</c> (paridad con <c>usp_RptClientesInactivos_Result</c>).</summary>
+/// <summary>Fila de <c>CREDITO.usp_RptClientesInactivos</c> (paridad RDLC + columnas Tope/SBS/Depurado).</summary>
 public sealed class RptClientesInactivosRowDto
 {
     public int PersonaId { get; set; }
@@ -14,4 +14,11 @@ public sealed class RptClientesInactivosRowDto
     public string? Calificacion { get; set; }
     public string? DireccionNegocio { get; set; }
     public string? DireccionNegocioRef { get; set; }
+    public decimal MontoCredito { get; set; }
+    public decimal TopeCredito { get; set; }
+    public DateTime? FechaCancelacion { get; set; }
+    public int TotalCreditos { get; set; }
+    public int DiasInactividad { get; set; }
+    public string? Depurado { get; set; }
+    public string? ClasificacionRiesgoSBS { get; set; }
 }

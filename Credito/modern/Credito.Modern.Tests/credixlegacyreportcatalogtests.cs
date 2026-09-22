@@ -96,12 +96,14 @@ public sealed class CredixLegacyReportCatalogTests
     }
 
     [Fact]
-    public void Clientes_nuevos_no_reutiliza_columnas_de_observados()
+    public void Clientes_nuevos_alineado_con_observados()
     {
         var cols = CredixLegacyReportCatalog.Get(CredixLegacyReportKey.ClientesNuevosMes).Columns;
-        Assert.DoesNotContain(cols, c => c.CsvName is "OficinaId" or "AgenteId" or "TramiteAdm");
+        Assert.DoesNotContain(cols, c => c.CsvName is "OficinaId" or "AgenteId");
         Assert.Contains(cols, c => c.CsvName == "CreditoId");
         Assert.Contains(cols, c => c.CsvName == "Cliente");
+        Assert.Contains(cols, c => c.CsvName == "TramiteAdm");
+        Assert.Contains(cols, c => c.CsvName == "CentralRiesgo");
     }
 
     [Fact]
@@ -110,6 +112,13 @@ public sealed class CredixLegacyReportCatalogTests
         var cols = CredixLegacyReportCatalog.Get(CredixLegacyReportKey.ClientesInactivos).Columns;
         Assert.DoesNotContain(cols, c => c.CsvName == "PersonaId");
         Assert.Contains(cols, c => c.CsvName == "Dni" && c.Align == CredixColumnAlign.Center);
+        Assert.Contains(cols, c => c.CsvName == "TopeCredito");
+        Assert.Contains(cols, c => c.CsvName == "ClasificacionRiesgoSBS");
+        Assert.Contains(cols, c => c.CsvName == "Depurado");
+        Assert.Contains(cols, c => c.CsvName == "MontoCredito");
+        Assert.Contains(cols, c => c.CsvName == "TotalCreditos");
+        Assert.Contains(cols, c => c.CsvName == "FechaCancelacion");
+        Assert.Contains(cols, c => c.CsvName == "DiasInactividad");
     }
 
     [Fact]

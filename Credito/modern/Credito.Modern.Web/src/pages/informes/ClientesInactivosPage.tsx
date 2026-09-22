@@ -139,7 +139,7 @@ export function ClientesInactivosPage() {
       panelTitle="CLIENTES INACTIVOS"
       tableResultCount={filas.length}
       enableTableSearch={queried && filas.length > 0}
-      searchPlaceholder="Buscar por código, DNI, cliente o agente…"
+      searchPlaceholder="Buscar por DNI, cliente, agente, SBS o depurado…"
       filters={
         <Form
           form={form}
@@ -150,9 +150,15 @@ export function ClientesInactivosPage() {
           <Form.Item name="oficinaId" hidden>
             <InputNumber />
           </Form.Item>
-          <Form.Item name="usuarioId" label="Gestor">
-            <GestorSelect allowAll={puedeElegirGestor} legacyList size="middle" />
-          </Form.Item>
+          {puedeElegirGestor ? (
+            <Form.Item name="usuarioId" label="Gestor">
+              <GestorSelect allowAll legacyList size="middle" />
+            </Form.Item>
+          ) : (
+            <Form.Item name="usuarioId" hidden>
+              <InputNumber />
+            </Form.Item>
+          )}
           <Form.Item name="sinRango" valuePropName="checked">
             <Checkbox>Sin rango (legacy)</Checkbox>
           </Form.Item>

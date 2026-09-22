@@ -2,7 +2,6 @@ import { useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
 import { Alert, Button, Checkbox, Form, InputNumber } from 'antd'
-import type { ColumnsType } from 'antd/es/table'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
   downloadCreditosActivosCsv,
@@ -13,11 +12,12 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../components/credix'
+import { buildCreditosActivosInformeColumns } from '../../config/creditosActivosInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import type { InformeRangoGestorParams, RptCreditosActivosRow } from '../../types/api'
-import { formatFecha } from '../../utils/formatFecha'
-import { formatMoney } from '../../utils/formatMoney'
+
+const COLUMNS = buildCreditosActivosInformeColumns()
 
 
 type FormValues = {
@@ -64,51 +64,6 @@ export function CreditosActivosPage() {
   })
 
   const stats = useInformeStats(consulta, session?.oficinaId)
-
-  const columns: ColumnsType<RptCreditosActivosRow> = [
-    { title: 'Nº', dataIndex: 'nro', width: 55 },
-    { title: 'Estado', dataIndex: 'estado', width: 110 },
-    { title: 'Crédito', dataIndex: 'creditoId', width: 75 },
-    { title: 'Código', dataIndex: 'codigo', width: 80 },
-    { title: 'Cliente', dataIndex: 'cliente', width: 140, ellipsis: true },
-    { title: 'Agente', dataIndex: 'agente', width: 110, ellipsis: true },
-    {
-      title: 'Monto',
-      dataIndex: 'montoCredito',
-      width: 90,
-      align: 'right',
-      render: formatMoney,
-    },
-    { title: 'Forma pago', dataIndex: 'formaPago', width: 85 },
-    { title: 'Cuotas', dataIndex: 'numeroCuotas', width: 60 },
-    {
-      title: 'Saldo',
-      dataIndex: 'saldo',
-      width: 90,
-      align: 'right',
-      render: formatMoney,
-    },
-    { title: 'Días mora', dataIndex: 'diasAtrazo', width: 75 },
-    {
-      title: 'Mora',
-      dataIndex: 'mora',
-      width: 85,
-      align: 'right',
-      render: formatMoney,
-    },
-    {
-      title: '1er pago',
-      dataIndex: 'fechaPrimerPago',
-      width: 100,
-      render: formatFecha,
-    },
-    {
-      title: 'Vencimiento',
-      dataIndex: 'fechaVencimiento',
-      width: 100,
-      render: formatFecha,
-    },
-  ]
 
   return (
     <CredixInformePage
@@ -171,10 +126,11 @@ export function CreditosActivosPage() {
     >
       <CredixDataTable<RptCreditosActivosRow>
         rowKey="creditoId"
-        columns={columns}
+        columns={COLUMNS}
         dataSource={consulta.data ?? []}
         loading={consulta.isPending}
         pagination={{ pageSize: 25 }}
+        scroll={{ x: 2200 }}
         locale={{ emptyText: 'Consulte para ver créditos activos' }}
       />
     </CredixInformePage>

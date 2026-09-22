@@ -177,15 +177,21 @@ public static class CredixLegacyReportCatalog
                 "CLIENTES INACTIVOS",
                 Cols(
                     L("Agente", "Agente"),
-                    C("Codigo", "Código"),
                     C("Dni", "DNI"),
                     L("Cliente", "Cliente"),
                     L("Direccion", "Dirección"),
                     L("DireccionRef", "Dir. ref."),
                     C("Celular", "Celular"),
-                    C("Calificacion", "Calificación"),
+                    C("Calificacion", "Cal."),
+                    C("ClasificacionRiesgoSBS", "SBS"),
+                    C("Depurado", "Depurado"),
                     L("DireccionNegocio", "Dir. negocio"),
-                    L("DireccionNegocioRef", "Dir. neg. ref."))),
+                    L("DireccionNegocioRef", "Dir. neg. ref."),
+                    N("MontoCredito", "Monto crédito"),
+                    C("TotalCreditos", "Cant. créditos"),
+                    C("FechaCancelacion", "Fecha cancelación"),
+                    C("DiasInactividad", "Días inact."),
+                    N("TopeCredito", "Tope crédito"))),
             [CredixLegacyReportKey.ClientesBloqueados] = Def(
                 "CLIENTES BLOQUEADOS",
                 Cols(
@@ -612,16 +618,7 @@ public static class CredixLegacyReportCatalog
             C("CentralRiesgo", "Cent. riesgo"));
 
     private static CredixLegacyColumnSpec[] ClientesNuevosCols() =>
-        Cols(
-            L("Oficina", "Oficina"),
-            C("CreditoId", "N° créd."),
-            L("Cliente", "Cliente"),
-            C("FechaPrimerPago", "F. 1er pago"),
-            C("FechaVencimiento", "F. vcto"),
-            N("MontoCredito", "Monto crédito"),
-            N("Interes", "Interés"),
-            L("Agente", "Agente"),
-            L("Observacion", "Observación"));
+        ObservadoCols();
 
     private static CredixLegacyColumnSpec[] CreditosActivosCols() =>
         Cols(

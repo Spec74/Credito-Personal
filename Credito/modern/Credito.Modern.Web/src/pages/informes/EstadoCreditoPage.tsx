@@ -50,6 +50,27 @@ export function EstadoCreditoPage() {
       render: formatMoney,
     },
     {
+      title: 'Amortización',
+      dataIndex: 'amortizacion',
+      width: 95,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
+      title: 'Interés',
+      dataIndex: 'interes',
+      width: 85,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
+      title: 'Gastos adm.',
+      dataIndex: 'gastosAdm',
+      width: 95,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
       title: 'Vencimiento',
       dataIndex: 'fechaVencimiento',
       width: 105,
@@ -68,6 +89,47 @@ export function EstadoCreditoPage() {
       dataIndex: 'diasAtrazo',
       width: 90,
       render: (v: number | null) => (v != null ? v : '—'),
+    },
+    {
+      title: 'Imp. mora',
+      dataIndex: 'importeMora',
+      width: 90,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
+      title: 'Descuento',
+      dataIndex: 'descuento',
+      width: 90,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
+      title: 'Cargo',
+      dataIndex: 'cargo',
+      width: 85,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
+      title: 'Pago libre',
+      dataIndex: 'pagoLibre',
+      width: 90,
+      align: 'right',
+      render: formatMoney,
+    },
+    {
+      title: 'F. pago cuota',
+      dataIndex: 'fechaPagoCuota',
+      width: 110,
+      render: formatFecha,
+    },
+    {
+      title: 'Pago cuota',
+      dataIndex: 'pagoCuota',
+      width: 95,
+      align: 'right',
+      render: formatMoney,
     },
   ]
 
@@ -132,6 +194,7 @@ export function EstadoCreditoPage() {
         dataSource={consulta.data?.cuotas ?? []}
         loading={consulta.isPending}
         pagination={{ pageSize: 24 }}
+        scroll={{ x: 1400 }}
         locale={{ emptyText: 'Indique crédito y consulte' }}
       />
     </CredixInformePage>

@@ -13,9 +13,9 @@ public class RptCobroDiarioCsvFormatterTests
         var bytes = RptCobroDiarioCsvFormatter.ToUtf8BomCsv(Array.Empty<RptCobroDiarioRowDto>());
         AssertUtf8Bom(bytes);
         var header = HeaderLine(bytes);
-        Assert.StartsWith("Nro,Cliente,Celular", header, StringComparison.Ordinal);
-        Assert.DoesNotContain("Orden", header);
-        Assert.DoesNotContain("CreditoId", header);
+        Assert.StartsWith("Nro,Orden,CreditoId,Cliente,Celular", header, StringComparison.Ordinal);
+        Assert.Contains("Orden", header);
+        Assert.Contains("CreditoId", header);
     }
 
     [Fact]

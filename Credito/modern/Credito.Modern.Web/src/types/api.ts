@@ -463,6 +463,13 @@ export interface RptClientesInactivosRow {
   calificacion: string | null
   direccionNegocio: string | null
   direccionNegocioRef: string | null
+  montoCredito: number
+  topeCredito: number
+  fechaCancelacion: string | null
+  totalCreditos: number
+  diasInactividad: number
+  depurado: string | null
+  clasificacionRiesgoSBS: string | null
 }
 
 export interface RptCobroDiarioRow {
@@ -1208,6 +1215,13 @@ export interface RptClientesInactivosRow {
   calificacion: string | null
   direccionNegocio: string | null
   direccionNegocioRef: string | null
+  montoCredito: number
+  topeCredito: number
+  fechaCancelacion: string | null
+  totalCreditos: number
+  diasInactividad: number
+  depurado: string | null
+  clasificacionRiesgoSBS: string | null
 }
 
 export interface RptCobroDiarioRow {

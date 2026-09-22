@@ -402,9 +402,12 @@ public static class CredixLegacyPdfDocument
             || n.Equals("Nro", StringComparison.OrdinalIgnoreCase)
             || n.Equals("Dias", StringComparison.OrdinalIgnoreCase)
             || n.Equals("Días", StringComparison.OrdinalIgnoreCase)
+            || n.Equals("TotalCreditos", StringComparison.OrdinalIgnoreCase)
+            || n.Equals("DiasInactividad", StringComparison.OrdinalIgnoreCase)
             || n.StartsWith("Nro", StringComparison.OrdinalIgnoreCase)
             || n.StartsWith("Numero", StringComparison.OrdinalIgnoreCase)
-            || n.Contains("Cuotas", StringComparison.OrdinalIgnoreCase))
+            || n.Contains("Cuotas", StringComparison.OrdinalIgnoreCase)
+            || n.Contains("Cantidad", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }

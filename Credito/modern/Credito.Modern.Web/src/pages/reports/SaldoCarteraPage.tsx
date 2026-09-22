@@ -97,16 +97,40 @@ export function SaldoCarteraPage() {
     { title: 'Agente', dataIndex: 'agenteId', width: 90 },
     { title: 'Oficina', dataIndex: 'oficinaId', width: 90 },
     {
+      title: 'N° desembolsos',
+      dataIndex: 'nroDesembolsos',
+      width: 110,
+      align: 'right',
+    },
+    {
+      title: 'Desembolsos',
+      dataIndex: 'montoDesembolsos',
+      align: 'right',
+      render: formatMoney,
+    },
+    {
       title: 'Saldo cartera',
       dataIndex: 'saldoCartera',
       align: 'right',
       render: formatMoney,
     },
     {
+      title: 'Cli. cartera',
+      dataIndex: 'nroClientesSaldoCartera',
+      width: 100,
+      align: 'right',
+    },
+    {
       title: 'Saldo mora',
       dataIndex: 'saldoMoraCartera',
       align: 'right',
       render: formatMoney,
+    },
+    {
+      title: 'Cli. mora',
+      dataIndex: 'nroClientesSaldoMoraCartera',
+      width: 90,
+      align: 'right',
     },
     {
       title: 'Saldo vencido',
@@ -121,10 +145,10 @@ export function SaldoCarteraPage() {
       render: formatMoney,
     },
     {
-      title: 'Desembolsos',
-      dataIndex: 'montoDesembolsos',
+      title: 'Cli. nuevos',
+      dataIndex: 'nroClientesNuevos',
+      width: 95,
       align: 'right',
-      render: formatMoney,
     },
     {
       title: 'Cierre',
@@ -213,7 +237,7 @@ export function SaldoCarteraPage() {
         loading={consulta.isPending}
         pagination={{ pageSize: 15, showSizeChanger: true }}
         locale={{ emptyText: 'Ejecute Consultar para cargar datos' }}
-        scroll={{ x: 900 }}
+        scroll={{ x: 1200 }}
       />
     </CredixInformePage>
   )
