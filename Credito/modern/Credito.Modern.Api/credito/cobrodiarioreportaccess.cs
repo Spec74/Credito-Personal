@@ -8,9 +8,12 @@ namespace Credito.Modern.Api.Credito;
 internal static class CobroDiarioReportAccess
 {
     private static readonly string[] ElevatedRoles =
-        ["ADMIN", "APROBADOR", "PARCIAL", "ADMINISTRADOR"];
+        ["ADMIN", "APROBADOR", "PARCIAL", "REPORTEPARCIAL", "ADMINISTRADOR"];
 
-    /// <summary>Roles que en MVC pueden elegir gestor/oficina en reportes de crédito (p. ej. CobranzaPagos).</summary>
+    /// <summary>
+    /// Roles que en MVC pueden elegir gestor/oficina en reportes de crédito
+    /// (paridad <c>ReporteController.Credito</c>: REPORTEPARCIAL → ViewBag.rol PARCIAL).
+    /// </summary>
     internal static bool TieneRolReporteCredito(IEnumerable<string> roles)
     {
         foreach (var role in roles)
@@ -27,6 +30,13 @@ internal static class CobroDiarioReportAccess
             }
 
             if (trimmed.StartsWith("APROBADOR", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            // Denominación MAESTRO.Rol o alias ViewBag (PARCIAL / REPORTEPARCIAL).
+            if (trimmed.Contains("PARCIAL", StringComparison.OrdinalIgnoreCase)
+                && !trimmed.Contains("IMPARCIAL", StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }

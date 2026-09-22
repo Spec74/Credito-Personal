@@ -1,5 +1,11 @@
 /** Roles con acceso a la rejilla Reportes → Crédito del MVC. */
-const REPORTE_CREDITO_ROLES = ['ADMIN', 'APROBADOR', 'PARCIAL', 'ADMINISTRADOR']
+const REPORTE_CREDITO_ROLES = [
+  'ADMIN',
+  'APROBADOR',
+  'PARCIAL',
+  'REPORTEPARCIAL',
+  'ADMINISTRADOR',
+]
 
 const REPORTE_CREDITO_ADMIN_ROLES = ['ADMIN', 'ADMINISTRADOR']
 
@@ -8,7 +14,11 @@ function roleMatchesReporteCredito(role: string): boolean {
   if (REPORTE_CREDITO_ROLES.includes(upper)) {
     return true
   }
-  return upper.startsWith('APROBADOR')
+  if (upper.startsWith('APROBADOR')) {
+    return true
+  }
+  // MAESTRO.Rol.Denominacion = REPORTEPARCIAL → ViewBag.rol = PARCIAL en MVC.
+  return upper.includes('PARCIAL') && !upper.includes('IMPARCIAL')
 }
 
 export function canViewReporteCredito(roles: string[]): boolean {

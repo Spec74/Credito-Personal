@@ -241,7 +241,7 @@ export function ReporteCreditoIndexPage() {
           type="warning"
           showIcon
           message="Sin permiso"
-          description="Esta pantalla está disponible para roles ADMIN, APROBADOR o PARCIAL, igual que en el sistema anterior."
+          description="Esta pantalla está disponible para roles ADMIN, APROBADOR o REPORTEPARCIAL (PARCIAL), igual que en el sistema anterior."
         />
       </CredixPage>
     )
