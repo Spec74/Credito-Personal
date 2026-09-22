@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, Form, Select } from 'antd'
+import { Alert, Button, Form, InputNumber, Select } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
@@ -17,13 +17,13 @@ import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../com
 
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
+import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
 import type { ReporteCreditoParams, RptCreditoRow } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { CREDITO_ESTADO_REPORTE_OPTIONS } from '../../utils/creditoEstados'
 import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import { readUrlDay, readUrlUserId } from '../../utils/informeUrlParams'
-
 
 type FormValues = {
   oficinaId: number
@@ -49,6 +49,14 @@ export function ReporteCreditoPage() {
   const { session } = useAuth()
   const [searchParams] = useSearchParams()
   const [form] = Form.useForm<FormValues>()
+  const puedeElegirGestor = usePuedeElegirGestorInforme()
+
+  const defaultValues: FormValues = {
+    oficinaId: session?.oficinaId ?? 0,
+    estadoCredito: 'DES',
+    rango: [dayjs().startOf('month'), dayjs()],
+    gestorId: puedeElegirGestor ? undefined : session?.usuarioId,
+  }
 
   const consulta = useMutation({
     mutationFn: (v: FormValues) => {
@@ -72,7 +80,12 @@ export function ReporteCreditoPage() {
         ini ?? dayjs().startOf('month'),
         fin ?? dayjs(),
       ],
-      gestorId: gestor != null && gestor > 0 ? gestor : undefined,
+      gestorId:
+        gestor != null && gestor > 0
+          ? gestor
+          : puedeElegirGestor
+            ? undefined
+            : session.usuarioId,
     }
     form.setFieldsValue(next)
     if (
@@ -84,7 +97,7 @@ export function ReporteCreditoPage() {
       consulta.mutate(next)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta desde índice reportes
-  }, [session, searchParams.toString()])
+  }, [session, searchParams.toString(), puedeElegirGestor])
 
   const csv = useMutation({
     mutationFn: (v: FormValues) => {
@@ -169,27 +182,28 @@ export function ReporteCreditoPage() {
   return (
     <CredixInformePage
       title="Reporte de créditos"
-      subtitle="Mismos filtros que Reporte → Crédito: estado, rango de fechas y gestor (TODOS o uno). Oficina = sesión."
+      subtitle="Mismos filtros que Reporte → Crédito: estado, rango de fechas y gestor (TODOS para roles elevados). Oficina = sesión."
       breadcrumb={reportesCreditoBreadcrumb('Reporte créditos')}
       stats={stats}
       filters={
         <Form
           form={form}
           layout="inline"
-          initialValues={{
-            oficinaId: session?.oficinaId ?? 0,
-            estadoCredito: 'DES',
-            rango: [dayjs().startOf('month'), dayjs()],
-            gestorId: undefined,
-          }}
+          initialValues={defaultValues}
           onFinish={(v) => consulta.mutate(v)}
         >
           <Form.Item name="oficinaId" label="Oficina">
             <OficinaSelect disabled size="middle" />
           </Form.Item>
-          <Form.Item name="gestorId" label="Gestor">
-            <GestorSelect allowAll legacyList size="middle" />
-          </Form.Item>
+          {puedeElegirGestor ? (
+            <Form.Item name="gestorId" label="Gestor">
+              <GestorSelect allowAll legacyList size="middle" />
+            </Form.Item>
+          ) : (
+            <Form.Item name="gestorId" hidden>
+              <InputNumber />
+            </Form.Item>
+          )}
           <Form.Item name="estadoCredito" rules={[{ required: true }]}>
             <Select options={CREDITO_ESTADO_REPORTE_OPTIONS} style={{ width: 180 }} />
           </Form.Item>

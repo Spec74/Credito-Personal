@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, Checkbox, Form, InputNumber } from 'antd'
+import { Alert, Button, Form, InputNumber } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
   downloadCreditosCierresCsv,
@@ -12,28 +12,29 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../components/credix'
+import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import { buildCreditosCierresInformeColumns } from '../../config/creditosCierresInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
+import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
 import type { InformeRangoGestorParams, RptCreditosCierresRow } from '../../types/api'
 
 const COLUMNS = buildCreditosCierresInformeColumns()
 
-
 type FormValues = {
   oficinaId: number
   rango: [Dayjs, Dayjs]
-  soloMiGestor: boolean
+  usuarioId?: number
 }
 
-function toParams(v: FormValues, usuarioId?: number): InformeRangoGestorParams {
+function toParams(v: FormValues): InformeRangoGestorParams {
   const p: InformeRangoGestorParams = {
     oficinaId: v.oficinaId,
     fechaIni: v.rango[0].format('YYYY-MM-DD'),
     fechaFin: v.rango[1].format('YYYY-MM-DD'),
   }
-  if (v.soloMiGestor && usuarioId) {
-    p.usuarioId = usuarioId
+  if (v.usuarioId != null && v.usuarioId > 0) {
+    p.usuarioId = v.usuarioId
   }
   return p
 }
@@ -41,23 +42,32 @@ function toParams(v: FormValues, usuarioId?: number): InformeRangoGestorParams {
 export function CreditosCierresPage() {
   const { session } = useAuth()
   const [form] = Form.useForm<FormValues>()
+  const puedeElegirGestor = usePuedeElegirGestorInforme()
+
+  const defaultValues: FormValues = {
+    oficinaId: session?.oficinaId ?? 0,
+    rango: [dayjs().startOf('month'), dayjs()],
+    usuarioId: puedeElegirGestor ? undefined : session?.usuarioId,
+  }
 
   useEffect(() => {
-    if (session) {
-      form.setFieldsValue({ oficinaId: session.oficinaId })
-    }
-  }, [session, form])
+    if (!session) return
+    form.setFieldsValue({
+      oficinaId: session.oficinaId,
+      usuarioId: puedeElegirGestor ? form.getFieldValue('usuarioId') : session.usuarioId,
+    })
+  }, [session, form, puedeElegirGestor])
 
   const consulta = useMutation({
-    mutationFn: (v: FormValues) => fetchCreditosCierres(toParams(v, session?.usuarioId)),
+    mutationFn: (v: FormValues) => fetchCreditosCierres(toParams(v)),
   })
 
   const csv = useMutation({
-    mutationFn: (v: FormValues) => downloadCreditosCierresCsv(toParams(v, session?.usuarioId)),
+    mutationFn: (v: FormValues) => downloadCreditosCierresCsv(toParams(v)),
   })
 
   const pdf = useMutation({
-    mutationFn: (v: FormValues) => downloadCreditosCierresPdf(toParams(v, session?.usuarioId)),
+    mutationFn: (v: FormValues) => downloadCreditosCierresPdf(toParams(v)),
   })
 
   const stats = useInformeStats(consulta, session?.oficinaId)
@@ -65,18 +75,14 @@ export function CreditosCierresPage() {
   return (
     <CredixInformePage
       title="Créditos cierres"
-      subtitle="Créditos cerrados en el rango de fechas por oficina y gestor opcional."
+      subtitle="Créditos cerrados en el rango de fechas; gestor opcional (TODOS) para roles elevados."
       breadcrumb={reportesCreditoBreadcrumb('Créditos cierres')}
       stats={stats}
       filters={
         <Form
           form={form}
           layout="inline"
-          initialValues={{
-            oficinaId: session?.oficinaId ?? 0,
-            rango: [dayjs().startOf('month'), dayjs()],
-            soloMiGestor: false,
-          }}
+          initialValues={defaultValues}
           onFinish={(v) => consulta.mutate(v)}
         >
           <Form.Item name="oficinaId" hidden>
@@ -85,9 +91,15 @@ export function CreditosCierresPage() {
           <Form.Item name="rango" rules={[{ required: true }]}>
             <CredixRangePicker format="DD/MM/YYYY" />
           </Form.Item>
-          <Form.Item name="soloMiGestor" valuePropName="checked">
-            <Checkbox>Solo mi gestión</Checkbox>
-          </Form.Item>
+          {puedeElegirGestor ? (
+            <Form.Item name="usuarioId" label="Gestor">
+              <GestorSelect allowAll legacyList size="middle" />
+            </Form.Item>
+          ) : (
+            <Form.Item name="usuarioId" hidden>
+              <InputNumber />
+            </Form.Item>
+          )}
           <Form.Item>
             <Button
               type="primary"

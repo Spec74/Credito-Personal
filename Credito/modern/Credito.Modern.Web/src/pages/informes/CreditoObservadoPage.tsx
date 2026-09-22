@@ -139,9 +139,15 @@ export function CreditoObservadoPage() {
           <Form.Item name="oficinaId" hidden>
             <InputNumber />
           </Form.Item>
-          <Form.Item name="usuarioId" label="Gestor">
-            <GestorSelect allowAll={puedeElegirGestor} legacyList size="middle" />
-          </Form.Item>
+          {puedeElegirGestor ? (
+            <Form.Item name="usuarioId" label="Gestor">
+              <GestorSelect allowAll legacyList size="middle" />
+            </Form.Item>
+          ) : (
+            <Form.Item name="usuarioId" hidden>
+              <InputNumber />
+            </Form.Item>
+          )}
           <Form.Item>
             <Button
               type="primary"

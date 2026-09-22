@@ -403,7 +403,7 @@ export interface ClientesNuevosMesParams {
 
 export interface CreditoCondonadoParams {
   oficinaId: number
-  usuarioId: number
+  usuarioId?: number
   fechaIni: string
   fechaFin: string
 }
@@ -1155,7 +1155,7 @@ export interface ClientesNuevosMesParams {
 
 export interface CreditoCondonadoParams {
   oficinaId: number
-  usuarioId: number
+  usuarioId?: number
   fechaIni: string
   fechaFin: string
 }

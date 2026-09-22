@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { Alert, Button, Form, Typography, message } from 'antd'
+import { Alert, Button, Form, InputNumber, Typography, message } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import {
@@ -20,6 +20,7 @@ import type { CredixStatItem } from '../../components/credix'
 import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import { buildCobroDiarioInformeColumns } from '../../config/cobroDiarioInformeColumns'
 import { useInformeStats } from '../../hooks/useInformeStats'
+import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
 import { buildCobroDiarioKpiExtras } from '../../utils/cobroDiarioKpis'
 import { formatFecha } from '../../utils/formatFecha'
 import {
@@ -39,10 +40,11 @@ export function MorosidadGestorPage() {
   const { session } = useAuth()
   const [searchParams] = useSearchParams()
   const [form] = Form.useForm<FormValues>()
+  const puedeElegirGestor = usePuedeElegirGestorInforme()
 
   const defaultValues: FormValues = {
     oficinaId: session?.oficinaId ?? 0,
-    usuarioId: undefined,
+    usuarioId: puedeElegirGestor ? undefined : session?.usuarioId,
   }
 
   const consulta = useMutation({
@@ -62,7 +64,8 @@ export function MorosidadGestorPage() {
     const uid = readUrlUserId(searchParams)
     const next: FormValues = {
       oficinaId: session.oficinaId,
-      usuarioId: uid != null && uid > 0 ? uid : undefined,
+      usuarioId:
+        uid != null && uid > 0 ? uid : puedeElegirGestor ? undefined : session.usuarioId,
     }
     form.setFieldsValue(next)
     if (
@@ -74,7 +77,7 @@ export function MorosidadGestorPage() {
       consulta.mutate(next)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta desde índice reportes
-  }, [session, searchParams.toString()])
+  }, [session, searchParams.toString(), puedeElegirGestor])
 
   const csv = useMutation({
     mutationFn: async (v: FormValues) => {
@@ -120,7 +123,8 @@ export function MorosidadGestorPage() {
       subtitle={
         <>
           Paridad <strong>Reporte → Crédito → Morosidad gestor</strong> (<em>indMora=true</em>,
-          mismo SP que cobro diario). Solo créditos con mora &gt; 0; gestor opcional (TODOS).
+          mismo SP que cobro diario). Solo créditos con mora &gt; 0; gestor opcional (TODOS) para
+          roles elevados.
         </>
       }
       breadcrumb={reportesCreditoBreadcrumb('Morosidad gestor')}
@@ -139,9 +143,15 @@ export function MorosidadGestorPage() {
           <Form.Item name="oficinaId" label="Oficina">
             <OficinaSelect disabled size="middle" />
           </Form.Item>
-          <Form.Item name="usuarioId" label="Gestor">
-            <GestorSelect allowAll legacyList size="middle" />
-          </Form.Item>
+          {puedeElegirGestor ? (
+            <Form.Item name="usuarioId" label="Gestor">
+              <GestorSelect allowAll legacyList size="middle" />
+            </Form.Item>
+          ) : (
+            <Form.Item name="usuarioId" hidden>
+              <InputNumber />
+            </Form.Item>
+          )}
           <Form.Item>
             <Button
               type="primary"

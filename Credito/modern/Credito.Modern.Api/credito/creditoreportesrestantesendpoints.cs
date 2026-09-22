@@ -3405,15 +3405,6 @@ internal static class CreditoReportesRestantesEndpoints
                             title: "Parámetros inválidos",
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
-
-                    if (oficinaId is null or < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
                     if (string.IsNullOrWhiteSpace(estadoCredito))
                     {
                         return TypedResults.Problem(
@@ -3430,27 +3421,19 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "estadoCredito admite como máximo 32 caracteres.");
                     }
 
-                    if (gestorId is < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, gestorId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "gestorId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, gestorId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCredito");
                     try
                     {
                         var items = await rptCredito.ListarAsync(
-                                oficinaId.Value,
-                                gestorId,
+                                oficinaResolved,
+                                usuarioResolved,
                                 estadoCredito,
                                 fechaIni.Value,
                                 fechaFin.Value,
@@ -3538,15 +3521,6 @@ internal static class CreditoReportesRestantesEndpoints
                             title: "Parámetros inválidos",
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
-
-                    if (oficinaId is null or < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
                     if (string.IsNullOrWhiteSpace(estadoCredito))
                     {
                         return TypedResults.Problem(
@@ -3563,27 +3537,19 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "estadoCredito admite como máximo 32 caracteres.");
                     }
 
-                    if (gestorId is < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, gestorId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "gestorId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, gestorId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoCsv");
                     try
                     {
                         var items = await rptCredito.ListarAsync(
-                                oficinaId.Value,
-                                gestorId,
+                                oficinaResolved,
+                                usuarioResolved,
                                 estadoCredito,
                                 fechaIni.Value,
                                 fechaFin.Value,
@@ -3672,15 +3638,6 @@ internal static class CreditoReportesRestantesEndpoints
                             title: "Parámetros inválidos",
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
-
-                    if (oficinaId is null or < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
                     if (string.IsNullOrWhiteSpace(estadoCredito))
                     {
                         return TypedResults.Problem(
@@ -3697,27 +3654,19 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "estadoCredito admite como máximo 32 caracteres.");
                     }
 
-                    if (gestorId is < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, gestorId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "gestorId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, gestorId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoPdf");
                     try
                     {
                         var items = await rptCredito.ListarAsync(
-                                oficinaId.Value,
-                                gestorId,
+                                oficinaResolved,
+                                usuarioResolved,
                                 estadoCredito,
                                 fechaIni.Value,
                                 fechaFin.Value,
@@ -3726,8 +3675,8 @@ internal static class CreditoReportesRestantesEndpoints
                         var csvBytes = RptCreditoCsvFormatter.ToUtf8BomCsv(items);
                         var pdfContext = await LegacyReportPdf.ResolveAsync(
                                 httpContext,
-                                oficinaId,
-                                gestorId,
+                                oficinaResolved,
+                                usuarioResolved,
                                 fechaIni: fechaIni,
                                 fechaFin: fechaFin,
                                 estado: estadoCredito,
@@ -4623,27 +4572,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaAprobacion debe tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoAprobacion");
@@ -4651,8 +4584,8 @@ internal static class CreditoReportesRestantesEndpoints
                     {
                         var items = await aprobacion.ListarAsync(
                                 fechaAprobacion.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(items.ToList());
@@ -4727,27 +4660,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaAprobacion debe tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoAprobacionCsv");
@@ -4755,8 +4672,8 @@ internal static class CreditoReportesRestantesEndpoints
                     {
                         var items = await aprobacion.ListarAsync(
                                 fechaAprobacion.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         var bytes = RptCreditoAprobacionCsvFormatter.ToUtf8BomCsv(items);
@@ -4832,27 +4749,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaAprobacion debe tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoAprobacionPdf");
@@ -4860,15 +4761,15 @@ internal static class CreditoReportesRestantesEndpoints
                     {
                         var items = await aprobacion.ListarAsync(
                                 fechaAprobacion.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         var csvBytes = RptCreditoAprobacionCsvFormatter.ToUtf8BomCsv(items);
                         var pdfContext = await LegacyReportPdf.ResolveAsync(
                                 httpContext,
-                                oficinaId,
-                                usuarioId,
+                                oficinaResolved,
+                                usuarioResolved,
                                 fecha: fechaAprobacion,
                                 cancellationToken: ct)
                             .ConfigureAwait(false);
@@ -4955,27 +4856,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditosActivos");
@@ -4984,8 +4869,8 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await creditosActivos.ListarAsync(
                                 fechaIni.Value,
                                 fechaFin.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(items.ToList());
@@ -5070,27 +4955,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditosActivosCsv");
@@ -5099,8 +4968,8 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await creditosActivos.ListarAsync(
                                 fechaIni.Value,
                                 fechaFin.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         var bytes = RptCreditosActivosCsvFormatter.ToUtf8BomCsv(items);
@@ -5186,27 +5055,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditosActivosPdf");
@@ -5215,15 +5068,15 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await creditosActivos.ListarAsync(
                                 fechaIni.Value,
                                 fechaFin.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         var csvBytes = RptCreditosActivosCsvFormatter.ToUtf8BomCsv(items);
                         var pdfContext = await LegacyReportPdf.ResolveAsync(
                                 httpContext,
-                                oficinaId,
-                                usuarioId,
+                                oficinaResolved,
+                                usuarioResolved,
                                 fechaIni: fechaIni,
                                 fechaFin: fechaFin,
                                 cancellationToken: ct)
@@ -5311,27 +5164,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditosCierres");
@@ -5340,8 +5177,8 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await cierres.ListarAsync(
                                 fechaIni.Value,
                                 fechaFin.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(items.ToList());
@@ -5426,27 +5263,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditosCierresCsv");
@@ -5455,8 +5276,8 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await cierres.ListarAsync(
                                 fechaIni.Value,
                                 fechaFin.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         var bytes = RptCreditosCierresCsvFormatter.ToUtf8BomCsv(items);
@@ -5542,27 +5363,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditosCierresPdf");
@@ -5571,15 +5376,15 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await cierres.ListarAsync(
                                 fechaIni.Value,
                                 fechaFin.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         var csvBytes = RptCreditosCierresCsvFormatter.ToUtf8BomCsv(items);
                         var pdfContext = await LegacyReportPdf.ResolveAsync(
                                 httpContext,
-                                oficinaId,
-                                usuarioId,
+                                oficinaResolved,
+                                usuarioResolved,
                                 fechaIni: fechaIni,
                                 fechaFin: fechaFin,
                                 cancellationToken: ct)
@@ -5667,27 +5472,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditosMorososPagados");
@@ -5696,8 +5485,8 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await morososPagados.ListarAsync(
                                 fechaIni.Value,
                                 fechaFin.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(items.ToList());
@@ -5782,27 +5571,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditosMorososPagadosCsv");
@@ -5811,8 +5584,8 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await morososPagados.ListarAsync(
                                 fechaIni.Value,
                                 fechaFin.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         var bytes = RptCreditosMorososPagadosCsvFormatter.ToUtf8BomCsv(items);
@@ -5898,27 +5671,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditosMorososPagadosPdf");
@@ -5927,15 +5684,15 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await morososPagados.ListarAsync(
                                 fechaIni.Value,
                                 fechaFin.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         var csvBytes = RptCreditosMorososPagadosCsvFormatter.ToUtf8BomCsv(items);
                         var pdfContext = await LegacyReportPdf.ResolveAsync(
                                 httpContext,
-                                oficinaId,
-                                usuarioId,
+                                oficinaResolved,
+                                usuarioResolved,
                                 fechaIni: fechaIni,
                                 fechaFin: fechaFin,
                                 cancellationToken: ct)
@@ -6366,27 +6123,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCajaDiario");
@@ -6395,8 +6136,8 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await rptCajaDiario.ListarAsync(
                                 fechaIni.Value,
                                 fechaFin.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(items.ToList());
@@ -6481,27 +6222,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCajaDiarioCsv");
@@ -6510,8 +6235,8 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await rptCajaDiario.ListarAsync(
                                 fechaIni.Value,
                                 fechaFin.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         var bytes = RptCajaDiarioCsvFormatter.ToUtf8BomCsv(items);
@@ -6597,27 +6322,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaIni y fechaFin deben tener año entre 1900 y 2100.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCajaDiarioPdf");
@@ -6626,15 +6335,15 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await rptCajaDiario.ListarAsync(
                                 fechaIni.Value,
                                 fechaFin.Value,
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 ct)
                             .ConfigureAwait(false);
                         var csvBytes = RptCajaDiarioCsvFormatter.ToUtf8BomCsv(items);
                         var pdfContext = await LegacyReportPdf.ResolveAsync(
                                 httpContext,
-                                oficinaId,
-                                usuarioId,
+                                oficinaResolved,
+                                usuarioResolved,
                                 fechaIni: fechaIni,
                                 fechaFin: fechaFin,
                                 cancellationToken: ct)
@@ -7334,27 +7043,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "anioIni, mesIni, anioFin y mesFin son obligatorios.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptSaldoCarteraCajaDiario");
@@ -7362,8 +7055,8 @@ internal static class CreditoReportesRestantesEndpoints
                     {
                         var items = await rptSaldoCarteraCajaDiario
                             .ListarAsync(
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 anioIni.Value,
                                 mesIni.Value,
                                 anioFin.Value,
@@ -7439,27 +7132,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "anioIni, mesIni, anioFin y mesFin son obligatorios.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptSaldoCarteraCajaDiarioCsv");
@@ -7467,8 +7144,8 @@ internal static class CreditoReportesRestantesEndpoints
                     {
                         var items = await rptSaldoCarteraCajaDiario
                             .ListarAsync(
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 anioIni.Value,
                                 mesIni.Value,
                                 anioFin.Value,
@@ -7546,27 +7223,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "anioIni, mesIni, anioFin y mesFin son obligatorios.");
                     }
 
-                    if (oficinaId is null or < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptSaldoCarteraCajaDiarioPdf");
@@ -7574,8 +7235,8 @@ internal static class CreditoReportesRestantesEndpoints
                     {
                         var items = await rptSaldoCarteraCajaDiario
                             .ListarAsync(
-                                usuarioId,
-                                oficinaId.Value,
+                                usuarioResolved,
+                                oficinaResolved,
                                 anioIni.Value,
                                 mesIni.Value,
                                 anioFin.Value,
@@ -7583,8 +7244,8 @@ internal static class CreditoReportesRestantesEndpoints
                                 ct)
                             .ConfigureAwait(false);
                         var activas = await oficinas.GetActivasAsync(ct).ConfigureAwait(false);
-                        var oficinaNom = activas.Find(o => o.OficinaId == oficinaId.Value)?.Denominacion
-                            ?? $"Oficina #{oficinaId.Value}";
+                        var oficinaNom = activas.Find(o => o.OficinaId == oficinaResolved)?.Denominacion
+                            ?? $"Oficina #{oficinaResolved}";
                         var es = CultureInfo.GetCultureInfo("es-PE");
                         var periodoIni = new DateTime(anioIni.Value, mesIni.Value, 1).ToString("MMMM yyyy", es);
                         var periodoFin = new DateTime(anioFin.Value, mesFin.Value, 1).ToString("MMMM yyyy", es);
@@ -7960,39 +7621,22 @@ internal static class CreditoReportesRestantesEndpoints
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
-                {
-                    if (oficinaId is null or < 1)
+                {                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
-                    if (usuarioId is < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoObservadoPdf");
                     try
                     {
                         var items = await rptCreditoObservado
-                            .ListarAsync(oficinaId.Value, usuarioId, ct)
+                            .ListarAsync(oficinaResolved, usuarioResolved, ct)
                             .ConfigureAwait(false);
                         var csvBytes = RptCreditoObservadoCsvFormatter.ToUtf8BomCsv(items);
                         var pdfContext = await GestorInformePdfContextBuilder
-                            .BuildGestorOficinaAsync(oficinaId.Value, usuarioId, usuarios, oficinas, ct)
+                            .BuildGestorOficinaAsync(oficinaResolved, usuarioResolved, usuarios, oficinas, ct)
                             .ConfigureAwait(false);
                         var bytes = TabularPdfDocument.FromUtf8BomCsv(
                             "Créditos observados",
@@ -8061,15 +7705,6 @@ internal static class CreditoReportesRestantesEndpoints
                             title: "Parámetros inválidos",
                             detail: "fechaIni y fechaFin son obligatorios.");
                     }
-
-                    if (oficinaId is null or < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
                     if (fechaFin.Value.Date < fechaIni.Value.Date)
                     {
                         return TypedResults.Problem(
@@ -8078,26 +7713,18 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaFin no puede ser anterior a fechaIni.");
                     }
 
-                    if (usuarioId is < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoCondonado");
                     try
                     {
                         var items = await rptCreditoCondonado
-                            .ListarAsync(fechaIni.Value, fechaFin.Value, oficinaId.Value, usuarioId, ct)
+                            .ListarAsync(fechaIni.Value, fechaFin.Value, oficinaResolved, usuarioResolved, ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(items.ToList());
                     }
@@ -8162,15 +7789,6 @@ internal static class CreditoReportesRestantesEndpoints
                             title: "Parámetros inválidos",
                             detail: "fechaIni y fechaFin son obligatorios.");
                     }
-
-                    if (oficinaId is null or < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
                     if (fechaFin.Value.Date < fechaIni.Value.Date)
                     {
                         return TypedResults.Problem(
@@ -8179,26 +7797,18 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaFin no puede ser anterior a fechaIni.");
                     }
 
-                    if (usuarioId is < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoCondonadoCsv");
                     try
                     {
                         var items = await rptCreditoCondonado
-                            .ListarAsync(fechaIni.Value, fechaFin.Value, oficinaId.Value, usuarioId, ct)
+                            .ListarAsync(fechaIni.Value, fechaFin.Value, oficinaResolved, usuarioResolved, ct)
                             .ConfigureAwait(false);
                         var bytes = RptCreditoCondonadoCsvFormatter.ToUtf8BomCsv(items);
                         return TypedResults.File(bytes, "text/csv; charset=utf-8", fileDownloadName: "credito-condonado.csv");
@@ -8266,15 +7876,6 @@ internal static class CreditoReportesRestantesEndpoints
                             title: "Parámetros inválidos",
                             detail: "fechaIni y fechaFin son obligatorios.");
                     }
-
-                    if (oficinaId is null or < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
-                    }
-
                     if (fechaFin.Value.Date < fechaIni.Value.Date)
                     {
                         return TypedResults.Problem(
@@ -8283,31 +7884,23 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "fechaFin no puede ser anterior a fechaIni.");
                     }
 
-                    if (usuarioId is < 1)
+                    var (oficinaResolved, usuarioResolved, accessErr) =
+                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                    if (accessErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: "usuarioId, si se indica, debe ser un entero >= 1.");
-                    }
-
-                    var accessErrGestor = GestorInformeReportAccess.Validate(
-                        httpContext, oficinaId, usuarioId);
-                    if (accessErrGestor is not null)
-                    {
-                        return accessErrGestor;
+                        return accessErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoCondonadoPdf");
                     try
                     {
                         var items = await rptCreditoCondonado
-                            .ListarAsync(fechaIni.Value, fechaFin.Value, oficinaId.Value, usuarioId, ct)
+                            .ListarAsync(fechaIni.Value, fechaFin.Value, oficinaResolved, usuarioResolved, ct)
                             .ConfigureAwait(false);
                         var csvBytes = RptCreditoCondonadoCsvFormatter.ToUtf8BomCsv(items);
                         var cult = CultureInfo.CurrentCulture;
                         var pdfContext = await GestorInformePdfContextBuilder
-                            .BuildGestorOficinaAsync(oficinaId.Value, usuarioId, usuarios, oficinas, ct)
+                            .BuildGestorOficinaAsync(oficinaResolved, usuarioResolved, usuarios, oficinas, ct)
                             .ConfigureAwait(false);
                         pdfContext = pdfContext with
                         {

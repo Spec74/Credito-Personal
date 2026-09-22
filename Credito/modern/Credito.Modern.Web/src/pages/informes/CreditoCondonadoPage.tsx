@@ -13,17 +13,18 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../components/credix'
+import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
+import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
 import type { CreditoCondonadoParams, RptCreditoCondonadoRow } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 
-
 type FormValues = {
   oficinaId: number
-  usuarioId: number
+  usuarioId?: number
   rango: [Dayjs, Dayjs]
 }
 
@@ -32,32 +33,35 @@ function mesCalendarioActual(): [Dayjs, Dayjs] {
 }
 
 function toParams(v: FormValues): CreditoCondonadoParams {
-  return {
+  const p: CreditoCondonadoParams = {
     oficinaId: v.oficinaId,
-    usuarioId: v.usuarioId,
     fechaIni: v.rango[0].format('YYYY-MM-DD'),
     fechaFin: v.rango[1].format('YYYY-MM-DD'),
   }
+  if (v.usuarioId != null && v.usuarioId > 0) {
+    p.usuarioId = v.usuarioId
+  }
+  return p
 }
 
 export function CreditoCondonadoPage() {
   const { session } = useAuth()
   const [form] = Form.useForm<FormValues>()
+  const puedeElegirGestor = usePuedeElegirGestorInforme()
 
   const defaultValues: FormValues = {
     oficinaId: session?.oficinaId ?? 0,
-    usuarioId: session?.usuarioId ?? 0,
+    usuarioId: puedeElegirGestor ? undefined : session?.usuarioId,
     rango: mesCalendarioActual(),
   }
 
   useEffect(() => {
-    if (session) {
-      form.setFieldsValue({
-        oficinaId: session.oficinaId,
-        usuarioId: session.usuarioId,
-      })
-    }
-  }, [session, form])
+    if (!session) return
+    form.setFieldsValue({
+      oficinaId: session.oficinaId,
+      usuarioId: puedeElegirGestor ? form.getFieldValue('usuarioId') : session.usuarioId,
+    })
+  }, [session, form, puedeElegirGestor])
 
   const consulta = useMutation({
     mutationFn: (v: FormValues) => fetchCreditoCondonado(toParams(v)),
@@ -116,7 +120,7 @@ export function CreditoCondonadoPage() {
   return (
     <CredixInformePage
       title="Créditos condonados"
-      subtitle="Créditos pagados con condonación en el periodo; por defecto el mes calendario actual."
+      subtitle="Créditos pagados con condonación; gestor opcional (TODOS) para roles elevados. Periodo por defecto = mes calendario."
       breadcrumb={reportesCreditoBreadcrumb('Créditos condonados')}
       stats={stats}
       filters={
@@ -129,9 +133,15 @@ export function CreditoCondonadoPage() {
           <Form.Item name="oficinaId" hidden>
             <InputNumber />
           </Form.Item>
-          <Form.Item name="usuarioId" hidden>
-            <InputNumber />
-          </Form.Item>
+          {puedeElegirGestor ? (
+            <Form.Item name="usuarioId" label="Gestor">
+              <GestorSelect allowAll legacyList size="middle" />
+            </Form.Item>
+          ) : (
+            <Form.Item name="usuarioId" hidden>
+              <InputNumber />
+            </Form.Item>
+          )}
           <Form.Item
             name="rango"
             rules={[

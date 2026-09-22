@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, Checkbox, Form, InputNumber } from 'antd'
+import { Alert, Button, Form, InputNumber } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
@@ -14,27 +14,28 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../components/credix'
+import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 
 import { useInformeStats } from '../../hooks/useInformeStats'
+import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
 import type { CajaDiarioInformeParams, RptCajaDiarioRow } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 
-
 type FormValues = {
   oficinaId: number
   rango: [Dayjs, Dayjs]
-  soloMiGestor: boolean
+  usuarioId?: number
 }
 
-function toParams(v: FormValues, usuarioId?: number): CajaDiarioInformeParams {
+function toParams(v: FormValues): CajaDiarioInformeParams {
   const p: CajaDiarioInformeParams = {
     oficinaId: v.oficinaId,
     fechaIni: v.rango[0].format('YYYY-MM-DD'),
     fechaFin: v.rango[1].format('YYYY-MM-DD'),
   }
-  if (v.soloMiGestor && usuarioId) {
-    p.usuarioId = usuarioId
+  if (v.usuarioId != null && v.usuarioId > 0) {
+    p.usuarioId = v.usuarioId
   }
   return p
 }
@@ -42,26 +43,32 @@ function toParams(v: FormValues, usuarioId?: number): CajaDiarioInformeParams {
 export function CajaDiarioInformePage() {
   const { session } = useAuth()
   const [form] = Form.useForm<FormValues>()
+  const puedeElegirGestor = usePuedeElegirGestorInforme()
+
+  const defaultValues: FormValues = {
+    oficinaId: session?.oficinaId ?? 0,
+    rango: [dayjs().startOf('month'), dayjs()],
+    usuarioId: puedeElegirGestor ? undefined : session?.usuarioId,
+  }
 
   useEffect(() => {
-    if (session) {
-      form.setFieldsValue({ oficinaId: session.oficinaId })
-    }
-  }, [session, form])
+    if (!session) return
+    form.setFieldsValue({
+      oficinaId: session.oficinaId,
+      usuarioId: puedeElegirGestor ? form.getFieldValue('usuarioId') : session.usuarioId,
+    })
+  }, [session, form, puedeElegirGestor])
 
   const consulta = useMutation({
-    mutationFn: (v: FormValues) =>
-      fetchCajaDiarioInforme(toParams(v, session?.usuarioId)),
+    mutationFn: (v: FormValues) => fetchCajaDiarioInforme(toParams(v)),
   })
 
   const csv = useMutation({
-    mutationFn: (v: FormValues) =>
-      downloadCajaDiarioInformeCsv(toParams(v, session?.usuarioId)),
+    mutationFn: (v: FormValues) => downloadCajaDiarioInformeCsv(toParams(v)),
   })
 
   const pdf = useMutation({
-    mutationFn: (v: FormValues) =>
-      downloadCajaDiarioInformePdf(toParams(v, session?.usuarioId)),
+    mutationFn: (v: FormValues) => downloadCajaDiarioInformePdf(toParams(v)),
   })
 
   const stats = useInformeStats(consulta, session?.oficinaId)
@@ -115,7 +122,7 @@ export function CajaDiarioInformePage() {
   return (
     <CredixInformePage
       title="Informe caja diario"
-      subtitle="Sesiones de caja diario por oficina y rango; sin gestor lista todas las cajas."
+      subtitle="Sesiones de caja diario por oficina y rango; gestor opcional (TODOS) para roles elevados."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/informes">Informes</Link> },
@@ -126,11 +133,7 @@ export function CajaDiarioInformePage() {
         <Form
           form={form}
           layout="inline"
-          initialValues={{
-            oficinaId: session?.oficinaId ?? 0,
-            rango: [dayjs().startOf('month'), dayjs()],
-            soloMiGestor: false,
-          }}
+          initialValues={defaultValues}
           onFinish={(v) => consulta.mutate(v)}
         >
           <Form.Item name="oficinaId" hidden>
@@ -139,9 +142,15 @@ export function CajaDiarioInformePage() {
           <Form.Item name="rango" rules={[{ required: true, message: 'Indique el rango' }]}>
             <CredixRangePicker format="DD/MM/YYYY" />
           </Form.Item>
-          <Form.Item name="soloMiGestor" valuePropName="checked">
-            <Checkbox>Solo mi gestión</Checkbox>
-          </Form.Item>
+          {puedeElegirGestor ? (
+            <Form.Item name="usuarioId" label="Gestor">
+              <GestorSelect allowAll legacyList size="middle" />
+            </Form.Item>
+          ) : (
+            <Form.Item name="usuarioId" hidden>
+              <InputNumber />
+            </Form.Item>
+          )}
           <Form.Item>
             <Button
               type="primary"

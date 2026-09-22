@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, Checkbox, Form, InputNumber, Select } from 'antd'
+import { Alert, Button, Form, InputNumber, Select } from 'antd'
 import {
   downloadSaldoCarteraCajaDiarioCsv,
   downloadSaldoCarteraCajaDiarioPdf,
@@ -11,9 +11,11 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage } from '../../components/credix'
+import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import { buildSaldoCarteraCajaDiarioInformeColumns } from '../../config/saldoCarteraCajaDiarioInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
+import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
 import type {
   RptSaldoCarteraCajaDiarioRow,
   SaldoCarteraCajaDiarioParams,
@@ -33,10 +35,10 @@ type FormValues = {
   mesIni: number
   anioFin: number
   mesFin: number
-  soloMiGestor: boolean
+  usuarioId?: number
 }
 
-function toParams(v: FormValues, usuarioId?: number): SaldoCarteraCajaDiarioParams {
+function toParams(v: FormValues): SaldoCarteraCajaDiarioParams {
   const p: SaldoCarteraCajaDiarioParams = {
     oficinaId: v.oficinaId,
     anioIni: v.anioIni,
@@ -44,8 +46,8 @@ function toParams(v: FormValues, usuarioId?: number): SaldoCarteraCajaDiarioPara
     anioFin: v.anioFin,
     mesFin: v.mesFin,
   }
-  if (v.soloMiGestor && usuarioId) {
-    p.usuarioId = usuarioId
+  if (v.usuarioId != null && v.usuarioId > 0) {
+    p.usuarioId = v.usuarioId
   }
   return p
 }
@@ -53,26 +55,35 @@ function toParams(v: FormValues, usuarioId?: number): SaldoCarteraCajaDiarioPara
 export function SaldoCarteraCajaDiarioPage() {
   const { session } = useAuth()
   const [form] = Form.useForm<FormValues>()
+  const puedeElegirGestor = usePuedeElegirGestorInforme()
+
+  const defaultValues: FormValues = {
+    oficinaId: session?.oficinaId ?? 0,
+    anioIni: now.getFullYear(),
+    mesIni: now.getMonth() + 1,
+    anioFin: now.getFullYear(),
+    mesFin: now.getMonth() + 1,
+    usuarioId: puedeElegirGestor ? undefined : session?.usuarioId,
+  }
 
   useEffect(() => {
-    if (session) {
-      form.setFieldsValue({ oficinaId: session.oficinaId })
-    }
-  }, [session, form])
+    if (!session) return
+    form.setFieldsValue({
+      oficinaId: session.oficinaId,
+      usuarioId: puedeElegirGestor ? form.getFieldValue('usuarioId') : session.usuarioId,
+    })
+  }, [session, form, puedeElegirGestor])
 
   const consulta = useMutation({
-    mutationFn: (v: FormValues) =>
-      fetchSaldoCarteraCajaDiario(toParams(v, session?.usuarioId)),
+    mutationFn: (v: FormValues) => fetchSaldoCarteraCajaDiario(toParams(v)),
   })
 
   const csv = useMutation({
-    mutationFn: (v: FormValues) =>
-      downloadSaldoCarteraCajaDiarioCsv(toParams(v, session?.usuarioId)),
+    mutationFn: (v: FormValues) => downloadSaldoCarteraCajaDiarioCsv(toParams(v)),
   })
 
   const pdf = useMutation({
-    mutationFn: (v: FormValues) =>
-      downloadSaldoCarteraCajaDiarioPdf(toParams(v, session?.usuarioId)),
+    mutationFn: (v: FormValues) => downloadSaldoCarteraCajaDiarioPdf(toParams(v)),
   })
 
   const stats = useInformeStats(consulta, session?.oficinaId)
@@ -80,21 +91,14 @@ export function SaldoCarteraCajaDiarioPage() {
   return (
     <CredixInformePage
       title="Saldo cartera por caja diario"
-      subtitle="Evolución de cartera por caja entre periodos de año y mes; distinto del saldo cartera mensual."
+      subtitle="Evolución de cartera por caja entre periodos; gestor opcional (TODOS) para roles elevados."
       breadcrumb={reportesCreditoBreadcrumb('Saldo cartera caja')}
       stats={stats}
       filters={
         <Form
           form={form}
           layout="inline"
-          initialValues={{
-            oficinaId: session?.oficinaId ?? 0,
-            anioIni: now.getFullYear(),
-            mesIni: now.getMonth() + 1,
-            anioFin: now.getFullYear(),
-            mesFin: now.getMonth() + 1,
-            soloMiGestor: false,
-          }}
+          initialValues={defaultValues}
           onFinish={(v) => consulta.mutate(v)}
         >
           <Form.Item name="oficinaId" hidden>
@@ -112,9 +116,15 @@ export function SaldoCarteraCajaDiarioPage() {
           <Form.Item name="mesFin" rules={[{ required: true }]}>
             <Select options={MESES} style={{ width: 72 }} />
           </Form.Item>
-          <Form.Item name="soloMiGestor" valuePropName="checked">
-            <Checkbox>Solo mi gestión</Checkbox>
-          </Form.Item>
+          {puedeElegirGestor ? (
+            <Form.Item name="usuarioId" label="Gestor">
+              <GestorSelect allowAll legacyList size="middle" />
+            </Form.Item>
+          ) : (
+            <Form.Item name="usuarioId" hidden>
+              <InputNumber />
+            </Form.Item>
+          )}
           <Form.Item>
             <Button
               type="primary"

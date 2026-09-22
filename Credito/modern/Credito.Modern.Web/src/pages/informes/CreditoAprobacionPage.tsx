@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { CheckCircleOutlined, SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, DatePicker, Form, Typography } from 'antd'
+import { Alert, Button, DatePicker, Form, InputNumber, Typography } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
   downloadCreditoAprobacionCsv,
@@ -17,6 +17,7 @@ import type { CredixStatItem } from '../../components/credix'
 import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import { buildAprobacionInformeColumns } from '../../config/aprobacionInformeColumns'
 import { useInformeStats } from '../../hooks/useInformeStats'
+import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
 import type {
   CreditoAprobacionInformeParams,
   RptCreditoAprobacionRow,
@@ -25,6 +26,7 @@ import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { readUrlDay, readUrlUserId } from '../../utils/informeUrlParams'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
+import { gestorLabelFromId } from '../../utils/gestorInformeForm'
 
 type FormValues = {
   oficinaId: number
@@ -49,11 +51,12 @@ export function CreditoAprobacionPage() {
   const { session } = useAuth()
   const [searchParams] = useSearchParams()
   const [form] = Form.useForm<FormValues>()
+  const puedeElegirGestor = usePuedeElegirGestorInforme()
 
   const defaultValues: FormValues = {
     oficinaId: session?.oficinaId ?? 0,
     fechaAprobacion: dayjs(),
-    usuarioId: undefined,
+    usuarioId: puedeElegirGestor ? undefined : session?.usuarioId,
   }
 
   const consulta = useMutation({
@@ -72,7 +75,8 @@ export function CreditoAprobacionPage() {
       oficinaId: session.oficinaId,
       fechaAprobacion:
         readUrlDay(searchParams, 'pFecha', 'fechaAprobacion') ?? dayjs(),
-      usuarioId: uid != null && uid > 0 ? uid : undefined,
+      usuarioId:
+        uid != null && uid > 0 ? uid : puedeElegirGestor ? undefined : session.usuarioId,
     }
     form.setFieldsValue(next)
     if (
@@ -86,7 +90,7 @@ export function CreditoAprobacionPage() {
       consulta.mutate(next)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta al abrir desde índice reportes
-  }, [session, searchParams.toString()])
+  }, [session, searchParams.toString(), puedeElegirGestor])
 
   const csv = useMutation({
     mutationFn: (v: FormValues) => {
@@ -131,11 +135,7 @@ export function CreditoAprobacionPage() {
 
   const stats = useInformeStats(consulta, session?.oficinaId, statsExtras)
   const exportDisabled = !consulta.isSuccess || filas.length === 0
-
-  const gestorLabel =
-    form.getFieldValue('usuarioId') != null && form.getFieldValue('usuarioId') > 0
-      ? `Gestor #${form.getFieldValue('usuarioId')}`
-      : 'Todos los gestores'
+  const gestorLabel = gestorLabelFromId(form.getFieldValue('usuarioId') as number | undefined)
 
   return (
     <CredixInformePage
@@ -143,8 +143,8 @@ export function CreditoAprobacionPage() {
       subtitle={
         <>
           Paridad <strong>Reporte → Crédito → Créditos aprobados</strong> y PDF/XLS{' '}
-          <em>rptCreditoAprobacion</em>. Filtros: gestor (TODOS o uno) y fecha; oficina = la de su
-          sesión (en MVC podía elegir otra oficina).
+          <em>rptCreditoAprobacion</em>. Filtros: gestor (TODOS para roles elevados) y fecha;
+          oficina = la de su sesión.
         </>
       }
       breadcrumb={reportesCreditoBreadcrumb('Créditos aprobados')}
@@ -163,9 +163,15 @@ export function CreditoAprobacionPage() {
           <Form.Item name="oficinaId" label="Oficina">
             <OficinaSelect disabled size="middle" />
           </Form.Item>
-          <Form.Item name="usuarioId" label="Gestor">
-            <GestorSelect allowAll legacyList size="middle" />
-          </Form.Item>
+          {puedeElegirGestor ? (
+            <Form.Item name="usuarioId" label="Gestor">
+              <GestorSelect allowAll legacyList size="middle" />
+            </Form.Item>
+          ) : (
+            <Form.Item name="usuarioId" hidden>
+              <InputNumber />
+            </Form.Item>
+          )}
           <Form.Item
             name="fechaAprobacion"
             label="Fecha"
