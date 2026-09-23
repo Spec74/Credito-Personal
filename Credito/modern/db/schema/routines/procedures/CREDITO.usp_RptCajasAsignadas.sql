@@ -1,4 +1,4 @@
-
+﻿
 CREATE PROCEDURE [CREDITO].[usp_RptCajasAsignadas]
    @OficinaId INT=1
 AS

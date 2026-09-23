@@ -119,11 +119,13 @@
                                   <Value>Oficina</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
                               <Style>
-                                <TextAlign>Left</TextAlign>
+                                <TextAlign>Center</TextAlign>
                               </Style>
                             </Paragraph>
                           </Paragraphs>
@@ -133,7 +135,7 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -155,11 +157,13 @@
                                   <Value>Caja</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
                               <Style>
-                                <TextAlign>Left</TextAlign>
+                                <TextAlign>Center</TextAlign>
                               </Style>
                             </Paragraph>
                           </Paragraphs>
@@ -169,7 +173,7 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -191,11 +195,13 @@
                                   <Value>Agente</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
                               <Style>
-                                <TextAlign>Left</TextAlign>
+                                <TextAlign>Center</TextAlign>
                               </Style>
                             </Paragraph>
                           </Paragraphs>
@@ -205,7 +211,7 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -227,6 +233,8 @@
                                   <Value>Fecha Ini Operacion</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -241,7 +249,7 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -263,6 +271,8 @@
                                   <Value>Fecha Fin Operacion</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -277,7 +287,7 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -299,6 +309,8 @@
                                   <Value>Saldo Inicial</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -313,7 +325,7 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -335,6 +347,8 @@
                                   <Value>Entradas</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -349,7 +363,7 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -371,6 +385,8 @@
                                   <Value>Salidas</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -385,7 +401,7 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -407,6 +423,8 @@
                                   <Value>Saldo Final</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -421,7 +439,7 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -925,6 +943,7 @@
                                   <Value>=Sum(Fields!SaldoInicial.Value)</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
                                     <Format>#,0.00;(#,0.00)</Format>
                                   </Style>
                                 </TextRun>
@@ -958,6 +977,7 @@
                                   <Value>=Sum(Fields!Entradas.Value)</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
                                     <Format>#,0.00;(#,0.00)</Format>
                                   </Style>
                                 </TextRun>
@@ -991,6 +1011,7 @@
                                   <Value>=Sum(Fields!Salidas.Value)</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
                                     <Format>#,0.00;(#,0.00)</Format>
                                   </Style>
                                 </TextRun>
@@ -1024,6 +1045,7 @@
                                   <Value>=Sum(Fields!SaldoFinal.Value)</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
                                     <Format>#,0.00;(#,0.00)</Format>
                                   </Style>
                                 </TextRun>
@@ -1104,6 +1126,7 @@
                     <TextRun>
                       <Value>REPORTE DE CAJA DIARIO</Value>
                       <Style>
+                        <FontSize>11pt</FontSize>
                         <FontWeight>Bold</FontWeight>
                         <TextDecoration>Underline</TextDecoration>
                       </Style>
@@ -1117,21 +1140,27 @@
                   <TextRuns>
                     <TextRun>
                       <Value>DEL </Value>
-                      <Style />
+                      <Style>
+                        <FontSize>11pt</FontSize>
+                      </Style>
                     </TextRun>
                     <TextRun>
                       <Value>=Parameters!FechaInicio.Value</Value>
                       <Style>
+                        <FontSize>11pt</FontSize>
                         <Format>d</Format>
                       </Style>
                     </TextRun>
                     <TextRun>
                       <Value> AL </Value>
-                      <Style />
+                      <Style>
+                        <FontSize>11pt</FontSize>
+                      </Style>
                     </TextRun>
                     <TextRun>
                       <Value>=Parameters!FechaFin.Value</Value>
                       <Style>
+                        <FontSize>11pt</FontSize>
                         <Format>d</Format>
                       </Style>
                     </TextRun>
@@ -1238,8 +1267,8 @@
               <Source>Embedded</Source>
               <Value>logocredito</Value>
               <Sizing>FitProportional</Sizing>
-              <Height>1.20563cm</Height>
-              <Width>3.11396cm</Width>
+              <Height>1.2875cm</Height>
+              <Width>3.54435cm</Width>
               <ZIndex>3</ZIndex>
               <Style>
                 <Border>

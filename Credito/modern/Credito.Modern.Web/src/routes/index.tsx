@@ -54,6 +54,7 @@ export function AppRoutes() {
         <Route path="/almacen/movimiento" element={<Pages.MovimientoAlmacenPage />} />
         <Route path="/informes" element={<Pages.InformesHubPage />} />
         <Route path="/informes/cobertura" element={<Pages.InformesCoberturaPage />} />
+        <Route path="/informes/cierre-gerencial" element={<Pages.CierreGerencialPage />} />
         <Route path="/informes/reporte-stock" element={<Pages.ReporteStockPage />} />
         <Route path="/informes/stock-anulados" element={<Pages.StockAnuladosPage />} />
         <Route path="/clientes" element={<Pages.ClientesPage />} />
@@ -201,6 +202,7 @@ export function AppRoutes() {
         <Route path="/caja" element={<Pages.CajaHubPage />} />
         <Route path="/caja/maestro" element={<Pages.CajaMaestroPage />} />
         <Route path="/caja/diario" element={<Pages.CajaDiarioPage />} />
+        <Route path="/caja/cobro-bloque" element={<Pages.CobroBloquePage />} />
         <Route path="/caja/chica" element={<Pages.CajaChicaPage />} />
         <Route path="/caja/asignar" element={<Pages.AsignarCajaPage />} />
         <Route path="/caja/saldos" element={<Pages.SaldosPage />} />

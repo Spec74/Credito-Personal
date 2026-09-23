@@ -11,10 +11,36 @@ export interface DashboardAnalistaKpis {
   cobradoActual: number
   cobradoAnterior: number
   variacionCobradoPct: number | null
+  cobradoHoy: number
+  cobradoAyer: number
   saldoActual: number
+  montoMora: number
   clientesMora: number
+  clientesMoraSinPago: number
+  clientesMoraNuncaPagaron: number
+  clientesMoraDejaronPagar: number
+  clientesMoraPagandoConAtraso: number
   porcentajeMora: number
   porVencerSemana: number
+}
+
+export type DashboardMoraTipo =
+  | 'TODOS'
+  | 'SIN_PAGO'
+  | 'NUNCA_PAGO'
+  | 'DEJO_PAGAR'
+  | 'PAGA_CON_ATRASO'
+
+export interface DashboardClienteMoraRow {
+  personaId: number
+  nombreCompleto: string
+  creditosMora: number
+  saldoMora: number
+  primeraCuotaVencida: string | null
+  fechaUltimoPago: string | null
+  diasAtraso: number
+  codigoClasificacion: string
+  clasificacion: string
 }
 
 export interface DashboardProductividadPunto {
@@ -57,6 +83,13 @@ export interface DashboardAnalista {
 
 export function fetchDashboardAnalista(): Promise<DashboardAnalista> {
   return apiFetch<DashboardAnalista>('/dashboard/analista')
+}
+
+export function fetchDashboardClientesMora(
+  tipo: DashboardMoraTipo = 'TODOS',
+): Promise<DashboardClienteMoraRow[]> {
+  const q = new URLSearchParams({ tipo })
+  return apiFetch<DashboardClienteMoraRow[]>(`/dashboard/analista/clientes-mora?${q}`)
 }
 
 export interface DashboardAdminResumen {

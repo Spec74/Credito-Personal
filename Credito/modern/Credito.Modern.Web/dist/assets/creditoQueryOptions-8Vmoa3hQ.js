@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-D2aABDIb.js";var t;function n(){return(n=e((()=>{t={master:3e5,ficha:12e4,operacion:6e4,listado:45e3}})))()}export{n,t};

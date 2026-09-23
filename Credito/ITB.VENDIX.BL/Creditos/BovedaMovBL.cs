@@ -36,7 +36,7 @@ namespace ITB.VENDIX.BL
                             UsuarioRegId = pUsuarioRegId,
                             FechaReg = VendixGlobal.GetFecha()
                         });
-                        db.SaveChanges();                                              
+                        db.SaveChanges();
 
                         db.usp_ActualizarSaldosBoveda(bovedaId);
                         db.SaveChanges();
@@ -73,12 +73,13 @@ namespace ITB.VENDIX.BL
                     FechaIniOperacion = VendixGlobal.GetFecha(),
                     FechaFinOperacion = null,
                     IndCierre = false,
-                    IndTemporal=true
+                    IndTemporal = true
                 };
                 BovedaBL.Crear(objtemp);
                 bovedaTemporalId = objtemp.BovedaId;
             }
-            else {
+            else
+            {
                 bovedaTemporalId = bovedatemporal.BovedaId;
             }
 
@@ -94,7 +95,7 @@ namespace ITB.VENDIX.BL
                         {
                             rolEncargado = new Rol() { Denominacion = sRol, Estado = true };
                             db.Rol.Add(rolEncargado);
-                            db.SaveChanges();                            
+                            db.SaveChanges();
                         }
                         var UsuarioRolEncargado = db.UsuarioRol.FirstOrDefault(x => x.RolId == rolEncargado.RolId
                                                                     && x.UsuarioId == pUsuarioId && x.OficinaId == oficinaId);
@@ -108,7 +109,7 @@ namespace ITB.VENDIX.BL
                         var rolMenuEncargado = db.RolMenu.FirstOrDefault(x => x.RolId == rolEncargado.RolId && x.MenuId == mnuSaldos);
                         if (rolMenuEncargado == null)
                         {
-                            rolMenuEncargado = new RolMenu() {  RolId = rolEncargado.RolId, MenuId = mnuSaldos };
+                            rolMenuEncargado = new RolMenu() { RolId = rolEncargado.RolId, MenuId = mnuSaldos };
                             db.RolMenu.Add(rolMenuEncargado);
                             db.SaveChanges();
                         }
@@ -130,17 +131,17 @@ namespace ITB.VENDIX.BL
             var pUsuarioRegId = VendixGlobal.GetUsuarioId();
             var oficinaId = VendixGlobal.GetOficinaId();
             var bovedaId = VendixGlobal.GetBovedaId();
-            
+
             var bovedatemporal = BovedaBL.Obtener(x => x.OficinaId == oficinaId && x.IndCierre == false && x.IndTemporal);
 
             pDescripcion = "TRANS A BOVEDA TEMPORAL: " + pDescripcion;
-            
+
             using (var scope = new TransactionScope())
             {
                 try
-                {                    
+                {
                     using (var db = new VENDIXEntities())
-                    {                        
+                    {
                         db.usp_TransferirBoveda(bovedaId, bovedatemporal.BovedaId, pDescripcion, pImporte, pUsuarioRegId, 0, 0);
                     }
                     scope.Complete();
@@ -154,11 +155,11 @@ namespace ITB.VENDIX.BL
             }
         }
 
-        public static bool TransferirBovedaCaja(decimal pImporte, string pDescripcion, int pCajaId)
+        public static bool TransferirBovedaCaja(decimal pImporte, string pDescripcion, int pCajaId, short pTipoPagoOrigenId = 1, short pTipoPagoDestinoId = 1)
         {
             var pUsuarioRegId = VendixGlobal.GetUsuarioId();
             var oficinaId = VendixGlobal.GetOficinaId();
-            
+
             using (var scope = new TransactionScope())
             {
                 try
@@ -169,43 +170,48 @@ namespace ITB.VENDIX.BL
                         var oCajaDiario = db.CajaDiario.First(x => x.CajaId == pCajaId && x.IndCierre == false);
                         var personaId = db.Usuario.First(x => x.UsuarioId == pUsuarioRegId).PersonaId;
 
+                        // 1. MOVIMIENTO DE BOVEDA (Descuenta del Banco de Origen elegido)
                         var objBovMov = new BovedaMov()
                         {
                             BovedaId = bovedaId,
                             CodOperacion = "TRS",
                             Glosa = "TRANS A CAJA: " + pDescripcion.ToUpper(),
                             Importe = pImporte,
-                            IndEntrada = false,
+                            IndEntrada = false, // Salida de dinero
                             Estado = true,
                             CajaDiarioId = oCajaDiario.CajaDiarioId,
                             UsuarioRegId = pUsuarioRegId,
-                            FechaReg = VendixGlobal.GetFecha()
+                            FechaReg = VendixGlobal.GetFecha(),
+                            TipoPagoId = pTipoPagoOrigenId // ¡PIEZA FALTANTE CORREGIDA! Ahora la Bóveda sabe qué banco restar
                         };
                         BovedaMovBL.Crear(objBovMov);
 
+                        // 2. MOVIMIENTO DE CAJA ANALISTA (Suma al Efectivo o Destino gracias al Embudo)
                         db.MovimientoCaja.Add(new MovimientoCaja
-                                                  {
-                                                      CajaDiarioId = oCajaDiario.CajaDiarioId,
-                                                      Operacion = "TRE",
-                                                      ImportePago = pImporte,
-                                                      Descripcion = "[MovBoveda:" + objBovMov.MovimientoBovedaId.ToString() + "] " + "TRANS DE BOVEDA: " + pDescripcion.ToUpper()  ,
-                                                      IndEntrada = true,
-                                                      Estado = true,
-                                                      PersonaId = personaId,
-                                                      TipoPagoId=1,
-                                                      UsuarioRegId = pUsuarioRegId,
-                                                      FechaReg = VendixGlobal.GetFecha()
-                                                  });
+                        {
+                            CajaDiarioId = oCajaDiario.CajaDiarioId,
+                            Operacion = "TRE",
+                            ImportePago = pImporte,
+                            Descripcion = "[MovBoveda:" + objBovMov.MovimientoBovedaId.ToString() + "] " + "TRANS DE BOVEDA: " + pDescripcion.ToUpper(),
+                            IndEntrada = true, // Entrada de dinero
+                            Estado = true,
+                            PersonaId = personaId,
+                            TipoPagoId = pTipoPagoDestinoId, // Usa el parámetro de destino (Por defecto 1 = Efectivo)
+                            UsuarioRegId = pUsuarioRegId,
+                            FechaReg = VendixGlobal.GetFecha()
+                        });
                         db.SaveChanges();
 
-                        var qry = db.MovimientoCaja.Where(z => z.CajaDiarioId == oCajaDiario.CajaDiarioId && z.Estado).Select(x=> new {x.ImportePago,x.IndEntrada});
+                        // Recalcular entradas, salidas y saldos diarios del analista
+                        var qry = db.MovimientoCaja.Where(z => z.CajaDiarioId == oCajaDiario.CajaDiarioId && z.Estado).Select(x => new { x.ImportePago, x.IndEntrada });
                         if (qry.Count(x => x.IndEntrada) > 0)
                             oCajaDiario.Entradas = qry.Where(z => z.IndEntrada).Sum(x => x.ImportePago);
-                        if (qry.Count(x => x.IndEntrada==false) > 0)
-                            oCajaDiario.Salidas = qry.Where(z => z.IndEntrada==false).Sum(x => x.ImportePago);
-                        
+                        if (qry.Count(x => x.IndEntrada == false) > 0)
+                            oCajaDiario.Salidas = qry.Where(z => z.IndEntrada == false).Sum(x => x.ImportePago);
+
                         oCajaDiario.SaldoFinal = oCajaDiario.SaldoInicial + oCajaDiario.Entradas - oCajaDiario.Salidas;
 
+                        // Actualizar los saldos en tiempo real de los Cards de la Bóveda en la BD
                         db.usp_ActualizarSaldosBoveda(bovedaId);
 
                         db.SaveChanges();
@@ -254,15 +260,15 @@ namespace ITB.VENDIX.BL
                         {
                             CajaChicaDiarioId = oCajaDiario.Id,
                             Operacion = "TRE",
-                            Importe = pImporte,                   
+                            Importe = pImporte,
                             Descripcion = "TRANS DE BOVEDA: " + pDescripcion.ToUpper(),
                             IndEntrada = true,
                             Estado = true,
                             PersonaId = personaId,
-                            UsuarioRegId = pUsuarioRegId,                           
+                            UsuarioRegId = pUsuarioRegId,
                             FechaReg = VendixGlobal.GetFecha(),
-                            IndRendido=false,
-                            ImporteRendido=0
+                            IndRendido = false,
+                            ImporteRendido = 0
                         });
                         db.SaveChanges();
 
@@ -290,14 +296,14 @@ namespace ITB.VENDIX.BL
         }
 
         public static bool TransferiraOficina(decimal pImporte, string pDescripcion, int pBovedaInicioId, int pBovedaDestinoId, int pUsuarioRegId)
-        {            
+        {
             using (var scope = new TransactionScope())
             {
                 try
                 {
                     using (var db = new VENDIXEntities())
                     {
-                        db.usp_TransferirBoveda(pBovedaInicioId, pBovedaDestinoId, pDescripcion, pImporte, pUsuarioRegId,0, 0);
+                        db.usp_TransferirBoveda(pBovedaInicioId, pBovedaDestinoId, pDescripcion, pImporte, pUsuarioRegId, 0, 0);
                     }
                     scope.Complete();
                     return true;
@@ -309,7 +315,7 @@ namespace ITB.VENDIX.BL
                 }
             }
         }
-        
+
         public static bool TransferiraOficina(int pBovedaMovTempId, int flag)
         {
             using (var scope = new TransactionScope())
@@ -358,6 +364,36 @@ namespace ITB.VENDIX.BL
                 });
             }
             return listTransferencias;
+        }
+
+        public static bool TransferirEntreBancos(int pBovedaId, short pTipoPagoOrigenId, short pTipoPagoDestinoId, decimal pImporte, string pGlosa, int pUsuarioRegId)
+        {
+            // 1. El TransactionScope protege toda la operación desde .NET
+            using (var scope = new TransactionScope())
+            {
+                try
+                {
+                    // 2. Usamos tu DbContext real de la base de datos
+                    using (var db = new VENDIXEntities())
+                    {
+                        // 3. En tu versión de Entity Framework se usa ExecuteSqlCommand
+                        db.Database.ExecuteSqlCommand(
+                            "EXEC CREDITO.usp_RegistrarTransferenciaBancos @BovedaId={0}, @TipoPagoOrigenId={1}, @TipoPagoDestinoId={2}, @Importe={3}, @Glosa={4}, @UsuarioRegId={5}",
+                            pBovedaId, pTipoPagoOrigenId, pTipoPagoDestinoId, pImporte, pGlosa, pUsuarioRegId
+                        );
+                    }
+
+                    // 4. Si la base de datos no lanzó ningún error, confirmamos la transacción
+                    scope.Complete();
+                    return true;
+                }
+                catch (Exception)
+                {
+                    // 5. Si algo falló, cancelamos todo para que no se descuadre la bóveda
+                    scope.Dispose();
+                    return false;
+                }
+            }
         }
     }
 

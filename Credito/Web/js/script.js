@@ -273,12 +273,14 @@
                 $img = $img.find('img');
             }
 
-            var src = $img[0].src;
-            $img.error(function () {
-                $img.attr('src', src);
-            });
+            if ($img.length > 0 && $img[0]) {
+                var src = $img[0].src;
+                $img.error(function () {
+                    $img.attr('src', src);
+                });
 
-            $img.attr('src', src.replace('.png', '@2x.png'));
+                $img.attr('src', src.replace('.png', '@2x.png'));
+            }
         }
     });
 

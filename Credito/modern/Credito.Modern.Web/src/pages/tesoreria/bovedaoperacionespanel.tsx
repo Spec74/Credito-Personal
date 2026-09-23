@@ -29,6 +29,7 @@ import {
   transferirBovedaBancos,
   transferirBovedaCaja,
   transferirBovedaCajaChica,
+  transferirBovedaAnalista,
   type BovedaAbiertaDto,
 } from '../../api/boveda'
 import { fetchTipoOperaciones } from '../../api/cajaDiario'
@@ -151,6 +152,15 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     onSuccess: (r) =>
       onOk(
         `Transferido a caja (mov. bóveda #${r.movimientoBovedaId}${r.movimientoCajaId ? `, caja #${r.movimientoCajaId}` : ''})`,
+      ),
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const aAnalista = useMutation({
+    mutationFn: transferirBovedaAnalista,
+    onSuccess: (r) =>
+      onOk(
+        `Transferido a analista (embudo efectivo · mov. #${r.movimientoBovedaId}${r.movimientoCajaId ? `, caja #${r.movimientoCajaId}` : ''})`,
       ),
     onError: (e) => message.error(errMsg(e)),
   })
@@ -364,6 +374,65 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           {importeDescripcionFields}
           {formActions('Transferir a caja', aCaja.isPending)}
         </Form>
+      ),
+    },
+    {
+      key: 'analista',
+      label: 'A analista',
+      children: (
+        <>
+          <Paragraph type="secondary">
+            Embudo producción: descuenta el banco/medio de origen y abona{' '}
+            <strong>efectivo</strong> en la caja abierta del analista.
+          </Paragraph>
+          <Form
+            className="boveda-operaciones-form"
+            layout="vertical"
+            initialValues={{ tipoPagoOrigenId: 2 }}
+            onFinish={(v) =>
+              aAnalista.mutate({
+                oficinaId,
+                usuarioAnalistaId: v.usuarioAnalistaId,
+                tipoPagoOrigenId: v.tipoPagoOrigenId,
+                importe: v.importe,
+                descripcion: v.descripcion,
+              })
+            }
+          >
+            <Form.Item
+              name="tipoPagoOrigenId"
+              label="Banco / medio de origen"
+              rules={[{ required: true }]}
+            >
+              <Select
+                showSearch
+                optionFilterProp="label"
+                options={tipoPagoOptions.filter((o) => o.value !== 1)}
+                placeholder="Seleccione medio (no efectivo)"
+              />
+            </Form.Item>
+            <Form.Item
+              name="usuarioAnalistaId"
+              label="Analista (caja abierta)"
+              rules={[{ required: true }]}
+            >
+              <Select
+                loading={cajasQuery.isLoading}
+                showSearch
+                optionFilterProp="label"
+                placeholder="Seleccione analista"
+                options={(cajasQuery.data ?? [])
+                  .filter((c) => c.usuarioAsignadoId > 0)
+                  .map((c) => ({
+                    value: c.usuarioAsignadoId,
+                    label: c.etiqueta,
+                  }))}
+              />
+            </Form.Item>
+            {importeDescripcionFields}
+            {formActions('Transferir a analista', aAnalista.isPending)}
+          </Form>
+        </>
       ),
     },
     {

@@ -1,25 +1,28 @@
+import { useState, type ReactNode } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { useMemo, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   AlertOutlined,
   CalendarOutlined,
   ReloadOutlined,
   RiseOutlined,
+  StopOutlined,
   TeamOutlined,
   WalletOutlined,
   WarningOutlined,
 } from '@ant-design/icons'
-import { Alert, Button, Skeleton, Typography } from 'antd'
-import { fetchDashboardAnalista, type DashboardRankingRow } from '../../api/dashboard'
+import { Alert, Button, Skeleton } from 'antd'
+import {
+  fetchDashboardAnalista,
+  type DashboardMoraTipo,
+} from '../../api/dashboard'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CobranzaAreaChart } from '../../components/dashboard/CobranzaAreaChart'
+import { DashboardClientesMoraModal } from '../../components/dashboard/DashboardClientesMoraModal'
 import { CredixPage } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
 import '../../styles/dashboard-analista.css'
-
-const { Text } = Typography
 
 const ACCIONES = [
   { to: '/informes/morosidad-gestor', label: 'Vencidos' },
@@ -32,6 +35,9 @@ export function AnalystDashboardPage() {
   const { session } = useAuth()
   const [params] = useSearchParams()
   const desdeAdmin = params.get('vista') === 'analista'
+  const [moraOpen, setMoraOpen] = useState(false)
+  const [moraTipo, setMoraTipo] = useState<DashboardMoraTipo>('TODOS')
+
   const query = useQuery({
     queryKey: ['dashboard-analista', session?.usuarioId, session?.oficinaId],
     queryFn: fetchDashboardAnalista,
@@ -40,12 +46,11 @@ export function AnalystDashboardPage() {
   })
 
   const data = query.data
-  const rankingVisible = useMemo(
-    () => (data ? rankingConUsuario(data.ranking) : []),
-    [data],
-  )
-  const yo = data?.ranking.find((r) => r.esUsuarioActual)
-  const podio = useMemo(() => ordenarPodio(data?.podioMesAnterior ?? []), [data])
+
+  const abrirMora = (tipo: DashboardMoraTipo) => {
+    setMoraTipo(tipo)
+    setMoraOpen(true)
+  }
 
   if (query.isLoading) {
     return (
@@ -73,6 +78,7 @@ export function AnalystDashboardPage() {
 
   const { kpis } = data
   const fechaLarga = formatFechaLarga(data.fechaConsulta)
+  const vsAyer = resumenVsAyer(kpis.cobradoHoy, kpis.cobradoAyer)
 
   return (
     <CredixPage
@@ -153,11 +159,43 @@ export function AnalystDashboardPage() {
             meta={<span>Saldo de créditos desembolsados a tu cargo</span>}
           />
           <KpiCard
-            accent="#dc2626"
+            accent="#b91c1c"
             icon={<WarningOutlined />}
+            label="Saldo en mora"
+            value={`S/ ${formatMoney(kpis.montoMora)}`}
+            meta={<span>Saldo pendiente de créditos con cuotas vencidas</span>}
+            onActivate={() => abrirMora('TODOS')}
+            actionHint="Ver clientes morosos"
+          />
+          <KpiCard
+            accent="#dc2626"
+            icon={<TeamOutlined />}
             label="Clientes en mora"
             value={formatEntero(kpis.clientesMora)}
-            meta={<span>{kpis.porcentajeMora.toFixed(1)}% de tu cartera</span>}
+            meta={
+              <span>
+                {kpis.porcentajeMora.toFixed(1)}% de tu cartera
+                {kpis.clientesMoraPagandoConAtraso > 0
+                  ? ` · ${formatEntero(kpis.clientesMoraPagandoConAtraso)} pagan con atraso`
+                  : ''}
+              </span>
+            }
+            onActivate={() => abrirMora('TODOS')}
+            actionHint="Ver clientes morosos"
+          />
+          <KpiCard
+            accent="#7f1d1d"
+            icon={<StopOutlined />}
+            label="Morosos sin pagar"
+            value={formatEntero(kpis.clientesMoraSinPago)}
+            meta={
+              <span>
+                {formatEntero(kpis.clientesMoraNuncaPagaron)} nunca pagaron ·{' '}
+                {formatEntero(kpis.clientesMoraDejaronPagar)} dejaron de pagar
+              </span>
+            }
+            onActivate={() => abrirMora('SIN_PAGO')}
+            actionHint="Ver clientes sin pago"
           />
           <KpiCard
             accent="#d97706"
@@ -168,82 +206,26 @@ export function AnalystDashboardPage() {
           />
         </section>
 
-        <div className="dash-grid">
-          <section className="dash-panel">
-            <div className="dash-panel-head">
-              <div>
-                <h2>Cobranza de los últimos 30 días</h2>
-                <p>Pagos CUO de tus créditos. El legado decía “mensual”; el dato es diario.</p>
-              </div>
-            </div>
-            <div className="dash-panel-body">
-              <CobranzaAreaChart puntos={data.productividad} />
-            </div>
-          </section>
-
-          <section className="dash-panel">
-            <div className="dash-panel-head">
-              <div>
-                <h2>Ranking de analistas</h2>
-                <p>Cobranza acumulada del mes en tu oficina</p>
-              </div>
-              <Text type="secondary">
-                Tu posición:{' '}
-                {yo ? `#${yo.posicion} de ${data.ranking.length}` : '—'}
-              </Text>
-            </div>
-            <div className="dash-panel-body">
-              {rankingVisible.length === 0 ? (
-                <p className="dash-empty">No hay analistas activos para comparar.</p>
-              ) : (
-                <table className="dash-rank-table">
-                  <thead>
-                    <tr>
-                      <th>Pos.</th>
-                      <th>Analista</th>
-                      <th>Cobrado</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rankingVisible.map((row) => (
-                      <tr key={row.usuarioId} className={row.esUsuarioActual ? 'is-me' : undefined}>
-                        <td>
-                          <span className="dash-medal">{medalla(row.posicion)}</span>
-                        </td>
-                        <td>{row.nombreCompleto}</td>
-                        <td>S/ {formatMoney(row.totalCobrado)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </section>
-        </div>
-
         <section className="dash-panel">
           <div className="dash-panel-head">
             <div>
-              <h2>Mejores analistas del mes pasado</h2>
-              <p>Top 3 por cobranza acumulada</p>
+              <h2>Cobranza de los últimos 30 días</h2>
+              <p>Pagos CUO de tus créditos. El legado decía “mensual”; el dato es diario.</p>
+            </div>
+            <div className="dash-daily-summary" aria-live="polite">
+              <div>
+                <span>Hoy</span>
+                <strong>S/ {formatMoney(kpis.cobradoHoy)}</strong>
+              </div>
+              <div>
+                <span>Ayer</span>
+                <strong>S/ {formatMoney(kpis.cobradoAyer)}</strong>
+              </div>
+              <div className={`dash-daily-goal is-${vsAyer.tone}`}>{vsAyer.text}</div>
             </div>
           </div>
           <div className="dash-panel-body">
-            {podio.length === 0 ? (
-              <p className="dash-empty">Aún no hay cobranza del mes anterior para armar el podio.</p>
-            ) : (
-              <div className="dash-podium">
-                {podio.map((item) => (
-                  <article key={item.usuarioId} className={`dash-podium-item is-${item.posicion}`}>
-                    <div className="dash-podium-place">
-                      {medalla(item.posicion)} {puesto(item.posicion)}
-                    </div>
-                    <div className="dash-podium-name">{item.nombreCompleto}</div>
-                    <div className="dash-podium-amt">S/ {formatMoney(item.totalCobrado)}</div>
-                  </article>
-                ))}
-              </div>
-            )}
+            <CobranzaAreaChart puntos={data.productividad} />
           </div>
         </section>
 
@@ -264,6 +246,10 @@ export function AnalystDashboardPage() {
                     <p>{insight.mensaje}</p>
                     {insight.accion ? (
                       <Link to={insight.accion}>Ir a la gestión →</Link>
+                    ) : insight.titulo === 'Cartera en mora' ? (
+                      <button type="button" className="dash-insight-link" onClick={() => abrirMora('TODOS')}>
+                        Ver clientes morosos →
+                      </button>
                     ) : null}
                   </div>
                 </article>
@@ -290,6 +276,12 @@ export function AnalystDashboardPage() {
           </div>
         </section>
       </div>
+
+      <DashboardClientesMoraModal
+        open={moraOpen}
+        tipoInicial={moraTipo}
+        onClose={() => setMoraOpen(false)}
+      />
     </CredixPage>
   )
 }
@@ -300,76 +292,90 @@ function KpiCard({
   label,
   value,
   meta,
+  onActivate,
+  actionHint,
 }: {
   accent: string
   icon: ReactNode
   label: string
   value: string
   meta: ReactNode
+  onActivate?: () => void
+  actionHint?: string
 }) {
-  return (
-    <article className="dash-kpi" style={{ ['--dash-accent' as string]: accent }}>
+  const interactive = Boolean(onActivate)
+  const body = (
+    <>
       <div className="dash-kpi-label">
         {icon} {label}
       </div>
       <div className="dash-kpi-value">{value}</div>
       <div className="dash-kpi-meta">{meta}</div>
-    </article>
+      {interactive && actionHint ? <div className="dash-kpi-action">{actionHint}</div> : null}
+    </>
+  )
+
+  if (!interactive) {
+    return (
+      <article className="dash-kpi" style={{ ['--dash-accent' as string]: accent }}>
+        {body}
+      </article>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      className="dash-kpi is-action"
+      style={{ ['--dash-accent' as string]: accent }}
+      onClick={onActivate}
+      aria-label={actionHint ?? label}
+    >
+      {body}
+    </button>
   )
 }
 
 function Variacion({ pct }: { pct: number | null }) {
-  if (pct == null) {
-    return <span className="dash-var is-new">Nuevo</span>
+  if (pct === null) {
+    return <span className="dash-var is-new">Sin base comparable</span>
+  }
+  if (Math.abs(pct) < 0.05) {
+    return <span className="dash-var">Estable</span>
+  }
+  const up = pct > 0
+  return (
+    <span className={`dash-var ${up ? 'is-up' : 'is-down'}`}>
+      {up ? '▲' : '▼'} {Math.abs(pct).toFixed(1)}%
+    </span>
+  )
+}
+
+function resumenVsAyer(hoy: number, ayer: number): { text: string; tone: string } {
+  if (ayer <= 0 && hoy <= 0) {
+    return { text: 'Sin cobranza hoy ni ayer', tone: 'muted' }
+  }
+  if (ayer <= 0) {
+    return { text: 'Primera cobranza del periodo comparable', tone: 'up' }
+  }
+  const pct = ((hoy - ayer) / Math.abs(ayer)) * 100
+  if (Math.abs(pct) < 0.5) {
+    return { text: 'Similar a ayer', tone: 'muted' }
   }
   if (pct > 0) {
-    return <span className="dash-var is-up">▲ {pct.toFixed(1)}%</span>
+    return { text: `+${pct.toFixed(0)}% vs ayer`, tone: 'up' }
   }
-  if (pct < 0) {
-    return <span className="dash-var is-down">▼ {Math.abs(pct).toFixed(1)}%</span>
-  }
-  return <span className="dash-var">● 0.0%</span>
+  return { text: `${pct.toFixed(0)}% vs ayer`, tone: 'down' }
 }
 
-function rankingConUsuario(rows: DashboardRankingRow[]): DashboardRankingRow[] {
-  const top = rows.slice(0, 8)
-  const yo = rows.find((r) => r.esUsuarioActual)
-  if (yo && !top.some((r) => r.usuarioId === yo.usuarioId)) {
-    return [...top, yo]
-  }
-  return top
+function formatEntero(n: number) {
+  return new Intl.NumberFormat('es-PE').format(n)
 }
 
-function ordenarPodio<T extends { posicion: number }>(items: T[]): T[] {
-  const byPos = new Map(items.map((i) => [i.posicion, i]))
-  return [byPos.get(2), byPos.get(1), byPos.get(3)].filter((x): x is T => x != null)
-}
-
-function medalla(posicion: number): string {
-  if (posicion === 1) return '1°'
-  if (posicion === 2) return '2°'
-  if (posicion === 3) return '3°'
-  return String(posicion)
-}
-
-function puesto(posicion: number): string {
-  if (posicion === 1) return 'Primer puesto'
-  if (posicion === 2) return 'Segundo puesto'
-  if (posicion === 3) return 'Tercer puesto'
-  return `Puesto ${posicion}`
-}
-
-function formatEntero(value: number): string {
-  return value.toLocaleString('es-PE')
-}
-
-function formatFechaLarga(iso: string): string {
-  const d = iso.slice(0, 10)
-  const [y, m, day] = d.split('-').map(Number)
-  if (!y || !m || !day) {
-    return iso
-  }
-  return new Date(y, m - 1, day).toLocaleDateString('es-PE', {
+function formatFechaLarga(iso: string) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return d.toLocaleDateString('es-PE', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -377,13 +383,15 @@ function formatFechaLarga(iso: string): string {
   })
 }
 
-function saludo(): string {
+function saludo() {
   const h = new Date().getHours()
   if (h < 12) return 'Buenos días'
   if (h < 19) return 'Buenas tardes'
   return 'Buenas noches'
 }
 
-function errMsg(e: unknown): string {
-  return e instanceof ApiError ? e.message : 'No se pudieron obtener los indicadores.'
+function errMsg(error: unknown) {
+  if (error instanceof ApiError) return error.message
+  if (error instanceof Error) return error.message
+  return 'Error desconocido'
 }

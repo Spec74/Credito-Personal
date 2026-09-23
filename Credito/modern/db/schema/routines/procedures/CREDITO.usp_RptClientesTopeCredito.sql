@@ -1,4 +1,4 @@
--- CREDITO.usp_RptClientesTopeCredito 
+﻿-- CREDITO.usp_RptClientesTopeCredito 
 CREATE PROC [CREDITO].[usp_RptClientesTopeCredito]
 @OficinaId INT = NULL,
 @UsuarioId INT = NULL
@@ -23,3 +23,5 @@ AS
 	INNER JOIN MAESTRO.Persona P ON P.PersonaId = C.PersonaId
 	WHERE C.TopeCredito>0
 	ORDER BY Agente,Cliente
+
+	

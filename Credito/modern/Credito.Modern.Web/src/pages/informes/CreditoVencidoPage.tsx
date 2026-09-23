@@ -93,8 +93,8 @@ export function CreditoVencidoPage() {
           <Form.Item name="oficinaId" hidden>
             <InputNumber />
           </Form.Item>
-          <Form.Item name="franja">
-            <Segmented options={FRANJA_OPCIONES} />
+          <Form.Item name="franja" label="Franja">
+            <Segmented options={FRANJA_OPCIONES} aria-label="Franja de vencimiento" />
           </Form.Item>
           <Form.Item>
             <Button

@@ -330,10 +330,13 @@ internal static class AuthEndpoints
 
         var runningInCi = string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase);
         var hostingForDevToken = app.Configuration.GetSection(HostingPipelineOptions.SectionName).Get<HostingPipelineOptions>() ?? new();
+        // AllowDevToken=false en Production/PreProduction. En Staging local el override
+        // docker-compose.devtoken.override.yml activa el endpoint sin cambiar el environment
+        // (así ui-config SPA de Staging sigue cargando).
         if (!app.Environment.IsProduction()
+            && !app.Environment.IsEnvironment("PreProduction")
             && !runningInCi
-            && hostingForDevToken.AllowDevToken
-            && app.Environment.IsDevelopment())
+            && hostingForDevToken.AllowDevToken)
         {
             app.MapPost(
                     "/api/v1/dev/token",
@@ -358,7 +361,7 @@ internal static class AuthEndpoints
                     })
                 .WithName("DevToken")
                 .WithTags("auth")
-                .WithSummary("Emite JWT de desarrollo (solo Development local, no CI, con Hosting:AllowDevToken).")
+                .WithSummary("Emite JWT de desarrollo (AllowDevToken; no Production/PreProduction/CI).")
                 .Produces<DevTokenResponse>(StatusCodes.Status200OK, "application/json")
                 .ProducesProblem(StatusCodes.Status400BadRequest);
         }

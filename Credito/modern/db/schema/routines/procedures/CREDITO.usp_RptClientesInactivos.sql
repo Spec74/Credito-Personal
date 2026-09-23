@@ -1,3 +1,4 @@
+﻿
 
 CREATE PROC [CREDITO].[usp_RptClientesInactivos]
 	@UsuarioId INT = NULL,
@@ -148,3 +149,4 @@ BEGIN
 			p.NombreCompleto
 	END
 END
+

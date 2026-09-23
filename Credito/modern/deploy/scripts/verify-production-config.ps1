@@ -39,14 +39,13 @@ $fwdEnabled = $json.Hosting.ForwardedHeaders.Enabled
 $knownCount = @($json.Hosting.ForwardedHeaders.KnownProxies).Count
 if ($RequireForwardedHeaders) {
     if (-not $fwdEnabled) {
-        $errors.Add("Hosting:ForwardedHeaders:Enabled debe ser true detras de IIS/nginx.")
+        $errors.Add("Hosting:ForwardedHeaders:Enabled debe ser true detras de proxy/App Service.")
     }
-    if ($knownCount -lt 1) {
-        $errors.Add("Hosting:ForwardedHeaders:KnownProxies debe incluir la IP del proxy inmediato.")
-    }
+    # Azure App Service: Enabled=true + KnownProxies=[] limpia Known* y confia en el proxy de plataforma.
+    # IIS/nginx propio: poner la IP del proxy en KnownProxies.
 }
 elseif ($fwdEnabled -and $knownCount -lt 1) {
-    $errors.Add("ForwardedHeaders.Enabled=true requiere al menos una IP en KnownProxies.")
+    Write-Host "AVISO: ForwardedHeaders.Enabled=true con KnownProxies vacio (modo App Service OK; en IIS/nginx propio agregar IP)." -ForegroundColor Yellow
 }
 
 $corsCount = @($json.BrowserCors.AllowedOrigins).Count
@@ -82,9 +81,9 @@ Write-Host "`n== Variables de entorno en el host API (ejemplo)" -ForegroundColor
     "CreditoDatabase__ConnectionString=[cadena SQL prod]",
     "Jwt__SigningKey=[min 32 bytes UTF-8]",
     "Jwt__Issuer / Jwt__Audience / Jwt__RefreshAudience",
-    "BrowserCors__AllowedOrigins__0=https://app.tu-dominio",
+    "BrowserCors__AllowedOrigins__0=https://credito-personal.vercel.app",
     "Hosting__ForwardedHeaders__Enabled=true",
-    "Hosting__ForwardedHeaders__KnownProxies__0=[IP proxy IIS/nginx]"
+    "Hosting__ForwardedHeaders__KnownProxies__0=[solo si IIS/nginx propio; vacio = App Service]"
 ) | ForEach-Object { Write-Host "  $_" -ForegroundColor Gray }
 
 Write-Host "`n== Proxy fachada (despues de API)" -ForegroundColor Cyan

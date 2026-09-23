@@ -1,0 +1,84 @@
+﻿@model IEnumerable<Web.Models.CondonacionPendienteViewModel>
+@using System.Linq
+
+@{
+    ViewBag.Title = "Solicitudes de condonación";
+}
+
+<h1 class="grid_12">Solicitudes de condonación</h1>
+
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2><img class="icon" src="~/img/icons/packs/fugue/16x16/sticky-note.png">Solicitudes de condonación pendientes</h2>
+        </div>
+        <div class="content">
+            @if (Model != null && Model.Any())
+            {
+                <table class="styled" id="tblCondonaciones">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Monto Credito</th>
+                            <th>Mora Condonación</th>
+                            <th>Total Pago Condonación</th>
+                            <th>Usuario</th>
+                            <th style="width: 40px">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var url = Url.Action("Creditos", "Credito", new { pPersonaId = item.PersonaId }, Request.Url.Scheme);
+                            <tr class="condonacion-row" data-url="@url" title="Doble click para abrir el crédito" style="cursor:pointer;">
+                                <td>@item.NombreCliente</td>
+                                <td class="right">@item.MontoCredito.ToString("N2")</td>
+                                <td class="right">@item.MoraCondonacion.ToString("N2")</td>
+                                <td class="right">@item.TotalPago.ToString("N2")</td>
+                                <td>@item.NombreUsuario</td>
+                                <td class="center" style="width: 40px">
+                                    <a href='#' onclick='EliminarCondonacion(@item.Id);return false;' class='button small grey tooltip' data-gravity='s' title='Eliminar'><i class='icon-remove'></i></a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="alert information sticky no-margin">
+                    No hay solicitudes de condonación pendientes.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    $$.ready(function () {
+        $("#tblCondonaciones tbody tr").dblclick(function () {
+            var url = $(this).data("url");
+            if (url) {
+                window.location = url;
+            }
+        });
+    });
+
+    function EliminarCondonacion(pid) {
+        Vendix.Dialogo("Desea eliminar la solicitud de condonacion?", "SiNo", function () {
+            $.ajax({
+                type: 'POST',
+                url: '@Url.Action("Eliminar", "Condonacion")',
+                data: { pid: pid },
+                success: function (ret) {
+                    if (ret) {
+                        window.location.reload();
+                    }
+                }
+            });
+        });
+
+        return false;
+    }
+</script>
+

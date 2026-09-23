@@ -4,6 +4,23 @@
  * Breakpoints estándar: 991px (tablet) · 640px (móvil) · 480px (móvil estrecho).
  */
 
+/* —— a11y: foco visible + movimiento reducido —— */
+:focus-visible {
+  outline: 2px solid var(--credix-brand, #1e4d7b);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* —— Páginas con layout CredixPage / CredixCrudPage / CredixInformePage —— */
 .credix-page .credix-page-body,
 .credix-informe-page .credix-page-body,
@@ -728,4 +745,38 @@
     overflow-x: visible;
     min-width: 0;
   }
+}
+
+/* �� Cobro en bloque (planilla) �� */
+.credix-cobro-bloque-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.credix-cobro-bloque-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--credix-border, #d9e2ec);
+  border-radius: 8px;
+  background: var(--credix-surface-muted, #f7fafc);
+}
+
+.credix-cobro-bloque-total {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--credix-brand, #1e4d7b);
+}
+
+.credix-cobro-bloque-metodos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 12px;
 }

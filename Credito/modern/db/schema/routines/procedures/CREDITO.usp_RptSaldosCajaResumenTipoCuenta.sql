@@ -1,4 +1,4 @@
-
+﻿
 --Exec CREDITO.usp_RptSaldosCajaResumenTipoCuenta 
 CREATE PROC [CREDITO].[usp_RptSaldosCajaResumenTipoCuenta]
 @OficinaId INT = 1
@@ -29,3 +29,8 @@ CUENTAS AS (
 SELECT 'RESUMEN CUENTA: ' + STRING_AGG(Denominacion + ' = ' + CAST (Saldo AS VARCHAR(15)),'  ') 'Total'
 FROM SALDOS
 WHERE Saldo>0
+
+
+
+
+

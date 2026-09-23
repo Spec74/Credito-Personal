@@ -3,6 +3,7 @@ using ITB.VENDIX.BL;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.SqlClient;
 using System.Data.Objects.SqlClient;
 using System.Linq;
 using System.Transactions;
@@ -162,26 +163,76 @@ namespace ITB.VENDIX.BL
         public static List<CreditoPendienteJGrid> LstCreditoPendienteJGrid(GridDataRequest request, ref int pTotalItems)
         {
             var usuarioid = VendixGlobal.GetUsuarioId();
-            IQueryable<CreditoPendienteJGrid> query;
+
             using (var db = new VENDIXEntities())
             {
-                query = db.Credito.Where(x => x.UsuarioRegId == usuarioid && x.Estado == "DES").
-                    Select(x => new CreditoPendienteJGrid
-                    {
-                        CreditoId = x.CreditoId,
-                        Codigo = x.Persona.Codigo,
-                        Cliente = x.Persona.NombreCompleto,
-                        MontoCredito = x.MontoCredito,
-                        PersonaId = x.PersonaId
-                    });
+                // 1. Consulta base ligera
+                var query = db.Credito
+                    .Where(x => x.UsuarioRegId == usuarioid && x.Estado == "DES");
 
                 pTotalItems = query.Count();
-                var lista = query.OrderBy(request.sidx + " " + request.sord)
-                    .Skip((request.page - 1) * request.rows).Take(request.rows).ToList();
 
-                return lista;
+                // 2. Ordenamiento (Usamos var + AsQueryable para que no dé error el nombre de la clase)
+                var queryOrdenada = query
+                    .OrderBy(x => x.FechaVencimiento)
+                    .ThenBy(x => x.Persona != null ? x.Persona.NombreCompleto : "")
+                    .AsQueryable();
+
+                if (!string.IsNullOrEmpty(request.sidx) && request.sidx.Trim() != "FechaVencimiento")
+                {
+                    queryOrdenada = query.OrderBy(request.sidx + " " + request.sord);
+                }
+
+                int paginaSegura = Math.Max(1, request.page);
+
+                // 3. Paginación: Traemos SOLO las filas de la página actual a memoria RAM
+                var listaPaginada = queryOrdenada
+                    .Skip((paginaSegura - 1) * request.rows)
+                    .Take(request.rows)
+                    .ToList();
+
+                // 4. Cálculo Matemático Exacto en C#
+                return listaPaginada.Select(x => {
+                    var cuotasPendientes = x.PlanPago.Where(p => p.Estado != "PAG" && p.Estado != "CAN").ToList();
+                    var cuotasPagadas = x.PlanPago.Where(p => p.Estado == "PAG").ToList();
+
+                    // Interés TOTAL del crédito para que sume 2675.00 exactos (ignoramos solo anuladas)
+                    decimal interesTotal = x.PlanPago
+                        .Where(p => p.Estado != "CAN")
+                        .Sum(p => (decimal?)p.Interes) ?? 0m;
+
+                    // Mora Total = (Mora de cuotas pendientes + Mora histórica de cuotas pagadas)
+                    decimal moraPendiente = cuotasPendientes.Sum(p => (decimal?)p.ImporteMora) ?? 0m;
+                    decimal moraPagada = cuotasPagadas.Sum(p => (decimal?)p.ImporteMora) ?? 0m;
+                    decimal moraTotal = moraPendiente + moraPagada;
+
+                    // DEUDA PENDIENTE REAL DEL CLIENTE
+                    decimal cuotas = cuotasPendientes.Sum(p => (decimal?)p.Cuota) ?? 0m;
+                    decimal cargos = cuotasPendientes.Sum(p => (decimal?)p.Cargo) ?? 0m;
+                    decimal pagoLibre = cuotasPendientes.Sum(p => (decimal?)p.PagoLibre) ?? 0m;
+                    decimal descuentos = cuotasPendientes.Sum(p => (decimal?)p.Descuento) ?? 0m;
+
+                    decimal capitalPendiente = cuotas + cargos - pagoLibre - descuentos;
+                    decimal deudaTotalReal = capitalPendiente + moraTotal;
+
+                    return new CreditoPendienteJGrid
+                    {
+                        CreditoId = x.CreditoId,
+                        Codigo = x.Persona != null ? x.Persona.Codigo : "",
+                        Cliente = x.Persona != null ? x.Persona.NombreCompleto : "",
+                        MontoCredito = x.MontoCredito,
+                        PersonaId = x.PersonaId,
+                        FechaVencimiento = x.FechaVencimiento,
+
+                        Interes = interesTotal,
+
+                        ImporteMora = moraTotal,
+                        DeudaPendiente = deudaTotalReal
+                    };
+                }).ToList();
             }
         }
+
         public static void ActualizarMontoPorCobrar(int usuarioid)
         {
             using (var db = new VENDIXEntities())
@@ -189,7 +240,7 @@ namespace ITB.VENDIX.BL
                 db.usp_CalcularMontoPorCobrar(usuarioid);
             }
         }
-        public static decimal? ObtenerSaldoCuentaCajadiario(int cajaDiarioId,int tipoPagoId =1)
+        public static decimal? ObtenerSaldoCuentaCajadiario(int cajaDiarioId, int tipoPagoId = 1)
         {
             using (var db = new VENDIXEntities())
             {
@@ -438,8 +489,11 @@ namespace ITB.VENDIX.BL
                 }
             }
         }
-        public static int? RealizarPagarCuentaxCobrar(int pOrdenVentaId, int pCuentaxCobrarId)
+        public static int? RealizarPagarCuentaxCobrar(int pOrdenVentaId, int pCuentaxCobrarId, int pCajaDiarioId = 0)
         {
+            if (pCajaDiarioId == 0)
+                pCajaDiarioId = VendixGlobal.GetCajaDiarioId();
+
             using (var scope = new TransactionScope())
             {
                 try
@@ -447,7 +501,7 @@ namespace ITB.VENDIX.BL
                     int? retid;
                     using (var db = new VENDIXEntities())
                     {
-                        retid = db.usp_PagarCuentaxCobrar(pOrdenVentaId, pCuentaxCobrarId, VendixGlobal.GetCajaDiarioId(),
+                        retid = db.usp_PagarCuentaxCobrar(pOrdenVentaId, pCuentaxCobrarId, pCajaDiarioId,
                                                       VendixGlobal.GetUsuarioId()).ToList()[0];
                     }
                     scope.Complete();
@@ -621,7 +675,7 @@ namespace ITB.VENDIX.BL
                             UsuarioRegId = VendixGlobal.GetUsuarioId(),
                             FechaReg = VendixGlobal.GetFecha(),
                             CajaDiarioId = (indCajaChica ? 0 : cajaDiario.CajaDiarioId),
-                            TipoPagoId=1
+                            TipoPagoId = 1
                         });
                         var oBovedaMov = BovedaMovBL.Listar(x => x.BovedaId == oBoveda.BovedaId && x.Estado);
                         oBoveda.Entradas = oBovedaMov.Where(x => x.IndEntrada).Sum(x => x.Importe);
@@ -648,10 +702,11 @@ namespace ITB.VENDIX.BL
             {
                 try
                 {
-                    using (var db = new VENDIXEntities()) {
+                    using (var db = new VENDIXEntities())
+                    {
                         db.usp_CerrarCajasDiarios(idUsuario, idOficina, pSobrante);
                     }
-                    
+
                     scope.Complete();
                     return true;
                 }
@@ -667,14 +722,29 @@ namespace ITB.VENDIX.BL
             using (var db = new VENDIXEntities())
             {
                 var idOficina = VendixGlobal.GetOficinaId();
+                var idUsuario = VendixGlobal.GetUsuarioId();
 
                 db.usp_ActualizarSaldoCartera(idOficina);
                 db.usp_CalificarCliente(idOficina);
-    
+
+                /*
+                 * La evaluacion de fecha se realiza en SQL Server mediante
+                 * dbo.ufnFecha(). Fuera del ultimo dia del mes, o de la
+                 * contingencia de los dias 1 y 2, el procedimiento no hace
+                 * ninguna modificacion.
+                 */
+                var oficinaParametro = new SqlParameter("@OficinaId", idOficina);
+                var usuarioParametro = new SqlParameter("@UsuarioCierreId", idUsuario);
+
+                await db.Database.ExecuteSqlCommandAsync(
+                    "EXEC CREDITO.usp_IntentarGenerarCierreGerencialMensual " +
+                    "@OficinaId, @UsuarioCierreId",
+                    oficinaParametro,
+                    usuarioParametro);
             }
         }
 
-            public static string MostrarDetalleOvMovCaja(int pMovimientoCajaId)
+        public static string MostrarDetalleOvMovCaja(int pMovimientoCajaId)
         {
             string detalleventa = string.Empty;
 
@@ -772,7 +842,7 @@ namespace ITB.VENDIX.BL
                             CajaDiarioId = pCajaDiarioId,
                             UsuarioRegId = pUsuarioRegId,
                             FechaReg = VendixGlobal.GetFecha(),
-                            TipoPagoId=1
+                            TipoPagoId = 1
                         };
                         BovedaMovBL.Crear(MovBoveda);
 
@@ -931,7 +1001,10 @@ namespace ITB.VENDIX.BL
         public string Cliente { get; set; }
         public decimal MontoCredito { get; set; }
         public int PersonaId { get; set; }
-
+        public DateTime? FechaVencimiento { get; set; }
+        public decimal DeudaPendiente { get; set; }
+        public decimal Interes { get; set; }
+        public decimal ImporteMora { get; set; }
     }
     public class ReporteSaldoCajaCab
     {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -303,7 +303,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
     guardar.mutate(values)
   }
 
-  const validarReniec = async () => {
+  const validarReniec = useCallback(async () => {
     const doc = form.getFieldValue('numeroDocumento')?.trim() ?? ''
     if (!doc) return
     try {
@@ -355,7 +355,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
         `${errMsg(e)}. Puede completar nombre y apellidos manualmente.`,
       )
     }
-  }
+  }, [esEdicion, form, personaId, tipoPersona])
 
   useEffect(() => {
     if (esEdicion || dniPrefillDone.current || dniPrefill.length !== 8) return
@@ -388,7 +388,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
         message.error(errMsg(e))
       }
     })()
-  }, [dniPrefill, esEdicion, form, navigate, returnTo])
+  }, [dniPrefill, esEdicion, form, navigate, returnTo, validarReniec])
 
   const ubicarMapa = async () => {
     const distrito = form.getFieldValue('distritoLabel')?.trim() ?? distritoTerm.trim()

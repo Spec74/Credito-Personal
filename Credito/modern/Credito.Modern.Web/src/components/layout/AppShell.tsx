@@ -7,10 +7,12 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  FundProjectionScreenOutlined,
   UserOutlined,
 } from '@ant-design/icons'
 import { fetchMenu } from '../../api/menu'
 import { fetchOficinas } from '../../api/oficinas'
+import { fetchCierreGerencialPermisos } from '../../api/cierreGerencial'
 import { useAuth } from '../../auth/useAuth'
 import { getLoginProfile } from '../../auth/sessionProfile'
 import { BrandLogo } from '../brand/BrandLogo'
@@ -71,14 +73,26 @@ export function AppShell() {
     staleTime: 5 * 60_000,
   })
 
+  const cierrePermisosQuery = useQuery({
+    queryKey: ['cierre-gerencial-permisos', session?.usuarioId],
+    queryFn: fetchCierreGerencialPermisos,
+    enabled: (session?.usuarioId ?? 0) > 0,
+    staleTime: 5 * 60_000,
+  })
+  const puedeVerCierreGerencial = cierrePermisosQuery.data?.puedeConsultar === true
+
   const navigationMenuData = useMemo(() => menuQuery.data ?? [], [menuQuery.data])
   const quickActionsVisible = useMemo(
     () => filterQuickActionsByMenu(quickActions, navigationMenuData),
     [navigationMenuData],
   )
+  const extraAllowedPaths = useMemo(
+    () => (puedeVerCierreGerencial ? ['/informes/cierre-gerencial'] : []),
+    [puedeVerCierreGerencial],
+  )
   const hasCurrentRouteAccess = useMemo(
-    () => hasMenuRouteAccess(location.pathname, navigationMenuData),
-    [location.pathname, navigationMenuData],
+    () => hasMenuRouteAccess(location.pathname, navigationMenuData, extraAllowedPaths),
+    [location.pathname, navigationMenuData, extraAllowedPaths],
   )
 
   const defaultOpenKeys = useMemo(
@@ -115,11 +129,27 @@ export function AppShell() {
   const usuarioNombre =
     profile.nombreUsuario ?? (session ? `Usuario ${session.usuarioId}` : '')
 
-  const menuItems = useMemo(() => buildAntMenuItems(navigationMenuData), [navigationMenuData])
-  const selectedKeys = useMemo(
-    () => findSelectedMenuKeys(location.pathname, navigationMenuData),
-    [location.pathname, navigationMenuData],
-  )
+  const menuItems = useMemo(() => {
+    const base = buildAntMenuItems(navigationMenuData)
+    if (!puedeVerCierreGerencial) {
+      return base
+    }
+    return [
+      ...base,
+      {
+        key: 'cierre-gerencial',
+        icon: <FundProjectionScreenOutlined />,
+        label: <span className="credix-menu-label">Cierre gerencial</span>,
+      },
+    ]
+  }, [navigationMenuData, puedeVerCierreGerencial])
+  const selectedKeys = useMemo(() => {
+    const keys = findSelectedMenuKeys(location.pathname, navigationMenuData)
+    if (location.pathname.startsWith('/informes/cierre-gerencial')) {
+      return [...keys, 'cierre-gerencial']
+    }
+    return keys
+  }, [location.pathname, navigationMenuData])
 
   const closeMobileNav = () => {
     if (isMobile) {
@@ -174,6 +204,11 @@ export function AppShell() {
       closeMobileNav()
       return
     }
+    if (key === 'cierre-gerencial') {
+      navigate('/informes/cierre-gerencial')
+      closeMobileNav()
+      return
+    }
     if (key.startsWith('parent-') || key.startsWith('mod-')) {
       return
     }
@@ -223,13 +258,18 @@ export function AppShell() {
 
   return (
     <div className="credix-app">
+      <a href="#main-content" className="credix-skip-link">
+        Saltar al contenido
+      </a>
       <header className="credix-header">
         <div className="credix-header-start">
           <Button
             type="text"
             icon={mobileNavOpen && isMobile ? <MenuFoldOutlined /> : <MenuUnfoldOutlined />}
             onClick={toggleNav}
-            aria-label="Abrir menú"
+            aria-label={isMobile && mobileNavOpen ? 'Cerrar menú' : 'Abrir menú'}
+            aria-expanded={isMobile ? mobileNavOpen : !collapsed}
+            aria-controls={isMobile ? undefined : 'credix-sidebar-nav'}
           />
           <span className="credix-header-brand">
             <strong>CREDICONFIABLE</strong>
@@ -258,6 +298,7 @@ export function AppShell() {
           <Button
             type="text"
             icon={<LogoutOutlined />}
+            aria-label="Cerrar sesión"
             onClick={() => {
               logout()
               navigate('/login')
@@ -271,6 +312,7 @@ export function AppShell() {
       <div className="credix-layout">
         {!isMobile && (
           <aside
+            id="credix-sidebar-nav"
             className={
               collapsed ? 'credix-sidebar credix-sidebar--collapsed' : 'credix-sidebar'
             }
@@ -293,7 +335,7 @@ export function AppShell() {
         </Drawer>
 
         <div className="credix-main">
-          <main className="credix-content app-shell-content">
+          <main id="main-content" className="credix-content app-shell-content" tabIndex={-1}>
             <Suspense fallback={<RouteFallback />}>
               {menuQuery.isLoading || hasCurrentRouteAccess ? (
                 <Outlet />

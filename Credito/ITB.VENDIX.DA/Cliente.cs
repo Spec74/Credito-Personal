@@ -29,8 +29,6 @@ namespace ITB.VENDIX.DA
         public Nullable<decimal> TopeCredito { get; set; }
         public Nullable<int> ClasificacionRiesgoSBS { get; set; }
         public string ClasificacionRiesgoSBSObs { get; set; }
-        public Nullable<decimal> Latitud { get; set; }
-        public Nullable<decimal> Longitud { get; set; }
     
         public virtual Persona Persona { get; set; }
     }

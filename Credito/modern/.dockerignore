@@ -3,3 +3,12 @@
 **/.vs/
 **/*.user
 **/TestResults/
+**/node_modules/
+**/Credito.Modern.Web/dist/
+**/.publish/
+**/.tmp*
+**/*.md
+**/docs/
+**/canvases/
+**/.git/
+**/agent-transcripts/

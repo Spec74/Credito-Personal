@@ -1,0 +1,843 @@
+﻿@{
+    ViewBag.Title = "Cierre y metas gerenciales";
+    var puedeGestionarMetas = ViewBag.PuedeGestionarMetas != null &&
+                              (bool)ViewBag.PuedeGestionarMetas;
+}
+
+@Html.AntiForgeryToken()
+
+<style type="text/css">
+    .cg-page {
+        color: #263238;
+        padding: 4px 0 24px;
+    }
+
+        .cg-page * {
+            box-sizing: border-box;
+        }
+
+    .cg-header {
+        margin-bottom: 16px;
+    }
+
+    .cg-title {
+        font-size: 24px;
+        line-height: 30px;
+        margin: 0;
+    }
+
+    .cg-subtitle {
+        color: #66757f;
+        margin: 4px 0 0;
+    }
+
+    .cg-toolbar {
+        align-items: flex-end;
+        background: #fff;
+        border: 1px solid #dfe5e8;
+        border-radius: 6px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 14px;
+        padding: 14px;
+    }
+
+    .cg-field label {
+        color: #54636c;
+        display: block;
+        font-size: 12px;
+        font-weight: bold;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+    }
+
+    .cg-field input, .cg-field select {
+        border: 1px solid #b8c3c9;
+        border-radius: 4px;
+        height: 34px;
+        padding: 5px 8px;
+    }
+
+    .cg-button {
+        background: #1769aa;
+        border: 0;
+        border-radius: 4px;
+        color: #fff;
+        cursor: pointer;
+        font-weight: bold;
+        min-height: 34px;
+        padding: 7px 14px;
+    }
+
+        .cg-button:hover {
+            background: #12598f;
+        }
+
+        .cg-button:disabled {
+            background: #aab5bb;
+            cursor: not-allowed;
+        }
+
+    .cg-button-secondary {
+        background: #5d6b73;
+    }
+
+    .cg-button-success {
+        background: #2e7d32;
+    }
+
+    .cg-tabs {
+        border-bottom: 1px solid #cfd8dc;
+        margin-bottom: 14px;
+    }
+
+    .cg-tab {
+        background: transparent;
+        border: 0;
+        border-bottom: 3px solid transparent;
+        color: #52616a;
+        cursor: pointer;
+        font-weight: bold;
+        padding: 10px 16px;
+    }
+
+        .cg-tab.cg-active {
+            border-bottom-color: #1769aa;
+            color: #1769aa;
+        }
+
+    .cg-panel {
+        display: none;
+    }
+
+        .cg-panel.cg-active {
+            display: block;
+        }
+
+    .cg-alert {
+        border-radius: 5px;
+        display: none;
+        margin: 0 0 14px;
+        padding: 11px 13px;
+    }
+
+    .cg-alert-info {
+        background: #e8f3fb;
+        border: 1px solid #acd3ec;
+        color: #185a83;
+    }
+
+    .cg-alert-error {
+        background: #fdecec;
+        border: 1px solid #efb5b5;
+        color: #9f2424;
+    }
+
+    .cg-alert-success {
+        background: #eaf6ea;
+        border: 1px solid #add7af;
+        color: #256329;
+    }
+
+    .cg-cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .cg-card {
+        background: #fff;
+        border: 1px solid #dfe5e8;
+        border-radius: 6px;
+        flex: 1 1 180px;
+        min-width: 160px;
+        padding: 13px;
+    }
+
+    .cg-card-label {
+        color: #687780;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .cg-card-value {
+        color: #17252d;
+        font-size: 23px;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+
+    .cg-card-note {
+        color: #788891;
+        font-size: 11px;
+        margin-top: 3px;
+    }
+
+    .cg-table-box {
+        background: #fff;
+        border: 1px solid #dfe5e8;
+        border-radius: 6px;
+        overflow-x: auto;
+    }
+
+    .cg-table {
+        border-collapse: collapse;
+        min-width: 1540px;
+        width: 100%;
+    }
+
+        .cg-table th {
+            background: #eef3f5;
+            border-bottom: 1px solid #cbd5da;
+            border-right: 1px solid #dbe2e5;
+            color: #394952;
+            font-size: 11px;
+            padding: 8px 7px;
+            text-align: center;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .cg-table td {
+            border-bottom: 1px solid #e3e8ea;
+            border-right: 1px solid #edf0f1;
+            padding: 7px;
+            vertical-align: middle;
+        }
+
+        .cg-table tbody tr:hover {
+            background: #f8fbfc;
+        }
+
+        .cg-table .cg-left {
+            text-align: left;
+        }
+
+        .cg-table .cg-number {
+            font-variant-numeric: tabular-nums;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .cg-table .cg-center {
+            text-align: center;
+        }
+
+    .cg-group-productiva td:first-child {
+        border-left: 4px solid #2e7d32;
+    }
+
+    .cg-group-especial td:first-child {
+        border-left: 4px solid #ef6c00;
+    }
+
+    .cg-badge {
+        border-radius: 10px;
+        display: inline-block;
+        font-size: 10px;
+        font-weight: bold;
+        padding: 3px 7px;
+        white-space: nowrap;
+    }
+
+    .cg-ok {
+        background: #dff2e0;
+        color: #236628;
+    }
+
+    .cg-warn {
+        background: #fff0cd;
+        color: #8a5b00;
+    }
+
+    .cg-bad {
+        background: #f9dede;
+        color: #9d2424;
+    }
+
+    .cg-na {
+        background: #e9edef;
+        color: #63717a;
+    }
+
+    .cg-input {
+        border: 1px solid #aebbc2;
+        border-radius: 3px;
+        height: 30px;
+        padding: 4px 6px;
+        text-align: right;
+        width: 112px;
+    }
+
+        .cg-input:disabled {
+            background: #edf1f2;
+            color: #7c898f;
+        }
+
+    .cg-section-head {
+        align-items: center;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: space-between;
+        margin: 0 0 10px;
+    }
+
+        .cg-section-head h2 {
+            font-size: 18px;
+            margin: 0;
+        }
+
+    .cg-meta-actions {
+        align-items: center;
+        display: flex;
+        gap: 10px;
+    }
+
+    .cg-muted {
+        color: #728089;
+        font-size: 12px;
+    }
+
+    .cg-loading {
+        background: rgba(255,255,255,.86);
+        display: none;
+        font-size: 14px;
+        font-weight: bold;
+        left: 0;
+        padding: 28px;
+        position: absolute;
+        right: 0;
+        text-align: center;
+        top: 0;
+        z-index: 3;
+    }
+
+    .cg-relative {
+        min-height: 80px;
+        position: relative;
+    }
+
+    .cg-empty {
+        color: #75838b;
+        padding: 28px;
+        text-align: center;
+    }
+
+    .cg-updated {
+        color: #6d7b83;
+        font-size: 11px;
+        margin-left: auto;
+    }
+
+    @@media (max-width: 720px) {
+        .cg-toolbar {
+            align-items: stretch;
+            display: block;
+        }
+
+            .cg-field, .cg-toolbar .cg-button {
+                margin-bottom: 9px;
+                width: 100%;
+            }
+
+                .cg-field input, .cg-field select {
+                    width: 100%;
+                }
+
+        .cg-updated {
+            display: block;
+            margin: 5px 0 0;
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="cg-page" id="cg-page">
+    <div class="cg-header">
+        <h1 class="cg-title">Cierre y metas gerenciales</h1>
+        <p class="cg-subtitle">Seguimiento mensual de capital, clientes activos y cartera vencida.</p>
+    </div>
+
+    <div class="cg-toolbar">
+        <div class="cg-field">
+            <label for="cg-periodo">Periodo</label>
+            <input id="cg-periodo" type="month" value="@DateTime.Today.ToString("yyyy-MM")" />
+        </div>
+        <div class="cg-field">
+            <label for="cg-tipo">Tipo de cartera</label>
+            <select id="cg-tipo">
+                <option value="">Todas</option>
+                <option value="PRODUCTIVA">Productiva</option>
+                <option value="ESPECIAL">Especial</option>
+            </select>
+        </div>
+        <div class="cg-field">
+            <label for="cg-buscar">Analista o mercado</label>
+            <input id="cg-buscar" type="text" maxlength="80" placeholder="Buscar..." />
+        </div>
+        <button type="button" class="cg-button" id="cg-consultar">Consultar</button>
+        <button type="button"
+                class="cg-button cg-button-success"
+                id="cg-exportar">
+            Exportar Excel
+        </button>
+        <span class="cg-updated" id="cg-actualizado"></span>
+    </div>
+
+    <div class="cg-tabs">
+        <button type="button" class="cg-tab cg-active" data-panel="cg-avance">Avance</button>
+        <button type="button" class="cg-tab" data-panel="cg-metas">Metas del periodo</button>
+    </div>
+
+    <div class="cg-alert cg-alert-info" id="cg-aviso"></div>
+    <div class="cg-alert cg-alert-error" id="cg-error"></div>
+    <div class="cg-alert cg-alert-success" id="cg-exito"></div>
+
+    <section class="cg-panel cg-active" id="cg-avance">
+        <div class="cg-cards">
+            <div class="cg-card">
+                <div class="cg-card-label">Capital actual</div>
+                <div class="cg-card-value" id="cg-kpi-capital">—</div>
+                <div class="cg-card-note">Saldo total por cobrar</div>
+            </div>
+            <div class="cg-card">
+                <div class="cg-card-label">Clientes activos</div>
+                <div class="cg-card-value" id="cg-kpi-clientes">—</div>
+                <div class="cg-card-note">Personas con crédito activo</div>
+            </div>
+            <div class="cg-card">
+                <div class="cg-card-label">Vencidos actuales</div>
+                <div class="cg-card-value" id="cg-kpi-vencidos">—</div>
+                <div class="cg-card-note">Cuotas vencidas con saldo FIFO</div>
+            </div>
+            <div class="cg-card">
+                <div class="cg-card-label">Metas configuradas</div>
+                <div class="cg-card-value" id="cg-kpi-configuradas">—</div>
+                <div class="cg-card-note">De 19 carteras gerenciales</div>
+            </div>
+        </div>
+
+        <div class="cg-table-box cg-relative">
+            <div class="cg-loading" id="cg-loading-avance">Calculando avance...</div>
+            <table class="cg-table" aria-label="Avance de metas gerenciales">
+                <thead>
+                    <tr>
+                        <th rowspan="2">N.º</th>
+                        <th rowspan="2">Analista / mercado</th>
+                        <th rowspan="2">Tipo</th>
+                        <th colspan="4">Capital</th>
+                        <th colspan="4">Clientes activos</th>
+                        <th colspan="4">Vencidos</th>
+                        <th colspan="3">Recuperación</th>
+                    </tr>
+                    <tr>
+                        <th>Base</th>
+                        <th>Meta</th>
+                        <th>Actual</th>
+                        <th>Estado</th>
+                        <th>Base</th>
+                        <th>Meta</th>
+                        <th>Actual</th>
+                        <th>Estado</th>
+                        <th>Base</th>
+                        <th>Límite</th>
+                        <th>Actual</th>
+                        <th>Estado</th>
+                        <th>Meta</th>
+                        <th>Actual</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="cg-avance-body"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="cg-panel" id="cg-metas">
+        <div class="cg-section-head">
+            <div>
+                <h2>Definición de metas</h2>
+                <div class="cg-muted" id="cg-limite"></div>
+            </div>
+            <div class="cg-meta-actions">
+                @if (puedeGestionarMetas)
+                {
+                    <button type="button" class="cg-button cg-button-success" id="cg-guardar" disabled="disabled">Guardar metas</button>
+                }
+            </div>
+        </div>
+
+        <div class="cg-table-box cg-relative">
+            <div class="cg-loading" id="cg-loading-metas">Cargando metas...</div>
+            <table class="cg-table" aria-label="Definición de metas gerenciales">
+                <thead>
+                    <tr>
+                        <th>N.º</th>
+                        <th>Analista / mercado</th>
+                        <th>Tipo</th>
+                        <th>Capital base</th>
+                        <th>Meta capital al cierre</th>
+                        <th>Clientes base</th>
+                        <th>Meta clientes activos</th>
+                        <th>Vencidos base</th>
+                        <th>Límite vencidos al cierre</th>
+                        <th>Recuperación vencidos del mes</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="cg-metas-body"></tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<script type="text/javascript">
+    (function ($) {
+        var urls = {
+            avance: '@Url.Action("ObtenerAvance", "CierreGerencial")',
+            metas: '@Url.Action("ListarMetas", "CierreGerencial")',
+            guardar: '@Url.Action("GuardarMetas", "CierreGerencial")',
+            exportar: '@Url.Action("ExportarExcel", "CierreGerencial")'
+        };
+        var puedeGestionarServidor = @(puedeGestionarMetas ? "true" : "false");
+        var filasAvance = [];
+        var filasMetas = [];
+        var puedeEditar = false;
+
+        function periodoSql() {
+            var valor = $('#cg-periodo').val();
+            if (!/^\d{4}-\d{2}$/.test(valor)) {
+                mostrarError('Seleccione un periodo válido.');
+                return null;
+            }
+            return valor + '-01';
+        }
+
+        function numero(valor) {
+            if (valor === null || typeof valor === 'undefined' || valor === '') return null;
+            var n = Number(valor);
+            return isNaN(n) ? null : n;
+        }
+
+        function moneda(valor) {
+            var n = numero(valor);
+            if (n === null) return '—';
+            var partes = n.toFixed(2).split('.');
+            partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            return 'S/ ' + partes.join('.');
+        }
+
+        function entero(valor) {
+            var n = numero(valor);
+            if (n === null) return '—';
+            return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        function html(valor) {
+            return $('<div/>').text(valor === null || typeof valor === 'undefined' ? '' : valor).html();
+        }
+
+        function claseEstado(estado) {
+            var texto = String(estado || '').toUpperCase();
+            if (texto === 'CUMPLIDA' || texto === 'CUMPLIDO' || texto === 'OK') return 'cg-ok';
+            if (texto === 'EN RIESGO' || texto === 'PARCIAL') return 'cg-warn';
+            if (texto === 'INCUMPLIDA' || texto === 'INCUMPLIDO') return 'cg-bad';
+            return 'cg-na';
+        }
+
+        function badge(estado) {
+            var texto = estado || 'SIN CONFIGURAR';
+            return '<span class="cg-badge ' + claseEstado(texto) + '">' + html(texto) + '</span>';
+        }
+
+        function mensajeError(xhr, predeterminado) {
+            try {
+                var respuesta = $.parseJSON(xhr.responseText);
+                return respuesta.message || predeterminado;
+            } catch (e) {
+                return predeterminado;
+            }
+        }
+
+        function limpiarMensajes() {
+            $('#cg-error,#cg-exito,#cg-aviso').hide().text('');
+        }
+
+        function mostrarError(mensaje) {
+            $('#cg-error').text(mensaje).show();
+        }
+
+        function coincide(fila) {
+            var tipo = $('#cg-tipo').val();
+            var buscar = $.trim($('#cg-buscar').val()).toUpperCase();
+            if (tipo && String(fila.TipoCartera || '').toUpperCase() !== tipo) return false;
+            if (!buscar) return true;
+            var texto = [fila.NombreUsuario, fila.NombreCompleto, fila.Mercado, fila.Supervisor, fila.Asesor].join(' ').toUpperCase();
+            return texto.indexOf(buscar) >= 0;
+        }
+
+        function nombreAnalista(fila) {
+            return '<strong>' + html(fila.NombreUsuario) + '</strong><br />' +
+                '<span class="cg-muted">' + html(fila.NombreCompleto) + '</span><br />' +
+                '<span class="cg-muted">' + html(fila.Supervisor) + ' · ' + html(fila.Mercado) + '</span>';
+        }
+
+        function renderAvance() {
+            var cuerpo = $('#cg-avance-body').empty();
+            var visibles = $.grep(filasAvance, coincide);
+            var i, f, clase;
+
+            if (!visibles.length) {
+                cuerpo.append('<tr><td colspan="18" class="cg-empty">No hay carteras para el filtro seleccionado.</td></tr>');
+                return;
+            }
+
+            for (i = 0; i < visibles.length; i++) {
+                f = visibles[i];
+                clase = String(f.TipoCartera).toUpperCase() === 'ESPECIAL' ? 'cg-group-especial' : 'cg-group-productiva';
+                cuerpo.append('<tr class="' + clase + '">' +
+                    '<td class="cg-center">' + html(f.Orden) + '</td>' +
+                    '<td class="cg-left">' + nombreAnalista(f) + '</td>' +
+                    '<td class="cg-center">' + html(f.TipoCartera) + '</td>' +
+                    '<td class="cg-number">' + moneda(f.CapitalBase) + '</td>' +
+                    '<td class="cg-number">' + moneda(f.MetaCapitalCierre) + '</td>' +
+                    '<td class="cg-number">' + moneda(f.CapitalActual) + '</td>' +
+                    '<td class="cg-center">' + badge(f.EstadoCapital) + '</td>' +
+                    '<td class="cg-number">' + entero(f.ClientesBase) + '</td>' +
+                    '<td class="cg-number">' + entero(f.MetaClientesActivosCierre) + '</td>' +
+                    '<td class="cg-number">' + entero(f.ClientesActivosActual) + '</td>' +
+                    '<td class="cg-center">' + badge(f.EstadoClientes) + '</td>' +
+                    '<td class="cg-number">' + moneda(f.VencidosBaseComparable) + '</td>' +
+                    '<td class="cg-number">' + moneda(f.MetaVencidosMaximoCierre) + '</td>' +
+                    '<td class="cg-number">' + moneda(f.VencidosActual) + '</td>' +
+                    '<td class="cg-center">' + badge(f.EstadoVencidos) + '</td>' +
+                    '<td class="cg-number">' + moneda(f.MetaRecuperacionVencidosMes) + '</td>' +
+                    '<td class="cg-number">' + moneda(f.RecuperacionVencidosActual) + '</td>' +
+                    '<td class="cg-center">' + badge(f.EstadoRecuperacion) + '</td>' +
+                    '</tr>');
+            }
+        }
+
+        function actualizarKpis() {
+            var capital = 0, clientes = 0, vencidos = 0, configuradas = 0, i, f;
+            for (i = 0; i < filasAvance.length; i++) {
+                f = filasAvance[i];
+                capital += numero(f.CapitalActual) || 0;
+                clientes += numero(f.ClientesActivosActual) || 0;
+                vencidos += numero(f.VencidosActual) || 0;
+                if (f.MetaConfigurada) configuradas++;
+            }
+            $('#cg-kpi-capital').text(moneda(capital));
+            $('#cg-kpi-clientes').text(entero(clientes));
+            $('#cg-kpi-vencidos').text(moneda(vencidos));
+            $('#cg-kpi-configuradas').text(configuradas + ' / ' + filasAvance.length);
+        }
+
+        function limpiarAvance(mensaje) {
+            filasAvance = [];
+            $('#cg-kpi-capital,#cg-kpi-clientes,#cg-kpi-vencidos,#cg-kpi-configuradas').text('—');
+            $('#cg-actualizado').text('');
+            $('#cg-avance-body').html(
+                '<tr><td colspan="18" class="cg-empty">' +
+                html(mensaje || 'Consultando...') +
+                '</td></tr>'
+            );
+        }
+
+
+        function cargarAvance() {
+            var periodo = periodoSql();
+            if (!periodo) return;
+            limpiarMensajes();
+            limpiarAvance('Consultando el periodo seleccionado...');
+            $('#cg-loading-avance').show();
+            $.ajax({
+                url: urls.avance,
+                type: 'GET',
+                cache: false,
+                data: { periodo: periodo },
+                success: function (r) {
+                    if (!r || !r.success) {
+                        mostrarError((r && r.message) || 'No se pudo obtener el avance.');
+                        return;
+                    }
+                    filasAvance = r.filas || [];
+                    actualizarKpis();
+                    renderAvance();
+                    $('#cg-actualizado').text(r.fechaCalculo ? 'Calculado: ' + r.fechaCalculo : '');
+                    if (r.avanceNoOficial) {
+                        $('#cg-aviso').text('Avance no oficial: las cifras cambian hasta que se genere el cierre mensual.').show();
+                    }
+                },
+                error: function (xhr) {
+                    mostrarError(mensajeError(xhr, 'No se pudo consultar el avance gerencial.'));
+                },
+                complete: function () { $('#cg-loading-avance').hide(); }
+            });
+        }
+
+        function inputMeta(nombre, valor, indice, tipo, editable) {
+            var esEspecial = String(tipo).toUpperCase() === 'ESPECIAL';
+            var noAplica = esEspecial && (nombre === 'MetaCapitalCierre' || nombre === 'MetaClientesActivosCierre');
+            if (noAplica) return '<span class="cg-muted">NO APLICA</span>';
+            return '<input class="cg-input" type="number" min="0" step="' +
+                (nombre === 'MetaClientesActivosCierre' ? '1' : '0.01') + '" data-indice="' + indice +
+                '" data-campo="' + nombre + '" value="' + (valor === null ? '' : html(valor)) + '"' +
+                (editable ? '' : ' disabled="disabled"') + ' />';
+        }
+
+        function renderMetas() {
+            var cuerpo = $('#cg-metas-body').empty();
+            var visibles = $.grep(filasMetas, coincide);
+            var editable = puedeGestionarServidor && puedeEditar;
+            var i, indice, f, clase, vencidosBase;
+
+            if (!visibles.length) {
+                cuerpo.append('<tr><td colspan="11" class="cg-empty">No hay metas para el filtro seleccionado.</td></tr>');
+                return;
+            }
+
+            for (i = 0; i < visibles.length; i++) {
+                f = visibles[i];
+                indice = $.inArray(f, filasMetas);
+                clase = String(f.TipoCartera).toUpperCase() === 'ESPECIAL' ? 'cg-group-especial' : 'cg-group-productiva';
+                vencidosBase = f.VencidosBaseComparable === null ? f.VencidosBaseLegacy : f.VencidosBaseComparable;
+                cuerpo.append('<tr class="' + clase + '">' +
+                    '<td class="cg-center">' + html(f.Orden) + '</td>' +
+                    '<td class="cg-left">' + nombreAnalista(f) + '</td>' +
+                    '<td class="cg-center">' + html(f.TipoCartera) + '</td>' +
+                    '<td class="cg-number">' + moneda(f.CapitalBase) + '</td>' +
+                    '<td class="cg-center">' + inputMeta('MetaCapitalCierre', f.MetaCapitalCierre, indice, f.TipoCartera, editable) + '</td>' +
+                    '<td class="cg-number">' + entero(f.ClientesActivosBase) + '</td>' +
+                    '<td class="cg-center">' + inputMeta('MetaClientesActivosCierre', f.MetaClientesActivosCierre, indice, f.TipoCartera, editable) + '</td>' +
+                    '<td class="cg-number">' + moneda(vencidosBase) + '</td>' +
+                    '<td class="cg-center">' + inputMeta('MetaVencidosMaximoCierre', f.MetaVencidosMaximoCierre, indice, f.TipoCartera, editable) + '</td>' +
+                    '<td class="cg-center">' + inputMeta('MetaRecuperacionVencidosMes', f.MetaRecuperacionVencidosMes, indice, f.TipoCartera, editable) + '</td>' +
+                    '<td class="cg-center">' + badge(f.Configurada ? 'CONFIGURADA' : 'PENDIENTE') + '</td>' +
+                    '</tr>');
+            }
+        }
+
+        function cargarMetas() {
+            var periodo = periodoSql();
+            if (!periodo) return;
+            limpiarMensajes();
+            $('#cg-loading-metas').show();
+            $.ajax({
+                url: urls.metas,
+                type: 'GET',
+                cache: false,
+                data: { periodo: periodo },
+                success: function(r) {
+                    if (!r || !r.success) {
+                        limpiarAvance('No se pudo cargar el periodo seleccionado.');
+                        mostrarError((r && r.message) || 'No se pudieron obtener las metas.');
+                        return;
+                    }
+                    filasMetas = r.metas || [];
+                    puedeEditar = !!r.puedeEditar;
+                    $('#cg-limite').text(r.periodoCerrado
+                        ? 'El periodo está cerrado y sus metas son inmutables.'
+                        : (puedeEditar
+                            ? 'Edición habilitada hasta ' + (r.fechaLimiteEdicion || 'el día 5.')
+                            : 'Edición cerrada. Las metas solo se modifican durante los días 1 al 5.'));
+                    $('#cg-guardar').prop('disabled', !puedeEditar);
+                    renderMetas();
+                },
+                error: function(xhr) {
+                    limpiarAvance('No se pudo cargar el periodo seleccionado.');
+                    mostrarError(mensajeError(xhr, 'No se pudo consultar la configuración de metas.'));
+                },
+                complete: function () { $('#cg-loading-metas').hide(); }
+            });
+        }
+
+        function construirSolicitud() {
+            var datos = {
+                periodo: periodoSql(),
+                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+            };
+            var i, f;
+            for (i = 0; i < filasMetas.length; i++) {
+                f = filasMetas[i];
+                datos['metas[' + i + '].UsuarioId'] = f.UsuarioId;
+                datos['metas[' + i + '].TipoCartera'] = f.TipoCartera;
+                datos['metas[' + i + '].MetaCapitalCierre'] = f.MetaCapitalCierre;
+                datos['metas[' + i + '].MetaClientesActivosCierre'] = f.MetaClientesActivosCierre;
+                datos['metas[' + i + '].MetaVencidosMaximoCierre'] = f.MetaVencidosMaximoCierre;
+                datos['metas[' + i + '].MetaRecuperacionVencidosMes'] = f.MetaRecuperacionVencidosMes;
+            }
+            return datos;
+        }
+
+        function guardarMetas() {
+            if (!puedeEditar) return;
+            limpiarMensajes();
+            $('#cg-guardar').prop('disabled', true).text('Guardando...');
+            $.ajax({
+                url: urls.guardar,
+                type: 'POST',
+                data: construirSolicitud(),
+                success: function (r) {
+                    if (!r || !r.success) {
+                        mostrarError((r && r.message) || 'No se pudieron guardar las metas.');
+                        return;
+                    }
+                    $('#cg-exito').text(r.message).show();
+                    cargarMetas();
+                    cargarAvance();
+                },
+                error: function (xhr) {
+                    mostrarError(mensajeError(xhr, 'No se pudieron guardar las metas.'));
+                },
+                complete: function () {
+                    $('#cg-guardar').prop('disabled', !puedeEditar).text('Guardar metas');
+                }
+            });
+        }
+
+        $('.cg-tab').click(function () {
+            var panel = $(this).attr('data-panel');
+            $('.cg-tab').removeClass('cg-active');
+            $(this).addClass('cg-active');
+            $('.cg-panel').removeClass('cg-active');
+            $('#' + panel).addClass('cg-active');
+            if (panel === 'cg-metas' && !filasMetas.length) cargarMetas();
+        });
+
+        $('#cg-consultar').click(function () {
+            cargarAvance();
+            if ($('#cg-metas').hasClass('cg-active')) cargarMetas();
+        });
+        $('#cg-exportar').click(function () {
+            var periodo = periodoSql();
+
+            if (!periodo)
+                return;
+
+            window.location.href = urls.exportar +
+                '?periodo=' + encodeURIComponent(periodo);
+        });
+        $('#cg-tipo').change(function () { renderAvance(); renderMetas(); });
+        $('#cg-buscar').keyup(function () { renderAvance(); renderMetas(); });
+        $('#cg-metas-body').on('change keyup', '.cg-input', function () {
+            var control = $(this);
+            var indice = parseInt(control.attr('data-indice'), 10);
+            var campo = control.attr('data-campo');
+            var valorTexto = $.trim(control.val());
+            if (isNaN(indice) || !filasMetas[indice] || !campo) return;
+            filasMetas[indice][campo] = valorTexto === ''
+                ? null
+                : (campo === 'MetaClientesActivosCierre'
+                    ? parseInt(valorTexto, 10)
+                    : parseFloat(valorTexto));
+        });
+        $('#cg-guardar').click(guardarMetas);
+
+        cargarAvance();
+    })(jQuery);
+</script>

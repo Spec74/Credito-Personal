@@ -1,93 +1,189 @@
-@{
+﻿@{
     ViewBag.Title = "Mis Tareas";
 }
 
 <style>
+    :root {
+        --primary: #005d9a;
+        --primary-light: #36b8e0;
+        --danger: #e74c3c;
+        --border: #e1e8ed;
+        --input-bg: #fdfdfd;
+        --radius: 14px;
+    }
+
+    .box {
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        background: #fff;
+        overflow: hidden;
+    }
+
+        .box .header {
+            background: #fff !important;
+            border-bottom: 1px solid var(--border);
+            padding: 15px 20px;
+        }
+
+            .box .header h2 {
+                color: var(--primary);
+                font-weight: 600;
+            }
+
+                .box .header h2 i {
+                    color: var(--primary-light);
+                }
+
     .tarea-row td {
         vertical-align: middle;
+        padding: 12px 15px !important;
+        border-bottom: 1px solid var(--border);
     }
 
     .tarea-row.completada td {
-        background-color: #e8f5e9 !important;
+        background-color: #f0fdf4 !important;
     }
 
-    .tarea-row.completada .tarea-nombre {
-        color: #28a745;
+    .tarea-row.completada .cliente-title {
+        color: #16a34a;
         text-decoration: line-through;
     }
 
-    .subtareas-badge {
-        background: #e9ecf1;
-        color: #666;
-        padding: 3px 8px;
-        border-radius: 3px;
-        font-size: 11px;
-        margin-right: 5px;
+    /* Estructura de Subtareas Inline */
+    .inline-subtareas-lista {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding: 4px 0;
     }
 
-    .subtareas-count {
-        color: #999;
+    .inline-subtarea-item {
+        display: flex;
+        align-items: center;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 12px;
         font-size: 12px;
+        color: #334155;
+        transition: all 0.2s ease;
+    }
+
+        .inline-subtarea-item:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .inline-subtarea-item input[type="checkbox"] {
+            margin-right: 10px;
+            cursor: pointer;
+            width: 15px;
+            height: 15px;
+            accent-color: var(--primary);
+        }
+
+        .inline-subtarea-item.completada {
+            background: #f0fdf4;
+            border-color: #bbf7d0;
+        }
+
+            .inline-subtarea-item.completada .subtarea-texto {
+                text-decoration: line-through;
+                color: #94a3b8;
+            }
+
+    .badge-analista {
+        background: #e0f2fe;
+        color: var(--primary);
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: bold;
+        display: inline-block;
     }
 
     .tarea-actions a {
-        margin-left: 8px;
-        color: #666;
-        font-size: 14px;
-        text-decoration: none;
-        display: inline-block;
-        padding: 3px 6px;
-        border-radius: 3px;
+        color: #64748b;
+        font-size: 16px;
+        padding: 5px 8px;
+        border-radius: 6px;
+        transition: all 0.2s;
     }
 
-        .tarea-actions a:hover {
-            color: #333;
-            background: #e9ecf1;
-        }
-
         .tarea-actions a.eliminar-tarea:hover {
-            color: #dc3545;
-            background: #ffe6e6;
+            color: var(--danger);
+            background: #fef2f2;
         }
 
     .search-box {
-        margin-bottom: 10px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
     }
 
-        .search-box input[type="text"] {
-            width: 250px;
+        .search-box input[type="text"], .filtro-analista select {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--input-bg);
+            font-size: 13px;
         }
 
-    /* Estilos del Modal de Tarea */
-    .dialog-tarea {
-        display: none;
+            .search-box input[type="text"]:focus, .filtro-analista select:focus {
+                border-color: var(--primary);
+                outline: none;
+            }
+
+    .btn-filtro {
+        display: inline-block;
+        padding: 8px 14px;
+        margin-left: 5px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #fff;
+        color: #64748b;
+        cursor: pointer;
+        font-size: 12px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
     }
 
-        .dialog-tarea .form-group {
-            margin-bottom: 15px;
+        .btn-filtro:hover {
+            background: #f8fafc;
+            color: #1e293b;
         }
 
-            .dialog-tarea .form-group label {
-                display: block;
-                font-weight: bold;
-                margin-bottom: 5px;
-                color: #333;
-                font-size: 12px;
-            }
+        .btn-filtro.active {
+            background: var(--primary) !important;
+            color: #fff !important;
+            border-color: var(--primary) !important;
+        }
 
-            .dialog-tarea .form-group input[type="text"] {
-                width: 100%;
-                padding: 10px;
-                border: 1px solid #e0e0e0;
-                border-radius: 6px;
-                font-size: 12px;
-                box-sizing: border-box;
-            }
+    /* Diálogo Modal (Para creación/edición del Admin) */
+    .dialog-tarea .form-group {
+        margin-bottom: 15px;
+    }
 
-                .dialog-tarea .form-group input[type="text"]:focus {
-                    border-color: #2196F3;
-                    outline: none;
-                }
+        .dialog-tarea .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #333;
+            font-size: 12px;
+        }
+
+        .dialog-tarea .form-group input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+            box-sizing: border-box;
+        }
 
     .subtareas-header {
         display: flex;
@@ -95,18 +191,6 @@
         align-items: center;
         margin-bottom: 10px;
     }
-
-        .subtareas-header label {
-            font-weight: bold;
-            color: #333;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        .subtareas-header .contador {
-            font-size: 12px;
-            color: #2196F3;
-        }
 
     .subtareas-lista {
         max-height: 200px;
@@ -117,143 +201,25 @@
     .subtarea-item {
         display: flex;
         align-items: center;
-        padding: 4px 8px;
-        background: #f9f9f9;
-        border-radius: 4px;
-        margin-bottom: 2px;
+        padding: 6px 10px;
+        background: #f8fafc;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        margin-bottom: 4px;
     }
 
-        .subtarea-item input[type="checkbox"] {
-            margin-right: 10px;
-        }
-
-        .subtarea-item .subtarea-texto {
-            flex: 1;
-            font-size: 13px;
-        }
-
-        .subtarea-item.completada .subtarea-texto {
-            text-decoration: line-through;
-            color: #999;
-        }
-
-        .subtarea-item .btn-eliminar-subtarea {
-            color: #999;
-            cursor: pointer;
-            padding: 2px 6px;
-        }
-
-            .subtarea-item .btn-eliminar-subtarea:hover {
-                color: #dc3545;
-            }
-
     .btn-agregar-subtarea {
-        color: #2196F3;
+        color: var(--primary);
         cursor: pointer;
-        font-size: 14px;
+        font-size: 13px;
         background: none;
         border: none;
-        padding: 5px 0;
+        font-weight: bold;
     }
 
         .btn-agregar-subtarea:hover {
+            color: var(--primary-light);
             text-decoration: underline;
-        }
-
-    .ui-dialog-titlebar {
-        background: #fff !important;
-        border: none !important;
-        border-bottom: 1px solid #eee !important;
-    }
-
-    .ui-dialog-title {
-        font-size: 16px !important;
-        font-weight: bold !important;
-        color: #333 !important;
-    }
-
-        .ui-dialog-title i {
-            color: #2196F3;
-            margin-right: 8px;
-        }
-
-    .ui-dialog {
-        border-radius: 10px !important;
-        box-shadow: 0 5px 30px rgba(0,0,0,0.2) !important;
-    }
-
-    .ui-dialog-buttonpane {
-        border-top: 1px solid #eee !important;
-        background: #fff !important;
-        padding: 15px !important;
-    }
-
-        .ui-dialog-buttonpane .ui-button {
-            padding: 8px 20px !important;
-            border-radius: 6px !important;
-            font-size: 14px !important;
-        }
-
-        .ui-dialog-buttonpane .btn-guardar {
-            background: #2196F3 !important;
-            color: #fff !important;
-            border: none !important;
-        }
-
-            .ui-dialog-buttonpane .btn-guardar:hover {
-                background: #1976D2 !important;
-            }
-
-        .ui-dialog-buttonpane .btn-cancelar {
-            background: #fff !important;
-            color: #333 !important;
-            border: 1px solid #ddd !important;
-        }
-
-    .nueva-subtarea-input {
-        margin-top: 10px;
-    }
-
-        .nueva-subtarea-input input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-    /* Estilos para autocomplete */
-    .ui-autocomplete {
-        max-height: 250px;
-        overflow-y: auto;
-        overflow-x: hidden;
-        z-index: 10000 !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-        .ui-autocomplete .ui-menu-item {
-            padding: 0 !important;
-            margin: 0 !important;
-            border-bottom: 1px solid #eee;
-        }
-
-            .ui-autocomplete .ui-menu-item div {
-                padding: 6px 10px !important;
-                margin: 0 !important;
-            }
-
-            .ui-autocomplete .ui-menu-item:hover,
-            .ui-autocomplete .ui-menu-item.ui-state-focus {
-                background: #e3f2fd !important;
-                border-color: #e3f2fd !important;
-            }
-
-        .ui-autocomplete .ui-state-active,
-        .ui-autocomplete .ui-widget-content .ui-state-active {
-            margin: 0 !important;
-            padding: 4px 10px !important;
-            background: #2196F3 !important;
-            color: #fff !important;
         }
 
     #txtBuscarCredito {
@@ -263,42 +229,6 @@
         background-size: 16px;
         padding-left: 35px !important;
     }
-    /* Estilos para filtros */
-    .filtro-tareas {
-        display: inline-block;
-        float: right;
-    }
-
-        .filtro-tareas .btn-filtro {
-            display: inline-block;
-            padding: 6px 12px;
-            margin-left: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background: #fff;
-            color: #666;
-            cursor: pointer;
-            font-size: 12px;
-            text-decoration: none;
-        }
-
-            .filtro-tareas .btn-filtro:hover {
-                background: #f5f5f5;
-                color: #333;
-            }
-
-            .filtro-tareas .btn-filtro.active {
-                background: #2196F3;
-                color: #fff;
-                border-color: #2196F3;
-            }
-
-    .filtro-analista {
-        display: inline-block;
-        width: 200px;
-        position: relative;
-        top: 5px;
-    } 
 </style>
 
 <div class="grid_12">
@@ -308,8 +238,8 @@
             @if (ViewBag.PuedeEditarTarea == true)
             {
                 <ul>
-                    <li><a id="btnNuevaTarea"><i class="icon-plus"></i> Nueva Tarea</a></li>
-                    <li><a id="btnExportarPdf"><i class="icon-download-alt"></i> Exportar PDF</a></li>
+                    <li><a id="btnNuevaTarea" style="cursor:pointer;"><i class="icon-plus"></i> Nueva Tarea</a></li>
+                    <li><a id="btnExportarPdf" style="cursor:pointer;"><i class="icon-download-alt"></i> Exportar PDF</a></li>
                 </ul>
             }
         </div>
@@ -317,61 +247,62 @@
             <div class="spacer">
                 <div class="search-box">
                     <label><i class="icon-search"></i> Buscar:</label>
-                    <input type="text" id="txtBuscarTarea" placeholder="Buscar tareas..." />
-                    <label><i class="icon-user"></i> Analista:</label>
-                    <div class="filtro-analista">                        
-                        <select id="cboFiltroAnalista">
-                            <option value="">-- Todos --</option>
-                        </select>
-                    </div>
-                    <div class="filtro-tareas">
+                    <input type="text" id="txtBuscarTarea" placeholder="Buscar por cliente..." />
+
+                    @if (ViewBag.PuedeEditarTarea == true)
+                    {
+                        <label><i class="icon-user"></i> Analista:</label>
+                        <div class="filtro-analista">
+                            <select id="cboFiltroAnalista">
+                                <option value="">-- Todos --</option>
+                            </select>
+                        </div>
+                    }
+
+                    <div class="filtro-tareas" style="margin-left: auto;">
                         <a href="#" class="btn-filtro active" data-estado="PEN"><i class="icon-time"></i> Pendientes</a>
                         <a href="#" class="btn-filtro" data-estado="COM"><i class="icon-ok"></i> Completadas</a>
                     </div>
                 </div>
             </div>
+
             <table class="styled">
                 <thead>
                     <tr>
-                        <th style="width: 40px;" class="center">#</th>
-                        <th>Tarea</th>
-                        <th style="width: 120px;" class="center">Analista</th>
-                        <th style="width: 120px;" class="center">Subtareas</th>
-                        <th style="width: 100px;" class="center">Acciones</th>
+                        <th>Cliente / Crédito</th>
+                        @if (ViewBag.PuedeEditarTarea == true)
+                        {
+                            <th style="width: 150px;" class="center">Analista</th>
+                        }
+                        <th>Subtareas Pendientes</th>
+                        @if (ViewBag.PuedeEditarTarea == true)
+                        {
+                            <th style="width: 80px;" class="center">Acciones</th>
+                        }
                     </tr>
                 </thead>
                 <tbody id="listaTareas">
-                    <!-- Las tareas se cargan din�micamente -->
                 </tbody>
             </table>
         </div>
         <div class="actions">
             <div class="left">
-                <span>Total: <strong>4</strong> tareas</span>
+                <span>Total: <strong>0</strong> transacciones</span>
             </div>
-
         </div>
     </div>
 </div>
 
-<!-- Modal de Nueva/Editar Tarea -->
 <div id="dialogTarea" class="dialog-tarea" title="Nueva Tarea">
     <input type="hidden" id="hdnTareaId" value="0" />
     <div class="form-group">
-        <label>Cliente (Cr�dito Desembolsado)</label>
-        @if (ViewBag.PuedeEditarTarea == true)
-        {
-            <input type="text" id="txtBuscarCredito" placeholder="Buscar por DNI o Nombre del cliente..." />
-        }
-        else
-        {
-            <input type="text" id="txtBuscarCredito" placeholder="Buscar por DNI o Nombre del cliente..." readonly />
-        }
+        <label>Cliente (Crédito Desembolsado)</label>
+        <input type="text" id="txtBuscarCredito" placeholder="Buscar por DNI o Nombre del cliente..." @(ViewBag.PuedeEditarTarea == true ? "" : "readonly") />
         <input type="hidden" id="hdnCreditoId" value="0" />
         <input type="hidden" id="hdnPersonaId" value="0" />
         <div id="infoCredito" style="display:none; margin-top:8px; padding:8px; background:#e3f2fd; border-radius:4px; font-size:12px;">
             <i class="icon-user"></i> <span id="lblClienteSeleccionado"></span>
-            <br /><i class="icon-money"></i> Cr�dito #<span id="lblCreditoId"></span> - S/. <span id="lblMontoCredito"></span>
+            <br /><i class="icon-money"></i> Crédito #<span id="lblCreditoId"></span> - S/. <span id="lblMontoCredito"></span>
         </div>
     </div>
     <div class="form-group">
@@ -379,34 +310,15 @@
             <label>SUBTAREAS</label>
             <span class="contador"><span id="subtareasCompletadas">0</span>/<span id="subtareasTotal">0</span> completadas</span>
         </div>
-        <div class="subtareas-lista" id="listaSubtareas">
-            <!-- Las subtareas se agregan din�micamente -->
-        </div>
+        <div class="subtareas-lista" id="listaSubtareas"></div>
         @if (ViewBag.PuedeEditarTarea == true)
         {
             <button type="button" class="btn-agregar-subtarea" id="btnAgregarSubtarea">
-                <i class="icon-plus"></i> A�adir subtarea
+                <i class="icon-plus"></i> Añadir subtarea
             </button>
             <div class="subtarea-predeterminada" style="margin-top: 10px;">
                 <select id="cboSubtareaPredeterminada" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
                     <option value="">-- Seleccionar subtarea predeterminada --</option>
-                    <option value="FALTA FIRMA Y HUELLA DEL CLIENTE">FALTA FIRMA Y HUELLA DEL CLIENTE</option>
-                    <option value="DNI CADUCADO">DNI CADUCADO</option>
-                    <option value="DETALLAR CROQUIS">DETALLAR CROQUIS</option>
-                    <option value="FALTA FOTOS DEL NEGOCIO">FALTA FOTOS DEL NEGOCIO</option>
-                    <option value="FIRMA Y HUELLA NO COINCIDE">FIRMA Y HUELLA NO COINCIDE</option>
-                    <option value="CORREGIR HUELLA DEL TITULAR">CORREGIR HUELLA DEL TITULAR</option>
-                    <option value="FALTA DNI DEL AVAL">FALTA DNI DEL AVAL</option>
-                    <option value="DNI BORROSO">DNI BORROSO</option>
-                    <option value="FALTA RECIBO DE LUZ DEL AVAL">FALTA RECIBO DE LUZ DEL AVAL</option>
-                    <option value="FALTA FOTO SELFIE CON EL CLIENTE">FALTA FOTO SELFIE CON EL CLIENTE</option>
-                    <option value="ACTUALIZAR LETRA DE CAMBIO">ACTUALIZAR LETRA DE CAMBIO</option>
-                    <option value="FALTA FIRMA Y HUELLA DEL AVAL">FALTA FIRMA Y HUELLA DEL AVAL</option>
-                    <option value="FALTA BOLETAS DEL NEGOCIO">FALTA BOLETAS DEL NEGOCIO</option>
-                    <option value="CORREGIR FORMATO DE RENOVACION (SIN BORRONES)">CORREGIR FORMATO DE RENOVACION (SIN BORRONES)</option>
-                    <option value="HACER FIRMAR AVAL EN LETRA ACEPTANTE">HACER FIRMAR AVAL EN LETRA ACEPTANTE</option>
-                    <option value="ACTUALIZAR NUMERO DE CELULAR EN SISTEMA Y FORMATO">ACTUALIZAR NUMERO DE CELULAR EN SISTEMA Y FORMATO</option>
-                    <option value="LLENAR CORRECTAMENTE LOS DATOS DEL CLIENTE EN FORMATO Y SISTEMA">LLENAR CORRECTAMENTE LOS DATOS DEL CLIENTE EN FORMATO Y SISTEMA</option>
                 </select>
             </div>
             <div class="nueva-subtarea-input" id="nuevaSubtareaInput" style="display: block; margin-top: 10px;">
@@ -418,28 +330,33 @@
 
 <script>
 $(document).ready(function () {
-var subtareasTemp = [];
-var estadoFiltro = 'PEN'; // Por defecto mostrar pendientes
-var tareasCache = []; // Cache de tareas para filtrar en cliente
-var analistaFiltro = ''; // Filtro de analista seleccionado
+    // =====================================
+    // ESTADO GLOBAL Y VARIABLES DE CONTROL
+    // =====================================
+    var subtareasTemp = [];
+    var estadoFiltro = 'PEN';
+    var tareasCache = [];
+    var analistaFiltro = '';
+    var esAdmin = @(ViewBag.PuedeEditarTarea == true ? "true" : "false");
 
-// Cargar tareas al iniciar
-cargarTareas();
+    // Inicialización del sistema
+    cargarTareas();
+    cargarCatalogoSubtareas();
 
-// Exportar a PDF
-$('#btnExportarPdf').on('click', function () {
-    var url = "@Url.Action("ReporteCreditoTarea", "Reporte")";    
-    window.open(url);
-    return false;
-});
+    // =============================
+    // FILTROS, BÚSQUEDAS Y REPORTES
+    // =============================
+    $('#btnExportarPdf').on('click', function () {
+        var url = "@Url.Action("ReporteCreditoTarea", "Reporte")";
+        window.open(url);
+        return false;
+    });
 
-// Filtro por analista (solo en cliente)
-$('#cboFiltroAnalista').on('change', function () {
-    analistaFiltro = $(this).val();
-    filtrarYRenderizarTareas();
-});
+    $('#cboFiltroAnalista').on('change', function () {
+        analistaFiltro = $(this).val();
+        filtrarYRenderizarTareas();
+    });
 
-    // Filtros de tareas
     $('.btn-filtro').on('click', function (e) {
         e.preventDefault();
         $('.btn-filtro').removeClass('active');
@@ -448,7 +365,15 @@ $('#cboFiltroAnalista').on('change', function () {
         cargarTareas();
     });
 
-    // Configurar autocomplete para buscar cr�ditos desembolsados
+    $('#txtBuscarTarea').on('keyup', function () {
+        var searchText = $(this).val().toLowerCase();
+        $('.tarea-row').each(function () {
+            var taskName = $(this).find('.cliente-title').text().toLowerCase();
+            $(this).toggle(taskName.indexOf(searchText) > -1);
+        });
+    });
+
+    // Autocomplete para buscar créditos desembolsados
     $("#txtBuscarCredito").autocomplete({
         source: "@Url.Action("BuscarCreditosDesembolsados", "Tareas")",
         minLength: 2,
@@ -461,138 +386,164 @@ $('#cboFiltroAnalista').on('change', function () {
             $('#lblCreditoId').text(ui.item.id);
             $('#lblMontoCredito').text(parseFloat(ui.item.monto).toFixed(2));
             $('#infoCredito').slideDown();
-        },
-        focus: function (event, ui) {
-            event.preventDefault();
         }
     }).autocomplete("instance")._renderItem = function (ul, item) {
         return $("<li>")
-            .append("<div><strong>" + item.dni + "</strong> - " + item.nombre + "<br><small style='color:#666'>Id:" + item.id + " Cr�dito: S/. " + parseFloat(item.monto).toFixed(2) + "</small></div>")
+            .append("<div><strong>" + item.dni + "</strong> - " + item.nombre + "<br><small style='color:#666'>Id:" + item.id + " Crédito: S/. " + parseFloat(item.monto).toFixed(2) + "</small></div>")
             .appendTo(ul);
     };
 
-    // Inicializar el di�logo
+    // ==========================================
+    // CONFIGURACIÓN DEL MODAL (JQUERY UI DIALOG)
+    // ==========================================
     $("#dialogTarea").dialog({
         autoOpen: false,
         modal: true,
         width: 450,
         resizable: false,
-        closeText: "�",
-        buttons: [
+        closeText: "×",
+        buttons: esAdmin ? [
             {
                 text: "Cancelar",
                 class: "btn-cancelar",
-                click: function () {
-                    $(this).dialog("close");
-                }
-            }
-            @if (ViewBag.PuedeEditarTarea == true)
+                click: function () { $(this).dialog("close"); }
+            },
             {
-                <text>
-                ,{
-                    text: "Guardar",
-                    class: "btn-guardar",
-                    click: function () {
-                        guardarTarea();
-                    }
-                }
-                </text>
+                text: "Guardar",
+                class: "btn-guardar",
+                click: function () { guardarTarea(); }
+            }
+        ] : [
+            {
+                text: "Cerrar",
+                class: "btn-cancelar",
+                click: function () { $(this).dialog("close"); }
             }
         ],
-        open: function () {
-            actualizarContadorSubtareas();
-        },
-        close: function () {
-            limpiarFormulario();
-        }
+        open: function () { actualizarContadorSubtareas(); },
+        close: function () { limpiarFormulario(); }
     });
 
-    // B�squeda de tareas
-    $('#txtBuscarTarea').on('keyup', function () {
-        var searchText = $(this).val().toLowerCase();
-        $('.tarea-row').each(function () {
-            var taskName = $(this).find('.tarea-nombre').text().toLowerCase();
-            $(this).toggle(taskName.indexOf(searchText) > -1);
-        });
-    });
-
-    // Marcar tarea como completada
-    $(document).on('change', '.tarea-check', function () {
-        var tareaRow = $(this).closest('.tarea-row');
-        var tareaId = tareaRow.data('id');
-        var completada = $(this).is(':checked');
-
-        $.ajax({
-            url: "@Url.Action("CompletarTarea", "Tareas")",
-            type: 'POST',
-            data: { id: tareaId, completada: completada },
-            success: function (response) {
-                if (response.success) {
-                    if (completada) {
-                        tareaRow.addClass('completada');
-                    } else {
-                        tareaRow.removeClass('completada');
-                    }
-                }
-            }
-        });
-    });
-
-    // Nueva tarea
+    // Accionador para abrir el modal de nueva tarea
     $('#btnNuevaTarea').on('click', function () {
         $('#hdnTareaId').val('0');
         subtareasTemp = [];
         renderizarSubtareas();
-        $("#dialogTarea").dialog("option", "title", "<i class='icon-refresh'></i> Nueva Tarea");
+        $("#dialogTarea").dialog("option", "title", "<i class='icon-plus'></i> Nueva Tarea");
         $("#dialogTarea").dialog("open");
     });
 
-    // Editar tarea
-    $(document).on('click', '.editar-tarea', function (e) {
+    // ==================================================
+    // ACCIONES INTERNAS DEL MODAL (Subtareas temporales)
+    // ==================================================
+
+    // Captura estricta del ENTER dentro del input manual
+    $(document).on('keydown', '#txtNuevaSubtarea', function (e) {
+        if (e.keyCode === 13) {
+            e.preventDefault();
+            e.stopPropagation();
+            agregarSubtarea();
+            return false;
+        }
+    });
+
+    // Acción del botón "+" al costado del input manual
+    $(document).on('click', '#btnAgregarSubtarea', function (e) {
         e.preventDefault();
-        var tareaRow = $(this).closest('.tarea-row');
-        var tareaId = tareaRow.data('id');
+        e.stopPropagation();
+        agregarSubtarea();
+        $('#txtNuevaSubtarea').focus();
+    });
+
+    // Selección de un pendiente desde el combo desplegable dinámico
+    $(document).on('change', '#cboSubtareaPredeterminada', function () {
+        var texto = $(this).val();
+        if (texto) {
+            subtareasTemp.push({
+                id: 0,
+                texto: texto,
+                completada: false
+            });
+            renderizarSubtareas();
+            $(this).val(''); // Resetear combo
+
+            // Refrescar el plugin estético si aplica
+            if ($(this).trigger) {
+                $(this).trigger("liszt:updated");
+                $(this).trigger("chosen:updated");
+            }
+        }
+    });
+
+    // Eliminar subtarea temporal del listado del modal
+    $(document).on('click', '.btn-eliminar-subtarea', function () {
+        var index = $(this).data('index');
+        subtareasTemp.splice(index, 1);
+        renderizarSubtareas();
+    });
+
+    // ==========================================================
+    // EVENTO CRÍTICO: Cambio de estado Inline (Grilla Principal)
+    // ==========================================================
+    $(document).on('change', '.inline-subtarea-check', function () {
+        var checkbox = $(this);
+        var itemContainer = checkbox.closest('.inline-subtarea-item');
+        var tareaRow = checkbox.closest('.tarea-row');
+        var subId = itemContainer.data('subid');
+        var completada = checkbox.is(':checked');
 
         $.ajax({
-            url: "@Url.Action("ObtenerTarea", "Tareas")",
-            data: { id: tareaId },
-            success: function (tarea) {
-                if (tarea) {
-                    $('#hdnTareaId').val(tarea.TareaId);
-                    $('#hdnCreditoId').val(tarea.CreditoId);
-                    $('#txtBuscarCredito').val(tarea.ClienteDni + ' - ' + tarea.ClienteNombre);
-                    $('#lblClienteSeleccionado').text(tarea.ClienteDni + ' - ' + tarea.ClienteNombre);
-                    $('#lblCreditoId').text(tarea.CreditoId);
-                    $('#lblMontoCredito').text(parseFloat(tarea.MontoCredito).toFixed(2));
-                    $('#infoCredito').show();
-
-                    // Cargar subtareas
-                    subtareasTemp = [];
-                    if (tarea.Subtareas) {
-                        tarea.Subtareas.forEach(function (sub) {
-                            subtareasTemp.push({
-                                id: sub.SubtareaId,
-                                texto: sub.Titulo,
-                                completada: sub.Completada
-                            });
-                        });
+            url: "@Url.Action("CompletarSubtarea", "Tareas")",
+            type: 'POST',
+            data: { id: subId, completada: completada },
+            success: function (response) {
+                if (response.success) {
+                    if (completada) {
+                        itemContainer.addClass('completada');
+                    } else {
+                        itemContainer.removeClass('completada');
                     }
-                    renderizarSubtareas();
 
-                    $("#dialogTarea").dialog("option", "title", "<i class='icon-edit'></i> Editar Tarea");
-                    $("#dialogTarea").dialog("open");
+                    // Sincronizar memoria caché local
+                    var tareaId = tareaRow.data('id');
+                    var tareaCacheItem = tareasCache.find(t => t.TareaId === tareaId);
+                    if (tareaCacheItem && tareaCacheItem.Subtareas) {
+                        var subItem = tareaCacheItem.Subtareas.find(s => s.SubtareaId === subId);
+                        if (subItem) subItem.Completada = completada;
+                    }
+
+                    // La fila SOLO se desvanece y desaparece si el usuario actual es ADMINISTRADOR
+                    if (esAdmin) {
+                        if (response.tareaCompletada && estadoFiltro === 'PEN') {
+                            tareaRow.fadeOut(400, function () {
+                                $(this).remove();
+                                actualizarTotalTareas();
+                            });
+                        } else if (!response.tareaCompletada && estadoFiltro === 'COM') {
+                            tareaRow.fadeOut(400, function () {
+                                $(this).remove();
+                                actualizarTotalTareas();
+                            });
+                        }
+                    }
+                } else {
+                    alert(response.message || "Error al actualizar la subtarea");
+                    checkbox.prop('checked', !completada);
                 }
+            },
+            error: function () {
+                alert("Error de comunicación con el servidor");
+                checkbox.prop('checked', !completada);
             }
         });
     });
-
-    // Eliminar tarea
+    // Acción global para eliminar una transacción completa (Solo Admin)
     $(document).on('click', '.eliminar-tarea', function (e) {
         e.preventDefault();
         var tareaRow = $(this).closest('.tarea-row');
         var tareaId = tareaRow.data('id');
 
-        if (confirm('�Est� seguro de eliminar esta tarea?')) {
+        if (confirm('¿Está seguro de eliminar esta tarea?')) {
             $.ajax({
                 url: "@Url.Action("EliminarTarea", "Tareas")",
                 type: 'POST',
@@ -611,114 +562,41 @@ $('#cboFiltroAnalista').on('change', function () {
         }
     });
 
-    // Mostrar input para nueva subtarea
-    $('#btnAgregarSubtarea').on('click', function () {
-        $('#txtNuevaSubtarea').focus();
-    });
-
-    $('#txtNuevaSubtarea').on('keypress', function (e) {
-        if (e.which === 13) {
-            agregarSubtarea();
-        }
-    });
-
-    // Agregar subtarea predeterminada desde el combo
-    $('#cboSubtareaPredeterminada').on('change', function () {
-        var texto = $(this).val();
-        if (texto) {
-            subtareasTemp.push({
-                id: 0,
-                texto: texto,
-                completada: false
-            });
-            renderizarSubtareas();
-            $(this).val(''); // Reset the dropdown
-        }
-    });
-
-    // Marcar subtarea como completada
-    $(document).on('change', '.subtarea-check', function () {
-        var index = $(this).data('index');
-        subtareasTemp[index].completada = $(this).is(':checked');
-        renderizarSubtareas();
-    });
-
-    // Eliminar subtarea
-    $(document).on('click', '.btn-eliminar-subtarea', function () {
-        var index = $(this).data('index');
-        subtareasTemp.splice(index, 1);
-        renderizarSubtareas();
-    });
-
     function cargarTareas() {
         $.ajax({
             url: "@Url.Action("ListarTareas", "Tareas")",
             data: { estado: estadoFiltro },
             success: function (tareas) {
                 tareasCache = tareas || [];
-                actualizarComboAnalistas();
+                if (esAdmin) {
+                    actualizarComboAnalistas();
+                }
                 filtrarYRenderizarTareas();
             }
         });
     }
 
-    function actualizarComboAnalistas() {
-        var analistas = [];
-        tareasCache.forEach(function (tarea) {
-            if (tarea.NombreUsuario && analistas.indexOf(tarea.NombreUsuario) === -1) {
-                analistas.push(tarea.NombreUsuario);
+    // CARGA DINÁMICA: Trae el catálogo unificado (Base estática + registros de BD)
+    function cargarCatalogoSubtareas() {
+        $.ajax({
+            url: "@Url.Action("ObtenerSubtareasCatalogo", "Tareas")",
+            type: 'GET',
+            success: function (data) {
+                var html = '<option value="">-- Seleccionar subtarea predeterminada --</option>';
+                if (data && data.length > 0) {
+                    data.forEach(function (item) {
+                        html += '<option value="' + item.toUpperCase() + '">' + item.toUpperCase() + '</option>';
+                    });
+                }
+                $('#cboSubtareaPredeterminada').html(html);
+
+                // Forzar actualización visual si se usa Chosen/Select2/Uniform
+                if ($('#cboSubtareaPredeterminada').trigger) {
+                    $('#cboSubtareaPredeterminada').trigger("liszt:updated");
+                    $('#cboSubtareaPredeterminada').trigger("chosen:updated");
+                }
             }
         });
-        analistas.sort();
-
-        var html = '<option value="">-- Todos --</option>';
-        analistas.forEach(function (analista) {
-            var selected = (analista === analistaFiltro) ? ' selected' : '';
-            html += '<option value="' + analista + '"' + selected + '>' + analista + '</option>';
-        });
-        $('#cboFiltroAnalista').html(html);
-        $('#cboFiltroAnalista').trigger("liszt:updated");
-    }
-
-    function filtrarYRenderizarTareas() {
-        var tareasFiltradas = tareasCache;
-        if (analistaFiltro) {
-            tareasFiltradas = tareasCache.filter(function (tarea) {
-                return tarea.NombreUsuario === analistaFiltro;
-            });
-        }
-        renderizarTareas(tareasFiltradas);
-    }
-
-    function renderizarTareas(tareas) {
-        var html = '';
-        if (tareas && tareas.length > 0) {
-            tareas.forEach(function (tarea) {
-                var completadaClass = tarea.EstaCompletada ? 'completada' : '';
-                var checkedAttr = tarea.EstaCompletada ? 'checked' : '';
-                var iconoCompletada = tarea.EstaCompletada ? '<i class="icon-ok-sign" style="color: #28a745; margin-left: 5px;"></i>' : '';
-
-                html += '<tr class="tarea-row ' + completadaClass + '" data-id="' + tarea.TareaId + '">';
-                html += '<td class="center"><input type="checkbox" class="tarea-check" ' + checkedAttr + ' disabled /></td>';
-                html += '<td><span class="tarea-nombre">' + tarea.ClienteCompleto + '</span>' + iconoCompletada + '</td>';
-                html += '<td class="center">' + (tarea.NombreUsuario || '') + '</td>';
-                html += '<td class="center"><span class="subtareas-count">' + tarea.SubtareasTexto + '</span></td>';
-                html += '<td class="center tarea-actions">';
-                html += '<a href="#" class="editar-tarea" title="Editar"><i class="icon-pencil"></i></a>';
-
-                @if (ViewBag.PuedeEditarTarea == true)
-                {
-                    <text>
-                    html += '<a href="#" class="eliminar-tarea" title="Eliminar"><i class="icon-trash"></i></a>';
-                    </text>
-                }
-                html += '</td></tr>';
-            });
-        } else {
-            html = '<tr><td colspan="5" class="center">No hay tareas registradas</td></tr>';
-        }
-        $('#listaTareas').html(html);
-        actualizarTotalTareas();
     }
 
     function agregarSubtarea() {
@@ -740,24 +618,10 @@ $('#cboFiltroAnalista').on('change', function () {
             var completadaClass = subtarea.completada ? 'completada' : '';
             var checkedAttr = subtarea.completada ? 'checked' : '';
             html += '<div class="subtarea-item ' + completadaClass + '">';
-            @if (ViewBag.PuedeEditarTarea == true)
-            {
-                <text>
-                html += '<input type="checkbox" class="subtarea-check" data-index="' + index + '" ' + checkedAttr + ' />';
-                </text>
-            }
-            else
-            {
-                <text>
-                html += '<input type="checkbox" class="subtarea-check" data-index="' + index + '" ' + checkedAttr + ' disabled />';
-                </text>
-            }
-            html += '<span class="subtarea-texto">' + subtarea.texto + '</span>';
-            @if (ViewBag.PuedeEditarTarea == true)
-            {
-                <text>
-                html += '<span class="btn-eliminar-subtarea" data-index="' + index + '"><i class="icon-trash"></i></span>';
-                </text>
+            html += '  <input type="checkbox" class="subtarea-check" data-index="' + index + '" ' + checkedAttr + ' ' + (esAdmin ? '' : 'disabled') + ' />';
+            html += '  <span class="subtarea-texto">' + subtarea.texto + '</span>';
+            if (esAdmin) {
+                html += '  <span class="btn-eliminar-subtarea" data-index="' + index + '"><i class="icon-trash"></i></span>';
             }
             html += '</div>';
         });
@@ -765,35 +629,19 @@ $('#cboFiltroAnalista').on('change', function () {
         actualizarContadorSubtareas();
     }
 
-    function actualizarContadorSubtareas() {
-        var total = subtareasTemp.length;
-        var completadas = subtareasTemp.filter(function (s) { return s.completada; }).length;
-        $('#subtareasCompletadas').text(completadas);
-        $('#subtareasTotal').text(total);
-    }
-
-    function limpiarFormulario() {
-        $('#hdnTareaId').val('0');
-        $('#txtNuevaSubtarea').val('');
-        $('#txtBuscarCredito').val('');
-        $('#hdnCreditoId').val('0');
-        $('#hdnPersonaId').val('0');
-        $('#infoCredito').hide();
-        subtareasTemp = [];
-        renderizarSubtareas();
-    }
-
     function guardarTarea() {
-        var creditoId = parseInt($('#hdnCreditoId').val());
+        var creditoId = parseInt($('#hdnCreditoId').val() || "0");
 
         if (creditoId === 0) {
-            Vendix.Mensaje("Debe seleccionar un cr�dito");
+            if (typeof Vendix !== 'undefined' && Vendix.Mensaje) {
+                Vendix.Mensaje("Debe seleccionar un crédito válido utilizando el buscador.");
+            } else {
+                alert("Debe seleccionar un crédito válido utilizando el buscador.");
+            }
             return;
         }
 
-        var tareaId = parseInt($('#hdnTareaId').val());
-
-        // Preparar subtareas
+        var tareaId = parseInt($('#hdnTareaId').val() || "0");
         var subtareas = subtareasTemp.map(function (sub) {
             return {
                 Titulo: sub.texto,
@@ -816,15 +664,120 @@ $('#cboFiltroAnalista').on('change', function () {
                 if (response.success) {
                     $("#dialogTarea").dialog("close");
                     cargarTareas();
-                    Vendix.Mensaje(response.message);
+
+                    // Actualizamos el catálogo inmediatamente por si introdujo una observación nueva a mano
+                    cargarCatalogoSubtareas();
+
+                    if (typeof Vendix !== 'undefined' && Vendix.Mensaje) {
+                        Vendix.Mensaje(response.message);
+                    } else {
+                        alert(response.message);
+                    }
                 } else {
                     alert(response.message);
                 }
             },
             error: function () {
-                alert('Error al guardar la tarea');
+                alert('Error al procesar la solicitud de guardado en el servidor');
             }
         });
+    }
+
+    function actualizarComboAnalistas() {
+        var analistas = [];
+        tareasCache.forEach(function (tarea) {
+            if (tarea.NombreUsuario && analistas.indexOf(tarea.NombreUsuario) === -1) {
+                analistas.push(tarea.NombreUsuario);
+            }
+        });
+        analistas.sort();
+
+        var html = '<option value="">-- Todos --</option>';
+        analistas.forEach(function (analista) {
+            var selected = (analista === analistaFiltro) ? ' selected' : '';
+            html += '<option value="' + analista + '"' + selected + '>' + analista + '</option>';
+        });
+        $('#cboFiltroAnalista').html(html);
+        $('#cboFiltroAnalista').trigger("liszt:updated");
+        $('#cboFiltroAnalista').trigger("chosen:updated");
+    }
+
+    function filtrarYRenderizarTareas() {
+        var tareasFiltradas = tareasCache;
+        if (esAdmin && analistaFiltro) {
+            tareasFiltradas = tareasCache.filter(function (tarea) {
+                return tarea.NombreUsuario === analistaFiltro;
+            });
+        }
+        renderizarTareas(tareasFiltradas);
+    }
+
+    function renderizarTareas(tareas) {
+        var html = '';
+        if (tareas && tareas.length > 0) {
+            tareas.forEach(function (tarea) {
+                var completadaClass = tarea.EstaCompletada ? 'completada' : '';
+
+                html += '<tr class="tarea-row ' + completadaClass + '" data-id="' + tarea.TareaId + '">';
+
+                html += '<td>';
+                html += '  <div class="cliente-title" style="font-weight: 600; color: #1e293b; font-size: 13px;">' + tarea.ClienteCompleto + '</div>';
+                html += '  <div style="font-size: 11px; color: #64748b; margin-top: 3px;"><i class="icon-money"></i> Crédito ID: ' + tarea.CreditoId + '</div>';
+                html += '</td>';
+
+                if (esAdmin) {
+                    html += '<td class="center"><span class="badge-analista">' + (tarea.NombreUsuario || 'Sin Asignar') + '</span></td>';
+                }
+
+                html += '<td>';
+                html += '  <div class="inline-subtareas-lista">';
+                if (tarea.Subtareas && tarea.Subtareas.length > 0) {
+                    tarea.Subtareas.forEach(function (sub) {
+                        var subChecked = sub.Completada ? 'checked' : '';
+                        var subCompletadaClass = sub.Completada ? 'completada' : '';
+                        html += '    <div class="inline-subtarea-item ' + subCompletadaClass + '" data-subid="' + sub.SubtareaId + '">';
+                        html += '      <input type="checkbox" class="inline-subtarea-check" ' + subChecked + ' />';
+                        html += '      <span class="subtarea-texto">' + sub.Titulo + '</span>';
+                        html += '    </div>';
+                    });
+                } else {
+                    html += '    <span style="color: #94a3b8; font-style: italic; font-size: 12px;">Sin subtareas pendientes</span>';
+                }
+                html += '  </div>';
+                html += '</td>';
+
+                if (esAdmin) {
+                    html += '<td class="center tarea-actions">';
+                    html += '  <a href="#" class="eliminar-tarea" title="Eliminar"><i class="icon-trash"></i></a>';
+                    html += '</td>';
+                }
+
+                html += '</tr>';
+            });
+        } else {
+            var totalCols = esAdmin ? 4 : 2;
+            html = '<tr><td colspan="' + totalCols + '" class="center" style="color: #94a3b8; padding: 30px 0;">No hay tareas registradas</td></tr>';
+        }
+        $('#listaTareas').html(html);
+        actualizarTotalTareas();
+    }
+
+    function actualizarContadorSubtareas() {
+        var total = subtareasTemp.length;
+        var completadas = subtareasTemp.filter(function (s) { return s.completada; }).length;
+        $('#subtareasCompletadas').text(completadas);
+        $('#subtareasTotal').text(total);
+    }
+
+    function limpiarFormulario() {
+        $('#hdnTareaId').val('0');
+        $('#txtNuevaSubtarea').val('');
+        $('#txtBuscarCredito').val('');
+        $('#hdnCreditoId').val('0');
+        $('#hdnPersonaId').val('0');
+        $('#infoCredito').hide();
+        subtareasTemp = [];
+        renderizarSubtareas();
     }
 
     function actualizarTotalTareas() {

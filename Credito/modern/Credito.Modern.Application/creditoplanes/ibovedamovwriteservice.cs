@@ -19,6 +19,22 @@ public interface IBovedaMovWriteService
         string descripcion,
         int usuarioRegId,
         DateTime fechaOperacion,
+        short tipoPagoOrigenId = 1,
+        short tipoPagoDestinoId = 1,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Paridad <c>TransferirAAnalista</c>: valida saldo del medio (ledger) y embudo a efectivo.
+    /// Devuelve mensaje de negocio o resultado.
+    /// </summary>
+    Task<(string? Error, BovedaMovOperacionResponse? Result)> TransferirAAnalistaAsync(
+        int oficinaId,
+        int usuarioAnalistaId,
+        short tipoPagoOrigenId,
+        decimal importe,
+        string descripcion,
+        int usuarioRegId,
+        DateTime fechaOperacion,
         CancellationToken cancellationToken = default);
 
     /// <summary>Devuelve mensaje de error MVC o <c>null</c> si OK.</summary>

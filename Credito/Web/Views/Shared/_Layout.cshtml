@@ -1,4 +1,4 @@
-﻿@using ITB.VENDIX.DA
+﻿﻿@using ITB.VENDIX.DA
 @using ITB.VENDIX.BL
 
 <!doctype html>
@@ -152,7 +152,7 @@
     <script src="~/js/mylibs/dynamic-tables/jquery.dataTables.js"></script>
     <script src="~/js/mylibs/dynamic-tables/jquery.dataTables.tableTools.zeroClipboard.js"></script>
     <script src="~/js/mylibs/dynamic-tables/jquery.dataTables.tableTools.js"></script>
-    
+
     <!-- Gallery -->
     <script src="~/js/mylibs/gallery/jquery.fancybox.js"></script>
     <script src="~/js/jquery.form.js"></script>
@@ -180,8 +180,8 @@
 
         <a href="@Url.Action("LogOff", "Home", null, "http")" class="header right button grey flat">Cerrar Sesión</a>
 
-        <p>Due to the inactivity of this session, your account was temporarily locked.</p>
-        <p>To unlock your account, simply slide the button and enter your password.</p>
+        <p>Debido a la inactividad en esta sesión, tu cuenta fue temporalmente bloqueada.</p>
+        <p>Para desbloquear, deslice el botón e ingrese su contraseña</p>
 
         <div class="actions">
             <div id="slide_to_unlock">
@@ -204,7 +204,7 @@
             <!-- Left side -->
             <div class="left">
                 <ul class="breadcrumb">
-                    <li><a href="@Url.Action("Index", "Home", null, "http")">CREDICONFIANZA</a></li>
+                    <li><a href="@Url.Action("Index", "Home", null, "http")">CREDICONFIABLE</a></li>
                     <li><a href="javascript:void(0);">@(VendixGlobal<string>.Obtener("NombreOficina"))</a></li>
                 </ul>
             </div>
@@ -213,17 +213,13 @@
             <div class="right">
                 <ul>
 
-                    <li><a href="pages_profile.html"><span class="icon i14_admin-user"></span>Ver Perfil</a></li>
-
-                    <li class="space"></li>
-
                     <li><a href="javascript:void(0);" id="btn-lock"><span>--:--</span>Bloquear Pantalla</a></li>
 
                     <li class="red"><a href="@Url.Action("LogOff", "Home", null, "http")">Cerrar Sesión</a></li>
 
                 </ul>
             </div><!-- End of .right -->
-            <div class="phone">                
+            <div class="phone">
                 <!-- Navigation -->
                 <li><a class="navigation" href="#"><span class="icon icon-list"></span></a></li>
 
@@ -232,7 +228,6 @@
     </section><!-- End of #toolbar -->
     <!-- The header containing the logo -->
     <header class="container_12">
-        <br />
     </header><!-- End of header -->
     <!-- The container of the sidebar and content box -->
     <div role="main" id="main" class="container_12 clearfix">
@@ -241,51 +236,16 @@
             <div class="user">
                 <div class="avatar">
                     <img src="~/img/layout/content/toolbar/user/avatar.png" />
-                    <span>3</span>
+                    <span>✓</span>
                 </div>
                 <span>@(VendixGlobal<string>.Obtener("NombreUsuario"))</span>
                 <ul>
-                    <li><a href="javascript:$$.settings();">Settings</a></li>
-                    <li><a href="pages_profile.html">Profile</a></li>
+                    @*<li><a href="javascript:$$.settings();">Proximamente...</a></li>
+                        <li><a href="pages_profile.html">Proximamente...</a></li>*@
                     <li class="line"></li>
-                    <li><a href="login.html">Logout</a></li>
+                    <li>Proximamente...</li>
                 </ul>
             </div>
-            <ul class="shortcuts">
-                <li>
-                    <a href="javascript:void(0);"><span class="icon i24_inbox-document"></span></a>
-                    <!-- Possible sizes: small/medium/large -->
-                    <div class="small">
-                        <h3>Write a Message</h3>
-
-                        <!-- Button bar -->
-                        <button class="button flat left grey" onclick="$(this).parent().fadeToggle($$.config.fxSpeed).parent().removeClass('active')">Close</button>
-                        <button class="button flat right" onclick="$(this).parent().fadeToggle($$.config.fxSpeed).parent().removeClass('active')">Send</button>
-
-                        <div class="content">
-                            <form class="full grid">
-                                <div class="row no-bg">
-                                    <p class="_100 small">
-                                        <input type="text" name="p2_recipient" id="p2_recipient" placeholder="Recipient" />
-                                    </p>
-                                    <p class="_100 small">
-                                        <input type="text" name="p2_subject" id="p2_subject" placeholder="Subject" />
-                                    </p>
-                                    <p class="_100 small">
-                                        <textarea rows="5" cols="30" name="p2_message" id="p2_message" placeholder="Message"></textarea>
-                                    </p>
-                                </div>
-                            </form>
-                        </div>
-                    </div><!-- End of popup -->
-                </li>
-                <li style="float:right;position: absolute;right: 10px;">
-                    <a href="javascript:history.go(1);"><span class="icon i24_arrow-curve"></span></a>
-                </li>
-                <li style="float:right;position: absolute;right: 50px;">
-                    <a href="javascript:history.back(1);"><span class="icon i24_arrow-curve-180"></span></a>
-                </li>
-            </ul><!-- End of .shortcuts -->
         </section><!-- End of .toolbar-->
         <!-- The sidebar -->
         <aside>
@@ -323,6 +283,30 @@
                                 }
                             }
                         }
+
+                        @* Agregar dentro de la lista principal del menú. *@
+                        @{
+                            var usuarioActualIdCierre = VendixGlobal.GetUsuarioId();
+                            var usuariosConsultaCierre =
+                                (System.Configuration.ConfigurationManager.AppSettings["CierreGerencial.UsuarioConsultaIds"]
+                                 ?? "3,10")
+                                .Split(
+                                    new[] { ',', ';' },
+                                    System.StringSplitOptions.RemoveEmptyEntries);
+
+                            var puedeVerCierreGerencial = usuariosConsultaCierre
+                                .Any(x => x.Trim() == usuarioActualIdCierre.ToString());
+                        }
+                        @if (puedeVerCierreGerencial)
+                        {
+                            <li>
+                                <a href="@Url.Action("Index", "CierreGerencial")">
+                                    <span class="icon icon-download-alt"></span>Cierre gerencial
+                                </a>
+                            </li>
+                        }
+
+
                     </ul>
                 </nav><!-- End of nav -->
             </div><!-- End of .top -->
@@ -354,243 +338,476 @@
         <span class="grid_6">Copyright &copy; @DateTime.Now.Year</span>
     </footer>
 
-    <!-- Simulador de credito -->
-    <div style="display: none;" id="dialog_simulador" title="Simulador de Creditos">
-        <form class="full validate">
-            <div class="row">
-                <label for="cboProductos">
-                    <strong>Producto</strong>
-                </label>
-                <div>
-                    <select style="padding-bottom: 10px" name="cboProductos" id="cboProductos" class="required" data-placeholder="Escoger Producto"></select>
-                </div>
-            </div>
-            @*<div class="row">
-                <label for="cboTipo">
-                    <strong>Tipo Crédito</strong>
-                </label>
-                <div>
-                    <select style="padding-bottom: 10px" name="cboTipo" id="cboTipo" class="required" data-placeholder="Escoger Tipo">
-                        <option value="V">Variable</option>
-                        <option value="F">Fijo</option>
+    @*Simulador de crédito*@
+    <div style="display: none;" id="dialog_simulador" title="Simulador de Créditos">
+        <style>
+            /* === FIX DEFINITIVO PARA PANTALLAS PEQUEÑAS (Sin arruinar anchos) === */
+            #dialog_simulador {
+                max-height: 420px !important; /* Limita el alto del cuerpo según tu pantalla */
+                overflow-y: auto !important; /* Activa el scroll nativo de jQuery UI */
+                overflow-x: hidden !important;
+            }
+
+            /* === TU CÓDIGO ORIGINAL EXACTO (INTACTO) === */
+            .sim-grid-container {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                column-gap: 20px;
+                row-gap: 12px;
+                padding: 10px 5px;
+            }
+
+            .sim-col-full {
+                grid-column: span 2;
+            }
+
+            .sim-field-group {
+                display: flex;
+                flex-direction: column;
+            }
+
+                .sim-field-group label {
+                    margin-bottom: 4px;
+                    font-size: 10px;
+                    color: #444;
+                }
+
+                .sim-field-group input, .sim-field-group select {
+                    width: 100% !important;
+                    box-sizing: border-box;
+                    padding: 5px 8px !important;
+                    height: 30px;
+                }
+
+            .sim-inline-validar {
+                display: flex;
+                gap: 5px;
+            }
+
+                .sim-inline-validar input[type="text"] {
+                    width: 70% !important;
+                }
+
+                .sim-inline-validar .button {
+                    width: 30% !important;
+                    height: 30px;
+                    padding: 0 !important;
+                    line-height: 30px;
+                }
+
+            .sim-section-title {
+                grid-column: span 2;
+                margin: 10px 0 0 0;
+                font-size: 12px;
+                color: #2b579a;
+                border-bottom: 1px dashed #ccc;
+                padding-bottom: 3px;
+                text-transform: uppercase;
+                font-weight: bold;
+            }
+        </style>
+
+
+
+        <form class="full validate" id="frmSimuladorCredito">
+            <div class="sim-grid-container">
+                <div class="sim-section-title">Información del Cliente</div>
+
+                <div class="sim-field-group">
+                    <label for="sim_cboTipoPersona"><strong>Tipo Persona</strong></label>
+                    <select name="sim_p.TipoPersona" id="sim_cboTipoPersona">
+                        <option value="N" selected>NATURAL</option>
+                        <option value="J">JURIDICO</option>
                     </select>
                 </div>
-            </div>*@
-            <div class="row">
-                <label for="cboModalidad">
-                    <strong>Modalidad</strong>
-                </label>
-                <div>
-                    <select style="padding-bottom: 10px" name="cboModalidad" id="cboModalidad" class="required" data-placeholder="Escoger Modalidad">
+
+                <div class="sim-field-group">
+                    <label for="sim_NroDocumento" id="sim_lblDocumento"><strong>DNI:</strong></label>
+                    <div class="sim-inline-validar">
+                        <input type="text" class="required" name="sim_p.NumeroDocumento" id="sim_NroDocumento" />
+                        <input id="sim_btnValidar" type="button" value="VALIDAR" class="button blue" />
+                    </div>
+                </div>
+
+                <div class="sim-field-group sim-col-full">
+                    <label for="sim_txtNombre" id="sim_lblNombre"><strong>Nombres / Razón Social:</strong></label>
+                    <input type="text" class="required" name="sim_p.Nombre" id="sim_txtNombre" readonly style="background-color: #f9f9f9;" />
+                </div>
+
+                <div class="sim-field-group sim-natural">
+                    <label for="sim_txtApePaterno"><strong>Apellido Paterno:</strong></label>
+                    <input type="text" class="required" name="sim_p.ApePaterno" id="sim_txtApePaterno" readonly style="background-color: #f9f9f9;" />
+                </div>
+
+                <div class="sim-field-group sim-natural">
+                    <label for="sim_txtApeMaterno"><strong>Apellido Materno:</strong></label>
+                    <input type="text" class="required" name="sim_p.ApeMaterno" id="sim_txtApeMaterno" readonly style="background-color: #f9f9f9;" />
+                </div>
+
+                <div class="sim-field-group">
+                    <label for="sim_txtTelefono"><strong>Teléfono del Cliente:</strong></label>
+                    <input type="text" class="required" name="sim_p.Telefono" id="sim_txtTelefono" placeholder="Ej. 954 892 020" maxlength="9" pattern="[9][0-9]{8}" />
+                </div>
+
+                <div class="sim-field-group">
+                    <label for="sim_txtAsesor"><strong>Asesor:</strong></label>
+                    <input type="text" class="required" name="sim_p.Asesor" id="sim_txtAsesor"
+                           value="@(ITB.VENDIX.BL.VendixGlobal<string>.Obtener("NombreCompletoAsesor") ?? User.Identity.Name)"
+                           readonly style="background-color: #f9f9f9;" />
+                </div>
+                <div class="sim-field-group sim-col-full">
+                    <label for="sim_txtDireccionCliente"><strong>Dirección del Cliente / Domicilio:</strong></label>
+                    <input type="text" name="sim_p.DireccionCliente" id="sim_txtDireccionCliente" placeholder="Ej. Av. Larco 123 - Miraflores" />
+                </div>
+
+                <div class="sim-field-group sim-col-full">
+                    <label for="sim_txtDireccionNegocio"><strong>Dirección del Negocio / Empresa:</strong></label>
+                    <input type="text" name="sim_p.DireccionNegocio" id="sim_txtDireccionNegocio" placeholder="Ej. Jr. Huallaga 456 - Centro de Lima" />
+                </div>
+
+                <div class="sim-section-title sim-garantia-sec" style="display: none;">Garantía</div>
+                <div class="sim-field-group sim-col-full sim-garantia-sec" style="display: none;">
+                    <label for="sim_txtPrendaDesc"><strong>Descripción de la Prenda</strong></label>
+                    <input type="text" name="sim_PrendaDescripcion" id="sim_txtPrendaDesc" placeholder="Ej. Laptop HP Core i7, Anillo de Oro 18k, etc." disabled />
+                </div>
+
+                <div class="sim-section-title">Condiciones del Crédito</div>
+
+                <div class="sim-field-group">
+                    <label for="cboProductos"><strong>Producto</strong></label>
+                    <select name="cboProductos" id="cboProductos" class="required"></select>
+                </div>
+
+                <div class="sim-field-group">
+                    <label for="cboModalidad"><strong>Modalidad de Pago</strong></label>
+                    <select name="cboModalidad" id="cboModalidad" class="required">
                         <option value="D">Diario</option>
                         <option value="S">Semanal</option>
                         <option value="Q">Quincenal</option>
                         <option value="M">Mensual</option>
                     </select>
                 </div>
-            </div>
-            @*<div class="row">
-                <label for="pcboTipoGA">
-                    <strong>Gasto Adm.</strong>
-                </label>
-                <div>
-                    <select style="padding-bottom: 10px" name="pcboTipoGA" id="pcboTipoGA" class="required" data-placeholder="Escoger TipoGA">
-                        <option value="CAP">Gasto Adm. Descuento en Capital</option>
-                        <option value="CUO">Gasto Adm. en Cuotas</option>
-                        <option value="ADE">Gasto Adm. Pago Adelantado</option>
-                    </select>
-                </div>
-            </div>*@
-            <div class="row">
-                <label for="pMonto">
-                    <strong>Monto</strong>
-                </label>
-                <div>
-                    <input class="required" type="number" name="pMonto" id="pMonto" value="1000.00" />
-                    @*<label id="plblGA"></label>*@
-                </div>
-            </div>
-            <div class="row">
-                <label for="pCuotas">
-                    <strong>Cuotas</strong>
-                </label>
-                <div>
-                    <input class="required" type="number" name="pCuotas" id="pCuotas" value="26" />
-                </div>
-            </div>
 
-            <div class="row">
-                <label for="pInteres">
-                    <strong>TEM %</strong>
-                </label>
-                <div>
-                    <input class="required" type="number" name="pInteres" id="pInteres" value="8" />
-                    <label id="plblInteresRango"></label>
+                <div class="sim-field-group">
+                    <label for="pMonto"><strong>Monto Solicitado (S/.)</strong></label>
+                    <input class="required" type="number" name="pMonto" id="pMonto" value="1000.00" step="50" min="0" />
                 </div>
-            </div>
-            <div class="row">
-                <label for="pFecha">
-                    <strong>Primer Pago</strong>
-                </label>
-                <div>
-                    <input class="required" type="date" name="pFecha" id="pFecha" value="@ITB.VENDIX.BL.VendixGlobal.GetFecha().ToShortDateString()" />
-                </div>
-            </div>
 
+                <div class="sim-field-group">
+                    <label for="pGastosAdm"><strong>Gastos Administrativos (S/.)</strong></label>
+                    <input class="required" type="number" name="pGastosAdm" id="pGastosAdm" step="1" min="0" readonly />
+                </div>
+
+                <div class="sim-field-group">
+                    <label for="pCuotas"><strong>Número de Cuotas</strong></label>
+                    <input class="required" type="number" name="pCuotas" id="pCuotas" value="26" min="0" step="1" />
+                </div>
+
+                <div class="sim-field-group">
+                    <label for="pInteres"><strong>Tasa de Interés (TEM %)</strong></label>
+                    <input class="required" type="number" name="pInteres" id="pInteres" value="8" step="0.1" min="0" />
+                    <label id="plblInteresRango" style="font-size: 9px; color: #777; margin-top: 2px;"></label>
+                </div>
+
+                <div class="sim-field-group">
+                    <label for="pFecha"><strong>Fecha Primer Pago</strong></label>
+                    <input class="required" type="date" name="pFecha" id="pFecha" value="@ITB.VENDIX.BL.VendixGlobal.GetFecha().ToString("yyyy-MM-dd")" />
+                </div>
+            </div>
         </form>
+
         <div class="actions">
-            <div class="left">
-                <button class="grey cancel">Cancelar</button>
-            </div>
-            <div class="right">
-                <button class="submit">Simular Crédito</button>
-            </div>
+            <div class="left"><button class="grey cancel">Cancelar</button></div>
+            <div class="right"><button class="submit" id="btnSimularEnviar">Simular Plan de Pagos</button></div>
         </div>
-    </div><!-- End if #dialog_add_client -->
-    <!-- Spawn $$.loaded -->
+    </div>
+
+
     <script>
-        $$.ready(function () {
-            //Dialogo Simulador
-            $("#dialog_simulador").dialog({
-                autoOpen: false,
-                modal: true,
-                width: 350,
-                open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
-            }).find('button.submit').click(function () {
-                var $el = $(this).parents('.ui-dialog-content');
-                if ($el.validate().form()) {
-                    //window.location = '@Url.Action("Simulador", "Credito")' + "?pProductoid=" + $('#cboProductos').val() + "&pTipo=" + $('#cboTipo').val() + "&pMonto=" + $('#pMonto').val() + '&pCuotas=' + $('#pCuotas').val() + '&pInteres=' + $('#pInteres').val() + '&pFecha=' + $('#pFecha').val() + '&pModalidad=' + $('#cboModalidad').val() + '&pGastosAdm=' + $("#plblGA").data("GastosAdm") + '&pGA=CAP';
-                    window.open('@Url.Action("ReporteSimuladorPlanPagos", "Reporte")' + "?pProductoid=" + $('#cboProductos').val() + "&pMonto=" + $('#pMonto').val() + '&pCuotas=' + $('#pCuotas').val() + '&pInteres=' + $('#pInteres').val() + '&pFecha=' + $('#pFecha').val() + '&pModalidad=' + $('#cboModalidad').val() + '&pGastosAdm=0&pGA=ADE');
-                    $el.find('form')[0].reset();
-                    $el.dialog('close');
-                }
-            }).end().find('button.cancel').click(function () {
-                $("#dialog_simulador").dialog('close');
-            });
+$$.ready(function () {
+    var simTokenApiperu = 'Bearer bbd78886dd0b93fe2282ef3f919b1a0f662dfada35d422b8212891a931b37f98';
 
-            $(".open-simulador").click(function () {
-                Vendix.CargarCombo("@Url.Action("ListarProductos", "Credito")", "cboProductos", function () { MostrarInteresSim(); });
-                $("#cboModalidad,#pcboTipoGA,#cboTipo").trigger("liszt:updated");
-                //CalcularGA();
-                $("#dialog_simulador").dialog("open");
-            });
+    if ($.isFunction($.fn.mask)) {
+        $("#sim_NroDocumento").mask("99999999");
+        $("#sim_txtTelefono").mask("999999999");
+    }
 
-            $("#cboProductos").change(function () {
-                MostrarInteresSim();
-            });
-            $("#pMonto").numeric(2)
-                    .keyup(function (event) {
-                        if (event.which == 13) {
-                            event.preventDefault();
-                        }
-                        //CalcularGA();
-                    });
+    // === VALIDACIÓN: Prevenir caracteres inválidos en numéricos ===
+    $("input[type='number']").on("keydown", function (e) {
+        if (e.key === '-' || e.key === 'e' || e.key === 'E' || e.key === '+') {
+            e.preventDefault();
+        }
+    });
 
-            $("#pInteres").numeric(2)
-            .blur(function () {
-                var num = parseFloat($(this).val());
-                var max = $("#plblInteresRango").data("max");
-                var min = $("#plblInteresRango").data("min");
-                if (num < min || num > max) {
-                    $(this).val(max.toFixed(2));
-                    Vendix.Mensaje("El Interes debe estar entre " + min.toFixed(2) + " y " + max.toFixed(2));
-                }
-            })
+    $("#sim_cboTipoPersona").change(function () {
+        var tipo = $(this).val();
+        if (tipo == "N") {
+            $("#sim_lblDocumento").html("<strong>DNI:</strong>");
+            $("#sim_lblNombre").html("<strong>Nombres:</strong>");
+            $(".sim-natural").show();
+            $("#sim_txtApePaterno, #sim_txtApeMaterno").prop("disabled", false).addClass("required");
+            $("#sim_txtNombre").prop("readonly", true);
+            if ($.isFunction($.fn.mask)) { $("#sim_NroDocumento").unmask().mask("99999999"); }
+        } else {
+            $("#sim_lblDocumento").html("<strong>RUC:</strong>");
+            $("#sim_lblNombre").html("<strong>Rz Social:</strong>");
+            $(".sim-natural").hide();
+            $("#sim_txtApePaterno, #sim_txtApeMaterno").prop("disabled", true).removeClass("required");
+            $("#sim_txtNombre").prop("readonly", true);
+            if ($.isFunction($.fn.mask)) { $("#sim_NroDocumento").unmask().mask("99999999999"); }
+        }
+        $("#sim_NroDocumento").val('').focus();
+        $("#sim_txtNombre, #sim_txtApePaterno, #sim_txtApeMaterno, #sim_txtTelefono, #sim_txtDireccionCliente, #sim_txtDireccionNegocio").val('');
+    });
 
-            $("#cboModalidad").change(function () {
-                $.ajax({
-                    url: "@Url.Action("ObtenerFechaPrimerPago", "Credito")",
-                    data: { pModalidad: $(this).val() },
-                    success: function (ret) {
-                        $("#pFecha").val(ret);
+    $("#sim_btnValidar").click(function () {
+        var numDoc = $("#sim_NroDocumento").val().trim();
+        var tipoPersona = $("#sim_cboTipoPersona").val();
+
+        if (numDoc === "") {
+            Vendix.Mensaje("Por favor ingrese un número de documento válido.");
+            return;
+        }
+
+        // === MEJORA UX: Bloquear botón e indicar estado ===
+        var $btn = $(this);
+        $btn.prop("disabled", true).val("BUSCANDO...");
+
+        if (tipoPersona == "N") {
+            $.ajax({
+                type: 'GET',
+                url: "https://apiperu.dev/api/dni/" + numDoc,
+                headers: { 'Authorization': simTokenApiperu },
+                success: function (ret) {
+                    if (ret.success) {
+                        $("#sim_txtNombre").val(ret.data.nombres);
+                        $("#sim_txtApePaterno").val(ret.data.apellido_paterno);
+                        $("#sim_txtApeMaterno").val(ret.data.apellido_materno);
+                        $("#sim_txtTelefono").focus();
+                    } else {
+                        Vendix.Mensaje("DNI NO ENCONTRADO EN RENIEC.");
                     }
-                });
+                },
+                error: function () {
+                    Vendix.Mensaje("Error al conectar con el servicio de consulta DNI.");
+                },
+                complete: function() {
+                    $btn.prop("disabled", false).val("VALIDAR");
+                }
             });
-            $("#cboModalidad").trigger("change");
+        } else {
+            $.ajax({
+                type: 'GET',
+                url: "https://apiperu.dev/api/ruc/" + numDoc,
+                headers: { 'Authorization': simTokenApiperu },
+                success: function (ret) {
+                    if (ret.success) {
+                        $("#sim_txtNombre").val(ret.data.nombre_o_razon_social);
+                        if(ret.data.direccion_completa){ $("#sim_txtDireccionNegocio").val(ret.data.direccion_completa); }
+                        else if (ret.data.direccion) { $("#sim_txtDireccionNegocio").val(ret.data.direccion); }
+                        $("#sim_txtTelefono").focus();
+                    } else {
+                        Vendix.Mensaje("RUC NO ENCONTRADO O INACTIVO EN SUNAT.");
+                    }
+                },
+                error: function () {
+                    Vendix.Mensaje("Error al conectar con el servicio de consulta RUC.");
+                },
+                complete: function() {
+                    $btn.prop("disabled", false).val("VALIDAR");
+                }
+            });
+        }
+    });
 
-            //Dialogo Cliente
-            $("#dialogo_buscar_cliente").dialog({
-                autoOpen: false,
-                modal: true,
-                width: 500,
-                open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
-            }).find('button.cancel').click(function () {
-                $("#dialogo_buscar_cliente").dialog('close');
-            });
+    $("#sim_NroDocumento").keypress(function (event) { if (event.which == 13) { event.preventDefault(); $("#sim_btnValidar").trigger('click'); } });
 
-            $(".open-observados").click(function () {
-                event.preventDefault();
-                var ruta = '@Url.Action("ReporteCreditoObservado", "Reporte")'
-                    + '?pOficinaId=null&pUsuarioId=' + @VendixGlobal.GetUsuarioId()
-                    + '&pTipo=PDF';
-                window.open(ruta);
-                return false;
-            });
-            $(".open-vencidos").click(function () {
-                event.preventDefault();
-                var ruta = '@Url.Action("ReporteMorosidadGestor", "Reporte")'
-                    + '?pOficinaId=null&pUsuarioId=' + @VendixGlobal.GetUsuarioId()
-                    + '&pTipo=PDF';
-                window.open(ruta);
-                return false;
-            });
-            $(".open-inactivos").click(function () {
-                event.preventDefault();
-                var ruta = '@Url.Action("ReporteClientesInactivos", "Reporte")'
-                    + '?pOficinaId=' +@VendixGlobal.GetOficinaId() +'&pUsuarioId=' + @VendixGlobal.GetUsuarioId()
-                    + '&pTipo=PDF';
-                window.open(ruta);
-                return false;
-            });
+    $("#pMonto").on("input change", function () {
+        var monto = parseFloat($(this).val()) || 0;
+        var listaGA = monto * 0.01;
+        $("#pGastosAdm").val(listaGA.toFixed(2));
+    });
+
+// === CONFIGURACIÓN DEL DIÁLOGO SIMULADOR ===
+$("#dialog_simulador").dialog({
+    autoOpen: false,
+    modal: true,
+    width: 650,
+    // Dejamos la altura en 'auto' para que la librería no fuerce un tamaño estático gigante
+    height: 'auto',
+    open: function () {
+        var $dialog = $(this);
+        var $dialogParent = $dialog.parent();
+
+        // 1. Forzamos a que el contenedor principal de jQuery UI nunca supere el alto de tu pantalla
+        $dialogParent.css({
+            'max-height': '85vh',
+            'display': 'flex',
+            'flex-direction': 'column',
+            'overflow': 'hidden'
         });
 
-        function MostrarInteresSim() {
-            $.ajax({
-                url: "@Url.Action("ObtenerProducto", "Credito")",
-                data: { pProductoId: $("#cboProductos").val() },
-                success: function (ret) {
-                    $("#pInteres").val(parseFloat(ret.InteresMaxima).toFixed(2));
-                    $("#plblInteresRango").text("Interes Min: " + parseFloat(ret.InteresMinima).toFixed(2) + " Max: " + parseFloat(ret.InteresMaxima).toFixed(2));
-                    $("#plblInteresRango").data("min", ret.InteresMinima);
-                    $("#plblInteresRango").data("max", ret.InteresMaxima);
-                }
-            });
-        };
-        function CalcularGA() {
-            $.ajax({
-                url: "@Url.Action("CalcularGastosAdm", "Credito")",
-                data: { pProductoId: 1, pMonto: $("#pMonto").val() },
-                success: function (ret) {
-                    $("#plblGA").data("GastosAdm", ret);
-                    $("#plblGA").text("Gastos Administrativos: " + ret.toFixed(2));
-                }
-            });
-        };
+        // 2. Le damos scroll únicamente al cuerpo interno para que los anchos no se rompan
+        $dialog.css({
+            'max-height': 'calc(85vh - 100px)',
+            'overflow-y': 'auto',
+            'overflow-x': 'hidden'
+        });
 
-        function ConfirmaTransFerencia(transferenciaId, flag) {
-            $.ajax({
-                url: "@Url.Action("ConfirmarTransferencia", "Boveda")",
-                type: 'POST',
-                data: {
-                    pBovedaMovTempId: transferenciaId,
-                    pFlag: flag
-                },
-                success: function (data) {
-                    if (data == true) {
-                        Vendix.Notificar("Grabar");
-                        $("#grdBovedaMov").trigger("reloadGrid");
-                        location.reload();
-                    } else {
-                        alert("Sucedio un Error al Realizar la Transaccion consulte Con Area de Sistemas");
-                    }
-                }
-            });
-
+        if (window.$$ && $$.utils && $$.utils.forms) {
+            $$.utils.forms.resize();
         }
-        $$.loaded();
+    }
+}).find('button.submit').click(function () {
+    var $el = $(this).parents('.ui-dialog-content');
+    var $form = $('#frmSimuladorCredito');
+
+    if ($form.validate().form()) {
+        // ✅ Configurar formulario para GET
+        $form.attr('action', '@Url.Action("Simulador", "Credito")');
+        $form.attr('method', 'GET');
+        $form.removeAttr('target');
+
+        // ✅ Agregar pGA=ADE como campo oculto
+        if ($('#hf_pGA').length === 0) {
+            $form.append('<input type="hidden" id="hf_pGA" name="pGA" value="ADE" />');
+        }
+
+        // ✅ Enviar en la MISMA ventana
+        $form.submit();
+    }
+}).end().find('button.cancel').click(function () {
+    $("#dialog_simulador").dialog('close');
+});
+
+
+
+    $(".open-simulador").click(function () {
+        Vendix.CargarCombo("@Url.Action("ListarProductos", "Credito")", "cboProductos", function () {
+            MostrarInteresSim();
+            $("#cboProductos").trigger("change");
+        });
+        $("#sim_cboTipoPersona").trigger("change");
+        $("#cboModalidad,#pcboTipoGA,#cboTipo").trigger("liszt:updated");
+        $("#dialog_simulador").dialog("open");
+    });
+
+    $("#cboProductos").change(function () {
+        MostrarInteresSim();
+        var nombreProducto = $("#cboProductos option:selected").text().toLowerCase();
+
+        if (nombreProducto.indexOf("prendario") !== -1) {
+            $(".sim-garantia-sec").show();
+            $("#sim_txtPrendaDesc").prop("disabled", false).addClass("required");
+            $("#cboModalidad").val("M").trigger("liszt:updated");
+
+            // --- SOLUCIÓN: ZONA HORARIA Y "BUG DÍA 31" ---
+            var fechaBaseStr = "@ITB.VENDIX.BL.VendixGlobal.GetFecha().ToString("yyyy-MM-dd")";
+            var partes = fechaBaseStr.split('-');
+
+            // Forzamos a que JS tome el año, mes y día del servidor a medianoche.
+            var fechaSiguiente = new Date(partes[0], partes[1] - 1, partes[2]);
+
+            // Sumamos exactamente 30 días (estándar bancario para mes).
+            fechaSiguiente.setDate(fechaSiguiente.getDate() + 30);
+
+            var yyyy = fechaSiguiente.getFullYear();
+            var mm = ("0" + (fechaSiguiente.getMonth() + 1)).slice(-2);
+            var dd = ("0" + fechaSiguiente.getDate()).slice(-2);
+
+            $("#pFecha").val(yyyy + "-" + mm + "-" + dd);
+
+        } else {
+            $(".sim-garantia-sec").hide();
+            $("#sim_txtPrendaDesc").prop("disabled", true).removeClass("required").val('');
+            $("#cboModalidad").trigger("change");
+        }
+    });
+
+    $("#pInteres").numeric(2).blur(function () {
+        var num = parseFloat($(this).val());
+        var max = $("#plblInteresRango").data("max");
+        var min = $("#plblInteresRango").data("min");
+        if (num < min || num > max) {
+            $(this).val(max.toFixed(2));
+            Vendix.Mensaje("El Interes debe estar entre " + min.toFixed(2) + " y " + max.toFixed(2));
+        }
+    });
+
+    $("#cboModalidad").change(function () {
+        var nombreProducto = $("#cboProductos option:selected").text().toLowerCase();
+        if (nombreProducto.indexOf("prendario") === -1) {
+            $.ajax({
+                url: "@Url.Action("ObtenerFechaPrimerPago", "Credito")",
+                data: { pModalidad: $(this).val() },
+                success: function (ret) { $("#pFecha").val(ret); }
+            });
+        }
+    });
+
+    $("#cboModalidad").trigger("change");
+    //Dialogo Cliente
+    $("#dialogo_buscar_cliente").dialog({
+        autoOpen: false,
+        modal: true,
+        width: 500,
+        open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
+    }).find('button.cancel').click(function () {
+        $("#dialogo_buscar_cliente").dialog('close');
+    });
+
+    $(".open-observados").click(function () {
+        event.preventDefault();
+        var ruta = '@Url.Action("ReporteCreditoObservado", "Reporte")'
+            + '?pOficinaId=null&pUsuarioId=' + @VendixGlobal.GetUsuarioId()
+            + '&pTipo=PDF';
+        window.open(ruta);
+        return false;
+    });
+    $(".open-vencidos").click(function () {
+        event.preventDefault();
+        var ruta = '@Url.Action("ReporteMorosidadGestor", "Reporte")'
+            + '?pOficinaId=null&pUsuarioId=' + @VendixGlobal.GetUsuarioId()
+            + '&pTipo=PDF';
+        window.open(ruta);
+        return false;
+    });
+    $(".open-inactivos").click(function () {
+        event.preventDefault();
+        var ruta = '@Url.Action("ReporteClientesInactivos", "Reporte")'
+            + '?pOficinaId=' +@VendixGlobal.GetOficinaId() +'&pUsuarioId=' + @VendixGlobal.GetUsuarioId()
+            + '&pTipo=PDF';
+        window.open(ruta);
+        return false;
+    });
+});
+
+function MostrarInteresSim() {
+    $.ajax({
+        url: "@Url.Action("ObtenerProducto", "Credito")",
+        data: { pProductoId: $("#cboProductos").val() },
+        success: function (ret) {
+            $("#pInteres").val(parseFloat(ret.InteresMaxima).toFixed(2));
+            $("#plblInteresRango").text("Interes Min: " + parseFloat(ret.InteresMinima).toFixed(2) + " Max: " + parseFloat(ret.InteresMaxima).toFixed(2));
+            $("#plblInteresRango").data("min", ret.InteresMinima);
+            $("#plblInteresRango").data("max", ret.InteresMaxima);
+        }
+    });
+};
+function CalcularGA() {
+    $.ajax({
+        url: "@Url.Action("CalcularGastosAdm", "Credito")",
+        data: { pProductoId: 1, pMonto: $("#pMonto").val() },
+        success: function (ret) {
+            $("#plblGA").data("GastosAdm", ret);
+            $("#plblGA").text("Gastos Administrativos: " + ret.toFixed(2));
+        }
+    });
+};
+
+
+$$.loaded();
     </script>
-
-
 
     <!-- Buscador de clientes-->
     <div style="display: none;" id="dialogo_buscar_cliente" title="Buscar Cliente">
@@ -617,7 +834,7 @@
     <script defer>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
     <![endif]-->
 
-   
+
     @RenderSection("scripts", required: false)
 </body>
 </html>

@@ -48,6 +48,55 @@ internal static class DashboardAnalistaEndpoints
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+        app.MapGet(
+                "/api/v1/dashboard/analista/clientes-mora",
+                async Task<Results<Ok<IReadOnlyList<DashboardClienteMoraRowDto>>, ProblemHttpResult>> (
+                    string? tipo,
+                    HttpContext httpContext,
+                    IDashboardAnalistaReadService dashboard,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (!MenuIdentity.TryGetUsuarioIdFromJwt(httpContext.User, out var usuarioId)
+                        || !MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oficinaId))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status403Forbidden,
+                            title: "Prohibido",
+                            detail: "El token debe incluir vendix:usuario_id y vendix:oficina_id.");
+                    }
+
+                    var log = loggerFactory.CreateLogger("DashboardAnalistaClientesMora");
+                    try
+                    {
+                        var rows = await dashboard
+                            .ObtenerClientesMoraAsync(usuarioId, oficinaId, tipo ?? DashboardMoraTipos.Todos, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(rows);
+                    }
+                    catch (ArgumentOutOfRangeException ex)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Parámetro inválido",
+                            detail: ex.Message);
+                    }
+                    catch (Exception ex) when (ex is InvalidOperationException or DbException)
+                    {
+                        return ReadError(log, env, ex);
+                    }
+                })
+            .WithName("DashboardAnalistaClientesMora")
+            .WithSummary("Clientes en mora del analista autenticado (filtro tipo = TODOS|SIN_PAGO|NUNCA_PAGO|DEJO_PAGAR|PAGA_CON_ATRASO).")
+            .WithTags("dashboard")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario)
+            .Produces<IReadOnlyList<DashboardClienteMoraRowDto>>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
     }
 
     private static ProblemHttpResult ReadError(ILogger log, IHostEnvironment env, Exception ex)

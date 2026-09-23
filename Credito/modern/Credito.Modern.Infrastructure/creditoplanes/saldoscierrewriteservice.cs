@@ -12,11 +12,17 @@ public sealed class SaldosCierreWriteService(IOptions<SqlDatabaseOptions> option
 
     public async Task ActualizarDatosPostCierreBovedaAsync(
         int oficinaId,
+        int usuarioCierreId,
         CancellationToken cancellationToken = default)
     {
         if (oficinaId < 1)
         {
             throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
+        }
+
+        if (usuarioCierreId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(usuarioCierreId), "usuarioCierreId debe ser >= 1.");
         }
 
         if (string.IsNullOrWhiteSpace(_connectionString))
@@ -45,6 +51,14 @@ public sealed class SaldosCierreWriteService(IOptions<SqlDatabaseOptions> option
                 transaction,
                 "CREDITO.usp_CalificarCliente",
                 new { OficinaId = oficinaId },
+                cancellationToken).ConfigureAwait(false);
+
+            // Fuera de fin de mes / contingencia días 1–2 el SP no modifica nada.
+            await ExecuteProcAsync(
+                connection,
+                transaction,
+                "CREDITO.usp_IntentarGenerarCierreGerencialMensual",
+                new { OficinaId = oficinaId, UsuarioCierreId = usuarioCierreId },
                 cancellationToken).ConfigureAwait(false);
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);

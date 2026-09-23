@@ -31,6 +31,9 @@ public sealed class RptCobroDiarioRowDto
 
     public DateTime? FechaPago { get; init; }
 
+    /// <summary>True si el crédito tiene al menos un pago CUO real (columna del SP moderno).</summary>
+    public bool? TienePagoReal { get; init; }
+
     public DateTime FechaPrimerPago { get; init; }
 
     public DateTime FechaVencimiento { get; init; }

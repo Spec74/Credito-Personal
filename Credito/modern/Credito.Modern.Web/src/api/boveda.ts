@@ -275,6 +275,7 @@ export interface BovedaMovOperacionResponse {
 export interface CajaAbiertaTransferenciaRow {
   cajaId: number
   etiqueta: string
+  usuarioAsignadoId: number
 }
 
 export interface AsignarBovedaTemporalResponse {
@@ -304,8 +305,24 @@ export function transferirBovedaCaja(body: {
   cajaId: number
   importe: number
   descripcion: string
+  tipoPagoOrigenId?: number
+  tipoPagoDestinoId?: number
 }): Promise<BovedaMovOperacionResponse> {
-  return postJson('/credito/transferir-boveda-caja', body)
+  return postJson('/credito/transferir-boveda-caja', {
+    tipoPagoOrigenId: 1,
+    tipoPagoDestinoId: 1,
+    ...body,
+  })
+}
+
+export function transferirBovedaAnalista(body: {
+  oficinaId: number
+  usuarioAnalistaId: number
+  tipoPagoOrigenId: number
+  importe: number
+  descripcion: string
+}): Promise<BovedaMovOperacionResponse> {
+  return postJson('/credito/transferir-boveda-analista', body)
 }
 
 export function transferirBovedaCajaChica(body: {

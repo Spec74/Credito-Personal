@@ -1,3 +1,4 @@
+using System.Data;
 using Credito.Modern.Application.Dashboard;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -7,10 +8,10 @@ using Microsoft.Extensions.Options;
 namespace Credito.Modern.Infrastructure.Dashboard;
 
 /// <summary>
-/// Tablero del analista en un solo roundtrip. Replica la semántica de
-/// <c>usp_DashboardGestor</c>, <c>usp_DashboardProductividad</c>,
-/// <c>usp_DashboardRanking</c> y <c>usp_DashboardTopAnterior</c> sin depender
-/// de esos SP (no versionados y con timeouts en producción).
+/// Tablero del analista: KPIs + productividad en un roundtrip (semántica de
+/// <c>usp_DashboardGestor</c> / productividad). Mora clasificada igual que el SP.
+/// Drill-down llama <c>usp_DashboardGestorClientesMora</c>. Ranking/podio omitidos
+/// (retirados en producción).
 /// </summary>
 public sealed class DashboardAnalistaReadService(
     IOptions<SqlDatabaseOptions> options,
@@ -22,13 +23,14 @@ public sealed class DashboardAnalistaReadService(
     private static readonly string Sql = """
         DECLARE @Hoy date = dbo.ufnFecha();
         DECLARE @Manana date = DATEADD(DAY, 1, @Hoy);
+        DECLARE @Ayer date = DATEADD(DAY, -1, @Hoy);
         DECLARE @InicioMes date = DATEFROMPARTS(YEAR(@Hoy), MONTH(@Hoy), 1);
         DECLARE @InicioMesAnterior date = DATEADD(MONTH, -1, @InicioMes);
         DECLARE @InicioProd date = DATEADD(DAY, -29, @Hoy);
         DECLARE @LimiteVencer date = DATEADD(DAY, 8, @Hoy);
 
         IF OBJECT_ID('tempdb..#Creditos') IS NOT NULL DROP TABLE #Creditos;
-        IF OBJECT_ID('tempdb..#Saldos') IS NOT NULL DROP TABLE #Saldos;
+        IF OBJECT_ID('tempdb..#MoraPersona') IS NOT NULL DROP TABLE #MoraPersona;
 
         CREATE TABLE #Creditos (
             CreditoId int NOT NULL PRIMARY KEY,
@@ -52,36 +54,59 @@ public sealed class DashboardAnalistaReadService(
           AND c.FechaDesembolso IS NOT NULL
           AND c.FechaDesembolso < @Manana;
 
-        CREATE TABLE #Saldos (
-            CreditoId int NOT NULL PRIMARY KEY,
-            PersonaId int NOT NULL,
-            Saldo decimal(16, 2) NOT NULL,
-            EnMora bit NOT NULL
-        );
-
-        INSERT INTO #Saldos (CreditoId, PersonaId, Saldo, EnMora)
-        SELECT cr.CreditoId,
-               cr.PersonaId,
-               ISNULL(pen.Saldo, 0),
-               CAST(ISNULL(pen.EnMora, 0) AS bit)
-        FROM #Creditos AS cr
-        LEFT JOIN (
+        ;WITH CreditosActivos AS (
+            SELECT CreditoId, PersonaId
+            FROM #Creditos
+            WHERE Estado = 'DES'
+              AND IndIrrecuperable = 0
+        ),
+        PlanAgregado AS (
             SELECT pp.CreditoId,
-                   SUM(CASE
-                       WHEN pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre > 0
-                           THEN pp.Cuota + pp.Cargo - ISNULL(pp.PagoCuota, 0) - pp.PagoLibre
-                       ELSE 0
-                   END) AS Saldo,
-                   MAX(CASE WHEN pp.FechaVencimiento < @Hoy THEN 1 ELSE 0 END) AS EnMora
+                   SUM(ISNULL(pp.Cuota, 0) + ISNULL(pp.Cargo, 0)) AS MontoPlan,
+                   MAX(CASE WHEN pp.Estado = 'PEN' AND pp.FechaVencimiento < @Hoy THEN 1 ELSE 0 END) AS TieneMora,
+                   MIN(CASE WHEN pp.Estado = 'PEN' AND pp.FechaVencimiento < @Hoy THEN pp.FechaVencimiento END) AS PrimeraCuotaVencida
             FROM CREDITO.PlanPago AS pp
-            INNER JOIN #Creditos AS cr2 ON cr2.CreditoId = pp.CreditoId
-            WHERE cr2.Estado = 'DES'
-              AND cr2.IndIrrecuperable = 0
-              AND pp.Estado = 'PEN'
+            INNER JOIN CreditosActivos AS ca ON ca.CreditoId = pp.CreditoId
             GROUP BY pp.CreditoId
-        ) AS pen ON pen.CreditoId = cr.CreditoId
-        WHERE cr.Estado = 'DES'
-          AND cr.IndIrrecuperable = 0;
+        ),
+        PagosAgregados AS (
+            SELECT m.CreditoId,
+                   SUM(m.ImportePago) AS TotalPagado,
+                   MAX(m.FechaReg) AS FechaUltimoPago
+            FROM CREDITO.MovimientoCaja AS m
+            INNER JOIN CreditosActivos AS ca ON ca.CreditoId = m.CreditoId
+            WHERE m.Operacion = 'CUO'
+              AND m.Estado = 1
+              AND m.ImportePago > 0
+              AND m.FechaReg < @Manana
+            GROUP BY m.CreditoId
+        ),
+        CarteraCredito AS (
+            SELECT ca.CreditoId,
+                   ca.PersonaId,
+                   ISNULL(pa.TieneMora, 0) AS TieneMora,
+                   pa.PrimeraCuotaVencida,
+                   CAST(CASE
+                       WHEN ISNULL(pa.MontoPlan, 0) - ISNULL(pg.TotalPagado, 0) > 0
+                       THEN ISNULL(pa.MontoPlan, 0) - ISNULL(pg.TotalPagado, 0)
+                       ELSE 0 END AS decimal(18, 2)) AS Saldo,
+                   CAST(ISNULL(pg.TotalPagado, 0) AS decimal(18, 2)) AS TotalPagado,
+                   pg.FechaUltimoPago
+            FROM CreditosActivos AS ca
+            LEFT JOIN PlanAgregado AS pa ON pa.CreditoId = ca.CreditoId
+            LEFT JOIN PagosAgregados AS pg ON pg.CreditoId = ca.CreditoId
+        )
+        SELECT PersonaId,
+               SUM(Saldo) AS SaldoTotal,
+               SUM(CASE WHEN TieneMora = 1 THEN Saldo ELSE 0 END) AS SaldoMora,
+               MAX(CASE WHEN TieneMora = 1 AND Saldo > 0 THEN 1 ELSE 0 END) AS TieneMora,
+               SUM(CASE WHEN TieneMora = 1 THEN TotalPagado ELSE 0 END) AS PagadoEnCreditosMora,
+               MAX(CASE
+                   WHEN TieneMora = 1 AND Saldo > 0 AND FechaUltimoPago >= PrimeraCuotaVencida
+                   THEN 1 ELSE 0 END) AS PagoDesdeInicioMora
+        INTO #MoraPersona
+        FROM CarteraCredito
+        GROUP BY PersonaId;
 
         SELECT ISNULL((
                    SELECT ISNULL(p.NombreCompleto, u.NombreUsuario)
@@ -154,12 +179,33 @@ public sealed class DashboardAnalistaReadService(
                      AND m.FechaReg >= @InicioMesAnterior
                      AND m.FechaReg < @InicioMes
                ), 0) AS CobradoAnterior,
-               ISNULL((SELECT SUM(s.Saldo) FROM #Saldos AS s), 0) AS SaldoActual,
-               (
-                   SELECT COUNT(DISTINCT s.PersonaId)
-                   FROM #Saldos AS s
-                   WHERE s.Saldo > 0 AND s.EnMora = 1
-               ) AS ClientesMora,
+               ISNULL((
+                   SELECT SUM(m.ImportePago)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
+                   WHERE m.Operacion = 'CUO'
+                     AND m.Estado = 1
+                     AND m.ImportePago > 0
+                     AND m.FechaReg >= @Hoy
+                     AND m.FechaReg < @Manana
+               ), 0) AS CobradoHoy,
+               ISNULL((
+                   SELECT SUM(m.ImportePago)
+                   FROM CREDITO.MovimientoCaja AS m
+                   INNER JOIN #Creditos AS cr ON cr.CreditoId = m.CreditoId
+                   WHERE m.Operacion = 'CUO'
+                     AND m.Estado = 1
+                     AND m.ImportePago > 0
+                     AND m.FechaReg >= @Ayer
+                     AND m.FechaReg < @Hoy
+               ), 0) AS CobradoAyer,
+               ISNULL((SELECT SUM(mp.SaldoTotal) FROM #MoraPersona AS mp), 0) AS SaldoActual,
+               ISNULL((SELECT SUM(mp.SaldoMora) FROM #MoraPersona AS mp), 0) AS MontoMora,
+               ISNULL((SELECT SUM(CASE WHEN mp.TieneMora = 1 THEN 1 ELSE 0 END) FROM #MoraPersona AS mp), 0) AS ClientesMora,
+               ISNULL((SELECT SUM(CASE WHEN mp.TieneMora = 1 AND mp.PagoDesdeInicioMora = 0 THEN 1 ELSE 0 END) FROM #MoraPersona AS mp), 0) AS ClientesMoraSinPago,
+               ISNULL((SELECT SUM(CASE WHEN mp.TieneMora = 1 AND mp.PagadoEnCreditosMora <= 0 THEN 1 ELSE 0 END) FROM #MoraPersona AS mp), 0) AS ClientesMoraNuncaPagaron,
+               ISNULL((SELECT SUM(CASE WHEN mp.TieneMora = 1 AND mp.PagadoEnCreditosMora > 0 AND mp.PagoDesdeInicioMora = 0 THEN 1 ELSE 0 END) FROM #MoraPersona AS mp), 0) AS ClientesMoraDejaronPagar,
+               ISNULL((SELECT SUM(CASE WHEN mp.TieneMora = 1 AND mp.PagoDesdeInicioMora = 1 THEN 1 ELSE 0 END) FROM #MoraPersona AS mp), 0) AS ClientesMoraPagandoConAtraso,
                (
                    SELECT COUNT(*)
                    FROM #Creditos AS cr
@@ -195,89 +241,6 @@ public sealed class DashboardAnalistaReadService(
         FROM Dias AS d
         LEFT JOIN CobradoDia AS c ON c.Fecha = d.Fecha
         ORDER BY d.Fecha;
-
-        ;WITH Analistas AS (
-            SELECT DISTINCT
-                   u.UsuarioId,
-                   ISNULL(p.NombreCompleto, u.NombreUsuario) AS NombreCompleto
-            FROM MAESTRO.UsuarioRol AS ur
-            INNER JOIN MAESTRO.Rol AS r ON r.RolId = ur.RolId
-            INNER JOIN MAESTRO.Usuario AS u ON u.UsuarioId = ur.UsuarioId
-            LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
-            WHERE ur.OficinaId = @OficinaId
-              AND r.Denominacion = N'ANALISTA'
-              AND r.Estado = CAST(1 AS bit)
-              AND u.Estado = CAST(1 AS bit)
-              AND u.NombreUsuario <> N'IRRECUPERABLE'
-        ),
-        CobranzaMes AS (
-            SELECT c.UsuarioRegId AS UsuarioId,
-                   SUM(m.ImportePago) AS TotalCobrado
-            FROM CREDITO.Credito AS c
-            INNER JOIN CREDITO.MovimientoCaja AS m
-                ON m.CreditoId = c.CreditoId
-               AND m.Operacion = 'CUO'
-               AND m.Estado = 1
-               AND m.ImportePago > 0
-               AND m.FechaReg >= @InicioMes
-               AND m.FechaReg < @Manana
-            WHERE c.OficinaId = @OficinaId
-            GROUP BY c.UsuarioRegId
-        )
-        SELECT a.UsuarioId,
-               a.NombreCompleto,
-               CAST(ISNULL(c.TotalCobrado, 0) AS decimal(16, 2)) AS TotalCobrado,
-               CAST(DENSE_RANK() OVER (ORDER BY ISNULL(c.TotalCobrado, 0) DESC) AS int) AS Posicion,
-               CAST(CASE WHEN a.UsuarioId = @UsuarioId THEN 1 ELSE 0 END AS bit) AS EsUsuarioActual
-        FROM Analistas AS a
-        LEFT JOIN CobranzaMes AS c ON c.UsuarioId = a.UsuarioId
-        ORDER BY Posicion, a.NombreCompleto;
-
-        ;WITH Analistas AS (
-            SELECT DISTINCT
-                   u.UsuarioId,
-                   ISNULL(p.NombreCompleto, u.NombreUsuario) AS NombreCompleto
-            FROM MAESTRO.UsuarioRol AS ur
-            INNER JOIN MAESTRO.Rol AS r ON r.RolId = ur.RolId
-            INNER JOIN MAESTRO.Usuario AS u ON u.UsuarioId = ur.UsuarioId
-            LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
-            WHERE ur.OficinaId = @OficinaId
-              AND r.Denominacion = N'ANALISTA'
-              AND r.Estado = CAST(1 AS bit)
-              AND u.Estado = CAST(1 AS bit)
-              AND u.NombreUsuario <> N'IRRECUPERABLE'
-        ),
-        CobranzaAnterior AS (
-            SELECT c.UsuarioRegId AS UsuarioId,
-                   SUM(m.ImportePago) AS TotalCobrado
-            FROM CREDITO.Credito AS c
-            INNER JOIN CREDITO.MovimientoCaja AS m
-                ON m.CreditoId = c.CreditoId
-               AND m.Operacion = 'CUO'
-               AND m.Estado = 1
-               AND m.ImportePago > 0
-               AND m.FechaReg >= @InicioMesAnterior
-               AND m.FechaReg < @InicioMes
-            WHERE c.OficinaId = @OficinaId
-            GROUP BY c.UsuarioRegId
-        ),
-        Ranked AS (
-            SELECT a.UsuarioId,
-                   a.NombreCompleto,
-                   CAST(ISNULL(c.TotalCobrado, 0) AS decimal(16, 2)) AS TotalCobrado,
-                   CAST(ROW_NUMBER() OVER (
-                       ORDER BY ISNULL(c.TotalCobrado, 0) DESC, a.NombreCompleto) AS int) AS Posicion
-            FROM Analistas AS a
-            LEFT JOIN CobranzaAnterior AS c ON c.UsuarioId = a.UsuarioId
-        )
-        SELECT TOP (3)
-               r.UsuarioId,
-               r.NombreCompleto,
-               r.TotalCobrado,
-               r.Posicion
-        FROM Ranked AS r
-        WHERE r.TotalCobrado > 0
-        ORDER BY r.Posicion;
         """;
 
     private readonly string _connectionString = options.Value.ConnectionString;
@@ -299,7 +262,7 @@ public sealed class DashboardAnalistaReadService(
 
         EnsureConnection();
 
-        var cacheKey = $"dashboard:analista:{usuarioId}:{oficinaId}";
+        var cacheKey = $"dashboard:analista:v2:{usuarioId}:{oficinaId}";
         if (cache.TryGetValue(cacheKey, out DashboardAnalistaDto? cached) && cached is not null)
         {
             return cached;
@@ -317,8 +280,6 @@ public sealed class DashboardAnalistaReadService(
 
         var kpisRow = await multi.ReadSingleAsync<KpisRow>().ConfigureAwait(false);
         var productividad = (await multi.ReadAsync<DashboardProductividadPuntoDto>().ConfigureAwait(false)).AsList();
-        var ranking = (await multi.ReadAsync<DashboardRankingRowDto>().ConfigureAwait(false)).AsList();
-        var podio = (await multi.ReadAsync<DashboardPodioRowDto>().ConfigureAwait(false)).AsList();
 
         var kpis = DashboardAnalistaInsights.ConVariaciones(
             kpisRow.TotalClientes,
@@ -328,8 +289,15 @@ public sealed class DashboardAnalistaReadService(
             kpisRow.CreditosAnterior,
             kpisRow.CobradoActual,
             kpisRow.CobradoAnterior,
+            kpisRow.CobradoHoy,
+            kpisRow.CobradoAyer,
             kpisRow.SaldoActual,
+            kpisRow.MontoMora,
             kpisRow.ClientesMora,
+            kpisRow.ClientesMoraSinPago,
+            kpisRow.ClientesMoraNuncaPagaron,
+            kpisRow.ClientesMoraDejaronPagar,
+            kpisRow.ClientesMoraPagandoConAtraso,
             kpisRow.PorVencerSemana);
 
         var dto = new DashboardAnalistaDto(
@@ -339,12 +307,65 @@ public sealed class DashboardAnalistaReadService(
             FechaConsulta: kpisRow.FechaConsulta,
             Kpis: kpis,
             Productividad: productividad,
-            Ranking: ranking,
-            PodioMesAnterior: podio,
+            Ranking: Array.Empty<DashboardRankingRowDto>(),
+            PodioMesAnterior: Array.Empty<DashboardPodioRowDto>(),
             Insights: DashboardAnalistaInsights.Build(kpis));
 
         cache.Set(cacheKey, dto, CacheTtl);
         return dto;
+    }
+
+    public async Task<IReadOnlyList<DashboardClienteMoraRowDto>> ObtenerClientesMoraAsync(
+        int usuarioId,
+        int oficinaId,
+        string tipo,
+        CancellationToken cancellationToken = default)
+    {
+        if (usuarioId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(usuarioId), "usuarioId debe ser >= 1.");
+        }
+
+        if (oficinaId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
+        }
+
+        var tipoNorm = DashboardMoraTipos.Normalizar(tipo);
+        EnsureConnection();
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var rows = await connection.QueryAsync<ClienteMoraSpRow>(
+            new CommandDefinition(
+                "CREDITO.usp_DashboardGestorClientesMora",
+                new
+                {
+                    UsuarioId = usuarioId,
+                    OficinaId = oficinaId,
+                    Tipo = tipoNorm,
+                    FechaCorte = (DateTime?)null,
+                },
+                commandType: CommandType.StoredProcedure,
+                commandTimeout: CommandTimeoutSeconds,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        return rows
+            .Select(r => new DashboardClienteMoraRowDto(
+                PersonaId: r.PersonaId ?? 0,
+                NombreCompleto: string.IsNullOrWhiteSpace(r.NombreCompleto)
+                    ? "Sin nombre"
+                    : r.NombreCompleto.Trim(),
+                CreditosMora: r.CreditosMora ?? 0,
+                SaldoMora: r.SaldoMora ?? 0m,
+                PrimeraCuotaVencida: r.PrimeraCuotaVencida,
+                FechaUltimoPago: r.FechaUltimoPago,
+                DiasAtraso: r.DiasAtraso ?? 0,
+                CodigoClasificacion: r.CodigoClasificacion ?? string.Empty,
+                Clasificacion: r.Clasificacion ?? string.Empty))
+            .Where(r => r.PersonaId > 0)
+            .ToList();
     }
 
     private void EnsureConnection()
@@ -367,8 +388,28 @@ public sealed class DashboardAnalistaReadService(
         public int CreditosAnterior { get; init; }
         public decimal CobradoActual { get; init; }
         public decimal CobradoAnterior { get; init; }
+        public decimal CobradoHoy { get; init; }
+        public decimal CobradoAyer { get; init; }
         public decimal SaldoActual { get; init; }
+        public decimal MontoMora { get; init; }
         public int ClientesMora { get; init; }
+        public int ClientesMoraSinPago { get; init; }
+        public int ClientesMoraNuncaPagaron { get; init; }
+        public int ClientesMoraDejaronPagar { get; init; }
+        public int ClientesMoraPagandoConAtraso { get; init; }
         public int PorVencerSemana { get; init; }
+    }
+
+    private sealed class ClienteMoraSpRow
+    {
+        public int? PersonaId { get; init; }
+        public string? NombreCompleto { get; init; }
+        public int? CreditosMora { get; init; }
+        public decimal? SaldoMora { get; init; }
+        public DateTime? PrimeraCuotaVencida { get; init; }
+        public DateTime? FechaUltimoPago { get; init; }
+        public int? DiasAtraso { get; init; }
+        public string? CodigoClasificacion { get; init; }
+        public string? Clasificacion { get; init; }
     }
 }

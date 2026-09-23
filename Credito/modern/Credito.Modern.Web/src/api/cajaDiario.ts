@@ -441,6 +441,7 @@ export function recalcularCajaDiario(body: {
 export interface CajaAbiertaTransferenciaRow {
   cajaId: number
   etiqueta: string
+  usuarioAsignadoId: number
 }
 
 export function fetchCajasAbiertasTransferencia(
@@ -487,6 +488,8 @@ export interface CreditoGestorPendienteRow {
   personaNombre: string
   montoCredito: number
   personaId: number
+  /** Deuda pendiente real (capital + mora); paridad CreditoPendienteJGrid. */
+  deudaPendiente: number
 }
 
 export function fetchCreditosGestorDesembolsados(): Promise<
@@ -495,6 +498,28 @@ export function fetchCreditosGestorDesembolsados(): Promise<
   return apiFetch<CreditoGestorPendienteRow[]>(
     '/credito/creditos-gestor-desembolsados',
   )
+}
+
+export function cobrarPlanillaBloque(body: {
+  oficinaId: number
+  cajaDiarioId: number
+  planilla: Array<{
+    creditoId: number
+    montoPagar: number
+    tipoPagoId: number
+    fechaHoraTrans?: string | null
+  }>
+}): Promise<{
+  exito: boolean
+  mensaje: string
+  pagosProcesados: number
+  impagosCompletados: number
+}> {
+  return apiFetch('/credito/cobrar-planilla-bloque', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
 }
 
 export interface CreditoMoraRow {

@@ -1,0 +1,2086 @@
+﻿@{
+    ViewBag.Title = "Dashboard Gerencial";
+}
+
+<link href="@Url.Content("~/css/dashboard.css")" rel="stylesheet" type="text/css" />
+
+<div class="dashboard-container dashboard-admin">
+
+    <!-- =====================================================
+         ENCABEZADO
+    ====================================================== -->
+    <div class="dashboard-admin-header">
+
+        <div>
+            <h1 class="dashboard-admin-title">
+                Tablero Gerencial
+            </h1>
+
+            <div class="dashboard-admin-subtitle">
+                Seguimiento diario y mensual de la operación
+            </div>
+        </div>
+
+        <div class="dashboard-admin-date">
+            <i class="icon-calendar"></i>
+            <span id="lblFechaAdmin">--</span>
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         HOY
+    ====================================================== -->
+    <section class="dashboard-admin-section">
+
+        <div class="dashboard-admin-section-header">
+            <div>
+                <h2>Estado del día</h2>
+                <span>Hoy, ayer y anteayer · variación entre los dos últimos días cerrados</span>
+            </div>
+        </div>
+
+
+        <div class="dashboard-admin-grid">
+
+            <!-- COBRANZA HOY -->
+            <article class="admin-kpi admin-kpi-cobranza">
+
+                <div class="admin-kpi-top">
+                    <span class="admin-kpi-label">
+                        Cobrado hoy
+                    </span>
+
+                    <span class="admin-kpi-icon">
+                        <i class="icon-money"></i>
+                    </span>
+                </div>
+
+                <div class="admin-kpi-value"
+                     id="lblCobradoHoy">
+                    S/ --
+                </div>
+
+                <div class="admin-kpi-comparison"
+                     id="varCobradoHoy">
+                    --
+                </div>
+
+                <div class="admin-kpi-detail"
+                     id="detalleCobradoHoy">
+                    Ayer: S/ --<br />
+                    Anteayer: S/ --
+                </div>
+
+            </article>
+
+
+            <!-- DESEMBOLSOS HOY -->
+            <article class="admin-kpi admin-kpi-desembolso">
+
+                <div class="admin-kpi-top">
+                    <span class="admin-kpi-label">
+                        Desembolsado hoy
+                    </span>
+
+                    <span class="admin-kpi-icon">
+                        <i class="icon-credit-card"></i>
+                    </span>
+                </div>
+
+                <div class="admin-kpi-value"
+                     id="lblDesembolsoHoy">
+                    S/ --
+                </div>
+
+                <div class="admin-kpi-comparison"
+                     id="varDesembolsoHoy">
+                    --
+                </div>
+
+                <div class="admin-kpi-detail"
+                     id="detalleDesembolsoHoy">
+                    Ayer: S/ --<br />
+                    Anteayer: S/ --
+                </div>
+
+            </article>
+
+
+            <!-- COLOCACIONES HOY -->
+            <article class="admin-kpi admin-kpi-colocaciones">
+
+                <div class="admin-kpi-top">
+                    <span class="admin-kpi-label">
+                        Colocaciones hoy
+                    </span>
+
+                    <span class="admin-kpi-icon">
+                        <i class="icon-briefcase"></i>
+                    </span>
+                </div>
+
+                <div class="admin-kpi-value"
+                     id="lblCreditosHoy">
+                    --
+                </div>
+
+                <div class="admin-kpi-comparison"
+                     id="varCreditosHoy">
+                    --
+                </div>
+
+                <div class="admin-kpi-detail"
+                     id="detalleCreditosHoy">
+                    Ayer: --<br />
+                    Anteayer: --
+                </div>
+
+            </article>
+
+
+            <!-- FLUJO NETO HOY -->
+            <article class="admin-kpi admin-kpi-flujo">
+
+                <div class="admin-kpi-top">
+                    <span class="admin-kpi-label">
+                        Flujo neto hoy
+                    </span>
+
+                    <span class="admin-kpi-icon">
+                        <i class="icon-exchange"></i>
+                    </span>
+                </div>
+
+                <div class="admin-kpi-value"
+                     id="lblFlujoHoy">
+                    S/ --
+                </div>
+
+                <div class="admin-kpi-comparison"
+                     id="varFlujoHoy">
+                    --
+                </div>
+
+                <div class="admin-kpi-detail"
+                     id="detalleFlujoHoy">
+                    Ayer: S/ --<br />
+                    Anteayer: S/ --
+                </div>
+
+            </article>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ACUMULADO MENSUAL
+    ====================================================== -->
+    <section class="dashboard-admin-section">
+
+        <div class="dashboard-admin-section-header">
+            <div>
+                <h2>Acumulado mensual</h2>
+
+                <span>
+                    Comparación contra el mismo período del mes anterior
+                </span>
+            </div>
+        </div>
+
+
+        <div class="dashboard-admin-grid">
+
+            <!-- COBRANZA MES -->
+            <article class="admin-kpi admin-kpi-cobranza">
+
+                <div class="admin-kpi-top">
+                    <span class="admin-kpi-label">
+                        Cobranza acumulada
+                    </span>
+
+                    <span class="admin-kpi-icon">
+                        <i class="icon-money"></i>
+                    </span>
+                </div>
+
+                <div class="admin-kpi-value"
+                     id="lblCobradoMes">
+                    S/ --
+                </div>
+
+                <div class="admin-kpi-comparison"
+                     id="varCobradoMes">
+                    --
+                </div>
+
+                <div class="admin-kpi-detail"
+                     id="detalleCobradoMes">
+                    Período anterior: S/ --
+                </div>
+
+            </article>
+
+
+            <!-- DESEMBOLSO MES -->
+            <article class="admin-kpi admin-kpi-desembolso">
+
+                <div class="admin-kpi-top">
+                    <span class="admin-kpi-label">
+                        Desembolsado acumulado
+                    </span>
+
+                    <span class="admin-kpi-icon">
+                        <i class="icon-credit-card"></i>
+                    </span>
+                </div>
+
+                <div class="admin-kpi-value"
+                     id="lblDesembolsoMes">
+                    S/ --
+                </div>
+
+                <div class="admin-kpi-comparison"
+                     id="varDesembolsoMes">
+                    --
+                </div>
+
+                <div class="admin-kpi-detail"
+                     id="detalleDesembolsoMes">
+                    Período anterior: S/ --
+                </div>
+
+            </article>
+
+
+            <!-- COLOCACIONES MES -->
+            <article class="admin-kpi admin-kpi-colocaciones">
+
+                <div class="admin-kpi-top">
+                    <span class="admin-kpi-label">
+                        Colocaciones acumuladas
+                    </span>
+
+                    <span class="admin-kpi-icon">
+                        <i class="icon-briefcase"></i>
+                    </span>
+                </div>
+
+                <div class="admin-kpi-value"
+                     id="lblCreditosMes">
+                    --
+                </div>
+
+                <div class="admin-kpi-comparison"
+                     id="varCreditosMes">
+                    --
+                </div>
+
+                <div class="admin-kpi-detail"
+                     id="detalleCreditosMes">
+                    Período anterior: --
+                </div>
+
+            </article>
+
+
+            <!-- FLUJO MES -->
+            <article class="admin-kpi admin-kpi-flujo">
+
+                <div class="admin-kpi-top">
+                    <span class="admin-kpi-label">
+                        Flujo neto acumulado
+                    </span>
+
+                    <span class="admin-kpi-icon">
+                        <i class="icon-exchange"></i>
+                    </span>
+                </div>
+
+                <div class="admin-kpi-value"
+                     id="lblFlujoMes">
+                    S/ --
+                </div>
+
+                <div class="admin-kpi-comparison"
+                     id="varFlujoMes">
+                    --
+                </div>
+
+                <div class="admin-kpi-detail"
+                     id="detalleFlujoMes">
+                    Período anterior: S/ --
+                </div>
+
+            </article>
+
+        </div>
+
+    </section>
+
+    <section class="dashboard-admin-section">
+
+        <div class="dashboard-admin-section-header">
+            <div>
+                <h2>Flujo de caja</h2>
+                <span>
+                    Composición de entradas y salidas acumuladas del mes
+                </span>
+            </div>
+        </div>
+
+
+        <div class="admin-flujo-wrapper">
+
+            <!-- =========================================
+                 ENTRADAS
+            ========================================== -->
+            <div class="admin-flujo-panel admin-flujo-entrada">
+
+                <div class="admin-flujo-panel-header">
+
+                    <div>
+                        <span class="admin-flujo-title">
+                            Entradas
+                        </span>
+
+                        <div class="admin-flujo-total"
+                             id="lblFlujoEntradas">
+                            S/ --
+                        </div>
+                    </div>
+
+                    <div class="admin-flujo-icon">
+                        <i class="icon-arrow-down"></i>
+                    </div>
+
+                </div>
+
+
+                <div id="listaFlujoEntradas"
+                     class="admin-flujo-list">
+
+                    <div class="admin-flujo-loading">
+                        Cargando...
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================================
+                 SALIDAS
+            ========================================== -->
+            <div class="admin-flujo-panel admin-flujo-salida">
+
+                <div class="admin-flujo-panel-header">
+
+                    <div>
+                        <span class="admin-flujo-title">
+                            Salidas
+                        </span>
+
+                        <div class="admin-flujo-total"
+                             id="lblFlujoSalidas">
+                            S/ --
+                        </div>
+                    </div>
+
+                    <div class="admin-flujo-icon">
+                        <i class="icon-arrow-up"></i>
+                    </div>
+
+                </div>
+
+
+                <div id="listaFlujoSalidas"
+                     class="admin-flujo-list">
+
+                    <div class="admin-flujo-loading">
+                        Cargando...
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================================
+                 RESULTADO
+            ========================================== -->
+            <div class="admin-flujo-resultados">
+
+                <div class="admin-flujo-resultado-principal">
+
+                    <span class="admin-flujo-result-label">
+                        Flujo neto
+                    </span>
+
+                    <strong id="lblFlujoCajaNeto">
+                        S/ --
+                    </strong>
+
+                    <div id="varFlujoCajaNeto"
+                         class="admin-flujo-comparison">
+                        --
+                    </div>
+
+                    <small id="detalleFlujoCajaNeto">
+                        Período anterior: S/ --
+                    </small>
+
+                </div>
+
+
+                <div class="admin-flujo-resultado-secundario">
+
+                    <span class="admin-flujo-result-label">
+                        Flujo sin transferencias
+                    </span>
+
+                    <strong id="lblFlujoSinTransferencias">
+                        S/ --
+                    </strong>
+
+                    <div id="varFlujoSinTransferencias"
+                         class="admin-flujo-comparison">
+                        --
+                    </div>
+
+                    <small id="detalleFlujoSinTransferencias">
+                        Período anterior: S/ --
+                    </small>
+
+                </div>
+
+
+                <div class="admin-flujo-transferencias">
+
+                    <div>
+                        <span>Transferencias entrada</span>
+                        <strong id="lblTransferenciasEntrada">
+                            S/ --
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Transferencias salida</span>
+                        <strong id="lblTransferenciasSalida">
+                            S/ --
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="dashboard-admin-section">
+
+        <div class="dashboard-admin-section-header">
+
+            <div>
+                <h2>Evolución diaria</h2>
+
+                <span>
+                    Comportamiento de los últimos 30 días
+                </span>
+            </div>
+        </div>
+
+
+        <div class="admin-chart-card">
+
+            <div id="graficoAdminHistorico"
+                 class="admin-historico-chart">
+            </div>
+
+            <div id="graficoAdminHistoricoError"
+                 class="admin-chart-error"
+                 style="display:none;">
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="dashboard-admin-section">
+
+        <div class="dashboard-admin-section-header">
+
+            <div>
+                <h2>Evolución mensual</h2>
+
+                <span>
+                    Comparativo de los últimos 12 meses
+                </span>
+            </div>
+
+            <div class="admin-monthly-note">
+                * El mes actual muestra información acumulada a la fecha
+            </div>
+
+        </div>
+
+
+        <div class="admin-chart-card">
+
+            <div id="graficoAdminMensual"
+                 class="admin-mensual-chart">
+            </div>
+
+            <div id="graficoAdminMensualError"
+                 class="admin-chart-error"
+                 style="display:none;">
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- =====================================================
+         SITUACIÓN DE CARTERA
+    ====================================================== -->
+    <section class="dashboard-admin-section">
+
+        <div class="dashboard-admin-section-header">
+            <div>
+                <h2>Situación de cartera</h2>
+
+                <span>
+                    Desglose del saldo pendiente y situación de vencimientos
+                </span>
+            </div>
+        </div>
+
+
+        <!-- =============================================
+             DESGLOSE FINANCIERO DE CARTERA
+        ============================================== -->
+        <div class="dashboard-admin-status-grid dashboard-admin-cartera-grid">
+
+            <div class="admin-status-item admin-status-primary">
+                <span class="admin-status-label">
+                    Cartera total
+                </span>
+
+                <strong id="lblSaldoCartera">
+                    S/ --
+                </strong>
+
+                <small class="admin-status-detail">
+                    Saldo pendiente total
+                </small>
+            </div>
+
+
+            <div class="admin-status-item">
+                <span class="admin-status-label">
+                    Créditos
+                </span>
+
+                <strong id="lblSaldoCreditos">
+                    S/ --
+                </strong>
+
+                <small class="admin-status-detail">
+                    Cartera sin mora
+                </small>
+            </div>
+
+
+            <div class="admin-status-item admin-status-warning">
+                <span class="admin-status-label">
+                    Créditos vencidos
+                </span>
+
+                <strong id="lblSaldoMoraCartera">
+                    S/ --
+                </strong>
+
+                <small class="admin-status-detail">
+                    Cartera con mora
+                </small>
+            </div>
+
+
+            <div class="admin-status-item admin-status-warning-soft">
+                <span class="admin-status-label">
+                    Saldo vencido
+                </span>
+
+                <strong id="lblSaldoVencido">
+                    S/ --
+                </strong>
+
+                <small class="admin-status-detail">
+                    Clasificación de cartera
+                </small>
+            </div>
+
+
+            <div class="admin-status-item admin-status-danger">
+                <span class="admin-status-label">
+                    Saldo en morosidad
+                </span>
+
+                <strong id="lblSaldoMorosidad">
+                    S/ --
+                </strong>
+
+                <small class="admin-status-detail">
+                    Clasificación de cartera
+                </small>
+            </div>
+
+        </div>
+
+
+        <!-- =============================================
+             INDICADORES OPERATIVOS
+        ============================================== -->
+        <div class="dashboard-admin-status-grid dashboard-admin-operational-grid">
+
+            <div class="admin-status-item">
+                <span class="admin-status-label">
+                    Clientes activos
+                </span>
+
+                <strong id="lblTotalClientes">
+                    --
+                </strong>
+            </div>
+
+
+            <div class="admin-status-item admin-status-warning">
+                <span class="admin-status-label">
+                    Clientes en mora
+                </span>
+
+                <strong id="lblClientesMora">
+                    --
+                </strong>
+            </div>
+
+
+            <div class="admin-status-item">
+                <span class="admin-status-label">
+                    Vencen próximos 7 días
+                </span>
+
+                <strong id="lblPorVencer">
+                    --
+                </strong>
+            </div>
+
+
+            <div class="admin-status-item">
+                <span class="admin-status-label">
+                    Analistas activos
+                </span>
+
+                <strong id="lblTotalAnalistas">
+                    --
+                </strong>
+            </div>
+
+        </div>
+
+    </section>
+
+    <section class="dashboard-admin-section">
+
+        <div class="dashboard-admin-section-header">
+
+            <div>
+                <h2>Rendimiento por analista</h2>
+
+                <span>
+                    Cobranza, colocaciones, desembolsos y situación de cartera
+                </span>
+            </div>
+
+            <div class="admin-analistas-tools">
+
+                <input type="text"
+                       id="txtBuscarAnalista"
+                       class="admin-search-input"
+                       placeholder="Buscar analista..." />
+
+            </div>
+
+        </div>
+
+
+        <div class="admin-table-container">
+
+            <table class="admin-analistas-table">
+
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Analista</th>
+                        <th class="admin-text-center">Clientes</th>
+                        <th class="admin-text-center">Nuevos</th>
+                        <th class="admin-text-center">Coloc.</th>
+                        <th class="admin-text-right">Desembolsado</th>
+                        <th class="admin-text-right">Cobrado</th>
+                        <th class="admin-text-center">Mora</th>
+                        <th class="admin-text-center">Tendencia</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tbodyAnalistas">
+
+                    <tr>
+                        <td colspan="9"
+                            class="admin-table-loading">
+                            Cargando información...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+</div>
+
+<div id="adminChartTooltip"
+     class="admin-chart-tooltip"
+     style="display:none;">
+</div>
+
+<script type="text/javascript">
+
+    var datosAdminAnalistas = [];
+
+    $(function () {
+        inicializarDashboardAdmin();
+    });
+
+    function inicializarDashboardAdmin() {
+        vincularEventosAdmin();
+
+        /*
+            PRIORIZAMOS EL RESUMEN GERENCIAL.
+
+            Antes se lanzaban los 5 AJAX al mismo tiempo y el SP del
+            resumen competía por CPU/IO/conexiones con flujo, históricos
+            y analistas justo al iniciar sesión.
+
+            Ahora cargamos primero las cards superiores y, cuando esa
+            petición termina, iniciamos las secciones secundarias.
+        */
+        cargarDashboardAdmin();
+    }
+
+    function cargarSeccionesSecundariasAdmin() {
+        cargarAdminFlujoCaja();
+        cargarAdminHistorico();
+        cargarAdminHistoricoMensual();
+        cargarAdminAnalistas();
+    }
+
+    function vincularEventosAdmin() {
+        $("#txtBuscarAnalista")
+            .unbind("keyup.adminAnalistas")
+            .bind("keyup.adminAnalistas", filtrarAnalistas);
+
+        $(window)
+            .unbind("scroll.adminTooltip resize.adminTooltip")
+            .bind("scroll.adminTooltip resize.adminTooltip", ocultarTooltipGrafico);
+    }
+
+    /* =========================================================
+       AJAX
+       ========================================================= */
+
+    function consultarJson(url, mensajeError, alCargar, alError) {
+        $.ajax({
+            url: url,
+            type: "GET",
+            dataType: "json",
+
+            success: function (respuesta) {
+                if (!respuesta || respuesta.Error) {
+                    alError(
+                        respuesta && respuesta.Mensaje
+                            ? respuesta.Mensaje
+                            : mensajeError
+                    );
+                    return;
+                }
+
+                alCargar(respuesta.Data);
+            },
+
+            error: function () {
+                alError(mensajeError);
+            }
+        });
+    }
+
+    function cargarDashboardAdmin() {
+        consultarJson(
+            '@Url.Action("ObtenerAdminResumen", "Dashboard")',
+            "No se pudo cargar el dashboard gerencial.",
+            function (datos) {
+                pintarDashboardAdmin(datos);
+
+                /*
+                    Las cards ya están pintadas. Recién ahora pedimos
+                    el resto del dashboard para no competir con la carga
+                    inicial que ve el ADMIN al ingresar.
+                */
+                cargarSeccionesSecundariasAdmin();
+            },
+            function (mensaje) {
+                alert(mensaje);
+
+                /*
+                    Si el resumen falla, no bloqueamos el resto de la
+                    pantalla: las demás secciones aún pueden cargar.
+                */
+                cargarSeccionesSecundariasAdmin();
+            }
+        );
+    }
+
+    function cargarAdminFlujoCaja() {
+        consultarJson(
+            '@Url.Action("ObtenerAdminFlujoCaja", "Dashboard")',
+            "No se pudo cargar el flujo de caja.",
+            function (datos) {
+                pintarAdminFlujoCaja(datos || []);
+            },
+            mostrarErrorFlujoCaja
+        );
+    }
+
+    function cargarAdminHistorico() {
+        consultarJson(
+            '@Url.Action("ObtenerAdminHistorico", "Dashboard")',
+            "No se pudo cargar la evolución histórica.",
+            function (datos) {
+                pintarAdminHistorico(datos || []);
+            },
+            mostrarErrorHistorico
+        );
+    }
+
+    function cargarAdminHistoricoMensual() {
+        consultarJson(
+            '@Url.Action("ObtenerAdminHistoricoMensual", "Dashboard")',
+            "No se pudo cargar la evolución mensual.",
+            function (datos) {
+                pintarAdminHistoricoMensual(datos || []);
+            },
+            mostrarErrorHistoricoMensual
+        );
+    }
+
+    function cargarAdminAnalistas() {
+        consultarJson(
+            '@Url.Action("ObtenerAdminAnalistas", "Dashboard")',
+            "No se pudo cargar el rendimiento de los analistas.",
+            function (datos) {
+                datosAdminAnalistas = datos || [];
+                pintarTablaAnalistas(datosAdminAnalistas);
+            },
+            mostrarErrorAnalistas
+        );
+    }
+
+    /* =========================================================
+       RESUMEN GERENCIAL
+       ========================================================= */
+
+    function pintarDashboardAdmin(d) {
+        if (!d) {
+            return;
+        }
+
+        $("#lblFechaAdmin").text(formatearFechaMvc(d.FechaConsulta));
+
+        pintarKpiDiarioTresDias(
+            "#lblCobradoHoy",
+            "#varCobradoHoy",
+            "#detalleCobradoHoy",
+            d.CobradoHoy,
+            d.CobradoAyer,
+            d.CobradoAnteayer,
+            formatoMoneda
+        );
+
+        pintarKpiDiarioTresDias(
+            "#lblDesembolsoHoy",
+            "#varDesembolsoHoy",
+            "#detalleDesembolsoHoy",
+            d.DesembolsoHoy,
+            d.DesembolsoAyer,
+            d.DesembolsoAnteayer,
+            formatoMoneda
+        );
+
+        pintarKpiDiarioTresDias(
+            "#lblCreditosHoy",
+            "#varCreditosHoy",
+            "#detalleCreditosHoy",
+            d.CreditosHoy,
+            d.CreditosAyer,
+            d.CreditosAnteayer,
+            formatoNumero
+        );
+
+        pintarKpiDiarioTresDias(
+            "#lblFlujoHoy",
+            "#varFlujoHoy",
+            "#detalleFlujoHoy",
+            d.FlujoNetoHoy,
+            d.FlujoNetoAyer,
+            d.FlujoNetoAnteayer,
+            formatoMoneda
+        );
+
+        pintarKpi(
+            "#lblCobradoMes",
+            "#varCobradoMes",
+            "#detalleCobradoMes",
+            d.CobradoMesActual,
+            d.CobradoMesAnteriorComparable,
+            "Período anterior: ",
+            formatoMoneda,
+            false
+        );
+
+        pintarKpi(
+            "#lblDesembolsoMes",
+            "#varDesembolsoMes",
+            "#detalleDesembolsoMes",
+            d.DesembolsoMesActual,
+            d.DesembolsoMesAnteriorComparable,
+            "Período anterior: ",
+            formatoMoneda,
+            false
+        );
+
+        pintarKpi(
+            "#lblCreditosMes",
+            "#varCreditosMes",
+            "#detalleCreditosMes",
+            d.CreditosMesActual,
+            d.CreditosMesAnteriorComparable,
+            "Período anterior: ",
+            formatoNumero,
+            false
+        );
+
+        pintarKpi(
+            "#lblFlujoMes",
+            "#varFlujoMes",
+            "#detalleFlujoMes",
+            d.FlujoNetoMesActual,
+            d.FlujoNetoMesAnteriorComparable,
+            "Período anterior: ",
+            formatoMoneda,
+            false
+        );
+
+        $("#lblSaldoCartera").text(formatoMoneda(d.SaldoCartera));
+        $("#lblSaldoCreditos").text(formatoMoneda(d.SaldoCreditos));
+        $("#lblSaldoMoraCartera").text(formatoMoneda(d.SaldoMoraCartera));
+        $("#lblSaldoVencido").text(formatoMoneda(d.SaldoVencido));
+        $("#lblSaldoMorosidad").text(formatoMoneda(d.SaldoMorosidad));
+
+        $("#lblTotalClientes").text(formatoNumero(d.TotalClientes));
+        $("#lblClientesMora").text(formatoNumero(d.ClientesMora));
+        $("#lblPorVencer").text(formatoNumero(d.CreditosPorVencerSemana));
+        $("#lblTotalAnalistas").text(formatoNumero(d.TotalAnalistas));
+    }
+
+    /*
+        KPI DIARIO DE 3 DÍAS
+
+        - El valor principal sigue siendo HOY.
+        - El detalle muestra AYER y ANTEAYER.
+        - La variación se calcula entre AYER y ANTEAYER porque
+          ambos representan días ya cerrados.
+    */
+    function pintarKpiDiarioTresDias(
+        selectorValor,
+        selectorVariacion,
+        selectorDetalle,
+        hoy,
+        ayer,
+        anteayer,
+        formateador) {
+
+        hoy = numeroSeguro(hoy);
+        ayer = numeroSeguro(ayer);
+        anteayer = numeroSeguro(anteayer);
+
+        $(selectorValor).text(
+            formateador(hoy)
+        );
+
+        $(selectorDetalle).html(
+            "Ayer: " +
+            escaparHtml(formateador(ayer)) +
+            "<br />" +
+            "Anteayer: " +
+            escaparHtml(formateador(anteayer))
+        );
+
+        pintarVariacionDiasCerrados(
+            selectorVariacion,
+            ayer,
+            anteayer
+        );
+    }
+
+
+    /*
+        Tendencia del bloque diario:
+        AYER vs. ANTEAYER.
+    */
+    function pintarVariacionDiasCerrados(
+        selectorVariacion,
+        ayer,
+        anteayer) {
+
+        ayer = numeroSeguro(ayer);
+        anteayer = numeroSeguro(anteayer);
+
+        var $variacion = $(selectorVariacion);
+
+        $variacion.removeClass(
+            "admin-kpi-positive admin-kpi-negative admin-kpi-neutral"
+        );
+
+        if (anteayer === 0) {
+            if (ayer === 0) {
+                $variacion
+                    .addClass("admin-kpi-neutral")
+                    .text("● Sin variación · Ayer vs. anteayer");
+            }
+            else {
+                $variacion
+                    .addClass(
+                        ayer > 0
+                            ? "admin-kpi-positive"
+                            : "admin-kpi-negative"
+                    )
+                    .text("● Sin base comparable · Ayer vs. anteayer");
+            }
+
+            return;
+        }
+
+        var porcentaje =
+            ((ayer - anteayer) / Math.abs(anteayer)) * 100;
+
+        if (porcentaje > 0) {
+            $variacion
+                .addClass("admin-kpi-positive")
+                .text(
+                    "▲ +" +
+                    porcentaje.toFixed(1) +
+                    "% · Ayer vs. anteayer"
+                );
+        }
+        else if (porcentaje < 0) {
+            $variacion
+                .addClass("admin-kpi-negative")
+                .text(
+                    "▼ -" +
+                    Math.abs(porcentaje).toFixed(1) +
+                    "% · Ayer vs. anteayer"
+                );
+        }
+        else {
+            $variacion
+                .addClass("admin-kpi-neutral")
+                .text("● 0.0% · Ayer vs. anteayer");
+        }
+    }
+
+
+    function pintarKpi(
+        selectorValor,
+        selectorVariacion,
+        selectorDetalle,
+        actual,
+        anterior,
+        textoDetalle,
+        formateador,
+        detalleConSigno) {
+
+        $(selectorValor).text(formateador(actual));
+
+        pintarVariacion(
+            selectorVariacion,
+            selectorDetalle,
+            actual,
+            anterior,
+            textoDetalle,
+            formateador,
+            detalleConSigno
+        );
+    }
+
+    function pintarVariacion(
+        selectorVariacion,
+        selectorDetalle,
+        actual,
+        anterior,
+        textoDetalle,
+        formateador,
+        detalleConSigno) {
+
+        actual = numeroSeguro(actual);
+        anterior = numeroSeguro(anterior);
+
+        var $variacion = $(selectorVariacion);
+        var $detalle = $(selectorDetalle);
+
+        $variacion.removeClass(
+            "admin-kpi-positive admin-kpi-negative admin-kpi-neutral"
+        );
+
+        var textoAnterior = detalleConSigno
+            ? formatoMonedaConSigno(anterior)
+            : formateador(anterior);
+
+        $detalle.text(textoDetalle + textoAnterior);
+
+        if (anterior === 0) {
+            if (actual === 0) {
+                $variacion
+                    .addClass("admin-kpi-neutral")
+                    .text("● Sin variación");
+            }
+            else {
+                $variacion
+                    .addClass(
+                        actual > 0
+                            ? "admin-kpi-positive"
+                            : "admin-kpi-negative"
+                    )
+                    .text("● Sin base comparable");
+            }
+
+            return;
+        }
+
+        var porcentaje =
+            ((actual - anterior) / Math.abs(anterior)) * 100;
+
+        if (porcentaje > 0) {
+            $variacion
+                .addClass("admin-kpi-positive")
+                .text("▲ +" + porcentaje.toFixed(1) + "%");
+        }
+        else if (porcentaje < 0) {
+            $variacion
+                .addClass("admin-kpi-negative")
+                .text("▼ -" + Math.abs(porcentaje).toFixed(1) + "%");
+        }
+        else {
+            $variacion
+                .addClass("admin-kpi-neutral")
+                .text("● 0.0%");
+        }
+    }
+
+    /* =========================================================
+       FLUJO DE CAJA
+       ========================================================= */
+
+    function pintarAdminFlujoCaja(datos) {
+        var entradas = [];
+        var salidas = [];
+
+        var totalEntradas = 0;
+        var totalSalidas = 0;
+        var totalEntradasAnterior = 0;
+        var totalSalidasAnterior = 0;
+
+        var transferenciaEntrada = 0;
+        var transferenciaSalida = 0;
+        var transferenciaEntradaAnterior = 0;
+        var transferenciaSalidaAnterior = 0;
+
+        $.each(datos, function (index, item) {
+            var importeActual = numeroSeguro(item.ImporteMesActual);
+            var importeAnterior = numeroSeguro(item.ImporteMesAnteriorComparable);
+
+            if (item.IndEntrada) {
+                entradas.push(item);
+                totalEntradas += importeActual;
+                totalEntradasAnterior += importeAnterior;
+            }
+            else {
+                salidas.push(item);
+                totalSalidas += importeActual;
+                totalSalidasAnterior += importeAnterior;
+            }
+
+            if (item.EsTransferencia) {
+                if (item.IndEntrada) {
+                    transferenciaEntrada += importeActual;
+                    transferenciaEntradaAnterior += importeAnterior;
+                }
+                else {
+                    transferenciaSalida += importeActual;
+                    transferenciaSalidaAnterior += importeAnterior;
+                }
+            }
+        });
+
+        $("#lblFlujoEntradas").text(formatoMoneda(totalEntradas));
+        $("#lblFlujoSalidas").text(formatoMoneda(totalSalidas));
+
+        pintarListaFlujo("#listaFlujoEntradas", entradas);
+        pintarListaFlujo("#listaFlujoSalidas", salidas);
+
+        var flujoActual = totalEntradas - totalSalidas;
+        var flujoAnterior = totalEntradasAnterior - totalSalidasAnterior;
+
+        pintarValorFlujo(
+            "#lblFlujoCajaNeto",
+            flujoActual
+        );
+
+        pintarVariacion(
+            "#varFlujoCajaNeto",
+            "#detalleFlujoCajaNeto",
+            flujoActual,
+            flujoAnterior,
+            "Período anterior: ",
+            formatoMoneda,
+            true
+        );
+
+        var flujoSinTransferencias =
+            (totalEntradas - transferenciaEntrada) -
+            (totalSalidas - transferenciaSalida);
+
+        var flujoSinTransferenciasAnterior =
+            (totalEntradasAnterior - transferenciaEntradaAnterior) -
+            (totalSalidasAnterior - transferenciaSalidaAnterior);
+
+        pintarValorFlujo(
+            "#lblFlujoSinTransferencias",
+            flujoSinTransferencias
+        );
+
+        pintarVariacion(
+            "#varFlujoSinTransferencias",
+            "#detalleFlujoSinTransferencias",
+            flujoSinTransferencias,
+            flujoSinTransferenciasAnterior,
+            "Período anterior: ",
+            formatoMoneda,
+            true
+        );
+
+        $("#lblTransferenciasEntrada").text(
+            formatoMoneda(transferenciaEntrada)
+        );
+
+        $("#lblTransferenciasSalida").text(
+            formatoMoneda(transferenciaSalida)
+        );
+    }
+
+    function pintarValorFlujo(selector, valor) {
+        valor = numeroSeguro(valor);
+
+        $(selector)
+            .text(formatoMonedaConSigno(valor))
+            .removeClass(
+                "admin-flujo-value-positive admin-flujo-value-negative"
+            )
+            .addClass(
+                valor >= 0
+                    ? "admin-flujo-value-positive"
+                    : "admin-flujo-value-negative"
+            );
+    }
+
+    function pintarListaFlujo(selector, datos) {
+        var $contenedor = $(selector);
+        $contenedor.empty();
+
+        if (!datos || datos.length === 0) {
+            $contenedor.html(
+                '<div class="admin-flujo-empty">' +
+                    "Sin movimientos registrados." +
+                "</div>"
+            );
+            return;
+        }
+
+        $.each(datos, function (index, item) {
+            var concepto =
+                item.Concepto ||
+                item.Operacion ||
+                "Movimiento";
+
+            var claseTransferencia =
+                item.EsTransferencia
+                    ? " admin-flujo-item-transfer"
+                    : "";
+
+            $contenedor.append(
+                '<div class="admin-flujo-item' + claseTransferencia + '">' +
+                    '<div class="admin-flujo-item-info">' +
+                        '<span class="admin-flujo-item-name">' +
+                            escaparHtml(concepto) +
+                        "</span>" +
+                        "<small>" +
+                            formatoNumero(item.CantidadMesActual) +
+                            " movimientos" +
+                        "</small>" +
+                    "</div>" +
+                    "<strong>" +
+                        formatoMoneda(item.ImporteMesActual) +
+                    "</strong>" +
+                "</div>"
+            );
+        });
+    }
+
+    function mostrarErrorFlujoCaja(mensaje) {
+        var html =
+            '<div class="admin-flujo-error">' +
+                escaparHtml(mensaje) +
+            "</div>";
+
+        $("#listaFlujoEntradas").html(html);
+        $("#listaFlujoSalidas").html(html);
+    }
+
+    /* =========================================================
+       GRÁFICOS
+       ========================================================= */
+
+    function pintarAdminHistorico(datos) {
+        if (!datos || datos.length === 0) {
+            mostrarErrorHistorico(
+                "No existen datos históricos para mostrar."
+            );
+            return;
+        }
+
+        var serieCobranza = [];
+        var serieDesembolso = [];
+        var serieFlujo = [];
+        var ticks = [];
+
+        $.each(datos, function (index, item) {
+            serieCobranza.push([
+                index,
+                numeroSeguro(item.Cobrado)
+            ]);
+
+            serieDesembolso.push([
+                index,
+                numeroSeguro(item.Desembolsado)
+            ]);
+
+            serieFlujo.push([
+                index,
+                numeroSeguro(item.FlujoOperativo)
+            ]);
+
+            if (index % 4 === 0 || index === datos.length - 1) {
+                ticks.push([
+                    index,
+                    formatearFechaCorta(item.Fecha)
+                ]);
+            }
+        });
+
+        $("#graficoAdminHistoricoError").hide();
+        $("#graficoAdminHistorico").show();
+
+        $.plot(
+            $("#graficoAdminHistorico"),
+            [
+                crearSerieLinea("Cobranza", serieCobranza, 2),
+                crearSerieLinea("Desembolsos", serieDesembolso, 2),
+                crearSerieLinea("Flujo operativo", serieFlujo, 2)
+            ],
+            crearOpcionesGrafico(ticks)
+        );
+
+        vincularTooltipGrafico(
+            "#graficoAdminHistorico",
+            datos,
+            function (registro) {
+                return formatearFechaCompleta(registro.Fecha);
+            }
+        );
+    }
+
+    function pintarAdminHistoricoMensual(datos) {
+        if (!datos || datos.length === 0) {
+            mostrarErrorHistoricoMensual(
+                "No existen datos mensuales para mostrar."
+            );
+            return;
+        }
+
+        var serieCobranza = [];
+        var serieDesembolso = [];
+        var serieFlujo = [];
+        var ticks = [];
+
+        $.each(datos, function (index, item) {
+            serieCobranza.push([
+                index,
+                numeroSeguro(item.Cobrado)
+            ]);
+
+            serieDesembolso.push([
+                index,
+                numeroSeguro(item.Desembolsado)
+            ]);
+
+            serieFlujo.push([
+                index,
+                numeroSeguro(item.FlujoOperativo)
+            ]);
+
+            var etiqueta = formatearMesCorto(item.FechaMes);
+
+            if (item.EsMesActual) {
+                etiqueta += " *";
+            }
+
+            ticks.push([index, etiqueta]);
+        });
+
+        $("#graficoAdminMensualError").hide();
+        $("#graficoAdminMensual").show();
+
+        $.plot(
+            $("#graficoAdminMensual"),
+            [
+                crearSerieLinea("Cobranza", serieCobranza, 3),
+                crearSerieLinea("Desembolsos", serieDesembolso, 3),
+                {
+                    label: "Flujo operativo",
+                    data: serieFlujo,
+                    bars: {
+                        show: true,
+                        barWidth: 0.45,
+                        align: "center"
+                    }
+                }
+            ],
+            crearOpcionesGrafico(ticks)
+        );
+
+        vincularTooltipGrafico(
+            "#graficoAdminMensual",
+            datos,
+            function (registro) {
+                var etiqueta =
+                    formatearMesCompleto(registro.FechaMes);
+
+                if (registro.EsMesActual) {
+                    etiqueta += " - parcial";
+                }
+
+                return etiqueta;
+            }
+        );
+    }
+
+    function crearSerieLinea(nombre, datos, radio) {
+        return {
+            label: nombre,
+            data: datos,
+            lines: {
+                show: true,
+                lineWidth: 2
+            },
+            points: {
+                show: true,
+                radius: radio
+            }
+        };
+    }
+
+    function crearOpcionesGrafico(ticks) {
+        return {
+            series: {
+                shadowSize: 0
+            },
+
+            grid: {
+                borderWidth: 1,
+                hoverable: true,
+                clickable: false,
+                mouseActiveRadius: 12
+            },
+
+            xaxis: {
+                ticks: ticks
+            },
+
+            yaxis: {
+                tickFormatter: formatearEjeMoneda
+            },
+
+            legend: {
+                show: true,
+                position: "nw"
+            }
+        };
+    }
+
+    function formatearEjeMoneda(valor) {
+        valor = numeroSeguro(valor);
+
+        if (Math.abs(valor) >= 1000000) {
+            return "S/ " +
+                (valor / 1000000).toFixed(1) +
+                "M";
+        }
+
+        if (Math.abs(valor) >= 1000) {
+            return "S/ " +
+                (valor / 1000).toFixed(0) +
+                "k";
+        }
+
+        return "S/ " + valor.toFixed(0);
+    }
+
+    /*
+        IMPORTANTE:
+        Flot entrega las coordenadas reales del punto en item.pageX/item.pageY.
+        El evento "plothover" es sintético y no debe usarse como fuente
+        de pageX/pageY.
+    */
+    function vincularTooltipGrafico(selector, datos, obtenerEtiqueta) {
+        var $grafico = $(selector);
+
+        $grafico
+            .unbind("plothover.adminTooltip")
+            .bind("plothover.adminTooltip", function (event, pos, item) {
+                if (!item) {
+                    ocultarTooltipGrafico();
+                    return;
+                }
+
+                var indice = item.dataIndex;
+
+                if (indice < 0 || indice >= datos.length) {
+                    ocultarTooltipGrafico();
+                    return;
+                }
+
+                var registro = datos[indice];
+                var serie = item.series && item.series.label
+                    ? item.series.label
+                    : "";
+
+                var valor = numeroSeguro(item.datapoint[1]);
+
+                mostrarTooltipGrafico(
+                    $grafico,
+                    event,
+                    item,
+                    obtenerEtiqueta(registro),
+                    serie,
+                    valor
+                );
+            });
+
+        $grafico
+            .unbind("mouseleave.adminTooltip")
+            .bind("mouseleave.adminTooltip", ocultarTooltipGrafico);
+    }
+
+    /*
+        El tooltip se posiciona DENTRO de la tarjeta de la gráfica.
+        Así nunca aumenta el ancho del documento ni se pierde fuera
+        del borde derecho. Además usamos event.pageX/pageY como
+        respaldo para versiones antiguas de Flot que no expongan
+        item.pageX/item.pageY.
+    */
+    function mostrarTooltipGrafico(
+        $grafico,
+        event,
+        item,
+        fecha,
+        serie,
+        valor) {
+
+        var pageX =
+            item && typeof item.pageX === "number"
+                ? item.pageX
+                : (event && typeof event.pageX === "number"
+                    ? event.pageX
+                    : null);
+
+        var pageY =
+            item && typeof item.pageY === "number"
+                ? item.pageY
+                : (event && typeof event.pageY === "number"
+                    ? event.pageY
+                    : null);
+
+        if (pageX === null || pageY === null) {
+            ocultarTooltipGrafico();
+            return;
+        }
+
+        var $card = $grafico.closest(".admin-chart-card");
+
+        if (!$card.length) {
+            $card = $grafico.parent();
+        }
+
+        var $tooltip = $("#adminChartTooltip");
+
+        /*
+            El mismo tooltip sirve para ambas gráficas. Lo movemos
+            a la tarjeta activa para que position:absolute tome
+            esa tarjeta como referencia.
+        */
+        if (!$tooltip.parent().is($card)) {
+            $tooltip.appendTo($card);
+        }
+
+        var valorFormateado =
+            serie === "Flujo operativo"
+                ? formatoMonedaConSigno(valor)
+                : formatoMoneda(valor);
+
+        $tooltip
+            .html(
+                '<span class="admin-chart-tooltip-date">' +
+                    escaparHtml(fecha) +
+                "</span>" +
+                '<span class="admin-chart-tooltip-serie">' +
+                    escaparHtml(serie) +
+                "</span>" +
+                '<span class="admin-chart-tooltip-value">' +
+                    escaparHtml(valorFormateado) +
+                "</span>"
+            )
+            .css({
+                left: 0,
+                top: 0,
+                visibility: "hidden"
+            })
+            .show();
+
+        var margen = 12;
+        var margenBorde = 8;
+
+        var offsetCard = $card.offset();
+        var puntoX = pageX - offsetCard.left;
+        var puntoY = pageY - offsetCard.top;
+
+        var anchoTooltip = $tooltip.outerWidth();
+        var altoTooltip = $tooltip.outerHeight();
+
+        var anchoCard = $card.innerWidth();
+        var altoCard = $card.innerHeight();
+
+        var left = puntoX + margen;
+        var top = puntoY + margen;
+
+        /* Si no entra a la derecha, se abre a la izquierda. */
+        if (left + anchoTooltip + margenBorde > anchoCard) {
+            left = puntoX - anchoTooltip - margen;
+        }
+
+        /* Nunca permitimos que salga por la izquierda. */
+        if (left < margenBorde) {
+            left = margenBorde;
+        }
+
+        /* Si no entra abajo, se abre sobre el punto. */
+        if (top + altoTooltip + margenBorde > altoCard) {
+            top = puntoY - altoTooltip - margen;
+        }
+
+        /* Nunca permitimos que salga por arriba. */
+        if (top < margenBorde) {
+            top = margenBorde;
+        }
+
+        $tooltip.css({
+            left: Math.round(left),
+            top: Math.round(top),
+            visibility: "visible"
+        });
+    }
+
+    function ocultarTooltipGrafico() {
+        $("#adminChartTooltip").hide();
+    }
+
+    function mostrarErrorHistorico(mensaje) {
+        $("#graficoAdminHistorico").hide();
+
+        $("#graficoAdminHistoricoError")
+            .text(mensaje)
+            .show();
+    }
+
+    function mostrarErrorHistoricoMensual(mensaje) {
+        $("#graficoAdminMensual").hide();
+
+        $("#graficoAdminMensualError")
+            .text(mensaje)
+            .show();
+    }
+
+    /* =========================================================
+       ANALISTAS
+       ========================================================= */
+
+    function pintarTablaAnalistas(datos) {
+        var $tbody = $("#tbodyAnalistas");
+        $tbody.empty();
+
+        if (!datos || datos.length === 0) {
+            $tbody.html(
+                '<tr>' +
+                    '<td colspan="9" class="admin-table-empty">' +
+                        "No se encontraron analistas." +
+                    "</td>" +
+                "</tr>"
+            );
+            return;
+        }
+
+        $.each(datos, function (index, item) {
+            $tbody.append(
+                "<tr>" +
+                    '<td class="admin-ranking">' +
+                        (index + 1) +
+                    "</td>" +
+                    "<td>" +
+                        '<div class="admin-analista-name">' +
+                            escaparHtml(
+                                item.NombreCompleto ||
+                                item.NombreUsuario
+                            ) +
+                        "</div>" +
+                        '<div class="admin-analista-user">' +
+                            escaparHtml(item.NombreUsuario || "") +
+                        "</div>" +
+                    "</td>" +
+                    '<td class="admin-text-center">' +
+                        formatoNumero(item.TotalClientes) +
+                    "</td>" +
+                    '<td class="admin-text-center">' +
+                        formatoNumero(item.ClientesNuevosMes) +
+                    "</td>" +
+                    '<td class="admin-text-center">' +
+                        formatoNumero(item.ColocacionesMes) +
+                    "</td>" +
+                    '<td class="admin-text-right admin-money">' +
+                        formatoMoneda(item.DesembolsoMes) +
+                    "</td>" +
+                    '<td class="admin-text-right admin-money admin-money-strong">' +
+                        formatoMoneda(item.CobradoMes) +
+                    "</td>" +
+                    '<td class="admin-text-center">' +
+                        obtenerHtmlMora(
+                            item.PorcentajeMora,
+                            item.MontoMora
+                        ) +
+                    "</td>" +
+                    '<td class="admin-text-center">' +
+                        obtenerHtmlVariacion(item.VariacionCobranza) +
+                    "</td>" +
+                "</tr>"
+            );
+        });
+    }
+
+    function filtrarAnalistas() {
+        var texto =
+            $.trim($("#txtBuscarAnalista").val())
+                .toLowerCase();
+
+        if (!texto) {
+            pintarTablaAnalistas(datosAdminAnalistas);
+            return;
+        }
+
+        var filtrados = $.grep(
+            datosAdminAnalistas,
+            function (item) {
+                var nombre =
+                    (item.NombreCompleto || "")
+                        .toLowerCase();
+
+                var usuario =
+                    (item.NombreUsuario || "")
+                        .toLowerCase();
+
+                return nombre.indexOf(texto) >= 0 ||
+                    usuario.indexOf(texto) >= 0;
+            }
+        );
+
+        pintarTablaAnalistas(filtrados);
+    }
+
+    function obtenerHtmlVariacion(valor) {
+        if (valor === null ||
+            typeof valor === "undefined") {
+
+            return '<span class="admin-trend admin-trend-neutral">--</span>';
+        }
+
+        valor = numeroSeguro(valor);
+
+        if (valor > 0) {
+            return '<span class="admin-trend admin-trend-positive">' +
+                "▲ +" + valor.toFixed(1) + "%" +
+                "</span>";
+        }
+
+        if (valor < 0) {
+            return '<span class="admin-trend admin-trend-negative">' +
+                "▼ -" + Math.abs(valor).toFixed(1) + "%" +
+                "</span>";
+        }
+
+        return '<span class="admin-trend admin-trend-neutral">' +
+            "● 0.0%" +
+            "</span>";
+    }
+
+    function obtenerHtmlMora(porcentaje, monto) {
+        porcentaje = numeroSeguro(porcentaje);
+        monto = numeroSeguro(monto);
+
+        var clase = "admin-mora-low";
+
+        if (porcentaje >= 30) {
+            clase = "admin-mora-high";
+        }
+        else if (porcentaje >= 15) {
+            clase = "admin-mora-medium";
+        }
+
+        return '' +
+            '<div class="admin-mora-cell">' +
+                '<strong class="admin-mora-amount">' +
+                    formatoMoneda(monto) +
+                '</strong>' +
+                '<span class="admin-mora ' + clase + '">' +
+                    porcentaje.toFixed(1) + "%" +
+                '</span>' +
+            '</div>';
+    }
+
+    function mostrarErrorAnalistas(mensaje) {
+        $("#tbodyAnalistas").html(
+            "<tr>" +
+                '<td colspan="9" class="admin-table-error">' +
+                    escaparHtml(mensaje) +
+                "</td>" +
+            "</tr>"
+        );
+    }
+
+    /* =========================================================
+       FORMATO Y UTILIDADES
+       ========================================================= */
+
+    function numeroSeguro(valor) {
+        var numero = Number(valor);
+
+        return isNaN(numero)
+            ? 0
+            : numero;
+    }
+
+    function formatoMoneda(valor) {
+        valor = numeroSeguro(valor);
+
+        return "S/ " +
+            valor.toLocaleString(
+                "es-PE",
+                {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }
+            );
+    }
+
+    function formatoMonedaConSigno(valor) {
+        valor = numeroSeguro(valor);
+
+        if (valor > 0) {
+            return "+ " + formatoMoneda(valor);
+        }
+
+        if (valor < 0) {
+            return "- " + formatoMoneda(Math.abs(valor));
+        }
+
+        return formatoMoneda(0);
+    }
+
+    function formatoNumero(valor) {
+        return numeroSeguro(valor)
+            .toLocaleString("es-PE");
+    }
+
+    function escaparHtml(texto) {
+        return $("<div>")
+            .text(
+                texto === null ||
+                typeof texto === "undefined"
+                    ? ""
+                    : String(texto)
+            )
+            .html();
+    }
+
+    function obtenerFechaMvc(valor) {
+        if (!valor) {
+            return null;
+        }
+
+        var fecha;
+
+        if (typeof valor === "string" &&
+            valor.indexOf("/Date(") === 0) {
+
+            var milisegundos = parseInt(
+                valor.replace(
+                    /\/Date\((-?\d+)\)\//,
+                    "$1"
+                ),
+                10
+            );
+
+            fecha = new Date(milisegundos);
+        }
+        else {
+            fecha = new Date(valor);
+        }
+
+        return isNaN(fecha.getTime())
+            ? null
+            : fecha;
+    }
+
+    function dosDigitos(valor) {
+        return valor < 10
+            ? "0" + valor
+            : String(valor);
+    }
+
+    function formatearFechaMvc(valor) {
+        var fecha = obtenerFechaMvc(valor);
+
+        if (!fecha) {
+            return "--";
+        }
+
+        return dosDigitos(fecha.getDate()) +
+            "/" +
+            dosDigitos(fecha.getMonth() + 1) +
+            "/" +
+            fecha.getFullYear();
+    }
+
+    function formatearFechaCorta(valor) {
+        var fecha = obtenerFechaMvc(valor);
+
+        if (!fecha) {
+            return "--";
+        }
+
+        var meses = [
+            "Ene", "Feb", "Mar",
+            "Abr", "May", "Jun",
+            "Jul", "Ago", "Sep",
+            "Oct", "Nov", "Dic"
+        ];
+
+        return fecha.getDate() +
+            " " +
+            meses[fecha.getMonth()];
+    }
+
+    function formatearFechaCompleta(valor) {
+        return formatearFechaMvc(valor);
+    }
+
+    function formatearMesCorto(valor) {
+        var fecha = obtenerFechaMvc(valor);
+
+        if (!fecha) {
+            return "--";
+        }
+
+        var meses = [
+            "Ene", "Feb", "Mar",
+            "Abr", "May", "Jun",
+            "Jul", "Ago", "Sep",
+            "Oct", "Nov", "Dic"
+        ];
+
+        return meses[fecha.getMonth()] +
+            " " +
+            String(fecha.getFullYear()).substr(2, 2);
+    }
+
+    function formatearMesCompleto(valor) {
+        var fecha = obtenerFechaMvc(valor);
+
+        if (!fecha) {
+            return "--";
+        }
+
+        var meses = [
+            "Enero",
+            "Febrero",
+            "Marzo",
+            "Abril",
+            "Mayo",
+            "Junio",
+            "Julio",
+            "Agosto",
+            "Septiembre",
+            "Octubre",
+            "Noviembre",
+            "Diciembre"
+        ];
+
+        return meses[fecha.getMonth()] +
+            " " +
+            fecha.getFullYear();
+    }
+
+</script>

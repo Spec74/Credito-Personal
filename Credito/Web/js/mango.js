@@ -1,8 +1,6 @@
 "use strict";
 
-/////////////////////////////////
-// New Javascript Features ftw!
-
+/////////////////////////////////// New Javascript Features ftw!
 if (!Function.prototype.bind) {
 	Function.prototype.bind = function (oThis) {
 		if (typeof this !== "function") {
@@ -12,7 +10,7 @@ if (!Function.prototype.bind) {
 
 		var aArgs = Array.prototype.slice.call(arguments, 1),
 			fToBind = this,
-			fNOP = function () {},
+			fNOP = function () { },
 			fBound = function () {
 				return fToBind.apply(this instanceof fNOP ? this : oThis || window, aArgs.concat(Array.prototype.slice.call(arguments)));
 			};
@@ -24,10 +22,8 @@ if (!Function.prototype.bind) {
 	};
 }
 
-
-
 if (!Array.prototype.filter) {
-	Array.prototype.filter = function (fun /*, thisp */ ) {
+	Array.prototype.filter = function (fun /*, thisp */) {
 		"use strict";
 
 		if (this == null) throw new TypeError();
@@ -48,7 +44,6 @@ if (!Array.prototype.filter) {
 		return res;
 	};
 }
-
 
 // Production steps of ECMA-262, Edition 5, 15.4.4.18  
 // Reference: http://es5.github.com/#x15.4.4.18  
@@ -108,11 +103,8 @@ if (!Array.prototype.forEach) {
 	};
 }
 
-
-
-
 if (!Array.prototype.indexOf) {
-	Array.prototype.indexOf = function (searchElement /*, fromIndex */ ) {
+	Array.prototype.indexOf = function (searchElement /*, fromIndex */) {
 		"use strict";
 		if (this == null) {
 			throw new TypeError();
@@ -226,7 +218,7 @@ if (!Array.prototype.reduce) {
 			curr;
 
 		if (typeof accumulator !== "function") // ES5 : "If IsCallable(callbackfn) is false, throw a TypeError exception."  
-		throw new TypeError("First argument is not callable");
+			throw new TypeError("First argument is not callable");
 
 		if (arguments.length < 2) {
 			if (l === 0) throw new TypeError("Array length is 0 and no second argument");
@@ -243,51 +235,41 @@ if (!Array.prototype.reduce) {
 	};
 }
 
-
-
-
-
-
-
-
-
-
-
-(function($$, $, undefined){
+(function ($$, $, undefined) {
 
 	// Store old $$ for noConflict mode
 	var old$$ = window[$$];
-	
+
 	var mango = {
-	
+
 		// ! Config
 		config: {
 			// Internal:
 			version: '0.1',
-			
+
 			// Effects and animations
 			fxSpeed: 300,
-			
+
 			// User Interface
 			// - Lock Screen
 			lock: {
 				timeout: 60 * 10, // sec: Seconds to wait after user has become inactive before show the lock screen
 				idle: 15, // sec: Seconds to wait if user is idle on the password form before show the slider again
-				
+
 				lockWhenInactive: false // boolean: Lock the screen when the user switches to another tab or minimizes the window
 			},
-			
+
 			// - Settings Dialog
 			settings: {
 				width: 450 // px: The width of the dialog
 			},
-			
+
 			// Scroll to Top button
 			scollToTop: true,
-			
+
 			// Preload important images?
 			preloadImages: true,
-			
+
 			// Some l18n
 			lang: {
 				appcache: {
@@ -296,75 +278,97 @@ if (!Array.prototype.reduce) {
 					PROMT_RELOAD: 'A new version of this site is available. Load it?'
 				}
 			}
-			
+
 		},
-		
+
 		// ! Several utilities
 		utils: {
-		
+
 			// ! Stop bubbling up the event
-			noBubbling: function(e){e.stopPropagation()},
+			noBubbling: function (e) { e.stopPropagation() },
 
 			// ! Try calling a function and catch errors
-			tryF: function(cb){return function(){try{cb()}catch(e){console.error(e)}}},
-			
+			tryF: function (cb) { return function () { try { cb() } catch (e) { console.error(e) } } },
+
 			// ! Run functions when the page including all it's ressources is loaded.
 			// - This is a shortcut for $(window).load(...)
-			ready: function(cb) {
+			ready: function (cb) {
 				$(window).load(mango.utils.tryF(cb));
 			},
-			
+
 			// ! $(document).ready(...) is too slow for us
 			// - Use our own implementation instead
-			loaded: function(cb) {
-			
+			loaded: function (cb) {
+
 				// Local copy
 				var _cb = this.loaded.cb;
-			
+
 				// Initialize callbacks array if needed
 				!_cb && (_cb = []);
-				
+
 				// Add callback to stack or execute all callbacks
-				$.isFunction(cb) ? _cb.push(mango.utils.tryF(cb)) : _cb.forEach(function(f){f()});
-				
+				$.isFunction(cb) ? _cb.push(mango.utils.tryF(cb)) : _cb.forEach(function (f) { f() });
+
 				// Store changes
 				this.loaded.cb = _cb;
-				
+
 			}, // End of 'loaded'
-			
+
 			// ! Preload images
-			preload: function(images) {
+			preload: function (images) {
 				// Defer execution
-				_.defer(function(){
-					images.forEach(function(img){
-					    (new Image()).src = window.location.origin + img;
-					});
+				_.defer(function () {
+					if (images && Array.isArray(images)) {
+						images.forEach(function (img) {
+							if (img) {
+								(new Image()).src = window.location.origin + img;
+							}
+						});
+					}
 				});
 			}
-			
+
 		}, // End of 'utils'
-		
+
 		isOldIE: $.browser.msie && parseInt($.browser.version) < 9,
-		
+
 		isPhone: window.matchMedia('screen and (max-width: 650px)').matches && Modernizr.touch,
-		
+
 		// ! No Conflict Mode:
 		// - Return $$ to it's previous owner and return the mango object
-		noConflict: function(){
+		noConflict: function () {
 			window[$$] = old$$;
 			return this;
 		}
-		
+
 	}; // End of 'mango'
-	
+
 	// - Publish functions
 	mango.loaded = mango.utils.loaded;
 	mango.ready = mango.utils.ready;
-	
-	
-	
+
 	// ! Make $$ public
 	window[$$] = {};
 	$.extend(window[$$], mango);
-	
+
+	// =============================================================================
+	// PARCHE INYECTOR: Mitigación de Errores y Limpieza de Menú (CREDICONFIABLE)
+	// =============================================================================
+	(function () {
+		// 1. Parche para silenciar el Error 404 del Favicon
+		var link = document.createElement('link');
+		link.type = 'image/x-icon';
+		link.rel = 'shortcut icon';
+		link.href = 'data:;base64,iVBORw0KGgo=';
+		var head = document.getElementsByTagName('head')[0];
+		if (head) {
+			head.appendChild(link);
+		}
+
+		// 2. Eliminar físicamente el <li> contenedor de Caja Chica para limpiar el espacio
+		$(function () {
+			$('aside nav a[href*="CajaChica"], aside nav a[href*="cajachica"]').closest('li').remove();
+		});
+	})();
+
 })('$$', jQuery); // To change the public name, change $$ in this line.

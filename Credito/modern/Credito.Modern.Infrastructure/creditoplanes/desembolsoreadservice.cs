@@ -78,7 +78,26 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
                 p.Codigo AS PersonaCodigo,
                 p.NombreCompleto AS PersonaNombre,
                 c.MontoCredito,
-                c.PersonaId
+                c.PersonaId,
+                CAST(
+                    ISNULL((
+                        SELECT
+                            SUM(ISNULL(pp.Cuota, 0))
+                            + SUM(ISNULL(pp.Cargo, 0))
+                            - SUM(ISNULL(pp.PagoLibre, 0))
+                            - SUM(ISNULL(pp.Descuento, 0))
+                        FROM CREDITO.PlanPago AS pp
+                        WHERE pp.CreditoId = c.CreditoId
+                          AND pp.Estado NOT IN (N'PAG', N'CAN')
+                    ), 0)
+                    + ISNULL((
+                        SELECT SUM(ISNULL(pp.ImporteMora, 0))
+                        FROM CREDITO.PlanPago AS pp
+                        WHERE pp.CreditoId = c.CreditoId
+                          AND pp.Estado <> N'CAN'
+                    ), 0)
+                    AS decimal(18, 2)
+                ) AS DeudaPendiente
             FROM CREDITO.Credito AS c
             INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
             WHERE c.UsuarioRegId = @UsuarioRegId

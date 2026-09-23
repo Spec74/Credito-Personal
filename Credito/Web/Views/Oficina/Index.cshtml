@@ -1,9 +1,4 @@
-﻿<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-
-<h1 class="grid_12">Mantenimiento de Oficinas</h1>
+﻿<h1 class="grid_12">Mantenimiento de Oficinas</h1>
 
 <div class="grid_12">
     <div class="box">
@@ -16,13 +11,14 @@
             <input id="btnBuscar" type="submit" value="Buscar" class="grey" />
         </div>
         <a id="btnNuevo" href="#" class="button">Nueva Oficina</a>
-        <table id="grdBuscar"></table>
+        <table id="grdBuscar" ></table>
         <div id="grdpBuscar"></div>
     </div>
-</div>
+   
+  </div>
 
 <div style="display: none;" id="dlgNuevo" title="Mantener Lista de Oficinas">
-    <form action="#" class="full validate" style="padding-bottom: 60px;">
+    <form action="#" class="full validate" >
         <div class="row">
             <label for="txtOficina">
                 <strong>Ingrese Oficina</strong>
@@ -36,7 +32,7 @@
                 <strong>Descripcion:</strong>
             </label>
             <div>
-                <input class="required" type="text" name="txtDescripcion" id="txtDescripcion" />
+                <input class="required" type="text" name="txtDescripcion" id="txtDescripcion"/>
             </div>
         </div>
         <div class="row">
@@ -44,7 +40,7 @@
                 <strong>Telefono:</strong>
             </label>
             <div>
-                <input class="required" type="text" name="txtTelefono" id="txtTelefono" />
+                <input class="required" type="text" name="txtTelefono" id="txtTelefono"/>
             </div>
         </div>
         <div class="row">
@@ -53,6 +49,7 @@
             </label>
             <div style="margin-left: 130px;">
                 @Html.DropDownList("cboResponsable", (IEnumerable<SelectListItem>)ViewBag.cboResponsable, new { @class = "search" })
+                @*@Html.DropDownList("cboMarca","--SELECCIONE--")  *@
             </div>
         </div>
         <div class="row">
@@ -68,18 +65,7 @@
                 <strong>Principal:</strong>
             </label>
             <div>
-                <div><input type="checkbox" id="chkPrincipal" /> <label for="chkPrincipal">Principal</label></div>
-            </div>
-        </div>
-
-        <input type="hidden" name="txtLatitud" id="txtLatitud" />
-        <input type="hidden" name="txtLongitud" id="txtLongitud" />
-
-        <div class="row">
-            <div style="width: 100%; padding: 5px 0;">
-                <label style="font-weight: bold; color: #d32f2f;">📍 Ubicación GPS:</label>
-                <div id="mapa-oficina" style="height: 220px; width: 100%; border: 2px solid #ccc; border-radius: 8px; margin-top: 5px; position: relative; z-index: 10;"></div>
-                <small><i>Mueva el marcador o use la lupa en el mapa para ubicar la oficina.</i></small>
+               <div><input type="checkbox" id="chkPrincipal" /> <label for="chkPrincipal">Principal</label></div>
             </div>
         </div>
     </form>
@@ -93,99 +79,29 @@
     </div>
 </div>
 
-<script>
+<script >
     $$.ready(function () {
-
-        // ==========================================
-        // LÓGICA DEL MAPA LEAFLET
-        // ==========================================
-        var mapaOficina = null;
-        var marcadorOficina = null;
-        var geocoderOficina = null;
-
-        function initMapaOficina(lat, lng) {
-            // Ayacucho por defecto
-            var latInicial = (lat && lat != 0 && lat !== "") ? parseFloat(lat) : -13.15878;
-            var lngInicial = (lng && lng != 0 && lng !== "") ? parseFloat(lng) : -74.22321;
-
-            if (mapaOficina == null) {
-                mapaOficina = L.map('mapa-oficina').setView([latInicial, lngInicial], 15);
-
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap'
-                }).addTo(mapaOficina);
-
-                marcadorOficina = L.marker([latInicial, lngInicial], { draggable: true }).addTo(mapaOficina);
-
-                marcadorOficina.on('dragend', function (e) {
-                    var posicion = marcadorOficina.getLatLng();
-                    $("#txtLatitud").val(posicion.lat.toFixed(8));
-                    $("#txtLongitud").val(posicion.lng.toFixed(8));
-                });
-
-                var geocoderControl = L.Control.geocoder({
-                    defaultMarkGeocode: false,
-                    placeholder: "Buscar lugar o referencia..."
-                }).on('markgeocode', function(e) {
-                    var centro = e.geocode.center;
-                    mapaOficina.setView(centro, 18);
-                    marcadorOficina.setLatLng(centro);
-                    $("#txtLatitud").val(centro.lat.toFixed(8));
-                    $("#txtLongitud").val(centro.lng.toFixed(8));
-                }).addTo(mapaOficina);
-
-                geocoderOficina = geocoderControl.options.geocoder;
-            } else {
-                mapaOficina.setView([latInicial, lngInicial], 15);
-                marcadorOficina.setLatLng([latInicial, lngInicial]);
-            }
-
-            // Forzar renderizado al abrir el modal
-            setTimeout(function () { mapaOficina.invalidateSize(); }, 300);
-        }
-        // ==========================================
-
         $("#btnNuevo").click(function () {
             $.data(document.body, 'OficinaId', 0);
             $("#txtOficina").val("").removeAttr('disabled');
-            $("#txtDescripcion").val("");
-            $("#txtTelefono").val("");
             $("#cboResponsable").val("").trigger("liszt:updated");
             $("#chkActivo,#chkPrincipal").prop("checked", true);
-
-            // Limpiar GPS
-            $("#txtLatitud").val("");
-            $("#txtLongitud").val("");
-
             $("#dlgNuevo").dialog("open");
-            initMapaOficina("", ""); // Iniciar mapa en blanco (Ayacucho)
             return false;
         });
-
         $("#txtBuscar").keypress(function (event) {
             if (event.which == 13) {
                 event.preventDefault();
                 $("#grdBuscar").jqGrid('setGridParam', { page: 1 }).trigger("reloadGrid");
             }
         });
-
         $("#btnBuscar").click(function () { $("#grdBuscar").trigger("reloadGrid"); });
 
-        // Configuración RESPONSIVA del modal
         $("#dlgNuevo").dialog({
             autoOpen: false,
             modal: true,
-            // Ancho dinámico: Si la pantalla es pequeña usa el 95%, sino usa 550px
-            width: $(window).width() < 600 ? '95%' : 550,
-            height: 'auto',
-            // Altura máxima dinámica: Nunca superará el 90% del alto de la pantalla actual
-            maxHeight: $(window).height() * 0.9,
-            open: function () {
-                // Asegurar que haga scroll interno si la pantalla es muy bajita
-                $(this).css('overflow-y', 'auto');
-                $(this).parent().css('overflow', 'visible');
-                $$.utils.forms.resize();
-            }
+            width: 400,
+            open: function () { $(this).parent().css('overflow', 'visible'); $$.utils.forms.resize(); }
         }).find('button.submit').click(function () {
             var $el = $(this).parents('.ui-dialog-content');
             if ($el.validate().form()) {
@@ -199,9 +115,7 @@
                         pTelefono: $("#txtTelefono").val(),
                         pUsuarioAsignadoId: $("#cboResponsable").val(),
                         pActivo: $("#chkActivo").prop('checked'),
-                        pPrincipal: $("#chkPrincipal").prop('checked'),
-                        pLatitud: $("#txtLatitud").val(),
-                        pLongitud: $("#txtLongitud").val()
+                        pPrincipal: $("#chkPrincipal").prop('checked')
                     },
                     success: function (data) {
                         Vendix.Notificar("Modificar");
@@ -217,14 +131,6 @@
             $el.dialog('close');
         });
 
-        // Evento para reajustar el modal si el usuario gira la pantalla del celular o cambia el tamaño de la ventana
-        $(window).resize(function() {
-            if ($("#dlgNuevo").dialog("isOpen")) {
-                $("#dlgNuevo").dialog("option", "width", $(window).width() < 600 ? '95%' : 550);
-                $("#dlgNuevo").dialog("option", "maxHeight", $(window).height() * 0.9);
-            }
-        });
-
         jQuery("#grdBuscar").jqGrid({
             url: "@Url.Action("ListarOficina", "Oficina")",
             datatype: "json",
@@ -233,7 +139,7 @@
                     return $.toJSON([{ Key: "Buscar", Value: $("#txtBuscar").val() }]);
                 }
             },
-            colNames: ['ID', 'DENOMINACION', 'DESCRIPCION', 'TELEFONO','ID_RESPONSABLE',"OF. Principal", 'ESTADO', 'ESTADO', 'LATITUD', 'LONGITUD'],
+            colNames: ['ID', 'DENOMINACION', 'DESCRIPCION', 'TELEFONO','ID_RESPONSABLE',"OF. Principal", 'ESTADO', 'ESTADO'],
             colModel:
                 [
                     { name: 'OficinaId', index: 'OficinaId', hidden: true },
@@ -243,9 +149,8 @@
                     { name: 'UsuarioAsignadoId', index: 'UsuarioAsignadoId', hidden: true },
                     { name: 'IndPrincipal', index: 'IndPrincipal', width: 80, align: "center" },
                     { name: 'Estado', index: 'Estado', hidden: true },
-                    { name: 'Activo', index: 'Activo', align: 'center', width: 80, formatter: ActivoFormatter },
-                    { name: 'Latitud', index: 'Latitud', hidden: true },
-                    { name: 'Longitud', index: 'Longitud', hidden: true }
+                    { name: 'Activo', index: 'Activo', align: 'center', width: 80, formatter: ActivoFormatter }
+
                 ],
             caption: "Lista Oficina",
             pager: jQuery('#grdpBuscar'),
@@ -257,6 +162,7 @@
             gridview: true,
             rownumbers: true,
             autowidth: true,
+            //paging: true,
             width: 'auto',
             height: '347px',
             ondblClickRow: function () {
@@ -269,18 +175,15 @@
                     $("#cboResponsable").val(ret.UsuarioAsignadoId).trigger("liszt:updated");
                     $("#chkActivo").prop("checked", ret.Estado == "True" ? true : false);
                     $("#chkPrincipal").prop("checked", ret.IndPrincipal == "SI" ? true : false);
-
-                    var lat = ret.Latitud || "";
-                    var lng = ret.Longitud || "";
-                    $("#txtLatitud").val(lat);
-                    $("#txtLongitud").val(lng);
-
                     $.data(document.body, 'OficinaId', ret.OficinaId);
                     $("#dlgNuevo").dialog("open");
-
-                    initMapaOficina(lat, lng);
                 }
             }
-        });
+        });//.navGrid('#grdBuscar', { edit: false, add: false, del: false });
+
+
+        
     });
 </script>
+
+

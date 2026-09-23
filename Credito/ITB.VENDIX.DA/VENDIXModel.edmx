@@ -294,6 +294,46 @@
           <Property Name="CuotasAtrazo" Type="int" Nullable="false" />
           <Property Name="DeudaAtrazo" Type="decimal" Precision="15" Scale="2" Nullable="false" />
         </EntityType>
+        <EntityType Name="CierreGerencial">
+          <Key>
+            <PropertyRef Name="CierreGerencialId" />
+          </Key>
+          <Property Name="CierreGerencialId" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Periodo" Type="date" Nullable="false" />
+          <Property Name="FechaCorte" Type="date" Nullable="false" />
+          <Property Name="Estado" Type="char" MaxLength="3" Nullable="false" />
+          <Property Name="Version" Type="int" Nullable="false" />
+          <Property Name="UsuarioCierreId" Type="int" Nullable="false" />
+          <Property Name="FechaCierre" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="Observacion" Type="varchar" MaxLength="500" />
+        </EntityType>
+        <EntityType Name="CierreGerencialDetalle">
+          <Key>
+            <PropertyRef Name="CierreGerencialDetalleId" />
+          </Key>
+          <Property Name="CierreGerencialDetalleId" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CierreGerencialId" Type="bigint" Nullable="false" />
+          <Property Name="UsuarioId" Type="int" Nullable="false" />
+          <Property Name="NombreUsuario" Type="varchar" MaxLength="100" />
+          <Property Name="NombreCompleto" Type="varchar" MaxLength="250" />
+          <Property Name="Asesor" Type="varchar" MaxLength="150" />
+          <Property Name="Supervisor" Type="varchar" MaxLength="150" />
+          <Property Name="Mercado" Type="varchar" MaxLength="150" />
+          <Property Name="Orden" Type="smallint" />
+          <Property Name="TipoCartera" Type="varchar" MaxLength="20" Nullable="false" />
+          <Property Name="FuenteInicial" Type="varchar" MaxLength="250" />
+          <Property Name="CapitalCierre" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="TotalClientesActivos" Type="int" Nullable="false" />
+          <Property Name="MoraGeneral" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="VencidosCuotasCierre" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="ClientesVencidosCierre" Type="int" />
+          <Property Name="DefinicionVencidos" Type="varchar" MaxLength="50" />
+          <Property Name="ClientesNuevosMes" Type="int" />
+          <Property Name="MontoClientesNuevosMes" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="MontoCobradoMes" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="DesembolsosMes" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="NroOperacionesMes" Type="int" />
+        </EntityType>
         <EntityType Name="Credito">
           <Key>
             <PropertyRef Name="CreditoId" />
@@ -331,6 +371,18 @@
           <Property Name="UsuarioModId" Type="int" />
           <Property Name="FechaMod" Type="datetime" />
           <Property Name="IndIrrecuperable" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="CreditoCondonacion">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="CreditoId" Type="int" Nullable="false" />
+          <Property Name="CajaDiarioId" Type="int" Nullable="false" />
+          <Property Name="Fecha" Type="datetime" Nullable="false" />
+          <Property Name="MoraCondonacion" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+          <Property Name="TotalPago" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+          <Property Name="IndAprobado" Type="bit" Nullable="false" />
         </EntityType>
         <EntityType Name="CreditoImagen">
           <Key>
@@ -376,6 +428,29 @@
           <Property Name="Valor" Type="decimal" Precision="16" Scale="2" Nullable="false" />
           <Property Name="Estado" Type="bit" Nullable="false" />
           <Property Name="Ind" Type="bit" Nullable="false" />
+        </EntityType>
+        <EntityType Name="MetaGerencialAnalista">
+          <Key>
+            <PropertyRef Name="MetaGerencialAnalistaId" />
+          </Key>
+          <Property Name="MetaGerencialAnalistaId" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Periodo" Type="date" Nullable="false" />
+          <Property Name="UsuarioId" Type="int" Nullable="false" />
+          <Property Name="Asesor" Type="varchar" MaxLength="150" />
+          <Property Name="Supervisor" Type="varchar" MaxLength="150" />
+          <Property Name="Mercado" Type="varchar" MaxLength="150" />
+          <Property Name="Orden" Type="smallint" />
+          <Property Name="TipoCartera" Type="varchar" MaxLength="20" Nullable="false" />
+          <Property Name="FuenteInicial" Type="varchar" MaxLength="250" />
+          <Property Name="MetaCapitalCierre" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="MetaClientesActivosCierre" Type="int" />
+          <Property Name="MetaVencidosMaximoCierre" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="MetaRecuperacionVencidosMes" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="Activo" Type="bit" Nullable="false" />
+          <Property Name="UsuarioRegistroId" Type="int" />
+          <Property Name="FechaRegistro" Type="datetime2" Precision="0" Nullable="false" />
+          <Property Name="UsuarioModificacionId" Type="int" />
+          <Property Name="FechaModificacion" Type="datetime2" Precision="0" />
         </EntityType>
         <EntityType Name="MovimientoCaja">
           <Key>
@@ -524,6 +599,20 @@
           <Property Name="Estado" Type="char" MaxLength="3" Nullable="false" />
           <Property Name="UsuarioCreadorId" Type="int" Nullable="false" />
         </EntityType>
+        <EntityType Name="VencidoGerencialAperturaDetalle">
+          <Key>
+            <PropertyRef Name="VencidoGerencialAperturaDetalleId" />
+          </Key>
+          <Property Name="VencidoGerencialAperturaDetalleId" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="Periodo" Type="date" Nullable="false" />
+          <Property Name="UsuarioId" Type="int" Nullable="false" />
+          <Property Name="CreditoId" Type="int" Nullable="false" />
+          <Property Name="PlanPagoId" Type="int" Nullable="false" />
+          <Property Name="FechaVencimiento" Type="date" Nullable="false" />
+          <Property Name="SaldoVencidoApertura" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+          <Property Name="CierreOrigenId" Type="bigint" Nullable="false" />
+          <Property Name="FechaRegistro" Type="datetime2" Precision="0" Nullable="false" />
+        </EntityType>
         <EntityType Name="Acceso">
           <Key>
             <PropertyRef Name="AccesoId" />
@@ -550,8 +639,6 @@
           <Property Name="TopeCredito" Type="decimal" Precision="15" Scale="2" />
           <Property Name="ClasificacionRiesgoSBS" Type="int" />
           <Property Name="ClasificacionRiesgoSBSObs" Type="varchar" MaxLength="500" />
-          <Property Name="Latitud" Type="decimal" Precision="11" Scale="8" />
-          <Property Name="Longitud" Type="decimal" Precision="11" Scale="8" />
         </EntityType>
         <EntityType Name="Departamento">
           <Key>
@@ -600,8 +687,6 @@
           <Property Name="IndPrincipal" Type="bit" Nullable="false" />
           <Property Name="Estado" Type="bit" Nullable="false" />
           <Property Name="UsuarioAsignadoId" Type="int" Nullable="false" />
-          <Property Name="Latitud" Type="decimal" Precision="12" Scale="10" />
-          <Property Name="Longitud" Type="decimal" Precision="12" Scale="10" />
         </EntityType>
         <EntityType Name="Persona">
           <Key>
@@ -903,6 +988,30 @@
             </Principal>
             <Dependent Role="Credito">
               <PropertyRef Name="OrdenVentaId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__CreditoCo__CajaD__2A8B4280">
+          <End Role="CajaDiario" Type="Self.CajaDiario" Multiplicity="1" />
+          <End Role="CreditoCondonacion" Type="Self.CreditoCondonacion" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CajaDiario">
+              <PropertyRef Name="CajaDiarioId" />
+            </Principal>
+            <Dependent Role="CreditoCondonacion">
+              <PropertyRef Name="CajaDiarioId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__CreditoCo__Credi__29971E47">
+          <End Role="Credito" Type="Self.Credito" Multiplicity="1" />
+          <End Role="CreditoCondonacion" Type="Self.CreditoCondonacion" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Credito">
+              <PropertyRef Name="CreditoId" />
+            </Principal>
+            <Dependent Role="CreditoCondonacion">
+              <PropertyRef Name="CreditoId" />
             </Dependent>
           </ReferentialConstraint>
         </Association>
@@ -1470,6 +1579,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_CierreDetalle_Cierre">
+          <End Role="CierreGerencial" Type="Self.CierreGerencial" Multiplicity="1" />
+          <End Role="CierreGerencialDetalle" Type="Self.CierreGerencialDetalle" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CierreGerencial">
+              <PropertyRef Name="CierreGerencialId" />
+            </Principal>
+            <Dependent Role="CierreGerencialDetalle">
+              <PropertyRef Name="CierreGerencialId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Association Name="FK_Cliente_Persona">
           <End Role="Persona" Type="Self.Persona" Multiplicity="1" />
           <End Role="Cliente" Type="Self.Cliente" Multiplicity="*" />
@@ -1866,6 +1987,18 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <Association Name="FK_VencidoGerencialApertura_Cierre">
+          <End Role="CierreGerencial" Type="Self.CierreGerencial" Multiplicity="1" />
+          <End Role="VencidoGerencialAperturaDetalle" Type="Self.VencidoGerencialAperturaDetalle" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CierreGerencial">
+              <PropertyRef Name="CierreGerencialId" />
+            </Principal>
+            <Dependent Role="VencidoGerencialAperturaDetalle">
+              <PropertyRef Name="CierreOrigenId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
         <Function Name="usp_CrearMovimientoDet" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="ALMACEN">
           <Parameter Name="MovimientoId" Type="int" Mode="In" />
           <Parameter Name="MovimientoDetId" Type="int" Mode="In" />
@@ -1906,6 +2039,82 @@
         </Function>
         <Function Name="ActualizarClientesNuevos" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
           <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+        </Function>
+        <Function Name="ufn_ActividadGerencialMensual" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="Periodo" Type="date" Mode="In" />
+          <Parameter Name="FechaCorte" Type="date" Mode="In" />
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
+          <ReturnType>
+            <CollectionType>
+              <RowType>
+                <Property Name="UsuarioId" Type="int" Nullable="false" />
+                <Property Name="ClientesNuevosMes" Type="int" Nullable="false" />
+                <Property Name="MontoClientesNuevosMes" Type="decimal" Precision="18" Scale="2" />
+                <Property Name="MontoCobradoMes" Type="decimal" Precision="18" Scale="2" />
+                <Property Name="DesembolsosMes" Type="decimal" Precision="18" Scale="2" />
+                <Property Name="NroOperacionesMes" Type="int" Nullable="false" />
+              </RowType>
+            </CollectionType>
+          </ReturnType>
+        </Function>
+        <Function Name="ufn_ClientesNuevosGerenciales" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="Periodo" Type="date" Mode="In" />
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
+          <ReturnType>
+            <CollectionType>
+              <RowType>
+                <Property Name="UsuarioId" Type="int" Nullable="false" />
+                <Property Name="ClientesNuevosMes" Type="int" />
+              </RowType>
+            </CollectionType>
+          </ReturnType>
+        </Function>
+        <Function Name="ufn_FechaGerencial" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO" ReturnType="datetime2" />
+        <Function Name="ufn_MetricasGerencialesActuales" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="FechaCorte" Type="date" Mode="In" />
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
+          <ReturnType>
+            <CollectionType>
+              <RowType>
+                <Property Name="UsuarioId" Type="int" Nullable="false" />
+                <Property Name="CapitalActual" Type="decimal" Precision="18" Scale="2" />
+                <Property Name="ClientesActivosActual" Type="int" />
+                <Property Name="VencidosActual" Type="decimal" Precision="18" Scale="2" />
+                <Property Name="ClientesVencidosActual" Type="int" />
+              </RowType>
+            </CollectionType>
+          </ReturnType>
+        </Function>
+        <Function Name="ufn_RecuperacionVencidosGerencial" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="Periodo" Type="date" Mode="In" />
+          <Parameter Name="FechaCorte" Type="date" Mode="In" />
+          <ReturnType>
+            <CollectionType>
+              <RowType>
+                <Property Name="UsuarioId" Type="int" Nullable="false" />
+                <Property Name="VencidosApertura" Type="decimal" Precision="18" Scale="2" />
+                <Property Name="VencidosAperturaPendiente" Type="decimal" Precision="18" Scale="2" />
+                <Property Name="RecuperacionVencidosActual" Type="decimal" Precision="18" Scale="2" />
+              </RowType>
+            </CollectionType>
+          </ReturnType>
+        </Function>
+        <Function Name="ufn_SaldosCuotasGerenciales" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="FechaCorte" Type="date" Mode="In" />
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
+          <ReturnType>
+            <CollectionType>
+              <RowType>
+                <Property Name="UsuarioId" Type="int" Nullable="false" />
+                <Property Name="PersonaId" Type="int" Nullable="false" />
+                <Property Name="CreditoId" Type="int" Nullable="false" />
+                <Property Name="PlanPagoId" Type="int" Nullable="false" />
+                <Property Name="FechaVencimiento" Type="date" Nullable="false" />
+                <Property Name="ImporteCuota" Type="decimal" Precision="18" Scale="2" />
+                <Property Name="SaldoCuota" Type="decimal" Precision="18" Scale="2" />
+              </RowType>
+            </CollectionType>
+          </ReturnType>
         </Function>
         <Function Name="usp_ActualizarSaldoCartera" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
           <Parameter Name="OficinaId" Type="int" Mode="In" />
@@ -1985,6 +2194,46 @@
           <Parameter Name="FechaCalculo" Type="date" Mode="In" />
           <Parameter Name="IndCancelacion" Type="bit" Mode="In" />
         </Function>
+        <Function Name="usp_DashboardAdminAnalistas" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="FechaCorte" Type="date" Mode="In" />
+        </Function>
+        <Function Name="usp_DashboardAdminFlujoCaja" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="FechaCorte" Type="date" Mode="In" />
+        </Function>
+        <Function Name="usp_DashboardAdminHistorico" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="FechaCorte" Type="date" Mode="In" />
+          <Parameter Name="Dias" Type="int" Mode="In" />
+        </Function>
+        <Function Name="usp_DashboardAdminHistoricoMensual" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="FechaCorte" Type="date" Mode="In" />
+          <Parameter Name="Meses" Type="int" Mode="In" />
+        </Function>
+        <Function Name="usp_DashboardAdminResumen" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="FechaCorte" Type="date" Mode="In" />
+        </Function>
+        <Function Name="usp_DashboardGestor" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="UsuarioId" Type="int" Mode="In" />
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
+          <Parameter Name="FechaCorte" Type="date" Mode="In" />
+        </Function>
+        <Function Name="usp_DashboardGestorClientesMora" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="UsuarioId" Type="int" Mode="In" />
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
+          <Parameter Name="Tipo" Type="varchar" Mode="In" />
+          <Parameter Name="FechaCorte" Type="date" Mode="In" />
+        </Function>
+        <Function Name="usp_DashboardProductividad" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="UsuarioId" Type="int" Mode="In" />
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
+        </Function>
+        <Function Name="usp_DashboardRanking" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="UsuarioId" Type="int" Mode="In" />
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
+          <Parameter Name="FechaCorte" Type="date" Mode="In" />
+        </Function>
+        <Function Name="usp_DashboardTopAnterior" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
+        </Function>
         <Function Name="usp_EntradaSalidaCajaChicaDiario" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
           <Parameter Name="CajaChicaDiarioId" Type="int" Mode="In" />
           <Parameter Name="PersonaId" Type="int" Mode="In" />
@@ -2006,6 +2255,27 @@
           <Parameter Name="CreditoId" Type="int" Mode="In" />
         </Function>
         <Function Name="usp_FechaBD" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO" />
+        <Function Name="usp_GenerarCierreGerencialMensual" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="Periodo" Type="date" Mode="In" />
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
+          <Parameter Name="UsuarioCierreId" Type="int" Mode="In" />
+        </Function>
+        <Function Name="usp_GuardarMetaGerencialDefinitiva" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="Periodo" Type="date" Mode="In" />
+          <Parameter Name="UsuarioId" Type="int" Mode="In" />
+          <Parameter Name="MetaCapitalCierre" Type="decimal" Mode="In" />
+          <Parameter Name="MetaClientesActivosCierre" Type="int" Mode="In" />
+          <Parameter Name="MetaVencidosMaximoCierre" Type="decimal" Mode="In" />
+          <Parameter Name="MetaRecuperacionVencidosMes" Type="decimal" Mode="In" />
+          <Parameter Name="UsuarioRegistroId" Type="int" Mode="In" />
+        </Function>
+        <Function Name="usp_IntentarGenerarCierreGerencialMensual" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
+          <Parameter Name="UsuarioCierreId" Type="int" Mode="In" />
+        </Function>
+        <Function Name="usp_ListarMetasGerencialesDefinitivas" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="Periodo" Type="date" Mode="In" />
+        </Function>
         <Function Name="usp_ListarSaldoCartera" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
           <Parameter Name="Anio" Type="int" Mode="In" />
           <Parameter Name="Mes" Type="int" Mode="In" />
@@ -2016,6 +2286,14 @@
           <Parameter Name="MovimientoCajaId" Type="int" Mode="In" />
           <Parameter Name="Observacion" Type="varchar(max)" Mode="In" />
           <Parameter Name="UsuarioId" Type="int" Mode="In" />
+        </Function>
+        <Function Name="usp_ObtenerAvanceMetasGerenciales" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="Periodo" Type="date" Mode="In" />
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
+        </Function>
+        <Function Name="usp_ObtenerAvanceMetasGerencialesBase" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="Periodo" Type="date" Mode="In" />
+          <Parameter Name="OficinaId" Type="int" Mode="In" />
         </Function>
         <Function Name="usp_ObtenerMontoPendientePlanPago" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
           <Parameter Name="OficinaId" Type="int" Mode="In" />
@@ -2068,6 +2346,14 @@
         <Function Name="usp_RegenerarPlanPago" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
           <Parameter Name="CreditoId" Type="int" Mode="In" />
         </Function>
+        <Function Name="usp_RegistrarTransferenciaBancos" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="BovedaId" Type="int" Mode="In" />
+          <Parameter Name="TipoPagoOrigenId" Type="smallint" Mode="In" />
+          <Parameter Name="TipoPagoDestinoId" Type="smallint" Mode="In" />
+          <Parameter Name="Importe" Type="decimal" Mode="In" />
+          <Parameter Name="Glosa" Type="varchar(max)" Mode="In" />
+          <Parameter Name="UsuarioRegId" Type="int" Mode="In" />
+        </Function>
         <Function Name="usp_ReprogramarCredito" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
           <Parameter Name="CreditoId" Type="int" Mode="In" />
           <Parameter Name="UsuarioId" Type="int" Mode="In" />
@@ -2104,6 +2390,7 @@
         <Function Name="usp_RptCobroDiario" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
           <Parameter Name="UsuarioId" Type="int" Mode="In" />
           <Parameter Name="OficinaId" Type="int" Mode="In" />
+          <Parameter Name="CreditoId" Type="int" Mode="In" />
         </Function>
         <Function Name="usp_RptCobroDiarioDetalle" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
           <Parameter Name="UsuarioId" Type="int" Mode="In" />
@@ -2192,6 +2479,11 @@
           <Parameter Name="InteresMensual" Type="decimal" Mode="In" />
           <Parameter Name="FechaPrimerPago" Type="date" Mode="In" />
           <Parameter Name="GastosAdm" Type="decimal" Mode="In" />
+        </Function>
+        <Function Name="usp_SolicitarCondonacion" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+          <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+          <Parameter Name="CreditoId" Type="int" Mode="In" />
+          <Parameter Name="MoraCondonacion" Type="decimal" Mode="In" />
         </Function>
         <Function Name="usp_SolicitudCredito_Del" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
           <Parameter Name="CreditoId" Type="int" Mode="In" />
@@ -2305,11 +2597,15 @@
           <EntitySet Name="CajaDiario" EntityType="Self.CajaDiario" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="Cargo" EntityType="Self.Cargo" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="CentralRiesgo" EntityType="Self.CentralRiesgo" Schema="CREDITO" store:Type="Tables" />
+          <EntitySet Name="CierreGerencial" EntityType="Self.CierreGerencial" Schema="CREDITO" store:Type="Tables" />
+          <EntitySet Name="CierreGerencialDetalle" EntityType="Self.CierreGerencialDetalle" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="Credito" EntityType="Self.Credito" Schema="CREDITO" store:Type="Tables" />
+          <EntitySet Name="CreditoCondonacion" EntityType="Self.CreditoCondonacion" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="CreditoImagen" EntityType="Self.CreditoImagen" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="CreditoMora" EntityType="Self.CreditoMora" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="CuentaxCobrar" EntityType="Self.CuentaxCobrar" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="GastosAdm" EntityType="Self.GastosAdm" Schema="CREDITO" store:Type="Tables" />
+          <EntitySet Name="MetaGerencialAnalista" EntityType="Self.MetaGerencialAnalista" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="MovimientoCaja" EntityType="Self.MovimientoCaja" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="MovimientoCajaAnu" EntityType="Self.MovimientoCajaAnu" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="MovimientoCajaChica" EntityType="Self.MovimientoCajaChica" Schema="CREDITO" store:Type="Tables" />
@@ -2320,6 +2616,7 @@
           <EntitySet Name="SaldoCarteraMensual" EntityType="Self.SaldoCarteraMensual" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="Subtarea" EntityType="Self.Subtarea" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="Tarea" EntityType="Self.Tarea" Schema="CREDITO" store:Type="Tables" />
+          <EntitySet Name="VencidoGerencialAperturaDetalle" EntityType="Self.VencidoGerencialAperturaDetalle" Schema="CREDITO" store:Type="Tables" />
           <EntitySet Name="Acceso" EntityType="Self.Acceso" Schema="MAESTRO" store:Type="Tables" />
           <EntitySet Name="Cliente" EntityType="Self.Cliente" Schema="MAESTRO" store:Type="Tables" />
           <EntitySet Name="Departamento" EntityType="Self.Departamento" Schema="MAESTRO" store:Type="Tables" />
@@ -2379,6 +2676,14 @@
           <AssociationSet Name="FK__Credito__OrdenVe__3E5DFC5A" Association="Self.FK__Credito__OrdenVe__3E5DFC5A">
             <End Role="OrdenVenta" EntitySet="OrdenVenta" />
             <End Role="Credito" EntitySet="Credito" />
+          </AssociationSet>
+          <AssociationSet Name="FK__CreditoCo__CajaD__2A8B4280" Association="Self.FK__CreditoCo__CajaD__2A8B4280">
+            <End Role="CajaDiario" EntitySet="CajaDiario" />
+            <End Role="CreditoCondonacion" EntitySet="CreditoCondonacion" />
+          </AssociationSet>
+          <AssociationSet Name="FK__CreditoCo__Credi__29971E47" Association="Self.FK__CreditoCo__Credi__29971E47">
+            <End Role="Credito" EntitySet="Credito" />
+            <End Role="CreditoCondonacion" EntitySet="CreditoCondonacion" />
           </AssociationSet>
           <AssociationSet Name="FK__CreditoEx__Credi__5AFA3B08" Association="Self.FK__CreditoEx__Credi__5AFA3B08">
             <End Role="Credito" EntitySet="Credito" />
@@ -2568,6 +2873,10 @@
             <End Role="Usuario" EntitySet="Usuario" />
             <End Role="Cargo" EntitySet="Cargo" />
           </AssociationSet>
+          <AssociationSet Name="FK_CierreDetalle_Cierre" Association="Self.FK_CierreDetalle_Cierre">
+            <End Role="CierreGerencial" EntitySet="CierreGerencial" />
+            <End Role="CierreGerencialDetalle" EntitySet="CierreGerencialDetalle" />
+          </AssociationSet>
           <AssociationSet Name="FK_Cliente_Persona" Association="Self.FK_Cliente_Persona">
             <End Role="Persona" EntitySet="Persona" />
             <End Role="Cliente" EntitySet="Cliente" />
@@ -2699,6 +3008,10 @@
           <AssociationSet Name="FK_SERIEARTICULO_MOVIMIENTODET" Association="Self.FK_SERIEARTICULO_MOVIMIENTODET">
             <End Role="MovimientoDet" EntitySet="MovimientoDet" />
             <End Role="SerieArticulo" EntitySet="SerieArticulo" />
+          </AssociationSet>
+          <AssociationSet Name="FK_VencidoGerencialApertura_Cierre" Association="Self.FK_VencidoGerencialApertura_Cierre">
+            <End Role="CierreGerencial" EntitySet="CierreGerencial" />
+            <End Role="VencidoGerencialAperturaDetalle" EntitySet="VencidoGerencialAperturaDetalle" />
           </AssociationSet>
         </EntityContainer>
       </Schema></edmx:StorageModels>
@@ -3000,6 +3313,7 @@
           <NavigationProperty Name="Caja" Relationship="Self.FK__CajaDiari__CajaI__0EE3F362" FromRole="CajaDiario" ToRole="Caja" />
           <NavigationProperty Name="Usuario" Relationship="Self.FK__CajaDiari__Usuar__0DEFCF29" FromRole="CajaDiario" ToRole="Usuario" />
           <NavigationProperty Name="MovimientoCaja" Relationship="Self.FK__Movimient__CajaD__149CCCB8" FromRole="CajaDiario" ToRole="MovimientoCaja" />
+          <NavigationProperty Name="CreditoCondonacion" Relationship="VENDIXModel.FK__CreditoCo__CajaD__2A8B4280" FromRole="CajaDiario" ToRole="CreditoCondonacion" />
         </EntityType>
         <EntityType Name="Cargo">
           <Key>
@@ -3083,6 +3397,7 @@
           <NavigationProperty Name="MovimientoCaja" Relationship="Self.FK_MovimientoCaja_Credito" FromRole="Credito" ToRole="MovimientoCaja" />
           <NavigationProperty Name="Tarea" Relationship="VENDIXModel.FK__Tarea__CreditoId__78F3E6EC" FromRole="Credito" ToRole="Tarea" />
           <NavigationProperty Name="CreditoMora" Relationship="VENDIXModel.FK__CreditoMo__Credi__17786E0C" FromRole="Credito" ToRole="CreditoMora" />
+          <NavigationProperty Name="CreditoCondonacion" Relationship="VENDIXModel.FK__CreditoCo__Credi__29971E47" FromRole="Credito" ToRole="CreditoCondonacion" />
         </EntityType>
         <EntityType Name="CreditoImagen">
           <Key>
@@ -3324,8 +3639,6 @@
           <NavigationProperty Name="UsuarioRol" Relationship="Self.FK__UsuarioRo__Ofici__764D4FC2" FromRole="Oficina" ToRole="UsuarioRol" />
           <NavigationProperty Name="Usuario" Relationship="Self.FK_Oficina_Usuario" FromRole="Oficina" ToRole="Usuario" />
           <NavigationProperty Name="OrdenVenta" Relationship="Self.FK_ORDENVENTA_OficinaId" FromRole="Oficina" ToRole="OrdenVenta" />
-          <Property Name="Latitud" Type="Decimal" Precision="12" Scale="10" />
-          <Property Name="Longitud" Type="Decimal" Precision="12" Scale="10" />
         </EntityType>
         <EntityType Name="Persona">
           <Key>
@@ -5143,16 +5456,7 @@
             <Parameter Name="CreditoId" Mode="In" Type="Int32" />
             <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
           </FunctionImport>
-          <FunctionImport Name="usp_RptAval" ReturnType="Collection(VENDIXModel.usp_RptAval_Result)">
-          <Parameter Name="PersonaId" Mode="In" Type="Int32" />
-          </FunctionImport>
           <FunctionImport Name="usp_RptCajaDiario" ReturnType="Collection(VENDIXModel.usp_RptCajaDiario_Result)">
-            <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
-            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
-            <Parameter Name="FechaInicio" Mode="In" Type="DateTime" />
-            <Parameter Name="FechaFin" Mode="In" Type="DateTime" />
-          </FunctionImport>
-          <FunctionImport Name="usp_RptClientesInactivos" ReturnType="Collection(VENDIXModel.usp_RptClientesInactivos_Result)">
             <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
             <Parameter Name="OficinaId" Mode="In" Type="Int32" />
             <Parameter Name="FechaInicio" Mode="In" Type="DateTime" />
@@ -5181,12 +5485,6 @@
             <Parameter Name="FechaIni" Mode="In" Type="DateTime" />
             <Parameter Name="FechaFin" Mode="In" Type="DateTime" />
             <Parameter Name="EstadoCredito" Mode="In" Type="String" />
-          </FunctionImport>
-          <FunctionImport Name="usp_RptCreditosActivos" ReturnType="Collection(VENDIXModel.usp_RptCreditosActivos_Result)">
-            <Parameter Name="FechaIni" Mode="In" Type="DateTime" />
-            <Parameter Name="FechaFin" Mode="In" Type="DateTime" />
-            <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
-            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
           </FunctionImport>
           <FunctionImport Name="usp_RptCreditosCierres" ReturnType="Collection(VENDIXModel.usp_RptCreditosCierres_Result)">
             <Parameter Name="FechaIni" Mode="In" Type="DateTime" />
@@ -5227,14 +5525,6 @@
           <FunctionImport Name="usp_RptSaldosCajaResumenIngreso" ReturnType="Collection(String)">
             <Parameter Name="CajaDiarioId" Mode="In" Type="Int32" />
             <Parameter Name="OficinaId" Mode="In" Type="Int32" />
-          </FunctionImport>
-          <FunctionImport Name="usp_SimuladorCredito" ReturnType="Collection(VENDIXModel.usp_SimuladorCredito_Result)">
-            <Parameter Name="Monto" Mode="In" Type="Decimal" />
-            <Parameter Name="FormaPago" Mode="In" Type="String" />
-            <Parameter Name="NroCuotas" Mode="In" Type="Int32" />
-            <Parameter Name="InteresMensual" Mode="In" Type="Decimal" />
-            <Parameter Name="FechaPrimerPago" Mode="In" Type="DateTime" />
-            <Parameter Name="GastosAdm" Mode="In" Type="Decimal" />
           </FunctionImport>
           <FunctionImport Name="usp_SolicitudCredito_Del">
           <Parameter Name="CreditoId" Mode="In" Type="Int32" />
@@ -5298,11 +5588,6 @@
             <End Role="Boveda" EntitySet="Boveda" />
             <End Role="BovedaMov" EntitySet="BovedaMov" />
           </AssociationSet>
-          <FunctionImport Name="usp_CerrarCajasDiarios">
-            <Parameter Name="UsuarioCierreId" Mode="In" Type="Int32" />
-            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
-            <Parameter Name="Sobrante" Mode="In" Type="Decimal" />
-          </FunctionImport>
           <FunctionImport Name="usp_ResumenCuentaBoveda" ReturnType="Collection(String)">
           <Parameter Name="BovedaId" Mode="In" Type="Int32" />
           </FunctionImport>
@@ -5355,10 +5640,6 @@
             <End Role="Tarea" EntitySet="Tarea" />
             <End Role="Subtarea" EntitySet="Subtarea" />
           </AssociationSet>
-          <FunctionImport Name="usp_RptCobroDiario" ReturnType="Collection(VENDIXModel.usp_RptCobroDiario_Result)">
-            <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
-            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
-          </FunctionImport>
           <EntitySet Name="CreditoMora" EntityType="VENDIXModel.CreditoMora" />
           <AssociationSet Name="FK__CreditoMo__Credi__17786E0C" Association="VENDIXModel.FK__CreditoMo__Credi__17786E0C">
             <End Role="Credito" EntitySet="Credito" />
@@ -5368,6 +5649,163 @@
             <End Role="MovimientoCaja" EntitySet="MovimientoCaja" />
             <End Role="CreditoMora" EntitySet="CreditoMora" />
           </AssociationSet>
+          <FunctionImport Name="usp_RptClientesInactivos" ReturnType="Collection(VENDIXModel.usp_RptClientesInactivos_Result)">
+            <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+            <Parameter Name="FechaInicio" Mode="In" Type="DateTime" />
+            <Parameter Name="FechaFin" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <FunctionImport Name="usp_RptCreditosActivos" ReturnType="Collection(VENDIXModel.usp_RptCreditosActivos_Result)">
+            <Parameter Name="FechaIni" Mode="In" Type="DateTime" />
+            <Parameter Name="FechaFin" Mode="In" Type="DateTime" />
+            <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_RegistrarTransferenciaBancos" ReturnType="Collection(Int32)">
+            <Parameter Name="BovedaId" Mode="In" Type="Int32" />
+            <Parameter Name="TipoPagoOrigenId" Mode="In" Type="Int16" />
+            <Parameter Name="TipoPagoDestinoId" Mode="In" Type="Int16" />
+            <Parameter Name="Importe" Mode="In" Type="Decimal" />
+            <Parameter Name="Glosa" Mode="In" Type="String" />
+            <Parameter Name="UsuarioRegId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_CerrarCajasDiarios">
+            <Parameter Name="UsuarioCierreId" Mode="In" Type="Int32" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+            <Parameter Name="Sobrante" Mode="In" Type="Decimal" />
+          </FunctionImport>
+          <FunctionImport Name="usp_SimuladorCredito" ReturnType="Collection(VENDIXModel.usp_SimuladorCredito_Result)">
+            <Parameter Name="Monto" Mode="In" Type="Decimal" />
+            <Parameter Name="FormaPago" Mode="In" Type="String" />
+            <Parameter Name="NroCuotas" Mode="In" Type="Int32" />
+            <Parameter Name="InteresMensual" Mode="In" Type="Decimal" />
+            <Parameter Name="FechaPrimerPago" Mode="In" Type="DateTime" />
+            <Parameter Name="GastosAdm" Mode="In" Type="Decimal" />
+          </FunctionImport>
+          <FunctionImport Name="usp_RptAval" ReturnType="Collection(VENDIXModel.usp_RptAval_Result)">
+          <Parameter Name="PersonaId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_DashboardRanking" ReturnType="Collection(VENDIXModel.usp_DashboardRanking_Result)">
+            <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+            <Parameter Name="FechaCorte" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <FunctionImport Name="usp_DashboardTopAnterior" ReturnType="Collection(VENDIXModel.usp_DashboardTopAnterior_Result)">
+          <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_RptCobroDiario" ReturnType="Collection(VENDIXModel.usp_RptCobroDiario_Result)">
+            <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+            <Parameter Name="CreditoId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_DashboardAdminFlujoCaja" ReturnType="Collection(VENDIXModel.usp_DashboardAdminFlujoCaja_Result)">
+          <Parameter Name="FechaCorte" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <FunctionImport Name="usp_DashboardAdminHistorico" ReturnType="Collection(VENDIXModel.usp_DashboardAdminHistorico_Result)">
+            <Parameter Name="FechaCorte" Mode="In" Type="DateTime" />
+            <Parameter Name="Dias" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_DashboardAdminHistoricoMensual" ReturnType="Collection(VENDIXModel.usp_DashboardAdminHistoricoMensual_Result)">
+            <Parameter Name="FechaCorte" Mode="In" Type="DateTime" />
+            <Parameter Name="Meses" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_DashboardAdminAnalistas" ReturnType="Collection(VENDIXModel.usp_DashboardAdminAnalistas_Result)">
+          <Parameter Name="FechaCorte" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <FunctionImport Name="usp_DashboardAdminResumen" ReturnType="Collection(VENDIXModel.usp_DashboardAdminResumen_Result)">
+          <Parameter Name="FechaCorte" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <EntitySet Name="CreditoCondonacion" EntityType="VENDIXModel.CreditoCondonacion" />
+          <AssociationSet Name="FK__CreditoCo__CajaD__2A8B4280" Association="VENDIXModel.FK__CreditoCo__CajaD__2A8B4280">
+            <End Role="CajaDiario" EntitySet="CajaDiario" />
+            <End Role="CreditoCondonacion" EntitySet="CreditoCondonacion" />
+          </AssociationSet>
+          <AssociationSet Name="FK__CreditoCo__Credi__29971E47" Association="VENDIXModel.FK__CreditoCo__Credi__29971E47">
+            <End Role="Credito" EntitySet="Credito" />
+            <End Role="CreditoCondonacion" EntitySet="CreditoCondonacion" />
+          </AssociationSet>
+          <EntitySet Name="CierreGerencial" EntityType="VENDIXModel.CierreGerencial" />
+          <EntitySet Name="CierreGerencialDetalle" EntityType="VENDIXModel.CierreGerencialDetalle" />
+          <EntitySet Name="MetaGerencialAnalista" EntityType="VENDIXModel.MetaGerencialAnalista" />
+          <EntitySet Name="VencidoGerencialAperturaDetalle" EntityType="VENDIXModel.VencidoGerencialAperturaDetalle" />
+          <AssociationSet Name="FK_CierreDetalle_Cierre" Association="VENDIXModel.FK_CierreDetalle_Cierre">
+            <End Role="CierreGerencial" EntitySet="CierreGerencial" />
+            <End Role="CierreGerencialDetalle" EntitySet="CierreGerencialDetalle" />
+          </AssociationSet>
+          <AssociationSet Name="FK_VencidoGerencialApertura_Cierre" Association="VENDIXModel.FK_VencidoGerencialApertura_Cierre">
+            <End Role="CierreGerencial" EntitySet="CierreGerencial" />
+            <End Role="VencidoGerencialAperturaDetalle" EntitySet="VencidoGerencialAperturaDetalle" />
+          </AssociationSet>
+          <FunctionImport Name="ufn_ActividadGerencialMensual" IsComposable="true" ReturnType="Collection(VENDIXModel.ufn_ActividadGerencialMensual_Result)">
+            <Parameter Name="Periodo" Mode="In" Type="DateTime" />
+            <Parameter Name="FechaCorte" Mode="In" Type="DateTime" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="ufn_ClientesNuevosGerenciales" IsComposable="true" ReturnType="Collection(VENDIXModel.ufn_ClientesNuevosGerenciales_Result)">
+            <Parameter Name="Periodo" Mode="In" Type="DateTime" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="ufn_MetricasGerencialesActuales" IsComposable="true" ReturnType="Collection(VENDIXModel.ufn_MetricasGerencialesActuales_Result)">
+            <Parameter Name="FechaCorte" Mode="In" Type="DateTime" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="ufn_RecuperacionVencidosGerencial" IsComposable="true" ReturnType="Collection(VENDIXModel.ufn_RecuperacionVencidosGerencial_Result)">
+            <Parameter Name="Periodo" Mode="In" Type="DateTime" />
+            <Parameter Name="FechaCorte" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <FunctionImport Name="ufn_SaldosCuotasGerenciales" IsComposable="true" ReturnType="Collection(VENDIXModel.ufn_SaldosCuotasGerenciales_Result)">
+            <Parameter Name="FechaCorte" Mode="In" Type="DateTime" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_DashboardGestorClientesMora" ReturnType="Collection(VENDIXModel.usp_DashboardGestorClientesMora_Result)">
+            <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+            <Parameter Name="Tipo" Mode="In" Type="String" />
+            <Parameter Name="FechaCorte" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <FunctionImport Name="usp_GenerarCierreGerencialMensual" ReturnType="Collection(VENDIXModel.usp_GenerarCierreGerencialMensual_Result)">
+            <Parameter Name="Periodo" Mode="In" Type="DateTime" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+            <Parameter Name="UsuarioCierreId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_GuardarMetaGerencialDefinitiva" ReturnType="Collection(VENDIXModel.usp_GuardarMetaGerencialDefinitiva_Result)">
+            <Parameter Name="Periodo" Mode="In" Type="DateTime" />
+            <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
+            <Parameter Name="MetaCapitalCierre" Mode="In" Type="Decimal" />
+            <Parameter Name="MetaClientesActivosCierre" Mode="In" Type="Int32" />
+            <Parameter Name="MetaVencidosMaximoCierre" Mode="In" Type="Decimal" />
+            <Parameter Name="MetaRecuperacionVencidosMes" Mode="In" Type="Decimal" />
+            <Parameter Name="UsuarioRegistroId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_IntentarGenerarCierreGerencialMensual" ReturnType="Collection(VENDIXModel.usp_IntentarGenerarCierreGerencialMensual_Result)">
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+            <Parameter Name="UsuarioCierreId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_ListarMetasGerencialesDefinitivas" ReturnType="Collection(VENDIXModel.usp_ListarMetasGerencialesDefinitivas_Result)">
+          <Parameter Name="Periodo" Mode="In" Type="DateTime" />
+          </FunctionImport>
+          <FunctionImport Name="usp_ObtenerAvanceMetasGerenciales">
+            <Parameter Name="Periodo" Mode="In" Type="DateTime" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_ObtenerAvanceMetasGerencialesBase" ReturnType="Collection(VENDIXModel.usp_ObtenerAvanceMetasGerencialesBase_Result)">
+            <Parameter Name="Periodo" Mode="In" Type="DateTime" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_SolicitarCondonacion">
+            <Parameter Name="CajaDiarioId" Mode="In" Type="Int32" />
+            <Parameter Name="CreditoId" Mode="In" Type="Int32" />
+            <Parameter Name="MoraCondonacion" Mode="In" Type="Decimal" />
+          </FunctionImport>
+          <FunctionImport Name="usp_DashboardProductividad" ReturnType="Collection(VENDIXModel.usp_DashboardProductividad_Result)">
+            <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+          </FunctionImport>
+          <FunctionImport Name="usp_DashboardGestor" ReturnType="Collection(VENDIXModel.usp_DashboardGestor_Result)">
+            <Parameter Name="UsuarioId" Mode="In" Type="Int32" />
+            <Parameter Name="OficinaId" Mode="In" Type="Int32" />
+            <Parameter Name="FechaCorte" Mode="In" Type="DateTime" />
+          </FunctionImport>
         </EntityContainer>
         <ComplexType Name="usp_GenerarKardex_Result">
           <Property Type="Int32" Name="MovimientoDetId" Nullable="true" />
@@ -5469,15 +5907,6 @@
           <Property Type="String" Name="FechaTransferencia" Nullable="true" MaxLength="16" />
           <Property Type="String" Name="Registro" Nullable="false" MaxLength="50" />
         </ComplexType>
-        <ComplexType Name="usp_RptAval_Result">
-          <Property Type="String" Name="Grupo" Nullable="false" MaxLength="8" />
-          <Property Type="Int32" Name="CreditoId" Nullable="false" />
-          <Property Type="Decimal" Name="MontoCredito" Nullable="false" Precision="16" Scale="2" />
-          <Property Type="String" Name="Estado" Nullable="false" MaxLength="3" />
-          <Property Type="String" Name="Persona" Nullable="true" MaxLength="250" />
-          <Property Type="String" Name="Dni" Nullable="true" MaxLength="12" />
-          <Property Type="String" Name="Celular" Nullable="true" MaxLength="10" />
-        </ComplexType>
         <ComplexType Name="usp_RptCajaDiario_Result">
           <Property Type="Int32" Name="CajaDiarioId" Nullable="false" />
           <Property Type="String" Name="Oficina" Nullable="true" MaxLength="100" />
@@ -5489,19 +5918,6 @@
           <Property Type="Decimal" Name="SaldoFinal" Nullable="false" Precision="16" Scale="2" />
           <Property Type="DateTime" Name="FechaIniOperacion" Nullable="false" Precision="23" />
           <Property Type="DateTime" Name="FechaFinOperacion" Nullable="true" Precision="23" />
-        </ComplexType>
-        <ComplexType Name="usp_RptClientesInactivos_Result">
-          <Property Type="Int32" Name="PersonaId" Nullable="false" />
-          <Property Type="String" Name="Agente" Nullable="true" MaxLength="250" />
-          <Property Type="String" Name="Codigo" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="Dni" Nullable="false" MaxLength="12" />
-          <Property Type="String" Name="Cliente" Nullable="true" MaxLength="250" />
-          <Property Type="String" Name="Direccion" Nullable="true" MaxLength="300" />
-          <Property Type="String" Name="DireccionRef" Nullable="true" MaxLength="300" />
-          <Property Type="String" Name="Celular" Nullable="true" MaxLength="10" />
-          <Property Type="String" Name="Calificacion" Nullable="true" MaxLength="1" />
-          <Property Type="String" Name="DireccionNegocio" Nullable="true" MaxLength="300" />
-          <Property Type="String" Name="DireccionNegocioRef" Nullable="true" MaxLength="300" />
         </ComplexType>
         <ComplexType Name="usp_RptCredito_Result">
           <Property Type="String" Name="Producto" Nullable="true" MaxLength="255" />
@@ -5570,33 +5986,6 @@
           <Property Type="Decimal" Name="SumInteres" Nullable="true" Precision="38" Scale="2" />
           <Property Type="Decimal" Name="SumMora" Nullable="true" Precision="38" Scale="2" />
           <Property Type="Decimal" Name="SumPago" Nullable="true" Precision="38" Scale="2" />
-        </ComplexType>
-        <ComplexType Name="usp_RptCreditosActivos_Result">
-          <Property Type="Int64" Name="Nro" Nullable="true" />
-          <Property Type="String" Name="Estado" Nullable="true" MaxLength="12" />
-          <Property Type="String" Name="Agente" Nullable="true" MaxLength="250" />
-          <Property Type="Int32" Name="CreditoId" Nullable="false" />
-          <Property Type="String" Name="Codigo" Nullable="true" MaxLength="50" />
-          <Property Type="String" Name="Cliente" Nullable="true" MaxLength="250" />
-          <Property Type="Decimal" Name="MontoCredito" Nullable="false" Precision="16" Scale="2" />
-          <Property Type="String" Name="FormaPago" Nullable="false" MaxLength="1" />
-          <Property Type="Int32" Name="NumeroCuotas" Nullable="false" />
-          <Property Type="Decimal" Name="Interes" Nullable="false" Precision="4" Scale="2" />
-          <Property Type="Decimal" Name="MontoInteres" Nullable="true" Precision="38" Scale="2" />
-          <Property Type="Decimal" Name="MontoCreditoTotal" Nullable="true" Precision="38" Scale="2" />
-          <Property Type="Decimal" Name="MontoGastosAdm" Nullable="false" Precision="16" Scale="2" />
-          <Property Type="Decimal" Name="CentralRiesgo" Nullable="false" Precision="16" Scale="2" />
-          <Property Type="DateTime" Name="FechaPrimerPago" Nullable="false" />
-          <Property Type="DateTime" Name="FechaVencimiento" Nullable="false" />
-          <Property Type="Int32" Name="NroCuotasPagado" Nullable="true" />
-          <Property Type="Decimal" Name="Pagado" Nullable="true" Precision="38" Scale="2" />
-          <Property Type="Decimal" Name="InteresPagado" Nullable="false" Precision="38" Scale="2" />
-          <Property Type="Int32" Name="NroCuotasPen" Nullable="true" />
-          <Property Type="Decimal" Name="SaldoCapital" Nullable="true" Precision="38" Scale="2" />
-          <Property Type="Decimal" Name="SaldoInteres" Nullable="true" Precision="38" Scale="2" />
-          <Property Type="Decimal" Name="Saldo" Nullable="true" Precision="38" Scale="2" />
-          <Property Type="Int32" Name="DiasAtrazo" Nullable="true" />
-          <Property Type="Decimal" Name="Mora" Nullable="true" Precision="10" Scale="2" />
         </ComplexType>
         <ComplexType Name="usp_RptCreditosCierres_Result">
           <Property Type="Int32" Name="CreditoId" Nullable="false" />
@@ -5701,15 +6090,6 @@
           <Property Type="Boolean" Name="IndEntrada" Nullable="false" />
           <Property Type="String" Name="Glosa" Nullable="true" />
           <Property Type="String" Name="TipoPago" Nullable="false" MaxLength="70" />
-        </ComplexType>
-        <ComplexType Name="usp_SimuladorCredito_Result">
-          <Property Type="Int32" Name="Numero" Nullable="true" />
-          <Property Type="Decimal" Name="Capital" Nullable="true" Precision="16" Scale="2" />
-          <Property Type="DateTime" Name="FechaPago" Nullable="true" />
-          <Property Type="Decimal" Name="Amortizacion" Nullable="true" Precision="16" Scale="2" />
-          <Property Type="Decimal" Name="Interes" Nullable="true" Precision="16" Scale="2" />
-          <Property Type="Decimal" Name="GastosAdm" Nullable="true" Precision="16" Scale="2" />
-          <Property Type="Decimal" Name="Cuota" Nullable="true" Precision="16" Scale="2" />
         </ComplexType>
         <ComplexType Name="usp_UsuariosNoAsignadosCaja_Result">
           <Property Type="Int32" Name="Id" Nullable="false" />
@@ -5876,8 +6256,6 @@
           <Property Name="ClasificacionRiesgoSBS" Type="Int32" />
           <Property Name="ClasificacionRiesgoSBSObs" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
           <NavigationProperty Name="Persona" Relationship="VENDIXModel.FK_Cliente_Persona" FromRole="Cliente" ToRole="Persona" />
-          <Property Name="Latitud" Type="Decimal" Precision="11" Scale="8" />
-          <Property Name="Longitud" Type="Decimal" Precision="11" Scale="8" />
         </EntityType>
         <Association Name="FK_Cliente_Persona">
           <End Type="VENDIXModel.Persona" Role="Persona" Multiplicity="1" />
@@ -5953,30 +6331,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <ComplexType Name="usp_RptCobroDiario_Result">
-          <Property Type="Int64" Name="Nro" Nullable="true" />
-          <Property Type="Int32" Name="Orden" Nullable="true" />
-          <Property Type="Int32" Name="CreditoId" Nullable="false" />
-          <Property Type="String" Name="Cliente" Nullable="true" MaxLength="250" />
-          <Property Type="String" Name="Celular" Nullable="true" MaxLength="10" />
-          <Property Type="Decimal" Name="MontoCredito" Nullable="false" Precision="16" Scale="2" />
-          <Property Type="Decimal" Name="Interes" Nullable="false" Precision="4" Scale="2" />
-          <Property Type="Decimal" Name="CuotaPlan" Nullable="true" Precision="16" Scale="2" />
-          <Property Type="Decimal" Name="Saldo" Nullable="true" Precision="38" Scale="2" />
-          <Property Type="Int32" Name="DiasAtrazo" Nullable="true" />
-          <Property Type="Int32" Name="NroCuotasPen" Nullable="true" />
-          <Property Type="Decimal" Name="CuotaTotal" Nullable="true" Precision="38" Scale="2" />
-          <Property Type="String" Name="Direccion" Nullable="true" MaxLength="300" />
-          <Property Type="DateTime" Name="FechaPago" Nullable="true" />
-          <Property Type="DateTime" Name="FechaPrimerPago" Nullable="false" />
-          <Property Type="DateTime" Name="FechaVencimiento" Nullable="false" />
-          <Property Type="Decimal" Name="Mora" Nullable="true" Precision="10" Scale="2" />
-          <Property Type="Decimal" Name="MontoTotal" Nullable="true" Precision="38" Scale="2" />
-          <Property Type="String" Name="Negocio" Nullable="true" MaxLength="200" />
-          <Property Type="String" Name="FormaPago" Nullable="false" MaxLength="1" />
-          <Property Type="Decimal" Name="TopeCredito" Nullable="true" Precision="15" Scale="2" />
-          <Property Type="String" Name="ClasificacionRiesgoSBS" Nullable="true" MaxLength="70" />
-        </ComplexType>
         <EntityType Name="CreditoMora">
           <Key>
             <PropertyRef Name="CreditoMoraId" />
@@ -6016,6 +6370,501 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <ComplexType Name="usp_RptClientesInactivos_Result">
+          <Property Type="Int32" Name="PersonaId" Nullable="false" />
+          <Property Type="String" Name="Agente" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="Codigo" Nullable="true" MaxLength="50" />
+          <Property Type="String" Name="Dni" Nullable="false" MaxLength="12" />
+          <Property Type="String" Name="Cliente" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="Direccion" Nullable="true" MaxLength="300" />
+          <Property Type="String" Name="DireccionRef" Nullable="true" MaxLength="300" />
+          <Property Type="String" Name="Celular" Nullable="true" MaxLength="10" />
+          <Property Type="String" Name="Calificacion" Nullable="true" MaxLength="1" />
+          <Property Type="String" Name="DireccionNegocio" Nullable="true" MaxLength="300" />
+          <Property Type="String" Name="DireccionNegocioRef" Nullable="true" MaxLength="300" />
+        </ComplexType>
+        <ComplexType Name="usp_RptCreditosActivos_Result">
+          <Property Type="Int64" Name="Nro" Nullable="true" />
+          <Property Type="String" Name="Estado" Nullable="true" MaxLength="12" />
+          <Property Type="String" Name="Agente" Nullable="true" MaxLength="250" />
+          <Property Type="Int32" Name="CreditoId" Nullable="false" />
+          <Property Type="String" Name="Cliente" Nullable="true" MaxLength="250" />
+          <Property Type="Decimal" Name="MontoCredito" Nullable="false" Precision="16" Scale="2" />
+          <Property Type="String" Name="FormaPago" Nullable="false" MaxLength="1" />
+          <Property Type="Int32" Name="NumeroCuotas" Nullable="false" />
+          <Property Type="Decimal" Name="Interes" Nullable="false" Precision="4" Scale="2" />
+          <Property Type="Decimal" Name="MontoInteres" Nullable="true" Precision="38" Scale="2" />
+          <Property Type="Decimal" Name="MontoCreditoTotal" Nullable="true" Precision="38" Scale="2" />
+          <Property Type="Decimal" Name="MontoGastosAdm" Nullable="false" Precision="16" Scale="2" />
+          <Property Type="Decimal" Name="CentralRiesgo" Nullable="false" Precision="16" Scale="2" />
+          <Property Type="DateTime" Name="FechaPrimerPago" Nullable="false" />
+          <Property Type="DateTime" Name="FechaVencimiento" Nullable="false" />
+          <Property Type="Decimal" Name="Cuota" Nullable="true" Precision="16" Scale="2" />
+          <Property Type="Int32" Name="NroCuotasPagado" Nullable="true" />
+          <Property Type="Decimal" Name="Pagado" Nullable="true" Precision="38" Scale="2" />
+          <Property Type="Decimal" Name="InteresPagado" Nullable="false" Precision="38" Scale="2" />
+          <Property Type="Int32" Name="NroCuotasPen" Nullable="true" />
+          <Property Type="Decimal" Name="SaldoCapital" Nullable="true" Precision="38" Scale="2" />
+          <Property Type="Decimal" Name="SaldoInteres" Nullable="true" Precision="38" Scale="2" />
+          <Property Type="Decimal" Name="Saldo" Nullable="true" Precision="38" Scale="2" />
+          <Property Type="Int32" Name="DiasAtrazo" Nullable="true" />
+          <Property Type="Decimal" Name="Mora" Nullable="true" Precision="10" Scale="2" />
+        </ComplexType>
+        <ComplexType Name="usp_SimuladorCredito_Result">
+          <Property Type="Int32" Name="Numero" Nullable="true" />
+          <Property Type="Decimal" Name="Capital" Nullable="true" Precision="16" Scale="2" />
+          <Property Type="DateTime" Name="FechaPago" Nullable="true" />
+          <Property Type="Decimal" Name="Amortizacion" Nullable="true" Precision="16" Scale="2" />
+          <Property Type="Decimal" Name="Interes" Nullable="true" Precision="16" Scale="2" />
+          <Property Type="Decimal" Name="GastosAdm" Nullable="true" Precision="16" Scale="2" />
+          <Property Type="Decimal" Name="Cuota" Nullable="true" Precision="16" Scale="2" />
+          <Property Type="Decimal" Name="Saldo" Nullable="true" Precision="16" Scale="2" />
+        </ComplexType>
+        <ComplexType Name="usp_RptAval_Result">
+          <Property Type="String" Name="Grupo" Nullable="false" MaxLength="8" />
+          <Property Type="Int32" Name="CreditoId" Nullable="false" />
+          <Property Type="Decimal" Name="MontoCredito" Nullable="false" Precision="16" Scale="2" />
+          <Property Type="String" Name="Estado" Nullable="false" MaxLength="3" />
+          <Property Type="Int32" Name="PersonaId" Nullable="true" />
+          <Property Type="String" Name="Persona" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="Dni" Nullable="true" MaxLength="12" />
+          <Property Type="String" Name="Celular" Nullable="true" MaxLength="10" />
+        </ComplexType>
+        <ComplexType Name="usp_DashboardRanking_Result">
+          <Property Type="Int32" Name="UsuarioId" Nullable="false" />
+          <Property Type="String" Name="NombreCompleto" Nullable="true" MaxLength="250" />
+          <Property Type="Decimal" Name="TotalCobrado" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int64" Name="Posicion" Nullable="true" />
+          <Property Type="Int32" Name="EsUsuarioActual" Nullable="false" />
+        </ComplexType>
+        <ComplexType Name="usp_DashboardTopAnterior_Result">
+          <Property Type="Int32" Name="UsuarioId" Nullable="false" />
+          <Property Type="String" Name="NombreCompleto" Nullable="true" MaxLength="250" />
+          <Property Type="Decimal" Name="TotalCobrado" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="Posicion" Nullable="true" />
+        </ComplexType>
+        <ComplexType Name="usp_RptCobroDiario_Result">
+          <Property Type="Int64" Name="Nro" Nullable="true" />
+          <Property Type="Int32" Name="Orden" Nullable="true" />
+          <Property Type="Int32" Name="CreditoId" Nullable="false" />
+          <Property Type="String" Name="Cliente" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="Celular" Nullable="true" MaxLength="10" />
+          <Property Type="Decimal" Name="MontoCredito" Nullable="false" Precision="16" Scale="2" />
+          <Property Type="Decimal" Name="Interes" Nullable="false" Precision="4" Scale="2" />
+          <Property Type="Decimal" Name="CuotaPlan" Nullable="true" Precision="16" Scale="2" />
+          <Property Type="Decimal" Name="Saldo" Nullable="true" Precision="38" Scale="2" />
+          <Property Type="Int32" Name="DiasAtrazo" Nullable="true" />
+          <Property Type="Int32" Name="NroCuotasPen" Nullable="true" />
+          <Property Type="Decimal" Name="CuotaTotal" Nullable="true" Precision="38" Scale="2" />
+          <Property Type="String" Name="Direccion" Nullable="true" MaxLength="300" />
+          <Property Type="DateTime" Name="FechaPago" Nullable="true" />
+          <Property Type="Boolean" Name="TienePagoReal" Nullable="true" />
+          <Property Type="DateTime" Name="FechaPrimerPago" Nullable="false" />
+          <Property Type="DateTime" Name="FechaVencimiento" Nullable="false" />
+          <Property Type="Decimal" Name="Mora" Nullable="true" Precision="10" Scale="2" />
+          <Property Type="Decimal" Name="MontoTotal" Nullable="true" Precision="38" Scale="2" />
+          <Property Type="String" Name="Negocio" Nullable="true" MaxLength="200" />
+          <Property Type="String" Name="FormaPago" Nullable="false" MaxLength="1" />
+          <Property Type="Decimal" Name="TopeCredito" Nullable="true" Precision="15" Scale="2" />
+          <Property Type="String" Name="ClasificacionRiesgoSBS" Nullable="true" MaxLength="30" />
+        </ComplexType>
+        <ComplexType Name="usp_DashboardAdminFlujoCaja_Result">
+          <Property Type="String" Name="Operacion" Nullable="false" MaxLength="3" />
+          <Property Type="Boolean" Name="IndEntrada" Nullable="true" />
+          <Property Type="String" Name="Concepto" Nullable="false" MaxLength="21" />
+          <Property Type="Boolean" Name="EsTransferencia" Nullable="true" />
+          <Property Type="Int32" Name="CantidadHoy" Nullable="true" />
+          <Property Type="Decimal" Name="ImporteHoy" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="CantidadAyer" Nullable="true" />
+          <Property Type="Decimal" Name="ImporteAyer" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="CantidadMesActual" Nullable="true" />
+          <Property Type="Decimal" Name="ImporteMesActual" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="CantidadMesAnteriorComparable" Nullable="true" />
+          <Property Type="Decimal" Name="ImporteMesAnteriorComparable" Nullable="true" Precision="18" Scale="2" />
+        </ComplexType>
+        <ComplexType Name="usp_DashboardAdminHistorico_Result">
+          <Property Type="DateTime" Name="Fecha" Nullable="true" />
+          <Property Type="Int32" Name="Colocaciones" Nullable="false" />
+          <Property Type="Decimal" Name="Desembolsado" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="Cobrado" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="Entradas" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="Salidas" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="FlujoNeto" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="FlujoOperativo" Nullable="true" Precision="18" Scale="2" />
+        </ComplexType>
+        <ComplexType Name="usp_DashboardAdminHistoricoMensual_Result">
+          <Property Type="DateTime" Name="FechaMes" Nullable="true" />
+          <Property Type="Boolean" Name="EsMesActual" Nullable="true" />
+          <Property Type="Int32" Name="Colocaciones" Nullable="false" />
+          <Property Type="Decimal" Name="Desembolsado" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="Cobrado" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="Entradas" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="Salidas" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="FlujoNeto" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="FlujoOperativo" Nullable="true" Precision="18" Scale="2" />
+        </ComplexType>
+        <ComplexType Name="usp_DashboardAdminAnalistas_Result">
+          <Property Type="Int32" Name="UsuarioId" Nullable="false" />
+          <Property Type="String" Name="NombreUsuario" Nullable="false" MaxLength="50" />
+          <Property Type="String" Name="NombreCompleto" Nullable="true" MaxLength="250" />
+          <Property Type="Int32" Name="TotalClientes" Nullable="false" />
+          <Property Type="Int32" Name="ClientesNuevosMes" Nullable="false" />
+          <Property Type="Int32" Name="ColocacionesHoy" Nullable="false" />
+          <Property Type="Int32" Name="ColocacionesMes" Nullable="false" />
+          <Property Type="Decimal" Name="DesembolsoHoy" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="DesembolsoMes" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="CobradoHoy" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="CobradoMes" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="CobradoMesAnteriorComparable" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="VariacionCobranza" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="ClientesMora" Nullable="false" />
+          <Property Type="Decimal" Name="MontoMora" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="PorcentajeMora" Nullable="true" Precision="18" Scale="2" />
+        </ComplexType>
+        <ComplexType Name="usp_DashboardAdminResumen_Result">
+          <Property Type="Int32" Name="TotalAnalistas" Nullable="true" />
+          <Property Type="Int32" Name="TotalClientes" Nullable="true" />
+          <Property Type="Int32" Name="CreditosHoy" Nullable="true" />
+          <Property Type="Int32" Name="CreditosAyer" Nullable="true" />
+          <Property Type="Int32" Name="CreditosAnteayer" Nullable="true" />
+          <Property Type="Int32" Name="CreditosMesActual" Nullable="true" />
+          <Property Type="Int32" Name="CreditosMesAnteriorComparable" Nullable="true" />
+          <Property Type="Decimal" Name="DesembolsoHoy" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="DesembolsoAyer" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="DesembolsoAnteayer" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="DesembolsoMesActual" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="DesembolsoMesAnteriorComparable" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="CobradoHoy" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="CobradoAyer" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="CobradoAnteayer" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="CobradoMesActual" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="CobradoMesAnteriorComparable" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="EntradasHoy" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="SalidasHoy" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="FlujoNetoHoy" Nullable="true" Precision="19" Scale="2" />
+          <Property Type="Decimal" Name="EntradasAyer" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="SalidasAyer" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="FlujoNetoAyer" Nullable="true" Precision="19" Scale="2" />
+          <Property Type="Decimal" Name="EntradasAnteayer" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="SalidasAnteayer" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="FlujoNetoAnteayer" Nullable="true" Precision="19" Scale="2" />
+          <Property Type="Decimal" Name="EntradasMesActual" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="SalidasMesActual" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="FlujoNetoMesActual" Nullable="true" Precision="19" Scale="2" />
+          <Property Type="Decimal" Name="EntradasMesAnteriorComparable" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="SalidasMesAnteriorComparable" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="FlujoNetoMesAnteriorComparable" Nullable="true" Precision="19" Scale="2" />
+          <Property Type="Decimal" Name="SaldoCartera" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="SaldoCreditos" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="SaldoMoraCartera" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="SaldoVencido" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="SaldoMorosidad" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="ClientesMora" Nullable="true" />
+          <Property Type="Int32" Name="CreditosPorVencerSemana" Nullable="true" />
+          <Property Type="DateTime" Name="FechaConsulta" Nullable="true" />
+        </ComplexType>
+        <EntityType Name="CreditoCondonacion">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CreditoId" Type="Int32" Nullable="false" />
+          <Property Name="CajaDiarioId" Type="Int32" Nullable="false" />
+          <Property Name="Fecha" Type="DateTime" Nullable="false" Precision="3" />
+          <Property Name="MoraCondonacion" Type="Decimal" Nullable="false" Precision="10" Scale="2" />
+          <Property Name="TotalPago" Type="Decimal" Nullable="false" Precision="15" Scale="2" />
+          <Property Name="IndAprobado" Type="Boolean" Nullable="false" />
+          <NavigationProperty Name="CajaDiario" Relationship="VENDIXModel.FK__CreditoCo__CajaD__2A8B4280" FromRole="CreditoCondonacion" ToRole="CajaDiario" />
+          <NavigationProperty Name="Credito" Relationship="VENDIXModel.FK__CreditoCo__Credi__29971E47" FromRole="CreditoCondonacion" ToRole="Credito" />
+        </EntityType>
+        <Association Name="FK__CreditoCo__CajaD__2A8B4280">
+          <End Type="VENDIXModel.CajaDiario" Role="CajaDiario" Multiplicity="1" />
+          <End Type="VENDIXModel.CreditoCondonacion" Role="CreditoCondonacion" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CajaDiario">
+              <PropertyRef Name="CajaDiarioId" />
+            </Principal>
+            <Dependent Role="CreditoCondonacion">
+              <PropertyRef Name="CajaDiarioId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK__CreditoCo__Credi__29971E47">
+          <End Type="VENDIXModel.Credito" Role="Credito" Multiplicity="1" />
+          <End Type="VENDIXModel.CreditoCondonacion" Role="CreditoCondonacion" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="Credito">
+              <PropertyRef Name="CreditoId" />
+            </Principal>
+            <Dependent Role="CreditoCondonacion">
+              <PropertyRef Name="CreditoId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <EntityType Name="CierreGerencial">
+          <Key>
+            <PropertyRef Name="CierreGerencialId" />
+          </Key>
+          <Property Name="CierreGerencialId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Periodo" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="FechaCorte" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="Estado" Type="String" Nullable="false" MaxLength="3" FixedLength="true" Unicode="false" />
+          <Property Name="Version" Type="Int32" Nullable="false" />
+          <Property Name="UsuarioCierreId" Type="Int32" Nullable="false" />
+          <Property Name="FechaCierre" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="Observacion" Type="String" MaxLength="500" FixedLength="false" Unicode="false" />
+          <NavigationProperty Name="CierreGerencialDetalle" Relationship="VENDIXModel.FK_CierreDetalle_Cierre" FromRole="CierreGerencial" ToRole="CierreGerencialDetalle" />
+          <NavigationProperty Name="VencidoGerencialAperturaDetalle" Relationship="VENDIXModel.FK_VencidoGerencialApertura_Cierre" FromRole="CierreGerencial" ToRole="VencidoGerencialAperturaDetalle" />
+        </EntityType>
+        <EntityType Name="CierreGerencialDetalle">
+          <Key>
+            <PropertyRef Name="CierreGerencialDetalleId" />
+          </Key>
+          <Property Name="CierreGerencialDetalleId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="CierreGerencialId" Type="Int64" Nullable="false" />
+          <Property Name="UsuarioId" Type="Int32" Nullable="false" />
+          <Property Name="NombreUsuario" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="NombreCompleto" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="Asesor" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="Supervisor" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="Mercado" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="Orden" Type="Int16" />
+          <Property Name="TipoCartera" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="FuenteInicial" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="CapitalCierre" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="TotalClientesActivos" Type="Int32" Nullable="false" />
+          <Property Name="MoraGeneral" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="VencidosCuotasCierre" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="ClientesVencidosCierre" Type="Int32" />
+          <Property Name="DefinicionVencidos" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+          <Property Name="ClientesNuevosMes" Type="Int32" />
+          <Property Name="MontoClientesNuevosMes" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="MontoCobradoMes" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="DesembolsosMes" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="NroOperacionesMes" Type="Int32" />
+          <NavigationProperty Name="CierreGerencial" Relationship="VENDIXModel.FK_CierreDetalle_Cierre" FromRole="CierreGerencialDetalle" ToRole="CierreGerencial" />
+        </EntityType>
+        <EntityType Name="MetaGerencialAnalista">
+          <Key>
+            <PropertyRef Name="MetaGerencialAnalistaId" />
+          </Key>
+          <Property Name="MetaGerencialAnalistaId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Periodo" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="UsuarioId" Type="Int32" Nullable="false" />
+          <Property Name="Asesor" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="Supervisor" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="Mercado" Type="String" MaxLength="150" FixedLength="false" Unicode="false" />
+          <Property Name="Orden" Type="Int16" />
+          <Property Name="TipoCartera" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
+          <Property Name="FuenteInicial" Type="String" MaxLength="250" FixedLength="false" Unicode="false" />
+          <Property Name="MetaCapitalCierre" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="MetaClientesActivosCierre" Type="Int32" />
+          <Property Name="MetaVencidosMaximoCierre" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="MetaRecuperacionVencidosMes" Type="Decimal" Precision="18" Scale="2" />
+          <Property Name="Activo" Type="Boolean" Nullable="false" />
+          <Property Name="UsuarioRegistroId" Type="Int32" />
+          <Property Name="FechaRegistro" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="UsuarioModificacionId" Type="Int32" />
+          <Property Name="FechaModificacion" Type="DateTime" Precision="0" />
+        </EntityType>
+        <EntityType Name="VencidoGerencialAperturaDetalle">
+          <Key>
+            <PropertyRef Name="VencidoGerencialAperturaDetalleId" />
+          </Key>
+          <Property Name="VencidoGerencialAperturaDetalleId" Type="Int64" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="Periodo" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="UsuarioId" Type="Int32" Nullable="false" />
+          <Property Name="CreditoId" Type="Int32" Nullable="false" />
+          <Property Name="PlanPagoId" Type="Int32" Nullable="false" />
+          <Property Name="FechaVencimiento" Type="DateTime" Nullable="false" Precision="0" />
+          <Property Name="SaldoVencidoApertura" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+          <Property Name="CierreOrigenId" Type="Int64" Nullable="false" />
+          <Property Name="FechaRegistro" Type="DateTime" Nullable="false" Precision="0" />
+          <NavigationProperty Name="CierreGerencial" Relationship="VENDIXModel.FK_VencidoGerencialApertura_Cierre" FromRole="VencidoGerencialAperturaDetalle" ToRole="CierreGerencial" />
+        </EntityType>
+        <Association Name="FK_CierreDetalle_Cierre">
+          <End Type="VENDIXModel.CierreGerencial" Role="CierreGerencial" Multiplicity="1" />
+          <End Type="VENDIXModel.CierreGerencialDetalle" Role="CierreGerencialDetalle" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CierreGerencial">
+              <PropertyRef Name="CierreGerencialId" />
+            </Principal>
+            <Dependent Role="CierreGerencialDetalle">
+              <PropertyRef Name="CierreGerencialId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <Association Name="FK_VencidoGerencialApertura_Cierre">
+          <End Type="VENDIXModel.CierreGerencial" Role="CierreGerencial" Multiplicity="1" />
+          <End Type="VENDIXModel.VencidoGerencialAperturaDetalle" Role="VencidoGerencialAperturaDetalle" Multiplicity="*" />
+          <ReferentialConstraint>
+            <Principal Role="CierreGerencial">
+              <PropertyRef Name="CierreGerencialId" />
+            </Principal>
+            <Dependent Role="VencidoGerencialAperturaDetalle">
+              <PropertyRef Name="CierreOrigenId" />
+            </Dependent>
+          </ReferentialConstraint>
+        </Association>
+        <ComplexType Name="ufn_ActividadGerencialMensual_Result">
+          <Property Type="Int32" Name="UsuarioId" Nullable="false" />
+          <Property Type="Int32" Name="ClientesNuevosMes" Nullable="false" />
+          <Property Type="Decimal" Name="MontoClientesNuevosMes" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="MontoCobradoMes" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="DesembolsosMes" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="NroOperacionesMes" Nullable="false" />
+        </ComplexType>
+        <ComplexType Name="ufn_ClientesNuevosGerenciales_Result">
+          <Property Type="Int32" Name="UsuarioId" Nullable="false" />
+          <Property Type="Int32" Name="ClientesNuevosMes" Nullable="true" />
+        </ComplexType>
+        <ComplexType Name="ufn_MetricasGerencialesActuales_Result">
+          <Property Type="Int32" Name="UsuarioId" Nullable="false" />
+          <Property Type="Decimal" Name="CapitalActual" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="ClientesActivosActual" Nullable="true" />
+          <Property Type="Decimal" Name="VencidosActual" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="ClientesVencidosActual" Nullable="true" />
+        </ComplexType>
+        <ComplexType Name="ufn_RecuperacionVencidosGerencial_Result">
+          <Property Type="Int32" Name="UsuarioId" Nullable="false" />
+          <Property Type="Decimal" Name="VencidosApertura" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="VencidosAperturaPendiente" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="RecuperacionVencidosActual" Nullable="true" Precision="18" Scale="2" />
+        </ComplexType>
+        <ComplexType Name="ufn_SaldosCuotasGerenciales_Result">
+          <Property Type="Int32" Name="UsuarioId" Nullable="false" />
+          <Property Type="Int32" Name="PersonaId" Nullable="false" />
+          <Property Type="Int32" Name="CreditoId" Nullable="false" />
+          <Property Type="Int32" Name="PlanPagoId" Nullable="false" />
+          <Property Type="DateTime" Name="FechaVencimiento" Nullable="false" Precision="10" />
+          <Property Type="Decimal" Name="ImporteCuota" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="SaldoCuota" Nullable="true" Precision="18" Scale="2" />
+        </ComplexType>
+        <ComplexType Name="usp_DashboardGestor_Result">
+          <Property Type="Int32" Name="TotalClientes" Nullable="true" />
+          <Property Type="Int32" Name="ClientesNuevosActual" Nullable="true" />
+          <Property Type="Int32" Name="ClientesNuevosAnterior" Nullable="true" />
+          <Property Type="Int32" Name="CreditosActual" Nullable="true" />
+          <Property Type="Int32" Name="CreditosAnterior" Nullable="true" />
+          <Property Type="Decimal" Name="CobradoActual" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="CobradoAnterior" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="SaldoActual" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="MontoMora" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="ClientesMora" Nullable="true" />
+          <Property Type="Int32" Name="ClientesMoraSinPago" Nullable="true" />
+          <Property Type="Int32" Name="ClientesMoraNuncaPagaron" Nullable="true" />
+          <Property Type="Int32" Name="ClientesMoraDejaronPagar" Nullable="true" />
+          <Property Type="Int32" Name="ClientesMoraPagandoConAtraso" Nullable="true" />
+          <Property Type="Int32" Name="PorVencerSemana" Nullable="true" />
+          <Property Type="Decimal" Name="CobradoHoy" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="CobradoAyer" Nullable="true" Precision="18" Scale="2" />
+        </ComplexType>
+        <ComplexType Name="usp_DashboardGestorClientesMora_Result">
+          <Property Type="Int32" Name="PersonaId" Nullable="true" />
+          <Property Type="String" Name="NombreCompleto" Nullable="true" MaxLength="250" />
+          <Property Type="Int32" Name="CreditosMora" Nullable="true" />
+          <Property Type="Decimal" Name="SaldoMora" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="DateTime" Name="PrimeraCuotaVencida" Nullable="true" Precision="23" />
+          <Property Type="DateTime" Name="FechaUltimoPago" Nullable="true" Precision="23" />
+          <Property Type="Int32" Name="DiasAtraso" Nullable="true" />
+          <Property Type="String" Name="CodigoClasificacion" Nullable="true" MaxLength="30" />
+          <Property Type="String" Name="Clasificacion" Nullable="true" MaxLength="30" />
+        </ComplexType>
+        <ComplexType Name="usp_GenerarCierreGerencialMensual_Result">
+          <Property Type="Int64" Name="CierreGerencialId" Nullable="true" />
+          <Property Type="DateTime" Name="Periodo" Nullable="true" />
+          <Property Type="Boolean" Name="Creado" Nullable="true" />
+          <Property Type="String" Name="Resultado" Nullable="false" MaxLength="39" />
+        </ComplexType>
+        <ComplexType Name="usp_GuardarMetaGerencialDefinitiva_Result">
+          <Property Type="Int64" Name="MetaGerencialAnalistaId" Nullable="false" />
+          <Property Type="DateTime" Name="Periodo" Nullable="false" />
+          <Property Type="Int32" Name="UsuarioId" Nullable="false" />
+          <Property Type="Decimal" Name="MetaCapitalCierre" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="MetaClientesActivosCierre" Nullable="true" />
+          <Property Type="Decimal" Name="MetaVencidosMaximoCierre" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="MetaRecuperacionVencidosMes" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Boolean" Name="Activo" Nullable="false" />
+          <Property Type="Int32" Name="UsuarioRegistroId" Nullable="true" />
+          <Property Type="DateTime" Name="FechaRegistro" Nullable="false" />
+          <Property Type="Int32" Name="UsuarioModificacionId" Nullable="true" />
+          <Property Type="DateTime" Name="FechaModificacion" Nullable="true" />
+        </ComplexType>
+        <ComplexType Name="usp_IntentarGenerarCierreGerencialMensual_Result">
+          <Property Type="Int64" Name="CierreGerencialId" Nullable="true" />
+          <Property Type="DateTime" Name="Periodo" Nullable="true" />
+          <Property Type="Boolean" Name="Creado" Nullable="true" />
+          <Property Type="String" Name="Resultado" Nullable="false" MaxLength="39" />
+        </ComplexType>
+        <ComplexType Name="usp_ListarMetasGerencialesDefinitivas_Result">
+          <Property Type="Int32" Name="UsuarioId" Nullable="false" />
+          <Property Type="String" Name="NombreUsuario" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="NombreCompleto" Nullable="true" MaxLength="250" />
+          <Property Type="DateTime" Name="Periodo" Nullable="true" />
+          <Property Type="Decimal" Name="CapitalBase" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="ClientesActivosBase" Nullable="false" />
+          <Property Type="Decimal" Name="VencidosBaseComparable" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="VencidosBaseLegacy" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="ClientesVencidosBase" Nullable="true" />
+          <Property Type="Decimal" Name="MetaCapitalCierre" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Int32" Name="MetaClientesActivosCierre" Nullable="true" />
+          <Property Type="Decimal" Name="MetaVencidosMaximoCierre" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="MetaRecuperacionVencidosMes" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Boolean" Name="Configurada" Nullable="true" />
+          <Property Type="Boolean" Name="PeriodoCerrado" Nullable="true" />
+          <Property Type="Boolean" Name="PuedeEditar" Nullable="true" />
+          <Property Type="DateTime" Name="FechaLimiteEdicion" Nullable="true" />
+          <Property Type="String" Name="Asesor" Nullable="true" MaxLength="150" />
+          <Property Type="String" Name="Supervisor" Nullable="true" MaxLength="150" />
+          <Property Type="String" Name="Mercado" Nullable="true" MaxLength="150" />
+          <Property Type="Int16" Name="Orden" Nullable="true" />
+          <Property Type="String" Name="TipoCartera" Nullable="false" MaxLength="20" />
+        </ComplexType>
+        <ComplexType Name="usp_ObtenerAvanceMetasGerencialesBase_Result">
+          <Property Type="Int16" Name="Orden" Nullable="true" />
+          <Property Type="Int32" Name="UsuarioId" Nullable="false" />
+          <Property Type="String" Name="NombreUsuario" Nullable="true" MaxLength="100" />
+          <Property Type="String" Name="NombreCompleto" Nullable="true" MaxLength="250" />
+          <Property Type="String" Name="Asesor" Nullable="true" MaxLength="150" />
+          <Property Type="String" Name="Supervisor" Nullable="true" MaxLength="150" />
+          <Property Type="String" Name="Mercado" Nullable="true" MaxLength="150" />
+          <Property Type="String" Name="TipoCartera" Nullable="false" MaxLength="20" />
+          <Property Type="DateTime" Name="Periodo" Nullable="true" />
+          <Property Type="Decimal" Name="CapitalBase" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="MetaCapitalCierre" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="CapitalActual" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="DiferenciaCapital" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="CumplimientoCapitalPct" Nullable="true" Precision="10" Scale="2" />
+          <Property Type="String" Name="EstadoCapital" Nullable="false" MaxLength="14" />
+          <Property Type="Int32" Name="ClientesBase" Nullable="true" />
+          <Property Type="Int32" Name="MetaClientesActivosCierre" Nullable="true" />
+          <Property Type="Int32" Name="ClientesActivosActual" Nullable="false" />
+          <Property Type="Int32" Name="DiferenciaClientes" Nullable="true" />
+          <Property Type="Decimal" Name="CumplimientoClientesPct" Nullable="true" Precision="10" Scale="2" />
+          <Property Type="String" Name="EstadoClientes" Nullable="false" MaxLength="14" />
+          <Property Type="Decimal" Name="VencidosBaseComparable" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="VencidosBaseLegacy" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="MetaVencidosMaximoCierre" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="VencidosActual" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="MargenVencidos" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="String" Name="EstadoVencidos" Nullable="false" MaxLength="17" />
+          <Property Type="Int32" Name="ClientesVencidosBase" Nullable="true" />
+          <Property Type="Int32" Name="ClientesVencidosActual" Nullable="true" />
+          <Property Type="Decimal" Name="ClientesVencidosPct" Nullable="true" Precision="10" Scale="2" />
+          <Property Type="Decimal" Name="MetaRecuperacionVencidosMes" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="Decimal" Name="RecuperacionVencidosActual" Nullable="true" Precision="18" Scale="2" />
+          <Property Type="String" Name="EstadoRecuperacion" Nullable="false" MaxLength="33" />
+          <Property Type="Boolean" Name="MetaConfigurada" Nullable="true" />
+          <Property Type="DateTime" Name="FechaCalculo" Nullable="true" />
+          <Property Type="Boolean" Name="AvanceNoOficial" Nullable="true" />
+          <Property Type="Int32" Name="ClientesNuevosMes" Nullable="false" />
+        </ComplexType>
+        <ComplexType Name="usp_DashboardProductividad_Result">
+          <Property Type="Int32" Name="Anio" Nullable="true" />
+          <Property Type="Int32" Name="Mes" Nullable="true" />
+          <Property Type="String" Name="NombreMes" Nullable="true" MaxLength="5" />
+          <Property Type="Decimal" Name="MontoCobrado" Nullable="true" Precision="18" Scale="2" />
+        </ComplexType>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -6553,8 +7402,6 @@
           <EntitySetMapping Name="Oficina">
             <EntityTypeMapping TypeName="VENDIXModel.Oficina">
               <MappingFragment StoreEntitySet="Oficina">
-                <ScalarProperty Name="Longitud" ColumnName="Longitud" />
-                <ScalarProperty Name="Latitud" ColumnName="Latitud" />
                 <ScalarProperty Name="OficinaId" ColumnName="OficinaId" />
                 <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
                 <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
@@ -6943,19 +7790,6 @@
           <FunctionImportMapping FunctionImportName="usp_ReconciliarCajaDiario" FunctionName="VENDIXModel.Store.usp_ReconciliarCajaDiario" />
           <FunctionImportMapping FunctionImportName="usp_RegenerarPlanPago" FunctionName="VENDIXModel.Store.usp_RegenerarPlanPago" />
           <FunctionImportMapping FunctionImportName="usp_ReprogramarCredito" FunctionName="VENDIXModel.Store.usp_ReprogramarCredito" />
-          <FunctionImportMapping FunctionImportName="usp_RptAval" FunctionName="VENDIXModel.Store.usp_RptAval">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="VENDIXModel.usp_RptAval_Result">
-                <ScalarProperty Name="Grupo" ColumnName="Grupo" />
-                <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
-                <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
-                <ScalarProperty Name="Estado" ColumnName="Estado" />
-                <ScalarProperty Name="Persona" ColumnName="Persona" />
-                <ScalarProperty Name="Dni" ColumnName="Dni" />
-                <ScalarProperty Name="Celular" ColumnName="Celular" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="usp_RptCajaDiario" FunctionName="VENDIXModel.Store.usp_RptCajaDiario">
             <ResultMapping>
               <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCajaDiario_Result">
@@ -6969,23 +7803,6 @@
                 <ScalarProperty Name="SaldoFinal" ColumnName="SaldoFinal" />
                 <ScalarProperty Name="FechaIniOperacion" ColumnName="FechaIniOperacion" />
                 <ScalarProperty Name="FechaFinOperacion" ColumnName="FechaFinOperacion" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
-          <FunctionImportMapping FunctionImportName="usp_RptClientesInactivos" FunctionName="VENDIXModel.Store.usp_RptClientesInactivos">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="VENDIXModel.usp_RptClientesInactivos_Result">
-                <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
-                <ScalarProperty Name="Agente" ColumnName="Agente" />
-                <ScalarProperty Name="Codigo" ColumnName="Codigo" />
-                <ScalarProperty Name="Dni" ColumnName="Dni" />
-                <ScalarProperty Name="Cliente" ColumnName="Cliente" />
-                <ScalarProperty Name="Direccion" ColumnName="Direccion" />
-                <ScalarProperty Name="DireccionRef" ColumnName="DireccionRef" />
-                <ScalarProperty Name="Celular" ColumnName="Celular" />
-                <ScalarProperty Name="Calificacion" ColumnName="Calificacion" />
-                <ScalarProperty Name="DireccionNegocio" ColumnName="DireccionNegocio" />
-                <ScalarProperty Name="DireccionNegocioRef" ColumnName="DireccionNegocioRef" />
               </ComplexTypeMapping>
             </ResultMapping>
           </FunctionImportMapping>
@@ -7070,37 +7887,6 @@
                 <ScalarProperty Name="SumInteres" ColumnName="SumInteres" />
                 <ScalarProperty Name="SumMora" ColumnName="SumMora" />
                 <ScalarProperty Name="SumPago" ColumnName="SumPago" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
-          <FunctionImportMapping FunctionImportName="usp_RptCreditosActivos" FunctionName="VENDIXModel.Store.usp_RptCreditosActivos">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCreditosActivos_Result">
-                <ScalarProperty Name="Nro" ColumnName="Nro" />
-                <ScalarProperty Name="Estado" ColumnName="Estado" />
-                <ScalarProperty Name="Agente" ColumnName="Agente" />
-                <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
-                <ScalarProperty Name="Codigo" ColumnName="Codigo" />
-                <ScalarProperty Name="Cliente" ColumnName="Cliente" />
-                <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
-                <ScalarProperty Name="FormaPago" ColumnName="FormaPago" />
-                <ScalarProperty Name="NumeroCuotas" ColumnName="NumeroCuotas" />
-                <ScalarProperty Name="Interes" ColumnName="Interes" />
-                <ScalarProperty Name="MontoInteres" ColumnName="MontoInteres" />
-                <ScalarProperty Name="MontoCreditoTotal" ColumnName="MontoCreditoTotal" />
-                <ScalarProperty Name="MontoGastosAdm" ColumnName="MontoGastosAdm" />
-                <ScalarProperty Name="CentralRiesgo" ColumnName="CentralRiesgo" />
-                <ScalarProperty Name="FechaPrimerPago" ColumnName="FechaPrimerPago" />
-                <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
-                <ScalarProperty Name="NroCuotasPagado" ColumnName="NroCuotasPagado" />
-                <ScalarProperty Name="Pagado" ColumnName="Pagado" />
-                <ScalarProperty Name="InteresPagado" ColumnName="InteresPagado" />
-                <ScalarProperty Name="NroCuotasPen" ColumnName="NroCuotasPen" />
-                <ScalarProperty Name="SaldoCapital" ColumnName="SaldoCapital" />
-                <ScalarProperty Name="SaldoInteres" ColumnName="SaldoInteres" />
-                <ScalarProperty Name="Saldo" ColumnName="Saldo" />
-                <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
-                <ScalarProperty Name="Mora" ColumnName="Mora" />
               </ComplexTypeMapping>
             </ResultMapping>
           </FunctionImportMapping>
@@ -7237,19 +8023,6 @@
             </ResultMapping>
           </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="usp_RptSaldosCajaResumenIngreso" FunctionName="VENDIXModel.Store.usp_RptSaldosCajaResumenIngreso" />
-          <FunctionImportMapping FunctionImportName="usp_SimuladorCredito" FunctionName="VENDIXModel.Store.usp_SimuladorCredito">
-            <ResultMapping>
-              <ComplexTypeMapping TypeName="VENDIXModel.usp_SimuladorCredito_Result">
-                <ScalarProperty Name="Numero" ColumnName="Numero" />
-                <ScalarProperty Name="Capital" ColumnName="Capital" />
-                <ScalarProperty Name="FechaPago" ColumnName="FechaPago" />
-                <ScalarProperty Name="Amortizacion" ColumnName="Amortizacion" />
-                <ScalarProperty Name="Interes" ColumnName="Interes" />
-                <ScalarProperty Name="GastosAdm" ColumnName="GastosAdm" />
-                <ScalarProperty Name="Cuota" ColumnName="Cuota" />
-              </ComplexTypeMapping>
-            </ResultMapping>
-          </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="usp_SolicitudCredito_Del" FunctionName="VENDIXModel.Store.usp_SolicitudCredito_Del" />
           <FunctionImportMapping FunctionImportName="usp_TransferirBoveda" FunctionName="VENDIXModel.Store.usp_TransferirBoveda" />
           <FunctionImportMapping FunctionImportName="usp_UsuariosNoAsignadosCaja" FunctionName="VENDIXModel.Store.usp_UsuariosNoAsignadosCaja">
@@ -7337,7 +8110,6 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
-          <FunctionImportMapping FunctionImportName="usp_CerrarCajasDiarios" FunctionName="VENDIXModel.Store.usp_CerrarCajasDiarios" />
           <FunctionImportMapping FunctionImportName="usp_ResumenCuentaBoveda" FunctionName="VENDIXModel.Store.usp_ResumenCuentaBoveda" />
           <FunctionImportMapping FunctionImportName="usp_CerrarBoveda" FunctionName="VENDIXModel.Store.usp_CerrarBoveda" />
           <EntitySetMapping Name="BovedaCuenta">
@@ -7424,8 +8196,6 @@
           <EntitySetMapping Name="Cliente">
             <EntityTypeMapping TypeName="VENDIXModel.Cliente">
               <MappingFragment StoreEntitySet="Cliente">
-                <ScalarProperty Name="Longitud" ColumnName="Longitud" />
-                <ScalarProperty Name="Latitud" ColumnName="Latitud" />
                 <ScalarProperty Name="ClasificacionRiesgoSBSObs" ColumnName="ClasificacionRiesgoSBSObs" />
                 <ScalarProperty Name="ClasificacionRiesgoSBS" ColumnName="ClasificacionRiesgoSBS" />
                 <ScalarProperty Name="TopeCredito" ColumnName="TopeCredito" />
@@ -7485,6 +8255,119 @@
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="CreditoMora">
+            <EntityTypeMapping TypeName="VENDIXModel.CreditoMora">
+              <MappingFragment StoreEntitySet="CreditoMora">
+                <ScalarProperty Name="InteresMora" ColumnName="InteresMora" />
+                <ScalarProperty Name="SaldoMora" ColumnName="SaldoMora" />
+                <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
+                <ScalarProperty Name="Mora" ColumnName="Mora" />
+                <ScalarProperty Name="Fecha" ColumnName="Fecha" />
+                <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+                <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+                <ScalarProperty Name="CreditoMoraId" ColumnName="CreditoMoraId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="usp_RptClientesInactivos" FunctionName="VENDIXModel.Store.usp_RptClientesInactivos">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_RptClientesInactivos_Result">
+                <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+                <ScalarProperty Name="Agente" ColumnName="Agente" />
+                <ScalarProperty Name="Codigo" ColumnName="Codigo" />
+                <ScalarProperty Name="Dni" ColumnName="Dni" />
+                <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+                <ScalarProperty Name="Direccion" ColumnName="Direccion" />
+                <ScalarProperty Name="DireccionRef" ColumnName="DireccionRef" />
+                <ScalarProperty Name="Celular" ColumnName="Celular" />
+                <ScalarProperty Name="Calificacion" ColumnName="Calificacion" />
+                <ScalarProperty Name="DireccionNegocio" ColumnName="DireccionNegocio" />
+                <ScalarProperty Name="DireccionNegocioRef" ColumnName="DireccionNegocioRef" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_RptCreditosActivos" FunctionName="VENDIXModel.Store.usp_RptCreditosActivos">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCreditosActivos_Result">
+                <ScalarProperty Name="Nro" ColumnName="Nro" />
+                <ScalarProperty Name="Estado" ColumnName="Estado" />
+                <ScalarProperty Name="Agente" ColumnName="Agente" />
+                <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+                <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+                <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+                <ScalarProperty Name="FormaPago" ColumnName="FormaPago" />
+                <ScalarProperty Name="NumeroCuotas" ColumnName="NumeroCuotas" />
+                <ScalarProperty Name="Interes" ColumnName="Interes" />
+                <ScalarProperty Name="MontoInteres" ColumnName="MontoInteres" />
+                <ScalarProperty Name="MontoCreditoTotal" ColumnName="MontoCreditoTotal" />
+                <ScalarProperty Name="MontoGastosAdm" ColumnName="MontoGastosAdm" />
+                <ScalarProperty Name="CentralRiesgo" ColumnName="CentralRiesgo" />
+                <ScalarProperty Name="FechaPrimerPago" ColumnName="FechaPrimerPago" />
+                <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+                <ScalarProperty Name="Cuota" ColumnName="Cuota" />
+                <ScalarProperty Name="NroCuotasPagado" ColumnName="NroCuotasPagado" />
+                <ScalarProperty Name="Pagado" ColumnName="Pagado" />
+                <ScalarProperty Name="InteresPagado" ColumnName="InteresPagado" />
+                <ScalarProperty Name="NroCuotasPen" ColumnName="NroCuotasPen" />
+                <ScalarProperty Name="SaldoCapital" ColumnName="SaldoCapital" />
+                <ScalarProperty Name="SaldoInteres" ColumnName="SaldoInteres" />
+                <ScalarProperty Name="Saldo" ColumnName="Saldo" />
+                <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
+                <ScalarProperty Name="Mora" ColumnName="Mora" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_RegistrarTransferenciaBancos" FunctionName="VENDIXModel.Store.usp_RegistrarTransferenciaBancos" />
+          <FunctionImportMapping FunctionImportName="usp_CerrarCajasDiarios" FunctionName="VENDIXModel.Store.usp_CerrarCajasDiarios" />
+          <FunctionImportMapping FunctionImportName="usp_SimuladorCredito" FunctionName="VENDIXModel.Store.usp_SimuladorCredito">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_SimuladorCredito_Result">
+                <ScalarProperty Name="Numero" ColumnName="Numero" />
+                <ScalarProperty Name="Capital" ColumnName="Capital" />
+                <ScalarProperty Name="FechaPago" ColumnName="FechaPago" />
+                <ScalarProperty Name="Amortizacion" ColumnName="Amortizacion" />
+                <ScalarProperty Name="Interes" ColumnName="Interes" />
+                <ScalarProperty Name="GastosAdm" ColumnName="GastosAdm" />
+                <ScalarProperty Name="Cuota" ColumnName="Cuota" />
+                <ScalarProperty Name="Saldo" ColumnName="Saldo" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_RptAval" FunctionName="VENDIXModel.Store.usp_RptAval">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_RptAval_Result">
+                <ScalarProperty Name="Grupo" ColumnName="Grupo" />
+                <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+                <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+                <ScalarProperty Name="Estado" ColumnName="Estado" />
+                <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+                <ScalarProperty Name="Persona" ColumnName="Persona" />
+                <ScalarProperty Name="Dni" ColumnName="Dni" />
+                <ScalarProperty Name="Celular" ColumnName="Celular" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_DashboardRanking" FunctionName="VENDIXModel.Store.usp_DashboardRanking">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardRanking_Result">
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+                <ScalarProperty Name="TotalCobrado" ColumnName="TotalCobrado" />
+                <ScalarProperty Name="Posicion" ColumnName="Posicion" />
+                <ScalarProperty Name="EsUsuarioActual" ColumnName="EsUsuarioActual" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_DashboardTopAnterior" FunctionName="VENDIXModel.Store.usp_DashboardTopAnterior">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardTopAnterior_Result">
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+                <ScalarProperty Name="TotalCobrado" ColumnName="TotalCobrado" />
+                <ScalarProperty Name="Posicion" ColumnName="Posicion" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
           <FunctionImportMapping FunctionImportName="usp_RptCobroDiario" FunctionName="VENDIXModel.Store.usp_RptCobroDiario">
             <ResultMapping>
               <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCobroDiario_Result">
@@ -7502,6 +8385,7 @@
                 <ScalarProperty Name="CuotaTotal" ColumnName="CuotaTotal" />
                 <ScalarProperty Name="Direccion" ColumnName="Direccion" />
                 <ScalarProperty Name="FechaPago" ColumnName="FechaPago" />
+                <ScalarProperty Name="TienePagoReal" ColumnName="TienePagoReal" />
                 <ScalarProperty Name="FechaPrimerPago" ColumnName="FechaPrimerPago" />
                 <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
                 <ScalarProperty Name="Mora" ColumnName="Mora" />
@@ -7513,20 +8397,428 @@
               </ComplexTypeMapping>
             </ResultMapping>
           </FunctionImportMapping>
-          <EntitySetMapping Name="CreditoMora">
-            <EntityTypeMapping TypeName="VENDIXModel.CreditoMora">
-              <MappingFragment StoreEntitySet="CreditoMora">
-                <ScalarProperty Name="InteresMora" ColumnName="InteresMora" />
-                <ScalarProperty Name="SaldoMora" ColumnName="SaldoMora" />
-                <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
-                <ScalarProperty Name="Mora" ColumnName="Mora" />
+          <FunctionImportMapping FunctionImportName="usp_DashboardAdminFlujoCaja" FunctionName="VENDIXModel.Store.usp_DashboardAdminFlujoCaja">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardAdminFlujoCaja_Result">
+                <ScalarProperty Name="Operacion" ColumnName="Operacion" />
+                <ScalarProperty Name="IndEntrada" ColumnName="IndEntrada" />
+                <ScalarProperty Name="Concepto" ColumnName="Concepto" />
+                <ScalarProperty Name="EsTransferencia" ColumnName="EsTransferencia" />
+                <ScalarProperty Name="CantidadHoy" ColumnName="CantidadHoy" />
+                <ScalarProperty Name="ImporteHoy" ColumnName="ImporteHoy" />
+                <ScalarProperty Name="CantidadAyer" ColumnName="CantidadAyer" />
+                <ScalarProperty Name="ImporteAyer" ColumnName="ImporteAyer" />
+                <ScalarProperty Name="CantidadMesActual" ColumnName="CantidadMesActual" />
+                <ScalarProperty Name="ImporteMesActual" ColumnName="ImporteMesActual" />
+                <ScalarProperty Name="CantidadMesAnteriorComparable" ColumnName="CantidadMesAnteriorComparable" />
+                <ScalarProperty Name="ImporteMesAnteriorComparable" ColumnName="ImporteMesAnteriorComparable" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_DashboardAdminHistorico" FunctionName="VENDIXModel.Store.usp_DashboardAdminHistorico">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardAdminHistorico_Result">
                 <ScalarProperty Name="Fecha" ColumnName="Fecha" />
-                <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+                <ScalarProperty Name="Colocaciones" ColumnName="Colocaciones" />
+                <ScalarProperty Name="Desembolsado" ColumnName="Desembolsado" />
+                <ScalarProperty Name="Cobrado" ColumnName="Cobrado" />
+                <ScalarProperty Name="Entradas" ColumnName="Entradas" />
+                <ScalarProperty Name="Salidas" ColumnName="Salidas" />
+                <ScalarProperty Name="FlujoNeto" ColumnName="FlujoNeto" />
+                <ScalarProperty Name="FlujoOperativo" ColumnName="FlujoOperativo" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_DashboardAdminHistoricoMensual" FunctionName="VENDIXModel.Store.usp_DashboardAdminHistoricoMensual">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardAdminHistoricoMensual_Result">
+                <ScalarProperty Name="FechaMes" ColumnName="FechaMes" />
+                <ScalarProperty Name="EsMesActual" ColumnName="EsMesActual" />
+                <ScalarProperty Name="Colocaciones" ColumnName="Colocaciones" />
+                <ScalarProperty Name="Desembolsado" ColumnName="Desembolsado" />
+                <ScalarProperty Name="Cobrado" ColumnName="Cobrado" />
+                <ScalarProperty Name="Entradas" ColumnName="Entradas" />
+                <ScalarProperty Name="Salidas" ColumnName="Salidas" />
+                <ScalarProperty Name="FlujoNeto" ColumnName="FlujoNeto" />
+                <ScalarProperty Name="FlujoOperativo" ColumnName="FlujoOperativo" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_DashboardAdminAnalistas" FunctionName="VENDIXModel.Store.usp_DashboardAdminAnalistas">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardAdminAnalistas_Result">
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="NombreUsuario" ColumnName="NombreUsuario" />
+                <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+                <ScalarProperty Name="TotalClientes" ColumnName="TotalClientes" />
+                <ScalarProperty Name="ClientesNuevosMes" ColumnName="ClientesNuevosMes" />
+                <ScalarProperty Name="ColocacionesHoy" ColumnName="ColocacionesHoy" />
+                <ScalarProperty Name="ColocacionesMes" ColumnName="ColocacionesMes" />
+                <ScalarProperty Name="DesembolsoHoy" ColumnName="DesembolsoHoy" />
+                <ScalarProperty Name="DesembolsoMes" ColumnName="DesembolsoMes" />
+                <ScalarProperty Name="CobradoHoy" ColumnName="CobradoHoy" />
+                <ScalarProperty Name="CobradoMes" ColumnName="CobradoMes" />
+                <ScalarProperty Name="CobradoMesAnteriorComparable" ColumnName="CobradoMesAnteriorComparable" />
+                <ScalarProperty Name="VariacionCobranza" ColumnName="VariacionCobranza" />
+                <ScalarProperty Name="ClientesMora" ColumnName="ClientesMora" />
+                <ScalarProperty Name="MontoMora" ColumnName="MontoMora" />
+                <ScalarProperty Name="PorcentajeMora" ColumnName="PorcentajeMora" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_DashboardAdminResumen" FunctionName="VENDIXModel.Store.usp_DashboardAdminResumen">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardAdminResumen_Result">
+                <ScalarProperty Name="TotalAnalistas" ColumnName="TotalAnalistas" />
+                <ScalarProperty Name="TotalClientes" ColumnName="TotalClientes" />
+                <ScalarProperty Name="CreditosHoy" ColumnName="CreditosHoy" />
+                <ScalarProperty Name="CreditosAyer" ColumnName="CreditosAyer" />
+                <ScalarProperty Name="CreditosAnteayer" ColumnName="CreditosAnteayer" />
+                <ScalarProperty Name="CreditosMesActual" ColumnName="CreditosMesActual" />
+                <ScalarProperty Name="CreditosMesAnteriorComparable" ColumnName="CreditosMesAnteriorComparable" />
+                <ScalarProperty Name="DesembolsoHoy" ColumnName="DesembolsoHoy" />
+                <ScalarProperty Name="DesembolsoAyer" ColumnName="DesembolsoAyer" />
+                <ScalarProperty Name="DesembolsoAnteayer" ColumnName="DesembolsoAnteayer" />
+                <ScalarProperty Name="DesembolsoMesActual" ColumnName="DesembolsoMesActual" />
+                <ScalarProperty Name="DesembolsoMesAnteriorComparable" ColumnName="DesembolsoMesAnteriorComparable" />
+                <ScalarProperty Name="CobradoHoy" ColumnName="CobradoHoy" />
+                <ScalarProperty Name="CobradoAyer" ColumnName="CobradoAyer" />
+                <ScalarProperty Name="CobradoAnteayer" ColumnName="CobradoAnteayer" />
+                <ScalarProperty Name="CobradoMesActual" ColumnName="CobradoMesActual" />
+                <ScalarProperty Name="CobradoMesAnteriorComparable" ColumnName="CobradoMesAnteriorComparable" />
+                <ScalarProperty Name="EntradasHoy" ColumnName="EntradasHoy" />
+                <ScalarProperty Name="SalidasHoy" ColumnName="SalidasHoy" />
+                <ScalarProperty Name="FlujoNetoHoy" ColumnName="FlujoNetoHoy" />
+                <ScalarProperty Name="EntradasAyer" ColumnName="EntradasAyer" />
+                <ScalarProperty Name="SalidasAyer" ColumnName="SalidasAyer" />
+                <ScalarProperty Name="FlujoNetoAyer" ColumnName="FlujoNetoAyer" />
+                <ScalarProperty Name="EntradasAnteayer" ColumnName="EntradasAnteayer" />
+                <ScalarProperty Name="SalidasAnteayer" ColumnName="SalidasAnteayer" />
+                <ScalarProperty Name="FlujoNetoAnteayer" ColumnName="FlujoNetoAnteayer" />
+                <ScalarProperty Name="EntradasMesActual" ColumnName="EntradasMesActual" />
+                <ScalarProperty Name="SalidasMesActual" ColumnName="SalidasMesActual" />
+                <ScalarProperty Name="FlujoNetoMesActual" ColumnName="FlujoNetoMesActual" />
+                <ScalarProperty Name="EntradasMesAnteriorComparable" ColumnName="EntradasMesAnteriorComparable" />
+                <ScalarProperty Name="SalidasMesAnteriorComparable" ColumnName="SalidasMesAnteriorComparable" />
+                <ScalarProperty Name="FlujoNetoMesAnteriorComparable" ColumnName="FlujoNetoMesAnteriorComparable" />
+                <ScalarProperty Name="SaldoCartera" ColumnName="SaldoCartera" />
+                <ScalarProperty Name="SaldoCreditos" ColumnName="SaldoCreditos" />
+                <ScalarProperty Name="SaldoMoraCartera" ColumnName="SaldoMoraCartera" />
+                <ScalarProperty Name="SaldoVencido" ColumnName="SaldoVencido" />
+                <ScalarProperty Name="SaldoMorosidad" ColumnName="SaldoMorosidad" />
+                <ScalarProperty Name="ClientesMora" ColumnName="ClientesMora" />
+                <ScalarProperty Name="CreditosPorVencerSemana" ColumnName="CreditosPorVencerSemana" />
+                <ScalarProperty Name="FechaConsulta" ColumnName="FechaConsulta" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <EntitySetMapping Name="CreditoCondonacion">
+            <EntityTypeMapping TypeName="VENDIXModel.CreditoCondonacion">
+              <MappingFragment StoreEntitySet="CreditoCondonacion">
+                <ScalarProperty Name="IndAprobado" ColumnName="IndAprobado" />
+                <ScalarProperty Name="TotalPago" ColumnName="TotalPago" />
+                <ScalarProperty Name="MoraCondonacion" ColumnName="MoraCondonacion" />
+                <ScalarProperty Name="Fecha" ColumnName="Fecha" />
+                <ScalarProperty Name="CajaDiarioId" ColumnName="CajaDiarioId" />
                 <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
-                <ScalarProperty Name="CreditoMoraId" ColumnName="CreditoMoraId" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>
+          <EntitySetMapping Name="CierreGerencial">
+            <EntityTypeMapping TypeName="VENDIXModel.CierreGerencial">
+              <MappingFragment StoreEntitySet="CierreGerencial">
+                <ScalarProperty Name="Observacion" ColumnName="Observacion" />
+                <ScalarProperty Name="FechaCierre" ColumnName="FechaCierre" />
+                <ScalarProperty Name="UsuarioCierreId" ColumnName="UsuarioCierreId" />
+                <ScalarProperty Name="Version" ColumnName="Version" />
+                <ScalarProperty Name="Estado" ColumnName="Estado" />
+                <ScalarProperty Name="FechaCorte" ColumnName="FechaCorte" />
+                <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+                <ScalarProperty Name="CierreGerencialId" ColumnName="CierreGerencialId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="CierreGerencialDetalle">
+            <EntityTypeMapping TypeName="VENDIXModel.CierreGerencialDetalle">
+              <MappingFragment StoreEntitySet="CierreGerencialDetalle">
+                <ScalarProperty Name="NroOperacionesMes" ColumnName="NroOperacionesMes" />
+                <ScalarProperty Name="DesembolsosMes" ColumnName="DesembolsosMes" />
+                <ScalarProperty Name="MontoCobradoMes" ColumnName="MontoCobradoMes" />
+                <ScalarProperty Name="MontoClientesNuevosMes" ColumnName="MontoClientesNuevosMes" />
+                <ScalarProperty Name="ClientesNuevosMes" ColumnName="ClientesNuevosMes" />
+                <ScalarProperty Name="DefinicionVencidos" ColumnName="DefinicionVencidos" />
+                <ScalarProperty Name="ClientesVencidosCierre" ColumnName="ClientesVencidosCierre" />
+                <ScalarProperty Name="VencidosCuotasCierre" ColumnName="VencidosCuotasCierre" />
+                <ScalarProperty Name="MoraGeneral" ColumnName="MoraGeneral" />
+                <ScalarProperty Name="TotalClientesActivos" ColumnName="TotalClientesActivos" />
+                <ScalarProperty Name="CapitalCierre" ColumnName="CapitalCierre" />
+                <ScalarProperty Name="FuenteInicial" ColumnName="FuenteInicial" />
+                <ScalarProperty Name="TipoCartera" ColumnName="TipoCartera" />
+                <ScalarProperty Name="Orden" ColumnName="Orden" />
+                <ScalarProperty Name="Mercado" ColumnName="Mercado" />
+                <ScalarProperty Name="Supervisor" ColumnName="Supervisor" />
+                <ScalarProperty Name="Asesor" ColumnName="Asesor" />
+                <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+                <ScalarProperty Name="NombreUsuario" ColumnName="NombreUsuario" />
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="CierreGerencialId" ColumnName="CierreGerencialId" />
+                <ScalarProperty Name="CierreGerencialDetalleId" ColumnName="CierreGerencialDetalleId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="MetaGerencialAnalista">
+            <EntityTypeMapping TypeName="VENDIXModel.MetaGerencialAnalista">
+              <MappingFragment StoreEntitySet="MetaGerencialAnalista">
+                <ScalarProperty Name="FechaModificacion" ColumnName="FechaModificacion" />
+                <ScalarProperty Name="UsuarioModificacionId" ColumnName="UsuarioModificacionId" />
+                <ScalarProperty Name="FechaRegistro" ColumnName="FechaRegistro" />
+                <ScalarProperty Name="UsuarioRegistroId" ColumnName="UsuarioRegistroId" />
+                <ScalarProperty Name="Activo" ColumnName="Activo" />
+                <ScalarProperty Name="MetaRecuperacionVencidosMes" ColumnName="MetaRecuperacionVencidosMes" />
+                <ScalarProperty Name="MetaVencidosMaximoCierre" ColumnName="MetaVencidosMaximoCierre" />
+                <ScalarProperty Name="MetaClientesActivosCierre" ColumnName="MetaClientesActivosCierre" />
+                <ScalarProperty Name="MetaCapitalCierre" ColumnName="MetaCapitalCierre" />
+                <ScalarProperty Name="FuenteInicial" ColumnName="FuenteInicial" />
+                <ScalarProperty Name="TipoCartera" ColumnName="TipoCartera" />
+                <ScalarProperty Name="Orden" ColumnName="Orden" />
+                <ScalarProperty Name="Mercado" ColumnName="Mercado" />
+                <ScalarProperty Name="Supervisor" ColumnName="Supervisor" />
+                <ScalarProperty Name="Asesor" ColumnName="Asesor" />
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+                <ScalarProperty Name="MetaGerencialAnalistaId" ColumnName="MetaGerencialAnalistaId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="VencidoGerencialAperturaDetalle">
+            <EntityTypeMapping TypeName="VENDIXModel.VencidoGerencialAperturaDetalle">
+              <MappingFragment StoreEntitySet="VencidoGerencialAperturaDetalle">
+                <ScalarProperty Name="FechaRegistro" ColumnName="FechaRegistro" />
+                <ScalarProperty Name="CierreOrigenId" ColumnName="CierreOrigenId" />
+                <ScalarProperty Name="SaldoVencidoApertura" ColumnName="SaldoVencidoApertura" />
+                <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+                <ScalarProperty Name="PlanPagoId" ColumnName="PlanPagoId" />
+                <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+                <ScalarProperty Name="VencidoGerencialAperturaDetalleId" ColumnName="VencidoGerencialAperturaDetalleId" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <FunctionImportMapping FunctionImportName="ufn_ActividadGerencialMensual" FunctionName="VENDIXModel.Store.ufn_ActividadGerencialMensual">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.ufn_ActividadGerencialMensual_Result">
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="ClientesNuevosMes" ColumnName="ClientesNuevosMes" />
+                <ScalarProperty Name="MontoClientesNuevosMes" ColumnName="MontoClientesNuevosMes" />
+                <ScalarProperty Name="MontoCobradoMes" ColumnName="MontoCobradoMes" />
+                <ScalarProperty Name="DesembolsosMes" ColumnName="DesembolsosMes" />
+                <ScalarProperty Name="NroOperacionesMes" ColumnName="NroOperacionesMes" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="ufn_ClientesNuevosGerenciales" FunctionName="VENDIXModel.Store.ufn_ClientesNuevosGerenciales">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.ufn_ClientesNuevosGerenciales_Result">
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="ClientesNuevosMes" ColumnName="ClientesNuevosMes" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="ufn_MetricasGerencialesActuales" FunctionName="VENDIXModel.Store.ufn_MetricasGerencialesActuales">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.ufn_MetricasGerencialesActuales_Result">
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="CapitalActual" ColumnName="CapitalActual" />
+                <ScalarProperty Name="ClientesActivosActual" ColumnName="ClientesActivosActual" />
+                <ScalarProperty Name="VencidosActual" ColumnName="VencidosActual" />
+                <ScalarProperty Name="ClientesVencidosActual" ColumnName="ClientesVencidosActual" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="ufn_RecuperacionVencidosGerencial" FunctionName="VENDIXModel.Store.ufn_RecuperacionVencidosGerencial">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.ufn_RecuperacionVencidosGerencial_Result">
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="VencidosApertura" ColumnName="VencidosApertura" />
+                <ScalarProperty Name="VencidosAperturaPendiente" ColumnName="VencidosAperturaPendiente" />
+                <ScalarProperty Name="RecuperacionVencidosActual" ColumnName="RecuperacionVencidosActual" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="ufn_SaldosCuotasGerenciales" FunctionName="VENDIXModel.Store.ufn_SaldosCuotasGerenciales">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.ufn_SaldosCuotasGerenciales_Result">
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+                <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+                <ScalarProperty Name="PlanPagoId" ColumnName="PlanPagoId" />
+                <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+                <ScalarProperty Name="ImporteCuota" ColumnName="ImporteCuota" />
+                <ScalarProperty Name="SaldoCuota" ColumnName="SaldoCuota" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_DashboardGestorClientesMora" FunctionName="VENDIXModel.Store.usp_DashboardGestorClientesMora">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardGestorClientesMora_Result">
+                <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+                <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+                <ScalarProperty Name="CreditosMora" ColumnName="CreditosMora" />
+                <ScalarProperty Name="SaldoMora" ColumnName="SaldoMora" />
+                <ScalarProperty Name="PrimeraCuotaVencida" ColumnName="PrimeraCuotaVencida" />
+                <ScalarProperty Name="FechaUltimoPago" ColumnName="FechaUltimoPago" />
+                <ScalarProperty Name="DiasAtraso" ColumnName="DiasAtraso" />
+                <ScalarProperty Name="CodigoClasificacion" ColumnName="CodigoClasificacion" />
+                <ScalarProperty Name="Clasificacion" ColumnName="Clasificacion" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_GenerarCierreGerencialMensual" FunctionName="VENDIXModel.Store.usp_GenerarCierreGerencialMensual">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_GenerarCierreGerencialMensual_Result">
+                <ScalarProperty Name="CierreGerencialId" ColumnName="CierreGerencialId" />
+                <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+                <ScalarProperty Name="Creado" ColumnName="Creado" />
+                <ScalarProperty Name="Resultado" ColumnName="Resultado" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_GuardarMetaGerencialDefinitiva" FunctionName="VENDIXModel.Store.usp_GuardarMetaGerencialDefinitiva">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_GuardarMetaGerencialDefinitiva_Result">
+                <ScalarProperty Name="MetaGerencialAnalistaId" ColumnName="MetaGerencialAnalistaId" />
+                <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="MetaCapitalCierre" ColumnName="MetaCapitalCierre" />
+                <ScalarProperty Name="MetaClientesActivosCierre" ColumnName="MetaClientesActivosCierre" />
+                <ScalarProperty Name="MetaVencidosMaximoCierre" ColumnName="MetaVencidosMaximoCierre" />
+                <ScalarProperty Name="MetaRecuperacionVencidosMes" ColumnName="MetaRecuperacionVencidosMes" />
+                <ScalarProperty Name="Activo" ColumnName="Activo" />
+                <ScalarProperty Name="UsuarioRegistroId" ColumnName="UsuarioRegistroId" />
+                <ScalarProperty Name="FechaRegistro" ColumnName="FechaRegistro" />
+                <ScalarProperty Name="UsuarioModificacionId" ColumnName="UsuarioModificacionId" />
+                <ScalarProperty Name="FechaModificacion" ColumnName="FechaModificacion" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_IntentarGenerarCierreGerencialMensual" FunctionName="VENDIXModel.Store.usp_IntentarGenerarCierreGerencialMensual">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_IntentarGenerarCierreGerencialMensual_Result">
+                <ScalarProperty Name="CierreGerencialId" ColumnName="CierreGerencialId" />
+                <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+                <ScalarProperty Name="Creado" ColumnName="Creado" />
+                <ScalarProperty Name="Resultado" ColumnName="Resultado" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_ListarMetasGerencialesDefinitivas" FunctionName="VENDIXModel.Store.usp_ListarMetasGerencialesDefinitivas">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_ListarMetasGerencialesDefinitivas_Result">
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="NombreUsuario" ColumnName="NombreUsuario" />
+                <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+                <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+                <ScalarProperty Name="CapitalBase" ColumnName="CapitalBase" />
+                <ScalarProperty Name="ClientesActivosBase" ColumnName="ClientesActivosBase" />
+                <ScalarProperty Name="VencidosBaseComparable" ColumnName="VencidosBaseComparable" />
+                <ScalarProperty Name="VencidosBaseLegacy" ColumnName="VencidosBaseLegacy" />
+                <ScalarProperty Name="ClientesVencidosBase" ColumnName="ClientesVencidosBase" />
+                <ScalarProperty Name="MetaCapitalCierre" ColumnName="MetaCapitalCierre" />
+                <ScalarProperty Name="MetaClientesActivosCierre" ColumnName="MetaClientesActivosCierre" />
+                <ScalarProperty Name="MetaVencidosMaximoCierre" ColumnName="MetaVencidosMaximoCierre" />
+                <ScalarProperty Name="MetaRecuperacionVencidosMes" ColumnName="MetaRecuperacionVencidosMes" />
+                <ScalarProperty Name="Configurada" ColumnName="Configurada" />
+                <ScalarProperty Name="PeriodoCerrado" ColumnName="PeriodoCerrado" />
+                <ScalarProperty Name="PuedeEditar" ColumnName="PuedeEditar" />
+                <ScalarProperty Name="FechaLimiteEdicion" ColumnName="FechaLimiteEdicion" />
+                <ScalarProperty Name="Asesor" ColumnName="Asesor" />
+                <ScalarProperty Name="Supervisor" ColumnName="Supervisor" />
+                <ScalarProperty Name="Mercado" ColumnName="Mercado" />
+                <ScalarProperty Name="Orden" ColumnName="Orden" />
+                <ScalarProperty Name="TipoCartera" ColumnName="TipoCartera" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_ObtenerAvanceMetasGerenciales" FunctionName="VENDIXModel.Store.usp_ObtenerAvanceMetasGerenciales" />
+          <FunctionImportMapping FunctionImportName="usp_ObtenerAvanceMetasGerencialesBase" FunctionName="VENDIXModel.Store.usp_ObtenerAvanceMetasGerencialesBase">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_ObtenerAvanceMetasGerencialesBase_Result">
+                <ScalarProperty Name="Orden" ColumnName="Orden" />
+                <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+                <ScalarProperty Name="NombreUsuario" ColumnName="NombreUsuario" />
+                <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+                <ScalarProperty Name="Asesor" ColumnName="Asesor" />
+                <ScalarProperty Name="Supervisor" ColumnName="Supervisor" />
+                <ScalarProperty Name="Mercado" ColumnName="Mercado" />
+                <ScalarProperty Name="TipoCartera" ColumnName="TipoCartera" />
+                <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+                <ScalarProperty Name="CapitalBase" ColumnName="CapitalBase" />
+                <ScalarProperty Name="MetaCapitalCierre" ColumnName="MetaCapitalCierre" />
+                <ScalarProperty Name="CapitalActual" ColumnName="CapitalActual" />
+                <ScalarProperty Name="DiferenciaCapital" ColumnName="DiferenciaCapital" />
+                <ScalarProperty Name="CumplimientoCapitalPct" ColumnName="CumplimientoCapitalPct" />
+                <ScalarProperty Name="EstadoCapital" ColumnName="EstadoCapital" />
+                <ScalarProperty Name="ClientesBase" ColumnName="ClientesBase" />
+                <ScalarProperty Name="MetaClientesActivosCierre" ColumnName="MetaClientesActivosCierre" />
+                <ScalarProperty Name="ClientesActivosActual" ColumnName="ClientesActivosActual" />
+                <ScalarProperty Name="DiferenciaClientes" ColumnName="DiferenciaClientes" />
+                <ScalarProperty Name="CumplimientoClientesPct" ColumnName="CumplimientoClientesPct" />
+                <ScalarProperty Name="EstadoClientes" ColumnName="EstadoClientes" />
+                <ScalarProperty Name="VencidosBaseComparable" ColumnName="VencidosBaseComparable" />
+                <ScalarProperty Name="VencidosBaseLegacy" ColumnName="VencidosBaseLegacy" />
+                <ScalarProperty Name="MetaVencidosMaximoCierre" ColumnName="MetaVencidosMaximoCierre" />
+                <ScalarProperty Name="VencidosActual" ColumnName="VencidosActual" />
+                <ScalarProperty Name="MargenVencidos" ColumnName="MargenVencidos" />
+                <ScalarProperty Name="EstadoVencidos" ColumnName="EstadoVencidos" />
+                <ScalarProperty Name="ClientesVencidosBase" ColumnName="ClientesVencidosBase" />
+                <ScalarProperty Name="ClientesVencidosActual" ColumnName="ClientesVencidosActual" />
+                <ScalarProperty Name="ClientesVencidosPct" ColumnName="ClientesVencidosPct" />
+                <ScalarProperty Name="MetaRecuperacionVencidosMes" ColumnName="MetaRecuperacionVencidosMes" />
+                <ScalarProperty Name="RecuperacionVencidosActual" ColumnName="RecuperacionVencidosActual" />
+                <ScalarProperty Name="EstadoRecuperacion" ColumnName="EstadoRecuperacion" />
+                <ScalarProperty Name="MetaConfigurada" ColumnName="MetaConfigurada" />
+                <ScalarProperty Name="FechaCalculo" ColumnName="FechaCalculo" />
+                <ScalarProperty Name="AvanceNoOficial" ColumnName="AvanceNoOficial" />
+                <ScalarProperty Name="ClientesNuevosMes" ColumnName="ClientesNuevosMes" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_SolicitarCondonacion" FunctionName="VENDIXModel.Store.usp_SolicitarCondonacion" />
+          <FunctionImportMapping FunctionImportName="usp_DashboardProductividad" FunctionName="VENDIXModel.Store.usp_DashboardProductividad">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardProductividad_Result">
+                <ScalarProperty Name="Anio" ColumnName="Anio" />
+                <ScalarProperty Name="Mes" ColumnName="Mes" />
+                <ScalarProperty Name="NombreMes" ColumnName="NombreMes" />
+                <ScalarProperty Name="MontoCobrado" ColumnName="MontoCobrado" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
+          <FunctionImportMapping FunctionImportName="usp_DashboardGestor" FunctionName="VENDIXModel.Store.usp_DashboardGestor">
+            <ResultMapping>
+              <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardGestor_Result">
+                <ScalarProperty Name="TotalClientes" ColumnName="TotalClientes" />
+                <ScalarProperty Name="ClientesNuevosActual" ColumnName="ClientesNuevosActual" />
+                <ScalarProperty Name="ClientesNuevosAnterior" ColumnName="ClientesNuevosAnterior" />
+                <ScalarProperty Name="CreditosActual" ColumnName="CreditosActual" />
+                <ScalarProperty Name="CreditosAnterior" ColumnName="CreditosAnterior" />
+                <ScalarProperty Name="CobradoActual" ColumnName="CobradoActual" />
+                <ScalarProperty Name="CobradoAnterior" ColumnName="CobradoAnterior" />
+                <ScalarProperty Name="SaldoActual" ColumnName="SaldoActual" />
+                <ScalarProperty Name="MontoMora" ColumnName="MontoMora" />
+                <ScalarProperty Name="ClientesMora" ColumnName="ClientesMora" />
+                <ScalarProperty Name="ClientesMoraSinPago" ColumnName="ClientesMoraSinPago" />
+                <ScalarProperty Name="ClientesMoraNuncaPagaron" ColumnName="ClientesMoraNuncaPagaron" />
+                <ScalarProperty Name="ClientesMoraDejaronPagar" ColumnName="ClientesMoraDejaronPagar" />
+                <ScalarProperty Name="ClientesMoraPagandoConAtraso" ColumnName="ClientesMoraPagandoConAtraso" />
+                <ScalarProperty Name="PorVencerSemana" ColumnName="PorVencerSemana" />
+                <ScalarProperty Name="CobradoHoy" ColumnName="CobradoHoy" />
+                <ScalarProperty Name="CobradoAyer" ColumnName="CobradoAyer" />
+              </ComplexTypeMapping>
+            </ResultMapping>
+          </FunctionImportMapping>
         </EntityContainerMapping>
       </Mapping>
     </edmx:Mappings>

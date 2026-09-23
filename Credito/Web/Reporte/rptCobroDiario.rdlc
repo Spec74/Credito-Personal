@@ -69,6 +69,10 @@
           <DataField>FechaPago</DataField>
           <rd:TypeName>System.DateTime</rd:TypeName>
         </Field>
+        <Field Name="TienePagoReal">
+          <DataField>TienePagoReal</DataField>
+          <rd:TypeName>System.Boolean</rd:TypeName>
+        </Field>
         <Field Name="FechaPrimerPago">
           <DataField>FechaPrimerPago</DataField>
           <rd:TypeName>System.DateTime</rd:TypeName>
@@ -120,25 +124,25 @@
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
-                  <Width>0.46271cm</Width>
+                  <Width>0.4266cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>3.12982cm</Width>
+                  <Width>3.09954cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.32134cm</Width>
+                  <Width>1.17029cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.61202cm</Width>
+                  <Width>1.5033cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>3.41707cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>2.60872cm</Width>
+                  <Width>2.51454cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.16315cm</Width>
+                  <Width>1.23327cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>0.82609cm</Width>
@@ -147,13 +151,13 @@
                   <Width>0.58869cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.15063cm</Width>
+                  <Width>1.1083cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>0.73552cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.03951cm</Width>
+                  <Width>0.99718cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>0.61565cm</Width>
@@ -162,7 +166,7 @@
                   <Width>0.48293cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>0.76289cm</Width>
+                  <Width>0.80522cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>0.97771cm</Width>
@@ -171,38 +175,39 @@
                   <Width>1.15063cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>0.92309cm</Width>
+                  <Width>0.88076cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>0.72729cm</Width>
+                  <Width>0.94473cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.0448cm</Width>
+                  <Width>1.19585cm</Width>
                 </TablixColumn>
                 <TablixColumn>
                   <Width>0.82019cm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>1.10829cm</Width>
+                  <Width>1.06596cm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
                 <TablixRow>
-                  <Height>0.52063cm</Height>
+                  <Height>0.58712cm</Height>
                   <TablixCells>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="Textbox17">
+                        <Textbox Name="Textbox3">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Nro</Value>
+                                  <Value>N°</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -211,33 +216,33 @@
                               </Style>
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>Textbox17</rd:DefaultName>
-                          <RepeatWith>Tablix1</RepeatWith>
+                          <rd:DefaultName>Textbox3</rd:DefaultName>
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -256,10 +261,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Cliente</Value>
+                                  <Value>CLIENTE</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -273,28 +279,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -313,10 +320,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Monto Recibido</Value>
+                                  <Value>MONTO RECIBIDO</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -329,28 +337,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -373,6 +382,7 @@
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -385,28 +395,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -425,10 +436,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Direccion</Value>
+                                  <Value>DIRECCIÓN</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -441,28 +453,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -481,10 +494,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Negocio</Value>
+                                  <Value>NEGOCIO</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -497,28 +511,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -537,10 +552,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Celular</Value>
+                                  <Value>CELULAR</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -554,28 +570,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -594,10 +611,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Tope</Value>
+                                  <Value>TOPE</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -610,28 +628,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -654,6 +673,7 @@
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -666,28 +686,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -706,10 +727,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Fecha Inicio</Value>
+                                  <Value>FECHA INICIO</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -723,28 +745,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -763,10 +786,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Cuota Pen</Value>
+                                  <Value>CUOTA PEN</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -779,28 +803,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -819,10 +844,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Monto Credito</Value>
+                                  <Value>MONTO CRÉDITO</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -836,28 +862,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -876,10 +903,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Int (%)</Value>
+                                  <Value>%</Value>
                                   <Style>
-                                    <FontSize>5pt</FontSize>
+                                    <FontSize>7pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -893,28 +921,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -935,8 +964,9 @@
                                 <TextRun>
                                   <Value>F</Value>
                                   <Style>
-                                    <FontSize>5pt</FontSize>
+                                    <FontSize>7pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -949,28 +979,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -989,10 +1020,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Cuota Plan</Value>
+                                  <Value>CUOTA PLAN</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -1005,28 +1037,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -1045,10 +1078,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Monto Total</Value>
+                                  <Value>MONTO TOTAL</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -1061,28 +1095,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -1101,10 +1136,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Fecha Pago</Value>
+                                  <Value>ÚLTIMO PAGO</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -1118,28 +1154,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -1158,10 +1195,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Saldo</Value>
+                                  <Value>SALDO</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -1175,28 +1213,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -1215,10 +1254,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Dias Atrazo</Value>
+                                  <Value>DIAS ATRAZO</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -1232,28 +1272,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -1272,10 +1313,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Fecha Vcto</Value>
+                                  <Value>FECHA VENCIMIENTO</Value>
                                   <Style>
-                                    <FontSize>5pt</FontSize>
+                                    <FontSize>4pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -1289,28 +1331,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -1333,6 +1376,7 @@
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -1346,28 +1390,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -1390,6 +1435,7 @@
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -1403,28 +1449,29 @@
                           <Style>
                             <Border>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
                             <TopBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </TopBorder>
                             <BottomBorder>
                               <Color>Black</Color>
-                              <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Style>None</Style>
+                              <Width>0.3pt</Width>
                             </BottomBorder>
                             <LeftBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </LeftBorder>
                             <RightBorder>
                               <Color>Black</Color>
                               <Style>Solid</Style>
-                              <Width>1pt</Width>
+                              <Width>0.3pt</Width>
                             </RightBorder>
-                            <BackgroundColor>LightSteelBlue</BackgroundColor>
+                            <BackgroundColor>#005d9a</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -1434,6 +1481,74 @@
                         </Textbox>
                       </CellContents>
                     </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+                <TablixRow>
+                  <Height>0.34343cm</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox5">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=IIF(CDate(Fields!FechaVencimiento.Value) &lt; Today, "- - -   CRÉDITOS VENCIDOS   - - -", "&gt;       &gt;       &gt;       &gt;       &gt;       &gt;       &gt;       &gt;       &gt;       &gt;       &gt;        CRÉDITOS VIGENTES        &lt;       &lt;       &lt;       &lt;       &lt;       &lt;       &lt;       &lt;       &lt;       &lt;       &lt;")</Value>
+                                  <Style>
+                                    <FontStyle>Normal</FontStyle>
+                                    <FontSize>6pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <TextDecoration>None</TextDecoration>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox5</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Color>LightGrey</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
+                            <BackgroundColor>#005d9a</BackgroundColor>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                          </Style>
+                        </Textbox>
+                        <ColSpan>22</ColSpan>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
+                    <TablixCell />
                   </TablixCells>
                 </TablixRow>
                 <TablixRow>
@@ -1448,17 +1563,13 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Label>Nro</Label>
-                                  <Value>=Fields!Nro.Value</Value>
+                                  <Value>=RowNumber(Nothing)</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
-                                    <Format>0;(0)</Format>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
-                              <Style>
-                                <TextAlign>Center</TextAlign>
-                              </Style>
+                              <Style />
                             </Paragraph>
                           </Paragraphs>
                           <rd:DefaultName>Nro</rd:DefaultName>
@@ -1466,10 +1577,20 @@
                             <Border>
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
                             <BottomBorder>
-                              <Style>None</Style>
+                              <Style>Solid</Style>
                             </BottomBorder>
+                            <LeftBorder>
+                              <Style>Solid</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1501,7 +1622,20 @@
                             <Border>
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>Solid</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1533,7 +1667,20 @@
                             <Border>
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>Solid</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>Solid</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1565,7 +1712,20 @@
                             <Border>
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>Solid</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>Solid</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1597,7 +1757,20 @@
                             <Border>
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1629,7 +1802,20 @@
                             <Border>
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>Solid</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1647,9 +1833,11 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!Celular.Value</Value>
+                                  <Value>=IIF(IsNothing(Fields!Celular.Value) Or Fields!Celular.Value = "", "!", Fields!Celular.Value)</Value>
                                   <Style>
-                                    <FontSize>5pt</FontSize>
+                                    <FontSize>=IIF(IsNothing(Fields!Celular.Value) Or Fields!Celular.Value = "", "9pt", "5pt")</FontSize>
+                                    <FontWeight>=IIF(IsNothing(Fields!Celular.Value) Or Fields!Celular.Value = "", "Bold", "Normal")</FontWeight>
+                                    <Color>=IIF(IsNothing(Fields!Celular.Value) Or Fields!Celular.Value = "", "Red", "Black")</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -1663,7 +1851,20 @@
                             <Border>
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
+                              <Width>0.3pt</Width>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>Solid</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>Solid</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1698,6 +1899,18 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1732,6 +1945,18 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1767,6 +1992,18 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1801,6 +2038,18 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1833,6 +2082,18 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1850,14 +2111,14 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!Interes.Value</Value>
+                                  <Value>=Format(Fields!Interes.Value, "0") &amp; "%"</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
                               <Style>
-                                <TextAlign>Center</TextAlign>
+                                <TextAlign>Right</TextAlign>
                               </Style>
                             </Paragraph>
                           </Paragraphs>
@@ -1867,6 +2128,18 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1901,6 +2174,18 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1935,6 +2220,18 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1969,6 +2266,18 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -1988,8 +2297,45 @@
                                 <TextRun>
                                   <Value>=Fields!FechaPago.Value</Value>
                                   <Style>
-                                    <FontSize>5pt</FontSize>
+                                    <FontSize>=IIF(
+    Fields!TienePagoReal.Value = False
+    Or UCase(Trim(Fields!FormaPago.Value &amp; "")) = "S"
+    Or UCase(Trim(Fields!FormaPago.Value &amp; "")) = "SEMANAL"
+    Or UCase(Trim(Fields!FormaPago.Value &amp; "")) = "Q"
+    Or UCase(Trim(Fields!FormaPago.Value &amp; "")) = "QUINCENAL"
+    Or UCase(Trim(Fields!FormaPago.Value &amp; "")) = "M"
+    Or UCase(Trim(Fields!FormaPago.Value &amp; "")) = "MENSUAL",
+    "5.7pt",
+    "5pt"
+)</FontSize>
+                                    <FontWeight>=IIF(
+    Fields!TienePagoReal.Value = False
+    Or UCase(Trim(Fields!FormaPago.Value &amp; "")) = "S"
+    Or UCase(Trim(Fields!FormaPago.Value &amp; "")) = "SEMANAL"
+    Or UCase(Trim(Fields!FormaPago.Value &amp; "")) = "Q"
+    Or UCase(Trim(Fields!FormaPago.Value &amp; "")) = "QUINCENAL"
+    Or UCase(Trim(Fields!FormaPago.Value &amp; "")) = "M"
+    Or UCase(Trim(Fields!FormaPago.Value &amp; "")) = "MENSUAL",
+    "Bold",
+    "Normal"
+)</FontWeight>
                                     <Format>d</Format>
+                                    <Color>=IIF(
+    Fields!TienePagoReal.Value = False
+    Or (
+        Fields!TienePagoReal.Value = True
+        And (
+            UCase(Trim(CStr(Fields!FormaPago.Value))) = "S"
+            Or UCase(Trim(CStr(Fields!FormaPago.Value))) = "SEMANAL"
+            Or UCase(Trim(CStr(Fields!FormaPago.Value))) = "Q"
+            Or UCase(Trim(CStr(Fields!FormaPago.Value))) = "QUINCENAL"
+            Or UCase(Trim(CStr(Fields!FormaPago.Value))) = "M"
+            Or UCase(Trim(CStr(Fields!FormaPago.Value))) = "MENSUAL"
+        )
+    ),
+    "White",
+    "Black"
+)</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -2004,7 +2350,26 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
+                            <BackgroundColor>=IIF(
+    Fields!TienePagoReal.Value = False,
+    "#7030A0",
+    IIF(
+        UCase(Trim(CStr(Fields!FormaPago.Value))) = "S"
+        Or UCase(Trim(CStr(Fields!FormaPago.Value))) = "SEMANAL"
+        Or UCase(Trim(CStr(Fields!FormaPago.Value))) = "Q"
+        Or UCase(Trim(CStr(Fields!FormaPago.Value))) = "QUINCENAL"
+        Or UCase(Trim(CStr(Fields!FormaPago.Value))) = "M"
+        Or UCase(Trim(CStr(Fields!FormaPago.Value))) = "MENSUAL",
+        "#28A745",
+        "Transparent"
+    )
+)</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -2036,6 +2401,18 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -2070,6 +2447,18 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -2089,8 +2478,16 @@
                                 <TextRun>
                                   <Value>=Fields!FechaVencimiento.Value</Value>
                                   <Style>
-                                    <FontSize>5pt</FontSize>
+                                    <FontSize>=IIF(CDate(Fields!FechaVencimiento.Value) &gt;= Today And CDate(Fields!FechaVencimiento.Value) &lt;= DateAdd("d", 3, Today), "5.7pt", "5pt")</FontSize>
+                                    <FontWeight>=IIF(
+    Not IsNothing(Fields!FechaVencimiento.Value)
+    AndAlso CDate(Fields!FechaVencimiento.Value).Date &gt;= Today()
+    AndAlso CDate(Fields!FechaVencimiento.Value).Date &lt;= DateAdd("d", 3, Today()),
+    "Bold",
+    "Normal"
+)</FontWeight>
                                     <Format>d</Format>
+                                    <Color>=IIF(CDate(Fields!FechaVencimiento.Value) &gt;= Today And CDate(Fields!FechaVencimiento.Value) &lt;= DateAdd("d", 3, Today), "White", "Black")</Color>
                                   </Style>
                                 </TextRun>
                               </TextRuns>
@@ -2105,7 +2502,13 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
+                            <BackgroundColor>=IIF(CDate(Fields!FechaVencimiento.Value) &gt;= Today And CDate(Fields!FechaVencimiento.Value) &lt;= DateAdd("d", 3, Today), "Tomato", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -2122,7 +2525,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!Mora.Value</Value>
+                                  <Value>=IIF(Fields!Mora.Value = 0, "", Fields!Mora.Value)</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                   </Style>
@@ -2137,6 +2540,12 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>None</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -2169,6 +2578,18 @@
                               <Color>LightGrey</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Style>Solid</Style>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Style>Solid</Style>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Style>None</Style>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Style>Solid</Style>
+                            </RightBorder>
                             <BackgroundColor>= IIf(RowNumber(Nothing) Mod 2 = 0, "WhiteSmoke", "Transparent")</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
@@ -2184,7 +2605,7 @@
                   <TablixCells>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="Textbox86">
+                        <Textbox Name="Textbox9">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
@@ -2201,7 +2622,7 @@
                               <Style />
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>Textbox86</rd:DefaultName>
+                          <rd:DefaultName>Textbox9</rd:DefaultName>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -2252,14 +2673,14 @@
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="Textbox40">
+                        <Textbox Name="TxtTotalVencidos">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value />
+                                  <Value>=Sum(IIF(Val(Fields!DiasAtrazo.Value) &gt; 0, 1, 0))</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -2269,7 +2690,9 @@
                               <Style />
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>Textbox40</rd:DefaultName>
+                          <Visibility>
+                            <Hidden>true</Hidden>
+                          </Visibility>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -2286,14 +2709,14 @@
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="Textbox32">
+                        <Textbox Name="TxtSaldoPendiente">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value />
+                                  <Value>=Sum(IIF(Val(Fields!Saldo.Value) &gt; 0, 1, 0))</Value>
                                   <Style>
                                     <FontSize>5pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -2303,7 +2726,9 @@
                               <Style />
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>Textbox32</rd:DefaultName>
+                          <Visibility>
+                            <Hidden>true</Hidden>
+                          </Visibility>
                           <Style>
                             <Border>
                               <Color>LightGrey</Color>
@@ -2967,14 +3392,37 @@
                   <RepeatOnNewPage>true</RepeatOnNewPage>
                 </TablixMember>
                 <TablixMember>
-                  <Group Name="Detalles" />
+                  <Group Name="Group1">
+                    <GroupExpressions>
+                      <GroupExpression>=IIF(CDate(Fields!FechaVencimiento.Value) &lt; Today, 1, 2)</GroupExpression>
+                    </GroupExpressions>
+                  </Group>
+                  <SortExpressions>
+                    <SortExpression>
+                      <Value>=IIF(CDate(Fields!FechaVencimiento.Value) &lt; Today, 1, 2)</Value>
+                    </SortExpression>
+                  </SortExpressions>
                   <TablixMembers>
-                    <TablixMember />
+                    <TablixMember>
+                      <Visibility>
+                        <Hidden>=IIF(CDate(Fields!FechaVencimiento.Value) &lt; Today, True, False)</Hidden>
+                      </Visibility>
+                      <KeepWithGroup>After</KeepWithGroup>
+                    </TablixMember>
+                    <TablixMember>
+                      <Group Name="Detalles" />
+                      <SortExpressions>
+                        <SortExpression>
+                          <Value>=Fields!FechaVencimiento.Value</Value>
+                        </SortExpression>
+                      </SortExpressions>
+                      <TablixMembers>
+                        <TablixMember />
+                      </TablixMembers>
+                    </TablixMember>
                   </TablixMembers>
                 </TablixMember>
-                <TablixMember>
-                  <KeepWithGroup>Before</KeepWithGroup>
-                </TablixMember>
+                <TablixMember />
               </TablixMembers>
             </TablixRowHierarchy>
             <RepeatColumnHeaders>true</RepeatColumnHeaders>
@@ -2982,8 +3430,8 @@
             <FixedColumnHeaders>true</FixedColumnHeaders>
             <FixedRowHeaders>true</FixedRowHeaders>
             <DataSetName>dsCobroDiario</DataSetName>
-            <Height>1.56189cm</Height>
-            <Width>26.66874cm</Width>
+            <Height>1.97181cm</Height>
+            <Width>26.56002cm</Width>
             <Style>
               <Border>
                 <Style>None</Style>
@@ -2991,13 +3439,13 @@
             </Style>
           </Tablix>
         </ReportItems>
-        <Height>0.61492in</Height>
+        <Height>0.87732in</Height>
         <Style />
       </Body>
-      <Width>10.4995in</Width>
+      <Width>10.47337in</Width>
       <Page>
         <PageHeader>
-          <Height>1.20563cm</Height>
+          <Height>1.28988cm</Height>
           <PrintOnFirstPage>true</PrintOnFirstPage>
           <PrintOnLastPage>true</PrintOnLastPage>
           <ReportItems>
@@ -3010,23 +3458,24 @@
                     <TextRun>
                       <Value>=Parameters!Titulo.Value</Value>
                       <Style>
-                        <FontSize>8pt</FontSize>
+                        <FontSize>11pt</FontSize>
                         <FontWeight>Bold</FontWeight>
                       </Style>
                     </TextRun>
                   </TextRuns>
                   <Style>
-                    <TextAlign>Right</TextAlign>
+                    <TextAlign>Center</TextAlign>
                   </Style>
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Textbox1</rd:DefaultName>
-              <Left>21.92891cm</Left>
-              <Height>0.47335cm</Height>
+              <Top>0.13197cm</Top>
+              <Left>21.97124cm</Left>
+              <Height>0.5127cm</Height>
               <Width>4.63111cm</Width>
               <Style>
                 <Border>
-                  <Style>None</Style>
+                  <Style>Solid</Style>
                 </Border>
                 <PaddingLeft>2pt</PaddingLeft>
                 <PaddingRight>2pt</PaddingRight>
@@ -3054,7 +3503,7 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Fecha</rd:DefaultName>
-              <Top>0.51745cm</Top>
+              <Top>0.71115cm</Top>
               <Left>21.92891cm</Left>
               <Height>0.39307cm</Height>
               <Width>4.67344cm</Width>
@@ -3085,6 +3534,7 @@
                       <Value>=Parameters!Agente.Value</Value>
                       <Style>
                         <FontSize>6pt</FontSize>
+                        <FontWeight>Bold</FontWeight>
                       </Style>
                     </TextRun>
                   </TextRuns>
@@ -3092,7 +3542,8 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Agente</rd:DefaultName>
-              <Left>6.35cm</Left>
+              <Top>0.13197cm</Top>
+              <Left>4.7625cm</Left>
               <Height>0.38481cm</Height>
               <Width>6.63537cm</Width>
               <ZIndex>2</ZIndex>
@@ -3131,9 +3582,10 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>Caja</rd:DefaultName>
-              <Left>13.16176cm</Left>
+              <Top>0.13197cm</Top>
+              <Left>11.89176cm</Left>
               <Height>0.38481cm</Height>
-              <Width>8.26258cm</Width>
+              <Width>6.13027cm</Width>
               <ZIndex>3</ZIndex>
               <Style>
                 <Border>
@@ -3158,7 +3610,7 @@
                       </Style>
                     </TextRun>
                     <TextRun>
-                      <Value>=Parameters!SaldoVencido.Value</Value>
+                      <Value>=Parameters!SaldoVencido.Value &amp; " (" &amp; (CountRows("dsCobroDiario") - Sum(IIF(Fields!Mora.Value &gt; 0, 1, 0), "dsCobroDiario")) &amp; " Clientes)"</Value>
                       <Style>
                         <FontSize>6pt</FontSize>
                         <Format>#,0.00;(#,0.00)</Format>
@@ -3169,8 +3621,8 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>SaldoVencido</rd:DefaultName>
-              <Top>0.57918cm</Top>
-              <Left>13.16176cm</Left>
+              <Top>0.71115cm</Top>
+              <Left>11.89176cm</Left>
               <Height>0.36187cm</Height>
               <Width>4.79933cm</Width>
               <ZIndex>4</ZIndex>
@@ -3197,7 +3649,7 @@
                       </Style>
                     </TextRun>
                     <TextRun>
-                      <Value>=Parameters!SaldoMoroso.Value</Value>
+                      <Value>=Parameters!SaldoMoroso.Value &amp; " (" &amp; Sum(IIF(Fields!Mora.Value &gt; 0, 1, 0), "dsCobroDiario") &amp; " Clientes)"</Value>
                       <Style>
                         <FontSize>6pt</FontSize>
                         <Format>#,0.00;(#,0.00)</Format>
@@ -3208,8 +3660,8 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>SaldoMoroso</rd:DefaultName>
-              <Top>0.57918cm</Top>
-              <Left>6.35cm</Left>
+              <Top>0.71115cm</Top>
+              <Left>4.7625cm</Left>
               <Height>0.36187cm</Height>
               <Width>3.92715cm</Width>
               <ZIndex>5</ZIndex>
@@ -3230,15 +3682,11 @@
                 <Paragraph>
                   <TextRuns>
                     <TextRun>
-                      <Value>Nro Clientes </Value>
+                      <Value>="Mora Total: " &amp; Format(IIF(Sum(Fields!MontoTotal.Value, "dsCobroDiario") &gt; 0, Sum(Fields!Mora.Value, "dsCobroDiario") / Sum(Fields!MontoTotal.Value, "dsCobroDiario"), 0), "0.0%")</Value>
                       <Style>
-                        <FontSize>6pt</FontSize>
-                      </Style>
-                    </TextRun>
-                    <TextRun>
-                      <Value>=Parameters!NroClientes.Value</Value>
-                      <Style>
-                        <FontSize>6pt</FontSize>
+                        <FontStyle>Normal</FontStyle>
+                        <FontSize>7pt</FontSize>
+                        <FontWeight>Bold</FontWeight>
                       </Style>
                     </TextRun>
                   </TextRuns>
@@ -3246,10 +3694,10 @@
                 </Paragraph>
               </Paragraphs>
               <rd:DefaultName>SaldoVencido</rd:DefaultName>
-              <Top>0.57918cm</Top>
+              <Top>0.71115cm</Top>
               <Left>18.13748cm</Left>
               <Height>0.36187cm</Height>
-              <Width>3.28686cm</Width>
+              <Width>3.51505cm</Width>
               <ZIndex>6</ZIndex>
               <Style>
                 <Border>
@@ -3265,8 +3713,8 @@
               <Source>Embedded</Source>
               <Value>logocredito</Value>
               <Sizing>FitProportional</Sizing>
-              <Height>1.20563cm</Height>
-              <Width>3.11396cm</Width>
+              <Height>1.28988cm</Height>
+              <Width>3.52614cm</Width>
               <ZIndex>7</ZIndex>
               <Style>
                 <Border>
@@ -3274,6 +3722,46 @@
                 </Border>
               </Style>
             </Image>
+            <Textbox Name="SaldoVencido3">
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>Nro Clientes </Value>
+                      <Style>
+                        <FontSize>6pt</FontSize>
+                      </Style>
+                    </TextRun>
+                    <TextRun>
+                      <Value>=Parameters!NroClientes.Value</Value>
+                      <Style>
+                        <FontStyle>Normal</FontStyle>
+                        <FontSize>7pt</FontSize>
+                        <FontWeight>Bold</FontWeight>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style />
+                </Paragraph>
+              </Paragraphs>
+              <rd:DefaultName>SaldoVencido</rd:DefaultName>
+              <Top>0.13197cm</Top>
+              <Left>18.13748cm</Left>
+              <Height>0.36187cm</Height>
+              <Width>3.28686cm</Width>
+              <ZIndex>8</ZIndex>
+              <Style>
+                <Border>
+                  <Style>None</Style>
+                </Border>
+                <PaddingLeft>2pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+                <PaddingTop>2pt</PaddingTop>
+                <PaddingBottom>2pt</PaddingBottom>
+              </Style>
+            </Textbox>
           </ReportItems>
           <Style>
             <Border>
@@ -3358,10 +3846,14 @@
   <ReportParameters>
     <ReportParameter Name="Fecha">
       <DataType>String</DataType>
+      <Nullable>true</Nullable>
+      <AllowBlank>true</AllowBlank>
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
     <ReportParameter Name="Agente">
       <DataType>String</DataType>
+      <Nullable>true</Nullable>
+      <AllowBlank>true</AllowBlank>
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
     <ReportParameter Name="Caja">
@@ -3371,26 +3863,34 @@
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
     <ReportParameter Name="SaldoVencido">
-      <DataType>Float</DataType>
+      <DataType>String</DataType>
+      <Nullable>true</Nullable>
+      <AllowBlank>true</AllowBlank>
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
     <ReportParameter Name="SaldoMoroso">
-      <DataType>Float</DataType>
+      <DataType>String</DataType>
+      <Nullable>true</Nullable>
+      <AllowBlank>true</AllowBlank>
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
     <ReportParameter Name="Titulo">
       <DataType>String</DataType>
+      <Nullable>true</Nullable>
+      <AllowBlank>true</AllowBlank>
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
     <ReportParameter Name="NroClientes">
-      <DataType>Integer</DataType>
+      <DataType>String</DataType>
+      <Nullable>true</Nullable>
+      <AllowBlank>true</AllowBlank>
       <Prompt>ReportParameter1</Prompt>
     </ReportParameter>
   </ReportParameters>
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>2</NumberOfColumns>
-      <NumberOfRows>4</NumberOfRows>
+      <NumberOfRows>5</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>

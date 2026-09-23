@@ -8,6 +8,24 @@
             border-style: dashed;
             border-width: 4px;
         }
+
+        .caja-diario-tabbed-box,
+        .caja-diario-tabbed-box #tabcaja,
+        .caja-diario-tabbed-box #t1-c2 {
+            overflow: visible !important;
+        }
+
+        .caja-diario-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .caja-diario-actions .button.block,
+        .caja-diario-actions button {
+            margin: 0 !important;
+        }
     </style>
     <ul class="stats not-on-phone">
         <li class="saldos">
@@ -38,14 +56,14 @@
             <span style="cursor: pointer" id="lblMostrarSaldos">@Model.Caja.Denominacion</span>
         </li>
     </ul>
-    
+
     <div class="grid_12">
         <div class="alert note sticky no-margin">
             <span class="icon"></span>
             <strong><label id="lblResumenCuenta">@ViewBag.ResumenCuentaCajadiario</label></strong>
         </div>
         <br />
-        <div class="box tabbedBox">
+        <div class="box tabbedBox caja-diario-tabbed-box">
             <div class="header">
                 <h2>MOVIMIENTOS @Model.Caja.Denominacion</h2>
                 <ul>
@@ -65,15 +83,16 @@
                         <p class="_50 small">
                             <button id="btnCxcPendiente" class="inline"><span class="icon icon-repeat"></span>GAD Pendientes</button>
                             <button id="btnCuotaPendiente" class="inline"><span class="icon icon-repeat"></span>Cuotas Pendientes</button>
-                            <button id="btnCompletarCoutaPendienteImpago" class="inline">Completar Impagos</button>
-
+                            <button id="btnCobroBloque" class="inline btn-crediconfiable" style="border-radius:4px">
+                                <span class="icon icon-list"></span>Cobro en Bloque
+                            </button>
                         </p>
                         @*<div class="msjClienteEncontrado" style="display: none; margin: 0">
-                            <div class="alert success sticky ">
-                                <span class="icon"></span><strong>Encontrado!</strong>
-                                <label id="lblCliente"></label>
-                            </div>
-                        </div>*@
+                                <div class="alert success sticky ">
+                                    <span class="icon"></span><strong>Encontrado!</strong>
+                                    <label id="lblCliente"></label>
+                                </div>
+                            </div>*@
                         <div class="spacer"></div>
                     </div>
 
@@ -129,7 +148,7 @@
                                 TOTAL: <span id="lblMontoPago">0.00</span> Recibido:
                                 <input id="txtImporteRecibido" type="text" style="font-size:small; text-align: right; width: 80px; " />
                                 VUELTO: <span id="lblvuelto">0.00</span>
-                                <button id="btnPagar" class="button red block"><span class="icon icon-ok"></span>Pagar Couta</button>
+                                <button id="btnPagar" class="button red block"><span class="icon icon-ok"></span>Pagar Cuota</button>
                             </span>
                         </div>
                     </div>
@@ -157,11 +176,11 @@
                             <button id="btnDesembolsoPendiente" class="inline"><span class="icon icon-repeat"></span>Pendientes</button>
                         </p>
                         @*<div class="msjClienteEncontradods" style="display:none" >
-                            <div class="alert success sticky " >
-                                <span class="icon"></span><label>Encontrado!</label>
-                                <label id="lblClienteds"></label>
-                            </div>
-                        </div>*@
+                                <div class="alert success sticky " >
+                                    <span class="icon"></span><label>Encontrado!</label>
+                                    <label id="lblClienteds"></label>
+                                </div>
+                            </div>*@
                         <div class="spacer"></div>
                         <div id="divdesembolso" class="grid_12 box">
                             <div class="header ">
@@ -187,12 +206,12 @@
                         <input id="txtPersonaES" type="search" placeholder="BUSCAR PERSONA" />
                     </p>
                     @*<p class="_25 small">
-                        <label>Tipo:</label>
-                        <select id="cboEgresoIngreso">
-                            <option value="0">EGRESO</option>
-                            <option value="1">INGRESO</option>
-                        </select>
-                    </p>*@
+                            <label>Tipo:</label>
+                            <select id="cboEgresoIngreso">
+                                <option value="0">EGRESO</option>
+                                <option value="1">INGRESO</option>
+                            </select>
+                        </p>*@
                     <p class="_25 small">
                         <label>Operación:</label>
                         @Html.DropDownList("cboTipoOperacion", (IEnumerable<SelectListItem>)ViewBag.cboTipoOperacion)
@@ -237,13 +256,13 @@
             </div>
 
         </div>
-
-
-        <a href="@Url.Action("ReporteCobroDiario", "Reporte")" class="button block" target="_blank"><span class="icon icon-print"></span>Cobros del Dia PDF</a>
-
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
+        <!--Botón cobranza en bloque-->
+        <p style="background-color: #f4f6f9; border-left: 4px solid #0056b3; padding: 12px 16px; margin: 0 0 15px 0; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); color: #333333; font-size: 14px;">
+            <em>Usar completar impagos solo sino utiliza cobranza en bloque</em>
+        </p>
+        <a href="@Url.Action("ReporteCobroDiario", "Reporte")" class="button block" target="_blank"><span class="icon icon-print"></span>Cobros del Día</a>
         <button id="btnMovimientosCaja" class="inline"><span class="icon icon-repeat"></span>Movimientos</button>
+        <button id="btnCompletarCoutaPendienteImpago" class="inline">Completar Impagos</button>
     </div>
 
     <div style="display: none;" id="dlgTransferirBoveda" title="Transferencias">
@@ -301,8 +320,11 @@
             </div>
         </div>
     </div>
-
+    <!--Display cuota pendiente-->
     <div style="display: none;" id="dlgCxcPendiente" title="Cuotas Pendientes">
+        <p class="_100 small">
+            <input type="text" id="txtBuscarClientePendiente" placeholder="Filtrar por nombre de cliente..." style="width:97%" autocomplete="off" />
+        </p>
         <div class="actions">
             <table id="grdCxcPendiente"></table>
             <div id="grdpCxcPendiente"></div>
@@ -508,51 +530,90 @@
                 $("#grdMovimientosCaja").trigger("reloadGrid"); return false;
             });
 
-            $("#btnCuotaPendiente").click(function () {
-                event.preventDefault();
+$("#dlgCxcPendiente").dialog({
+    autoOpen: false,
+    modal: true,
+    width: 650,
+    open: function () {
+        $(this).parent().css('overflow', 'visible');
+        $$.utils.forms.resize();
+    }
+}).find('button.cancel').click(function () {
+    $(this).parents('.ui-dialog-content').dialog('close');
+});
 
-                if ($("#gbox_grdCxcPendiente").length > 0)
-                    $("#grdCxcPendiente").trigger("reloadGrid");
-                else {
-                    $("#grdCxcPendiente").jqGrid({
-                        url: "@Url.Action("ListarCreditoPendienteGrd", "Credito")",
-                        datatype: "json",
-                        postData: {
-                            filters: function () {
-                                //return $.toJSON([{ Key: "CreditoId", Value: $.data(document.body, 'CreditoId') }]);
-                            }
-                        },
-                        colNames: ['CreditoId', 'Codigo', 'Cliente', 'Credito', 'PersonaId'],
-                        colModel: [
-                            { name: "CreditoId", index: "CreditoId", sortable: false, hidden: true },
-                            { name: "Codigo", index: "Codigo", width: 120, sortable: false },
-                            { name: "Cliente", index: "Cliente", width: 280 },
-                            { name: "MontoCredito", index: "MontoCredito", align: "center", sortable: false },
-                            { name: "PersonaId", index: "PersonaId", hidden: true }
-                        ],
-                        caption: "Creditos de Cuotas Pendientes",
-                        pager: $('#grdpCxcPendiente'),
-                        rowNum: 100,
-                        rowList: [50, 100, 150],
-                        sortname: 'Cliente',
-                        sortorder: "asc",
-                        viewrecords: true,
-                        rownumbers: true,
-                        width: '610',
-                        height: '500',
-                        ondblClickRow: function () {
-                            var id = jQuery("#grdCxcPendiente").jqGrid('getGridParam', 'selrow');
-                            if (id) {
-                                var ret = $("#grdCxcPendiente").jqGrid('getRowData', id);
-                                $("#dlgCxcPendiente").dialog('close');
-                                CargarCreditosPendientes(ret.PersonaId, ret.Cliente + ' [ ' + ret.Codigo + ' ]');
-                            }
-                        }
-                    });
-                }
-                $("#dlgCxcPendiente").dialog('open');
-                return false;
-            });
+$("#btnCuotaPendiente").click(function (event) {
+    event.preventDefault();
+    $("#txtBuscarClientePendiente").val("");
+
+    if ($("#gbox_grdCxcPendiente").length > 0) {
+        $("#grdCxcPendiente").trigger("reloadGrid");
+    } else {
+        $("#grdCxcPendiente").jqGrid({
+            url: '@Url.Action("ListarCreditoPendienteGrd", "Credito")',
+            datatype: "json",
+            postData: {
+                filters: function () { return $.toJSON([]); }
+            },
+            colNames: ['CreditoId', 'Cliente', 'Monto Crédito', 'PersonaId', 'Vencimiento'],
+            colModel: [
+                { name: "CreditoId", index: "CreditoId", key: true, hidden: true },
+                { name: "Cliente", index: "Cliente", width: 320, sortable: false },
+                { name: "MontoCredito", index: "MontoCredito", align: "center", width: 100, sortable: false },
+                { name: "PersonaId", index: "PersonaId", hidden: true },
+                { name: "FechaVencimiento", index: "FechaVencimiento", align: "center", width: 100 }
+            ],
+            caption: "Creditos con Cuotas Pendientes",
+            pager: $('#grdpCxcPendiente'),
+            rowNum: 100,
+            rowList: [50, 100, 150],
+            sortname: 'FechaVencimiento',
+            sortorder: "asc",
+            viewrecords: true,
+            rownumbers: true,
+            autowidth: true,
+            width: '610',
+            height: '420',
+            ondblClickRow: function (rowid) {
+                var ret = $("#grdCxcPendiente").jqGrid('getRowData', rowid);
+                $("#dlgCxcPendiente").dialog('close');
+                CargarCreditosPendientes(ret.PersonaId, ret.Cliente);
+            }
+        });
+    }
+    $("#dlgCxcPendiente").dialog('open');
+    return false;
+});
+
+// filtro simple por nombre, no toca la data del servidor
+$("#txtBuscarClientePendiente").on("keyup", function () {
+    var texto = $(this).val().toUpperCase();
+    var ids = $("#grdCxcPendiente").jqGrid('getDataIDs');
+    $.each(ids, function (i, id) {
+        var row = $("#grdCxcPendiente").jqGrid('getRowData', id);
+        $("#" + id, "#grdCxcPendiente").toggle(row.Cliente.toUpperCase().indexOf(texto) !== -1);
+    });
+});
+
+$("#btnCobroBloque").click(function (e) {
+    e.preventDefault();
+
+    // 1. Obtenemos la fecha actual (ejemplo: "31/7/2026")
+    var hoy = new Date().toLocaleDateString();
+
+    // 2. Buscamos en la memoria del navegador si ya se ejecutó hoy
+    var fechaEjecucion = localStorage.getItem("cobroBloqueEjecutado");
+
+    // 3. Si las fechas coinciden, bloqueamos el acceso
+    if (fechaEjecucion === hoy) {
+        Vendix.Mensaje("⚠️ El Cobro en Bloque ya fue ejecutado el día de hoy. No está permitido ingresar nuevamente para evitar alterar los impagos.");
+        return false;
+    }
+
+    // Si no se ha ejecutado hoy, lo dejamos pasar a la pantalla
+    window.location.href = '@Url.Action("CobroBloque", "Credito")';
+});
+            // Completar impagos
 
             $('#btnCompletarCoutaPendienteImpago').click(function () {
                 event.preventDefault();
@@ -1338,6 +1399,7 @@
                     pager: jQuery('#grdpBuscar'),
                     rowNum: 100,
                     rowList: [100, 125, 150],
+                    sortname: 'Glosa',
                     sortorder: "asc",
                     gridview: true,
                     viewrecords: true,
@@ -1364,7 +1426,7 @@
                             FechaVencimiento: "Pendiente:",
                             Amortizacion: parseFloat(totalAmortizacion).toFixed(2),
                             Interes: parseFloat(totalInteres).toFixed(2),
-                            Cuota: parseFloat(totalCuota).toFixed(2),
+                            Cuota: parseFloat(totalPagoCuota - totalMora).toFixed(2),
                             ImporteMora: parseFloat(totalMora).toFixed(2),
                             PagoCuota: parseFloat(totalPagoCuota).toFixed(2)
 
@@ -1576,7 +1638,6 @@
             });
         }
 
-
     </script>
 }
 else
@@ -1589,6 +1650,5 @@ else
         </li>
     </ul>
 }
-
 
 

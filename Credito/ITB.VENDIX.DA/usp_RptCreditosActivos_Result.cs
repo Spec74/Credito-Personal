@@ -17,7 +17,6 @@ namespace ITB.VENDIX.DA
         public string Estado { get; set; }
         public string Agente { get; set; }
         public int CreditoId { get; set; }
-        public string Codigo { get; set; }
         public string Cliente { get; set; }
         public decimal MontoCredito { get; set; }
         public string FormaPago { get; set; }
@@ -29,6 +28,7 @@ namespace ITB.VENDIX.DA
         public decimal CentralRiesgo { get; set; }
         public System.DateTime FechaPrimerPago { get; set; }
         public System.DateTime FechaVencimiento { get; set; }
+        public Nullable<decimal> Cuota { get; set; }
         public Nullable<int> NroCuotasPagado { get; set; }
         public Nullable<decimal> Pagado { get; set; }
         public decimal InteresPagado { get; set; }

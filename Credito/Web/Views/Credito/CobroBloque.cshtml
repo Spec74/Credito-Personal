@@ -1,0 +1,535 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Cobro en Bloque";
+}
+
+<link href="~/css/cobrobloque.css"
+      rel="stylesheet"
+      type="text/css" />
+
+<div class="contenedor-bloque modal-premium">
+    <h2 style="color:var(--azul-oscuro)"><i class="fa fa-users" style="color:var(--azul-celeste); margin-right:8px;"></i> PLANILLA DE COBRANZA DIARIA</h2>
+
+    <div class="panel-instrucciones">
+        <strong><i class="fa fa-info-circle"></i> FLUJO INTELIGENTE:</strong> Digite el monto y use <b>ENTER</b> o <b>TAB</b> para avanzar.
+        Los montos mayores a 0 se seleccionarán automáticamente. El sistema no permitirá exceder la deuda de cada cliente.
+    </div>
+
+    <div class="buscador-corporativo">
+        <i class="icon icon-search" style="color: var(--azul-celeste); font-size: 18px; margin-right: 12px;"></i>
+        <input type="text" id="txtBuscarClientePlanilla" placeholder="Escriba el nombre del cliente para filtrar..."
+               style="flex:1;border:none;outline:none;font-size:14px;color:var(--gris-oscuro);background:transparent;" autocomplete="off" />
+        <span id="lblContadorGrilla" style="color:var(--azul-oscuro);font-weight:bold;font-size:12px;margin-left:10px;padding:4px 8px;background:var(--fondo-claro);border-radius:4px;"></span>
+    </div>
+
+    <table id="grdCxcPendiente"></table>
+    <div id="grdpCxcPendiente"></div>
+
+    <!-- === NUEVO: PANEL DE RESUMEN EN TIEMPO REAL === -->
+    <div class="panel-resumen-pagos">
+        <div class="resumen-header">
+            <i class="fa fa-bar-chart" style="color: var(--azul-celeste); font-size: 16px;"></i>
+            <span>Resumen Operativo</span>
+        </div>
+        <div class="resumen-grid">
+            <!-- 1. Clientes con Cobro -->
+            <div class="resumen-card" style="border-left: 3px solid #28a745;">
+                <div class="resumen-label">Con Cobro (> S/ 0)</div>
+                <div class="resumen-valor" style="color: #28a745;" id="resConCobro">0 <span style="font-size:13px; font-weight:normal;">(S/ 0.00)</span></div>
+            </div>
+            <!-- 2. Clientes Impagos (Calculados automáticamente sobre toda la grilla) -->
+            <div class="resumen-card" style="border-left: 3px solid #dc3545;">
+                <div class="resumen-label">Impagos / Visitas (S/ 0.00)</div>
+                <div class="resumen-valor" style="color: #dc3545;" id="resImpagos">0</div>
+            </div>
+        </div>
+        <div class="desglose-metodos">
+            <span style="font-size: 11px; font-weight:bold; color:var(--gris-oscuro); text-transform:uppercase; margin-right:5px;">
+                <i class="fa fa-pie-chart" style="color:var(--azul-oscuro);"></i> Por Método de Pago:
+            </span>
+            <div id="resDesgloseMetodos" style="display:inline-flex; flex-wrap:wrap; gap:8px;">
+                <span style="color:#888; font-size:12px; font-style:italic;">Seleccione clientes o ingrese montos para ver el desglose</span>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================== -->
+
+    <div style="margin-top:20px;padding-top:10px;display:flex;justify-content:space-between;align-items:center; margin-bottom: 30px;">
+        <button class="btn-gris-outline" onclick="window.location.href = '@Url.Action("CajaDiario", "Credito")';"><i class="fa fa-times"></i> Cerrar Pestaña</button>
+
+        <div class="panel-totalizador">
+            <span style="font-size:15px;font-weight:bold;color:var(--azul-oscuro);margin-right:10px;">TOTAL COBRADO:</span>
+            <span style="font-size:24px;font-weight:900;color:var(--azul-celeste);">S/ <span id="lblTotalLoteBloque">0.00</span></span>
+        </div>
+
+        <button id="btnProcesarPlanilla" class="btn-crediconfiable">
+            <span class="icon icon-ok" style="margin-right:5px"></span>Procesar Planilla
+        </button>
+    </div>
+</div>
+
+<script>
+    // 1. Normalización de Fecha Servidor para compatibilidad universal con HTML5 (<input type="datetime-local">)
+    var horaServidorRaw = '@ViewBag.FechaHoraServidor';
+    var horaServidor = horaServidorRaw ? horaServidorRaw.replace(' ', 'T') : new Date().toISOString().slice(0, 16);
+
+    $(function () {
+        $(document).on("click", ".btn-ver-perfil", function (e) {
+            e.stopPropagation();
+        });
+        var stringTiposPago = "";
+        @foreach (var item in (SelectList)ViewBag.cboTipoPago) { <text>stringTiposPago += "@item.Value:@item.Text;";</text> }
+        stringTiposPago = stringTiposPago.replace(/;$/, "");
+        var tiposPagoDigital = [2, 3, 4, 5];
+
+        function pad(num) { return num.toString().padStart(2, '0'); }
+
+        // --- RECALCULAR TOTAL Y RESUMEN DE PAGOS ---
+        function RecalcularTotalLote() {
+            var totalLote = 0;
+            var conCobro = 0;
+            var impagos = 0;
+            var desglose = {};
+
+            // Obtiene todos los IDs cargados en memoria
+            var todosLosIds = $("#grdCxcPendiente").jqGrid('getDataIDs');
+
+            if (todosLosIds && todosLosIds.length > 0) {
+                $.each(todosLosIds, function (i, idFila) {
+                    var montoFila = parseFloat($('.input-monto[data-id="' + idFila + '"]').val()) || 0;
+                    var nombreMetodo = $('.select-tipo-pago[data-id="' + idFila + '"] option:selected').text() || "Sin Especificar";
+
+                    if (montoFila > 0) {
+                        conCobro++;
+                        totalLote += montoFila;
+                        desglose[nombreMetodo] = (desglose[nombreMetodo] || 0) + montoFila;
+                    } else {
+                        impagos++;
+                    }
+                });
+            }
+
+            // 1. Actualizar totalizadores principales
+            $("#lblTotalLoteBloque").text(totalLote.toFixed(2));
+            $("#resConCobro").html(conCobro + ' <span style="font-size:13px; font-weight:normal;">(S/ ' + totalLote.toFixed(2) + ')</span>');
+            $("#resImpagos").text(impagos);
+
+            // 2. Desglose de badges dinámicos
+            var $contenedorDesglose = $("#resDesgloseMetodos");
+            $contenedorDesglose.empty();
+
+            var hayMetodos = false;
+            $.each(desglose, function (metodo, monto) {
+                if (monto > 0) {
+                    hayMetodos = true;
+                    $contenedorDesglose.append(
+                        '<span class="badge-metodo"><b>' + metodo + ':</b> S/ ' + monto.toFixed(2) + '</span>'
+                    );
+                }
+            });
+
+            if (!hayMetodos) {
+                $contenedorDesglose.append('<span style="color:#888; font-size:12px; font-style:italic;">No hay montos mayores a 0 para desglosar</span>');
+            }
+        }
+
+        // 2. BLOQUEO ESTRICTO DE MONTO Y AUTO-SELECCIÓN DE FILA
+        $(document).on("input", ".input-monto", function (e) {
+            var $input = $(this);
+            var rawVal = String($input.val()).replace(/,/g, '.');
+            var val = parseFloat(rawVal) || 0;
+            var maxDeuda = parseFloat($input.attr("data-deuda")) || 0;
+            var rowId = $input.attr("data-id");
+            var $grid = $("#grdCxcPendiente");
+
+            $input.removeClass("input-error");
+
+            if (val > maxDeuda) {
+                val = maxDeuda;
+                $input.val(val.toFixed(2)).addClass("input-error");
+            } else if (val < 0) {
+                val = 0;
+                $input.val("0.00").addClass("input-error");
+            }
+
+            var isSelected = $grid.jqGrid('getGridParam', 'selarrrow').indexOf(rowId.toString()) !== -1;
+
+            if (val > 0 && !isSelected) {
+                $grid.jqGrid('setSelection', rowId, true);
+            } else if (val === 0 && isSelected) {
+                $grid.jqGrid('setSelection', rowId, false);
+            }
+
+            RecalcularTotalLote();
+        });
+
+        // 3. REGRESAR A CERO Y DESSELECCIONAR SI DEJA CAMPOS VACÍOS
+        $(document).on("blur", ".input-monto", function () {
+            var $input = $(this);
+            if ($.trim($input.val()) === "" || isNaN(parseFloat($input.val()))) {
+                $input.val("0.00");
+                $input.removeClass("input-error");
+
+                var rowId = $input.attr("data-id");
+                var $grid = $("#grdCxcPendiente");
+                if ($grid.jqGrid('getGridParam', 'selarrrow').indexOf(rowId.toString()) !== -1) {
+                    $grid.jqGrid('setSelection', rowId, false);
+                    RecalcularTotalLote();
+                }
+            } else {
+                var val = parseFloat($input.val());
+                $input.val(val.toFixed(2));
+            }
+        });
+
+        // 4. NAVEGACIÓN RÁPIDA CON TECLA ENTER
+        $(document).on("keydown", ".input-monto, .input-fecha", function (e) {
+            if (e.which === 13) { // Enter
+                e.preventDefault();
+                var $actual = $(this);
+
+                if ($actual.hasClass("input-monto")) {
+                    var $inputs = $(".input-monto:visible");
+                    var currentIndex = $inputs.index(this);
+                    if (currentIndex >= 0 && currentIndex < $inputs.length - 1) {
+                        $inputs.eq(currentIndex + 1).focus();
+                    } else {
+                        $("#btnProcesarPlanilla").focus();
+                    }
+                } else if ($actual.hasClass("input-fecha")) {
+                    var $fechas = $(".input-fecha:visible");
+                    var currentIndex = $fechas.index(this);
+                    if (currentIndex >= 0 && currentIndex < $fechas.length - 1) {
+                        $fechas.eq(currentIndex + 1).focus();
+                    } else {
+                        $("#btnProcesarPlanilla").focus();
+                    }
+                }
+            }
+        });
+
+        // 5. AUTO-SELECCIÓN DE TEXTO AL HACER FOCO EN MONTO
+        $(document).on("focus", ".input-monto", function () {
+            var $input = $(this);
+            setTimeout(function () {
+                $input.select();
+            }, 30);
+        });
+
+        // 6. MOSTRAR / OCULTAR CAMPO DE FECHA SEGÚN MÉTODO DE PAGO
+        $(document).on("change", ".select-tipo-pago", function () {
+            var rowId = $(this).data("id");
+            var val = parseInt($(this).val());
+            var $fechaInput = $('.input-fecha[data-id="' + rowId + '"]');
+            if (tiposPagoDigital.includes(val)) {
+                $fechaInput.css('display', 'inline-block').hide().fadeIn(300).focus();
+            } else {
+                $fechaInput.fadeOut(200);
+            }
+
+            RecalcularTotalLote();
+        });
+
+        // 7. BÚSQUEDA INSTANTÁNEA EN PLANILLA
+        $("#txtBuscarClientePlanilla").on("keyup", function () {
+            var texto = $(this).val().toUpperCase();
+            var ids = $("#grdCxcPendiente").jqGrid('getDataIDs');
+            var visibles = 0;
+            $.each(ids, function (i, id) {
+                var rowData = $("#grdCxcPendiente").jqGrid('getRowData', id);
+                if (rowData.Cliente.toUpperCase().indexOf(texto) === -1) {
+                    $("#" + id, "#grdCxcPendiente").hide();
+                } else {
+                    $("#" + id, "#grdCxcPendiente").show();
+                    visibles++;
+                }
+            });
+            $("#lblContadorGrilla").text(visibles + " clientes");
+        });
+
+// 8. CONFIGURACIÓN DE GRILLA PRINCIPAL
+  $("#grdCxcPendiente").jqGrid({
+      url: "@Url.Action("ListarCreditoPendienteBloqueGrd", "Credito")",
+      datatype: "json",
+      colNames: ['CreditoId', 'Cliente', 'Ver', 'Mont. Credito', 'PersonaId', 'Fecha Venc.', 'Mora', 'Deuda Total', 'Monto a Pagar', 'Método de Pago', 'Fecha/Hora Trans.'],
+      colModel: [
+          { name: "CreditoId", index: "CreditoId", key: true, hidden: true },
+          { name: "Cliente", index: "Cliente", width: 260, sortable: false },
+          { name: "VerPerfil", index: "VerPerfil", width: 45, align: "center", sortable: false, formatter: function (cellvalue, options, rowObject) {
+            var personaId = 0;
+            if (rowObject) {
+                if (rowObject.PersonaId !== undefined) {
+                    personaId = rowObject.PersonaId;
+                }
+                else if (
+                    rowObject.cell &&
+                    $.isArray(rowObject.cell) &&
+                    rowObject.cell.length > 4
+                ) {
+                    personaId = rowObject.cell[4];
+                }
+                else if (
+                    $.isArray(rowObject) &&
+                    rowObject.length > 4
+                ) {
+                    personaId = rowObject[4];
+                }
+            }
+
+            personaId = parseInt(personaId, 10);
+
+            if (!personaId)
+                return "";
+
+            var urlPerfil =
+                '@Url.Action("Creditos", "Credito")' +
+                '?pPersonaId=' +
+                encodeURIComponent(personaId);
+
+            return '<a href="' + urlPerfil + '"' +
+                ' target="_blank"' +
+                ' rel="noopener noreferrer"' +
+                ' class="btn-ver-perfil"' +
+                ' title="Ver perfil del cliente"' +
+                ' aria-label="Ver perfil del cliente">' +
+                    '<span class="icon icon-eye-open"></span>' +
+                '</a>';
+            }
+          },
+          { name: "MontoCredito", index: "MontoCredito", align: "center", width: 90, sortable: false },
+          { name: "PersonaId", index: "PersonaId", hidden: true },
+          { name: "FechaVencimiento", index: "FechaVencimiento", hidden: true, sortable: true },
+          {
+              name: "ImporteMora", align: "center", index: "ImporteMora", width: 80, sortable: false,
+              formatter: function (cellvalue) {
+                  var val = parseFloat(String(cellvalue).replace(/,/g, '')) || 0;
+                  return $.fn.fmatter.number(val, $.jgrid.formatter.number);
+              }
+          },
+          {
+              name: "DeudaPendiente", align: "center", index: "DeudaPendiente", width: 90, sortable: false,
+              formatter: function (cellvalue) {
+                  var val = parseFloat(String(cellvalue).replace(/,/g, '')) || 0;
+                  return $.fn.fmatter.number(val, $.jgrid.formatter.number);
+              }
+          },
+          {
+              name: "MontoPagar", width: 130, align: "center", sortable: false,
+              formatter: function (cellvalue, options, rowObject) {
+                  var deudaReal = 0;
+                  if (rowObject) {
+                      if (rowObject.DeudaPendiente !== undefined) deudaReal = rowObject.DeudaPendiente;
+                      else if (rowObject.deudaPendiente !== undefined) deudaReal = rowObject.deudaPendiente;
+                      else if (Array.isArray(rowObject.cell) && rowObject.cell.length > 7) deudaReal = rowObject.cell[7];
+                      else if (Array.isArray(rowObject) && rowObject.length > 7) deudaReal = rowObject[7];
+                  }
+                  deudaReal = parseFloat(String(deudaReal).replace(/,/g, '')) || 0;
+                  return '<input type="number" step="0.5" min="0" max="' + deudaReal + '" class="input-monto" data-id="' + options.rowId + '" data-deuda="' + deudaReal + '" value="0.00" />';
+              }
+          },
+          {
+              name: "TipoPagoId", width: 150, align: "center", sortable: false,
+              formatter: function (cellvalue, options) {
+                  var html = '<select class="select-tipo-pago" data-id="' + options.rowId + '">';
+                  $.each(stringTiposPago.split(';'), function (i, kvraw) {
+                      var kv = kvraw.split(':');
+                      html += '<option value="' + kv[0] + '">' + kv[1] + '</option>';
+                  });
+                  return html + '</select>';
+              }
+          },
+          {
+              name: "FechaHoraTrans", width: 180, align: "center", sortable: false,
+              formatter: function (cellvalue, options) {
+                  return '<input type="datetime-local" class="input-fecha" data-id="' +
+                      options.rowId + '" value="' + horaServidor + '" style="display:none;" />';
+              }
+          }
+      ],
+      pager: '#grdpCxcPendiente',
+      rowNum: 10000,
+      loadonce: true,
+      gridview: true,
+      rowList: [100, 500, 1000, 10000],
+      sortname: 'FechaVencimiento',
+      sortorder: "asc",
+      viewrecords: true,
+      rownumbers: true,
+      multiselect: true,
+      autowidth: true,
+      height: 'calc(100vh - 240px)',
+      onSelectRow: function () { RecalcularTotalLote(); },
+      onSelectAll: function () { RecalcularTotalLote(); },
+      loadComplete: function () {
+          $("#lblContadorGrilla").text($("#grdCxcPendiente").jqGrid('getGridParam', 'records') + " clientes");
+          RecalcularTotalLote();
+      },
+      subGrid: true,
+      subGridOptions: { reloadOnExpand: true, selectOnExpand: false },
+      subGridRowExpanded: function (subgrid_id, row_id) {
+          var subgrid_table_id = subgrid_id + "_t";
+          $("#" + subgrid_id).addClass("subgrid-custom-container").html("<table id='" + subgrid_table_id + "'></table>");
+
+          $("#" + subgrid_table_id).jqGrid({
+              url: "@Url.Action("ListarCuotasPorCredito", "Credito")?pCreditoId=" + row_id,
+              datatype: "json",
+              colNames: ['Estado', 'Nro Cuota', 'Vencimiento', 'Monto Original', 'EstHid'],
+              colModel: [
+                  {
+                      name: "EstadoVisual", width: 65, align: "center", sortable: false,
+                      formatter: function (cellvalue, options, rowObject) {
+                          if (rowObject.Estado === "PAG" || rowObject.Estado === "CAN" || rowObject.Estado === "FIN") {
+                              return '<input type="checkbox" checked disabled class="chk-moderno" title="Pagada" />';
+                          }
+                          var montoStr = String(rowObject.Monto || "0");
+                          var montoNum = parseFloat(montoStr.replace(/,/g, ''));
+                          return '<input type="checkbox" class="chk-moderno chk-pendiente" data-monto="' + montoNum + '" />';
+                      }
+                  },
+                  { name: "NroCuota", width: 75, align: "center", sortable: false },
+                  { name: "FechaVenc", width: 120, align: "center", sortable: false },
+                  { name: "Monto", width: 100, align: "center", sortable: false },
+                  { name: "Estado", hidden: true }
+              ],
+              jsonReader: { repeatitems: false, root: "rows", id: "id" },
+              rowattr: function (rd) {
+                  return (rd.Estado === "PAG" || rd.Estado === "CAN" || rd.Estado === "FIN")
+                      ? { "class": "fila-cuota-pagada" } : { "class": "fila-cuota-pendiente" };
+              },
+              height: 'auto',
+              rowNum: 100,
+              autowidth: true
+          });
+
+          $("#" + subgrid_table_id).on("change", ".chk-pendiente", function () {
+              var sumaTotal = 0;
+              $("#" + subgrid_table_id).find(".chk-pendiente:checked").each(function () {
+                  sumaTotal += parseFloat($(this).attr("data-monto")) || 0;
+              });
+
+              var $inputPrincipal = $('.input-monto[data-id="' + row_id + '"]');
+              var deudaMax = parseFloat($inputPrincipal.attr("data-deuda")) || 0;
+
+              if (sumaTotal > deudaMax) sumaTotal = deudaMax;
+
+              $inputPrincipal.val(sumaTotal.toFixed(2)).trigger("input");
+          });
+      }
+  });
+
+        // 9. PROCESAMIENTO Y ENVÍO A BACKEND
+        $("#btnProcesarPlanilla").click(function (e) {
+            e.preventDefault();
+
+            var todosLosIds = $("#grdCxcPendiente").jqGrid('getDataIDs');
+            if (!todosLosIds || todosLosIds.length === 0) {
+                Vendix.Mensaje("No hay clientes cargados en la planilla para procesar.");
+                return;
+            }
+
+            var totalLote = parseFloat($("#lblTotalLoteBloque").text()) || 0;
+            var planillaLote = [];
+            var existeError = false;
+
+            $.each(todosLosIds, function (i, idFila) {
+                var $montoInput = $('.input-monto[data-id="' + idFila + '"]');
+                var monto = parseFloat($montoInput.val()) || 0;
+                if (monto > 0) {
+                    var rowData = $("#grdCxcPendiente").jqGrid('getRowData', idFila);
+                    var tipopago = parseInt($('.select-tipo-pago[data-id="' + idFila + '"]').val()) || 1;
+                    var rawFecha = $('.input-fecha[data-id="' + idFila + '"]').val();
+
+                    var DeudaGrid = parseFloat(String(rowData.DeudaPendiente).replace(/,/g, '')) || 0;
+                    var DeudaAttr = parseFloat($montoInput.attr("data-deuda")) || 0;
+                    var maxDeuda = Math.max(DeudaGrid, DeudaAttr);
+
+                    if (isNaN(monto) || monto < 0) {
+                        Vendix.Mensaje("El cliente " + rowData.Cliente + " tiene un monto inválido.");
+                        existeError = true;
+                        return false; // Corta el $.each
+                    }
+
+                    if (monto > maxDeuda) {
+                        Vendix.Mensaje("El cliente " + rowData.Cliente + " supera su deuda total de S/ " + maxDeuda.toFixed(2));
+                        existeError = true;
+                        return false;
+                    }
+
+                    var fechaHora = null;
+
+                    if (tiposPagoDigital.includes(tipopago)) {
+                        if (!rawFecha) {
+                            Vendix.Mensaje("Ingrese la Fecha/Hora de Transferencia para el cliente " + rowData.Cliente);
+                            existeError = true;
+                            return false;
+                        }
+
+                        var fechaObj = new Date(rawFecha);
+                        if (isNaN(fechaObj.getTime())) {
+                            Vendix.Mensaje("La fecha seleccionada no es válida para el cliente " + rowData.Cliente);
+                            existeError = true;
+                            return false;
+                        }
+
+                        fechaHora = pad(fechaObj.getDate()) + '/' +
+                            pad(fechaObj.getMonth() + 1) + '/' +
+                            fechaObj.getFullYear() + ' ' +
+                            pad(fechaObj.getHours()) + ':' +
+                            pad(fechaObj.getMinutes());
+
+                    } else {
+                        var now = new Date();
+                        fechaHora = pad(now.getDate()) + '/' +
+                            pad(now.getMonth() + 1) + '/' +
+                            now.getFullYear() + ' ' +
+                            pad(now.getHours()) + ':' +
+                            pad(now.getMinutes());
+                    }
+
+                    planillaLote.push({
+                        CreditoId: idFila,
+                        MontoPagar: monto,
+                        TipoPagoId: tipopago,
+                        FechaHoraTrans: fechaHora
+                    });
+                }
+            });
+
+            if (existeError) return;
+
+            var msj = planillaLote.length > 0
+                ? "¿Desea registrar el cobro de " + planillaLote.length + " clientes por S/ " + totalLote.toFixed(2) + " (y marcar el resto como impagos)?"
+                : "¿Desea cerrar la planilla registrando a TODOS los clientes como IMPAGOS (S/ 0.00)?";
+
+            Vendix.Dialogo(msj, "SiNo", function () {
+                var $btn = $("#btnProcesarPlanilla");
+                $btn.prop('disabled', true);
+
+$.ajax({
+                    url: '@Url.Action("CobrarPlanillaBloque", "Credito")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ planilla: planillaLote }),
+                    success: function (res) {
+                        if (res.Exito) {
+
+                            localStorage.setItem("cobroBloqueEjecutado", new Date().toLocaleDateString());
+
+                            Vendix.Notificar("Lote procesado exitosamente.");
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("CajaDiario", "Credito")';
+                            }, 1500);
+                        } else {
+                            Vendix.Mensaje(res.Mensaje);
+                            $btn.prop('disabled', false);
+                        }
+                    },
+                    error: function() {
+                        Vendix.Mensaje("Ocurrió un error en la red o servidor al procesar la planilla.");
+                        $btn.prop('disabled', false);
+                    }
+                });
+            });
+        });
+    });
+</script>

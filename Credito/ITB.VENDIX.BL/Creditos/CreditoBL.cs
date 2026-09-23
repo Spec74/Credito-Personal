@@ -361,7 +361,7 @@ namespace ITB.VENDIX.BL
                 catch (Exception ex)
                 {
                     scope.Dispose();
-                    retorno = ex.InnerException.Message;
+                    retorno = ex.GetBaseException().Message;
                 }
             }
             return retorno;
@@ -569,11 +569,17 @@ namespace ITB.VENDIX.BL
                 return db.usp_RptCreditoMorosidad(pOficinaId, pFechaHasta, pDiasAtrazoIni, pDiasAtrazoFin).ToList();
             }
         }
-        public static List<usp_RptCobroDiario_Result> ReporteCobroDiario(int? pGestorid, int? pOficinaId)
+        public static List<usp_RptCobroDiario_Result> ReporteCobroDiario(
+            int? pGestorid,
+            int? pOficinaId)
         {
             using (var db = new VENDIXEntities())
             {
-                return db.usp_RptCobroDiario(pGestorid, pOficinaId).ToList();
+                return db.usp_RptCobroDiario(
+                        pGestorid,
+                        pOficinaId,
+                        null)
+                    .ToList();
             }
         }
 
@@ -623,7 +629,16 @@ namespace ITB.VENDIX.BL
                 return db.usp_FechaBD().First().Value;
             }
         }
-
+        public static int ObtenerDiasRetraso(DateTime FechaVencimiento)
+        {
+            var _fechaActual = VendixGlobal.GetFecha().Date;
+            int diasRetraso = 0;
+            using (var db = new VENDIXEntities())
+            {
+                diasRetraso = (int)db.Database.SqlQuery<int>("SELECT dbo.ufnCalcularDiasAtrazo(@p0, @p1)", FechaVencimiento, _fechaActual).FirstOrDefault();
+            }
+            return diasRetraso;
+        }
         public static List<CreditoxAprobar> LstCreditoAprobarJGrid(GridDataRequest request, ref int pTotalItems)
         {
             string filterExpression = string.Empty;

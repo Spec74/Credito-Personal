@@ -1,4 +1,4 @@
---exec CREDITO.usp_RptCreditosActivos '20250901','20250930',8
+﻿--exec CREDITO.usp_RptCreditosActivos '20250901','20250930',8
 
 CREATE PROC [CREDITO].[usp_RptCreditosActivos]
 @FechaIni  DATE,
@@ -104,3 +104,4 @@ INNER JOIN MAESTRO.Persona P ON C.PersonaId    = P.PersonaId
 INNER JOIN MAESTRO.Usuario u ON C.UsuarioRegId = u.UsuarioId
 INNER JOIN MAESTRO.Persona A ON u.PersonaId    = A.PersonaId
 ORDER BY C.Estado, A.NombreCompleto, P.NombreCompleto;
+

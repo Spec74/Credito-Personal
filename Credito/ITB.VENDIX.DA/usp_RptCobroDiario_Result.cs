@@ -27,6 +27,7 @@ namespace ITB.VENDIX.DA
         public Nullable<decimal> CuotaTotal { get; set; }
         public string Direccion { get; set; }
         public Nullable<System.DateTime> FechaPago { get; set; }
+        public Nullable<bool> TienePagoReal { get; set; }
         public System.DateTime FechaPrimerPago { get; set; }
         public System.DateTime FechaVencimiento { get; set; }
         public Nullable<decimal> Mora { get; set; }

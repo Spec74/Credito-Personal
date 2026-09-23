@@ -6,7 +6,9 @@ html, body {
 }
 
 body {
-	background: url('../img/layout/bg.png');
+	background-color: #f4f6f9;
+	/* Efecto Papel Moneda: Líneas diagonales ultrafinas de 1px cada 6px */
+	background-image: repeating-linear-gradient( 135deg, rgba(0, 154, 212, 0.03) 0px, rgba(0, 154, 212, 0.03) 1px, transparent 1px, transparent 6px );
 }
 
 .center-elements {
@@ -477,10 +479,9 @@ aside:after {
 }
 
 aside .divider {
-	height: 2px;
-	width: 193px;
-	
-	margin: 5px auto;
+	height: 3px;
+	width: 165px;
+	margin: 13px auto;
 	
 	background: url('../img/layout/sidebar/divider.png');
 }
@@ -535,10 +536,7 @@ aside .progress .bar .ui-progressbar {
 	margin-top: 5px;
 }
 
-
-/* ********************************************* */
 /* The content container */
-
 #content {
 	width: auto !important;
 	min-height: 300px;
@@ -615,6 +613,200 @@ aside .progress .bar .ui-progressbar {
 .box .content {
 	padding: 0 10px;
 	background: #fafafa;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ==========================================================================
+   TARJETAS DE RESUMEN CON LOGOS PROPIOS (VENDIX)
+   ========================================================================== */
+.resumen-boveda-container {
+	display: grid !important;
+	/* Definimos 5 columnas (las de los extremos ligeramente más anchas) y 2 filas */
+	grid-template-columns: 1.1fr repeat(3, 1fr) 1.1fr !important;
+	grid-template-rows: repeat(2, 1fr) !important;
+	gap: 5px !important;
+	margin: 10px 0 !important;
+	width: 100% !important;
+	box-sizing: border-box !important;
+	clear: both !important;
+}
+
+.boveda-card {
+	background: #ffffff !important;
+	border-radius: 7px !important;
+	border: 1px solid #e2e8f0 !important;
+	padding: 7px 4px !important;
+	display: flex !important;
+	align-items: center !important;
+	gap: 7px !important;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+	transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+	.boveda-card:hover {
+		transform: translateY(-2px) !important;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08) !important;
+	}
+
+	/* ==========================================================================
+   UBICACIÓN EN MATRIZ (Según boceto de distribución de cuentas)
+   ========================================================================== */
+
+	/* EFECTIVO (ID 1): Primera columna, abarca las 2 filas completas */
+	.boveda-card[data-id="1"] {
+		grid-column: 1 !important;
+		grid-row: 1 / span 2 !important;
+		flex-direction: column !important; /* Orientación vertical para aprovechar la altura */
+		justify-content: center !important;
+		text-align: center !important;
+	}
+
+	/* BANCO DE LA NACIÓN (ID 5): Quinta columna, abarca las 2 filas completas */
+	.boveda-card[data-id="5"] {
+		grid-column: 5 !important;
+		grid-row: 1 / span 2 !important;
+		flex-direction: column !important;
+		justify-content: center !important;
+		text-align: center !important;
+	}
+
+		/* Forzar centrado de texto de los elementos internos en los extremos */
+		.boveda-card[data-id="1"] .card-content,
+		.boveda-card[data-id="5"] .card-content {
+			text-align: center !important;
+		}
+
+	/* FILA SUPERIOR: Oficina Principal (Fila 1) */
+	.boveda-card[data-id="2"] {
+		grid-column: 2 !important;
+		grid-row: 1 !important;
+	}
+
+	.boveda-card[data-id="3"] {
+		grid-column: 3 !important;
+		grid-row: 1 !important;
+	}
+
+	.boveda-card[data-id="4"] {
+		grid-column: 4 !important;
+		grid-row: 1 !important;
+	}
+
+	/* FILA INFERIOR: Sucursal Huanta (Fila 2) */
+	.boveda-card[data-id="6"] {
+		grid-column: 2 !important;
+		grid-row: 2 !important;
+	}
+
+	.boveda-card[data-id="7"] {
+		grid-column: 3 !important;
+		grid-row: 2 !important;
+	}
+
+	.boveda-card[data-id="8"] {
+		grid-column: 4 !important;
+		grid-row: 2 !important;
+	}
+
+
+/* Líneas de acento superiores con la identidad de cada saldo */
+.card-efectivo {
+	border-top: 4px solid #2e7d32 !important;
+}
+
+.card-yape {
+	border-top: 4px solid #742284 !important;
+}
+
+.card-interbank {
+	border-top: 4px solid #00aa5a !important;
+}
+
+.card-bcp {
+	border-top: 4px solid #002a68 !important;
+}
+
+.card-bn {
+	border-top: 4px solid #ce1126 !important;
+}
+
+/* Contenedor cuadrado para encuadrar las imágenes */
+.card-icon {
+	display: flex !important;
+	align-items: center !important;
+	justify-content: center !important;
+	width: 37px !important;
+	height: 37px !important;
+	border-radius: 4px !important;
+	overflow: hidden !important;
+	flex-shrink: 0 !important;
+	background: transparent !important;
+}
+
+	/* Ajuste estricto para que tus logos no se desborden ni deformen */
+	.card-icon img {
+		width: 100% !important;
+		height: 100% !important;
+		object-fit: contain !important;
+	}
+
+.card-content {
+	display: flex !important;
+	flex-direction: column !important;
+	text-align: left !important;
+	overflow: hidden !important;
+}
+
+.card-title {
+	font-size: 10.5px !important;
+	text-transform: uppercase !important;
+	letter-spacing: 0.5px !important;
+	color: #64748b !important;
+	font-weight: 600 !important;
+	line-height: 1.2 !important;
+}
+
+.card-amount {
+	font-size: 14px !important;
+	font-weight: 690 !important;
+	color: #1e293b !important;
+	white-space: nowrap !important;
+	margin-top: 2px !important;
+}
+
+/* ==========================================================================
+   RESPONSIVE: Romper matriz en pantallas chicas para evitar sobrelapados
+   ========================================================================== */
+@media (max-width: 1150px) {
+	.resumen-boveda-container {
+		grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
+		grid-template-rows: auto !important; /* Restablece las filas automáticas */
+	}
+	/* Reseteamos el posicionamiento estricto para que se acomoden de forma fluida */
+	.boveda-card {
+		grid-column: auto !important;
+		grid-row: auto !important;
+		flex-direction: row !important;
+		text-align: left !important;
+	}
+
+		.boveda-card .card-content {
+			text-align: left !important;
+		}
 }
 
 .box .content:before, .box .content:after {
@@ -849,7 +1041,7 @@ aside nav > ul > li a span.icon:before {
 }
 
 aside nav > ul > li a:hover span.icon:before {
-	color: #4b66f1;
+	color: #7fb9d2;
 }
 
 aside nav > ul > li > a, aside nav > ul > li > a:visited {
@@ -869,14 +1061,11 @@ aside nav > ul > li:last-child > a, aside nav > ul > li:last-child > a:visited {
 	border-bottom: 1px solid #bcbcbc;
 }
 
-aside nav > ul > li > a:hover, aside nav > ul > li.current> a:hover {
-	background: url('../img/layout/navigation/bg-hover.png');
-	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
-	
-	border-color: #2e69ae;
-	border-left: 1px solid #2e69ae;
-	border-right: 1px solid #2e69ae;
-	
+aside nav > ul > li > a:hover, aside nav > ul > li.current > a:hover {
+	background: #009ad4; /* Tu color --primary-light */
+	box-shadow: none;
+	border-color: #009ad4;
+	color: #ffffff;
 	margin-right: -1px;
 	margin-left: -1px;
 }
@@ -891,14 +1080,15 @@ aside nav > ul > li > a.with_sub.open , aside nav > ul > li > a.with_sub.open:vi
 }
 
 aside nav > ul > li.current > a {
-	background: url('../img/layout/navigation/bg-current.png');
-    position: relative;
-    z-index: 101;
+	background: #005d9a;
+	color: #ffffff;
+	position: relative;
+	z-index: 101;
 }
 
-aside nav > ul > li.current > a {
-	position: relative;
-}
+	aside nav > ul > li.current > a span.icon:before {
+		color: #ffffff;
+	}
 
 aside nav > ul > li.current > a:before {
 	display: block;
@@ -950,16 +1140,7 @@ aside nav span.badge {
 	
 	line-height: 12.5px;
 	
-	background: #5c8ed1; /* Old browsers */
-	/* IE9 SVG, needs conditional override of 'filter' to 'none' */
-	background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzVjOGVkMSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMzMDVmOTUiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
-	background: -moz-linear-gradient(top,  #5c8ed1 0%, #305f95 100%); /* FF3.6+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#5c8ed1), color-stop(100%,#305f95)); /* Chrome,Safari4+ */
-	background: -webkit-linear-gradient(top,  #5c8ed1 0%,#305f95 100%); /* Chrome10+,Safari5.1+ */
-	background: -o-linear-gradient(top,  #5c8ed1 0%,#305f95 100%); /* Opera 11.10+ */
-	background: -ms-linear-gradient(top,  #5c8ed1 0%,#305f95 100%); /* IE10+ */
-	background: linear-gradient(top,  #5c8ed1 0%,#305f95 100%); /* W3C */
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#5c8ed1', endColorstr='#305f95',GradientType=0 ); /* IE6-8 */
+	background: linear-gradient(to bottom, #5c8ed1 0%, #305f95 100%);
 }
 
 aside nav > ul > li > ul a span.badge {
@@ -976,47 +1157,17 @@ aside nav > ul > li > ul a span.badge {
 
 aside nav span.badge.grey {
 	border-color: #959595;
-	
-	background: #e7e7e7; /* Old browsers */
-	/* IE9 SVG, needs conditional override of 'filter' to 'none' */
-	background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2U3ZTdlNyIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNjZWNlY2UiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
-	background: -moz-linear-gradient(top,  #e7e7e7 0%, #cecece 100%); /* FF3.6+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#e7e7e7), color-stop(100%,#cecece)); /* Chrome,Safari4+ */
-	background: -webkit-linear-gradient(top,  #e7e7e7 0%,#cecece 100%); /* Chrome10+,Safari5.1+ */
-	background: -o-linear-gradient(top,  #e7e7e7 0%,#cecece 100%); /* Opera 11.10+ */
-	background: -ms-linear-gradient(top,  #e7e7e7 0%,#cecece 100%); /* IE10+ */
-	background: linear-gradient(top,  #e7e7e7 0%,#cecece 100%); /* W3C */
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e7e7e7', endColorstr='#cecece',GradientType=0 ); /* IE6-8 */
+	background: linear-gradient(to bottom, #e7e7e7 0%, #cecece 100%);
 }
 
 aside nav span.badge.red {
 	border-color: #6f2828;
-	
-	background: #ae2b2b; /* Old browsers */
-	/* IE9 SVG, needs conditional override of 'filter' to 'none' */
-	background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2FlMmIyYiIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiM4NzIwMjAiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
-	background: -moz-linear-gradient(top,  #ae2b2b 0%, #872020 100%); /* FF3.6+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ae2b2b), color-stop(100%,#872020)); /* Chrome,Safari4+ */
-	background: -webkit-linear-gradient(top,  #ae2b2b 0%,#872020 100%); /* Chrome10+,Safari5.1+ */
-	background: -o-linear-gradient(top,  #ae2b2b 0%,#872020 100%); /* Opera 11.10+ */
-	background: -ms-linear-gradient(top,  #ae2b2b 0%,#872020 100%); /* IE10+ */
-	background: linear-gradient(top,  #ae2b2b 0%,#872020 100%); /* W3C */
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ae2b2b', endColorstr='#872020',GradientType=0 ); /* IE6-8 */
+	background: linear-gradient(to bottom, #ae2b2b 0%, #872020 100%);
 }
 
 aside nav span.badge.green {
 	border-color: #285024;
-	
-	background: #2f8635; /* Old browsers */
-	/* IE9 SVG, needs conditional override of 'filter' to 'none' */
-	background: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiA/Pgo8c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgdmlld0JveD0iMCAwIDEgMSIgcHJlc2VydmVBc3BlY3RSYXRpbz0ibm9uZSI+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkLXVjZ2ctZ2VuZXJhdGVkIiBncmFkaWVudFVuaXRzPSJ1c2VyU3BhY2VPblVzZSIgeDE9IjAlIiB5MT0iMCUiIHgyPSIwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzJmODYzNSIgc3RvcC1vcGFjaXR5PSIxIi8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiMyMTViMWIiIHN0b3Atb3BhY2l0eT0iMSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3QgeD0iMCIgeT0iMCIgd2lkdGg9IjEiIGhlaWdodD0iMSIgZmlsbD0idXJsKCNncmFkLXVjZ2ctZ2VuZXJhdGVkKSIgLz4KPC9zdmc+);
-	background: -moz-linear-gradient(top,  #2f8635 0%, #215b1b 100%); /* FF3.6+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#2f8635), color-stop(100%,#215b1b)); /* Chrome,Safari4+ */
-	background: -webkit-linear-gradient(top,  #2f8635 0%,#215b1b 100%); /* Chrome10+,Safari5.1+ */
-	background: -o-linear-gradient(top,  #2f8635 0%,#215b1b 100%); /* Opera 11.10+ */
-	background: -ms-linear-gradient(top,  #2f8635 0%,#215b1b 100%); /* IE10+ */
-	background: linear-gradient(top,  #2f8635 0%,#215b1b 100%); /* W3C */
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2f8635', endColorstr='#215b1b',GradientType=0 ); /* IE6-8 */
+	background: linear-gradient(to bottom, #2f8635 0%, #215b1b 100%);
 }
 
 
@@ -1236,10 +1387,7 @@ aside nav a.with_sub.open:after {
 	float: right;
 }
 
-
-/* ********************************************* */
 /* The top toolbar */
-
 #toolbar {
 	background: url('../img/layout/toolbar/bg.png') repeat-x #1d2837;
 	width: 100%;
@@ -1633,4 +1781,190 @@ footer > span {
 #login .actions input[type=submit]:active {
 	background: #323841;
 	box-shadow: inset 0 1px 1px rgba(0,0,0,0.3);
+}
+
+/* =============================================================================
+   BLOQUE DE ACTUALIZACIÓN ESTÉTICA
+   Añadido al final para garantizar la integridad de la grilla original
+   ========================================================================== */
+
+/* 1. BARRA SUPERIOR FIJA (#toolbar) - Acabado plano Slate */
+#toolbar {
+    background: #1e293b;
+    border-bottom: 1px solid #0f172a;
+    box-shadow: none;
+}
+#toolbar .right li > a {
+    background: #2d3748;
+    border: 1px solid #334155;
+    box-shadow: none;
+}
+#toolbar .right li > a:hover {
+    background: #3d4a5d;
+}
+#toolbar .right li.red > a {
+    background: #e74c3c;
+    border-color: #c0392b;
+}
+#toolbar .right li.red > a:hover {
+    background: #c0392b;
+}
+
+/* 2. BARRA DE CONTENIDO (#main .toolbar) - Azul corporativo plano */
+#main .toolbar {
+    background: #005d9a;
+    border: 1px solid #005d9a;
+    border-radius: 5px 5px 0 0;
+    box-shadow: none;
+}
+#main .toolbar .user:hover {
+    border-color: #009ad4;
+    background: rgba(255, 255, 255, 0.08);
+}
+#main .toolbar .shortcuts li a:hover {
+    border-color: #009ad4;
+    background: rgba(255, 255, 255, 0.1);
+}
+#main .toolbar .shortcuts li a:hover:active, 
+#main .toolbar .shortcuts li.active a {
+    background: #009ad4; /* Tu nuevo primary-light */
+    border-color: transparent;
+    box-shadow: none;
+}
+#main .toolbar .shortcuts li a span.icon:before {
+    text-shadow: none;
+    color: #ffffff;
+}
+
+/* 3. RESPIRACIÓN DE BOTONES AMONTONADOS */
+.box .content button, 
+.box .content input[type="button"], 
+.box .content a.button,
+.box .content .btn-blue {
+    margin: 4px 3px;
+    display: inline-block;
+}
+
+/* 4. ATENUACIÓN DE CARPETAS AMARILLAS ANTIGUAS */
+.box .header h2 img, 
+.block-title img, 
+.panel-header img {
+    opacity: 0.6;
+    filter: grayscale(30%);
+    transition: opacity 0.2s;
+}
+.box:hover .header h2 img {
+    opacity: 0.9;
+}
+/* =============================================================================
+   SOLUCIÓN DEFINITIVA PARA EL LOGIN (Aislamiento por Posicionamiento Absoluto)
+   ========================================================================== */
+#login .box .actions {
+	display: block !important; /* Desactivamos Flexbox para neutralizar contenedores ocultos */
+	position: relative !important; /* Se convierte en el eje de coordenadas principal */
+	padding: 0 15px !important;
+	height: 48px !important; /* Altura fija perfecta para contener la fila */
+	line-height: 44px !important; /* Centra verticalmente de forma automática el texto y checkbox */
+	box-sizing: border-box !important;
+}
+
+/* Alineación limpia de los elementos del lado izquierdo */
+#login .box .actions .rememberme {
+	display: inline-block !important;
+	vertical-align: middle !important;
+	float: none !important;
+	margin: 0 0 0 12px !important; /* Separación exacta del recuadro de 'Acceso' */
+	padding: 0 !important;
+}
+
+#login .box .actions .rememberme input,
+#login .box .actions .rememberme label {
+	vertical-align: middle !important;
+}
+
+/* Forzamos al botón 'Iniciar' a clavarse en la esquina derecha de la tarjeta */
+#login .actions input[type=submit] {
+	position: absolute !important;
+	right: 15px !important; /* Pegado al margen derecho interno */
+	top: 50% !important; /* Baja al centro */
+	transform: translateY(-50%) !important; /* Centrado vertical matemático perfecto */
+	margin: 0 !important;
+	float: none !important;
+	padding: 6px 20px !important;
+	height: auto !important;
+	display: inline-block !important;
+}
+
+/* =============================================================================
+   SOLUCIÓN DEFINITIVA DE MAQUETACIÓN SIDEBAR - CREDICONFIABLE (v2)
+   Reemplaza cualquier versión anterior de este bloque.
+   ========================================================================== */
+
+/* 1. Ocultar Caja Chica del menú (sin dejar hueco) */
+aside nav > ul > li:has(> a[href*="CajaChica" i]) {
+    display: none !important;
+}
+
+/* 2. #main sigue estirándose para que el footer no quede pegado arriba */
+#main {
+    min-height: calc(100vh - 160px) !important;
+    position: relative !important;
+}
+
+/* 3. aside necesita su propio contexto de posicionamiento.
+      Esta es la pieza que faltaba: sin esto, cualquier `position:absolute`
+      dentro de aside "se escapa" hacia #main (que sí es position:relative),
+      y por eso los botones nunca coincidían con el borde real del sidebar.
+      OJO: NO se le fuerza min-height aquí. El aside debe medir exactamente
+      lo que ocupan su nav + sus botones; el relleno visual de la columna
+      gris hasta el fondo de la pantalla ya lo resuelve el `background:
+      repeat-y` de #main, así que forzar altura aquí solo crea un hueco
+      vacío al final cuando el menú tiene pocos items (rol Analista). */
+aside {
+    position: relative !important;
+}
+
+/* 4. El nav ya NO se limita en altura: crece libremente con sus items
+      y empuja todo lo que viene después (los botones) hacia abajo. */
+aside nav {
+    display: block !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+/* 5. Los botones vuelven al flujo normal del documento (nada de absolute).
+      Así SIEMPRE quedan justo debajo del nav, sea cual sea su altura,
+      y nunca se superponen con los últimos items del submenú. */
+aside .bottom,
+aside .bottom.sticky {
+    position: static !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 15px !important;
+    background: transparent !important;
+}
+
+aside .bottom .buttons,
+aside .bottom.sticky .buttons {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+aside .bottom .buttons *,
+aside .bottom.sticky .buttons * {
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 0 7px 0 !important;
+    border-radius: 4px !important;
+    text-align: center !important;
+    float: none !important;
+}
+
+aside .bottom .buttons *:last-child,
+aside .bottom.sticky .buttons *:last-child {
+    margin-bottom: 0 !important;
 }

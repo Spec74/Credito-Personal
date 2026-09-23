@@ -1,4 +1,4 @@
-
+﻿
 -- CREDITO.usp_RptClientesBloqueados 
 CREATE PROC [CREDITO].[usp_RptClientesBloqueados]
 @OficinaId INT = NULL,
@@ -28,3 +28,8 @@ AS
 	INNER JOIN MAESTRO.Persona P ON P.PersonaId = C.PersonaId
 	WHERE C.Bloqueado=1
 	ORDER BY Agente,Cliente
+
+	
+	
+
+

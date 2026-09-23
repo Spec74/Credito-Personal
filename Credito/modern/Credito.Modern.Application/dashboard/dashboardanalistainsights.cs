@@ -29,8 +29,15 @@ public static class DashboardAnalistaInsights
         int creditosAnterior,
         decimal cobradoActual,
         decimal cobradoAnterior,
+        decimal cobradoHoy,
+        decimal cobradoAyer,
         decimal saldoActual,
+        decimal montoMora,
         int clientesMora,
+        int clientesMoraSinPago,
+        int clientesMoraNuncaPagaron,
+        int clientesMoraDejaronPagar,
+        int clientesMoraPagandoConAtraso,
         int porVencerSemana)
     {
         var porcentajeMora = totalClientes > 0
@@ -48,8 +55,15 @@ public static class DashboardAnalistaInsights
             CobradoActual: cobradoActual,
             CobradoAnterior: cobradoAnterior,
             VariacionCobradoPct: VariacionPorcentaje(cobradoActual, cobradoAnterior),
+            CobradoHoy: cobradoHoy,
+            CobradoAyer: cobradoAyer,
             SaldoActual: saldoActual,
+            MontoMora: montoMora,
             ClientesMora: clientesMora,
+            ClientesMoraSinPago: clientesMoraSinPago,
+            ClientesMoraNuncaPagaron: clientesMoraNuncaPagaron,
+            ClientesMoraDejaronPagar: clientesMoraDejaronPagar,
+            ClientesMoraPagandoConAtraso: clientesMoraPagandoConAtraso,
             PorcentajeMora: Math.Round(porcentajeMora, 1, MidpointRounding.AwayFromZero),
             PorVencerSemana: porVencerSemana);
     }
@@ -61,12 +75,15 @@ public static class DashboardAnalistaInsights
         if (kpis.ClientesMora > 0)
         {
             var tipo = kpis.PorcentajeMora >= UmbralMoraCriticaPct ? "danger" : "warning";
+            var detalleSinPago = kpis.ClientesMoraSinPago > 0
+                ? $" De ellos, {kpis.ClientesMoraNuncaPagaron} nunca pagaron y {kpis.ClientesMoraDejaronPagar} dejaron de pagar."
+                : string.Empty;
             insights.Add(new DashboardInsightDto(
                 Tipo: tipo,
                 Titulo: "Cartera en mora",
                 Mensaje:
-                $"Tienes {kpis.ClientesMora} clientes en mora, equivalentes al {FormatoPct(kpis.PorcentajeMora)}% de tu cartera.",
-                Accion: "/informes/morosidad-gestor"));
+                $"Tienes {kpis.ClientesMora} clientes en mora ({FormatoPct(kpis.PorcentajeMora)}% de tu cartera), con S/ {FormatoMoney(kpis.MontoMora)} pendiente.{detalleSinPago}",
+                Accion: null));
         }
         else
         {
@@ -191,4 +208,7 @@ public static class DashboardAnalistaInsights
     private static string FormatoPct(decimal valor) =>
         Math.Round(valor, 1, MidpointRounding.AwayFromZero)
             .ToString("0.0", CultureInfo.InvariantCulture);
+
+    private static string FormatoMoney(decimal valor) =>
+        valor.ToString("#,##0.00", CultureInfo.GetCultureInfo("es-PE"));
 }

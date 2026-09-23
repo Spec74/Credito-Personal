@@ -24,8 +24,15 @@ public class DashboardAnalistaInsightsTests
             creditosAnterior: 2,
             cobradoActual: 100m,
             cobradoAnterior: 100m,
+            cobradoHoy: 10m,
+            cobradoAyer: 8m,
             saldoActual: 5000m,
+            montoMora: 1200m,
             clientesMora: 4,
+            clientesMoraSinPago: 3,
+            clientesMoraNuncaPagaron: 2,
+            clientesMoraDejaronPagar: 1,
+            clientesMoraPagandoConAtraso: 1,
             porVencerSemana: 3);
 
         Assert.Equal(40.0m, kpis.PorcentajeMora);
@@ -45,8 +52,15 @@ public class DashboardAnalistaInsightsTests
             creditosAnterior: 0,
             cobradoActual: 0m,
             cobradoAnterior: 0m,
+            cobradoHoy: 0m,
+            cobradoAyer: 0m,
             saldoActual: 1000m,
+            montoMora: 0m,
             clientesMora: 0,
+            clientesMoraSinPago: 0,
+            clientesMoraNuncaPagaron: 0,
+            clientesMoraDejaronPagar: 0,
+            clientesMoraPagandoConAtraso: 0,
             porVencerSemana: 0);
 
         var insights = DashboardAnalistaInsights.Build(kpis);
@@ -67,8 +81,15 @@ public class DashboardAnalistaInsightsTests
             creditosAnterior: 2,
             cobradoActual: 70m,
             cobradoAnterior: 100m,
+            cobradoHoy: 5m,
+            cobradoAyer: 20m,
             saldoActual: 1m,
+            montoMora: 0m,
             clientesMora: 0,
+            clientesMoraSinPago: 0,
+            clientesMoraNuncaPagaron: 0,
+            clientesMoraDejaronPagar: 0,
+            clientesMoraPagandoConAtraso: 0,
             porVencerSemana: 0);
 
         Assert.Equal(-30m, kpis.VariacionCobradoPct);

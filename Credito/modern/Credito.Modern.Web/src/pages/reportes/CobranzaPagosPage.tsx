@@ -1,6 +1,6 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Alert, Button, Form, Spin, Tag, Tooltip, Typography, message } from 'antd'
+import { Alert, Button, Form, InputNumber, Spin, Tag, Tooltip, Typography, message } from 'antd'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { FileExcelOutlined, SearchOutlined } from '@ant-design/icons'
 import {
@@ -19,6 +19,7 @@ import {
   GestorSelect,
   OficinaSelect,
 } from '../../components/reportes/ReporteFiltrosMaestros'
+import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { reportesCobranzaBreadcrumb } from '../../utils/reportesBreadcrumbs'
@@ -44,6 +45,7 @@ function toApiFiltros(values: CobranzaFiltrosForm) {
 
 export function CobranzaPagosPage() {
   const { session } = useAuth()
+  const puedeElegirGestor = usePuedeElegirGestorInforme()
   const [form] = Form.useForm<CobranzaFiltrosForm>()
   const [expandedKeys, setExpandedKeys] = useState<string[]>([])
 
@@ -56,6 +58,14 @@ export function CobranzaPagosPage() {
     queryKey: ['oficinas', 'cobranza'],
     queryFn: fetchOficinas,
   })
+
+  useEffect(() => {
+    if (!session) return
+    form.setFieldsValue({
+      oficinaId: session.oficinaId,
+      usuarioId: puedeElegirGestor ? form.getFieldValue('usuarioId') : session.usuarioId,
+    })
+  }, [session, form, puedeElegirGestor])
 
   const consulta = useMutation({
     mutationFn: (params: { usuarioId?: number; oficinaId?: number }) =>
@@ -225,11 +235,11 @@ export function CobranzaPagosPage() {
             className="credix-cobranza-filtros-form"
             initialValues={{
               oficinaId: session?.oficinaId,
-              usuarioId: undefined,
+              usuarioId: puedeElegirGestor ? undefined : session?.usuarioId,
             }}
             onFinish={() => void runConsulta()}
             onValuesChange={(changed) => {
-              if (!('oficinaId' in changed)) return
+              if (!('oficinaId' in changed) && !('usuarioId' in changed)) return
               const gestorId = form.getFieldValue('usuarioId')
               if (gestorId != null && gestorId > 0 && !consulta.isPending) {
                 void runConsulta()
@@ -237,18 +247,30 @@ export function CobranzaPagosPage() {
             }}
           >
             <div className="credix-cobranza-filtros-fields">
-              <Form.Item label="Oficina" name="oficinaId" className="credix-cobranza-field">
-                <OficinaSelect allowAll size="middle" />
-              </Form.Item>
-              <Form.Item label="Gestor" name="usuarioId" className="credix-cobranza-field">
-                <GestorSelect
-                  allowAll
-                  legacyList
-                  size="middle"
-                  onEnter={() => void runConsulta()}
-                  onGestorResolved={() => void runConsulta()}
-                />
-              </Form.Item>
+              {puedeElegirGestor ? (
+                <Form.Item label="Oficina" name="oficinaId" className="credix-cobranza-field">
+                  <OficinaSelect allowAll size="middle" />
+                </Form.Item>
+              ) : (
+                <Form.Item name="oficinaId" hidden>
+                  <InputNumber />
+                </Form.Item>
+              )}
+              {puedeElegirGestor ? (
+                <Form.Item label="Gestor" name="usuarioId" className="credix-cobranza-field">
+                  <GestorSelect
+                    allowAll
+                    legacyList
+                    size="middle"
+                    onEnter={() => void runConsulta()}
+                    onGestorResolved={() => void runConsulta()}
+                  />
+                </Form.Item>
+              ) : (
+                <Form.Item name="usuarioId" hidden>
+                  <InputNumber />
+                </Form.Item>
+              )}
             </div>
             <div className="credix-cobranza-filtros-actions">
               <Button
@@ -260,10 +282,16 @@ export function CobranzaPagosPage() {
               >
                 Generar reporte
               </Button>
-              <Typography.Text type="secondary" className="credix-cobranza-filtros-hint">
-                <kbd>Enter</kbd> en gestor carga la tabla · al elegir un gestor concreto también
-                carga solo · con <strong>Todos</strong> use el botón
-              </Typography.Text>
+              {puedeElegirGestor ? (
+                <Typography.Text type="secondary" className="credix-cobranza-filtros-hint">
+                  <kbd>Enter</kbd> en gestor carga la tabla · al elegir un gestor concreto también
+                  carga solo · con <strong>Todos</strong> use el botón
+                </Typography.Text>
+              ) : (
+                <Typography.Text type="secondary" className="credix-cobranza-filtros-hint">
+                  Solo su cartera de gestor · pulse Generar reporte
+                </Typography.Text>
+              )}
             </div>
           </Form>
         </div>

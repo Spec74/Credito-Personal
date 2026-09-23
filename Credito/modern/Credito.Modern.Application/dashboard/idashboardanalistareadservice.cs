@@ -10,4 +10,13 @@ public interface IDashboardAnalistaReadService
         int usuarioId,
         int oficinaId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Drill-down de clientes en mora vía <c>CREDITO.usp_DashboardGestorClientesMora</c>.
+    /// </summary>
+    Task<IReadOnlyList<DashboardClienteMoraRowDto>> ObtenerClientesMoraAsync(
+        int usuarioId,
+        int oficinaId,
+        string tipo,
+        CancellationToken cancellationToken = default);
 }

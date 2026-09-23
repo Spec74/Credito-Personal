@@ -79,6 +79,10 @@ public static class DependencyInjection
             .AddOptions<AuthOptions>()
             .Bind(configuration.GetSection(AuthOptions.SectionName));
 
+        services
+            .AddOptions<CierreGerencialOptions>()
+            .Bind(configuration.GetSection(CierreGerencialOptions.SectionName));
+
         services.AddSingleton<IDatabaseTimeProvider, DatabaseTimeProvider>();
         services.AddScoped<IMarcaReadService, MarcaReadService>();
         services.AddScoped<IMarcaWriteService, MarcaWriteService>();
@@ -170,6 +174,10 @@ public static class DependencyInjection
         services.AddScoped<ICompletarImpagosValidacionReadService, CompletarImpagosValidacionReadService>();
         services.AddScoped<ICompletarImpagosWriteService, CompletarImpagosWriteService>();
         services.AddScoped<ICajaPagoWriteService, CajaPagoWriteService>();
+        services.AddScoped<ICobroPlanillaBloqueWriteService, CobroPlanillaBloqueWriteService>();
+        services.AddScoped<ICierreGerencialAccessService, CierreGerencialAccessService>();
+        services.AddScoped<ICierreGerencialReadService, CierreGerencialReadService>();
+        services.AddScoped<ICierreGerencialWriteService, CierreGerencialWriteService>();
         services.AddScoped<ICajaDiarioOperacionWriteService, CajaDiarioOperacionWriteService>();
         services.AddScoped<ICajaDiarioTransferWriteService, CajaDiarioTransferWriteService>();
         services.AddScoped<IConfirmarClaveCajaDiarioService, ConfirmarClaveCajaDiarioService>();

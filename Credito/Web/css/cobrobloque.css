@@ -1,0 +1,370 @@
+/* 1. Estado Hover: Al pasar el mouse sobre cualquier fila */
+.ui-jqgrid-btable tr.ui-widget-content:hover,
+.ui-jqgrid-btable tr.ui-state-hover {
+    background: #f0f7fc !important;
+    color: var(--azul-oscuro) !important;
+    transition: background-color 0.15s ease-in-out;
+}
+
+/* 2. Estado Seleccionado: Reemplazo total del amarillo por un azul hielo corporativo */
+.ui-jqgrid-btable tr.ui-state-highlight,
+.ui-jqgrid-btable tr.ui-widget-content.ui-state-highlight,
+.ui-jqgrid .ui-jqgrid-btable .ui-state-highlight {
+    background: linear-gradient(90deg, #e3f4fd 0%, #edf8ff 100%) !important;
+    color: var(--azul-oscuro) !important;
+    border-color: #bce2f7 !important;
+}
+
+/* 3. Indicador Software Moderno: Barra vertical turquesa a la izquierda de la fila */
+.ui-jqgrid-btable tr.ui-state-highlight td:first-child {
+    box-shadow: inset 4px 0 0 0 var(--azul-celeste) !important;
+}
+
+/* 4. Realce de legibilidad en inputs y selects cuando la fila está seleccionada */
+.ui-jqgrid-btable tr.ui-state-highlight .input-monto {
+    border-color: var(--azul-celeste) !important;
+    background-color: var(--blanco-fondo) !important;
+    box-shadow: 0 1px 4px rgba(0, 163, 224, 0.2);
+    color: var(--azul-oscuro) !important;
+}
+
+.ui-jqgrid-btable tr.ui-state-highlight .select-tipo-pago,
+.ui-jqgrid-btable tr.ui-state-highlight .input-fecha {
+    border-color: #aedbf8 !important;
+    background-color: var(--blanco-fondo) !important;
+}
+
+/* 5. Subgrilla (Cuotas): Selección con tono suave si el operador hace clic */
+.subgrid-custom-container tr.ui-state-highlight {
+    background: #dbeffc !important;
+    color: var(--azul-oscuro) !important;
+}
+/* Variables de Paleta Corporativa - Inversiones CrediConfiable */
+:root {
+    --azul-oscuro: #0D5CA3;
+    --azul-celeste: #00A3E0;
+    --gris-oscuro: #4A4A4A;
+    --blanco-fondo: #FFFFFF;
+    --azul-hover: #0a467e;
+    --fondo-claro: #f4f9ff;
+    --borde-suave: #dbe4ef;
+    --sombra-premium: 0 4px 12px rgba(13, 92, 163, 0.15);
+}
+
+/* Contenedor Modal Premium */
+.modal-premium {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: var(--gris-oscuro);
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* Panel Superior de Instrucciones */
+.panel-instrucciones {
+    background: linear-gradient(135deg, var(--fondo-claro), var(--blanco-fondo));
+    border-left: 5px solid var(--azul-celeste);
+    padding: 12px 18px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    font-size: 13px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    color: var(--azul-oscuro);
+}
+
+/* Buscador Corporativo */
+.buscador-corporativo {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    background: var(--blanco-fondo);
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--borde-suave);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    transition: border-color 0.3s;
+}
+
+.buscador-corporativo:focus-within {
+    border-color: var(--azul-celeste);
+    box-shadow: 0 0 0 3px rgba(0, 163, 224, 0.15);
+}
+
+/* Grilla Principal */
+.ui-jqgrid {
+    border-radius: 8px;
+    border: 1px solid var(--borde-suave);
+    box-shadow: var(--sombra-premium);
+    overflow: hidden;
+}
+
+.ui-jqgrid th, .ui-jqgrid td {
+    box-sizing: border-box !important;
+}
+
+.ui-jqgrid td {
+    border-right: 1px solid var(--borde-suave) !important;
+}
+
+.ui-jqgrid .ui-jqgrid-htable th {
+    background: linear-gradient(#1168b5, var(--azul-oscuro));
+    color: var(--blanco-fondo);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    padding: 12px 4px;
+    border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Inputs Modernos, Selects y Calendarios */
+.input-monto, .select-tipo-pago, .input-fecha {
+    width: 100%;
+    border: 1px solid #c1c7d0;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 14px;
+    color: var(--gris-oscuro);
+    transition: all 0.2s ease-in-out;
+    box-sizing: border-box;
+    background-color: var(--blanco-fondo);
+    height: 36px;
+}
+
+.input-monto:focus, .select-tipo-pago:focus, .input-fecha:focus {
+    border-color: var(--azul-celeste);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 163, 224, 0.2);
+    background-color: #fff;
+}
+
+.input-monto {
+    font-family: monospace;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--azul-oscuro);
+    text-align: right;
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+/* Ocultar flechas del input numérico "Monto a Pagar" */
+.input-monto::-webkit-inner-spin-button,
+.input-monto::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.input-error {
+    border-color: red !important;
+    background-color: #ffe6e6 !important;
+    color: red !important;
+}
+
+.select-tipo-pago {
+    appearance: none;
+    background: url('data:image/svg+xml;utf8,<svg fill="%234A4A4A" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>') no-repeat right 8px center / 18px;
+    padding-right: 30px;
+    cursor: pointer;
+}
+
+.input-fecha::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    filter: invert(40%) sepia(85%) saturate(1412%) hue-rotate(180deg) brightness(88%) contrast(85%);
+    opacity: 0.8;
+    transition: 0.2s;
+}
+
+.input-fecha::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+/* Subgrid Elegante */
+.subgrid-custom-container {
+    padding: 15px 25px !important;
+    background-color: var(--fondo-claro) !important;
+    border-block: 1px solid var(--borde-suave);
+}
+
+.subgrid-custom-container .ui-jqgrid-labels th {
+    background: #e1ecf7 !important;
+    color: var(--azul-oscuro) !important;
+    font-size: 11px;
+}
+
+/* --- NUEVO: ESTILOS DEL PANEL DE RESUMEN DE PAGOS --- */
+.panel-resumen-pagos {
+    margin-top: 15px;
+    background: linear-gradient(135deg, #ffffff, var(--fondo-claro));
+    border: 1px solid var(--borde-suave);
+    border-left: 5px solid var(--azul-oscuro);
+    border-radius: 8px;
+    padding: 15px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.resumen-header {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--azul-oscuro);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--borde-suave);
+    padding-bottom: 8px;
+}
+
+.resumen-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.resumen-card {
+    background: var(--blanco-fondo);
+    border: 1px solid var(--borde-suave);
+    padding: 10px 14px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+}
+
+.resumen-label {
+    font-size: 11px;
+    color: var(--gris-oscuro);
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.resumen-valor {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--azul-oscuro);
+    margin-top: 4px;
+}
+
+.desglose-metodos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px dashed var(--azul-celeste);
+}
+
+.badge-metodo {
+    background: #e1ecf7;
+    color: var(--azul-oscuro);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 15px;
+    border: 1px solid #c4dcfa;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* Botones Corporativos */
+.btn-crediconfiable {
+    background: linear-gradient(135deg, var(--azul-oscuro), var(--azul-celeste));
+    color: var(--blanco-fondo);
+    border: none;
+    padding: 10px 25px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 6px rgba(13, 92, 163, 0.3);
+}
+
+.btn-crediconfiable:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 163, 224, 0.4);
+    color: white;
+}
+
+.btn-crediconfiable:active {
+    transform: translateY(0);
+}
+
+.btn-gris-outline {
+    background: transparent;
+    color: var(--gris-oscuro);
+    border: 1px solid var(--gris-oscuro);
+    padding: 10px 20px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-gris-outline:hover {
+    background: var(--gris-oscuro);
+    color: var(--blanco-fondo);
+}
+
+/* Totalizador */
+.panel-totalizador {
+    background: var(--fondo-claro);
+    padding: 10px 30px;
+    border-radius: 8px;
+    border: 2px solid var(--azul-celeste);
+    display: inline-flex;
+    align-items: center;
+    box-shadow: 0 2px 6px rgba(0, 163, 224, 0.15);
+}
+/* Acceso rápido al perfil del cliente */
+.btn-ver-perfil {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 25px;
+    height: 21px;
+    padding: 0;
+
+    border: 1px solid #0d5ca3;
+    border-radius: 7px;
+
+    background: linear-gradient(
+        180deg,
+        #00a3e0 0%,
+        #0d5ca3 100%
+    );
+
+    color: #ffffff;
+    text-decoration: none;
+    cursor: pointer;
+
+    box-shadow: 0 1px 3px rgba(13, 92, 163, 0.25);
+
+    transition:
+        background-color 0.15s ease,
+        box-shadow 0.15s ease,
+        transform 0.15s ease;
+}
+
+.btn-ver-perfil:hover {
+    background: #0a467e;
+    color: #ffffff;
+    box-shadow: 0 2px 5px rgba(13, 92, 163, 0.35);
+    transform: translateY(-1px);
+}
+
+.btn-ver-perfil:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(13, 92, 163, 0.25);
+}
+
+.btn-ver-perfil .icon {
+    display: inline-block;
+    margin: 0;
+    color: #ffffff;
+    font-size: 14px;
+    line-height: 14px;
+}

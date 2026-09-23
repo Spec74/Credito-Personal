@@ -208,6 +208,10 @@ export const SaldoCarteraCajaDiarioPage = lazyNamed(
   () => import('../pages/informes/SaldoCarteraCajaDiarioPage'),
   'SaldoCarteraCajaDiarioPage',
 )
+export const CierreGerencialPage = lazyNamed(
+  () => import('../pages/informes/CierreGerencialPage'),
+  'CierreGerencialPage',
+)
 export const CobroDiarioDetallePage = lazyNamed(
   () => import('../pages/informes/CobroDiarioDetallePage'),
   'CobroDiarioDetallePage',
@@ -323,6 +327,10 @@ export const CajaMaestroPage = lazyNamed(
 export const CajaDiarioPage = lazyNamed(
   () => import('../pages/caja/CajaDiarioPage'),
   'CajaDiarioPage',
+)
+export const CobroBloquePage = lazyNamed(
+  () => import('../pages/caja/CobroBloquePage'),
+  'CobroBloquePage',
 )
 export const CajaChicaPage = lazyNamed(
   () => import('../pages/caja/CajaChicaPage'),

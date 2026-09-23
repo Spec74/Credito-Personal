@@ -17,6 +17,7 @@ namespace ITB.VENDIX.DA
         public int CreditoId { get; set; }
         public decimal MontoCredito { get; set; }
         public string Estado { get; set; }
+        public Nullable<int> PersonaId { get; set; }
         public string Persona { get; set; }
         public string Dni { get; set; }
         public string Celular { get; set; }

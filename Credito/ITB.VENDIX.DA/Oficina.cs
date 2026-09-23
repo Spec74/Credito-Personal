@@ -33,8 +33,6 @@ namespace ITB.VENDIX.DA
         public bool IndPrincipal { get; set; }
         public bool Estado { get; set; }
         public int UsuarioAsignadoId { get; set; }
-        public Nullable<decimal> Latitud { get; set; }
-        public Nullable<decimal> Longitud { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Almacen> Almacen { get; set; }

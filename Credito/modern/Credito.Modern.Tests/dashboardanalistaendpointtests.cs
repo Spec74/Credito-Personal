@@ -22,6 +22,13 @@ public class DashboardAnalistaEndpointTests : IClassFixture<CreditoModernWebAppl
     }
 
     [Fact]
+    public async Task ClientesMora_sin_jwt_devuelve_401()
+    {
+        var response = await _client.GetAsync("/api/v1/dashboard/analista/clientes-mora?tipo=TODOS");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Analista_con_rol_cajero_devuelve_403()
     {
         if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))

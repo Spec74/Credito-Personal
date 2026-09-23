@@ -1,8 +1,27 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import { CredixModuleHubPage } from '../../components/credix'
 import { INFORMES_HUB_QUICK_ACCESS, INFORMES_HUB_SECTIONS } from '../../config/informesHubSections'
+import { fetchCierreGerencialPermisos } from '../../api/cierreGerencial'
 
 export function InformesHubPage() {
+  const cierrePermisos = useQuery({
+    queryKey: ['cierre-gerencial-permisos'],
+    queryFn: fetchCierreGerencialPermisos,
+    staleTime: 5 * 60_000,
+  })
+
+  const sections = useMemo(() => {
+    if (cierrePermisos.data?.puedeConsultar) {
+      return INFORMES_HUB_SECTIONS
+    }
+    return INFORMES_HUB_SECTIONS.map((section) => ({
+      ...section,
+      links: section.links.filter((link) => link.to !== '/informes/cierre-gerencial'),
+    })).filter((section) => section.links.length > 0)
+  }, [cierrePermisos.data?.puedeConsultar])
+
   return (
     <CredixModuleHubPage
       moduleId="informes"
@@ -23,7 +42,7 @@ export function InformesHubPage() {
         </>
       }
       quickAccess={INFORMES_HUB_QUICK_ACCESS}
-      sections={INFORMES_HUB_SECTIONS}
+      sections={sections}
     />
   )
 }

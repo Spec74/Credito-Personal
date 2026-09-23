@@ -283,6 +283,8 @@ app.MapClienteOperacionEndpoints();
 app.MapPrendarioEndpoints();
 app.MapCreditoTareasCrudEndpoints();
 app.MapCreditoOperacionEndpoints();
+app.MapCobroPlanillaBloqueEndpoints();
+app.MapCierreGerencialEndpoints();
 app.MapCreditoReportesRestantesEndpoints();
 app.MapCobroDiarioMorosidadGestorEndpoints();
 app.MapVentasEndpoints();

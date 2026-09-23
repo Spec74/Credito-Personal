@@ -111,4 +111,19 @@ describe('menuRouteAccess', () => {
     expect(hasMenuRouteAccess('/credito/consulta', [padre])).toBe(false)
     expect(hasMenuRouteAccess('/credito/simulador', [padre])).toBe(false)
   })
+
+  it('hub reportes credito no habilita cierre gerencial sin ACL extra', () => {
+    const menuReportesCredito: MenuItemDto = {
+      ...menu('Reporte/Credito', 'CREDITO'),
+      modulo: 'REPORTES',
+    }
+    expect(hasMenuRouteAccess('/informes/cierre-gerencial', [menuReportesCredito])).toBe(false)
+    expect(hasMenuRouteAccess('/informes/cobro-diario', [menuReportesCredito])).toBe(true)
+  })
+
+  it('extraAllowedPaths habilita cierre gerencial (UsuarioConsultaIds)', () => {
+    expect(
+      hasMenuRouteAccess('/informes/cierre-gerencial', [], ['/informes/cierre-gerencial']),
+    ).toBe(true)
+  })
 })

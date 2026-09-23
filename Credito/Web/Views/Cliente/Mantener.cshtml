@@ -1,6 +1,4 @@
 ﻿@model ITB.VENDIX.DA.Cliente
-
-
 <style>
     .texto {
         padding-top: 6px;
@@ -93,6 +91,8 @@
 
             </div>
 
+
+
         </div>
         <div class="grid_6">
 
@@ -104,7 +104,7 @@
                 {
                     <p class="_100  texto">
                         <div class="alert error sticky no-margin">
-                            <a @if (ViewBag.Admin > 0 || ViewBag.Aprobador1 > 0) { <text> href="#" id="btnDepurado" </text> } style="color:white">
+                            <a @if (ViewBag.Admin > 0 || ViewBag.Aprobador1>0) { <text> href="#" id="btnDepurado" </text> } style="color:white">
                                 <span class="icon"></span>
                                 <strong>DEPURADO!</strong> @ViewBag.Depurado
                             </a>
@@ -255,23 +255,12 @@
 </div>
 @section scripts{
     <script>
-        function apiPeruHeaders() {
-            var token = window.localStorage ? window.localStorage.getItem('credito.access') : null;
-            return token ? { 'Authorization': 'Bearer ' + token } : {};
-        }
+        var tokenApiperu = 'Bearer bbd78886dd0b93fe2282ef3f919b1a0f662dfada35d422b8212891a931b37f98';
 
-        function apiPeruDniUrl(dni) {
-            return "/api/v1/integraciones/apiperu/dni/" + encodeURIComponent((dni || '').replace(/\D/g, ''));
-        }
-
-        function apiPeruRucUrl(ruc) {
-            return "/api/v1/integraciones/apiperu/ruc/" + encodeURIComponent((ruc || '').replace(/\D/g, ''));
-        }
-
-        $$.ready(function () {
+        $$.ready(function() {
             //$("#txtCodigo").mask("aa999");
             $("#txtTopeCredito").numeric(2);
-
+            
             @if (Model.PersonaId > 0)
             {
                 <text>
@@ -313,17 +302,17 @@
             $("#btnValidar").show();
             </text>
             }
-
+            
             @if (ViewBag.Aprobador1 == 0 && ViewBag.Admin == 0)
             {
                 <text>
-            $("#txtObservacionCentralRiesgo").prop("readonly", true);
-            $("#c_ClasificacionRiesgoSBS").prop("disabled", true).trigger("liszt:updated");
+                $("#txtObservacionCentralRiesgo").prop("readonly", true);
+                $("#c_ClasificacionRiesgoSBS").prop("disabled", true).trigger("liszt:updated");
                 </text>
             }
 
             $("#pnlOtros,#pnlEstadoCivil").hide();
-            $("#c_ActividadEconId").change(function () {
+            $("#c_ActividadEconId").change(function() {
                 if ($("#c_ActividadEconId option:selected").text() == "OTROS") {
                     $("#pnlOtros").show();
                     $("#txtOtros").focus();
@@ -334,10 +323,10 @@
 
 
 
-            $("#p_EstadoCivilId").change(function () {
+            $("#p_EstadoCivilId").change(function() {
                 let seleccion = $("#p_EstadoCivilId option:selected").val();
                 //alert(seleccion);
-                if (seleccion == 2 || seleccion == 3) { //si es casado o conviviente
+                if (seleccion == 2 || seleccion == 3 ) { //si es casado o conviviente
                     $("#pnlEstadoCivil").show();
                 } else {
                     $("#pnlEstadoCivil").hide();
@@ -357,23 +346,23 @@
                 }
             });
 
-            $("#btnDetalleConyugue").click(function () {
-                if ($("#txtPersonaES").val().length > 0) {
+            $("#btnDetalleConyugue").click(function(){
+                if ($("#txtPersonaES").val().length > 0 ) {
                     var url = "@Url.Action("ReporteCliente","Reporte")?pPersonaId=" + $("#ConyuguePersonaId").val();
                     window.open(url);
                     return false;
                 }
             });
 
-            $("#btnDepurado").click(function () {
+            $("#btnDepurado").click(function(){
                 Vendix.Dialogo("Desea habilitar al Cliente?",
                     "SiNo",
-                    function () {
+                    function() {
                         $.ajax({
                             type: 'POST',
                             url: "@Url.Action("HabilitarDepurado", "Cliente")",
                             data: { pid: @Model.ClienteId },
-                            success: function (ret) {
+                            success: function(ret) {
                                 window.location.reload();
                             }
                         });
@@ -381,27 +370,27 @@
             });
 
 
-            $("#btnguardar").click(function () {
+            $("#btnguardar").click(function(){
                 // si el estado civil es casado o conviviente
-                if ($('#p_EstadoCivilId').val() == 2 || $('#p_EstadoCivilId').val() == 3) {
-                    if ($("#txtPersonaES").val().trim() == "") {
+                if ($('#p_EstadoCivilId').val()==2 || $('#p_EstadoCivilId').val()==3) {
+                    if ($("#txtPersonaES").val().trim()==""  ) {
                         Vendix.Dialogo("Es obligatorio ingresar datos del Conyugue");
                         return false;
                     }
-                } else {
+                } else{
                     $("#txtPersonaES").val("");
                 }
 
-                if ($('#NroDocumento').val() == '@Model.Persona.NumeroDocumento') {
+                if ($('#NroDocumento').val()=='@Model.Persona.NumeroDocumento') {
                     document.frmCliente.submit();
                     return true;
                 }
-                else {
+                else{
                     $.ajax({
                         url: "@Url.Action("ValidarClienteDNI", "Cliente")",
                         async: false,
                         data: { pDNI: $('#NroDocumento').val() },
-                        success: function (existe) {
+                        success: function(existe) {
                             if (existe) {
                                 Vendix.Dialogo("Ya existe un Cliente con este DNI");
                                 return false;
@@ -442,7 +431,7 @@
                             pCelular: $("#txtAvalCelular").val()
                         },
                         success: function (data) {
-                            if (data == null) {
+                            if (data==null) {
                                 Vendix.Notificar("Grabar");
                                 $el.find('form')[0].reset();
                                 $el.dialog('close');
@@ -460,32 +449,29 @@
             });
 
 
-            $("#btnAvalBuscarDni").click(function () {
+            $("#btnAvalBuscarDni").click(function(){
                 $.ajax({
                     type: 'GET',
-                    url: apiPeruDniUrl($("#txtAvalDni").val()),
+                    url: "https://apiperu.dev/api/dni/" + $("#txtAvalDni").val(),
                     data: {},
-                    headers: apiPeruHeaders(),
-                    success: function (ret) {
+                    headers: { 'Authorization': tokenApiperu },
+                    success: function(ret) {
                         if (ret.success) {
-                            $("#txtAvalNombre").val(ret.nombres);
-                            $("#txtAvalApePaterno").val(ret.apellidoPaterno);
-                            $("#txtAvalApeMaterno").val(ret.apellidoMaterno);
+                            $("#txtAvalNombre").val(ret.data.nombres);
+                            $("#txtAvalApePaterno").val(ret.data.apellido_paterno);
+                            $("#txtAvalApeMaterno").val(ret.data.apellido_materno);
                         } else {
-                            Vendix.Mensaje(ret.mensaje || "DNI NO ENCONTRADO EN RENIEC");
+                            Vendix.Mensaje("DNI NO ENCONTRADO EN RENIEC");
                         }
-                    },
-                    error: function () {
-                        Vendix.Mensaje("No se pudo validar el DNI. Inicie sesión en el módulo moderno o configure API Perú.");
                     }
                 });
             });
 
-            $("#btnValidar").click(function () {
+            $("#btnValidar").click(function() {
                 $.ajax({
                     url: "@Url.Action("ValidarClienteDNI", "Cliente")",
                     data: { pDNI: $('#NroDocumento').val() },
-                    success: function (rpta) {
+                    success: function(rpta) {
 
                         if (rpta) {
                             Vendix.Mensaje("Ya existe un Cliente  con este DNI");
@@ -498,38 +484,32 @@
                             if ($("#cboTipoPersona").val() == "N") {
                                 $.ajax({
                                     type: 'GET',
-                                    url: apiPeruDniUrl($("#NroDocumento").val()),
+                                    url: "https://apiperu.dev/api/dni/" + $("#NroDocumento").val(),
                                     data: {},
-                                    headers: apiPeruHeaders(),
-                                    success: function (ret) {
+                                    headers: { 'Authorization': tokenApiperu },
+                                    success: function(ret) {
                                         if (ret.success) {
-                                            $("#txtNombre").val(ret.nombres);
-                                            $("#txtApePaterno").val(ret.apellidoPaterno);
-                                            $("#txtApeMaterno").val(ret.apellidoMaterno);
+                                            $("#txtNombre").val(ret.data.nombres);
+                                            $("#txtApePaterno").val(ret.data.apellido_paterno);
+                                            $("#txtApeMaterno").val(ret.data.apellido_materno);
                                         } else {
-                                            Vendix.Mensaje(ret.mensaje || "DNI NO ENCONTRADO EN RENIEC");
+                                            Vendix.Mensaje("DNI NO ENCONTRADO EN RENIEC");
                                         }
-                                    },
-                                    error: function () {
-                                        Vendix.Mensaje("No se pudo validar el DNI. Inicie sesión en el módulo moderno o configure API Perú.");
                                     }
                                 });
                             } else {
                                 $.ajax({
                                     type: 'GET',
-                                    url: apiPeruRucUrl($("#NroDocumento").val()),
+                                    url: "https://apiperu.dev/api/ruc/" + $("#NroDocumento").val(),
                                     data: {},
-                                    headers: apiPeruHeaders(),
-                                    success: function (ret) {
+                                    headers: { 'Authorization': tokenApiperu },
+                                    success: function(ret) {
                                         if (ret.success) {
-                                            $("#txtNombre").val(ret.razonSocial);
-                                            $("#txtDireccion").val(ret.direccion);
+                                            $("#txtNombre").val(ret.data.nombre_o_razon_social);
+                                            $("#txtDireccion").val(ret.data.direccion);
                                         } else {
-                                            Vendix.Mensaje(ret.mensaje || "RUC NO ENCONTRADO EN SUNAT");
+                                            Vendix.Mensaje("RUC NO ENCONTRADO EN SUNAT");
                                         }
-                                    },
-                                    error: function () {
-                                        Vendix.Mensaje("No se pudo validar el RUC. Inicie sesión en el módulo moderno o configure API Perú.");
                                     }
                                 });
                             }
@@ -542,7 +522,7 @@
             });
 
 
-            $("#btnBloqueado").click(function () {
+            $("#btnBloqueado").click(function() {
                 event.preventDefault();
                 var chk = $("#chkBloqueado").prop('checked');
                 var mensaje = '';
@@ -550,12 +530,12 @@
 
                 Vendix.Dialogo("Desea " + mensaje + " al Cliente ",
                     "SiNo",
-                    function () {
+                    function() {
                         $.ajax({
                             type: 'POST',
                             url: "@Url.Action("Bloquear", "Cliente")",
                             data: { pid: @Model.ClienteId },
-                            success: function (ret) {
+                            success: function(ret) {
                                 Vendix.Notificar();
                                 $("#chkBloqueado").prop("checked", ret);
                             }
@@ -563,7 +543,7 @@
                     });
             });
 
-            $("#cboTipoPersona").change(function () {
+            $("#cboTipoPersona").change(function() {
                 if ($("#cboTipoPersona").val() == "N") {
                     $("#lblDocumento").text("DNI:");
                     $("#lblNombre").text("Nombres:");
@@ -578,7 +558,7 @@
                 $("#txtDocumento").focus();
             });
 
-            $("#NroDocumento").mask("99999999").keypress(function () {
+            $("#NroDocumento").mask("99999999").keypress(function() {
                 if (event.which == 13) {
                     event.preventDefault();
                     $(this).trigger('blur');
@@ -588,14 +568,14 @@
             $("#txtUbicacion").autocomplete({
                 source: "@Url.Action("BuscarDistrito", "Cliente")",
                 minLength: 2,
-                select: function (event, ui) {
+                select: function(event, ui) {
                     //console.log(ui.item);
                     event.preventDefault();
                     $("#txtUbicacion").val(ui.item.value);
                     $("#DistritoId").val(ui.item.id);
                 }
             });
-
+        });
     </script>
 }
 

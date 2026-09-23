@@ -168,8 +168,8 @@ Write-Step "GET /api/v1/reportes/catalogo-cobertura"
 $cobertura = Invoke-WebRequest -Uri (Get-ApiUrl "/api/v1/reportes/catalogo-cobertura") -Headers ($headers + $proxyHeaders) -UseBasicParsing
 Assert-Status $cobertura @(200)
 $coberturaJson = $cobertura.Content | ConvertFrom-Json
-if ($coberturaJson.completoDatosJsonCsvPdf -ne 43) {
-    throw "catalogo-cobertura: completoDatosJsonCsvPdf=$($coberturaJson.completoDatosJsonCsvPdf) (esperado 43)"
+if ($coberturaJson.completoDatosJsonCsvPdf -ne 46) {
+    throw "catalogo-cobertura: completoDatosJsonCsvPdf=$($coberturaJson.completoDatosJsonCsvPdf) (esperado 46)"
 }
 
 Write-Step "GET /api/v1/database-time"
@@ -292,3 +292,4 @@ catch {
 }
 
 Write-Host "`nSmoke strangler proxy completado." -ForegroundColor Green
+exit 0

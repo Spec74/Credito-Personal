@@ -10,6 +10,11 @@ export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
         label: 'Cobertura MVC vs API',
         description: 'Matriz de pantallas, export PDF/Excel y datos',
       },
+      {
+        to: '/informes/cierre-gerencial',
+        label: 'Cierre y metas gerenciales',
+        description: 'Avance oficial / no oficial + Excel ClosedXML (prod)',
+      },
     ],
   },
   {

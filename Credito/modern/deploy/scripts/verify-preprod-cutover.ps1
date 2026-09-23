@@ -13,7 +13,12 @@ param(
     [ValidateSet(1, 2, 3)]
     [int]$PilotoFase = 1,
     [switch]$SkipParidad,
-    [switch]$RequireForwardedHeaders
+    [switch]$RequireForwardedHeaders,
+    # Login real (obligatorio en Production: AllowDevToken=false).
+    [string]$NombreUsuario = "",
+    [string]$Clave = "",
+    [int]$OficinaId = 1,
+    [int]$UsuarioId = 1
 )
 
 $ErrorActionPreference = "Stop"
@@ -66,12 +71,31 @@ Write-Host "OK  ui-config alineado (useSpaForModule=$($ui.useSpaForModule), defa
 
 Write-Host ""
 Write-Host ">> smoke-strangler-proxy.ps1" -ForegroundColor Yellow
-& (Join-Path $scriptsDir "smoke-strangler-proxy.ps1") -BaseUrl $BaseUrl
+$smokeArgs = @{ BaseUrl = $BaseUrl; OficinaId = $OficinaId; UsuarioId = $UsuarioId }
+if (-not [string]::IsNullOrWhiteSpace($NombreUsuario)) {
+    $smokeArgs.NombreUsuario = $NombreUsuario
+    $smokeArgs.Clave = $Clave
+}
+elseif ($Entorno -eq "Production") {
+    throw "Production exige -NombreUsuario y -Clave (AllowDevToken=false). Ejemplo: -NombreUsuario ADMVENDIX -Clave '***'"
+}
+& (Join-Path $scriptsDir "smoke-strangler-proxy.ps1") @smokeArgs
+if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) {
+    throw "smoke-strangler-proxy.ps1 fallo con codigo $LASTEXITCODE"
+}
 
 if (-not $SkipParidad) {
     Write-Host ""
     Write-Host ">> test-paridad-informes-fase4.ps1" -ForegroundColor Yellow
-    & (Join-Path $scriptsDir "test-paridad-informes-fase4.ps1") -BaseUrl $BaseUrl -OficinaId 1 -UsuarioId 1
+    $paridadArgs = @{ BaseUrl = $BaseUrl; OficinaId = $OficinaId; UsuarioId = $UsuarioId }
+    if (-not [string]::IsNullOrWhiteSpace($NombreUsuario)) {
+        $paridadArgs.NombreUsuario = $NombreUsuario
+        $paridadArgs.Clave = $Clave
+    }
+    & (Join-Path $scriptsDir "test-paridad-informes-fase4.ps1") @paridadArgs
+    if ($null -ne $LASTEXITCODE -and $LASTEXITCODE -ne 0) {
+        throw "test-paridad-informes-fase4.ps1 fallo con codigo $LASTEXITCODE"
+    }
 }
 
 if ($PilotoFase -ge 2) {

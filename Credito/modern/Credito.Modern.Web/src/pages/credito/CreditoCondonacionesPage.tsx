@@ -29,7 +29,14 @@ function condonacionRowText(row: CondonacionPendiente): string {
     row.moraCondonacion,
     row.totalPago,
     row.montoCredito,
+    row.fecha,
   ].join(' ')
+}
+
+function formatFechaCorta(iso: string) {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return '—'
+  return d.toLocaleDateString('es-PE')
 }
 
 export function CreditoCondonacionesPage() {
@@ -55,7 +62,7 @@ export function CreditoCondonacionesPage() {
     },
   })
 
-  const rows = listQuery.data ?? []
+  const rows = useMemo(() => listQuery.data ?? [], [listQuery.data])
   const filtrados = useMemo(
     () => filterTableRows(rows, buscarDebounced, condonacionRowText),
     [rows, buscarDebounced],
@@ -110,31 +117,51 @@ export function CreditoCondonacionesPage() {
         align: 'right',
         render: (v: number) => `S/ ${formatMoney(v)}`,
       },
-      { title: 'Usuario', dataIndex: 'nombreUsuario', width: 140, ellipsis: true },
+      { title: 'Usuario', dataIndex: 'nombreUsuario', width: 130, ellipsis: true },
+      {
+        title: 'Solicitado',
+        dataIndex: 'fecha',
+        width: 120,
+        render: (v: string) => formatFechaCorta(v),
+      },
       {
         title: 'Estado',
-        width: 110,
+        width: 100,
         render: () => <Tag color="gold">Pendiente</Tag>,
       },
       {
         title: '',
-        width: 56,
+        width: 148,
         render: (_: unknown, row) => (
-          <Button
-            type="text"
-            danger
-            icon={<DeleteOutlined />}
-            aria-label="Eliminar solicitud"
-            onClick={(e) => {
-              e.stopPropagation()
-              Modal.confirm({
-                title: '¿Eliminar la solicitud de condonación?',
-                okText: 'Sí',
-                cancelText: 'No',
-                onOk: () => eliminar.mutateAsync(row.id),
-              })
-            }}
-          />
+          <div style={{ display: 'flex', gap: 4, justifyContent: 'flex-end' }}>
+            <Button
+              type="link"
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation()
+                navigate(
+                  `/credito/consulta?personaId=${row.personaId}&creditoId=${row.creditoId}`,
+                )
+              }}
+            >
+              Aprobar
+            </Button>
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              aria-label="Eliminar solicitud"
+              onClick={(e) => {
+                e.stopPropagation()
+                Modal.confirm({
+                  title: '¿Eliminar la solicitud de condonación?',
+                  okText: 'Sí',
+                  cancelText: 'No',
+                  onOk: () => eliminar.mutateAsync(row.id),
+                })
+              }}
+            />
+          </div>
         ),
       },
     ],

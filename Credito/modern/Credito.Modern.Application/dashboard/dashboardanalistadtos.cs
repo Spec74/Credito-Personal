@@ -3,6 +3,7 @@ namespace Credito.Modern.Application.Dashboard;
 /// <summary>
 /// Tablero personal del analista. Paridad funcional de <c>usp_DashboardGestor</c> y
 /// vistas asociadas, con variaciones e insights resueltos en servidor.
+/// Ranking/podio se conservan vacíos: producción retiró esas comparaciones.
 /// </summary>
 public sealed record DashboardAnalistaDto(
     string NombreAnalista,
@@ -24,8 +25,15 @@ public sealed record DashboardAnalistaKpisDto(
     decimal CobradoActual,
     decimal CobradoAnterior,
     decimal? VariacionCobradoPct,
+    decimal CobradoHoy,
+    decimal CobradoAyer,
     decimal SaldoActual,
+    decimal MontoMora,
     int ClientesMora,
+    int ClientesMoraSinPago,
+    int ClientesMoraNuncaPagaron,
+    int ClientesMoraDejaronPagar,
+    int ClientesMoraPagandoConAtraso,
     decimal PorcentajeMora,
     int PorVencerSemana);
 

@@ -136,6 +136,11 @@ _TeamCity*
 *.coverage
 *.coveragexml
 
+# Credito modern — cobertura local / CI
+**/coverage/
+Credito/modern/TestResults/
+Credito/modern/Credito.Modern.Web/coverage/
+
 # NCrunch
 _NCrunch_*
 .*crunch*.local.xml

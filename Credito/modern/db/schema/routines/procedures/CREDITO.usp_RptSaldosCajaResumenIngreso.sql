@@ -1,4 +1,4 @@
---SELECT * FROM CREDITO.CajaDiario WHERE IndCierre=0
+﻿--SELECT * FROM CREDITO.CajaDiario WHERE IndCierre=0
 --Exec CREDITO.usp_RptSaldosCajaResumenIngreso 19036
 CREATE PROC [CREDITO].[usp_RptSaldosCajaResumenIngreso]
 @CajaDiarioId INT = 0,
@@ -27,3 +27,5 @@ SELECT 'RESUMEN CAJA DIARIO: ' + dbo.ufnResumenCuentaCajaDiario(@CajaDiarioId)
 --SELECT 'RESUMEN CUENTA: ' + STRING_AGG(Denominacion + ' = ' + CAST (Saldo AS VARCHAR(15)),'  ') 'Total'
 --FROM SALDOS
 --WHERE Saldo>0
+
+

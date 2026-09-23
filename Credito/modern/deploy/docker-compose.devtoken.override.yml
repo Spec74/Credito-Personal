@@ -1,0 +1,10 @@
+# Override local: permite POST /api/v1/dev/token sin salir de Staging
+# (así appsettings.Staging.json sigue aplicando UseSpaForModule / DefaultLoginToSpa).
+# Uso:
+#   docker compose -p credito-modern-current -f deploy/docker-compose.strangler.yml \
+#     -f deploy/docker-compose.devtoken.override.yml --env-file deploy/.env.local \
+#     up -d --force-recreate --no-deps credito-modern-api
+services:
+  credito-modern-api:
+    environment:
+      Hosting__AllowDevToken: "true"

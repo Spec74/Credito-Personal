@@ -1,4 +1,4 @@
-
+﻿
 -- CREDITO.usp_RptCreditosMorososPagados 8,1,'20200701','20200730'
 
 CREATE PROC [CREDITO].[usp_RptCreditosMorososPagados]

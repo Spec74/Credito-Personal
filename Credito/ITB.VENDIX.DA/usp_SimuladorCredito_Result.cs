@@ -20,5 +20,6 @@ namespace ITB.VENDIX.DA
         public Nullable<decimal> Interes { get; set; }
         public Nullable<decimal> GastosAdm { get; set; }
         public Nullable<decimal> Cuota { get; set; }
+        public Nullable<decimal> Saldo { get; set; }
     }
 }

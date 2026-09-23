@@ -4,14 +4,16 @@ import {
   FilePdfOutlined,
   EnvironmentOutlined,
   UnorderedListOutlined,
+  TeamOutlined,
 } from '@ant-design/icons'
 import { openCobroDiarioPdfInTab } from '../../../api/creditoPlanes'
 import { toCobroDiarioQuery } from '../../../utils/gestorInformeForm'
 import type { CajaSession } from './types'
 import { MovimientosCajaModal } from './MovimientosCajaModal'
 import { RutaCobranzaDrawer } from './RutaCobranzaDrawer'
+import { useNavigate } from 'react-router-dom'
 
-/** Botones globales del MVC (PDF, ruta QR, movimientos). */
+/** Botones globales del MVC (PDF, ruta QR, movimientos, cobro bloque). */
 export function CajaDiarioOperacionesBar({
   ctx,
   usuarioId,
@@ -21,6 +23,7 @@ export function CajaDiarioOperacionesBar({
   usuarioId: number
   variant?: 'stack' | 'inline'
 }) {
+  const navigate = useNavigate()
   const [movOpen, setMovOpen] = useState(false)
   const [rutaOpen, setRutaOpen] = useState(false)
   const [pdfLoading, setPdfLoading] = useState(false)
@@ -71,6 +74,15 @@ export function CajaDiarioOperacionesBar({
           onClick={() => setRutaOpen(true)}
         >
           Armar ruta QR
+        </Button>
+        <Button
+          block={variant === 'stack'}
+          type="primary"
+          icon={<TeamOutlined />}
+          disabled={ctx.indCierre}
+          onClick={() => navigate('/caja/cobro-bloque')}
+        >
+          Cobro en bloque
         </Button>
         <Button
           block={variant === 'stack'}

@@ -1,0 +1,918 @@
+﻿@{
+    ViewBag.Title = "Dashboard Gestor";
+}
+
+<link href="@Url.Content("~/css/dashboard.css?v=20260828-4")" rel="stylesheet" />
+
+<div class="dashboard-container dashboard-gestor-v2">
+    <header class="dashboard-header">
+        <div class="dashboard-header-top">
+            <h1 class="dashboard-title">
+                BIENVENIDO/A: <span id="lblNombreGestor">--</span>
+            </h1>
+            <div id="lblFechaDashboard" class="dashboard-date"></div>
+        </div>
+
+        <p class="dashboard-subtitle">
+            Seguimiento de tu cobranza, cartera y prioridades del día.
+        </p>
+    </header>
+
+    <section class="dashboard-cards dashboard-cards-gestor"
+             aria-label="Indicadores principales">
+        <article class="dashboard-card dashboard-cyan">
+            <div class="dashboard-icon" aria-hidden="true">
+                <i class="icon-user"></i>
+            </div>
+            <div class="dashboard-label">Total clientes</div>
+            <div class="dashboard-value" id="lblClientes">--</div>
+            <div class="dashboard-client-new">
+                <span class="dashboard-client-new-label">Nuevos este mes:</span>
+                <strong id="lblClientesNuevos">--</strong>
+            </div>
+            <div id="varClientesNuevos" class="dashboard-variation"></div>
+            <div id="detalleClientesNuevos" class="dashboard-detail"></div>
+        </article>
+
+        <article class="dashboard-card dashboard-blue">
+            <div class="dashboard-icon" aria-hidden="true">
+                <i class="icon-briefcase"></i>
+            </div>
+            <div class="dashboard-label">Créditos colocados</div>
+            <div class="dashboard-value" id="lblCreditos">--</div>
+            <div id="varCreditos" class="dashboard-variation"></div>
+            <div id="detalleCreditos" class="dashboard-detail"></div>
+        </article>
+
+        <article class="dashboard-card dashboard-green">
+            <div class="dashboard-icon" aria-hidden="true">
+                <i class="icon-money"></i>
+            </div>
+            <div class="dashboard-label">Cobrado del mes</div>
+            <div class="dashboard-value" id="lblCobrado">--</div>
+            <div id="varCobrado" class="dashboard-variation"></div>
+            <div id="detalleCobrado" class="dashboard-detail"></div>
+        </article>
+
+        <article class="dashboard-card dashboard-purple">
+            <div class="dashboard-icon" aria-hidden="true">
+                <i class="icon-folder-open"></i>
+            </div>
+            <div class="dashboard-label">Cartera vigente</div>
+            <div class="dashboard-value" id="lblSaldo">--</div>
+            <div class="dashboard-detail">Saldo pendiente total</div>
+        </article>
+
+        <article class="dashboard-card dashboard-red dashboard-card-action"
+                 role="button"
+                 tabindex="0"
+                 data-mora-tipo="TODOS"
+                 aria-label="Ver clientes con saldo en mora">
+            <div class="dashboard-icon" aria-hidden="true">
+                <i class="icon-warning-sign"></i>
+            </div>
+            <div class="dashboard-label">Saldo de créditos en mora</div>
+            <div class="dashboard-value" id="lblMontoMora">--</div>
+            <div class="dashboard-detail">Saldo pendiente de créditos con cuotas vencidas</div>
+            <div class="dashboard-card-action-hint">
+                <i class="icon-eye-open" aria-hidden="true"></i>
+                <span>Ver clientes morosos</span>
+            </div>
+        </article>
+
+        <article class="dashboard-card dashboard-orange dashboard-card-action"
+                 role="button"
+                 tabindex="0"
+                 data-mora-tipo="TODOS"
+                 aria-label="Ver todos los clientes en mora">
+            <div class="dashboard-icon" aria-hidden="true">
+                <i class="icon-group"></i>
+            </div>
+            <div class="dashboard-label">Clientes en mora</div>
+            <div class="dashboard-value" id="lblMora">--</div>
+            <div class="dashboard-detail" id="detalleClientesMora">--</div>
+            <div class="dashboard-card-action-hint">
+                <i class="icon-eye-open" aria-hidden="true"></i>
+                <span>Ver clientes morosos</span>
+            </div>
+        </article>
+
+        <article class="dashboard-card dashboard-dark-red dashboard-card-action"
+                 role="button"
+                 tabindex="0"
+                 data-mora-tipo="SIN_PAGO"
+                 aria-label="Ver clientes morosos sin pagos">
+            <div class="dashboard-icon" aria-hidden="true">
+                <i class="icon-ban-circle"></i>
+            </div>
+            <div class="dashboard-label">Morosos sin pagar</div>
+            <div class="dashboard-value" id="lblMoraSinPago">--</div>
+            <div class="dashboard-mora-breakdown">
+                <span><strong id="lblNuncaPagaron">--</strong> nunca pagaron</span>
+                <span><strong id="lblDejaronPagar">--</strong> dejaron de pagar</span>
+            </div>
+            <div class="dashboard-card-action-hint">
+                <i class="icon-eye-open" aria-hidden="true"></i>
+                <span>Ver clientes morosos</span>
+            </div>
+        </article>
+
+        <article class="dashboard-card dashboard-yellow">
+            <div class="dashboard-icon" aria-hidden="true">
+                <i class="icon-calendar"></i>
+            </div>
+            <div class="dashboard-label">Vencen esta semana</div>
+            <div class="dashboard-value" id="lblVencer">--</div>
+            <div class="dashboard-detail">Próximos 7 días</div>
+        </article>
+    </section>
+
+    <section class="dashboard-panel dashboard-productivity-panel"
+             aria-labelledby="tituloProductividad">
+        <div class="dashboard-productivity-header">
+            <div>
+                <h2 id="tituloProductividad" class="dashboard-panel-title">
+                    Mi productividad diaria
+                </h2>
+                <span class="dashboard-panel-subtitle">
+                    Cobranza de los últimos 30 días
+                </span>
+            </div>
+
+            <div class="dashboard-daily-summary" aria-live="polite">
+                <div>
+                    <span>Hoy</span>
+                    <strong id="lblCobradoHoy">S/ --</strong>
+                </div>
+                <div>
+                    <span>Ayer</span>
+                    <strong id="lblCobradoAyer">S/ --</strong>
+                </div>
+                <div id="resumenVsAyer" class="dashboard-daily-goal">
+                    Cargando comparación...
+                </div>
+            </div>
+        </div>
+
+        <div id="graficoTooltip" class="dashboard-chart-tooltip" role="tooltip"></div>
+        <div id="graficoDiario" class="dashboard-chart" aria-live="polite"></div>
+    </section>
+
+    <section class="dashboard-alerts" aria-labelledby="tituloAlertas">
+        <div class="dashboard-alerts-header">
+            <div>
+                <h2 id="tituloAlertas" class="dashboard-panel-title">
+                    Resumen y acciones prioritarias
+                </h2>
+                <span class="dashboard-panel-subtitle">
+                    Recomendaciones según el estado actual de tu cartera
+                </span>
+            </div>
+
+            <div class="dashboard-alerts-badge">
+                <i class="icon-bell" aria-hidden="true"></i>
+                Prioridades
+            </div>
+        </div>
+
+        <div id="dashboardAlertas" class="dashboard-alerts-list" aria-live="polite">
+            <div class="dashboard-alert-loading">Analizando indicadores...</div>
+        </div>
+    </section>
+
+    <div id="modalClientesMora"
+         class="dashboard-modal"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="tituloModalMora"
+         aria-hidden="true">
+        <div class="dashboard-modal-dialog">
+            <div class="dashboard-modal-header">
+                <div>
+                    <h2 id="tituloModalMora">Clientes en mora</h2>
+                    <span id="resumenModalMora">Selecciona un filtro para consultar.</span>
+                </div>
+
+                <button type="button"
+                        id="btnCerrarModalMora"
+                        class="dashboard-modal-close"
+                        aria-label="Cerrar detalle de clientes">
+                    &times;
+                </button>
+            </div>
+
+            <div class="dashboard-mora-toolbar">
+                <div class="dashboard-mora-filters" role="group" aria-label="Filtrar morosidad">
+                    <button type="button" class="dashboard-mora-filter" data-tipo="TODOS">Todos</button>
+                    <button type="button" class="dashboard-mora-filter" data-tipo="SIN_PAGO">Sin pagar</button>
+                    <button type="button" class="dashboard-mora-filter" data-tipo="NUNCA_PAGO">Nunca pagaron</button>
+                    <button type="button" class="dashboard-mora-filter" data-tipo="DEJO_PAGAR">Dejaron de pagar</button>
+                    <button type="button" class="dashboard-mora-filter" data-tipo="PAGA_CON_ATRASO">Pagan con atraso</button>
+                </div>
+
+                <div class="dashboard-mora-tools">
+                    <input type="text"
+                           id="txtBuscarMora"
+                           class="dashboard-mora-search"
+                           placeholder="Buscar cliente..."
+                           autocomplete="off" />
+                    <button type="button" id="btnRefrescarMora" class="dashboard-mora-refresh">
+                        <i class="icon-refresh" aria-hidden="true"></i>
+                        Actualizar
+                    </button>
+                </div>
+            </div>
+
+            <div class="dashboard-mora-table-wrap">
+                <table class="dashboard-mora-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Cliente</th>
+                            <th scope="col">Situación</th>
+                            <th scope="col" class="dashboard-text-center">Créditos</th>
+                            <th scope="col" class="dashboard-text-right">Saldo en mora</th>
+                            <th scope="col">Primera cuota vencida</th>
+                            <th scope="col">Último pago</th>
+                            <th scope="col" class="dashboard-text-center">Días</th>
+                            <th scope="col" class="dashboard-text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblClientesMora" aria-live="polite">
+                        <tr>
+                            <td colspan="8" class="dashboard-mora-message">
+                                Selecciona una tarjeta de mora para cargar el detalle.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function ($) {
+        "use strict";
+
+        var urls = {
+            dashboard: '@Url.Action("ObtenerDashboard", "Dashboard")',
+            grafico: '@Url.Action("ObtenerGrafico", "Dashboard")',
+            clientesMora: '@Url.Action("ObtenerClientesMora", "Dashboard")',
+            perfilCliente: '@Url.Action("Creditos", "Credito")'
+        };
+
+        var clientesMoraActuales = [];
+        var cacheClientesMora = {};
+        var tipoMoraActual = "TODOS";
+        var peticionMora = null;
+
+        function obtenerJson(url, alCompletar, alFallar) {
+            return $.ajax({
+                url: url,
+                type: "GET",
+                dataType: "json",
+                cache: false,
+                success: function (respuesta) {
+                    if (!respuesta || respuesta.Error) {
+                        alFallar(respuesta && respuesta.Mensaje
+                            ? respuesta.Mensaje
+                            : "El servidor no devolvió una respuesta válida.");
+                        return;
+                    }
+
+                    alCompletar(respuesta);
+                },
+                error: function (xhr, estado) {
+                    if (estado === "abort") {
+                        return;
+                    }
+
+                    alFallar("No fue posible comunicarse con el servidor.");
+                }
+            });
+        }
+
+        function numero(valor) {
+            var resultado = Number(valor);
+            return isFinite(resultado) ? resultado : 0;
+        }
+
+        function formatoMoneda(valor) {
+            var monto = numero(valor);
+
+            try {
+                return "S/ " + monto.toLocaleString("es-PE", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+            catch (e) {
+                return "S/ " + monto.toFixed(2);
+            }
+        }
+
+        function escaparHtml(texto) {
+            return $("<div>").text(texto == null ? "" : String(texto)).html();
+        }
+
+        function calcularVariacion(actual, anterior) {
+            actual = numero(actual);
+            anterior = numero(anterior);
+
+            if (anterior === 0) {
+                return actual === 0 ? 0 : null;
+            }
+
+            return ((actual - anterior) / Math.abs(anterior)) * 100;
+        }
+
+        function pintarVariacion(selector, actual, anterior) {
+            var variacion = calcularVariacion(actual, anterior);
+            var esPositiva = variacion === null || variacion >= 0;
+            var texto = variacion === null
+                ? "▲ Nuevo"
+                : (esPositiva ? "▲ " : "▼ ") + Math.abs(variacion).toFixed(1) + "%";
+
+            $(selector)
+                .removeClass("dashboard-positive dashboard-negative")
+                .addClass(esPositiva ? "dashboard-positive" : "dashboard-negative")
+                .text(texto);
+        }
+
+        function pintarVariacionClientesNuevos(actual, anterior) {
+            actual = numero(actual);
+            anterior = numero(anterior);
+
+            var $variacion = $("#varClientesNuevos");
+            var $detalle = $("#detalleClientesNuevos");
+            var variacion = calcularVariacion(actual, anterior);
+
+            $variacion.removeClass("dashboard-positive dashboard-negative dashboard-info");
+
+            if (variacion === null) {
+                $variacion.addClass("dashboard-positive").text("▲ Inicio de captación");
+            }
+            else if (variacion > 0) {
+                $variacion.addClass("dashboard-positive")
+                    .text("▲ " + variacion.toFixed(1) + "%");
+            }
+            else if (variacion < 0) {
+                $variacion.addClass("dashboard-negative")
+                    .text("▼ " + Math.abs(variacion).toFixed(1) + "%");
+            }
+            else {
+                $variacion.addClass("dashboard-info").text("● Sin variación");
+            }
+
+            $detalle.text(anterior + " el mes pasado");
+        }
+
+        function pintarResumenDiario(cobradoHoy, cobradoAyer) {
+            var hoy = numero(cobradoHoy);
+            var ayer = numero(cobradoAyer);
+            var diferencia = hoy - ayer;
+            var $resumen = $("#resumenVsAyer")
+                .removeClass("dashboard-daily-positive dashboard-daily-pending dashboard-daily-neutral");
+
+            $("#lblCobradoHoy").text(formatoMoneda(hoy));
+            $("#lblCobradoAyer").text(formatoMoneda(ayer));
+
+            if (hoy > ayer) {
+                $resumen.addClass("dashboard-daily-positive")
+                    .text("Superaste ayer por " + formatoMoneda(diferencia));
+            }
+            else if (hoy < ayer) {
+                $resumen.addClass("dashboard-daily-pending")
+                    .text("Te faltan " + formatoMoneda(Math.abs(diferencia)) + " para superar ayer");
+            }
+            else {
+                $resumen.addClass("dashboard-daily-neutral")
+                    .text(hoy === 0 ? "Aún no hay cobranza registrada hoy" : "Igualaste la cobranza de ayer");
+            }
+        }
+
+        function cargarDashboard() {
+            obtenerJson(urls.dashboard, function (respuesta) {
+                var d = respuesta.Data;
+                var clientesMora;
+                var pagandoConAtraso;
+
+                if (!d) {
+                    mostrarErrorAlertas("No se recibieron los indicadores del dashboard.");
+                    return;
+                }
+
+                clientesMora = numero(d.ClientesMora);
+                pagandoConAtraso = numero(d.ClientesMoraPagandoConAtraso);
+
+                $("#lblNombreGestor").text(respuesta.NombreGestor || "Gestor");
+                $("#lblClientes").text(numero(d.TotalClientes));
+                $("#lblClientesNuevos").text(numero(d.ClientesNuevosActual));
+                $("#lblCreditos").text(numero(d.CreditosActual));
+                $("#lblCobrado").text(formatoMoneda(d.CobradoActual));
+                $("#lblSaldo").text(formatoMoneda(d.SaldoActual));
+                $("#lblMontoMora").text(formatoMoneda(d.MontoMora));
+                $("#lblMora").text(clientesMora);
+                $("#lblMoraSinPago").text(numero(d.ClientesMoraSinPago));
+                $("#lblNuncaPagaron").text(numero(d.ClientesMoraNuncaPagaron));
+                $("#lblDejaronPagar").text(numero(d.ClientesMoraDejaronPagar));
+                $("#lblVencer").text(numero(d.PorVencerSemana));
+                $("#detalleClientesMora").text(
+                    pagandoConAtraso + " continúan pagando, pero mantienen atraso"
+                );
+
+                pintarVariacionClientesNuevos(
+                    d.ClientesNuevosActual,
+                    d.ClientesNuevosAnterior
+                );
+                pintarVariacion("#varCreditos", d.CreditosActual, d.CreditosAnterior);
+                pintarVariacion("#varCobrado", d.CobradoActual, d.CobradoAnterior);
+                pintarResumenDiario(d.CobradoHoy, d.CobradoAyer);
+
+                $("#detalleCreditos").text(numero(d.CreditosAnterior) + " el mes pasado");
+                $("#detalleCobrado").text(formatoMoneda(d.CobradoAnterior) + " el mes pasado");
+
+                generarAlertas(d);
+            }, mostrarErrorAlertas);
+        }
+
+        function cargarGrafico() {
+            mostrarMensajeGrafico("Cargando productividad...", false);
+
+            obtenerJson(urls.grafico, function (respuesta) {
+                pintarGrafico(respuesta.Data);
+            }, function (mensaje) {
+                mostrarMensajeGrafico(mensaje, true);
+            });
+        }
+
+        function mostrarMensajeGrafico(mensaje, esError) {
+            var $mensaje = $("<div>")
+                .addClass("dashboard-chart-message")
+                .text(mensaje);
+
+            if (esError) {
+                $mensaje.addClass("dashboard-chart-error");
+            }
+
+            $("#graficoDiario").empty().append($mensaje);
+        }
+
+        function pintarGrafico(datos) {
+            var serieCobrado = [];
+            var etiquetas = [];
+
+            if (!$.isArray(datos) || datos.length === 0) {
+                mostrarMensajeGrafico("No existen datos de productividad.", false);
+                return;
+            }
+
+            if (typeof $.plot !== "function") {
+                mostrarMensajeGrafico("No se encontró la librería del gráfico.", true);
+                return;
+            }
+
+            $.each(datos, function (indice, item) {
+                item = item || {};
+                serieCobrado.push([indice, numero(item.MontoCobrado)]);
+
+                if (indice % 3 === 0 || indice === datos.length - 1) {
+                    etiquetas.push([indice, String(item.NombreMes || "")]);
+                }
+            });
+
+            $("#graficoDiario").empty();
+
+            $.plot($("#graficoDiario"), [{
+                label: "Cobrado",
+                data: serieCobrado,
+                color: "#218c50",
+                bars: {
+                    show: true,
+                    barWidth: 0.68,
+                    align: "center",
+                    fill: 0.88,
+                    lineWidth: 0
+                }
+            }], {
+                xaxis: {
+                    ticks: etiquetas,
+                    tickLength: 0
+                },
+                yaxis: {
+                    min: 0,
+                    tickFormatter: function (valor) {
+                        return valor >= 1000
+                            ? "S/ " + (valor / 1000).toFixed(0) + "K"
+                            : "S/ " + valor.toFixed(0);
+                    }
+                },
+                grid: {
+                    borderWidth: 0,
+                    hoverable: true,
+                    clickable: false,
+                    margin: 10
+                },
+                legend: { show: false }
+            });
+
+            activarTooltipGrafico(datos);
+        }
+
+        function activarTooltipGrafico(datos) {
+            var $grafico = $("#graficoDiario");
+            var $tooltip = $("#graficoTooltip");
+
+            $grafico.off("plothover.dashboard mouseleave.dashboard");
+
+            $grafico.on("plothover.dashboard", function (evento, posicion, item) {
+                var registro;
+
+                if (!item || !datos[item.dataIndex]) {
+                    $tooltip.hide();
+                    return;
+                }
+
+                registro = datos[item.dataIndex];
+                $tooltip
+                    .html("<strong>" + escaparHtml(registro.NombreMes) + "</strong><br>" +
+                        escaparHtml(formatoMoneda(registro.MontoCobrado)))
+                    .css({
+                        top: item.pageY - 55,
+                        left: item.pageX + 12
+                    })
+                    .show();
+            });
+
+            $grafico.on("mouseleave.dashboard", function () {
+                $tooltip.hide();
+            });
+        }
+
+        function generarAlertas(d) {
+            var alertas = [];
+            var totalClientes = numero(d.TotalClientes);
+            var clientesMora = numero(d.ClientesMora);
+            var moraSinPago = numero(d.ClientesMoraSinPago);
+            var montoMora = numero(d.MontoMora);
+            var porVencer = numero(d.PorVencerSemana);
+            var porcentajeMora = totalClientes > 0
+                ? (clientesMora / totalClientes) * 100
+                : 0;
+
+            if (moraSinPago > 0) {
+                alertas.push({
+                    tipo: "danger",
+                    icono: "icon-ban-circle",
+                    titulo: "Morosos sin pagos desde el inicio del atraso",
+                    mensaje: moraSinPago + " clientes requieren seguimiento inmediato. " +
+                        numero(d.ClientesMoraNuncaPagaron) + " nunca pagaron y " +
+                        numero(d.ClientesMoraDejaronPagar) + " dejaron de pagar."
+                });
+            }
+
+            if (clientesMora > 0) {
+                alertas.push({
+                    tipo: porcentajeMora >= 30 ? "danger" : "warning",
+                    icono: "icon-warning-sign",
+                    titulo: "Cartera en mora",
+                    mensaje: clientesMora + " clientes (" + porcentajeMora.toFixed(1) +
+                        "%) concentran " + formatoMoneda(montoMora) + " de saldo pendiente."
+                });
+            }
+            else {
+                alertas.push({
+                    tipo: "success",
+                    icono: "icon-ok",
+                    titulo: "Cartera al día",
+                    mensaje: "No tienes clientes con cuotas pendientes vencidas."
+                });
+            }
+
+            alertas.push(porVencer > 0 ? {
+                tipo: "warning",
+                icono: "icon-calendar",
+                titulo: "Próximos vencimientos",
+                mensaje: porVencer + " créditos vencen durante los próximos 7 días."
+            } : {
+                tipo: "info",
+                icono: "icon-calendar",
+                titulo: "Sin vencimientos inmediatos",
+                mensaje: "No existen créditos próximos a vencer durante esta semana."
+            });
+
+            pintarAlertas(alertas);
+        }
+
+        function pintarAlertas(alertas) {
+            var html = "";
+
+            $.each(alertas, function (indice, alerta) {
+                html +=
+                    "<div class='dashboard-alert-item dashboard-alert-" + alerta.tipo + "'>" +
+                        "<div class='dashboard-alert-icon'>" +
+                            "<i class='" + alerta.icono + "' aria-hidden='true'></i>" +
+                        "</div>" +
+                        "<div class='dashboard-alert-content'>" +
+                            "<div class='dashboard-alert-title'>" + escaparHtml(alerta.titulo) + "</div>" +
+                            "<div class='dashboard-alert-message'>" + escaparHtml(alerta.mensaje) + "</div>" +
+                        "</div>" +
+                    "</div>";
+            });
+
+            $("#dashboardAlertas").html(html);
+        }
+
+        function mostrarErrorAlertas(mensaje) {
+            $("#dashboardAlertas")
+                .empty()
+                .append($("<div>").addClass("dashboard-alert-empty").text(mensaje));
+        }
+
+        function abrirModalMora(tipo) {
+            tipoMoraActual = tipo || "TODOS";
+
+            $("#modalClientesMora")
+                .attr("aria-hidden", "false")
+                .addClass("dashboard-modal-open");
+
+            $("body").addClass("dashboard-modal-body-open");
+            $("#txtBuscarMora").val("");
+
+            activarFiltroMora(tipoMoraActual);
+            cargarClientesMora(tipoMoraActual, false);
+
+            window.setTimeout(function () {
+                $("#btnCerrarModalMora").focus();
+            }, 0);
+        }
+
+        function cerrarModalMora() {
+            $("#modalClientesMora")
+                .attr("aria-hidden", "true")
+                .removeClass("dashboard-modal-open");
+
+            $("body").removeClass("dashboard-modal-body-open");
+        }
+
+        function activarFiltroMora(tipo) {
+            $(".dashboard-mora-filter")
+                .removeClass("dashboard-mora-filter-active")
+                .attr("aria-pressed", "false")
+                .filter("[data-tipo='" + tipo + "']")
+                .addClass("dashboard-mora-filter-active")
+                .attr("aria-pressed", "true");
+        }
+
+        function cargarClientesMora(tipo, forzarRecarga) {
+            var tipoSolicitado;
+
+            tipoMoraActual = tipo || "TODOS";
+            tipoSolicitado = tipoMoraActual;
+            activarFiltroMora(tipoMoraActual);
+
+            if (!forzarRecarga && cacheClientesMora[tipoMoraActual]) {
+                clientesMoraActuales = cacheClientesMora[tipoMoraActual];
+                pintarClientesMora(clientesMoraActuales);
+                return;
+            }
+
+            if (peticionMora && typeof peticionMora.abort === "function") {
+                peticionMora.abort();
+            }
+
+            mostrarMensajeMora("Cargando clientes morosos...", false);
+            $("#resumenModalMora").text("Consultando información actualizada...");
+
+            peticionMora = obtenerJson(
+                urls.clientesMora + "?tipo=" + encodeURIComponent(tipoMoraActual),
+                function (respuesta) {
+                    var datos = $.isArray(respuesta.Data) ? respuesta.Data : [];
+
+                    cacheClientesMora[tipoSolicitado] = datos;
+
+                    if (tipoSolicitado !== tipoMoraActual) {
+                        return;
+                    }
+
+                    clientesMoraActuales = datos;
+                    pintarClientesMora(datos);
+                    peticionMora = null;
+                },
+                function (mensaje) {
+                    mostrarMensajeMora(mensaje, true);
+                    $("#resumenModalMora").text("No se pudo cargar el detalle.");
+                    peticionMora = null;
+                }
+            );
+        }
+
+        function pintarClientesMora(datos) {
+            var $tbody = $("#tblClientesMora").empty();
+
+            if (!$.isArray(datos) || datos.length === 0) {
+                mostrarMensajeMora("No existen clientes para este filtro.", false);
+                $("#resumenModalMora").text("0 clientes encontrados");
+                return;
+            }
+
+            $.each(datos, function (indice, item) {
+                $tbody.append(crearFilaMora(item || {}));
+            });
+
+            $("#resumenModalMora").text(
+                datos.length + (datos.length === 1 ? " cliente encontrado" : " clientes encontrados")
+            );
+
+            filtrarClientesMora();
+        }
+
+        function crearFilaMora(item) {
+            var personaId = numero(item.PersonaId);
+            var codigo = String(item.CodigoClasificacion || "");
+            var claseEstado = {
+                NUNCA_PAGO: "dashboard-mora-status-never",
+                DEJO_PAGAR: "dashboard-mora-status-stopped",
+                PAGA_CON_ATRASO: "dashboard-mora-status-paying"
+            }[codigo] || "dashboard-mora-status-neutral";
+
+            var $fila = $("<tr>")
+                .attr("data-busqueda", String(item.NombreCompleto || "").toLowerCase());
+
+            var $cliente = $("<td>")
+                .append($("<strong>").addClass("dashboard-mora-client-name")
+                    .text(item.NombreCompleto || "Sin nombre"))
+                .append($("<small>").text("Persona #" + personaId));
+
+            var $estado = $("<td>").append(
+                $("<span>")
+                    .addClass("dashboard-mora-status " + claseEstado)
+                    .text(item.Clasificacion || "Sin clasificación")
+            );
+
+            var $accion = $("<a>")
+                .addClass("dashboard-mora-profile-link")
+                .attr("href", urls.perfilCliente + "?pPersonaId=" + encodeURIComponent(personaId))
+                .attr("target", "_blank")
+                .attr("rel", "noopener noreferrer")
+                .attr("title", "Abrir créditos del cliente en una nueva pestaña")
+                .text("Ver cliente");
+
+            $fila
+                .append($cliente)
+                .append($estado)
+                .append($("<td>").addClass("dashboard-text-center")
+                    .text(numero(item.CreditosMora)))
+                .append($("<td>").addClass("dashboard-text-right dashboard-mora-money")
+                    .text(formatoMoneda(item.SaldoMora)))
+                .append($("<td>").text(formatoFecha(item.PrimeraCuotaVencida)))
+                .append($("<td>").text(formatoFecha(item.FechaUltimoPago)))
+                .append($("<td>").addClass("dashboard-text-center dashboard-mora-days")
+                    .text(numero(item.DiasAtraso)))
+                .append($("<td>").addClass("dashboard-text-center").append($accion));
+
+            return $fila;
+        }
+
+        function formatoFecha(valor) {
+            var fecha;
+            var coincidencia;
+
+            if (!valor) {
+                return "Sin pagos";
+            }
+
+            if (typeof valor === "string") {
+                coincidencia = /\/Date\((-?\d+)\)\//.exec(valor);
+                fecha = coincidencia
+                    ? new Date(parseInt(coincidencia[1], 10))
+                    : new Date(valor);
+            }
+            else {
+                fecha = new Date(valor);
+            }
+
+            if (isNaN(fecha.getTime())) {
+                return "--";
+            }
+
+            try {
+                return fecha.toLocaleDateString("es-PE", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit"
+                });
+            }
+            catch (e) {
+                return fecha.toLocaleDateString();
+            }
+        }
+
+        function filtrarClientesMora() {
+            var texto = $.trim($("#txtBuscarMora").val() || "").toLowerCase();
+            var visibles = 0;
+
+            $("#tblClientesMora tr[data-busqueda]").each(function () {
+                var $fila = $(this);
+                var coincide = !texto ||
+                    String($fila.attr("data-busqueda") || "").indexOf(texto) >= 0;
+
+                $fila.toggle(coincide);
+
+                if (coincide) {
+                    visibles++;
+                }
+            });
+
+            if (texto) {
+                $("#resumenModalMora").text(
+                    visibles + (visibles === 1 ? " coincidencia" : " coincidencias")
+                );
+            }
+            else if ($.isArray(clientesMoraActuales)) {
+                $("#resumenModalMora").text(
+                    clientesMoraActuales.length +
+                    (clientesMoraActuales.length === 1
+                        ? " cliente encontrado"
+                        : " clientes encontrados")
+                );
+            }
+        }
+
+        function mostrarMensajeMora(mensaje, esError) {
+            var $celda = $("<td>")
+                .attr("colspan", "8")
+                .addClass("dashboard-mora-message")
+                .text(mensaje);
+
+            if (esError) {
+                $celda.addClass("dashboard-mora-message-error");
+            }
+
+            $("#tblClientesMora").empty().append($("<tr>").append($celda));
+        }
+
+        function obtenerFechaActual() {
+            var fecha = new Date();
+
+            try {
+                return fecha.toLocaleDateString("es-PE", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                });
+            }
+            catch (e) {
+                return fecha.toLocaleDateString();
+            }
+        }
+
+        $(function () {
+            $("#content").addClass("dashboard-content-page");
+            $("#lblFechaDashboard").text(obtenerFechaActual());
+
+            /* Las dos peticiones se inician en paralelo. */
+            cargarDashboard();
+            cargarGrafico();
+
+            $(".dashboard-card-action").on("click", function () {
+                abrirModalMora($(this).attr("data-mora-tipo"));
+            });
+
+            $(".dashboard-card-action").on("keydown", function (evento) {
+                if (evento.which === 13 || evento.which === 32) {
+                    evento.preventDefault();
+                    abrirModalMora($(this).attr("data-mora-tipo"));
+                }
+            });
+
+            $("#btnCerrarModalMora").on("click", cerrarModalMora);
+
+            $("#modalClientesMora").on("click", function (evento) {
+                if (evento.target === this) {
+                    cerrarModalMora();
+                }
+            });
+
+            $(document).on("keydown.dashboardMora", function (evento) {
+                if (evento.which === 27 &&
+                    $("#modalClientesMora").hasClass("dashboard-modal-open")) {
+                    cerrarModalMora();
+                }
+            });
+
+            $(".dashboard-mora-filter").on("click", function () {
+                $("#txtBuscarMora").val("");
+                cargarClientesMora($(this).attr("data-tipo"), false);
+            });
+
+            $("#txtBuscarMora").on("keyup", filtrarClientesMora);
+
+            $("#btnRefrescarMora").on("click", function () {
+                delete cacheClientesMora[tipoMoraActual];
+                cargarClientesMora(tipoMoraActual, true);
+            });
+        });
+    }(jQuery));
+</script>

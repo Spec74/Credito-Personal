@@ -11,7 +11,6 @@ using System.Text.RegularExpressions;
 using System.Web.Mvc;
 using VendixWeb.Models;
 using Web.Controllers.Credito;
-
 namespace VendixWeb.Controllers
 {
     [Autenticado]
@@ -533,49 +532,98 @@ namespace VendixWeb.Controllers
             var rd = new ReportDataSource("dsKardex", kardexData);
             return Reporte("PDF", "rptKardex.rdlc", rd, "A4Horizontal0.25");
         }
+
         public ActionResult ReporteSimuladorPlanPagos(int pProductoId, decimal pMonto, int pCuotas, decimal pInteres,
-            string pFecha, string pModalidad, decimal? pGastosAdm = null, string pGA = "CAP", string pCliente = "")
+string pFecha, string pModalidad, decimal? pGastosAdm = null, string pGA = "CAP",
+string pCliente = "", string pTipoDoc = "", string pNroDoc = "", string pDirCliente = "",
+string pDirNegocio = "", string pPrenda = "", bool pIncluyeCentral = false)
         {
-            decimal desemb = pMonto;
-            decimal pga = 0;
-            if (pGA == "CAP")
-                desemb = pMonto - (pGastosAdm.HasValue ? pGastosAdm.Value : 0);
+            if (string.IsNullOrEmpty(pModalidad)) pModalidad = "M";
 
-            if (pGA == "CUO")
-                pga = pGastosAdm.Value;
-
-
-            var oPlanPago = CreditoBL.SimuladorCredito(pMonto, pModalidad, pCuotas, pInteres, DateTime.Parse(pFecha), pga);
-            var rd = new ReportDataSource("dsSimuladorPlanPago", oPlanPago);
-
-
-            switch (pModalidad)
+            // =========================================================================
+            // INTEGRACIÓN DE GASTOS: Cálculo automático si vienen en 0 de la pantalla
+            // =========================================================================
+            if (!pGastosAdm.HasValue || pGastosAdm == 0)
             {
-                case "D": pModalidad = "DIARIO"; break;
-                case "S": pModalidad = "SEMANAL"; break;
-                case "Q": pModalidad = "QUINCENAL"; break;
-                case "M": pModalidad = "MENSUAL"; break;
+                pGastosAdm = ITB.VENDIX.BL.GastosAdmBL.CalcularGastosAdm(pMonto, pIncluyeCentral);
+            }
+            // =========================================================================
+
+            // CORRECCIÓN MATEMÁTICA: El desembolso NO se resta. Es igual al monto solicitado.
+            decimal desemb = pMonto;
+
+            decimal pga = 0;
+            if (pGA == "CUO" || pGA == "CAP")
+                pga = pGastosAdm ?? 0;
+
+            DateTime fechaPrimerPago;
+            if (!DateTime.TryParse(pFecha, out fechaPrimerPago))
+            {
+                fechaPrimerPago = DateTime.Now;
             }
 
-            //var pTem = CreditoBL.ObtenerTEM(pInteres, pModalidad); // Math.Round(Math.Pow(double.Parse((1 + pInteres/100).ToString()), 1/periodoAnio) - 1, 6);
+            // Ejecución de la lógica del SP con el gasto administrativo procesado
+            var oPlanPago = CreditoBL.SimuladorCredito(pMonto, pModalidad, pCuotas, pInteres, fechaPrimerPago, pga);
+            var rd = new Microsoft.Reporting.WebForms.ReportDataSource("dsSimuladorPlanPago", oPlanPago);
 
+            string modalidadTexto = "MENSUAL";
+            switch (pModalidad)
+            {
+                case "D": modalidadTexto = "DIARIO"; break;
+                case "S": modalidadTexto = "SEMANAL"; break;
+                case "Q": modalidadTexto = "QUINCENAL"; break;
+                case "M": modalidadTexto = "MENSUAL"; break;
+                default: modalidadTexto = "MENSUAL"; break;
+            }
 
-            var parametros = new List<ReportParameter>
-                                 {
-                                     new ReportParameter("Monto", "S/. " + pMonto),
-                                     new ReportParameter("Cuotas", pCuotas.ToString()),
-                                     new ReportParameter("Producto", ProductoBL.Obtener(pProductoId).Denominacion),
-                                     new ReportParameter("Fecha", pFecha),
-                                     new ReportParameter("Modalidad", pModalidad),
-                                     new ReportParameter("Cliente", pCliente),
-                                     new ReportParameter("TEM",pInteres + " %"),
-                                     //new ReportParameter("TEM","-"),
-                                     new ReportParameter("Desembolso", "S/. " + desemb),
-                                     new ReportParameter("GastosAdm", "S/. " + Math.Round( pGastosAdm.Value,2).ToString("0.00",CultureInfo.InvariantCulture))
-                                 };
+            var producto = ProductoBL.Obtener(pProductoId);
+            string nombreProducto = producto != null ? producto.Denominacion : "PRODUCTO";
+
+            // --- CÁLCULOS INTEGRADOS PARA LAS TARJETAS Y CUADROS RESUMEN ---
+            decimal totalInteres = oPlanPago.Sum(x => x.Interes ?? 0);
+            decimal totalDevolver = pMonto + totalInteres;
+            string fechaUltimoPago = oPlanPago.LastOrDefault()?.FechaPago?.ToString("dd/MM/yyyy") ?? "-";
+            decimal cuotaFila = oPlanPago.FirstOrDefault()?.Cuota ?? 0;
+
+            // Recuperación dinámica del asesor logueado en el sistema
+            var usuarioId = VendixGlobal.GetUsuarioId();
+            string nombreAsesorGlobal = UsuarioBL.Obtener(x => x.UsuarioId == usuarioId, includeProperties: "Persona").Persona.NombreCompleto;
+            string pAsesor = !string.IsNullOrWhiteSpace(nombreAsesorGlobal) ? nombreAsesorGlobal : (Request["sim_p.Asesor"]);
+            string pTelefono = Request["sim_p.Telefono"];
+
+            var parametros = new List<Microsoft.Reporting.WebForms.ReportParameter>
+    {
+        new Microsoft.Reporting.WebForms.ReportParameter("Monto", "S/. " + pMonto.ToString("F2")),
+        new Microsoft.Reporting.WebForms.ReportParameter("Cuotas", pCuotas.ToString()),
+        new Microsoft.Reporting.WebForms.ReportParameter("Producto", nombreProducto),
+        new Microsoft.Reporting.WebForms.ReportParameter("Fecha", string.IsNullOrEmpty(pFecha) ? fechaPrimerPago.ToString("yyyy-MM-dd") : pFecha),
+        new Microsoft.Reporting.WebForms.ReportParameter("Modalidad", modalidadTexto),
+        new Microsoft.Reporting.WebForms.ReportParameter("TEM", pInteres + " %"),
+        
+        // El desembolso muestra el valor real completo (S/. 5000.00)
+        new Microsoft.Reporting.WebForms.ReportParameter("Desembolso", "S/. " + desemb.ToString("F2")),
+        new Microsoft.Reporting.WebForms.ReportParameter("GastosAdm", "S/. " + Math.Round(pGastosAdm ?? 0, 2).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)),
+        
+        // --- ASIGNACIÓN DE DATOS REALEZ DEL CLIENTE REGISTRADO (No vacíos) ---
+        new Microsoft.Reporting.WebForms.ReportParameter("Cliente", string.IsNullOrWhiteSpace(pCliente) ? "CLIENTE PROSPECTO" : pCliente),
+        new Microsoft.Reporting.WebForms.ReportParameter("TipoDocumento", string.IsNullOrWhiteSpace(pTipoDoc) ? "DNI" : (pTipoDoc == "N" ? "DNI" : "RUC")),
+        new Microsoft.Reporting.WebForms.ReportParameter("NroDocumento", string.IsNullOrWhiteSpace(pNroDoc) ? "-" : pNroDoc),
+        new Microsoft.Reporting.WebForms.ReportParameter("DireccionCliente", string.IsNullOrWhiteSpace(pDirCliente) ? "No Especificado" : pDirCliente),
+        new Microsoft.Reporting.WebForms.ReportParameter("DireccionNegocio", string.IsNullOrWhiteSpace(pDirNegocio) ? "No Especificado" : pDirNegocio),
+        new Microsoft.Reporting.WebForms.ReportParameter("PrendaDescripcion", string.IsNullOrWhiteSpace(pPrenda) ? "Ninguna" : pPrenda),
+
+        // --- MAPEO DE PARÁMETROS DE TARJETAS INFERIORES ---
+        new Microsoft.Reporting.WebForms.ReportParameter("Asesor", pAsesor),
+        new Microsoft.Reporting.WebForms.ReportParameter("TelefonoCliente", pTelefono),
+        new Microsoft.Reporting.WebForms.ReportParameter("InteresesTotales", "S/. " + totalInteres.ToString("F2")),
+        new Microsoft.Reporting.WebForms.ReportParameter("TotalDevolver", "S/. " + totalDevolver.ToString("F2")),
+        new Microsoft.Reporting.WebForms.ReportParameter("CuotaDiaria", "S/. " + cuotaFila.ToString("F2")),
+        new Microsoft.Reporting.WebForms.ReportParameter("FechaUltimoPago", fechaUltimoPago)
+    };
 
             return Reporte("PDF", "rptSimuladorPlanPago.rdlc", rd, "A4Vertical0.25", parametros);
         }
+
         public ActionResult ReporteCliente(int pPersonaId)
         {
             var EstadoCivil = string.Empty;
@@ -636,7 +684,7 @@ namespace VendixWeb.Controllers
         {
             var credito = CreditoBL.Obtener(x => x.CreditoId == pCreditoId, "Persona");
             var oPlanPago = CreditoBL.ReportePlanPago(pCreditoId);
-            var rd = new ReportDataSource("dsSimuladorPlanPago", oPlanPago);
+            var rd = new ReportDataSource("dsPlanPago", oPlanPago);
 
             string pModalidad = string.Empty;
             switch (credito.FormaPago)
@@ -646,7 +694,6 @@ namespace VendixWeb.Controllers
                 case "Q": pModalidad = "QUINCENAL"; break;
                 case "M": pModalidad = "MENSUAL"; break;
             }
-            //var pTem = CreditoBL.ObtenerTEM(credito.Interes, pModalidad);
 
             var parametros = new List<ReportParameter>
                                  {
@@ -657,12 +704,11 @@ namespace VendixWeb.Controllers
                                      new ReportParameter("Modalidad", pModalidad),
                                      new ReportParameter("Cliente", credito.Persona.NombreCompleto),
                                      new ReportParameter("TEM", credito.Interes.ToString() + "%"),
-                                     //new ReportParameter("TEM",Math.Round(pTem,6).ToString() + "%"),
                                      new ReportParameter("Desembolso", credito.MontoDesembolso.ToString()),
                                      new ReportParameter("GastosAdm", credito.MontoGastosAdm.ToString())
                                  };
 
-            return Reporte("PDF", "rptSimuladorPlanPago.rdlc", rd, "A4Vertical0.25", parametros);
+            return Reporte("PDF", "rptPlanPago.rdlc", rd, "A4Vertical0.25", parametros);
         }
         public ActionResult ReporteMovimientoBoveda(int? pBovedaId, string pTipo = "PDF")
         {
@@ -683,17 +729,93 @@ namespace VendixWeb.Controllers
                     oBoveda = BovedaBL.Obtener(x => x.OficinaId == idOficina && x.IndCierre == false && x.IndTemporal == false);
             }
 
+            // --- NUEVO: CÁLCULO DINÁMICO DE SALDOS POR CADA BANCO ---
+            decimal saldoEfectivo = 0, saldoYape = 0, saldoInterbank = 0, saldoBcp = 0, saldoBn = 0, saldoYapeHuanta = 0, saldoInterbankHuanta = 0, saldoBcpHuanta = 0;
+
+            using (var db = new VENDIXEntities())
+            {
+                // 1. Traemos los saldos iniciales de la sesión de bóveda actual
+                var cuentas = db.BovedaCuenta.Where(x => x.BovedaId == oBoveda.BovedaId).ToList();
+                // 2. Traemos todos los movimientos activos registrados en esta bóveda
+                var movimientos = db.BovedaMov.Where(x => x.BovedaId == oBoveda.BovedaId && x.Estado == true).ToList();
+
+                // 3. Aplicamos la regla contable: Saldo Inicial + Entradas - Salidas
+                saldoEfectivo = (cuentas.FirstOrDefault(x => x.TipoPagoId == 1)?.SaldoInicial ?? 0) + movimientos.Where(x => x.TipoPagoId == 1).Sum(x => x.IndEntrada ? x.Importe : -x.Importe);
+                saldoYape = (cuentas.FirstOrDefault(x => x.TipoPagoId == 2)?.SaldoInicial ?? 0) + movimientos.Where(x => x.TipoPagoId == 2).Sum(x => x.IndEntrada ? x.Importe : -x.Importe);
+                saldoInterbank = (cuentas.FirstOrDefault(x => x.TipoPagoId == 3)?.SaldoInicial ?? 0) + movimientos.Where(x => x.TipoPagoId == 3).Sum(x => x.IndEntrada ? x.Importe : -x.Importe);
+                saldoBcp = (cuentas.FirstOrDefault(x => x.TipoPagoId == 4)?.SaldoInicial ?? 0) + movimientos.Where(x => x.TipoPagoId == 4).Sum(x => x.IndEntrada ? x.Importe : -x.Importe); // <-- CORREGIDO AQUÍ
+                saldoBn = (cuentas.FirstOrDefault(x => x.TipoPagoId == 5)?.SaldoInicial ?? 0) + movimientos.Where(x => x.TipoPagoId == 5).Sum(x => x.IndEntrada ? x.Importe : -x.Importe);
+                // NUEVOS: Cálculos matemáticos vivos para la Sucursal Huanta
+                saldoYapeHuanta = (cuentas.FirstOrDefault(x => x.TipoPagoId == 6)?.SaldoInicial ?? 0) + movimientos.Where(x => x.TipoPagoId == 6).Sum(x => x.IndEntrada ? x.Importe : -x.Importe);
+                saldoInterbankHuanta = (cuentas.FirstOrDefault(x => x.TipoPagoId == 7)?.SaldoInicial ?? 0) + movimientos.Where(x => x.TipoPagoId == 7).Sum(x => x.IndEntrada ? x.Importe : -x.Importe);
+                saldoBcpHuanta = (cuentas.FirstOrDefault(x => x.TipoPagoId == 8)?.SaldoInicial ?? 0) + movimientos.Where(x => x.TipoPagoId == 8).Sum(x => x.IndEntrada ? x.Importe : -x.Importe);
+            }
+
             var oRpt = BovedaBL.ReporteMovimientoBoveda(oBoveda.BovedaId);
+            using (var db = new VENDIXEntities())
+            {
+                var movimientosTRA = db.BovedaMov
+                    .Where(x => x.BovedaId == oBoveda.BovedaId && x.CodOperacion == "TRA")
+                    .ToList();
+
+                foreach (var rptItem in oRpt.Where(x => x.CodOperacion == "TRA"))
+                {
+                    // CORRECCIÓN 1: Cambiamos 'Id' por 'MovimientoBovedaId'
+                    var mov = movimientosTRA.FirstOrDefault(x => x.MovimientoBovedaId == rptItem.MovimientoBovedaId);
+
+                    if (mov != null && mov.UsuarioRegId != null)
+                    {
+                        var usuario = db.Usuario.FirstOrDefault(u => u.UsuarioId == mov.UsuarioRegId);
+                        if (usuario != null)
+                        {
+                            // CORRECCIÓN 2: Usamos NombreUsuario como salvavidas inmediato para que compile ya mismo
+                            rptItem.Agente = "Hacia: " + usuario.Persona.NombreCompleto;
+                        }
+                    }
+                }
+            }
+            // =======================================================================
+
             var rd = new ReportDataSource("dsMovimientoBoveda", oRpt);
+
+            string fechaInicioStr = oBoveda.FechaIniOperacion.ToString("dd/MM/yyyy HH:mm:ss");
+            string fechaFinStr = oBoveda.FechaFinOperacion.HasValue
+                ? oBoveda.FechaFinOperacion.Value.ToString("dd/MM/yyyy HH:mm:ss")
+                : DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+
+            // =======================================================================
+            // 🛠️ RECALCULO DINÁMICO DE TOTALES DE CABECERA (TRA Y TRF INCLUIDOS)
+            // =======================================================================
+            // Sumamos dinámicamente las columnas de la lista que va directo al reporte
+            decimal totalEntradas = oRpt.Sum(x => (decimal?)(x.Entrada) ?? 0);
+            decimal totalSalidas = oRpt.Sum(x => (decimal?)(x.Salida) ?? 0);
+
+            // El saldo final real es: Saldo Inicial + Entradas Totales - Salidas Totales
+            decimal saldoFinalCalculado = oBoveda.SaldoInicial + totalEntradas - totalSalidas;
+            // =======================================================================
+
             var parametros = new List<ReportParameter>
-    {
-        new ReportParameter("SaldoInicial", oBoveda.SaldoInicial.ToString()),
-        new ReportParameter("Entradas", oBoveda.Entradas.ToString()),
-        new ReportParameter("Salidas", oBoveda.Salidas.ToString()),
-        new ReportParameter("SaldoFinal", oBoveda.SaldoFinal.ToString()),
-        new ReportParameter("Estado", oBoveda.IndCierre ? "CERRADO" : "ABIERTO")
-        // ✅ Ya no se envían FechaInicio ni FechaFin
-    };
+             {
+                 new ReportParameter("SaldoInicial", oBoveda.SaldoInicial.ToString()),
+                 new ReportParameter("Entradas", totalEntradas.ToString()),
+                 new ReportParameter("Salidas", totalSalidas.ToString()),
+                 new ReportParameter("SaldoFinal", saldoFinalCalculado.ToString()),
+                 new ReportParameter("FechaInicio", fechaInicioStr),
+                 new ReportParameter("FechaFin", fechaFinStr),
+                 new ReportParameter("Estado", oBoveda.IndCierre ? "CERRADO" : "ABIERTO"),
+                             
+                 // INYECTAMOS LOS 5 NUEVOS PARÁMETROS BANCARIOS ORIGINALES
+                 new ReportParameter("SaldoEfectivo", saldoEfectivo.ToString("N2")),
+                 new ReportParameter("SaldoYape", saldoYape.ToString("N2")),
+                 new ReportParameter("SaldoInterbank", saldoInterbank.ToString("N2")),
+                 new ReportParameter("SaldoBcp", saldoBcp.ToString("N2")),
+                 new ReportParameter("SaldoBn", saldoBn.ToString("N2")),
+
+                 // NUEVOS: Enviamos las variables dinámicas de Huanta listos para tu archivo .rdlc
+                 new ReportParameter("SaldoYapeHuanta", saldoYapeHuanta.ToString("N2")),
+                 new ReportParameter("SaldoInterbankHuanta", saldoInterbankHuanta.ToString("N2")),
+                 new ReportParameter("SaldoBcpHuanta", saldoBcpHuanta.ToString("N2"))
+             };
 
             return Reporte(pTipo, "rptMovimientoBoveda.rdlc", rd, "A4Vertical0.25", parametros);
         }
@@ -993,25 +1115,33 @@ namespace VendixWeb.Controllers
 
         public ActionResult ReporteClientesInactivos(int? pOficinaId, int? pUsuarioId, string pTipo = "PDF")
         {
+            // 1. Invoca al SP optimizado
             var data = CreditoBL.ReporteClientesInactivos(pOficinaId, pUsuarioId, null, null);
             var rd = new ReportDataSource("dsClienteInactivo", data);
 
             var oficina = "TODOS";
             if (pOficinaId != null)
                 oficina = OficinaBL.Obtener(pOficinaId.Value).Denominacion;
+
             var agente = "TODOS";
             if (pUsuarioId != null)
                 agente = UsuarioBL.Obtener(x => x.UsuarioId == pUsuarioId.Value, includeProperties: "Persona").Persona.NombreCompleto;
 
+            // Esto cuenta el total de FILAS (Clientes) de la lista
+            var totalClientesStr = (data != null) ? data.Count.ToString() : "0";
 
+            // 2. Definición de parámetros globales
             var parametros = new List<ReportParameter>
-                                 {
-                                     new ReportParameter("Fecha", " AL " + VendixGlobal.GetFecha().ToShortDateString()),
-                                     new ReportParameter("Oficina", oficina),
-                                     new ReportParameter("Agente",agente  )
-                                 };
+             {
+                 new ReportParameter("Fecha", " AL " + VendixGlobal.GetFecha().ToShortDateString()),
+                 new ReportParameter("Oficina", oficina),
+                 new ReportParameter("Agente", agente),
+                 new ReportParameter("TotalClientesInactivos", totalClientesStr) // ¡Correcto!
+             };
+
             return Reporte(pTipo, "rptClienteInactivo.rdlc", rd, "A4Horizontal0.25", parametros);
         }
+
         public ActionResult ReporteClientesInactivosPagados(int? pOficinaId, int? pUsuarioId, string pFechaIni, string pFechaFin, string pTipo = "PDF")
         {
             var data = CreditoBL.ReporteClientesInactivos(pOficinaId, pUsuarioId, DateTime.Parse(pFechaIni), DateTime.Parse(pFechaFin));
@@ -1024,13 +1154,17 @@ namespace VendixWeb.Controllers
             if (pUsuarioId != null)
                 agente = UsuarioBL.Obtener(x => x.UsuarioId == pUsuarioId.Value, includeProperties: "Persona").Persona.NombreCompleto;
 
+            var totalStr = (data != null) ? data.Count.ToString() : "0";
 
             var parametros = new List<ReportParameter>
-            {
-                new ReportParameter("Fecha", " DEL " + pFechaIni + " AL " + pFechaFin),
-                new ReportParameter("Oficina", oficina),
-                new ReportParameter("Agente", agente)
-            };
+    {
+        new ReportParameter("Fecha", " DEL " + pFechaIni + " AL " + pFechaFin),
+        new ReportParameter("Oficina", oficina),
+        new ReportParameter("Agente", agente),
+        
+        new ReportParameter("TotalClientesInactivos", totalStr)
+    };
+
             return Reporte(pTipo, "rptClienteInactivo.rdlc", rd, "A4Horizontal0.25", parametros);
         }
         public ActionResult ReporteCreditoObservado(int? pOficinaId, int? pUsuarioId, string pTipo = "PDF")
@@ -1287,47 +1421,429 @@ namespace VendixWeb.Controllers
         }
         public ActionResult ReporteCreditoMovimiento(int pCreditoId)
         {
-            var credito = CreditoBL.Obtener(x => x.CreditoId == pCreditoId, "Persona,Persona.Cliente");
-            var oMov = CreditoBL.ReporteCreditoMovimiento(pCreditoId);
+            // 1. Obtenemos el crédito con sus relaciones necesarias (Quitamos ,Desembolso)
+            var credito = CreditoBL.Obtener(x => x.CreditoId == pCreditoId, "Persona,Persona.Cliente,Aprobacion");
+
+            // 2. Recuperar los datos del Aval
+            Persona aval = null;
+            if (credito.PersonaAvalId.HasValue)
+            {
+                aval = PersonaBL.Obtener(credito.PersonaAvalId.Value);
+            }
+
+            // 3. Obtener el nombre del Analista
+            string analistaNombre = UsuarioBL.ObtenerNombre(credito.UsuarioRegId);
+
+            // 4. Obtener la información de Aprobación limpia (MÉTODO CORREGIDO)
+            string aprobadoPorInfo = "-";
+            string fechaAprobacionTexto = "-"; // <- Nueva variable
+            if (credito.Aprobacion != null && credito.Aprobacion.Any())
+            {
+                var apro = credito.Aprobacion.OrderByDescending(x => x.Nivel).FirstOrDefault();
+                if (apro != null)
+                {
+                    // Extraemos la fecha del registro de aprobación hallado
+                    fechaAprobacionTexto = apro.Fecha.HasValue ? apro.Fecha.Value.ToString("dd/MM/yyyy") : "-";
+
+                    if (apro.UsuarioId.HasValue)
+                    {
+                        string usuarioAproNombre = UsuarioBL.ObtenerNombre(apro.UsuarioId.Value);
+                        aprobadoPorInfo = usuarioAproNombre.Trim();
+                    }
+                }
+            }
+
+            // 5. Obtener la Actividad Económica
+            string actividadEconTexto = "-";
+            var cliente = credito.Persona.Cliente.FirstOrDefault();
+            if (cliente != null && cliente.ActividadEconId.HasValue)
+            {
+                var ocupacion = OcupacionBL.Obtener(x => x.OcupacionId == cliente.ActividadEconId.Value);
+                if (ocupacion != null)
+                {
+                    actividadEconTexto = ocupacion.Denominacion;
+                }
+            }
+
+            // 6. CANTIDAD DE CRÉDITOS Y TOPE DE CRÉDITO (CON VALIDACIÓN DE ASIGNACIÓN)
+            int totalCreditos = CreditoBL.Contar(x => x.PersonaId == credito.PersonaId && x.Estado != "CRE" && x.OficinaId == credito.OficinaId);
+
+            // MODIFICACIÓN DEFINITIVA: Validamos si tiene un tope real asignado mayor a 0
+            string topeCreditoTexto = (cliente != null && cliente.TopeCredito.HasValue && cliente.TopeCredito.Value > 0)
+                ? cliente.TopeCredito.Value.ToString("N2")
+                : "NO ASIGNADO";
+
+            // 7. LÓGICA DE MOVIMIENTOS Y CÁLCULO DE TIEMPO REAL (MÉTODO HISTÓRICO SIN DUPLICADOS)
+            string fechaUltimoPagoTexto = "-";
+            var fechaActual = VendixGlobal.GetFecha().Date;
+
+            // Usamos un HashSet para registrar los días calendario únicos en mora y evitar el efecto bola de nieve
+            HashSet<DateTime> diasEnMoraUnicos = new HashSet<DateTime>();
+            var todasLasCuotas = PlanPagoBL.Listar(x => x.CreditoId == pCreditoId);
+
+            foreach (var cuota in todasLasCuotas)
+            {
+                if (cuota.Estado == "PAG")
+                {
+                    // Cuotas pagadas tarde: registramos el rango de días reales que estuvo en mora
+                    if (cuota.MovimientoCajaId.HasValue)
+                    {
+                        var movPago = MovimientoCajaBL.Obtener(cuota.MovimientoCajaId.Value);
+                        if (movPago != null && movPago.FechaReg.Date > cuota.FechaVencimiento.Date)
+                        {
+                            for (DateTime dia = cuota.FechaVencimiento.Date.AddDays(1); dia <= movPago.FechaReg.Date; dia = dia.AddDays(1))
+                            {
+                                diasEnMoraUnicos.Add(dia);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Cuotas vencidas actualmente: registramos los días desde el vencimiento hasta hoy
+                    if (fechaActual > cuota.FechaVencimiento.Date)
+                    {
+                        for (DateTime dia = cuota.FechaVencimiento.Date.AddDays(1); dia <= fechaActual; dia = dia.AddDays(1))
+                        {
+                            diasEnMoraUnicos.Add(dia);
+                        }
+                    }
+                }
+            }
+
+            // El total de días reales es el conteo de elementos únicos en nuestro conjunto
+            int totalDiasRetraso = diasEnMoraUnicos.Count;
+
+
+
+
+
+
+
+
+
+
+            // ====================================================================================
+            // 8. LÓGICA DE ESTADOS Y RELLENO DE DÍAS SIN PAGO
+            // ====================================================================================
+            var oMovOriginal =
+                CreditoBL.ReporteCreditoMovimiento(pCreditoId)
+                ?? new List<usp_RptMovimientoCredito_Result>();
+
+            // Solamente consideramos pagos con importe mayor que cero.
+            var pagosReales = oMovOriginal
+                .Where(x =>
+                    x.Fecha.HasValue &&
+                    (x.ImportePago ?? 0m) > 0m)
+                .OrderByDescending(x => x.Fecha.Value)
+                .ToList();
+
+            // Debido al orden descendente, el primero es el pago más reciente.
+            var ultimoMovimientoPagado = pagosReales.FirstOrDefault();
+
+            string ultimaFechaPagada = ultimoMovimientoPagado != null
+                ? ultimoMovimientoPagado.Fecha.Value.ToString("dd/MM/yyyy")
+                : "-";
+
+            var Saldototal = oMovOriginal.Any()
+                ? oMovOriginal.First().Saldo
+                : 0;
+
+            var oMov = new List<usp_RptMovimientoCredito_Result>();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+            bool esCreditoDiario =
+    !string.IsNullOrWhiteSpace(credito.FormaPago) &&
+    (
+        credito.FormaPago.Equals(
+            "D",
+            StringComparison.OrdinalIgnoreCase) ||
+        credito.FormaPago.IndexOf(
+            "DIARIO",
+            StringComparison.OrdinalIgnoreCase) >= 0
+    );
+
+            if (oMovOriginal.Any() && esCreditoDiario)
+            {
+                DateTime fechaInicio = credito.FechaPrimerPago.Date;
+                DateTime fechaFin = credito.FechaVencimiento.Date;
+
+                // El reporte se genera como máximo hasta la fecha actual.
+                if (fechaFin > fechaActual)
+                {
+                    fechaFin = fechaActual;
+                }
+
+                // Solo extendemos la fecha final si existe un pago verdadero.
+                if (ultimoMovimientoPagado != null)
+                {
+                    DateTime fechaUltimoPagoReal =
+                        ultimoMovimientoPagado.Fecha.Value.Date;
+
+                    if (fechaUltimoPagoReal > fechaFin)
+                    {
+                        fechaFin = fechaUltimoPagoReal;
+                    }
+                }
+
+                decimal saldoArrastrado =
+                    Convert.ToDecimal(oMovOriginal.First().Saldo) +
+                    Convert.ToDecimal(oMovOriginal.First().ImportePago);
+
+                for (DateTime dia = fechaInicio;
+                     dia <= fechaFin;
+                     dia = dia.AddDays(1))
+                {
+                    if (dia.DayOfWeek == DayOfWeek.Sunday)
+                    {
+                        continue;
+                    }
+
+                    var pagosDelDia = oMovOriginal
+                        .Where(x =>
+                            x.Fecha.HasValue &&
+                            x.Fecha.Value.Date == dia)
+                        .ToList();
+
+                    if (pagosDelDia.Any())
+                    {
+                        // Cuando hay un pago real, eliminamos los registros
+                        // de importe cero correspondientes al mismo día.
+                        if (pagosDelDia.Any(x => (x.ImportePago ?? 0m) > 0m))
+                        {
+                            pagosDelDia = pagosDelDia
+                                .Where(x => (x.ImportePago ?? 0m) > 0m)
+                                .ToList();
+                        }
+
+                        foreach (var movimiento in pagosDelDia)
+                        {
+                            oMov.Add(movimiento);
+                            saldoArrastrado =
+                                Convert.ToDecimal(movimiento.Saldo);
+                        }
+                    }
+                    else
+                    {
+                        oMov.Add(new usp_RptMovimientoCredito_Result
+                        {
+                            Fecha = dia,
+                            ImportePago = 0.00m,
+                            Saldo = saldoArrastrado
+                        });
+                    }
+                }
+            }
+            else
+            {
+                // Créditos semanales, quincenales o mensuales.
+                oMov = oMovOriginal.ToList();
+
+                // Retiramos el desembolso cuando no representa un pago.
+                if (credito.FechaDesembolso.HasValue)
+                {
+                    oMov = oMov
+                        .Where(x =>
+                            !(
+                                (x.ImportePago ?? 0m) == 0m &&
+                                x.Fecha.HasValue &&
+                                x.Fecha.Value.Date ==
+                                    credito.FechaDesembolso.Value.Date
+                            ))
+                        .ToList();
+                }
+            }
+
+
+
+
+
+
+
+
+            if (esCreditoDiario)
+            {
+                totalDiasRetraso = oMov.Count(x =>
+                    (x.ImportePago ?? 0m) == 0m);
+            }
+            else
+            {
+                var cuotasPendientes = PlanPagoBL.Listar(x =>
+                    x.CreditoId == pCreditoId &&
+                    x.Estado != "PAG");
+
+                if (cuotasPendientes != null && cuotasPendientes.Any())
+                {
+                    DateTime vencimientoPendienteMasAntiguo = cuotasPendientes
+                        .Min(x => x.FechaVencimiento.Date);
+
+                    if (fechaActual > vencimientoPendienteMasAntiguo)
+                    {
+                        totalDiasRetraso = 0;
+
+                        for (
+                            DateTime dia = vencimientoPendienteMasAntiguo.AddDays(1);
+                            dia <= fechaActual;
+                            dia = dia.AddDays(1))
+                        {
+                            if (dia.DayOfWeek != DayOfWeek.Sunday)
+                            {
+                                totalDiasRetraso++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Existen cuotas pendientes, pero todavía no están vencidas.
+                        totalDiasRetraso = 0;
+                    }
+                }
+                else
+                {
+                    // No existen cuotas pendientes.
+                    totalDiasRetraso = 0;
+                }
+            }
+
+
+
+
+
+
+
+
+
             var rd = new ReportDataSource("dsCreditoMov", oMov);
-            var Saldototal = oMov.First().Saldo;// PlanPagoBL.Listar(x => x.CreditoId == pCreditoId).Sum(x => x.Cuota);
-            var estadoCredito = string.Empty;
-            switch (credito.Estado)
+            string estadoCredito = string.Empty;
+
+            // Lógica para determinar el estado de la cabecera
+            if (credito.Estado == "PAG")
             {
-                case "CRE": estadoCredito = "SOLICITUD DE CREDITO"; break;
-                case "PEN": estadoCredito = "PENDIENTE"; break;
-                case "PAG": estadoCredito = "CANCELADO PAGADO"; break;
-                case "DES": estadoCredito = "DESEMBOLSADO"; break;
-                case "ANU": estadoCredito = "ANULADO"; break;
-                case "REP": estadoCredito = "REPROGRAMADO"; break;
+                estadoCredito = credito.IndCondonacion ? "CANCELADO CONDONADO" : "CANCELADO PAGADO";
+            }
+            else if (credito.Estado == "ANU")
+            {
+                estadoCredito = "ANULADO";
+            }
+            else if (credito.Estado == "CRE")
+            {
+                estadoCredito = "SOLICITUD DE CREDITO";
+            }
+            else if (credito.Estado == "DES" || credito.Estado == "PEN" || credito.Estado == "REP")
+            {
+                if (fechaActual > credito.FechaVencimiento.Date)
+                {
+                    estadoCredito = "VENCIDO";
+                }
+                else
+                {
+                    estadoCredito = "VIGENTE";
+                }
+            }
+            else
+            {
+                estadoCredito = credito.Estado;
             }
 
-            if (credito.Estado== "PAG" && credito.IndCondonacion)
+            // EXTRACCIÓN DE MORA REUTILIZANDO LA LÓGICA DEL COBRO DIARIO
+            decimal saldoMoraValue = 0m;
+
+            // Limitamos la consulta al analista y oficina del crédito.
+            // Antes se enviaba null como usuario, procesando toda la oficina.
+            var listaCobroDiario =
+                CreditoBL.ReporteCobroDiario(
+                    credito.UsuarioRegId,
+                    credito.OficinaId);
+
+            if (listaCobroDiario != null)
             {
-                estadoCredito = "CANCELADO CONDONADO";
+                var infoCreditoActual = listaCobroDiario.FirstOrDefault(
+                    x => x.CreditoId == pCreditoId);
+
+                if (infoCreditoActual != null)
+                {
+                    saldoMoraValue = infoCreditoActual.Mora ?? 0m;
+                }
             }
 
+            // 8.1. Obtener la fecha de Condonación exacta para validación de cierre de caja
+            string fechaCondonacionTexto = "-";
+            if (credito.Estado == "PAG" && credito.IndCondonacion)
+            {
+                if (oMovOriginal != null && oMovOriginal.Any())
+                {
+                    var ultimoMov = oMovOriginal.LastOrDefault();
+                    if (ultimoMov != null && ultimoMov.Fecha.HasValue)
+                    {
+                        fechaCondonacionTexto = ultimoMov.Fecha.Value.ToString("dd/MM/yyyy");
+                    }
+                }
+            }
+
+            // 9. Inyección de la lista completa de parámetros al archivo RDLC
             var parametros = new List<ReportParameter>
-                                 {
-                                     new ReportParameter("CreditoId", pCreditoId.ToString()),
-                                     new ReportParameter("Cliente", credito.Persona.NumeroDocumento + "-" + credito.Persona.NombreCompleto),
-                                     new ReportParameter("FechaNacimiento", credito.Persona.FechaNacimiento.HasValue?credito.Persona.FechaNacimiento.Value.ToShortDateString():""),
-                                     new ReportParameter("Celular", credito.Persona.Celular1 ),
-                                     new ReportParameter("Direccion", credito.Persona.Direccion ),
-                                     new ReportParameter("DireccionRef", credito.Persona.DireccionRef ),
-                                     new ReportParameter("DireccionNegocio", credito.Persona.Cliente.FirstOrDefault().DireccionNegocio ),
-                                     new ReportParameter("DireccionNegocioRef", credito.Persona.Cliente.FirstOrDefault().DireccionNegocioRef ),
-                                     new ReportParameter("FormaPago", credito.FormaPago ),
-                                     new ReportParameter("Cuotas", credito.NumeroCuotas.ToString() ),
-                                     new ReportParameter("FechaPrimerPago", credito.FechaPrimerPago.ToShortDateString() ),
-                                     new ReportParameter("FechaVencimiento", credito.FechaVencimiento.ToShortDateString() ),
-                                     new ReportParameter("Estado", estadoCredito ),
-                                     new ReportParameter("MontoTotal", Saldototal.ToString() ),
-                                     new ReportParameter("MontoCredito", credito.MontoCredito.ToString() ),
-                                     new ReportParameter("GA", credito.MontoGastosAdm.ToString() ),
-                                     new ReportParameter("Interes", credito.Interes.ToString() ),
-                                     new ReportParameter("Observacion", credito.Observacion.ToString() )
-                                 };
+         {
+             new ReportParameter("CreditoId", pCreditoId.ToString()),
+             new ReportParameter("Cliente", credito.Persona.NumeroDocumento + "-" + credito.Persona.NombreCompleto),
+             new ReportParameter("FechaNacimiento", credito.Persona.FechaNacimiento.HasValue?credito.Persona.FechaNacimiento.Value.ToShortDateString():""),
+             new ReportParameter("Celular", credito.Persona.Celular1 ),
+             new ReportParameter("Direccion", credito.Persona.Direccion ),
+             new ReportParameter("DireccionRef", credito.Persona.DireccionRef ),
+             new ReportParameter("DireccionNegocio", cliente != null ? cliente.DireccionNegocio : "-"),
+             new ReportParameter("DireccionNegocioRef", cliente != null ? cliente.DireccionNegocioRef : "-"),
+             new ReportParameter("FormaPago", credito.FormaPago ),
+             new ReportParameter("Cuotas", credito.NumeroCuotas.ToString() ),
+             new ReportParameter("FechaPrimerPago", credito.FechaPrimerPago.DayOfWeek == DayOfWeek.Sunday
+                ? credito.FechaPrimerPago.AddDays(1).ToShortDateString()
+                : credito.FechaPrimerPago.ToShortDateString() ),
+             new ReportParameter("FechaVencimiento", credito.FechaVencimiento.ToShortDateString() ),
+             new ReportParameter("Estado", estadoCredito ),
+             new ReportParameter("MontoTotal", Saldototal.ToString() ),
+             new ReportParameter("MontoCredito", credito.MontoCredito.ToString() ),
+             new ReportParameter("GA", credito.MontoGastosAdm.ToString() ),
+             new ReportParameter("Interes", credito.Interes.ToString() ),
+             new ReportParameter("Observacion", (credito.Observacion ?? "").ToString() ),
+
+             // NUEVOS PARÁMETRO DE MORA
+             new ReportParameter("SaldoMora", saldoMoraValue.ToString("N2")),
+
+             // Parámetros del Aval
+             new ReportParameter("AvalNombre", aval != null ? aval.NombreCompleto : "SIN AVAL"),
+             new ReportParameter("AvalDni", aval != null ? aval.NumeroDocumento : "-"),
+             new ReportParameter("AvalDireccion", aval != null ? (aval.Direccion!=null?aval.Direccion:"") : "-"),
+             new ReportParameter("AvalCelular", aval != null ? aval.Celular1 : "-"),
+
+             // Parámetros de Resumen y Auditoría
+             new ReportParameter("Analista", !string.IsNullOrEmpty(analistaNombre) ? analistaNombre : "-"),
+             new ReportParameter("AprobadoPor", aprobadoPorInfo),
+             new ReportParameter("ActividadEconomica", actividadEconTexto),
+             new ReportParameter("Calificacion", !string.IsNullOrEmpty(credito.Calificacion) ? credito.Calificacion.Trim() : "-"),
+             new ReportParameter("TotalCreditos", totalCreditos.ToString()),
+             new ReportParameter("TopeCredito", topeCreditoTexto),
+             new ReportParameter("FechaUltimoPago", ultimaFechaPagada),
+                             
+             // Aquí se envía el cálculo matemático correcto de los días reales transcurridos
+             new ReportParameter("DiasRetraso", totalDiasRetraso.ToString()),
+             // ADICIÓN: Enviamos el nuevo parámetro exigido por tu rptCreditoMov.rdlc
+             new ReportParameter("FechaAprobacion", fechaAprobacionTexto),
+             new ReportParameter("FechaCondonacion", fechaCondonacionTexto)
+         };
 
             return Reporte("PDF", "rptCreditoMov.rdlc", rd, "A4Vertical0.25", parametros);
         }
@@ -1387,251 +1903,125 @@ namespace VendixWeb.Controllers
 
             return Reporte("PDF", "rptTareas.rdlc", rd, "A4Vertical0.25", parametros);
         }
-        public ActionResult ReporteCobroDiario(int? pGestorid, int? pOficinaid, string pTipo = "PDF", bool indMora = false)
-        {
-            var titulo = "COBRO DIARIO";
-            string agente, caja = string.Empty;
-            if (!indMora)//cobro diario
-            {
-                if (!pGestorid.HasValue)
-                    pGestorid = VendixGlobal.GetUsuarioId();
-
-                agente = UsuarioBL.Obtener(x => x.UsuarioId == pGestorid.Value, "Persona").Persona.NombreCompleto;
-                var cajausuario = CajaBL.Obtener(x => x.CajeroId == pGestorid.Value);
-                caja = cajausuario == null ? string.Empty : cajausuario.Denominacion;
-            }
-            else // morosidad
-            {
-                titulo = "REPORTE DE MOROSIDAD";
-                agente = pGestorid.HasValue
-                    ? UsuarioBL.Obtener(x => x.UsuarioId == pGestorid.Value, "Persona").Persona.NombreCompleto
-                    : "TODOS";
-                if (pGestorid.HasValue)
+        public ActionResult ReporteCobroDiario(
+            int? pGestorid,
+            int? pOficinaid,
+            string pTipo = "PDF",
+            bool indMora = false)
                 {
-                    var cajausuario = CajaBL.Obtener(x => x.CajeroId == pGestorid.Value);
-                    caja = cajausuario == null ? string.Empty : cajausuario.Denominacion;
-                }
-            }
+                    var titulo = "COBRO DIARIO";
+                    string agente;
+                    string caja = string.Empty;
 
-            var oCredito = CreditoBL.ReporteCobroDiario(pGestorid, pOficinaid);
-            if (indMora)
-                oCredito = oCredito.Where(x => x.Mora > 0).ToList();
-
-           // var saldosininteres = oCredito.Sum(x => x.MontoCredito);
-            var saldomora = oCredito.Where(x => x.Mora > 0).Sum(x => x.Saldo);
-            var saldoPendiente = oCredito.Sum(x => x.Saldo);
-
-            var rd = new ReportDataSource("dsCobroDiario", oCredito);
-            var parametros = new List<ReportParameter>
-                                 {
-                                     new ReportParameter("Fecha", VendixGlobal.GetFecha().ToString()),
-                                     new ReportParameter("Agente", agente),
-                                     new ReportParameter("Caja", caja),
-                                     new ReportParameter("SaldoVencido", saldoPendiente.ToString()),
-                                     new ReportParameter("SaldoMoroso", saldomora.ToString()),
-                                     //new ReportParameter("SaldoSinInteres", saldosininteres.ToString()),
-                                     new ReportParameter("Titulo", titulo),
-                                     new ReportParameter("NroClientes", oCredito.Count().ToString())
-                                 };
-
-            return Reporte(pTipo, "rptCobroDiario.rdlc", rd, "A4Horizontal0.25", parametros);
-        }
-
-        // 1. MÉTODO PARA LLENAR LA GRILLA EN PANTALLA
-        [HttpGet]
-        public ActionResult ListarCobrosDelDiaJson(int? pGestorid, int? pOficinaid, bool pIndMora = false)
-        {
-            try
-            {
-                if (!pGestorid.HasValue)
-                    pGestorid = VendixGlobal.GetUsuarioId();
-
-                var oCredito = CreditoBL.ReporteCobroDiario(pGestorid, pOficinaid);
-
-                if (pIndMora)
-                {
-                    oCredito = oCredito.Where(x => x.Mora > 0).ToList();
-                }
-
-                var listData = oCredito.Select(x => new
-                {
-                    id = x.CreditoId,
-                    cell = new string[]
+                    if (!indMora)
                     {
-                        x.CreditoId.ToString(),
-                        x.Cliente,
-                        x.Direccion,
-                        x.Saldo.ToString(),
-                        x.Mora.ToString(),
-                        x.Saldo.ToString()
-                    }
-                }).ToList();
+                        if (!pGestorid.HasValue)
+                        {
+                            pGestorid = VendixGlobal.GetUsuarioId();
+                        }
 
-                return Json(new { total = 1, page = 1, records = listData.Count, rows = listData }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                return Json(new { error = ex.Message }, JsonRequestBehavior.AllowGet);
-            }
-        }
+                        var usuario = UsuarioBL.Obtener(
+                            x => x.UsuarioId == pGestorid.Value,
+                            "Persona");
 
-        // 2. MÉTODO PARA ORDENAR LA RUTA Y CREAR EL ENLACE CORTO
-        [HttpPost]
-        public ActionResult GenerarRutaCobrosHoy(string pIds)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(pIds))
-                    return Json(new { Exito = false, Mensaje = "No se recibieron clientes." });
+                        agente = usuario.Persona.NombreCompleto;
 
-                List<int> idsSeleccionados = pIds.Split(',').Select(int.Parse).ToList();
+                        var cajaUsuario = CajaBL.Obtener(
+                            x => x.CajeroId == pGestorid.Value);
 
-                int? gestorId = VendixGlobal.GetUsuarioId();
-                var oCredito = CreditoBL.ReporteCobroDiario(gestorId, null);
-                var clientesRuta = oCredito.Where(x => idsSeleccionados.Contains(x.CreditoId)).ToList();
-
-                // A. Obtener coordenadas
-                var clientesConGps = clientesRuta.Select(c => {
-                    var creditoFisico = CreditoBL.Obtener(x => x.CreditoId == c.CreditoId);
-                    var datosCliente = ClienteBL.Obtener(x => x.PersonaId == creditoFisico.PersonaId);
-                    bool tieneGps = datosCliente != null && datosCliente.Latitud != null && datosCliente.Latitud != 0;
-
-                    return new
-                    {
-                        DatosReporte = c,
-                        Lat = tieneGps ? (decimal)datosCliente.Latitud : 0,
-                        Lon = tieneGps ? (decimal)datosCliente.Longitud : 0,
-                        TieneGps = tieneGps
-                    };
-                }).ToList();
-
-                // =========================================================
-                // NUEVO: OBTENER COORDENADAS DINÁMICAS DE LA OFICINA ACTUAL
-                // =========================================================
-                int oficinaId = VendixGlobal.GetOficinaId();
-                var datosOficina = OficinaBL.Obtener(x => x.OficinaId == oficinaId);
-
-                decimal latOficina = (datosOficina != null && datosOficina.Latitud != null) ? (decimal)datosOficina.Latitud : 0;
-                decimal lonOficina = (datosOficina != null && datosOficina.Longitud != null) ? (decimal)datosOficina.Longitud : 0;
-
-                // B. ORDENAR LA RUTA (Vecino más cercano desde la Oficina)
-                var pendientes = clientesConGps.Where(x => x.TieneGps).ToList();
-                var sinGps = clientesConGps.Where(x => !x.TieneGps).ToList();
-                var rutaOrdenada = pendientes.Take(0).ToList();
-
-                if (pendientes.Any())
-                {
-                    // 1. Buscamos al primer cliente: El MÁS CERCANO A LA OFICINA
-                    var primerCliente = pendientes.OrderBy(p =>
-                        Math.Sqrt(Math.Pow((double)(latOficina - p.Lat), 2) + Math.Pow((double)(lonOficina - p.Lon), 2))
-                    ).First();
-
-                    rutaOrdenada.Add(primerCliente);
-                    pendientes.Remove(primerCliente);
-
-                    var actual = primerCliente;
-
-                    // 2. A partir de ahí, saltamos al vecino más cercano iterativamente
-                    while (pendientes.Any())
-                    {
-                        var masCercano = pendientes.OrderBy(p =>
-                            Math.Sqrt(Math.Pow((double)(actual.Lat - p.Lat), 2) + Math.Pow((double)(actual.Lon - p.Lon), 2))
-                        ).First();
-
-                        rutaOrdenada.Add(masCercano);
-                        pendientes.Remove(masCercano);
-                        actual = masCercano;
-                    }
-                }
-                rutaOrdenada.AddRange(sinGps);
-
-                // C. CONSTRUIR EL TEXTO PARA WHATSAPP
-                System.Text.StringBuilder textoWa = new System.Text.StringBuilder();
-
-                textoWa.AppendLine("<== RUTA DE COBRANZA ==>");
-                textoWa.AppendLine("-----------------------------------");
-
-                int orden = 1;
-                foreach (var item in rutaOrdenada)
-                {
-                    var c = item.DatosReporte;
-
-                    textoWa.AppendLine($"*{orden}. {c.Cliente}*");
-                    textoWa.AppendLine($"   > Cobrar: S/ {c.Saldo}");
-
-                    if (item.TieneGps)
-                    {
-                        string lat = item.Lat.ToString().Replace(",", ".");
-                        string lon = item.Lon.ToString().Replace(",", ".");
-                        textoWa.AppendLine($"   > Mapa: https://maps.google.com/?q={lat},{lon}");
+                        caja = cajaUsuario == null
+                            ? string.Empty
+                            : cajaUsuario.Denominacion;
                     }
                     else
                     {
-                        textoWa.AppendLine($"   > Dir: {c.Direccion} (Sin GPS)");
+                        titulo = "REPORTE DE MOROSIDAD";
+
+                        if (pGestorid.HasValue)
+                        {
+                            var usuario = UsuarioBL.Obtener(
+                                x => x.UsuarioId == pGestorid.Value,
+                                "Persona");
+
+                            agente = usuario.Persona.NombreCompleto;
+
+                            var cajaUsuario = CajaBL.Obtener(
+                                x => x.CajeroId == pGestorid.Value);
+
+                            caja = cajaUsuario == null
+                                ? string.Empty
+                                : cajaUsuario.Denominacion;
+                        }
+                        else
+                        {
+                            agente = "TODOS";
+                        }
                     }
 
-                    textoWa.AppendLine();
-                    orden++;
-                }
+                    // El procedimiento almacenado determina:
+                    // - FechaPago
+                    // - TienePagoReal
+                    // No deben sobrescribirse en el controlador.
+                    var oCredito = CreditoBL.ReporteCobroDiario(
+                        pGestorid,
+                        pOficinaid);
 
-                // D. MAGIA DEL ENLACE CORTO (Para que el QR no se haga diminuto)
-                string textoFinal = textoWa.ToString();
-                string idUnico = Guid.NewGuid().ToString("N");
+                    if (indMora)
+                    {
+                        oCredito = oCredito
+                            .Where(x => x.Mora > 0)
+                            .ToList();
+                    }
 
-                // Guardar el texto en la caché del servidor por 4 horas
-                System.Web.HttpRuntime.Cache.Insert(idUnico, textoFinal, null, DateTime.Now.AddHours(4), System.Web.Caching.Cache.NoSlidingExpiration);
+                    var saldoMoroso = oCredito
+                        .Where(x => x.Mora > 0)
+                        .Sum(x => x.Saldo);
 
-                // CORRECCIÓN: Mandamos SOLO la ruta relativa, sin el dominio
-                string urlCorta = Url.Action("RutaWa", "Reporte", new { id = idUnico });
+                    var saldoPendiente = oCredito.Sum(x => x.Saldo);
 
-                return Json(new { Exito = true, UrlCortita = urlCorta });
-            }
-            catch (Exception ex)
+                    var rd = new ReportDataSource(
+                        "dsCobroDiario",
+                        oCredito);
+
+                    var parametros = new List<ReportParameter>
             {
-                return Json(new { Exito = false, Mensaje = ex.Message });
-            }
+                new ReportParameter(
+                    "Fecha",
+                    VendixGlobal.GetFecha().ToString("dd/MM/yyyy")),
+
+                new ReportParameter(
+                    "Agente",
+                    agente ?? string.Empty),
+
+                new ReportParameter(
+                    "Caja",
+                    caja ?? string.Empty),
+
+                new ReportParameter(
+                    "SaldoVencido",
+                    saldoPendiente.ToString()),
+
+                new ReportParameter(
+                    "SaldoMoroso",
+                    saldoMoroso.ToString()),
+
+                new ReportParameter(
+                    "Titulo",
+                    titulo),
+
+                new ReportParameter(
+                    "NroClientes",
+                    oCredito.Count.ToString())
+            };
+
+            return Reporte(
+                pTipo,
+                "rptCobroDiario.rdlc",
+                rd,
+                "A4Horizontal0.25",
+                parametros);
         }
 
-        // 3. MÉTODO QUE RECIBE AL CELULAR Y ABRE WHATSAPP
-        [HttpGet]
-        [AllowAnonymous]
-        public ActionResult RutaWa(string id)
-        {
-            string textoGigante = System.Web.HttpRuntime.Cache[id] as string;
-
-            if (string.IsNullOrEmpty(textoGigante))
-            {
-                return Content("Esta ruta ha expirado. Por favor, vuelva a generarla en la computadora de la oficina.");
-            }
-
-            string linkWhatsApp = "https://wa.me/?text=" + Uri.EscapeDataString(textoGigante);
-            return Redirect(linkWhatsApp);
-        }
-
-        //public ActionResult ReporteCobranzaGestor(int? pGestorid, int? pOficinaid, string pTipo = "PDF")
-        //{
-        //    string agente, caja = string.Empty;
-
-        //    if (!pGestorid.HasValue)
-        //        pGestorid = VendixGlobal.GetUsuarioId();
-
-        //    agente = UsuarioBL.Obtener(x => x.UsuarioId == pGestorid.Value, "Persona").Persona.NombreCompleto;
-        //    var cajausuario = CajaBL.Obtener(x => x.CajeroId == pGestorid.Value);
-        //    caja = cajausuario == null ? string.Empty : cajausuario.Denominacion;
-
-        //    var oCredito = CreditoBL.ReporteCobranzaGestor(pGestorid, pOficinaid);
-
-        //    var rd = new ReportDataSource("dsCobranzaGestor", oCredito);
-        //    var parametros = new List<ReportParameter>
-        //                         {
-        //                             new ReportParameter("Fecha", VendixGlobal.GetFecha().ToString()),
-        //                             new ReportParameter("Agente", agente),
-        //                             new ReportParameter("Caja", caja),
-        //                             new ReportParameter("NroClientes", oCredito.Count().ToString())
-        //                         };
-
-        //    return Reporte(pTipo, "rptCobranzaAgente.rdlc", rd, "A4Horizontal0.25", parametros);
-        //}
         public FileContentResult ReporteCentrarRiegoTXT(int? pOficinaId, int pAnio, int pMes)
         {
             var rpt = ReporteBL.ListarReporteCentralRiesgo(pOficinaId, pAnio, pMes);

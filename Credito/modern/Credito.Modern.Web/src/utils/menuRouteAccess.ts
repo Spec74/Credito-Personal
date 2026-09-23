@@ -24,6 +24,9 @@ const HUB_CHILDREN: Record<string, string[]> = {
   '/admin': ['/admin/', '/mantenimiento/'],
 }
 
+/** Informes con ACL propio (no basta con tener el hub Reportes → Crédito). */
+const INFORMES_ACL_EXCLUSIONS = new Set(['/informes/cierre-gerencial'])
+
 const EXACT_MENU_ROUTES = new Set([
   '/admin/usuarios',
   '/admin/roles',
@@ -57,12 +60,34 @@ function hasPathAccess(path: string, allowed: string, exactAllowedPaths: Set<str
   }
 
   const children = HUB_CHILDREN[allowed] ?? []
-  return children.some((prefix) => path.startsWith(prefix))
+  return children.some((prefix) => {
+    if (!path.startsWith(prefix)) {
+      return false
+    }
+    // Paridad _Layout: cierre gerencial solo por UsuarioConsultaIds, no por menú Reportes.
+    if (prefix === '/informes/' && INFORMES_ACL_EXCLUSIONS.has(path)) {
+      return false
+    }
+    return true
+  })
 }
 
-export function hasMenuRouteAccess(pathname: string, menuItems: MenuItemDto[]): boolean {
+export function hasMenuRouteAccess(
+  pathname: string,
+  menuItems: MenuItemDto[],
+  extraAllowedPaths: string[] = [],
+): boolean {
   const path = normalizePath(pathname)
   if (ALWAYS_ALLOWED.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {
+    return true
+  }
+
+  if (
+    extraAllowedPaths.some((extra) => {
+      const e = normalizePath(extra)
+      return path === e || path.startsWith(`${e}/`)
+    })
+  ) {
     return true
   }
 

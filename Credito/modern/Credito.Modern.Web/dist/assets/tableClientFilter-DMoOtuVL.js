@@ -1,1 +1,0 @@
-function e(e,t,n){let r=t.trim().toLowerCase();if(!r)return e;let i=r.split(/\s+/).filter(Boolean);return e.filter(e=>{let t=n(e).toLowerCase();return i.every(e=>t.includes(e))})}export{e as t};

@@ -41,7 +41,7 @@ Documento de verificación de migración (`Credito/Web/Views/Saldos/Index.cshtml
 | `btnReporteBoveda` | `downloadRptMovimientoBovedaPdf` | QuestPDF paridad `rptMovimientoBoveda.rdlc` |
 | `btnTransferir` — CERRAR CAJAS | Tab **Cierre masivo** + `ConteoBilletesModal` | Validación previa + sobrante |
 | `dialog_ConteoBillete` (11 denominaciones) | `ConteoBilletesModal.tsx` | Regla conteo ≥ importe cierre |
-| `Transferir` + `ActualizarDatosPostCierreBoveda` | `cerrarCajasDiarios` + post-cierre auto/manual | Paridad secuencia MVC |
+| `Transferir` + `ActualizarDatosPostCierreBoveda` | `cerrarCajasDiarios` + post-cierre auto/manual (saldo + calificar + `usp_IntentarGenerarCierreGerencialMensual`) | Paridad secuencia MVC |
 | `grdBuscar` — saldos caja diario | Tab **Saldos caja diario** | Lazy query al activar tab |
 | `grdCajaChica` — saldos chica | Tab **Saldos caja chica** | Lazy query |
 | `btnCerrarCajaChica` | Tab **Cierre masivo** → `transferirCierreCajaChica` | Tras `validar-cierre-caja-chica` |
@@ -64,7 +64,7 @@ Documento de verificación de migración (`Credito/Web/Views/Saldos/Index.cshtml
 | `GET validar-cierre-caja-chica` | `ValidarCierreCajaChica` |
 | `POST cerrar-cajas-diarios` | `Transferir` (sobrante) |
 | `POST transferir-cierre-caja-chica` | `TransferirCierreCajaChica` |
-| `POST actualizar-datos-post-cierre-boveda` | `ActualizarDatosPostCierreBoveda` |
+| `POST actualizar-datos-post-cierre-boveda` | `ActualizarDatosPostCierreBoveda` (+ `usp_IntentarGenerarCierreGerencialMensual`) |
 | `GET rpt-saldos-caja-pdf` | `ReporteSaldoCaja` (`rptSaldoCaja.rdlc`: cabecera + INGRESOS/EGRESOS) |
 | `GET rpt-cajas-asignadas-pdf` | `ReporteCajasAsignadas` |
 | `GET rpt-movimiento-boveda-pdf` | `ReporteMovimientoBoveda` (+ resumen efectivo / medios digitales en cabecera) |

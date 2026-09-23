@@ -1,100 +1,442 @@
-﻿@model List<ITB.VENDIX.DA.usp_SimuladorCredito_Result>
+﻿
+@model List<ITB.VENDIX.DA.usp_SimuladorCredito_Result>
 
+@{
+    // 1. PRE-CALCULAMOS LOS TOTALES Y FECHAS AQUÍ ARRIBA
+    decimal totalAmortizacion = 0;
+    decimal totalInteres = 0;
+    decimal totalCuota = 0;
+    decimal montoDesembolsado = 0;
+    decimal cuotaFija = 0;
+    string ultimoPago = "-";
 
-    <div class="grid_12">
-        <div class="box">
-            <div class="header">
-                <h2>Simulador de Créditos<a id="btnExportar" class="button" style="float: right; margin-top: 0; padding:4px">Exportar a PDF</a></h2>
-            </div>
-            <div class="content invoice">
-                <h3><button id="lnkSimulador" class="open-simulador">Simulador de Créditos</button></h3>
-                <div class="details">
-                    <div class="highlighted">
-                        <span>Producto:</span> <strong>@ViewBag.pProducto</strong>
-                        <span>Monto:</span> <strong>@ViewBag.pMonto</strong>
-                        <span>Numero Cuotas:</span> <strong>@ViewBag.pCuotas</strong>
-                    </div>
-                    <div>
-                        <span>Modalidad:</span> <strong>@ViewBag.pModalidad</strong>
-                    </div>
-                    <div>
-                        <span>TEA:</span> <strong>@ViewBag.pInteres %</strong>
-                        <span>TEM:</span> <strong>@ViewBag.TEM %</strong>
-                    </div>
-                    <div>
-                        <span>Fecha Primer Pago:</span> <strong>@ViewBag.pFecha</strong>
+    if (Model != null && Model.Any())
+    {
+        foreach (var item in Model)
+        {
+            totalAmortizacion += Convert.ToDecimal(item.Amortizacion);
+            totalInteres += Convert.ToDecimal(item.Interes);
+            totalCuota += Convert.ToDecimal(item.Cuota);
+        }
+
+        // Obtenemos la cuota y la fecha final
+        cuotaFija = Convert.ToDecimal(Model.First().Cuota);
+        var lastItem = Model.Last();
+        if (lastItem.FechaPago.HasValue)
+        {
+            ultimoPago = lastItem.FechaPago.Value.ToShortDateString();
+        }
+    }
+
+    decimal montoSolicitado = Convert.ToDecimal(ViewBag.pMonto ?? 0);
+    decimal gastosAdm = Convert.ToDecimal(ViewBag.pGastosAdm ?? 0);
+    montoDesembolsado = montoSolicitado;
+}
+
+<style>
+    /* Tipografía y Colores Base Corporativos */
+    .grid_12 {
+        color: #1e293b;
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .box {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        background: #ffffff;
+        overflow: hidden;
+    }
+
+        .box .header {
+            background: linear-gradient(to right, #0f172a, #1e293b);
+            padding: 16px 24px;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            min-height: 60px;
+        }
+
+            .box .header h2 {
+                font-size: 18px;
+                font-weight: 600;
+                margin: 0;
+                padding: 0;
+                color: #ffffff;
+                letter-spacing: 0.3px;
+                line-height: 1;
+            }
+
+    /* Botones de Acción */
+    .button.btn-export {
+        margin: 0;
+        padding: 8px 20px;
+        background-color: #2563eb;
+        color: #ffffff !important;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 13px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid transparent;
+        box-shadow: 0 1px 2px rgba(37, 99, 235, 0.3);
+    }
+
+        .button.btn-export:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+        }
+
+    .open-simulador {
+        background-color: #0d9488;
+        color: white;
+        border: none;
+        padding: 10px 22px;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(13, 148, 136, 0.2);
+        letter-spacing: 0.3px;
+    }
+
+        .open-simulador:hover {
+            background-color: #0f766e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(13, 148, 136, 0.2);
+        }
+
+    /* Contenedores de Detalles - Estilo Tarjeta */
+    .content.invoice {
+        padding: 24px;
+    }
+
+        .content.invoice h3 {
+            margin-bottom: 24px;
+            margin-top: 5px;
+        }
+
+    .details-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        margin-bottom: 24px;
+    }
+
+    .details-group {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .details-group-title {
+        font-size: 12px;
+        font-weight: 700;
+        color: #64748b;
+        margin-top: 0;
+        margin-bottom: 16px;
+        border-bottom: 2px solid #f1f5f9;
+        padding-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    .details-group div {
+        margin-bottom: 10px;
+        font-size: 13.5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .details-group span {
+        font-weight: 500;
+        color: #64748b;
+    }
+
+    .details-group strong {
+        color: #0f172a;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    /* Sección Cliente y Alertas */
+    .client-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    .client-highlight {
+        background: #eff6ff;
+        padding: 12px 16px;
+        border-radius: 6px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: #1e3a8a;
+        border-left: 4px solid #3b82f6;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px 30px;
+    }
+
+        .client-highlight span {
+            color: #60a5fa;
+            font-weight: 500;
+            margin-right: 4px;
+        }
+
+    .client-address {
+        font-size: 13px;
+        margin-bottom: 6px;
+        padding-left: 16px;
+        color: #475569;
+    }
+
+        .client-address strong {
+            color: #1e293b;
+            margin-left: 4px;
+        }
+
+    .warranty-alert {
+        margin-top: 12px;
+        background-color: #fef2f2;
+        padding: 12px 16px;
+        border-radius: 6px;
+        border-left: 4px solid #ef4444;
+        font-size: 13.5px;
+        color: #991b1b;
+    }
+
+    /* Tablas Financieras Profesionales */
+    .table-responsive {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    table.styled.borders {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+        background: #ffffff;
+    }
+
+    table.styled th {
+        background-color: #f8fafc;
+        color: #475569;
+        font-weight: 600;
+        padding: 14px 12px;
+        border-bottom: 1px solid #e2e8f0;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+    }
+
+    table.styled td {
+        padding: 12px;
+        border-bottom: 1px solid #f1f5f9;
+        color: #334155;
+        transition: background-color 0.15s ease;
+    }
+
+    table.styled tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    table.styled tbody tr:hover td {
+        background-color: #f8fafc;
+    }
+
+    .num-cell {
+        text-align: right;
+        padding-right: 16px !important;
+        font-variant-numeric: tabular-nums; /* Alinea los números perfectamente */
+    }
+
+    /* Totales */
+    .table-footer {
+        background-color: #f8fafc;
+        border-top: 2px solid #cbd5e1;
+    }
+
+        .table-footer td {
+            color: #0f172a;
+            padding: 16px 12px;
+            font-weight: 700;
+        }
+
+    .total-cuota-highlight {
+        color: #2563eb !important;
+        font-size: 15px;
+    }
+</style>
+
+<div class="grid_12">
+    <div class="box">
+        <div class="header">
+            <h2>Simulador de Créditos</h2>
+            <a id="btnExportar" class="button btn-export">Exportar a PDF</a>
+        </div>
+
+        <div class="content invoice">
+            <h3><button id="lnkSimulador" class="open-simulador">Configurar Simulador</button></h3>
+
+            @* DETALLES DE LAS CONDICIONES DEL CRÉDITO *@
+            <div class="details-container">
+                <div class="details-group">
+                    <div class="details-group-title">Resumen del Crédito</div>
+                    <div><span>Monto Solicitado</span> <strong>S/. @montoSolicitado.ToString("N2")</strong></div>
+                    <div><span>Gastos Administrativos</span> <strong>S/. @gastosAdm.ToString("N2")</strong></div>
+                    <div><span>Monto Desembolsado</span> <strong>S/. @montoDesembolsado.ToString("N2")</strong></div>
+                    <div><span>Intereses Totales</span> <strong>S/. @totalInteres.ToString("N2")</strong></div>
+                    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #cbd5e1;">
+                        <span style="color: #0f172a; font-weight: 600;">Total a Devolver</span>
+                        <strong style="color: #2563eb; font-size: 15px;">S/. @totalCuota.ToString("N2")</strong>
                     </div>
                 </div>
+                <div class="details-group">
+                    <div class="details-group-title">Condiciones del Crédito</div>
+                    <div><span>Producto</span> <strong>@ViewBag.pProducto</strong></div>
+                    <div><span>Modalidad</span> <strong>@ViewBag.pModalidad</strong></div>
+                    <div><span>Número de Cuotas</span> <strong>@ViewBag.pCuotas</strong></div>
+                    <div><span>Valor de la Cuota</span> <strong>S/. @cuotaFija.ToString("N2")</strong></div>
+                    <div><span>Tasa de Interés (TEM)</span> <strong>@ViewBag.TEM %</strong></div>
+                    <div><span>Primer Pago</span> <strong>@ViewBag.pFecha</strong></div>
+                    <div><span>Último Pago</span> <strong>@ultimoPago</strong></div>
+                </div>
+            </div>
 
-                <table class="styled borders" style="text-align: center">
+            @* SECCIÓN CONDICIONAL - INFORMACIÓN DEL CLIENTE *@
+            @if (!string.IsNullOrEmpty(ViewBag.nroDocumento))
+            {
+                <div class="client-card">
+                    <div class="client-highlight">
+                        <div><span>@(ViewBag.tipoPersona == "J" ? "RUC:" : "DNI:")</span> <strong>@ViewBag.nroDocumento</strong></div>
+                        <div><span>Cliente:</span> <strong>@ViewBag.nombreCompleto</strong></div>
+                        @if (!string.IsNullOrEmpty(ViewBag.pTelefono))
+                        {
+                            <div><span>Teléfono:</span> <strong>@ViewBag.pTelefono</strong></div>
+                        }
+                    </div>
+                    @if (!string.IsNullOrEmpty(ViewBag.direccionCliente))
+                    {
+                        <div class="client-address"><span>Dirección Domicilio:</span> <strong>@ViewBag.direccionCliente</strong></div>
+                    }
+                    @if (!string.IsNullOrEmpty(ViewBag.direccionNegocio))
+                    {
+                        <div class="client-address"><span>Dirección Negocio:</span> <strong>@ViewBag.direccionNegocio</strong></div>
+                    }
+                    @if (!string.IsNullOrEmpty(ViewBag.prendaDescripcion))
+                    {
+                        <div class="warranty-alert">
+                            <span>Garantía / Prenda Obligatoria:</span> <strong>@ViewBag.prendaDescripcion</strong>
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="table-responsive">
+                <table class="styled borders">
                     <thead>
                         <tr>
-                            <th>Numero</th>
-                            <th>Capital</th>
-                            <th>Fecha Pago</th>
-                            <th>Amortizacion</th>
-                            <th>Interés</th>
-                            <th>Gastos Adm</th>
-                            <th>Cuota</th>
+                            <th style="text-align: center; width: 60px;">N°</th>
+                            <th style="text-align: center;">Fecha de Pago</th>
+                            <th class="num-cell">Capital (S/)</th>
+                            <th class="num-cell">Interés (S/)</th>
+                            <th class="num-cell">Cuota (S/)</th>
+                            <th class="num-cell">Saldo (S/)</th>
                         </tr>
                     </thead>
                     <tbody>
-
-                        @foreach (var item in Model)
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td style="text-align: center; font-weight: 600; color: #94a3b8;">@item.Numero</td>
+                                    <td style="text-align: center; font-weight: 500;">@(item.FechaPago.HasValue ? item.FechaPago.Value.ToShortDateString() : "-")</td>
+                                    <td class="num-cell">@Convert.ToDecimal(item.Amortizacion).ToString("N2")</td>
+                                    <td class="num-cell">@Convert.ToDecimal(item.Interes).ToString("N2")</td>
+                                    <td class="num-cell" style="font-weight: 600; color: #0f172a;">@Convert.ToDecimal(item.Cuota).ToString("N2")</td>
+                                    <td class="num-cell" style="color: #64748b;">@Convert.ToDecimal(item.Saldo).ToString("N2")</td>
+                                </tr>
+                            }
+                        }
+                        else
                         {
                             <tr>
-                                <td>@item.Numero</td>
-                                <td>@item.Capital</td>
-                                <td>@item.FechaPago.Value.ToShortDateString()</td>
-                                <td>@item.Amortizacion</td>
-                                <td>@item.Interes</td>
-                                <td>@item.GastosAdm</td>
-                                <td>@item.Cuota</td>
+                                <td colspan="6" style="color:#64748b; padding:40px; text-align: center; font-size: 14px;">
+                                    No se han generado cuotas. Presione <strong style="color: #0f172a;">'Configurar Simulador'</strong> para iniciar.
+                                </td>
                             </tr>
                         }
                     </tbody>
+                    @if (Model != null && Model.Count > 0)
+                    {
+                        <tfoot class="table-footer">
+                            <tr>
+                                <td colspan="2" style="text-align: right; padding-right: 16px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b;">TOTALES:</td>
+                                <td class="num-cell">S/. @totalAmortizacion.ToString("N2")</td>
+                                <td class="num-cell">S/. @totalInteres.ToString("N2")</td>
+                                <td class="num-cell total-cuota-highlight">S/. @totalCuota.ToString("N2")</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    }
                 </table>
             </div>
-            <!-- End of .content -->
-
         </div>
-        <!-- End of .box -->
     </div>
+</div>
 
-    @*<div id="dialog" style="display: none">
-        <iframe src="@Url.Action("ReporteSimuladorPlanPagos", "Reporte",
-                    new {pProductoid = ViewBag.pProductoId, pMonto = ViewBag.pMonto, pCuotas = ViewBag.pCuotas, pInteres = ViewBag.pInteres, pFecha = ViewBag.pFecha, pModalidad = ViewBag.pModalidadVal })"
-                style='height: 100%;width: 100%;'></iframe>
-    </div>*@
+<script>
+    $(function () {
+        $("#btnExportar").click(function () {
+            var urlBase = '@Url.Action("ReporteSimuladorPlanPagos", "Reporte")';
 
-    <script>
-        $(function () {
-            @*$("#lnkSimulador").click(function () {
-                Vendix.CargarCombo("@Url.Action("ListarProductos", "Credito")", "cboProductos");
-                $("#cboModalidad").trigger("liszt:updated");
-                $("#dialog_simulador").dialog("open");
+            var data = {
+                pProductoId: '@(ViewBag.pProductoId ?? 1)',
+                pMonto: '@(ViewBag.pMonto != null ? Convert.ToDecimal(ViewBag.pMonto).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) : "0.00")',
+                pCuotas: '@(ViewBag.pCuotas ?? 0)',
+                pInteres: '@(ViewBag.pInteres != null ? Convert.ToDecimal(ViewBag.pInteres).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) : "0.00")',
+                pFecha: '@ViewBag.pFecha',
+                pModalidad: '@(ViewBag.pModalidadVal ?? "M")',
+                pGastosAdm: '@(ViewBag.pGastosAdm != null ? Convert.ToDecimal(ViewBag.pGastosAdm).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) : "0.00")',
+                pGA: '@(ViewBag.pGA ?? "CAP")',
+
+                pCliente: '@Html.Raw(HttpUtility.JavaScriptStringEncode((string)(ViewBag.nombreCompleto ?? "")))',
+                pTipoDoc: '@(ViewBag.tipoPersona ?? "N")',
+                pNroDoc: '@Html.Raw(HttpUtility.JavaScriptStringEncode((string)(ViewBag.nroDocumento ?? "")))',
+                pDirCliente: '@Html.Raw(HttpUtility.JavaScriptStringEncode((string)(ViewBag.direccionCliente ?? "")))',
+                pDirNegocio: '@Html.Raw(HttpUtility.JavaScriptStringEncode((string)(ViewBag.direccionNegocio ?? "")))',
+                pPrenda: '@Html.Raw(HttpUtility.JavaScriptStringEncode((string)(ViewBag.prendaDescripcion ?? "")))',
+
+                'sim_p.Asesor': '@Html.Raw(HttpUtility.JavaScriptStringEncode((string)(ViewBag.pAsesor ?? "")))',
+                'sim_p.Telefono': '@Html.Raw(HttpUtility.JavaScriptStringEncode((string)(ViewBag.pTelefono ?? "")))'
+            };
+
+            if (parseFloat(data.pMonto) <= 0 || parseInt(data.pCuotas) <= 0) {
+                alert("Por favor, configure y genere la simulación de crédito antes de intentar exportar el PDF.");
                 return false;
-            });*@
+            }
 
-            $("#btnExportar").click(function () {
-            Vendix.Reporte('@Url.Action("ReporteSimuladorPlanPagos", "Reporte")' + window.location.search);
-            //window.open('@Url.Action("ReporteSimuladorPlanPagos", "Reporte")' + window.location.search);
+            var queryParams = $.param(data);
+            var rutaCompleta = urlBase + '?' + queryParams;
+
+            window.open(rutaCompleta, '_blank');
             return false;
         });
-
-
-        //$("#btnExportar").click(function () {
-        //        $("#dialog").dialog({
-        //            modal: true,
-        //            title: 'Reporte',
-        //            width: '60%',
-        //            height: $(window).height() - 120,
-        //            buttons: {Close: function () {$(this).dialog('close');}}
-        //        });
-        //    });
-
-        });
-
-    </script>
-
-
+    });
+</script>

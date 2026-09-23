@@ -3,11 +3,42 @@
     .BordeSeleccion {
         border: 1px solid green;
     }
-    .riesgo-sbs-0 { background-color: #28a745; color: white; padding: 2px 5px; border-radius: 3px; } /* Normal - Verde */
-    .riesgo-sbs-1 { background-color: #ffc107; color: black; padding: 2px 5px; border-radius: 3px; } /* CPP - Amarillo */
-    .riesgo-sbs-2 { background-color: #fd7e14; color: white; padding: 2px 5px; border-radius: 3px; } /* Deficiente - Naranja */
-    .riesgo-sbs-3 { background-color: #dc3545; color: white; padding: 2px 5px; border-radius: 3px; } /* Dudoso - Rojo */
-    .riesgo-sbs-4 { background-color: #000000; color: white; padding: 2px 5px; border-radius: 3px; } /* Pérdida - Negro */
+
+    .riesgo-sbs-0 {
+        background-color: #28a745;
+        color: white;
+        padding: 2px 5px;
+        border-radius: 3px;
+    }
+    /* Normal - Verde */
+    .riesgo-sbs-1 {
+        background-color: #ffc107;
+        color: black;
+        padding: 2px 5px;
+        border-radius: 3px;
+    }
+    /* CPP - Amarillo */
+    .riesgo-sbs-2 {
+        background-color: #fd7e14;
+        color: white;
+        padding: 2px 5px;
+        border-radius: 3px;
+    }
+    /* Deficiente - Naranja */
+    .riesgo-sbs-3 {
+        background-color: #dc3545;
+        color: white;
+        padding: 2px 5px;
+        border-radius: 3px;
+    }
+    /* Dudoso - Rojo */
+    .riesgo-sbs-4 {
+        background-color: #000000;
+        color: white;
+        padding: 2px 5px;
+        border-radius: 3px;
+    }
+    /* Pérdida - Negro */
 </style>
 
 <div class="grid_12 profile">
@@ -22,7 +53,7 @@
 
                 </h2>
                 <h3>
-                    @Model.EstadoCliente                    
+                    @Model.EstadoCliente
                 </h3>
                 <h2>
                     @if (!string.IsNullOrEmpty(Model.ClasificacionRiesgoSBS))
@@ -47,7 +78,7 @@
                     {
                         //if (ViewBag.Aprobador1 > 0)
                         //{
-                            <button class="grey" id="btnDepurarCliente">Depurar</button>
+                        <button class="grey" id="btnDepurarCliente">Depurar</button>
                         //}
                     }
                     else
@@ -69,7 +100,7 @@
             <li>
                 <strong style="font-size:40px">
                     @if (Model != null)
-                    {@Model.Persona.Codigo}
+                    {@Model.Cliente.Calificacion}
                 </strong>
             </li>
             <li>
@@ -98,12 +129,6 @@
                 </strong>
                 <small>Créditos Pendientes</small>
 
-            </li>
-            <li>
-                <strong style="font-size:40px">
-                    @if (Model != null)
-                    {@Model.Cliente.Calificacion}
-                </strong>
             </li>
             <li>
                 @if (Model != null && Model.Creditos != null)
@@ -135,6 +160,7 @@
                                 <th>Credito</th>
                                 <th>Estado</th>
                                 <th>Persona</th>
+                                <th style="width: 50px;">Ver</th>
                                 <th>Dni</th>
                                 <th>Celular</th>
                             </tr>
@@ -147,7 +173,83 @@
                                     <td class='center' style='width: 40px'>@item.CreditoId</td>
                                     <td class='center' style='width: 40px'>@item.MontoCredito</td>
                                     <td class='center' style='width: 40px'>@item.Estado</td>
+
+
+
+
+
                                     <td>@item.Persona</td>
+
+                                    <td class='center' style='width: 50px; vertical-align: middle !important; padding: 3.5px !important;'>
+                                        <style>
+                                            .btn-ojo-custom {
+                                                /* Clonamos el aspecto visual del botón azul de Vendix */
+                                                background: #1c70cf linear-gradient(to bottom, #36b8e0, #005d9a) !important;
+                                                border: 1px solid #1555a6 !important;
+                                                border-radius: 5px !important;
+                                                box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 1px rgba(0, 0, 0, 0.1) !important;
+                                                /* Forzamos el centrado matemático absoluto */
+                                                display: inline-flex !important;
+                                                align-items: center !important;
+                                                justify-content: center !important;
+                                                
+                                                width: 27px !important;
+                                                height: 21px !important;
+                                                padding: 0 !important;
+                                                margin: 0 auto !important;
+                                                text-decoration: none !important;
+                                                cursor: pointer !important;
+                                            }
+
+                                                .btn-ojo-custom:hover {
+                                                    background: #1555a6 !important;
+                                                    box-shadow: none !important;
+                                                }
+
+                                                .btn-ojo-custom .icon {
+                                                    display: inline-block !important;
+                                                    width: 14px !important;
+                                                    height: 14px !important;
+                                                    font-size: 14px !important;
+                                                    line-height: 14px !important;
+                                                    color: #ffffff !important;
+                                                    margin: 0 !important;
+                                                    padding: 0 !important;
+                                                    border: none !important;
+                                                    background: none !important;
+                                                    box-shadow: none !important;
+                                                    float: none !important;
+                                                    position: static !important;
+                                                }
+
+                                                    .btn-ojo-custom .icon::before {
+                                                        display: block !important;
+                                                        width: 14px !important;
+                                                        height: 14px !important;
+                                                        font-size: 14px !important;
+                                                        line-height: 14px !important;
+                                                        margin: 0 !important;
+                                                        padding: 0 !important;
+                                                        text-align: center !important;
+                                                    }
+
+                                                    .btn-ojo-custom .icon::after {
+                                                        display: none !important;
+                                                        content: none !important;
+                                                    }
+                                        </style>
+
+                                        <a target="_blank" href="@Url.Action("Creditos", "Credito", new { pPersonaId = item.PersonaId })"
+                                           class="btn-ojo-custom"
+                                           title="Ver perfil de @item.Persona">
+                                            <span class="icon icon-eye-open"></span>
+                                        </a>
+                                    </td>
+
+
+
+
+
                                     <td class='center' style='width: 70px'>@item.Dni</td>
                                     <td class='center' style='width: 70px'>@item.Celular</td>
                                 </tr>
@@ -186,12 +288,12 @@
                         @Html.DropDownList("cboProducto", (IEnumerable<SelectListItem>)ViewBag.cboProducto)
                     </p>
                     @*<p class="_25 small">
-            <label>Tipo de Crédito:</label>
-            <select id="cboTipoCuota">
-                <option value="V">VARIABLE</option>
-                <option value="F">FIJO</option>
-            </select>
-        </p>*@
+                            <label>Tipo de Crédito:</label>
+                            <select id="cboTipoCuota">
+                                <option value="V">VARIABLE</option>
+                                <option value="F">FIJO</option>
+                            </select>
+                        </p>*@
                     <p class="_25 small">
                         <label>Tipo:</label>
                         <select id="cboFormaPago">
@@ -205,15 +307,15 @@
                         <label>Tramite Administrativos:</label>
                         <select id="cboGA">
                             @*<option value="CAP">Gastos Adm. Descuento en Capital</option>
-                <option value="CUO">Gastos Adm. en Cuotas</option>*@
+                                <option value="CUO">Gastos Adm. en Cuotas</option>*@
                             <option value="ADE">Tramite Adm. Pago Adelantado</option>
                         </select>
                     </p>
 
                     @*<p class="_25 small">
-            <label for="txtInicial" class="inline">Inicial del crédito:</label>
-            <input data-error-type="inline" type="text" class="required" readonly name="txtInicial" id="txtInicial" value="@Model.SolicitudCredito.MontoInicial" />
-        </p>*@
+                            <label for="txtInicial" class="inline">Inicial del crédito:</label>
+                            <input data-error-type="inline" type="text" class="required" readonly name="txtInicial" id="txtInicial" value="@Model.SolicitudCredito.MontoInicial" />
+                        </p>*@
                     <p class="_25 small">
                         <label for="txtMontoCredito" class="inline">Monto Crédito:</label>
                         <input data-error-type="inline" type="text" class="required" id="txtMontoCredito" value="@Model.SolicitudCredito.MontoCredito" autofocus />
@@ -245,13 +347,13 @@
                         <input type="text" id="txtObsSol" style="height: 45px;" value="@Model.SolicitudCredito.Observacion" />
                     </p>
 
-                   
+
                 </div>
                 <!-- End of .content -->
 
                 <div class="actions">
                     @if (Model.lectura == false)
-                {
+                    {
                         <div class="left">
                             <button id="btnSimulador" class="icon icon-link">Simular Plan de pagos</button>
                         </div>
@@ -383,19 +485,11 @@
         <div class="credito grid_12">
             <form method="post" action="#" class="box validate">
                 <div class="header">
-
                     <div id="spancEstadoVencido" style="margin-left: 10px; margin-right: 10px;" class="alert sticky no-margin">
                         <span class="icon"></span>
                         CREDITO Nro: <label id="lblcCreditoId"></label>
-                        -
-                        <span onclick="VerEvidencias();" class="badge block blue" style="margin:0;padding:0">VER EVIDENCIAS</span>
-
-                        @*<div id="divchkcIrrecuperable" style="float:right">
-                    <input type="checkbox" name="chkcIrrecuperable" id="chkcIrrecuperable" />
-                    <label for="chkcIrrecuperable">Credito Irrecuperable?</label>
-                </div>*@
+                        @*<div id="divchkcIrrecuperable" style="float:right">                <input type="checkbox" name="chkcIrrecuperable" id="chkcIrrecuperable" />                <label for="chkcIrrecuperable">Credito Irrecuperable?</label>            </div>*@
                     </div>
-
                 </div>
 
                 <div class="content">
@@ -477,9 +571,9 @@
                     </p>
 
                     @*<p class="_25 small todo des">
-                <label for="txtcCancelacion" class="inline">Saldo Cancelación:</label>
-                <input type="text" readonly id="txtcCancelacion" style="font-weight: bolder" />
-            </p>*@
+                            <label for="txtcCancelacion" class="inline">Saldo Cancelación:</label>
+                            <input type="text" readonly id="txtcCancelacion" style="font-weight: bolder" />
+                        </p>*@
                     <p class="_50 small">
                         <label for="txtcFechaAprobacion" class="inline">Aprobación:</label>
                         <input type="text" readonly id="txtcFechaAprobacion" style="font-weight: bolder" />
@@ -920,14 +1014,7 @@
 
         </div>
         <script>
-            function apiPeruHeaders() {
-                var token = window.localStorage ? window.localStorage.getItem('credito.access') : null;
-                return token ? { 'Authorization': 'Bearer ' + token } : {};
-            }
-
-            function apiPeruDniUrl(dni) {
-                return "/api/v1/integraciones/apiperu/dni/" + encodeURIComponent((dni || '').replace(/\D/g, ''));
-            }
+            var tokenApiperu = 'Bearer bbd78886dd0b93fe2282ef3f919b1a0f662dfada35d422b8212891a931b37f98';
 
             $(function () {
                 mostrarCredito(@(Model.Creditos.FirstOrDefault() == null ? 0 : Model.Creditos.First().CreditoId));
@@ -1077,20 +1164,17 @@
                 $("#btnAvalBuscarDni").click(function(){
                     $.ajax({
                         type: 'GET',
-                        url: apiPeruDniUrl($("#txtAvalDni").val()),
+                        url: "https://apiperu.dev/api/dni/" + $("#txtAvalDni").val(),
                         data: {},
-                        headers: apiPeruHeaders(),
+                        headers: { 'Authorization': tokenApiperu },
                         success: function(ret) {
                             if (ret.success) {
-                                $("#txtAvalNombre").val(ret.nombres);
-                                $("#txtAvalApePaterno").val(ret.apellidoPaterno);
-                                $("#txtAvalApeMaterno").val(ret.apellidoMaterno);
+                                $("#txtAvalNombre").val(ret.data.nombres);
+                                $("#txtAvalApePaterno").val(ret.data.apellido_paterno);
+                                $("#txtAvalApeMaterno").val(ret.data.apellido_materno);
                             } else {
-                                Vendix.Mensaje(ret.mensaje || "DNI NO ENCONTRADO EN RENIEC");
+                                Vendix.Mensaje("DNI NO ENCONTRADO EN RENIEC");
                             }
-                        },
-                        error: function () {
-                            Vendix.Mensaje("No se pudo validar el DNI. Inicie sesión en el módulo moderno o configure API Perú.");
                         }
                     });
                 });
@@ -1321,6 +1405,8 @@
                 $("#btncCondonar").click(function(){
                     event.preventDefault();
                     $("#dlgCondonar").find('form')[0].reset();
+                    $("#chkcCapital,#chkcInteres,#chkcCargos,#chkcMoras").prop('checked', false);
+                    $("#txtcCondonarCapital,#txtcCondonarInteres,#txtcCondonarCargos,#txtcCondonarMoras").hide();
                     $("#cboCondonar").trigger("liszt:updated");
 
                     $.ajax({
@@ -1340,6 +1426,11 @@
                             $("#txtcCondonarCargos").val(ret.Cargo.toFixed(2));
                             $("#txtcCondonarMoras").val(ret.ImporteMora.toFixed(2));
 
+                            if (ret.TieneMoraCondonacionPendiente) {
+                                $("#chkcMoras").prop('checked', true);
+                                $("#txtcCondonarMoras").val(ret.MoraCondonacionPendiente.toFixed(2)).show();
+                            }
+
                             var deuda = ret.Cuota + ret.ImporteMora + ret.Cargo;
                             $.data(document.body, 'cDeuda',deuda);
                             $.data(document.body, 'cDeudaCapital',(ret.Amortizacion - ret.PagoLibre));
@@ -1347,6 +1438,7 @@
                             $.data(document.body, 'cDeudaMoras',ret.ImporteMora);
                             $.data(document.body, 'cDeudaCargos',ret.Cargo);
                             $("#lblCondonarCapital,#lblcCxcCondonar").text(deuda.toFixed(2));
+                            CalcularMontoCondonar();
 
                             $("#dlgCondonar").dialog('open');
                         }
@@ -1404,10 +1496,10 @@
                 var deudaMoras = $.data(document.body, 'cDeudaMoras');
                 var deudaCargos = $.data(document.body, 'cDeudaCargos');
 
-                var capital = 0;
-                var interes = 0;
-                var cargo = 0;
-                var moras = 0;
+                var capital = deudacapital;
+                var interes = deudainteres;
+                var cargo = deudaCargos;
+                var moras = deudaMoras;
 
                 if ($("#chkcCapital").prop('checked')) {
                     if (parseFloat($('#txtcCondonarCapital').val()) > deudacapital)
@@ -1430,16 +1522,12 @@
                     moras = parseFloat($('#txtcCondonarMoras').val()) ;
                 }
 
-                var m = deuda - capital - interes  - cargo - moras;
+                var m = capital + interes  + cargo + moras;
                 $.data(document.body, 'cDeudaCondonarCXC',m);
                 $.data(document.body, 'cDeudaObs','DEUDA('+deuda.toFixed(2)+')=CAPITAL('+deudacapital.toFixed(2)+')+INTERES('+deudainteres.toFixed(2)+')+MORAS('+deudaMoras.toFixed(2)+')+CARGOS('+deudaCargos.toFixed(2)+')' + ' ==> PAGO CONDONACION ('+m.toFixed(2)+') ==>CAPITAL('+capital.toFixed(2)+') INTERES('+interes.toFixed(2)+') MORAS('+moras.toFixed(2)+') CARGOS('+cargo.toFixed(2)+')' );
                 $.data(document.body, 'cMontoCondonacion',interes + cargo + moras);
                 $("#lblcCxcCondonar").text(m.toFixed(2));
 
-            }
-
-            function VerEvidencias(){
-                window.open('@Url.Action("Evidencias","Credito")' + "/" + $.data(document.body, 'CreditoId'), '_self');
             }
 
             function mostrarCredito(CreditoId) {
@@ -1871,20 +1959,20 @@
     function LinkReimpresion(cellvalue, options, rowObject) {
         var arr = cellvalue.split(',');
         if (arr[0] != 'PAG') return arr[0];
-        return "<a href='' onclick='MostrarReimpresion(" + arr[1] + ");return false;'> " + arr[0] + " </a>";        
-        
+        return "<a href='' onclick='MostrarReimpresion(" + arr[1] + ");return false;'> " + arr[0] + " </a>";
+
     };
     function LinkDescuento(cellvalue, options, rowObject) {
         var arr = cellvalue.split(';');
         if (arr[1] != 'PEN') return arr[0];
 
-        
+
         @if (ViewBag.Administrador > 0)
         {   <text>
             return "<a href='' onclick='MostrarDescuento("+arr[0]+"," + arr[2] + ","+arr[3]+");return false;'> " + arr[0] + " </a>";
             </text>
         }
-        
+
         return arr[0];
     };
     function MostrarDescuento(descuento, planpagoid, mora){
@@ -1892,7 +1980,7 @@
         $.data(document.body, 'ppImporteMora', mora);
         $("#lblValidarDescuento").text("");
         $('#txtDescuento').val(parseFloat(descuento).toFixed(2));
-                
+
         $("#dlgAgregarDesc").dialog("open");
         $('#txtDescuento').select();
 
@@ -1900,14 +1988,14 @@
             url: "@Url.Action("ObtenerPlanPago", "Credito")",
             data: { pPlanPagoId: planpagoid },
             success: function (data) {
-                
+
                 $('#txtDescuento').val(parseFloat(data.Descuento).toFixed(2));
-                
+
                 $("#dlgAgregarDesc").dialog("open");
                 $('#txtDescuento').select();
             },
         });*@
-        
+
     }
 
     function MostrarReimpresion(MovimientoCajaId) {

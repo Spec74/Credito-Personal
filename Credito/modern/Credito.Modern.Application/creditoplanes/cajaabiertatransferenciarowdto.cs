@@ -5,4 +5,6 @@ public sealed class CajaAbiertaTransferenciaRowDto
 {
     public int CajaId { get; init; }
     public string Etiqueta { get; init; } = string.Empty;
+    /// <summary>Gestor/analista con la caja abierta (para embudo TransferirAAnalista).</summary>
+    public int UsuarioAsignadoId { get; init; }
 }

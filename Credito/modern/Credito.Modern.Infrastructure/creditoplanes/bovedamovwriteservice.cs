@@ -53,6 +53,8 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
         string descripcion,
         int usuarioRegId,
         DateTime fechaOperacion,
+        short tipoPagoOrigenId = 1,
+        short tipoPagoDestinoId = 1,
         CancellationToken cancellationToken = default)
     {
         if (oficinaId < 1 || cajaId < 1 || usuarioRegId < 1)
@@ -70,6 +72,11 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             throw new ArgumentOutOfRangeException(nameof(descripcion), "descripcion es obligatoria.");
         }
 
+        if (tipoPagoOrigenId < 1 || tipoPagoDestinoId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(tipoPagoOrigenId), "tipoPago debe ser >= 1.");
+        }
+
         return ExecuteTransferirACajaAsync(
             oficinaId,
             cajaId,
@@ -77,7 +84,110 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             descripcion,
             usuarioRegId,
             fechaOperacion,
+            tipoPagoOrigenId,
+            tipoPagoDestinoId,
             cancellationToken);
+    }
+
+    public async Task<(string? Error, BovedaMovOperacionResponse? Result)> TransferirAAnalistaAsync(
+        int oficinaId,
+        int usuarioAnalistaId,
+        short tipoPagoOrigenId,
+        decimal importe,
+        string descripcion,
+        int usuarioRegId,
+        DateTime fechaOperacion,
+        CancellationToken cancellationToken = default)
+    {
+        if (oficinaId < 1 || usuarioAnalistaId < 1 || usuarioRegId < 1)
+        {
+            return ("Parámetros de oficina/analista inválidos.", null);
+        }
+
+        if (importe <= 0)
+        {
+            return ("El importe debe ser mayor a cero.", null);
+        }
+
+        if (tipoPagoOrigenId < 1)
+        {
+            return ("Debe seleccionar el medio/banco de origen.", null);
+        }
+
+        if (string.IsNullOrWhiteSpace(descripcion))
+        {
+            return ("La descripción es obligatoria.", null);
+        }
+
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var bovedaId = await GetBovedaAbiertaIdAsync(connection, null, oficinaId, cancellationToken)
+            .ConfigureAwait(false);
+        if (bovedaId is null)
+        {
+            return ("La bóveda de la oficina no está abierta.", null);
+        }
+
+        // Saldo del medio desde el ledger (optimización vs parseo de texto usp_ResumenCuentaBoveda).
+        var saldoDisponible = await connection.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(
+                """
+                SELECT ISNULL(SUM(
+                    CASE WHEN bm.IndEntrada = CAST(1 AS bit) THEN bm.Importe ELSE -bm.Importe END
+                ), 0)
+                FROM CREDITO.BovedaMov AS bm
+                WHERE bm.BovedaId = @BovedaId
+                  AND bm.Estado = CAST(1 AS bit)
+                  AND bm.TipoPagoId = @TipoPagoId;
+                """,
+                new { BovedaId = bovedaId.Value, TipoPagoId = tipoPagoOrigenId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (importe > saldoDisponible)
+        {
+            return (
+                $"Operación rechazada: saldo insuficiente. El medio seleccionado solo dispone de {saldoDisponible:N2}.",
+                null);
+        }
+
+        var caja = await connection.QueryFirstOrDefaultAsync<CajaAnalistaRow>(
+            new CommandDefinition(
+                """
+                SELECT TOP (1) cd.CajaId, cd.CajaDiarioId
+                FROM CREDITO.CajaDiario AS cd
+                INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                WHERE cd.UsuarioAsignadoId = @UsuarioAnalistaId
+                  AND cd.IndCierre = CAST(0 AS bit)
+                  AND c.OficinaId = @OficinaId
+                ORDER BY cd.CajaDiarioId DESC;
+                """,
+                new { UsuarioAnalistaId = usuarioAnalistaId, OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (caja is null)
+        {
+            return ("El analista/agente seleccionado no tiene una caja abierta el día de hoy.", null);
+        }
+
+        var result = await ExecuteTransferirACajaAsync(
+            oficinaId,
+            caja.CajaId,
+            importe,
+            descripcion,
+            usuarioRegId,
+            fechaOperacion,
+            tipoPagoOrigenId,
+            tipoPagoDestinoId: 1,
+            cancellationToken).ConfigureAwait(false);
+
+        if (result is null)
+        {
+            return ("No se pudo registrar la transferencia en la base de datos.", null);
+        }
+
+        return (null, result);
     }
 
     private async Task<BovedaMovOperacionResponse?> ExecuteIngresoEgresoAsync(
@@ -185,6 +295,8 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
         string descripcion,
         int usuarioRegId,
         DateTime fechaOperacion,
+        short tipoPagoOrigenId,
+        short tipoPagoDestinoId,
         CancellationToken cancellationToken)
     {
         EnsureConnection();
@@ -249,7 +361,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                     VALUES (
                         @BovedaId,
                         N'TRS',
-                        1,
+                        @TipoPagoOrigenId,
                         @Glosa,
                         @Importe,
                         CAST(0 AS bit),
@@ -261,6 +373,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                     new
                     {
                         BovedaId = bovedaId.Value,
+                        TipoPagoOrigenId = tipoPagoOrigenId,
                         Glosa = glosaBoveda,
                         Importe = importe,
                         CajaDiarioId = cajaDiario.CajaDiarioId,
@@ -295,7 +408,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                         @Descripcion,
                         CAST(1 AS bit),
                         CAST(1 AS bit),
-                        1,
+                        @TipoPagoDestinoId,
                         @UsuarioRegId,
                         @FechaReg);
                     SELECT CAST(SCOPE_IDENTITY() AS int);
@@ -306,6 +419,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                         ImportePago = importe,
                         PersonaId = personaId,
                         Descripcion = descripcionCaja,
+                        TipoPagoDestinoId = tipoPagoDestinoId,
                         UsuarioRegId = usuarioRegId,
                         FechaReg = fechaOperacion,
                     },
@@ -686,6 +800,12 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
     {
         public int CajaDiarioId { get; init; }
         public int OficinaId { get; init; }
+    }
+
+    private sealed class CajaAnalistaRow
+    {
+        public int CajaId { get; init; }
+        public int CajaDiarioId { get; init; }
     }
 
     private sealed class CajaChicaAbiertaRow

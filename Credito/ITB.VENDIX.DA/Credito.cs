@@ -26,6 +26,7 @@ namespace ITB.VENDIX.DA
             this.MovimientoCaja = new HashSet<MovimientoCaja>();
             this.Tarea = new HashSet<Tarea>();
             this.CreditoMora = new HashSet<CreditoMora>();
+            this.CreditoCondonacion = new HashSet<CreditoCondonacion>();
         }
     
         public int CreditoId { get; set; }
@@ -86,5 +87,7 @@ namespace ITB.VENDIX.DA
         public virtual ICollection<Tarea> Tarea { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<CreditoMora> CreditoMora { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CreditoCondonacion> CreditoCondonacion { get; set; }
     }
 }

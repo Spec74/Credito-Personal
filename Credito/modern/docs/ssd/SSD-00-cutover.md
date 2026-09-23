@@ -1,6 +1,6 @@
 # SSD-00 — Cutover y strangler
 
-**Estado:** as-built (código y runbooks) · Development verificado 2026-09-11 · corte preprod **no ejecutado**  
+**Estado:** as-built (código y runbooks) · Development verificado 2026-09-11 · piloto Azure App Service + Vercel verificado 2026-09-23 (login real + smoke JWT) · retiro MVC **no** firmado
 **Código:** `deploy/`, nginx/IIS ARR, SPA `/app/`, API `/api/v1`  
 **Fuente:** convivencia MVC (`Credito/Web`) + `Credito.Modern`  
 **Doc de ingeniería:** [STRANGLER-MIGRATION.md](../migration/STRANGLER-MIGRATION.md), [DEPLOY-AL-SUBIR.md](../migration/DEPLOY-AL-SUBIR.md), [PHASE-5-OPERATIONS-CUTOVER.md](../migration/PHASE-5-OPERATIONS-CUTOVER.md), [MIGRATION-CLOSURE.md](../migration/MIGRATION-CLOSURE.md)

@@ -18,6 +18,7 @@ namespace ITB.VENDIX.DA
         public CajaDiario()
         {
             this.MovimientoCaja = new HashSet<MovimientoCaja>();
+            this.CreditoCondonacion = new HashSet<CreditoCondonacion>();
         }
     
         public int CajaDiarioId { get; set; }
@@ -43,5 +44,7 @@ namespace ITB.VENDIX.DA
         public virtual Usuario Usuario { get; set; }
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<MovimientoCaja> MovimientoCaja { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<CreditoCondonacion> CreditoCondonacion { get; set; }
     }
 }

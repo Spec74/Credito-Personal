@@ -1,11 +1,14 @@
 # Levanta el stack strangler (API + nginx) en segundo plano.
 # Uso: desde modern/  ->  .\deploy\scripts\start-strangler.ps1
+# Release local (Staging SPA + AllowDevToken): .\deploy\scripts\start-strangler.ps1 -DevToken
 # Smoke: .\deploy\scripts\smoke-strangler-proxy.ps1
 
 param(
     [switch]$Foreground,
     [switch]$Build,
-    [switch]$Fresh
+    [switch]$Fresh,
+    # Staging + Hosting__AllowDevToken (smoke JWT sin forzar Development / SPA false).
+    [switch]$DevToken
 )
 
 $ErrorActionPreference = "Stop"
@@ -37,9 +40,12 @@ function Invoke-DockerComposeUp {
 
 $modernRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 $composeFile = Join-Path $modernRoot "deploy\docker-compose.strangler.yml"
+$devTokenOverride = Join-Path $modernRoot "deploy\docker-compose.devtoken.override.yml"
 $envFile = Join-Path $modernRoot "deploy\.env"
 $envLocalFile = Join-Path $modernRoot "deploy\.env.local"
 $envExample = Join-Path $modernRoot "deploy\.env.example"
+# Nombre estable: evita un segundo stack sin puertos (proyecto default = nombre de carpeta).
+$composeProject = "credito-modern-current"
 
 if (Test-Path $envLocalFile) {
     $envFile = $envLocalFile
@@ -57,10 +63,17 @@ Push-Location $modernRoot
 try {
     $dockerArgs = @(
         "compose",
-        "-f", $composeFile,
-        "--env-file", $envFile,
-        "up"
+        "-p", $composeProject,
+        "-f", $composeFile
     )
+    if ($DevToken) {
+        if (-not (Test-Path $devTokenOverride)) {
+            throw "Falta $devTokenOverride"
+        }
+        $dockerArgs += @("-f", $devTokenOverride)
+        Write-Host 'Override DevToken: Staging + AllowDevToken=true (SPA flags intactos).' -ForegroundColor Cyan
+    }
+    $dockerArgs += @("--env-file", $envFile, "up")
     if ($Build -or $Fresh) { $dockerArgs += "--build" }
     if ($Fresh -and -not $Foreground) {
         Write-Host "Modo -Fresh: reconstruye imagen API (use restart-strangler-fresh.ps1 para down+up)." -ForegroundColor Yellow
@@ -70,11 +83,18 @@ try {
     }
     else {
         $dockerArgs += "-d"
+        if ($DevToken) {
+            # Sin recreate, compose reutiliza el API con AllowDevToken=false del compose base.
+            $dockerArgs += "--force-recreate"
+        }
         Invoke-DockerComposeUp -DockerArgs $dockerArgs
         Write-Host ""
         Write-Host "Stack en segundo plano. Fachada: http://localhost:9080  API directa: http://localhost:5080" -ForegroundColor Green
         Write-Host 'Verificar: .\deploy\scripts\verify-strangler-proxy.ps1' -ForegroundColor Gray
         Write-Host 'Smoke: .\deploy\scripts\smoke-strangler-proxy.ps1' -ForegroundColor Gray
+        if ($DevToken) {
+            Write-Host 'Release local: ui-config SPA=true + POST /api/v1/dev/token disponible.' -ForegroundColor Gray
+        }
         Write-Host 'Si rutas nuevas devuelven 404: vuelve a levantar con -Build' -ForegroundColor Gray
     }
 }
