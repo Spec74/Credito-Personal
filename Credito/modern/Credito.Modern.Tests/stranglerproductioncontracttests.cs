@@ -21,8 +21,11 @@ public sealed class StranglerProductionContractTests
         Assert.False(root.GetProperty("RateLimiting").GetProperty("Disabled").GetBoolean());
 
         var fwd = hosting.GetProperty("ForwardedHeaders");
-        Assert.False(fwd.GetProperty("Enabled").GetBoolean());
+        // App Service: Enabled=true + KnownProxies vacío limpia Known* y confía en el proxy de plataforma.
+        Assert.True(fwd.GetProperty("Enabled").GetBoolean());
         Assert.Equal(0, fwd.GetProperty("KnownProxies").GetArrayLength());
+
+        Assert.True(root.GetProperty("BrowserCors").GetProperty("AllowedOrigins").GetArrayLength() >= 1);
     }
 
     private static string FindProductionSettingsPath()

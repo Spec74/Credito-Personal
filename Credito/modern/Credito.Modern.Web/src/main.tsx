@@ -26,6 +26,7 @@ import './styles/credito-aprobacion-module.css'
 import './styles/clientes-module.css'
 import './styles/cliente-form.css'
 import './styles/boveda-module.css'
+import './styles/cierre-gerencial.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
