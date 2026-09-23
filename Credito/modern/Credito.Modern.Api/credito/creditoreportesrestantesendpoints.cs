@@ -595,6 +595,7 @@ internal static class CreditoReportesRestantesEndpoints
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
                     int? creditoId,
                     IRptMovimientoCreditoReadService rptMovimiento,
+                    IRptEstadoCreditoReadService estadoCredito,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -611,13 +612,11 @@ internal static class CreditoReportesRestantesEndpoints
                     try
                     {
                         var items = await rptMovimiento.ListarPorCreditoAsync(creditoId.Value, ct).ConfigureAwait(false);
-                        var csvBytes = RptMovimientoCreditoCsvFormatter.ToUtf8BomCsv(items);
-                        var pdfContext = new CredixLegacyReportContext
-                        {
-                            Titulo = $"MOVIMIENTO CRÉDITO N° {creditoId.Value}",
-                            Referencia = $"Crédito N° {creditoId.Value}",
-                        };
-                        var bytes = TabularPdfDocument.FromUtf8BomCsv("Movimiento crédito", csvBytes, context: pdfContext);
+                        var informe = await estadoCredito.ObtenerAsync(creditoId.Value, ct).ConfigureAwait(false);
+                        var bytes = RptMovimientoCreditoFichaPdfDocument.Build(
+                            informe?.Cabecera,
+                            creditoId.Value,
+                            items);
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "movimiento-credito.pdf");
                     }
                     catch (InvalidOperationException ex)
@@ -650,7 +649,7 @@ internal static class CreditoReportesRestantesEndpoints
                 })
             .WithName("CreditoRptMovimientoCreditoPdf")
             .WithSummary(
-                "Export lectura: mismos datos que GET rpt-movimiento-credito en PDF tabular (QuestPDF). CREDITO.usp_RptMovimientoCredito sin motor RDLC. CreditoUser.")
+                "Export lectura: mismos datos que GET rpt-movimiento-credito en PDF ficha profesional (QuestPDF). CREDITO.usp_RptMovimientoCredito sin motor RDLC. CreditoUser.")
             .WithTags("credito", "reportes")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
@@ -1982,6 +1981,7 @@ internal static class CreditoReportesRestantesEndpoints
         app.MapGet(
                 "/api/v1/credito/rpt-aval-pdf",
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     int? personaId,
                     IRptAvalReadService rptAval,
                     ILoggerFactory loggerFactory,
@@ -2001,10 +2001,17 @@ internal static class CreditoReportesRestantesEndpoints
                     {
                         var items = await rptAval.ListarPorPersonaAsync(personaId.Value, ct).ConfigureAwait(false);
                         var csvBytes = RptAvalCsvFormatter.ToUtf8BomCsv(items);
-                        var pdfContext = new CredixLegacyReportContext
-                        {
-                            Referencia = $"Persona N° {personaId.Value}",
-                        };
+                        int? oficinaId = MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oid)
+                            ? oid
+                            : null;
+                        var pdfContext = await LegacyReportPdf
+                            .ResolveAsync(
+                                httpContext,
+                                oficinaId,
+                                referencia: $"Persona N° {personaId.Value}",
+                                titulo: "AVALES POR PERSONA",
+                                cancellationToken: ct)
+                            .ConfigureAwait(false);
                         var bytes = TabularPdfDocument.FromUtf8BomCsv("Avales", csvBytes, context: pdfContext);
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "aval-persona.pdf");
                     }
@@ -6031,16 +6038,16 @@ internal static class CreditoReportesRestantesEndpoints
                                 oficinaResolvedInactivosCsv,
                                 ct)
                             .ConfigureAwait(false);
-                        var csvBytes = RptClientesInactivosCsvFormatter.ToUtf8BomCsv(items);
                         var pdfContext = await LegacyReportPdf.ResolveAsync(
                                 httpContext,
                                 oficinaResolvedInactivosCsv,
                                 usuarioResolvedInactivosCsv,
                                 fechaIni: fechaIni,
                                 fechaFin: fechaFin,
+                                titulo: "CLIENTES INACTIVOS",
                                 cancellationToken: ct)
                             .ConfigureAwait(false);
-                        var bytes = TabularPdfDocument.FromUtf8BomCsv("Clientes inactivos", csvBytes, context: pdfContext);
+                        var bytes = RptClientesInactivosFichaPdfDocument.Build(items, pdfContext);
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "clientes-inactivos.pdf");
                     }
                     catch (InvalidOperationException ex)
@@ -6614,14 +6621,14 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await rptCreditoVencido
                             .ListarAsync(oficinaId.Value, vencidoMenor60, vencidoMayor60, vencidoIrrecuperable, ct)
                             .ConfigureAwait(false);
-                        var csvBytes = RptCreditoVencidoCsvFormatter.ToUtf8BomCsv(items);
                         var pdfContext = await LegacyReportPdf.ResolveAsync(
                                 httpContext,
                                 oficinaId,
                                 fecha: DateTime.Today,
+                                titulo: "CRÉDITOS VENCIDOS",
                                 cancellationToken: ct)
                             .ConfigureAwait(false);
-                        var bytes = TabularPdfDocument.FromUtf8BomCsv("Crédito vencido", csvBytes, context: pdfContext);
+                        var bytes = RptCreditoVencidoFichaPdfDocument.Build(items, pdfContext);
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "credito-vencido.pdf");
                     }
                     catch (InvalidOperationException ex)
@@ -7475,7 +7482,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolvedObs, usuarioResolvedObs, accessObsErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        GestorInformeReportAccess.ResolveOptionalOficina(httpContext, oficinaId, usuarioId);
                     if (accessObsErr is not null)
                     {
                         return accessObsErr;
@@ -7553,7 +7560,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolvedObsCsv, usuarioResolvedObsCsv, accessObsCsvErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        GestorInformeReportAccess.ResolveOptionalOficina(httpContext, oficinaId, usuarioId);
                     if (accessObsCsvErr is not null)
                     {
                         return accessObsCsvErr;
@@ -7622,7 +7629,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {                    var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        GestorInformeReportAccess.ResolveOptionalOficina(httpContext, oficinaId, usuarioId);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -7634,14 +7641,10 @@ internal static class CreditoReportesRestantesEndpoints
                         var items = await rptCreditoObservado
                             .ListarAsync(oficinaResolved, usuarioResolved, ct)
                             .ConfigureAwait(false);
-                        var csvBytes = RptCreditoObservadoCsvFormatter.ToUtf8BomCsv(items);
                         var pdfContext = await GestorInformePdfContextBuilder
                             .BuildGestorOficinaAsync(oficinaResolved, usuarioResolved, usuarios, oficinas, ct)
                             .ConfigureAwait(false);
-                        var bytes = TabularPdfDocument.FromUtf8BomCsv(
-                            "Créditos observados",
-                            csvBytes,
-                            context: pdfContext);
+                        var bytes = RptCreditoObservadoFichaPdfDocument.Build(items, pdfContext);
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "credito-observado.pdf");
                     }
                     catch (InvalidOperationException ex)
@@ -7674,7 +7677,7 @@ internal static class CreditoReportesRestantesEndpoints
                 })
             .WithName("CreditoRptCreditoObservadoPdf")
             .WithSummary(
-                "Export lectura: mismos datos que GET rpt-credito-observado en PDF tabular (QuestPDF). Sin layout RDLC legacy. CreditoUser.")
+                "Export lectura: mismos datos que GET rpt-credito-observado en PDF ficha profesional (QuestPDF). Paridad CreditoBL.ReporteCreditoObservado. CreditoUser.")
             .WithTags("credito", "reportes")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")

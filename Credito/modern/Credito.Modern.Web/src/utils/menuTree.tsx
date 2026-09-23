@@ -152,12 +152,14 @@ export function defaultOpenMenuKeys(items: MenuItemDto[]): string[] {
   return sorted.filter((i) => isPadre(i)).map((p) => `parent-${p.menuId}`)
 }
 
-/** Accesos rápidos visibles solo si el menú del usuario incluye ese módulo MVC. */
+/** Accesos rápidos visibles solo si el menú del usuario incluye ese módulo MVC.
+ * Nota: AppShell ya no filtra (paridad `_Layout.cshtml` = siempre los 5);
+ * se conserva por reuso / tests. */
 export function filterQuickActionsByMenu<
   T extends { label: string; legacyPath: string },
 >(actions: T[], menuItems: MenuItemDto[]): T[] {
   if (menuItems.length === 0) {
-    return []
+    return actions
   }
   return actions.filter((action) => {
     const segment = action.legacyPath.replace(/^~\//, '').split('/').filter(Boolean)[0]

@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Api.Hosting;
+using Credito.Modern.Api.Reportes;
 using Credito.Modern.Application.Almacenes;
 using Credito.Modern.Application.Articulos;
 using Credito.Modern.Application.Auth;
@@ -430,7 +431,19 @@ internal static class VentasEndpoints
                                 ct)
                             .ConfigureAwait(false);
                         var csvBytes = RptRentabilidadVentaCsvFormatter.ToUtf8BomCsv(items);
-                        var bytes = TabularPdfDocument.FromUtf8BomCsv("Rentabilidad venta", csvBytes);
+                        var pdfContext = await LegacyReportPdf
+                            .ResolveAsync(
+                                httpContext,
+                                oficinaId.Value,
+                                fechaIni: fechaIni.Value,
+                                fechaFin: fechaFin.Value,
+                                titulo: "RENTABILIDAD DE VENTAS",
+                                cancellationToken: ct)
+                            .ConfigureAwait(false);
+                        var bytes = TabularPdfDocument.FromUtf8BomCsv(
+                            "Rentabilidad venta",
+                            csvBytes,
+                            context: pdfContext);
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "rentabilidad-venta.pdf");
                     }
                     catch (InvalidOperationException ex)
@@ -612,6 +625,7 @@ internal static class VentasEndpoints
         app.MapGet(
                 "/api/v1/ventas/rpt-lista-precio-pdf",
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     int? marcaId,
                     bool? indDescuento,
                     bool? indPuntos,
@@ -635,7 +649,21 @@ internal static class VentasEndpoints
                             .ListarAsync(marcaId, indDescuento == true, indPuntos == true, ct)
                             .ConfigureAwait(false);
                         var csvBytes = RptListaPrecioCsvFormatter.ToUtf8BomCsv(items);
-                        var bytes = TabularPdfDocument.FromUtf8BomCsv("Lista de precios", csvBytes);
+                        int? oficinaId = MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oid)
+                            ? oid
+                            : null;
+                        var pdfContext = await LegacyReportPdf
+                            .ResolveAsync(
+                                httpContext,
+                                oficinaId,
+                                referencia: marcaId is > 0 ? $"Marca #{marcaId}" : null,
+                                titulo: "LISTA DE PRECIOS",
+                                cancellationToken: ct)
+                            .ConfigureAwait(false);
+                        var bytes = TabularPdfDocument.FromUtf8BomCsv(
+                            "Lista de precios",
+                            csvBytes,
+                            context: pdfContext);
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "lista-precio.pdf");
                     }
                     catch (InvalidOperationException ex)
@@ -795,6 +823,7 @@ internal static class VentasEndpoints
         app.MapGet(
                 "/api/v1/ventas/codigo-barras-lst-pdf",
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     int? movimientoId,
                     ICodigoBarrasLstReadService codigoBarras,
                     ILoggerFactory loggerFactory,
@@ -814,9 +843,21 @@ internal static class VentasEndpoints
                     {
                         var items = await codigoBarras.ListarPorMovimientoAsync(movimientoId.Value, ct).ConfigureAwait(false);
                         var csvBytes = CodigoBarrasLstCsvFormatter.ToUtf8BomCsv(items);
+                        int? oficinaId = MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oid)
+                            ? oid
+                            : null;
+                        var pdfContext = await LegacyReportPdf
+                            .ResolveAsync(
+                                httpContext,
+                                oficinaId,
+                                referencia: $"Movimiento #{movimientoId.Value}",
+                                titulo: "CÓDIGOS DE BARRAS",
+                                cancellationToken: ct)
+                            .ConfigureAwait(false);
                         var pdfBytes = TabularPdfDocument.FromUtf8BomCsv(
                             $"Códigos de barras mov. {movimientoId}",
-                            csvBytes);
+                            csvBytes,
+                            context: pdfContext);
                         return TypedResults.File(pdfBytes, "application/pdf", $"codigo-barras-{movimientoId}.pdf");
                     }
                     catch (Exception ex) when (ex is InvalidOperationException or DbException)

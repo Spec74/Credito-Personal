@@ -1,9 +1,90 @@
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Reportes;
 
 namespace Credito.Modern.Tests;
 
 public class InformeFichaPdfDocumentTests
 {
+    [Fact]
+    public void Observado_ficha_pdf_genera_bytes()
+    {
+        var rows = new List<RptCreditoObservadoRowDto>
+        {
+            new()
+            {
+                CreditoId = 10,
+                Cliente = "Ana López",
+                Oficina = "Ayacucho",
+                Agente = "Gestor 1",
+                MontoCredito = 1500m,
+                Interes = 120m,
+                TramiteAdm = 30m,
+                CentralRiesgo = 10m,
+                FechaPrimerPago = new DateTime(2026, 1, 15),
+                FechaVencimiento = new DateTime(2026, 7, 15),
+                Observacion = "Pendiente docs",
+            },
+        };
+        var bytes = RptCreditoObservadoFichaPdfDocument.Build(
+            rows,
+            new CredixLegacyReportContext { Oficina = "Ayacucho", Agente = "Gestor 1" });
+        Assert.NotEmpty(bytes);
+        Assert.Equal('%', (char)bytes[0]);
+    }
+
+    [Fact]
+    public void Inactivos_ficha_pdf_genera_bytes()
+    {
+        var rows = new List<RptClientesInactivosRowDto>
+        {
+            new()
+            {
+                PersonaId = 1,
+                Agente = "Gestor 1",
+                Codigo = "C-01",
+                Cliente = "Pedro Ruiz",
+                Dni = "12345678",
+                Celular = "999111222",
+                MontoCredito = 800m,
+                TopeCredito = 1000m,
+                TotalCreditos = 2,
+                DiasInactividad = 90,
+                FechaCancelacion = new DateTime(2025, 12, 1),
+            },
+        };
+        var bytes = RptClientesInactivosFichaPdfDocument.Build(
+            rows,
+            new CredixLegacyReportContext { Oficina = "Ayacucho", Agente = "Gestor 1" });
+        Assert.NotEmpty(bytes);
+        Assert.Equal('%', (char)bytes[0]);
+    }
+
+    [Fact]
+    public void Vencido_ficha_pdf_genera_bytes()
+    {
+        var rows = new List<RptCreditoVencidoRowDto>
+        {
+            new()
+            {
+                CreditoId = 22,
+                Gestor = "Gestor 1",
+                Cliente = "Luis Soto",
+                MontoCredito = 2000m,
+                CreditoVencido = 450m,
+                FormaPago = "Mensual",
+                FechaVencimiento = new DateTime(2026, 3, 1),
+                VencidoMenor60 = "S",
+                VencidoMayor60 = "N",
+                VencidoIrrecuperable = "N",
+            },
+        };
+        var bytes = RptCreditoVencidoFichaPdfDocument.Build(
+            rows,
+            new CredixLegacyReportContext { Oficina = "Ayacucho", Fecha = "23/09/2026" });
+        Assert.NotEmpty(bytes);
+        Assert.Equal('%', (char)bytes[0]);
+    }
+
     [Fact]
     public void Cliente_ficha_pdf_genera_bytes()
     {

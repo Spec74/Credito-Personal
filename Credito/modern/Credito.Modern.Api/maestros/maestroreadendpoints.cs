@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Net.Http.Headers;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Api.Hosting;
+using Credito.Modern.Api.Reportes;
 using Credito.Modern.Application.Almacenes;
 using Credito.Modern.Application.Articulos;
 using Credito.Modern.Application.Documentos;
@@ -786,7 +787,13 @@ internal static class MaestroReadEndpoints
                     {
                         var items = await reportes.ListarPorOficinaAsync(oficinaId.Value, ct).ConfigureAwait(false);
                         var csvBytes = ReporteStockCsvFormatter.ToUtf8BomCsv(items);
-                        var bytes = TabularPdfDocument.FromUtf8BomCsv("Reporte stock", csvBytes);
+                        var pdfContext = await LegacyReportPdf
+                            .ResolveAsync(httpContext, oficinaId.Value, cancellationToken: ct)
+                            .ConfigureAwait(false);
+                        var bytes = TabularPdfDocument.FromUtf8BomCsv(
+                            "Reporte stock",
+                            csvBytes,
+                            context: pdfContext with { Titulo = "REPORTE DE STOCK" });
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "reporte-stock.pdf");
                     }
                     catch (InvalidOperationException ex)
@@ -1103,7 +1110,17 @@ internal static class MaestroReadEndpoints
                             .ListarAsync(articuloId.Value, almacenId.Value, ct)
                             .ConfigureAwait(false);
                         var csvBytes = GenerarKardexCsvFormatter.ToUtf8BomCsv(items);
-                        var bytes = TabularPdfDocument.FromUtf8BomCsv("Kardex", csvBytes);
+                        var pdfContext = await LegacyReportPdf
+                            .ResolveAsync(httpContext, oficinaId.Value, cancellationToken: ct)
+                            .ConfigureAwait(false);
+                        var bytes = TabularPdfDocument.FromUtf8BomCsv(
+                            "Kardex",
+                            csvBytes,
+                            context: pdfContext with
+                            {
+                                Titulo = "KARDEX",
+                                Referencia = $"Artículo #{articuloId.Value} · Almacén #{almacenId.Value}",
+                            });
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "generar-kardex.pdf");
                     }
                     catch (InvalidOperationException ex)

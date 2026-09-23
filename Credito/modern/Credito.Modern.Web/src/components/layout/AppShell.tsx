@@ -1,7 +1,7 @@
-import { Suspense, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button, Drawer, Grid, Menu, Result, Spin, Tag, Typography } from 'antd'
+import { Button, Drawer, Grid, Menu, Result, Spin, Tag, Typography, message } from 'antd'
 import './app-shell.css'
 import {
   LogoutOutlined,
@@ -20,9 +20,13 @@ import { RouteFallback } from './RouteFallback'
 import { branding } from '../../config/branding'
 import { quickActions, type QuickAction } from '../../config/quickActions'
 import {
+  openLegacyClientesInactivosGestor,
+  openLegacyCreditoObservado,
+  openLegacyMorosidadGestor,
+} from '../../config/legacyreporturls'
+import {
   buildAntMenuItems,
   defaultOpenMenuKeys,
-  filterQuickActionsByMenu,
   findMenuItem,
   findSelectedMenuKeys,
 } from '../../utils/menuTree'
@@ -82,10 +86,8 @@ export function AppShell() {
   const puedeVerCierreGerencial = cierrePermisosQuery.data?.puedeConsultar === true
 
   const navigationMenuData = useMemo(() => menuQuery.data ?? [], [menuQuery.data])
-  const quickActionsVisible = useMemo(
-    () => filterQuickActionsByMenu(quickActions, navigationMenuData),
-    [navigationMenuData],
-  )
+  /** Paridad `_Layout.cshtml`: los 5 accesos rápidos siempre visibles con sesión. */
+  const quickActionsVisible = quickActions
   const extraAllowedPaths = useMemo(
     () => (puedeVerCierreGerencial ? ['/informes/cierre-gerencial'] : []),
     [puedeVerCierreGerencial],
@@ -151,11 +153,11 @@ export function AppShell() {
     return keys
   }, [location.pathname, navigationMenuData])
 
-  const closeMobileNav = () => {
+  const closeMobileNav = useCallback(() => {
     if (isMobile) {
       setMobileNavOpen(false)
     }
-  }
+  }, [isMobile])
 
   const navigateMenuItem = (item: (typeof navigationMenuData)[number]) => {
     const spaFromMenu = resolveSpaPathFromMenuItem(
@@ -234,6 +236,39 @@ export function AppShell() {
 
   const roleTags = session?.roles ?? []
 
+  const onQuickAction = useCallback(
+    (qa: QuickAction) => {
+      const oficinaId = session?.oficinaId
+      const usuarioId = session?.usuarioId
+      closeMobileNav()
+
+      if (qa.kind === 'navigate') {
+        navigate(qa.spaPath ?? '/inicio')
+        return
+      }
+
+      if (!oficinaId || !usuarioId) {
+        message.warning('Sesión incompleta: no se puede generar el reporte.')
+        return
+      }
+
+      try {
+        if (qa.kind === 'pdf-observados') {
+          // Legacy: pOficinaId=null (todas) + pUsuarioId.
+          openLegacyCreditoObservado(undefined, usuarioId, 'PDF')
+        } else if (qa.kind === 'pdf-vencidos') {
+          // Legacy: pOficinaId=null + pUsuarioId → PDF morosidad gestor.
+          openLegacyMorosidadGestor(undefined, usuarioId, 'PDF')
+        } else if (qa.kind === 'pdf-inactivos') {
+          openLegacyClientesInactivosGestor(oficinaId, usuarioId)
+        }
+      } catch {
+        message.error('No se pudo abrir el reporte. Permita ventanas emergentes.')
+      }
+    },
+    [closeMobileNav, navigate, session?.oficinaId, session?.usuarioId],
+  )
+
   const navPanel = (
     <NavPanel
       menuExpanded={isMobile || !collapsed}
@@ -245,14 +280,7 @@ export function AppShell() {
       onMenuClick={onMenuClick}
       onRetryMenu={() => void menuQuery.refetch()}
       quickActionsVisible={quickActionsVisible}
-      onQuickAction={(qa) => {
-        if (qa.spaPath) {
-          navigate(qa.spaPath)
-        } else {
-          navigate('/inicio')
-        }
-        closeMobileNav()
-      }}
+      onQuickAction={onQuickAction}
     />
   )
 

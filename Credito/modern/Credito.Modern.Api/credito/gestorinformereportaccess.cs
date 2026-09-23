@@ -53,6 +53,44 @@ internal static class GestorInformeReportAccess
     }
 
     /// <summary>
+    /// Resuelve filtros con oficina opcional (null = todas las oficinas).
+    /// Paridad MVC <c>ReporteCreditoObservado?pOficinaId=null</c>.
+    /// </summary>
+    internal static (int? OficinaId, int? UsuarioId, ProblemHttpResult? Error) ResolveOptionalOficina(
+        HttpContext httpContext,
+        int? oficinaIdQuery,
+        int? usuarioIdQuery)
+    {
+        if (oficinaIdQuery is 0)
+        {
+            return (null, null, BadRequest("oficinaId no puede ser 0."));
+        }
+
+        if (usuarioIdQuery is 0)
+        {
+            return (null, null, BadRequest("usuarioId no puede ser 0."));
+        }
+
+        if (usuarioIdQuery is < 0)
+        {
+            return (null, null, BadRequest("usuarioId, si se indica, debe ser un entero >= 1."));
+        }
+
+        var (usuarioId, oficinaId, error) = CobroDiarioReportAccess.ResolveFiltros(
+            httpContext,
+            usuarioIdQuery,
+            oficinaIdQuery is null or < 1 ? null : oficinaIdQuery,
+            requiereGestor: false);
+
+        if (error is not null)
+        {
+            return (null, null, error);
+        }
+
+        return (oficinaId, usuarioId, null);
+    }
+
+    /// <summary>
     /// Oficina = JWT. Gestor: TODOS o uno concreto si el rol es ADMIN/APROBADOR/PARCIAL;
     /// si no, solo el usuario del token.
     /// </summary>

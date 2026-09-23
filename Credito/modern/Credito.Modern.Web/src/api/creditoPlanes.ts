@@ -113,7 +113,10 @@ export function openMovimientosCreditoPdfInTab(creditoId: number): Promise<void>
 }
 
 function queryGestorInforme(p: GestorInformeParams): string {
-  const q = new URLSearchParams({ oficinaId: String(p.oficinaId) })
+  const q = new URLSearchParams()
+  if (p.oficinaId != null && p.oficinaId > 0) {
+    q.set('oficinaId', String(p.oficinaId))
+  }
   if (p.usuarioId != null && p.usuarioId > 0) {
     q.set('usuarioId', String(p.usuarioId))
   }
@@ -372,7 +375,10 @@ export function downloadClientesTopeCreditoPdf(
 }
 
 function queryCreditoObservado(params: GestorInformeParams): string {
-  const q = new URLSearchParams({ oficinaId: String(params.oficinaId) })
+  const q = new URLSearchParams()
+  if (params.oficinaId != null && params.oficinaId > 0) {
+    q.set('oficinaId', String(params.oficinaId))
+  }
   if (params.usuarioId != null && params.usuarioId > 0) {
     q.set('usuarioId', String(params.usuarioId))
   }

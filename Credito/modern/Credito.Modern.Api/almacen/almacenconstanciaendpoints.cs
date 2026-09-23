@@ -1,5 +1,6 @@
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
+using Credito.Modern.Api.Reportes;
 using Credito.Modern.Application.Almacenes;
 using Credito.Modern.Application.Reportes;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -92,9 +93,17 @@ internal static class AlmacenConstanciaEndpoints
                         }
 
                         var csvBytes = RptConstanciaAlmacenCsvFormatter.ToUtf8BomCsv(dto);
+                        var pdfContext = await LegacyReportPdf
+                            .ResolveAsync(httpContext, oficinaId, cancellationToken: ct)
+                            .ConfigureAwait(false);
                         var pdfBytes = TabularPdfDocument.FromUtf8BomCsv(
                             $"Constancia almacén {movimientoId}",
-                            csvBytes);
+                            csvBytes,
+                            context: pdfContext with
+                            {
+                                Titulo = "CONSTANCIA DE ALMACÉN",
+                                Referencia = $"Movimiento #{movimientoId}",
+                            });
                         return TypedResults.File(
                             pdfBytes,
                             "application/pdf",

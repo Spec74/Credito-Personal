@@ -93,6 +93,7 @@ internal static class CreditoInformesLegacyEndpoints
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
                     [FromQuery] int creditoId,
                     IRptPlanPagosReadService planPagos,
+                    IRptEstadoCreditoReadService estadoCredito,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -109,7 +110,10 @@ internal static class CreditoInformesLegacyEndpoints
                     try
                     {
                         var items = await planPagos.ListarAsync(creditoId, ct).ConfigureAwait(false);
-                        var pdfBytes = RptPlanPagosFichaPdfDocument.Build(creditoId, items);
+                        var informe = await estadoCredito.ObtenerAsync(creditoId, ct).ConfigureAwait(false);
+                        var pdfBytes = informe is null
+                            ? RptPlanPagosFichaPdfDocument.Build(creditoId, items)
+                            : RptPlanPagosFichaPdfDocument.Build(informe.Cabecera, items);
                         return TypedResults.File(pdfBytes, "application/pdf", $"plan-pagos-{creditoId}.pdf");
                     }
                     catch (Exception ex) when (ex is InvalidOperationException or DbException)

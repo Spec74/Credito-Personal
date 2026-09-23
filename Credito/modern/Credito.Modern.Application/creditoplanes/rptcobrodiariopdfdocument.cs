@@ -12,11 +12,11 @@ namespace Credito.Modern.Application.CreditoPlanes;
 /// </summary>
 public static class RptCobroDiarioPdfDocument
 {
-    private static readonly Color Brand = Color.FromHex("#114885");
-    private static readonly Color HeaderBg = Color.FromHex("#0F5F8F");
-    private static readonly Color SectionBg = Color.FromHex("#EAF4FB");
-    private static readonly Color Border = Color.FromHex("#B7C7D6");
-    private static readonly Color Zebra = Color.FromHex("#F8FBFD");
+    private static readonly Color Brand = CredixReportTokens.Brand;
+    private static readonly Color HeaderBg = CredixReportTokens.TableHeaderStrong;
+    private static readonly Color SectionBg = CredixReportTokens.SoftBg;
+    private static readonly Color Border = CredixReportTokens.BorderSoft;
+    private static readonly Color Zebra = CredixReportTokens.Zebra;
 
     static RptCobroDiarioPdfDocument()
     {
@@ -32,7 +32,7 @@ public static class RptCobroDiarioPdfDocument
         var culture = CultureInfo.CurrentCulture;
         var inv = CultureInfo.InvariantCulture;
         var title = soloMora ? "MOROSIDAD POR GESTOR" : "COBRO DIARIO";
-        var printedAt = DateTime.Now.ToString("dd/MM/yyyy HH:mm", culture);
+        var printedAt = CredixReportTokens.NowPrinted();
         var saldoPendiente = rows.Sum(x => x.Saldo ?? 0m);
         var saldoVencido = rows.Where(x => (x.DiasAtrazo ?? 0) > 0).Sum(x => x.Saldo ?? 0m);
         var saldoMora = rows.Sum(x => x.Mora ?? 0m);
@@ -44,7 +44,7 @@ public static class RptCobroDiarioPdfDocument
             {
                 page.Size(PageSizes.A4.Landscape());
                 page.Margin(14);
-                page.DefaultTextStyle(s => s.FontSize(5.4f).FontFamily("Arial"));
+                page.DefaultTextStyle(s => s.FontSize(5.4f));
 
                 page.Header().Column(col =>
                 {
@@ -63,19 +63,7 @@ public static class RptCobroDiarioPdfDocument
 
                 page.Content().PaddingTop(6).Element(c => ComposeTable(c, rows, culture, inv));
 
-                page.Footer().PaddingTop(4).Row(row =>
-                {
-                    row.RelativeItem().Text("Crediconfiable - reporte generado por Credito Modern")
-                        .FontSize(6)
-                        .FontColor(Colors.Grey.Darken2);
-                    row.RelativeItem().AlignRight().DefaultTextStyle(x => x.FontSize(6)).Text(t =>
-                    {
-                        t.Span("Página ");
-                        t.CurrentPageNumber();
-                        t.Span(" de ");
-                        t.TotalPages();
-                    });
-                });
+                page.Footer().Element(c => CredixReportTokens.ComposeStandardFooter(c, rows.Count));
             });
         }).GeneratePdf();
     }

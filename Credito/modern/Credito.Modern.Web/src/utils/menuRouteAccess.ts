@@ -6,6 +6,9 @@ const ALWAYS_ALLOWED = [
   '/inicio',
   '/modulo',
   '/reportes/visor',
+  // Accesos rápidos del layout MVC (siempre disponibles con sesión).
+  '/admin/comisiones',
+  '/credito/simulador',
 ]
 
 const HUB_CHILDREN: Record<string, string[]> = {
@@ -14,6 +17,8 @@ const HUB_CHILDREN: Record<string, string[]> = {
   '/reportes/cobranza': ['/reportes/cobranza'],
   '/reportes/venta': ['/reportes/venta', '/informes/rentabilidad-venta'],
   '/credito': ['/credito/'],
+  // Consulta de créditos (menú «Creditos») también permite ficha por persona.
+  '/credito/consulta': ['/credito/persona/'],
   '/clientes': ['/clientes/'],
   '/caja': ['/caja/'],
   '/tesoreria': ['/tesoreria/'],

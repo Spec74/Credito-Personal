@@ -12,11 +12,11 @@ namespace Credito.Modern.Application.CreditoPlanes;
 /// </summary>
 public static class RptSaldoCarteraCajaDiarioPdfDocument
 {
-    private static readonly Color HeaderBg = Color.FromHex("#B0C4DE");
-    private static readonly Color GroupIniBg = Color.FromHex("#9BB8D4");
-    private static readonly Color GroupFinBg = Color.FromHex("#8AA9C8");
-    private static readonly Color BorderColor = Color.FromHex("#808080");
-    private static readonly Color Zebra = Color.FromHex("#F4F7FA");
+    private static readonly Color HeaderBg = CredixReportTokens.TableHeader;
+    private static readonly Color GroupIniBg = CredixReportTokens.SoftBg;
+    private static readonly Color GroupFinBg = CredixReportTokens.TotalsBg;
+    private static readonly Color BorderColor = CredixReportTokens.Border;
+    private static readonly Color Zebra = CredixReportTokens.MetaBg;
 
     static RptSaldoCarteraCajaDiarioPdfDocument()
     {
@@ -28,8 +28,7 @@ public static class RptSaldoCarteraCajaDiarioPdfDocument
     public static byte[] Build(IReadOnlyList<RptSaldoCarteraCajaDiarioRowDto> rows, Header header)
     {
         var logo = CredixReportAssets.LoadLogo();
-        var culture = CultureInfo.GetCultureInfo("es-PE");
-        var printedAt = DateTime.Now.ToString("dd/MM/yyyy HH:mm", culture);
+        var printedAt = CredixReportTokens.NowPrinted();
         var title = "SALDO CARTERA Y CAJA DIARIO";
 
         return Document.Create(document =>
@@ -54,23 +53,9 @@ public static class RptSaldoCarteraCajaDiarioPdfDocument
                             ]));
                 });
 
-                page.Content().PaddingTop(6).Element(c => ComposeTable(c, rows, culture));
+                page.Content().PaddingTop(6).Element(c => ComposeTable(c, rows, CredixReportTokens.Pe));
 
-                page.Footer().Row(row =>
-                {
-                    row.RelativeItem().AlignLeft().Text(t =>
-                    {
-                        t.Span("Filas: ");
-                        t.Span(rows.Count.ToString(CultureInfo.InvariantCulture)).Bold();
-                    });
-                    row.RelativeItem().AlignCenter().Text(t =>
-                    {
-                        t.Span("Página ");
-                        t.CurrentPageNumber();
-                        t.Span(" de ");
-                        t.TotalPages();
-                    });
-                });
+                page.Footer().Element(c => CredixReportTokens.ComposeStandardFooter(c, rows.Count));
             });
         }).GeneratePdf();
     }

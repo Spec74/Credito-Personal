@@ -6,7 +6,7 @@ public interface IRptCreditoObservadoReadService
     /// Créditos con observación no vacía en estado PEN o DES (paridad <c>CreditoBL.ReporteCreditoObservado</c>).
     /// </summary>
     Task<IReadOnlyList<RptCreditoObservadoRowDto>> ListarAsync(
-        int oficinaId,
+        int? oficinaId,
         int? usuarioId,
         CancellationToken cancellationToken = default);
 }

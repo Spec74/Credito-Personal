@@ -1,8 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ReloadOutlined } from '@ant-design/icons'
-import { Button, Input, Modal, Segmented, Spin, Table, Typography } from 'antd'
+import { ReloadOutlined, UserOutlined } from '@ant-design/icons'
+import { Button, Empty, Input, Modal, Segmented, Spin, Table, Typography, message } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   fetchDashboardClientesMora,
@@ -11,6 +10,7 @@ import {
 } from '../../api/dashboard'
 import { ApiError } from '../../api/errors'
 import { formatMoney } from '../../utils/formatMoney'
+import { openSpaInformeInNewTab } from '../../utils/spaReportNavigation'
 
 const FILTROS: { label: string; value: DashboardMoraTipo }[] = [
   { label: 'Todos', value: 'TODOS' },
@@ -26,9 +26,14 @@ type Props = {
   onClose: () => void
 }
 
+/**
+ * Paridad MVC Dashboard/Gestor: «Ver cliente» abre Creditos?pPersonaId= en otra ventana
+ * → SPA /credito/consulta?personaId= en pestaña nueva (conserva el listado de mora).
+ */
 export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props) {
   const [tipo, setTipo] = useState<DashboardMoraTipo>(tipoInicial)
   const [busqueda, setBusqueda] = useState('')
+  const busquedaDeferred = useDeferredValue(busqueda)
 
   useEffect(() => {
     if (open) {
@@ -45,86 +50,104 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
   })
 
   const filtrados = useMemo(() => {
-    const q = busqueda.trim().toLowerCase()
+    const q = busquedaDeferred.trim().toLowerCase()
     const rows = query.data ?? []
     if (!q) return rows
-    return rows.filter((r) => r.nombreCompleto.toLowerCase().includes(q))
-  }, [busqueda, query.data])
+    return rows.filter(
+      (r) =>
+        r.nombreCompleto.toLowerCase().includes(q) ||
+        String(r.personaId).includes(q),
+    )
+  }, [busquedaDeferred, query.data])
 
-  const columns: ColumnsType<DashboardClienteMoraRow> = [
-    {
-      title: 'Cliente',
-      dataIndex: 'nombreCompleto',
-      key: 'nombre',
-      render: (nombre: string, row) => (
-        <div>
-          <strong className="dash-mora-client-name">{nombre}</strong>
-          <div className="dash-mora-client-id">Persona #{row.personaId}</div>
-        </div>
-      ),
-    },
-    {
-      title: 'Estado',
-      dataIndex: 'codigoClasificacion',
-      key: 'estado',
-      width: 140,
-      render: (codigo: string, row) => (
-        <span className={`dash-mora-status is-${statusClass(codigo)}`}>{row.clasificacion}</span>
-      ),
-    },
-    {
-      title: 'Créditos',
-      dataIndex: 'creditosMora',
-      key: 'creditos',
-      width: 90,
-      align: 'center',
-    },
-    {
-      title: 'Saldo mora',
-      dataIndex: 'saldoMora',
-      key: 'saldo',
-      width: 120,
-      align: 'right',
-      render: (v: number) => `S/ ${formatMoney(v)}`,
-    },
-    {
-      title: '1ª cuota vencida',
-      dataIndex: 'primeraCuotaVencida',
-      key: 'primera',
-      width: 130,
-      render: (v: string | null) => formatFechaCorta(v),
-    },
-    {
-      title: 'Último pago',
-      dataIndex: 'fechaUltimoPago',
-      key: 'ultimo',
-      width: 120,
-      render: (v: string | null) => (v ? formatFechaCorta(v) : 'Sin pagos'),
-    },
-    {
-      title: 'Días',
-      dataIndex: 'diasAtraso',
-      key: 'dias',
-      width: 70,
-      align: 'center',
-    },
-    {
-      title: '',
-      key: 'accion',
-      width: 110,
-      align: 'center',
-      render: (_, row) => (
-        <Link
-          to={`/credito/persona/${row.personaId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="dash-mora-profile-link"
-        >
-          Ver cliente
-        </Link>
-      ),
-    },
-  ]
+  const abrirCreditosPersona = useCallback((personaId: number) => {
+    try {
+      openSpaInformeInNewTab('/credito/consulta', { personaId })
+    } catch {
+      message.warning('Permita ventanas emergentes para ver al cliente.')
+    }
+  }, [])
+
+  const columns: ColumnsType<DashboardClienteMoraRow> = useMemo(
+    () => [
+      {
+        title: 'Cliente',
+        dataIndex: 'nombreCompleto',
+        key: 'nombre',
+        render: (nombre: string, row) => (
+          <div>
+            <strong className="dash-mora-client-name">{nombre}</strong>
+            <div className="dash-mora-client-id">Persona #{row.personaId}</div>
+          </div>
+        ),
+      },
+      {
+        title: 'Estado',
+        dataIndex: 'codigoClasificacion',
+        key: 'estado',
+        width: 140,
+        render: (codigo: string, row) => (
+          <span className={`dash-mora-status is-${statusClass(codigo)}`}>{row.clasificacion}</span>
+        ),
+      },
+      {
+        title: 'Créditos',
+        dataIndex: 'creditosMora',
+        key: 'creditos',
+        width: 90,
+        align: 'center',
+      },
+      {
+        title: 'Saldo mora',
+        dataIndex: 'saldoMora',
+        key: 'saldo',
+        width: 120,
+        align: 'right',
+        render: (v: number) => `S/ ${formatMoney(v)}`,
+      },
+      {
+        title: '1ª cuota vencida',
+        dataIndex: 'primeraCuotaVencida',
+        key: 'primera',
+        width: 130,
+        render: (v: string | null) => formatFechaCorta(v),
+      },
+      {
+        title: 'Último pago',
+        dataIndex: 'fechaUltimoPago',
+        key: 'ultimo',
+        width: 120,
+        render: (v: string | null) => (v ? formatFechaCorta(v) : 'Sin pagos'),
+      },
+      {
+        title: 'Días',
+        dataIndex: 'diasAtraso',
+        key: 'dias',
+        width: 70,
+        align: 'center',
+      },
+      {
+        title: '',
+        key: 'accion',
+        width: 128,
+        align: 'center',
+        fixed: 'right',
+        render: (_, row) => (
+          <Button
+            type="link"
+            size="small"
+            icon={<UserOutlined />}
+            className="dash-mora-profile-link"
+            onClick={() => abrirCreditosPersona(row.personaId)}
+            aria-label={`Ver créditos de ${row.nombreCompleto}`}
+          >
+            Ver cliente
+          </Button>
+        ),
+      },
+    ],
+    [abrirCreditosPersona],
+  )
 
   return (
     <Modal
@@ -136,10 +159,18 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
       destroyOnHidden
       className="dash-mora-modal"
     >
-      <Typography.Paragraph type="secondary" style={{ marginTop: 0 }}>
+      <Typography.Paragraph type="secondary" style={{ marginTop: 0, marginBottom: 12 }}>
         {query.isFetching
           ? 'Consultando cartera morosa…'
-          : `${filtrados.length} cliente${filtrados.length === 1 ? '' : 's'} encontrado${filtrados.length === 1 ? '' : 's'}`}
+          : `${filtrados.length} cliente${filtrados.length === 1 ? '' : 's'} encontrado${
+              filtrados.length === 1 ? '' : 's'
+            }`}
+        {!query.isFetching ? (
+          <span className="dash-mora-hint">
+            {' '}
+            · «Ver cliente» abre la consulta de créditos en otra pestaña.
+          </span>
+        ) : null}
       </Typography.Paragraph>
 
       <div className="dash-mora-toolbar">
@@ -151,10 +182,11 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
         <div className="dash-mora-tools">
           <Input
             allowClear
-            placeholder="Buscar cliente…"
+            placeholder="Buscar cliente o # persona…"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            style={{ width: 220 }}
+            style={{ width: 240 }}
+            aria-label="Buscar en clientes en mora"
           />
           <Button
             icon={<ReloadOutlined />}
@@ -178,9 +210,15 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
           rowKey={(r) => r.personaId}
           columns={columns}
           dataSource={filtrados}
-          pagination={{ pageSize: 12, showSizeChanger: false }}
-          scroll={{ x: 900 }}
-          locale={{ emptyText: 'No hay clientes en mora para este filtro.' }}
+          pagination={{
+            pageSize: 12,
+            showSizeChanger: false,
+            showTotal: (t) => `${t} cliente${t === 1 ? '' : 's'}`,
+          }}
+          scroll={{ x: 920 }}
+          locale={{
+            emptyText: <Empty description="No hay clientes en mora para este filtro." />,
+          }}
         />
       )}
     </Modal>

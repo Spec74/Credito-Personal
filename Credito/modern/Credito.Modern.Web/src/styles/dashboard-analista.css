@@ -222,6 +222,12 @@
 .dash-mora-profile-link {
   font-weight: 600;
   font-size: 12px;
+  padding-inline: 0;
+}
+
+.dash-mora-hint {
+  color: var(--credix-text-muted);
+  font-size: 12px;
 }
 
 .dash-mora-loading {

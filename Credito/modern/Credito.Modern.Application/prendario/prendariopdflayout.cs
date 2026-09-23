@@ -9,8 +9,8 @@ namespace Credito.Modern.Application.Prendario;
 internal static class PrendarioPdfLayout
 {
     private static readonly Color Line = Colors.Black;
-    private static readonly Color HeaderBg = Color.FromHex("#DDDDDD");
-    public static readonly Color ActaAzul = Color.FromHex("#053B8A");
+    private static readonly Color HeaderBg = CredixReportTokens.TableHeader;
+    public static readonly Color ActaAzul = CredixReportTokens.BrandDark;
 
     public static void Encabezado(
         ColumnDescriptor col,

@@ -6,23 +6,23 @@ using QuestPDF.Infrastructure;
 
 namespace Credito.Modern.Application.CreditoPlanes;
 
-/// <summary>Estilo compartido de los PDF del módulo Saldos (paridad visual Credix + RDLC).</summary>
+/// <summary>Estilo compartido de los PDF del módulo Saldos (tokens <see cref="CredixReportTokens"/>).</summary>
 internal static class CajaSaldosPdfStyle
 {
-    public static readonly Color Brand = Color.FromHex("#114885");
-    public static readonly Color HeaderBg = Color.FromHex("#0F5F8F");
-    public static readonly Color BandBg = Color.FromHex("#EAF4FB");
-    public static readonly Color Border = Color.FromHex("#B7C7D6");
-    public static readonly Color Zebra = Color.FromHex("#F8FBFD");
-    public static readonly Color TotalsBg = Color.FromHex("#D6E6F5");
+    public static readonly Color Brand = CredixReportTokens.Brand;
+    public static readonly Color HeaderBg = CredixReportTokens.TableHeaderStrong;
+    public static readonly Color BandBg = CredixReportTokens.SoftBg;
+    public static readonly Color Border = CredixReportTokens.BorderSoft;
+    public static readonly Color Zebra = CredixReportTokens.Zebra;
+    public static readonly Color TotalsBg = CredixReportTokens.TotalsBg;
 
-    public static readonly CultureInfo Pe = CultureInfo.GetCultureInfo("es-PE");
+    public static readonly CultureInfo Pe = CredixReportTokens.Pe;
 
-    public static string Money(decimal value) => value.ToString("N2", Pe);
+    public static string Money(decimal value) => CredixReportTokens.FormatMoney(value);
 
-    public static string DateTime(DateTime value) => value.ToString("dd/MM/yyyy HH:mm", Pe);
+    public static string DateTime(DateTime value) => value.ToString(CredixReportTokens.DateTimeFormat, Pe);
 
-    public static string Date(DateTime value) => value.ToString("dd/MM/yyyy", Pe);
+    public static string Date(DateTime value) => CredixReportTokens.FormatDate(value);
 
     public static IContainer HeaderCell(IContainer c) =>
         c.Background(HeaderBg)
@@ -30,7 +30,8 @@ internal static class CajaSaldosPdfStyle
             .BorderColor(Border)
             .PaddingVertical(3)
             .PaddingHorizontal(3)
-            .AlignMiddle();
+            .AlignMiddle()
+            .DefaultTextStyle(x => x.FontColor(Colors.White).SemiBold());
 
     public static IContainer BodyCell(IContainer c, Color bg) =>
         c.Background(bg)
@@ -57,25 +58,6 @@ internal static class CajaSaldosPdfStyle
         CredixLegacyPdfDocument.ComposeTitleBand(container, logo, title, printedAt);
     }
 
-    public static void Footer(PageDescriptor page, int filas)
-    {
-        page.Footer().PaddingTop(4).Row(row =>
-        {
-            row.RelativeItem().Text(t =>
-            {
-                t.Span("Filas: ").FontColor(Colors.Grey.Darken2);
-                t.Span(filas.ToString(CultureInfo.InvariantCulture)).Bold();
-            });
-            row.RelativeItem().AlignCenter().Text(t =>
-            {
-                t.Span("Página ");
-                t.CurrentPageNumber();
-                t.Span(" de ");
-                t.TotalPages();
-            });
-            row.RelativeItem().AlignRight()
-                .Text("CreditConfiable")
-                .FontColor(Colors.Grey.Darken2);
-        });
-    }
+    public static void Footer(PageDescriptor page, int filas) =>
+        page.Footer().Element(c => CredixReportTokens.ComposeStandardFooter(c, filas));
 }

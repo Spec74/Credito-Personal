@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text;
+using Credito.Modern.Application.Reportes;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -166,7 +167,7 @@ public static class PrendarioPdfMerge
                         Tap(layers, 448, 808, 130, 18);
                         layers.PrimaryLayer().AlignBottom().AlignRight()
                             .PaddingRight(22).PaddingBottom(16)
-                            .Text(texto).FontSize(8).FontColor(Color.FromHex("#333333"));
+                            .Text(texto).FontSize(8).FontColor(CredixReportTokens.MutedText);
                     });
                 });
             }

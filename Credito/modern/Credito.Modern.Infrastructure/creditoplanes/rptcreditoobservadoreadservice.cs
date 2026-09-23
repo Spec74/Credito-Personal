@@ -30,7 +30,7 @@ public sealed class RptCreditoObservadoReadService(IOptions<SqlDatabaseOptions> 
         WHERE c.Observacion IS NOT NULL
           AND LEN(c.Observacion) > 0
           AND c.Estado IN ('PEN', 'DES')
-          AND c.OficinaId = @OficinaId
+          AND (@OficinaId IS NULL OR c.OficinaId = @OficinaId)
           AND (@UsuarioId IS NULL OR c.UsuarioRegId = @UsuarioId)
         ORDER BY pa.NombreCompleto, p.NombreCompleto;
         """;
@@ -38,7 +38,7 @@ public sealed class RptCreditoObservadoReadService(IOptions<SqlDatabaseOptions> 
     private readonly string _connectionString = options.Value.ConnectionString;
 
     public async Task<IReadOnlyList<RptCreditoObservadoRowDto>> ListarAsync(
-        int oficinaId,
+        int? oficinaId,
         int? usuarioId,
         CancellationToken cancellationToken = default)
     {
@@ -48,9 +48,9 @@ public sealed class RptCreditoObservadoReadService(IOptions<SqlDatabaseOptions> 
                 "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
         }
 
-        if (oficinaId < 1)
+        if (oficinaId is < 1)
         {
-            throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
+            throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId, si se indica, debe ser >= 1.");
         }
 
         if (usuarioId is { } uid && uid < 1)

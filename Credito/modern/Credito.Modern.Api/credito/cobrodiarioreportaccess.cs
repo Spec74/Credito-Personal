@@ -134,7 +134,8 @@ internal static class CobroDiarioReportAccess
         }
 
         var uid = usuarioId is null or < 1 ? jwtUsuarioId : usuarioId.Value;
-        var oid = oficinaId is null or < 1 ? jwtOficinaId : oficinaId.Value;
+        // Omitir oficina = todas (paridad MVC accesos rápidos pOficinaId=null).
+        int? oid = oficinaId is null or < 1 ? null : oficinaId;
 
         if (requiereGestor && usuarioId is null or < 1)
         {
@@ -146,7 +147,7 @@ internal static class CobroDiarioReportAccess
             return (null, null, Forbidden("usuarioId debe coincidir con el usuario del token JWT."));
         }
 
-        if (oficinaId is not null and > 0 && oid != jwtOficinaId)
+        if (oid is not null && oid != jwtOficinaId)
         {
             return (null, null, Forbidden("oficinaId debe coincidir con la oficina del token JWT."));
         }

@@ -35,6 +35,7 @@ public sealed class RptEstadoCreditoReadService(
                     c.FechaPrimerPago,
                     c.FechaVencimiento,
                     c.MontoCredito,
+                    c.MontoDesembolso,
                     c.FormaPago,
                     c.NumeroCuotas,
                     c.Interes,
@@ -76,7 +77,8 @@ public sealed class RptEstadoCreditoReadService(
             $"{cab.NumeroDocumento} {cab.NombreCompleto}".Trim(),
             cab.Analista ?? string.Empty,
             cab.MontoGastosAdm,
-            total);
+            total,
+            cab.MontoDesembolso);
 
         return new RptEstadoCreditoInformeDto(cabecera, cuotas);
     }
@@ -108,6 +110,7 @@ public sealed class RptEstadoCreditoReadService(
         public DateTime FechaPrimerPago { get; init; }
         public DateTime FechaVencimiento { get; init; }
         public decimal MontoCredito { get; init; }
+        public decimal MontoDesembolso { get; init; }
         public string FormaPago { get; init; } = string.Empty;
         public int NumeroCuotas { get; init; }
         public decimal Interes { get; init; }

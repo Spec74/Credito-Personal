@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Api.Hosting;
+using Credito.Modern.Api.Reportes;
 using Credito.Modern.Application.Almacenes;
 using Credito.Modern.Application.Articulos;
 using Credito.Modern.Application.Auth;
@@ -130,6 +131,7 @@ internal static class AlmacenOperacionEndpoints
         app.MapGet(
                 "/api/v1/almacen/rpt-stock-anulados-pdf",
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     IRptStockAnuladosReadService stockAnulados,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -140,7 +142,16 @@ internal static class AlmacenOperacionEndpoints
                     {
                         var items = await stockAnulados.ListarAsync(ct).ConfigureAwait(false);
                         var csvBytes = RptStockAnuladosCsvFormatter.ToUtf8BomCsv(items);
-                        var bytes = TabularPdfDocument.FromUtf8BomCsv("Stock anulados", csvBytes);
+                        int? oficinaId = MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oid)
+                            ? oid
+                            : null;
+                        var pdfContext = await LegacyReportPdf
+                            .ResolveAsync(httpContext, oficinaId, cancellationToken: ct)
+                            .ConfigureAwait(false);
+                        var bytes = TabularPdfDocument.FromUtf8BomCsv(
+                            "Stock anulados",
+                            csvBytes,
+                            context: pdfContext with { Titulo = "STOCK ANULADOS" });
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "stock-anulados.pdf");
                     }
                     catch (InvalidOperationException ex)

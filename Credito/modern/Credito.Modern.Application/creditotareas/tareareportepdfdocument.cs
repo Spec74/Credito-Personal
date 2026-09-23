@@ -11,10 +11,10 @@ namespace Credito.Modern.Application.CreditoTareas;
 /// </summary>
 public static class TareaReportePdfDocument
 {
-    private static readonly Color HeaderBg = Color.FromHex("#2196F3");
-    private static readonly Color GroupBg = Color.FromHex("#E3F2FD");
-    private static readonly Color BorderColor = Color.FromHex("#B0BEC5");
-    private static readonly Color CompletadaBg = Color.FromHex("#E8F5E9");
+    private static readonly Color HeaderBg = CredixReportTokens.TableHeaderStrong;
+    private static readonly Color GroupBg = CredixReportTokens.SoftBg;
+    private static readonly Color BorderColor = CredixReportTokens.BorderSoft;
+    private static readonly Color CompletadaBg = CredixReportTokens.SuccessSoft;
 
     static TareaReportePdfDocument()
     {
@@ -28,8 +28,8 @@ public static class TareaReportePdfDocument
     {
         var logo = CredixReportAssets.LoadLogo();
         var titulo = TareaReporteBuilder.TituloPdf(estado);
-        var fecha = DateTime.Now.ToString("dd/MM/yyyy HH:mm", CultureInfo.CurrentCulture);
-        var inv = CultureInfo.InvariantCulture;
+        var fecha = CredixReportTokens.NowPrinted();
+        var inv = CredixReportTokens.Inv;
 
         return Document.Create(document =>
         {
@@ -62,20 +62,14 @@ public static class TareaReportePdfDocument
                     }
                 });
 
-                page.Footer().AlignCenter().Text(t =>
-                {
-                    t.Span("Página ");
-                    t.CurrentPageNumber();
-                    t.Span(" de ");
-                    t.TotalPages();
-                });
+                page.Footer().Element(c => CredixReportTokens.ComposeStandardFooter(c, totalTareas));
             });
         }).GeneratePdf();
     }
 
     private static void ComposeGrupo(IContainer container, TareaReporteClienteGrupo grupo)
     {
-        var inv = CultureInfo.InvariantCulture;
+        var inv = CredixReportTokens.Inv;
         container.Column(col =>
         {
             col.Item()
@@ -85,7 +79,7 @@ public static class TareaReportePdfDocument
                 .Padding(6)
                 .Text(grupo.ClienteEtiqueta)
                 .Bold()
-                .FontColor(Color.FromHex("#1E4D7B"));
+                .FontColor(CredixReportTokens.BrandDark);
 
             col.Item().PaddingTop(4).Table(table =>
             {

@@ -7,17 +7,17 @@ namespace Credito.Modern.Application.Reportes;
 
 /// <summary>
 /// Layout PDF alineado a informes RDLC legacy: logo, metadatos, tabla con encabezado
-/// LightSteelBlue, bordes gruesos en cabecera y pie «Página X de Y».
+/// corporativo, totales y pie estándar (<see cref="CredixReportTokens"/>).
 /// </summary>
 public static class CredixLegacyPdfDocument
 {
     public const float HeaderBorderPt = 1.25f;
     public const float BodyBorderPt = 0.5f;
-    public const float FontSizeBody = 7.5f;
-    public const float FontSizeTitle = 11f;
+    public const float FontSizeBody = CredixReportTokens.FontSizeBody;
+    public const float FontSizeTitle = CredixReportTokens.FontSizeTitle;
 
-    private static readonly Color HeaderBg = Color.FromHex("#B0C4DE");
-    private static readonly Color BorderColor = Color.FromHex("#808080");
+    private static readonly Color HeaderBg = CredixReportTokens.TableHeader;
+    private static readonly Color BorderColor = CredixReportTokens.Border;
 
     static CredixLegacyPdfDocument()
     {
@@ -40,8 +40,8 @@ public static class CredixLegacyPdfDocument
     public static byte[] FromTable(ReportTable report)
     {
         var logo = CredixReportAssets.LoadLogo();
-        var printedAt = DateTime.Now.ToString("g", CultureInfo.CurrentCulture);
-        var inv = CultureInfo.InvariantCulture;
+        var printedAt = CredixReportTokens.NowPrinted();
+        var inv = CredixReportTokens.Inv;
         var rowCount = report.RowCountFooter ?? report.Rows.Count;
         var colCount = Math.Max(1, report.Headers.Count);
         var (pageWidth, pageHeight) = ResolvePageSize(colCount, report.Landscape);
@@ -75,21 +75,7 @@ public static class CredixLegacyPdfDocument
                         bodyFont,
                         report.TotalColumns));
 
-                page.Footer().Row(row =>
-                {
-                    row.RelativeItem().AlignLeft().Text(t =>
-                    {
-                        t.Span("Filas: ");
-                        t.Span(rowCount.ToString(inv)).Bold();
-                    });
-                    row.RelativeItem().AlignCenter().Text(t =>
-                    {
-                        t.Span("Página ");
-                        t.CurrentPageNumber();
-                        t.Span(" de ");
-                        t.TotalPages();
-                    });
-                });
+                page.Footer().Element(c => CredixReportTokens.ComposeStandardFooter(c, rowCount));
             });
         }).GeneratePdf();
     }
@@ -109,7 +95,14 @@ public static class CredixLegacyPdfDocument
                 row.ConstantItem(88).Height(46).Image(logo).FitArea();
                 row.RelativeItem().AlignMiddle().AlignCenter().Column(col =>
                 {
-                    col.Item().PaddingTop(1).Text(title).Bold().FontSize(FontSizeTitle);
+                    col.Item().Text(CredixReportTokens.CompanyLegalName)
+                        .Bold()
+                        .FontSize(8)
+                        .FontColor(CredixReportTokens.Brand);
+                    col.Item().PaddingTop(1).Text(title)
+                        .Bold()
+                        .FontSize(FontSizeTitle)
+                        .FontColor(Colors.Black);
                 });
                 row.ConstantItem(120).AlignMiddle().AlignRight().Text(printedAt).FontSize(8);
             });
@@ -126,7 +119,7 @@ public static class CredixLegacyPdfDocument
             return;
 
         container
-            .Background(Color.FromHex("#F4F7FA"))
+            .Background(CredixReportTokens.MetaBg)
             .Border(0.6f)
             .BorderColor(BorderColor)
             .PaddingVertical(4)
@@ -267,7 +260,7 @@ public static class CredixLegacyPdfDocument
 
     private static IContainer TotalsCell(IContainer container) =>
         container
-            .Background(Color.FromHex("#E4ECF5"))
+            .Background(CredixReportTokens.TotalsBg)
             .Border(HeaderBorderPt)
             .BorderColor(BorderColor)
             .PaddingVertical(3)
@@ -598,7 +591,7 @@ public static class CredixLegacyPdfDocument
     /// <summary>Subfila de contacto bajo cada registro (cliente / celular / dirección).</summary>
     public static IContainer BodyCellContactBand(IContainer container) =>
         container
-            .Background(Color.FromHex("#F0F4F8"))
+            .Background(CredixReportTokens.MetaBg)
             .Border(BodyBorderPt)
             .BorderColor(BorderColor)
             .PaddingVertical(3)

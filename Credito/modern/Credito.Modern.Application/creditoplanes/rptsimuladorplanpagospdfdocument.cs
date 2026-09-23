@@ -26,13 +26,13 @@ public static class RptSimuladorPlanPagosPdfDocument
         SignatureAdvisor,
     }
 
-    private static readonly Color Brand = Color.FromHex("#004784");
-    private static readonly Color BrandDark = Color.FromHex("#003A6C");
-    private static readonly Color BrandSoft = Color.FromHex("#EAF4FB");
-    private static readonly Color Border = Color.FromHex("#AFC3D8");
-    private static readonly Color TableHeader = Color.FromHex("#0B4F8A");
-    private static readonly Color Muted = Color.FromHex("#4B5563");
-    private static readonly Color Zebra = Color.FromHex("#F8FBFD");
+    private static readonly Color Brand = CredixReportTokens.Brand;
+    private static readonly Color BrandDark = CredixReportTokens.BrandDark;
+    private static readonly Color BrandSoft = CredixReportTokens.SoftBg;
+    private static readonly Color Border = CredixReportTokens.BorderSoft;
+    private static readonly Color TableHeader = CredixReportTokens.TableHeaderStrong;
+    private static readonly Color Muted = CredixReportTokens.MutedText;
+    private static readonly Color Zebra = CredixReportTokens.Zebra;
 
     static RptSimuladorPlanPagosPdfDocument()
     {
@@ -45,7 +45,7 @@ public static class RptSimuladorPlanPagosPdfDocument
         var culture = CultureInfo.CurrentCulture;
         var inv = CultureInfo.InvariantCulture;
         var logo = CredixReportAssets.LoadLogo();
-        var fechaEmision = DateTime.Now.ToString("dd/MM/yyyy HH:mm", culture);
+        var fechaEmision = CredixReportTokens.NowPrinted();
         var totalCapital = informe.Cuotas.Sum(x => x.Amortizacion ?? 0m);
         var totalInteres = informe.Cuotas.Sum(x => x.Interes ?? 0m);
         var totalCuota = informe.Cuotas.Sum(x => x.Cuota ?? 0m);
@@ -108,7 +108,11 @@ public static class RptSimuladorPlanPagosPdfDocument
                     });
                 });
 
-                page.Footer().Element(ComposeFooter);
+                page.Footer().Column(foot =>
+                {
+                    foot.Item().Element(ComposeFooter);
+                    foot.Item().PaddingTop(3).Element(c => CredixReportTokens.ComposeStandardFooter(c));
+                });
             });
         }).GeneratePdf();
     }
@@ -176,7 +180,7 @@ public static class RptSimuladorPlanPagosPdfDocument
             .Column(col =>
             {
                 col.Spacing(3);
-                col.Item().AlignCenter().Width(15).Height(15).Svg(IconSvg(icon, "#004784")).FitArea();
+                col.Item().AlignCenter().Width(15).Height(15).Svg(IconSvg(icon, CredixReportTokens.BrandHex)).FitArea();
                 col.Item().AlignCenter().Text(label.ToUpperInvariant()).Bold().FontSize(5.5f).FontColor(Brand);
                 col.Item().AlignCenter().Text(value).Bold().FontSize(8).FontColor(BrandDark);
             });
@@ -234,7 +238,7 @@ public static class RptSimuladorPlanPagosPdfDocument
 
     private static void ComposeObservacion(IContainer container) =>
         Notice(container, IconKind.Alert, "OBSERVACIÓN",
-            "El atraso en el pago genera intereses moratorios según reglamento interno de Crediconfiable.\n\nEste plan de pagos está sujeto a evaluación y aprobación final.");
+            "El atraso en el pago genera intereses moratorios según reglamento interno de CrediConfiable.\n\nEste plan de pagos está sujeto a evaluación y aprobación final.");
 
     private static void ComposeDeclaracionCliente(IContainer container) =>
         Notice(container, null, "DECLARACIÓN DEL CLIENTE",
@@ -249,7 +253,7 @@ public static class RptSimuladorPlanPagosPdfDocument
             .Padding(12)
             .Column(col =>
             {
-                col.Item().Width(16).Height(16).Svg(IconSvg(icon, "#004784")).FitArea();
+                col.Item().Width(16).Height(16).Svg(IconSvg(icon, CredixReportTokens.BrandHex)).FitArea();
                 col.Item().PaddingTop(14).AlignCenter().LineHorizontal(0.7f).LineColor(Colors.Grey.Darken1);
                 col.Item().AlignCenter().Text(title).FontSize(6.3f);
                 col.Item().PaddingTop(12).Text("DNI:________________________").FontSize(6.5f);
@@ -258,18 +262,22 @@ public static class RptSimuladorPlanPagosPdfDocument
 
     private static void ComposeFooter(IContainer container)
     {
-        container.Background(Brand).PaddingVertical(7).PaddingHorizontal(10).Row(row =>
+        container.Column(col =>
         {
-            row.RelativeItem().Text("INVERSIONES CREDICONFIABLE S.A.C.\nAyacucho - Huanta - Andahuaylas")
-                .Bold()
-                .FontSize(6.5f)
-                .FontColor(Colors.White);
-            row.RelativeItem().AlignCenter().Text("Tel. 954 892 020")
-                .FontSize(6.5f)
-                .FontColor(Colors.White);
-            row.RelativeItem().AlignRight().Text("crediconfiable280@gmail.com")
-                .FontSize(6.5f)
-                .FontColor(Colors.White);
+            col.Item().Background(Brand).PaddingVertical(6).PaddingHorizontal(10).Row(row =>
+            {
+                row.RelativeItem().Text($"{CredixReportTokens.CompanyLegalName.ToUpperInvariant()}\nAyacucho - Huanta - Andahuaylas")
+                    .Bold()
+                    .FontSize(6.5f)
+                    .FontColor(Colors.White);
+                row.RelativeItem().AlignCenter().Text("Tel. 954 892 020")
+                    .FontSize(6.5f)
+                    .FontColor(Colors.White);
+                row.RelativeItem().AlignRight().Text("crediconfiable280@gmail.com")
+                    .FontSize(6.5f)
+                    .FontColor(Colors.White);
+            });
+            col.Item().PaddingTop(3).Element(c => CredixReportTokens.ComposeStandardFooter(c));
         });
     }
 
@@ -329,7 +337,7 @@ public static class RptSimuladorPlanPagosPdfDocument
             {
                 if (icon.HasValue)
                 {
-                    row.ConstantItem(18).Width(13).Height(13).Svg(IconSvg(icon.Value, "#004784")).FitArea();
+                    row.ConstantItem(18).Width(13).Height(13).Svg(IconSvg(icon.Value, CredixReportTokens.BrandHex)).FitArea();
                 }
                 row.RelativeItem().Text(title).Bold().FontSize(7).FontColor(Brand);
             });

@@ -1,5 +1,6 @@
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
+using Credito.Modern.Api.Reportes;
 using Credito.Modern.Application.CreditoPlanes;
 using Credito.Modern.Application.Reportes;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -54,6 +55,7 @@ internal static class RptComprobantesCajaChicaEndpoints
         app.MapGet(
                 "/api/v1/credito/rpt-comprobantes-caja-chica-pdf",
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     DateTime? fechaIni,
                     DateTime? fechaFin,
                     IRptComprobantesCajaChicaReadService read,
@@ -72,11 +74,18 @@ internal static class RptComprobantesCajaChicaEndpoints
                     {
                         var items = await read.ListarAsync(range!.Value.Ini, range.Value.Fin, ct).ConfigureAwait(false);
                         var csvBytes = RptComprobantesCajaChicaCsvFormatter.ToUtf8BomCsv(items);
-                        var pdfCtx = new CredixLegacyReportContext
-                        {
-                            FechaIni = range!.Value.Ini.ToString("d"),
-                            FechaFin = range.Value.Fin.ToString("d"),
-                        };
+                        int? oficinaId = MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oid)
+                            ? oid
+                            : null;
+                        var pdfCtx = await LegacyReportPdf
+                            .ResolveAsync(
+                                httpContext,
+                                oficinaId,
+                                fechaIni: range.Value.Ini,
+                                fechaFin: range.Value.Fin,
+                                titulo: "COMPROBANTES CAJA CHICA",
+                                cancellationToken: ct)
+                            .ConfigureAwait(false);
                         var pdfBytes = TabularPdfDocument.FromUtf8BomCsv(
                             CredixLegacyReportKey.ComprobantesCajaChica,
                             csvBytes,

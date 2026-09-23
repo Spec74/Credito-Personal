@@ -101,7 +101,7 @@ describe('menuRouteAccess', () => {
     expect(hasMenuRouteAccess('/admin/roles', [padre])).toBe(false)
   })
 
-  it('el padre CREDITO del SP no habilita consulta ni simulador', () => {
+  it('el padre CREDITO del SP no habilita consulta (simulador sí: acceso rápido)', () => {
     const padre: MenuItemDto = {
       ...menu('', 'CREDITO'),
       modulo: null,
@@ -109,7 +109,18 @@ describe('menuRouteAccess', () => {
       indPadre: true,
     }
     expect(hasMenuRouteAccess('/credito/consulta', [padre])).toBe(false)
-    expect(hasMenuRouteAccess('/credito/simulador', [padre])).toBe(false)
+    expect(hasMenuRouteAccess('/credito/simulador', [padre])).toBe(true)
+  })
+
+  it('accesos rápidos del layout siempre habilitan comisiones y simulador', () => {
+    expect(hasMenuRouteAccess('/admin/comisiones', [])).toBe(true)
+    expect(hasMenuRouteAccess('/credito/simulador', [])).toBe(true)
+  })
+
+  it('menu Creditos (consulta) habilita ficha por persona', () => {
+    expect(hasMenuRouteAccess('/credito/consulta', [menu('/credito/consulta')])).toBe(true)
+    expect(hasMenuRouteAccess('/credito/persona/7942', [menu('/credito/consulta')])).toBe(true)
+    expect(hasMenuRouteAccess('/credito/persona/7942', [menu('/clientes')])).toBe(false)
   })
 
   it('hub reportes credito no habilita cierre gerencial sin ACL extra', () => {

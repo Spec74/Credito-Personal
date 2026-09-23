@@ -27,8 +27,8 @@ public static class CredixMorosidadPdfDocument
     public static byte[] Build(IReadOnlyList<RptCreditoMorosidadRowDto> rows, Header header)
     {
         var logo = CredixReportAssets.LoadLogo();
-        var printedAt = DateTime.Now.ToString("g", CultureInfo.CurrentCulture);
-        var inv = CultureInfo.InvariantCulture;
+        var printedAt = CredixReportTokens.NowPrinted();
+        var inv = CredixReportTokens.Inv;
         var title = $"REPORTE CREDITOS DESEMBOLSADOS AL {header.HastaFecha}";
         var metadata = new CredixLegacyPdfDocument.MetadataLine[]
         {
@@ -86,21 +86,7 @@ public static class CredixMorosidadPdfDocument
                     }
                 });
 
-                page.Footer().Row(row =>
-                {
-                    row.RelativeItem().AlignLeft().Text(t =>
-                    {
-                        t.Span("Filas: ");
-                        t.Span(rows.Count.ToString(inv)).Bold();
-                    });
-                    row.RelativeItem().AlignCenter().Text(t =>
-                    {
-                        t.Span("Página ");
-                        t.CurrentPageNumber();
-                        t.Span(" de ");
-                        t.TotalPages();
-                    });
-                });
+                page.Footer().Element(c => CredixReportTokens.ComposeStandardFooter(c, rows.Count));
             });
         }).GeneratePdf();
     }

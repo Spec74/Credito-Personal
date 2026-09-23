@@ -51,7 +51,7 @@ public static class GestorInformePdfContextBuilder
     }
 
     public static async Task<CredixLegacyReportContext> BuildGestorOficinaAsync(
-        int oficinaId,
+        int? oficinaId,
         int? usuarioId,
         IUsuarioAdminReadService usuarios,
         IOficinaReadService oficinas,

@@ -74,7 +74,7 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
             Reportes del crédito
           </Text>
           <Text type="secondary" className="credito-consulta-impresos__hint">
-            PDFs modernos en nueva pestaña, con logo y colores corporativos.
+            PDFs con cabecera del crédito, datos de paridad legacy y formato profesional.
           </Text>
         </div>
       </div>
