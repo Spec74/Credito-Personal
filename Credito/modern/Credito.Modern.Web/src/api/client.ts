@@ -5,7 +5,7 @@ import {
   saveTokens,
 } from '../auth/tokenStorage'
 import type { LoginTokenResponse, RefreshRequest } from '../types/api'
-import { openReportVisorInTab } from '../utils/reportVisor'
+import { openReportVisorInTab, isPdfReportApiPath } from '../utils/reportVisor'
 import { ApiError, parseApiError } from './errors'
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL as string
@@ -152,15 +152,22 @@ function assertBinaryPayload(fileName: string, buffer: ArrayBuffer): void {
 }
 
 export async function apiDownload(path: string, fileName: string): Promise<void> {
-  const openPdfInTab = fileName.toLowerCase().endsWith('.pdf')
-  const pdfTab = openPdfInTab ? window.open('about:blank', '_blank') : null
-  if (openPdfInTab && !pdfTab) {
-    throw new ApiError('Permita ventanas emergentes para ver el informe.', 400)
+  // PDFs de informe/ticket: visor SPA con rid opaco (sin blob: ni filtros en la URL).
+  if (fileName.toLowerCase().endsWith('.pdf') || isPdfReportApiPath(path)) {
+    openReportVisorInTab(path)
+    return
   }
 
+  await apiDownloadFile(path, fileName)
+}
+
+async function apiDownloadFile(path: string, fileName: string): Promise<void> {
   const res = await authorizedFetch(path, {
     method: 'GET',
-    headers: { Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/octet-stream, */*' },
+    headers: {
+      Accept:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv, text/plain, application/octet-stream, */*',
+    },
   })
   const buffer = await res.arrayBuffer()
   const downloadName =
@@ -170,15 +177,13 @@ export async function apiDownload(path: string, fileName: string): Promise<void>
     res.headers.get('content-type')?.split(';')[0]?.trim() ||
     (fileName.toLowerCase().endsWith('.xlsx')
       ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      : 'application/octet-stream')
+      : fileName.toLowerCase().endsWith('.csv')
+        ? 'text/csv'
+        : fileName.toLowerCase().endsWith('.txt')
+          ? 'text/plain'
+          : 'application/octet-stream')
   const blob = new Blob([buffer], { type: mime })
   const url = URL.createObjectURL(blob)
-  if (pdfTab) {
-    pdfTab.location.href = url
-    window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
-    return
-  }
-
   const a = document.createElement('a')
   a.href = url
   a.download = downloadName
@@ -200,8 +205,23 @@ function parseContentDispositionFileName(header: string | null): string | null {
   return plain?.[1]?.trim() ?? null
 }
 
-/** Abre PDF/Excel en pestaña nueva vía visor SPA (mismo origen; evita blob inválido con noopener). */
-export function apiOpenInTab(path: string): Promise<void> {
-  openReportVisorInTab(path)
-  return Promise.resolve()
+function guessExportFileName(apiPath: string): string {
+  const pathOnly = apiPath.split('?', 1)[0] ?? apiPath
+  const leaf = pathOnly.split('/').pop() ?? 'informe'
+  if (leaf.endsWith('-csv')) return `${leaf.slice(0, -4)}.csv`
+  if (leaf.endsWith('-txt')) return `${leaf.slice(0, -4)}.txt`
+  if (leaf.endsWith('-pdf')) return `${leaf.slice(0, -4)}.pdf`
+  return leaf
+}
+
+/**
+ * PDF → visor opaco en pestaña nueva.
+ * CSV/TXT → descarga autenticada (sin URL con filtros en la barra).
+ */
+export async function apiOpenInTab(path: string): Promise<void> {
+  if (isPdfReportApiPath(path)) {
+    openReportVisorInTab(path)
+    return
+  }
+  await apiDownloadFile(path, guessExportFileName(path))
 }

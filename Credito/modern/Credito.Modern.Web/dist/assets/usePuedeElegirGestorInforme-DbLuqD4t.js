@@ -1,1 +1,0 @@
-import{n as e}from"./rolldown-runtime-D2aABDIb.js";import{n as t,t as n}from"./useAuth-DNmc2Z23.js";import{i as r,t as i}from"./reporteCreditoAccess-K1V62__r.js";function a(){let{session:e}=t();return i(e?.roles??[])}function o(){return(o=e((()=>{n(),r()})))()}export{a as n,o as t};

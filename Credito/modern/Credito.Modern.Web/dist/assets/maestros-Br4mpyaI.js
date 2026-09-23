@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-D2aABDIb.js";import{p as t,u as n}from"./useAuth-iK-uWP6w.js";function r(e){return n(`/valores-tabla?tablaId=${e}&soloItemIdPositivo=true`)}function i(){return(i=e((()=>{t()})))()}export{i as n,r as t};

@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-D2aABDIb.js";import{ji as t}from"./vendor-antd-icons-xZVpZXXt.js";import{g as n}from"./credix-B4z9pgyv.js";function r(e,t,r){return(0,i.useMemo)(()=>n(e,{entityLabel:t,activeCount:r}),[e,t,r])}var i;function a(){return(a=e((()=>{i=t()})))()}export{r as n,a as t};

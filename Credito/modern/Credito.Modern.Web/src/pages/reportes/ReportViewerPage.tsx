@@ -7,6 +7,7 @@ import { getAccessToken, getRefreshToken, saveTokens } from '../../auth/tokenSto
 import { useAuth } from '../../auth/useAuth'
 import type { LoginTokenResponse } from '../../types/api'
 import { parseApiError } from '../../api/errors'
+import { isAllowedReportApiPath, isPdfReportApiPath, takeReportApiPath } from '../../utils/reportVisor'
 
 function isMobileViewer(): boolean {
   if (typeof navigator === 'undefined') return false
@@ -37,6 +38,9 @@ async function fetchReportBlob(apiPath: string): Promise<Blob> {
 
   if (!res.ok) throw await parseApiError(res)
   const blob = await res.blob()
+  if (!isPdfReportApiPath(apiPath)) {
+    throw new Error('El visor solo admite PDF.')
+  }
   // Algunos móviles no embeben blobs sin MIME PDF explícito.
   if (blob.type !== 'application/pdf') {
     return new Blob([blob], { type: 'application/pdf' })
@@ -44,9 +48,39 @@ async function fetchReportBlob(apiPath: string): Promise<Blob> {
   return blob
 }
 
+function resolveApiPath(params: URLSearchParams): { path: string | null; error: string | null } {
+  const rid = params.get('rid')?.trim() ?? ''
+  if (rid) {
+    const stashed = takeReportApiPath(rid)
+    if (!stashed) {
+      return {
+        path: null,
+        error:
+          'El enlace del informe expiró o no es válido en esta sesión. Genérelo de nuevo desde Reportes.',
+      }
+    }
+    return { path: stashed, error: null }
+  }
+
+  // Compatibilidad temporal con bookmarks antiguos ?path=/credito/...-pdf
+  const legacy = params.get('path') ?? ''
+  if (legacy) {
+    if (!isAllowedReportApiPath(legacy) || !isPdfReportApiPath(legacy)) {
+      return { path: null, error: 'Ruta de informe no válida.' }
+    }
+    return { path: legacy, error: null }
+  }
+
+  return {
+    path: null,
+    error: 'Ruta de informe no válida. Vuelva a generar el informe desde Reportes.',
+  }
+}
+
 export function ReportViewerPage() {
   const [params] = useSearchParams()
-  const path = params.get('path') ?? ''
+  const resolved = useMemo(() => resolveApiPath(params), [params])
+  const path = resolved.path ?? ''
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -62,8 +96,8 @@ export function ReportViewerPage() {
       return
     }
 
-    if (!path.startsWith('/')) {
-      setError('Ruta de informe no válida. Vuelva a generar el informe desde Reportes.')
+    if (resolved.error || !path) {
+      setError(resolved.error ?? 'Ruta de informe no válida.')
       setLoading(false)
       return
     }
@@ -91,7 +125,7 @@ export function ReportViewerPage() {
       cancelled = true
       if (revoked) URL.revokeObjectURL(revoked)
     }
-  }, [path, authLoading, isAuthenticated])
+  }, [path, resolved.error, authLoading, isAuthenticated])
 
   if (authLoading || (loading && isAuthenticated)) {
     return (
@@ -143,7 +177,6 @@ export function ReportViewerPage() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => {
-              // Algunos WebViews bloquean el primer tap; forzar navegación.
               window.open(objectUrl, '_blank', 'noopener,noreferrer')
             }}
           >
