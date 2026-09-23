@@ -111,14 +111,18 @@ public sealed class CredixLegacyReportCatalogTests
     {
         var cols = CredixLegacyReportCatalog.Get(CredixLegacyReportKey.ClientesInactivos).Columns;
         Assert.DoesNotContain(cols, c => c.CsvName == "PersonaId");
+        Assert.DoesNotContain(cols, c => c.CsvName == "Codigo");
         Assert.Contains(cols, c => c.CsvName == "Dni" && c.Align == CredixColumnAlign.Center);
+        Assert.Contains(cols, c => c.CsvName == "Direccion");
+        Assert.Contains(cols, c => c.CsvName == "DireccionRef");
+        Assert.Contains(cols, c => c.CsvName == "DireccionNegocio");
+        Assert.Contains(cols, c => c.CsvName == "DireccionNegocioRef");
         Assert.Contains(cols, c => c.CsvName == "TopeCredito");
         Assert.Contains(cols, c => c.CsvName == "ClasificacionRiesgoSBS");
         Assert.Contains(cols, c => c.CsvName == "Depurado");
         Assert.Contains(cols, c => c.CsvName == "MontoCredito");
         Assert.Contains(cols, c => c.CsvName == "TotalCreditos");
         Assert.Contains(cols, c => c.CsvName == "FechaCancelacion");
-        Assert.Contains(cols, c => c.CsvName == "DiasInactividad");
     }
 
     [Fact]

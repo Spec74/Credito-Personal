@@ -33,30 +33,43 @@ public class InformeFichaPdfDocumentTests
     }
 
     [Fact]
-    public void Inactivos_ficha_pdf_genera_bytes()
+    public void Inactivos_ficha_pdf_incluye_columnas_legacy()
     {
         var rows = new List<RptClientesInactivosRowDto>
         {
             new()
             {
                 PersonaId = 1,
-                Agente = "Gestor 1",
-                Codigo = "C-01",
-                Cliente = "Pedro Ruiz",
-                Dni = "12345678",
-                Celular = "999111222",
-                MontoCredito = 800m,
-                TopeCredito = 1000m,
-                TotalCreditos = 2,
-                DiasInactividad = 90,
-                FechaCancelacion = new DateTime(2025, 12, 1),
+                Agente = "JCURO",
+                Codigo = "HH042",
+                Cliente = "ABREGU MONTERO, ALEJANDRA",
+                Dni = "70740322",
+                Direccion = "MZ A LOTE 10 SAN JUAN BAUTISTA",
+                DireccionRef = "FRENTE A LA FERETERIA TITO",
+                Celular = "921215615",
+                Calificacion = "A",
+                ClasificacionRiesgoSBS = "NORMAL",
+                Depurado = "NO",
+                DireccionNegocio = "MZ A LOTE 10 SAN JUAN BAUTISTA",
+                DireccionNegocioRef = "FRENTE A LA FERETERIA TITO",
+                MontoCredito = 300m,
+                TopeCredito = 400m,
+                TotalCreditos = 7,
+                DiasInactividad = 719,
+                FechaCancelacion = new DateTime(2024, 10, 4),
             },
         };
         var bytes = RptClientesInactivosFichaPdfDocument.Build(
             rows,
-            new CredixLegacyReportContext { Oficina = "Ayacucho", Agente = "Gestor 1" });
+            new CredixLegacyReportContext
+            {
+                Oficina = "OFICINA PRINCIPAL",
+                Agente = "CURO FERNANDEZ, JOEL",
+                Fecha = "23/09/2026",
+            });
         Assert.NotEmpty(bytes);
         Assert.Equal('%', (char)bytes[0]);
+        Assert.True(bytes.Length > 800, "PDF corporativo con columnas legacy debe generar contenido sustancial.");
     }
 
     [Fact]
