@@ -38,10 +38,10 @@ public sealed class ReportesCatalogoCoberturaEndpointTests : IClassFixture<Credi
         var root = doc.RootElement;
 
         Assert.Equal(52, root.GetProperty("totalCatalogo").GetInt32());
-        Assert.Equal(43, root.GetProperty("completoDatosJsonCsvPdf").GetInt32());
+        Assert.Equal(46, root.GetProperty("completoDatosJsonCsvPdf").GetInt32());
         Assert.Equal(3, root.GetProperty("informesTextoRdlc").GetArrayLength());
         Assert.Equal(5, root.GetProperty("informesAdicionalesApi").GetArrayLength());
         Assert.Equal(0, root.GetProperty("soloMvc").GetInt32());
-        Assert.True(root.GetProperty("parcial").GetInt32() >= 9);
+        Assert.True(root.GetProperty("parcial").GetInt32() >= 6);
     }
 }

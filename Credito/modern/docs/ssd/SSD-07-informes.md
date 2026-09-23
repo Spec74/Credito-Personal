@@ -53,7 +53,7 @@ El C# no recalcula cartera ni mora. Cada informe invoca su `usp_Rpt*` / equivale
 | Pieza | Uso |
 |-------|-----|
 | Catálogo MVC (52) | `GET /api/v1/reportes/catalogo` |
-| Matriz cobertura | `GET .../catalogo-cobertura` — 43 `completo-datos`, `soloMvc = 0`, ≥9 `parcial`, 5 adicionales API, 3 `json-texto` |
+| Matriz cobertura | `GET .../catalogo-cobertura` — 46 `completo-datos`, `soloMvc = 0`, ≥6 `parcial`, 5 adicionales API, 3 `json-texto` |
 | `CredixLegacyReportCatalog` | Título y columnas PDF (tildes normalizadas) |
 | Tres JSON `{ texto }` | Resumen ingreso caja, tipo cuenta, cuenta bóveda (sin CSV/PDF de filas) |
 
@@ -79,7 +79,7 @@ Política de export: fase `pdf-tabular-completo` (cada `-csv` tiene `-pdf`). Mot
 
 - [ ] Ítem Reportes → Crédito abre `/reportes/credito`; Dashboard → `/inicio`.
 - [ ] Un informe de cartera (p. ej. cobro diario) lista filas del `usp_*` y descarga PDF Credix con título legible.
-- [ ] `/informes/cobertura` muestra 52 del catálogo y `soloMvc = 0`.
+- [ ] `/informes/cobertura` muestra 52 del catálogo, 46 completo-datos y `soloMvc = 0`.
 - [ ] Gestor sin rol de índice crédito no ve cajas de admin/aprobador que el MVC ocultaba.
 - [ ] `/reportes/visor` abre el PDF de la API, no IIS ReportViewer.
 - [ ] Tres resúmenes `{ texto }` no ofrecen CSV/PDF de grilla.
