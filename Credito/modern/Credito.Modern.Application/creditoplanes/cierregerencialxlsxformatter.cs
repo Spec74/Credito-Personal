@@ -25,9 +25,12 @@ namespace Credito.Modern.Application.CreditoPlanes
         private const string Naranja = "C65911";
         private const string Zebra = "F7FAFC";
         private const string EspecialSoft = "FBF3EB";
-        private const string Moneda = "S/ #,##0.00;[Red](S/ #,##0.00);-";
-        private const string Entero = "#,##0;[Red](#,##0);-";
-        private const string Porcentaje = "0.00%;[Red](0.00%);-";
+        /// <summary>
+        /// Prefijo S/ entre comillas: sin escapar, Excel/Sheets móvil interpreta "/" como fracción y muestra #VALUE!.
+        /// </summary>
+        private const string Moneda = "\"S/\"#,##0.00;[Red](\"S/\"#,##0.00);\"-\"";
+        private const string Entero = "#,##0;[Red](#,##0);\"-\"";
+        private const string Porcentaje = "0.00%;[Red](0.00%);\"-\"";
         private const string Empresa = "CREDICONFIABLE";
 
         public static byte[] ToXlsx(IReadOnlyList<AvanceMetaGerencialDto> filas)

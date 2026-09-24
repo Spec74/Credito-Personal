@@ -20,13 +20,14 @@ import {
   Tabs,
   Tag,
   Typography,
+  Dropdown,
   message,
 } from 'antd'
 import {
   EditOutlined,
   EnvironmentOutlined,
   FileSearchOutlined,
-  FileAddOutlined,
+  DownOutlined,
   LockOutlined,
   PlusOutlined,
   SaveOutlined,
@@ -53,8 +54,10 @@ import { GoogleMapLocationPicker } from '../../components/maps/GoogleMapLocation
 import { CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
 import {
   esCreditoAdministrador,
+  esCreditoAnalista,
   esCreditoAprobador1,
   puedeEditarTopeCreditoUi,
+  puedeOperarCreditoCompleto,
 } from '../../utils/creditoOperacionPermisos'
 import { geocodeDistritoCliente, geocodeDomicilioCliente } from '../../utils/googleGeocode'
 import { type MapLatLng, toMapLatLng } from '../../config/googleMaps'
@@ -136,16 +139,33 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
   /** Solo lectura en editar hasta pulsar Editar; en alta siempre editable. */
   const [editando, setEditando] = useState(!esEdicion)
   const guardarDestinoRef = useRef(guardarDestino)
-  const puedePrendario =
-    esCreditoAdministrador(roles) || roles.some((r) => r.trim().toUpperCase() === 'ANALISTA')
+  /** Mismo criterio que CreditoOperacionRoute (simulador / originación). */
+  const puedeContinuarCredito = puedeOperarCreditoCompleto(roles)
+  /** Prendario: originación operativa de analista/admin (paridad hub prendario). */
+  const puedeContinuarPrendario = esCreditoAdministrador(roles) || esCreditoAnalista(roles)
   const debouncedDistrito = useDebouncedValue(distritoTerm.trim(), 300)
   const documentoOriginalRef = useRef('')
   const geocodificadoInicialRef = useRef(false)
   const soloConsulta = esEdicion && !editando
+  const opcionesContinuarAlta = useMemo(() => {
+    const items: { key: 'credito' | 'prendario'; label: string }[] = []
+    if (puedeContinuarCredito) {
+      items.push({ key: 'credito', label: 'Guardar y solicitar crédito' })
+    }
+    if (puedeContinuarPrendario) {
+      items.push({ key: 'prendario', label: 'Guardar y crédito prendario' })
+    }
+    return items
+  }, [puedeContinuarCredito, puedeContinuarPrendario])
 
   const marcarDestino = (destino: 'listado' | 'credito' | 'prendario') => {
     guardarDestinoRef.current = destino
     setGuardarDestino(destino)
+  }
+
+  const guardarYContinuar = (destino: 'credito' | 'prendario') => {
+    marcarDestino(destino)
+    form.submit()
   }
 
   // Al cambiar de ruta (nuevo ↔ editar / otro cliente), reiniciar modo.
@@ -891,16 +911,38 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
 
         <div className="cliente-mantener__footer">
           {soloConsulta ? (
-            <Button
-              type="primary"
-              icon={<EditOutlined />}
-              disabled={false}
-              onClick={() => setEditando(true)}
-            >
-              Editar
-            </Button>
-          ) : (
             <>
+              <div className="cliente-mantener__footer-primary">
+                <Button
+                  type="primary"
+                  icon={<EditOutlined />}
+                  disabled={false}
+                  onClick={() => setEditando(true)}
+                >
+                  Editar
+                </Button>
+                {puedeContinuarCredito ? (
+                  <Button
+                    disabled={false}
+                    onClick={() =>
+                      navigate(`/credito/simulador?personaId=${personaId}`, { replace: false })
+                    }
+                  >
+                    Solicitar crédito
+                  </Button>
+                ) : null}
+                {puedeContinuarPrendario ? (
+                  <Button
+                    disabled={false}
+                    onClick={() => navigate(buildPrendarioNuevoHref(personaId), { replace: false })}
+                  >
+                    Crédito prendario
+                  </Button>
+                ) : null}
+              </div>
+            </>
+          ) : (
+            <div className="cliente-mantener__footer-primary">
               <Button
                 type="primary"
                 htmlType="submit"
@@ -911,69 +953,76 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
               >
                 {returnTo ? 'Guardar y continuar' : 'Guardar cliente'}
               </Button>
-              {!returnTo && (
-                <>
+              {!returnTo && !esEdicion && opcionesContinuarAlta.length > 0 ? (
+                <Dropdown
+                  menu={{
+                    items: opcionesContinuarAlta.map((o) => ({
+                      key: o.key,
+                      label: o.label,
+                    })),
+                    onClick: ({ key }) => {
+                      if (key === 'credito' || key === 'prendario') {
+                        guardarYContinuar(key)
+                      }
+                    },
+                  }}
+                  placement="topLeft"
+                  trigger={['click']}
+                >
                   <Button
-                    htmlType="submit"
-                    icon={<FileAddOutlined />}
-                    loading={guardar.isPending && guardarDestino === 'credito'}
                     disabled={guardar.isPending}
-                    onClick={() => marcarDestino('credito')}
+                    loading={
+                      guardar.isPending &&
+                      (guardarDestino === 'credito' || guardarDestino === 'prendario')
+                    }
                   >
-                    Guardar y solicitar crédito
+                    Guardar y seguir
+                    <DownOutlined />
                   </Button>
-                  {puedePrendario && (
-                    <Button
-                      htmlType="submit"
-                      loading={guardar.isPending && guardarDestino === 'prendario'}
-                      disabled={guardar.isPending}
-                      onClick={() => marcarDestino('prendario')}
-                    >
-                      Guardar y crédito prendario
-                    </Button>
-                  )}
-                </>
-              )}
-              {esEdicion && (
+                </Dropdown>
+              ) : null}
+              {esEdicion ? (
                 <Button onClick={() => setEditando(false)} disabled={guardar.isPending}>
                   Cancelar edición
                 </Button>
-              )}
-            </>
+              ) : null}
+            </div>
           )}
-          <Button disabled={false} onClick={() => navigate(returnTo ?? '/clientes')}>
-            {returnTo ? 'Cancelar y volver' : 'Volver al listado'}
-          </Button>
-          {esEdicion && (
-            <>
-              <Button
-                disabled={false}
-                onClick={() =>
-                  toggleClienteActivo(personaId).then((st) => {
-                    form.setFieldValue('activo', st)
-                    message.success(st ? 'Activado' : 'Desactivado')
-                  })
-                }
-              >
-                Activar / desactivar
-              </Button>
-              {puedeAprobador && (
+          <div className="cliente-mantener__footer-secondary">
+            <Button disabled={false} onClick={() => navigate(returnTo ?? '/clientes')}>
+              {returnTo ? 'Cancelar y volver' : 'Volver al listado'}
+            </Button>
+            {esEdicion && (
+              <>
                 <Button
-                  danger={!bloqueado}
-                  icon={bloqueado ? <UnlockOutlined /> : <LockOutlined />}
                   disabled={false}
                   onClick={() =>
-                    toggleClienteBloqueado(personaId).then((n) => {
-                      setBloqueado(n)
-                      message.success(n ? 'Bloqueado' : 'Desbloqueado')
+                    toggleClienteActivo(personaId).then((st) => {
+                      form.setFieldValue('activo', st)
+                      message.success(st ? 'Activado' : 'Desactivado')
                     })
                   }
                 >
-                  {bloqueado ? 'Desbloquear' : 'Bloquear'}
+                  Activar / desactivar
                 </Button>
-              )}
-            </>
-          )}
+                {puedeAprobador && (
+                  <Button
+                    danger={!bloqueado}
+                    icon={bloqueado ? <UnlockOutlined /> : <LockOutlined />}
+                    disabled={false}
+                    onClick={() =>
+                      toggleClienteBloqueado(personaId).then((n) => {
+                        setBloqueado(n)
+                        message.success(n ? 'Bloqueado' : 'Desbloqueado')
+                      })
+                    }
+                  >
+                    {bloqueado ? 'Desbloquear' : 'Bloquear'}
+                  </Button>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </Form>
 

@@ -1,7 +1,19 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { ReloadOutlined, UserOutlined } from '@ant-design/icons'
-import { Button, Empty, Input, Modal, Segmented, Spin, Table, Typography, message } from 'antd'
+import {
+  Button,
+  Empty,
+  Grid,
+  Input,
+  Modal,
+  Segmented,
+  Select,
+  Spin,
+  Table,
+  Typography,
+  message,
+} from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   fetchDashboardClientesMora,
@@ -31,6 +43,8 @@ type Props = {
  * → SPA /credito/consulta?personaId= en pestaña nueva (conserva el listado de mora).
  */
 export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props) {
+  const screens = Grid.useBreakpoint()
+  const isMobile = screens.md !== true
   const [tipo, setTipo] = useState<DashboardMoraTipo>(tipoInicial)
   const [busqueda, setBusqueda] = useState('')
   const busquedaDeferred = useDeferredValue(busqueda)
@@ -68,14 +82,15 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
     }
   }, [])
 
-  const columns: ColumnsType<DashboardClienteMoraRow> = useMemo(
-    () => [
+  const columns: ColumnsType<DashboardClienteMoraRow> = useMemo(() => {
+    const base: ColumnsType<DashboardClienteMoraRow> = [
       {
         title: 'Cliente',
         dataIndex: 'nombreCompleto',
         key: 'nombre',
+        ellipsis: true,
         render: (nombre: string, row) => (
-          <div>
+          <div className="dash-mora-client-cell">
             <strong className="dash-mora-client-name">{nombre}</strong>
             <div className="dash-mora-client-id">Persona #{row.personaId}</div>
           </div>
@@ -85,9 +100,11 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
         title: 'Estado',
         dataIndex: 'codigoClasificacion',
         key: 'estado',
-        width: 140,
+        width: isMobile ? 112 : 140,
         render: (codigo: string, row) => (
-          <span className={`dash-mora-status is-${statusClass(codigo)}`}>{row.clasificacion}</span>
+          <span className={`dash-mora-status is-${statusClass(codigo)}`}>
+            {isMobile ? shortClasificacion(row.clasificacion) : row.clasificacion}
+          </span>
         ),
       },
       {
@@ -96,12 +113,13 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
         key: 'creditos',
         width: 90,
         align: 'center',
+        responsive: ['md'],
       },
       {
         title: 'Saldo mora',
         dataIndex: 'saldoMora',
         key: 'saldo',
-        width: 120,
+        width: isMobile ? 100 : 120,
         align: 'right',
         render: (v: number) => `S/ ${formatMoney(v)}`,
       },
@@ -110,6 +128,7 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
         dataIndex: 'primeraCuotaVencida',
         key: 'primera',
         width: 130,
+        responsive: ['lg'],
         render: (v: string | null) => formatFechaCorta(v),
       },
       {
@@ -117,6 +136,7 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
         dataIndex: 'fechaUltimoPago',
         key: 'ultimo',
         width: 120,
+        responsive: ['lg'],
         render: (v: string | null) => (v ? formatFechaCorta(v) : 'Sin pagos'),
       },
       {
@@ -125,13 +145,14 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
         key: 'dias',
         width: 70,
         align: 'center',
+        responsive: ['md'],
       },
       {
         title: '',
         key: 'accion',
-        width: 128,
+        width: isMobile ? 72 : 128,
         align: 'center',
-        fixed: 'right',
+        fixed: isMobile ? undefined : 'right',
         render: (_, row) => (
           <Button
             type="link"
@@ -141,31 +162,40 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
             onClick={() => abrirCreditosPersona(row.personaId)}
             aria-label={`Ver créditos de ${row.nombreCompleto}`}
           >
-            Ver cliente
+            {isMobile ? 'Ver' : 'Ver cliente'}
           </Button>
         ),
       },
-    ],
-    [abrirCreditosPersona],
-  )
+    ]
+    return base
+  }, [abrirCreditosPersona, isMobile])
 
   return (
     <Modal
       open={open}
       onCancel={onClose}
       title="Clientes en mora"
-      width={980}
+      width={isMobile ? '100%' : 980}
       footer={null}
       destroyOnHidden
-      className="dash-mora-modal"
+      centered={!isMobile}
+      className={`dash-mora-modal${isMobile ? ' dash-mora-modal--mobile' : ''}`}
+      styles={{
+        body: {
+          maxHeight: isMobile ? 'calc(100dvh - 108px)' : 'min(70vh, 640px)',
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          paddingInline: isMobile ? 12 : 24,
+        },
+      }}
     >
-      <Typography.Paragraph type="secondary" style={{ marginTop: 0, marginBottom: 12 }}>
+      <Typography.Paragraph type="secondary" className="dash-mora-summary">
         {query.isFetching
           ? 'Consultando cartera morosa…'
           : `${filtrados.length} cliente${filtrados.length === 1 ? '' : 's'} encontrado${
               filtrados.length === 1 ? '' : 's'
             }`}
-        {!query.isFetching ? (
+        {!query.isFetching && !isMobile ? (
           <span className="dash-mora-hint">
             {' '}
             · «Ver cliente» abre la consulta de créditos en otra pestaña.
@@ -174,18 +204,32 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
       </Typography.Paragraph>
 
       <div className="dash-mora-toolbar">
-        <Segmented
-          options={FILTROS}
-          value={tipo}
-          onChange={(v) => setTipo(v as DashboardMoraTipo)}
-        />
+        <div className="dash-mora-filters">
+          {isMobile ? (
+            <Select
+              className="dash-mora-filter-select"
+              options={FILTROS.map((f) => ({ label: f.label, value: f.value }))}
+              value={tipo}
+              onChange={(v) => setTipo(v)}
+              aria-label="Filtro de mora"
+            />
+          ) : (
+            <div className="dash-mora-segmented-scroll">
+              <Segmented
+                options={FILTROS}
+                value={tipo}
+                onChange={(v) => setTipo(v as DashboardMoraTipo)}
+              />
+            </div>
+          )}
+        </div>
         <div className="dash-mora-tools">
           <Input
             allowClear
             placeholder="Buscar cliente o # persona…"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            style={{ width: 240 }}
+            className="dash-mora-search"
             aria-label="Buscar en clientes en mora"
           />
           <Button
@@ -193,7 +237,7 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
             onClick={() => void query.refetch()}
             loading={query.isFetching}
           >
-            Refrescar
+            {isMobile ? '' : 'Refrescar'}
           </Button>
         </div>
       </div>
@@ -211,11 +255,12 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
           columns={columns}
           dataSource={filtrados}
           pagination={{
-            pageSize: 12,
+            pageSize: isMobile ? 8 : 12,
             showSizeChanger: false,
-            showTotal: (t) => `${t} cliente${t === 1 ? '' : 's'}`,
+            simple: isMobile,
+            showTotal: isMobile ? undefined : (t) => `${t} cliente${t === 1 ? '' : 's'}`,
           }}
-          scroll={{ x: 920 }}
+          scroll={{ x: isMobile ? 420 : 920 }}
           locale={{
             emptyText: <Empty description="No hay clientes en mora para este filtro." />,
           }}
@@ -236,6 +281,12 @@ function statusClass(codigo: string) {
     default:
       return 'neutral'
   }
+}
+
+function shortClasificacion(texto: string) {
+  const t = texto.trim()
+  if (t.length <= 14) return t
+  return `${t.slice(0, 12)}…`
 }
 
 function formatFechaCorta(iso: string | null) {
