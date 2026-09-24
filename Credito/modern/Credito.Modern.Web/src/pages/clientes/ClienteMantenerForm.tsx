@@ -7,7 +7,6 @@ import {
   Button,
   Checkbox,
   Col,
-  DatePicker,
   Form,
   Input,
   InputNumber,
@@ -51,7 +50,7 @@ import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { GoogleMapLocationPicker } from '../../components/maps/GoogleMapLocationPicker'
-import { CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
+import { CredixPage, CredixPanel, CredixDatePicker, type CredixStatItem } from '../../components/credix'
 import {
   esCreditoAdministrador,
   esCreditoAnalista,
@@ -681,7 +680,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                       </Col>
                       <Col xs={24} md={9}>
                         <Form.Item name="fechaNacimiento" label="Fecha nacimiento">
-                          <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+                          <CredixDatePicker />
                         </Form.Item>
                       </Col>
                     </Row>

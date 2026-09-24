@@ -6,18 +6,38 @@
 :root {
   --credix-brand: #114885;
   --credix-brand-hover: #1a5a9e;
+  --credix-brand-active: #0d3a6b;
   --credix-brand-light: #e8f2fc;
   --credix-bg: #f0f2f5;
   --credix-surface: #ffffff;
   --credix-border: #e5e7eb;
   --credix-text: #1f2937;
   --credix-text-muted: #6b7280;
+  --credix-success: #15803d;
+  --credix-success-bg: #f0fdf4;
+  --credix-warning: #c47a00;
+  --credix-warning-bg: #fffbeb;
+  --credix-danger: #b91c1c;
+  --credix-danger-bg: #fef2f2;
+  --credix-info: #2e69ae;
+  --credix-info-bg: #eff6ff;
   --credix-header-h: 52px;
   --credix-sidebar-w: 240px;
   --credix-sidebar-collapsed: 64px;
   --credix-radius: 8px;
   --credix-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
   --credix-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --credix-focus-ring: 0 0 0 2px rgba(17, 72, 133, 0.18);
+  --credix-space-1: 4px;
+  --credix-space-2: 8px;
+  --credix-space-3: 12px;
+  --credix-space-4: 16px;
+  --credix-space-5: 20px;
+  --credix-space-6: 24px;
+  --credix-touch-min: 40px;
+  --credix-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --credix-font: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial,
+    sans-serif;
 }
 
 body.credix-app-body {

@@ -1,0 +1,374 @@
+/**
+ * Puente Ant Design ↔ Credix.
+ * Completa lo que el ThemeConfig no cubre: densidad, mobile, foco, feedback y utilidades de layout.
+ * Importar una sola vez desde main.tsx (después del design system).
+ */
+
+/* —— Tokens semánticos adicionales (complementan :root del design system) —— */
+:root {
+  --credix-brand-active: #0d3a6b;
+  --credix-success: #15803d;
+  --credix-success-bg: #f0fdf4;
+  --credix-warning: #c47a00;
+  --credix-warning-bg: #fffbeb;
+  --credix-danger: #b91c1c;
+  --credix-danger-bg: #fef2f2;
+  --credix-info: #2e69ae;
+  --credix-info-bg: #eff6ff;
+  --credix-focus-ring: 0 0 0 2px rgba(17, 72, 133, 0.18);
+  --credix-space-1: 4px;
+  --credix-space-2: 8px;
+  --credix-space-3: 12px;
+  --credix-space-4: 16px;
+  --credix-space-5: 20px;
+  --credix-space-6: 24px;
+  --credix-font: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial,
+    sans-serif;
+  --credix-touch-min: 40px;
+  --credix-page-max: 100%;
+  --credix-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* —— Tipografía base alineada a tokens —— */
+body.credix-app-body,
+body {
+  font-family: var(--credix-font);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* —— Utilidades de composición (páginas nuevas / migradas) —— */
+.credix-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--credix-space-3);
+  min-width: 0;
+}
+
+.credix-stack--lg {
+  gap: var(--credix-space-5);
+}
+
+.credix-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--credix-space-2);
+  min-width: 0;
+}
+
+.credix-actions--end {
+  justify-content: flex-end;
+}
+
+.credix-actions--stretch {
+  width: 100%;
+}
+
+.credix-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 0 var(--credix-space-4);
+  width: 100%;
+  min-width: 0;
+}
+
+.credix-form-grid .ant-form-item {
+  min-width: 0;
+}
+
+.credix-field-fluid,
+.credix-field-fluid.ant-input,
+.credix-field-fluid.ant-input-affix-wrapper,
+.credix-field-fluid.ant-input-number,
+.credix-field-fluid.ant-picker,
+.credix-field-fluid.ant-select,
+.credix-field-fluid .ant-select-selector {
+  width: 100% !important;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* —— Botones: jerarquía corporativa —— */
+.credix-content .ant-btn-primary:not(.ant-btn-dangerous):not(:disabled),
+.credix-page .ant-btn-primary:not(.ant-btn-dangerous):not(:disabled),
+.ant-modal .ant-btn-primary:not(.ant-btn-dangerous):not(:disabled),
+.ant-drawer .ant-btn-primary:not(.ant-btn-dangerous):not(:disabled) {
+  background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand) 100%);
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.credix-content .ant-btn-primary:not(.ant-btn-dangerous):not(:disabled):hover,
+.credix-page .ant-btn-primary:not(.ant-btn-dangerous):not(:disabled):hover,
+.ant-modal .ant-btn-primary:not(.ant-btn-dangerous):not(:disabled):hover,
+.ant-drawer .ant-btn-primary:not(.ant-btn-dangerous):not(:disabled):hover {
+  background: linear-gradient(180deg, #2a7bc4 0%, var(--credix-brand-hover) 100%);
+  border-color: transparent;
+}
+
+.credix-content .ant-btn,
+.credix-page .ant-btn,
+.ant-modal .ant-btn,
+.ant-drawer .ant-btn {
+  transition:
+    background var(--credix-ease) 0.18s,
+    border-color var(--credix-ease) 0.18s,
+    box-shadow var(--credix-ease) 0.18s,
+    color var(--credix-ease) 0.18s;
+}
+
+@media (max-width: 640px) {
+  .credix-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credix-actions .ant-btn {
+    width: 100%;
+    min-height: var(--credix-touch-min);
+    justify-content: center;
+  }
+}
+
+/* —— Formularios —— */
+.credix-content .ant-form-item-label > label,
+.credix-page .ant-form-item-label > label,
+.ant-modal .ant-form-item-label > label,
+.ant-drawer .ant-form-item-label > label {
+  font-weight: 600;
+  color: var(--credix-text);
+}
+
+.credix-content .ant-form-item-explain-error,
+.credix-page .ant-form-item-explain-error {
+  font-size: 12px;
+}
+
+.credix-content .ant-input:focus,
+.credix-content .ant-input-affix-wrapper-focused,
+.credix-content .ant-input-number-focused,
+.credix-content .ant-picker-focused,
+.credix-content .ant-select-focused .ant-select-selector,
+.credix-page .ant-input:focus,
+.credix-page .ant-input-affix-wrapper-focused,
+.credix-page .ant-picker-focused,
+.credix-page .ant-select-focused .ant-select-selector {
+  box-shadow: var(--credix-focus-ring) !important;
+}
+
+/* —— Tablas —— */
+.credix-content .ant-table-wrapper,
+.credix-page .ant-table-wrapper {
+  border-radius: var(--credix-radius);
+}
+
+.credix-content .ant-table-thead > tr > th,
+.credix-page .ant-table-thead > tr > th {
+  font-weight: 650;
+  letter-spacing: 0.01em;
+}
+
+.credix-content .ant-table-tbody > tr > td,
+.credix-page .ant-table-tbody > tr > td {
+  font-variant-numeric: tabular-nums;
+}
+
+.credix-content .ant-pagination,
+.credix-page .ant-pagination {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+/* —— Alertas / feedback —— */
+.credix-content .ant-alert,
+.credix-page .ant-alert,
+.ant-modal .ant-alert {
+  border-left-width: 4px;
+  border-left-style: solid;
+}
+
+.credix-content .ant-alert-success,
+.credix-page .ant-alert-success {
+  border-left-color: var(--credix-success);
+}
+
+.credix-content .ant-alert-info,
+.credix-page .ant-alert-info {
+  border-left-color: var(--credix-info);
+}
+
+.credix-content .ant-alert-warning,
+.credix-page .ant-alert-warning {
+  border-left-color: var(--credix-warning);
+}
+
+.credix-content .ant-alert-error,
+.credix-page .ant-alert-error {
+  border-left-color: var(--credix-danger);
+}
+
+.credix-alert-note {
+  background: var(--credix-warning-bg);
+  border: 1px solid #fcd34d;
+  border-left: 4px solid var(--credix-warning);
+  color: var(--credix-text);
+  border-radius: var(--credix-radius);
+  padding: 10px 14px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.credix-alert-note strong {
+  margin-right: 4px;
+  color: var(--credix-brand-active);
+}
+
+.ant-message .ant-message-notice-content,
+.ant-notification-notice {
+  border-radius: var(--credix-radius) !important;
+  box-shadow: var(--credix-shadow-md) !important;
+  border: 1px solid var(--credix-border);
+}
+
+/* —— Modales —— */
+.ant-modal .ant-modal-header {
+  margin-bottom: 4px;
+}
+
+.ant-modal .ant-modal-title {
+  font-weight: 700;
+  color: var(--credix-brand);
+}
+
+.ant-modal .ant-modal-footer {
+  margin-top: 8px;
+  border-top: 1px solid var(--credix-border);
+  padding-top: 12px;
+}
+
+@media (max-width: 640px) {
+  .ant-modal {
+    max-width: calc(100vw - 16px) !important;
+    top: 8px;
+    padding-bottom: 0;
+    margin: 0 auto;
+  }
+
+  .ant-modal .ant-modal-content {
+    max-height: calc(100dvh - 16px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ant-modal .ant-modal-body {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .ant-modal .ant-modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ant-modal .ant-modal-footer .ant-btn {
+    flex: 1 1 calc(50% - 4px);
+    min-height: var(--credix-touch-min);
+  }
+}
+
+/* —— Drawers —— */
+.ant-drawer .ant-drawer-title {
+  font-weight: 700;
+  color: var(--credix-brand);
+}
+
+@media (max-width: 640px) {
+  .ant-drawer .ant-drawer-content-wrapper {
+    max-width: 100vw !important;
+  }
+
+  .ant-drawer .ant-drawer-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ant-drawer .ant-drawer-footer .ant-btn {
+    flex: 1 1 calc(50% - 4px);
+    min-height: var(--credix-touch-min);
+  }
+}
+
+/* —— Calendarios / DatePicker —— */
+.credix-date-picker,
+.credix-range-picker {
+  width: 100%;
+  max-width: 100%;
+}
+
+.ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-selected .ant-picker-cell-inner,
+.ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-range-start .ant-picker-cell-inner,
+.ant-picker-dropdown .ant-picker-cell-in-view.ant-picker-cell-range-end .ant-picker-cell-inner {
+  background: var(--credix-brand) !important;
+}
+
+.ant-picker-dropdown .ant-picker-today-btn {
+  color: var(--credix-brand);
+}
+
+@media (max-width: 767px) {
+  .ant-picker-input > input {
+    font-size: 16px;
+  }
+
+  .ant-picker-dropdown {
+    max-width: calc(100vw - 12px);
+  }
+
+  .ant-picker-panels {
+    flex-direction: column !important;
+  }
+}
+
+/* —— Cards / paneles —— */
+.credix-content .ant-card-head-title,
+.credix-page .ant-card-head-title {
+  font-weight: 700;
+  color: var(--credix-brand);
+}
+
+.credix-box-header h2 {
+  letter-spacing: 0.01em;
+}
+
+/* —— Empty / Spin —— */
+.credix-content .ant-empty-description,
+.credix-page .ant-empty-description {
+  color: var(--credix-text-muted);
+}
+
+.credix-content .ant-spin-text {
+  color: var(--credix-brand);
+}
+
+/* —— Segmented / Tabs —— */
+.credix-content .ant-segmented,
+.credix-page .ant-segmented {
+  max-width: 100%;
+}
+
+.credix-content .ant-tabs-nav,
+.credix-page .ant-tabs-nav {
+  margin-bottom: 12px !important;
+}
+
+/* —— Selectores / dropdowns en viewport estrecho —— */
+@media (max-width: 640px) {
+  .ant-select-dropdown,
+  .ant-dropdown {
+    max-width: calc(100vw - 16px) !important;
+  }
+}

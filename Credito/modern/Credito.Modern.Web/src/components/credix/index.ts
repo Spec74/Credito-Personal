@@ -15,3 +15,6 @@ export { CredixListToolbar, type CredixListToolbarProps } from './CredixListTool
 export { CredixCrudToolbar, type CredixCrudToolbarProps } from './CredixCrudToolbar'
 export { CredixQuickAccessStrip } from './CredixQuickAccessStrip'
 export { CredixRangePicker } from './CredixRangePicker'
+export { CredixDatePicker } from './CredixDatePicker'
+export { CredixModal } from './CredixModal'
+export { credixConfirm } from './credixConfirm'

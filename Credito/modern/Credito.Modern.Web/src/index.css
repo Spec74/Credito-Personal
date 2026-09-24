@@ -11,32 +11,48 @@ body,
   min-height: 100%;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
-  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-family: var(
+    --credix-font,
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Helvetica Neue',
+    Arial,
+    sans-serif
+  );
   font-size: 14px;
-  background: #f0f2f5;
+  line-height: 1.5;
+  color: var(--credix-text, #1f2937);
+  background: var(--credix-bg, #f0f2f5);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
   min-width: 0;
 }
 
-.home-stat-card .ant-statistic-title {
-  font-size: 13px;
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
 }
 
-.home-stat-card .ant-statistic-content-value {
-  font-size: clamp(0.95rem, 2.2vw, 1.2rem) !important;
-  line-height: 1.35 !important;
-  white-space: normal !important;
-  word-break: break-word;
-  overflow-wrap: anywhere;
-}
-
-.home-stat-card .ant-statistic-content {
-  min-width: 0;
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 .home-stat-card .ant-statistic-title {

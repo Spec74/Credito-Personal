@@ -10,8 +10,6 @@ import {
 
   Button,
 
-  DatePicker,
-
   Form,
 
   Input,
@@ -52,7 +50,7 @@ import { ApiError } from '../../api/errors'
 
 import { useAuth } from '../../auth/useAuth'
 
-import { CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
+import { CredixDatePicker, CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
 
 
 
@@ -373,7 +371,7 @@ export function MovimientoAlmacenPage() {
 
                   <Form.Item name="fecha" label="Fecha" rules={[{ required: true }]}>
 
-                    <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+                    <CredixDatePicker />
 
                   </Form.Item>
 

@@ -1,31 +1,60 @@
 import type { ThemeConfig } from 'antd'
 
-/** Tema Ant Design — moderno, marca CREDIX (#114885). */
+/**
+ * Tema Ant Design 5 — única fuente de verdad visual para componentes Ant.
+ * Tokens CSS (`--credix-*`) viven en `credix-design-system.css`.
+ * Marca CrediConfiable: #114885.
+ */
 export const credixLegacyTheme: ThemeConfig = {
+  cssVar: {
+    prefix: 'credix',
+  },
   token: {
     colorPrimary: '#114885',
     colorInfo: '#2e69ae',
     colorSuccess: '#15803d',
     colorWarning: '#c47a00',
     colorError: '#b91c1c',
+    colorLink: '#114885',
     colorBgLayout: '#f0f2f5',
     colorBgContainer: '#ffffff',
+    colorBgElevated: '#ffffff',
     colorBorder: '#e5e7eb',
+    colorBorderSecondary: '#eef2f7',
     colorText: '#1f2937',
     colorTextSecondary: '#6b7280',
+    colorTextTertiary: '#9ca3af',
+    colorFillAlter: '#f8fafc',
+    colorFillSecondary: '#f1f5f9',
     borderRadius: 8,
-    borderRadiusLG: 8,
+    borderRadiusLG: 10,
+    borderRadiusSM: 6,
+    borderRadiusXS: 4,
     fontFamily:
-      "'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+      "'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif",
     fontSize: 14,
+    fontSizeHeading1: 28,
+    fontSizeHeading2: 22,
+    fontSizeHeading3: 18,
+    fontSizeHeading4: 16,
+    fontSizeHeading5: 14,
     controlHeight: 36,
+    controlHeightLG: 40,
+    controlHeightSM: 28,
     lineHeight: 1.5,
+    lineWidth: 1,
+    motionDurationMid: '0.2s',
+    motionDurationSlow: '0.28s',
+    boxShadow: '0 1px 2px rgba(15, 23, 42, 0.06)',
+    boxShadowSecondary: '0 4px 12px rgba(15, 23, 42, 0.08)',
+    wireframe: false,
   },
   components: {
     Layout: {
       siderBg: '#ffffff',
       headerBg: '#114885',
       bodyBg: '#f0f2f5',
+      headerHeight: 52,
     },
     Menu: {
       itemBg: 'transparent',
@@ -37,23 +66,174 @@ export const credixLegacyTheme: ThemeConfig = {
       itemHeight: 40,
       iconSize: 18,
       fontSize: 14,
+      itemBorderRadius: 10,
+      itemMarginInline: 8,
     },
     Table: {
-      headerBg: '#f9fafb',
-      headerColor: '#1f2937',
+      headerBg: '#eef4fb',
+      headerColor: '#114885',
+      headerSplitColor: '#d5e3f2',
       borderColor: '#e5e7eb',
       rowHoverBg: '#f0f7ff',
+      rowSelectedBg: '#e8f2fc',
+      rowSelectedHoverBg: '#dcecfb',
       fontSize: 13,
+      cellPaddingBlock: 10,
+      cellPaddingInline: 12,
+      headerBorderRadius: 8,
     },
     Button: {
       borderRadius: 8,
       controlHeight: 36,
+      controlHeightLG: 40,
+      controlHeightSM: 28,
+      fontWeight: 600,
+      primaryShadow: '0 2px 0 rgba(17, 72, 133, 0.08)',
+      defaultShadow: 'none',
+      dangerShadow: '0 2px 0 rgba(185, 28, 28, 0.08)',
+      paddingContentHorizontal: 16,
     },
     Card: {
-      borderRadiusLG: 8,
+      borderRadiusLG: 10,
+      paddingLG: 16,
+    },
+    Modal: {
+      borderRadiusLG: 12,
+      titleFontSize: 16,
+      titleLineHeight: 1.35,
+      contentBg: '#ffffff',
+      headerBg: '#ffffff',
+      footerBg: '#ffffff',
+      paddingContentHorizontalLG: 24,
+      paddingMD: 16,
     },
     Drawer: {
-      paddingLG: 16,
+      paddingLG: 20,
+    },
+    Form: {
+      labelColor: '#374151',
+      labelFontSize: 13,
+      labelHeight: 22,
+      itemMarginBottom: 16,
+      verticalLabelPadding: '0 0 4px',
+      verticalLabelMargin: 0,
+    },
+    Input: {
+      borderRadius: 8,
+      activeBorderColor: '#114885',
+      hoverBorderColor: '#2e69ae',
+      activeShadow: '0 0 0 2px rgba(17, 72, 133, 0.12)',
+      paddingBlock: 6,
+      paddingInline: 11,
+    },
+    InputNumber: {
+      borderRadius: 8,
+      activeBorderColor: '#114885',
+      hoverBorderColor: '#2e69ae',
+      activeShadow: '0 0 0 2px rgba(17, 72, 133, 0.12)',
+    },
+    Select: {
+      borderRadius: 8,
+      optionSelectedBg: '#e8f2fc',
+      optionActiveBg: '#f0f7ff',
+      optionSelectedFontWeight: 600,
+      controlHeight: 36,
+    },
+    DatePicker: {
+      borderRadius: 8,
+      cellActiveWithRangeBg: '#e8f2fc',
+      cellHoverWithRangeBg: '#f0f7ff',
+      cellRangeBorderColor: '#114885',
+      controlHeight: 36,
+    },
+    Checkbox: {
+      borderRadiusSM: 4,
+    },
+    Radio: {
+      buttonCheckedBg: '#114885',
+      buttonSolidCheckedBg: '#114885',
+    },
+    Switch: {
+      colorPrimary: '#114885',
+    },
+    Tabs: {
+      itemColor: '#6b7280',
+      itemSelectedColor: '#114885',
+      itemHoverColor: '#114885',
+      inkBarColor: '#114885',
+      titleFontSize: 13,
+      horizontalItemPadding: '10px 14px',
+      cardBg: '#f9fafb',
+    },
+    Tag: {
+      borderRadiusSM: 6,
+      defaultBg: '#f1f5f9',
+      defaultColor: '#374151',
+    },
+    Alert: {
+      borderRadiusLG: 8,
+      withDescriptionPadding: '12px 16px',
+      defaultPadding: '10px 14px',
+    },
+    Message: {
+      contentBg: '#ffffff',
+      contentPadding: '10px 16px',
+    },
+    Notification: {
+      width: 384,
+      borderRadiusLG: 10,
+    },
+    Pagination: {
+      itemActiveBg: '#114885',
+      borderRadius: 6,
+    },
+    Tooltip: {
+      borderRadius: 6,
+      colorBgSpotlight: '#1f2937',
+    },
+    Popconfirm: {
+      borderRadiusLG: 10,
+    },
+    Empty: {
+      colorTextDescription: '#6b7280',
+    },
+    Spin: {
+      colorPrimary: '#114885',
+    },
+    Segmented: {
+      itemSelectedBg: '#ffffff',
+      itemSelectedColor: '#114885',
+      trackBg: '#eef2f7',
+      borderRadius: 8,
+      borderRadiusSM: 6,
+    },
+    Breadcrumb: {
+      fontSize: 13,
+      itemColor: '#6b7280',
+      lastItemColor: '#114885',
+      linkColor: '#6b7280',
+      linkHoverColor: '#114885',
+      separatorColor: '#9ca3af',
+    },
+    Dropdown: {
+      borderRadiusLG: 10,
+      paddingBlock: 6,
+      controlItemBgHover: '#e8f2fc',
+      controlItemBgActive: '#e8f2fc',
+    },
+    Progress: {
+      defaultColor: '#114885',
+      remainingColor: '#e5e7eb',
+    },
+    Badge: {
+      textFontSize: 11,
+    },
+    Statistic: {
+      titleFontSize: 13,
+      contentFontSize: 22,
+    },
+    Skeleton: {
+      borderRadius: 6,
     },
   },
 }

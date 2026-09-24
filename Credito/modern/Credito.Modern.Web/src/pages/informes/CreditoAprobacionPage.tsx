@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { CheckCircleOutlined, SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, DatePicker, Form, InputNumber, Typography } from 'antd'
+import { Alert, Button, Form, InputNumber, Typography } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
   downloadCreditoAprobacionCsv,
@@ -12,7 +12,7 @@ import {
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
-import { CredixDataTable, CredixInformePage } from '../../components/credix'
+import { CredixDataTable, CredixDatePicker, CredixInformePage } from '../../components/credix'
 import type { CredixStatItem } from '../../components/credix'
 import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import { buildAprobacionInformeColumns } from '../../config/aprobacionInformeColumns'
@@ -177,7 +177,7 @@ export function CreditoAprobacionPage() {
             label="Fecha"
             rules={[{ required: true, message: 'Indique la fecha' }]}
           >
-            <DatePicker format="DD/MM/YYYY" allowClear={false} />
+            <CredixDatePicker allowClear={false} />
           </Form.Item>
           <Form.Item>
             <Button

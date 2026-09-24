@@ -9,11 +9,7 @@ type RangePickerProps = ComponentProps<typeof DatePicker.RangePicker>
  * - inputReadOnly (evita teclado/zoom iOS)
  * - popup anclado; paneles apilados vía CSS global
  */
-export function CredixRangePicker({
-  style,
-  className,
-  ...props
-}: RangePickerProps) {
+export function CredixRangePicker({ style, className, ...props }: RangePickerProps) {
   return (
     <DatePicker.RangePicker
       inputReadOnly

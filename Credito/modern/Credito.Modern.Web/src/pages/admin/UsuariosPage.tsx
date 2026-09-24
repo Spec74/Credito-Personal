@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Button,
   Checkbox,
-  DatePicker,
   Drawer,
   Form,
   Grid,
@@ -34,7 +33,7 @@ import {
   type UsuarioGestionRow,
 } from '../../api/usuariosAdmin'
 import { ApiError } from '../../api/errors'
-import { CredixCrudPage, CredixDataTable } from '../../components/credix'
+import { CredixCrudPage, CredixDataTable, CredixDatePicker } from '../../components/credix'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 
@@ -339,7 +338,7 @@ export function UsuariosPage() {
                         />
                       </Form.Item>
                       <Form.Item name="fechaNacimiento" label="Fecha nacimiento">
-                        <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+                        <CredixDatePicker />
                       </Form.Item>
                       <Form.Item name="telefonoMovil" label="Celular">
                         <Input maxLength={10} />

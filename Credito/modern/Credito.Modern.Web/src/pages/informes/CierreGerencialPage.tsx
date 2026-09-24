@@ -4,7 +4,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
-  DatePicker,
   Empty,
   Form,
   Input,
@@ -39,6 +38,7 @@ import {
 import { ApiError } from '../../api/errors'
 import {
   CredixDataTable,
+  CredixDatePicker,
   CredixFilterBar,
   CredixPage,
   CredixPanel,
@@ -572,12 +572,14 @@ export function CierreGerencialPage() {
         <CredixFilterBar className="credix-informe-filter-bar">
           <Form layout="inline" className="credix-informe-filter-row">
             <Form.Item label="Periodo">
-              <DatePicker
+              <CredixDatePicker
                 picker="month"
                 value={periodo}
                 format="MMMM YYYY"
                 allowClear={false}
-                onChange={(v) => v && setPeriodo(v.startOf('month'))}
+                onChange={(v) => {
+                  if (v) setPeriodo(v.startOf('month'))
+                }}
               />
             </Form.Item>
             <Form.Item label="Cartera">

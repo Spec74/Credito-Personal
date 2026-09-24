@@ -10,13 +10,13 @@ import {
   TeamOutlined,
   WalletOutlined,
 } from '@ant-design/icons'
-import { Alert, Checkbox, DatePicker, InputNumber, Select, message } from 'antd'
+import { Alert, Checkbox, InputNumber, Select, message } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage } from '../../components/credix'
 import { CredixReportBox } from '../../components/reportes/CredixReportBox'
 import { ReportExportActions } from '../../components/reportes/ReportExportActions'
-import { CredixRangePicker } from '../../components/credix/CredixRangePicker'
+import { CredixDatePicker, CredixRangePicker } from '../../components/credix'
 import {
   GestorSelect,
   OficinaSelect,
@@ -310,12 +310,12 @@ export function ReporteCreditoIndexPage() {
             <OficinaSelect disabled value={oficinaSesion} />
           </ReporteField>
           <ReporteField label="Hasta la fecha">
-            <DatePicker
+            <CredixDatePicker
               size="small"
               value={moraHasta}
-              onChange={(d) => d && setMoraHasta(d)}
-              format="DD/MM/YYYY"
-              style={{ width: '100%' }}
+              onChange={(d) => {
+                if (d) setMoraHasta(d)
+              }}
             />
           </ReporteField>
           <ReporteField label="Días atraso inicio">
@@ -373,12 +373,12 @@ export function ReporteCreditoIndexPage() {
             <GestorSelect allowAll legacyList value={aprobGestor} onChange={setAprobGestor} />
           </ReporteField>
           <ReporteField label="Fecha aprobación">
-            <DatePicker
+            <CredixDatePicker
               size="small"
               value={aprobFecha}
-              onChange={(d) => d && setAprobFecha(d)}
-              format="DD/MM/YYYY"
-              style={{ width: '100%' }}
+              onChange={(d) => {
+                if (d) setAprobFecha(d)
+              }}
             />
           </ReporteField>
         </CredixReportBox>

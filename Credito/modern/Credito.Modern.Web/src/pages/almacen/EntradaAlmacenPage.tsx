@@ -5,7 +5,6 @@ import { PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import {
   Alert,
   Button,
-  DatePicker,
   Form,
   Input,
   InputNumber,
@@ -45,7 +44,7 @@ import {
 import { ApiError } from '../../api/errors'
 import { fetchValoresTabla } from '../../api/maestros'
 import { useAuth } from '../../auth/useAuth'
-import { CredixDataTable, CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
+import { CredixDataTable, CredixDatePicker, CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 
@@ -355,7 +354,7 @@ export function EntradaAlmacenPage() {
             />
           </Form.Item>
           <Form.Item name="fecha" label="Fecha" rules={[{ required: true }]}>
-            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+            <CredixDatePicker />
           </Form.Item>
           <Form.Item name="observacion" label="Observación">
             <Input.TextArea rows={2} />
