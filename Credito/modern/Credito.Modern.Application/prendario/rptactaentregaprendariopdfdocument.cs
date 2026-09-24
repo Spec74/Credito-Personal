@@ -7,6 +7,9 @@ namespace Credito.Modern.Application.Prendario;
 /// <summary>Acta de entrega voluntaria, texto y bloques del RDLC.</summary>
 public static class RptActaEntregaPrendarioPdfDocument
 {
+    /// <summary>Interlineado cómodo en A4 sin forzar segunda hoja (hay margen libre bajo firmas).</summary>
+    private const float Interlineado = 1.38f;
+
     static RptActaEntregaPrendarioPdfDocument()
     {
         QuestPDF.Settings.License = LicenseType.Community;
@@ -20,15 +23,16 @@ public static class RptActaEntregaPrendarioPdfDocument
             {
                 page.Size(PageSizes.A4);
                 page.MarginHorizontal(18);
-                page.MarginVertical(16);
-                page.DefaultTextStyle(x => x.FontSize(9));
+                page.MarginVertical(14);
+                page.DefaultTextStyle(x => x.FontSize(9).LineHeight(Interlineado));
 
                 page.Content().Column(col =>
                 {
                     PrendarioPdfLayout.EncabezadoActa(col, d.NumeroContrato);
 
-                    col.Item().PaddingTop(10).Text(text =>
+                    col.Item().PaddingTop(12).Text(text =>
                     {
+                        text.DefaultTextStyle(x => x.FontSize(9).LineHeight(Interlineado));
                         text.Justify();
                         text.Span("Yo, ");
                         text.Span(d.ApellidosNombres).SemiBold();
@@ -43,8 +47,9 @@ public static class RptActaEntregaPrendarioPdfDocument
                         text.Span(" del " + PrendarioPdfTexto.Anio(d.FechaContrato) + ",");
                     });
 
-                    col.Item().PaddingTop(6).Text(text =>
+                    col.Item().PaddingTop(8).Text(text =>
                     {
+                        text.DefaultTextStyle(x => x.FontSize(9).LineHeight(Interlineado));
                         text.Justify();
                         text.Span("por medio de la presente, realizo la ");
                         text.Span("ENTREGA VOLUNTARIA").SemiBold();
@@ -59,7 +64,7 @@ public static class RptActaEntregaPrendarioPdfDocument
                         text.Span(" a ejercer los derechos que le correspondan conforme a dicho contrato, incluyendo, de ser el caso, la custodia, conservación, valorización, venta o disposición de los bienes entregados, de acuerdo con la normativa aplicable.");
                     });
 
-                    col.Item().PaddingTop(8).Element(c =>
+                    col.Item().PaddingTop(10).Element(c =>
                         PrendarioPdfLayout.BandaActa(c, "I. DETALLE DE MERCADERÍAS ENTREGADAS"));
                     col.Item().Table(table =>
                     {
@@ -89,44 +94,52 @@ public static class RptActaEntregaPrendarioPdfDocument
                             Cuerpo(table, bien.Serie);
                             Cuerpo(table, PrendarioPdfTexto.Valor(bien.Color));
                             Cuerpo(table, PrendarioPdfTexto.Valor(bien.CodigoInterno), true);
-                            table.Cell().Border(0.6f).BorderColor(PrendarioPdfLayout.ActaAzul).Padding(3)
+                            table.Cell().Border(0.6f).BorderColor(PrendarioPdfLayout.ActaAzul).Padding(4)
                                 .AlignMiddle().AlignRight()
                                 .Text(bien.ValorTasacion.ToString("N2", PrendarioPdfTexto.Cultura)).FontSize(8);
                             i++;
                         }
                     });
 
-                    col.Item().PaddingTop(8).Element(c =>
+                    col.Item().PaddingTop(10).Element(c =>
                         PrendarioPdfLayout.BandaActa(c, "II. DECLARACIÓN DEL PRESTATARIO"));
-                    col.Item().Border(0.6f).BorderColor(PrendarioPdfLayout.ActaAzul).Padding(5).Text(text =>
-                    {
-                        text.Justify();
-                        text.Span("El prestatario declara bajo juramento que los bienes entregados son de su exclusiva propiedad, que se encuentran libres de todo gravamen, carga, embargo, litigio o restricción de cualquier naturaleza, y que la información proporcionada en la presente acta es verdadera, completa y exacta.");
-                    });
+                    col.Item().Border(0.6f).BorderColor(PrendarioPdfLayout.ActaAzul).PaddingVertical(7).PaddingHorizontal(8)
+                        .Text(text =>
+                        {
+                            text.DefaultTextStyle(x => x.FontSize(9).LineHeight(Interlineado));
+                            text.Justify();
+                            text.Span("El prestatario declara bajo juramento que los bienes entregados son de su exclusiva propiedad, que se encuentran libres de todo gravamen, carga, embargo, litigio o restricción de cualquier naturaleza, y que la información proporcionada en la presente acta es verdadera, completa y exacta.");
+                        });
 
-                    col.Item().PaddingTop(8).Element(c => PrendarioPdfLayout.BandaActa(c, "III. ACEPTACIÓN"));
-                    col.Item().Border(0.6f).BorderColor(PrendarioPdfLayout.ActaAzul).Padding(5).Text(text =>
-                    {
-                        text.Justify();
-                        text.Span("La entrega voluntaria de los bienes descritos se realiza en señal de garantía prendaria por el cumplimiento de la obligación asumida por el prestatario en el Contrato de Préstamo Prendario suscrito con ");
-                        text.Span(PrendarioPdfTexto.EmpresaActa).SemiBold();
-                        text.Span(". En señal de conformidad, suscribimos la presente acta en dos (02) ejemplares del mismo tenor en la ciudad de Ayacucho, a los ");
-                        text.Span(PrendarioPdfTexto.Dia(d.FechaContrato)).SemiBold();
-                        text.Span(" días del mes de ");
-                        text.Span(PrendarioPdfTexto.MesNombre(d.FechaContrato)).SemiBold();
-                        text.Span(" del ");
-                        text.Span(PrendarioPdfTexto.Anio(d.FechaContrato)).SemiBold();
-                        text.Span(".");
-                    });
+                    col.Item().PaddingTop(10).Element(c => PrendarioPdfLayout.BandaActa(c, "III. ACEPTACIÓN"));
+                    col.Item().Border(0.6f).BorderColor(PrendarioPdfLayout.ActaAzul).PaddingVertical(7).PaddingHorizontal(8)
+                        .Text(text =>
+                        {
+                            text.DefaultTextStyle(x => x.FontSize(9).LineHeight(Interlineado));
+                            text.Justify();
+                            text.Span("La entrega voluntaria de los bienes descritos se realiza en señal de garantía prendaria por el cumplimiento de la obligación asumida por el prestatario en el Contrato de Préstamo Prendario suscrito con ");
+                            text.Span(PrendarioPdfTexto.EmpresaActa).SemiBold();
+                            text.Span(". En señal de conformidad, suscribimos la presente acta en dos (02) ejemplares del mismo tenor en la ciudad de Ayacucho, a los ");
+                            text.Span(PrendarioPdfTexto.Dia(d.FechaContrato)).SemiBold();
+                            text.Span(" días del mes de ");
+                            text.Span(PrendarioPdfTexto.MesNombre(d.FechaContrato)).SemiBold();
+                            text.Span(" del ");
+                            text.Span(PrendarioPdfTexto.Anio(d.FechaContrato)).SemiBold();
+                            text.Span(".");
+                        });
 
-                    col.Item().PaddingTop(6).Border(0.6f).BorderColor(PrendarioPdfLayout.ActaAzul).Padding(5).Text(text =>
-                    {
-                        text.Justify();
-                        text.Span("NOTA: ").Bold();
-                        text.Span("La presente acta no constituye novación ni modificación de la obligación contraída. Es parte integrante del Contrato de Préstamo Prendario suscrito entre las partes.");
-                    });
+                    col.Item().PaddingTop(8).Border(0.6f).BorderColor(PrendarioPdfLayout.ActaAzul)
+                        .PaddingVertical(6).PaddingHorizontal(8)
+                        .Text(text =>
+                        {
+                            text.DefaultTextStyle(x => x.FontSize(8.5f).LineHeight(1.32f));
+                            text.Justify();
+                            text.Span("NOTA: ").Bold();
+                            text.Span("La presente acta no constituye novación ni modificación de la obligación contraída. Es parte integrante del Contrato de Préstamo Prendario suscrito entre las partes.");
+                        });
 
-                    col.Item().PaddingTop(22).Table(table =>
+                    // Espacio justo para firmas: el interlineado ya consumió el hueco inferior vacío.
+                    col.Item().PaddingTop(14).Table(table =>
                     {
                         table.ColumnsDefinition(c =>
                         {
@@ -135,19 +148,19 @@ public static class RptActaEntregaPrendarioPdfDocument
                             c.ConstantColumn(118);
                         });
                         table.Cell().PaddingRight(10).Element(c =>
-                            c.MinHeight(34).Element(x => PrendarioPdfLayout.BandaActa(x, "PRESTATARIO")));
+                            c.MinHeight(30).Element(x => PrendarioPdfLayout.BandaActa(x, "PRESTATARIO")));
                         table.Cell().PaddingRight(10).Element(c =>
-                            c.MinHeight(34).Element(x =>
+                            c.MinHeight(30).Element(x =>
                                 PrendarioPdfLayout.BandaActa(x, "REPRESENTANTE DE " + PrendarioPdfTexto.EmpresaActa)));
                         table.Cell().Element(c =>
-                            c.MinHeight(34).Element(x =>
+                            c.MinHeight(30).Element(x =>
                                 PrendarioPdfLayout.BandaActa(x, "HUELLA DIGITAL DEL PRESTATARIO")));
 
                         table.Cell().PaddingRight(10).Element(c =>
                             BloqueFirma(c, "DNI N°: " + d.DniCliente, "FIRMA"));
                         table.Cell().PaddingRight(10).Element(c =>
                             BloqueFirma(c, string.Empty, "FIRMA Y SELLO"));
-                        table.Cell().Border(0.6f).BorderColor(PrendarioPdfLayout.ActaAzul).MinHeight(88);
+                        table.Cell().Border(0.6f).BorderColor(PrendarioPdfLayout.ActaAzul).MinHeight(78);
                     });
                 });
             });
@@ -159,7 +172,7 @@ public static class RptActaEntregaPrendarioPdfDocument
 
     private static void Cuerpo(TableDescriptor table, string valor, bool centrar = false)
     {
-        var cell = table.Cell().Border(0.6f).BorderColor(PrendarioPdfLayout.ActaAzul).Padding(3).AlignMiddle();
+        var cell = table.Cell().Border(0.6f).BorderColor(PrendarioPdfLayout.ActaAzul).Padding(4).AlignMiddle();
         if (centrar)
         {
             cell.AlignCenter();
@@ -172,7 +185,7 @@ public static class RptActaEntregaPrendarioPdfDocument
     {
         c.Column(col =>
         {
-            col.Item().Height(40);
+            col.Item().Height(34);
             PrendarioPdfLayout.LineaFirma(col, 150);
             if (!string.IsNullOrWhiteSpace(linea))
             {

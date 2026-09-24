@@ -169,10 +169,12 @@ public static class CredixLegacyReportCatalog
         {
             [CredixLegacyReportKey.CobroDiario] = Def(
                 "COBRO DIARIO",
-                CobroDiarioCols()),
+                CobroDiarioCols(),
+                totals: ["MontoCredito", "CuotaPlan", "Saldo", "CuotaTotal", "Mora", "MontoTotal", "TopeCredito"]),
             [CredixLegacyReportKey.MorosidadGestor] = Def(
                 "REPORTE DE MOROSIDAD",
-                CobroDiarioCols()),
+                CobroDiarioCols(),
+                totals: ["MontoCredito", "CuotaPlan", "Saldo", "CuotaTotal", "Mora", "MontoTotal", "TopeCredito"]),
             [CredixLegacyReportKey.ClientesInactivos] = Def(
                 "CLIENTES INACTIVOS",
                 Cols(
@@ -190,7 +192,8 @@ public static class CredixLegacyReportCatalog
                     N("MontoCredito", "Monto Credito"),
                     C("TotalCreditos", "Cantidad creditos"),
                     C("FechaCancelacion", "Fecha cancelacion"),
-                    N("TopeCredito", "Tope credito"))),
+                    N("TopeCredito", "Tope credito")),
+                totals: ["MontoCredito", "TotalCreditos", "TopeCredito"]),
             [CredixLegacyReportKey.ClientesBloqueados] = Def(
                 "CLIENTES BLOQUEADOS",
                 Cols(
@@ -405,8 +408,7 @@ public static class CredixLegacyReportCatalog
                     L("Operacion", "Operación"),
                     L("Glosa", "Glosa"),
                     N("ImportePago", "Importe"),
-                    N("Saldo", "Saldo")),
-                landscape: false),
+                    N("Saldo", "Saldo"))),
             [CredixLegacyReportKey.ListarSaldoCartera] = Def(
                 "SALDO CARTERA",
                 Cols(
@@ -530,8 +532,7 @@ public static class CredixLegacyReportCatalog
                     L("ArticuloDes", "Artículo"),
                     N("Monto", "Monto"),
                     N("Descuento", "Descuento"),
-                    C("PuntosCanje", "Puntos")),
-                landscape: false),
+                    C("PuntosCanje", "Puntos"))),
             [CredixLegacyReportKey.Kardex] = Def(
                 "KARDEX",
                 Cols(
@@ -579,28 +580,29 @@ public static class CredixLegacyReportCatalog
 
     private static CredixLegacyColumnSpec[] CobroDiarioCols() =>
         Cols(
-            C("Nro", "Nro"),
-            C("Orden", "Ord."),
-            C("CreditoId", "N° créd."),
+            // Orden RDLC rptCobroDiario: sin Ord./CreditoId; columnas en blanco para cobro en campo.
+            C("Nro", "N°"),
             L("Cliente", "Cliente"),
+            C("MontoRecibido", "Monto recibido"),
+            C("Firma", "Firma"),
+            L("Direccion", "Dirección"),
+            L("Negocio", "Negocio"),
             C("Celular", "Celular"),
+            N("TopeCredito", "Tope"),
+            C("ClasificacionRiesgoSBS", "SBS"),
+            C("FechaPrimerPago", "Fecha inicio"),
+            C("NroCuotasPen", "Cuota pen"),
             N("MontoCredito", "Monto crédito"),
-            N("Interes", "Interés"),
+            C("Interes", "%"),
+            C("FormaPago", "F"),
             N("CuotaPlan", "Cuota plan"),
+            N("MontoTotal", "Monto total"),
+            C("FechaPago", "Último pago"),
             N("Saldo", "Saldo"),
             C("DiasAtrazo", "Días atraso"),
-            C("NroCuotasPen", "Cuotas pend."),
-            N("CuotaTotal", "Cuota total"),
-            L("Direccion", "Dirección"),
-            C("FechaPago", "F. pago"),
-            C("FechaPrimerPago", "F. 1er pago"),
-            C("FechaVencimiento", "F. vcto"),
+            C("FechaVencimiento", "Fecha vencimiento"),
             N("Mora", "Mora"),
-            N("MontoTotal", "Monto total"),
-            L("Negocio", "Negocio"),
-            C("FormaPago", "Forma pago"),
-            N("TopeCredito", "Tope crédito"),
-            C("ClasificacionRiesgoSBS", "Clasif. SBS"));
+            N("CuotaTotal", "Cuota total"));
 
     private static CredixLegacyColumnSpec[] ObservadoCols() =>
         Cols(
@@ -678,9 +680,14 @@ public static class CredixLegacyReportCatalog
     private static CredixLegacyReportDefinition Def(
         string title,
         CredixLegacyColumnSpec[] columns,
-        bool landscape = true,
-        string[]? totals = null) =>
-        new(title, columns, landscape, totals);
+        bool? landscape = null,
+        string[]? totals = null)
+    {
+        // Vertical por defecto; horizontal solo si hay columnas suficientes (o override explícito).
+        var useLandscape = landscape
+            ?? columns.Length >= CredixLegacyPdfDocument.MinColumnsForLandscape;
+        return new(title, columns, useLandscape, totals);
+    }
 
     private static CredixLegacyColumnSpec[] Cols(params CredixLegacyColumnSpec[] cols) => cols;
 
@@ -700,7 +707,7 @@ public sealed class CredixLegacyReportDefinition
     public CredixLegacyReportDefinition(
         string title,
         IReadOnlyList<CredixLegacyColumnSpec> columns,
-        bool landscape = true,
+        bool landscape = false,
         IReadOnlyList<string>? totalColumns = null)
     {
         Title = title;

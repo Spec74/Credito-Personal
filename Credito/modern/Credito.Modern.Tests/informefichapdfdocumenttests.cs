@@ -33,7 +33,7 @@ public class InformeFichaPdfDocumentTests
     }
 
     [Fact]
-    public void Inactivos_ficha_pdf_incluye_columnas_legacy()
+    public void Inactivos_pdf_usa_layout_credix_estandar()
     {
         var rows = new List<RptClientesInactivosRowDto>
         {
@@ -41,21 +41,19 @@ public class InformeFichaPdfDocumentTests
             {
                 PersonaId = 1,
                 Agente = "JCURO",
-                Codigo = "HH042",
                 Cliente = "ABREGU MONTERO, ALEJANDRA",
                 Dni = "70740322",
-                Direccion = "MZ A LOTE 10 SAN JUAN BAUTISTA",
-                DireccionRef = "FRENTE A LA FERETERIA TITO",
+                Direccion = "MZ A LOTE 10",
+                DireccionRef = "FRENTE A LA FERETERIA",
                 Celular = "921215615",
                 Calificacion = "A",
                 ClasificacionRiesgoSBS = "NORMAL",
                 Depurado = "NO",
-                DireccionNegocio = "MZ A LOTE 10 SAN JUAN BAUTISTA",
-                DireccionNegocioRef = "FRENTE A LA FERETERIA TITO",
+                DireccionNegocio = "MZ A LOTE 10",
+                DireccionNegocioRef = "FRENTE A LA FERETERIA",
                 MontoCredito = 300m,
                 TopeCredito = 400m,
                 TotalCreditos = 7,
-                DiasInactividad = 719,
                 FechaCancelacion = new DateTime(2024, 10, 4),
             },
         };
@@ -65,11 +63,10 @@ public class InformeFichaPdfDocumentTests
             {
                 Oficina = "OFICINA PRINCIPAL",
                 Agente = "CURO FERNANDEZ, JOEL",
-                Fecha = "23/09/2026",
             });
         Assert.NotEmpty(bytes);
         Assert.Equal('%', (char)bytes[0]);
-        Assert.True(bytes.Length > 800, "PDF corporativo con columnas legacy debe generar contenido sustancial.");
+        Assert.True(bytes.Length > 800);
     }
 
     [Fact]
@@ -147,7 +144,7 @@ public class InformeFichaPdfDocumentTests
                 "Av. Principal",
                 "Jr. Negocio",
                 "Ninguna",
-                "Asesor",
+                "PEREZ QUISPE, JUAN CARLOS",
                 "999888777",
                 "S/. 20.00",
                 "S/. 1020.00",

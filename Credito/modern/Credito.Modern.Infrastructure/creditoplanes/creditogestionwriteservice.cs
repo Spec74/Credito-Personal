@@ -621,7 +621,26 @@ public sealed class CreditoGestionWriteService(
             return new CreditoGestionOperacionResponse(false, "Crédito no encontrado.");
         }
 
-        // El formulario envia el detalle completo, asi que se reemplaza en bloque.
+        var bienesExistentes = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT COUNT(*)
+                FROM CREDITO.Prenda WITH (UPDLOCK, HOLDLOCK)
+                WHERE CreditoId = @CreditoId;
+                """,
+                new { request.CreditoId },
+                transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (bienesExistentes > 0)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return new CreditoGestionOperacionResponse(
+                false,
+                "Los bienes de este crédito ya fueron registrados y no pueden modificarse. Regístrelos solo en la solicitud.");
+        }
+
+        // Primera carga: se inserta el detalle completo (sin reemplazos posteriores).
         await connection.ExecuteAsync(
             new CommandDefinition(
                 "DELETE FROM CREDITO.Prenda WHERE CreditoId = @CreditoId;",

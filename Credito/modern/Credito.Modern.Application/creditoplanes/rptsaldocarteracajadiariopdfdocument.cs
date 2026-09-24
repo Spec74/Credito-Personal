@@ -79,14 +79,14 @@ public static class RptSaldoCarteraCajaDiarioPdfDocument
             table.Header(h =>
             {
                 h.Cell().ColumnSpan(3).Element(c => GroupCell(c, HeaderBg))
-                    .Text("Identificación").Bold().FontSize(6.6f);
+                    .Text("Identificación").Bold().FontSize(6.6f).FontColor(Colors.White);
                 h.Cell().ColumnSpan(11).Element(c => GroupCell(c, GroupIniBg))
                     .Text("PERIODO INICIAL").Bold().FontSize(6.8f);
                 h.Cell().ColumnSpan(11).Element(c => GroupCell(c, GroupFinBg))
                     .Text("PERIODO FINAL").Bold().FontSize(6.8f);
 
                 foreach (var label in SubHeaders)
-                    h.Cell().Element(SubHeaderCell).Text(label).Bold().FontSize(5.8f);
+                    h.Cell().Element(SubHeaderCell).Text(label).Bold().FontSize(5.8f).FontColor(Colors.White);
             });
 
             for (var i = 0; i < rows.Count; i++)

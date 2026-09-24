@@ -1,4 +1,5 @@
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Prendario;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -123,6 +124,15 @@ public sealed class DesembolsoWriteService(IOptions<SqlDatabaseOptions> options)
                 throw new InvalidOperationException("No se pudo actualizar el crédito a DES (estado distinto de APR).");
             }
 
+            // Prendario: el reloj del contrato parte del desembolso real (paridad Anexo A/B).
+            await RealinearFechasPrendarioSiAplicaAsync(
+                    connection,
+                    transaction,
+                    creditoId,
+                    fechaOperacion.Date,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
             var descripcion = $"DESEMBOLSO CREDITO {creditoId}";
             var movimientoCajaId = await connection.ExecuteScalarAsync<int>(
                 new CommandDefinition(
@@ -181,11 +191,120 @@ public sealed class DesembolsoWriteService(IOptions<SqlDatabaseOptions> options)
         }
     }
 
+    /// <summary>
+    /// Realinea plan, 1.er pago, vencimiento y remate desde la fecha de desembolso.
+    /// Cuota n = desembolso + n periodos (M=mes, Q=15d, S=7d, D=1d). Remate = vencimiento + 30.
+    /// </summary>
+    private static async Task RealinearFechasPrendarioSiAplicaAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        int creditoId,
+        DateTime fechaDesembolso,
+        CancellationToken cancellationToken)
+    {
+        var meta = await connection.QueryFirstOrDefaultAsync<PrendarioDesembolsoMetaRow>(
+            new CommandDefinition(
+                """
+                SELECT EsPrendario, FormaPago, NumeroCuotas
+                FROM CREDITO.Credito
+                WHERE CreditoId = @CreditoId;
+                """,
+                new { CreditoId = creditoId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (meta is null || !meta.EsPrendario || meta.NumeroCuotas < 1)
+        {
+            return;
+        }
+
+        var forma = string.IsNullOrWhiteSpace(meta.FormaPago)
+            ? "M"
+            : char.ToUpperInvariant(meta.FormaPago.Trim()[0]).ToString();
+
+        var numeros = (await connection.QueryAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT Numero
+                FROM CREDITO.PlanPago
+                WHERE CreditoId = @CreditoId
+                ORDER BY Numero;
+                """,
+                new { CreditoId = creditoId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false)).AsList();
+
+        if (numeros.Count == 0)
+        {
+            // Sin plan aún: solo cabecera según N cuotas.
+            var primer = PrendarioFechas.AvanzarPeriodo(fechaDesembolso, forma, 1);
+            var venc = PrendarioFechas.AvanzarPeriodo(fechaDesembolso, forma, meta.NumeroCuotas);
+            await connection.ExecuteAsync(
+                new CommandDefinition(
+                    """
+                    UPDATE CREDITO.Credito
+                    SET FechaPrimerPago = @Primer,
+                        FechaVencimiento = @Venc,
+                        FechaRemate = DATEADD(DAY, 30, @Venc)
+                    WHERE CreditoId = @CreditoId;
+                    """,
+                    new { CreditoId = creditoId, Primer = primer, Venc = venc },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+            return;
+        }
+
+        DateTime? primerPago = null;
+        DateTime? ultimoVenc = null;
+        foreach (var numero in numeros)
+        {
+            var vencCuota = PrendarioFechas.AvanzarPeriodo(fechaDesembolso, forma, numero);
+            primerPago ??= vencCuota;
+            ultimoVenc = vencCuota;
+            await connection.ExecuteAsync(
+                new CommandDefinition(
+                    """
+                    UPDATE CREDITO.PlanPago
+                    SET FechaVencimiento = @Fecha
+                    WHERE CreditoId = @CreditoId
+                      AND Numero = @Numero;
+                    """,
+                    new { CreditoId = creditoId, Numero = numero, Fecha = vencCuota },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+        }
+
+        if (primerPago is null || ultimoVenc is null)
+        {
+            return;
+        }
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                UPDATE CREDITO.Credito
+                SET FechaPrimerPago = @Primer,
+                    FechaVencimiento = @Venc,
+                    FechaRemate = DATEADD(DAY, 30, @Venc)
+                WHERE CreditoId = @CreditoId;
+                """,
+                new { CreditoId = creditoId, Primer = primerPago.Value, Venc = ultimoVenc.Value },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
+
     private sealed class CreditoDesembolsoRow
     {
         public int CreditoId { get; init; }
         public int PersonaId { get; init; }
         public decimal MontoDesembolso { get; init; }
         public string Estado { get; init; } = string.Empty;
+    }
+
+    private sealed class PrendarioDesembolsoMetaRow
+    {
+        public bool EsPrendario { get; init; }
+        public string? FormaPago { get; init; }
+        public int NumeroCuotas { get; init; }
     }
 }

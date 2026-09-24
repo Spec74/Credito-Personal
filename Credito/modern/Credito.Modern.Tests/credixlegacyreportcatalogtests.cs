@@ -34,7 +34,7 @@ public sealed class CredixLegacyReportCatalogTests
     }
 
     [Fact]
-    public void Movimiento_boveda_pdf_usa_layout_apaisado_del_catalogo()
+    public void Movimiento_boveda_pdf_usa_layout_vertical_por_pocas_columnas()
     {
         var rows = new[]
         {
@@ -56,8 +56,19 @@ public sealed class CredixLegacyReportCatalogTests
         Assert.Equal((byte)'D', pdf[2]);
         Assert.Equal((byte)'F', pdf[3]);
         Assert.True(pdf.Length > 800);
-        Assert.True(CredixLegacyReportCatalog.Get(CredixLegacyReportKey.MovimientoBoveda).Landscape);
+        var def = CredixLegacyReportCatalog.Get(CredixLegacyReportKey.MovimientoBoveda);
+        Assert.False(def.Landscape);
+        Assert.False(CredixLegacyPdfDocument.EffectiveLandscape(def.Columns.Count, def.Landscape));
     }
+
+    [Theory]
+    [InlineData(5, true, false)]
+    [InlineData(9, true, false)]
+    [InlineData(10, true, true)]
+    [InlineData(15, true, true)]
+    [InlineData(20, false, false)]
+    public void Orientacion_efectiva_segun_columnas(int cols, bool prefer, bool expected) =>
+        Assert.Equal(expected, CredixLegacyPdfDocument.EffectiveLandscape(cols, prefer));
 
     [Fact]
     public void Formato_de_celda_fecha_e_importe()

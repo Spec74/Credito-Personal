@@ -1309,6 +1309,11 @@
   width: 100% !important;
 }
 
+.simulador-acciones {
+  margin-top: 20px;
+  padding-top: 4px;
+}
+
 @media (max-width: 640px) {
   .simulador-prospecto-grid,
   .simulador-parametros-grid {

@@ -32,8 +32,8 @@ public static class RptEstadoCreditoFichaPdfDocument
         {
             document.Page(page =>
             {
-                page.Size(PageSizes.A4.Landscape());
-                page.Margin(16);
+                page.Size(PageSizes.A4);
+                page.Margin(18);
                 page.DefaultTextStyle(x => x.FontSize(7.5f));
                 page.Footer().Element(CreditoPdfBranding.ComposeFooter);
 

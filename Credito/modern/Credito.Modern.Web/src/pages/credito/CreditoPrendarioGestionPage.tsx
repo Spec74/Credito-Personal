@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { CalculatorOutlined, FilePdfOutlined, PlusOutlined, WhatsAppOutlined } from '@ant-design/icons'
-import { Alert, Button, Input, Select, Space, Tooltip, Typography, message } from 'antd'
+import { Alert, Button, Select, Space, Tooltip, Typography, message } from 'antd'
 import {
   fetchCreditoContexto,
   fetchCreditosGrillaPersona,
@@ -11,10 +11,8 @@ import {
   type PrendaItem,
 } from '../../api/creditoGestion'
 import {
-  crearSolicitudPrendaria,
   downloadActaEntregaPrendarioPdf,
   downloadContratoPrendarioPdf,
-  guardarBienesPrendario,
 } from '../../api/prendario'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
@@ -23,13 +21,28 @@ import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { getCreditoEstadoMeta } from '../../utils/creditoEstados'
-import { prendaAItem, prendaVacia, prendasValidas, totalTasacion, buildSimuladorPrendarioPath } from '../../utils/prendas'
+import { prendaAItem, prendaVacia, totalTasacion, buildSimuladorPrendarioPath } from '../../utils/prendas'
 import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 
-const { Paragraph } = Typography
+const { Paragraph, Text } = Typography
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error desconocido'
+}
+
+function labelFormaPago(codigo: string | null | undefined): string {
+  switch ((codigo ?? '').toUpperCase()) {
+    case 'M':
+      return 'Mensual'
+    case 'Q':
+      return 'Quincenal'
+    case 'S':
+      return 'Semanal'
+    case 'D':
+      return 'Diario'
+    default:
+      return codigo?.trim() || '—'
+  }
 }
 
 const ESTADOS_SOLICITUD = new Set(['CRE', 'PEN', 'AP1', 'APR'])
@@ -39,13 +52,11 @@ export function CreditoPrendarioGestionPage() {
   const { personaId: personaParam } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
   const { session } = useAuth()
-  const queryClient = useQueryClient()
   const oficinaId = session?.oficinaId ?? 0
   const personaId = Number(personaParam)
   const creditoIdUrl = Number(searchParams.get('creditoId') ?? 0)
 
   const [prendas, setPrendas] = useState<PrendaItem[]>([prendaVacia()])
-  const [fechaRemate, setFechaRemate] = useState('')
 
   const ficha = useQuery({
     queryKey: ['persona-credito-ficha', oficinaId, personaId],
@@ -94,43 +105,9 @@ export function CreditoPrendarioGestionPage() {
   })
 
   useEffect(() => {
-    setFechaRemate(contexto.data?.fechaRemate?.slice(0, 10) ?? '')
     const guardadas = bienes.data ?? []
     setPrendas(guardadas.length > 0 ? guardadas.map(prendaAItem) : [prendaVacia()])
-  }, [contexto.data, bienes.data])
-
-  const crearSolicitud = useMutation({
-    mutationFn: () => crearSolicitudPrendaria({ oficinaId, personaId }),
-    onSuccess: (r) => {
-      message.success(`Solicitud #${r.solicitudCreditoId} lista`)
-      navigate(`/credito/prendario/gestionar/${personaId}?creditoId=${r.solicitudCreditoId}`, {
-        replace: true,
-      })
-      void queryClient.invalidateQueries({
-        queryKey: ['creditos-grilla-persona', oficinaId, personaId],
-      })
-      void queryClient.invalidateQueries({
-        queryKey: ['persona-credito-ficha', oficinaId, personaId],
-      })
-    },
-    onError: (e) => message.error(errMsg(e)),
-  })
-
-  const guardar = useMutation({
-    mutationFn: () =>
-      guardarBienesPrendario({
-        oficinaId,
-        creditoId,
-        prendas: prendasValidas(prendas),
-        fechaRemate: fechaRemate || null,
-      }),
-    onSuccess: () => {
-      message.success('Bienes en custodia guardados')
-      void queryClient.invalidateQueries({ queryKey: ['prendas', oficinaId, creditoId] })
-      void queryClient.invalidateQueries({ queryKey: ['credito-contexto', creditoId] })
-    },
-    onError: (e) => message.error(errMsg(e)),
-  })
+  }, [bienes.data])
 
   const imprimirContrato = useMutation({
     mutationFn: () =>
@@ -162,6 +139,16 @@ export function CreditoPrendarioGestionPage() {
     creditosOpciones.length > 1 &&
     creditoId < 1
 
+  const remateMostrado =
+    contexto.data?.fechaRemate ??
+    (contexto.data?.fechaVencimiento
+      ? (() => {
+          const d = new Date(contexto.data.fechaVencimiento)
+          d.setDate(d.getDate() + 30)
+          return d.toISOString()
+        })()
+      : null)
+
   const stats: CredixStatItem[] = []
   if (ficha.data) {
     stats.push({ label: 'Cliente', value: ficha.data.nombreCompleto })
@@ -189,7 +176,7 @@ export function CreditoPrendarioGestionPage() {
   return (
     <CredixPage
       title="Gestión prendaria"
-      subtitle="Bienes en custodia, contrato y acta de entrega. El monto del préstamo se define en el simulador."
+      subtitle="Consulta de bienes en custodia, contrato y acta. Los bienes se registran solo en la solicitud."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -211,7 +198,7 @@ export function CreditoPrendarioGestionPage() {
                     personaId,
                     solicitudCreditoId: creditoId,
                     prendas,
-                    fechaRemate,
+                    fechaRemate: contexto.data?.fechaRemate?.slice(0, 10) ?? '',
                   }),
                 )
               }
@@ -250,12 +237,8 @@ export function CreditoPrendarioGestionPage() {
           showIcon
           message="Este cliente no tiene una solicitud prendaria."
           action={
-            <Button
-              type="primary"
-              loading={crearSolicitud.isPending}
-              onClick={() => crearSolicitud.mutate()}
-            >
-              Crear solicitud
+            <Button type="primary" onClick={() => navigate(`/credito/prendario/nuevo?personaId=${personaId}`)}>
+              Ir a nueva solicitud
             </Button>
           }
         />
@@ -313,45 +296,74 @@ export function CreditoPrendarioGestionPage() {
               }}
             />
           ) : null}
-          <Paragraph type="secondary">
+
+          <Paragraph type="secondary" style={{ marginBottom: 8 }}>
             Estado{' '}
             {contexto.isLoading
               ? '…'
               : estadoMeta
                 ? `${estadoMeta.codigo} — ${estadoMeta.label}`
                 : (contexto.data?.estado ?? '—')}
-            {contexto.data ? (
-              <>
-                . Vence {formatFecha(contexto.data.fechaVencimiento)}. Contrato{' '}
-                {contexto.data.numeroContratoPrendario ?? '(se asigna al guardar bienes)'}.
-              </>
-            ) : null}
+            {contexto.data?.numeroContratoPrendario
+              ? `. Contrato ${contexto.data.numeroContratoPrendario}.`
+              : bienesPersistidos
+                ? null
+                : '. El contrato se asigna al registrar bienes en la solicitud.'}
           </Paragraph>
-          {!puedeImprimir ? (
+
+          <div style={{ marginBottom: 16 }}>
+            <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
+              Condiciones del plan (definidas en el simulador)
+            </Text>
+            <Space wrap size={[16, 8]}>
+              <Text>
+                Modalidad: <Text strong>{labelFormaPago(contexto.data?.formaPago)}</Text>
+              </Text>
+              <Text>
+                Cuotas: <Text strong>{contexto.data?.numeroCuotas || '—'}</Text>
+              </Text>
+              <Text>
+                1.er pago: <Text strong>{formatFecha(contexto.data?.fechaPrimerPago)}</Text>
+              </Text>
+              <Text>
+                Vencimiento:{' '}
+                <Text strong>{formatFecha(contexto.data?.fechaVencimiento)}</Text>
+              </Text>
+              <Text>
+                Remate (venc. + 30 d.): <Text strong>{formatFecha(remateMostrado)}</Text>
+              </Text>
+            </Space>
+            <Paragraph type="secondary" style={{ marginTop: 8, marginBottom: 0 }}>
+              El vencimiento es la última cuota del plan (1.er pago + cuotas). El remate es vencimiento
+              + 30 días. Al desembolsar en caja, las fechas se realinean desde la fecha real de
+              desembolso (base del contrato oficial).
+            </Paragraph>
+          </div>
+
+          {!bienesPersistidos ? (
+            <Alert
+              type="warning"
+              showIcon
+              style={{ marginBottom: 12 }}
+              message="Sin bienes registrados"
+              description={
+                <span>
+                  Registre el bien en{' '}
+                  <Link to={`/credito/prendario/nuevo?personaId=${personaId}`}>nueva solicitud</Link>
+                  . Aquí solo se consulta lo ya guardado.
+                </span>
+              }
+            />
+          ) : !puedeImprimir ? (
             <Alert
               type="info"
               showIcon
               style={{ marginBottom: 12 }}
-              message="Guarde los bienes en custodia antes de imprimir contrato o acta."
+              message="Complete el simulador para asignar contrato e imprimir documentos."
             />
           ) : null}
-          <Paragraph type="secondary">Fecha de remate (vacía = vencimiento + 30 días)</Paragraph>
-          <Input
-            type="date"
-            style={{ maxWidth: 220, marginBottom: 12 }}
-            value={fechaRemate}
-            onChange={(e) => setFechaRemate(e.target.value)}
-          />
-          <PrendasEditor value={prendas} onChange={setPrendas} />
-          <Button
-            type="primary"
-            style={{ marginTop: 12 }}
-            disabled={prendasValidas(prendas).length === 0}
-            loading={guardar.isPending}
-            onClick={() => guardar.mutate()}
-          >
-            Guardar bienes
-          </Button>
+
+          <PrendasEditor value={prendas} onChange={setPrendas} readOnly />
         </CredixPanel>
       ) : null}
     </CredixPage>

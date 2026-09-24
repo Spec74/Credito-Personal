@@ -6,8 +6,8 @@ using QuestPDF.Infrastructure;
 namespace Credito.Modern.Application.CreditoPlanes;
 
 /// <summary>
-/// PDF de cajas asignadas: paridad <c>rptCajasAsignadas.rdlc</c> (A4 horizontal, totales,
-/// resumen de cuentas) con formato Credix.
+/// PDF de cajas asignadas: paridad <c>rptCajasAsignadas.rdlc</c> (tabla ancha → A4 horizontal,
+/// totales, resumen de cuentas) con formato Credix.
 /// </summary>
 public static class RptCajasAsignadasPdfDocument
 {

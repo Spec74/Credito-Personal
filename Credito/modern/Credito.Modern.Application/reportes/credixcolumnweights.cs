@@ -51,7 +51,6 @@ public static class CredixColumnWeights
 
     private static bool IsMediumText(string name) =>
         name.Equals("Negocio", StringComparison.OrdinalIgnoreCase)
-        || name.Equals("FormaPago", StringComparison.OrdinalIgnoreCase)
         || name.Equals("Producto", StringComparison.OrdinalIgnoreCase)
         || name.Equals("Agente", StringComparison.OrdinalIgnoreCase)
         || name.Equals("Gestor", StringComparison.OrdinalIgnoreCase)
@@ -68,6 +67,10 @@ public static class CredixColumnWeights
     private static bool IsCompactId(string name) =>
         name.Equals("Nro", StringComparison.OrdinalIgnoreCase)
         || name.Equals("Orden", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("Firma", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("MontoRecibido", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("FormaPago", StringComparison.OrdinalIgnoreCase)
+        || name.Equals("Interes", StringComparison.OrdinalIgnoreCase)
         || name.EndsWith("Id", StringComparison.OrdinalIgnoreCase)
         || name.Equals("Cred", StringComparison.OrdinalIgnoreCase)
         || name.Equals("Codigo", StringComparison.OrdinalIgnoreCase)

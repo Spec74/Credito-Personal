@@ -25,7 +25,7 @@ import {
   UserAddOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
-import { buscarClientes, obtenerCliente } from '../../api/clientes'
+import { obtenerCliente, type ClienteDetalle } from '../../api/clientes'
 import {
   calcularTem,
   crearCredito,
@@ -47,8 +47,11 @@ import { fetchProductos } from '../../api/productos'
 import { consultarDniApiPeru, consultarRucApiPeru } from '../../api/apiperu'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
-import type { ClienteBuscarItem, SimuladorCreditoCuota } from '../../types/api'
+import type { SimuladorCreditoCuota } from '../../types/api'
+import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { getLoginProfile } from '../../auth/sessionProfile'
+import { ClienteBuscarAutoComplete } from '../../components/caja/ClienteBuscarAutoComplete'
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
 import {
   esCreditoAdministrador,
@@ -122,7 +125,8 @@ function addMonthsIso(months: number): string {
 }
 
 function fechaPorModalidad(formaPago: string, prendario: boolean): string {
-  if (prendario) return addDaysIso(30)
+  // Prendario oficial: 1.er pago = desembolso/hoy + 1 mes calendario (no +30 días fijos).
+  if (prendario) return addMonthsIso(1)
   switch (formaPago) {
     case 'D':
       return addDaysIso(1)
@@ -136,9 +140,35 @@ function fechaPorModalidad(formaPago: string, prendario: boolean): string {
   }
 }
 
+function addDaysToIsoDate(isoDate: string, days: number): string {
+  const d = new Date(`${isoDate.slice(0, 10)}T12:00:00`)
+  d.setDate(d.getDate() + days)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 function clienteProspectoLabel(v: Partial<SimForm>): string {
   if (v.tipoPersona === 'J') return v.nombre?.trim() || 'CLIENTE PROSPECTO'
   return [v.nombre, v.apePaterno, v.apeMaterno].filter(Boolean).join(' ').trim() || 'CLIENTE PROSPECTO'
+}
+
+function nombreDesdeCliente(c: ClienteDetalle): string {
+  if ((c.tipoPersona ?? '').toUpperCase() === 'J') {
+    return (c.nombre ?? '').trim() || 'CLIENTE'
+  }
+  return [c.nombre, c.apePaterno, c.apeMaterno].filter(Boolean).join(' ').trim() || 'CLIENTE'
+}
+
+function labelDesdeCliente(c: ClienteDetalle): string {
+  const nombre = nombreDesdeCliente(c)
+  const doc = (c.numeroDocumento ?? '').trim()
+  return doc ? `${doc} ${nombre}` : nombre
+}
+
+function direccionClienteReporte(c: ClienteDetalle): string {
+  return [c.direccion, c.distritoLabel].filter((x) => (x ?? '').trim().length > 0).join(', ')
 }
 
 export function SimuladorCreditoPage() {
@@ -263,20 +293,15 @@ export function SimuladorCreditoPage() {
   const clienteDetalleQuery = useQuery({
     queryKey: ['cliente-detalle', personaId],
     queryFn: () => obtenerCliente(personaId!),
-    enabled: personaId != null && personaId > 0 && clienteLabel.startsWith('Persona #'),
+    enabled: personaId != null && personaId > 0,
     staleTime: creditoStaleTime.ficha,
   })
 
   useEffect(() => {
     const c = clienteDetalleQuery.data
-    if (!c) return
-
-    const nombreCompleto =
-      c.tipoPersona === 'J'
-        ? c.nombre
-        : [c.nombre, c.apePaterno, c.apeMaterno].filter(Boolean).join(' ')
-    setClienteLabel(`${c.numeroDocumento} ${nombreCompleto}`.trim())
-  }, [clienteDetalleQuery.data])
+    if (!c || c.personaId !== personaId) return
+    setClienteLabel(labelDesdeCliente(c))
+  }, [clienteDetalleQuery.data, personaId])
 
   const productoSeleccionado = useMemo(
     () => productosQuery.data?.find((p) => p.productoId === productoId) ?? null,
@@ -288,10 +313,14 @@ export function SimuladorCreditoPage() {
       esConsultaPrendario,
   )
   const clienteParaReporte =
-    personaId != null
-      ? clienteLabel
-      : clienteProspectoLabel({ tipoPersona, ...(prospectoValues ?? {}) })
-  const asesorNombre = session ? `Usuario ${session.usuarioId}` : ''
+    personaId != null && clienteDetalleQuery.data
+      ? nombreDesdeCliente(clienteDetalleQuery.data)
+      : personaId != null
+        ? clienteLabel.replace(/^\d+\s+/, '').trim() || clienteLabel
+        : clienteProspectoLabel({ tipoPersona, ...(prospectoValues ?? {}) })
+  const asesorNombre =
+    getLoginProfile().nombreUsuario?.trim() ||
+    (session ? `Usuario ${session.usuarioId}` : '')
   const documentoValido =
     tipoPersona === 'J'
       ? (prospectoValues?.numeroDocumento?.trim().length ?? 0) === 11
@@ -342,13 +371,10 @@ export function SimuladorCreditoPage() {
     form.setFieldValue('prendaDescripcion', prendaPrecarga.descripcion)
   }, [form, prendaPrecarga])
 
-  const busquedaCliente = useMutation({
-    mutationFn: (t: string) => buscarClientes(t),
-  })
-
   const validarDocumento = useMutation({
     mutationFn: async () => {
-      const { numeroDocumento, tipoPersona: tipo } = form.getFieldsValue()
+      const { numeroDocumento } = form.getFieldsValue()
+      const tipo = (form.getFieldValue('tipoPersona') as 'N' | 'J' | undefined) ?? tipoPersona
       const documento = (numeroDocumento ?? '').replace(/\D/g, '')
       form.setFieldValue('numeroDocumento', documento)
       if (tipo === 'J') {
@@ -362,7 +388,9 @@ export function SimuladorCreditoPage() {
       if (ret.tipo === 'J') {
         const data = ret.data
         if (!data.success || !data.razonSocial?.trim()) {
-          message.info(data.mensaje?.trim() || 'Documento no encontrado. Complete los datos manualmente.')
+          message.warning(
+            data.mensaje?.trim() || 'RUC no encontrado. Complete los datos manualmente.',
+          )
           return
         }
         form.setFieldsValue({
@@ -377,7 +405,9 @@ export function SimuladorCreditoPage() {
           !data.success ||
           !(data.nombres?.trim() || data.apellidoPaterno?.trim() || data.apellidoMaterno?.trim())
         ) {
-          message.info(data.mensaje?.trim() || 'Documento no encontrado. Complete los datos manualmente.')
+          message.warning(
+            data.mensaje?.trim() || 'DNI no encontrado. Complete los datos manualmente.',
+          )
           return
         }
         form.setFieldsValue({
@@ -386,9 +416,9 @@ export function SimuladorCreditoPage() {
           apeMaterno: data.apellidoMaterno ?? '',
         })
       }
-      message.success('Documento validado correctamente')
+      message.success('Documento validado con ApiPerú')
     },
-    onError: (e) => message.info(e instanceof Error ? e.message : errMsg(e)),
+    onError: (e) => message.error(e instanceof Error ? e.message : errMsg(e)),
   })
 
   useEffect(() => {
@@ -402,6 +432,7 @@ export function SimuladorCreditoPage() {
     form.setFieldValue('interesMensual', productoSeleccionado.interesMaxima)
     if (esPrendario) {
       form.setFieldValue('formaPago', 'M')
+      form.setFieldValue('nroCuotas', 1)
     }
     form.setFieldValue('fechaPrimerPago', fechaPorModalidad(formaPagoActual, esPrendario))
   }, [esPrendario, form, formaPagoActual, productoSeleccionado])
@@ -658,6 +689,9 @@ export function SimuladorCreditoPage() {
   const buildReporteParams = (): RptSimuladorPlanPagosParams | null => {
     if (!productoId) return null
     const v = form.getFieldsValue()
+    const detalle = clienteDetalleQuery.data
+    const esClienteRegistrado = personaId != null && detalle != null && detalle.personaId === personaId
+
     return {
       productoId,
       monto: v.monto,
@@ -667,14 +701,24 @@ export function SimuladorCreditoPage() {
       formaPago: v.formaPago,
       gastosAdm: v.gastosAdm ?? 0,
       ga: IND_GASTOS_ADM,
-      cliente: clienteParaReporte,
-      tipoDocumento: v.tipoPersona ?? tipoPersona,
-      nroDocumento: v.numeroDocumento,
-      direccionCliente: v.direccionCliente,
-      direccionNegocio: v.direccionNegocio,
+      cliente: esClienteRegistrado ? nombreDesdeCliente(detalle) : clienteParaReporte,
+      tipoDocumento: esClienteRegistrado
+        ? (detalle.tipoPersona?.toUpperCase() === 'J' ? 'J' : 'N')
+        : (v.tipoPersona ?? tipoPersona),
+      nroDocumento: esClienteRegistrado
+        ? detalle.numeroDocumento
+        : v.numeroDocumento,
+      direccionCliente: esClienteRegistrado
+        ? direccionClienteReporte(detalle) || undefined
+        : v.direccionCliente,
+      direccionNegocio: esClienteRegistrado
+        ? detalle.direccionNegocio ?? undefined
+        : v.direccionNegocio,
       prendaDescripcion: prendaPrecarga?.descripcion ?? v.prendaDescripcion,
       asesor: asesorNombre,
-      telefonoCliente: v.telefono,
+      telefonoCliente: esClienteRegistrado
+        ? detalle.celular1 ?? undefined
+        : v.telefono,
     }
   }
 
@@ -707,88 +751,62 @@ export function SimuladorCreditoPage() {
           showIcon
           style={{ marginBottom: 16 }}
           message="Crédito prendario"
-          description={`Prenda: ${prendaPrecarga.descripcion.toUpperCase()} | Tasación: ${formatMoney(prendaPrecarga.montoTasacion)} | Fecha remate: ${prendaPrecarga.fechaRemate}`}
+          description={`Prenda: ${prendaPrecarga.descripcion.toUpperCase()} | Tasación: ${formatMoney(prendaPrecarga.montoTasacion)}. El vencimiento sale del plan (cuotas + 1.er pago); el remate es vencimiento + 30 días.`}
         />
       ) : null}
 
       <CredixPanel title="1. Cliente o prospecto">
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           <Card size="small" title="Cliente existente">
-            <Space wrap style={{ marginBottom: 12 }}>
-              <Input
-                placeholder="Buscar cliente (DNI, nombre, código o celular)"
-                prefix={<SearchOutlined />}
-                value={terminoCliente}
-                onChange={(e) => setTerminoCliente(e.target.value)}
-                onPressEnter={() => {
-                  if (terminoCliente.trim().length >= 2) {
-                    busquedaCliente.mutate(terminoCliente.trim())
-                  }
-                }}
-                style={{ width: '100%', maxWidth: 420, minWidth: 220 }}
-              />
-              <Button
-                onClick={() => {
-                  if (terminoCliente.trim().length < 2) {
-                    message.warning('Escriba al menos 2 caracteres')
-                    return
-                  }
-                  busquedaCliente.mutate(terminoCliente.trim())
-                }}
-                loading={busquedaCliente.isPending}
-              >
-                Buscar
-              </Button>
-              {personaId ? (
-                <Button
-                  onClick={() => {
-                    setPersonaId(null)
-                    setClienteLabel('')
-                    setSolicitudCreditoId(null)
-                  }}
-                >
-                  Usar prospecto
-                </Button>
-              ) : null}
-            </Space>
+            <Paragraph type="secondary" style={{ marginBottom: 12 }}>
+              Escriba DNI, apellido o nombre. Toque un resultado para seleccionarlo; el reporte usará
+              domicilio, teléfono y documento de la ficha registrada.
+            </Paragraph>
+            <ClienteBuscarAutoComplete
+              variant="credito"
+              value={terminoCliente}
+              onChange={setTerminoCliente}
+              onSelectPersona={(id, label) => {
+                setPersonaId(id)
+                setClienteLabel(label)
+                setSolicitudCreditoId(null)
+                setTerminoCliente(label)
+              }}
+              fullWidth
+              showSearchButton
+              searchButtonLabel="Buscar"
+              debounceMs={280}
+              minChars={2}
+              placeholder="DNI, apellido o nombre"
+            />
             {personaId ? (
               <Alert
                 type="success"
                 showIcon
+                style={{ marginTop: 12 }}
                 message={`Cliente seleccionado: ${clienteLabel} (persona #${personaId})`}
-                description="Para clientes existentes no se consulta API Perú; se usan los datos registrados en la base."
+                description={
+                  clienteDetalleQuery.isLoading
+                    ? 'Cargando ficha para el reporte…'
+                    : clienteDetalleQuery.data
+                      ? `Doc. ${clienteDetalleQuery.data.numeroDocumento} · Tel. ${clienteDetalleQuery.data.celular1 || '—'} · ${direccionClienteReporte(clienteDetalleQuery.data) || 'Sin dirección'}`
+                      : 'No se pudo cargar la ficha; reintente o use prospecto.'
+                }
+                action={
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      setPersonaId(null)
+                      setClienteLabel('')
+                      setTerminoCliente('')
+                      setSolicitudCreditoId(null)
+                    }}
+                  >
+                    Usar prospecto
+                  </Button>
+                }
               />
-            ) : (
-              <CredixDataTable<ClienteBuscarItem>
-                size="small"
-                rowKey="personaId"
-                loading={busquedaCliente.isPending}
-                dataSource={busquedaCliente.data ?? []}
-                pagination={false}
-                locale={{ emptyText: 'Busque un cliente o complete el prospecto abajo' }}
-                columns={[
-                  { title: 'Cliente', dataIndex: 'label', ellipsis: true },
-                  {
-                    title: '',
-                    width: 90,
-                    render: (_, row) => (
-                      <Button
-                        size="small"
-                        type="link"
-                        onClick={() => {
-                          setPersonaId(row.personaId)
-                          setClienteLabel(row.label)
-                          setSolicitudCreditoId(null)
-                          busquedaCliente.reset()
-                        }}
-                      >
-                        Elegir
-                      </Button>
-                    ),
-                  },
-                ]}
-              />
-            )}
+            ) : null}
           </Card>
 
           {!personaId ? (
@@ -835,11 +853,12 @@ export function SimuladorCreditoPage() {
                   </Form.Item>
                   <Form.Item label="Validar">
                     <Button
+                      type="primary"
                       icon={<SearchOutlined />}
                       loading={validarDocumento.isPending}
                       onClick={() => validarDocumento.mutate()}
                     >
-                      API Perú
+                      ApiPerú
                     </Button>
                   </Form.Item>
                   <Form.Item
@@ -958,7 +977,12 @@ export function SimuladorCreditoPage() {
             ) : null}
             <Form.Item
               name="fechaPrimerPago"
-              label="Primer pago"
+              label={esPrendario ? '1.er pago (1.ª cuota)' : 'Primer pago'}
+              extra={
+                esPrendario
+                  ? 'Base del plan. El vencimiento del crédito es la última cuota; el remate = vencimiento + 30 días. En el contrato la base comercial es la fecha de desembolso en caja.'
+                  : undefined
+              }
               rules={[{ required: true }]}
             >
               <Input type="date" style={{ width: 160 }} />
@@ -967,7 +991,7 @@ export function SimuladorCreditoPage() {
               <InputNumber min={0} step={1} style={{ width: 120 }} />
             </Form.Item>
           </div>
-          <Form.Item style={{ marginBottom: 0 }}>
+          <Form.Item className="simulador-acciones" style={{ marginBottom: 0, marginTop: 20 }}>
             <Button
               type="primary"
               icon={<CalculatorOutlined />}
@@ -979,6 +1003,40 @@ export function SimuladorCreditoPage() {
             </Button>
           </Form.Item>
         </Form>
+        {esPrendario && cuotas.length > 0 ? (
+          <Alert
+            type="info"
+            showIcon
+            style={{ marginTop: 12 }}
+            message="Fechas del crédito prendario (según el plan simulado)"
+            description={
+              <Space direction="vertical" size={2}>
+                <Text>
+                  1.er pago:{' '}
+                  <Text strong>
+                    {formatFecha(cuotas[0]?.fechaPago?.slice(0, 10) ?? null)}
+                  </Text>
+                </Text>
+                <Text>
+                  Vencimiento (última cuota):{' '}
+                  <Text strong>
+                    {formatFecha(cuotas.at(-1)?.fechaPago?.slice(0, 10) ?? null)}
+                  </Text>
+                </Text>
+                <Text>
+                  Remate estimado (venc. + 30 d.):{' '}
+                  <Text strong>
+                    {formatFecha(
+                      cuotas.at(-1)?.fechaPago
+                        ? addDaysToIsoDate(cuotas.at(-1)!.fechaPago!.slice(0, 10), 30)
+                        : null,
+                    )}
+                  </Text>
+                </Text>
+              </Space>
+            }
+          />
+        ) : null}
         {tem != null && (
           <Text type="secondary" style={{ display: 'block', marginTop: 12 }}>
             TEM calculado: <Text strong>{tem.toFixed(4)}%</Text>
@@ -1022,13 +1080,21 @@ export function SimuladorCreditoPage() {
             <InformeExportBar
               csvLoading={exportCsv.isPending}
               pdfLoading={exportPdf.isPending}
-              csvDisabled={!productoId}
-              pdfDisabled={!productoId}
+              csvDisabled={!productoId || (personaId != null && !clienteDetalleQuery.data)}
+              pdfDisabled={!productoId || (personaId != null && !clienteDetalleQuery.data)}
               onCsv={async () => {
+                if (personaId != null && !clienteDetalleQuery.data) {
+                  message.warning('Espere a que cargue la ficha del cliente')
+                  return
+                }
                 const params = buildReporteParams()
                 if (params) exportCsv.mutate(params)
               }}
               onPdfTabular={async () => {
+                if (personaId != null && !clienteDetalleQuery.data) {
+                  message.warning('Espere a que cargue la ficha del cliente')
+                  return
+                }
                 const params = buildReporteParams()
                 if (params) exportPdf.mutate(params)
               }}

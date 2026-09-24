@@ -13,8 +13,10 @@ public static class CredixReportTokens
 {
     public const string BrandHex = "#114885";
     public const string BrandDarkHex = "#0A3A66";
-    public const string TableHeaderHex = "#B0C4DE";
-    public const string TableHeaderStrongHex = "#0F5F8F";
+    /// <summary>Cabecera de tabla: mismo azul del logo (opaco, texto blanco).</summary>
+    public const string TableHeaderHex = BrandHex;
+    /// <summary>Alias histórico; igual al brand para unificar todos los reportes.</summary>
+    public const string TableHeaderStrongHex = BrandHex;
     public const string MetaBgHex = "#F4F7FA";
     public const string SoftBgHex = "#EAF4FB";
     public const string SuccessSoftHex = "#E8F5E9";

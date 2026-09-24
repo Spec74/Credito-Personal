@@ -42,7 +42,10 @@ public sealed record CreditoContextoDto(
     DateTime? FechaRemate,
     DateTime FechaVencimiento,
     string? PersonaCelular,
-    string Estado);
+    string Estado,
+    int NumeroCuotas = 0,
+    string? FormaPago = null,
+    DateTime? FechaPrimerPago = null);
 
 public sealed record SolicitudCreditoDetalleDto(
     int SolicitudCreditoId,
@@ -161,8 +164,9 @@ public sealed record PrendaItemRequest(
     string? CodigoInterno);
 
 /// <summary>
-/// Cuerpo del guardado de bienes. El formulario envía siempre el detalle completo: la operación
-/// reemplaza las prendas del crédito, no las acumula (paridad <c>CreditoBL.GuardarPrendario</c>).
+/// Primera carga de bienes (solo en solicitud). Si el crédito ya tiene prendas, el servicio rechaza
+/// la operación. <see cref="FechaRemate"/> nula ⇒ vencimiento + 30 días; al generar el crédito
+/// el remate se recalcula con el vencimiento definitivo del plan.
 /// </summary>
 public sealed record GuardarPrendasRequest(
     int OficinaId,

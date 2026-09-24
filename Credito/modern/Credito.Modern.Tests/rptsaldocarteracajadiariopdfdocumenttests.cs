@@ -57,10 +57,11 @@ public sealed class RptSaldoCarteraCajaDiarioPdfDocumentTests
     }
 
     [Fact]
-    public void Tablas_cortas_siguen_en_A4_apaisado()
+    public void Tablas_cortas_en_A4_aunque_se_pida_apaisado()
     {
-        var shortPage = CredixLegacyPdfDocument.ResolvePageSize(8, landscape: true);
-        Assert.True(shortPage.Width < 900);
+        Assert.False(CredixLegacyPdfDocument.EffectiveLandscape(8, preferLandscape: true));
+        var shortPage = CredixLegacyPdfDocument.ResolvePageSize(8, landscape: false);
+        Assert.True(shortPage.Width < shortPage.Height);
         Assert.Equal(CredixLegacyPdfDocument.FontSizeBody, CredixLegacyPdfDocument.ResolveBodyFont(8));
     }
 

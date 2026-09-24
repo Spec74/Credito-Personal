@@ -133,6 +133,20 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
                     cancellationToken).ConfigureAwait(false);
             }
 
+            // Tras usp_Credito_Ins, FechaVencimiento queda = última cuota del plan.
+            // Remate prendario = vencimiento + 30 días (paridad PrendaFlex / legacy).
+            await connection.ExecuteAsync(
+                new CommandDefinition(
+                    """
+                    UPDATE CREDITO.Credito
+                    SET FechaRemate = DATEADD(DAY, 30, FechaVencimiento)
+                    WHERE CreditoId = @CreditoId
+                      AND EsPrendario = CAST(1 AS bit);
+                    """,
+                    new { CreditoId = solicitudCreditoId },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new CrearCreditoResponse(mensaje ?? string.Empty);
         }
@@ -157,8 +171,8 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
     }
 
     /// <summary>
-    /// Registra el bien del credito prendario y marca el credito, en la misma transaccion que
-    /// <c>usp_Credito_Ins</c>. Reemplaza el detalle previo: el alta envia la ficha completa.
+    /// Alta de bien solo si aún no hay prendas (flujo simulador sin pasar por «Nuevo»).
+    /// Si ya se registraron en la solicitud, no se toca el detalle.
     /// </summary>
     private static async Task GuardarPrendaAsync(
         SqlConnection connection,
@@ -168,11 +182,21 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
         int usuarioId,
         CancellationToken cancellationToken)
     {
+        var existentes = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                "SELECT COUNT(*) FROM CREDITO.Prenda WITH (UPDLOCK, HOLDLOCK) WHERE CreditoId = @CreditoId;",
+                new { CreditoId = creditoId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (existentes > 0)
+        {
+            return;
+        }
+
         await connection.ExecuteAsync(
             new CommandDefinition(
                 """
-                DELETE FROM CREDITO.Prenda WHERE CreditoId = @CreditoId;
-
                 INSERT INTO CREDITO.Prenda (
                     CreditoId, Descripcion, Marca, Modelo, Serie, Color, ValorTasacion,
                     Observaciones, Estado, FechaRegistro, CodigoInterno, UsuarioRegId)
@@ -186,7 +210,7 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
                     NumeroContratoPrendario = ISNULL(
                         NULLIF(LTRIM(RTRIM(NumeroContratoPrendario)), ''),
                         CAST(CreditoId AS nvarchar(50))),
-                    FechaRemate = @FechaRemate
+                    FechaRemate = COALESCE(@FechaRemate, DATEADD(DAY, 30, FechaVencimiento))
                 WHERE CreditoId = @CreditoId;
                 """,
                 new
@@ -201,7 +225,7 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
                     Observaciones = CreditoGestionWriteService.Mayusculas(prenda.Observacion),
                     Estado = CreditoGestionWriteService.PrendaEstadoEnCustodia,
                     CodigoInterno = CreditoGestionWriteService.Mayusculas(prenda.CodigoInterno),
-                    FechaRemate = prenda.FechaRemate.Date,
+                    FechaRemate = (DateTime?)prenda.FechaRemate.Date,
                     UsuarioId = usuarioId,
                 },
                 transaction: transaction,

@@ -4,18 +4,17 @@ import { useMutation } from '@tanstack/react-query'
 import {
   FileAddOutlined,
   FileSearchOutlined,
-  SearchOutlined,
   UserAddOutlined,
 } from '@ant-design/icons'
 import { Alert, Button, Col, Input, Row, Space, Steps, Typography, message } from 'antd'
 import { consultarDniApiPeru } from '../../api/apiperu'
-import { buscarClientes, obtenerCliente, obtenerPersonaPorDocumento } from '../../api/clientes'
+import { obtenerCliente, obtenerPersonaPorDocumento } from '../../api/clientes'
 import { crearSolicitudPrendaria, guardarBienesPrendario } from '../../api/prendario'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
-import type { ClienteBuscarItem } from '../../types/api'
 import type { PrendaItem } from '../../api/creditoGestion'
-import { CredixDataTable, CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
+import { CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
+import { ClienteBuscarAutoComplete } from '../../components/caja/ClienteBuscarAutoComplete'
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import {
   buildSimuladorPrendarioPath,
@@ -59,12 +58,11 @@ export function CreditoPrendarioNuevoPage() {
   const [personaId, setPersonaId] = useState<number | null>(null)
   const [clienteLabel, setClienteLabel] = useState('')
   const [prendas, setPrendas] = useState<PrendaItem[]>([prendaVacia()])
-  const [fechaRemate, setFechaRemate] = useState('')
 
   const elegirCliente = (id: number, label: string) => {
     setPersonaId(id)
     setClienteLabel(label)
-    buscar.reset()
+    setTerminoCliente(label)
     setConsulta(null)
     const next = new URLSearchParams(searchParams)
     next.set('personaId', String(id))
@@ -74,6 +72,7 @@ export function CreditoPrendarioNuevoPage() {
   const limpiarCliente = () => {
     setPersonaId(null)
     setClienteLabel('')
+    setTerminoCliente('')
     if (!searchParams.has('personaId')) return
     const next = new URLSearchParams(searchParams)
     next.delete('personaId')
@@ -90,6 +89,7 @@ export function CreditoPrendarioNuevoPage() {
         const label = labelClienteFicha(c)
         setPersonaId(c.personaId)
         setClienteLabel(label)
+        setTerminoCliente(label)
         if (recienRegistrado) {
           message.success(`Cliente listo: ${label}`)
         }
@@ -101,10 +101,6 @@ export function CreditoPrendarioNuevoPage() {
       cancelled = true
     }
   }, [personaIdUrl, personaId, recienRegistrado])
-
-  const buscar = useMutation({
-    mutationFn: (term: string) => buscarClientes(term),
-  })
 
   const consultarDni = useMutation({
     mutationFn: async (dniRaw: string): Promise<ConsultaDni> => {
@@ -135,7 +131,7 @@ export function CreditoPrendarioNuevoPage() {
     onSuccess: (r) => {
       setConsulta(r)
       if (r.kind === 'existente') {
-        message.info('Este DNI ya es cliente')
+        message.info('Este DNI ya es cliente. Pulse Elegir para continuar.')
       } else if (r.kind === 'nuevo') {
         message.success('Datos validados con ApiPerú')
       } else {
@@ -168,7 +164,7 @@ export function CreditoPrendarioNuevoPage() {
         oficinaId,
         creditoId: solicitud.solicitudCreditoId,
         prendas: bienes,
-        fechaRemate: fechaRemate || null,
+        fechaRemate: null,
       })
       return { solicitudCreditoId: solicitud.solicitudCreditoId, bienes }
     },
@@ -180,7 +176,6 @@ export function CreditoPrendarioNuevoPage() {
           personaId,
           solicitudCreditoId,
           prendas: bienes,
-          fechaRemate,
         }),
       )
     },
@@ -199,7 +194,7 @@ export function CreditoPrendarioNuevoPage() {
   return (
     <CredixPage
       title="Nuevo crédito prendario"
-      subtitle="El cliente se registra en Clientes (ApiPerú). Luego se cargan los bienes y la solicitud queda en CRE."
+      subtitle="Registre el cliente y el bien en custodia. Tras crear la solicitud, el plan (cuotas y 1.er pago) define el vencimiento; el remate es vencimiento + 30 días."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -218,50 +213,30 @@ export function CreditoPrendarioNuevoPage() {
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={12}>
           <CredixPanel title="Buscar cliente existente">
-            <Space.Compact style={{ width: '100%', marginBottom: 12 }}>
-              <Input
-                placeholder="DNI de 8 dígitos o un apellido"
-                value={terminoCliente}
-                onChange={(e) => setTerminoCliente(e.target.value)}
-                onPressEnter={() => {
-                  if (terminoCliente.trim().length >= 2) buscar.mutate(terminoCliente.trim())
-                }}
-              />
-              <Button
-                icon={<SearchOutlined />}
-                loading={buscar.isPending}
-                onClick={() => {
-                  if (terminoCliente.trim().length < 2) {
-                    message.warning('Ingrese al menos 2 caracteres')
-                    return
-                  }
-                  buscar.mutate(terminoCliente.trim())
-                }}
-              >
-                Buscar
-              </Button>
-            </Space.Compact>
-            <CredixDataTable<ClienteBuscarItem>
-              size="small"
-              rowKey="personaId"
-              dataSource={buscar.data ?? []}
-              loading={buscar.isPending}
-              pagination={false}
-              locale={{
-                emptyText: 'Sin coincidencias. Use el DNI o un apellido, no nombres pegados.',
+            <Paragraph type="secondary" style={{ marginBottom: 12 }}>
+              Escriba DNI, apellido o nombre: aparecen coincidencias al instante. Toque una vez el
+              resultado para seleccionarlo (escritorio y móvil).
+            </Paragraph>
+            <ClienteBuscarAutoComplete
+              variant="credito"
+              value={terminoCliente}
+              onChange={(v) => {
+                setTerminoCliente(v)
+                if (personaId == null) return
+                setPersonaId(null)
+                setClienteLabel('')
+                if (!searchParams.has('personaId')) return
+                const next = new URLSearchParams(searchParams)
+                next.delete('personaId')
+                setSearchParams(next, { replace: true })
               }}
-              columns={[
-                { title: 'Cliente', dataIndex: 'label', ellipsis: true },
-                {
-                  title: '',
-                  width: 90,
-                  render: (_, row) => (
-                    <Button size="small" type="link" onClick={() => elegirCliente(row.personaId, row.label)}>
-                      Elegir
-                    </Button>
-                  ),
-                },
-              ]}
+              onSelectPersona={elegirCliente}
+              fullWidth
+              showSearchButton
+              searchButtonLabel="Buscar"
+              debounceMs={280}
+              minChars={2}
+              placeholder="DNI, apellido o nombre"
             />
           </CredixPanel>
         </Col>
@@ -298,8 +273,13 @@ export function CreditoPrendarioNuevoPage() {
                 showIcon
                 style={{ marginBottom: 12 }}
                 message={consulta.label}
+                description="Cliente ya registrado. Pulse Elegir para continuar."
                 action={
-                  <Button size="small" type="primary" onClick={() => elegirCliente(consulta.personaId, consulta.label)}>
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={() => elegirCliente(consulta.personaId, consulta.label)}
+                  >
                     Elegir
                   </Button>
                 }
@@ -372,20 +352,17 @@ export function CreditoPrendarioNuevoPage() {
             message="Seleccione un cliente existente o regístrelo en Clientes antes de cargar los bienes."
           />
         )}
-        <Paragraph type="secondary" style={{ marginBottom: 8 }}>
-          Fecha de remate (opcional). Si se deja vacía, el servidor usa el vencimiento más 30 días.
-        </Paragraph>
-        <Input
-          type="date"
-          style={{ maxWidth: 220, marginBottom: 12 }}
-          value={fechaRemate}
-          onChange={(e) => setFechaRemate(e.target.value)}
-          disabled={!personaId}
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message="Los bienes se registran una sola vez aquí"
+          description="En gestión solo se consultan. El vencimiento lo calcula el simulador con la modalidad (mensual en prendario), las cuotas y la fecha del primer pago."
         />
         <PrendasEditor value={prendas} onChange={setPrendas} disabled={!personaId} />
         <Paragraph style={{ marginTop: 12, marginBottom: 4 }}>
-          <Text strong>Resultado:</Text> se guardan los bienes y se abre el simulador con la
-          descripción de la prenda ya cargada, para definir monto, plazo y tasa.
+          <Text strong>Siguiente paso:</Text> se guardan los bienes y se abre el simulador para
+          definir monto, plazo y tasa. Luego no podrá agregar ni editar bienes en este crédito.
         </Paragraph>
         <Button
           type="primary"

@@ -6038,6 +6038,7 @@ internal static class CreditoReportesRestantesEndpoints
                                 oficinaResolvedInactivosCsv,
                                 ct)
                             .ConfigureAwait(false);
+                        var csvBytes = RptClientesInactivosCsvFormatter.ToUtf8BomCsv(items);
                         var pdfContext = await LegacyReportPdf.ResolveAsync(
                                 httpContext,
                                 oficinaResolvedInactivosCsv,
@@ -6047,7 +6048,10 @@ internal static class CreditoReportesRestantesEndpoints
                                 titulo: "CLIENTES INACTIVOS",
                                 cancellationToken: ct)
                             .ConfigureAwait(false);
-                        var bytes = RptClientesInactivosFichaPdfDocument.Build(items, pdfContext);
+                        var bytes = TabularPdfDocument.FromUtf8BomCsv(
+                            CredixLegacyReportKey.ClientesInactivos,
+                            csvBytes,
+                            pdfContext);
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "clientes-inactivos.pdf");
                     }
                     catch (InvalidOperationException ex)

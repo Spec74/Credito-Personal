@@ -3,6 +3,7 @@ using Credito.Modern.Api.Auth;
 using Credito.Modern.Application.CreditoPlanes;
 using Credito.Modern.Application.CreditoTasas;
 using Credito.Modern.Application.Reportes;
+using Credito.Modern.Application.UsuariosAdmin;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -404,12 +405,14 @@ internal static class CreditoInformesLegacyEndpoints
                     [FromQuery] string? prendaDescripcion,
                     [FromQuery] string? asesor,
                     [FromQuery] string? telefonoCliente,
+                    HttpContext httpContext,
+                    IUsuarioAdminReadService usuarios,
                     IRptSimuladorPlanPagosReadService simuladorPlan,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    var (error, query) = ParseSimuladorQuery(
+                    var (error, query) = await BuildSimuladorQueryAsync(
                         productoId,
                         monto,
                         nroCuotas,
@@ -425,7 +428,10 @@ internal static class CreditoInformesLegacyEndpoints
                         direccionNegocio,
                         prendaDescripcion,
                         asesor,
-                        telefonoCliente);
+                        telefonoCliente,
+                        httpContext,
+                        usuarios,
+                        ct).ConfigureAwait(false);
                     if (error is not null)
                     {
                         return error;
@@ -474,12 +480,14 @@ internal static class CreditoInformesLegacyEndpoints
                     [FromQuery] string? prendaDescripcion,
                     [FromQuery] string? asesor,
                     [FromQuery] string? telefonoCliente,
+                    HttpContext httpContext,
+                    IUsuarioAdminReadService usuarios,
                     IRptSimuladorPlanPagosReadService simuladorPlan,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    var (error, query) = ParseSimuladorQuery(
+                    var (error, query) = await BuildSimuladorQueryAsync(
                         productoId,
                         monto,
                         nroCuotas,
@@ -495,7 +503,10 @@ internal static class CreditoInformesLegacyEndpoints
                         direccionNegocio,
                         prendaDescripcion,
                         asesor,
-                        telefonoCliente);
+                        telefonoCliente,
+                        httpContext,
+                        usuarios,
+                        ct).ConfigureAwait(false);
                     if (error is not null)
                     {
                         return error;
@@ -545,12 +556,14 @@ internal static class CreditoInformesLegacyEndpoints
                     [FromQuery] string? prendaDescripcion,
                     [FromQuery] string? asesor,
                     [FromQuery] string? telefonoCliente,
+                    HttpContext httpContext,
+                    IUsuarioAdminReadService usuarios,
                     IRptSimuladorPlanPagosReadService simuladorPlan,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    var (error, query) = ParseSimuladorQuery(
+                    var (error, query) = await BuildSimuladorQueryAsync(
                         productoId,
                         monto,
                         nroCuotas,
@@ -566,7 +579,10 @@ internal static class CreditoInformesLegacyEndpoints
                         direccionNegocio,
                         prendaDescripcion,
                         asesor,
-                        telefonoCliente);
+                        telefonoCliente,
+                        httpContext,
+                        usuarios,
+                        ct).ConfigureAwait(false);
                     if (error is not null)
                     {
                         return error;
@@ -596,6 +612,56 @@ internal static class CreditoInformesLegacyEndpoints
             .WithTags("credito-informes")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf");
+    }
+
+    private static async Task<(ProblemHttpResult? Error, RptSimuladorPlanPagosQuery? Query)> BuildSimuladorQueryAsync(
+        int productoId,
+        decimal monto,
+        int nroCuotas,
+        decimal interesMensual,
+        DateTime? fechaPrimerPago,
+        string? formaPago,
+        decimal? gastosAdm,
+        string? ga,
+        string? cliente,
+        string? tipoDocumento,
+        string? nroDocumento,
+        string? direccionCliente,
+        string? direccionNegocio,
+        string? prendaDescripcion,
+        string? asesor,
+        string? telefonoCliente,
+        HttpContext httpContext,
+        IUsuarioAdminReadService usuarios,
+        CancellationToken cancellationToken)
+    {
+        var (error, query) = ParseSimuladorQuery(
+            productoId,
+            monto,
+            nroCuotas,
+            interesMensual,
+            fechaPrimerPago,
+            formaPago,
+            gastosAdm,
+            ga,
+            cliente,
+            tipoDocumento,
+            nroDocumento,
+            direccionCliente,
+            direccionNegocio,
+            prendaDescripcion,
+            asesor,
+            telefonoCliente);
+        if (error is not null || query is null)
+        {
+            return (error, null);
+        }
+
+        MenuIdentity.TryGetUsuarioIdFromJwt(httpContext.User, out var usuarioId);
+        var asesorNombre = await RptSimuladorPlanPagosAsesor
+            .ResolveNombreAsync(usuarioId, query.Asesor, usuarios, cancellationToken)
+            .ConfigureAwait(false);
+        return (null, query with { Asesor = asesorNombre });
     }
 
     private static (ProblemHttpResult? Error, RptSimuladorPlanPagosQuery? Query) ParseSimuladorQuery(

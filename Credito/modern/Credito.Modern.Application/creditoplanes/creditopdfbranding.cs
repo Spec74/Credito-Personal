@@ -107,11 +107,11 @@ public static class CreditoPdfBranding
             .FontColor(BrandColor);
 
     public static IContainer TableHeaderCell(IContainer c) =>
-        c.DefaultTextStyle(x => x.SemiBold().FontSize(7))
+        c.DefaultTextStyle(x => x.SemiBold().FontSize(7).FontColor(Colors.White))
             .PaddingVertical(3)
             .PaddingHorizontal(2)
             .Border(0.5f)
-            .BorderColor(Border)
+            .BorderColor(Colors.White)
             .Background(HeaderBg)
             .AlignMiddle();
 

@@ -48,23 +48,31 @@ public static class PrendarioPdfMerge
             var total = 2 + Math.Max(paginasClausulas, 1);
             File.WriteAllBytes(numeracion, BuildNumeracion(total));
 
-            DocumentOperation
-                .LoadFile(principal)
-                .MergeFile(anexo)
-                .OverlayFile(new DocumentOperation.LayerConfiguration
-                {
-                    FilePath = sello,
-                    TargetPages = "z",
-                    SourcePages = "1",
-                })
-                .OverlayFile(new DocumentOperation.LayerConfiguration
-                {
-                    FilePath = numeracion,
-                    TargetPages = "1-z",
-                    SourcePages = "1-z",
-                })
-                .Save(salida);
-            return File.ReadAllBytes(salida);
+            try
+            {
+                DocumentOperation
+                    .LoadFile(principal)
+                    .MergeFile(anexo)
+                    .OverlayFile(new DocumentOperation.LayerConfiguration
+                    {
+                        FilePath = sello,
+                        TargetPages = "z",
+                        SourcePages = "1",
+                    })
+                    .OverlayFile(new DocumentOperation.LayerConfiguration
+                    {
+                        FilePath = numeracion,
+                        TargetPages = "1-z",
+                        SourcePages = "1-z",
+                    })
+                    .Save(salida);
+                return File.ReadAllBytes(salida);
+            }
+            catch (Exception)
+            {
+                // Si el PDF legal está dañado, devolver Anexo A+B para no tumbar la API.
+                return contrato;
+            }
         }
         finally
         {

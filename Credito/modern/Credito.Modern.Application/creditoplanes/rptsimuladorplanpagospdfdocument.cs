@@ -12,6 +12,9 @@ namespace Credito.Modern.Application.CreditoPlanes;
 /// </summary>
 public static class RptSimuladorPlanPagosPdfDocument
 {
+    /// <summary>Separación entre franja de encabezado y cuerpo (todas las páginas).</summary>
+    private const float HeaderBodyGapPt = 14f;
+
     private enum IconKind
     {
         Client,
@@ -59,7 +62,7 @@ public static class RptSimuladorPlanPagosPdfDocument
                 page.DefaultTextStyle(x => x.FontSize(7.2f).FontColor(Colors.Black));
 
                 page.Header().Element(c => ComposeHeader(c, logo, fechaEmision));
-                page.Content().Column(col =>
+                page.Content().PaddingTop(HeaderBodyGapPt).Column(col =>
                 {
                     col.Spacing(8);
                     col.Item().Row(row =>
@@ -104,15 +107,12 @@ public static class RptSimuladorPlanPagosPdfDocument
                     {
                         row.RelativeItem().Element(c => ComposeFirma(c, IconKind.SignatureClient, "Firma del Cliente"));
                         row.ConstantItem(28);
-                        row.RelativeItem().Element(c => ComposeFirma(c, IconKind.SignatureAdvisor, "Firma del Asesor de Créditos"));
+                        row.RelativeItem().Element(c =>
+                            ComposeFirma(c, IconKind.SignatureAdvisor, "Firma del Asesor de Créditos", cab.Asesor));
                     });
                 });
 
-                page.Footer().Column(foot =>
-                {
-                    foot.Item().Element(ComposeFooter);
-                    foot.Item().PaddingTop(3).Element(c => CredixReportTokens.ComposeStandardFooter(c));
-                });
+                page.Footer().Element(ComposeFooter);
             });
         }).GeneratePdf();
     }
@@ -244,20 +244,45 @@ public static class RptSimuladorPlanPagosPdfDocument
         Notice(container, null, "DECLARACIÓN DEL CLIENTE",
             "Declaro haber recibido información clara y suficiente sobre las condiciones del crédito, cronograma de pagos, intereses, gastos administrativos y consecuencias del incumplimiento.");
 
-    private static void ComposeFirma(IContainer container, IconKind icon, string title)
+    private static void ComposeFirma(
+        IContainer container,
+        IconKind icon,
+        string title,
+        string? firmanteNombre = null)
     {
+        var nombre = NormalizeFirmante(firmanteNombre);
         container
-            .MinHeight(82)
+            .MinHeight(88)
             .Border(0.7f)
             .BorderColor(Border)
             .Padding(12)
             .Column(col =>
             {
                 col.Item().Width(16).Height(16).Svg(IconSvg(icon, CredixReportTokens.BrandHex)).FitArea();
-                col.Item().PaddingTop(14).AlignCenter().LineHorizontal(0.7f).LineColor(Colors.Grey.Darken1);
-                col.Item().AlignCenter().Text(title).FontSize(6.3f);
-                col.Item().PaddingTop(12).Text("DNI:________________________").FontSize(6.5f);
+                col.Item().PaddingTop(nombre is null ? 18 : 12).AlignCenter()
+                    .LineHorizontal(0.7f).LineColor(Colors.Grey.Darken1);
+                if (nombre is not null)
+                {
+                    col.Item().PaddingTop(4).AlignCenter()
+                        .Text(nombre)
+                        .SemiBold()
+                        .FontSize(6.8f)
+                        .FontColor(BrandDark);
+                }
+
+                col.Item().PaddingTop(2).AlignCenter().Text(title).FontSize(6.3f).FontColor(Muted);
+                col.Item().PaddingTop(10).Text("DNI:________________________").FontSize(6.5f);
             });
+    }
+
+    private static string? NormalizeFirmante(string? nombre)
+    {
+        if (string.IsNullOrWhiteSpace(nombre) || nombre.Trim() == "-")
+        {
+            return null;
+        }
+
+        return nombre.Trim().ToUpperInvariant();
     }
 
     private static void ComposeFooter(IContainer container)

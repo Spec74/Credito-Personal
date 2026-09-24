@@ -60,20 +60,31 @@ nunca la del cliente.
 `ProductoId = 2`, `TipoCuota = "F"` y `MontoInicial = 0`. El resto (monto, interés, modalidad,
 cuotas, gastos administrativos, fecha de primer pago, central de riesgo) lo captura el analista.
 
+## Flujo bienes y fechas (moderno)
+
+1. **Nuevo** (`/credito/prendario/nuevo`): el analista elige cliente y registra el/los bien(es) una sola vez.
+2. **Guardar prendas**: rechazo si el crédito ya tiene filas en `CREDITO.Prenda` (no hay edición posterior).
+3. **Gestión**: solo lectura de bienes; sin agregar/editar/borrar.
+4. **Vencimiento**: lo fija el plan (1.er pago + n.º cuotas; prendario modalidad `M`).
+   Al **desembolsar**, se realinea desde `FechaDesembolso`: cuota *n* = desembolso + *n* periodos;
+   `FechaPrimerPago` = 1.ª cuota; `FechaVencimiento` = última; `FechaRemate` = vencimiento + 30 días.
+5. **Remate**: `FechaVencimiento + 30 días` (sin captura manual en la UI).
+6. **Simulador**: default 1.er pago = hoy + 1 mes calendario; muestra preview de vencimiento y remate.
+
 ## Guardado de bienes
 
-`GuardarPrendario(creditoId, prendas, fechaRemate?)`, en una sola transacción:
+`GuardarPrendario(creditoId, prendas, fechaRemate?)`, en una sola transacción (primera carga):
 
-1. Borra todas las filas de `Prenda` del crédito y reinserta. El formulario envía siempre el
-   detalle completo, así que la semántica es de reemplazo, no de acumulación.
+1. Si ya existen prendas del crédito → error (bloqueo; no se reemplazan).
 2. Descarta las prendas con `Descripcion` vacía.
 3. Normaliza a mayúsculas y sin espacios sobrantes `Descripcion`, `Marca`, `Modelo`, `Color`.
    `Serie` vacía se guarda como `N/T`.
 4. `Estado = 'EN CUSTODIA'`, `FechaRegistro` = fecha del servidor.
 5. Marca `Credito.EsPrendario = 1`.
-6. `Credito.MontoTasacion` = suma de las tasaciones.
+6. `Credito.MontoTasacion` = suma de las tasaciones insertadas.
 7. Si `NumeroContratoPrendario` está vacío, lo fija al `CreditoId` en texto.
 8. `Credito.FechaRemate` = la recibida, o `FechaVencimiento + 30 días` si no se envía.
+   Tras `usp_Credito_Ins` el moderno recalcula remate = vencimiento definitivo + 30 días.
 
 **Defecto del legacy a no replicar:** el paso 6 suma `pPrendas` completo, sin excluir las
 prendas descartadas en el paso 2. Un renglón con tasación pero sin descripción infla

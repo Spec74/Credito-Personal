@@ -12,34 +12,45 @@ type Props = {
   value: PrendaItem[]
   onChange: (prendas: PrendaItem[]) => void
   disabled?: boolean
+  /** Solo lectura: sin inputs, sin agregar/quitar. */
+  readOnly?: boolean
+}
+
+function celda(texto: string | null | undefined, vacio = '—') {
+  const t = (texto ?? '').trim()
+  return t.length > 0 ? t : vacio
 }
 
 /**
  * Detalle de bienes en custodia. El crédito admite varios, y la tasación del crédito es la
  * suma de los que tengan descripción: el servidor la recalcula desde lo guardado.
  */
-export function PrendasEditor({ value, onChange, disabled = false }: Props) {
+export function PrendasEditor({ value, onChange, disabled = false, readOnly = false }: Props) {
   const screens = Grid.useBreakpoint()
   const isMobile = screens.md !== true
+  const bloqueado = disabled || readOnly
 
   const actualizar = useCallback(
     (indice: number, cambios: Partial<PrendaItem>) => {
+      if (bloqueado) return
       onChange(value.map((p, i) => (i === indice ? { ...p, ...cambios } : p)))
     },
-    [value, onChange],
+    [value, onChange, bloqueado],
   )
 
   const eliminar = useCallback(
     (indice: number) => {
+      if (bloqueado) return
       const restantes = value.filter((_, i) => i !== indice)
       onChange(restantes.length > 0 ? restantes : [prendaVacia()])
     },
-    [value, onChange],
+    [value, onChange, bloqueado],
   )
 
   const agregar = useCallback(() => {
+    if (bloqueado) return
     onChange([...value, prendaVacia()])
-  }, [value, onChange])
+  }, [value, onChange, bloqueado])
 
   const filas = useMemo(
     () => value.map((prenda, indice) => ({ key: indice, indice, prenda })),
@@ -50,11 +61,15 @@ export function PrendasEditor({ value, onChange, disabled = false }: Props) {
 
   const footer = (
     <Row justify="space-between" align="middle" gutter={[8, 8]} style={{ marginTop: 12 }}>
-      <Col xs={24} sm="auto">
-        <Button block={isMobile} icon={<PlusOutlined />} disabled={disabled} onClick={agregar}>
-          Agregar bien
-        </Button>
-      </Col>
+      {!readOnly ? (
+        <Col xs={24} sm="auto">
+          <Button block={isMobile} icon={<PlusOutlined />} disabled={bloqueado} onClick={agregar}>
+            Agregar bien
+          </Button>
+        </Col>
+      ) : (
+        <Col />
+      )}
       <Col xs={24} sm="auto">
         <Space>
           <Text type="secondary">Tasación total</Text>
@@ -71,85 +86,126 @@ export function PrendasEditor({ value, onChange, disabled = false }: Props) {
           <article key={indice} className="prendas-editor-mobile__card">
             <div className="prendas-editor-mobile__head">
               <Text strong>Bien #{indice + 1}</Text>
-              <Button
-                type="text"
-                danger
-                size="small"
-                icon={<DeleteOutlined />}
-                disabled={disabled}
-                aria-label={`Quitar bien ${indice + 1}`}
-                onClick={() => eliminar(indice)}
-              />
+              {!readOnly ? (
+                <Button
+                  type="text"
+                  danger
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  disabled={bloqueado}
+                  aria-label={`Quitar bien ${indice + 1}`}
+                  onClick={() => eliminar(indice)}
+                />
+              ) : null}
             </div>
-            <label className="prendas-editor-mobile__field">
-              <span>Descripción</span>
-              <Input
-                disabled={disabled}
-                placeholder="Ej. anillo de oro 18k"
-                value={prenda.descripcion}
-                onChange={(e) => actualizar(indice, { descripcion: e.target.value })}
-              />
-            </label>
-            <label className="prendas-editor-mobile__field">
-              <span>Marca</span>
-              <Input
-                disabled={disabled}
-                value={prenda.marca ?? ''}
-                onChange={(e) => actualizar(indice, { marca: e.target.value })}
-              />
-            </label>
-            <label className="prendas-editor-mobile__field">
-              <span>Modelo</span>
-              <Input
-                disabled={disabled}
-                value={prenda.modelo ?? ''}
-                onChange={(e) => actualizar(indice, { modelo: e.target.value })}
-              />
-            </label>
-            <label className="prendas-editor-mobile__field">
-              <span>Serie</span>
-              <Input
-                disabled={disabled}
-                placeholder="N/T"
-                value={prenda.serie ?? ''}
-                onChange={(e) => actualizar(indice, { serie: e.target.value })}
-              />
-            </label>
-            <label className="prendas-editor-mobile__field">
-              <span>Color</span>
-              <Input
-                disabled={disabled}
-                value={prenda.color ?? ''}
-                onChange={(e) => actualizar(indice, { color: e.target.value })}
-              />
-            </label>
-            <label className="prendas-editor-mobile__field">
-              <span>Código interno</span>
-              <Input
-                disabled={disabled}
-                value={prenda.codigoInterno ?? ''}
-                onChange={(e) => actualizar(indice, { codigoInterno: e.target.value })}
-              />
-            </label>
-            <label className="prendas-editor-mobile__field">
-              <span>Tasación</span>
-              <InputNumber
-                style={{ width: '100%' }}
-                min={0}
-                precision={2}
-                disabled={disabled}
-                value={prenda.valorTasacion}
-                onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
-              />
-            </label>
-            <label className="prendas-editor-mobile__field">
-              <span>Observaciones</span>
-              <Input
-                disabled={disabled}
-                value={prenda.observaciones ?? ''}
-                onChange={(e) => actualizar(indice, { observaciones: e.target.value })}
-              />
-            </label>
+            {readOnly ? (
+              <>
+                <div className="prendas-editor-mobile__field">
+                  <span>Descripción</span>
+                  <Text>{celda(prenda.descripcion)}</Text>
+                </div>
+                <div className="prendas-editor-mobile__field">
+                  <span>Marca</span>
+                  <Text>{celda(prenda.marca)}</Text>
+                </div>
+                <div className="prendas-editor-mobile__field">
+                  <span>Modelo</span>
+                  <Text>{celda(prenda.modelo)}</Text>
+                </div>
+                <div className="prendas-editor-mobile__field">
+                  <span>Serie</span>
+                  <Text>{celda(prenda.serie, 'N/T')}</Text>
+                </div>
+                <div className="prendas-editor-mobile__field">
+                  <span>Color</span>
+                  <Text>{celda(prenda.color)}</Text>
+                </div>
+                <div className="prendas-editor-mobile__field">
+                  <span>Código interno</span>
+                  <Text>{celda(prenda.codigoInterno)}</Text>
+                </div>
+                <div className="prendas-editor-mobile__field">
+                  <span>Tasación</span>
+                  <Text strong>{formatMoney(prenda.valorTasacion)}</Text>
+                </div>
+                <div className="prendas-editor-mobile__field">
+                  <span>Observaciones</span>
+                  <Text>{celda(prenda.observaciones)}</Text>
+                </div>
+              </>
+            ) : (
+              <>
+                <label className="prendas-editor-mobile__field">
+                  <span>Descripción</span>
+                  <Input
+                    disabled={bloqueado}
+                    placeholder="Ej. anillo de oro 18k"
+                    value={prenda.descripcion}
+                    onChange={(e) => actualizar(indice, { descripcion: e.target.value })}
+                  />
+                </label>
+                <label className="prendas-editor-mobile__field">
+                  <span>Marca</span>
+                  <Input
+                    disabled={bloqueado}
+                    value={prenda.marca ?? ''}
+                    onChange={(e) => actualizar(indice, { marca: e.target.value })}
+                  />
+                </label>
+                <label className="prendas-editor-mobile__field">
+                  <span>Modelo</span>
+                  <Input
+                    disabled={bloqueado}
+                    value={prenda.modelo ?? ''}
+                    onChange={(e) => actualizar(indice, { modelo: e.target.value })}
+                  />
+                </label>
+                <label className="prendas-editor-mobile__field">
+                  <span>Serie</span>
+                  <Input
+                    disabled={bloqueado}
+                    placeholder="N/T"
+                    value={prenda.serie ?? ''}
+                    onChange={(e) => actualizar(indice, { serie: e.target.value })}
+                  />
+                </label>
+                <label className="prendas-editor-mobile__field">
+                  <span>Color</span>
+                  <Input
+                    disabled={bloqueado}
+                    value={prenda.color ?? ''}
+                    onChange={(e) => actualizar(indice, { color: e.target.value })}
+                  />
+                </label>
+                <label className="prendas-editor-mobile__field">
+                  <span>Código interno</span>
+                  <Input
+                    disabled={bloqueado}
+                    value={prenda.codigoInterno ?? ''}
+                    onChange={(e) => actualizar(indice, { codigoInterno: e.target.value })}
+                  />
+                </label>
+                <label className="prendas-editor-mobile__field">
+                  <span>Tasación</span>
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    min={0}
+                    precision={2}
+                    disabled={bloqueado}
+                    value={prenda.valorTasacion}
+                    onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
+                  />
+                </label>
+                <label className="prendas-editor-mobile__field">
+                  <span>Observaciones</span>
+                  <Input
+                    disabled={bloqueado}
+                    value={prenda.observaciones ?? ''}
+                    onChange={(e) => actualizar(indice, { observaciones: e.target.value })}
+                  />
+                </label>
+              </>
+            )}
           </article>
         ))}
         {footer}
@@ -164,118 +220,146 @@ export function PrendasEditor({ value, onChange, disabled = false }: Props) {
         pagination={false}
         dataSource={filas}
         rowKey="key"
-        scroll={{ x: 1100 }}
+        scroll={{ x: readOnly ? 960 : 1100 }}
         columns={[
           {
             title: 'Descripción',
             width: 240,
-            render: (_, { indice, prenda }) => (
-              <Input
-                disabled={disabled}
-                placeholder="Ej. anillo de oro 18k"
-                value={prenda.descripcion}
-                onChange={(e) => actualizar(indice, { descripcion: e.target.value })}
-              />
-            ),
+            render: (_, { indice, prenda }) =>
+              readOnly ? (
+                <Text>{celda(prenda.descripcion)}</Text>
+              ) : (
+                <Input
+                  disabled={bloqueado}
+                  placeholder="Ej. anillo de oro 18k"
+                  value={prenda.descripcion}
+                  onChange={(e) => actualizar(indice, { descripcion: e.target.value })}
+                />
+              ),
           },
           {
             title: 'Marca',
             width: 130,
-            render: (_, { indice, prenda }) => (
-              <Input
-                disabled={disabled}
-                value={prenda.marca ?? ''}
-                onChange={(e) => actualizar(indice, { marca: e.target.value })}
-              />
-            ),
+            render: (_, { indice, prenda }) =>
+              readOnly ? (
+                <Text>{celda(prenda.marca)}</Text>
+              ) : (
+                <Input
+                  disabled={bloqueado}
+                  value={prenda.marca ?? ''}
+                  onChange={(e) => actualizar(indice, { marca: e.target.value })}
+                />
+              ),
           },
           {
             title: 'Modelo',
             width: 130,
-            render: (_, { indice, prenda }) => (
-              <Input
-                disabled={disabled}
-                value={prenda.modelo ?? ''}
-                onChange={(e) => actualizar(indice, { modelo: e.target.value })}
-              />
-            ),
+            render: (_, { indice, prenda }) =>
+              readOnly ? (
+                <Text>{celda(prenda.modelo)}</Text>
+              ) : (
+                <Input
+                  disabled={bloqueado}
+                  value={prenda.modelo ?? ''}
+                  onChange={(e) => actualizar(indice, { modelo: e.target.value })}
+                />
+              ),
           },
           {
             title: 'Serie',
             width: 130,
-            render: (_, { indice, prenda }) => (
-              <Input
-                disabled={disabled}
-                placeholder="N/T"
-                value={prenda.serie ?? ''}
-                onChange={(e) => actualizar(indice, { serie: e.target.value })}
-              />
-            ),
+            render: (_, { indice, prenda }) =>
+              readOnly ? (
+                <Text>{celda(prenda.serie, 'N/T')}</Text>
+              ) : (
+                <Input
+                  disabled={bloqueado}
+                  placeholder="N/T"
+                  value={prenda.serie ?? ''}
+                  onChange={(e) => actualizar(indice, { serie: e.target.value })}
+                />
+              ),
           },
           {
             title: 'Color',
             width: 110,
-            render: (_, { indice, prenda }) => (
-              <Input
-                disabled={disabled}
-                value={prenda.color ?? ''}
-                onChange={(e) => actualizar(indice, { color: e.target.value })}
-              />
-            ),
+            render: (_, { indice, prenda }) =>
+              readOnly ? (
+                <Text>{celda(prenda.color)}</Text>
+              ) : (
+                <Input
+                  disabled={bloqueado}
+                  value={prenda.color ?? ''}
+                  onChange={(e) => actualizar(indice, { color: e.target.value })}
+                />
+              ),
           },
           {
             title: 'Código interno',
             width: 140,
-            render: (_, { indice, prenda }) => (
-              <Input
-                disabled={disabled}
-                value={prenda.codigoInterno ?? ''}
-                onChange={(e) => actualizar(indice, { codigoInterno: e.target.value })}
-              />
-            ),
+            render: (_, { indice, prenda }) =>
+              readOnly ? (
+                <Text>{celda(prenda.codigoInterno)}</Text>
+              ) : (
+                <Input
+                  disabled={bloqueado}
+                  value={prenda.codigoInterno ?? ''}
+                  onChange={(e) => actualizar(indice, { codigoInterno: e.target.value })}
+                />
+              ),
           },
           {
             title: 'Tasación',
             width: 140,
             align: 'right',
-            render: (_, { indice, prenda }) => (
-              <InputNumber
-                style={{ width: '100%' }}
-                min={0}
-                precision={2}
-                disabled={disabled}
-                value={prenda.valorTasacion}
-                onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
-              />
-            ),
+            render: (_, { indice, prenda }) =>
+              readOnly ? (
+                <Text strong>{formatMoney(prenda.valorTasacion)}</Text>
+              ) : (
+                <InputNumber
+                  style={{ width: '100%' }}
+                  min={0}
+                  precision={2}
+                  disabled={bloqueado}
+                  value={prenda.valorTasacion}
+                  onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
+                />
+              ),
           },
           {
             title: 'Observaciones',
             width: 200,
-            render: (_, { indice, prenda }) => (
-              <Input
-                disabled={disabled}
-                value={prenda.observaciones ?? ''}
-                onChange={(e) => actualizar(indice, { observaciones: e.target.value })}
-              />
-            ),
+            render: (_, { indice, prenda }) =>
+              readOnly ? (
+                <Text>{celda(prenda.observaciones)}</Text>
+              ) : (
+                <Input
+                  disabled={bloqueado}
+                  value={prenda.observaciones ?? ''}
+                  onChange={(e) => actualizar(indice, { observaciones: e.target.value })}
+                />
+              ),
           },
-          {
-            title: 'Acciones',
-            key: 'acciones',
-            width: 48,
-            render: (_, { indice }) => (
-              <Button
-                type="text"
-                danger
-                size="small"
-                icon={<DeleteOutlined />}
-                disabled={disabled}
-                aria-label={`Quitar bien ${indice + 1}`}
-                onClick={() => eliminar(indice)}
-              />
-            ),
-          },
+          ...(readOnly
+            ? []
+            : [
+                {
+                  title: 'Acciones',
+                  key: 'acciones',
+                  width: 48,
+                  render: (_: unknown, { indice }: { indice: number }) => (
+                    <Button
+                      type="text"
+                      danger
+                      size="small"
+                      icon={<DeleteOutlined />}
+                      disabled={bloqueado}
+                      aria-label={`Quitar bien ${indice + 1}`}
+                      onClick={() => eliminar(indice)}
+                    />
+                  ),
+                },
+              ]),
         ]}
       />
       {footer}

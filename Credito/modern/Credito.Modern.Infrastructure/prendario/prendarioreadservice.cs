@@ -167,13 +167,18 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
         var tasacion = cabecera.MontoTasacion > 0
             ? cabecera.MontoTasacion
             : bienes.Sum(b => b.ValorTasacion);
-        var plazoDias = (int)(cabecera.FechaVencimiento - cabecera.FechaPrimerPago).TotalDays;
+        // Ancla comercial del contrato = desembolso (o FechaReg si aún no desembolsó).
+        var ancla = (cabecera.FechaDesembolso ?? cabecera.FechaReg).Date;
+        var plazoDias = (int)(cabecera.FechaVencimiento.Date - ancla).TotalDays;
         if (plazoDias <= 0)
         {
             plazoDias = 30;
         }
 
         var interesMensual = cabecera.MontoCredito * (cabecera.Interes / 100m);
+        var plazoTexto = cabecera.NumeroCuotas <= 1
+            ? "1 MES"
+            : cabecera.NumeroCuotas.ToString(CultureInfo.InvariantCulture) + " MESES";
         var contrato = new PrendarioContratoDto(
             cabecera.CreditoId,
             string.IsNullOrWhiteSpace(cabecera.NumeroContratoPrendario)
@@ -183,7 +188,7 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
             cabecera.FechaVencimiento,
             cabecera.FechaRemate ?? cabecera.FechaVencimiento.AddDays(30),
             cabecera.FechaDesembolso ?? cabecera.FechaReg,
-            plazoDias <= 31 ? "1 MES" : $"{Math.Round(plazoDias / 30.0)} MESES",
+            plazoTexto,
             cabecera.NombreCompleto,
             cabecera.NumeroDocumento,
             cabecera.ConyugeNombre,
@@ -257,6 +262,7 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                        c.FechaVencimiento,
                        c.FechaRemate,
                        c.FechaDesembolso,
+                       c.NumeroCuotas,
                        c.MontoTasacion,
                        c.MontoCredito,
                        c.Interes,
@@ -389,6 +395,7 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
         public DateTime FechaVencimiento { get; init; }
         public DateTime? FechaRemate { get; init; }
         public DateTime? FechaDesembolso { get; init; }
+        public int NumeroCuotas { get; init; }
         public decimal MontoTasacion { get; init; }
         public decimal MontoCredito { get; init; }
         public decimal Interes { get; init; }

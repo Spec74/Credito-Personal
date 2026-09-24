@@ -71,7 +71,9 @@ public sealed class PrendarioDocumentoTests
             "HUAMANGA",
             "AYACUCHO",
             contrato.Bienes);
-        AssertPdf(RptActaEntregaPrendarioPdfDocument.Build(acta));
+        var pdf = RptActaEntregaPrendarioPdfDocument.Build(acta);
+        AssertPdf(pdf);
+        Assert.Equal(1, PrendarioPdfMerge.ContarPaginas(pdf));
     }
 
     private static PrendarioContratoDto DocumentoDePrueba() =>

@@ -31,7 +31,7 @@ public static class CredixLegacyPdfDocument
         IReadOnlyList<MetadataLine> Metadata,
         IReadOnlyList<string> Headers,
         IReadOnlyList<IReadOnlyList<string>> Rows,
-        bool Landscape = true,
+        bool Landscape = false,
         int? RowCountFooter = null,
         IReadOnlyList<CredixLegacyColumnSpec>? ColumnSpecs = null,
         /// <summary>Columnas (nombre CSV) a totalizar en la última fila.</summary>
@@ -44,7 +44,8 @@ public static class CredixLegacyPdfDocument
         var inv = CredixReportTokens.Inv;
         var rowCount = report.RowCountFooter ?? report.Rows.Count;
         var colCount = Math.Max(1, report.Headers.Count);
-        var (pageWidth, pageHeight) = ResolvePageSize(colCount, report.Landscape);
+        var useLandscape = EffectiveLandscape(colCount, report.Landscape);
+        var (pageWidth, pageHeight) = ResolvePageSize(colCount, useLandscape);
         var bodyFont = ResolveBodyFont(colCount);
 
         return Document.Create(document =>
@@ -195,7 +196,8 @@ public static class CredixLegacyPdfDocument
                         .Element(HeaderCellFor(align))
                         .Text(label)
                         .Bold()
-                        .FontSize(fontSize);
+                        .FontSize(fontSize)
+                        .FontColor(Colors.White);
                 }
             });
 
@@ -268,8 +270,19 @@ public static class CredixLegacyPdfDocument
             .AlignMiddle();
 
     /// <summary>
-    /// A4 para tablas cortas; A3 o hoja extra-ancha cuando hay muchas columnas
-    /// (evita el apilado letra-por-letra del PDF de saldo cartera).
+    /// Mínimo de columnas para justificar A4/A3 horizontal.
+    /// Con pocas columnas el apaisado deja vacío y se ve poco profesional.
+    /// </summary>
+    public const int MinColumnsForLandscape = 10;
+
+    /// <summary>
+    /// Horizontal solo si el informe lo pide <b>y</b> hay columnas suficientes.
+    /// </summary>
+    public static bool EffectiveLandscape(int columnCount, bool preferLandscape) =>
+        preferLandscape && columnCount >= MinColumnsForLandscape;
+
+    /// <summary>
+    /// A4 vertical por defecto; A3 o hoja extra-ancha solo en horizontal con muchas columnas.
     /// </summary>
     public static (float Width, float Height) ResolvePageSize(int columnCount, bool landscape)
     {
@@ -374,6 +387,13 @@ public static class CredixLegacyPdfDocument
             return date.TimeOfDay == TimeSpan.Zero
                 ? date.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)
                 : date.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
+        }
+
+        // Cobro diario RDLC: columna "%" (tasa), no importe monetario.
+        if (spec?.DisplayLabel == "%"
+            && decimal.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out var rate))
+        {
+            return rate.ToString("0.##", CultureInfo.InvariantCulture) + "%";
         }
 
         if (LooksLikeMoney(spec?.CsvName ?? spec?.DisplayLabel)
@@ -548,7 +568,7 @@ public static class CredixLegacyPdfDocument
         container
             .Background(HeaderBg)
             .Border(HeaderBorderPt)
-            .BorderColor(BorderColor)
+            .BorderColor(Colors.White)
             .PaddingVertical(3)
             .PaddingHorizontal(4)
             .AlignMiddle()
@@ -558,7 +578,7 @@ public static class CredixLegacyPdfDocument
         container
             .Background(HeaderBg)
             .Border(HeaderBorderPt)
-            .BorderColor(BorderColor)
+            .BorderColor(Colors.White)
             .PaddingVertical(3)
             .PaddingHorizontal(4)
             .AlignMiddle()
@@ -568,7 +588,7 @@ public static class CredixLegacyPdfDocument
         container
             .Background(HeaderBg)
             .Border(HeaderBorderPt)
-            .BorderColor(BorderColor)
+            .BorderColor(Colors.White)
             .PaddingVertical(3)
             .PaddingHorizontal(4)
             .AlignMiddle()

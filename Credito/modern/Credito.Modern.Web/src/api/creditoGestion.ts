@@ -43,6 +43,9 @@ export interface CreditoContexto {
   fechaVencimiento: string
   personaCelular: string | null
   estado: string
+  numeroCuotas: number
+  formaPago: string | null
+  fechaPrimerPago: string | null
 }
 
 export interface SolicitudCreditoDetalle {

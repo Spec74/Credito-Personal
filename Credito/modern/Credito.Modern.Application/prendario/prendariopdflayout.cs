@@ -5,12 +5,19 @@ using QuestPDF.Infrastructure;
 
 namespace Credito.Modern.Application.Prendario;
 
-/// <summary>Celdas con borde del RDLC impreso (Anexo A / B / acta).</summary>
+/// <summary>
+/// Layout Anexo A / B / acta. El azul brand solo en cabeceras de sección/columna
+/// (texto blanco); etiquetas de fila usan fondo suave para lectura formal.
+/// </summary>
 internal static class PrendarioPdfLayout
 {
-    private static readonly Color Line = Colors.Black;
+    private static readonly Color Line = CredixReportTokens.BorderSoft;
     private static readonly Color HeaderBg = CredixReportTokens.TableHeader;
-    public static readonly Color ActaAzul = CredixReportTokens.BrandDark;
+    private static readonly Color LabelBg = CredixReportTokens.SoftBg;
+    private static readonly Color Brand = CredixReportTokens.Brand;
+
+    /// <summary>Misma marca corporativa que el resto de reportes (cabeceras acta).</summary>
+    public static readonly Color ActaAzul = CredixReportTokens.Brand;
 
     public static void Encabezado(
         ColumnDescriptor col,
@@ -24,14 +31,18 @@ internal static class PrendarioPdfLayout
             row.ConstantItem(88).Height(38).Image(logo).FitArea();
             row.RelativeItem().AlignMiddle().AlignCenter().Column(t =>
             {
-                t.Item().AlignCenter().Text(titulo).Bold().FontSize(12);
+                t.Item().AlignCenter().Text(titulo).Bold().FontSize(12).FontColor(Brand);
                 if (!string.IsNullOrWhiteSpace(subtitulo))
                 {
-                    t.Item().AlignCenter().Text(subtitulo).Bold().FontSize(12);
+                    t.Item().AlignCenter().Text(subtitulo).Bold().FontSize(12).FontColor(Brand);
                 }
             });
-            row.ConstantItem(148).AlignMiddle().Border(0.75f).BorderColor(Line).PaddingVertical(5).PaddingHorizontal(6)
-                .AlignCenter().Text("Contrato No. " + numeroContrato).SemiBold().FontSize(10);
+            row.ConstantItem(148).AlignMiddle()
+                .Border(0.75f).BorderColor(Brand)
+                .Background(CredixReportTokens.MetaBg)
+                .PaddingVertical(5).PaddingHorizontal(6)
+                .AlignCenter()
+                .Text("Contrato No. " + numeroContrato).SemiBold().FontSize(10).FontColor(Brand);
         });
     }
 
@@ -45,9 +56,9 @@ internal static class PrendarioPdfLayout
                 c.RelativeColumn();
                 c.RelativeColumn();
             });
-            table.Cell().Element(c => GrayCenter(c, "Fecha de emisión"));
-            table.Cell().Element(c => GrayCenter(c, "Plazo"));
-            table.Cell().Element(c => GrayCenter(c, "Vencimiento"));
+            table.Cell().Element(c => HeaderCell(c, "Fecha de emisión"));
+            table.Cell().Element(c => HeaderCell(c, "Plazo"));
+            table.Cell().Element(c => HeaderCell(c, "Vencimiento"));
             table.Cell().Element(c => WhiteCenter(c, emision));
             table.Cell().Element(c => WhiteCenter(c, plazo));
             table.Cell().Element(c => WhiteCenter(c, vencimiento));
@@ -79,9 +90,10 @@ internal static class PrendarioPdfLayout
     public static void Entero(ColumnDescriptor col, string label, string valor) =>
         col.Item().Element(c => LabelValue(c, label, valor));
 
+    /// <summary>Cabecera de sección/columna: azul brand + texto blanco.</summary>
     public static void Banda(IContainer c, string titulo) =>
-        c.Border(0.6f).BorderColor(Line).Background(HeaderBg).Padding(3).AlignCenter()
-            .Text(titulo).SemiBold().FontSize(9);
+        c.Border(0.6f).BorderColor(HeaderBg).Background(HeaderBg).Padding(3).AlignCenter()
+            .Text(titulo).SemiBold().FontSize(9).FontColor(Colors.White);
 
     public static void BandaActa(IContainer c, string titulo) =>
         c.Border(0.6f).BorderColor(ActaAzul).Background(ActaAzul).Padding(4).AlignCenter()
@@ -106,11 +118,16 @@ internal static class PrendarioPdfLayout
             c.RelativeColumn(1.65f);
         });
 
+    /// <summary>
+    /// Etiqueta de fila (PRENDA, MARCA…): fondo suave + tipografía brand,
+    /// no relleno sólido de cabecera (evita aspecto pesado / ilegible).
+    /// </summary>
     public static void FilaPrenda(TableDescriptor table, string label, string valor, int minHeight = 16)
     {
         table.Cell().Element(c =>
-            c.Border(0.6f).BorderColor(Line).Background(HeaderBg).Padding(3).MinHeight(minHeight)
-                .AlignMiddle().Text(label + ":").SemiBold().FontSize(8));
+            c.Border(0.6f).BorderColor(Line).Background(LabelBg).Padding(3).MinHeight(minHeight)
+                .AlignMiddle()
+                .Text(label + ":").SemiBold().FontSize(8).FontColor(Brand));
         table.Cell().Element(c =>
             c.Border(0.6f).BorderColor(Line).Padding(3).MinHeight(minHeight)
                 .AlignMiddle().Text(valor).FontSize(9));
@@ -126,11 +143,11 @@ internal static class PrendarioPdfLayout
 
     public static void MontoTotal(IContainer c, decimal monto) =>
         c.Border(0.6f).BorderColor(Line).Padding(3).AlignCenter()
-            .Text(monto.ToString("N2", PrendarioPdfTexto.Cultura)).FontSize(9);
+            .Text(monto.ToString("N2", PrendarioPdfTexto.Cultura)).SemiBold().FontSize(9);
 
     public static void LineaFirma(ColumnDescriptor col, float ancho = 160)
     {
-        col.Item().AlignCenter().Width(ancho).Height(0.9f).Background(Colors.Black);
+        col.Item().AlignCenter().Width(ancho).Height(0.9f).Background(Brand);
     }
 
     public static void Firmas(ColumnDescriptor col)
@@ -148,8 +165,8 @@ internal static class PrendarioPdfLayout
         row.RelativeItem().AlignCenter().Column(c =>
         {
             c.Item().Height(36);
-            c.Item().AlignCenter().Width(175).Height(0.9f).Background(Line);
-            c.Item().PaddingTop(5).AlignCenter().Text(titulo).FontSize(9);
+            c.Item().AlignCenter().Width(175).Height(0.9f).Background(Brand);
+            c.Item().PaddingTop(5).AlignCenter().Text(titulo).FontSize(9).FontColor(Brand);
         });
     }
 
@@ -157,14 +174,14 @@ internal static class PrendarioPdfLayout
     {
         c.Border(0.6f).BorderColor(Line).Padding(3).Text(text =>
         {
-            text.Span(label + (label.EndsWith(':') ? " " : ": ")).SemiBold().FontSize(8);
+            text.Span(label + (label.EndsWith(':') ? " " : ": ")).SemiBold().FontSize(8).FontColor(Brand);
             text.Span(valor).FontSize(9);
         });
     }
 
-    private static void GrayCenter(IContainer c, string text) =>
-        c.Border(0.6f).BorderColor(Line).Background(HeaderBg).Padding(3).AlignCenter()
-            .Text(text).SemiBold().FontSize(8);
+    private static void HeaderCell(IContainer c, string text) =>
+        c.Border(0.6f).BorderColor(HeaderBg).Background(HeaderBg).Padding(3).AlignCenter()
+            .Text(text).SemiBold().FontSize(8).FontColor(Colors.White);
 
     private static void WhiteCenter(IContainer c, string text) =>
         WhitePad(c).AlignCenter().Text(text).FontSize(9);

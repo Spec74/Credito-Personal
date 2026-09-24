@@ -23,6 +23,7 @@ import {
   message,
 } from 'antd'
 import {
+  EditOutlined,
   EnvironmentOutlined,
   FileSearchOutlined,
   FileAddOutlined,
@@ -132,11 +133,25 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
   const [avalOpen, setAvalOpen] = useState(false)
   const [distritoTerm, setDistritoTerm] = useState('')
   const [guardarDestino, setGuardarDestino] = useState<'listado' | 'credito' | 'prendario'>('listado')
+  /** Solo lectura en editar hasta pulsar Editar; en alta siempre editable. */
+  const [editando, setEditando] = useState(!esEdicion)
+  const guardarDestinoRef = useRef(guardarDestino)
   const puedePrendario =
     esCreditoAdministrador(roles) || roles.some((r) => r.trim().toUpperCase() === 'ANALISTA')
   const debouncedDistrito = useDebouncedValue(distritoTerm.trim(), 300)
   const documentoOriginalRef = useRef('')
   const geocodificadoInicialRef = useRef(false)
+  const soloConsulta = esEdicion && !editando
+
+  const marcarDestino = (destino: 'listado' | 'credito' | 'prendario') => {
+    guardarDestinoRef.current = destino
+    setGuardarDestino(destino)
+  }
+
+  // Al cambiar de ruta (nuevo ↔ editar / otro cliente), reiniciar modo.
+  useEffect(() => {
+    setEditando(!esEdicion)
+  }, [esEdicion, personaId])
 
   const tipoPersona = Form.useWatch('tipoPersona', form) ?? 'N'
   const estadoCivilId = Form.useWatch('estadoCivilId', form)
@@ -278,20 +293,24 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
         )
         return
       }
-      if (guardarDestino === 'prendario') {
+      const destino = guardarDestinoRef.current
+      if (destino === 'prendario') {
         navigate(buildPrendarioNuevoHref(r.personaId, 'alta'), { replace: true })
         return
       }
-      if (guardarDestino === 'credito') {
+      if (destino === 'credito') {
         navigate(`/credito/simulador?personaId=${r.personaId}`, { replace: true })
         return
       }
-      navigate('/clientes', { replace: true })
+      // Tras alta o actualización: quedar en consulta (no re-guardar como nuevo).
+      setEditando(false)
+      navigate(`/clientes/editar/${r.personaId}`, { replace: true })
     },
     onError: (e) => message.error(errMsg(e)),
   })
 
   const handleFinish = async (values: FormValues) => {
+    if (guardar.isPending || soloConsulta) return
     const doc = values.numeroDocumento.trim()
     if (doc !== documentoOriginalRef.current) {
       const yaCliente = await documentoYaEsCliente(doc, esEdicion ? personaId : undefined)
@@ -412,7 +431,10 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
 
   const stats: CredixStatItem[] = useMemo(
     () => [
-      { value: esEdicion ? 'Edición' : 'Alta', label: 'Modo' },
+      {
+        value: !esEdicion ? 'Alta' : editando ? 'Edición' : 'Consulta',
+        label: 'Modo',
+      },
       {
         value: detalle.data?.numeroDocumento ?? '—',
         label: detalle.data?.tipoPersona === 'J' ? 'RUC' : 'DNI',
@@ -420,7 +442,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
       { value: detalle.data?.calificacion ?? 'A', label: 'Calificación' },
       { value: bloqueado ? 'Sí' : 'No', label: 'Bloqueado', tone: bloqueado ? 'red' : undefined },
     ],
-    [esEdicion, detalle.data, bloqueado],
+    [esEdicion, editando, detalle.data, bloqueado],
   )
 
   if (esEdicion && detalle.isLoading) {
@@ -482,7 +504,11 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
         <>
           Identificación, domicilio con <strong>Google Maps</strong> y calificación crediticia.
           Validación <Tag className="cliente-mantener__doc-tag">ApiPeru</Tag> en servidor.
-          {returnTo ? ' Tras guardar volverá a la solicitud de origen.' : null}
+          {soloConsulta
+            ? ' Consulta: pulse Editar para modificar y guardar.'
+            : returnTo
+              ? ' Tras guardar volverá a la solicitud de origen.'
+              : null}
         </>
       }
       stats={stats}
@@ -523,6 +549,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
       <Form<FormValues>
         form={form}
         layout="vertical"
+        disabled={soloConsulta}
         initialValues={{
           tipoPersona: 'N',
           sexoMasculino: true,
@@ -697,6 +724,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                       <Button
                         type="primary"
                         icon={<EnvironmentOutlined />}
+                        disabled={soloConsulta}
                         onClick={() => void ubicarMapa()}
                       >
                         Ubicar domicilio en el mapa
@@ -707,6 +735,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                       active={clienteTab === 'ubicacion'}
                       value={mapLocation}
                       onChange={setMapLocation}
+                      disabled={soloConsulta}
                       height={320}
                       searchPlaceholder="Buscar en Google Maps…"
                       hintText="Google Maps: clic, arrastre del marcador o búsqueda. Paridad legacy con geocodificación por distrito + domicilio."
@@ -861,42 +890,64 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
         />
 
         <div className="cliente-mantener__footer">
-          <Button
-            type="primary"
-            htmlType="submit"
-            icon={<SaveOutlined />}
-            loading={guardar.isPending && (returnTo != null || guardarDestino === 'listado')}
-            onClick={() => setGuardarDestino('listado')}
-          >
-            {returnTo ? 'Guardar y continuar' : 'Guardar cliente'}
-          </Button>
-          {!returnTo && (
+          {soloConsulta ? (
+            <Button
+              type="primary"
+              icon={<EditOutlined />}
+              disabled={false}
+              onClick={() => setEditando(true)}
+            >
+              Editar
+            </Button>
+          ) : (
             <>
               <Button
+                type="primary"
                 htmlType="submit"
-                icon={<FileAddOutlined />}
-                loading={guardar.isPending && guardarDestino === 'credito'}
-                onClick={() => setGuardarDestino('credito')}
+                icon={<SaveOutlined />}
+                loading={guardar.isPending && (returnTo != null || guardarDestino === 'listado')}
+                disabled={guardar.isPending}
+                onClick={() => marcarDestino('listado')}
               >
-                Guardar y solicitar crédito
+                {returnTo ? 'Guardar y continuar' : 'Guardar cliente'}
               </Button>
-              {puedePrendario && (
-                <Button
-                  htmlType="submit"
-                  loading={guardar.isPending && guardarDestino === 'prendario'}
-                  onClick={() => setGuardarDestino('prendario')}
-                >
-                  Guardar y crédito prendario
+              {!returnTo && (
+                <>
+                  <Button
+                    htmlType="submit"
+                    icon={<FileAddOutlined />}
+                    loading={guardar.isPending && guardarDestino === 'credito'}
+                    disabled={guardar.isPending}
+                    onClick={() => marcarDestino('credito')}
+                  >
+                    Guardar y solicitar crédito
+                  </Button>
+                  {puedePrendario && (
+                    <Button
+                      htmlType="submit"
+                      loading={guardar.isPending && guardarDestino === 'prendario'}
+                      disabled={guardar.isPending}
+                      onClick={() => marcarDestino('prendario')}
+                    >
+                      Guardar y crédito prendario
+                    </Button>
+                  )}
+                </>
+              )}
+              {esEdicion && (
+                <Button onClick={() => setEditando(false)} disabled={guardar.isPending}>
+                  Cancelar edición
                 </Button>
               )}
             </>
           )}
-          <Button onClick={() => navigate(returnTo ?? '/clientes')}>
+          <Button disabled={false} onClick={() => navigate(returnTo ?? '/clientes')}>
             {returnTo ? 'Cancelar y volver' : 'Volver al listado'}
           </Button>
           {esEdicion && (
             <>
               <Button
+                disabled={false}
                 onClick={() =>
                   toggleClienteActivo(personaId).then((st) => {
                     form.setFieldValue('activo', st)
@@ -910,6 +961,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                 <Button
                   danger={!bloqueado}
                   icon={bloqueado ? <UnlockOutlined /> : <LockOutlined />}
+                  disabled={false}
                   onClick={() =>
                     toggleClienteBloqueado(personaId).then((n) => {
                       setBloqueado(n)
