@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Button, Space, message } from 'antd'
+import { Button, Space } from 'antd'
 import { FilePdfOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import {
@@ -13,6 +13,7 @@ import { CredixDataTable } from '../../../components/credix'
 import type { RptSaldosCajaRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
 import { formatFechaHora } from '../../../utils/formatFecha'
+import { cajaToastError } from './cajaFeedback'
 import { errMsg } from './types'
 
 export function MovimientosCajaModal({
@@ -38,8 +39,7 @@ export function MovimientosCajaModal({
   const ticket = useMutation({
     mutationFn: (movimientoCajaId: number) =>
       downloadMovimientoCajaTicketPdf(oficinaId, movimientoCajaId),
-    onSuccess: () => message.success('Ticket descargado'),
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const rows = useMemo(() => {

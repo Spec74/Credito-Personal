@@ -240,6 +240,21 @@ body {
   color: var(--credix-brand);
 }
 
+.ant-modal .ant-modal-close {
+  color: var(--credix-text-muted, #64748b);
+}
+
+.ant-modal .ant-modal-close:hover {
+  color: var(--credix-brand, #114885);
+  background: rgba(17, 72, 133, 0.08);
+}
+
+.credix-modal .ant-modal-close,
+.credix-modal .ant-modal-close .anticon,
+.credix-modal .ant-modal-close svg {
+  color: var(--credix-brand, #114885) !important;
+}
+
 .ant-modal .ant-modal-footer {
   margin-top: 8px;
   border-top: 1px solid var(--credix-border);
@@ -358,6 +373,20 @@ body {
 .credix-content .ant-segmented,
 .credix-page .ant-segmented {
   max-width: 100%;
+}
+
+/* En contenedores estrechos: Segmented que envuelve en vez de scroll horizontal */
+.credix-segmented-wrap.ant-segmented,
+.caja-cuotas-table-toolbar .ant-segmented,
+.caja-diario-arqueo-segmented.ant-segmented {
+  max-width: 100%;
+}
+
+.credix-segmented-wrap.ant-segmented .ant-segmented-group,
+.caja-cuotas-table-toolbar .ant-segmented .ant-segmented-group,
+.caja-diario-arqueo-segmented.ant-segmented .ant-segmented-group {
+  flex-wrap: wrap;
+  row-gap: 4px;
 }
 
 .credix-content .ant-tabs-nav,

@@ -117,7 +117,7 @@ export function ClienteBuscarAutoComplete({
       onSelectPersona(hit.personaId, hit.label)
       setOpen(false)
       if (!opts?.fromList) {
-        message.success('Cliente cargado')
+        // El flujo de cobranzas ya muestra el cliente seleccionado; sin toast.
       }
     },
     [onChange, onSelectPersona],

@@ -139,7 +139,16 @@ function TipoBadge({ tipo }: { tipo?: string }) {
 
 function EstadoTag({ estado }: { estado?: string }) {
   const label = (estado ?? '').trim() || '—'
-  return <Tag color={estadoTone(estado)}>{label}</Tag>
+  const tone = estadoTone(estado)
+  return (
+    <Tag
+      className={`cierre-gerencial-estado cierre-gerencial-estado--${tone}`}
+      title={label}
+      bordered={false}
+    >
+      {label}
+    </Tag>
+  )
 }
 
 export function CierreGerencialPage() {
@@ -304,7 +313,8 @@ export function CierreGerencialPage() {
       {
         title: 'Estado capital',
         dataIndex: 'estadoCapital',
-        width: 118,
+        width: 130,
+        ellipsis: true,
         render: (v: string) => <EstadoTag estado={v} />,
       },
       {
@@ -323,7 +333,8 @@ export function CierreGerencialPage() {
       {
         title: 'Estado clientes',
         dataIndex: 'estadoClientes',
-        width: 118,
+        width: 130,
+        ellipsis: true,
         render: (v: string) => <EstadoTag estado={v} />,
       },
       {
@@ -350,7 +361,8 @@ export function CierreGerencialPage() {
       {
         title: 'Estado vencidos',
         dataIndex: 'estadoVencidos',
-        width: 120,
+        width: 130,
+        ellipsis: true,
         render: (v: string) => <EstadoTag estado={v} />,
       },
       {
@@ -363,7 +375,8 @@ export function CierreGerencialPage() {
       {
         title: 'Estado recuperación',
         dataIndex: 'estadoRecuperacion',
-        width: 128,
+        width: 140,
+        ellipsis: true,
         render: (v: string) => <EstadoTag estado={v} />,
       },
     ],
@@ -700,6 +713,7 @@ export function CierreGerencialPage() {
                   />
                 ) : (
                   <CredixDataTable
+                    mode="operacion"
                     className="cierre-gerencial-table"
                     rowKey={(r) => `${r.usuarioId}-${r.tipoCartera}`}
                     loading={avance.isLoading}
@@ -710,8 +724,9 @@ export function CierreGerencialPage() {
                       showSizeChanger: true,
                       showTotal: (t) => `${t} cartera${t === 1 ? '' : 's'}`,
                     }}
-                    size="middle"
-                    scroll={{ x: 1780 }}
+                    size="small"
+                    tableLayout="fixed"
+                    scroll={{ x: 2140 }}
                     locale={{
                       emptyText: (
                         <Empty
@@ -763,14 +778,16 @@ export function CierreGerencialPage() {
                   />
                 ) : (
                   <CredixDataTable
+                    mode="operacion"
                     className="cierre-gerencial-table"
                     rowKey={(r) => `${r.usuarioId}-${r.tipoCartera}`}
                     loading={metas.isLoading}
                     columns={metasColumns}
                     dataSource={metasFiltradas}
                     pagination={false}
-                    size="middle"
-                    scroll={{ x: 1480 }}
+                    size="small"
+                    tableLayout="fixed"
+                    scroll={{ x: 1560 }}
                     locale={{
                       emptyText: (
                         <Empty

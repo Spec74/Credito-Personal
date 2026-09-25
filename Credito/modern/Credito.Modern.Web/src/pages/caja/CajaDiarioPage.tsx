@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Button, Space, Tabs, Typography, message } from 'antd'
+import { Alert, Button, Space, Tabs, Typography } from 'antd'
 import { ReloadOutlined } from '@ant-design/icons'
 import {
   fetchCajaDiarioSesion,
@@ -28,6 +28,10 @@ import { CobranzasTab } from './cajaDiario/CobranzasTab'
 import { CxcTab } from './cajaDiario/CxcTab'
 import { DesembolsosTab } from './cajaDiario/DesembolsosTab'
 import { EntradaSalidaTab } from './cajaDiario/EntradaSalidaTab'
+import {
+  cajaToastError,
+  cajaToastSuccess,
+} from './cajaDiario/cajaFeedback'
 import {
   type CajaSession,
   errMsg,
@@ -135,11 +139,11 @@ export function CajaDiarioPage() {
         cajaDiarioId: ctx!.cajaDiarioId,
       }),
     onSuccess: (r) => {
-      message.success(`Caja recalculada (código ${r.resultCode})`)
+      cajaToastSuccess(`Caja recalculada (código ${r.resultCode})`, 'caja-recalc')
       invalidateCaja()
       void cajaQuery.refetch()
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const invalidateCaja = () => {
@@ -172,17 +176,18 @@ export function CajaDiarioPage() {
         {
           value: formatMoney(ctx.salidas),
           label: 'Salidas (S/.)',
-          tone: 'green',
+          tone: 'red',
         },
         {
           value: formatMoney(ctx.saldoFinal),
           label: 'Neto caja (S/.)',
-          tone: 'red',
+          tone: 'default',
         },
         {
           value: ctx.indCierre ? 'CERRADO' : 'ABIERTO',
           label: ctx.cajaDenominacion,
           detail: formatFechaHora(ctx.fechaIniOperacion),
+          tone: ctx.indCierre ? 'red' : 'green',
         },
       ]
     : []
@@ -190,14 +195,14 @@ export function CajaDiarioPage() {
   return (
     <CredixPage
       title="Caja diario"
-      subtitle="Cobranzas, desembolsos, arqueo y cierre — operación diaria con búsqueda rápida y tablas optimizadas para alto volumen."
+      subtitle="Operación diaria: cobranzas, desembolsos, arqueo y cierre."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/caja">Caja</Link> },
         { title: 'Caja diario' },
       ]}
       stats={showStats ? cajaStats : []}
-      statsVariant="module"
+      statsVariant="default"
       actions={
         <Space wrap>
           <Button
@@ -271,171 +276,186 @@ export function CajaDiarioPage() {
 
         {ctx && (
           <div className="caja-diario-workspace">
-            <aside className="caja-diario-session-card">
-              <h4
-                className="caja-diario-session-name"
-                role="button"
-                tabIndex={0}
-                title="Mostrar u ocultar saldos"
-                onClick={() => setShowStats((v) => !v)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
-                    setShowStats((v) => !v)
-                  }
-                }}
-              >
-                {ctx.cajaDenominacion}
-              </h4>
-              <dl>
-                <dt>Sesión</dt>
-                <dd>#{ctx.cajaDiarioId}</dd>
-                <dt>Inicio</dt>
-                <dd>{formatFechaHora(ctx.fechaIniOperacion)}</dd>
-                <dt>Efectivo</dt>
-                <dd>
-                  {saldoQuery.data != null
-                    ? formatMoney(saldoQuery.data.saldo)
-                    : '…'}
-                </dd>
-                <dt>Neto</dt>
-                <dd>{formatMoney(ctx.saldoFinal)}</dd>
-                <dt>Estado</dt>
-                <dd>{ctx.indCierre ? 'Cerrado' : 'Abierto'}</dd>
-              </dl>
-              <div className="caja-diario-side-section">
-                <span className="caja-diario-side-section__eyebrow">
-                  Gestión de caja
+            <header
+              className="caja-diario-session-bar"
+              aria-label="Sesión de caja"
+            >
+              <div className="caja-diario-session-bar__identity">
+                <h4
+                  className="caja-diario-session-name"
+                  role="button"
+                  tabIndex={0}
+                  title="Mostrar u ocultar saldos del encabezado"
+                  onClick={() => setShowStats((v) => !v)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      setShowStats((v) => !v)
+                    }
+                  }}
+                >
+                  {ctx.cajaDenominacion}
+                </h4>
+                <span
+                  className={[
+                    'caja-diario-session-status',
+                    ctx.indCierre ? 'is-cerrado' : 'is-abierto',
+                  ].join(' ')}
+                >
+                  {ctx.indCierre ? 'Cerrado' : 'Abierto'}
                 </span>
+              </div>
+
+              <dl className="caja-diario-session-bar__meta">
+                <div>
+                  <dt>Sesión</dt>
+                  <dd>#{ctx.cajaDiarioId}</dd>
+                </div>
+                <div>
+                  <dt>Inicio</dt>
+                  <dd>{formatFechaHora(ctx.fechaIniOperacion)}</dd>
+                </div>
+                <div>
+                  <dt>Efectivo</dt>
+                  <dd>
+                    {saldoQuery.data != null
+                      ? formatMoney(saldoQuery.data.saldo)
+                      : '…'}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Neto</dt>
+                  <dd>{formatMoney(ctx.saldoFinal)}</dd>
+                </div>
+              </dl>
+
+              <div className="caja-diario-session-bar__actions">
                 <Button
                   className="caja-diario-recalc-btn"
-                  size="small"
-                  block
+                  size="middle"
                   loading={recalcular.isPending}
                   onClick={() => recalcular.mutate()}
                 >
                   Recalcular saldos
                 </Button>
+                <nav
+                  className="caja-diario-quick-links"
+                  aria-label="Reportes y cierres de caja"
+                >
+                  <Link to="/informes/caja-diario">Informe caja diario</Link>
+                  <Link to="/informes/saldo-cartera-caja-diario">
+                    Saldo cartera
+                  </Link>
+                  <Link to="/caja/saldos">Cierre masivo</Link>
+                </nav>
               </div>
+            </header>
 
-              <nav
-                className="caja-diario-quick-links"
-                aria-label="Reportes y cierres de caja"
-              >
-                <span className="caja-diario-side-section__eyebrow">
-                  Reportes y cierre
-                </span>
-                <Link to="/informes/caja-diario">Informe caja diario</Link>
-                <Link to="/informes/saldo-cartera-caja-diario">
-                  Saldo cartera por caja
-                </Link>
-                <Link to="/caja/saldos">Cierre masivo / saldos</Link>
-              </nav>
-
+            <div className="caja-diario-main-column">
               <CajaDiarioOperacionesBar
                 ctx={ctx}
                 usuarioId={session?.usuarioId ?? 0}
-                variant="stack"
+                variant="inline"
               />
-            </aside>
 
-            <div className="caja-diario-tabs-panel">
-              <CredixPanel className="caja-diario-main-panel">
-                {resumenQuery.data?.texto && (
-                  <CredixAlertNote strong="Resumen cuenta caja diario">
-                    <pre className="caja-diario-resumen-pre">
-                      {resumenQuery.data.texto}
-                    </pre>
-                  </CredixAlertNote>
-                )}
+              <div className="caja-diario-tabs-panel">
+                <CredixPanel className="caja-diario-main-panel">
+                  {resumenQuery.data?.texto && (
+                    <CredixAlertNote strong="Resumen cuenta caja diario">
+                      <pre className="caja-diario-resumen-pre">
+                        {resumenQuery.data.texto}
+                      </pre>
+                    </CredixAlertNote>
+                  )}
 
-                <Tabs
-                  className="credix-tabs caja-diario-tabs"
-                  activeKey={activeTab}
-                  onChange={setActiveTab}
-                  size="small"
-                  tabBarGutter={12}
-                  destroyInactiveTabPane
-                  items={[
-                    {
-                      key: 'cobranzas',
-                      label: 'Cobranzas',
-                      children: (
-                        <CobranzasTab
-                          ctx={ctx}
-                          creditoIdInicial={creditoIdQuery}
-                          onChanged={() => {
-                            invalidateCaja()
-                            void cajaQuery.refetch()
-                          }}
-                        />
-                      ),
-                    },
-                    {
-                      key: 'desembolsos',
-                      label: 'Desembolsos',
-                      children: (
-                        <DesembolsosTab
-                          ctx={ctx}
-                          active={activeTab === 'desembolsos'}
-                          onChanged={refreshCaja}
-                        />
-                      ),
-                    },
-                    {
-                      key: 'egreso-ingreso',
-                      label: 'Egreso / Ingreso',
-                      children: (
-                        <EntradaSalidaTab
-                          ctx={ctx}
-                          onChanged={refreshCaja}
-                        />
-                      ),
-                    },
-                    {
-                      key: 'arqueo',
-                      label: 'Arqueo',
-                      children: (
-                        <ArqueoTab
-                          ctx={ctx}
-                          entradas={movimientosEntrada}
-                          salidas={movimientosSalida}
-                          loading={movimientosQuery.isLoading}
-                          onRefresh={() => void movimientosQuery.refetch()}
-                          onChanged={() => {
-                            invalidateCaja()
-                            void cajaQuery.refetch()
-                          }}
-                          onGoCierre={() => setActiveTab('cierre')}
-                        />
-                      ),
-                    },
-                    {
-                      key: 'cxc',
-                      label: 'CxC',
-                      children: (
-                        <CxcTab
-                          ctx={ctx}
-                          active={activeTab === 'cxc'}
-                          onChanged={refreshCaja}
-                        />
-                      ),
-                    },
-                    {
-                      key: 'cierre',
-                      label: 'Cierre',
-                      children: (
-                        <CierreTab
-                          ctx={ctx}
-                          onCerrada={() => {
-                            void cajaQuery.refetch()
-                            navigate('/inicio')
-                          }}
-                        />
-                      ),
-                    },
-                  ]}
-                />
-              </CredixPanel>
+                  <Tabs
+                    className="credix-tabs caja-diario-tabs"
+                    activeKey={activeTab}
+                    onChange={setActiveTab}
+                    size="middle"
+                    tabBarGutter={8}
+                    destroyInactiveTabPane
+                    items={[
+                      {
+                        key: 'cobranzas',
+                        label: 'Cobranzas',
+                        children: (
+                          <CobranzasTab
+                            ctx={ctx}
+                            creditoIdInicial={creditoIdQuery}
+                            onChanged={() => {
+                              invalidateCaja()
+                              void cajaQuery.refetch()
+                            }}
+                          />
+                        ),
+                      },
+                      {
+                        key: 'desembolsos',
+                        label: 'Desembolsos',
+                        children: (
+                          <DesembolsosTab
+                            ctx={ctx}
+                            active={activeTab === 'desembolsos'}
+                            onChanged={refreshCaja}
+                          />
+                        ),
+                      },
+                      {
+                        key: 'egreso-ingreso',
+                        label: 'Egreso / Ingreso',
+                        children: (
+                          <EntradaSalidaTab
+                            ctx={ctx}
+                            onChanged={refreshCaja}
+                          />
+                        ),
+                      },
+                      {
+                        key: 'arqueo',
+                        label: 'Arqueo',
+                        children: (
+                          <ArqueoTab
+                            ctx={ctx}
+                            entradas={movimientosEntrada}
+                            salidas={movimientosSalida}
+                            loading={movimientosQuery.isLoading}
+                            onRefresh={() => void movimientosQuery.refetch()}
+                            onChanged={() => {
+                              invalidateCaja()
+                              void cajaQuery.refetch()
+                            }}
+                            onGoCierre={() => setActiveTab('cierre')}
+                          />
+                        ),
+                      },
+                      {
+                        key: 'cxc',
+                        label: 'CxC',
+                        children: (
+                          <CxcTab
+                            ctx={ctx}
+                            active={activeTab === 'cxc'}
+                            onChanged={refreshCaja}
+                          />
+                        ),
+                      },
+                      {
+                        key: 'cierre',
+                        label: 'Cierre',
+                        children: (
+                          <CierreTab
+                            ctx={ctx}
+                            onCerrada={() => {
+                              void cajaQuery.refetch()
+                              navigate('/inicio')
+                            }}
+                          />
+                        ),
+                      },
+                    ]}
+                  />
+                </CredixPanel>
+              </div>
             </div>
           </div>
         )}

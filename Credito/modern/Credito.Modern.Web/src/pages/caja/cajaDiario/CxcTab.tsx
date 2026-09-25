@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Button, message } from 'antd'
+import { Button } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   fetchCuentasPorCobrarPendientes,
@@ -12,6 +12,7 @@ import { CredixDataTable } from '../../../components/credix'
 import type { CuentaPorCobrarPendienteRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
 import { maybeDownloadCajaTicket } from './cajaPagoHelpers'
+import { cajaToastError, cajaToastSuccess } from './cajaFeedback'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
 
@@ -47,12 +48,12 @@ export function CxcTab({
         cuentaxCobrarId: row.cuentaxCobrarId,
       }),
     onSuccess: async (r) => {
-      message.success('CxC cobrada')
+      cajaToastSuccess('CxC cobrada', 'caja-cxc')
       await maybeDownloadCajaTicket(ctx.oficinaId, r.resultId)
       onChanged()
       void query.refetch()
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const columns: ColumnsType<CuentaPorCobrarPendienteRow> = [

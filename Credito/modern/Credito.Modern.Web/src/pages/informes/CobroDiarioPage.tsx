@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type Key } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
@@ -31,6 +31,7 @@ import { readUrlUserId } from '../../utils/informeUrlParams'
 import { canViewReporteCredito } from '../../utils/reporteCreditoAccess'
 
 const COBRO_DIARIO_COLUMNS = buildCobroDiarioInformeColumns()
+const MAX_RUTA_WA = 25
 
 type FormValues = {
   oficinaId: number
@@ -60,7 +61,10 @@ export function CobroDiarioPage() {
       }
       return fetchCobroDiario(toCobroDiarioQuery(session.oficinaId, v.usuarioId))
     },
-    onSuccess: (data) => message.success(`${data.length} registro(s)`),
+    onSuccess: (data) => {
+      setSelectedIds([])
+      message.success(`${data.length} registro(s)`)
+    },
     onError: (e) =>
       message.error(e instanceof ApiError ? e.message : 'Error al consultar'),
   })
@@ -71,17 +75,26 @@ export function CobroDiarioPage() {
     const next: FormValues = {
       oficinaId: session.oficinaId,
       usuarioId:
-        uid != null && uid > 0 ? uid : puedeElegirGestor ? undefined : session.usuarioId,
+        uid != null && uid > 0
+          ? uid
+          : puedeElegirGestor
+            ? undefined
+            : session.usuarioId,
     }
     form.setFieldsValue(next)
-    if (
+    const autoFromUrl =
       next.usuarioId != null &&
       next.usuarioId > 0 &&
       (searchParams.has('usuarioId') || searchParams.has('pUsuarioId'))
-    ) {
+    // Gestor: consultar al entrar (atajo dashboard / accesos).
+    const autoGestor =
+      !puedeElegirGestor &&
+      next.usuarioId != null &&
+      next.usuarioId > 0
+    if (autoFromUrl || autoGestor) {
       consulta.mutate(next)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta desde índice reportes
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta desde índice reportes / dashboard
   }, [session, searchParams.toString(), puedeElegirGestor])
 
   const openExport = (kind: 'csv' | 'pdf') => {
@@ -127,7 +140,7 @@ export function CobroDiarioPage() {
   const cobroStats = useInformeStats(consulta, session?.oficinaId, cobroExtras)
 
   const rutaWa = useMutation({
-    mutationFn: generarRutaCobros,
+    mutationFn: (ids: number[]) => generarRutaCobros(ids),
     onSuccess: (res) => {
       if (!res.exito || !res.urlCortita) {
         message.error(res.mensaje ?? 'No se pudo generar la ruta')
@@ -141,6 +154,22 @@ export function CobroDiarioPage() {
     onError: (e) =>
       message.error(e instanceof ApiError ? e.message : 'Error al generar ruta'),
   })
+
+  const onSelectRows = (keys: Key[]) => {
+    const ids = [
+      ...new Set(
+        keys
+          .map((k) => Number(k))
+          .filter((id) => Number.isFinite(id) && id > 0),
+      ),
+    ]
+    if (ids.length > MAX_RUTA_WA) {
+      message.warning(`Máximo ${MAX_RUTA_WA} créditos por ruta`)
+      setSelectedIds(ids.slice(0, MAX_RUTA_WA))
+      return
+    }
+    setSelectedIds(ids)
+  }
 
   return (
     <CredixInformePage
@@ -236,19 +265,30 @@ export function CobroDiarioPage() {
             : gestorId != null && gestorId > 0
               ? ' · Caja —'
               : ''}
+          {selectedIds.length > 0
+            ? ` · ${selectedIds.length} seleccionado(s) para ruta`
+            : ''}
         </Typography.Text>
       ) : null}
 
       <CredixDataTable<RptCobroDiarioRow>
-        rowKey={(r) => `${r.creditoId}-${r.nro ?? r.orden ?? ''}`}
+        rowKey="creditoId"
         rowSelection={{
           selectedRowKeys: selectedIds,
-          onChange: (keys) => setSelectedIds(keys.map((k) => Number(k))),
+          onChange: onSelectRows,
+          preserveSelectedRowKeys: true,
+          getCheckboxProps: (record) => ({
+            name: record.cliente ?? String(record.creditoId),
+          }),
         }}
         columns={COBRO_DIARIO_COLUMNS}
         dataSource={filas}
         loading={consulta.isPending}
-        pagination={{ pageSize: 25, showSizeChanger: true, pageSizeOptions: ['10', '25', '50', '100'] }}
+        pagination={{
+          pageSize: 25,
+          showSizeChanger: true,
+          pageSizeOptions: ['10', '25', '50', '100'],
+        }}
         locale={{ emptyText: 'Pulse Consultar (gestor obligatorio, como en MVC).' }}
       />
     </CredixInformePage>

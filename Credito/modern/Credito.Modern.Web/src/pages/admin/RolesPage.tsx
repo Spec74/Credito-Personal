@@ -201,7 +201,7 @@ export function RolesPage() {
       actions={
         <Space wrap size="small">
           <Link to="/admin/usuarios">Usuarios</Link>
-          <Link to="/admin/oficinas">Oficinas</Link>
+          <Link to="/mantenimiento/oficinas">Oficinas</Link>
         </Space>
       }
       toolbar={

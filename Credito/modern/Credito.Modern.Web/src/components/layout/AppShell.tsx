@@ -9,6 +9,12 @@ import {
   MenuUnfoldOutlined,
   FundProjectionScreenOutlined,
   UserOutlined,
+  DoubleRightOutlined,
+  PercentageOutlined,
+  CalculatorOutlined,
+  EyeOutlined,
+  ClockCircleOutlined,
+  TeamOutlined,
 } from '@ant-design/icons'
 import { fetchMenu } from '../../api/menu'
 import { fetchOficinas } from '../../api/oficinas'
@@ -18,7 +24,11 @@ import { getLoginProfile } from '../../auth/sessionProfile'
 import { BrandLogo } from '../brand/BrandLogo'
 import { RouteFallback } from './RouteFallback'
 import { branding } from '../../config/branding'
-import { quickActions, type QuickAction } from '../../config/quickActions'
+import {
+  quickActions,
+  type QuickAction,
+  type QuickActionIcon,
+} from '../../config/quickActions'
 import {
   openLegacyClientesInactivosGestor,
   openLegacyCreditoObservado,
@@ -35,6 +45,33 @@ import { resolveSpaPathFromMenuItem } from '../../utils/resolveSpaPathFromMenuIt
 import { hasMenuRouteAccess } from '../../utils/menuRouteAccess'
 
 const { Text } = Typography
+
+const QUICK_ACCESS_STORAGE_KEY = 'credix.sidebar.quickAccessOpen'
+
+function readQuickAccessOpen(): boolean {
+  try {
+    return localStorage.getItem(QUICK_ACCESS_STORAGE_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+function quickActionIcon(icon: QuickActionIcon) {
+  switch (icon) {
+    case 'comisiones':
+      return <PercentageOutlined />
+    case 'simulador':
+      return <CalculatorOutlined />
+    case 'observados':
+      return <EyeOutlined />
+    case 'vencidos':
+      return <ClockCircleOutlined />
+    case 'inactivos':
+      return <TeamOutlined />
+    default:
+      return <DoubleRightOutlined />
+  }
+}
 
 export function AppShell() {
   const navigate = useNavigate()
@@ -98,8 +135,11 @@ export function AppShell() {
   )
 
   const defaultOpenKeys = useMemo(
-    () => (navigationMenuData.length > 0 ? defaultOpenMenuKeys(navigationMenuData) : []),
-    [navigationMenuData],
+    () =>
+      navigationMenuData.length > 0
+        ? defaultOpenMenuKeys(navigationMenuData, location.pathname)
+        : [],
+    [navigationMenuData, location.pathname],
   )
   const nextMenuStamp = `${session?.oficinaId ?? 0}-${session?.usuarioId ?? 0}-${menuQuery.dataUpdatedAt ?? 0}`
   if (nextMenuStamp !== menuStamp && defaultOpenKeys.length > 0) {
@@ -413,6 +453,20 @@ function NavPanel({
   quickActionsVisible: typeof quickActions
   onQuickAction: (qa: QuickAction) => void
 }) {
+  const [quickOpen, setQuickOpen] = useState(readQuickAccessOpen)
+
+  const toggleQuickAccess = () => {
+    setQuickOpen((prev) => {
+      const next = !prev
+      try {
+        localStorage.setItem(QUICK_ACCESS_STORAGE_KEY, next ? '1' : '0')
+      } catch {
+        /* ignore quota / private mode */
+      }
+      return next
+    })
+  }
+
   return (
     <div className="app-shell-sider-inner">
       <div className="app-shell-sider-brand">
@@ -446,28 +500,77 @@ function NavPanel({
             inlineCollapsed={!menuExpanded}
             items={menuItems}
             selectedKeys={selectedKeys}
-            openKeys={menuExpanded ? openKeys : []}
-            onOpenChange={(keys) => setOpenKeys(keys as string[])}
+            /* Expandido: acordeón controlado. Colapsado: flyout lateral (sin openKeys). */
+            {...(menuExpanded
+              ? {
+                  openKeys,
+                  onOpenChange: (keys: string[]) => setOpenKeys(keys),
+                }
+              : {
+                  triggerSubMenuAction: 'click' as const,
+                })}
             onClick={onMenuClick}
+            getPopupContainer={() => document.body}
             style={{ borderInlineEnd: 0 }}
           />
         )}
       </div>
 
-      {menuExpanded && quickActionsVisible.length > 0 && (
-        <div className="app-shell-sider-quick">
-          <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 6 }}>
-            Accesos rápidos
-          </Text>
-          <div className="credix-quick-actions app-shell-quick-actions">
-            {quickActionsVisible.map((qa) => (
-              <Button key={qa.label} type="text" size="small" onClick={() => onQuickAction(qa)}>
-                {qa.label}
-              </Button>
-            ))}
+      {menuExpanded && quickActionsVisible.length > 0 ? (
+        <div
+          className={[
+            'app-shell-sider-quick',
+            quickOpen ? 'is-open' : 'is-collapsed',
+          ].join(' ')}
+        >
+          <button
+            type="button"
+            className="app-shell-sider-quick-toggle"
+            onClick={toggleQuickAccess}
+            aria-expanded={quickOpen}
+            aria-controls="app-shell-quick-actions"
+          >
+            <span className="app-shell-sider-quick-toggle__label">
+              Accesos rápidos
+            </span>
+            <span
+              className="app-shell-sider-quick-toggle__chevron"
+              aria-hidden
+              title={quickOpen ? 'Ocultar' : 'Mostrar'}
+            >
+              <DoubleRightOutlined />
+            </span>
+          </button>
+
+          <div
+            id="app-shell-quick-actions"
+            className="app-shell-sider-quick-panel"
+            aria-hidden={!quickOpen}
+          >
+            <div className="app-shell-sider-quick-panel__inner">
+              <nav
+                className="credix-quick-actions app-shell-quick-actions"
+                aria-label="Accesos rápidos"
+              >
+                {quickActionsVisible.map((qa) => (
+                  <button
+                    key={qa.label}
+                    type="button"
+                    className="app-shell-quick-action"
+                    tabIndex={quickOpen ? 0 : -1}
+                    onClick={() => onQuickAction(qa)}
+                  >
+                    <span className="app-shell-quick-action__icon" aria-hidden>
+                      {quickActionIcon(qa.icon)}
+                    </span>
+                    <span className="app-shell-quick-action__label">{qa.label}</span>
+                  </button>
+                ))}
+              </nav>
+            </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   )
 }

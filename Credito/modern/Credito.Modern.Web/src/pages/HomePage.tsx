@@ -1,11 +1,14 @@
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { Alert, Button } from 'antd'
 import { branding } from '../config/branding'
 import { CredixHubGrid, CredixHubIntro, CredixPage } from '../components/credix'
 import { useModuleHubStats } from '../hooks/useModuleHubStats'
 import { useAuth } from '../auth/useAuth'
+import { fetchMenu } from '../api/menu'
 import { filterCreditoHomeLinks } from '../utils/creditoHubFilter'
+import { hasMenuRouteAccess } from '../utils/menuRouteAccess'
 import {
   debeMostrarDashboardAdmin,
   debeMostrarDashboardAnalista,
@@ -41,7 +44,11 @@ const SECTIONS = [
       { to: '/ventas/venta-rapida', label: 'Venta rápida', description: 'Pedido en mostrador' },
       { to: '/informes', label: 'Informes', description: 'Cartera, caja, almacén y crédito' },
       { to: '/maestros', label: 'Maestros', description: 'Marcas, artículos y almacenes' },
-      { to: '/admin', label: 'Administración', description: 'Usuarios, roles y oficinas' },
+      {
+        to: '/admin',
+        label: 'Administración',
+        description: 'Oficinas, cajas, usuarios, roles y comisiones',
+      },
     ],
   },
 ]
@@ -63,17 +70,29 @@ export function HomePage() {
 }
 
 function HomeHubPage({ roles }: { roles: string[] }) {
+  const { session } = useAuth()
+  const menuQuery = useQuery({
+    queryKey: ['menu', session?.oficinaId, session?.usuarioId],
+    queryFn: fetchMenu,
+    enabled: (session?.oficinaId ?? 0) > 0 && (session?.usuarioId ?? 0) > 0,
+    staleTime: 5 * 60_000,
+  })
+  const menu = menuQuery.data ?? []
+
   const sections = useMemo(
     () =>
-      SECTIONS.map((section) =>
-        section.title === 'Crédito y clientes'
-          ? {
-              ...section,
-              links: filterCreditoHomeLinks(section.links, roles),
-            }
-          : section,
-      ),
-    [roles],
+      SECTIONS.map((section) => {
+        let links = section.links
+        if (section.title === 'Crédito y clientes') {
+          links = filterCreditoHomeLinks(links, roles)
+        }
+        // Esperar menú cargado para no ocultar tarjetas por ACL vacío.
+        if (menuQuery.isSuccess) {
+          links = links.filter((link) => hasMenuRouteAccess(link.to, menu))
+        }
+        return { ...section, links }
+      }).filter((section) => section.links.length > 0),
+    [roles, menu, menuQuery.isSuccess],
   )
 
   const stats = useModuleHubStats('inicio', branding.appShortName, sections)
@@ -85,7 +104,7 @@ function HomeHubPage({ roles }: { roles: string[] }) {
       title={`Inicio — ${branding.appShortName}`}
       subtitle={`${branding.systemDescription} — ${branding.companyLine1} ${branding.companyName}`}
       stats={stats}
-      statsVariant="module"
+      statsVariant="default"
       breadcrumb={[{ title: <Link to="/inicio">Inicio</Link> }]}
     >
       {esAdmin ? (
@@ -111,7 +130,8 @@ function HomeHubPage({ roles }: { roles: string[] }) {
       ) : null}
       <CredixHubIntro>
         El administrador ve el tablero de la oficina al entrar; el analista, el suyo. Este mapa
-        queda para el resto de perfiles y para quien lo abra con «Mapa de módulos».
+        queda para el resto de perfiles y para quien lo abra con «Mapa de módulos». Cada tarjeta
+        abre solo módulos habilitados en su menú.
       </CredixHubIntro>
       <CredixHubGrid sections={sections} variant="module" />
     </CredixPage>

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Button, message } from 'antd'
+import { Button } from 'antd'
 import { BankOutlined, ReloadOutlined } from '@ant-design/icons'
 import { CajaSection } from '../../../components/caja/CajaSection'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
@@ -15,6 +15,7 @@ import { CredixDataTable } from '../../../components/credix'
 import type { DesembolsoPendienteRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
 import { maybeDownloadCajaTicket } from './cajaPagoHelpers'
+import { cajaToastError, cajaToastSuccess } from './cajaFeedback'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
 
@@ -44,10 +45,11 @@ export function DesembolsosTab({
         creditoId,
       }),
     onSuccess: async (r) => {
-      message.success(
+      cajaToastSuccess(
         r.yaRegistrado
           ? 'Desembolso ya estaba registrado'
           : `Desembolso OK (mov. ${r.movimientoCajaId})`,
+        'caja-desembolso',
       )
       if (!r.yaRegistrado) {
         await maybeDownloadCajaTicket(ctx.oficinaId, r.movimientoCajaId)
@@ -55,7 +57,7 @@ export function DesembolsosTab({
       onChanged()
       void query.refetch()
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const solicitarDesembolso = async (row: DesembolsoPendienteRow) => {
@@ -66,7 +68,7 @@ export function DesembolsosTab({
         row.creditoId,
       )
       if (!v.puedeDesembolsar) {
-        message.error(v.mensaje ?? 'No se puede desembolsar')
+        cajaToastError(v.mensaje ?? 'No se puede desembolsar')
         return
       }
       const detalle = v.mensaje?.trim()
@@ -85,7 +87,7 @@ export function DesembolsosTab({
         onOk: () => desembolsar.mutateAsync(row.creditoId),
       })
     } catch (e) {
-      message.error(errMsg(e))
+      cajaToastError(errMsg(e))
     }
   }
 

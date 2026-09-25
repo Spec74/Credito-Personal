@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-D2aABDIb.js";import{T as t,w as n}from"./vendor-antd-f9kw94uU.js";function r(e){return n.confirm({centered:!0,okText:`Confirmar`,cancelText:`Cancelar`,...e,rootClassName:[i,`caja-modal-root--confirm`,e.rootClassName].filter(Boolean).join(` `)})}var i;function a(){return(a=e((()=>{t(),i=`caja-modal-root`})))()}export{a as n,r as t};

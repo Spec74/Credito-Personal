@@ -148,6 +148,41 @@
   margin: 0 0 0.75rem;
 }
 
+.cierre-gerencial-page .credix-box {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cierre-gerencial-page .credix-box-content {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cierre-gerencial-page .credix-wide-table,
+.cierre-gerencial-page .credix-table-scroll {
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.cierre-gerencial-table.ant-table-wrapper {
+  max-width: 100%;
+}
+
+.cierre-gerencial-table .ant-table {
+  max-width: 100%;
+}
+
+.cierre-gerencial-table .ant-table-container {
+  overflow-x: auto !important;
+}
+
+.cierre-gerencial-table .ant-table-content {
+  overflow-x: auto !important;
+}
+
 .cierre-gerencial-analista {
   display: flex;
   flex-direction: column;
@@ -159,12 +194,18 @@
   color: var(--cg-ink);
   font-weight: 600;
   line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cierre-gerencial-analista-meta {
   color: var(--cg-muted);
   font-size: 0.75rem;
   line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cierre-gerencial-tipo {
@@ -172,6 +213,7 @@
   align-items: center;
   justify-content: center;
   min-width: 5.5rem;
+  max-width: 100%;
   padding: 0.12rem 0.5rem;
   border-radius: 999px;
   font-size: 0.7rem;
@@ -186,23 +228,59 @@
 }
 
 .cierre-gerencial-tipo--especial {
-  background: #f8ebe0;
-  color: var(--cg-especial);
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.cierre-gerencial-estado.ant-tag {
+  margin: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.35;
+  padding: 1px 8px;
+}
+
+.cierre-gerencial-estado--success {
+  color: var(--cg-ok) !important;
+  background: var(--cg-ok-soft) !important;
+}
+
+.cierre-gerencial-estado--warning {
+  color: var(--cg-warn) !important;
+  background: var(--cg-warn-soft) !important;
+}
+
+.cierre-gerencial-estado--error {
+  color: var(--cg-danger) !important;
+  background: var(--cg-danger-soft) !important;
+}
+
+.cierre-gerencial-estado--default {
+  color: var(--cg-muted) !important;
+  background: #eef2f5 !important;
 }
 
 .cierre-gerencial-table .ant-table-thead > tr > th {
   background: #eef3f6 !important;
   color: #33424b !important;
-  font-size: 0.72rem !important;
+  font-size: 0.7rem !important;
   font-weight: 700 !important;
   text-transform: uppercase;
   letter-spacing: 0.02em;
   white-space: nowrap;
+  padding: 8px 10px !important;
 }
 
 .cierre-gerencial-table .ant-table-tbody > tr > td {
   font-variant-numeric: tabular-nums;
   vertical-align: middle;
+  padding: 8px 10px !important;
+  font-size: 12.5px;
 }
 
 .cierre-gerencial-table tr.cierre-gerencial-row--productiva > td:first-child {

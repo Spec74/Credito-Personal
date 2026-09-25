@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Button, message } from 'antd'
+import { Button } from 'antd'
 import { StopOutlined } from '@ant-design/icons'
 import {
   fetchCuotasPendientes,
@@ -14,6 +14,7 @@ import {
   assertSinCxcPendiente,
   maybeDownloadCajaTicket,
 } from './cajaPagoHelpers'
+import { cajaToastError, cajaToastSuccess } from './cajaFeedback'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
 
@@ -43,12 +44,12 @@ export function CancelacionCreditoPanel({
         creditoId: creditoId!,
       }),
     onSuccess: async (r) => {
-      message.success('Cancelación de crédito registrada')
+      cajaToastSuccess('Cancelación de crédito registrada', 'caja-cancel')
       await maybeDownloadCajaTicket(ctx.oficinaId, r.resultId)
       setExpanded(false)
       onChanged()
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const rows = useMemo(() => query.data ?? [], [query.data])

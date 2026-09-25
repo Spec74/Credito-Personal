@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Alert, Button, Grid, Radio, Typography, message } from 'antd'
+import { Alert, Button, Grid, Radio, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { fetchCobroDiario, generarRutaCobros } from '../../../api/creditoPlanes'
 import { ApiError } from '../../../api/errors'
@@ -9,6 +9,10 @@ import { toCobroDiarioQuery } from '../../../utils/gestorInformeForm'
 import { CredixDataTable } from '../../../components/credix'
 import type { RptCobroDiarioRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
+import {
+  cajaToastError,
+  cajaToastWarning,
+} from './cajaFeedback'
 import { RutaQrModal } from './RutaQrModal'
 
 const { Text } = Typography
@@ -53,16 +57,17 @@ export function RutaCobranzaDrawer({
     mutationFn: () => generarRutaCobros(selected),
     onSuccess: (res) => {
       if (!res.exito || !res.urlCortita) {
-        message.error(res.mensaje ?? 'No se pudo generar la ruta')
+        cajaToastError(res.mensaje ?? 'No se pudo generar la ruta')
         return
       }
       const fullUrl = buildRutaUrl(res.urlCortita)
       setQrUrl(fullUrl)
       setQrOpen(true)
-      message.success('Ruta generada — escanee el QR o abra el enlace')
     },
     onError: (e) =>
-      message.error(e instanceof ApiError ? e.message : 'Error al generar ruta'),
+      cajaToastError(
+        e instanceof ApiError ? e.message : 'Error al generar ruta',
+      ),
   })
 
   const columns: ColumnsType<RptCobroDiarioRow> = [
@@ -147,7 +152,7 @@ export function RutaCobranzaDrawer({
             onChange: (keys) => {
               const ids = keys.map(Number)
               if (ids.length > MAX_RUTA) {
-                message.warning(`Máximo ${MAX_RUTA} créditos por ruta`)
+                cajaToastWarning(`Máximo ${MAX_RUTA} créditos por ruta`)
                 setSelected(ids.slice(0, MAX_RUTA))
                 return
               }

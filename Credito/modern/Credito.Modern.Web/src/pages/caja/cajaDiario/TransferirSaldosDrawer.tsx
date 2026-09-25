@@ -9,7 +9,6 @@ import {
   Radio,
   Select,
   Typography,
-  message,
 } from 'antd'
 import {
   fetchCajasAbiertasTransferencia,
@@ -18,6 +17,11 @@ import {
 } from '../../../api/cajaDiario'
 import { CajaDrawer } from '../../../components/caja/CajaDrawer'
 import { formatMoney } from '../../../utils/formatMoney'
+import {
+  cajaToastError,
+  cajaToastSuccess,
+  cajaToastWarning,
+} from './cajaFeedback'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
 
@@ -65,12 +69,12 @@ export function TransferirSaldosDrawer({
         cajaIdDestino: values.cajaIdDestino ?? null,
       }),
     onSuccess: () => {
-      message.success('Transferencia registrada')
+      cajaToastSuccess('Transferencia registrada', 'caja-transfer')
       form.resetFields()
       onSuccess()
       onClose()
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   useEffect(() => {
@@ -118,7 +122,7 @@ export function TransferirSaldosDrawer({
         layout="vertical"
         onFinish={(v) => {
           if (saldo != null && v.importe > saldo) {
-            message.warning(
+            cajaToastWarning(
               'El monto a transferir debe ser menor o igual al saldo en caja.',
             )
             return

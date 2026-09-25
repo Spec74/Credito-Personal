@@ -168,7 +168,7 @@ export function AlmacenesPage() {
       ]}
       actions={
         <Space wrap size="small">
-          <Link to="/admin/oficinas">Oficinas</Link>
+          <Link to="/mantenimiento/oficinas">Oficinas</Link>
           <Link to="/maestros/articulos">Artículos</Link>
         </Space>
       }

@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-D2aABDIb.js";import{p as t,u as n}from"./useAuth-JlDqlZic.js";import{r}from"./normalize-hvzwjrv-.js";async function i(){let e=await n(`/marcas`);return r(e)}function a(){return(a=e((()=>{t()})))()}export{a as n,i as t};

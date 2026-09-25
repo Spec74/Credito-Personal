@@ -13,7 +13,6 @@ import {
   InputNumber,
   Select,
   Space,
-  message,
 } from 'antd'
 import {
   CheckCircleOutlined,
@@ -38,6 +37,12 @@ import {
 } from '../../../api/cajaDiario'
 import { downloadMovimientosCreditoPdf } from '../../../api/creditoPlanes'
 import { CajaModal } from '../../../components/caja/CajaModal'
+import {
+  cajaToastError,
+  cajaToastInfo,
+  cajaToastSuccess,
+  cajaToastWarning,
+} from './cajaFeedback'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import { CreditoMoraModal } from '../../../components/caja/CreditoMoraModal'
 import { fetchValoresTabla } from '../../../api/maestros'
@@ -148,16 +153,12 @@ export function CobranzasTab({
       if (silent) {
         return
       }
-      const cobrables = data.filter(isCuotaSelectable).length
-      if (data.length > 0) {
-        message.success(
-          `Plan cargado: ${data.length} fila(s)${cobrables > 0 ? ` · ${cobrables} cobrable(s)` : ''}`,
-        )
-      } else {
-        message.info('Sin cuotas para este crédito')
+      // La grilla ya refleja el plan; no apilar toasts de carga rutinaria.
+      if (data.length === 0) {
+        cajaToastInfo('Sin cuotas para este crédito', 'caja-plan')
       }
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const cargarCuotas = (id: number, options?: { silent?: boolean }) => {
@@ -193,16 +194,17 @@ export function CobranzasTab({
     }
 
     if (list.length === 0) {
-      message.info('El cliente no tiene créditos activos para cobrar')
+      cajaToastInfo('El cliente no tiene créditos activos para cobrar', 'caja-cliente')
       return
     }
 
     const creditoDefault = list[0].creditoId
-    cargarCuotas(creditoDefault)
+    cargarCuotas(creditoDefault, { silent: true })
 
     if (list.length > 1) {
-      message.info(
-        `${list.length} créditos activos. Se cargó el crédito ${creditoDefault}; puede cambiarlo abajo.`,
+      cajaToastInfo(
+        `${list.length} créditos activos · se cargó el ${creditoDefault}`,
+        'caja-cliente',
       )
     }
   }
@@ -231,8 +233,9 @@ export function CobranzasTab({
       0,
     )
     setImporteRecibido(total)
-    message.info(
-      `${ids.length} cuota(s) seleccionada(s). Revise el importe recibido antes de cobrar.`,
+    cajaToastInfo(
+      `${ids.length} cuota(s) lista(s) para cobrar`,
+      'caja-seleccion',
     )
   }, [cuotasPagables])
 
@@ -262,7 +265,7 @@ export function CobranzasTab({
         aplicarMoraPostergada: moraResumenQuery.data?.indMoraProducto === true,
       }),
     onSuccess: async (r) => {
-      message.success(`Pago registrado (${r.resultId ?? 'OK'})`)
+      cajaToastSuccess(`Pago registrado (${r.resultId ?? 'OK'})`)
       await maybeDownloadCajaTicket(ctx.oficinaId, r.resultId)
       onChanged()
       void moraResumenQuery.refetch()
@@ -270,7 +273,7 @@ export function CobranzasTab({
         buscar.mutate({ creditoId, silent: true })
       }
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const solicitar = useMutation({
@@ -282,11 +285,11 @@ export function CobranzasTab({
         moraCondonacion: moraSolicitar ?? 0,
       }),
     onSuccess: () => {
-      message.success('Solicitud de condonación registrada')
+      cajaToastSuccess('Solicitud de condonación registrada')
       setSolicitarOpen(false)
       void condonacionPendienteQuery.refetch()
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const ejecutarPagoLibre = useMutation({
@@ -327,7 +330,7 @@ export function CobranzasTab({
         'mensaje' in r && r.mensaje
           ? r.mensaje
           : 'Pago libre registrado'
-      message.success(msg)
+      cajaToastSuccess(msg)
       await maybeDownloadCajaTicket(ctx.oficinaId, movId)
       setPagoLibre(null)
       setFechaLibreModalOpen(false)
@@ -337,7 +340,7 @@ export function CobranzasTab({
         buscar.mutate({ creditoId, silent: true })
       }
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const ejecutarCompletarImpagos = useMutation({
@@ -348,15 +351,15 @@ export function CobranzasTab({
       }),
     onSuccess: (r) => {
       if (r.success) {
-        message.success('Impagos completados')
+        cajaToastSuccess('Impagos completados')
       } else {
-        message.warning(
+        cajaToastWarning(
           'La base de datos no completó los impagos. Consulte con sistemas.',
         )
       }
       onChanged()
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const solicitarCompletarImpagos = async () => {
@@ -368,7 +371,7 @@ export function CobranzasTab({
       )
       const pendientes = validacion.cantidadImpagosPendientes ?? 0
       if (pendientes <= 0) {
-        message.info('No hay créditos impagos pendientes para completar.')
+        cajaToastInfo('No hay créditos impagos pendientes para completar.')
         return
       }
       cajaConfirm({
@@ -377,7 +380,7 @@ export function CobranzasTab({
         onOk: () => ejecutarCompletarImpagos.mutateAsync(),
       })
     } catch (e) {
-      message.error(errMsg(e))
+      cajaToastError(errMsg(e))
     } finally {
       setConsultandoImpagos(false)
     }
@@ -388,7 +391,7 @@ export function CobranzasTab({
       return
     }
     if (pagoLibre > totalCuotasCredito && totalCuotasCredito > 0) {
-      message.error(
+      cajaToastError(
         `El pago libre no debe superar ${formatMoney(totalCuotasCredito)}`,
       )
       return
@@ -407,7 +410,7 @@ export function CobranzasTab({
         onOk: () => ejecutarPagoLibre.mutateAsync(),
       })
     } catch (e) {
-      message.error(errMsg(e))
+      cajaToastError(errMsg(e))
     }
   }
 
@@ -416,7 +419,7 @@ export function CobranzasTab({
       return
     }
     if (importeRecibido == null || importeRecibido < selectedTotal) {
-      message.error('El importe recibido debe ser mayor o igual al total de pago')
+      cajaToastError('El importe recibido debe ser mayor o igual al total de pago')
       return
     }
     try {
@@ -433,16 +436,15 @@ export function CobranzasTab({
         onOk: () => pagar.mutateAsync(),
       })
     } catch (e) {
-      message.error(errMsg(e))
+      cajaToastError(errMsg(e))
     }
   }
 
   const descargarMovimientosCredito = async (id: number) => {
     try {
       await downloadMovimientosCreditoPdf(id)
-      message.success('Movimientos del crédito descargados')
     } catch (e) {
-      message.error(errMsg(e))
+      cajaToastError(errMsg(e))
     }
   }
 
@@ -812,7 +814,7 @@ export function CobranzasTab({
         onCancel={() => setFechaLibreModalOpen(false)}
         onOk={() => {
           if (!fechaPagoLibre.trim()) {
-            message.warning('Indique fecha y hora')
+            cajaToastWarning('Indique fecha y hora')
             return
           }
           cajaConfirm({
@@ -838,7 +840,7 @@ export function CobranzasTab({
         onCancel={() => setFechaCuotaModalOpen(false)}
         onOk={() => {
           if (!fechaTransferencia.trim()) {
-            message.warning('Indique fecha y hora')
+            cajaToastWarning('Indique fecha y hora')
             return
           }
           setFechaCuotaModalOpen(false)

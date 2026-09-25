@@ -146,10 +146,33 @@ export function findSelectedMenuKeys(
   return best ? [best.key] : path.startsWith('/inicio') ? ['dashboard'] : []
 }
 
-/** Abrir todos los módulos padre por defecto (acordeón legacy suele mostrar varias secciones visibles). */
-export function defaultOpenMenuKeys(items: MenuItemDto[]): string[] {
+/** Abrir solo el submenú del ítem activo (evita saturar el sidebar). */
+export function defaultOpenMenuKeys(
+  items: MenuItemDto[],
+  pathname?: string,
+): string[] {
+  if (pathname) {
+    const selected = findSelectedMenuKeys(pathname, items)
+    const selectedId = Number(selected[0])
+    if (!Number.isNaN(selectedId) && selectedId > 0) {
+      const child = items.find((i) => i.menuId === selectedId)
+      const ref = child ? ordenKey(child.referencia) : null
+      if (ref != null) {
+        const parent = items.find(
+          (i) => isPadre(i) && ordenKey(i.orden) === ref,
+        )
+        if (parent) {
+          return [`parent-${parent.menuId}`]
+        }
+      }
+    }
+    return []
+  }
+
   const sorted = sortItems(items)
-  return sorted.filter((i) => isPadre(i)).map((p) => `parent-${p.menuId}`)
+  const parents = sorted.filter((i) => isPadre(i))
+  // Sin ruta: abrir solo el primer grupo (menos ruido que todos abiertos).
+  return parents.length > 0 ? [`parent-${parents[0].menuId}`] : []
 }
 
 /** Accesos rápidos visibles solo si el menú del usuario incluye ese módulo MVC.

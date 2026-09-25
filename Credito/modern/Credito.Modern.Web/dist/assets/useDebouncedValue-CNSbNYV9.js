@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-D2aABDIb.js";import{Ui as t}from"./vendor-antd-icons-BnKQfWty.js";function n(e,t=350){let[n,i]=(0,r.useState)(e);return(0,r.useEffect)(()=>{let n=window.setTimeout(()=>i(e),t);return()=>window.clearTimeout(n)},[e,t]),n}var r;function i(){return(i=e((()=>{r=t()})))()}export{n,i as t};

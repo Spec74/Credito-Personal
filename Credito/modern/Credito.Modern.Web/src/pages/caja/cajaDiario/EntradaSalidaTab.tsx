@@ -7,7 +7,6 @@ import {
   InputNumber,
   Select,
   Typography,
-  message,
 } from 'antd'
 import {
   confirmarClaveCajaDiario,
@@ -19,6 +18,7 @@ import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBusca
 import { CajaModal } from '../../../components/caja/CajaModal'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import type { TipoOperacionListItem } from '../../../types/api'
+import { cajaToastError, cajaToastSuccess } from './cajaFeedback'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
 
@@ -81,12 +81,12 @@ export function EntradaSalidaTab({
         tipoPagoId: values.tipoPagoId,
       }),
     onSuccess: (r) => {
-      message.success(`Registrado (código ${r.resultCode})`)
+      cajaToastSuccess(`Registrado (código ${r.resultCode})`, 'caja-es')
       form.resetFields()
       setClienteLabel('')
       onChanged()
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const tipoSel = Form.useWatch('tipoOperacionId', form)
@@ -95,28 +95,54 @@ export function EntradaSalidaTab({
 
   return (
     <div className="caja-diario-entrada-salida">
-      <div className="caja-diario-entrada-salida-form">
-        <Form
-          form={form}
-          layout="vertical"
-          initialValues={{ tipoPagoId: 1 }}
-          onFinish={(v) => {
-            const ejecutar = () => {
-              if (esEgreso) {
-                setPendingValues(v)
-                setClaveModalOpen(true)
-                return
-              }
-              guardar.mutate(v)
+      <div
+        className={[
+          'caja-diario-entrada-salida-hint',
+          esEgreso ? 'is-warning' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+        role="note"
+      >
+        {esEgreso ? (
+          <Paragraph type="warning" style={{ margin: 0 }}>
+            Los egresos requieren clave de administrador (paridad MVC).
+          </Paragraph>
+        ) : (
+          <Paragraph type="secondary" style={{ margin: 0 }}>
+            Registre ingresos o egresos de caja. Busque la persona por nombre o
+            documento; no es necesario escribir el ID manualmente.
+          </Paragraph>
+        )}
+      </div>
+
+      <Form
+        className="caja-diario-entrada-salida-form"
+        form={form}
+        layout="vertical"
+        initialValues={{ tipoPagoId: 1 }}
+        onFinish={(v) => {
+          const ejecutar = () => {
+            if (esEgreso) {
+              setPendingValues(v)
+              setClaveModalOpen(true)
+              return
             }
-            cajaConfirm({
-              title: 'Confirmar operación',
-              content: '¿Confirmar para realizar esta operación en caja?',
-              onOk: ejecutar,
-            })
-          }}
-        >
-          <Form.Item label="Persona" required>
+            guardar.mutate(v)
+          }
+          cajaConfirm({
+            title: 'Confirmar operación',
+            content: '¿Confirmar para realizar esta operación en caja?',
+            onOk: ejecutar,
+          })
+        }}
+      >
+        <div className="caja-diario-es-grid">
+          <Form.Item
+            className="caja-diario-es-grid__full"
+            label="Persona"
+            required
+          >
             <ClienteBuscarAutoComplete
               value={clienteLabel}
               onChange={setClienteLabel}
@@ -169,27 +195,20 @@ export function EntradaSalidaTab({
               placeholder="Tipo de pago"
             />
           </Form.Item>
-          <Form.Item name="descripcion" label="Descripción">
+          <Form.Item
+            className="caja-diario-es-grid__full"
+            name="descripcion"
+            label="Descripción"
+          >
             <Input.TextArea rows={2} />
           </Form.Item>
+        </div>
+        <div className="caja-diario-es-actions">
           <Button type="primary" htmlType="submit" loading={guardar.isPending}>
             Realizar operación
           </Button>
-        </Form>
-      </div>
-      <aside>
-        {esEgreso ? (
-          <Paragraph type="warning">
-            Los egresos requieren clave de administrador (paridad MVC).
-          </Paragraph>
-        ) : (
-          <Paragraph type="secondary">
-            Registre ingresos o egresos de caja con la misma lógica que el
-            formulario legacy. Busque la persona por nombre o documento en lugar
-            de escribir el ID manualmente.
-          </Paragraph>
-        )}
-      </aside>
+        </div>
+      </Form>
 
       <CajaModal
         title="Autorización de egreso"
@@ -203,7 +222,7 @@ export function EntradaSalidaTab({
           try {
             const r = await confirmarClaveCajaDiario(claveAdmin)
             if (!r.autorizado) {
-              message.error(r.mensaje ?? 'NO AUTORIZADO!!!!')
+              cajaToastError(r.mensaje ?? 'NO AUTORIZADO!!!!')
               return
             }
             if (pendingValues) {
@@ -213,7 +232,7 @@ export function EntradaSalidaTab({
             setClaveAdmin('')
             setPendingValues(null)
           } catch (e) {
-            message.error(errMsg(e))
+            cajaToastError(errMsg(e))
           }
         }}
         okText="Confirmar"

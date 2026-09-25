@@ -1,4 +1,5 @@
 import type { MenuItemDto } from '../types/api'
+import { ADMIN_HUB_ENTRY_PATHS } from '../config/adminHubSections'
 import { resolveSpaPathFromModulo } from './legacyRoutes'
 import { resolveSpaPathFromMenuItem } from './resolveSpaPathFromMenuItem'
 
@@ -9,6 +10,12 @@ const ALWAYS_ALLOWED = [
   // Accesos rápidos del layout MVC (siempre disponibles con sesión).
   '/admin/comisiones',
   '/credito/simulador',
+  // Atajos de cartera del dashboard gestor/admin (paridad PDF/SPA del layout).
+  '/informes/cobro-diario',
+  '/informes/morosidad-gestor',
+  '/informes/creditos-observados',
+  '/informes/clientes-inactivos',
+  '/informes/saldo-cartera',
 ]
 
 const HUB_CHILDREN: Record<string, string[]> = {
@@ -17,7 +24,6 @@ const HUB_CHILDREN: Record<string, string[]> = {
   '/reportes/cobranza': ['/reportes/cobranza'],
   '/reportes/venta': ['/reportes/venta', '/informes/rentabilidad-venta'],
   '/credito': ['/credito/'],
-  // Consulta de créditos (menú «Creditos») también permite ficha por persona.
   '/credito/consulta': ['/credito/persona/'],
   '/clientes': ['/clientes/'],
   '/caja': ['/caja/'],
@@ -29,7 +35,6 @@ const HUB_CHILDREN: Record<string, string[]> = {
   '/admin': ['/admin/', '/mantenimiento/'],
 }
 
-/** Informes con ACL propio (no basta con tener el hub Reportes → Crédito). */
 const INFORMES_ACL_EXCLUSIONS = new Set(['/informes/cierre-gerencial'])
 
 const EXACT_MENU_ROUTES = new Set([
@@ -69,12 +74,22 @@ function hasPathAccess(path: string, allowed: string, exactAllowedPaths: Set<str
     if (!path.startsWith(prefix)) {
       return false
     }
-    // Paridad _Layout: cierre gerencial solo por UsuarioConsultaIds, no por menú Reportes.
     if (prefix === '/informes/' && INFORMES_ACL_EXCLUSIONS.has(path)) {
       return false
     }
     return true
   })
+}
+
+/** Índice `/admin` si el menú tiene al menos un acceso de seguridad/mantenimiento. */
+function adminHubIndexAccess(path: string, allowedPaths: Set<string>): boolean | null {
+  if (path !== '/admin') {
+    return null
+  }
+  if (allowedPaths.has('/admin')) {
+    return true
+  }
+  return ADMIN_HUB_ENTRY_PATHS.some((leaf) => allowedPaths.has(leaf))
 }
 
 export function hasMenuRouteAccess(
@@ -98,11 +113,25 @@ export function hasMenuRouteAccess(
 
   const allowedPaths = new Set<string>()
   for (const item of menuItems) {
-    const spaPath = resolveSpaPathFromMenuItem(item.url, item.denominacion, item.modulo)
-      ?? resolveSpaPathFromModulo(item.modulo)
+    const spaPath =
+      resolveSpaPathFromMenuItem(item.url, item.denominacion, item.modulo) ??
+      resolveSpaPathFromModulo(item.modulo)
     if (spaPath) {
       allowedPaths.add(normalizePath(spaPath))
     }
+  }
+
+  // Alias: maestro de cajas puede venir como /caja/maestro o /mantenimiento/cajas.
+  if (allowedPaths.has('/caja/maestro')) {
+    allowedPaths.add('/mantenimiento/cajas')
+  }
+  if (allowedPaths.has('/mantenimiento/cajas')) {
+    allowedPaths.add('/caja/maestro')
+  }
+
+  const adminHub = adminHubIndexAccess(path, allowedPaths)
+  if (adminHub !== null) {
+    return adminHub
   }
 
   const prendario = prendarioAccess(path, allowedPaths)

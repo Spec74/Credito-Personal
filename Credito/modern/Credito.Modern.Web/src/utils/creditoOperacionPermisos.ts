@@ -61,6 +61,10 @@ export function esCreditoAnalista(roles: string[]): boolean {
   return hasRoleLike(roles, 'ANALISTA')
 }
 
+export function esRolCaja(roles: string[]): boolean {
+  return hasRoleLike(roles, 'CAJA') || hasRoleLike(roles, 'CAJERO')
+}
+
 /** Inicio operativo: el analista ve su tablero; el admin conserva el hub de accesos. */
 export function debeMostrarDashboardAnalista(roles: string[], vista?: string | null): boolean {
   if (!esCreditoAnalista(roles)) {

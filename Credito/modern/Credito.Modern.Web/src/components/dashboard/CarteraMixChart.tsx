@@ -3,12 +3,24 @@ import { formatMoney } from '../../utils/formatMoney'
 
 type Segment = { key: string; label: string; value: number; color: string }
 
-const W = 320
+const W = 220
 const H = 200
-const CX = 100
+const CX = 110
 const CY = 100
-const R = 72
-const R_INNER = 42
+const R = 78
+const R_INNER = 48
+
+/**
+ * Paleta de composición (marca Credix, sin naranja):
+ * - Sin mora → verde éxito corporativo
+ * - Con mora → vino / riesgo medio (no naranja)
+ * - Vencido → rojo peligro
+ */
+const MIX_COLORS = {
+  sinMora: '#15803d',
+  conMora: '#9f1239',
+  vencido: '#b91c1c',
+} as const
 
 /** Composición de cartera: sin mora / con mora / vencido (donut). */
 export function CarteraMixChart({
@@ -25,9 +37,24 @@ export function CarteraMixChart({
   const segments = useMemo<Segment[]>(
     () =>
       [
-        { key: 'ok', label: 'Sin mora', value: Math.max(0, sinMora), color: '#059669' },
-        { key: 'mora', label: 'Con mora', value: Math.max(0, conMora), color: '#d97706' },
-        { key: 'venc', label: 'Vencido', value: Math.max(0, vencido), color: '#dc2626' },
+        {
+          key: 'ok',
+          label: 'Sin mora',
+          value: Math.max(0, sinMora),
+          color: MIX_COLORS.sinMora,
+        },
+        {
+          key: 'mora',
+          label: 'Con mora',
+          value: Math.max(0, conMora),
+          color: MIX_COLORS.conMora,
+        },
+        {
+          key: 'venc',
+          label: 'Vencido',
+          value: Math.max(0, vencido),
+          color: MIX_COLORS.vencido,
+        },
       ].filter((s) => s.value > 0),
     [sinMora, conMora, vencido],
   )
@@ -44,7 +71,11 @@ export function CarteraMixChart({
       const start = angle
       const end = angle + sweep
       angle = end
-      return { ...s, d: donutPath(CX, CY, R, R_INNER, start, end), pct: (s.value / total) * 100 }
+      return {
+        ...s,
+        d: donutPath(CX, CY, R, R_INNER, start, end),
+        pct: (s.value / total) * 100,
+      }
     })
   }, [segments, total])
 
@@ -54,28 +85,58 @@ export function CarteraMixChart({
 
   return (
     <div className="dash-chart dash-chart-mix">
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel} className="dash-chart-svg">
+      <div className="dash-chart-mix__visual">
+        <svg
+          viewBox={`0 0 ${W} ${H}`}
+          role="img"
+          aria-label={ariaLabel}
+          className="dash-chart-svg"
+        >
+          {arcs.map((a) => (
+            <path
+              key={a.key}
+              d={a.d}
+              fill={a.color}
+              stroke="#fff"
+              strokeWidth={2}
+            />
+          ))}
+          <text
+            x={CX}
+            y={CY - 6}
+            textAnchor="middle"
+            className="dash-chart-mix__center-label"
+          >
+            Cartera
+          </text>
+          <text
+            x={CX}
+            y={CY + 14}
+            textAnchor="middle"
+            className="dash-chart-mix__center-value"
+          >
+            S/ {formatAxis(total)}
+          </text>
+        </svg>
+      </div>
+      <ul className="dash-chart-mix__legend">
         {arcs.map((a) => (
-          <path key={a.key} d={a.d} fill={a.color} stroke="#fff" strokeWidth={1.5} />
+          <li key={a.key}>
+            <span
+              className="dash-chart-mix__swatch"
+              style={{ background: a.color }}
+              aria-hidden
+            />
+            <div className="dash-chart-mix__legend-copy">
+              <strong>
+                {a.label}
+                <span className="dash-chart-mix__pct">{a.pct.toFixed(0)}%</span>
+              </strong>
+              <span>S/ {formatMoney(a.value)}</span>
+            </div>
+          </li>
         ))}
-        <text x={CX} y={CY - 4} textAnchor="middle" className="dash-chart-axis" fontWeight={700}>
-          Cartera
-        </text>
-        <text x={CX} y={CY + 12} textAnchor="middle" className="dash-chart-axis">
-          S/ {formatAxis(total)}
-        </text>
-        {arcs.map((a, i) => (
-          <g key={`leg-${a.key}`}>
-            <rect x={190} y={36 + i * 28} width={10} height={10} rx={2} fill={a.color} />
-            <text x={206} y={45 + i * 28} className="dash-chart-axis">
-              {a.label} {a.pct.toFixed(0)}%
-            </text>
-            <text x={206} y={58 + i * 28} className="dash-chart-axis" opacity={0.75}>
-              S/ {formatMoney(a.value)}
-            </text>
-          </g>
-        ))}
-      </svg>
+      </ul>
     </div>
   )
 }

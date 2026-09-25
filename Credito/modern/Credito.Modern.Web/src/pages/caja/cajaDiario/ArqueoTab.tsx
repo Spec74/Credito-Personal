@@ -3,10 +3,10 @@ import { useMutation } from '@tanstack/react-query'
 import {
   Button,
   Input,
+  Segmented,
   Space,
   Tag,
   Typography,
-  message,
 } from 'antd'
 import {
   FileExcelOutlined,
@@ -14,6 +14,10 @@ import {
   ReloadOutlined,
   SwapOutlined,
 } from '@ant-design/icons'
+import {
+  cajaToastError,
+  cajaToastSuccess,
+} from './cajaFeedback'
 import type { ColumnsType } from 'antd/es/table'
 import {
   anularMovimientoCaja,
@@ -78,6 +82,7 @@ export function ArqueoTab({
   const { session } = useAuth()
   const puedeAnularMovimiento = puedeAnularMovimientoCaja(session?.roles ?? [])
   const [filtro, setFiltro] = useState('')
+  const [vista, setVista] = useState<'entradas' | 'salidas' | 'ambos'>('ambos')
   const [anularId, setAnularId] = useState<number | null>(null)
   const [observacion, setObservacion] = useState('')
   const [transferirOpen, setTransferirOpen] = useState(false)
@@ -99,28 +104,25 @@ export function ArqueoTab({
         cajaDiarioId: ctx.cajaDiarioId,
       }),
     onSuccess: () => {
-      message.success('Caja conciliada')
+      cajaToastSuccess('Caja conciliada', 'caja-conciliar')
       onChanged()
       onRefresh()
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const csv = useMutation({
     mutationFn: () => downloadRptSaldosCajaCsv(ctx.cajaDiarioId),
-    onSuccess: () => message.success('CSV descargado'),
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
   const pdf = useMutation({
     mutationFn: () => downloadRptSaldosCajaPdf(ctx.cajaDiarioId),
-    onSuccess: () => message.success('PDF descargado'),
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
   const ticket = useMutation({
     mutationFn: (movimientoCajaId: number) =>
       downloadMovimientoCajaTicketPdf(ctx.oficinaId, movimientoCajaId),
-    onSuccess: () => message.success('Ticket descargado'),
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
   const anular = useMutation({
     mutationFn: async () => {
@@ -143,13 +145,13 @@ export function ArqueoTab({
       })
     },
     onSuccess: () => {
-      message.success('Movimiento anulado')
+      cajaToastSuccess('Movimiento anulado', 'caja-anular')
       setAnularId(null)
       setObservacion('')
       onChanged()
       onRefresh()
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const columns: ColumnsType<RptSaldosCajaRow> = [
@@ -222,8 +224,11 @@ export function ArqueoTab({
     pageSizeOptions: ['10', '20', '50', '100'],
   }
 
+  const showEntradas = vista === 'entradas' || vista === 'ambos'
+  const showSalidas = vista === 'salidas' || vista === 'ambos'
+
   return (
-    <>
+    <div className="caja-diario-arqueo">
       <div className="caja-diario-arqueo-toolbar">
         <Input.Search
           className="caja-diario-arqueo-search"
@@ -231,6 +236,16 @@ export function ArqueoTab({
           placeholder="Filtrar por cliente, glosa, operación o nro…"
           value={filtro}
           onChange={(e) => setFiltro(e.target.value)}
+        />
+        <Segmented
+          className="caja-diario-arqueo-segmented"
+          value={vista}
+          onChange={(v) => setVista(v as typeof vista)}
+          options={[
+            { label: `Entradas (${entradasF.length})`, value: 'entradas' },
+            { label: `Salidas (${salidasF.length})`, value: 'salidas' },
+            { label: 'Ambas', value: 'ambos' },
+          ]}
         />
         <Button icon={<ReloadOutlined />} onClick={onRefresh} loading={loading}>
           Actualizar
@@ -250,39 +265,54 @@ export function ArqueoTab({
         ) : null}
       </div>
 
-      <div className="caja-diario-arqueo-split">
-        <section>
-          <h3 className="credix-section-title">
-            Entradas ({entradasF.length})
-          </h3>
-          <CredixDataTable<RptSaldosCajaRow>
-            rowKey="movimientoCajaId"
-            columns={columns}
-            dataSource={entradasF}
-            loading={loading}
-            pagination={tablePagination}
-            scroll={{ x: 960 }}
-            onRow={(row) => ({
-              onDoubleClick: () => setDetalleMov(row),
-            })}
-          />
-        </section>
-        <section>
-          <h3 className="credix-section-title">
-            Salidas ({salidasF.length})
-          </h3>
-          <CredixDataTable<RptSaldosCajaRow>
-            rowKey="movimientoCajaId"
-            columns={columns}
-            dataSource={salidasF}
-            loading={loading}
-            pagination={tablePagination}
-            scroll={{ x: 960 }}
-            onRow={(row) => ({
-              onDoubleClick: () => setDetalleMov(row),
-            })}
-          />
-        </section>
+      <div
+        className={[
+          'caja-diario-arqueo-split',
+          vista === 'ambos' ? 'is-ambas' : 'is-single',
+        ].join(' ')}
+      >
+        {showEntradas ? (
+          <section className="caja-diario-arqueo-pane is-entrada">
+            <header className="caja-diario-arqueo-pane__head">
+              <h3>Entradas</h3>
+              <Tag color="success">{entradasF.length}</Tag>
+            </header>
+            <div className="caja-diario-arqueo-pane__table">
+              <CredixDataTable<RptSaldosCajaRow>
+                rowKey="movimientoCajaId"
+                columns={columns}
+                dataSource={entradasF}
+                loading={loading}
+                pagination={tablePagination}
+                scroll={{ x: 'max-content' }}
+                onRow={(row) => ({
+                  onDoubleClick: () => setDetalleMov(row),
+                })}
+              />
+            </div>
+          </section>
+        ) : null}
+        {showSalidas ? (
+          <section className="caja-diario-arqueo-pane is-salida">
+            <header className="caja-diario-arqueo-pane__head">
+              <h3>Salidas</h3>
+              <Tag color="error">{salidasF.length}</Tag>
+            </header>
+            <div className="caja-diario-arqueo-pane__table">
+              <CredixDataTable<RptSaldosCajaRow>
+                rowKey="movimientoCajaId"
+                columns={columns}
+                dataSource={salidasF}
+                loading={loading}
+                pagination={tablePagination}
+                scroll={{ x: 'max-content' }}
+                onRow={(row) => ({
+                  onDoubleClick: () => setDetalleMov(row),
+                })}
+              />
+            </div>
+          </section>
+        ) : null}
       </div>
 
       <footer className="caja-diario-arqueo-footer">
@@ -360,6 +390,6 @@ export function ArqueoTab({
           onChange={(e) => setObservacion(e.target.value)}
         />
       </CajaModal>
-    </>
+    </div>
   )
 }

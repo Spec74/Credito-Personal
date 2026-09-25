@@ -7,7 +7,6 @@ import {
   Grid,
   Input,
   Modal,
-  Segmented,
   Select,
   Spin,
   Table,
@@ -41,10 +40,13 @@ type Props = {
 /**
  * Paridad MVC Dashboard/Gestor: «Ver cliente» abre Creditos?pPersonaId= en otra ventana
  * → SPA /credito/consulta?personaId= en pestaña nueva (conserva el listado de mora).
+ *
+ * Filtros: en móvil Select (sin scroll horizontal); en tablet/desktop chips que envuelven.
  */
 export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props) {
   const screens = Grid.useBreakpoint()
   const isMobile = screens.md !== true
+  const useSelectFilter = screens.sm !== true
   const [tipo, setTipo] = useState<DashboardMoraTipo>(tipoInicial)
   const [busqueda, setBusqueda] = useState('')
   const busquedaDeferred = useDeferredValue(busqueda)
@@ -204,8 +206,8 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
       </Typography.Paragraph>
 
       <div className="dash-mora-toolbar">
-        <div className="dash-mora-filters">
-          {isMobile ? (
+        <div className="dash-mora-filters" role="group" aria-label="Filtro de mora">
+          {useSelectFilter ? (
             <Select
               className="dash-mora-filter-select"
               options={FILTROS.map((f) => ({ label: f.label, value: f.value }))}
@@ -214,12 +216,23 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
               aria-label="Filtro de mora"
             />
           ) : (
-            <div className="dash-mora-segmented-scroll">
-              <Segmented
-                options={FILTROS}
-                value={tipo}
-                onChange={(v) => setTipo(v as DashboardMoraTipo)}
-              />
+            <div className="dash-mora-filter-chips">
+              {FILTROS.map((f) => (
+                <button
+                  key={f.value}
+                  type="button"
+                  className={[
+                    'dash-mora-filter-chip',
+                    tipo === f.value ? 'is-active' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  aria-pressed={tipo === f.value}
+                  onClick={() => setTipo(f.value)}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -237,7 +250,7 @@ export function DashboardClientesMoraModal({ open, tipoInicial, onClose }: Props
             onClick={() => void query.refetch()}
             loading={query.isFetching}
           >
-            {isMobile ? '' : 'Refrescar'}
+            {useSelectFilter ? null : 'Refrescar'}
           </Button>
         </div>
       </div>

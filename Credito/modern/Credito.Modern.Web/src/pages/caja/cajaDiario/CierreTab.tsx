@@ -1,11 +1,16 @@
 import { useMutation } from '@tanstack/react-query'
-import { Alert, Button, Space, message } from 'antd'
+import { Alert, Button, Space } from 'antd'
 import {
   cerrarCajaDiario,
   downloadRptSaldosCajaPdf,
   validarCierreCajaDiario,
 } from '../../../api/cajaDiario'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
+import {
+  cajaToastError,
+  cajaToastSuccess,
+  cajaToastWarning,
+} from './cajaFeedback'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
 
@@ -19,7 +24,7 @@ export function CierreTab({
   const validar = useMutation({
     mutationFn: () =>
       validarCierreCajaDiario(ctx.oficinaId, ctx.cajaDiarioId),
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const cerrar = useMutation({
@@ -29,25 +34,28 @@ export function CierreTab({
         cajaDiarioId: ctx.cajaDiarioId,
       }),
     onSuccess: async () => {
-      message.success('Caja diario cerrada')
+      cajaToastSuccess('Caja diario cerrada', 'caja-cierre')
       try {
         await downloadRptSaldosCajaPdf(ctx.cajaDiarioId)
-        message.info('Previsualización de saldo descargada (paridad btnPrevSaldoCaja)')
       } catch {
-        message.warning('Caja cerrada; no se pudo descargar el PDF de saldo.')
+        cajaToastWarning(
+          'Caja cerrada; no se pudo descargar el PDF de saldo.',
+          'caja-cierre-pdf',
+        )
       }
       onCerrada()
     },
-    onError: (e) => message.error(errMsg(e)),
+    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const pedirCierre = async () => {
     try {
       const resultado = await validar.mutateAsync()
       if (!resultado.puedeCerrar) {
-        message.warning(
+        cajaToastWarning(
           resultado.blockers[0] ??
             'No puede cerrar la caja todavía. Revise los bloqueos.',
+          'caja-cierre-block',
         )
         return
       }

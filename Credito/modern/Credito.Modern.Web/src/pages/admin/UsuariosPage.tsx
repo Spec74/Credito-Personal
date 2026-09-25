@@ -249,7 +249,7 @@ export function UsuariosPage() {
       actions={
         <Space wrap size="small">
           <Link to="/admin/roles">Roles</Link>
-          <Link to="/admin/oficinas">Oficinas</Link>
+          <Link to="/mantenimiento/oficinas">Oficinas</Link>
         </Space>
       }
       toolbar={

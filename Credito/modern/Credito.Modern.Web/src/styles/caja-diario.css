@@ -20,6 +20,84 @@
   max-width: none;
 }
 
+/* KPIs claros: legibles en jornada de caja (sin franja oscura legacy) */
+.caja-diario-page ul.credix-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  width: 100%;
+}
+
+.caja-diario-page ul.credix-stats li {
+  background: #fff;
+  border: 1px solid #d9e4f2;
+  border-radius: 10px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  padding: 12px 14px;
+  align-items: flex-start;
+  text-align: left;
+  min-width: 0;
+  border-top: 3px solid var(--caja-brand, #114885);
+}
+
+.caja-diario-page ul.credix-stats li strong {
+  color: var(--caja-brand, #114885);
+  font-size: 1.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.caja-diario-page ul.credix-stats li span,
+.caja-diario-page ul.credix-stats li small {
+  color: var(--credix-text-muted, #64748b);
+  text-align: left;
+  width: auto;
+}
+
+.caja-diario-page ul.credix-stats li span.green {
+  color: #15803d;
+}
+
+.caja-diario-page ul.credix-stats li span.red {
+  color: #b91c1c;
+}
+
+.caja-diario-page ul.credix-stats li:last-child:has(span.green) {
+  border-top-color: #047857;
+  background: linear-gradient(180deg, #ecfdf5 0%, #fff 55%);
+}
+
+.caja-diario-page ul.credix-stats li:last-child:has(span.green) strong {
+  color: #047857;
+  letter-spacing: 0.04em;
+  font-size: 1.05rem;
+}
+
+.caja-diario-page ul.credix-stats li:last-child:has(span.red) {
+  border-top-color: #b91c1c;
+  background: linear-gradient(180deg, #fef2f2 0%, #fff 55%);
+}
+
+.caja-diario-page ul.credix-stats li:last-child:has(span.red) strong {
+  color: #b91c1c;
+  letter-spacing: 0.04em;
+  font-size: 1.05rem;
+}
+
+@media (max-width: 720px) {
+  .caja-diario-page ul.credix-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .caja-diario-page ul.credix-stats li:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
 .caja-diario-shell {
   display: flex;
   flex-direction: column;
@@ -28,16 +106,20 @@
 }
 
 .caja-diario-workspace {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   width: 100%;
+  min-width: 0;
 }
 
-@media (min-width: 1100px) {
-  .caja-diario-workspace {
-    grid-template-columns: minmax(238px, 268px) minmax(0, 1fr);
-    align-items: start;
-  }
+.caja-diario-main-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+  width: 100%;
+  flex: 1 1 auto;
 }
 
 .caja-diario-tabs-panel {
@@ -51,7 +133,7 @@
 }
 
 .caja-diario-main-panel .credix-box-content {
-  padding: 12px 14px 16px;
+  padding: 12px 16px 18px;
 }
 
 .caja-diario-resumen-pre {
@@ -153,22 +235,60 @@
   justify-content: flex-end;
 }
 
-/* —— Sidebar sesión —— */
-.caja-diario-session-card {
+/* —— Barra de sesión (full width) —— */
+.caja-diario-session-bar {
+  display: grid;
+  gap: 12px 16px;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  padding: 12px 16px;
   background:
-    linear-gradient(180deg, rgba(232, 242, 252, 0.78) 0%, #fff 42%),
+    linear-gradient(90deg, rgba(232, 242, 252, 0.95) 0%, #fff 42%),
     #fff;
   border: 1px solid #d9e4f2;
-  border-radius: 14px;
-  padding: 14px 12px;
-  font-size: 12px;
-  position: sticky;
-  top: 12px;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+@media (min-width: 900px) {
+  .caja-diario-session-bar {
+    grid-template-columns: minmax(160px, auto) minmax(0, 1fr) auto;
+  }
+}
+
+.caja-diario-session-bar__identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  min-width: 0;
+}
+
+.caja-diario-session-status {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.caja-diario-session-status.is-abierto {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+.caja-diario-session-status.is-cerrado {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
 }
 
 .caja-diario-session-name {
-  margin: 0 0 10px;
+  margin: 0;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
@@ -178,7 +298,7 @@
   background: none;
   padding: 0;
   text-align: left;
-  width: 100%;
+  min-width: 0;
 }
 
 .caja-diario-session-name:hover {
@@ -186,32 +306,56 @@
   text-decoration: underline;
 }
 
-.caja-diario-session-card dl {
+.caja-diario-session-bar__meta {
   margin: 0;
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 6px 12px;
-  padding: 10px 0 12px;
-  border-bottom: 1px solid #e5edf7;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 14px;
+  min-width: 0;
 }
 
-.caja-diario-session-card dt {
-  color: var(--credix-text-muted);
-  font-weight: 400;
+@media (min-width: 640px) {
+  .caja-diario-session-bar__meta {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
-.caja-diario-session-card dd {
-  margin: 0;
-  font-weight: 600;
-  text-align: right;
-  color: var(--credix-text);
-}
-
-.caja-diario-side-section {
+.caja-diario-session-bar__meta > div {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
+  gap: 2px;
+  min-width: 0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid #e8eef6;
+}
+
+.caja-diario-session-bar__meta dt {
+  margin: 0;
+  color: var(--credix-text-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.caja-diario-session-bar__meta dd {
+  margin: 0;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--credix-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.caja-diario-session-bar__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  min-width: 0;
 }
 
 .caja-diario-side-section__eyebrow {
@@ -224,7 +368,7 @@
 }
 
 .caja-diario-recalc-btn.ant-btn {
-  justify-content: flex-start;
+  justify-content: center;
   min-height: 36px;
   border-color: #c9d8ea;
   background: #f8fbff;
@@ -239,22 +383,24 @@
 
 .caja-diario-quick-links {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 12px 0;
-  border-top: 1px solid #e5edf7;
-  border-bottom: 1px solid #e5edf7;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 2px;
+  margin: 0;
+  padding: 0;
+  border: none;
 }
 
 .caja-diario-quick-links a {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   min-height: 32px;
-  padding: 6px 8px;
+  padding: 4px 10px;
   border-radius: 8px;
   color: #245176;
   font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .caja-diario-quick-links a:hover {
@@ -266,11 +412,34 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 0;
   padding: 12px;
   border: 1px solid #dbe7f5;
   border-radius: 12px;
   background: #f8fbff;
+}
+
+.caja-diario-ops-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #dbe7f5;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #f8fbff 0%, #fff 100%);
+  min-width: 0;
+}
+
+.caja-diario-ops-bar .caja-diario-ops-heading {
+  flex: 1 1 180px;
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.caja-diario-ops-bar .ant-btn {
+  flex: 0 1 auto;
 }
 
 .caja-diario-ops-heading {
@@ -314,6 +483,7 @@
 .caja-diario-ops-ruta.ant-btn:hover {
   background: #15803d !important;
   border-color: #15803d !important;
+  color: #fff !important;
 }
 
 /* —— Tabs —— */
@@ -642,63 +812,6 @@
   background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important;
 }
 
-.caja-cuotas-table--auto table {
-  table-layout: auto !important;
-  width: max-content;
-  min-width: 100%;
-}
-
-.caja-cuotas-table--auto .ant-table-thead > tr > th,
-.caja-cuotas-table--auto .ant-table-tbody > tr > td {
-  white-space: nowrap;
-}
-
-.caja-cuotas-table--auto .ant-table-thead > tr > th:nth-child(3),
-.caja-cuotas-table--auto .ant-table-tbody > tr > td:nth-child(3) {
-  white-space: normal;
-  max-width: 220px;
-}
-
-/* —— Modal créditos pendientes —— */
-.caja-creditos-pendientes-modal .ant-modal-header {
-  background: linear-gradient(90deg, #eff6ff 0%, #f8fafc 100%);
-  border-bottom: 1px solid #dbeafe;
-}
-
-.caja-creditos-pendientes-modal__title {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-  color: var(--caja-brand, #1e40af);
-}
-
-.caja-creditos-pendientes-modal__intro {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  background: #f8fafc;
-  border: 1px solid var(--credix-border, #e2e8f0);
-  border-radius: 8px;
-  font-size: 13px;
-}
-
-.caja-creditos-pendientes-table .ant-table {
-  table-layout: auto !important;
-}
-
-.caja-creditos-pendientes-table__row {
-  cursor: pointer;
-}
-
-.caja-creditos-pendientes-table__row:hover > td {
-  background: #eff6ff !important;
-}
-
 .caja-btn-pago-libre.ant-btn-primary {
   background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
   border: none !important;
@@ -711,18 +824,6 @@
   filter: brightness(1.03);
 }
 
-.caja-btn-pagar-cuota.ant-btn-primary {
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 55%, #3b82f6 100%) !important;
-  border: none !important;
-  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.4);
-  font-weight: 700;
-  min-width: 148px;
-}
-
-.caja-btn-pagar-cuota.ant-btn-primary:not(:disabled):hover {
-  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important;
-}
-
 .caja-cuotas-table--auto table {
   table-layout: auto !important;
   width: max-content;
@@ -740,18 +841,68 @@
   max-width: 220px;
 }
 
-/* —— Modal créditos pendientes —— */
-.caja-creditos-pendientes-modal .ant-modal-header {
-  background: linear-gradient(90deg, #eff6ff 0%, #f8fafc 100%);
-  border-bottom: 1px solid #dbeafe;
+/* —— Modal créditos pendientes (escritorio operativo) —— */
+.caja-creditos-pendientes-modal-root .ant-modal {
+  max-width: 96vw;
+  padding-bottom: 0;
+}
+
+.caja-creditos-pendientes-modal-root .ant-modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: min(90vh, 920px);
+  overflow: hidden;
+}
+
+.caja-creditos-pendientes-modal-root .ant-modal-header {
+  flex: 0 0 auto;
+  padding: 16px 60px 16px 22px;
+  min-height: 58px;
+}
+
+.caja-creditos-pendientes-modal-root .ant-modal-close {
+  top: 11px !important;
+  inset-inline-end: 14px !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 8px !important;
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #fff !important;
+}
+
+.caja-creditos-pendientes-modal-root .ant-modal-close:hover {
+  background: rgba(255, 255, 255, 0.32) !important;
+}
+
+.caja-creditos-pendientes-modal-root .ant-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 !important;
 }
 
 .caja-creditos-pendientes-modal__title {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-weight: 700;
-  color: var(--caja-brand, #1e40af);
+  font-size: 17px;
+  color: #fff;
+}
+
+.caja-creditos-pendientes-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+.caja-creditos-pendientes-modal__toolbar {
+  flex: 0 0 auto;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid #e8eef6;
+  background: #fff;
 }
 
 .caja-creditos-pendientes-modal__intro {
@@ -759,17 +910,46 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 10px 14px;
   margin-bottom: 12px;
-  padding: 10px 12px;
+  padding: 10px 14px;
   background: #f8fafc;
   border: 1px solid var(--credix-border, #e2e8f0);
   border-radius: 8px;
   font-size: 13px;
 }
 
+.caja-creditos-pendientes-modal__search {
+  margin: 0;
+}
+
+.caja-creditos-pendientes-modal__search .ant-input-affix-wrapper {
+  border-radius: 8px;
+}
+
+.caja-creditos-pendientes-modal__table-wrap {
+  flex: 1 1 auto;
+  min-height: 280px;
+  padding: 12px 20px 16px;
+  overflow: hidden;
+  background: #fbfcfe;
+}
+
 .caja-creditos-pendientes-table .ant-table {
   table-layout: auto !important;
+}
+
+.caja-creditos-pendientes-table .ant-table-thead > tr > th {
+  background: #eef5fc !important;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--caja-brand, #114885);
+}
+
+.caja-creditos-pendientes-table .ant-table-tbody > tr > td {
+  font-size: 13px;
 }
 
 .caja-creditos-pendientes-table__row {
@@ -778,6 +958,31 @@
 
 .caja-creditos-pendientes-table__row:hover > td {
   background: #eff6ff !important;
+}
+
+.caja-creditos-pendientes-table .ant-pagination {
+  margin: 12px 0 0 !important;
+}
+
+@media (max-width: 720px) {
+  .caja-creditos-pendientes-modal-root .ant-modal {
+    max-width: calc(100vw - 16px);
+    margin: 8px auto;
+  }
+
+  .caja-creditos-pendientes-modal-root .ant-modal-content {
+    max-height: calc(100dvh - 16px);
+  }
+
+  .caja-creditos-pendientes-modal__toolbar,
+  .caja-creditos-pendientes-modal__table-wrap {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .caja-creditos-pendientes-modal__table-wrap {
+    min-height: 220px;
+  }
 }
 
 /* —— Tabla cuotas + leyenda —— */
@@ -1059,29 +1264,90 @@
 }
 
 /* —— Arqueo —— */
+.caja-diario-arqueo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
 .caja-diario-arqueo-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  margin-bottom: 12px;
 }
 
 .caja-diario-arqueo-search {
-  flex: 1;
-  min-width: 220px;
-  max-width: 400px;
+  flex: 1 1 220px;
+  min-width: 180px;
+  max-width: 420px;
+}
+
+.caja-diario-arqueo-segmented {
+  flex: 1 1 auto;
+}
+
+.caja-diario-arqueo-segmented.ant-segmented {
+  max-width: 100%;
 }
 
 .caja-diario-arqueo-split {
-  display: grid;
-  gap: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
 }
 
-@media (min-width: 960px) {
-  .caja-diario-arqueo-split {
-    grid-template-columns: 1fr 1fr;
+.caja-diario-arqueo-split.is-ambas {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 1280px) {
+  .caja-diario-arqueo-split.is-ambas {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
   }
+}
+
+.caja-diario-arqueo-pane {
+  min-width: 0;
+  background: #fff;
+  border: 1px solid #d9e4f2;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+}
+
+.caja-diario-arqueo-pane__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.caja-diario-arqueo-pane__head h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--caja-brand);
+  letter-spacing: 0.02em;
+}
+
+.caja-diario-arqueo-pane__table {
+  min-width: 0;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.caja-diario-arqueo-pane__table .ant-table-wrapper {
+  min-width: 0;
 }
 
 .caja-diario-arqueo-footer {
@@ -1090,7 +1356,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 16px;
+  margin-top: 4px;
   padding: 14px;
   background: #f8fafc;
   border: 1px solid var(--credix-border);
@@ -1122,16 +1388,76 @@
   font-weight: 600;
 }
 
-/* —— Desembolsos / E/S —— */
+/* —— Desembolsos / Egreso-Ingreso —— */
 .caja-diario-desembolsos {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  width: 100%;
+}
+
+.caja-diario-entrada-salida {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+.caja-diario-entrada-salida-hint {
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.caja-diario-entrada-salida-hint.is-warning {
+  background: #fffbeb;
+  border-color: #fcd34d;
+}
+
+.caja-diario-entrada-salida-form {
+  width: 100%;
+  min-width: 0;
 }
 
 .caja-diario-entrada-salida-form .ant-form-item-label > label {
   font-weight: 600;
   font-size: 12px;
+}
+
+.caja-diario-es-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0 16px;
+  width: 100%;
+  min-width: 0;
+}
+
+.caja-diario-es-grid__full {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 720px) {
+  .caja-diario-es-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .caja-diario-es-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.caja-diario-es-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--credix-border, #e5e7eb);
 }
 
 .caja-diario-cancelacion-trigger {
@@ -1175,29 +1501,13 @@
   background: #fff7ed !important;
 }
 
-.caja-diario-pago-dock--inline {
-  position: static;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-  background: transparent;
-}
+@media (max-width: 899px) {
+  .caja-diario-session-bar__actions {
+    width: 100%;
+  }
 
-.caja-diario-cxc-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 12px;
-  align-items: flex-start;
-}
-
-.caja-cxc-table .ant-table-tbody > tr:hover > td {
-  background: #fff7ed !important;
-}
-
-@media (max-width: 1099px) {
-  .caja-diario-session-card {
-    position: static;
+  .caja-diario-recalc-btn.ant-btn {
+    flex: 1 1 auto;
   }
 
   .caja-diario-pago-dock {
@@ -1205,7 +1515,27 @@
   }
 }
 
+@media (max-width: 576px) {
+  .caja-diario-session-bar {
+    padding: 10px 12px;
+  }
+
+  .caja-diario-ops-bar {
+    padding: 10px 12px;
+  }
+
+  .caja-diario-ops-bar .ant-btn {
+    flex: 1 1 calc(50% - 8px);
+  }
+}
+
 /* —— Modales y drawers (marca Credix) —— */
+.caja-modal-root,
+.caja-drawer-root {
+  --caja-brand: var(--credix-brand, #114885);
+  --caja-brand-light: var(--credix-brand-light, #e8f2fc);
+}
+
 .caja-modal-root .ant-modal-content,
 .caja-drawer-root .ant-drawer-content {
   border-radius: 14px;
@@ -1217,10 +1547,15 @@
 
 .caja-modal-root .ant-modal-header,
 .caja-drawer-root .ant-drawer-header {
-  background: linear-gradient(135deg, var(--caja-brand) 0%, #1a5a9e 100%);
+  background: linear-gradient(
+    135deg,
+    var(--caja-brand, #114885) 0%,
+    #1a5a9e 100%
+  );
   border-bottom: none;
-  padding: 16px 20px;
+  padding: 14px 56px 14px 20px;
   margin: 0;
+  min-height: 56px;
 }
 
 .caja-modal-root .ant-modal-title,
@@ -1228,17 +1563,51 @@
   color: #fff !important;
   font-weight: 600;
   font-size: 16px;
+  line-height: 1.35;
 }
 
 .caja-modal-root .ant-modal-close,
 .caja-drawer-root .ant-drawer-close {
-  color: rgba(255, 255, 255, 0.88);
+  top: 10px !important;
+  inset-inline-end: 12px !important;
+  inset-inline-start: auto !important;
+  width: 36px !important;
+  height: 36px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px !important;
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+  opacity: 1 !important;
+  z-index: 20;
+}
+
+.caja-modal-root .ant-modal-close .ant-modal-close-x,
+.caja-drawer-root .ant-drawer-close .anticon,
+.caja-modal-root .ant-modal-close .anticon,
+.caja-drawer-root .ant-drawer-close svg,
+.caja-modal-root .ant-modal-close svg {
+  color: #fff !important;
+  fill: currentColor !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  width: 16px;
+  height: 16px;
 }
 
 .caja-modal-root .ant-modal-close:hover,
 .caja-drawer-root .ant-drawer-close:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+.caja-modal-root .ant-modal-close:focus-visible,
+.caja-drawer-root .ant-drawer-close:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
 
 .caja-modal-root .ant-modal-body,
@@ -1255,7 +1624,7 @@
 
 .caja-modal-root--confirm .ant-modal-confirm-title {
   font-weight: 600;
-  color: var(--caja-brand);
+  color: var(--caja-brand, #114885);
 }
 
 .caja-diario-modal-hint {
@@ -1282,7 +1651,7 @@
 
 .caja-ruta-qr-icon {
   font-size: 28px;
-  color: var(--caja-brand);
+  color: var(--caja-brand, #114885);
 }
 
 .caja-ruta-qr-hint {
@@ -1291,7 +1660,7 @@
 }
 
 .caja-ruta-qr-image {
-  border: 4px solid var(--caja-brand-light);
+  border: 4px solid var(--caja-brand-light, #e8f2fc);
   border-radius: 10px;
 }
 
@@ -1323,6 +1692,23 @@
     width: 100%;
   }
 
+  .caja-diario-arqueo-segmented.ant-segmented {
+    width: 100%;
+  }
+
+  .caja-diario-arqueo-footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .caja-diario-arqueo-footer-actions {
+    width: 100%;
+  }
+
+  .caja-diario-arqueo-footer-actions .ant-btn {
+    flex: 1 1 auto;
+  }
+
   .caja-cuotas-table-toolbar {
     flex-direction: column;
     align-items: stretch;
@@ -1332,104 +1718,4 @@
     flex: none;
     width: 100%;
   }
-}
-
-/* —— Modales y drawers (marca Credix) —— */
-.caja-modal-root .ant-modal-content,
-.caja-drawer-root .ant-drawer-content {
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow:
-    0 24px 48px rgba(17, 72, 133, 0.14),
-    0 4px 12px rgba(15, 23, 42, 0.08);
-}
-
-.caja-modal-root .ant-modal-header,
-.caja-drawer-root .ant-drawer-header {
-  background: linear-gradient(135deg, var(--caja-brand) 0%, #1a5a9e 100%);
-  border-bottom: none;
-  padding: 16px 20px;
-  margin: 0;
-}
-
-.caja-modal-root .ant-modal-title,
-.caja-drawer-root .ant-drawer-title {
-  color: #fff !important;
-  font-weight: 600;
-  font-size: 16px;
-}
-
-.caja-modal-root .ant-modal-close,
-.caja-drawer-root .ant-drawer-close {
-  color: rgba(255, 255, 255, 0.88);
-}
-
-.caja-modal-root .ant-modal-close:hover,
-.caja-drawer-root .ant-drawer-close:hover {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.caja-modal-root .ant-modal-body,
-.caja-drawer-root .ant-drawer-body {
-  padding: 20px;
-}
-
-.caja-modal-root .ant-modal-footer,
-.caja-drawer-root .ant-drawer-footer {
-  border-top: 1px solid var(--credix-border, #e5e7eb);
-  padding: 12px 20px 16px;
-  background: #f8fafc;
-}
-
-.caja-modal-root--confirm .ant-modal-confirm-title {
-  font-weight: 600;
-  color: var(--caja-brand);
-}
-
-.caja-diario-modal-hint {
-  margin: 0 0 12px;
-  font-size: 13px;
-  color: var(--credix-text-muted, #64748b);
-  line-height: 1.45;
-}
-
-.caja-diario-credito-chip-actions {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-  flex-wrap: wrap;
-}
-
-.caja-ruta-qr-body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  text-align: center;
-}
-
-.caja-ruta-qr-icon {
-  font-size: 28px;
-  color: var(--caja-brand);
-}
-
-.caja-ruta-qr-hint {
-  margin: 0 !important;
-  max-width: 340px;
-}
-
-.caja-ruta-qr-image {
-  border: 4px solid var(--caja-brand-light);
-  border-radius: 10px;
-}
-
-.caja-ruta-qr-url {
-  font-size: 12px;
-  word-break: break-all;
-}
-
-.caja-mov-detalle .ant-descriptions-item-label {
-  font-weight: 500;
-  width: 38%;
 }

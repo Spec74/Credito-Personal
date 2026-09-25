@@ -112,9 +112,30 @@ describe('menuRouteAccess', () => {
     expect(hasMenuRouteAccess('/credito/simulador', [padre])).toBe(true)
   })
 
-  it('accesos rápidos del layout siempre habilitan comisiones y simulador', () => {
+  it('hub /admin se habilita si el menú tiene usuarios/roles/oficinas (sin ítem Administración)', () => {
+    expect(hasMenuRouteAccess('/admin', [menu('/usuario')])).toBe(true)
+    expect(hasMenuRouteAccess('/admin', [menu('/rol')])).toBe(true)
+    expect(hasMenuRouteAccess('/admin', [menu('/oficina')])).toBe(true)
+    expect(hasMenuRouteAccess('/admin', [])).toBe(false)
+  })
+
+  it('alias maestro de cajas entre /caja/maestro y /mantenimiento/cajas', () => {
+    const menuCajaMaestro: MenuItemDto = {
+      ...menu('Caja', 'Caja'),
+      modulo: 'CAJA',
+    }
+    // Módulo CAJA / denominación Caja → /mantenimiento/cajas (o alias /caja/maestro)
+    expect(hasMenuRouteAccess('/mantenimiento/cajas', [menuCajaMaestro])).toBe(true)
+    expect(hasMenuRouteAccess('/caja/maestro', [menuCajaMaestro])).toBe(true)
+  })
+
+  it('accesos rápidos del layout siempre habilitan comisiones, simulador y cartera gestor', () => {
     expect(hasMenuRouteAccess('/admin/comisiones', [])).toBe(true)
     expect(hasMenuRouteAccess('/credito/simulador', [])).toBe(true)
+    expect(hasMenuRouteAccess('/informes/cobro-diario', [])).toBe(true)
+    expect(hasMenuRouteAccess('/informes/morosidad-gestor', [])).toBe(true)
+    expect(hasMenuRouteAccess('/informes/creditos-observados', [])).toBe(true)
+    expect(hasMenuRouteAccess('/informes/clientes-inactivos', [])).toBe(true)
   })
 
   it('menu Creditos (consulta) habilita ficha por persona', () => {

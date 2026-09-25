@@ -1,20 +1,26 @@
-import { useState, type ReactNode } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { useMemo, useState, type ReactNode } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   AlertOutlined,
   CalendarOutlined,
+  EnvironmentOutlined,
+  FileSearchOutlined,
+  PercentageOutlined,
   ReloadOutlined,
   RiseOutlined,
   StopOutlined,
   TeamOutlined,
+  UserDeleteOutlined,
   WalletOutlined,
   WarningOutlined,
+  CalculatorOutlined,
 } from '@ant-design/icons'
-import { Alert, Button, Skeleton } from 'antd'
+import { Alert, Button, Progress, Skeleton } from 'antd'
 import {
   fetchDashboardAnalista,
   type DashboardMoraTipo,
+  type DashboardProductividadPunto,
 } from '../../api/dashboard'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
@@ -22,21 +28,31 @@ import { CobranzaAreaChart } from '../../components/dashboard/CobranzaAreaChart'
 import { DashboardClientesMoraModal } from '../../components/dashboard/DashboardClientesMoraModal'
 import { CredixPage } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
+import {
+  buildAnalistaCarteraActions,
+  runDashboardCarteraAction,
+} from './dashboardCarteraActions'
 import '../../styles/dashboard-analista.css'
 
-const ACCIONES = [
-  { to: '/informes/morosidad-gestor', label: 'Vencidos' },
-  { to: '/informes/creditos-observados', label: 'Observados' },
-  { to: '/informes/clientes-inactivos', label: 'Clientes inactivos' },
-  { to: '/credito/simulador', label: 'Simulador' },
-] as const
+const ACCION_ICONS: Record<string, ReactNode> = {
+  'cobro-diario': <EnvironmentOutlined />,
+  vencidos: <WarningOutlined />,
+  observados: <FileSearchOutlined />,
+  inactivos: <UserDeleteOutlined />,
+  simulador: <CalculatorOutlined />,
+  'caja-diario': <WalletOutlined />,
+}
 
 export function AnalystDashboardPage() {
   const { session } = useAuth()
+  const navigate = useNavigate()
   const [params] = useSearchParams()
   const desdeAdmin = params.get('vista') === 'analista'
   const [moraOpen, setMoraOpen] = useState(false)
   const [moraTipo, setMoraTipo] = useState<DashboardMoraTipo>('TODOS')
+
+  const roles = session?.roles ?? []
+  const carteraActions = useMemo(() => buildAnalistaCarteraActions(roles), [roles])
 
   const query = useQuery({
     queryKey: ['dashboard-analista', session?.usuarioId, session?.oficinaId],
@@ -51,6 +67,19 @@ export function AnalystDashboardPage() {
     setMoraTipo(tipo)
     setMoraOpen(true)
   }
+
+  const onCarteraAction = (action: (typeof carteraActions)[number]) => {
+    runDashboardCarteraAction(action, {
+      oficinaId: session?.oficinaId ?? 0,
+      usuarioId: session?.usuarioId ?? 0,
+      navigate,
+    })
+  }
+
+  const prodStats = useMemo(
+    () => resumenProductividad(data?.productividad ?? []),
+    [data?.productividad],
+  )
 
   if (query.isLoading) {
     return (
@@ -79,11 +108,17 @@ export function AnalystDashboardPage() {
   const { kpis } = data
   const fechaLarga = formatFechaLarga(data.fechaConsulta)
   const vsAyer = resumenVsAyer(kpis.cobradoHoy, kpis.cobradoAyer)
+  const progresoHoy =
+    kpis.cobradoAyer > 0
+      ? Math.min(100, Math.round((kpis.cobradoHoy / kpis.cobradoAyer) * 100))
+      : kpis.cobradoHoy > 0
+        ? 100
+        : 0
 
   return (
     <CredixPage
       title="Inicio"
-      subtitle="Resumen de tus indicadores al cierre del día operativo."
+      subtitle="Seguimiento de tu cobranza, cartera y prioridades del día."
       actions={
         <>
           {desdeAdmin ? (
@@ -96,7 +131,11 @@ export function AnalystDashboardPage() {
               </Link>
             </>
           ) : null}
-          <Button icon={<ReloadOutlined />} onClick={() => void query.refetch()} loading={query.isFetching}>
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => void query.refetch()}
+            loading={query.isFetching}
+          >
             Actualizar
           </Button>
         </>
@@ -105,18 +144,22 @@ export function AnalystDashboardPage() {
       <div className="dash-analista">
         <header className="dash-head">
           <div>
-            <p className="dash-kicker">Tablero del analista</p>
+            <p className="dash-kicker">Tablero del gestor</p>
             <h2 className="dash-hello">
               {saludo()}, {data.nombreAnalista}
             </h2>
-            <p className="dash-sub">Cartera, cobranza y colocación de tu oficina, solo de tus créditos.</p>
+            <p className="dash-sub">
+              Indicadores de tus créditos en esta oficina — paridad del dashboard
+              legado, con seguimiento y acciones priorizadas.
+            </p>
           </div>
           <div className="dash-date">{fechaLarga}</div>
         </header>
 
-        <section className="dash-kpis" aria-label="Indicadores principales">
+        <h3 className="dash-section-title">Operación del mes</h3>
+        <section className="dash-kpis dash-kpis-4" aria-label="Operación del mes">
           <KpiCard
-            accent="#0ea5e9"
+            accent="#2e69ae"
             icon={<TeamOutlined />}
             label="Total clientes"
             value={formatEntero(kpis.totalClientes)}
@@ -128,7 +171,7 @@ export function AnalystDashboardPage() {
             }
           />
           <KpiCard
-            accent="#2563eb"
+            accent="#114885"
             icon={<RiseOutlined />}
             label="Créditos colocados"
             value={formatEntero(kpis.creditosActual)}
@@ -140,7 +183,7 @@ export function AnalystDashboardPage() {
             }
           />
           <KpiCard
-            accent="#059669"
+            accent="#15803d"
             icon={<WalletOutlined />}
             label="Cobrado del mes"
             value={`S/ ${formatMoney(kpis.cobradoActual)}`}
@@ -152,12 +195,16 @@ export function AnalystDashboardPage() {
             }
           />
           <KpiCard
-            accent="#7c3aed"
-            icon={<WalletOutlined />}
+            accent="#0f4c81"
+            icon={<PercentageOutlined />}
             label="Cartera vigente"
             value={`S/ ${formatMoney(kpis.saldoActual)}`}
-            meta={<span>Saldo de créditos desembolsados a tu cargo</span>}
+            meta={<span>Saldo pendiente de créditos desembolsados a tu cargo</span>}
           />
+        </section>
+
+        <h3 className="dash-section-title">Riesgo de cartera</h3>
+        <section className="dash-kpis dash-kpis-4" aria-label="Riesgo de cartera">
           <KpiCard
             accent="#b91c1c"
             icon={<WarningOutlined />}
@@ -168,7 +215,7 @@ export function AnalystDashboardPage() {
             actionHint="Ver clientes morosos"
           />
           <KpiCard
-            accent="#dc2626"
+            accent="#9f1239"
             icon={<TeamOutlined />}
             label="Clientes en mora"
             value={formatEntero(kpis.clientesMora)}
@@ -198,19 +245,52 @@ export function AnalystDashboardPage() {
             actionHint="Ver clientes sin pago"
           />
           <KpiCard
-            accent="#d97706"
+            accent="#114885"
             icon={<CalendarOutlined />}
             label="Vencen esta semana"
             value={formatEntero(kpis.porVencerSemana)}
-            meta={<span>Próximos 7 días</span>}
+            meta={<span>Próximos 7 días — seguimiento preventivo</span>}
+            href="/informes/morosidad-gestor"
+            actionHint="Abrir vencidos"
           />
         </section>
+
+        {kpis.clientesMora > 0 ? (
+          <section className="dash-mora-strip" aria-label="Desglose de mora">
+            <div className="dash-mora-strip__head">
+              <strong>Desglose de mora</strong>
+              <span>Filtros rápidos del listado (valor agregado sobre el legado)</span>
+            </div>
+            <div className="dash-mora-strip__chips">
+              <MoraChip
+                label="Todos"
+                count={kpis.clientesMora}
+                onClick={() => abrirMora('TODOS')}
+              />
+              <MoraChip
+                label="Nunca pagaron"
+                count={kpis.clientesMoraNuncaPagaron}
+                onClick={() => abrirMora('NUNCA_PAGO')}
+              />
+              <MoraChip
+                label="Dejaron de pagar"
+                count={kpis.clientesMoraDejaronPagar}
+                onClick={() => abrirMora('DEJO_PAGAR')}
+              />
+              <MoraChip
+                label="Pagan con atraso"
+                count={kpis.clientesMoraPagandoConAtraso}
+                onClick={() => abrirMora('PAGA_CON_ATRASO')}
+              />
+            </div>
+          </section>
+        ) : null}
 
         <section className="dash-panel">
           <div className="dash-panel-head">
             <div>
-              <h2>Cobranza de los últimos 30 días</h2>
-              <p>Pagos CUO de tus créditos. El legado decía “mensual”; el dato es diario.</p>
+              <h2>Mi productividad diaria</h2>
+              <p>Cobranza CUO de tus créditos · últimos 30 días</p>
             </div>
             <div className="dash-daily-summary" aria-live="polite">
               <div>
@@ -225,7 +305,44 @@ export function AnalystDashboardPage() {
             </div>
           </div>
           <div className="dash-panel-body">
+            <div className="dash-prod-progress">
+              <div className="dash-prod-progress__label">
+                <span>Avance vs cobranza de ayer</span>
+                <strong>{progresoHoy}%</strong>
+              </div>
+              <Progress
+                percent={progresoHoy}
+                showInfo={false}
+                strokeColor="#114885"
+                trailColor="#e8f2fc"
+                size="small"
+              />
+            </div>
             <CobranzaAreaChart puntos={data.productividad} />
+            <div className="dash-prod-stats" aria-label="Resumen de productividad">
+              <div>
+                <span>Total 30 días</span>
+                <strong>S/ {formatMoney(prodStats.total)}</strong>
+              </div>
+              <div>
+                <span>Promedio diario</span>
+                <strong>S/ {formatMoney(prodStats.promedio)}</strong>
+              </div>
+              <div>
+                <span>Mejor día</span>
+                <strong>
+                  {prodStats.mejorEtiqueta
+                    ? `${prodStats.mejorEtiqueta} · S/ ${formatMoney(prodStats.mejor)}`
+                    : '—'}
+                </strong>
+              </div>
+              <div>
+                <span>Días con cobro</span>
+                <strong>
+                  {prodStats.diasConCobro} / {prodStats.dias}
+                </strong>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -235,11 +352,17 @@ export function AnalystDashboardPage() {
               <h2>Resumen y acciones prioritarias</h2>
               <p>Recomendaciones generadas según tus indicadores</p>
             </div>
+            <span className="dash-priorities-badge">
+              <AlertOutlined aria-hidden /> Prioridades
+            </span>
           </div>
           <div className="dash-panel-body">
             <div className="dash-insights">
               {data.insights.map((insight) => (
-                <article key={insight.titulo} className={`dash-insight is-${insight.tipo}`}>
+                <article
+                  key={`${insight.titulo}-${insight.tipo}`}
+                  className={`dash-insight is-${insight.tipo}`}
+                >
                   <AlertOutlined aria-hidden />
                   <div>
                     <h3>{insight.titulo}</h3>
@@ -247,7 +370,11 @@ export function AnalystDashboardPage() {
                     {insight.accion ? (
                       <Link to={insight.accion}>Ir a la gestión →</Link>
                     ) : insight.titulo === 'Cartera en mora' ? (
-                      <button type="button" className="dash-insight-link" onClick={() => abrirMora('TODOS')}>
+                      <button
+                        type="button"
+                        className="dash-insight-link"
+                        onClick={() => abrirMora('TODOS')}
+                      >
                         Ver clientes morosos →
                       </button>
                     ) : null}
@@ -262,15 +389,22 @@ export function AnalystDashboardPage() {
           <div className="dash-panel-head">
             <div>
               <h2>Seguimiento de cartera</h2>
-              <p>El menú lateral cubre el resto de módulos. Estos atajos salen de tus indicadores.</p>
+              <p>
+                Atajos operativos según el legado (vencidos, observados, inactivos) más
+                cobro y caja del día.
+              </p>
             </div>
           </div>
           <div className="dash-panel-body">
             <nav className="dash-actions" aria-label="Seguimiento">
-              {ACCIONES.map((a) => (
-                <Link key={a.to} to={a.to}>
-                  <Button>{a.label}</Button>
-                </Link>
+              {carteraActions.map((a) => (
+                <Button
+                  key={a.id}
+                  icon={ACCION_ICONS[a.id]}
+                  onClick={() => onCarteraAction(a)}
+                >
+                  {a.label}
+                </Button>
               ))}
             </nav>
           </div>
@@ -286,6 +420,23 @@ export function AnalystDashboardPage() {
   )
 }
 
+function MoraChip({
+  label,
+  count,
+  onClick,
+}: {
+  label: string
+  count: number
+  onClick: () => void
+}) {
+  return (
+    <button type="button" className="dash-mora-chip" onClick={onClick}>
+      <span>{label}</span>
+      <strong>{formatEntero(count)}</strong>
+    </button>
+  )
+}
+
 function KpiCard({
   accent,
   icon,
@@ -293,6 +444,7 @@ function KpiCard({
   value,
   meta,
   onActivate,
+  href,
   actionHint,
 }: {
   accent: string
@@ -301,9 +453,9 @@ function KpiCard({
   value: string
   meta: ReactNode
   onActivate?: () => void
+  href?: string
   actionHint?: string
 }) {
-  const interactive = Boolean(onActivate)
   const body = (
     <>
       <div className="dash-kpi-label">
@@ -311,28 +463,43 @@ function KpiCard({
       </div>
       <div className="dash-kpi-value">{value}</div>
       <div className="dash-kpi-meta">{meta}</div>
-      {interactive && actionHint ? <div className="dash-kpi-action">{actionHint}</div> : null}
+      {actionHint ? <div className="dash-kpi-action">{actionHint}</div> : null}
     </>
   )
 
-  if (!interactive) {
+  const style = { ['--dash-accent' as string]: accent }
+
+  if (href) {
     return (
-      <article className="dash-kpi" style={{ ['--dash-accent' as string]: accent }}>
+      <Link
+        to={href}
+        className="dash-kpi is-action"
+        style={style}
+        aria-label={actionHint ?? label}
+      >
         {body}
-      </article>
+      </Link>
+    )
+  }
+
+  if (onActivate) {
+    return (
+      <button
+        type="button"
+        className="dash-kpi is-action"
+        style={style}
+        onClick={onActivate}
+        aria-label={actionHint ?? label}
+      >
+        {body}
+      </button>
     )
   }
 
   return (
-    <button
-      type="button"
-      className="dash-kpi is-action"
-      style={{ ['--dash-accent' as string]: accent }}
-      onClick={onActivate}
-      aria-label={actionHint ?? label}
-    >
+    <article className="dash-kpi" style={style}>
       {body}
-    </button>
+    </article>
   )
 }
 
@@ -349,6 +516,41 @@ function Variacion({ pct }: { pct: number | null }) {
       {up ? '▲' : '▼'} {Math.abs(pct).toFixed(1)}%
     </span>
   )
+}
+
+function resumenProductividad(puntos: DashboardProductividadPunto[]) {
+  if (puntos.length === 0) {
+    return {
+      total: 0,
+      promedio: 0,
+      mejor: 0,
+      mejorEtiqueta: '',
+      diasConCobro: 0,
+      dias: 0,
+    }
+  }
+  let total = 0
+  let mejor = 0
+  let mejorEtiqueta = ''
+  let diasConCobro = 0
+  for (const p of puntos) {
+    total += p.montoCobrado
+    if (p.montoCobrado > 0) {
+      diasConCobro += 1
+    }
+    if (p.montoCobrado > mejor) {
+      mejor = p.montoCobrado
+      mejorEtiqueta = p.etiqueta
+    }
+  }
+  return {
+    total,
+    promedio: total / puntos.length,
+    mejor,
+    mejorEtiqueta,
+    diasConCobro,
+    dias: puntos.length,
+  }
 }
 
 function resumenVsAyer(hoy: number, ayer: number): { text: string; tone: string } {

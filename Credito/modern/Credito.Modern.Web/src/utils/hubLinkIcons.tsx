@@ -9,6 +9,7 @@ import {
   FileTextOutlined,
   GoldOutlined,
   InboxOutlined,
+  PercentageOutlined,
   PlusOutlined,
   QrcodeOutlined,
   SafetyOutlined,
@@ -147,7 +148,12 @@ export function hubLinkIcon(to: string, label?: string): ReactNode {
   if (path.includes('/informes')) return <FileTextOutlined />
   if (path.includes('/admin/usuario')) return <UserOutlined />
   if (path.includes('/admin/rol')) return <SafetyOutlined />
-  if (path.includes('/admin/oficina')) return <BankOutlined />
+  if (path.includes('/admin/comision')) return <PercentageOutlined />
+  if (path.includes('/mantenimiento/oficina') || path.includes('/admin/oficina')) {
+    return <BankOutlined />
+  }
+  if (path.includes('/mantenimiento/caja')) return <WalletOutlined />
+  if (path === '/admin' || path.endsWith('/admin')) return <SafetyOutlined />
   if (path.includes('/maestros/articulo')) return <ShopOutlined />
   if (path.includes('/maestros')) return <TableOutlined />
   if (path.includes('/cobertura')) return <AuditOutlined />

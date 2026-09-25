@@ -1,1 +1,0 @@
-import{n as e}from"./rolldown-runtime-D2aABDIb.js";import{p as t,u as n}from"./useAuth-iK-uWP6w.js";function r(e){return n(`/integraciones/apiperu/dni/${encodeURIComponent(e.trim())}`)}function i(e){return n(`/integraciones/apiperu/ruc/${encodeURIComponent(e.trim())}`)}function a(){return(a=e((()=>{t()})))()}export{i as n,a as r,r as t};
