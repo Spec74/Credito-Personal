@@ -4096,7 +4096,7 @@ internal static class CreditoReportesRestantesEndpoints
                             items,
                             new CredixMorosidadPdfDocument.Header(
                                 oficinaNom,
-                                hastaFecha.Value.ToString("d", CultureInfo.CurrentCulture),
+                                CredixReportTokens.FormatDate(hastaFecha.Value),
                                 diasAtrazoIni.Value,
                                 diasAtrazoFin.Value));
                         return TypedResults.File(bytes, "application/pdf", fileDownloadName: "credito-morosidad.pdf");
@@ -7905,14 +7905,13 @@ internal static class CreditoReportesRestantesEndpoints
                             .ListarAsync(fechaIni.Value, fechaFin.Value, oficinaResolved, usuarioResolved, ct)
                             .ConfigureAwait(false);
                         var csvBytes = RptCreditoCondonadoCsvFormatter.ToUtf8BomCsv(items);
-                        var cult = CultureInfo.CurrentCulture;
                         var pdfContext = await GestorInformePdfContextBuilder
                             .BuildGestorOficinaAsync(oficinaResolved, usuarioResolved, usuarios, oficinas, ct)
                             .ConfigureAwait(false);
                         pdfContext = pdfContext with
                         {
-                            FechaIni = fechaIni.Value.ToString("d", cult),
-                            FechaFin = fechaFin.Value.ToString("d", cult),
+                            FechaIni = CredixReportTokens.FormatDate(fechaIni.Value),
+                            FechaFin = CredixReportTokens.FormatDate(fechaFin.Value),
                         };
                         var bytes = TabularPdfDocument.FromUtf8BomCsv(
                             "Créditos condonados",

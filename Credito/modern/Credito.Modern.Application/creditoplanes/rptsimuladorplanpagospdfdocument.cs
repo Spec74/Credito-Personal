@@ -45,8 +45,8 @@ public static class RptSimuladorPlanPagosPdfDocument
     public static byte[] Build(RptSimuladorPlanPagosInformeDto informe)
     {
         var cab = informe.Cabecera;
-        var culture = CultureInfo.CurrentCulture;
-        var inv = CultureInfo.InvariantCulture;
+        var culture = CredixReportTokens.Pe;
+        var inv = CredixReportTokens.Inv;
         var logo = CredixReportAssets.LoadLogo();
         var fechaEmision = CredixReportTokens.NowPrinted();
         var totalCapital = informe.Cuotas.Sum(x => x.Amortizacion ?? 0m);
@@ -220,7 +220,7 @@ public static class RptSimuladorPlanPagosPdfDocument
                     var cu = cuotas[i];
                     var bg = i % 2 == 0 ? Colors.White : Zebra;
                     TableCell(table, cu.Numero?.ToString(inv) ?? string.Empty, bg, center: true);
-                    TableCell(table, cu.FechaPago?.ToString("dd/MM/yyyy", culture) ?? string.Empty, bg, center: true);
+                    TableCell(table, cu.FechaPago?.ToString(CredixReportTokens.DateFormat, culture) ?? string.Empty, bg, center: true);
                     TableCell(table, Money(cu.Amortizacion, culture), bg, right: true);
                     TableCell(table, Money(cu.Interes, culture), bg, right: true);
                     TableCell(table, Money(cu.Cuota, culture), bg, right: true);

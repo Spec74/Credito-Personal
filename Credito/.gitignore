@@ -219,6 +219,10 @@ _pkginfo.txt
 ClientBin/
 ~$*
 *~
+# Credito modern — artefactos de publish local (no versionar)
+modern/deploy/api-publish/
+modern/deploy/nginx-www/
+modern/deploy/.env
 modern/deploy/.env.local
 modern/deploy/.env.*.local
 *.dbmdl

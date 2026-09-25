@@ -1,4 +1,3 @@
-using System.Globalization;
 using Credito.Modern.Application.Oficinas;
 using Credito.Modern.Application.Reportes;
 using Credito.Modern.Application.UsuariosAdmin;
@@ -38,7 +37,6 @@ public static class LegacyReportPdf
     {
         var oficinas = http.RequestServices.GetRequiredService<IOficinaReadService>();
         var usuarios = http.RequestServices.GetRequiredService<IUsuarioAdminReadService>();
-        var cult = CultureInfo.CurrentCulture;
 
         CredixLegacyReportContext ctx;
         if (oficinaId is > 0)
@@ -53,7 +51,7 @@ public static class LegacyReportPdf
         }
 
         var periodo = anio is > 0 && mes is >= 1 and <= 12
-            ? new DateTime(anio.Value, mes.Value, 1).ToString("MM/yyyy", cult)
+            ? new DateTime(anio.Value, mes.Value, 1).ToString("MM/yyyy", CredixReportTokens.Pe)
             : null;
 
         return ctx with
@@ -109,5 +107,5 @@ public static class LegacyReportPdf
         TabularPdfDocument.FromUtf8BomCsv(reportTitle, csvUtf8Bom, context: context);
 
     private static string? FormatFecha(DateTime? d) =>
-        d?.ToString("d", CultureInfo.CurrentCulture);
+        d is null ? null : CredixReportTokens.FormatDate(d.Value);
 }
