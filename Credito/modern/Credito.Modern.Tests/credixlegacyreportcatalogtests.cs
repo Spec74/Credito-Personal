@@ -62,13 +62,25 @@ public sealed class CredixLegacyReportCatalogTests
     }
 
     [Theory]
-    [InlineData(5, true, false)]
-    [InlineData(9, true, false)]
+    [InlineData(5, true, true)]
+    [InlineData(5, false, false)]
+    [InlineData(7, false, false)]
+    [InlineData(8, true, true)]
+    [InlineData(8, false, true)]
     [InlineData(10, true, true)]
     [InlineData(15, true, true)]
-    [InlineData(20, false, false)]
+    [InlineData(20, false, true)]
     public void Orientacion_efectiva_segun_columnas(int cols, bool prefer, bool expected) =>
         Assert.Equal(expected, CredixLegacyPdfDocument.EffectiveLandscape(cols, prefer));
+
+    [Fact]
+    public void Creditos_aprobados_sin_columna_desembolso_duplicada()
+    {
+        var cols = CredixLegacyReportCatalog.Get(CredixLegacyReportKey.CreditoAprobacion).Columns;
+        Assert.DoesNotContain(cols, c => c.CsvName == "MontoDesembolso");
+        Assert.Contains(cols, c => c.CsvName == "MontoCredito");
+        Assert.True(CredixLegacyReportCatalog.Get(CredixLegacyReportKey.CreditoAprobacion).Landscape);
+    }
 
     [Fact]
     public void Formato_de_celda_fecha_e_importe()

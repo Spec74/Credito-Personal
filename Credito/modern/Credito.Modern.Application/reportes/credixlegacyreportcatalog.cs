@@ -266,8 +266,8 @@ public static class CredixLegacyReportCatalog
                     N("MontoCredito", "Monto crédito"),
                     N("Interes", "Interés"),
                     C("NumeroCuotas", "N° cuotas"),
-                    N("MontoDesembolso", "Desembolso"),
-                    L("Gestor", "Gestor"))),
+                    L("Gestor", "Gestor")),
+                landscape: true),
             [CredixLegacyReportKey.CreditosActivos] = Def(
                 "CRÉDITOS ACTIVOS",
                 CreditosActivosCols()),

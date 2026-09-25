@@ -8,6 +8,7 @@ namespace Credito.Modern.Application.CreditoPlanes;
 /// <summary>
 /// PDF profesional de créditos observados — paridad datos
 /// <c>CreditoBL.ReporteCreditoObservado</c> / <c>rptCreditoObservado.rdlc</c>.
+/// Hoja horizontal: muchas columnas de texto (oficina, cliente, observación).
 /// </summary>
 public static class RptCreditoObservadoFichaPdfDocument
 {
@@ -26,15 +27,18 @@ public static class RptCreditoObservadoFichaPdfDocument
         var totalRiesgo = rows.Sum(x => x.CentralRiesgo);
         var oficina = CreditoPdfBranding.OrDash(context?.Oficina);
         var agente = CreditoPdfBranding.OrDash(context?.Agente ?? context?.Gestor);
+        const int colCount = 12;
+        var bodyFont = CredixLegacyPdfDocument.ResolveBodyFont(colCount);
+        var (pageW, pageH) = CredixLegacyPdfDocument.ResolvePageSize(colCount, landscape: true);
 
         return Document.Create(document =>
         {
             document.Page(page =>
             {
-                page.Size(PageSizes.A4);
-                page.Margin(18);
-                page.DefaultTextStyle(x => x.FontSize(7.5f));
-                page.Footer().Element(CreditoPdfBranding.ComposeFooter);
+                page.Size(new PageSize(pageW, pageH));
+                page.Margin(14);
+                page.DefaultTextStyle(x => x.FontSize(bodyFont));
+                page.Footer().Element(c => CredixReportTokens.ComposeStandardFooter(c, rows.Count));
 
                 page.Content().Column(col =>
                 {
@@ -70,26 +74,33 @@ public static class RptCreditoObservadoFichaPdfDocument
                         table.ColumnsDefinition(c =>
                         {
                             c.ConstantColumn(22);
-                            c.RelativeColumn(1.1f);
+                            c.RelativeColumn(1.35f);
                             c.ConstantColumn(48);
-                            c.RelativeColumn(1.6f);
-                            c.ConstantColumn(58);
-                            c.ConstantColumn(58);
-                            c.ConstantColumn(52);
-                            c.ConstantColumn(42);
-                            c.ConstantColumn(42);
-                            c.ConstantColumn(42);
-                            c.RelativeColumn(1.2f);
-                            c.RelativeColumn(1.4f);
+                            c.RelativeColumn(2.0f);
+                            c.ConstantColumn(62);
+                            c.ConstantColumn(62);
+                            c.ConstantColumn(56);
+                            c.ConstantColumn(48);
+                            c.ConstantColumn(48);
+                            c.ConstantColumn(48);
+                            c.RelativeColumn(1.45f);
+                            c.RelativeColumn(1.8f);
                         });
 
                         table.Header(h =>
                         {
                             void H(string t, bool right = false)
                             {
-                                var cell = h.Cell().Element(CreditoPdfBranding.TableHeaderCell);
-                                if (right) cell.AlignRight().Text(t);
-                                else cell.Text(t);
+                                var cell = h.Cell().Element(
+                                    right
+                                        ? CreditoPdfBranding.TableHeaderCell
+                                        : CreditoPdfBranding.TableHeaderCell);
+                                CredixPdfCellText.Write(
+                                    right ? cell.AlignRight() : cell,
+                                    t,
+                                    bodyFont,
+                                    bold: true,
+                                    color: Colors.White);
                             }
 
                             H("N°");
@@ -112,18 +123,27 @@ public static class RptCreditoObservadoFichaPdfDocument
                             var zebra = n % 2 == 1;
                             n++;
                             IContainer B(IContainer x) => CreditoPdfBranding.TableBodyCell(x, zebra);
-                            table.Cell().Element(B).Text(n.ToString(CreditoPdfBranding.Inv));
-                            table.Cell().Element(B).Text(CreditoPdfBranding.OrDash(r.Oficina));
-                            table.Cell().Element(B).Text(r.CreditoId.ToString(CreditoPdfBranding.Inv));
-                            table.Cell().Element(B).Text(CreditoPdfBranding.OrDash(r.Cliente));
-                            table.Cell().Element(B).Text(CreditoPdfBranding.DateShort(r.FechaPrimerPago));
-                            table.Cell().Element(B).Text(CreditoPdfBranding.DateShort(r.FechaVencimiento));
-                            table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(r.MontoCredito));
-                            table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(r.Interes));
-                            table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(r.TramiteAdm));
-                            table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(r.CentralRiesgo));
-                            table.Cell().Element(B).Text(CreditoPdfBranding.OrDash(r.Agente));
-                            table.Cell().Element(B).Text(CreditoPdfBranding.OrDash(r.Observacion));
+                            void Cell(string? text, bool right = false)
+                            {
+                                var c = table.Cell().Element(B);
+                                CredixPdfCellText.Write(
+                                    right ? c.AlignRight() : c,
+                                    text ?? string.Empty,
+                                    bodyFont);
+                            }
+
+                            Cell(n.ToString(CreditoPdfBranding.Inv));
+                            Cell(CreditoPdfBranding.OrDash(r.Oficina));
+                            Cell(r.CreditoId.ToString(CreditoPdfBranding.Inv));
+                            Cell(CreditoPdfBranding.OrDash(r.Cliente));
+                            Cell(CreditoPdfBranding.DateShort(r.FechaPrimerPago));
+                            Cell(CreditoPdfBranding.DateShort(r.FechaVencimiento));
+                            Cell(CreditoPdfBranding.Money(r.MontoCredito), right: true);
+                            Cell(CreditoPdfBranding.Money(r.Interes), right: true);
+                            Cell(CreditoPdfBranding.Money(r.TramiteAdm), right: true);
+                            Cell(CreditoPdfBranding.Money(r.CentralRiesgo), right: true);
+                            Cell(CreditoPdfBranding.OrDash(r.Agente));
+                            Cell(CreditoPdfBranding.OrDash(r.Observacion));
                         }
 
                         table.Cell().ColumnSpan(6).Element(CreditoPdfBranding.TableTotalCell)

@@ -1,4 +1,3 @@
-using System.Globalization;
 using Credito.Modern.Application.CajaMaestro;
 using Credito.Modern.Application.CreditoPlanes;
 using Credito.Modern.Application.Oficinas;
@@ -21,8 +20,8 @@ public static class GestorInformePdfContextBuilder
     {
         var saldoPendiente = items.Sum(x => x.Saldo ?? 0m);
         var saldoMora = items.Where(x => (x.Mora ?? 0m) > 0).Sum(x => x.Saldo ?? 0m);
-        var cult = CultureInfo.CurrentCulture;
-        var inv = CultureInfo.InvariantCulture;
+        var pe = CredixReportTokens.Pe;
+        var inv = CredixReportTokens.Inv;
 
         var agente = await ResolveAgenteLabelAsync(usuarioId, soloMora, usuarios, cancellationToken)
             .ConfigureAwait(false);
@@ -40,13 +39,13 @@ public static class GestorInformePdfContextBuilder
 
         return new CredixLegacyReportContext
         {
-            Fecha = DateTime.Now.ToString("d", cult),
+            Fecha = CredixReportTokens.FormatDate(DateTime.Today),
             Oficina = oficina,
             Agente = agente,
             Caja = caja,
             NroClientes = items.Count.ToString(inv),
-            SaldoVencido = saldoPendiente.ToString("N2", cult),
-            SaldoMoroso = saldoMora.ToString("N2", cult),
+            SaldoVencido = saldoPendiente.ToString("N2", pe),
+            SaldoMoroso = saldoMora.ToString("N2", pe),
         };
     }
 
@@ -63,8 +62,7 @@ public static class GestorInformePdfContextBuilder
             .ResolveAsync(usuarioId, oficinaId, usuarios, oficinas, cancellationToken)
             .ConfigureAwait(false);
 
-        var cult = CultureInfo.CurrentCulture;
-        var f = (fecha ?? DateTime.Today).ToString("d", cult);
+        var f = CredixReportTokens.FormatDate(fecha ?? DateTime.Today);
         return new CredixLegacyReportContext
         {
             Fecha = fechaConPrefijoAl ? $" AL {f}" : f,
@@ -89,15 +87,15 @@ public static class GestorInformePdfContextBuilder
                 oficinas,
                 cancellationToken)
             .ConfigureAwait(false);
-        var cult = CultureInfo.CurrentCulture;
-        var titulo =
-            $"CLIENTES NUEVOS DEL {fechaIni.ToString("d", cult)} AL {fechaFin.ToString("d", cult)}";
+        var ini = CredixReportTokens.FormatDate(fechaIni);
+        var fin = CredixReportTokens.FormatDate(fechaFin);
+        var titulo = $"CLIENTES NUEVOS DEL {ini} AL {fin}";
 
         return baseCtx with
         {
             Titulo = titulo,
-            FechaIni = fechaIni.ToString("d", cult),
-            FechaFin = fechaFin.ToString("d", cult),
+            FechaIni = ini,
+            FechaFin = fin,
         };
     }
 

@@ -20,6 +20,7 @@ import {
 } from '../../api/dashboard'
 import { ApiError } from '../../api/errors'
 import { DualMetricChart } from '../../components/dashboard/DualMetricChart'
+import { CarteraMixChart } from '../../components/dashboard/CarteraMixChart'
 import { CredixDataTable, CredixPage } from '../../components/credix'
 import { useAuth } from '../../auth/useAuth'
 import { esCreditoAnalista } from '../../utils/creditoOperacionPermisos'
@@ -187,6 +188,20 @@ export function AdminDashboardPage() {
       })),
     [detalle?.historicoMensual],
   )
+
+  const pctMoraCartera = useMemo(() => {
+    if (!r || r.saldoCartera <= 0) {
+      return 0
+    }
+    return Math.round((r.saldoMoraCartera / r.saldoCartera) * 1000) / 10
+  }, [r])
+
+  const coberturaMes = useMemo(() => {
+    if (!r || r.desembolsoMesActual <= 0) {
+      return r && r.cobradoMesActual > 0 ? 100 : null
+    }
+    return Math.round((r.cobradoMesActual / r.desembolsoMesActual) * 1000) / 10
+  }, [r])
 
   const columns: ColumnsType<DashboardAdminAnalistaRow> = useMemo(
     () => [
@@ -549,19 +564,108 @@ export function AdminDashboardPage() {
 
         <h3 className="dash-section-title">Situación de cartera</h3>
         {carteraReady ? (
-          <section className="dash-kpis dash-kpis-status" aria-label="Cartera">
-            <StatusItem label="Cartera total" value={`S/ ${formatMoney(r.saldoCartera)}`} hint="Saldo pendiente" />
-            <StatusItem label="Sin mora" value={`S/ ${formatMoney(r.saldoCreditos)}`} hint="Créditos al día" />
-            <StatusItem label="Con mora" value={`S/ ${formatMoney(r.saldoMoraCartera)}`} hint="Créditos con cuota vencida" />
-            <StatusItem label="Saldo vencido" value={`S/ ${formatMoney(r.saldoVencido)}`} hint="Vencimiento del crédito" />
-            <StatusItem label="Cuotas en atraso" value={`S/ ${formatMoney(r.saldoMorosidad)}`} hint="Importe de cuotas PEN vencidas" />
-            <StatusItem
-              label="Clientes activos"
-              value={formatEntero(r.totalClientes)}
-              hint={`${formatEntero(r.clientesMora)} en mora · ${formatEntero(r.creditosPorVencerSemana)} vencen esta semana · ${formatEntero(r.totalAnalistas)} analistas`}
-              icon={<TeamOutlined />}
-            />
-          </section>
+          <>
+            <section className="dash-kpis dash-kpis-4" aria-label="Riesgo de cartera">
+              <KpiCard
+                accent="#dc2626"
+                icon={<WarningOutlined />}
+                label="% cartera en mora"
+                value={`${pctMoraCartera.toFixed(1)} %`}
+                meta={
+                  <span>
+                    S/ {formatMoney(r.saldoMoraCartera)} de S/ {formatMoney(r.saldoCartera)} ·{' '}
+                    {formatEntero(r.clientesMora)} clientes
+                  </span>
+                }
+              />
+              <KpiCard
+                accent="#d97706"
+                icon={<CalendarOutlined />}
+                label="Vencen esta semana"
+                value={formatEntero(r.creditosPorVencerSemana)}
+                meta={<span>Créditos con vencimiento en los próximos 7 días</span>}
+              />
+              <KpiCard
+                accent="#059669"
+                icon={<WalletOutlined />}
+                label="Cobertura del mes"
+                value={`${coberturaMes == null ? '—' : `${coberturaMes.toFixed(0)} %`}`}
+                meta={
+                  <span>
+                    Cobrado S/ {formatMoney(r.cobradoMesActual)} vs desembolsado S/{' '}
+                    {formatMoney(r.desembolsoMesActual)}
+                  </span>
+                }
+              />
+              <KpiCard
+                accent="#2563eb"
+                icon={<TeamOutlined />}
+                label="Analistas activos"
+                value={formatEntero(r.totalAnalistas)}
+                meta={<span>{formatEntero(r.totalClientes)} clientes activos en la oficina</span>}
+              />
+            </section>
+            <div className="dash-grid">
+              <section className="dash-panel">
+                <div className="dash-panel-head">
+                  <div>
+                    <h2>Composición de cartera</h2>
+                    <p>Saldo sin mora, con mora y vencido</p>
+                  </div>
+                </div>
+                <div className="dash-panel-body">
+                  <CarteraMixChart
+                    sinMora={r.saldoCreditos}
+                    conMora={r.saldoMoraCartera}
+                    vencido={r.saldoVencido}
+                  />
+                </div>
+              </section>
+              <section className="dash-panel">
+                <div className="dash-panel-head">
+                  <div>
+                    <h2>Detalle de saldos</h2>
+                    <p>Lectura rápida para el gerente de oficina</p>
+                  </div>
+                </div>
+                <div className="dash-panel-body">
+                  <section className="dash-kpis dash-kpis-status" aria-label="Cartera">
+                    <StatusItem
+                      label="Cartera total"
+                      value={`S/ ${formatMoney(r.saldoCartera)}`}
+                      hint="Saldo pendiente"
+                    />
+                    <StatusItem
+                      label="Sin mora"
+                      value={`S/ ${formatMoney(r.saldoCreditos)}`}
+                      hint="Créditos al día"
+                    />
+                    <StatusItem
+                      label="Con mora"
+                      value={`S/ ${formatMoney(r.saldoMoraCartera)}`}
+                      hint="Créditos con cuota vencida"
+                    />
+                    <StatusItem
+                      label="Saldo vencido"
+                      value={`S/ ${formatMoney(r.saldoVencido)}`}
+                      hint="Vencimiento del crédito"
+                    />
+                    <StatusItem
+                      label="Cuotas en atraso"
+                      value={`S/ ${formatMoney(r.saldoMorosidad)}`}
+                      hint="Importe de cuotas PEN vencidas"
+                    />
+                    <StatusItem
+                      label="Clientes activos"
+                      value={formatEntero(r.totalClientes)}
+                      hint={`${formatEntero(r.clientesMora)} en mora`}
+                      icon={<TeamOutlined />}
+                    />
+                  </section>
+                </div>
+              </section>
+            </div>
+          </>
         ) : (
           <section className="dash-panel" aria-label="Cartera cargando">
             <div className="dash-panel-body">
@@ -605,19 +709,25 @@ export function AdminDashboardPage() {
           <div className="dash-panel-head">
             <div>
               <h2>Atajos operativos</h2>
-              <p>Acceso rápido a las pantallas que el gerente usa después de revisar el tablero.</p>
+              <p>Acciones frecuentes después de revisar el tablero.</p>
             </div>
           </div>
           <div className="dash-panel-body">
             <nav className="dash-actions" aria-label="Atajos gerenciales">
               <Link to="/informes/morosidad-gestor">
-                <Button icon={<WarningOutlined />}>Vencidos</Button>
+                <Button icon={<WarningOutlined />}>Morosidad / vencidos</Button>
               </Link>
               <Link to="/informes/cobro-diario">
                 <Button>Cobro diario</Button>
               </Link>
+              <Link to="/informes/saldo-cartera">
+                <Button>Saldo cartera</Button>
+              </Link>
               <Link to="/caja/saldos">
                 <Button>Saldos y cierres</Button>
+              </Link>
+              <Link to="/informes/cierre-gerencial">
+                <Button>Cierre gerencial</Button>
               </Link>
               <Link to="/inicio?vista=modulos">
                 <Button type="primary">Mapa de módulos</Button>

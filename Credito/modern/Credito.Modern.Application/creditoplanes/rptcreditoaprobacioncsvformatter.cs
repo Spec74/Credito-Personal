@@ -14,7 +14,7 @@ public static class RptCreditoAprobacionCsvFormatter
     {
         var sb = new StringBuilder(capacity: Math.Max(256, rows.Count * 96));
         sb.AppendLine(
-            "CreditoId,Oficina,Cliente,FechaAprobacion,MontoCredito,Interes,NumeroCuotas,MontoDesembolso,Gestor");
+            "CreditoId,Oficina,Cliente,FechaAprobacion,MontoCredito,Interes,NumeroCuotas,Gestor");
         var inv = CultureInfo.InvariantCulture;
         foreach (var r in rows)
         {
@@ -26,7 +26,6 @@ public static class RptCreditoAprobacionCsvFormatter
                 .Append(r.MontoCredito.ToString(inv)).Append(',')
                 .Append(r.Interes.ToString(inv)).Append(',')
                 .Append(r.NumeroCuotas.ToString(inv)).Append(',')
-                .Append(r.MontoDesembolso.ToString(inv)).Append(',')
                 .Append(CsvUtf8BomEncoding.EscapeField(r.Gestor))
                 .AppendLine();
         }

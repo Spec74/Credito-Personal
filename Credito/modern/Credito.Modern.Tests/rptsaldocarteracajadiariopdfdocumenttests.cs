@@ -57,12 +57,21 @@ public sealed class RptSaldoCarteraCajaDiarioPdfDocumentTests
     }
 
     [Fact]
-    public void Tablas_cortas_en_A4_aunque_se_pida_apaisado()
+    public void Ocho_o_mas_columnas_usan_horizontal()
     {
-        Assert.False(CredixLegacyPdfDocument.EffectiveLandscape(8, preferLandscape: true));
-        var shortPage = CredixLegacyPdfDocument.ResolvePageSize(8, landscape: false);
-        Assert.True(shortPage.Width < shortPage.Height);
+        Assert.True(CredixLegacyPdfDocument.EffectiveLandscape(8, preferLandscape: false));
+        Assert.True(CredixLegacyPdfDocument.EffectiveLandscape(8, preferLandscape: true));
+        var landscape = CredixLegacyPdfDocument.ResolvePageSize(8, landscape: true);
+        Assert.True(landscape.Width > landscape.Height);
         Assert.Equal(CredixLegacyPdfDocument.FontSizeBody, CredixLegacyPdfDocument.ResolveBodyFont(8));
+    }
+
+    [Fact]
+    public void Tablas_cortas_permanecen_verticales()
+    {
+        Assert.False(CredixLegacyPdfDocument.EffectiveLandscape(5, preferLandscape: false));
+        var shortPage = CredixLegacyPdfDocument.ResolvePageSize(5, landscape: false);
+        Assert.True(shortPage.Width < shortPage.Height);
     }
 
     private static void AssertPdfMagic(byte[] bytes)

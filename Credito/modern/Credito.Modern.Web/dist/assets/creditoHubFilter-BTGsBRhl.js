@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-D2aABDIb.js";import{l as t,s as n}from"./Credito.Modern.Web-oqDJ_n6S.js";function r(e,t){return n(t)?e.map(e=>({...e,links:e.links.filter(e=>e.to===a)})).filter(e=>e.links.length>0):e}function i(e,t){return n(t)?e.filter(e=>e.to===a):e}var a;function o(){return(o=e((()=>{t(),a=`/credito/aprobar`})))()}export{r as n,o as r,i as t};

@@ -1,4 +1,3 @@
-using System.Globalization;
 using Credito.Modern.Application.CreditoPlanes;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -172,12 +171,10 @@ public static class CredixMorosidadPdfDocument
         });
     }
 
-    private static string FormatDate(DateTime? d) =>
-        d is null ? string.Empty : d.Value.ToString("d", CultureInfo.CurrentCulture);
+    private static string FormatDate(DateTime? d) => CredixReportTokens.FormatDate(d);
 
     private static string FormatDecimal(decimal? v) =>
-        v is null ? string.Empty : v.Value.ToString("N2", CultureInfo.CurrentCulture);
+        v is null ? string.Empty : CredixReportTokens.FormatMoney(v.Value);
 
-    private static string FormatDecimal(decimal v) =>
-        v.ToString("N2", CultureInfo.CurrentCulture);
+    private static string FormatDecimal(decimal v) => CredixReportTokens.FormatMoney(v);
 }

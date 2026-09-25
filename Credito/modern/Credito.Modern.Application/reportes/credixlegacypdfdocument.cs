@@ -270,15 +270,16 @@ public static class CredixLegacyPdfDocument
 
     /// <summary>
     /// Mínimo de columnas para justificar A4/A3 horizontal.
-    /// Con pocas columnas el apaisado deja vacío y se ve poco profesional.
+    /// A partir de 8 columnas el vertical obliga a filas altas o texto cortado.
     /// </summary>
-    public const int MinColumnsForLandscape = 10;
+    public const int MinColumnsForLandscape = 8;
 
     /// <summary>
-    /// Horizontal solo si el informe lo pide <b>y</b> hay columnas suficientes.
+    /// Horizontal si hay ≥ <see cref="MinColumnsForLandscape"/> columnas,
+    /// o si el informe lo pide explícitamente (p. ej. fichas anchas con menos columnas).
     /// </summary>
     public static bool EffectiveLandscape(int columnCount, bool preferLandscape) =>
-        preferLandscape && columnCount >= MinColumnsForLandscape;
+        preferLandscape || columnCount >= MinColumnsForLandscape;
 
     /// <summary>
     /// A4 vertical por defecto; A3 o hoja extra-ancha solo en horizontal con muchas columnas.
