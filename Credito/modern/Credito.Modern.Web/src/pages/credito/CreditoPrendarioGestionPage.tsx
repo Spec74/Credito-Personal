@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalculatorOutlined, FilePdfOutlined, PlusOutlined, WhatsAppOutlined } from '@ant-design/icons'
-import { Alert, Button, Select, Space, Tooltip, Typography, message } from 'antd'
+import { Alert, Button, Input, Select, Space, Tooltip, Typography, message } from 'antd'
 import {
   fetchCreditoContexto,
   fetchCreditosGrillaPersona,
   fetchPersonaCreditoFicha,
   fetchPrendas,
+  guardarPrendas,
   type PrendaItem,
 } from '../../api/creditoGestion'
 import {
@@ -21,7 +22,11 @@ import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { getCreditoEstadoMeta } from '../../utils/creditoEstados'
-import { prendaAItem, prendaVacia, totalTasacion, buildSimuladorPrendarioPath } from '../../utils/prendas'
+import {
+  puedeCompletarBienesPrendarioUi,
+  esCreditoProductoPrendario,
+} from '../../utils/creditoOperacionPermisos'
+import { prendaAItem, prendaVacia, prendasValidas, totalTasacion, buildSimuladorPrendarioPath } from '../../utils/prendas'
 import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 
 const { Paragraph, Text } = Typography
@@ -49,14 +54,18 @@ const ESTADOS_SOLICITUD = new Set(['CRE', 'PEN', 'AP1', 'APR'])
 
 export function CreditoPrendarioGestionPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { personaId: personaParam } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
   const { session } = useAuth()
+  const roles = session?.roles ?? []
   const oficinaId = session?.oficinaId ?? 0
   const personaId = Number(personaParam)
   const creditoIdUrl = Number(searchParams.get('creditoId') ?? 0)
+  const puedeCompletarBienes = puedeCompletarBienesPrendarioUi(roles)
 
   const [prendas, setPrendas] = useState<PrendaItem[]>([prendaVacia()])
+  const [fechaRematePrenda, setFechaRematePrenda] = useState('')
 
   const ficha = useQuery({
     queryKey: ['persona-credito-ficha', oficinaId, personaId],
@@ -107,7 +116,26 @@ export function CreditoPrendarioGestionPage() {
   useEffect(() => {
     const guardadas = bienes.data ?? []
     setPrendas(guardadas.length > 0 ? guardadas.map(prendaAItem) : [prendaVacia()])
-  }, [bienes.data])
+    setFechaRematePrenda(contexto.data?.fechaRemate?.slice(0, 10) ?? '')
+  }, [bienes.data, contexto.data?.fechaRemate])
+
+  const guardarBienes = useMutation({
+    mutationFn: () =>
+      guardarPrendas({
+        oficinaId,
+        creditoId,
+        prendas: prendasValidas(prendas),
+        fechaRemate: fechaRematePrenda || null,
+      }),
+    onSuccess: () => {
+      message.success('Bienes en custodia guardados')
+      void queryClient.invalidateQueries({ queryKey: ['prendas', oficinaId, creditoId] })
+      void queryClient.invalidateQueries({ queryKey: ['credito-contexto', creditoId] })
+      void queryClient.invalidateQueries({ queryKey: ['prendario-creditos'] })
+      void queryClient.invalidateQueries({ queryKey: ['prendario-resumen'] })
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
 
   const imprimirContrato = useMutation({
     mutationFn: () =>
@@ -130,8 +158,11 @@ export function CreditoPrendarioGestionPage() {
   })
 
   const bienesPersistidos = (bienes.data ?? []).length > 0
-  const puedeImprimir =
-    bienesPersistidos && Boolean(contexto.data?.numeroContratoPrendario)
+  const esPrendario = esCreditoProductoPrendario(contexto.data ?? {})
+  const puedeEditarBienes =
+    puedeCompletarBienes && esPrendario && !bienesPersistidos && creditoId > 0
+  const hayBienesValidos = prendasValidas(prendas).length > 0
+  const puedeImprimir = bienesPersistidos
   const estadoMeta = getCreditoEstadoMeta(contexto.data?.estado)
   const necesitaElegirCredito =
     creditoIdUrl < 1 &&
@@ -176,7 +207,11 @@ export function CreditoPrendarioGestionPage() {
   return (
     <CredixPage
       title="Gestión prendaria"
-      subtitle="Consulta de bienes en custodia, contrato y acta. Los bienes se registran solo en la solicitud."
+      subtitle={
+        bienesPersistidos
+          ? 'Consulta de bienes en custodia, contrato y acta.'
+          : 'Si faltan bienes, regístrelos una sola vez aquí. Luego solo consulta y documentos.'
+      }
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -198,7 +233,8 @@ export function CreditoPrendarioGestionPage() {
                     personaId,
                     solicitudCreditoId: creditoId,
                     prendas,
-                    fechaRemate: contexto.data?.fechaRemate?.slice(0, 10) ?? '',
+                    fechaRemate:
+                      fechaRematePrenda || (contexto.data?.fechaRemate?.slice(0, 10) ?? ''),
                   }),
                 )
               }
@@ -308,7 +344,7 @@ export function CreditoPrendarioGestionPage() {
               ? `. Contrato ${contexto.data.numeroContratoPrendario}.`
               : bienesPersistidos
                 ? null
-                : '. El contrato se asigna al registrar bienes en la solicitud.'}
+                : '. El contrato se asigna al registrar bienes.'}
           </Paragraph>
 
           <div style={{ marginBottom: 16 }}>
@@ -347,11 +383,9 @@ export function CreditoPrendarioGestionPage() {
               style={{ marginBottom: 12 }}
               message="Sin bienes registrados"
               description={
-                <span>
-                  Registre el bien en{' '}
-                  <Link to={`/credito/prendario/nuevo?personaId=${personaId}`}>nueva solicitud</Link>
-                  . Aquí solo se consulta lo ya guardado.
-                </span>
+                puedeEditarBienes
+                  ? 'Registre los bienes una sola vez en este crédito. No se abrirá una solicitud nueva.'
+                  : 'Este crédito prendario aún no tiene bienes. Un analista o administrador puede completarlos.'
               }
             />
           ) : !puedeImprimir ? (
@@ -363,7 +397,40 @@ export function CreditoPrendarioGestionPage() {
             />
           ) : null}
 
-          <PrendasEditor value={prendas} onChange={setPrendas} readOnly />
+          {puedeEditarBienes ? (
+            <div style={{ marginBottom: 12, maxWidth: 280 }}>
+              <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
+                Fecha remate (opcional)
+              </Text>
+              <Input
+                type="date"
+                value={fechaRematePrenda}
+                onChange={(e) => setFechaRematePrenda(e.target.value)}
+              />
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                Si se deja vacía, vencimiento + 30 días.
+              </Text>
+            </div>
+          ) : null}
+
+          <PrendasEditor
+            value={prendas}
+            onChange={setPrendas}
+            disabled={!puedeEditarBienes}
+            readOnly={!puedeEditarBienes}
+          />
+
+          {puedeEditarBienes ? (
+            <Button
+              type="primary"
+              style={{ marginTop: 12 }}
+              disabled={!hayBienesValidos}
+              loading={guardarBienes.isPending}
+              onClick={() => guardarBienes.mutate()}
+            >
+              Guardar bienes
+            </Button>
+          ) : null}
         </CredixPanel>
       ) : null}
     </CredixPage>

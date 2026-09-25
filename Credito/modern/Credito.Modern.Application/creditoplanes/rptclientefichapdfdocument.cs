@@ -1,3 +1,4 @@
+using Credito.Modern.Application.Reportes;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -86,13 +87,13 @@ public static class RptClienteFichaPdfDocument
                         {
                             table.ColumnsDefinition(columns =>
                             {
-                                columns.ConstantColumn(48);
                                 columns.ConstantColumn(52);
+                                columns.ConstantColumn(58);
                                 columns.RelativeColumn();
-                                columns.ConstantColumn(62);
-                                columns.ConstantColumn(48);
-                                columns.ConstantColumn(70);
-                                columns.ConstantColumn(62);
+                                columns.ConstantColumn(68);
+                                columns.ConstantColumn(52);
+                                columns.ConstantColumn(84);
+                                columns.ConstantColumn(72);
                             });
                             table.Header(header =>
                             {
@@ -110,12 +111,24 @@ public static class RptClienteFichaPdfDocument
                                 var zebra = i++ % 2 == 1;
                                 IContainer B(IContainer x) => CreditoPdfBranding.TableBodyCell(x, zebra);
                                 table.Cell().Element(B).Text(a.Grupo);
-                                table.Cell().Element(B).Text(a.CreditoId.ToString(CreditoPdfBranding.Inv));
+                                CredixPdfCellText.Write(
+                                    table.Cell().Element(B),
+                                    a.CreditoId.ToString(CreditoPdfBranding.Inv),
+                                    8.5f);
                                 table.Cell().Element(B).Text(CreditoPdfBranding.OrDash(a.Persona));
-                                table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(a.MontoCredito));
-                                table.Cell().Element(B).Text(a.Estado);
-                                table.Cell().Element(B).Text(CreditoPdfBranding.OrDash(a.Dni));
-                                table.Cell().Element(B).Text(CreditoPdfBranding.OrDash(a.Celular));
+                                CredixPdfCellText.Write(
+                                    table.Cell().Element(B).AlignRight(),
+                                    CreditoPdfBranding.Money(a.MontoCredito),
+                                    8.5f);
+                                CredixPdfCellText.Write(table.Cell().Element(B), a.Estado, 8.5f);
+                                CredixPdfCellText.Write(
+                                    table.Cell().Element(B),
+                                    CreditoPdfBranding.OrDash(a.Dni),
+                                    8.5f);
+                                CredixPdfCellText.Write(
+                                    table.Cell().Element(B),
+                                    CreditoPdfBranding.OrDash(a.Celular),
+                                    8.5f);
                             }
                         });
                     }

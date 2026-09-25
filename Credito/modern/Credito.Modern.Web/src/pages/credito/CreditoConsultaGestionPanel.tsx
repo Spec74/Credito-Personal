@@ -49,7 +49,7 @@ import {
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { CredixDataTable } from '../../components/credix'
 import { prendaAItem, prendaVacia, prendasValidas } from '../../utils/prendas'
-import { abrirWhatsAppLibre, abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
+import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 import {
   downloadActaEntregaPrendarioPdf,
   downloadContratoPrendarioPdf,
@@ -65,6 +65,8 @@ import {
   puedeCondonarCreditoUi,
   puedeEditarTopeCreditoUi,
   puedeEditarTramiteCentralAvalUi,
+  puedeCompletarBienesPrendarioUi,
+  esCreditoProductoPrendario,
   puedeOperarCicloCredito,
   tieneCreditoModoLectura,
 } from '../../utils/creditoOperacionPermisos'
@@ -138,9 +140,10 @@ export function CreditoConsultaGestionPanel({
   const [nuevoAvalPaterno, setNuevoAvalPaterno] = useState('')
   const [nuevoAvalMaterno, setNuevoAvalMaterno] = useState('')
   const [nuevoAvalCelular, setNuevoAvalCelular] = useState('')
-  const [prendario, setPrendario] = useState(false)
   const [fechaRematePrenda, setFechaRematePrenda] = useState('')
   const [prendas, setPrendas] = useState<PrendaItem[]>([prendaVacia()])
+
+  const puedeBienesPrendario = puedeCompletarBienesPrendarioUi(roles)
 
   const contexto = useQuery({
     queryKey: ['credito-contexto', creditoId],
@@ -224,7 +227,6 @@ export function CreditoConsultaGestionPanel({
     setPersonaAvalId(contexto.data.personaAvalId ?? null)
     setFechaRematePrenda(contexto.data.fechaRemate?.slice(0, 10) ?? '')
     const guardadas = prendasCredito.data ?? []
-    setPrendario(guardadas.length > 0)
     setPrendas(guardadas.length > 0 ? guardadas.map(prendaAItem) : [prendaVacia()])
   }, [contexto.data, prendasCredito.data])
 
@@ -426,7 +428,6 @@ export function CreditoConsultaGestionPanel({
       }),
     onSuccess: () => {
       message.success('Bienes en custodia guardados')
-      setPrendario(true)
       refrescar()
       void queryClient.invalidateQueries({ queryKey: ['prendas', oficinaId, creditoId] })
     },
@@ -906,97 +907,118 @@ export function CreditoConsultaGestionPanel({
         </Card>
       ) : null}
 
-      {puedeTramite ? (
+      {esCreditoProductoPrendario(ctx ?? {}) && (puedeBienesPrendario || puedeTramite) ? (
         <Card
           title="Crédito prendario"
           size="small"
           className="credito-gestion-card credito-prendario-card"
         >
-          <Row gutter={[16, 16]} style={{ marginBottom: 12 }}>
-            <Col xs={24} md={8}>
-              <Paragraph strong>Marcar como prendario</Paragraph>
-              <Switch
-                checkedChildren="Prendario"
-                unCheckedChildren="Normal"
-                checked={prendario}
-                disabled={bloqueadoGestion}
-                onChange={setPrendario}
-              />
-            </Col>
-            <Col xs={24} md={8}>
-              <Paragraph strong>Fecha remate</Paragraph>
-              <Input
-                type="date"
-                disabled={bloqueadoGestion || !prendario}
-                value={fechaRematePrenda}
-                onChange={(e) => setFechaRematePrenda(e.target.value)}
-              />
-              <Text type="secondary">Si se deja vacía, el vencimiento más 30 días.</Text>
-            </Col>
-            <Col xs={24} md={8}>
-              <Paragraph strong>Contrato</Paragraph>
-              <Text>{contexto.data?.numeroContratoPrendario ?? '(se asigna al guardar)'}</Text>
-            </Col>
-          </Row>
-          <PrendasEditor
-            value={prendas}
-            onChange={setPrendas}
-            disabled={bloqueadoGestion || !prendario}
-          />
-          <Space wrap className="credito-prendario-actions" style={{ marginTop: 12 }}>
-            <Button
-              type="primary"
-              disabled={bloqueadoGestion || !prendario || prendasValidas(prendas).length === 0}
-              loading={guardarPrendario.isPending}
-              onClick={() => guardarPrendario.mutate()}
-            >
-              Guardar bienes
-            </Button>
-            <Button
-              disabled={!prendario || prendasValidas(prendas).length === 0}
-              onClick={() => {
-                void downloadContratoPrendarioPdf(
-                  oficinaId,
-                  creditoId,
-                  contexto.data?.numeroContratoPrendario || String(creditoId),
-                ).catch((e) => message.error(errMsg(e)))
-              }}
-            >
-              Contrato PDF
-            </Button>
-            <Button
-              disabled={!prendario || prendasValidas(prendas).length === 0}
-              onClick={() => {
-                void downloadActaEntregaPrendarioPdf(
-                  oficinaId,
-                  creditoId,
-                  contexto.data?.numeroContratoPrendario || String(creditoId),
-                ).catch((e) => message.error(errMsg(e)))
-              }}
-            >
-              Acta PDF
-            </Button>
-            <Button
-              disabled={bloqueadoGestion}
-              title={
-                prendario
-                  ? 'Abre WhatsApp con mensaje de aviso prendario'
-                  : 'Abre WhatsApp con saludo (sin plantilla de remate)'
-              }
-              onClick={() => {
-                const celular = contexto.data?.personaCelular
-                const nombre = contexto.data?.personaNombre ?? ''
-                const ok = prendario
-                  ? abrirWhatsAppPrendario(celular, nombre, creditoId)
-                  : abrirWhatsAppLibre(celular, nombre)
-                if (!ok) {
-                  message.warning('Este cliente no tiene celular registrado')
-                }
-              }}
-            >
-              {prendario ? 'WhatsApp (aviso)' : 'Chat WhatsApp'}
-            </Button>
-          </Space>
+          {(() => {
+            const bienesPersistidos = (prendasCredito.data ?? []).length > 0
+            const puedeEditarBienes =
+              puedeBienesPrendario && !bienesPersistidos && !bloqueadoGestion
+            const hayBienesValidos = prendasValidas(prendas).length > 0
+            return (
+              <>
+                {!bienesPersistidos ? (
+                  <Alert
+                    type="warning"
+                    showIcon
+                    style={{ marginBottom: 12 }}
+                    message="Sin bienes en custodia"
+                    description={
+                      puedeEditarBienes
+                        ? 'Complete los bienes una sola vez. Luego podrá emitir contrato, acta y WhatsApp.'
+                        : 'Este crédito prendario aún no tiene bienes registrados.'
+                    }
+                  />
+                ) : (
+                  <Alert
+                    type="success"
+                    showIcon
+                    style={{ marginBottom: 12 }}
+                    message="Bienes registrados"
+                    description="Consulta y documentos. Los bienes no se pueden modificar después de guardados."
+                  />
+                )}
+                <Row gutter={[16, 16]} style={{ marginBottom: 12 }}>
+                  <Col xs={24} md={12}>
+                    <Paragraph strong>Fecha remate</Paragraph>
+                    <Input
+                      type="date"
+                      disabled={!puedeEditarBienes}
+                      value={fechaRematePrenda}
+                      onChange={(e) => setFechaRematePrenda(e.target.value)}
+                    />
+                    <Text type="secondary">Si se deja vacía, el vencimiento más 30 días.</Text>
+                  </Col>
+                  <Col xs={24} md={12}>
+                    <Paragraph strong>Contrato</Paragraph>
+                    <Text>
+                      {contexto.data?.numeroContratoPrendario ??
+                        (bienesPersistidos ? String(creditoId) : '(se asigna al guardar)')}
+                    </Text>
+                  </Col>
+                </Row>
+                <PrendasEditor
+                  value={prendas}
+                  onChange={setPrendas}
+                  disabled={!puedeEditarBienes}
+                  readOnly={!puedeEditarBienes && bienesPersistidos}
+                />
+                <Space wrap className="credito-prendario-actions" style={{ marginTop: 12 }}>
+                  {puedeEditarBienes ? (
+                    <Button
+                      type="primary"
+                      disabled={!hayBienesValidos}
+                      loading={guardarPrendario.isPending}
+                      onClick={() => guardarPrendario.mutate()}
+                    >
+                      Guardar bienes
+                    </Button>
+                  ) : null}
+                  <Button
+                    disabled={!bienesPersistidos}
+                    onClick={() => {
+                      void downloadContratoPrendarioPdf(
+                        oficinaId,
+                        creditoId,
+                        contexto.data?.numeroContratoPrendario || String(creditoId),
+                      ).catch((e) => message.error(errMsg(e)))
+                    }}
+                  >
+                    Contrato PDF
+                  </Button>
+                  <Button
+                    disabled={!bienesPersistidos}
+                    onClick={() => {
+                      void downloadActaEntregaPrendarioPdf(
+                        oficinaId,
+                        creditoId,
+                        contexto.data?.numeroContratoPrendario || String(creditoId),
+                      ).catch((e) => message.error(errMsg(e)))
+                    }}
+                  >
+                    Acta PDF
+                  </Button>
+                  <Button
+                    disabled={bloqueadoGestion}
+                    title="Abre WhatsApp con mensaje de aviso prendario"
+                    onClick={() => {
+                      const celular = contexto.data?.personaCelular
+                      const nombre = contexto.data?.personaNombre ?? ''
+                      const ok = abrirWhatsAppPrendario(celular, nombre, creditoId)
+                      if (!ok) {
+                        message.warning('Este cliente no tiene celular registrado')
+                      }
+                    }}
+                  >
+                    WhatsApp (aviso)
+                  </Button>
+                </Space>
+              </>
+            )
+          })()}
         </Card>
       ) : null}
       </div>

@@ -9,7 +9,7 @@ namespace Credito.Modern.Application.Prendario;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PrendarioCategoria
 {
-    /// <summary>Marcado como prendario pero sin bienes registrados.</summary>
+    /// <summary>Producto prendario sin filas en CREDITO.Prenda (incl. vigentes legacy).</summary>
     SinBienes,
 
     /// <summary>No está desembolsado, así que las alertas de vencimiento no aplican.</summary>

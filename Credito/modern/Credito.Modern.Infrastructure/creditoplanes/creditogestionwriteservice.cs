@@ -621,6 +621,25 @@ public sealed class CreditoGestionWriteService(
             return new CreditoGestionOperacionResponse(false, "Crédito no encontrado.");
         }
 
+        var metaPrendario = await connection.QueryFirstOrDefaultAsync<(bool EsPrendario, int? ProductoId)>(
+            new CommandDefinition(
+                """
+                SELECT EsPrendario, ProductoId
+                FROM CREDITO.Credito
+                WHERE CreditoId = @CreditoId AND OficinaId = @OficinaId;
+                """,
+                new { request.CreditoId, request.OficinaId },
+                transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (!metaPrendario.EsPrendario && metaPrendario.ProductoId != 2)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return new CreditoGestionOperacionResponse(
+                false,
+                "Solo se pueden registrar bienes en créditos del producto prendario.");
+        }
+
         var bienesExistentes = await connection.ExecuteScalarAsync<int>(
             new CommandDefinition(
                 """
@@ -637,7 +656,7 @@ public sealed class CreditoGestionWriteService(
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             return new CreditoGestionOperacionResponse(
                 false,
-                "Los bienes de este crédito ya fueron registrados y no pueden modificarse. Regístrelos solo en la solicitud.");
+                "Los bienes de este crédito ya fueron registrados y no pueden modificarse.");
         }
 
         // Primera carga: se inserta el detalle completo (sin reemplazos posteriores).

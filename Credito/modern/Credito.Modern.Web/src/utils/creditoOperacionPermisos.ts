@@ -251,6 +251,22 @@ export function puedeEditarTramiteCentralAvalUi(roles: string[]): boolean {
 
 }
 
+/** API CreditoRolPrendario: analista o administrador pueden registrar/completar bienes. */
+export function puedeCompletarBienesPrendarioUi(roles: string[]): boolean {
+  if (tieneCreditoModoLectura(roles)) {
+    return false
+  }
+  return esCreditoAnalista(roles) || esCreditoAdministrador(roles)
+}
+
+/** Crédito prendario por flag o producto CREDI PRENDARIO (2). */
+export function esCreditoProductoPrendario(ctx: {
+  esPrendario?: boolean | null
+  productoId?: number | null
+}): boolean {
+  return Boolean(ctx.esPrendario) || ctx.productoId === 2
+}
+
 
 
 export function puedeGestionarBovedaEncargadoUi(roles: string[]): boolean {

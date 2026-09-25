@@ -156,6 +156,17 @@ public sealed class CredixLegacyReportCatalogTests
     }
 
     [Fact]
+    public void Columna_DNI_tiene_piso_suficiente_para_ocho_digitos()
+    {
+        var headers = new[] { "DNI", "Cliente", "Monto" };
+        var rows = new[] { new[] { "45555555", "ANA", "100.00" } };
+        var weights = CredixLegacyPdfDocument.ComputeContentWeights(headers, rows, null);
+        Assert.True(weights[0] >= 1.15f, $"DNI weight={weights[0]}");
+        Assert.True(CredixPdfCellText.IsNonBreakingToken("45555555"));
+        Assert.False(CredixPdfCellText.IsNonBreakingToken("NOMBRE COMPLETO LARGO"));
+    }
+
+    [Fact]
     public void Metadatos_de_periodo_usan_una_sola_linea()
     {
         var lines = CredixLegacyReportCatalog.BuildMetadata(

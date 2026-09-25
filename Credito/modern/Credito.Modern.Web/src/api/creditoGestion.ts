@@ -37,6 +37,7 @@ export interface CreditoContexto {
   personaAvalId: number | null
   personaAvalNombre: string | null
   esPrendario: boolean
+  productoId: number | null
   montoTasacion: number | null
   numeroContratoPrendario: string | null
   fechaRemate: string | null

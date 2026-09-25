@@ -36,6 +36,7 @@ public sealed class CreditoGestionReadService(IOptions<SqlDatabaseOptions> optio
                        c.PersonaAvalId,
                        pa.NombreCompleto AS PersonaAvalNombre,
                        c.EsPrendario,
+                       c.ProductoId,
                        c.MontoTasacion,
                        c.NumeroContratoPrendario,
                        c.FechaRemate,

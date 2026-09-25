@@ -243,7 +243,7 @@ export function CreditoPrendarioPage() {
     {
       title: '',
       key: 'acciones',
-      width: 110,
+      width: 130,
       render: (_, row) => (
         <Button
           type="link"
@@ -252,7 +252,7 @@ export function CreditoPrendarioPage() {
             navigate(`/credito/prendario/gestionar/${row.personaId}?creditoId=${row.creditoId}`)
           }
         >
-          Gestionar
+          {row.categoria === 'SinBienes' || row.bienes < 1 ? 'Completar bienes' : 'Gestionar'}
         </Button>
       ),
     },
@@ -267,7 +267,7 @@ export function CreditoPrendarioPage() {
   return (
     <CredixPage
       title="Crédito prendario"
-      subtitle="Cartera de créditos con bienes en custodia. Las tarjetas miden solo desembolsos."
+      subtitle="Cartera prendaria. Si falta registrar bienes, use Completar bienes; con bienes, solo consulta y documentos."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },

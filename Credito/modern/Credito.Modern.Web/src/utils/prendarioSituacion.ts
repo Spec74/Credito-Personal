@@ -9,7 +9,7 @@ const CARTERA: Record<Exclude<PrendarioCategoria, 'Otro'>, { color: string; labe
   SinBienes: {
     color: 'default',
     label: 'Sin bienes',
-    hint: 'Producto prendario sin indicador de bienes en custodia.',
+    hint: 'Crédito prendario sin bienes en custodia; complete el registro una sola vez.',
   },
 }
 

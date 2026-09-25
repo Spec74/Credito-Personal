@@ -44,7 +44,7 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                                THEN 1 END) AS Rematados
                 FROM CREDITO.Credito AS c
                 WHERE c.OficinaId = @OficinaId
-                  AND c.EsPrendario = CAST(1 AS bit)
+                  AND (c.EsPrendario = CAST(1 AS bit) OR c.ProductoId = 2)
                   AND c.Estado = 'DES';
                 """,
                 new { OficinaId = oficinaId, DiasAviso = DiasAvisoVencimiento },
@@ -68,8 +68,8 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        // El listado incluye ProductoId = 2 sin EsPrendario para no ocultar los creditos
-        // prendarios anteriores a la existencia del indicador: salen como SinBienes.
+        // SinBienes = cartera prendaria (flag o producto 2) sin filas en CREDITO.Prenda.
+        // Antes se usaba EsPrendario=0, lo que ocultaba vigentes DES con flag=1 y 0 bienes.
         using var multi = await connection.QueryMultipleAsync(
             new CommandDefinition(
                 """
@@ -91,7 +91,8 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                        (SELECT COUNT(*) FROM CREDITO.Prenda AS pr
                         WHERE pr.CreditoId = c.CreditoId) AS Bienes,
                        CASE
-                           WHEN c.EsPrendario = CAST(0 AS bit) THEN 0
+                           WHEN (SELECT COUNT(*) FROM CREDITO.Prenda AS pr
+                                 WHERE pr.CreditoId = c.CreditoId) = 0 THEN 0
                            WHEN c.Estado <> 'DES' THEN 1
                            WHEN c.FechaRemate IS NOT NULL AND c.FechaRemate < @Hoy THEN 2
                            WHEN c.FechaVencimiento < @Hoy THEN 3

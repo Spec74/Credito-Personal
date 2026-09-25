@@ -37,6 +37,7 @@ public sealed record CreditoContextoDto(
     int? PersonaAvalId,
     string? PersonaAvalNombre,
     bool EsPrendario,
+    int? ProductoId,
     decimal? MontoTasacion,
     string? NumeroContratoPrendario,
     DateTime? FechaRemate,

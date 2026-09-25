@@ -116,7 +116,8 @@ public static class CreditoPdfBranding
             .AlignMiddle();
 
     public static IContainer TableBodyCell(IContainer c, bool zebra = false) =>
-        c.PaddingVertical(2)
+        c.DefaultTextStyle(x => x)
+            .PaddingVertical(2)
             .PaddingHorizontal(2)
             .BorderBottom(0.25f)
             .BorderColor(Colors.Grey.Lighten2)

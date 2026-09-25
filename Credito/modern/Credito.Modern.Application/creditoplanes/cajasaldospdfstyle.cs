@@ -39,7 +39,8 @@ internal static class CajaSaldosPdfStyle
             .BorderColor(Border)
             .PaddingVertical(2)
             .PaddingHorizontal(3)
-            .AlignMiddle();
+            .AlignMiddle()
+            .DefaultTextStyle(x => x);
 
     public static IContainer TotalsCell(IContainer c) =>
         c.Background(TotalsBg)

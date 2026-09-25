@@ -15,15 +15,21 @@ public static class CredixColumnWeights
         if (IsMediumText(name))
             return 1.45f;
 
+        // DNI / documento: ancho suficiente para 8–11 dígitos sin salto a mitad.
+        if (CredixPdfCellText.IsDocumentColumn(name))
+            return 1.15f;
+
         if (align == CredixColumnAlign.Right)
-            return 0.68f;
+            return 0.78f;
 
         if (name.Contains("Fecha", StringComparison.OrdinalIgnoreCase)
-            || name.Contains("Celular", StringComparison.OrdinalIgnoreCase))
-            return 0.9f;
+            || name.Contains("Celular", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("Teléfono", StringComparison.OrdinalIgnoreCase)
+            || name.Contains("Telefono", StringComparison.OrdinalIgnoreCase))
+            return 1.0f;
 
         if (IsCompactId(name))
-            return 0.55f;
+            return 0.7f;
 
         return 1.05f;
     }

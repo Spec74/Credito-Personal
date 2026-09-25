@@ -192,12 +192,12 @@ public static class CredixLegacyPdfDocument
                 {
                     var label = c < headers.Count ? headers[c] : string.Empty;
                     var align = ColumnAlign(c, headers, columnSpecs);
-                    header.Cell()
-                        .Element(HeaderCellFor(align))
-                        .Text(label)
-                        .Bold()
-                        .FontSize(fontSize)
-                        .FontColor(Colors.White);
+                    CredixPdfCellText.Write(
+                        header.Cell().Element(HeaderCellFor(align)),
+                        label,
+                        fontSize,
+                        bold: true,
+                        color: Colors.White);
                 }
             });
 
@@ -208,10 +208,10 @@ public static class CredixLegacyPdfDocument
                     var raw = c < row.Count ? row[c] : string.Empty;
                     var spec = columnSpecs != null && c < columnSpecs.Count ? columnSpecs[c] : null;
                     var align = ColumnAlign(c, headers, columnSpecs);
-                    table.Cell()
-                        .Element(BodyCellFor(align))
-                        .Text(FormatDisplayCell(raw, spec))
-                        .FontSize(fontSize);
+                    CredixPdfCellText.Write(
+                        table.Cell().Element(BodyCellFor(align)),
+                        FormatDisplayCell(raw, spec),
+                        fontSize);
                 }
             }
 
@@ -238,9 +238,7 @@ public static class CredixLegacyPdfDocument
                 .ColumnSpan((uint)firstTotal)
                 .Element(TotalsCell)
                 .AlignRight()
-                .Text("TOTAL")
-                .Bold()
-                .FontSize(fontSize);
+                .Element(c => CredixPdfCellText.Write(c, "TOTAL", fontSize, bold: true));
         }
 
         for (var c = firstTotal; c < colCount; c++)
@@ -248,15 +246,16 @@ public static class CredixLegacyPdfDocument
             var cell = table.Cell().Element(TotalsCell);
             if (totals.TryGetValue(c, out var total))
             {
-                cell.AlignRight()
-                    .Text(CredixReportTotals.Format(total))
-                    .Bold()
-                    .FontSize(fontSize);
+                CredixPdfCellText.Write(
+                    cell.AlignRight(),
+                    CredixReportTotals.Format(total),
+                    fontSize,
+                    bold: true);
                 continue;
             }
 
             // Columna sin total: se mantiene la celda para no descuadrar la fila.
-            cell.Text(string.Empty).FontSize(fontSize);
+            CredixPdfCellText.Write(cell, string.Empty, fontSize);
         }
     }
 
@@ -330,17 +329,23 @@ public static class CredixLegacyPdfDocument
 
             var chars = Math.Clamp(maxChars, 4, 40);
             var weight = chars / 9f;
-            if (align == CredixColumnAlign.Right)
-                weight = Math.Max(weight, 0.82f);
+            var headerOrCsv = spec?.CsvName ?? header;
+            var isDocument = CredixPdfCellText.IsDocumentColumn(headerOrCsv)
+                || CredixPdfCellText.IsDocumentColumn(header);
+
+            if (isDocument)
+                weight = Math.Max(weight, 1.2f);
+            else if (align == CredixColumnAlign.Right)
+                weight = Math.Max(weight, 0.88f);
             else if (align == CredixColumnAlign.Center)
-                weight = Math.Max(weight, 0.72f);
+                weight = Math.Max(weight, 0.95f);
             else
                 weight = Math.Max(weight, 1.05f);
 
             if (spec is not null)
                 weight = Math.Max(weight, Math.Min(spec.RelativeWeight, 2.4f));
 
-            weights[c] = Math.Clamp(weight, 0.5f, 3.4f);
+            weights[c] = Math.Clamp(weight, 0.55f, 3.4f);
         }
 
         return weights;

@@ -4,6 +4,8 @@ import {
   debeMostrarDashboardAnalista,
   esCreditoPerfilSoloBandeja,
   puedeOperarCreditoCompleto,
+  puedeCompletarBienesPrendarioUi,
+  esCreditoProductoPrendario,
 } from './creditoOperacionPermisos'
 
 describe('creditoOperacionPermisos', () => {
@@ -38,5 +40,20 @@ describe('dashboard admin en inicio', () => {
     expect(debeMostrarDashboardAdmin(['ADMINISTRADOR', 'ANALISTA'])).toBe(true)
     expect(debeMostrarDashboardAdmin(['ANALISTA'])).toBe(false)
     expect(debeMostrarDashboardAdmin(['CAJERO'])).toBe(false)
+  })
+})
+
+describe('bienes prendario', () => {
+  it('permite completar bienes a analista y admin', () => {
+    expect(puedeCompletarBienesPrendarioUi(['ANALISTA'])).toBe(true)
+    expect(puedeCompletarBienesPrendarioUi(['ADMINISTRADOR'])).toBe(true)
+    expect(puedeCompletarBienesPrendarioUi(['APROBADOR 1'])).toBe(false)
+    expect(puedeCompletarBienesPrendarioUi(['LECTURA', 'ANALISTA'])).toBe(false)
+  })
+
+  it('detecta producto prendario por flag o productoId 2', () => {
+    expect(esCreditoProductoPrendario({ esPrendario: true, productoId: 1 })).toBe(true)
+    expect(esCreditoProductoPrendario({ esPrendario: false, productoId: 2 })).toBe(true)
+    expect(esCreditoProductoPrendario({ esPrendario: false, productoId: 1 })).toBe(false)
   })
 })
