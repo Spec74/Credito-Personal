@@ -340,7 +340,9 @@ export function CobranzasTab({
         buscar.mutate({ creditoId, silent: true })
       }
     },
-    onError: (e) => cajaToastError(errMsg(e)),
+    onError: (e) => {
+      cajaToastError(errMsg(e) || 'No se pudo registrar el pago libre.')
+    },
   })
 
   const ejecutarCompletarImpagos = useMutation({

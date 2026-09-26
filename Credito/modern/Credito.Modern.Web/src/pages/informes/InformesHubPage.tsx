@@ -2,8 +2,9 @@ import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { CredixModuleHubPage } from '../../components/credix'
-import { INFORMES_HUB_QUICK_ACCESS, INFORMES_HUB_SECTIONS } from '../../config/informesHubSections'
+import { INFORMES_HUB_SECTIONS } from '../../config/informesHubSections'
 import { fetchCierreGerencialPermisos } from '../../api/cierreGerencial'
+import { useAclHubSections } from '../../hooks/useAclHubSections'
 
 export function InformesHubPage() {
   const cierrePermisos = useQuery({
@@ -12,7 +13,7 @@ export function InformesHubPage() {
     staleTime: 5 * 60_000,
   })
 
-  const sections = useMemo(() => {
+  const baseSections = useMemo(() => {
     if (cierrePermisos.data?.puedeConsultar) {
       return INFORMES_HUB_SECTIONS
     }
@@ -22,26 +23,17 @@ export function InformesHubPage() {
     })).filter((section) => section.links.length > 0)
   }, [cierrePermisos.data?.puedeConsultar])
 
+  const sections = useAclHubSections(baseSections)
+
   return (
     <CredixModuleHubPage
-      moduleId="informes"
       title="Informes"
       searchable
-      searchPlaceholder="Buscar informe (cobro, mora, caja, cliente…)"
+      searchPlaceholder="Buscar informe…"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Informes' },
       ]}
-      intro={
-        <>
-          Misma cobertura que <strong>Reportes → Crédito</strong> del sistema anterior: filtros,
-          tabla con búsqueda y exportación <strong>Excel (CSV)</strong> / <strong>PDF</strong>. Las
-          fechas de operación muestran hora cuando aplica. Índice con cajas:{' '}
-          <Link to="/reportes/credito">Reportes de crédito</Link>. Matriz técnica:{' '}
-          <Link to="/informes/cobertura">cobertura MVC vs API</Link>.
-        </>
-      }
-      quickAccess={INFORMES_HUB_QUICK_ACCESS}
       sections={sections}
     />
   )

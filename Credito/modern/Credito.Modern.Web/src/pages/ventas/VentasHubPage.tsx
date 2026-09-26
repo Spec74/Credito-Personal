@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom'
 import { CredixModuleHubPage } from '../../components/credix'
+import { useAclHubSections } from '../../hooks/useAclHubSections'
 
 const SECTIONS = [
   {
     title: 'Operaciones',
     links: [
-      { to: '/ventas/venta-rapida', label: 'Venta rápida', description: 'Operación principal' },
+      { to: '/ventas/venta-rapida', label: 'Venta rápida' },
       { to: '/ventas/orden-venta', label: 'Orden de venta' },
       { to: '/ventas/canjear-puntos', label: 'Canjear puntos' },
     ],
@@ -22,21 +23,16 @@ const SECTIONS = [
 ]
 
 export function VentasHubPage() {
+  const sections = useAclHubSections(SECTIONS)
+
   return (
     <CredixModuleHubPage
-      moduleId="ventas"
       title="Ventas"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Ventas' },
       ]}
-      intro={
-        <>
-          Lista de precios, venta rápida, órdenes de venta y canje de puntos — alineado a la
-          operación del sistema anterior.
-        </>
-      }
-      sections={SECTIONS}
+      sections={sections}
     />
   )
 }

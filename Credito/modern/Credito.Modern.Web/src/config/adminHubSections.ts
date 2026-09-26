@@ -1,4 +1,4 @@
-import type { CredixHubLink, CredixHubSection } from '../components/credix/CredixHubGrid'
+import type { CredixHubSection } from '../components/credix/CredixHubGrid'
 
 /**
  * Hub Administración — paridad menú MVC:
@@ -56,21 +56,3 @@ export const ADMIN_HUB_ENTRY_PATHS = [
   '/mantenimiento/cajas',
   '/caja/maestro',
 ] as const
-
-export const ADMIN_HUB_QUICK_ACCESS: CredixHubLink[] = [
-  {
-    to: '/admin/usuarios',
-    label: 'Usuarios',
-    description: 'Accesos',
-  },
-  {
-    to: '/admin/roles',
-    label: 'Roles',
-    description: 'Permisos',
-  },
-  {
-    to: '/mantenimiento/oficinas',
-    label: 'Oficinas',
-    description: 'Sedes',
-  },
-]

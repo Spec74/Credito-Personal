@@ -96,9 +96,14 @@ export function hasMenuRouteAccess(
   pathname: string,
   menuItems: MenuItemDto[],
   extraAllowedPaths: string[] = [],
+  opts?: { includeAlwaysAllowed?: boolean },
 ): boolean {
   const path = normalizePath(pathname)
-  if (ALWAYS_ALLOWED.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))) {
+  const includeAlways = opts?.includeAlwaysAllowed !== false
+  if (
+    includeAlways &&
+    ALWAYS_ALLOWED.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))
+  ) {
     return true
   }
 

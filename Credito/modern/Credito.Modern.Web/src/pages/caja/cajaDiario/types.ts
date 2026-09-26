@@ -19,11 +19,19 @@ export const CAJA_DIARIO_TABS = [
   'desembolsos',
   'egreso-ingreso',
   'arqueo',
-  'cxc',
-  'cierre',
 ] as const
 
 export type CajaDiarioTabKey = (typeof CAJA_DIARIO_TABS)[number]
+
+/** Normaliza tabs antiguos (cxc/cierre) a las 4 pestañas legacy. */
+export function resolveCajaDiarioTab(v: string | null): CajaDiarioTabKey {
+  if (v === 'cxc') return 'cobranzas'
+  if (v === 'cierre') return 'arqueo'
+  if (v != null && (CAJA_DIARIO_TABS as readonly string[]).includes(v)) {
+    return v as CajaDiarioTabKey
+  }
+  return 'cobranzas'
+}
 
 export function isCajaDiarioTabKey(v: string | null): v is CajaDiarioTabKey {
   return v != null && (CAJA_DIARIO_TABS as readonly string[]).includes(v)

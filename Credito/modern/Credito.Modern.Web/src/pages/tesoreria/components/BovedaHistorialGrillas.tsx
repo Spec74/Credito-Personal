@@ -5,6 +5,7 @@ import { Button, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   downloadMovimientoBovedaTicketPdf,
+  downloadRptMovimientoBovedaPdf,
   fetchRptMovimientoBoveda,
   listarBovedasHistorial,
   type BovedaListadoRow,
@@ -76,6 +77,24 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
       dataIndex: 'indCierre',
       width: 70,
       render: (v: boolean) => (v ? 'Sí' : 'No'),
+    },
+    {
+      title: '',
+      key: 'reporte',
+      width: 100,
+      fixed: 'right',
+      render: (_, row) => (
+        <Button
+          size="small"
+          type="link"
+          onClick={(e) => {
+            e.stopPropagation()
+            void downloadRptMovimientoBovedaPdf(row.bovedaId)
+          }}
+        >
+          Reporte
+        </Button>
+      ),
     },
   ]
 

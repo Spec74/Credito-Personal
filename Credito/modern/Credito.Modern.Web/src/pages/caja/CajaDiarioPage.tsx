@@ -23,9 +23,7 @@ import { formatMoney } from '../../utils/formatMoney'
 import { formatFechaHora } from '../../utils/formatFecha'
 import { CajaDiarioOperacionesBar } from './cajaDiario/CajaDiarioOperacionesBar'
 import { ArqueoTab } from './cajaDiario/ArqueoTab'
-import { CierreTab } from './cajaDiario/CierreTab'
 import { CobranzasTab } from './cajaDiario/CobranzasTab'
-import { CxcTab } from './cajaDiario/CxcTab'
 import { DesembolsosTab } from './cajaDiario/DesembolsosTab'
 import { EntradaSalidaTab } from './cajaDiario/EntradaSalidaTab'
 import {
@@ -35,7 +33,7 @@ import {
 import {
   type CajaSession,
   errMsg,
-  isCajaDiarioTabKey,
+  resolveCajaDiarioTab,
   type CajaDiarioTabKey,
 } from './cajaDiario/types'
 
@@ -55,15 +53,9 @@ export function CajaDiarioPage() {
 
   const [showStats, setShowStats] = useState(true)
 
-  const initialTab: CajaDiarioTabKey = creditoIdQuery
+  const activeTab: CajaDiarioTabKey = creditoIdQuery
     ? 'cobranzas'
-    : isCajaDiarioTabKey(tabQuery)
-      ? tabQuery
-      : 'cobranzas'
-
-  const activeTab = isCajaDiarioTabKey(tabQuery)
-    ? tabQuery
-    : initialTab
+    : resolveCajaDiarioTab(tabQuery)
 
   const setActiveTab = (key: string) => {
     setSearchParams(
@@ -424,31 +416,11 @@ export function CajaDiarioPage() {
                               invalidateCaja()
                               void cajaQuery.refetch()
                             }}
-                            onGoCierre={() => setActiveTab('cierre')}
-                          />
-                        ),
-                      },
-                      {
-                        key: 'cxc',
-                        label: 'CxC',
-                        children: (
-                          <CxcTab
-                            ctx={ctx}
-                            active={activeTab === 'cxc'}
-                            onChanged={refreshCaja}
-                          />
-                        ),
-                      },
-                      {
-                        key: 'cierre',
-                        label: 'Cierre',
-                        children: (
-                          <CierreTab
-                            ctx={ctx}
                             onCerrada={() => {
                               void cajaQuery.refetch()
                               navigate('/inicio')
                             }}
+                            openCierre={tabQuery === 'cierre'}
                           />
                         ),
                       },

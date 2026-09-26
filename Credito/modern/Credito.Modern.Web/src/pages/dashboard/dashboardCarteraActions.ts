@@ -7,7 +7,6 @@ import {
 } from '../../config/legacyreporturls'
 import {
   esCreditoAdministrador,
-  esCreditoAnalista,
   esCreditoEncargado,
   esRolCaja,
 } from '../../utils/creditoOperacionPermisos'
@@ -146,22 +145,6 @@ export function buildAdminCarteraActions(
       spaPath: '/informes/cierre-gerencial',
     })
   }
-
-  if (esCreditoAnalista(roles)) {
-    actions.push({
-      id: 'vista-analista',
-      label: 'Mi tablero analista',
-      kind: 'navigate',
-      spaPath: '/inicio?vista=analista',
-    })
-  }
-
-  actions.push({
-    id: 'mapa-modulos',
-    label: 'Mapa de módulos',
-    kind: 'navigate',
-    spaPath: '/inicio?vista=modulos',
-  })
 
   return actions
 }

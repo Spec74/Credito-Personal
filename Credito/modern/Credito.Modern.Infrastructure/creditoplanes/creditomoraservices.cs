@@ -2,6 +2,7 @@ using System.Data;
 using Credito.Modern.Application.CreditoPlanes;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Credito.Modern.Infrastructure.CreditoPlanes;
@@ -159,7 +160,8 @@ public sealed class CreditoMoraWriteService(IOptions<SqlDatabaseOptions> options
 public sealed class CajaPagoMoraOrchestrator(
     ICreditoMoraReadService moraRead,
     ICreditoMoraWriteService moraWrite,
-    IOptions<SqlDatabaseOptions> options) : ICajaPagoMoraOrchestrator
+    IOptions<SqlDatabaseOptions> options,
+    ILogger<CajaPagoMoraOrchestrator> logger) : ICajaPagoMoraOrchestrator
 {
     private readonly string _connectionString = options.Value.ConnectionString;
 
@@ -201,7 +203,7 @@ public sealed class CajaPagoMoraOrchestrator(
                 .ConfigureAwait(false);
         }
 
-        // Tras el SP las cuotas ya están PAG: última = no quedan PEN (no confiar en el flag del cliente).
+        // Tras el SP las cuotas ya estan PAG: última = no quedan PEN (no confiar en el flag del cliente).
         _ = esUltimaCuota;
         var esUltimaReal = await CreditoSinCuotasPendientesAsync(creditoId, cancellationToken)
             .ConfigureAwait(false);
@@ -229,70 +231,92 @@ public sealed class CajaPagoMoraOrchestrator(
                 "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
         }
 
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await using var transaction = (SqlTransaction)await connection
-            .BeginTransactionAsync(cancellationToken)
-            .ConfigureAwait(false);
+        // 1) Confirmar pago libre primero (no mezclar con liquidación de mora en la misma TX).
+        int? movimientoCuotaId;
+        bool esUltimaReal;
+        bool indMoraProducto;
 
-        try
+        await using (var connection = new SqlConnection(_connectionString))
         {
-            var movimientoCuotaId = await connection.QueryFirstOrDefaultAsync<int?>(
-                new CommandDefinition(
-                    "CREDITO.usp_PagarCuotaPagoLibre",
-                    new
-                    {
-                        CajaDiarioId = cajaDiarioId,
-                        CreditoId = creditoId,
-                        ImporteRecibido = importeRecibido,
-                        UsuarioId = usuarioId,
-                        TipoPagoId = tipoPagoId,
-                        FechaPagoTransferencia = fechaPagoTransferencia ?? string.Empty,
-                    },
-                    transaction: transaction,
-                    commandType: CommandType.StoredProcedure,
-                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var transaction = (SqlTransaction)await connection
+                .BeginTransactionAsync(cancellationToken)
+                .ConfigureAwait(false);
 
-            _ = esUltimaCuota;
-            var quedanPendientes = await connection.ExecuteScalarAsync<bool>(
-                new CommandDefinition(
-                    """
-                    SELECT CASE WHEN EXISTS (
-                        SELECT 1 FROM CREDITO.PlanPago
-                        WHERE CreditoId = @CreditoId AND Estado = 'PEN'
-                    ) THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END;
-                    """,
-                    new { CreditoId = creditoId },
-                    transaction: transaction,
-                    cancellationToken: cancellationToken)).ConfigureAwait(false);
-            var esUltimaReal = movimientoCuotaId is > 0 && !quedanPendientes;
-            if (esUltimaReal
-                && await moraRead.CreditoTieneMoraPostergadaHabilitadaAsync(creditoId, cancellationToken)
-                    .ConfigureAwait(false))
+            try
             {
-                await connection.ExecuteAsync(
+                movimientoCuotaId = await connection.QueryFirstOrDefaultAsync<int?>(
                     new CommandDefinition(
-                        "CREDITO.usp_CreditoMora_Liquidar",
+                        "CREDITO.usp_PagarCuotaPagoLibre",
                         new
                         {
-                            CreditoId = creditoId,
                             CajaDiarioId = cajaDiarioId,
+                            CreditoId = creditoId,
+                            ImporteRecibido = importeRecibido,
                             UsuarioId = usuarioId,
                             TipoPagoId = tipoPagoId,
+                            FechaPagoTransferencia = fechaPagoTransferencia ?? string.Empty,
                         },
                         transaction: transaction,
                         commandType: CommandType.StoredProcedure,
                         cancellationToken: cancellationToken)).ConfigureAwait(false);
-            }
 
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return new PagoCajaResultResponse(movimientoCuotaId);
+                _ = esUltimaCuota;
+                var quedanPendientes = await connection.ExecuteScalarAsync<bool>(
+                    new CommandDefinition(
+                        """
+                        SELECT CASE WHEN EXISTS (
+                            SELECT 1 FROM CREDITO.PlanPago
+                            WHERE CreditoId = @CreditoId AND Estado = 'PEN'
+                        ) THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END;
+                        """,
+                        new { CreditoId = creditoId },
+                        transaction: transaction,
+                        cancellationToken: cancellationToken)).ConfigureAwait(false);
+                esUltimaReal = movimientoCuotaId is > 0 && !quedanPendientes;
+
+                var indMora = await connection.ExecuteScalarAsync<bool?>(
+                    new CommandDefinition(
+                        """
+                        SELECT p.IndMora
+                        FROM CREDITO.Credito AS c
+                        INNER JOIN CREDITO.Producto AS p ON p.ProductoId = c.ProductoId
+                        WHERE c.CreditoId = @CreditoId;
+                        """,
+                        new { CreditoId = creditoId },
+                        transaction: transaction,
+                        cancellationToken: cancellationToken)).ConfigureAwait(false);
+                indMoraProducto = indMora == true;
+
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                throw;
+            }
         }
-        catch
+
+        // 2) Liquidar mora postergada fuera de la TX del cobro (paridad pagar-cuotas:
+        //    el pago ya está confirmado; no revertir por falta de SP / error de mora).
+        if (esUltimaReal && indMoraProducto)
         {
-            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-            throw;
+            try
+            {
+                await moraWrite
+                    .LiquidarAcumuladasAsync(creditoId, cajaDiarioId, usuarioId, tipoPagoId, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(
+                    ex,
+                    "Pago libre {MovimientoCajaId} OK; falló liquidación de mora postergada (¿falta usp_CreditoMora_Liquidar en BD?)",
+                    movimientoCuotaId);
+            }
         }
+
+        return new PagoCajaResultResponse(movimientoCuotaId);
     }
 
     private async Task<IReadOnlyList<CuotaMoraSnapshot>> ObtenerCuotasParaMoraAsync(

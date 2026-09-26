@@ -35,6 +35,7 @@ import { formatMoney } from '../../../utils/formatMoney'
 import { formatFechaHora } from '../../../utils/formatFecha'
 import { TransferirSaldosDrawer } from './TransferirSaldosDrawer'
 import { MovimientoDetalleModal } from './MovimientoDetalleModal'
+import { CierreTab } from './CierreTab'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
 import { useAuth } from '../../../auth/useAuth'
@@ -69,7 +70,8 @@ export function ArqueoTab({
   loading,
   onRefresh,
   onChanged,
-  onGoCierre,
+  onCerrada,
+  openCierre = false,
 }: {
   ctx: CajaSession
   entradas: RptSaldosCajaRow[]
@@ -77,7 +79,9 @@ export function ArqueoTab({
   loading: boolean
   onRefresh: () => void
   onChanged: () => void
-  onGoCierre: () => void
+  onCerrada: () => void
+  /** Deep-link legacy `?tab=cierre` abre el panel de cierre dentro de Arqueo. */
+  openCierre?: boolean
 }) {
   const { session } = useAuth()
   const puedeAnularMovimiento = puedeAnularMovimientoCaja(session?.roles ?? [])
@@ -87,6 +91,7 @@ export function ArqueoTab({
   const [observacion, setObservacion] = useState('')
   const [transferirOpen, setTransferirOpen] = useState(false)
   const [detalleMov, setDetalleMov] = useState<RptSaldosCajaRow | null>(null)
+  const [showCierre, setShowCierre] = useState(openCierre)
 
   const entradasF = useMemo(
     () => filtrarMovimientos(entradas, filtro),
@@ -348,11 +353,17 @@ export function ArqueoTab({
               Conciliar pagos
             </Button>
           )}
-          <Button danger onClick={onGoCierre}>
+          <Button danger onClick={() => setShowCierre(true)}>
             Cerrar caja
           </Button>
         </div>
       </footer>
+
+      {showCierre ? (
+        <div className="caja-diario-cierre-en-arqueo" style={{ marginTop: 16 }}>
+          <CierreTab ctx={ctx} onCerrada={onCerrada} />
+        </div>
+      ) : null}
 
       <TransferirSaldosDrawer
         open={transferirOpen}
@@ -380,8 +391,8 @@ export function ArqueoTab({
         okButtonProps={{ danger: true }}
       >
         <Paragraph type="secondary">
-          Paridad Caja Diario: si el movimiento INI tiene cuotas pagadas, la
-          anulación se bloquea. La observación es obligatoria.
+          Si el movimiento INI tiene cuotas pagadas, la anulación se bloquea. La
+          observación es obligatoria.
         </Paragraph>
         <Input.TextArea
           rows={2}

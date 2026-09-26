@@ -1,14 +1,15 @@
 import { Link } from 'react-router-dom'
 import { CredixModuleHubPage } from '../../components/credix'
+import { useAclHubSections } from '../../hooks/useAclHubSections'
 
 const SECTIONS = [
   {
     title: 'Operaciones',
     links: [
-      { to: '/almacen/entrada', label: 'Entrada de almacén', description: 'Wizard de ingreso' },
+      { to: '/almacen/entrada', label: 'Entrada de almacén' },
       { to: '/almacen/salida', label: 'Salida de almacén' },
       { to: '/almacen/transferencia', label: 'Transferencia entre almacenes' },
-      { to: '/almacen/movimiento', label: 'Movimiento por ID (avanzado)' },
+      { to: '/almacen/movimiento', label: 'Movimiento por ID' },
     ],
   },
   {
@@ -24,21 +25,16 @@ const SECTIONS = [
 ]
 
 export function AlmacenHubPage() {
+  const sections = useAclHubSections(SECTIONS)
+
   return (
     <CredixModuleHubPage
-      moduleId="almacen"
       title="Almacén"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Almacén' },
       ]}
-      intro={
-        <>
-          Indicadores y movimientos de almacén (paridad con <strong>Indicadores de Almacén</strong> y
-          reportes de stock del MVC). Operaciones primero; informes al final.
-        </>
-      }
-      sections={SECTIONS}
+      sections={sections}
     />
   )
 }

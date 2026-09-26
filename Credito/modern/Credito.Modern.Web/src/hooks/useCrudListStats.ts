@@ -1,14 +1,10 @@
 import { useMemo } from 'react'
-import { buildCrudListStats } from '../utils/credixVisualStats'
 
-/** Franja KPI para listados CredixCrudPage. */
+/** Franja KPI para listados CredixCrudPage — desactivada (ruido vs legacy). */
 export function useCrudListStats(
-  rows: unknown[] | undefined,
-  entityLabel?: string,
-  activeCount?: number,
+  _rows: unknown[] | undefined,
+  _entityLabel?: string,
+  _activeCount?: number,
 ) {
-  return useMemo(
-    () => buildCrudListStats(rows, { entityLabel, activeCount }),
-    [rows, entityLabel, activeCount],
-  )
+  return useMemo(() => [], [])
 }

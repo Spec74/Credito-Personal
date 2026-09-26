@@ -3,21 +3,6 @@ import type { CredixHubSection } from '../components/credix/CredixHubGrid'
 /** Índice Informes — paridad menú MVC Reporte / Crédito / Caja / Almacén. */
 export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
   {
-    title: 'Migración',
-    links: [
-      {
-        to: '/informes/cobertura',
-        label: 'Cobertura MVC vs API',
-        description: 'Matriz de pantallas, export PDF/Excel y datos',
-      },
-      {
-        to: '/informes/cierre-gerencial',
-        label: 'Cierre y metas gerenciales',
-        description: 'Avance oficial / no oficial + Excel ClosedXML (prod)',
-      },
-    ],
-  },
-  {
     title: 'Cartera y cobranza',
     links: [
       {
@@ -36,6 +21,11 @@ export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
         description: 'Paridad Reporte Morosidad MVC (PDF rptCreditoMorosidad)',
       },
       { to: '/informes/saldo-cartera-caja-diario', label: 'Saldo cartera caja diario', description: 'Por mes y año' },
+      {
+        to: '/informes/cierre-gerencial',
+        label: 'Cierre y metas gerenciales',
+        description: 'Avance oficial / no oficial',
+      },
     ],
   },
   {
@@ -80,10 +70,4 @@ export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
       { to: '/ventas/informe-lista-precios', label: 'Lista de precios', description: 'Precios vigentes' },
     ],
   },
-]
-
-export const INFORMES_HUB_QUICK_ACCESS = [
-  { to: '/reportes/credito', label: 'Reportes de crédito (índice MVC)', description: 'Cajas con filtros como Reporte/Credito' },
-  { to: '/reportes/cobranza', label: 'Cobranza pagos', description: 'Excel .xlsx por gestor' },
-  { to: '/informes/cobro-diario', label: 'Cobro diario', description: 'Acceso rápido gestor' },
 ]

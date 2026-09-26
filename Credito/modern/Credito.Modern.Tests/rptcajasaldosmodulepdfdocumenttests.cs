@@ -155,6 +155,54 @@ public sealed class RptCajaSaldosModulePdfDocumentTests
         Assert.Equal(3, c.Items.Count);
     }
 
+    [Fact]
+    public void DisplayLabel_distingue_central_y_huanta()
+    {
+        Assert.Equal("Yape Central", ResumenCuentaCajaParser.DisplayLabel("YAPE CENTRAL"));
+        Assert.Equal("Yape Huanta", ResumenCuentaCajaParser.DisplayLabel("YAPE HUANTA"));
+        Assert.Equal("Interbank Central", ResumenCuentaCajaParser.DisplayLabel("INTERBANK CENTRAL"));
+        Assert.Equal("Interbank Huanta", ResumenCuentaCajaParser.DisplayLabel("INTERBANK HUANTA"));
+        Assert.Equal("BCP Central", ResumenCuentaCajaParser.DisplayLabel("BCP CENTRAL"));
+        Assert.Equal("BCP Huanta", ResumenCuentaCajaParser.DisplayLabel("BCP HUANTA"));
+        Assert.Equal("Efectivo", ResumenCuentaCajaParser.DisplayLabel("EFECTIVO"));
+        Assert.Equal("Banco de la Nación", ResumenCuentaCajaParser.DisplayLabel("BANCO DE LA NACION"));
+    }
+
+    [Fact]
+    public void Movimiento_boveda_con_resumen_central_huanta_es_pdf_valido()
+    {
+        var cab = new BovedaAbiertaDto(
+            7,
+            1,
+            158331.15m,
+            0m,
+            42166.20m,
+            116164.95m,
+            new DateTime(2026, 9, 22, 9, 3, 17),
+            null,
+            false,
+            false);
+        var bytes = RptMovimientoBovedaPdfDocument.Build(
+            [
+                new RptMovimientoBovedaRowDto
+                {
+                    MovimientoBovedaId = 1,
+                    FechaReg = new DateTime(2026, 9, 22, 10, 0, 0),
+                    CodOperacion = "TRS",
+                    Glosa = "ASIGNACION TEMPORAL: CAJAS",
+                    Entrada = 0m,
+                    Salida = 5000m,
+                    TipoPago = "EFECTIVO",
+                    Agente = "Demo",
+                },
+            ],
+            new CredixLegacyReportContext { Oficina = "Oficina Principal", Referencia = "Bóveda N° 7" },
+            cab,
+            "RESUMEN BOVEDA: EFECTIVO = 1171496.76  YAPE CENTRAL = 798476.72  YAPE HUANTA = -13531.10  INTERBANK CENTRAL = -353714.02  INTERBANK HUANTA = 0.00  BCP CENTRAL = 98174.39  BCP HUANTA = 0.00  BANCO DE LA NACION = 9071.40");
+        AssertPdfMagic(bytes);
+        Assert.True(bytes.Length > 1500);
+    }
+
     private static void AssertPdfMagic(byte[] bytes)
     {
         Assert.True(bytes.Length > 800);

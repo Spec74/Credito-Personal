@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-D2aABDIb.js";import{a as t,n}from"./client-DtGqRrDn.js";import{n as r}from"./normalize-hvzwjrv-.js";async function i(e){let t=e!=null&&e>=1?`?oficinaId=${e}`:``,i=await n(`/almacenes${t}`);return r(i)}function a(){return(a=e((()=>{t()})))()}export{a as n,i as t};

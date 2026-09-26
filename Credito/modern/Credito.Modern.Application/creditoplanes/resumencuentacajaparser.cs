@@ -99,4 +99,39 @@ public static class ResumenCuentaCajaParser
 
         return $"Efectivo {c.Efectivo.ToString("N2", culture)} · Medios digitales {c.MediosDigitales.ToString("N2", culture)}";
     }
+
+    /// <summary>
+    /// Etiqueta legible conservando sede (Central / Huanta) cuando el SP la distingue.
+    /// </summary>
+    public static string DisplayLabel(string? cuenta)
+    {
+        if (string.IsNullOrWhiteSpace(cuenta))
+            return string.Empty;
+
+        var k = cuenta.Trim().ToUpperInvariant();
+        var sede = k.Contains("HUANTA", StringComparison.Ordinal) ? " Huanta"
+            : k.Contains("CENTRAL", StringComparison.Ordinal) ? " Central"
+            : string.Empty;
+
+        if (k.Contains("EFECTIVO", StringComparison.Ordinal) || k is "CASH")
+            return "Efectivo";
+        if (k.Contains("YAPE", StringComparison.Ordinal))
+            return "Yape" + sede;
+        if (k.Contains("PLIN", StringComparison.Ordinal))
+            return "Plin" + sede;
+        if (k.Contains("INTERBANK", StringComparison.Ordinal))
+            return "Interbank" + sede;
+        if (k.Contains("BCP", StringComparison.Ordinal)
+            || k.Contains("BCO CREDITO", StringComparison.Ordinal)
+            || k.Contains("BANCO CREDITO", StringComparison.Ordinal))
+            return "BCP" + sede;
+        if (k.Contains("NACION", StringComparison.Ordinal))
+            return "Banco de la Nación";
+        if (k.Contains("BBVA", StringComparison.Ordinal))
+            return "BBVA" + sede;
+        if (k.Contains("SCOTIA", StringComparison.Ordinal))
+            return "Scotiabank" + sede;
+
+        return CultureInfo.GetCultureInfo("es-PE").TextInfo.ToTitleCase(cuenta.Trim().ToLowerInvariant());
+    }
 }

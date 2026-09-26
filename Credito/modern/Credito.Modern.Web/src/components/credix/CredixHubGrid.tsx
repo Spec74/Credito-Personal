@@ -52,8 +52,8 @@ export function CredixHubGrid({
         <section key={section.title} className="credix-hub-module-block">
           <CredixModuleSectionTitle>{section.title}</CredixModuleSectionTitle>
           <div className="credix-module-card-grid">
-            {section.links.map((link, index) => (
-              <CredixModuleCard key={link.to} link={link} emphasis={index === 0} />
+            {section.links.map((link) => (
+              <CredixModuleCard key={link.to} link={link} />
             ))}
           </div>
         </section>

@@ -192,7 +192,7 @@ export function TransferirSaldosDrawer({
       <Alert
         type="info"
         showIcon
-        message="Misma operación que el diálogo legacy «Transferir saldos» en arqueo."
+        message="Transfiere el saldo de esta caja a otra caja diaria abierta."
         style={{ marginTop: 8 }}
       />
     </CajaDrawer>

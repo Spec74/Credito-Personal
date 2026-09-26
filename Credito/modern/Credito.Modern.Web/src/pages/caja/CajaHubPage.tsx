@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { CredixModuleHubPage } from '../../components/credix'
+import { useAclHubSections } from '../../hooks/useAclHubSections'
 
 const SECTIONS = [
   {
@@ -37,21 +38,16 @@ const SECTIONS = [
 ]
 
 export function CajaHubPage() {
+  const sections = useAclHubSections(SECTIONS)
+
   return (
     <CredixModuleHubPage
-      moduleId="caja"
       title="Caja"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Caja' },
       ]}
-      intro={
-        <>
-          Operaciones de caja diaria, chica y cierres — mismo alcance que el menú <strong>Caja</strong>{' '}
-          del sistema anterior. Use las tarjetas para abrir cada pantalla.
-        </>
-      }
-      sections={SECTIONS}
+      sections={sections}
     />
   )
 }

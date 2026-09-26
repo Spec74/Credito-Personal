@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { CredixModuleHubPage } from '../../components/credix'
+import { useAclHubSections } from '../../hooks/useAclHubSections'
 
 const SECTIONS = [
   {
@@ -15,21 +16,16 @@ const SECTIONS = [
 ]
 
 export function MaestrosHubPage() {
+  const sections = useAclHubSections(SECTIONS)
+
   return (
     <CredixModuleHubPage
-      moduleId="maestros"
       title="Maestros"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Maestros' },
       ]}
-      intro={
-        <>
-          Catálogos de mantenimiento: alta, edición y activación (marcas, modelos, artículos,
-          almacenes).
-        </>
-      }
-      sections={SECTIONS}
+      sections={sections}
     />
   )
 }

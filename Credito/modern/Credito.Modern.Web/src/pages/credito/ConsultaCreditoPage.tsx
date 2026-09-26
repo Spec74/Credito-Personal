@@ -802,7 +802,7 @@ export function ConsultaCreditoPage() {
       >
         <Paragraph>
           Reprograma el plan de pagos del crédito según las reglas del
-          procedimiento almacenado (misma operación que en el sistema clásico).
+          procedimiento almacenado.
         </Paragraph>
       </Modal>
 

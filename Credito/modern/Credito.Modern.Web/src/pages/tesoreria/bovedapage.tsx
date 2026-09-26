@@ -28,7 +28,6 @@ import { BovedaEstadoDineroPanel } from './components/BovedaEstadoDineroPanel'
 import { BovedaHistorialGrillas } from './components/BovedaHistorialGrillas'
 import { BovedaResumenCuenta } from './components/BovedaResumenCuenta'
 import { BovedaSaldosGrid } from './components/BovedaSaldosGrid'
-import { BovedaCuadreAutomaticoPanel } from './components/BovedaCuadreAutomaticoPanel'
 import { CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
@@ -202,13 +201,6 @@ export function BovedaPage() {
               loading={resumen.isLoading}
               isError={resumen.isError}
               error={resumen.error}
-            />
-          </CredixPanel>
-
-          <CredixPanel title="Cuadre automático">
-            <BovedaCuadreAutomaticoPanel
-              oficinaId={oficinaId}
-              boveda={boveda.data}
             />
           </CredixPanel>
 

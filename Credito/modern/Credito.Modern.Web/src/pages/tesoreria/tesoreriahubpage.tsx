@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { CredixModuleHubPage } from '../../components/credix'
+import { useAclHubSections } from '../../hooks/useAclHubSections'
 
 const SECTIONS = [
   {
@@ -9,26 +10,19 @@ const SECTIONS = [
       { to: '/tesoreria/movimiento-boveda', label: 'Informe movimiento bóveda' },
     ],
   },
-  {
-    title: 'Relacionado',
-    links: [
-      { to: '/caja', label: 'Módulo caja' },
-      { to: '/informes/saldo-cartera-caja-diario', label: 'Saldo cartera caja diario' },
-    ],
-  },
 ]
 
 export function TesoreriaHubPage() {
+  const sections = useAclHubSections(SECTIONS)
+
   return (
     <CredixModuleHubPage
-      moduleId="tesoreria"
       title="Tesorería"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Tesorería' },
       ]}
-      intro={<>Bóveda operativa y movimientos. Exportación de informes vía API.</>}
-      sections={SECTIONS}
+      sections={sections}
     />
   )
 }

@@ -56,7 +56,6 @@ function invalidateBoveda(
   void queryClient.invalidateQueries({ queryKey: ['resumen-cuenta-boveda', bovedaId] })
   void queryClient.invalidateQueries({ queryKey: ['rpt-movimiento-boveda', bovedaId] })
   void queryClient.invalidateQueries({ queryKey: ['saldos-caja-diario-boveda', oficinaId] })
-  void queryClient.invalidateQueries({ queryKey: ['boveda-cuadre-preview', oficinaId, bovedaId] })
   void queryClient.invalidateQueries({ queryKey: ['validar-cierre-saldos', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['cajas-transferencia-boveda', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['bovedas-destino-transferencia', oficinaId] })
@@ -247,7 +246,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           <Paragraph style={{ marginBottom: 0 }}>
             {temporalOnly
               ? 'Se cerrará la bóveda temporal de esta oficina. Confirme solo si ya no hay operaciones pendientes en ella.'
-              : 'Se cerrará la bóveda principal de esta oficina. Confirme solo si el cuadre y las cajas están en orden.'}
+              : 'Se cerrará la bóveda principal de esta oficina. Confirme solo si las cajas están en orden.'}
           </Paragraph>
         </>
       ),

@@ -5,15 +5,8 @@ import type { ReactNode } from 'react'
 import type { CredixHubLink } from './CredixHubGrid'
 import { hubLinkIcon } from '../../utils/hubLinkIcons'
 
-/** Tarjeta de acceso al módulo (paridad con `.box` del MVC: cabecera gris + acción). */
-export function CredixModuleCard({
-  link,
-  emphasis,
-}: {
-  link: CredixHubLink
-  /** Primera operación de la sección — botón principal más visible */
-  emphasis?: boolean
-}) {
+/** Tarjeta de acceso al módulo: solo etiqueta funcional (sin texto de relleno). */
+export function CredixModuleCard({ link }: { link: CredixHubLink }) {
   const icon = link.icon ?? hubLinkIcon(link.to, link.label)
   return (
     <article className="credix-module-card">
@@ -23,16 +16,9 @@ export function CredixModuleCard({
         </span>
         <h3 className="credix-module-card-title">{link.label}</h3>
       </header>
-      <div className="credix-module-card-body">
-        {link.description ? (
-          <p className="credix-module-card-desc">{link.description}</p>
-        ) : (
-          <p className="credix-module-card-desc">Misma operación que en el sistema anterior.</p>
-        )}
-      </div>
       <footer className="credix-module-card-actions">
         <Link to={link.to}>
-          <Button type={emphasis ? 'primary' : 'default'} icon={<ArrowRightOutlined />}>
+          <Button type="default" icon={<ArrowRightOutlined />}>
             Abrir
           </Button>
         </Link>

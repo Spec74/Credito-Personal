@@ -1,19 +1,13 @@
 import { useMemo, useState, type ReactNode } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import {
   CalendarOutlined,
-  EnvironmentOutlined,
-  FileSearchOutlined,
-  FundProjectionScreenOutlined,
   ReloadOutlined,
   RiseOutlined,
   SwapOutlined,
   TeamOutlined,
-  UserDeleteOutlined,
   WalletOutlined,
   WarningOutlined,
-  AppstoreOutlined,
 } from '@ant-design/icons'
 import { Alert, Button, Input, Skeleton, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
@@ -23,33 +17,15 @@ import {
   type DashboardAdminAnalistaRow,
   type DashboardAdminFlujoRow,
 } from '../../api/dashboard'
-import { fetchCierreGerencialPermisos } from '../../api/cierreGerencial'
 import { ApiError } from '../../api/errors'
 import { DualMetricChart } from '../../components/dashboard/DualMetricChart'
 import { CarteraMixChart } from '../../components/dashboard/CarteraMixChart'
 import { CredixDataTable, CredixPage } from '../../components/credix'
 import { useAuth } from '../../auth/useAuth'
-import { esCreditoAnalista } from '../../utils/creditoOperacionPermisos'
 import { formatMoney } from '../../utils/formatMoney'
-import {
-  buildAdminCarteraActions,
-  runDashboardCarteraAction,
-} from './dashboardCarteraActions'
 import '../../styles/dashboard-analista.css'
 
 const { Text } = Typography
-
-const ADMIN_ACCION_ICONS: Record<string, ReactNode> = {
-  vencidos: <WarningOutlined />,
-  'cobro-diario': <EnvironmentOutlined />,
-  observados: <FileSearchOutlined />,
-  inactivos: <UserDeleteOutlined />,
-  'saldo-cartera': <WalletOutlined />,
-  'caja-saldos': <WalletOutlined />,
-  'cierre-gerencial': <FundProjectionScreenOutlined />,
-  'vista-analista': <TeamOutlined />,
-  'mapa-modulos': <AppstoreOutlined />,
-}
 
 const queryOpts = {
   staleTime: 5 * 60_000,
@@ -59,11 +35,9 @@ const queryOpts = {
 
 export function AdminDashboardPage() {
   const { session } = useAuth()
-  const navigate = useNavigate()
   const [buscar, setBuscar] = useState('')
   const oficinaKey = session?.oficinaId
   const enabled = (oficinaKey ?? 0) > 0
-  const roles = session?.roles ?? []
 
   const shellQuery = useQuery({
     queryKey: ['dashboard-admin-shell', oficinaKey],
@@ -80,29 +54,6 @@ export function AdminDashboardPage() {
     enabled,
     retry: 1,
   })
-
-  const cierrePermisosQuery = useQuery({
-    queryKey: ['cierre-gerencial-permisos', session?.usuarioId],
-    queryFn: fetchCierreGerencialPermisos,
-    enabled: (session?.usuarioId ?? 0) > 0,
-    staleTime: 5 * 60_000,
-  })
-
-  const carteraActions = useMemo(
-    () =>
-      buildAdminCarteraActions(roles, {
-        puedeCierreGerencial: cierrePermisosQuery.data?.puedeConsultar === true,
-      }),
-    [roles, cierrePermisosQuery.data?.puedeConsultar],
-  )
-
-  const onCarteraAction = (action: (typeof carteraActions)[number]) => {
-    runDashboardCarteraAction(action, {
-      oficinaId: session?.oficinaId ?? 0,
-      usuarioId: session?.usuarioId ?? 0,
-      navigate,
-    })
-  }
 
   const shell = shellQuery.data
   const detalle = detalleQuery.data
@@ -370,26 +321,15 @@ export function AdminDashboardPage() {
   }
 
   const fechaLarga = formatFechaLarga(shell.fechaConsulta)
-  const esAnalista = esCreditoAnalista(session?.roles ?? [])
 
   return (
     <CredixPage
       title="Inicio"
       subtitle={`Indicadores de cobranza, colocación y cartera · ${shell.nombreOficina}`}
       actions={
-        <>
-          <Link to="/inicio?vista=modulos">
-            <Button>Mapa de módulos</Button>
-          </Link>
-          {esAnalista ? (
-            <Link to="/inicio?vista=analista">
-              <Button>Mi tablero</Button>
-            </Link>
-          ) : null}
-          <Button icon={<ReloadOutlined />} onClick={refetchAll} loading={isFetching}>
-            Actualizar
-          </Button>
-        </>
+        <Button icon={<ReloadOutlined />} onClick={refetchAll} loading={isFetching}>
+          Actualizar
+        </Button>
       }
     >
       <div className="dash-analista dash-admin">
@@ -749,29 +689,6 @@ export function AdminDashboardPage() {
             ) : (
               <Skeleton active paragraph={{ rows: 8 }} />
             )}
-          </div>
-        </section>
-
-        <section className="dash-panel">
-          <div className="dash-panel-head">
-            <div>
-              <h2>Atajos operativos</h2>
-              <p>Acciones frecuentes según su rol, después de revisar el tablero.</p>
-            </div>
-          </div>
-          <div className="dash-panel-body">
-            <nav className="dash-actions" aria-label="Atajos gerenciales">
-              {carteraActions.map((a) => (
-                <Button
-                  key={a.id}
-                  icon={ADMIN_ACCION_ICONS[a.id]}
-                  type={a.id === 'mapa-modulos' ? 'primary' : 'default'}
-                  onClick={() => onCarteraAction(a)}
-                >
-                  {a.label}
-                </Button>
-              ))}
-            </nav>
           </div>
         </section>
       </div>

@@ -7,7 +7,7 @@ namespace Credito.Modern.Application.CreditoPlanes;
 
 /// <summary>
 /// PDF de movimiento de bóveda: paridad <c>rptMovimientoBoveda.rdlc</c> (cabecera de saldos
-/// y estado, detalle de movimientos).
+/// y estado, detalle de movimientos, resumen de cuenta al final).
 /// </summary>
 public static class RptMovimientoBovedaPdfDocument
 {
@@ -38,10 +38,16 @@ public static class RptMovimientoBovedaPdfDocument
                 {
                     col.Item().Element(c =>
                         CajaSaldosPdfStyle.TitleBand(c, logo, "MOVIMIENTO BÓVEDA", printedAt));
-                    col.Item().PaddingTop(6).Element(c => ComposeCab(c, context, cab, composicion));
+                    col.Item().PaddingTop(6).Element(c => ComposeCab(c, context, cab));
                 });
 
-                page.Content().PaddingTop(8).Element(c => ComposeTable(c, rows));
+                page.Content().Column(col =>
+                {
+                    col.Item().PaddingTop(8).Element(c => ComposeTable(c, rows));
+                    if (composicion.Items.Count > 0)
+                        col.Item().PaddingTop(14).Element(c => ComposeResumenCuenta(c, composicion));
+                });
+
                 CajaSaldosPdfStyle.Footer(page, rows.Count);
             });
         }).GeneratePdf();
@@ -50,8 +56,7 @@ public static class RptMovimientoBovedaPdfDocument
     private static void ComposeCab(
         IContainer container,
         CredixLegacyReportContext context,
-        BovedaAbiertaDto? cab,
-        ResumenCuentaCajaParser.Composicion composicion)
+        BovedaAbiertaDto? cab)
     {
         container.Background(CajaSaldosPdfStyle.BandBg)
             .Border(0.6f)
@@ -88,28 +93,72 @@ public static class RptMovimientoBovedaPdfDocument
                         Kpi(row, "Saldo final", cab.SaldoFinal, bold: true);
                     });
                 }
-
-                // Cabecera (no pie): el cajero ve la composición antes del detalle, como en
-                // el resumen de cuentas de la pantalla de bóveda.
-                if (composicion.Items.Count > 0)
-                {
-                    col.Item().PaddingTop(8).Row(row =>
-                    {
-                        Kpi(row, "Total efectivo", composicion.Efectivo, bold: true);
-                        Kpi(row, "Total medios digitales", composicion.MediosDigitales, bold: true);
-                    });
-
-                    var detalle = string.Join(
-                        " · ",
-                        composicion.Items.Select(i =>
-                            $"{i.Cuenta} {CajaSaldosPdfStyle.Money(i.Importe)}"));
-                    col.Item().PaddingTop(4).Text(t =>
-                    {
-                        t.Span("Detalle por medio: ").Bold().FontSize(7);
-                        t.Span(detalle).FontSize(7);
-                    });
-                }
             });
+    }
+
+    /// <summary>
+    /// Bloque final (paridad pie del RDLC): composición por medio con etiquetas Central/Huanta.
+    /// </summary>
+    private static void ComposeResumenCuenta(
+        IContainer container,
+        ResumenCuentaCajaParser.Composicion composicion)
+    {
+        container.Column(col =>
+        {
+            col.Item().Text("RESUMEN DE CUENTA")
+                .Bold()
+                .FontSize(9)
+                .FontColor(CajaSaldosPdfStyle.Brand);
+
+            col.Item().PaddingTop(4).Row(row =>
+            {
+                Kpi(row, "Total efectivo", composicion.Efectivo, bold: true);
+                Kpi(row, "Total medios digitales", composicion.MediosDigitales, bold: true);
+            });
+
+            const int cols = 4;
+            var items = composicion.Items;
+            for (var i = 0; i < items.Count; i += cols)
+            {
+                var slice = items.Skip(i).Take(cols).ToList();
+                col.Item().PaddingTop(6).Row(row =>
+                {
+                    foreach (var item in slice)
+                    {
+                        row.RelativeItem().PaddingRight(4).Element(c => ResumenCard(c, item));
+                    }
+
+                    for (var pad = slice.Count; pad < cols; pad++)
+                        row.RelativeItem();
+                });
+            }
+        });
+    }
+
+    private static void ResumenCard(IContainer container, ResumenCuentaCajaParser.Item item)
+    {
+        var etiqueta = ResumenCuentaCajaParser.DisplayLabel(item.Cuenta);
+        var neg = item.Importe < 0;
+        container.Row(row =>
+        {
+            row.ConstantItem(2.4f).Background(CajaSaldosPdfStyle.Brand);
+            row.RelativeItem()
+                .Background(CajaSaldosPdfStyle.BandBg)
+                .Border(0.6f)
+                .BorderColor(CajaSaldosPdfStyle.Border)
+                .PaddingVertical(6)
+                .PaddingHorizontal(6)
+                .Column(col =>
+                {
+                    col.Item().Text(etiqueta)
+                        .FontSize(6.5f)
+                        .FontColor(Colors.Grey.Darken2);
+                    col.Item().PaddingTop(2).Text(CajaSaldosPdfStyle.Money(item.Importe))
+                        .FontSize(9)
+                        .Bold()
+                        .FontColor(neg ? Colors.Red.Darken2 : CajaSaldosPdfStyle.Brand);
+                });
+        });
     }
 
     private static void Kpi(RowDescriptor row, string label, decimal value, bool bold = false)

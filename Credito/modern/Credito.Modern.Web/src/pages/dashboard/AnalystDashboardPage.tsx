@@ -1,20 +1,16 @@
 import { useMemo, useState, type ReactNode } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
   AlertOutlined,
   CalendarOutlined,
-  EnvironmentOutlined,
-  FileSearchOutlined,
   PercentageOutlined,
   ReloadOutlined,
   RiseOutlined,
   StopOutlined,
   TeamOutlined,
-  UserDeleteOutlined,
   WalletOutlined,
   WarningOutlined,
-  CalculatorOutlined,
 } from '@ant-design/icons'
 import { Alert, Button, Progress, Skeleton } from 'antd'
 import {
@@ -28,31 +24,14 @@ import { CobranzaAreaChart } from '../../components/dashboard/CobranzaAreaChart'
 import { DashboardClientesMoraModal } from '../../components/dashboard/DashboardClientesMoraModal'
 import { CredixPage } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
-import {
-  buildAnalistaCarteraActions,
-  runDashboardCarteraAction,
-} from './dashboardCarteraActions'
 import '../../styles/dashboard-analista.css'
-
-const ACCION_ICONS: Record<string, ReactNode> = {
-  'cobro-diario': <EnvironmentOutlined />,
-  vencidos: <WarningOutlined />,
-  observados: <FileSearchOutlined />,
-  inactivos: <UserDeleteOutlined />,
-  simulador: <CalculatorOutlined />,
-  'caja-diario': <WalletOutlined />,
-}
 
 export function AnalystDashboardPage() {
   const { session } = useAuth()
-  const navigate = useNavigate()
   const [params] = useSearchParams()
   const desdeAdmin = params.get('vista') === 'analista'
   const [moraOpen, setMoraOpen] = useState(false)
   const [moraTipo, setMoraTipo] = useState<DashboardMoraTipo>('TODOS')
-
-  const roles = session?.roles ?? []
-  const carteraActions = useMemo(() => buildAnalistaCarteraActions(roles), [roles])
 
   const query = useQuery({
     queryKey: ['dashboard-analista', session?.usuarioId, session?.oficinaId],
@@ -66,14 +45,6 @@ export function AnalystDashboardPage() {
   const abrirMora = (tipo: DashboardMoraTipo) => {
     setMoraTipo(tipo)
     setMoraOpen(true)
-  }
-
-  const onCarteraAction = (action: (typeof carteraActions)[number]) => {
-    runDashboardCarteraAction(action, {
-      oficinaId: session?.oficinaId ?? 0,
-      usuarioId: session?.usuarioId ?? 0,
-      navigate,
-    })
   }
 
   const prodStats = useMemo(
@@ -122,14 +93,9 @@ export function AnalystDashboardPage() {
       actions={
         <>
           {desdeAdmin ? (
-            <>
-              <Link to="/inicio">
-                <Button>Tablero gerencial</Button>
-              </Link>
-              <Link to="/inicio?vista=modulos">
-                <Button>Mapa de módulos</Button>
-              </Link>
-            </>
+            <Link to="/inicio">
+              <Button>Tablero gerencial</Button>
+            </Link>
           ) : null}
           <Button
             icon={<ReloadOutlined />}
@@ -382,31 +348,6 @@ export function AnalystDashboardPage() {
                 </article>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section className="dash-panel">
-          <div className="dash-panel-head">
-            <div>
-              <h2>Seguimiento de cartera</h2>
-              <p>
-                Atajos operativos según el legado (vencidos, observados, inactivos) más
-                cobro y caja del día.
-              </p>
-            </div>
-          </div>
-          <div className="dash-panel-body">
-            <nav className="dash-actions" aria-label="Seguimiento">
-              {carteraActions.map((a) => (
-                <Button
-                  key={a.id}
-                  icon={ACCION_ICONS[a.id]}
-                  onClick={() => onCarteraAction(a)}
-                >
-                  {a.label}
-                </Button>
-              ))}
-            </nav>
           </div>
         </section>
       </div>

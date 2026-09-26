@@ -30,20 +30,29 @@ function normalizarClave(raw: string): string {
   return raw.trim().replace(/\s+/g, ' ').toUpperCase()
 }
 
+/** Sufijo de sede/cuenta cuando el SP distingue Central vs Huanta. */
+function sufijoSede(clave: string): string {
+  const k = normalizarClave(clave)
+  if (k.includes('HUANTA')) return ' Huanta'
+  if (k.includes('CENTRAL')) return ' Central'
+  return ''
+}
+
 function resolverVariant(clave: string): { etiqueta: string; variant: ResumenCuentaVariant } {
   const k = normalizarClave(clave)
+  const sede = sufijoSede(k)
 
   if (k === 'EFECTIVO' || k.includes('EFECTIVO') || k === 'CASH') {
     return { etiqueta: 'Efectivo', variant: 'efectivo' }
   }
   if (k.includes('YAPE')) {
-    return { etiqueta: 'Yape', variant: 'yape' }
+    return { etiqueta: `Yape${sede}`, variant: 'yape' }
   }
   if (k.includes('PLIN')) {
-    return { etiqueta: 'Plin', variant: 'plin' }
+    return { etiqueta: `Plin${sede}`, variant: 'plin' }
   }
   if (k.includes('INTERBANK')) {
-    return { etiqueta: 'Interbank', variant: 'interbank' }
+    return { etiqueta: `Interbank${sede}`, variant: 'interbank' }
   }
   if (
     k.includes('BCO CREDITO') ||
@@ -51,16 +60,16 @@ function resolverVariant(clave: string): { etiqueta: string; variant: ResumenCue
     k === 'BCP' ||
     k.includes('BCP')
   ) {
-    return { etiqueta: 'BCP', variant: 'bcp' }
+    return { etiqueta: `BCP${sede}`, variant: 'bcp' }
   }
   if (k.includes('NACION') || k.includes('BN')) {
     return { etiqueta: 'Banco de la Nación', variant: 'banco-nacion' }
   }
   if (k.includes('BBVA')) {
-    return { etiqueta: 'BBVA', variant: 'bbva' }
+    return { etiqueta: `BBVA${sede}`, variant: 'bbva' }
   }
   if (k.includes('SCOTIA')) {
-    return { etiqueta: 'Scotiabank', variant: 'scotiabank' }
+    return { etiqueta: `Scotiabank${sede}`, variant: 'scotiabank' }
   }
   if (k.includes('TRANSFER') || k.includes('TRANSF')) {
     return { etiqueta: clave.trim(), variant: 'transferencia' }
