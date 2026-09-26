@@ -38,6 +38,28 @@ function sufijoSede(clave: string): string {
   return ''
 }
 
+/**
+ * Marca de medio sin sede (p. ej. YAPE, INTERBANK, BCO CREDITO).
+ * El SP usa el nombre corto para Central y «… HUANTA» para Huanta.
+ */
+function marcaBase(clave: string): string | null {
+  const k = normalizarClave(clave)
+  if (k.includes('YAPE')) return 'YAPE'
+  if (k.includes('PLIN')) return 'PLIN'
+  if (k.includes('INTERBANK')) return 'INTERBANK'
+  if (
+    k.includes('BCO CREDITO') ||
+    k.includes('BANCO CREDITO') ||
+    k === 'BCP' ||
+    (k.includes('BCP') && !k.includes('NACION'))
+  ) {
+    return 'BCP'
+  }
+  if (k.includes('BBVA')) return 'BBVA'
+  if (k.includes('SCOTIA')) return 'SCOTIABANK'
+  return null
+}
+
 function resolverVariant(clave: string): { etiqueta: string; variant: ResumenCuentaVariant } {
   const k = normalizarClave(clave)
   const sede = sufijoSede(k)
@@ -58,11 +80,11 @@ function resolverVariant(clave: string): { etiqueta: string; variant: ResumenCue
     k.includes('BCO CREDITO') ||
     k.includes('BANCO CREDITO') ||
     k === 'BCP' ||
-    k.includes('BCP')
+    (k.includes('BCP') && !k.includes('NACION'))
   ) {
     return { etiqueta: `BCP${sede}`, variant: 'bcp' }
   }
-  if (k.includes('NACION') || k.includes('BN')) {
+  if (k.includes('NACION') || /\bBN\b/.test(k) || k === 'BCO NACION' || k.startsWith('BCO NACION')) {
     return { etiqueta: 'Banco de la Nación', variant: 'banco-nacion' }
   }
   if (k.includes('BBVA')) {
@@ -83,8 +105,30 @@ function resolverVariant(clave: string): { etiqueta: string; variant: ResumenCue
 }
 
 /**
+ * Si el SP trae «YAPE» + «YAPE HUANTA» (sin «CENTRAL» en el primero),
+ * aclara el corto como Central — paridad visual con el legacy.
+ */
+function aclararParesCentralHuanta(items: ResumenCuentaItem[]): ResumenCuentaItem[] {
+  const marcasConHuanta = new Set<string>()
+  for (const item of items) {
+    if (sufijoSede(item.clave) === ' Huanta') {
+      const marca = marcaBase(item.clave)
+      if (marca) marcasConHuanta.add(marca)
+    }
+  }
+  if (marcasConHuanta.size === 0) return items
+
+  return items.map((item) => {
+    if (sufijoSede(item.clave) !== '') return item
+    const marca = marcaBase(item.clave)
+    if (!marca || !marcasConHuanta.has(marca)) return item
+    return { ...item, etiqueta: `${item.etiqueta} Central` }
+  })
+}
+
+/**
  * Parsea texto tipo:
- * `RESUMEN BOVEDA: EFECTIVO = 1166477.21  YAPE = 405491.64 ...`
+ * `RESUMEN BOVEDA: EFECTIVO = 1166477.21  YAPE = 405491.64 ... YAPE HUANTA = -13.10`
  */
 export function parseResumenBovedaTexto(texto: string): ResumenCuentaParsed {
   const trimmed = texto.trim()
@@ -107,7 +151,7 @@ export function parseResumenBovedaTexto(texto: string): ResumenCuentaParsed {
   if (items.length > 0) {
     const tituloMatch = trimmed.match(/^([^=]+?):/i)
     const titulo = tituloMatch?.[1]?.trim()
-    return { titulo, items }
+    return { titulo, items: aclararParesCentralHuanta(items) }
   }
 
   return { items: [], textoPlano: trimmed }

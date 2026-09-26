@@ -169,6 +169,18 @@ public sealed class RptCajaSaldosModulePdfDocumentTests
     }
 
     [Fact]
+    public void Compose_aclara_central_cuando_sp_solo_marca_huanta()
+    {
+        var c = ResumenCuentaCajaParser.Compose(
+            "RESUMEN BOVEDA: EFECTIVO = 1181135.76  YAPE = 805774.72  INTERBANK = -353554.02  BCO CREDITO = 98444.39  BCO NACION = 9071.40  YAPE HUANTA = -13531.10  INTERBANK HUANTA = 0.00  BCO CREDITO HUANTA = 0.00");
+        Assert.Equal(
+            ["EFECTIVO", "YAPE CENTRAL", "INTERBANK CENTRAL", "BCO CREDITO CENTRAL", "BCO NACION", "YAPE HUANTA", "INTERBANK HUANTA", "BCO CREDITO HUANTA"],
+            c.Items.Select(i => i.Cuenta).ToArray());
+        Assert.Equal("Yape Central", ResumenCuentaCajaParser.DisplayLabel(c.Items[1].Cuenta));
+        Assert.Equal("BCP Huanta", ResumenCuentaCajaParser.DisplayLabel(c.Items[^1].Cuenta));
+    }
+
+    [Fact]
     public void Movimiento_boveda_con_resumen_central_huanta_es_pdf_valido()
     {
         var cab = new BovedaAbiertaDto(

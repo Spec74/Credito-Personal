@@ -58,7 +58,7 @@ public static class ResumenCuentaCajaParser
 
     public static Composicion Compose(string? resumen)
     {
-        var items = Parse(resumen);
+        var items = AclararParesCentralHuanta(Parse(resumen));
         decimal efectivo = 0m;
         decimal digitales = 0m;
         foreach (var item in items)
@@ -133,5 +133,71 @@ public static class ResumenCuentaCajaParser
             return "Scotiabank" + sede;
 
         return CultureInfo.GetCultureInfo("es-PE").TextInfo.ToTitleCase(cuenta.Trim().ToLowerInvariant());
+    }
+
+    /// <summary>
+    /// Aclara pares «YAPE» + «YAPE HUANTA» del SP como Central / Huanta (el SP no escribe CENTRAL).
+    /// </summary>
+    public static IReadOnlyList<Item> AclararParesCentralHuanta(IReadOnlyList<Item> items)
+    {
+        if (items.Count == 0)
+            return items;
+
+        var marcasHuanta = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var item in items)
+        {
+            var k = item.Cuenta.Trim().ToUpperInvariant();
+            if (!k.Contains("HUANTA", StringComparison.Ordinal))
+                continue;
+            var marca = MarcaBase(k);
+            if (marca is not null)
+                marcasHuanta.Add(marca);
+        }
+
+        if (marcasHuanta.Count == 0)
+            return items;
+
+        var result = new List<Item>(items.Count);
+        foreach (var item in items)
+        {
+            var k = item.Cuenta.Trim().ToUpperInvariant();
+            if (k.Contains("HUANTA", StringComparison.Ordinal) || k.Contains("CENTRAL", StringComparison.Ordinal))
+            {
+                result.Add(item);
+                continue;
+            }
+
+            var marca = MarcaBase(k);
+            if (marca is null || !marcasHuanta.Contains(marca))
+            {
+                result.Add(item);
+                continue;
+            }
+
+            // Conserva la denominación original del SP + CENTRAL para DisplayLabel.
+            result.Add(new Item(item.Cuenta.TrimEnd() + " CENTRAL", item.Importe));
+        }
+
+        return result;
+    }
+
+    private static string? MarcaBase(string k)
+    {
+        if (k.Contains("YAPE", StringComparison.Ordinal))
+            return "YAPE";
+        if (k.Contains("PLIN", StringComparison.Ordinal))
+            return "PLIN";
+        if (k.Contains("INTERBANK", StringComparison.Ordinal))
+            return "INTERBANK";
+        if (k.Contains("BCO CREDITO", StringComparison.Ordinal)
+            || k.Contains("BANCO CREDITO", StringComparison.Ordinal)
+            || k is "BCP"
+            || (k.Contains("BCP", StringComparison.Ordinal) && !k.Contains("NACION", StringComparison.Ordinal)))
+            return "BCP";
+        if (k.Contains("BBVA", StringComparison.Ordinal))
+            return "BBVA";
+        if (k.Contains("SCOTIA", StringComparison.Ordinal))
+            return "SCOTIABANK";
+        return null;
     }
 }
