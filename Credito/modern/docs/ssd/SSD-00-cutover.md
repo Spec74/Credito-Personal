@@ -103,11 +103,12 @@ Ninguna financiera de cutover. Cifras de tests: historial **714** → **738** (2
 
 - API: `stranglerproductioncontracttests`, `stranglerstagingcontracttests`, `healthendpointtests`
 - 2026-09-11 Development: `verify-production-config.ps1`; `smoke-local-api.ps1` en `http://localhost:5288`; filtro Strangler 2/2
-- 2026-09-11 Docker Desktop stack `credito-modern-current`: `verify-strangler-proxy.ps1` + `smoke-strangler-proxy.ps1 -SkipJwt`. API recreada (`MigracionClavePerezosa=true`). IIS Express en 4779: rutas no migradas llegan al MVC (404/302), no 502. Login JWT por proxy pendiente de usuario/clave reales.
+- 2026-09-11 Docker Desktop stack `credito-modern-current`: `verify-strangler-proxy.ps1` + `smoke-strangler-proxy.ps1 -SkipJwt`. API recreada (`MigracionClavePerezosa=true`). IIS Express en 4779: rutas no migradas llegan al MVC (404/302), no 502.
+- 2026-09-23 Piloto Azure + Vercel: login real + smoke JWT.
 - Runbook operativo: [PHASE-5-OPERATIONS-CUTOVER.md](../migration/PHASE-5-OPERATIONS-CUTOVER.md)
 
-Eso no sustituye el smoke con datos reales de preprod.
+El smoke con datos reales de **preprod corporativa** sigue en §7 (casillas operativas).
 
 ## 10. Go-live
 
-**Pendiente de ejecución.** Desarrollo: listo para piloto. Preprod: seguir Corte A → B; no retirar IIS MVC en el primer día.
+**Documentación de cutover: completa.** Ejecución preprod: pendiente (Corte A → B). No retirar IIS MVC el primer día.
