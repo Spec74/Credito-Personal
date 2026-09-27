@@ -1,6 +1,6 @@
 # SSD-08 — Administración (seguridad y oficinas)
 
-**Estado:** as-built · 2026-09-11  
+**Estado:** as-built · 2026-09-11 · validación usuarios/roles/oficinas con `formRules` / `UsuarioValidacion` 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
 **Código:** `/admin/*`, `/mantenimiento/oficinas` · `/api/v1/usuarios/*`, `/api/v1/roles/*`, `/api/v1/oficinas/*`  
 **Fuente legacy:** `UsuarioController`, `RolController`, `OficinaController`, `ComisionController`  
 **Doc de ingeniería:** [ui_modernizacion_modulos.md](../ui_modernizacion_modulos.md) (no hay `*_migracion.md` propio)

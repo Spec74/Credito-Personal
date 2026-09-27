@@ -1,6 +1,6 @@
 # SSD-02 — Crédito (operaciones)
 
-**Estado:** as-built · 2026-09-11  
+**Estado:** as-built · 2026-09-11 · validación cargos/observar/pagos actualizada 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
 **Código:** `/credito/*` · `/api/v1/credito/*`  
 **Fuente legacy:** `CreditoController`, `CreditoAprobarController`, `TareasController`, `Condonacion`, vistas `Creditos.cshtml` / `CreditoAprobar/Index` / `Tareas/Index`  
 **Doc de ingeniería:** [credito_migracion.md](../credito_migracion.md)

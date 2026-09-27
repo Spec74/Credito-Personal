@@ -1,6 +1,6 @@
 # SSD-05 — Clientes
 
-**Estado:** as-built · 2026-09-11  
+**Estado:** as-built · 2026-09-11 · `ClienteValidacion` / formRules 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
 **Código:** `/clientes`, `/clientes/nuevo`, `/clientes/editar/:personaId` · `/api/v1/clientes/*`  
 **Fuente legacy:** `ClienteController`, `Views/Cliente/Index.cshtml`, `Mantener.cshtml`  
 **Doc de ingeniería:** [clientes_migracion.md](../clientes_migracion.md)

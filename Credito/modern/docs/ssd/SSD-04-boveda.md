@@ -1,6 +1,6 @@
 # SSD-04 — Tesorería / bóveda
 
-**Estado:** as-built · 2026-09-11  
+**Estado:** as-built · 2026-09-11 · validación movimientos/bancos/inter-oficina 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
 **Código:** `/tesoreria/boveda`, `/tesoreria/movimiento-boveda` · `/api/v1/credito/*` (bóveda)  
 **Fuente legacy:** `BovedaController`, `Views/Boveda/Index.cshtml`  
 **Doc de ingeniería:** [boveda_migracion.md](../boveda_migracion.md)
@@ -68,6 +68,7 @@ La puerta de negocio es el menú BOVEDA en la SPA. La API replica al MVC: autent
 - `oficinaId` del JWT en lecturas de estado e historial.
 - Hub `/tesoreria` y menú `/boveda` habilitan `/tesoreria/movimiento-boveda`.
 - Caja diario **no** habilita el informe de movimiento bóveda.
+- Escrituras de importe/glosa: `TesoreriaValidacion` + panel SPA con `formRules` ([SSD-12](SSD-12-validacion.md)).
 
 ## 7. Criterios de aceptación
 

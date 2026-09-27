@@ -5,7 +5,10 @@ antes de programar. La migración strangler **ya está implementada**. Este dire
 reescribe esa historia: documenta **lo construido** con el mismo rigor que un spec-kit
 previo, para auditoría, cutover y mantenimiento.
 
-No es un diario de fases. No duplica `readme.md` ni la bitácora.
+**Índice de toda la documentación del software:** [../DOCUMENTACION.md](../DOCUMENTACION.md)  
+**Arquitectura:** [../ARCHITECTURE.md](../ARCHITECTURE.md)
+
+No es un diario de fases. No duplica el inventario de endpoints de `readme.md` ni la bitácora.
 
 ## Qué hay y qué no
 
@@ -13,13 +16,15 @@ No es un diario de fases. No duplica `readme.md` ni la bitácora.
 |------|------------|----------------|
 | Código operativo (menú vivo CREDITO + SPA extra) | Casi: candidato a go-live | API .NET 10 + `Credito.Modern.Web` |
 | Paridad de negocio (`usp_*`, no inventar reglas) | Sí, con desviaciones registradas | `docs/migration/BITACORA-DESVIACIONES.md` |
-| Docs de ingeniería por módulo | Parcial | `docs/*_migracion.md` (crédito, clientes, caja, bóveda); el resto se destila en `docs/ssd/` |
-| SSD / Spec Kit (visión, spec, criterios, trazabilidad) | Catálogo as-built **completo** (12/12) | `docs/ssd/` |
-| Cutover preprod/prod | Pendiente de ejecución | `DEPLOY-AL-SUBIR.md`, `PHASE-5-OPERATIONS-CUTOVER.md`, [SSD-00](SSD-00-cutover.md) |
+| Docs de ingeniería por módulo | Sí (crédito/caja/bóveda/clientes + SSD para el resto) | `docs/*_migracion.md` + `docs/ssd/` |
+| SSD / Spec Kit (visión, spec, criterios, trazabilidad) | Catálogo as-built **completo** (**13/13**) | `docs/ssd/` |
+| Validación FE/BE transversal | Sí | [SSD-12-validacion.md](SSD-12-validacion.md) |
+| Documentación completa del software (índice + arquitectura) | Sí | [DOCUMENTACION.md](../DOCUMENTACION.md), [ARCHITECTURE.md](../ARCHITECTURE.md) |
+| Cutover preprod/prod | Pendiente de **ejecución** (docs listos) | `DEPLOY-AL-SUBIR.md`, `PHASE-5-OPERATIONS-CUTOVER.md`, [SSD-00](SSD-00-cutover.md) |
 
 ## Cómo se usa (Spec Kit, sin teatro)
 
-Cada módulo tiene **un** `spec.md` as-built. Plantilla: [SPEC-TEMPLATE.md](SPEC-TEMPLATE.md).
+Cada módulo tiene **un** spec as-built. Plantilla: [SPEC-TEMPLATE.md](SPEC-TEMPLATE.md).
 
 Secciones fijas:
 
@@ -28,7 +33,7 @@ Secciones fijas:
 3. Paridad MVC (pantalla, controlador, menú)
 4. Contrato de datos (`usp_*`, tablas)
 5. API y SPA
-6. Seguridad (JWT, roles, oficina)
+6. Seguridad (JWT, roles, oficina) + validación de entrada (ver SSD-12)
 7. Criterios de aceptación
 8. Desviaciones → enlace a bitácora, no copiar el relato
 9. Pruebas y evidencia
@@ -37,15 +42,14 @@ Secciones fijas:
 La **constitución** del proyecto (no se negocia por módulo):
 
 - La base de datos es el contrato. El C# moderno invoca `usp_*`; no recalcula cuotas, mora ni saldos. Donde el MVC legado ya escribía SQL en el BL (venta rápida, envío de orden, parte de almacén), el moderno replica esa paridad y lo declara en el spec del módulo.
+- Entradas inválidas se rechazan en Application/SPA **antes** del SP ([SSD-12](SSD-12-validacion.md)), aunque el legado no lo hiciera.
 - Strangler: MVC sigue vivo hasta smoke + OK de negocio.
 - Secretos fuera de Git (user-secrets / variables de entorno).
 - PDFs modernos son tabulares Credix, no copia píxel a píxel de ReportViewer.
 
-El menú vivo de **oficina 1 (CREDITO)** cubre SSD-01 … SSD-09 y SSD-00. Ventas y almacén (SSD-10, SSD-11) están implementados y quedan fuera de ese menú; no bloquean el go-live de crédito/caja.
+El menú vivo de **oficina 1 (CREDITO)** cubre SSD-01 … SSD-09 y SSD-00. Ventas y almacén (SSD-10, SSD-11) están implementados y quedan fuera de ese menú; no bloquean el go-live de crédito/caja. SSD-12 aplica a todos.
 
 ## Catálogo de módulos
-
-Orden de redacción (primero lo que el menú vivo usa todos los días):
 
 | Id | Módulo | Código | Doc actual | Spec SSD |
 |----|--------|--------|------------|----------|
@@ -60,6 +64,7 @@ Orden de redacción (primero lo que el menú vivo usa todos los días):
 | SSD-09 | Maestros | Hecho | `ui_modernizacion_modulos.md` | [SSD-09-maestros.md](SSD-09-maestros.md) |
 | SSD-10 | Ventas | Hecho (SPA; **no** en menú vivo oficina 1) | `ui_modernizacion_modulos.md` | [SSD-10-ventas.md](SSD-10-ventas.md) |
 | SSD-11 | Almacén | Hecho (SPA; **no** en menú vivo oficina 1) | `ui_modernizacion_modulos.md` | [SSD-11-almacen.md](SSD-11-almacen.md) |
+| SSD-12 | Validación FE/BE transversal | Hecho | `Application/Validation`, `formRules.ts` | [SSD-12-validacion.md](SSD-12-validacion.md) |
 | SSD-00 | Cutover y strangler | Parcial (corte no ejecutado) | `STRANGLER-MIGRATION`, `DEPLOY-AL-SUBIR`, `MIGRATION-CLOSURE` | [SSD-00-cutover.md](SSD-00-cutover.md) |
 
 ## Qué no hacer
@@ -72,5 +77,10 @@ Orden de redacción (primero lo que el menú vivo usa todos los días):
 ## Relación con OpenSpec / spec-kit
 
 Si más adelante se instala [GitHub Spec Kit](https://github.com/github/spec-kit) o OpenSpec,
-estos `spec.md` son el equivalente de `/specify` **después** del hecho. Un `plan.md` nuevo
+estos specs son el equivalente de `/specify` **después** del hecho. Un `plan.md` nuevo
 solo se abre para **cambios** (corte RDLC, comisiones reales, WhatsApp productivo).
+
+## Cierre documental (2026-09-27)
+
+El paquete SSD + documentación de software se considera **terminado para auditoría/mantenimiento**.  
+Lo único pendiente operativo es la **ejecución** del cutover preprod (SSD-00 §7), no redactar más specs base.

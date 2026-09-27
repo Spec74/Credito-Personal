@@ -1,6 +1,6 @@
 # SSD-09 — Maestros (catálogos)
 
-**Estado:** as-built · 2026-09-11  
+**Estado:** as-built · 2026-09-11 · validación denominación/precio artículos 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
 **Código:** `/maestros/*` · `/api/v1/marcas`, `/modelos`, `/tipos-articulo`, `/articulos`, `/almacenes`  
 **Fuente legacy:** `MarcaController`, `ModeloController`, `TipoArticuloController`, `ArticuloController`, `AlmacenController` (mantenimiento)  
 **Doc de ingeniería:** [ui_modernizacion_modulos.md](../ui_modernizacion_modulos.md)

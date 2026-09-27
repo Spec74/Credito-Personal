@@ -1,6 +1,6 @@
 # SSD-10 — Ventas
 
-**Estado:** as-built · 2026-09-11  
+**Estado:** as-built · 2026-09-11 · formRules en lista precios / venta rápida 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
 **Código:** `/ventas/*`, `/reportes/venta` · `/api/v1/ventas/*`, `/api/v1/lista-precios/*`  
 **Fuente legacy:** `VentaRapidaController`, `OrdenVentaController`, `CanjearPuntosController`, `ListaPrecioController`, `Reporte/Venta`  
 **Doc de ingeniería:** [ui_modernizacion_modulos.md](../ui_modernizacion_modulos.md) (no hay `*_migracion.md` propio)

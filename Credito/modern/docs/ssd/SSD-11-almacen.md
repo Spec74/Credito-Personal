@@ -1,6 +1,6 @@
 # SSD-11 — Almacén (movimientos e inventario)
 
-**Estado:** as-built · 2026-09-11  
+**Estado:** as-built · 2026-09-11 · validación cantidades/movimientos 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
 **Código:** `/almacen/*`, `/reportes/almacen` · `/api/v1/almacen/*`  
 **Fuente legacy:** `EntradaController`, `SalidaController`, `TransferenciaController`, `Movimiento` (almacén), `ReporteKardex`, `ConstanciaAlmacen`, `Reporte/Almacen`  
 **Doc de ingeniería:** [ui_modernizacion_modulos.md](../ui_modernizacion_modulos.md)

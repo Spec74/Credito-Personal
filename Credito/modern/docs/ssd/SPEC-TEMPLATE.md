@@ -44,6 +44,7 @@ Lógica de negocio: solo `usp_*` / tablas versionadas en `db/schema`. El C# no i
 ## 6. Seguridad
 
 Oficina y usuario del JWT. Roles que habilitan la ruta (`EXACT_MENU_ROUTES` si aplica).
+Validación de entrada (montos, glosas, longitudes): ver [SSD-12-validacion.md](SSD-12-validacion.md); no inventar `if` sueltos en el endpoint.
 
 ## 7. Criterios de aceptación
 

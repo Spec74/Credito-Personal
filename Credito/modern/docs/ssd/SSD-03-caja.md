@@ -1,6 +1,6 @@
 # SSD-03 — Caja (diario, chica, saldos, verificar)
 
-**Estado:** as-built · 2026-09-11  
+**Estado:** as-built · 2026-09-11 · validación E/S, transferencias y rendiciones 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
 **Código:** `/caja/*` · `/api/v1/credito/*` (caja) + venta rápida de mostrador  
 **Fuente legacy:** `CajaDiarioController`, `CajaChicaController`, `SaldosController`, `VerificarPagosController`, `CajaController` (maestro), vista `Credito/CajaDiario.cshtml`  
 **Doc de ingeniería:** [caja_diario_migracion.md](../caja_diario_migracion.md), [caja_saldos_migracion.md](../caja_saldos_migracion.md), [caja_chica_verificar_migracion.md](../caja_chica_verificar_migracion.md)
@@ -82,6 +82,7 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 - `EXACT_MENU_ROUTES`: `/caja/asignar`, `/caja/saldos`, `/caja/verificar-pagos`, `/caja/maestro`, `/mantenimiento/cajas`. El hub `/caja` no las habilita.
 - Egreso pide confirmación de clave (SPA + `UsuarioPasswordHasherCompat` en MVC).
 - Anular movimiento: rol anulación o administrador.
+- Importes / glosas: `TesoreriaValidacion` + `formRules` ([SSD-12](SSD-12-validacion.md)).
 
 ## 7. Criterios de aceptación
 

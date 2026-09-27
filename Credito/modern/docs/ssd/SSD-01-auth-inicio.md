@@ -1,6 +1,6 @@
 # SSD-01 — Autenticación, menú e inicio
 
-**Estado:** as-built · 2026-09-11  
+**Estado:** as-built · 2026-09-11 · ver validación transversal [SSD-12](SSD-12-validacion.md) (2026-09-27)  
 **Código:** `/login`, `/inicio` · `/api/v1/auth/*`, `/api/v1/menu`, `/api/v1/dashboard/*`  
 **Fuente legacy:** `HomeController.Autenticar`, `_Layout.cshtml` (menú + Dashboard), `Dashboard/Admin`, `Dashboard/Gestor`  
 **Doc de ingeniería:** [PASSWORD-STORAGE-ROADMAP.md](../migration/PASSWORD-STORAGE-ROADMAP.md), [MODERN-E2E-LOGIN-MENU.md](../migration/MODERN-E2E-LOGIN-MENU.md)

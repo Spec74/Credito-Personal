@@ -1,12 +1,13 @@
 # Cierre de migración strangler
 
-Spec SSD (criterios de corte, proxy, rollback): [SSD-00-cutover.md](../ssd/SSD-00-cutover.md).
+Spec SSD (criterios de corte, proxy, rollback): [SSD-00-cutover.md](../ssd/SSD-00-cutover.md).  
+Documentación completa del software: [DOCUMENTACION.md](../DOCUMENTACION.md) · Arquitectura: [ARCHITECTURE.md](../ARCHITECTURE.md) · Catálogo SSD: [ssd/README.md](../ssd/README.md).
 
 ## Veredicto
 
 La migración está en estado **candidato a go-live**. La API .NET 10 y la SPA moderna cubren los módulos operativos principales del MVC legacy, manteniendo la lógica de negocio mediante los mismos procedimientos almacenados y reglas documentadas por módulo.
 
-No se declara cierre irreversible hasta completar smoke tests con base real, proxy productivo y revisión de los puentes RDLC que el negocio decida mantener.
+El **paquete documental SSD (13/13) + arquitectura + índice** está cerrado al 2026-09-27. No se declara cierre irreversible de **producción** hasta completar smoke tests con base real, proxy productivo y revisión de los puentes RDLC que el negocio decida mantener.
 
 ## Evidencia técnica
 
