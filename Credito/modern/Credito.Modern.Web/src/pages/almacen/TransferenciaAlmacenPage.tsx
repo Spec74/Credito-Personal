@@ -105,7 +105,15 @@ export function TransferenciaAlmacenPage() {
   }
 
   const crear = useMutation({
-    mutationFn: () => crearTransferencia({ oficinaId, almacenDestinoId: destinoId! }),
+    mutationFn: () => {
+      if (!destinoId || destinoId < 1) {
+        throw new Error('Seleccione almacén destino')
+      }
+      if (oficinaId < 1) {
+        throw new Error('Sesión sin oficina')
+      }
+      return crearTransferencia({ oficinaId, almacenDestinoId: destinoId })
+    },
     onSuccess: (r) => {
       message.success(`Transferencia #${r.transferenciaId} creada`)
       setNuevaOpen(false)
@@ -117,12 +125,23 @@ export function TransferenciaAlmacenPage() {
   })
 
   const validarSerie = useMutation({
-    mutationFn: (numeroSerie: string) =>
-      validarSerieTransferencia({
+    mutationFn: (numeroSerie: string) => {
+      const serie = numeroSerie.trim()
+      if (!serie) {
+        throw new Error('Ingrese el número de serie')
+      }
+      if (serie.length > 50) {
+        throw new Error('La serie no puede superar 50 caracteres')
+      }
+      if (selId < 1) {
+        throw new Error('Seleccione una transferencia')
+      }
+      return validarSerieTransferencia({
         oficinaId,
         transferenciaId: selId,
-        numeroSerie,
-      }),
+        numeroSerie: serie,
+      })
+    },
     onSuccess: (r) => {
       if (r.error) {
         message.warning(r.mensaje ?? 'Serie no válida')

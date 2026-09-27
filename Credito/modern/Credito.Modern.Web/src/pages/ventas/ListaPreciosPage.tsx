@@ -48,6 +48,8 @@ import { downloadTableCsv } from '../../utils/downloadTableCsv'
 
 import { formatMoney } from '../../utils/formatMoney'
 
+import { moneyRequired, nonNegativeNumber, positiveInt } from '../../validation/formRules'
+
 import { ApiError } from '../../api/errors'
 
 import { CredixCrudPage, CredixDataTable } from '../../components/credix'
@@ -543,33 +545,33 @@ export function ListaPreciosPage() {
 
           >
 
-            <Form.Item name="articuloId" label="Artículo id" rules={[{ required: true }]}>
+            <Form.Item name="articuloId" label="Artículo id" rules={[{ required: true }, positiveInt()]}>
 
-              <InputNumber min={1} style={{ width: '100%' }} />
+              <InputNumber min={1} precision={0} style={{ width: '100%' }} />
 
             </Form.Item>
 
-            <Form.Item name="monto" label="Monto" rules={[{ required: true }]}>
+            <Form.Item name="monto" label="Monto" rules={moneyRequired('Monto mayor a cero')}>
+
+              <InputNumber min={0.01} precision={2} style={{ width: '100%' }} />
+
+            </Form.Item>
+
+            <Form.Item name="descuento" label="Descuento" rules={[nonNegativeNumber()]}>
 
               <InputNumber min={0} precision={2} style={{ width: '100%' }} />
 
             </Form.Item>
 
-            <Form.Item name="descuento" label="Descuento">
+            <Form.Item name="puntos" label="Puntos" rules={[nonNegativeNumber()]}>
 
-              <InputNumber min={0} precision={2} style={{ width: '100%' }} />
-
-            </Form.Item>
-
-            <Form.Item name="puntos" label="Puntos">
-
-              <InputNumber min={0} style={{ width: '100%' }} />
+              <InputNumber min={0} precision={0} style={{ width: '100%' }} />
 
             </Form.Item>
 
-            <Form.Item name="puntosCanje" label="Puntos canje">
+            <Form.Item name="puntosCanje" label="Puntos canje" rules={[nonNegativeNumber()]}>
 
-              <InputNumber min={0} style={{ width: '100%' }} />
+              <InputNumber min={0} precision={0} style={{ width: '100%' }} />
 
             </Form.Item>
 

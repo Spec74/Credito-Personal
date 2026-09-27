@@ -1,5 +1,6 @@
 using Credito.Modern.Application.Maestros;
 using Credito.Modern.Application.UsuariosAdmin;
+using Credito.Modern.Application.Validation;
 using Credito.Modern.Infrastructure.Auth;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -17,17 +18,18 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
         CancellationToken ct = default)
     {
         Ensure();
+        var error = UsuarioValidacion.ValidarGuardar(request);
+        if (error is not null)
+        {
+            return new MaestroOperacionResponse(false, null, error);
+        }
+
         var apePat = (request.ApePaterno ?? string.Empty).Trim().ToUpperInvariant();
         var apeMat = (request.ApeMaterno ?? string.Empty).Trim().ToUpperInvariant();
         var nombre = (request.Nombre ?? string.Empty).Trim();
         var nombreUsuario = (request.NombreUsuario ?? string.Empty).Trim().ToUpperInvariant();
         var dni = (request.NumeroDocumento ?? string.Empty).Trim();
         var nombreCompleto = $"{apePat} {apeMat}, {nombre}";
-
-        if (string.IsNullOrEmpty(dni) || string.IsNullOrEmpty(nombreUsuario) || string.IsNullOrEmpty(request.ClaveUsuario))
-        {
-            return new MaestroOperacionResponse(false, null, "DNI, usuario y clave son obligatorios.");
-        }
 
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);

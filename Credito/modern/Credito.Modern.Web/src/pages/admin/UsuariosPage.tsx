@@ -19,6 +19,15 @@ import {
 } from 'antd'
 import { EditOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
+import {
+  celularPeRule,
+  dniRule,
+  emailRule,
+  FIELD_MAX,
+  maxLen,
+  required,
+  requiredText,
+} from '../../validation/formRules'
 import dayjs from 'dayjs'
 import {
   activarUsuario,
@@ -305,10 +314,10 @@ export function UsuariosPage() {
                       <Form.Item
                         name="numeroDocumento"
                         label="DNI"
-                        rules={[{ required: true }]}
+                        rules={[required('DNI obligatorio'), dniRule]}
                       >
                         <Input
-                          maxLength={12}
+                          maxLength={FIELD_MAX.dni}
                           disabled={usuarioId >= 1}
                           onBlur={async () => {
                             const dni = form.getFieldValue('numeroDocumento') as string
@@ -319,14 +328,14 @@ export function UsuariosPage() {
                         />
                       </Form.Item>
                       <Space wrap style={{ width: '100%' }}>
-                        <Form.Item name="apePaterno" label="Ap. paterno" rules={[{ required: true }]}>
-                          <Input style={{ width: 140 }} />
+                        <Form.Item name="apePaterno" label="Ap. paterno" rules={requiredText(FIELD_MAX.nombre)}>
+                          <Input style={{ width: 140 }} maxLength={FIELD_MAX.nombre} />
                         </Form.Item>
-                        <Form.Item name="apeMaterno" label="Ap. materno" rules={[{ required: true }]}>
-                          <Input style={{ width: 140 }} />
+                        <Form.Item name="apeMaterno" label="Ap. materno" rules={requiredText(FIELD_MAX.nombre)}>
+                          <Input style={{ width: 140 }} maxLength={FIELD_MAX.nombre} />
                         </Form.Item>
-                        <Form.Item name="nombre" label="Nombres" rules={[{ required: true }]}>
-                          <Input style={{ width: 160 }} />
+                        <Form.Item name="nombre" label="Nombres" rules={requiredText(FIELD_MAX.nombre)}>
+                          <Input style={{ width: 160 }} maxLength={FIELD_MAX.nombre} />
                         </Form.Item>
                       </Space>
                       <Form.Item name="sexo" label="Sexo" rules={[{ required: true }]}>
@@ -340,26 +349,30 @@ export function UsuariosPage() {
                       <Form.Item name="fechaNacimiento" label="Fecha nacimiento">
                         <CredixDatePicker />
                       </Form.Item>
-                      <Form.Item name="telefonoMovil" label="Celular">
-                        <Input maxLength={10} />
+                      <Form.Item name="telefonoMovil" label="Celular" rules={[celularPeRule]}>
+                        <Input maxLength={FIELD_MAX.celular} inputMode="numeric" />
                       </Form.Item>
-                      <Form.Item name="emailPersonal" label="Email">
-                        <Input type="email" />
+                      <Form.Item name="emailPersonal" label="Email" rules={[emailRule, maxLen(FIELD_MAX.email)]}>
+                        <Input type="email" maxLength={FIELD_MAX.email} />
                       </Form.Item>
-                      <Form.Item name="direccion" label="Dirección">
-                        <Input.TextArea rows={2} />
+                      <Form.Item name="direccion" label="Dirección" rules={[maxLen(FIELD_MAX.direccion)]}>
+                        <Input.TextArea rows={2} maxLength={FIELD_MAX.direccion} />
                       </Form.Item>
                       <Form.Item
                         name="nombreUsuario"
                         label="Nombre usuario"
-                        rules={[{ required: true }]}
+                        rules={requiredText(FIELD_MAX.usuario)}
                       >
-                        <Input maxLength={50} />
+                        <Input maxLength={FIELD_MAX.usuario} />
                       </Form.Item>
                       <Form.Item
                         name="claveUsuario"
                         label="Clave"
-                        rules={usuarioId < 1 ? [{ required: true }] : []}
+                        rules={
+                          usuarioId < 1
+                            ? [{ required: true, message: 'Clave obligatoria' }, { min: 6, message: 'Mínimo 6 caracteres' }]
+                            : [{ min: 6, message: 'Mínimo 6 caracteres' }]
+                        }
                       >
                         <Input.Password placeholder={usuarioId >= 1 ? 'Dejar ******** para no cambiar' : ''} />
                       </Form.Item>

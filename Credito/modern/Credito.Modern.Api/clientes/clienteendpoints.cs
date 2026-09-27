@@ -1,9 +1,11 @@
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Api.Credito;
+using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.Clientes;
 using Credito.Modern.Application.Integraciones;
 using Credito.Modern.Application.Time;
+using Credito.Modern.Application.Validation;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Credito.Modern.Api.Clientes;
@@ -247,6 +249,10 @@ internal static class ClienteEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
+                    var idError = ProblemResults.IfInvalid(IdRules.RequirePositive(personaId, "personaId"));
+                    if (idError is not null)
+                        return idError;
+
                     var log = loggerFactory.CreateLogger("ClientesHabilitarDepurado");
                     try
                     {
@@ -260,7 +266,8 @@ internal static class ClienteEndpoints
                 })
             .WithName("ClientesHabilitarDepurado")
             .WithTags("clientes")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser);
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .ProducesProblem(StatusCodes.Status400BadRequest);
     }
 
     private static ProblemHttpResult ClienteReadError(ILogger log, IHostEnvironment env, Exception ex, string accion)

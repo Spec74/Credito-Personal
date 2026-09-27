@@ -1,7 +1,9 @@
 using System.Globalization;
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
+using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Validation;
 using Credito.Modern.Application.ValorTablas;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -90,6 +92,11 @@ internal static class CreditoConfigEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
+                    var idsError = ProblemResults.IfInvalid(
+                        IdRules.RequireAllPositive(body.CreditoIds, "creditoIds"));
+                    if (idsError is not null)
+                        return idsError;
+
                     if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId)
                         || !MenuIdentity.TryGetUsuarioIdFromJwt(httpContext.User, out var jwtUsuarioId))
                     {

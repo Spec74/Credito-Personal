@@ -6,6 +6,7 @@ using System.Text;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Api.Hosting;
 using Credito.Modern.Api.Reportes;
+using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.Almacenes;
 using Credito.Modern.Application.Articulos;
 using Credito.Modern.Application.Auth;
@@ -24,6 +25,7 @@ using Credito.Modern.Application.Prendario;
 using Credito.Modern.Application.Reportes;
 using Credito.Modern.Application.Time;
 using Credito.Modern.Application.UsuariosAdmin;
+using Credito.Modern.Application.Validation;
 using Credito.Modern.Application.Ventas;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -172,13 +174,12 @@ internal static class VentasEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (body.PersonaId < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "personaId debe ser >= 1.");
-                    }
+                    var canjeError = ProblemResults.IfInvalid(
+                        ValidationGate.First(
+                            IdRules.RequirePositive(body.PersonaId, "personaId"),
+                            StringRules.RequireText(body.NumeroSerie, "numeroSerie", StringRules.MaxSerie)));
+                    if (canjeError is not null)
+                        return canjeError;
 
                     var log = loggerFactory.CreateLogger("VentasCanjearPuntos");
                     try
@@ -199,10 +200,7 @@ internal static class VentasEndpoints
                     catch (ArgumentException ex)
                     {
                         log.LogWarning(ex, "Solicitud inválida al canjear puntos");
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "La solicitud enviada no es válida." : ex.Message);
+                        return ProblemResults.FromArgument(ex);
                     }
                     catch (DbException ex)
                     {

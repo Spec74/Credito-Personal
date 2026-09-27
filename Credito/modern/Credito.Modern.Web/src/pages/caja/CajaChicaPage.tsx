@@ -567,18 +567,24 @@ export function CajaChicaPage() {
                           <Form.Item
                             name="importe"
                             label="Importe"
-                            rules={[{ required: true }]}
+                            rules={[
+                              { required: true, message: 'Importe obligatorio' },
+                              { type: 'number', min: 0.01, message: 'Importe mayor a cero' },
+                            ]}
                           >
-                            <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
+                            <InputNumber min={0.01} step={0.01} precision={2} style={{ width: '100%' }} />
                           </Form.Item>
                         </Col>
                         <Col xs={24} md={12}>
                           <Form.Item
                             name="descripcion"
                             label="Descripción"
-                            rules={[{ required: true }]}
+                            rules={[
+                              { required: true, whitespace: true, message: 'Descripción obligatoria' },
+                              { max: 250, message: 'Máximo 250 caracteres' },
+                            ]}
                           >
-                            <Input />
+                            <Input maxLength={250} />
                           </Form.Item>
                         </Col>
                         <Col xs={24}>

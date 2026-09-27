@@ -1,7 +1,9 @@
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
+using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.Maestros;
 using Credito.Modern.Application.UsuariosAdmin;
+using Credito.Modern.Application.Validation;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Credito.Modern.Api.Admin;
@@ -224,6 +226,10 @@ internal static class UsuarioAdminEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
+                    var edgeError = ProblemResults.IfInvalid(UsuarioValidacion.ValidarGuardar(body));
+                    if (edgeError is not null)
+                        return edgeError;
+
                     return await WriteAsync(
                         loggerFactory,
                         env,
@@ -234,7 +240,8 @@ internal static class UsuarioAdminEndpoints
             .WithName("GuardarUsuario")
             .WithTags("usuarios-admin")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
-            .Produces<MaestroOperacionResponse>();
+            .Produces<MaestroOperacionResponse>()
+            .ProducesProblem(StatusCodes.Status400BadRequest);
 
         app.MapPost(
                 "/api/v1/usuarios/{usuarioId:int}/activar",
