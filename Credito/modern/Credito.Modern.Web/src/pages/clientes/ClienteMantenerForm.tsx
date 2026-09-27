@@ -68,6 +68,7 @@ import {
   CALIFICACIONES,
   ESTADO_CIVIL_CONYUGE,
   REGLA_CELULAR,
+  REGLA_CELULAR_OBLIGATORIO,
   TABLA_ESTADO_CIVIL,
   TABLA_RIESGO_SBS,
   TABLA_TIPO_VIVIENDA,
@@ -116,6 +117,8 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const returnTo = parseInternalPath(searchParams.get('returnTo'))
+  const celularObligatorio =
+    Boolean(returnTo) && returnTo!.toLowerCase().includes('/credito/prendario')
   const dniPrefill = (searchParams.get('dni') ?? '').replace(/\D/g, '')
   const dniPrefillDone = useRef(false)
   const queryClient = useQueryClient()
@@ -687,8 +690,17 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                   )}
                   <Row gutter={16}>
                     <Col xs={24} md={8}>
-                      <Form.Item name="celular1" label="Celular" rules={[REGLA_CELULAR]}>
-                        <Input maxLength={10} inputMode="numeric" />
+                      <Form.Item
+                        name="celular1"
+                        label="Celular"
+                        rules={celularObligatorio ? [...REGLA_CELULAR_OBLIGATORIO] : [REGLA_CELULAR]}
+                        extra={
+                          celularObligatorio
+                            ? 'Obligatorio para crédito prendario (avisos WhatsApp).'
+                            : undefined
+                        }
+                      >
+                        <Input maxLength={9} inputMode="numeric" placeholder="9XXXXXXXX" />
                       </Form.Item>
                     </Col>
                     <Col xs={24} md={8}>

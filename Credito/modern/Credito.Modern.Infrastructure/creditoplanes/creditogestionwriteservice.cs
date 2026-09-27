@@ -1,5 +1,6 @@
 using System.Data;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Prendario;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -584,18 +585,16 @@ public sealed class CreditoGestionWriteService(
         CancellationToken cancellationToken = default)
     {
         // El legacy descarta los renglones sin descripcion: son filas vacias del formulario.
-        var prendas = (request.Prendas ?? Array.Empty<PrendaItemRequest>())
-            .Where(p => !string.IsNullOrWhiteSpace(p.Descripcion))
-            .ToList();
-
-        if (prendas.Count == 0)
+        var prendas = PrendarioValidacion.FiltrarPrendasConDescripcion(request.Prendas);
+        var errorPrendas = PrendarioValidacion.ValidarPrendas(prendas);
+        if (errorPrendas is not null)
         {
-            return new CreditoGestionOperacionResponse(false, "Registre al menos un bien con descripción.");
+            throw new ArgumentException(errorPrendas);
         }
 
-        if (prendas.Any(p => p.ValorTasacion <= 0))
+        if (request.FechaRemate is { } remate && remate.Date < fechaServidor.Date)
         {
-            return new CreditoGestionOperacionResponse(false, "Cada bien debe tener un valor de tasación mayor a cero.");
+            throw new ArgumentException("La fecha de remate no puede ser anterior a hoy.");
         }
 
         EnsureConnection();

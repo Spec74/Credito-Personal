@@ -15,6 +15,7 @@ import {
 } from 'antd'
 import { EditOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
+import { denominacionRules, FIELD_MAX } from '../../validation/formRules'
 import { fetchMarcas } from '../../api/marcas'
 import {
   activarModelo,
@@ -234,8 +235,8 @@ export function ModelosPage() {
                 }))}
               />
             </Form.Item>
-            <Form.Item name="denominacion" label="Denominación" rules={[{ required: true }]}>
-              <Input />
+            <Form.Item name="denominacion" label="Denominación" rules={denominacionRules}>
+              <Input maxLength={FIELD_MAX.denominacion} />
             </Form.Item>
             <Form.Item name="estado" label="Activo" valuePropName="checked">
               <Switch />

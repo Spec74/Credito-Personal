@@ -342,12 +342,12 @@ internal static class CreditoTareasCrudEndpoints
                             statusCode: StatusCodes.Status503ServiceUnavailable,
                             title: "Configuración incompleta");
                     }
-                    catch (ArgumentOutOfRangeException)
+                    catch (ArgumentOutOfRangeException ex)
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
-                            detail: "La solicitud enviada no es válida.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "La solicitud enviada no es válida." : ex.Message);
                     }
                     catch (DbException ex)
                     {

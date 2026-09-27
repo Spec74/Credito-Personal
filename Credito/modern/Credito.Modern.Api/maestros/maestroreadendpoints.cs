@@ -644,7 +644,7 @@ internal static class MaestroReadEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -723,7 +723,7 @@ internal static class MaestroReadEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -810,7 +810,7 @@ internal static class MaestroReadEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -913,7 +913,7 @@ internal static class MaestroReadEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -1021,7 +1021,7 @@ internal static class MaestroReadEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -1137,7 +1137,7 @@ internal static class MaestroReadEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -1237,7 +1237,7 @@ internal static class MaestroReadEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -1340,7 +1340,7 @@ internal static class MaestroReadEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -1521,7 +1521,7 @@ internal static class MaestroReadEndpoints
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
             }
             catch (DbException ex)
             {
@@ -1597,7 +1597,7 @@ internal static class MaestroReadEndpoints
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
             }
             catch (DbException ex)
             {

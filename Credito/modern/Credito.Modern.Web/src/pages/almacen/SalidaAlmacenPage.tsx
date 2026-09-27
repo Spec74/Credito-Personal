@@ -168,19 +168,23 @@ export function SalidaAlmacenPage() {
 
   const registrar = useMutation({
 
-    mutationFn: () =>
-
-      realizarSalidaAlmacen({
-
+    mutationFn: () => {
+      if (!tipoMovId || tipoMovId < 1) {
+        throw new Error('Seleccione el tipo de salida')
+      }
+      if (carrito.length === 0) {
+        throw new Error('Agregue al menos una serie')
+      }
+      if (glosa.trim().length > 250) {
+        throw new Error('La glosa no puede superar 250 caracteres')
+      }
+      return realizarSalidaAlmacen({
         oficinaId,
-
-        tipoMovimientoId: tipoMovId!,
-
-        glosa,
-
+        tipoMovimientoId: tipoMovId,
+        glosa: glosa.trim(),
         series: carrito,
-
-      }),
+      })
+    },
 
     onSuccess: (r) => {
 
@@ -323,13 +327,11 @@ export function SalidaAlmacenPage() {
                 <Input.TextArea
 
                   rows={2}
-
                   value={glosa}
-
+                  maxLength={250}
+                  showCount
                   onChange={(e) => setGlosa(e.target.value)}
-
                   placeholder="Motivo de la salida"
-
                 />
 
               </Form.Item>

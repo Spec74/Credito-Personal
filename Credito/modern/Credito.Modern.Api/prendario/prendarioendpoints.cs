@@ -215,11 +215,21 @@ internal static class PrendarioEndpoints
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos");
+                        log.LogWarning(ex, "Parámetros fuera de rango");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        log.LogWarning(ex, "Parámetros inválidos al crear solicitud prendaria");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Datos inválidos",
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "Los parámetros enviados no son válidos."
+                                : ex.Message);
                     }
                     catch (DbException ex)
                     {

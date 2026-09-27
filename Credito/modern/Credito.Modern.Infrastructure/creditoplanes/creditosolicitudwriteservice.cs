@@ -1,4 +1,5 @@
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Prendario;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -148,6 +149,42 @@ public sealed class CreditoSolicitudWriteService(IOptions<SqlDatabaseOptions> op
 
         try
         {
+            var cliente = await connection.QueryFirstOrDefaultAsync<(bool Existe, bool Activo, bool Bloqueado, string? Celular)>(
+                new CommandDefinition(
+                    """
+                    SELECT CAST(1 AS bit) AS Existe,
+                           ISNULL(c.Estado, CAST(0 AS bit)) AS Activo,
+                           ISNULL(c.Bloqueado, CAST(0 AS bit)) AS Bloqueado,
+                           p.Celular1 AS Celular
+                    FROM MAESTRO.Persona AS p
+                    INNER JOIN MAESTRO.Cliente AS c ON c.PersonaId = p.PersonaId
+                    WHERE p.PersonaId = @PersonaId;
+                    """,
+                    new { PersonaId = personaId },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+            if (!cliente.Existe)
+            {
+                throw new ArgumentException("El cliente no existe. Regístrelo antes de crear la solicitud prendaria.");
+            }
+
+            if (!cliente.Activo)
+            {
+                throw new ArgumentException("El cliente está inactivo. Actívelo antes de crear la solicitud prendaria.");
+            }
+
+            if (cliente.Bloqueado)
+            {
+                throw new ArgumentException("El cliente está bloqueado y no puede solicitar crédito prendario.");
+            }
+
+            var celularError = PrendarioValidacion.ValidarCelularObligatorio(cliente.Celular);
+            if (celularError is not null)
+            {
+                throw new ArgumentException(celularError);
+            }
+
             var solicitudExistenteId = await connection.ExecuteScalarAsync<int?>(
                 new CommandDefinition(
                     """

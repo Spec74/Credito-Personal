@@ -19,8 +19,9 @@ import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import {
   buildSimuladorPrendarioPath,
   prendaVacia,
-  prendasValidas,
   totalTasacion,
+  validarPrendasForm,
+  type PrendaCampoError,
 } from '../../utils/prendas'
 import { formatMoney } from '../../utils/formatMoney'
 import {
@@ -58,6 +59,7 @@ export function CreditoPrendarioNuevoPage() {
   const [personaId, setPersonaId] = useState<number | null>(null)
   const [clienteLabel, setClienteLabel] = useState('')
   const [prendas, setPrendas] = useState<PrendaItem[]>([prendaVacia()])
+  const [erroresPrendas, setErroresPrendas] = useState<PrendaCampoError[]>([])
 
   const elegirCliente = (id: number, label: string) => {
     setPersonaId(id)
@@ -155,20 +157,25 @@ export function CreditoPrendarioNuevoPage() {
       if (!personaId) {
         throw new Error('Seleccione o registre un cliente')
       }
-      const bienes = prendasValidas(prendas)
-      if (bienes.length === 0) {
-        throw new Error('Registre al menos un bien con tasación')
+      if (oficinaId < 1) {
+        throw new Error('Sesión sin oficina. Vuelva a iniciar sesión.')
+      }
+      const validacion = validarPrendasForm(prendas)
+      setErroresPrendas(validacion.errores)
+      if (!validacion.ok) {
+        throw new Error(validacion.mensaje ?? 'Complete los bienes en custodia')
       }
       const solicitud = await crearSolicitudPrendaria({ oficinaId, personaId })
       await guardarBienesPrendario({
         oficinaId,
         creditoId: solicitud.solicitudCreditoId,
-        prendas: bienes,
+        prendas: validacion.bienes,
         fechaRemate: null,
       })
-      return { solicitudCreditoId: solicitud.solicitudCreditoId, bienes }
+      return { solicitudCreditoId: solicitud.solicitudCreditoId, bienes: validacion.bienes }
     },
     onSuccess: ({ solicitudCreditoId, bienes }) => {
+      setErroresPrendas([])
       message.success(`Solicitud prendaria #${solicitudCreditoId} creada`)
       if (!personaId) return
       navigate(
@@ -359,7 +366,15 @@ export function CreditoPrendarioNuevoPage() {
           message="Los bienes se registran una sola vez aquí"
           description="En gestión solo se consultan. El vencimiento lo calcula el simulador con la modalidad (mensual en prendario), las cuotas y la fecha del primer pago."
         />
-        <PrendasEditor value={prendas} onChange={setPrendas} disabled={!personaId} />
+        <PrendasEditor
+          value={prendas}
+          onChange={(next) => {
+            setPrendas(next)
+            if (erroresPrendas.length > 0) setErroresPrendas([])
+          }}
+          disabled={!personaId}
+          errores={erroresPrendas}
+        />
         <Paragraph style={{ marginTop: 12, marginBottom: 4 }}>
           <Text strong>Siguiente paso:</Text> se guardan los bienes y se abre el simulador para
           definir monto, plazo y tasa. Luego no podrá agregar ni editar bienes en este crédito.
@@ -367,7 +382,7 @@ export function CreditoPrendarioNuevoPage() {
         <Button
           type="primary"
           icon={<FileAddOutlined />}
-          disabled={!personaId || oficinaId < 1 || prendasValidas(prendas).length === 0}
+          disabled={!personaId || oficinaId < 1}
           loading={crear.isPending}
           onClick={() => crear.mutate()}
         >

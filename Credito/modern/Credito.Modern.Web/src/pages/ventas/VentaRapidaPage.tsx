@@ -138,27 +138,30 @@ export function VentaRapidaPage() {
 
   const cobrar = useMutation({
 
-    mutationFn: () =>
-
-      realizarPedido({
-
+    mutationFn: () => {
+      if (!personaId || personaId < 1) {
+        throw new Error('Seleccione un cliente')
+      }
+      if (!caja.data?.cajaDiarioId) {
+        throw new Error('No hay caja diario abierta')
+      }
+      if (carrito.length === 0) {
+        throw new Error('Agregue al menos un artículo al carrito')
+      }
+      if (carrito.some((l) => !(l.cantidad > 0))) {
+        throw new Error('Cada artículo debe tener cantidad mayor a cero')
+      }
+      return realizarPedido({
         oficinaId,
-
-        cajaDiarioId: caja.data!.cajaDiarioId,
-
-        personaId: personaId!,
-
+        cajaDiarioId: caja.data.cajaDiarioId,
+        personaId,
         pedidos: carrito.map(({ articuloId, cantidad: c, descuento: d }) => ({
-
           articuloId,
-
           cantidad: c,
-
           descuento: d,
-
         })),
-
-      }),
+      })
+    },
 
     onSuccess: (r) => {
 

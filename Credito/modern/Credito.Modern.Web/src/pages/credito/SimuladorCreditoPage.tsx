@@ -57,7 +57,7 @@ import {
   esCreditoAdministrador,
   esCreditoAprobador1,
 } from '../../utils/creditoOperacionPermisos'
-import { prendaAItem, prendaSimuladorDesdeBienes } from '../../utils/prendas'
+import { prendaAItem, prendaSimuladorDesdeBienes, validarMontoVsTasacion } from '../../utils/prendas'
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : 'Error desconocido'
@@ -459,6 +459,18 @@ export function SimuladorCreditoPage() {
       if (cuotas.length < 1) {
         throw new Error('Simule el plan antes de generar el crédito')
       }
+      if (esPrendario) {
+        const tasacion =
+          prendaPrecarga?.montoTasacion ??
+          (prendasGuardadasQuery.data
+            ? prendasGuardadasQuery.data.reduce((a, p) => a + (p.valorTasacion || 0), 0)
+            : 0)
+        const montoErr = validarMontoVsTasacion(v.monto, tasacion)
+        if (montoErr) throw new Error(montoErr)
+        if ((v.formaPago ?? '').toUpperCase() !== 'M' || v.nroCuotas !== 1) {
+          throw new Error('El crédito prendario solo admite modalidad mensual y 1 cuota')
+        }
+      }
       return crearCredito({
         oficinaId,
         solicitudCreditoId,
@@ -468,8 +480,8 @@ export function SimuladorCreditoPage() {
         montoGastosAdm: v.gastosAdm ?? 0,
         indGastosAdm: IND_GASTOS_ADM,
         montoCredito: v.monto,
-        modalidad: v.formaPago,
-        numeroCuotas: v.nroCuotas,
+        modalidad: esPrendario ? 'M' : v.formaPago,
+        numeroCuotas: esPrendario ? 1 : v.nroCuotas,
         interesMensual: v.interesMensual,
         fechaPrimerPago: `${v.fechaPrimerPago}T00:00:00`,
         observacion: observacion.trim() || null,
@@ -531,12 +543,27 @@ export function SimuladorCreditoPage() {
       if (esPrendario && !values.prendaDescripcion?.trim() && !prendaPrecarga) {
         throw new Error('Ingrese la descripción de la prenda')
       }
+      if (esPrendario) {
+        if ((values.formaPago ?? '').toUpperCase() !== 'M') {
+          throw new Error('El crédito prendario solo admite modalidad mensual (M)')
+        }
+        if (values.nroCuotas !== 1) {
+          throw new Error('El crédito prendario solo admite 1 cuota')
+        }
+        const tasacion =
+          prendaPrecarga?.montoTasacion ??
+          (prendasGuardadasQuery.data
+            ? prendasGuardadasQuery.data.reduce((a, p) => a + (p.valorTasacion || 0), 0)
+            : 0)
+        const montoErr = validarMontoVsTasacion(values.monto, tasacion)
+        if (montoErr) throw new Error(montoErr)
+      }
       // Paridad CreditoController.Simulador con cboGA=ADE: gastos no van al SP (solo en cabecera informe).
       const gastosSp = 0
       const rows = await simularCredito({
         monto: values.monto,
-        formaPago: values.formaPago,
-        nroCuotas: values.nroCuotas,
+        formaPago: esPrendario ? 'M' : values.formaPago,
+        nroCuotas: esPrendario ? 1 : values.nroCuotas,
         interesMensual: values.interesMensual,
         fechaPrimerPago: `${values.fechaPrimerPago}T00:00:00`,
         gastosAdm: gastosSp,
@@ -941,19 +968,38 @@ export function SimuladorCreditoPage() {
             <Form.Item
               name="monto"
               label="Monto crédito"
-              rules={[{ required: true, type: 'number', min: 0.01 }]}
+              rules={[
+                { required: true, type: 'number', min: 0.01, message: 'Monto mayor a cero' },
+                {
+                  validator: async (_, value) => {
+                    if (!esPrendario || value == null) return
+                    const tasacion =
+                      prendaPrecarga?.montoTasacion ??
+                      (prendasGuardadasQuery.data
+                        ? prendasGuardadasQuery.data.reduce((a, p) => a + (p.valorTasacion || 0), 0)
+                        : 0)
+                    const err = validarMontoVsTasacion(Number(value), tasacion)
+                    if (err) throw new Error(err)
+                  },
+                },
+              ]}
             >
-              <InputNumber min={0.01} step={100} className="simulador-field-fluid" />
+              <InputNumber min={0.01} step={100} precision={2} className="simulador-field-fluid" />
             </Form.Item>
             <Form.Item name="formaPago" label="Modalidad" rules={[{ required: true }]}>
-              <Select options={FORMAS_PAGO} className="simulador-field-fluid" />
+              <Select
+                options={FORMAS_PAGO}
+                className="simulador-field-fluid"
+                disabled={esPrendario}
+              />
             </Form.Item>
             <Form.Item
               name="nroCuotas"
               label="Cuotas"
               rules={[{ required: true, type: 'number', min: 1 }]}
+              extra={esPrendario ? 'Fijo en 1 para crédito prendario' : undefined}
             >
-              <InputNumber min={1} className="simulador-field-fluid" />
+              <InputNumber min={1} className="simulador-field-fluid" disabled={esPrendario} />
             </Form.Item>
             <Form.Item
               name="interesMensual"

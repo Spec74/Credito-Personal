@@ -1,5 +1,6 @@
 using System.Data;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Prendario;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -90,8 +91,55 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
         if (prenda is not null)
         {
-            ValidatePrenda(prenda);
+            var errorPrenda = PrendarioValidacion.ValidarPrendaGeneracion(prenda);
+            if (errorPrenda is not null)
+            {
+                throw new ArgumentException(errorPrenda);
+            }
         }
+
+        var meta = await connection.QueryFirstOrDefaultAsync<(bool EsPrendario, int? ProductoId, decimal MontoTasacion)>(
+            new CommandDefinition(
+                """
+                SELECT EsPrendario, ProductoId, ISNULL(MontoTasacion, 0) AS MontoTasacion
+                FROM CREDITO.Credito
+                WHERE CreditoId = @CreditoId;
+                """,
+                new { CreditoId = solicitudCreditoId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        var esPrendario = meta.EsPrendario
+            || meta.ProductoId == PrendarioValidacion.ProductoIdPrendario
+            || productoId == PrendarioValidacion.ProductoIdPrendario
+            || prenda is not null;
+
+        if (esPrendario)
+        {
+            var tasacion = prenda?.MontoTasacion
+                ?? (meta.MontoTasacion > 0
+                    ? meta.MontoTasacion
+                    : await connection.ExecuteScalarAsync<decimal?>(
+                        new CommandDefinition(
+                            """
+                            SELECT ISNULL(SUM(ValorTasacion), 0)
+                            FROM CREDITO.Prenda
+                            WHERE CreditoId = @CreditoId;
+                            """,
+                            new { CreditoId = solicitudCreditoId },
+                            cancellationToken: cancellationToken)).ConfigureAwait(false) ?? 0m);
+
+            var errorGen = PrendarioValidacion.ValidarGeneracionPrendaria(
+                formaPago,
+                nroCuotas,
+                montoCredito,
+                tasacion,
+                fechaPrimerPago);
+            if (errorGen is not null)
+            {
+                throw new ArgumentException(errorGen);
+            }
+        }
+
         await using var transaction = (SqlTransaction)await connection
             .BeginTransactionAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -154,19 +202,6 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
         {
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
-        }
-    }
-
-    private static void ValidatePrenda(CrearCreditoPrendaRequest prenda)
-    {
-        if (string.IsNullOrWhiteSpace(prenda.Descripcion))
-        {
-            throw new ArgumentException("La descripción de la prenda es obligatoria.", nameof(prenda));
-        }
-
-        if (prenda.MontoTasacion <= 0)
-        {
-            throw new ArgumentException("El monto de tasación debe ser mayor a cero.", nameof(prenda));
         }
     }
 

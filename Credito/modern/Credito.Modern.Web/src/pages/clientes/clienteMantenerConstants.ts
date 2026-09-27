@@ -12,8 +12,14 @@ export const CALIFICACIONES = [
   { value: 'C', label: 'C' },
 ] as const
 
-/** Paridad pattern celular legacy Mantener. */
+/** Celular móvil peruano (9 dígitos, empieza con 9). */
 export const REGLA_CELULAR = {
-  pattern: /^\d{1,10}$/,
-  message: 'Celular: solo números, máximo 10 dígitos',
+  pattern: /^9\d{8}$/,
+  message: 'Celular: 9 dígitos que empiezan con 9',
 } as const
+
+/** Obligatorio + formato peruano (p. ej. alta desde Prendario). */
+export const REGLA_CELULAR_OBLIGATORIO = [
+  { required: true, message: 'Celular obligatorio' },
+  REGLA_CELULAR,
+] as const

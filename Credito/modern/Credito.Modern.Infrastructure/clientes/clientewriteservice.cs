@@ -1,4 +1,5 @@
 using Credito.Modern.Application.Clientes;
+using Credito.Modern.Application.Validation;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -270,28 +271,22 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
             throw new ArgumentOutOfRangeException(nameof(usuarioRegId));
         }
 
-        var dni = OnlyDigits(request.Dni);
-        if (dni.Length != 8)
+        var error = ClienteValidacion.ValidarPersonaRapida(
+            request.Dni,
+            request.Nombre,
+            request.ApePaterno,
+            request.ApeMaterno,
+            request.Celular);
+        if (error is not null)
         {
-            return new CrearPersonaRapidaResponse(false, 0, "El DNI debe tener 8 dígitos.");
+            return new CrearPersonaRapidaResponse(false, 0, error);
         }
 
+        var dni = OnlyDigits(request.Dni);
         var nombre = NormalizeName(request.Nombre);
         var apePat = NormalizeName(request.ApePaterno);
         var apeMat = NormalizeName(request.ApeMaterno);
-        if (string.IsNullOrWhiteSpace(nombre)
-            || string.IsNullOrWhiteSpace(apePat)
-            || string.IsNullOrWhiteSpace(apeMat))
-        {
-            return new CrearPersonaRapidaResponse(false, 0, "Nombres y apellidos son obligatorios.");
-        }
-
         var celular = OnlyDigits(request.Celular ?? string.Empty);
-        if (!string.IsNullOrEmpty(celular) && (celular.Length != 9 || celular[0] != '9'))
-        {
-            return new CrearPersonaRapidaResponse(false, 0, "El celular debe tener 9 dígitos y empezar con 9.");
-        }
-
         var nombreCompleto = $"{apePat} {apeMat}, {nombre}";
 
         await using var connection = new SqlConnection(_connectionString);
@@ -461,30 +456,10 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
             throw new ArgumentOutOfRangeException(nameof(usuarioRegId));
         }
 
-        if (string.IsNullOrWhiteSpace(request.NumeroDocumento))
+        var error = ClienteValidacion.ValidarGuardar(request);
+        if (error is not null)
         {
-            throw new ArgumentException("numeroDocumento es obligatorio.", nameof(request));
-        }
-
-        if (string.IsNullOrWhiteSpace(request.Nombre))
-        {
-            throw new ArgumentException("nombre es obligatorio.", nameof(request));
-        }
-
-        if (request.TipoPersona is not ("N" or "J"))
-        {
-            throw new ArgumentException("tipoPersona debe ser N o J.", nameof(request));
-        }
-
-        if (request.TipoPersona == "N"
-            && (string.IsNullOrWhiteSpace(request.ApePaterno) || string.IsNullOrWhiteSpace(request.ApeMaterno)))
-        {
-            throw new ArgumentException("Apellidos obligatorios para persona natural.", nameof(request));
-        }
-
-        if (request.EstadoCivilId is 2 or 3 && (request.ConyuguePersonaId is null or < 1))
-        {
-            throw new ArgumentException("Cónyuge obligatorio para estado civil casado/conviviente.", nameof(request));
+            throw new ArgumentException(error, nameof(request));
         }
     }
 

@@ -6,6 +6,7 @@ import { guardarOficina, type OficinaGestionRow } from '../../api/maestrosCrud'
 import { ApiError } from '../../api/errors'
 import { GoogleMapLocationPicker } from '../../components/maps/GoogleMapLocationPicker'
 import { type MapLatLng, toMapLatLng } from '../../config/googleMaps'
+import { denominacionRules, FIELD_MAX, maxLen } from '../../validation/formRules'
 import { useQuery } from '@tanstack/react-query'
 
 type FormValues = {
@@ -106,14 +107,14 @@ export function OficinaFormModal({
           })
         }
       >
-        <Form.Item name="denominacion" label="Denominación" rules={[{ required: true }]}>
-          <Input />
+        <Form.Item name="denominacion" label="Denominación" rules={denominacionRules}>
+          <Input maxLength={FIELD_MAX.denominacion} />
         </Form.Item>
-        <Form.Item name="descripcion" label="Descripción">
-          <Input.TextArea rows={2} />
+        <Form.Item name="descripcion" label="Descripción" rules={[maxLen(FIELD_MAX.observacion)]}>
+          <Input.TextArea rows={2} maxLength={FIELD_MAX.observacion} />
         </Form.Item>
-        <Form.Item name="telefono" label="Teléfono">
-          <Input />
+        <Form.Item name="telefono" label="Teléfono" rules={[maxLen(20)]}>
+          <Input maxLength={20} />
         </Form.Item>
         <Form.Item name="usuarioAsignadoId" label="Responsable">
           <Select

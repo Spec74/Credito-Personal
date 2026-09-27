@@ -1,5 +1,6 @@
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
+using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.Almacenes;
 using Credito.Modern.Application.ListaPrecios;
 using Credito.Modern.Application.Maestros;
@@ -7,12 +8,16 @@ using Credito.Modern.Application.Marcas;
 using Credito.Modern.Application.Modelos;
 using Credito.Modern.Application.Oficinas;
 using Credito.Modern.Application.TipoArticulos;
+using Credito.Modern.Application.Validation;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Credito.Modern.Api.Maestros;
 
 internal static class MaestroEndpoints
 {
+    private static ProblemHttpResult? ValidateDenominacion(string? denominacion) =>
+        ProblemResults.IfInvalid(MaestroValidacion.ValidarDenominacion(denominacion));
+
     public static void MapMaestroCrudEndpoints(this WebApplication app)
     {
         MapMarca(app);
@@ -61,13 +66,9 @@ internal static class MaestroEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (string.IsNullOrWhiteSpace(body.Denominacion))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "denominacion es obligatoria.");
-                    }
+                    var denomError = ValidateDenominacion(body.Denominacion);
+                    if (denomError is not null)
+                        return denomError;
 
                     return await MaestroWriteAsync(
                         loggerFactory,
@@ -150,13 +151,10 @@ internal static class MaestroEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (string.IsNullOrWhiteSpace(body.Denominacion) || body.MarcaId < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "denominacion y marcaId (>=1) son obligatorios.");
-                    }
+                    var modeloError = ProblemResults.IfInvalid(
+                        MaestroValidacion.ValidarDenominacionYPadre(body.Denominacion, body.MarcaId, "marcaId"));
+                    if (modeloError is not null)
+                        return modeloError;
 
                     return await MaestroWriteAsync(
                         loggerFactory,
@@ -236,13 +234,9 @@ internal static class MaestroEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (string.IsNullOrWhiteSpace(body.Denominacion))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "denominacion es obligatoria.");
-                    }
+                    var denomError = ValidateDenominacion(body.Denominacion);
+                    if (denomError is not null)
+                        return denomError;
 
                     return await MaestroWriteAsync(
                         loggerFactory,
@@ -325,13 +319,9 @@ internal static class MaestroEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (string.IsNullOrWhiteSpace(body.Denominacion))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "denominacion es obligatoria.");
-                    }
+                    var denomError = ValidateDenominacion(body.Denominacion);
+                    if (denomError is not null)
+                        return denomError;
 
                     return await MaestroWriteAsync(
                         loggerFactory,
@@ -414,13 +404,10 @@ internal static class MaestroEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (string.IsNullOrWhiteSpace(body.Denominacion) || body.OficinaId < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "denominacion y oficinaId (>=1) son obligatorios.");
-                    }
+                    var almacenError = ProblemResults.IfInvalid(
+                        MaestroValidacion.ValidarDenominacionYPadre(body.Denominacion, body.OficinaId, "oficinaId"));
+                    if (almacenError is not null)
+                        return almacenError;
 
                     return await MaestroWriteAsync(
                         loggerFactory,

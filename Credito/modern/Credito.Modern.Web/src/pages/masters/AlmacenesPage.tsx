@@ -16,6 +16,7 @@ import {
 } from 'antd'
 import { EditOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
+import { denominacionRules, FIELD_MAX } from '../../validation/formRules'
 import { fetchOficinas } from '../../api/oficinas'
 import {
   activarAlmacen,
@@ -239,8 +240,8 @@ export function AlmacenesPage() {
                 }))}
               />
             </Form.Item>
-            <Form.Item name="denominacion" label="Denominación" rules={[{ required: true }]}>
-              <Input />
+            <Form.Item name="denominacion" label="Denominación" rules={denominacionRules}>
+              <Input maxLength={FIELD_MAX.denominacion} />
             </Form.Item>
             <Form.Item name="descripcion" label="Descripción">
               <Input.TextArea rows={2} />

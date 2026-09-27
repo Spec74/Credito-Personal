@@ -202,7 +202,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
-                            detail: "La solicitud enviada no es válida.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "La solicitud enviada no es válida." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -325,7 +325,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -460,7 +460,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -528,7 +528,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -596,7 +596,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -680,7 +680,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -741,7 +741,7 @@ internal static class VentasEndpoints
                 return TypedResults.Problem(
                     statusCode: StatusCodes.Status400BadRequest,
                     title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
             }
             catch (DbException ex)
             {
@@ -986,7 +986,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -1063,7 +1063,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -1237,7 +1237,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -1335,7 +1335,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -1910,7 +1910,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -1999,7 +1999,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -2137,7 +2137,7 @@ internal static class VentasEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "Los parámetros enviados no son válidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {

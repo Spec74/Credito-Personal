@@ -26,7 +26,7 @@ import {
   puedeCompletarBienesPrendarioUi,
   esCreditoProductoPrendario,
 } from '../../utils/creditoOperacionPermisos'
-import { prendaAItem, prendaVacia, prendasValidas, totalTasacion, buildSimuladorPrendarioPath } from '../../utils/prendas'
+import { prendaAItem, prendaVacia, totalTasacion, buildSimuladorPrendarioPath, validarPrendasForm, type PrendaCampoError } from '../../utils/prendas'
 import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 
 const { Paragraph, Text } = Typography
@@ -66,6 +66,7 @@ export function CreditoPrendarioGestionPage() {
 
   const [prendas, setPrendas] = useState<PrendaItem[]>([prendaVacia()])
   const [fechaRematePrenda, setFechaRematePrenda] = useState('')
+  const [erroresPrendas, setErroresPrendas] = useState<PrendaCampoError[]>([])
 
   const ficha = useQuery({
     queryKey: ['persona-credito-ficha', oficinaId, personaId],
@@ -120,14 +121,21 @@ export function CreditoPrendarioGestionPage() {
   }, [bienes.data, contexto.data?.fechaRemate])
 
   const guardarBienes = useMutation({
-    mutationFn: () =>
-      guardarPrendas({
+    mutationFn: () => {
+      const validacion = validarPrendasForm(prendas)
+      setErroresPrendas(validacion.errores)
+      if (!validacion.ok) {
+        throw new Error(validacion.mensaje ?? 'Complete los bienes en custodia')
+      }
+      return guardarPrendas({
         oficinaId,
         creditoId,
-        prendas: prendasValidas(prendas),
+        prendas: validacion.bienes,
         fechaRemate: fechaRematePrenda || null,
-      }),
+      })
+    },
     onSuccess: () => {
+      setErroresPrendas([])
       message.success('Bienes en custodia guardados')
       void queryClient.invalidateQueries({ queryKey: ['prendas', oficinaId, creditoId] })
       void queryClient.invalidateQueries({ queryKey: ['credito-contexto', creditoId] })
@@ -161,7 +169,6 @@ export function CreditoPrendarioGestionPage() {
   const esPrendario = esCreditoProductoPrendario(contexto.data ?? {})
   const puedeEditarBienes =
     puedeCompletarBienes && esPrendario && !bienesPersistidos && creditoId > 0
-  const hayBienesValidos = prendasValidas(prendas).length > 0
   const puedeImprimir = bienesPersistidos
   const estadoMeta = getCreditoEstadoMeta(contexto.data?.estado)
   const necesitaElegirCredito =
@@ -415,16 +422,19 @@ export function CreditoPrendarioGestionPage() {
 
           <PrendasEditor
             value={prendas}
-            onChange={setPrendas}
+            onChange={(next) => {
+              setPrendas(next)
+              if (erroresPrendas.length > 0) setErroresPrendas([])
+            }}
             disabled={!puedeEditarBienes}
             readOnly={!puedeEditarBienes}
+            errores={erroresPrendas}
           />
 
           {puedeEditarBienes ? (
             <Button
               type="primary"
               style={{ marginTop: 12 }}
-              disabled={!hayBienesValidos}
               loading={guardarBienes.isPending}
               onClick={() => guardarBienes.mutate()}
             >

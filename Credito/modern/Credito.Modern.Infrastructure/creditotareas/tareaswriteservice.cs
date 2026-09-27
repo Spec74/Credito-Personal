@@ -1,4 +1,5 @@
 using Credito.Modern.Application.CreditoTareas;
+using Credito.Modern.Application.Validation;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -16,9 +17,12 @@ public sealed class TareasWriteService(IOptions<SqlDatabaseOptions> options) : I
         DateTime fechaOperacion,
         CancellationToken cancellationToken = default)
     {
-        if (request.CreditoId < 1)
+        var validacion = TareaValidacion.ValidarGuardar(
+            request.CreditoId,
+            request.Subtareas?.Select(s => s.Titulo));
+        if (validacion is not null)
         {
-            throw new ArgumentOutOfRangeException(nameof(request), "Debe seleccionar un crédito.");
+            throw new ArgumentException(validacion);
         }
 
         if (!await PuedeEditarAsync(usuarioId, oficinaId, cancellationToken).ConfigureAwait(false))

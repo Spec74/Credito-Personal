@@ -48,7 +48,7 @@ import {
 } from '../../api/creditoGestion'
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { CredixDataTable } from '../../components/credix'
-import { prendaAItem, prendaVacia, prendasValidas } from '../../utils/prendas'
+import { prendaAItem, prendaVacia, prendasValidas, validarPrendasForm } from '../../utils/prendas'
 import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 import {
   downloadActaEntregaPrendarioPdf,
@@ -419,13 +419,18 @@ export function CreditoConsultaGestionPanel({
   })
 
   const guardarPrendario = useMutation({
-    mutationFn: () =>
-      guardarPrendas({
+    mutationFn: () => {
+      const validacion = validarPrendasForm(prendas)
+      if (!validacion.ok) {
+        throw new Error(validacion.mensaje ?? 'Complete los bienes en custodia')
+      }
+      return guardarPrendas({
         oficinaId,
         creditoId,
-        prendas: prendasValidas(prendas),
+        prendas: validacion.bienes,
         fechaRemate: fechaRematePrenda || null,
-      }),
+      })
+    },
     onSuccess: () => {
       message.success('Bienes en custodia guardados')
       refrescar()

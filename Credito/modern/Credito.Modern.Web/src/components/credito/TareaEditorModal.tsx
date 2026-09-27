@@ -10,6 +10,7 @@ import {
   Select,
   Space,
   Typography,
+  message,
 } from 'antd'
 import {
   DeleteOutlined,
@@ -21,6 +22,7 @@ import { TAREAS_SUBTAREAS_PREDETERMINADAS } from '../../config/tareasSubtareasPr
 import { formatMoney } from '../../utils/formatMoney'
 import { TareasBuscarCredito } from './TareasBuscarCredito'
 import type { CreditoTareaBuscar } from '../../api/tareas'
+import { FIELD_MAX } from '../../validation/formRules'
 
 const { Paragraph, Text } = Typography
 
@@ -121,8 +123,20 @@ export function TareaEditorModal({
               className="credito-tareas-modal__guardar"
               loading={guardando || loadingDetalle}
               onClick={() => {
-                if (!creditoId) return
-                onGuardar({ creditoId, subtareas })
+                if (!creditoId) {
+                  message.warning('Seleccione un crédito')
+                  return
+                }
+                const validas = subtareas.filter((s) => s.titulo.trim().length > 0)
+                if (validas.length === 0) {
+                  message.warning('Registre al menos una subtarea con descripción')
+                  return
+                }
+                if (validas.some((s) => s.titulo.trim().length > FIELD_MAX.observacion)) {
+                  message.warning(`Cada subtarea admite máximo ${FIELD_MAX.observacion} caracteres`)
+                  return
+                }
+                onGuardar({ creditoId, subtareas: validas })
               }}
               disabled={!creditoId}
             >
@@ -218,6 +232,7 @@ export function TareaEditorModal({
                     <Input
                       placeholder="Descripción de la subtarea"
                       value={s.titulo}
+                      maxLength={FIELD_MAX.observacion}
                       onChange={(e) => {
                         const next = [...subtareas]
                         next[idx] = { ...next[idx], titulo: e.target.value }

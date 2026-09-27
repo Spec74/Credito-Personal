@@ -133,7 +133,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -198,7 +198,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -303,7 +303,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inv?lida",
-                            detail: "La solicitud enviada no es v?lida.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "La solicitud enviada no es válida." : ex.Message);
                     }
                     catch (ArgumentException ex)
                     {
@@ -311,7 +311,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inv?lida",
-                            detail: "La solicitud enviada no es v?lida.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "La solicitud enviada no es válida." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -374,7 +374,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -440,7 +440,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -503,7 +503,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -699,7 +699,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -780,7 +780,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -854,7 +854,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -2538,15 +2538,25 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
+                        log.LogWarning(ex, "Cadena de conexión no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuraci?n incompleta");
+                            title: "Configuración incompleta");
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        log.LogWarning(ex, "Validación de bienes prendarios");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Datos inválidos",
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "Los bienes enviados no son válidos."
+                                : ex.Message);
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al guardar los bienes del cr?dito prendario");
+                        log.LogError(ex, "Error al guardar los bienes del crédito prendario");
                         var detail = "No se pudieron guardar los bienes.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
@@ -2557,10 +2567,11 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("PrendasGuardar")
-            .WithSummary("Modern: reemplaza los bienes en custodia de un cr?dito prendario.")
+            .WithSummary("Modern: primera carga de bienes en custodia de un crédito prendario.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario)
             .Produces<CreditoGestionOperacionResponse>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status409Conflict)
@@ -2851,7 +2862,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -2960,7 +2971,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -3065,7 +3076,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -3812,7 +3823,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -3894,7 +3905,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -3975,7 +3986,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -4225,7 +4236,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -4314,7 +4325,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -4395,12 +4406,12 @@ internal static class CreditoOperacionEndpoints
                             statusCode: StatusCodes.Status503ServiceUnavailable,
                             title: "Configuraci?n incompleta");
                     }
-                    catch (ArgumentOutOfRangeException)
+                    catch (ArgumentOutOfRangeException ex)
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -4513,7 +4524,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -4603,7 +4614,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -4685,7 +4696,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -4803,7 +4814,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -4936,7 +4947,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -5028,7 +5039,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -5158,7 +5169,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -5242,7 +5253,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -5316,7 +5327,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -5398,12 +5409,12 @@ internal static class CreditoOperacionEndpoints
                             statusCode: StatusCodes.Status503ServiceUnavailable,
                             title: "Configuraci?n incompleta");
                     }
-                    catch (ArgumentOutOfRangeException)
+                    catch (ArgumentOutOfRangeException ex)
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -5612,7 +5623,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -5702,7 +5713,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -5781,7 +5792,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -5929,7 +5940,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -6003,7 +6014,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -6082,7 +6093,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -6194,7 +6205,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -6268,7 +6279,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -6601,7 +6612,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -6675,7 +6686,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -6796,7 +6807,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -6920,7 +6931,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -7156,7 +7167,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -7265,7 +7276,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -7396,7 +7407,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -7508,7 +7519,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -7917,7 +7928,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inv?lida",
-                            detail: "La solicitud enviada no es v?lida.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "La solicitud enviada no es válida." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -8293,7 +8304,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -8371,7 +8382,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -8467,7 +8478,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -8594,7 +8605,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -8681,7 +8692,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -8769,7 +8780,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -8858,7 +8869,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -9008,19 +9019,21 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Par?metros inv?lidos");
+                        log.LogWarning(ex, "Parámetros inválidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            title: "Parámetros inválidos",
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (ArgumentException ex)
                     {
-                        log.LogWarning(ex, "Solicitud inv?lida al generar cr?dito");
+                        log.LogWarning(ex, "Solicitud inválida al generar crédito");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inv?lida",
-                            detail: "La solicitud enviada no es v?lida.");
+                            title: "Datos inválidos",
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "La solicitud enviada no es válida."
+                                : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -9111,7 +9124,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
@@ -9191,7 +9204,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Par?metros inv?lidos",
-                            detail: "Los par?metros enviados no son v?lidos.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
