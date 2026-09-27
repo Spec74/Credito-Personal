@@ -1,6 +1,8 @@
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
+using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Validation;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Credito.Modern.Api.Credito;
@@ -19,37 +21,15 @@ internal static class BovedaTransferenciaBancosEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (body.OficinaId < 1 || body.TipoPagoOrigenId < 1 || body.TipoPagoDestinoId < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "oficinaId y tipos de pago deben ser >= 1.");
-                    }
-
-                    if (body.TipoPagoOrigenId == body.TipoPagoDestinoId)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "El banco de origen y el de destino no pueden ser iguales.");
-                    }
-
-                    if (body.Importe <= 0)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "El importe debe ser mayor a cero.");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(body.Glosa))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "glosa es obligatoria.");
-                    }
+                    var edgeError = ProblemResults.IfInvalid(
+                        TesoreriaValidacion.ValidarTransferenciaBancos(
+                            body.OficinaId,
+                            body.TipoPagoOrigenId,
+                            body.TipoPagoDestinoId,
+                            body.Importe,
+                            body.Glosa));
+                    if (edgeError is not null)
+                        return edgeError;
 
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)
@@ -72,7 +52,7 @@ internal static class BovedaTransferenciaBancosEndpoints
                                 body.TipoPagoOrigenId,
                                 body.TipoPagoDestinoId,
                                 body.Importe,
-                                body.Glosa,
+                                body.Glosa.Trim(),
                                 usuarioId,
                                 ct)
                             .ConfigureAwait(false);
@@ -81,25 +61,17 @@ internal static class BovedaTransferenciaBancosEndpoints
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Parámetros inválidos en transferencia entre bancos");
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: string.IsNullOrWhiteSpace(ex.Message)
-                                ? "Los parámetros enviados no son válidos."
-                                : ex.Message);
+                        log.LogWarning(ex, "Parametros invalidos en transferencia entre bancos");
+                        return ProblemResults.FromArgument(ex);
                     }
                     catch (InvalidOperationException ex)
                     {
                         log.LogWarning(ex, "Transferencia entre bancos rechazada");
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status409Conflict,
-                            title: "Operación no permitida",
-                            detail: ex.Message);
+                        return ProblemResults.Conflict(ex.Message, "Operacion no permitida");
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error en transferencia entre bancos de bóveda");
+                        log.LogError(ex, "Error en transferencia entre bancos de boveda");
                         var detail = "No se pudo registrar la transferencia entre bancos.";
                         if (env.IsDevelopment())
                         {
@@ -114,7 +86,7 @@ internal static class BovedaTransferenciaBancosEndpoints
                 })
             .WithName("CreditoTransferirBovedaBancos")
             .WithSummary(
-                "Paridad BovedaController.RegistrarTransferenciaBancos → usp_RegistrarTransferenciaBancos. Recalcula saldos tras el SP.")
+                "Paridad BovedaController.RegistrarTransferenciaBancos - usp_RegistrarTransferenciaBancos. Recalcula saldos tras el SP.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<TransferirBovedaBancosResponse>(StatusCodes.Status200OK, "application/json")

@@ -29,6 +29,7 @@ import { CredixCrudPage, CredixDataTable } from '../../components/credix'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { mantenimientoCajasBreadcrumb } from '../../utils/mantenimientoBreadcrumbs'
 import { CajaListToolbar } from './components/CajaListToolbar'
+import { denominacionRules, FIELD_MAX } from '../../validation/formRules'
 
 const PAGE_SIZES = ['15', '30', '45'] as const
 
@@ -272,12 +273,8 @@ export function CajaMaestroPage() {
                 }))}
               />
             </Form.Item>
-            <Form.Item
-              name="denominacion"
-              label="Denominación"
-              rules={[{ required: true }]}
-            >
-              <Input maxLength={100} />
+            <Form.Item name="denominacion" label="Denominación" rules={denominacionRules}>
+              <Input maxLength={FIELD_MAX.denominacion} showCount />
             </Form.Item>
             <Form.Item name="cajeroId" label="Gestor (cajero)">
               <Select

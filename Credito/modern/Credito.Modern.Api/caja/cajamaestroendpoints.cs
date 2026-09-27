@@ -1,8 +1,10 @@
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
+using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.CajaMaestro;
 using Credito.Modern.Application.Maestros;
 using Credito.Modern.Application.Time;
+using Credito.Modern.Application.Validation;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Credito.Modern.Api.Caja;
@@ -132,21 +134,10 @@ internal static class CajaMaestroEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (body.OficinaId < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "oficinaId debe ser >= 1.");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(body.Denominacion))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "denominacion es obligatoria.");
-                    }
+                    var edgeError = ProblemResults.IfInvalid(
+                        TesoreriaValidacion.ValidarGuardarCaja(body.OficinaId, body.Denominacion));
+                    if (edgeError is not null)
+                        return edgeError;
 
                     var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
                     if (usuarioError is not null)

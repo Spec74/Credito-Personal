@@ -1,4 +1,5 @@
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Validation;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -17,9 +18,18 @@ public sealed class CajaChicaRendicionWriteService(
         CrearRendicionCajaChicaRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request.MovimientoCajaChicaId < 1 || request.TipoDocumentoId < 1 || request.Importe <= 0)
+        var edge = ValidationGate.First(
+            IdRules.RequirePositive(request.MovimientoCajaChicaId, "movimientoCajaChicaId"),
+            IdRules.RequirePositive(request.TipoDocumentoId, "tipoDocumentoId"),
+            MoneyRules.RequirePositive(request.Importe, "importe"),
+            StringRules.RequireText(request.DetalleGasto, "detalleGasto", StringRules.MaxGlosa),
+            StringRules.OptionalMaxLength(request.Serie, "serie", StringRules.MaxSerie),
+            StringRules.OptionalMaxLength(request.Numero, "numero", StringRules.MaxSerie),
+            StringRules.OptionalMaxLength(request.RazonSocial, "razonSocial", StringRules.MaxNombre),
+            string.IsNullOrWhiteSpace(request.Ruc) ? null : StringRules.RequireRuc(request.Ruc));
+        if (edge is not null)
         {
-            throw new ArgumentException("Parámetros inválidos.", nameof(request));
+            throw new ArgumentException(edge, nameof(request));
         }
 
         EnsureConnection();

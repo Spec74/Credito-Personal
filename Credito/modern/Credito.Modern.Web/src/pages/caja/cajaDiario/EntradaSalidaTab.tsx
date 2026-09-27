@@ -18,6 +18,7 @@ import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBusca
 import { CajaModal } from '../../../components/caja/CajaModal'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import type { TipoOperacionListItem } from '../../../types/api'
+import { FIELD_MAX, glosaRules, moneyRequired } from '../../../validation/formRules'
 import { cajaToastError, cajaToastSuccess } from './cajaFeedback'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
@@ -175,11 +176,7 @@ export function EntradaSalidaTab({
               optionFilterProp="label"
             />
           </Form.Item>
-          <Form.Item
-            name="importe"
-            label="Importe"
-            rules={[{ required: true, type: 'number', min: 0.01 }]}
-          >
+          <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
             <InputNumber style={{ width: '100%' }} min={0.01} step={0.01} />
           </Form.Item>
           <Form.Item
@@ -199,8 +196,9 @@ export function EntradaSalidaTab({
             className="caja-diario-es-grid__full"
             name="descripcion"
             label="Descripción"
+            rules={glosaRules}
           >
-            <Input.TextArea rows={2} />
+            <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
           </Form.Item>
         </div>
         <div className="caja-diario-es-actions">

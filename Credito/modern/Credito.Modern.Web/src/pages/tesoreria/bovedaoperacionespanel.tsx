@@ -37,6 +37,7 @@ import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import type { TipoOperacionListItem } from '../../types/api'
+import { FIELD_MAX, glosaRules, moneyRequired } from '../../validation/formRules'
 
 const { Paragraph } = Typography
 
@@ -277,19 +278,11 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
 
   const importeDescripcionFields = (
     <>
-      <Form.Item
-        name="importe"
-        label="Importe"
-        rules={[{ required: true, type: 'number', min: 0.01 }]}
-      >
+      <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
         <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
       </Form.Item>
-      <Form.Item
-        name="descripcion"
-        label="Descripción / glosa"
-        rules={[{ required: true, message: 'Obligatorio' }]}
-      >
-        <Input.TextArea rows={2} />
+      <Form.Item name="descripcion" label="Descripción / glosa" rules={glosaRules}>
+        <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
       </Form.Item>
     </>
   )
@@ -517,19 +510,11 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                 options={tipoPagoOptions}
               />
             </Form.Item>
-            <Form.Item
-              name="importe"
-              label="Importe"
-              rules={[{ required: true, type: 'number', min: 0.01 }]}
-            >
+            <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
               <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
             </Form.Item>
-            <Form.Item
-              name="glosa"
-              label="Glosa"
-              rules={[{ required: true, message: 'Obligatorio' }]}
-            >
-              <Input.TextArea rows={2} />
+            <Form.Item name="glosa" label="Glosa" rules={glosaRules}>
+              <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
             </Form.Item>
             {formActions('Transferir entre bancos', entreBancos.isPending)}
           </Form>
@@ -646,19 +631,11 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                 }))}
               />
             </Form.Item>
-            <Form.Item
-              name="monto"
-              label="Monto"
-              rules={[{ required: true, type: 'number', min: 0.01 }]}
-            >
+            <Form.Item name="monto" label="Monto" rules={moneyRequired('Monto mayor a cero')}>
               <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
             </Form.Item>
-            <Form.Item
-              name="glosa"
-              label="Glosa"
-              rules={[{ required: true, message: 'Obligatorio' }]}
-            >
-              <Input.TextArea rows={2} />
+            <Form.Item name="glosa" label="Glosa" rules={glosaRules}>
+              <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
             </Form.Item>
             {formActions('Enviar transferencia', transferir.isPending)}
           </Form>

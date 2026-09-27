@@ -1,4 +1,6 @@
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Validation;
+using Credito.Modern.Api.Validation;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Credito.Modern.Api.Auth;
@@ -253,29 +255,10 @@ internal static class CajaCreditoWriteGuards
         IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(descripcion))
-        {
-            return TypedResults.Problem(
-                statusCode: StatusCodes.Status400BadRequest,
-                title: "Solicitud inválida",
-                detail: "descripcion es obligatoria.");
-        }
-
-        if (importe <= 0)
-        {
-            return TypedResults.Problem(
-                statusCode: StatusCodes.Status400BadRequest,
-                title: "Solicitud inválida",
-                detail: "importe debe ser > 0.");
-        }
-
-        if (tipoPagoId < 1)
-        {
-            return TypedResults.Problem(
-                statusCode: StatusCodes.Status400BadRequest,
-                title: "Solicitud inválida",
-                detail: "tipoPagoId debe ser >= 1.");
-        }
+        var edgeError = ProblemResults.IfInvalid(
+            TesoreriaValidacion.ValidarEntradaSalidaCampos(importe, descripcion, tipoPagoId));
+        if (edgeError is not null)
+            return edgeError;
 
         if (await entradaSalidaRead.CajaDiarioEstaCerradaAsync(cajaDiarioId, cancellationToken).ConfigureAwait(false))
         {

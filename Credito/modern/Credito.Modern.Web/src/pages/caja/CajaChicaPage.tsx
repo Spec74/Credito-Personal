@@ -58,6 +58,12 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { filterTableRows } from '../../utils/tableClientFilter'
 import { formatMoney } from '../../utils/formatMoney'
 import { CajaListToolbar } from './components/CajaListToolbar'
+import {
+  FIELD_MAX,
+  glosaRules,
+  moneyRequired,
+  requiredText,
+} from '../../validation/formRules'
 
 const { Paragraph, Text } = Typography
 
@@ -564,27 +570,13 @@ export function CajaChicaPage() {
                           </Form.Item>
                         </Col>
                         <Col xs={24} md={6}>
-                          <Form.Item
-                            name="importe"
-                            label="Importe"
-                            rules={[
-                              { required: true, message: 'Importe obligatorio' },
-                              { type: 'number', min: 0.01, message: 'Importe mayor a cero' },
-                            ]}
-                          >
+                          <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
                             <InputNumber min={0.01} step={0.01} precision={2} style={{ width: '100%' }} />
                           </Form.Item>
                         </Col>
                         <Col xs={24} md={12}>
-                          <Form.Item
-                            name="descripcion"
-                            label="Descripción"
-                            rules={[
-                              { required: true, whitespace: true, message: 'Descripción obligatoria' },
-                              { max: 250, message: 'Máximo 250 caracteres' },
-                            ]}
-                          >
-                            <Input maxLength={250} />
+                          <Form.Item name="descripcion" label="Descripción" rules={glosaRules}>
+                            <Input maxLength={FIELD_MAX.glosa} showCount />
                           </Form.Item>
                         </Col>
                         <Col xs={24}>
@@ -673,40 +665,50 @@ export function CajaChicaPage() {
                               </Form.Item>
                             </Col>
                             <Col xs={12} md={3}>
-                              <Form.Item name="serie" label="Serie">
-                                <Input />
+                              <Form.Item name="serie" label="Serie" rules={[{ max: FIELD_MAX.serie }]}>
+                                <Input maxLength={FIELD_MAX.serie} />
                               </Form.Item>
                             </Col>
                             <Col xs={12} md={3}>
-                              <Form.Item name="numero" label="Número">
-                                <Input />
+                              <Form.Item name="numero" label="Número" rules={[{ max: FIELD_MAX.serie }]}>
+                                <Input maxLength={FIELD_MAX.serie} />
                               </Form.Item>
                             </Col>
                             <Col xs={12} md={4}>
-                              <Form.Item name="ruc" label="RUC">
-                                <Input />
+                              <Form.Item
+                                name="ruc"
+                                label="RUC"
+                                rules={[
+                                  {
+                                    validator: (_, v) => {
+                                      const s = String(v ?? '').trim()
+                                      if (!s) return Promise.resolve()
+                                      return /^\d{11}$/.test(s)
+                                        ? Promise.resolve()
+                                        : Promise.reject(new Error('RUC de 11 dígitos'))
+                                    },
+                                  },
+                                ]}
+                              >
+                                <Input maxLength={FIELD_MAX.ruc} />
                               </Form.Item>
                             </Col>
                             <Col xs={24} md={8}>
-                              <Form.Item name="razonSocial" label="Razón social">
-                                <Input />
+                              <Form.Item name="razonSocial" label="Razón social" rules={[{ max: FIELD_MAX.nombre }]}>
+                                <Input maxLength={FIELD_MAX.nombre} />
                               </Form.Item>
                             </Col>
                             <Col xs={24} md={8}>
                               <Form.Item
                                 name="detalleGasto"
                                 label="Detalle gasto"
-                                rules={[{ required: true }]}
+                                rules={requiredText(FIELD_MAX.glosa)}
                               >
-                                <Input />
+                                <Input maxLength={FIELD_MAX.glosa} showCount />
                               </Form.Item>
                             </Col>
                             <Col xs={12} md={4}>
-                              <Form.Item
-                                name="importe"
-                                label="Importe"
-                                rules={[{ required: true }]}
-                              >
+                              <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
                                 <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
                               </Form.Item>
                             </Col>
@@ -907,6 +909,10 @@ export function CajaChicaPage() {
             message.warning('Importe y descripción obligatorios')
             return
           }
+          if (transferDesc.trim().length > FIELD_MAX.glosa) {
+            message.warning(`Descripción: máximo ${FIELD_MAX.glosa} caracteres`)
+            return
+          }
           transferir.mutate({
             oficinaId,
             importe: transferImporte,
@@ -928,6 +934,8 @@ export function CajaChicaPage() {
         <Input.TextArea
           rows={2}
           placeholder="Descripción de transferencia"
+          maxLength={FIELD_MAX.glosa}
+          showCount
           value={transferDesc}
           onChange={(e) => setTransferDesc(e.target.value)}
         />
