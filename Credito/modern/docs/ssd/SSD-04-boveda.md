@@ -72,6 +72,8 @@ La puerta de negocio es el menú BOVEDA en la SPA. La API replica al MVC: autent
 
 ## 7. Criterios de aceptación
 
+> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+
 - [ ] Ítem BOVEDA abre estado de dinero de la oficina de la sesión.
 - [ ] Ingreso/egreso y transferencias a caja/chica llaman los `usp_*` del MVC.
 - [ ] Entre bancos lista tabla 13, registra TRF y actualiza saldos bóveda.

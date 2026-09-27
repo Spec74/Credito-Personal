@@ -1,6 +1,6 @@
 # SSD-06 — Crédito prendario y WhatsApp
 
-**Estado:** as-built · 2026-09-11  
+**Estado:** as-built · 2026-09-11 · ver [SSD-12](SSD-12-validacion.md) (2026-09-27)  
 **Código:** `/credito/prendario`, `/nuevo`, `/gestionar/:personaId` · `/api/v1/prendario/*`  
 **Fuente legacy:** `PrendarioController`, `PrendaBL`, `CrearSolicitudCreditoPrendario` (rama Prendario-Eber)  
 **Doc de ingeniería:** [PARIDAD-PRENDARIO.md](../migration/PARIDAD-PRENDARIO.md) (reglas fijas de alta, categorías, contrato)
@@ -75,6 +75,8 @@ Chat WhatsApp de gestión no pasa por Cloud API (`prendarioWhatsapp.ts` → `wa.
 - Token Meta nunca en Git ni en `GET .../estado`.
 
 ## 7. Criterios de aceptación
+
+> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
 
 - [ ] ANALISTA con menú listado entra a `/credito/prendario`; sin menú, 403 de ruta.
 - [ ] Hub crédito no abre prendario ni gestionar.

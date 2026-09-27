@@ -86,6 +86,8 @@ Venta rápida: IGV 18 % para desglosar subtotal/impuesto, igual que el controlad
 
 ## 7. Criterios de aceptación
 
+> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+
 - [ ] Con caja diario abierta, venta rápida busca artículo, arma el carrito y `realizar-pedido` deja orden `ENV`/`CON` y movimiento de caja vía `usp_PagarCuentaxCobrar`.
 - [ ] Sin caja abierta, la pantalla informa el mismo bloqueo que el MVC.
 - [ ] Stock insuficiente (series EN_ALMACEN) no confirma el pedido.

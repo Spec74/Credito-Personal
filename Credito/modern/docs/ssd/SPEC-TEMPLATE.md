@@ -48,6 +48,8 @@ Validación de entrada (montos, glosas, longitudes): ver [SSD-12-validacion.md](
 
 ## 7. Criterios de aceptación
 
+> **Documentación:** criterios redactados al 100%. Las casillas `[ ]` / `[x]` registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+
 - [ ] Login con rol X abre la pantalla.
 - [ ] La operación Y produce el mismo efecto que el MVC (mismo SP).
 - [ ] Sin permiso: 403 / menú ausente.

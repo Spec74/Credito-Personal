@@ -91,6 +91,8 @@ Archivos: `creditoOperacionPermisos.ts`, `creditoHubFilter.ts`, `CreditoAuthoriz
 
 ## 7. Criterios de aceptación
 
+> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+
 - [ ] Gestor con ítem CREDITOS abre `/credito/consulta`, busca persona y ve plan del crédito elegido.
 - [ ] Simular con `monto <= 0` no llama al SP (lista vacía, paridad MVC).
 - [ ] APROBADOR 1 sin gestor/admin no entra a consulta ni simulador por menú; sí a `/credito/aprobar`.

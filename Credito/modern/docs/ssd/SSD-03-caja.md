@@ -86,6 +86,8 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 
 ## 7. Criterios de aceptación
 
+> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+
 - [ ] Ítem CAJA DIARIO abre sesión del día; cobro de cuota llama `usp_PagarCuotas` y emite ticket si hay `MovimientoCajaId`.
 - [ ] Completar impagos confirma y registra CUO 0; el cierre usa la validación GET, no bloquea el POST.
 - [ ] Última cuota con mora liquida `usp_CreditoMora_Liquidar` (producto con `IndMora`).

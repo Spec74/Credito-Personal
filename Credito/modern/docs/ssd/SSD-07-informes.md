@@ -1,6 +1,6 @@
 # SSD-07 — Informes y reportes
 
-**Estado:** as-built · 2026-09-11  
+**Estado:** as-built · 2026-09-11 · cobertura informes alineada 2026-09-27 (52/46) · ver [SSD-12](SSD-12-validacion.md)  
 **Código:** `/informes/*`, `/reportes/*` · `/api/v1/reportes/*` + `rpt-*` de crédito/caja/ventas/almacén  
 **Fuente legacy:** `ReporteController`, índices `Reporte/Credito`, `CobranzaPagos`, `Almacen`, `Venta`  
 **Doc de ingeniería:** [CATALOGO-INFORMES-COBERTURA.md](../migration/CATALOGO-INFORMES-COBERTURA.md)
@@ -77,6 +77,8 @@ Política de export: fase `pdf-tabular-completo` (cada `-csv` tiene `-pdf`). Mot
 
 ## 7. Criterios de aceptación
 
+> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+
 - [ ] Ítem Reportes → Crédito abre `/reportes/credito`; Dashboard → `/inicio`.
 - [ ] Un informe de cartera (p. ej. cobro diario) lista filas del `usp_*` y descarga PDF Credix con título legible.
 - [ ] `/informes/cobertura` muestra 52 del catálogo, 46 completo-datos y `soloMvc = 0`.
@@ -92,7 +94,7 @@ Producto: PDF Credix ≠ píxel RDLC. `VITE_LEGACY_ORIGIN` solo si negocio lo pi
 
 ## 9. Pruebas y evidencia
 
-- API: `reportescatalogocoberturaendpointtests` (52 / 43 / soloMvc 0), `reportesexportpoliticaendpointtests`, `credixlegacyreportcatalogtests`, `rpt*` endpoint/CSV/PDF por informe
+- API: `reportescatalogocoberturaendpointtests` (52 / **46** completo-datos / soloMvc 0), `reportesexportpoliticaendpointtests`, `credixlegacyreportcatalogtests`, `rpt*` endpoint/CSV/PDF por informe
 - SPA: `resolvespapathfrommenuitem.test.ts` (CREDITO/COBRANZA/VENTA REPORTES)
 - Smoke: índice crédito → PDF; cobertura; un informe de caja y uno de almacén
 

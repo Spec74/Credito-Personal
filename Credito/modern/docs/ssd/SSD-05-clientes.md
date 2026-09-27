@@ -72,6 +72,8 @@ Listado sin término (&lt; 2 caracteres): clientes distintos de créditos del `U
 
 ## 7. Criterios de aceptación
 
+> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+
 - [ ] Ítem CLIENTE abre listado; doble clic edita.
 - [ ] Sin búsqueda se ven «mis créditos»; con 2+ caracteres, catálogo.
 - [ ] DNI ya cliente bloquea alta (`existe-documento`).

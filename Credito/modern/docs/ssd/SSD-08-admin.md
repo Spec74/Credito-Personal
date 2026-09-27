@@ -74,6 +74,8 @@ Resetear clave: paridad MVC (`123456`) con hash `$pbk2$` para el login moderno.
 
 ## 7. Criterios de aceptación
 
+> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+
 - [ ] Ítem USUARIO abre listado; sin ítem, 403 de ruta aunque exista el padre SEGURIDAD.
 - [ ] Guardar usuario y asignar oficina/rol permite login SPA en esa oficina.
 - [ ] Resetear clave deja `123456` verificable por el hasher (claro legado o `$pbk2$`).

@@ -82,5 +82,8 @@ solo se abre para **cambios** (corte RDLC, comisiones reales, WhatsApp productiv
 
 ## Cierre documental (2026-09-27)
 
-El paquete SSD + documentación de software se considera **terminado para auditoría/mantenimiento**.  
-Lo único pendiente operativo es la **ejecución** del cutover preprod (SSD-00 §7), no redactar más specs base.
+**Paquete documental: 100% completo.**
+
+Incluye: SSD-00…12, [DOCUMENTACION.md](../DOCUMENTACION.md), [ARCHITECTURE.md](../ARCHITECTURE.md), [GLOSARIO.md](../GLOSARIO.md), [AMBIENTES.md](../AMBIENTES.md), [API-OVERVIEW.md](../API-OVERVIEW.md), [TEST-STRATEGY.md](../TEST-STRATEGY.md), [OPS.md](../OPS.md).
+
+Lo único fuera de la documentación es la **ejecución operativa** del cutover preprod (SSD-00 §7 casillas abiertas). Eso no es un hueco de spec.

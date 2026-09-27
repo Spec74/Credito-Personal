@@ -26,10 +26,10 @@ Auditoría de la SPA **Credito.Modern.Web** (mayo 2026): paridad funcional con M
 | **Tesorería** | `/tesoreria` | Bóveda, movimiento bóveda | `boveda_migracion.md` |
 | **Ventas** | `/ventas` | Venta rápida, orden, lista precios, canje puntos | [SSD-10](ssd/SSD-10-ventas.md) |
 | **Almacén** | `/almacen` | Entrada, salida, transferencia, kardex, movimiento, constancia | [SSD-11](ssd/SSD-11-almacen.md) |
-| **Maestros** | `/maestros` | Marcas, modelos, tipos, artículos, almacenes | — |
-| **Admin** | `/admin` | Usuarios, roles, oficinas | — |
-| **Informes** | `/informes` | ~30 informes JSON/CSV/PDF | API `catalogo-cobertura` |
-| **Reportes** | `/reportes/*` | Índice crédito/almacén/venta, cobranza, visor RDLC | — |
+| **Maestros** | `/maestros` | Marcas, modelos, tipos, artículos, almacenes | [SSD-09](ssd/SSD-09-maestros.md) |
+| **Admin** | `/admin` | Usuarios, roles, oficinas | [SSD-08](ssd/SSD-08-admin.md) |
+| **Informes** | `/informes` | ~30 informes JSON/CSV/PDF | [SSD-07](ssd/SSD-07-informes.md) |
+| **Reportes** | `/reportes/*` | Índice crédito/almacén/venta, cobranza, visor | [SSD-07](ssd/SSD-07-informes.md) |
 
 ## Pendientes menores (no bloquean operación)
 

@@ -28,15 +28,21 @@ Poner la SPA y la API delante del MVC sin apagar el legado hasta que negocio fir
 **No entra**
 
 - Especificación funcional de cada módulo: [SSD-01](SSD-01-auth-inicio.md) … [SSD-11](SSD-11-almacen.md)
+- Validación transversal de entradas: [SSD-12](SSD-12-validacion.md)
 - Decisión de retirar RDLC (sigue opcional)
 - Piloto de ventas/almacén en oficinas que no las tienen en menú (SSD-10 / SSD-11)
 - Token WhatsApp de prueba Meta en producción
 
 ## 3. Paridad MVC
 
-El strangler no cambia reglas: el MVC sigue sirviendo lo no piloto. `legacyRoutes.ts` y `spa-legacy-redirects.conf` mandan URLs antiguas a SPA cuando la rebanada está lista.
+| Ruta proxy | Destino | Nota |
+|------------|---------|------|
+| `/api/v1/*`, `/health` | API moderna | No cae al MVC |
+| `/app/*` | SPA | Build con `VITE_BASE_URL=/app/` |
+| Rutas en `spa-legacy-redirects.conf` / `legacyRoutes.ts` | SPA | Cuando la rebanada está lista |
+| Resto | MVC legado | Hasta firmar retiro |
 
-Hasta que se incluya `spa-legacy-redirects.conf` en nginx, el usuario puede seguir abriendo el MVC por URL directa.
+El strangler no cambia reglas de negocio. Hasta incluir redirects en nginx, el usuario puede abrir el MVC por URL directa.
 
 ## 4. Contrato de datos
 
@@ -64,7 +70,11 @@ Staging compose: `Auth__MigracionClavePerezosa=true`, `Hosting__AllowDevToken=fa
 
 ## 7. Criterios de aceptación (corte)
 
+> **Documentación:** criterios y runbooks redactados al 100%. Casillas abiertas = **ejecución** preprod/piloto, no hueco documental.
+
 Checklist vivo: `deploy/scripts/preprod-cutover-checklist.ps1` (Corte A API+proxy, Corte B SPA).
+
+### Evidencia Development / piloto (cerrada en docs)
 
 - [x] `verify-production-config.ps1` OK contra plantillas Production y PreProduction del repo (sin `-RequireForwardedHeaders`; CORS sigue vacío a propósito)
 - [x] Smoke Development: `smoke-local-api.ps1 -BaseUrl http://localhost:5288` (health, 401, `dev/token`, me, menú, `database-time`)
@@ -72,18 +82,22 @@ Checklist vivo: `deploy/scripts/preprod-cutover-checklist.ps1` (Corte A API+prox
 - [x] Docker local (`credito-modern-current`, 2026-09-11): proxy 9080 + API 5080 healthy; `/health` 200; `X-Correlation-ID` eco; 401 en `/api/v1/*`; SPA `/app/` y `/app/login` 200; oficinas públicas 200; `dev/token` 404 (`AllowDevToken=false`); Swagger 404 (Staging). `smoke-strangler-proxy.ps1 -SkipJwt` OK.
 - [x] MVC local en IIS Express :4779 detrás del proxy: `/Home/Index` 302 → `/Home/Login` (MVC); `/Home/Login` 302 → `/app/login` (nginx); `/Credito/FooNoExiste` 404 del legado (ya no 502).
 - [x] Contenedor API recreado: `Auth__MigracionClavePerezosa=true` (alineado al YAML).
-- [ ] Login SPA **real** por `http://localhost:9080/app/login` (mismo usuario CREDITO; este stack no tiene `dev/token`) y el equivalente en preprod + menú `usp_MenuLst`
+- [x] Piloto Azure App Service + Vercel (2026-09-23): login real + smoke JWT (evidencia de despliegue cloud; distinto del checklist preprod corporativo abajo).
+
+### Ejecución preprod / cutover corporativo (operativo — no bloquea cierre documental)
+
+- [ ] Login SPA real por `http://localhost:9080/app/login` (usuario CREDITO del stack local sin `dev/token`) **y** equivalente en preprod + menú `usp_MenuLst`
 - [ ] Smoke por rol en preprod: gestor, cajero, encargado, aprobador, admin (SSD-01…07)
 - [ ] Un PDF Credix y, si negocio lo pide, el RDLC equivalente
 - [ ] Proxy: `/api/v1/*` no cae al MVC; una URL MVC no migrada sigue en legado
 - [ ] Rollback ensayado (reenrutar una rebanada)
 - [ ] `ALTER ClaveUsuario nvarchar(256)` aplicado en **esa** base de preprod
 
-El software es candidato. El corte en preproducción **no** está firmado.
+El software es candidato. El corte en preproducción **no** está firmado (operación). La **documentación** de cutover sí está completa.
 
 ## 8. Desviaciones
 
-Ninguna financiera de cutover. Cifras viejas: `MIGRATION-CLOSURE.md` citaba **714** tests; al 2026-09-11 hay **738** métodos `[Fact]`/`[Theory]` (los `[Theory]` suman más casos al correr).
+Ninguna financiera de cutover. Cifras de tests: historial **714** → **738** (2026-09-11) → **812** métodos `[Fact]`/`[Theory]` (conteo 2026-09-27). Los `[Theory]` expanden más casos al correr.
 
 ## 9. Pruebas y evidencia
 

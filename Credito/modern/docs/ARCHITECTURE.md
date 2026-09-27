@@ -103,15 +103,15 @@ Reglas compartidas: IDs ≥ 1, montos > 0 (2 decimales), glosa ≤ 250, denomina
 
 ---
 
-## 7. Despliegue
+## 7. Despliegue y ambientes
+
+Detalle tabular: [AMBIENTES.md](AMBIENTES.md). Runbooks: [OPS.md](OPS.md).
 
 | Ambiente | Piezas |
 |----------|--------|
 | Development | `dotnet run` API + `npm run dev` SPA; Swagger on |
 | Staging / strangler | Docker compose + nginx `:9080` |
 | Production | App Service / IIS + SPA `/app/`; secretos por entorno |
-
-Runbooks: [DEPLOY-AL-SUBIR.md](migration/DEPLOY-AL-SUBIR.md), [PHASE-5-OPERATIONS-CUTOVER.md](migration/PHASE-5-OPERATIONS-CUTOVER.md).
 
 ---
 

@@ -88,6 +88,8 @@ Códigos de barras: `GET /api/v1/ventas/codigo-barras-lst*` desde `/almacen/codi
 
 ## 7. Criterios de aceptación
 
+> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+
 - [ ] Entrada: crear movimiento de la oficina sesión, cargar detalle/series, confirmar; el kardex del artículo refleja el ingreso.
 - [ ] Salida con serie no disponible (no EN_ALMACEN) no confirma.
 - [ ] Transferencia origen/destino: confirmar deja series en el almacén destino; desconfirmar revierte como el MVC.

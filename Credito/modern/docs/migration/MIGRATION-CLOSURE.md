@@ -12,8 +12,9 @@ El **paquete documental SSD (13/13) + arquitectura + índice** está cerrado al 
 ## Evidencia técnica
 
 - Backend: `dotnet build Credito.Modern.sln` correcto.
-- Tests backend: `dotnet test Credito.Modern.Tests/Credito.Modern.Tests.csproj`. Al 2026-09-11 hay **738** métodos `[Fact]`/`[Theory]` (la cifra 714 de un cierre anterior quedó atrás; los `[Theory]` expanden más casos al ejecutar).
+- Tests backend: `dotnet test Credito.Modern.Tests/Credito.Modern.Tests.csproj`. Conteo **812** métodos `[Fact]`/`[Theory]` (2026-09-27); historial 714 → 738 (2026-09-11).
 - SPA: `npm run build` correcto.
+- Documentación: [DOCUMENTACION.md](../DOCUMENTACION.md) — **paquete 100% completo** (SSD 13/13 + arquitectura + glosario + ambientes + API + tests + ops).
 - UI: rutas modernas para Crédito, Clientes, Caja, Tesorería/Bóveda, Ventas, Almacén, Maestros, Admin, Informes y Reportes.
 - Strangler: proxy y scripts en `deploy/`; mapeo MVC → SPA en `Credito.Modern.Web/src/utils/legacyRoutes.ts`.
 - Puentes aceptados: RDLC legacy vía `VITE_LEGACY_ORIGIN` solo si negocio exige el layout idéntico. Las pantallas de informe exportan por la API JWT (PDF tabular Credix).

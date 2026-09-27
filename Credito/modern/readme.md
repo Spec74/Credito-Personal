@@ -1,10 +1,10 @@
 # Credito.Modern
 
-**Documentación completa:** [docs/DOCUMENTACION.md](docs/DOCUMENTACION.md) · **Arquitectura:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · **SSD:** [docs/ssd/README.md](docs/ssd/README.md)
+**Documentación completa (100%):** [docs/DOCUMENTACION.md](docs/DOCUMENTACION.md) · **Arquitectura:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · **SSD:** [docs/ssd/README.md](docs/ssd/README.md) · **Ops:** [docs/OPS.md](docs/OPS.md)
 
 **Migración strangler:** **candidata a cierre / go-live** (API + SPA + deploy). Al subir servidores: [docs/migration/DEPLOY-AL-SUBIR.md](docs/migration/DEPLOY-AL-SUBIR.md).
 
-Arquitectura: **Domain → Application → Infrastructure → Api** + **Credito.Modern.Web** (SPA). Validación transversal: [docs/ssd/SSD-12-validacion.md](docs/ssd/SSD-12-validacion.md).
+Arquitectura: **Domain → Application → Infrastructure → Api** + **Credito.Modern.Web** (SPA). Validación transversal: [docs/ssd/SSD-12-validacion.md](docs/ssd/SSD-12-validacion.md). Glosario: [docs/GLOSARIO.md](docs/GLOSARIO.md).
 
 API ASP.NET Core **.NET 10** (TFM `net10.0`) en paralelo al legado (`Web` MVC). Se eligió `net10.0` para que **restauración, compilación y pruebas** funcionen con el runtime ya instalado en el equipo de desarrollo (solo ASP.NET Core 10). Para alinear con la hoja de ruta **.NET 8 LTS**, cambia `<TargetFramework>` a `net8.0` en todos los `.csproj` de esta carpeta e instala el [runtime/hosting bundle 8](https://dotnet.microsoft.com/download/dotnet/8.0); el workflow de GitHub puede usar `8.0.x` en lugar de `10.0.x`.
 

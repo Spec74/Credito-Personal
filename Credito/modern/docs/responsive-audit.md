@@ -70,8 +70,10 @@ import './styles/credix-responsive-global.css'
 
 ---
 
-## Estado del workspace (mayo 2026)
+## Estado del workspace (2026-09-27)
 
-El **source completo** (`src/`, `.csproj`) puede estar ausente; el build en **`dist/`** y **`bin/`** conserva la app. Ver [`RUN-LOCAL.md`](../RUN-LOCAL.md) para ejecutar sin `dotnet run` / `npm run dev`.
+Source completo presente en `Credito/modern`. Guía local: [`run-local.md`](../run-local.md).
 
-Al restaurar el repositorio: mantener **un** toolbar (`CajaListToolbar`), **un** CSS global responsive, y evitar `@media` duplicados en cada `-module.css`.
+Al mantener el repositorio: **un** toolbar (`CajaListToolbar`), **un** CSS global responsive, y evitar `@media` duplicados en cada `-module.css`.
+
+Documentación completa: [DOCUMENTACION.md](DOCUMENTACION.md).

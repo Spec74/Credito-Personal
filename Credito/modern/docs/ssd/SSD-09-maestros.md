@@ -69,6 +69,8 @@ Combos de solo lectura (`GET /marcas` sin `/gestion`) alimentan ventas e informe
 
 ## 7. Criterios de aceptación
 
+> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+
 - [ ] Ítem Marcas abre `/maestros/marcas`; alta y activar persisten como el MVC.
 - [ ] Modelo exige marca; artículo exige tipo/modelo según validación del legado.
 - [ ] Sin menú de catálogo, el padre MANTENIMIENTO no abre `/maestros/articulos`.

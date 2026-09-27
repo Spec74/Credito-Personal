@@ -80,6 +80,8 @@ La verificación de clave es en C# (`UsuarioPasswordHasher` / `UsuarioPasswordHa
 
 ## 7. Criterios de aceptación
 
+> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+
 - [ ] Login SPA con usuario real (no `dev/token`) entra y carga menú.
 - [ ] Misma clave vale en MVC tras hash `$pbk2$` (hasher compat).
 - [ ] Analista ve tablero personal; admin el gerencial de su oficina.

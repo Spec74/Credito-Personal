@@ -74,6 +74,8 @@ Un request inválido → **400** antes de guards de negocio cuando aplica; un re
 
 ## 7. Criterios de aceptación
 
+> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+
 - [x] Existe `Application/Validation` con gate + money/string/id.
 - [x] Escrituras de bóveda/caja/transferencias usan `TesoreriaValidacion` o equivalente (no solo `importe <= 0`).
 - [x] Glosas obligatorias respetan `MaxGlosa` (250).
