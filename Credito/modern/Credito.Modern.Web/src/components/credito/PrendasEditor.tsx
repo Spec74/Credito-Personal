@@ -4,7 +4,13 @@ import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import type { PrendaItem } from '../../api/creditoGestion'
 import { CredixDataTable } from '../credix'
 import { formatMoney } from '../../utils/formatMoney'
-import { prendaVacia, totalTasacion } from '../../utils/prendas'
+import {
+  errorCampoPrenda,
+  PRENDA_MAX,
+  prendaVacia,
+  totalTasacion,
+  type PrendaCampoError,
+} from '../../utils/prendas'
 
 const { Text } = Typography
 
@@ -14,6 +20,8 @@ type Props = {
   disabled?: boolean
   /** Solo lectura: sin inputs, sin agregar/quitar. */
   readOnly?: boolean
+  /** Errores de campo desde `validarPrendasForm` (índice + campo). */
+  errores?: PrendaCampoError[]
 }
 
 function celda(texto: string | null | undefined, vacio = '—') {
@@ -21,11 +29,27 @@ function celda(texto: string | null | undefined, vacio = '—') {
   return t.length > 0 ? t : vacio
 }
 
+function statusCampo(
+  errores: PrendaCampoError[] | undefined,
+  indice: number,
+  campo: keyof PrendaItem,
+): { status?: 'error'; help?: string } {
+  if (!errores?.length) return {}
+  const mensaje = errorCampoPrenda(errores, indice, campo)
+  return mensaje ? { status: 'error', help: mensaje } : {}
+}
+
 /**
  * Detalle de bienes en custodia. El crédito admite varios, y la tasación del crédito es la
  * suma de los que tengan descripción: el servidor la recalcula desde lo guardado.
  */
-export function PrendasEditor({ value, onChange, disabled = false, readOnly = false }: Props) {
+export function PrendasEditor({
+  value,
+  onChange,
+  disabled = false,
+  readOnly = false,
+  errores,
+}: Props) {
   const screens = Grid.useBreakpoint()
   const isMobile = screens.md !== true
   const bloqueado = disabled || readOnly
@@ -78,6 +102,32 @@ export function PrendasEditor({ value, onChange, disabled = false, readOnly = fa
       </Col>
     </Row>
   )
+
+  const renderInput = (
+    indice: number,
+    campo: keyof PrendaItem,
+    prenda: PrendaItem,
+    opts?: { placeholder?: string; maxLength?: number },
+  ) => {
+    const err = statusCampo(errores, indice, campo)
+    return (
+      <div>
+        <Input
+          disabled={bloqueado}
+          status={err.status}
+          maxLength={opts?.maxLength}
+          placeholder={opts?.placeholder}
+          value={(prenda[campo] as string | null | undefined) ?? ''}
+          onChange={(e) => actualizar(indice, { [campo]: e.target.value })}
+        />
+        {err.help ? (
+          <Text type="danger" style={{ fontSize: 12 }}>
+            {err.help}
+          </Text>
+        ) : null}
+      </div>
+    )
+  }
 
   if (isMobile) {
     return (
@@ -135,75 +185,59 @@ export function PrendasEditor({ value, onChange, disabled = false, readOnly = fa
               </>
             ) : (
               <>
-                <label className="prendas-editor-mobile__field">
-                  <span>Descripción</span>
-                  <Input
-                    disabled={bloqueado}
-                    placeholder="Ej. anillo de oro 18k"
-                    value={prenda.descripcion}
-                    onChange={(e) => actualizar(indice, { descripcion: e.target.value })}
-                  />
-                </label>
-                <label className="prendas-editor-mobile__field">
-                  <span>Marca</span>
-                  <Input
-                    disabled={bloqueado}
-                    value={prenda.marca ?? ''}
-                    onChange={(e) => actualizar(indice, { marca: e.target.value })}
-                  />
-                </label>
-                <label className="prendas-editor-mobile__field">
-                  <span>Modelo</span>
-                  <Input
-                    disabled={bloqueado}
-                    value={prenda.modelo ?? ''}
-                    onChange={(e) => actualizar(indice, { modelo: e.target.value })}
-                  />
-                </label>
-                <label className="prendas-editor-mobile__field">
-                  <span>Serie</span>
-                  <Input
-                    disabled={bloqueado}
-                    placeholder="N/T"
-                    value={prenda.serie ?? ''}
-                    onChange={(e) => actualizar(indice, { serie: e.target.value })}
-                  />
-                </label>
-                <label className="prendas-editor-mobile__field">
-                  <span>Color</span>
-                  <Input
-                    disabled={bloqueado}
-                    value={prenda.color ?? ''}
-                    onChange={(e) => actualizar(indice, { color: e.target.value })}
-                  />
-                </label>
-                <label className="prendas-editor-mobile__field">
-                  <span>Código interno</span>
-                  <Input
-                    disabled={bloqueado}
-                    value={prenda.codigoInterno ?? ''}
-                    onChange={(e) => actualizar(indice, { codigoInterno: e.target.value })}
-                  />
-                </label>
-                <label className="prendas-editor-mobile__field">
-                  <span>Tasación</span>
-                  <InputNumber
-                    style={{ width: '100%' }}
-                    min={0}
-                    precision={2}
-                    disabled={bloqueado}
-                    value={prenda.valorTasacion}
-                    onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
-                  />
-                </label>
-                <label className="prendas-editor-mobile__field">
-                  <span>Observaciones</span>
-                  <Input
-                    disabled={bloqueado}
-                    value={prenda.observaciones ?? ''}
-                    onChange={(e) => actualizar(indice, { observaciones: e.target.value })}
-                  />
-                </label>
+                {(
+                  [
+                    ['descripcion', 'Descripción', PRENDA_MAX.descripcion, 'Ej. anillo de oro 18k'],
+                    ['marca', 'Marca', PRENDA_MAX.marca, undefined],
+                    ['modelo', 'Modelo', PRENDA_MAX.modelo, undefined],
+                    ['serie', 'Serie', PRENDA_MAX.serie, 'N/T'],
+                    ['color', 'Color', PRENDA_MAX.color, undefined],
+                    ['codigoInterno', 'Código interno', PRENDA_MAX.codigoInterno, undefined],
+                    ['observaciones', 'Observaciones', PRENDA_MAX.observaciones, undefined],
+                  ] as const
+                ).map(([campo, label, max, placeholder]) => {
+                  const err = statusCampo(errores, indice, campo)
+                  return (
+                    <label key={campo} className="prendas-editor-mobile__field">
+                      <span>{label}</span>
+                      <Input
+                        disabled={bloqueado}
+                        status={err.status}
+                        maxLength={max}
+                        placeholder={placeholder}
+                        value={(prenda[campo] as string | null | undefined) ?? ''}
+                        onChange={(e) => actualizar(indice, { [campo]: e.target.value })}
+                      />
+                      {err.help ? (
+                        <Text type="danger" style={{ fontSize: 12 }}>
+                          {err.help}
+                        </Text>
+                      ) : null}
+                    </label>
+                  )
+                })}
+                {(() => {
+                  const err = statusCampo(errores, indice, 'valorTasacion')
+                  return (
+                    <label className="prendas-editor-mobile__field">
+                      <span>Tasación</span>
+                      <InputNumber
+                        style={{ width: '100%' }}
+                        min={0}
+                        precision={2}
+                        disabled={bloqueado}
+                        status={err.status}
+                        value={prenda.valorTasacion}
+                        onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
+                      />
+                      {err.help ? (
+                        <Text type="danger" style={{ fontSize: 12 }}>
+                          {err.help}
+                        </Text>
+                      ) : null}
+                    </label>
+                  )
+                })()}
               </>
             )}
           </article>
@@ -229,12 +263,10 @@ export function PrendasEditor({ value, onChange, disabled = false, readOnly = fa
               readOnly ? (
                 <Text>{celda(prenda.descripcion)}</Text>
               ) : (
-                <Input
-                  disabled={bloqueado}
-                  placeholder="Ej. anillo de oro 18k"
-                  value={prenda.descripcion}
-                  onChange={(e) => actualizar(indice, { descripcion: e.target.value })}
-                />
+                renderInput(indice, 'descripcion', prenda, {
+                  placeholder: 'Ej. anillo de oro 18k',
+                  maxLength: PRENDA_MAX.descripcion,
+                })
               ),
           },
           {
@@ -244,11 +276,7 @@ export function PrendasEditor({ value, onChange, disabled = false, readOnly = fa
               readOnly ? (
                 <Text>{celda(prenda.marca)}</Text>
               ) : (
-                <Input
-                  disabled={bloqueado}
-                  value={prenda.marca ?? ''}
-                  onChange={(e) => actualizar(indice, { marca: e.target.value })}
-                />
+                renderInput(indice, 'marca', prenda, { maxLength: PRENDA_MAX.marca })
               ),
           },
           {
@@ -258,11 +286,7 @@ export function PrendasEditor({ value, onChange, disabled = false, readOnly = fa
               readOnly ? (
                 <Text>{celda(prenda.modelo)}</Text>
               ) : (
-                <Input
-                  disabled={bloqueado}
-                  value={prenda.modelo ?? ''}
-                  onChange={(e) => actualizar(indice, { modelo: e.target.value })}
-                />
+                renderInput(indice, 'modelo', prenda, { maxLength: PRENDA_MAX.modelo })
               ),
           },
           {
@@ -272,12 +296,10 @@ export function PrendasEditor({ value, onChange, disabled = false, readOnly = fa
               readOnly ? (
                 <Text>{celda(prenda.serie, 'N/T')}</Text>
               ) : (
-                <Input
-                  disabled={bloqueado}
-                  placeholder="N/T"
-                  value={prenda.serie ?? ''}
-                  onChange={(e) => actualizar(indice, { serie: e.target.value })}
-                />
+                renderInput(indice, 'serie', prenda, {
+                  placeholder: 'N/T',
+                  maxLength: PRENDA_MAX.serie,
+                })
               ),
           },
           {
@@ -287,11 +309,7 @@ export function PrendasEditor({ value, onChange, disabled = false, readOnly = fa
               readOnly ? (
                 <Text>{celda(prenda.color)}</Text>
               ) : (
-                <Input
-                  disabled={bloqueado}
-                  value={prenda.color ?? ''}
-                  onChange={(e) => actualizar(indice, { color: e.target.value })}
-                />
+                renderInput(indice, 'color', prenda, { maxLength: PRENDA_MAX.color })
               ),
           },
           {
@@ -301,30 +319,39 @@ export function PrendasEditor({ value, onChange, disabled = false, readOnly = fa
               readOnly ? (
                 <Text>{celda(prenda.codigoInterno)}</Text>
               ) : (
-                <Input
-                  disabled={bloqueado}
-                  value={prenda.codigoInterno ?? ''}
-                  onChange={(e) => actualizar(indice, { codigoInterno: e.target.value })}
-                />
+                renderInput(indice, 'codigoInterno', prenda, {
+                  maxLength: PRENDA_MAX.codigoInterno,
+                })
               ),
           },
           {
             title: 'Tasación',
             width: 140,
             align: 'right',
-            render: (_, { indice, prenda }) =>
-              readOnly ? (
-                <Text strong>{formatMoney(prenda.valorTasacion)}</Text>
-              ) : (
-                <InputNumber
-                  style={{ width: '100%' }}
-                  min={0}
-                  precision={2}
-                  disabled={bloqueado}
-                  value={prenda.valorTasacion}
-                  onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
-                />
-              ),
+            render: (_, { indice, prenda }) => {
+              if (readOnly) {
+                return <Text strong>{formatMoney(prenda.valorTasacion)}</Text>
+              }
+              const err = statusCampo(errores, indice, 'valorTasacion')
+              return (
+                <div>
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    min={0}
+                    precision={2}
+                    disabled={bloqueado}
+                    status={err.status}
+                    value={prenda.valorTasacion}
+                    onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
+                  />
+                  {err.help ? (
+                    <Text type="danger" style={{ fontSize: 12 }}>
+                      {err.help}
+                    </Text>
+                  ) : null}
+                </div>
+              )
+            },
           },
           {
             title: 'Observaciones',
@@ -333,11 +360,9 @@ export function PrendasEditor({ value, onChange, disabled = false, readOnly = fa
               readOnly ? (
                 <Text>{celda(prenda.observaciones)}</Text>
               ) : (
-                <Input
-                  disabled={bloqueado}
-                  value={prenda.observaciones ?? ''}
-                  onChange={(e) => actualizar(indice, { observaciones: e.target.value })}
-                />
+                renderInput(indice, 'observaciones', prenda, {
+                  maxLength: PRENDA_MAX.observaciones,
+                })
               ),
           },
           ...(readOnly
