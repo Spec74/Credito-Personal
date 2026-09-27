@@ -60,6 +60,7 @@ import { fetchUsuariosGestion } from '../../api/usuariosAdmin'
 import { ApiError } from '../../api/errors'
 import { consultarDniApiPeru } from '../../api/apiperu'
 import { formatMoney } from '../../utils/formatMoney'
+import { FIELD_MAX } from '../../validation/formRules'
 import {
   puedeCambiarAnalistaCreditoUi,
   puedeCondonarCreditoUi,
@@ -1102,11 +1103,23 @@ export function CreditoConsultaGestionPanel({
         title="Observar crédito"
         open={modalObservar}
         onCancel={() => setModalObservar(false)}
-        onOk={() => observar.mutate()}
+        onOk={() => {
+          if (!observacion.trim()) {
+            message.warning('Ingrese la observación')
+            return
+          }
+          if (observacion.trim().length > FIELD_MAX.observacion) {
+            message.warning(`Observación: máximo ${FIELD_MAX.observacion} caracteres`)
+            return
+          }
+          observar.mutate()
+        }}
         confirmLoading={observar.isPending}
       >
         <Input.TextArea
           rows={4}
+          maxLength={FIELD_MAX.observacion}
+          showCount
           value={observacion}
           onChange={(e) => setObservacion(e.target.value)}
         />
@@ -1250,6 +1263,8 @@ export function CreditoConsultaGestionPanel({
           <Form.Item label="Observación">
             <Input.TextArea
               rows={3}
+              maxLength={FIELD_MAX.observacion}
+              showCount
               placeholder="Motivo o sustento de la condonación"
               value={obsCondonar}
               onChange={(e) => setObsCondonar(e.target.value)}
@@ -1275,6 +1290,10 @@ export function CreditoConsultaGestionPanel({
             message.warning('Ingrese la descripción del cargo')
             return
           }
+          if (descCargo.trim().length > FIELD_MAX.glosa) {
+            message.warning(`Descripción: máximo ${FIELD_MAX.glosa} caracteres`)
+            return
+          }
           guardarCargo.mutate()
         }}
         confirmLoading={guardarCargo.isPending}
@@ -1292,7 +1311,8 @@ export function CreditoConsultaGestionPanel({
         />
         <InputNumber
           style={{ width: '100%', marginBottom: 12 }}
-          min={0}
+          min={0.01}
+          step={0.01}
           placeholder="Monto"
           value={montoCargo}
           onChange={(v) => setMontoCargo(v ?? 0)}
@@ -1300,6 +1320,8 @@ export function CreditoConsultaGestionPanel({
         <Input
           style={{ marginBottom: 12 }}
           placeholder="Descripción"
+          maxLength={FIELD_MAX.glosa}
+          showCount
           value={descCargo}
           onChange={(e) => setDescCargo(e.target.value)}
         />

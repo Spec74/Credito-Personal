@@ -24,6 +24,7 @@ import {
 } from './cajaFeedback'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
+import { FIELD_MAX, glosaRules, moneyRequired } from '../../../validation/formRules'
 
 const { Text } = Typography
 
@@ -164,7 +165,7 @@ export function TransferirSaldosDrawer({
           name="importe"
           label="Monto"
           rules={[
-            { required: true, type: 'number', min: 0.01 },
+            ...moneyRequired(),
             {
               validator: (_, value) => {
                 if (saldo != null && value > saldo) {
@@ -180,12 +181,8 @@ export function TransferirSaldosDrawer({
           <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
         </Form.Item>
 
-        <Form.Item
-          name="descripcion"
-          label="Descripción"
-          rules={[{ required: true, whitespace: true }]}
-        >
-          <Input.TextArea rows={2} />
+        <Form.Item name="descripcion" label="Descripción" rules={glosaRules}>
+          <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
         </Form.Item>
       </Form>
 

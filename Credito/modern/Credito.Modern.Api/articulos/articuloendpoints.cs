@@ -1,7 +1,9 @@
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
+using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.Articulos;
 using Credito.Modern.Application.Maestros;
+using Credito.Modern.Application.Validation;
 using Credito.Modern.Infrastructure.Articulos;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
@@ -119,21 +121,10 @@ internal static class ArticuloEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (body.ModeloId < 1 || body.TipoArticuloId < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "modeloId y tipoArticuloId deben ser >= 1.");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(body.Denominacion))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "denominacion es obligatoria.");
-                    }
+                    var edgeError = ProblemResults.IfInvalid(
+                        CreditoProductoValidacion.ValidarGuardarArticulo(body));
+                    if (edgeError is not null)
+                        return edgeError;
 
                     return await WriteAsync(
                         loggerFactory,

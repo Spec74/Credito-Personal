@@ -1679,6 +1679,10 @@ internal static class CreditoOperacionEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
+                    var edgeError = ProblemResults.IfInvalid(CreditoProductoValidacion.ValidarObservacion(body.Observacion));
+                    if (edgeError is not null)
+                        return edgeError;
+
                     var idError = CajaCreditoWriteGuards.ValidateBodyCreditoIds(body.OficinaId, body.CreditoId);
                     if (idError is not null)
                         return idError;
@@ -1748,6 +1752,10 @@ internal static class CreditoOperacionEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
+                    var edgeError = ProblemResults.IfInvalid(CreditoProductoValidacion.ValidarGuardarCargo(body));
+                    if (edgeError is not null)
+                        return edgeError;
+
                     var idError = CajaCreditoWriteGuards.ValidateBodyCreditoIds(body.OficinaId, body.CreditoId);
                     if (idError is not null)
                         return idError;
@@ -3138,13 +3146,10 @@ internal static class CreditoOperacionEndpoints
                             detail: "listaPlanPagoId es obligatorio.");
                     }
 
-                    if (body.ImporteRecibido <= 0)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inv?lida",
-                            detail: "importeRecibido debe ser > 0.");
-                    }
+                    var moneyError = ProblemResults.IfInvalid(
+                        MoneyRules.RequirePositive(body.ImporteRecibido, "importeRecibido"));
+                    if (moneyError is not null)
+                        return moneyError;
 
                     if (body.TipoPagoId < 1)
                     {
@@ -3304,13 +3309,10 @@ internal static class CreditoOperacionEndpoints
                         return idError;
                     }
 
-                    if (body.ImporteRecibido <= 0)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inv?lida",
-                            detail: "importeRecibido debe ser > 0.");
-                    }
+                    var moneyError = ProblemResults.IfInvalid(
+                        MoneyRules.RequirePositive(body.ImporteRecibido, "importeRecibido"));
+                    if (moneyError is not null)
+                        return moneyError;
 
                     if (body.TipoPagoId < 1)
                     {
@@ -3429,13 +3431,10 @@ internal static class CreditoOperacionEndpoints
                         return idError;
                     }
 
-                    if (body.ImporteRecibido <= 0)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inv?lida",
-                            detail: "importeRecibido debe ser > 0.");
-                    }
+                    var moneyError = ProblemResults.IfInvalid(
+                        MoneyRules.RequirePositive(body.ImporteRecibido, "importeRecibido"));
+                    if (moneyError is not null)
+                        return moneyError;
 
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)
@@ -4034,21 +4033,10 @@ internal static class CreditoOperacionEndpoints
                         return idError;
                     }
 
-                    if (body.Importe <= 0)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inv?lida",
-                            detail: "importe debe ser > 0.");
-                    }
-
-                    if (string.IsNullOrWhiteSpace(body.Descripcion))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inv?lida",
-                            detail: "descripcion es obligatoria.");
-                    }
+                    var edgeError = ProblemResults.IfInvalid(
+                        TesoreriaValidacion.ValidarMovimiento(body.Importe, body.Descripcion, "descripcion"));
+                    if (edgeError is not null)
+                        return edgeError;
 
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)
@@ -4857,27 +4845,18 @@ internal static class CreditoOperacionEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (string.IsNullOrWhiteSpace(body.Descripcion))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inv?lida",
-                            detail: "descripcion es obligatoria.");
-                    }
-
                     var idError = CajaCreditoWriteGuards.ValidateBodyCajaIds(body.OficinaId, body.CajaDiarioId);
                     if (idError is not null)
                     {
                         return idError;
                     }
 
-                    if (body.PersonaId < 1 || body.TipoOperacionId < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inv?lida",
-                            detail: "personaId y tipoOperacionId deben ser enteros >= 1.");
-                    }
+                    var edgeError = ProblemResults.IfInvalid(
+                        ValidationGate.First(
+                            IdRules.RequirePositive(body.PersonaId, "personaId"),
+                            IdRules.RequirePositive(body.TipoOperacionId, "tipoOperacionId")));
+                    if (edgeError is not null)
+                        return edgeError;
 
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)
@@ -8068,13 +8047,10 @@ internal static class CreditoOperacionEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (body.OficinaId < 1 || body.Importe <= 0)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inv?lida",
-                            detail: "oficinaId >= 1 e importe > 0 son obligatorios.");
-                    }
+                    var edgeError = ProblemResults.IfInvalid(
+                        TesoreriaValidacion.ValidarMovimientoOficina(body.OficinaId, body.Importe, body.Descripcion));
+                    if (edgeError is not null)
+                        return edgeError;
 
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)

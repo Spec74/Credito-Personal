@@ -36,6 +36,12 @@ import {
 import { ApiError } from '../../api/errors'
 import { CredixCrudPage, CredixDataTable } from '../../components/credix'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
+import {
+  FIELD_MAX,
+  denominacionRules,
+  moneyRequired,
+  nonNegativeNumber,
+} from '../../validation/formRules'
 
 const { Paragraph, Text, Title } = Typography
 
@@ -349,20 +355,20 @@ export function ArticulosPage() {
             <Form.Item name="codArticulo" label="Código artículo">
               <Input maxLength={20} />
             </Form.Item>
-            <Form.Item name="denominacion" label="Denominación" rules={[{ required: true }]}>
-              <Input maxLength={200} />
+            <Form.Item name="denominacion" label="Denominación" rules={denominacionRules}>
+              <Input maxLength={FIELD_MAX.denominacion} showCount />
             </Form.Item>
-            <Form.Item name="descripcion" label="Descripción">
-              <Input.TextArea rows={2} maxLength={250} />
+            <Form.Item name="descripcion" label="Descripción" rules={[{ max: FIELD_MAX.glosa }]}>
+              <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
             </Form.Item>
             <Row gutter={12}>
               <Col span={12}>
-                <Form.Item name="monto" label="Precio" rules={[{ required: true }]}>
-                  <InputNumber min={0} precision={2} style={{ width: '100%' }} />
+                <Form.Item name="monto" label="Precio" rules={moneyRequired('Precio mayor a cero')}>
+                  <InputNumber min={0.01} precision={2} style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item name="descuento" label="Descuento">
+                <Form.Item name="descuento" label="Descuento" rules={[nonNegativeNumber()]}>
                   <InputNumber min={0} precision={2} style={{ width: '100%' }} />
                 </Form.Item>
               </Col>
