@@ -1,5 +1,6 @@
 import { Link, useSearchParams } from 'react-router-dom'
-import { useMemo } from 'react'
+import { Suspense, lazy, useMemo } from 'react'
+import { Skeleton } from 'antd'
 import { branding } from '../config/branding'
 import { CredixHubGrid, CredixPage } from '../components/credix'
 import { useAuth } from '../auth/useAuth'
@@ -9,9 +10,19 @@ import {
   debeMostrarDashboardAdmin,
   debeMostrarDashboardAnalista,
 } from '../utils/creditoOperacionPermisos'
-import { AdminDashboardPage } from './dashboard/AdminDashboardPage'
-import { AnalystDashboardPage } from './dashboard/AnalystDashboardPage'
 import '../styles/dashboard-analista.css'
+
+/** Tableros en chunks propios: no bloquean el parse del hub ni entre sí. */
+const AdminDashboardPage = lazy(() =>
+  import('./dashboard/AdminDashboardPage').then((m) => ({
+    default: m.AdminDashboardPage,
+  })),
+)
+const AnalystDashboardPage = lazy(() =>
+  import('./dashboard/AnalystDashboardPage').then((m) => ({
+    default: m.AnalystDashboardPage,
+  })),
+)
 
 const SECTIONS = [
   {
@@ -43,6 +54,38 @@ const SECTIONS = [
   },
 ]
 
+/** Cabecera estática del LCP — no depende del API (el subtítulo es copy fijo). */
+function DashboardBootFallback({
+  kicker,
+  title,
+  subtitle,
+}: {
+  kicker: string
+  title: string
+  subtitle: string
+}) {
+  return (
+    <CredixPage title="Inicio" subtitle="Cargando indicadores…">
+      <div className="dash-analista">
+        <header className="dash-head">
+          <div>
+            <p className="dash-kicker">{kicker}</p>
+            <h2 className="dash-hello">{title}</h2>
+            <p className="dash-sub">{subtitle}</p>
+          </div>
+        </header>
+        <Skeleton active paragraph={{ rows: 8 }} />
+      </div>
+    </CredixPage>
+  )
+}
+
+const ADMIN_LCP_SUB =
+  'Vista completa de la oficina: operación del día, acumulado del mes, flujo de caja, tendencia y rendimiento por analista.'
+
+const ANALISTA_LCP_SUB =
+  'Indicadores de tus créditos en esta oficina — paridad del dashboard legado, con seguimiento y acciones priorizadas.'
+
 export function HomePage() {
   const { session } = useAuth()
   const [params] = useSearchParams()
@@ -50,10 +93,34 @@ export function HomePage() {
 
   const vista = params.get('vista')
   if (debeMostrarDashboardAnalista(roles, vista)) {
-    return <AnalystDashboardPage />
+    return (
+      <Suspense
+        fallback={
+          <DashboardBootFallback
+            kicker="Tablero del gestor"
+            title="Cargando…"
+            subtitle={ANALISTA_LCP_SUB}
+          />
+        }
+      >
+        <AnalystDashboardPage />
+      </Suspense>
+    )
   }
   if (debeMostrarDashboardAdmin(roles, vista)) {
-    return <AdminDashboardPage />
+    return (
+      <Suspense
+        fallback={
+          <DashboardBootFallback
+            kicker="Tablero gerencial"
+            title="Cargando…"
+            subtitle={ADMIN_LCP_SUB}
+          />
+        }
+      >
+        <AdminDashboardPage />
+      </Suspense>
+    )
   }
 
   return <HomeHubPage roles={roles} />

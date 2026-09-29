@@ -47,11 +47,13 @@ export function AdminDashboardPage() {
     retry: 1,
   })
 
+  // Detalle (gráficos/cartera) después del shell: el LCP es copy estático del header
+  // y no debe competir con 20 KiB de JSON + charts en el primer paint.
   const detalleQuery = useQuery({
     queryKey: ['dashboard-admin-detalle', oficinaKey],
     queryFn: fetchDashboardAdminDetalle,
     ...queryOpts,
-    enabled,
+    enabled: enabled && !!shellQuery.data,
     retry: 1,
   })
 
@@ -297,9 +299,22 @@ export function AdminDashboardPage() {
   }
 
   if (shellQuery.isLoading && !shell) {
+    // Pinta el LCP (dash-sub) sin esperar al API — el texto no depende de datos.
     return (
       <CredixPage title="Inicio" subtitle="Cargando indicadores del día…">
-        <Skeleton active paragraph={{ rows: 8 }} />
+        <div className="dash-analista dash-admin">
+          <header className="dash-head">
+            <div>
+              <p className="dash-kicker">Tablero gerencial</p>
+              <h2 className="dash-hello">Cargando…</h2>
+              <p className="dash-sub">
+                Vista completa de la oficina: operación del día, acumulado del mes, flujo de caja,
+                tendencia y rendimiento por analista.
+              </p>
+            </div>
+          </header>
+          <Skeleton active paragraph={{ rows: 8 }} />
+        </div>
       </CredixPage>
     )
   }

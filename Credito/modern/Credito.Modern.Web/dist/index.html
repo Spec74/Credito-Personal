@@ -18,20 +18,47 @@
       rel="dns-prefetch"
       href="https://crediconfiable-api-g3h7fja3dydsbbb7.centralus-01.azurewebsites.net"
     />
-    <script type="module" crossorigin src="/app/assets/index-Bsd_MyGD.js"></script>
+    <script type="module" crossorigin src="/app/assets/index-DXq4c1-v.js"></script>
     <link rel="modulepreload" crossorigin href="/app/assets/rolldown-runtime-D2aABDIb.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/vendor-antd-icons-BnKQfWty.js">
     <link rel="modulepreload" crossorigin href="/app/assets/vendor-dayjs-CdJIgOJf.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/vendor-rc-BFl07Yn_.js">
     <link rel="modulepreload" crossorigin href="/app/assets/vendor-react-CohA5Gn-.js">
     <link rel="modulepreload" crossorigin href="/app/assets/vendor-query-90PwZl72.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/vendor-antd-f9kw94uU.js">
     <link rel="modulepreload" crossorigin href="/app/assets/client-DtGqRrDn.js">
     <link rel="modulepreload" crossorigin href="/app/assets/normalize-hvzwjrv-.js">
-    <link rel="modulepreload" crossorigin href="/app/assets/Credito.Modern.Web-3zZzl25M.js">
+    <link rel="modulepreload" crossorigin href="/app/assets/Credito.Modern.Web-QgFfmfzq.js">
     <link rel="stylesheet" crossorigin href="/app/assets/Credito.Modern-rkf9Dl75.css">
   <link rel="manifest" href="/app/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/app/registerSW.js" defer></script></head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Primer paint inmediato (FCP) mientras carga el bundle; React lo reemplaza. -->
+      <div class="credix-boot" aria-busy="true" aria-label="Cargando aplicación">
+        <div class="credix-boot__bar" aria-hidden="true"></div>
+      </div>
+    </div>
+    <style>
+      .credix-boot {
+        min-height: 100vh;
+        margin: 0;
+        background: #f0f2f5;
+      }
+      .credix-boot__bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #1e4d7b, #2e69ae, #1e4d7b);
+        background-size: 200% 100%;
+        animation: credix-boot-slide 1.1s linear infinite;
+      }
+      @keyframes credix-boot-slide {
+        0% {
+          background-position: 100% 0;
+        }
+        100% {
+          background-position: -100% 0;
+        }
+      }
+    </style>
   </body>
 </html>

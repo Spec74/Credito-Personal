@@ -53,9 +53,22 @@ export function AnalystDashboardPage() {
   )
 
   if (query.isLoading) {
+    // Pinta el LCP (dash-sub) sin esperar al API — el subtítulo es copy fijo.
     return (
       <CredixPage title="Inicio" subtitle="Cargando tus indicadores…">
-        <Skeleton active paragraph={{ rows: 10 }} />
+        <div className="dash-analista">
+          <header className="dash-head">
+            <div>
+              <p className="dash-kicker">Tablero del gestor</p>
+              <h2 className="dash-hello">Cargando…</h2>
+              <p className="dash-sub">
+                Indicadores de tus créditos en esta oficina — paridad del dashboard legado, con
+                seguimiento y acciones priorizadas.
+              </p>
+            </div>
+          </header>
+          <Skeleton active paragraph={{ rows: 10 }} />
+        </div>
       </CredixPage>
     )
   }

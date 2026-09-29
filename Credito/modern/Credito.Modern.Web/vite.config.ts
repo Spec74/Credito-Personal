@@ -12,8 +12,18 @@ export default defineConfig(({ mode }) => {
   const apiProxyTarget =
     env.VITE_API_PROXY_TARGET?.trim() || 'http://localhost:9080'
 
+  // Chunks pesados del design system: se cargan bajo demanda vía import del entry,
+  // pero NO se modulepreload en el HTML (evitan saturar el ancho de banda móvil
+  // antes del FCP/LCP de /inicio). React/query sí se precargan.
+  const HEAVY_VENDOR_PRELOAD =
+    /(?:^|\/)vendor-(?:antd|antd-icons|rc)-[^/]+\.js$/
+
   return {
     base,
+    // Tree-shake / prebundle antd en desarrollo (no altera el grafo de prod).
+    optimizeDeps: {
+      include: ['antd', '@ant-design/icons', 'dayjs'],
+    },
     plugins: [
       react(),
       VitePWA({
@@ -55,6 +65,15 @@ export default defineConfig(({ mode }) => {
       })
     ],
     build: {
+      // Prioriza runtime (react/query) en el HTML; antd/rc entran por cascade del entry.
+      modulePreload: {
+        resolveDependencies: (_filename, deps, { hostType }) => {
+          if (hostType !== 'html') {
+            return deps
+          }
+          return deps.filter((dep) => !HEAVY_VENDOR_PRELOAD.test(dep))
+        },
+      },
       // Vite 8 / Rolldown: codeSplitting.groups (manualChunks está deprecado).
       // Rutas de app ya son lazy; aquí se paraleliza el vendor del design system.
       rolldownOptions: {
