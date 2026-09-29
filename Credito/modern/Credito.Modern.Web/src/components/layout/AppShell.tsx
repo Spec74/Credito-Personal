@@ -366,7 +366,7 @@ export function AppShell() {
           <Button
             type="text"
             icon={<LogoutOutlined />}
-            aria-label="Cerrar sesión"
+            aria-label="Salir"
             onClick={() => {
               logout()
               navigate('/login')

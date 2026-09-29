@@ -12,7 +12,8 @@
   --credix-surface: #ffffff;
   --credix-border: #e5e7eb;
   --credix-text: #1f2937;
-  --credix-text-muted: #6b7280;
+  /* ≥4.5:1 sobre --credix-bg (#f0f2f5) — WCAG AA (Lighthouse color-contrast) */
+  --credix-text-muted: #595f6b;
   --credix-success: #15803d;
   --credix-success-bg: #f0fdf4;
   --credix-warning: #c47a00;

@@ -1,0 +1,22 @@
+# CREDIX — Inversiones CrediConfiable
+
+> Sistema comercial de ventas y crédito para gestión de cartera, caja, bóveda e informes.
+
+CREDIX es una aplicación web interna (SPA) de Inversiones CrediConfiable.
+No es un sitio público de contenido; el acceso requiere autenticación.
+
+## Producto
+
+- Nombre: CREDIX
+- Empresa: Inversiones CrediConfiable
+- Descripción: Sistema comercial de ventas y crédito
+
+## Enlaces
+
+- [Inicio de sesión](/login): Acceso autenticado a la aplicación
+- [Manifest PWA](/manifest.webmanifest): Metadatos de instalación
+
+## Notas para agentes
+
+- No indexar ni entrenar con datos de clientes, créditos o operaciones.
+- Las rutas bajo autenticación no deben rastrearse.

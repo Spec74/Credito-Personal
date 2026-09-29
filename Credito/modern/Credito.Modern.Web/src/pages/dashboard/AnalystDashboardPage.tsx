@@ -282,6 +282,7 @@ export function AnalystDashboardPage() {
                 strokeColor="#114885"
                 trailColor="#e8f2fc"
                 size="small"
+                aria-label={`Avance vs cobranza de ayer: ${progresoHoy}%`}
               />
             </div>
             <CobranzaAreaChart puntos={data.productividad} />
@@ -334,7 +335,7 @@ export function AnalystDashboardPage() {
                     <h3>{insight.titulo}</h3>
                     <p>{insight.mensaje}</p>
                     {insight.accion ? (
-                      <Link to={insight.accion}>Ir a la gestión →</Link>
+                      <Link to={insight.accion}>{labelForInsightAccion(insight.accion, insight.titulo)}</Link>
                     ) : insight.titulo === 'Cartera en mora' ? (
                       <button
                         type="button"
@@ -537,4 +538,17 @@ function errMsg(error: unknown) {
   if (error instanceof ApiError) return error.message
   if (error instanceof Error) return error.message
   return 'Error desconocido'
+}
+
+/** Unique visible link text per destination (Lighthouse identical-links-same-purpose). */
+function labelForInsightAccion(accion: string, titulo: string): string {
+  const path = accion.split('?')[0].replace(/\/+$/, '')
+  if (path.includes('morosidad')) return 'Ir a morosidad →'
+  if (path.includes('cobro-diario')) return 'Ir a cobro diario →'
+  if (path.includes('simulador')) return 'Ir al simulador →'
+  if (path.includes('cobranza') || path.includes('cobro')) return 'Ir a cobranza →'
+  if (path.includes('credito')) return 'Ir a créditos →'
+  if (path.includes('informe')) return 'Ir a informes →'
+  const short = titulo.trim()
+  return short ? `Ir a ${short.toLowerCase()} →` : 'Ver detalle →'
 }

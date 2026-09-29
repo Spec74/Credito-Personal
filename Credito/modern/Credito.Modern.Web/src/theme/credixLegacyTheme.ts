@@ -22,7 +22,7 @@ export const credixLegacyTheme: ThemeConfig = {
     colorBorder: '#e5e7eb',
     colorBorderSecondary: '#eef2f7',
     colorText: '#1f2937',
-    colorTextSecondary: '#6b7280',
+    colorTextSecondary: '#595f6b',
     colorTextTertiary: '#9ca3af',
     colorFillAlter: '#f8fafc',
     colorFillSecondary: '#f1f5f9',
@@ -157,7 +157,7 @@ export const credixLegacyTheme: ThemeConfig = {
       colorPrimary: '#114885',
     },
     Tabs: {
-      itemColor: '#6b7280',
+      itemColor: '#595f6b',
       itemSelectedColor: '#114885',
       itemHoverColor: '#114885',
       inkBarColor: '#114885',
@@ -195,7 +195,7 @@ export const credixLegacyTheme: ThemeConfig = {
       borderRadiusLG: 10,
     },
     Empty: {
-      colorTextDescription: '#6b7280',
+      colorTextDescription: '#595f6b',
     },
     Spin: {
       colorPrimary: '#114885',
@@ -209,9 +209,9 @@ export const credixLegacyTheme: ThemeConfig = {
     },
     Breadcrumb: {
       fontSize: 13,
-      itemColor: '#6b7280',
+      itemColor: '#595f6b',
       lastItemColor: '#114885',
-      linkColor: '#6b7280',
+      linkColor: '#595f6b',
       linkHoverColor: '#114885',
       separatorColor: '#9ca3af',
     },
