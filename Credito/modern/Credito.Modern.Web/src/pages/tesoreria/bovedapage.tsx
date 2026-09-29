@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { Suspense, lazy, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -23,22 +23,37 @@ import {
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { getLoginProfile } from '../../auth/sessionProfile'
-import { BovedaOperacionesPanel } from './bovedaoperacionespanel'
 import { BovedaEstadoDineroPanel } from './components/BovedaEstadoDineroPanel'
-import { BovedaHistorialGrillas } from './components/BovedaHistorialGrillas'
 import { BovedaResumenCuenta } from './components/BovedaResumenCuenta'
 import { BovedaSaldosGrid } from './components/BovedaSaldosGrid'
 import { CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
+import { useSecondaryDataReady } from '../../hooks/useSecondaryDataReady'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
-import '../../styles/boveda-module.css';
+import '../../styles/boveda-module.css'
 
 const { Text } = Typography
+
+/** Paneles pesados (Tabs/Forms + grillas): fuera del path crítico de LCP. */
+const BovedaOperacionesPanel = lazy(() =>
+  import('./bovedaoperacionespanel').then((m) => ({
+    default: m.BovedaOperacionesPanel,
+  })),
+)
+const BovedaHistorialGrillas = lazy(() =>
+  import('./components/BovedaHistorialGrillas').then((m) => ({
+    default: m.BovedaHistorialGrillas,
+  })),
+)
+
+const BOVEDA_SUBTITLE =
+  'Estado de dinero, operaciones y historial — paridad con Boveda/Index del MVC.'
 
 export function BovedaPage() {
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
   const oficinaLabel = getLoginProfile().oficinaLabel ?? `Oficina ${oficinaId}`
+  const secondaryReady = useSecondaryDataReady(oficinaId > 0)
 
   const boveda = useQuery({
     queryKey: ['boveda-abierta', oficinaId],
@@ -47,16 +62,18 @@ export function BovedaPage() {
     retry: false,
   })
 
-  const temporal = useQuery({
-    queryKey: ['existe-boveda-temporal', oficinaId],
-    queryFn: () => fetchExisteBovedaTemporal(oficinaId),
-    enabled: oficinaId > 0,
-  })
-
+  /** KPI “Total fondo”: crítico para el shell de stats (evita CLS). */
   const estadoDinero = useQuery({
     queryKey: ['boveda-estado-dinero', oficinaId],
     queryFn: () => fetchBovedaEstadoDinero(oficinaId),
     enabled: oficinaId > 0,
+  })
+
+  /** Alertas / paneles: no bloquean el primer paint. */
+  const temporal = useQuery({
+    queryKey: ['existe-boveda-temporal', oficinaId],
+    queryFn: () => fetchExisteBovedaTemporal(oficinaId),
+    enabled: oficinaId > 0 && secondaryReady,
   })
 
   const bovedaId = boveda.data?.bovedaId
@@ -64,7 +81,7 @@ export function BovedaPage() {
   const resumen = useQuery({
     queryKey: ['resumen-cuenta-boveda', bovedaId],
     queryFn: () => fetchResumenCuentaBoveda(bovedaId!),
-    enabled: !!bovedaId,
+    enabled: !!bovedaId && secondaryReady,
   })
 
   const sinBoveda =
@@ -72,22 +89,35 @@ export function BovedaPage() {
     boveda.error instanceof ApiError &&
     boveda.error.status === 404
 
+  /**
+   * Siempre 4 celdas con la misma geometría → evita CLS al pasar de
+   * “cargando (3)” a “datos + Total fondo (4)”.
+   */
   const stats = useMemo((): CredixStatItem[] => {
     if (boveda.isLoading) {
       return [
-        { value: oficinaId, label: 'Oficina' },
         { value: '…', label: 'Bóveda' },
+        { value: '…', label: 'Saldo' },
         { value: 'Cargando', label: 'Estado' },
+        { value: '…', label: 'Total fondo' },
       ]
     }
     if (sinBoveda) {
       return [
-        { value: oficinaId, label: 'Oficina' },
         { value: '—', label: 'Bóveda' },
+        { value: '—', label: 'Saldo' },
         { value: 'Sin bóveda abierta', label: 'Estado', tone: 'red' },
+        { value: formatMoney(estadoDinero.data?.totalFondo ?? 0), label: 'Total fondo' },
       ]
     }
-    if (!boveda.data) return []
+    if (!boveda.data) {
+      return [
+        { value: '—', label: 'Bóveda' },
+        { value: '—', label: 'Saldo' },
+        { value: '—', label: 'Estado' },
+        { value: '—', label: 'Total fondo' },
+      ]
+    }
     const abierta = !boveda.data.indCierre
     return [
       { value: boveda.data.bovedaId, label: 'Bóveda' },
@@ -97,14 +127,25 @@ export function BovedaPage() {
         label: 'Estado',
         tone: abierta ? 'green' : 'default',
       },
-      { value: formatMoney(estadoDinero.data?.totalFondo ?? 0), label: 'Total fondo' },
+      {
+        value: estadoDinero.isLoading
+          ? '…'
+          : formatMoney(estadoDinero.data?.totalFondo ?? 0),
+        label: 'Total fondo',
+      },
     ]
-  }, [boveda.data, boveda.isLoading, sinBoveda, oficinaId, estadoDinero.data?.totalFondo])
+  }, [
+    boveda.data,
+    boveda.isLoading,
+    sinBoveda,
+    estadoDinero.data?.totalFondo,
+    estadoDinero.isLoading,
+  ])
 
   const refrescar = () => {
     void boveda.refetch()
-    void temporal.refetch()
     void estadoDinero.refetch()
+    void temporal.refetch()
     if (bovedaId) void resumen.refetch()
   }
 
@@ -112,7 +153,7 @@ export function BovedaPage() {
     <CredixPage
       className="boveda-page"
       title="Bóveda de oficina"
-      subtitle="Estado de dinero, operaciones y historial — paridad con Boveda/Index del MVC."
+      subtitle={BOVEDA_SUBTITLE}
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -208,11 +249,13 @@ export function BovedaPage() {
           {!boveda.data.indCierre ? (
             <CredixPanel title="Operaciones">
               <div className="boveda-operaciones-panel">
-                <BovedaOperacionesPanel
-                  oficinaId={oficinaId}
-                  boveda={boveda.data}
-                  existeTemporal={temporal.data?.existe ?? false}
-                />
+                <Suspense fallback={<Spin />}>
+                  <BovedaOperacionesPanel
+                    oficinaId={oficinaId}
+                    boveda={boveda.data}
+                    existeTemporal={temporal.data?.existe ?? false}
+                  />
+                </Suspense>
               </div>
             </CredixPanel>
           ) : (
@@ -225,10 +268,12 @@ export function BovedaPage() {
           )}
 
           <CredixPanel title="Historial y movimientos">
-            <BovedaHistorialGrillas
-              oficinaId={oficinaId}
-              bovedaAbiertaId={boveda.data.bovedaId}
-            />
+            <Suspense fallback={<Spin />}>
+              <BovedaHistorialGrillas
+                oficinaId={oficinaId}
+                bovedaAbiertaId={boveda.data.bovedaId}
+              />
+            </Suspense>
           </CredixPanel>
         </>
       ) : null}

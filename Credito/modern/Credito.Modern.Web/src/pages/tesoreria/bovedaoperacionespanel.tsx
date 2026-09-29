@@ -36,6 +36,7 @@ import { fetchTipoOperaciones } from '../../api/cajaDiario'
 import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { useSecondaryDataReady } from '../../hooks/useSecondaryDataReady'
 import type { TipoOperacionListItem } from '../../types/api'
 import { FIELD_MAX, glosaRules, moneyRequired } from '../../validation/formRules'
 
@@ -72,9 +73,11 @@ type Props = {
 export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Props) {
   const queryClient = useQueryClient()
   const [usuarioTerm, setUsuarioTerm] = useState('')
+  const [activeTab, setActiveTab] = useState('ingreso')
   const bovedaId = boveda.bovedaId
   const operacionesDeshabilitadas = boveda.indCierre || oficinaId < 1
   const usuarioTermDebounced = useDebouncedValue(usuarioTerm.trim(), 350)
+  const secondaryReady = useSecondaryDataReady(oficinaId >= 1)
 
   const onOk = (msg: string) => {
     message.success(msg)
@@ -83,17 +86,19 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
 
   const oficinaOk = oficinaId >= 1
 
+  /** Catálogo del tab por defecto: tras paint para no competir con LCP del shell. */
   const tiposQuery = useQuery({
     queryKey: ['tipo-operaciones'],
     queryFn: fetchTipoOperaciones,
-    enabled: oficinaOk,
+    enabled: oficinaOk && secondaryReady,
+    staleTime: 5 * 60_000,
   })
   const tiposBoveda = (tiposQuery.data ?? []).filter((t) => t.indBoveda)
 
   const tiposPagoQuery = useQuery({
     queryKey: ['valores-tabla', 13],
     queryFn: () => fetchValoresTabla(13),
-    enabled: oficinaOk,
+    enabled: oficinaOk && secondaryReady,
     staleTime: 5 * 60_000,
   })
   const tipoPagoOptions = useMemo(
@@ -105,41 +110,52 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     [tiposPagoQuery.data],
   )
 
+  const needsCajas =
+    activeTab === 'caja' || activeTab === 'analista' || activeTab === 'chica'
+  const needsDestinos = activeTab === 'interoficina'
+  const needsPendientes = activeTab === 'aceptar'
+  const needsCierre = activeTab === 'cierre'
+
   const cajasQuery = useQuery({
     queryKey: ['cajas-transferencia-boveda', oficinaId],
     queryFn: () => fetchCajasAbiertasTransferenciaBoveda(oficinaId),
-    enabled: oficinaOk,
+    enabled: oficinaOk && needsCajas,
   })
 
   const bovedasDestinoQuery = useQuery({
     queryKey: ['bovedas-destino-transferencia', oficinaId],
     queryFn: () => fetchBovedasDestinoTransferencia(oficinaId),
-    enabled: oficinaOk,
+    enabled: oficinaOk && needsDestinos,
   })
 
   const transferenciasPendientesQuery = useQuery({
     queryKey: ['boveda-transferencias-pendientes', bovedaId],
     queryFn: () => fetchBovedaTransferenciasPendientes(bovedaId),
-    enabled: oficinaOk && bovedaId > 0,
+    enabled: oficinaOk && bovedaId > 0 && needsPendientes,
     staleTime: 15_000,
   })
 
   const usuariosQuery = useQuery({
     queryKey: ['buscar-usuarios-boveda-temporal', usuarioTermDebounced],
     queryFn: () => buscarUsuariosBoveda(usuarioTermDebounced),
-    enabled: oficinaOk && !existeTemporal && usuarioTermDebounced.length >= 2,
+    enabled:
+      oficinaOk &&
+      activeTab === 'temporal' &&
+      !existeTemporal &&
+      usuarioTermDebounced.length >= 2,
   })
 
   const validacionCierre = useQuery({
     queryKey: ['validar-cierre-saldos', oficinaId],
     queryFn: () => fetchValidarCierreSaldos(oficinaId),
-    enabled: oficinaOk,
+    enabled: oficinaOk && needsCierre,
   })
   const cierrePrincipalBloqueado =
     boveda.indTemporal ||
-    validacionCierre.isLoading ||
-    validacionCierre.isError ||
-    validacionCierre.data?.puedeCerrar === false
+    (needsCierre &&
+      (validacionCierre.isLoading ||
+        validacionCierre.isError ||
+        validacionCierre.data?.puedeCerrar === false))
 
   const ingresoEgreso = useMutation({
     mutationFn: ingresoEgresoBoveda,
@@ -775,6 +791,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       <Tabs
         className="boveda-operaciones-tabs credix-tabs"
         type="card"
+        activeKey={activeTab}
+        onChange={setActiveTab}
         destroyInactiveTabPane={false}
         items={tabItems}
       />

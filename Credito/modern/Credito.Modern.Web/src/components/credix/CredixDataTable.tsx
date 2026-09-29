@@ -395,6 +395,11 @@ function CredixMobileCardList<T extends object>({
                   <Checkbox
                     checked={checked}
                     disabled={Boolean(checkboxProps.disabled)}
+                    aria-label={
+                      checked
+                        ? `Quitar selección de la fila ${String(key)}`
+                        : `Seleccionar fila ${String(key)}`
+                    }
                     onClick={(e) => e.stopPropagation()}
                     onChange={(e) => toggleKey(key, e.target.checked)}
                   />

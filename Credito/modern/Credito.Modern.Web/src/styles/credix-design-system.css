@@ -594,9 +594,10 @@ body.credix-app-body {
 }
 
 .credix-page-subtitle {
-  margin-top: 4px !important;
-  font-size: 14px !important;
-  color: var(--credix-text-muted) !important;
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--credix-text-muted);
   max-width: 72ch;
 }
 

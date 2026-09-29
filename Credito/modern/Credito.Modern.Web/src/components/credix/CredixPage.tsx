@@ -1,9 +1,7 @@
 import type { ReactNode } from 'react'
-import { Breadcrumb, Space, Typography } from 'antd'
+import { Breadcrumb, Space } from 'antd'
 import type { BreadcrumbProps } from 'antd'
 import { CredixStatsBar, type CredixStatItem } from './CredixStatsBar'
-
-const { Paragraph } = Typography
 
 export function CredixPage({
   title,
@@ -34,11 +32,8 @@ export function CredixPage({
       <div className="credix-page-head">
         <div className="credix-page-head-text">
           <h1 className="credix-page-title">{title}</h1>
-          {subtitle ? (
-            <Paragraph type="secondary" className="credix-page-subtitle">
-              {subtitle}
-            </Paragraph>
-          ) : null}
+          {/* Nativo: evita que el LCP espere Typography de antd (elementRenderDelay). */}
+          {subtitle ? <p className="credix-page-subtitle">{subtitle}</p> : null}
         </div>
         {actions ? <Space wrap className="credix-page-actions">{actions}</Space> : null}
       </div>

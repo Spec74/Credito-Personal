@@ -12,6 +12,7 @@ import {
 } from '../../../api/boveda'
 import { fetchSaldosCajaDiarioBoveda, type SaldoCajaSesionRow } from '../../../api/saldosCaja'
 import { CredixDataTable } from '../../../components/credix'
+import { useSecondaryDataReady } from '../../../hooks/useSecondaryDataReady'
 import { formatFecha } from '../../../utils/formatFecha'
 import { formatMoney } from '../../../utils/formatMoney'
 import type { RptMovimientoBovedaRow } from '../../../api/boveda'
@@ -27,11 +28,12 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
   const [page, setPage] = useState(1)
   const [cajasPage, setCajasPage] = useState(1)
   const [selectedId, setSelectedId] = useState<number | undefined>(bovedaAbiertaId)
+  const secondaryReady = useSecondaryDataReady(oficinaId > 0)
 
   const historial = useQuery({
     queryKey: ['boveda-listar', oficinaId, page],
     queryFn: () => listarBovedasHistorial(oficinaId, page, 5),
-    enabled: oficinaId > 0,
+    enabled: oficinaId > 0 && secondaryReady,
   })
 
   const bovedaId = selectedId ?? historial.data?.rows[0]?.bovedaId
@@ -39,7 +41,7 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
   const movimientos = useQuery({
     queryKey: ['rpt-movimiento-boveda', bovedaId],
     queryFn: () => fetchRptMovimientoBoveda(bovedaId!),
-    enabled: !!bovedaId,
+    enabled: !!bovedaId && secondaryReady,
   })
 
   const cajas = useQuery({
@@ -49,7 +51,7 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
         page: cajasPage,
         pageSize: CAJAS_PAGE_SIZE,
       }),
-    enabled: oficinaId > 0 && !!bovedaId,
+    enabled: oficinaId > 0 && !!bovedaId && secondaryReady,
     placeholderData: keepPreviousData,
   })
 

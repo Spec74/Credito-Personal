@@ -2,6 +2,17 @@
  * Bóveda — paridad Boveda/Index con diseño Credix.
  */
 
+/* Reserva altura del KPI (4 celdas en móvil) para no desplazar el body al hidratar datos. */
+.boveda-page ul.credix-stats {
+  min-height: 320px;
+}
+
+@media (min-width: 640px) {
+  .boveda-page ul.credix-stats {
+    min-height: 96px;
+  }
+}
+
 .boveda-page .credix-page-body {
   display: flex;
   flex-direction: column;
