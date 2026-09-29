@@ -19,6 +19,7 @@ import {
 } from '../../components/credix'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { ClientesTableEmpty } from './components/ClientesTableEmpty'
+import '../../styles/clientes-module.css';
 
 const { Text } = Typography
 

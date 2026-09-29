@@ -36,6 +36,7 @@ import { filterTableRows } from '../../utils/tableClientFilter'
 import { formatMoney } from '../../utils/formatMoney'
 import { CajaListToolbar } from './components/CajaListToolbar'
 import { VerificarPagosTableEmpty } from './components/VerificarPagosTableEmpty'
+import '../../styles/caja-verificar-pagos-module.css';
 
 const { Paragraph } = Typography
 

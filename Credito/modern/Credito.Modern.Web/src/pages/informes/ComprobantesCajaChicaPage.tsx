@@ -11,6 +11,7 @@ import {
 } from '../../api/creditoPlanes'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../components/credix'
+import '../../styles/comprobantes-caja-chica-module.css';
 
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'

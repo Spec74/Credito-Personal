@@ -34,6 +34,7 @@ import {
 } from '../../utils/creditoOperacionPermisos'
 import { AprobarSearchToolbar } from './components/AprobarSearchToolbar'
 import { AprobarTableEmpty } from './components/AprobarTableEmpty'
+import '../../styles/credito-aprobacion-module.css';
 
 const PAGE_SIZES = ['15', '30', '45'] as const
 

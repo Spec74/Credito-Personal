@@ -73,6 +73,7 @@ import {
   TABLA_RIESGO_SBS,
   TABLA_TIPO_VIVIENDA,
 } from './clienteMantenerConstants'
+import '../../styles/cliente-form.css';
 
 const { Text } = Typography
 

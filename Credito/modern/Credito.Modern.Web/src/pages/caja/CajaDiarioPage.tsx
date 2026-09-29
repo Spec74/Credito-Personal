@@ -36,6 +36,8 @@ import {
   resolveCajaDiarioTab,
   type CajaDiarioTabKey,
 } from './cajaDiario/types'
+import '../../styles/caja-diario.css';
+import '../../styles/caja-list-toolbar.css';
 
 export type { CajaSession } from './cajaDiario/types'
 

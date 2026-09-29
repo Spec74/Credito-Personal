@@ -19,6 +19,7 @@ import { CredixDataTable, CredixInformePage } from '../../components/credix'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import '../../styles/boveda-module.css';
 
 type FormValues = { bovedaId: number }
 

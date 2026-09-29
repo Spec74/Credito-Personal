@@ -17,20 +17,7 @@ import './styles/credix-module-layout.css'
 import './styles/credix-list-toolbar.css'
 import './styles/credix-crud-toolbar.css'
 import './styles/credix-responsive-global.css'
-import './styles/caja-diario.css'
-import './styles/caja-list-toolbar.css'
-import './styles/caja-saldos-module.css'
-import './styles/caja-verificar-pagos-module.css'
-import './styles/caja-chica-module.css'
-import './styles/caja-maestro-module.css'
-import './styles/comprobantes-caja-chica-module.css'
-import './styles/credito-consulta.css'
-import './styles/credito-tareas.css'
-import './styles/credito-aprobacion-module.css'
-import './styles/clientes-module.css'
-import './styles/cliente-form.css'
-import './styles/boveda-module.css'
-import './styles/cierre-gerencial.css'
+// CSS de módulos se importa en la página lazy correspondiente (menos CSS en /inicio).
 
 dayjs.locale('es')
 

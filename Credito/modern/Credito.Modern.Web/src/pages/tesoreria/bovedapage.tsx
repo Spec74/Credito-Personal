@@ -31,6 +31,7 @@ import { BovedaSaldosGrid } from './components/BovedaSaldosGrid'
 import { CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import '../../styles/boveda-module.css';
 
 const { Text } = Typography
 

@@ -50,6 +50,7 @@ import {
   CredixPanel,
   type CredixStatItem,
 } from '../../components/credix'
+import '../../styles/credito-consulta.css';
 
 function DescuentoCuotaEditor({
   planPagoId,

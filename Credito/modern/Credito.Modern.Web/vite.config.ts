@@ -18,6 +18,8 @@ export default defineConfig(({ mode }) => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
+        // Evita que registerSW.js bloquee el primer paint (Lighthouse render-blocking).
+        injectRegister: 'script-defer',
         includeAssets: ['favicon.ico', 'favicon-32.png', 'apple-touch-icon.png'],
         manifest: {
           name: 'CrediConfiable',

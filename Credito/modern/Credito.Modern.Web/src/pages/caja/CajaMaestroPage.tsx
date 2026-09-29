@@ -30,6 +30,7 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { mantenimientoCajasBreadcrumb } from '../../utils/mantenimientoBreadcrumbs'
 import { CajaListToolbar } from './components/CajaListToolbar'
 import { denominacionRules, FIELD_MAX } from '../../validation/formRules'
+import '../../styles/caja-maestro-module.css';
 
 const PAGE_SIZES = ['15', '30', '45'] as const
 

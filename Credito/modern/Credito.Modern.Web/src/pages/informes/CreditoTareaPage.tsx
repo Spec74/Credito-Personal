@@ -13,6 +13,7 @@ import { CredixDataTable, CredixInformePage } from '../../components/credix'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import type { CreditoTareaReportParams, RptCreditoTareaRow } from '../../types/api'
+import '../../styles/credito-tareas.css';
 
 const ESTADOS = [
   { value: 'PEN', label: 'Pendiente (default legacy)' },

@@ -70,6 +70,7 @@ import { ResumenCuentaCaja } from './components/resumencuentacaja'
 import { SaldosSesionTable } from './components/saldossesiontable'
 import { SALDOS_ASIGNADAS_SCROLL } from './components/saldosTableLayout'
 import { SaldosTableToolbar } from './components/SaldosTableToolbar'
+import '../../styles/caja-saldos-module.css';
 
 const { Paragraph } = Typography
 

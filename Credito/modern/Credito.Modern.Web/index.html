@@ -8,7 +8,16 @@
     <meta name="theme-color" content="#1e4d7b" />
     <title>CREDIX — Inversiones CrediConfiable</title>
     <meta name="description" content="Sistema comercial de ventas y crédito." />
-    <!-- Menú: iconos Ant Design en la SPA (sin Fugue/FA pixelados) -->
+    <!-- Warm connection to production API (Vercel deploy). Harmless if unused locally. -->
+    <link
+      rel="preconnect"
+      href="https://crediconfiable-api-g3h7fja3dydsbbb7.centralus-01.azurewebsites.net"
+      crossorigin
+    />
+    <link
+      rel="dns-prefetch"
+      href="https://crediconfiable-api-g3h7fja3dydsbbb7.centralus-01.azurewebsites.net"
+    />
   </head>
   <body>
     <div id="root"></div>

@@ -27,6 +27,7 @@ import { formatMoney } from '../../utils/formatMoney'
 import { readUrlDay, readUrlUserId } from '../../utils/informeUrlParams'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { gestorLabelFromId } from '../../utils/gestorInformeForm'
+import '../../styles/credito-aprobacion-module.css';
 
 type FormValues = {
   oficinaId: number

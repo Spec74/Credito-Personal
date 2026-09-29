@@ -44,6 +44,7 @@ import {
   CredixPanel,
 } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
+import '../../styles/cierre-gerencial.css';
 
 type TipoFiltro = '' | 'PRODUCTIVA' | 'ESPECIAL'
 type TabKey = 'avance' | 'metas'

@@ -1,5 +1,6 @@
 import { useParams, useLocation } from 'react-router-dom'
 import { ClienteMantenerForm } from './ClienteMantenerForm'
+import '../../styles/cliente-form.css';
 
 export function ClienteFormPage() {
   const { personaId: personaIdParam } = useParams<{ personaId: string }>()

@@ -64,6 +64,7 @@ import {
   moneyRequired,
   requiredText,
 } from '../../validation/formRules'
+import '../../styles/caja-chica-module.css';
 
 const { Paragraph, Text } = Typography
 
