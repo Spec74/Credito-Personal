@@ -5665,7 +5665,7 @@ internal static class CreditoOperacionEndpoints
                     try
                     {
                         var validacion = await saldosCierre
-                            .ValidarCierreMasivoAsync(body.OficinaId, ct)
+                            .ValidarCierreBovedaAsync(body.OficinaId, ct)
                             .ConfigureAwait(false);
                         if (!validacion.PuedeCerrar)
                         {
@@ -5709,7 +5709,7 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoCerrarBoveda")
-            .WithSummary("Escritura: CREDITO.usp_CerrarBoveda. Paridad BovedaBL.Cerrar.")
+            .WithSummary("Escritura: CREDITO.usp_CerrarBoveda. Paridad BovedaBL.Cerrar + BovedaController.ValidarCierre.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<CajaDiarioOperacionResponse>(StatusCodes.Status200OK, "application/json")
@@ -5727,6 +5727,7 @@ internal static class CreditoOperacionEndpoints
                     HttpContext httpContext,
                     CerrarBovedaRequest body,
                     IBovedaWriteService bovedaWrite,
+                    ISaldosCierreReadService saldosCierre,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -5754,6 +5755,17 @@ internal static class CreditoOperacionEndpoints
                     var log = loggerFactory.CreateLogger("CerrarBovedaTemporal");
                     try
                     {
+                        var validacion = await saldosCierre
+                            .ValidarCierreBovedaAsync(body.OficinaId, ct)
+                            .ConfigureAwait(false);
+                        if (!validacion.PuedeCerrar)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status409Conflict,
+                                title: "Cierre bloqueado",
+                                detail: validacion.Mensaje);
+                        }
+
                         var response = await bovedaWrite
                             .CerrarBovedaTemporalAsync(body.OficinaId, usuarioId, ct)
                             .ConfigureAwait(false);
@@ -5788,13 +5800,14 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoCerrarBovedaTemporal")
-            .WithSummary("Escritura: CREDITO.usp_CerrarBovedaTemporal. Paridad BovedaBL.CerrarBovedaTemporal.")
+            .WithSummary("Escritura: CREDITO.usp_CerrarBovedaTemporal. Paridad BovedaBL.CerrarBovedaTemporal + BovedaController.ValidarCierre.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<CajaDiarioOperacionResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status409Conflict)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 
@@ -6263,6 +6276,79 @@ internal static class CreditoOperacionEndpoints
             .WithName("CreditoValidarCierreSaldos")
             .WithSummary(
                 "Solo lectura: paridad SaldosController.ValidarCierre (previo a cerrar-cajas-diarios / Transferir).")
+            .WithTags("credito")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .Produces<ValidarCierreSaldosResponse>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+        app.MapGet(
+                "/api/v1/credito/validar-cierre-boveda",
+                async Task<Results<Ok<ValidarCierreSaldosResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    int oficinaId,
+                    ISaldosCierreReadService saldosCierre,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (oficinaId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "oficinaId debe ser un entero >= 1.");
+                    }
+
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+                    if (oficinaError is not null)
+                    {
+                        return oficinaError;
+                    }
+
+                    var log = loggerFactory.CreateLogger("ValidarCierreBoveda");
+                    try
+                    {
+                        var response = await saldosCierre
+                            .ValidarCierreBovedaAsync(oficinaId, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(response);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (ArgumentOutOfRangeException ex)
+                    {
+                        log.LogWarning(ex, "Parámetros inválidos");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Parámetros inválidos",
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "Los parámetros enviados no son válidos."
+                                : ex.Message);
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error al validar cierre de bóveda");
+                        var detail = "No se pudo validar el cierre de bóveda.";
+                        if (env.IsDevelopment())
+                            detail += $" Detalle: {ex.Message}";
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("CreditoValidarCierreBoveda")
+            .WithSummary(
+                "Solo lectura: paridad BovedaController.ValidarCierre (previo a cerrar-boveda / cerrar-boveda-temporal).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<ValidarCierreSaldosResponse>(StatusCodes.Status200OK, "application/json")

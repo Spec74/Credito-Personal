@@ -113,6 +113,65 @@ public sealed class SaldosCierreReadService(IOptions<SqlDatabaseOptions> options
         return new ValidarCierreSaldosResponse(true, string.Empty);
     }
 
+    /// <summary>
+    /// Paridad exacta <c>BovedaController.ValidarCierre</c>:
+    /// 1) cajas abiertas → bloquea
+    /// 2) cajas cerradas no enviadas a bóveda → bloquea
+    /// 3) si no hay pendientes (todas enviadas) → permite cierre de bóveda
+    /// </summary>
+    public async Task<ValidarCierreSaldosResponse> ValidarCierreBovedaAsync(
+        int oficinaId,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureConnection();
+        if (oficinaId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var abiertas = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT COUNT(1)
+                FROM CREDITO.CajaDiario AS cd
+                INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                WHERE cd.IndCierre = CAST(0 AS bit)
+                  AND c.OficinaId = @OficinaId;
+                """,
+                new { OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (abiertas > 0)
+        {
+            return new ValidarCierreSaldosResponse(false, "EXISTEN CAJAS ABIERTAS.");
+        }
+
+        var cerradasNoEnviadas = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT COUNT(1)
+                FROM CREDITO.CajaDiario AS cd
+                INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                WHERE cd.IndCierre = CAST(1 AS bit)
+                  AND cd.TransBoveda = CAST(0 AS bit)
+                  AND c.OficinaId = @OficinaId;
+                """,
+                new { OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (cerradasNoEnviadas > 0)
+        {
+            return new ValidarCierreSaldosResponse(
+                false,
+                "EXISTEN CAJAS CERRADAS NO ENVIADAS A BOVEDA. REVISE FORMULARIO SALDOS CAJA.");
+        }
+
+        return new ValidarCierreSaldosResponse(true, string.Empty);
+    }
+
     private void EnsureConnection()
     {
         if (string.IsNullOrWhiteSpace(_connectionString))

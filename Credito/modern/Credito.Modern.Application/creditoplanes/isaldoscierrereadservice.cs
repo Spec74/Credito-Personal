@@ -9,4 +9,11 @@ public interface ISaldosCierreReadService
     Task<ValidarCierreSaldosResponse> ValidarCierreCajaChicaAsync(
         int oficinaId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Paridad <c>BovedaController.ValidarCierre</c> (previo a cerrar bóveda principal/temporal).
+    /// </summary>
+    Task<ValidarCierreSaldosResponse> ValidarCierreBovedaAsync(
+        int oficinaId,
+        CancellationToken cancellationToken = default);
 }

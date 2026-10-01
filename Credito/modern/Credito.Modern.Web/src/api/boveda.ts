@@ -187,6 +187,15 @@ export function fetchValidarCierreSaldos(
   )
 }
 
+/** Paridad BovedaController.ValidarCierre (previo a cerrar bóveda principal/temporal). */
+export function fetchValidarCierreBoveda(
+  oficinaId: number,
+): Promise<ValidarCierreSaldosResponse> {
+  return apiFetch<ValidarCierreSaldosResponse>(
+    `/credito/validar-cierre-boveda?oficinaId=${oficinaId}`,
+  )
+}
+
 export interface BovedaMovOperacionResponse {
   movimientoBovedaId: number
   movimientoCajaId: number | null

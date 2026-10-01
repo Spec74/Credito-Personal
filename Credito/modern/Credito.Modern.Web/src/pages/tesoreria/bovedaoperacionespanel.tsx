@@ -23,7 +23,7 @@ import {
   fetchBovedaTransferenciasPendientes,
   fetchBovedasDestinoTransferencia,
   fetchCajasAbiertasTransferenciaBoveda,
-  fetchValidarCierreSaldos,
+  fetchValidarCierreBoveda,
   ingresoEgresoBoveda,
   transferirBoveda,
   transferirBovedaBancos,
@@ -146,8 +146,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   })
 
   const validacionCierre = useQuery({
-    queryKey: ['validar-cierre-saldos', oficinaId],
-    queryFn: () => fetchValidarCierreSaldos(oficinaId),
+    queryKey: ['validar-cierre-boveda', oficinaId],
+    queryFn: () => fetchValidarCierreBoveda(oficinaId),
     enabled: oficinaOk && needsCierre,
   })
   const cierrePrincipalBloqueado =
