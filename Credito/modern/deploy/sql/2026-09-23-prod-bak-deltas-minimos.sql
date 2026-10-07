@@ -42,8 +42,6 @@ IF COL_LENGTH(N'CREDITO.Credito', N'FechaRemate') IS NULL
     ALTER TABLE CREDITO.Credito ADD FechaRemate date NULL;
 IF COL_LENGTH(N'CREDITO.Credito', N'PrendaId') IS NULL
     ALTER TABLE CREDITO.Credito ADD PrendaId bigint NULL;
-IF COL_LENGTH(N'CREDITO.Credito', N'FechaNotifWhatsapp3d') IS NULL
-    ALTER TABLE CREDITO.Credito ADD FechaNotifWhatsapp3d datetime NULL;
 GO
 
 UPDATE CREDITO.Credito

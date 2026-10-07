@@ -48,7 +48,7 @@ Identificación: `EsPrendario = 1` **o** `ProductoId = 2`. Alta fija: ver tablas
 | `CREDITO.Credito` (`EsPrendario`, `ProductoId = 2`) | Cartera (listado: `EsPrendario = 1` **o** `ProductoId = 2`) |
 | `CREDITO.Prenda` | Bienes (reemplazo completo al guardar) |
 | Alta solicitud / generar | Mismos valores que `CrearSolicitudCreditoPrendario` / `CrearCredito` |
-| `FechaNotifWhatsapp3d` | Aviso 3 días (solo `EsPrendario = 1`) |
+| Aviso 3 días (Cloud API / listado) | Sin columna en `Credito`; idempotencia no persistida en BD |
 | Plantilla Meta `aviso_vencimiento_prendario` (es) | Cloud API v25.0 |
 
 El C# no inventa tasación: suma solo prendas insertadas (el MVC sumaba también filas vacías).

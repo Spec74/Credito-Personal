@@ -55,6 +55,7 @@ export function AppRoutes() {
         <Route path="/informes" element={<Pages.InformesHubPage />} />
         <Route path="/informes/cobertura" element={<Pages.InformesCoberturaPage />} />
         <Route path="/informes/cierre-gerencial" element={<Pages.CierreGerencialPage />} />
+        <Route path="/informes/morosos" element={<Pages.MorososEmpresaPage />} />
         <Route path="/informes/reporte-stock" element={<Pages.ReporteStockPage />} />
         <Route path="/informes/stock-anulados" element={<Pages.StockAnuladosPage />} />
         <Route path="/clientes" element={<Pages.ClientesPage />} />

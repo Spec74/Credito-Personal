@@ -93,7 +93,7 @@ export function buildAnalistaCarteraActions(
 /** Atajos del tablero admin / gerencia. */
 export function buildAdminCarteraActions(
   roles: string[],
-  opts?: { puedeCierreGerencial?: boolean },
+  opts?: { puedeCierreGerencial?: boolean; puedeMorosos?: boolean },
 ): Omit<DashboardCarteraAction, 'icon'>[] {
   const actions: Omit<DashboardCarteraAction, 'icon'>[] = [
     {
@@ -143,6 +143,15 @@ export function buildAdminCarteraActions(
       label: 'Cierre gerencial',
       kind: 'navigate',
       spaPath: '/informes/cierre-gerencial',
+    })
+  }
+
+  if (opts?.puedeMorosos) {
+    actions.push({
+      id: 'morosos',
+      label: 'Morosos',
+      kind: 'navigate',
+      spaPath: '/informes/morosos',
     })
   }
 

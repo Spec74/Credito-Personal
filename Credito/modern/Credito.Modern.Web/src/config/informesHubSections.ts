@@ -26,6 +26,11 @@ export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
         label: 'Cierre y metas gerenciales',
         description: 'Avance oficial / no oficial',
       },
+      {
+        to: '/informes/morosos',
+        label: 'Morosos',
+        description: 'Morosidad empresarial con semáforo de pago',
+      },
     ],
   },
   {

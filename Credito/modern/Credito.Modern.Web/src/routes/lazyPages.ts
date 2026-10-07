@@ -212,6 +212,10 @@ export const CierreGerencialPage = lazyNamed(
   () => import('../pages/informes/CierreGerencialPage'),
   'CierreGerencialPage',
 )
+export const MorososEmpresaPage = lazyNamed(
+  () => import('../pages/informes/MorososEmpresaPage'),
+  'MorososEmpresaPage',
+)
 export const CobroDiarioDetallePage = lazyNamed(
   () => import('../pages/informes/CobroDiarioDetallePage'),
   'CobroDiarioDetallePage',

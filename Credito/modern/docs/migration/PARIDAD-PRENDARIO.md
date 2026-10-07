@@ -151,9 +151,8 @@ recurso embebido `ReportAssets/ClausulasPrendario.pdf`.
 ## Notificaciones
 
 `GET /api/v1/prendario/avisos-vencimiento` equivale a `ObtenerCreditosPrendariosPorVencer`:
-créditos `EsPrendario = 1`, `Estado = 'DES'`, que vencen exactamente en N días (por defecto 3)
-y que todavía no tienen `FechaNotifWhatsapp3d` de hoy. El moderno acota además a la oficina
-de la sesión.
+créditos `EsPrendario = 1`, `Estado = 'DES'`, que vencen exactamente en N días (por defecto 3).
+El moderno acota además a la oficina de la sesión (no persiste marca de aviso en `Credito`).
 
 El botón **Chat WhatsApp** de gestión abre `wa.me` para un recordatorio puntual. El aviso
 oficial a 3 días usa WhatsApp Cloud API y la plantilla `aviso_vencimiento_prendario`

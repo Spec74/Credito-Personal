@@ -158,4 +158,16 @@ describe('menuRouteAccess', () => {
       hasMenuRouteAccess('/informes/cierre-gerencial', [], ['/informes/cierre-gerencial']),
     ).toBe(true)
   })
+
+  it('hub reportes credito no habilita morosos sin ACL extra', () => {
+    const menuReportesCredito: MenuItemDto = {
+      ...menu('Reporte/Credito', 'CREDITO'),
+      modulo: 'REPORTES',
+    }
+    expect(hasMenuRouteAccess('/informes/morosos', [menuReportesCredito])).toBe(false)
+  })
+
+  it('extraAllowedPaths habilita morosos (Morosidad.UsuarioConsultaIds)', () => {
+    expect(hasMenuRouteAccess('/informes/morosos', [], ['/informes/morosos'])).toBe(true)
+  })
 })

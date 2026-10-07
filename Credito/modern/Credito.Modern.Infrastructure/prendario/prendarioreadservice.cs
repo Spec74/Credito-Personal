@@ -345,8 +345,6 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                   AND c.EsPrendario = CAST(1 AS bit)
                   AND c.Estado = 'DES'
                   AND c.FechaVencimiento = @Objetivo
-                  AND (c.FechaNotifWhatsapp3d IS NULL
-                       OR CAST(c.FechaNotifWhatsapp3d AS date) <> @Hoy)
                 ORDER BY c.CreditoId;
                 """,
                 new { OficinaId = oficinaId, DiasAntes = diasAntes },
@@ -373,11 +371,11 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
         EnsureConnection();
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        var n = await connection.ExecuteAsync(
+        var n = await connection.ExecuteScalarAsync<int>(
             new CommandDefinition(
                 """
-                UPDATE CREDITO.Credito
-                SET FechaNotifWhatsapp3d = dbo.ufnFecha()
+                SELECT COUNT(1)
+                FROM CREDITO.Credito
                 WHERE CreditoId = @CreditoId
                   AND OficinaId = @OficinaId
                   AND EsPrendario = CAST(1 AS bit);

@@ -35,7 +35,10 @@ const HUB_CHILDREN: Record<string, string[]> = {
   '/admin': ['/admin/', '/mantenimiento/'],
 }
 
-const INFORMES_ACL_EXCLUSIONS = new Set(['/informes/cierre-gerencial'])
+const INFORMES_ACL_EXCLUSIONS = new Set([
+  '/informes/cierre-gerencial',
+  '/informes/morosos',
+])
 
 const EXACT_MENU_ROUTES = new Set([
   '/admin/usuarios',

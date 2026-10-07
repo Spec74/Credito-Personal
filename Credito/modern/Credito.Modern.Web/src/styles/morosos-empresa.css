@@ -1,0 +1,287 @@
+/* Morosidad empresarial — semáforo ejecutivo (paridad lógica legado, UI Credix) */
+.morosos-empresa-page {
+  --me-ink: #0f1c24;
+  --me-muted: #5b6b75;
+  --me-line: #d7e0e6;
+  --me-surface: #ffffff;
+  --me-soft: #f4f7f9;
+  --me-brand: #056aa0;
+  --me-brand-deep: #17324d;
+  --me-red: #b4232a;
+  --me-red-soft: #fdeceb;
+  --me-amber: #e57c09;
+  --me-amber-soft: #fff4e5;
+  --me-green: #238a57;
+  --me-green-soft: #e7f6ec;
+}
+
+.morosos-empresa-page .credix-page-subtitle {
+  max-width: 48rem;
+}
+
+.morosos-skeleton {
+  display: grid;
+  gap: 1rem;
+}
+
+.morosos-overview {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1.2fr) repeat(3, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 1100px) {
+  .morosos-overview {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .morosos-overview {
+    grid-template-columns: 1fr;
+  }
+}
+
+.morosos-total-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  background: linear-gradient(145deg, var(--me-brand) 0%, var(--me-brand-deep) 100%);
+  color: #fff;
+  box-shadow: 0 8px 24px rgb(23 50 77 / 18%);
+}
+
+.morosos-total-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.morosos-total-card strong {
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.morosos-total-card > span {
+  font-size: 0.85rem;
+  opacity: 0.9;
+}
+
+.morosos-total-corte {
+  margin-top: 0.35rem;
+  font-size: 0.75rem !important;
+  opacity: 0.75 !important;
+}
+
+.morosos-status-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--me-line);
+  background: var(--me-surface);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
+}
+
+.morosos-status-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgb(15 28 36 / 8%);
+}
+
+.morosos-status-card:focus-visible {
+  outline: 2px solid var(--me-brand);
+  outline-offset: 2px;
+}
+
+.morosos-status-card.is-active {
+  box-shadow: 0 0 0 2px currentColor inset;
+}
+
+.morosos-status-card--red {
+  color: var(--me-red);
+  border-color: #f0c4c6;
+  background: var(--me-red-soft);
+}
+
+.morosos-status-card--amber {
+  color: var(--me-amber);
+  border-color: #f5d4a8;
+  background: var(--me-amber-soft);
+}
+
+.morosos-status-card--green {
+  color: var(--me-green);
+  border-color: #b7dfc3;
+  background: var(--me-green-soft);
+}
+
+.morosos-status-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.morosos-status-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.morosos-status-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.morosos-status-copy strong {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--me-ink);
+  line-height: 1.1;
+}
+
+.morosos-status-copy small {
+  font-size: 0.8rem;
+  color: var(--me-muted);
+}
+
+.morosos-panel-hint {
+  margin: 0 0 0.75rem;
+  color: var(--me-muted);
+  font-size: 0.9rem;
+}
+
+.morosos-client,
+.morosos-owner,
+.morosos-balance,
+.morosos-dates,
+.morosos-situacion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.morosos-client strong,
+.morosos-owner strong {
+  color: var(--me-ink);
+  font-weight: 600;
+}
+
+.morosos-client span,
+.morosos-owner span,
+.morosos-cell-meta {
+  color: var(--me-muted);
+  font-size: 0.8rem;
+  line-height: 1.3;
+}
+
+.morosos-money {
+  color: var(--me-brand-deep);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.morosos-dates span {
+  font-size: 0.82rem;
+  color: var(--me-ink);
+}
+
+.morosos-dates b {
+  color: var(--me-muted);
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.morosos-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.morosos-badge--red {
+  background: var(--me-red);
+  color: #fff;
+}
+
+.morosos-badge--amber {
+  background: var(--me-amber);
+  color: #fff;
+}
+
+.morosos-badge--green {
+  background: var(--me-green);
+  color: #fff;
+}
+
+.morosos-profile {
+  font-weight: 600;
+  color: var(--me-brand);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.morosos-profile:hover {
+  text-decoration: underline;
+}
+
+.morosos-table .morosos-row--red td:first-child {
+  box-shadow: inset 3px 0 0 var(--me-red);
+}
+
+.morosos-table .morosos-row--amber td:first-child {
+  box-shadow: inset 3px 0 0 var(--me-amber);
+}
+
+.morosos-table .morosos-row--green td:first-child {
+  box-shadow: inset 3px 0 0 var(--me-green);
+}
+
+.morosos-export-desc {
+  margin: 0 0 1rem;
+  color: var(--me-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.morosos-export-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+}
+
+.morosos-export-dates label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--me-ink);
+}
+
+@media (max-width: 520px) {
+  .morosos-export-dates {
+    grid-template-columns: 1fr;
+  }
+}

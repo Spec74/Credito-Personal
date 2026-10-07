@@ -8,6 +8,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   FundProjectionScreenOutlined,
+  WarningOutlined,
   UserOutlined,
   DoubleRightOutlined,
   PercentageOutlined,
@@ -19,6 +20,7 @@ import {
 import { fetchMenu } from '../../api/menu'
 import { fetchOficinas } from '../../api/oficinas'
 import { fetchCierreGerencialPermisos } from '../../api/cierreGerencial'
+import { fetchMorosidadPermisos } from '../../api/morosidadEmpresa'
 import { useAuth } from '../../auth/useAuth'
 import { getLoginProfile } from '../../auth/sessionProfile'
 import { BrandLogo } from '../brand/BrandLogo'
@@ -122,13 +124,23 @@ export function AppShell() {
   })
   const puedeVerCierreGerencial = cierrePermisosQuery.data?.puedeConsultar === true
 
+  const morosidadPermisosQuery = useQuery({
+    queryKey: ['morosidad-permisos', session?.usuarioId],
+    queryFn: fetchMorosidadPermisos,
+    enabled: (session?.usuarioId ?? 0) > 0,
+    staleTime: 5 * 60_000,
+  })
+  const puedeVerMorosos = morosidadPermisosQuery.data?.puedeConsultar === true
+
   const navigationMenuData = useMemo(() => menuQuery.data ?? [], [menuQuery.data])
   /** Paridad `_Layout.cshtml`: los 5 accesos rápidos siempre visibles con sesión. */
   const quickActionsVisible = quickActions
-  const extraAllowedPaths = useMemo(
-    () => (puedeVerCierreGerencial ? ['/informes/cierre-gerencial'] : []),
-    [puedeVerCierreGerencial],
-  )
+  const extraAllowedPaths = useMemo(() => {
+    const paths: string[] = []
+    if (puedeVerCierreGerencial) paths.push('/informes/cierre-gerencial')
+    if (puedeVerMorosos) paths.push('/informes/morosos')
+    return paths
+  }, [puedeVerCierreGerencial, puedeVerMorosos])
   const hasCurrentRouteAccess = useMemo(
     () => hasMenuRouteAccess(location.pathname, navigationMenuData, extraAllowedPaths),
     [location.pathname, navigationMenuData, extraAllowedPaths],
@@ -173,22 +185,30 @@ export function AppShell() {
 
   const menuItems = useMemo(() => {
     const base = buildAntMenuItems(navigationMenuData)
-    if (!puedeVerCierreGerencial) {
-      return base
-    }
-    return [
-      ...base,
-      {
+    const extras: typeof base = []
+    if (puedeVerCierreGerencial) {
+      extras.push({
         key: 'cierre-gerencial',
         icon: <FundProjectionScreenOutlined />,
         label: <span className="credix-menu-label">Cierre gerencial</span>,
-      },
-    ]
-  }, [navigationMenuData, puedeVerCierreGerencial])
+      })
+    }
+    if (puedeVerMorosos) {
+      extras.push({
+        key: 'morosos-empresa',
+        icon: <WarningOutlined />,
+        label: <span className="credix-menu-label">Morosos</span>,
+      })
+    }
+    return extras.length > 0 ? [...base, ...extras] : base
+  }, [navigationMenuData, puedeVerCierreGerencial, puedeVerMorosos])
   const selectedKeys = useMemo(() => {
     const keys = findSelectedMenuKeys(location.pathname, navigationMenuData)
     if (location.pathname.startsWith('/informes/cierre-gerencial')) {
       return [...keys, 'cierre-gerencial']
+    }
+    if (location.pathname.startsWith('/informes/morosos')) {
+      return [...keys, 'morosos-empresa']
     }
     return keys
   }, [location.pathname, navigationMenuData])
@@ -248,6 +268,11 @@ export function AppShell() {
     }
     if (key === 'cierre-gerencial') {
       navigate('/informes/cierre-gerencial')
+      closeMobileNav()
+      return
+    }
+    if (key === 'morosos-empresa') {
+      navigate('/informes/morosos')
       closeMobileNav()
       return
     }

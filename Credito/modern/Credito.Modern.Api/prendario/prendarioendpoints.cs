@@ -408,7 +408,7 @@ internal static class PrendarioEndpoints
                     }
                 })
             .WithName("PrendarioAvisosVencimiento")
-            .WithSummary("Créditos prendarios desembolsados que vencen en N días y aún no fueron avisados hoy. Paridad CreditoBL.ObtenerCreditosPrendariosPorVencer, acotado a la oficina.")
+            .WithSummary("Créditos prendarios desembolsados que vencen en N días. Acotado a la oficina.")
             .WithTags("prendario")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario)
             .Produces<IReadOnlyList<PrendarioAvisoVencimientoDto>>(StatusCodes.Status200OK, "application/json")

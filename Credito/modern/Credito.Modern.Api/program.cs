@@ -285,6 +285,7 @@ app.MapCreditoTareasCrudEndpoints();
 app.MapCreditoOperacionEndpoints();
 app.MapCobroPlanillaBloqueEndpoints();
 app.MapCierreGerencialEndpoints();
+app.MapMorosidadEndpoints();
 app.MapCreditoReportesRestantesEndpoints();
 app.MapCobroDiarioMorosidadGestorEndpoints();
 app.MapVentasEndpoints();
