@@ -721,13 +721,13 @@ export function SimuladorCreditoPage() {
       align: 'right',
       render: formatMoney,
     },
-    {
-      title: 'G.A.',
-      dataIndex: 'gastosAdm',
-      width: 90,
-      align: 'right',
-      render: formatMoney,
-    },
+            {
+              title: 'G.A.',
+              dataIndex: 'gastosAdm',
+              width: 90,
+              align: 'right',
+              render: formatMoney,
+            },
     {
       title: 'Cuota',
       dataIndex: 'cuota',
@@ -1306,6 +1306,11 @@ export function SimuladorCreditoPage() {
                 { key: 'saldo', label: 'Saldo final', children: formatMoney(cuotas.at(-1)?.saldo ?? 0) },
               ]}
             />
+            <Paragraph type="secondary" style={{ marginBottom: 12, fontSize: 12 }}>
+              G.A. en cuotas = 0 con modalidad ADE (trámite administrativo se cobra adelantado; no se
+              reparte en el plan). El importe de trámite queda en la cabecera del PDF / al generar el
+              crédito.
+            </Paragraph>
             <InformeExportBar
               hideCsv
               pdfLabel="Generar PDF"

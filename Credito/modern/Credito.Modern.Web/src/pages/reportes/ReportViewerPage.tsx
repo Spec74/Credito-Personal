@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button, Space } from 'antd'
-import { DownloadOutlined, FilePdfOutlined } from '@ant-design/icons'
+import { DownloadOutlined, FilePdfOutlined, ReloadOutlined } from '@ant-design/icons'
 import { getApiBaseUrl } from '../../api/client'
 import { getAccessToken, getRefreshToken, saveTokens } from '../../auth/tokenStorage'
 import { useAuth } from '../../auth/useAuth'
@@ -14,9 +14,33 @@ function isMobileViewer(): boolean {
   return /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
 }
 
+/** Cabecera mágica de un PDF válido (%PDF-). */
+async function assertPdfMagic(blob: Blob): Promise<Blob> {
+  const head = new Uint8Array(await blob.slice(0, 5).arrayBuffer())
+  const magic = String.fromCharCode(...head)
+  if (magic !== '%PDF-') {
+    const preview = await blob.slice(0, 200).text().catch(() => '')
+    if (preview.trimStart().startsWith('{') || preview.includes('ProblemDetails')) {
+      throw new Error(
+        'La API no devolvió un PDF (respuesta de error). Verifique sesión y vuelva a generar el informe.',
+      )
+    }
+    if (preview.includes('<!DOCTYPE') || preview.includes('<html')) {
+      throw new Error(
+        'Se recibió HTML en lugar del PDF (¿API mal configurada en Vercel?). Contacte a soporte.',
+      )
+    }
+    throw new Error('El archivo recibido no es un PDF válido. Genere el informe de nuevo.')
+  }
+  if (blob.type !== 'application/pdf') {
+    return new Blob([blob], { type: 'application/pdf' })
+  }
+  return blob
+}
+
 async function fetchReportBlob(apiPath: string): Promise<Blob> {
-  const baseUrl = getApiBaseUrl()
-  const headers = new Headers({ Accept: '*/*' })
+  const baseUrl = getApiBaseUrl().replace(/\/$/, '')
+  const headers = new Headers({ Accept: 'application/pdf, application/json, */*' })
   const token = getAccessToken()
   if (token) headers.set('Authorization', `Bearer ${token}`)
 
@@ -37,15 +61,10 @@ async function fetchReportBlob(apiPath: string): Promise<Blob> {
   }
 
   if (!res.ok) throw await parseApiError(res)
-  const blob = await res.blob()
   if (!isPdfReportApiPath(apiPath)) {
     throw new Error('El visor solo admite PDF.')
   }
-  // Algunos móviles no embeben blobs sin MIME PDF explícito.
-  if (blob.type !== 'application/pdf') {
-    return new Blob([blob], { type: 'application/pdf' })
-  }
-  return blob
+  return assertPdfMagic(await res.blob())
 }
 
 function resolveApiPath(params: URLSearchParams): { path: string | null; error: string | null } {
@@ -62,7 +81,6 @@ function resolveApiPath(params: URLSearchParams): { path: string | null; error: 
     return { path: stashed, error: null }
   }
 
-  // Compatibilidad temporal con bookmarks antiguos ?path=/credito/...-pdf
   const legacy = params.get('path') ?? ''
   if (legacy) {
     if (!isAllowedReportApiPath(legacy) || !isPdfReportApiPath(legacy)) {
@@ -79,12 +97,14 @@ function resolveApiPath(params: URLSearchParams): { path: string | null; error: 
 
 export function ReportViewerPage() {
   const [params] = useSearchParams()
+  // Resolver una sola vez por rid (localStorage); no en cada render estricto.
   const resolved = useMemo(() => resolveApiPath(params), [params])
   const path = resolved.path ?? ''
   const { isAuthenticated, isLoading: authLoading } = useAuth()
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [reloadToken, setReloadToken] = useState(0)
   const mobile = useMemo(() => isMobileViewer(), [])
 
   useEffect(() => {
@@ -93,17 +113,21 @@ export function ReportViewerPage() {
     if (!isAuthenticated) {
       setError(null)
       setLoading(false)
+      setObjectUrl(null)
       return
     }
 
     if (resolved.error || !path) {
       setError(resolved.error ?? 'Ruta de informe no válida.')
       setLoading(false)
+      setObjectUrl(null)
       return
     }
 
     let revoked: string | null = null
     let cancelled = false
+    setLoading(true)
+    setError(null)
 
     ;(async () => {
       try {
@@ -114,6 +138,7 @@ export function ReportViewerPage() {
         setObjectUrl(url)
       } catch (e) {
         if (!cancelled) {
+          setObjectUrl(null)
           setError(e instanceof Error ? e.message : 'No se pudo cargar el informe.')
         }
       } finally {
@@ -125,7 +150,7 @@ export function ReportViewerPage() {
       cancelled = true
       if (revoked) URL.revokeObjectURL(revoked)
     }
-  }, [path, resolved.error, authLoading, isAuthenticated])
+  }, [path, resolved.error, authLoading, isAuthenticated, reloadToken])
 
   if (authLoading || (loading && isAuthenticated)) {
     return (
@@ -154,6 +179,16 @@ export function ReportViewerPage() {
     return (
       <div className="report-viewer report-viewer--error">
         <p>{error}</p>
+        <Space style={{ marginTop: 16 }}>
+          <Button
+            type="primary"
+            icon={<ReloadOutlined />}
+            onClick={() => setReloadToken((n) => n + 1)}
+          >
+            Reintentar
+          </Button>
+          <Button href="/credito/simulador">Volver al simulador</Button>
+        </Space>
       </div>
     )
   }
@@ -197,10 +232,18 @@ export function ReportViewerPage() {
   }
 
   return (
-    <iframe
-      className="report-viewer__frame"
-      title="Informe"
-      src={objectUrl}
-    />
+    <div className="report-viewer report-viewer--desktop">
+      <div className="report-viewer__toolbar">
+        <Button
+          size="small"
+          icon={<DownloadOutlined />}
+          href={objectUrl}
+          download="informe-credix.pdf"
+        >
+          Descargar PDF
+        </Button>
+      </div>
+      <iframe className="report-viewer__frame" title="Informe" src={objectUrl} />
+    </div>
   )
 }
