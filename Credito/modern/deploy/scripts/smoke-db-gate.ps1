@@ -14,21 +14,22 @@ param(
 
 $ErrorActionPreference = 'Stop'
 if ([string]::IsNullOrWhiteSpace($ConnectionString)) {
-    Write-Error @'
+    Write-Host @'
 Indique -ConnectionString o la variable CreditoDatabase__ConnectionString.
 
-Sin secretos, puede verificar en Azure Portal → SQL → Query editor:
+Sin secretos, verificar en Azure Portal → SQL → Query editor:
 
 SELECT
-  COL_LENGTH(N''CREDITO.Credito'', N''EsPrendario'') AS EsPrendario,
-  OBJECT_ID(N''CREDITO.Prenda'', N''U'') AS Prenda,
-  OBJECT_ID(N''CREDITO.usp_CreditoMora_Registrar'', N''P'') AS MoraRegistrar,
-  OBJECT_ID(N''CREDITO.usp_MorosidadEmpresa'', N''P'') AS MorosidadEmpresa,
+  COL_LENGTH(N'CREDITO.Credito', N'EsPrendario') AS EsPrendario,
+  OBJECT_ID(N'CREDITO.Prenda', N'U') AS Prenda,
+  OBJECT_ID(N'CREDITO.usp_CreditoMora_Registrar', N'P') AS MoraRegistrar,
+  OBJECT_ID(N'CREDITO.usp_MorosidadEmpresa', N'P') AS MorosidadEmpresa,
   (SELECT uses_quoted_identifier FROM sys.sql_modules
-   WHERE object_id = OBJECT_ID(N''CREDITO.usp_Credito_Ins'')) AS CreditoInsQuotedOn,
+   WHERE object_id = OBJECT_ID(N'CREDITO.usp_Credito_Ins')) AS CreditoInsQuotedOn,
   (SELECT CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS
-   WHERE TABLE_SCHEMA=N''MAESTRO'' AND TABLE_NAME=N''Usuario'' AND COLUMN_NAME=N''ClaveUsuario'') AS ClaveUsuarioLen;
+   WHERE TABLE_SCHEMA=N'MAESTRO' AND TABLE_NAME=N'Usuario' AND COLUMN_NAME=N'ClaveUsuario') AS ClaveUsuarioLen;
 '@
+    exit 2
 }
 
 Add-Type -AssemblyName System.Data
