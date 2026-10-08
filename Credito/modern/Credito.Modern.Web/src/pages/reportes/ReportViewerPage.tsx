@@ -1,7 +1,13 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Button, Space } from 'antd'
-import { DownloadOutlined, FilePdfOutlined, ReloadOutlined } from '@ant-design/icons'
+import {
+  CloseOutlined,
+  DownloadOutlined,
+  ExportOutlined,
+  FilePdfOutlined,
+  ReloadOutlined,
+} from '@ant-design/icons'
 import { getApiBaseUrl } from '../../api/client'
 import { getAccessToken, getRefreshToken, saveTokens } from '../../auth/tokenStorage'
 import { useAuth } from '../../auth/useAuth'
@@ -97,7 +103,7 @@ function resolveApiPath(params: URLSearchParams): { path: string | null; error: 
 
 /**
  * Visor de informes PDF (todos los módulos).
- * Desktop: navega la pestaña al blob (visor nativo del navegador) — evita iframe/CSP/PWA rotos.
+ * Desktop: toolbar SPA + embed/object del blob (sin location.replace por defecto).
  * Móvil: botones Abrir / Descargar.
  */
 export function ReportViewerPage() {
@@ -110,6 +116,7 @@ export function ReportViewerPage() {
   const [loading, setLoading] = useState(true)
   const [reloadToken, setReloadToken] = useState(0)
   const mobile = useMemo(() => isMobileViewer(), [])
+  const keepBlobForNativeRef = useRef(false)
 
   useEffect(() => {
     if (authLoading) return
@@ -130,6 +137,7 @@ export function ReportViewerPage() {
 
     let cancelled = false
     let createdUrl: string | null = null
+    keepBlobForNativeRef.current = false
     setLoading(true)
     setError(null)
 
@@ -139,14 +147,6 @@ export function ReportViewerPage() {
         if (cancelled) return
         const url = URL.createObjectURL(blob)
         createdUrl = url
-
-        // Desktop: el visor nativo del navegador es más fiable que <iframe src=blob:>
-        // (CSP, PWA cache y plugins PDF de Chrome rompían todos los informes).
-        if (!mobile) {
-          window.location.replace(url)
-          return
-        }
-
         setObjectUrl(url)
       } catch (e) {
         if (!cancelled) {
@@ -160,12 +160,12 @@ export function ReportViewerPage() {
 
     return () => {
       cancelled = true
-      // No revocar si ya navegamos a la blob URL (el navegador la sigue usando).
-      if (createdUrl && mobile) {
+      // No revocar si el usuario optó por el visor nativo (location.replace).
+      if (createdUrl && !keepBlobForNativeRef.current) {
         URL.revokeObjectURL(createdUrl)
       }
     }
-  }, [path, resolved.error, authLoading, isAuthenticated, reloadToken, mobile])
+  }, [path, resolved.error, authLoading, isAuthenticated, reloadToken])
 
   if (authLoading || (loading && isAuthenticated && !error)) {
     return (
@@ -208,7 +208,6 @@ export function ReportViewerPage() {
     )
   }
 
-  // Desktop ya hizo location.replace; aquí solo móvil con blob listo.
   if (!objectUrl) {
     return (
       <div className="report-viewer report-viewer--loading">
@@ -217,35 +216,80 @@ export function ReportViewerPage() {
     )
   }
 
+  if (mobile) {
+    return (
+      <div className="report-viewer report-viewer--mobile">
+        <FilePdfOutlined className="report-viewer__icon" />
+        <p>El visor PDF del navegador móvil no embebe el archivo. Ábralo o descárguelo:</p>
+        <Space direction="vertical" size="middle" style={{ width: 'min(100%, 320px)' }}>
+          <Button
+            type="primary"
+            block
+            size="large"
+            icon={<FilePdfOutlined />}
+            href={objectUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => {
+              window.open(objectUrl, '_blank', 'noopener,noreferrer')
+            }}
+          >
+            Abrir PDF
+          </Button>
+          <Button
+            block
+            size="large"
+            icon={<DownloadOutlined />}
+            href={objectUrl}
+            download="informe-credix.pdf"
+          >
+            Descargar PDF
+          </Button>
+        </Space>
+      </div>
+    )
+  }
+
   return (
-    <div className="report-viewer report-viewer--mobile">
-      <FilePdfOutlined className="report-viewer__icon" />
-      <p>El visor PDF del navegador móvil no embebe el archivo. Ábralo o descárguelo:</p>
-      <Space direction="vertical" size="middle" style={{ width: 'min(100%, 320px)' }}>
-        <Button
-          type="primary"
-          block
-          size="large"
-          icon={<FilePdfOutlined />}
-          href={objectUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={() => {
-            window.open(objectUrl, '_blank', 'noopener,noreferrer')
-          }}
-        >
-          Abrir PDF
-        </Button>
-        <Button
-          block
-          size="large"
-          icon={<DownloadOutlined />}
-          href={objectUrl}
-          download="informe-credix.pdf"
-        >
-          Descargar PDF
-        </Button>
-      </Space>
+    <div className="report-viewer report-viewer--desktop">
+      <div className="report-viewer__toolbar">
+        <Space wrap size="small">
+          <Button
+            size="small"
+            icon={<CloseOutlined />}
+            onClick={() => window.close()}
+          >
+            Cerrar pestaña
+          </Button>
+          <Button
+            size="small"
+            icon={<DownloadOutlined />}
+            href={objectUrl}
+            download="informe-credix.pdf"
+          >
+            Descargar
+          </Button>
+          <Button
+            size="small"
+            type="primary"
+            icon={<ExportOutlined />}
+            onClick={() => {
+              keepBlobForNativeRef.current = true
+              window.location.replace(objectUrl)
+            }}
+          >
+            Abrir en visor nativo
+          </Button>
+        </Space>
+      </div>
+      <object
+        className="report-viewer__frame"
+        data={objectUrl}
+        type="application/pdf"
+        aria-label="Informe PDF"
+      >
+        <embed className="report-viewer__frame" src={objectUrl} type="application/pdf" />
+      </object>
     </div>
   )
 }

@@ -5,4 +5,5 @@ public sealed record LegacyLoginOutcome(
     int UsuarioId,
     int OficinaId,
     int UsuarioOficinaId,
-    IReadOnlyList<string> Roles);
+    IReadOnlyList<string> Roles,
+    bool RequiereCambioClave = false);

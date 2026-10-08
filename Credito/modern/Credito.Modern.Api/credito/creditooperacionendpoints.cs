@@ -238,9 +238,11 @@ internal static class CreditoOperacionEndpoints
                     CancellationToken ct) =>
                 {
                     var log = loggerFactory.CreateLogger("SimuladorCredito");
-                    if (body.Monto <= 0)
+                    var montoError = ProblemResults.IfInvalid(
+                        MoneyRules.RequirePositive(body.Monto, "monto"));
+                    if (montoError is not null)
                     {
-                        return TypedResults.Ok(new List<SimuladorCreditoCuotaDto>());
+                        return montoError;
                     }
 
                     if (!FormaPagoCredito.TryNormalizar(body.FormaPago, out var formaNormalizada, out var fpError))
@@ -256,7 +258,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inv?lida",
-                            detail: "nroCuotas debe ser un entero >= 1 cuando monto > 0.");
+                            detail: "nroCuotas debe ser un entero >= 1.");
                     }
 
                     if (body.InteresMensual < 0)
@@ -277,6 +279,12 @@ internal static class CreditoOperacionEndpoints
                     }
 
                     var gastosAdm = body.GastosAdm ?? 0m;
+                    var gastosError = ProblemResults.IfInvalid(
+                        MoneyRules.RequireNonNegative(gastosAdm, "gastosAdm"));
+                    if (gastosError is not null)
+                    {
+                        return gastosError;
+                    }
 
                     try
                     {
@@ -8951,6 +8959,16 @@ internal static class CreditoOperacionEndpoints
                                 statusCode: StatusCodes.Status400BadRequest,
                                 title: "Solicitud inv?lida",
                                 detail: $"El inter?s debe estar entre {producto.InteresMinima:N2}% y {producto.InteresMaxima:N2}%.");
+                        }
+
+                        var moneyError = ProblemResults.IfInvalid(
+                            ValidationGate.First(
+                                MoneyRules.RequirePositive(body.MontoCredito, "montoCredito"),
+                                MoneyRules.RequireNonNegative(body.MontoInicial, "montoInicial"),
+                                MoneyRules.RequireNonNegative(body.MontoGastosAdm, "montoGastosAdm")));
+                        if (moneyError is not null)
+                        {
+                            return moneyError;
                         }
 
                         var response = await creditoCiclo

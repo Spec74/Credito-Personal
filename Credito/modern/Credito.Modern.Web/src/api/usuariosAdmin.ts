@@ -120,7 +120,14 @@ export function activarUsuario(usuarioId: number): Promise<MaestroOperacionRespo
   return postJson(`/usuarios/${usuarioId}/activar`, {})
 }
 
-export function resetearClaveUsuario(usuarioId: number): Promise<MaestroOperacionResponse> {
+export interface ResetearClaveResponse {
+  success: boolean
+  id: number | null
+  mensaje: string | null
+  claveTemporal: string | null
+}
+
+export function resetearClaveUsuario(usuarioId: number): Promise<ResetearClaveResponse> {
   return postJson(`/usuarios/${usuarioId}/resetear-clave`, {})
 }
 

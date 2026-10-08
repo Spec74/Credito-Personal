@@ -274,7 +274,7 @@ internal static class UsuarioAdminEndpoints
 
         app.MapPost(
                 "/api/v1/usuarios/{usuarioId:int}/resetear-clave",
-                async Task<Results<Ok<MaestroOperacionResponse>, ProblemHttpResult>> (
+                async Task<Results<Ok<ResetearClaveResponse>, ProblemHttpResult>> (
                     int usuarioId,
                     IUsuarioAdminWriteService write,
                     ILoggerFactory loggerFactory,
@@ -289,18 +289,37 @@ internal static class UsuarioAdminEndpoints
                             detail: "usuarioId debe ser >= 1.");
                     }
 
-                    return await WriteAsync(
-                        loggerFactory,
-                        env,
-                        "ResetearClaveUsuario",
-                        ct,
-                        token => write.ResetearClaveAsync(usuarioId, token)).ConfigureAwait(false);
+                    var log = loggerFactory.CreateLogger("ResetearClaveUsuario");
+                    try
+                    {
+                        var response = await write.ResetearClaveAsync(usuarioId, ct).ConfigureAwait(false);
+                        return TypedResults.Ok(response);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error en ResetearClaveUsuario");
+                        var detail = "No se pudo completar la operación.";
+                        if (env.IsDevelopment())
+                            detail += $" Detalle: {ex.Message}";
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
                 })
             .WithName("ResetearClaveUsuario")
-            .WithSummary("Paridad ResetearClave (clave 123456 hasheada para login moderno).")
+            .WithSummary("Genera clave temporal aleatoria; el usuario debe cambiarla al iniciar sesión.")
             .WithTags("usuarios-admin")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
-            .Produces<MaestroOperacionResponse>();
+            .Produces<ResetearClaveResponse>();
 
         app.MapPost(
                 "/api/v1/usuarios/{usuarioId:int}/asignar-oficinas",
@@ -348,6 +367,13 @@ internal static class UsuarioAdminEndpoints
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
                             detail: "usuarioId debe ser >= 1.");
+                    }
+
+                    var rolesError = ProblemResults.IfInvalid(
+                        UsuarioValidacion.ValidarAsignarRoles(body.OficinaId, body.RolIds));
+                    if (rolesError is not null)
+                    {
+                        return rolesError;
                     }
 
                     return await WriteAsync(

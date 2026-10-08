@@ -7,6 +7,7 @@ import {
   dniRule,
   edadEnAnios,
   maxLen,
+  mensajeClaveNueva,
   mensajeDireccionRealista,
   moneyRequired,
   requiredText,
@@ -45,6 +46,14 @@ describe('formRules', () => {
     expect(mensajeDireccionRealista('123')).toBeTruthy()
     expect(mensajeDireccionRealista('99999999')).toBeTruthy()
     expect(mensajeDireccionRealista('Jr. Lima 245')).toBeNull()
+  })
+
+  it('clave nueva exige 8+ con letra y número', () => {
+    expect(mensajeClaveNueva('')).toBeTruthy()
+    expect(mensajeClaveNueva('abc')).toBeTruthy()
+    expect(mensajeClaveNueva('abcdefgh')).toBeTruthy()
+    expect(mensajeClaveNueva('12345678')).toBeTruthy()
+    expect(mensajeClaveNueva('clave12a')).toBeNull()
   })
 
   it('fecha nacimiento: edad y disabledDate', () => {

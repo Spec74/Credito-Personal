@@ -15,6 +15,8 @@ export interface LoginTokenResponse {
   usuarioId: number
   oficinaId: number
   usuarioOficinaId: number
+  /** Si true, el usuario debe cambiar la clave temporal antes de usar la app. */
+  requiereCambioClave?: boolean
 }
 
 export interface AuthMeResponse {

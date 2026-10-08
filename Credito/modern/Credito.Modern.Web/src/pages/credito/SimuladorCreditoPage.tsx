@@ -10,6 +10,7 @@ import {
   Form,
   Input,
   InputNumber,
+  Modal,
   Radio,
   Select,
   Space,
@@ -53,6 +54,8 @@ import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { getLoginProfile } from '../../auth/sessionProfile'
 import { ClienteBuscarAutoComplete } from '../../components/caja/ClienteBuscarAutoComplete'
+import { CrearPersonaRapidaModal } from '../clientes/components/CrearPersonaRapidaModal'
+import { buildClientesNuevoHref } from '../../utils/internalReturnTo'
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
 import {
   esCreditoAdministrador,
@@ -203,6 +206,7 @@ export function SimuladorCreditoPage() {
   const [erroresPrendas, setErroresPrendas] = useState<PrendaCampoError[]>([])
   /** Evita reintentar guardar-prendas tras crear solicitud (query puede ir un tick atrasada). */
   const [bienesPersistidosLocal, setBienesPersistidosLocal] = useState(false)
+  const [altaRapidaOpen, setAltaRapidaOpen] = useState(false)
   const [form] = Form.useForm<SimForm>()
   const tipoPersona = Form.useWatch('tipoPersona', form) ?? 'N'
   const montoActual = Form.useWatch('monto', form)
@@ -1341,7 +1345,38 @@ export function SimuladorCreditoPage() {
             showIcon
             style={{ marginBottom: 12 }}
             message="Simulación para prospecto"
-            description="Puede imprimir o exportar el plan. Para generar crédito debe registrar o seleccionar el cliente."
+            description={
+              <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                <span>
+                  Puede imprimir o exportar el plan. Para generar crédito debe registrar o
+                  seleccionar el cliente.
+                </span>
+                <Space wrap>
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<UserAddOutlined />}
+                    onClick={() => setAltaRapidaOpen(true)}
+                    disabled={tipoPersona === 'J'}
+                  >
+                    Alta rápida (DNI)
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      const returnTo = `${window.location.pathname}${window.location.search}`
+                      const dni =
+                        tipoPersona === 'N'
+                          ? (prospectoValues?.numeroDocumento ?? '').trim()
+                          : undefined
+                      navigate(buildClientesNuevoHref({ returnTo, dni }))
+                    }}
+                  >
+                    Registrar en Clientes
+                  </Button>
+                </Space>
+              </Space>
+            }
           />
         ) : null}
         {solicitudCreditoId ? (
@@ -1415,6 +1450,29 @@ export function SimuladorCreditoPage() {
           </Button>
         </Space>
       </CredixPanel>
+
+      <Modal
+        title="Alta rápida de persona"
+        open={altaRapidaOpen}
+        onCancel={() => setAltaRapidaOpen(false)}
+        footer={null}
+        destroyOnHidden
+      >
+        <CrearPersonaRapidaModal
+          initialDni={
+            tipoPersona === 'N' ? (prospectoValues?.numeroDocumento ?? '').trim() : undefined
+          }
+          onCreated={(id, label) => {
+            setPersonaId(id)
+            setClienteLabel(label)
+            setTerminoCliente(label)
+            setSolicitudCreditoId(null)
+            setBienesPersistidosLocal(false)
+            setAltaRapidaOpen(false)
+            message.success('Persona registrada. Ya puede crear la solicitud.')
+          }}
+        />
+      </Modal>
     </CredixPage>
   )
 }

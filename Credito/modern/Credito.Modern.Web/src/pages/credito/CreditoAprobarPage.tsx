@@ -91,7 +91,22 @@ export function CreditoAprobarPage() {
       opcion: 0 | 1
     }) => aprobarCredito(oficinaId, creditoId, opcion),
     onSuccess: () => {
-      message.success('Crédito aprobado')
+      message.success({
+        content: (
+          <span>
+            Crédito aprobado.{' '}
+            <Button
+              type="link"
+              size="small"
+              style={{ padding: 0, height: 'auto' }}
+              onClick={() => navigate('/caja/diario?tab=desembolsos')}
+            >
+              Ir a desembolso
+            </Button>
+          </span>
+        ),
+        duration: 8,
+      })
       invalidar()
     },
     onError: (e) =>

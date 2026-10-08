@@ -15,6 +15,10 @@ import {
   saveTokens,
 } from './tokenStorage'
 import { clearLoginProfile } from './sessionProfile'
+import {
+  readRequiereCambioClave,
+  writeRequiereCambioClave,
+} from './passwordChangeGate'
 import { AuthContext, type AuthContextValue } from './authStore'
 
 async function loadSession(): Promise<SessionInfo | null> {
@@ -38,10 +42,17 @@ async function loadSession(): Promise<SessionInfo | null> {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SessionInfo | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [requiereCambioClave, setRequiereCambioClave] = useState(() =>
+    readRequiereCambioClave(),
+  )
 
   const refreshSession = useCallback(async () => {
     const next = await loadSession()
     setSession(next)
+    if (!next) {
+      writeRequiereCambioClave(false)
+      setRequiereCambioClave(false)
+    }
   }, [])
 
   useEffect(() => {
@@ -50,6 +61,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const next = await loadSession()
       if (!cancelled) {
         setSession(next)
+        if (!next) {
+          writeRequiereCambioClave(false)
+          setRequiereCambioClave(false)
+        } else {
+          setRequiereCambioClave(readRequiereCambioClave())
+        }
         setIsLoading(false)
       }
     })()
@@ -89,6 +106,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       tokens.expiresInSeconds,
       request.recordarSesion === true,
     )
+    const forceChange = tokens.requiereCambioClave === true
+    writeRequiereCambioClave(forceChange)
+    setRequiereCambioClave(forceChange)
     setSession({
       usuarioId: tokens.usuarioId,
       oficinaId: tokens.oficinaId,
@@ -104,9 +124,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })
   }, [])
 
+  const clearRequiereCambioClave = useCallback(() => {
+    writeRequiereCambioClave(false)
+    setRequiereCambioClave(false)
+  }, [])
+
   const logout = useCallback(() => {
     clearTokens()
     clearLoginProfile()
+    writeRequiereCambioClave(false)
+    setRequiereCambioClave(false)
     setSession(null)
   }, [])
 
@@ -115,11 +142,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       session,
       isLoading,
       isAuthenticated: session !== null,
+      requiereCambioClave,
+      clearRequiereCambioClave,
       login,
       logout,
       refreshSession,
     }),
-    [session, isLoading, login, logout, refreshSession],
+    [
+      session,
+      isLoading,
+      requiereCambioClave,
+      clearRequiereCambioClave,
+      login,
+      logout,
+      refreshSession,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

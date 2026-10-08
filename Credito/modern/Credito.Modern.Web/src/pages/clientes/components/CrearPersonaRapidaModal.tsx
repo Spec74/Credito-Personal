@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Button, Input, Space, message } from 'antd'
 import { FileSearchOutlined } from '@ant-design/icons'
@@ -34,14 +34,21 @@ function validarFormulario(input: {
 
 type Props = {
   onCreated: (personaId: number, label: string) => void
+  /** Prefill DNI (p. ej. desde simulador prospecto). */
+  initialDni?: string
 }
 
-export function CrearPersonaRapidaModal({ onCreated }: Props) {
-  const [dni, setDni] = useState('')
+export function CrearPersonaRapidaModal({ onCreated, initialDni }: Props) {
+  const [dni, setDni] = useState(() => onlyDigits(initialDni ?? '').slice(0, 8))
   const [nombre, setNombre] = useState('')
   const [paterno, setPaterno] = useState('')
   const [materno, setMaterno] = useState('')
   const [celular, setCelular] = useState('')
+
+  useEffect(() => {
+    const next = onlyDigits(initialDni ?? '').slice(0, 8)
+    if (next) setDni(next)
+  }, [initialDni])
 
   const crear = useMutation({
     mutationFn: () => {

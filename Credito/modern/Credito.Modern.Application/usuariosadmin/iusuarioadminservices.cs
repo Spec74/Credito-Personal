@@ -37,7 +37,13 @@ public interface IUsuarioAdminWriteService
 
     Task<MaestroOperacionResponse> ActivarAsync(int usuarioId, CancellationToken cancellationToken = default);
 
-    Task<MaestroOperacionResponse> ResetearClaveAsync(int usuarioId, CancellationToken cancellationToken = default);
+    Task<ResetearClaveResponse> ResetearClaveAsync(int usuarioId, CancellationToken cancellationToken = default);
+
+    Task<MaestroOperacionResponse> CambiarClaveAsync(
+        int usuarioId,
+        string claveActual,
+        string claveNueva,
+        CancellationToken cancellationToken = default);
 
     Task<MaestroOperacionResponse> AsignarOficinasAsync(
         int usuarioId,

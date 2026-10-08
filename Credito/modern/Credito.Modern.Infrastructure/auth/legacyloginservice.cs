@@ -145,12 +145,14 @@ public sealed class LegacyLoginService(
         }
 
         var roles = await LoadRolesAsync(connection, row.UsuarioId, row.OficinaId, cancellationToken).ConfigureAwait(false);
+        var requiereCambio = UsuarioPasswordHasher.RequiresPasswordChange(row.ClaveAlmacenada);
         return new LegacyLoginOutcome(
             LegacyLoginStatus.Success,
             row.UsuarioId,
             row.OficinaId,
             row.UsuarioOficinaId,
-            roles);
+            roles,
+            requiereCambio);
     }
 
     public async Task<IReadOnlyList<string>> GetUsuarioRolesAsync(int usuarioId, int oficinaId, CancellationToken cancellationToken = default)

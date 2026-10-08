@@ -2,8 +2,12 @@ using System.Data.Common;
 using System.Globalization;
 using System.Security.Claims;
 using Credito.Modern.Api.Hosting;
+using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.Auth;
+using Credito.Modern.Application.Maestros;
 using Credito.Modern.Application.Time;
+using Credito.Modern.Application.UsuariosAdmin;
+using Credito.Modern.Application.Validation;
 using Credito.Modern.Infrastructure.Auth;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.Options;
@@ -197,7 +201,8 @@ internal static class AuthEndpoints
                         (int)refreshLifetime.TotalSeconds,
                         outcome.UsuarioId,
                         outcome.OficinaId,
-                        outcome.UsuarioOficinaId));
+                        outcome.UsuarioOficinaId,
+                        outcome.RequiereCambioClave));
             }
             catch (InvalidOperationException ex)
             {
@@ -228,6 +233,86 @@ internal static class AuthEndpoints
         .ProducesProblem(StatusCodes.Status403Forbidden)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+        app.MapPost(
+                "/api/v1/auth/cambiar-clave",
+                async Task<Results<Ok<MaestroOperacionResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    CambiarClaveRequest body,
+                    IUsuarioAdminWriteService usuariosWrite,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    var usuarioIdClaim = httpContext.User.FindFirst(VendixClaims.UsuarioId)?.Value;
+                    if (!int.TryParse(usuarioIdClaim, NumberStyles.Integer, CultureInfo.InvariantCulture, out var usuarioId)
+                        || usuarioId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status401Unauthorized,
+                            title: "No autorizado",
+                            detail: "Sesión inválida.");
+                    }
+
+                    var edgeError = ProblemResults.IfInvalid(
+                        UsuarioValidacion.ValidarClaveNueva(body.ClaveNueva));
+                    if (edgeError is not null)
+                    {
+                        return edgeError;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(body.ClaveActual))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Datos inválidos",
+                            detail: "claveActual es obligatoria.");
+                    }
+
+                    var log = loggerFactory.CreateLogger("AuthCambiarClave");
+                    try
+                    {
+                        var response = await usuariosWrite
+                            .CambiarClaveAsync(usuarioId, body.ClaveActual, body.ClaveNueva, ct)
+                            .ConfigureAwait(false);
+                        if (!response.Success)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status400BadRequest,
+                                title: "Datos inválidos",
+                                detail: response.Mensaje ?? "No se pudo cambiar la clave.");
+                        }
+
+                        return TypedResults.Ok(response);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error SQL al cambiar clave");
+                        var detail = "No se pudo actualizar la clave.";
+                        if (env.IsDevelopment())
+                            detail += $" Detalle: {ex.Message}";
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("AuthCambiarClave")
+            .WithSummary("Cambia la clave del usuario autenticado (también limpia el flag de clave temporal).")
+            .WithTags("auth")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .Produces<MaestroOperacionResponse>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
         app.MapPost(
                 "/api/v1/auth/registrar-acceso-ip",

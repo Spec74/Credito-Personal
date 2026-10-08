@@ -7,4 +7,5 @@ public sealed record LoginTokenResponse(
     int RefreshExpiresInSeconds,
     int UsuarioId,
     int OficinaId,
-    int UsuarioOficinaId);
+    int UsuarioOficinaId,
+    bool RequiereCambioClave = false);

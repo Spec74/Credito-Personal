@@ -88,6 +88,45 @@ export const emailRule: Rule = {
   message: 'Correo no válido',
 }
 
+/** Clave nueva: mín. 8, al menos una letra y un número (paridad UsuarioValidacion). */
+export function mensajeClaveNueva(
+  value: string | null | undefined,
+  fieldLabel = 'clave',
+): string | null {
+  const v = (value ?? '').trim()
+  if (!v) return `${fieldLabel} es obligatoria`
+  if (v.length < 8) return `${fieldLabel} debe tener al menos 8 caracteres`
+  if (v.length > 100) return `${fieldLabel}: máximo 100 caracteres`
+  if (!/[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]/.test(v) || !/\d/.test(v)) {
+    return `${fieldLabel} debe incluir al menos una letra y un número`
+  }
+  return null
+}
+
+export const claveNuevaRule: Rule = {
+  validator: async (_, value: string | null | undefined) => {
+    const err = mensajeClaveNueva(value)
+    if (err) throw new Error(err)
+  },
+}
+
+/** Obligatoria en alta; en edición vacío = no cambiar. */
+export function claveUsuarioRules(requiredOnCreate: boolean): Rule[] {
+  if (requiredOnCreate) {
+    return [claveNuevaRule]
+  }
+  return [
+    {
+      validator: async (_, value: string | null | undefined) => {
+        const v = (value ?? '').trim()
+        if (!v) return
+        const err = mensajeClaveNueva(v)
+        if (err) throw new Error(err)
+      },
+    },
+  ]
+}
+
 export const denominacionRules = requiredText(FIELD_MAX.denominacion)
 export const glosaRules = requiredText(FIELD_MAX.glosa)
 export const observacionOptionalRules: Rule[] = [maxLen(FIELD_MAX.observacion)]

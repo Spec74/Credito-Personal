@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Alert, Button, Space, Tabs, Typography } from 'antd'
 import { ReloadOutlined } from '@ant-design/icons'
 import {
+  completarImpagosValidacion,
   fetchCajaDiarioSesion,
   fetchResumenIngresoCaja,
   fetchRptSaldosCaja,
@@ -113,6 +114,16 @@ export function CajaDiarioPage() {
     enabled: !!ctx,
   })
 
+  const impagosValidacionQuery = useQuery({
+    queryKey: ['caja-impagos-validacion', ctx?.oficinaId, ctx?.cajaDiarioId],
+    queryFn: () => completarImpagosValidacion(ctx!.oficinaId, ctx!.cajaDiarioId),
+    enabled: !!ctx && !ctx.indCierre,
+    staleTime: 60_000,
+  })
+
+  const cantidadImpagosPendientes =
+    impagosValidacionQuery.data?.cantidadImpagosPendientes ?? 0
+
   const movimientos = useMemo(
     () => movimientosQuery.data ?? [],
     [movimientosQuery.data],
@@ -147,6 +158,7 @@ export function CajaDiarioPage() {
     void queryClient.invalidateQueries({ queryKey: ['caja-cxc'] })
     void queryClient.invalidateQueries({ queryKey: ['caja-cxc-inline'] })
     void queryClient.invalidateQueries({ queryKey: ['caja-desembolsos'] })
+    void queryClient.invalidateQueries({ queryKey: ['caja-impagos-validacion'] })
   }
 
   const refreshCaja = () => {
@@ -216,6 +228,27 @@ export function CajaDiarioPage() {
       className="caja-diario-page"
     >
       <div className="caja-diario-shell">
+        {cantidadImpagosPendientes > 0 ? (
+          <Alert
+            type="warning"
+            showIcon
+            style={{ marginBottom: 12 }}
+            message={`Hay ${cantidadImpagosPendientes} crédito(s) con impagos pendientes`}
+            description={
+              <>
+                Revise y verifique los pagos antes de cerrar caja.{' '}
+                <Link to="/caja/verificar-pagos">Ir a verificar pagos</Link>
+              </>
+            }
+            action={
+              <Link to="/caja/verificar-pagos">
+                <Button size="small" type="primary">
+                  Verificar pagos
+                </Button>
+              </Link>
+            }
+          />
+        ) : null}
         {cajaQuery.isLoading && (
           <Alert message="Cargando caja asignada…" type="info" />
         )}

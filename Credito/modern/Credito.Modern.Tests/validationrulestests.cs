@@ -56,6 +56,8 @@ public sealed class ValidationRulesTests
         Assert.NotNull(DateRules.OptionalFechaNacimiento(hoy.AddYears(-17), hoy));
         Assert.Null(DateRules.OptionalFechaNacimiento(hoy.AddYears(-25), hoy));
         Assert.NotNull(DateRules.OptionalFechaNacimiento(hoy.AddYears(-130), hoy));
+        Assert.NotNull(DateRules.RequireFechaNacimiento(null, hoy));
+        Assert.Null(DateRules.RequireFechaNacimiento(hoy.AddYears(-25), hoy));
     }
 
     [Fact]

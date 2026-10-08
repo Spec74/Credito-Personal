@@ -40,4 +40,14 @@ public class UsuarioPasswordHasherTests
         var hash = UsuarioPasswordHasher.CreateHash("MiClave_S3gura");
         Assert.InRange(hash.Length, 51, 256);
     }
+
+    [Fact]
+    public void CreateTemporaryHash_marca_requiere_cambio_y_verifica()
+    {
+        var plain = UsuarioPasswordHasher.GenerateTemporaryPassword();
+        var hash = UsuarioPasswordHasher.CreateTemporaryHash(plain);
+        Assert.True(UsuarioPasswordHasher.RequiresPasswordChange(hash));
+        Assert.False(UsuarioPasswordHasher.RequiresPasswordChange(UsuarioPasswordHasher.CreateHash(plain)));
+        Assert.True(UsuarioPasswordHasher.Verify(hash, plain, out _));
+    }
 }

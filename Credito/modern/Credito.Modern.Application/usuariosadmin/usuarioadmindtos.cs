@@ -77,3 +77,8 @@ public sealed record ValidarDniResponse(bool Existe);
 public sealed record AsignarOficinasRequest(int[] OficinaIds);
 
 public sealed record AsignarRolesRequest(int OficinaId, int[] RolIds);
+
+/// <summary>Respuesta de reset: incluye clave temporal de un solo uso (no se vuelve a consultar).</summary>
+public sealed record ResetearClaveResponse(bool Success, int? Id, string? Mensaje, string? ClaveTemporal);
+
+public sealed record CambiarClaveRequest(string ClaveActual, string ClaveNueva);

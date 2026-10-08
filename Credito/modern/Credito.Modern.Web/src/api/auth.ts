@@ -1,4 +1,5 @@
 import { apiFetch } from './client'
+import type { MaestroOperacionResponse } from './maestrosCrud'
 import type {
   AuthMeResponse,
   LoginRequest,
@@ -16,4 +17,15 @@ export function login(request: LoginRequest): Promise<LoginTokenResponse> {
 
 export function fetchMe(): Promise<AuthMeResponse> {
   return apiFetch<AuthMeResponse>('/auth/me')
+}
+
+export function cambiarClave(
+  claveActual: string,
+  claveNueva: string,
+): Promise<MaestroOperacionResponse> {
+  return apiFetch<MaestroOperacionResponse>('/auth/cambiar-clave', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ claveActual, claveNueva }),
+  })
 }

@@ -5,6 +5,9 @@ export interface AuthContextValue {
   session: SessionInfo | null
   isLoading: boolean
   isAuthenticated: boolean
+  /** Tras login con clave temporal: bloquear app hasta cambiar clave. */
+  requiereCambioClave: boolean
+  clearRequiereCambioClave: () => void
   login: (request: LoginRequest) => Promise<void>
   logout: () => void
   refreshSession: () => Promise<void>

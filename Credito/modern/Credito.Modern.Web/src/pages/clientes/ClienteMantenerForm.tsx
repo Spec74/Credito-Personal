@@ -67,16 +67,21 @@ import { buildPrendarioNuevoHref, parseInternalPath, withSearchParam } from '../
 import {
   CALIFICACIONES,
   ESTADO_CIVIL_CONYUGE,
-  REGLA_CELULAR,
-  REGLA_CELULAR_OBLIGATORIO,
   TABLA_ESTADO_CIVIL,
   TABLA_RIESGO_SBS,
   TABLA_TIPO_VIVIENDA,
 } from './clienteMantenerConstants'
 import {
+  FIELD_MAX,
+  celularPeRequired,
   direccionRealistaRule,
   disabledFechaNacimiento,
+  dniRule,
   fechaNacimientoRule,
+  maxLen,
+  required,
+  requiredText,
+  rucRule,
 } from '../../validation/formRules'
 import '../../styles/cliente-form.css';
 
@@ -140,7 +145,8 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
   const [conyuguePersonaId, setConyuguePersonaId] = useState<number | null>(null)
   const [mapLocation, setMapLocation] = useState<MapLatLng | null>(null)
   const [clienteTab, setClienteTab] = useState('identidad')
-  const [nombresBloqueados, setNombresBloqueados] = useState(!esEdicion)
+  /** Editable de entrada; ApiPerú rellena al validar (no bloquea alta manual). */
+  const [nombresBloqueados, setNombresBloqueados] = useState(false)
   const [avalOpen, setAvalOpen] = useState(false)
   const [distritoTerm, setDistritoTerm] = useState('')
   const [guardarDestino, setGuardarDestino] = useState<'listado' | 'credito' | 'prendario'>('listado')
@@ -616,7 +622,10 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                       <Form.Item
                         name="numeroDocumento"
                         label={tipoPersona === 'N' ? 'DNI' : 'RUC'}
-                        rules={[{ required: true }]}
+                        rules={[
+                          required(tipoPersona === 'N' ? 'DNI obligatorio' : 'RUC obligatorio'),
+                          tipoPersona === 'N' ? dniRule : rucRule,
+                        ]}
                       >
                         <Input
                           maxLength={tipoPersona === 'N' ? 8 : 11}
@@ -656,20 +665,36 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                   </Row>
                   <Row gutter={16}>
                     <Col xs={24} md={tipoPersona === 'N' ? 8 : 16}>
-                      <Form.Item name="nombre" label={tipoPersona === 'N' ? 'Nombres' : 'Razón social'} rules={[{ required: true }]}>
-                        <Input readOnly={nombresBloqueados} />
+                      <Form.Item
+                        name="nombre"
+                        label={tipoPersona === 'N' ? 'Nombres' : 'Razón social'}
+                        rules={requiredText(FIELD_MAX.nombre)}
+                      >
+                        <Input
+                          maxLength={FIELD_MAX.nombre}
+                          readOnly={nombresBloqueados}
+                          placeholder={nombresBloqueados ? 'Valide con ApiPerú o edite' : undefined}
+                        />
                       </Form.Item>
                     </Col>
                     {tipoPersona === 'N' && (
                       <>
                         <Col xs={24} md={8}>
-                          <Form.Item name="apePaterno" label="Apellido paterno" rules={[{ required: true }]}>
-                            <Input readOnly={nombresBloqueados} />
+                          <Form.Item
+                            name="apePaterno"
+                            label="Apellido paterno"
+                            rules={requiredText(FIELD_MAX.nombre)}
+                          >
+                            <Input maxLength={FIELD_MAX.nombre} readOnly={nombresBloqueados} />
                           </Form.Item>
                         </Col>
                         <Col xs={24} md={8}>
-                          <Form.Item name="apeMaterno" label="Apellido materno" rules={[{ required: true }]}>
-                            <Input readOnly={nombresBloqueados} />
+                          <Form.Item
+                            name="apeMaterno"
+                            label="Apellido materno"
+                            rules={requiredText(FIELD_MAX.nombre)}
+                          >
+                            <Input maxLength={FIELD_MAX.nombre} readOnly={nombresBloqueados} />
                           </Form.Item>
                         </Col>
                       </>
@@ -691,8 +716,11 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                         <Form.Item
                           name="fechaNacimiento"
                           label="Fecha nacimiento"
-                          rules={[fechaNacimientoRule(18)]}
-                          extra="Persona natural: mínimo 18 años; no se admiten fechas futuras."
+                          rules={[
+                            { required: true, message: 'Fecha de nacimiento obligatoria' },
+                            fechaNacimientoRule(18),
+                          ]}
+                          extra="Obligatoria (persona natural). Mínimo 18 años; no se admiten fechas futuras."
                         >
                           <CredixDatePicker disabledDate={(d) => disabledFechaNacimiento(d, 18)} />
                         </Form.Item>
@@ -704,19 +732,51 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                       <Form.Item
                         name="celular1"
                         label="Celular"
-                        rules={celularObligatorio ? [...REGLA_CELULAR_OBLIGATORIO] : [REGLA_CELULAR]}
+                        rules={
+                          celularObligatorio
+                            ? celularPeRequired
+                            : [
+                                {
+                                  validator: async (_, value: string | null | undefined) => {
+                                    const v = (value ?? '').trim()
+                                    if (!v) return
+                                    if (!/^9\d{8}$/.test(v)) {
+                                      throw new Error('Celular: 9 dígitos que empiezan con 9')
+                                    }
+                                  },
+                                },
+                              ]
+                        }
                         extra={
                           celularObligatorio
                             ? 'Obligatorio para crédito prendario (avisos WhatsApp).'
-                            : undefined
+                            : 'Opcional. Si indica, debe ser móvil PE (9XXXXXXXX).'
                         }
                       >
-                        <Input maxLength={9} inputMode="numeric" placeholder="9XXXXXXXX" />
+                        <Input maxLength={FIELD_MAX.celular} inputMode="numeric" placeholder="9XXXXXXXX" />
                       </Form.Item>
                     </Col>
                     <Col xs={24} md={8}>
-                      <Form.Item name="email" label="Correo">
-                        <Input type="email" />
+                      <Form.Item
+                        name="email"
+                        label="Correo"
+                        rules={[
+                          {
+                            validator: async (_, value: string | null | undefined) => {
+                              const v = (value ?? '').trim()
+                              if (!v) return
+                              if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) {
+                                throw new Error('Correo no válido')
+                              }
+                              if (v.length > FIELD_MAX.email) {
+                                throw new Error(`Máximo ${FIELD_MAX.email} caracteres`)
+                              }
+                            },
+                          },
+                          maxLen(FIELD_MAX.email),
+                        ]}
+                      >
+                        <Input type="email" maxLength={FIELD_MAX.email} />
                       </Form.Item>
                     </Col>
                   </Row>

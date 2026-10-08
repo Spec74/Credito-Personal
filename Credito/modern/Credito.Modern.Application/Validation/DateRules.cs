@@ -52,6 +52,21 @@ public static class DateRules
             return null;
         }
 
+        return RequireFechaNacimiento(value, today, minAgeYears, fieldName);
+    }
+
+    /// <summary>Fecha de nacimiento obligatoria con rango de edad.</summary>
+    public static string? RequireFechaNacimiento(
+        DateTime? value,
+        DateTime today,
+        int minAgeYears = 18,
+        string fieldName = "fecha de nacimiento")
+    {
+        if (value is null)
+        {
+            return $"{fieldName} es obligatoria.";
+        }
+
         var birth = value.Value.Date;
         var hoy = today.Date;
         if (birth > hoy)

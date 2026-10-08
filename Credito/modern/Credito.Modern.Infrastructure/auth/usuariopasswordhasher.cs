@@ -6,11 +6,14 @@ namespace Credito.Modern.Infrastructure.Auth;
 
 /// <summary>
 /// Hash PBKDF2-HMAC-SHA256 en la misma columna <c>MAESTRO.Usuario.ClaveUsuario</c> con prefijo <c>$pbk2$</c> (Fase B del roadmap de contraseñas).
+/// Versión <c>1</c> = normal; <c>2</c> = temporal (requiere cambio en próximo login).
 /// Debe mantenerse alineado con <c>Web/Helper/UsuarioPasswordHasherCompat.cs</c> del MVC (.NET Framework 4.8).
 /// </summary>
 public static class UsuarioPasswordHasher
 {
     private const string Scheme = "pbk2";
+    private const string VersionNormal = "1";
+    private const string VersionDebeCambiar = "2";
 
     /// <summary>Iteraciones por defecto al crear hash nuevos (compatible con verificación que lee el valor del token).</summary>
     public const int DefaultIterations = 150_000;
@@ -19,8 +22,28 @@ public static class UsuarioPasswordHasher
     public static bool LooksLikeStoredHash(string? stored) =>
         stored is { Length: > 12 } && stored.StartsWith("$pbk2$", StringComparison.Ordinal);
 
+    /// <summary>Hash temporal tras reset: el login moderno debe forzar cambio de clave.</summary>
+    public static bool RequiresPasswordChange(string? stored)
+    {
+        if (!LooksLikeStoredHash(stored))
+        {
+            return false;
+        }
+
+        var parts = stored!.Split('$', StringSplitOptions.RemoveEmptyEntries);
+        return parts.Length >= 2
+            && string.Equals(parts[0], Scheme, StringComparison.Ordinal)
+            && string.Equals(parts[1], VersionDebeCambiar, StringComparison.Ordinal);
+    }
+
     /// <summary>Genera un valor listo para <c>UPDATE Usuario.ClaveUsuario</c>.</summary>
-    public static string CreateHash(string password)
+    public static string CreateHash(string password) => CreateHashCore(password, VersionNormal);
+
+    /// <summary>Hash de clave temporal (reset): marca <c>RequiresPasswordChange</c>.</summary>
+    public static string CreateTemporaryHash(string password) =>
+        CreateHashCore(password, VersionDebeCambiar);
+
+    private static string CreateHashCore(string password, string version)
     {
         ArgumentNullException.ThrowIfNull(password);
         var salt = RandomNumberGenerator.GetBytes(16);
@@ -31,12 +54,33 @@ public static class UsuarioPasswordHasher
             HashAlgorithmName.SHA256,
             32);
         return string.Concat(
-            "$pbk2$1$",
+            "$pbk2$",
+            version,
+            "$",
             DefaultIterations.ToString(CultureInfo.InvariantCulture),
             "$",
             Convert.ToBase64String(salt),
             "$",
             Convert.ToBase64String(subkey));
+    }
+
+    /// <summary>
+    /// Genera clave temporal legible (sin ambigüedad 0/O / 1/l) para mostrar al admin.
+    /// </summary>
+    public static string GenerateTemporaryPassword(int length = 10)
+    {
+        const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+        var bytes = RandomNumberGenerator.GetBytes(length);
+        var chars = new char[length];
+        for (var i = 0; i < length; i++)
+        {
+            chars[i] = alphabet[bytes[i] % alphabet.Length];
+        }
+
+        // Garantizar al menos una letra y un dígito.
+        chars[0] = 'A';
+        chars[1] = '7';
+        return new string(chars);
     }
 
     /// <summary>
@@ -70,7 +114,8 @@ public static class UsuarioPasswordHasher
                 return false;
             }
 
-            if (!string.Equals(parts[1], "1", StringComparison.Ordinal))
+            if (!string.Equals(parts[1], VersionNormal, StringComparison.Ordinal)
+                && !string.Equals(parts[1], VersionDebeCambiar, StringComparison.Ordinal))
             {
                 return false;
             }

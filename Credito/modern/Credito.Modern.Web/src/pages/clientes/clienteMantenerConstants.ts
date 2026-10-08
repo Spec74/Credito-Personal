@@ -12,14 +12,5 @@ export const CALIFICACIONES = [
   { value: 'C', label: 'C' },
 ] as const
 
-/** Celular móvil peruano (9 dígitos, empieza con 9). */
-export const REGLA_CELULAR = {
-  pattern: /^9\d{8}$/,
-  message: 'Celular: 9 dígitos que empiezan con 9',
-} as const
-
-/** Obligatorio + formato peruano (p. ej. alta desde Prendario). */
-export const REGLA_CELULAR_OBLIGATORIO = [
-  { required: true, message: 'Celular obligatorio' },
-  REGLA_CELULAR,
-] as const
+/** @deprecated Usar celularPeRule / celularPeRequired de validation/formRules. */
+export { celularPeRule as REGLA_CELULAR, celularPeRequired as REGLA_CELULAR_OBLIGATORIO } from '../../validation/formRules'

@@ -18,7 +18,7 @@ public static class ClienteValidacion
                 ? ValidationGate.First(
                     StringRules.RequireText(request.ApePaterno, "apellido paterno", StringRules.MaxNombre),
                     StringRules.RequireText(request.ApeMaterno, "apellido materno", StringRules.MaxNombre),
-                    DateRules.OptionalFechaNacimiento(request.FechaNacimiento, today))
+                    DateRules.RequireFechaNacimiento(request.FechaNacimiento, today))
                 : null,
             request.EstadoCivilId is 2 or 3 && request.ConyuguePersonaId is null or < 1
                 ? "Cónyuge obligatorio para estado civil casado/conviviente."

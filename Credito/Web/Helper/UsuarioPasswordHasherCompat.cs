@@ -43,7 +43,9 @@ namespace Helper
                     return false;
                 }
 
-                if (!string.Equals(parts[1], "1", StringComparison.Ordinal))
+                // 1 = normal, 2 = temporal (mismo algoritmo; SPA fuerza cambio de clave).
+                if (!string.Equals(parts[1], "1", StringComparison.Ordinal)
+                    && !string.Equals(parts[1], "2", StringComparison.Ordinal))
                 {
                     return false;
                 }

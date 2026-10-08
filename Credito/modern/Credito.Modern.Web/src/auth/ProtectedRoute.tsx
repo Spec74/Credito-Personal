@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { Spin } from 'antd'
+import { ForzarCambioClaveModal } from './ForzarCambioClaveModal'
 import { useAuth } from './useAuth'
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -19,5 +20,10 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" replace state={{ from: returnTo }} />
   }
 
-  return <>{children}</>
+  return (
+    <>
+      <ForzarCambioClaveModal />
+      {children}
+    </>
+  )
 }

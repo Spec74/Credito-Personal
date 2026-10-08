@@ -28,6 +28,7 @@ import {
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import {
   celularPeRule,
+  claveUsuarioRules,
   direccionRealistaRule,
   disabledFechaNacimiento,
   dniRule,
@@ -161,9 +162,7 @@ export function UsuariosPage() {
       message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error ApiPerú'),
   })
 
-  const CLAVE_RESET_TEMPORAL = '123456'
-
-  const mostrarCredencialesReset = (nombreUsuario: string) => {
+  const mostrarCredencialesReset = (nombreUsuario: string, claveTemporal: string) => {
     const usuario = nombreUsuario.trim() || form.getFieldValue('nombreUsuario') || '—'
     Modal.success({
       title: 'Clave restablecida',
@@ -171,8 +170,8 @@ export function UsuariosPage() {
       content: (
         <Space direction="vertical" size="middle" style={{ width: '100%', marginTop: 8 }}>
           <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-            La clave anterior no se puede recuperar (está cifrada). Use estas credenciales
-            temporales para revisar o indicar al usuario que cambie su clave.
+            Clave temporal generada. El usuario deberá cambiarla en el próximo inicio de sesión.
+            La clave anterior no se puede recuperar (está cifrada).
           </Paragraph>
           <div>
             <Text type="secondary">Usuario</Text>
@@ -191,11 +190,11 @@ export function UsuariosPage() {
           <div>
             <Text type="secondary">Clave temporal</Text>
             <Space.Compact style={{ width: '100%', marginTop: 4 }}>
-              <Input.Password value={CLAVE_RESET_TEMPORAL} readOnly visibilityToggle />
+              <Input.Password value={claveTemporal} readOnly visibilityToggle />
               <Button
                 icon={<CopyOutlined />}
                 onClick={() => {
-                  void navigator.clipboard.writeText(CLAVE_RESET_TEMPORAL).then(() =>
+                  void navigator.clipboard.writeText(claveTemporal).then(() =>
                     message.success('Clave copiada'),
                   )
                 }}
@@ -214,12 +213,17 @@ export function UsuariosPage() {
         message.error(res.mensaje ?? 'Error')
         return
       }
+      const claveTemporal = (res.claveTemporal ?? '').trim()
+      if (!claveTemporal) {
+        message.error(res.mensaje ?? 'No se recibió la clave temporal')
+        return
+      }
       const nombreUsuario =
         (form.getFieldValue('nombreUsuario') as string | undefined)?.trim() ||
         detalleQuery.data?.nombreUsuario ||
         ''
       form.setFieldValue('claveUsuario', '')
-      mostrarCredencialesReset(nombreUsuario)
+      mostrarCredencialesReset(nombreUsuario, claveTemporal)
     },
     onError: (e: unknown) =>
       message.error(e instanceof ApiError ? e.message : 'No se pudo restablecer la clave'),
@@ -271,6 +275,15 @@ export function UsuariosPage() {
     const asignadas = d.oficinas.filter((o) => o.asignado).map((o) => o.oficinaId)
     form.setFieldValue('oficinaIds', asignadas)
   }, [detalleQuery.data, form])
+
+  useEffect(() => {
+    const roles = rolesQuery.data
+    if (!roles) return
+    form.setFieldValue(
+      'rolIds',
+      roles.filter((r) => r.asignado).map((r) => r.rolId),
+    )
+  }, [rolesQuery.data, form])
 
   const openCreate = () => {
     setUsuarioId(0)
@@ -503,39 +516,26 @@ export function UsuariosPage() {
                           showIcon
                           style={{ marginBottom: 12 }}
                           message="La clave actual no se puede ver"
-                          description="Por seguridad se guarda cifrada (hash). El ojito solo muestra lo que usted escriba ahora. Para revisar como ese usuario: Resetear clave (queda 123456) o escriba una clave temporal nueva y guarde."
+                          description="Por seguridad se guarda cifrada (hash). El ojito solo muestra lo que usted escriba ahora. Use «Resetear clave» para generar una temporal (el usuario deberá cambiarla al iniciar sesión) o escriba una clave nueva y guarde."
                         />
                       ) : null}
                       <Form.Item
                         name="claveUsuario"
                         label={usuarioId >= 1 ? 'Nueva clave (opcional)' : 'Clave'}
-                        rules={
-                          usuarioId < 1
-                            ? [
-                                { required: true, message: 'Clave obligatoria' },
-                                { min: 6, message: 'Mínimo 6 caracteres' },
-                              ]
-                            : [
-                                {
-                                  validator: async (_, value: string | undefined) => {
-                                    const v = (value ?? '').trim()
-                                    if (!v) return
-                                    if (v.length < 6) {
-                                      throw new Error('Mínimo 6 caracteres')
-                                    }
-                                  },
-                                },
-                              ]
-                        }
+                        rules={claveUsuarioRules(usuarioId < 1)}
                         extra={
                           usuarioId >= 1
-                            ? 'Vacío = no cambiar. Si escribe una nueva, el ojito la muestra al tipearla.'
-                            : 'Use el ojito para verificar lo que escribe.'
+                            ? 'Vacío = no cambiar. Mínimo 8 caracteres, con letra y número.'
+                            : 'Mínimo 8 caracteres, con letra y número.'
                         }
                       >
                         <Input.Password
                           visibilityToggle
-                          placeholder={usuarioId >= 1 ? 'Dejar vacío para no cambiar' : 'Mínimo 6 caracteres'}
+                          placeholder={
+                            usuarioId >= 1
+                              ? 'Dejar vacío para no cambiar'
+                              : 'Mínimo 8 caracteres, letra y número'
+                          }
                           autoComplete="new-password"
                         />
                       </Form.Item>
@@ -580,12 +580,12 @@ export function UsuariosPage() {
                               title: '¿Restablecer clave temporal?',
                               content: (
                                 <Paragraph style={{ marginBottom: 0 }}>
-                                  Se asignará la clave <Text code>{CLAVE_RESET_TEMPORAL}</Text> al
-                                  usuario{' '}
+                                  Se generará una clave temporal para el usuario{' '}
                                   <Text strong>
                                     {(form.getFieldValue('nombreUsuario') as string) || '…'}
                                   </Text>
-                                  . La clave anterior quedará invalidada (no es recuperable).
+                                  . Deberá cambiarla en el próximo inicio de sesión. La clave
+                                  anterior quedará invalidada (no es recuperable).
                                 </Paragraph>
                               ),
                               okText: 'Restablecer',
@@ -652,7 +652,20 @@ export function UsuariosPage() {
                           .filter((o) => o.asignado)
                           .map((o) => ({ value: o.oficinaId, label: o.denominacion }))}
                       />
-                      <Form.Item name="rolIds" label="Roles">
+                      <Form.Item
+                        name="rolIds"
+                        label="Roles"
+                        rules={[
+                          {
+                            validator: async (_, value: number[] | undefined) => {
+                              const ids = (value ?? []).filter((id) => id >= 1)
+                              if (ids.length < 1) {
+                                throw new Error('Debe asignar al menos un rol')
+                              }
+                            },
+                          },
+                        ]}
+                      >
                         <Select
                           mode="multiple"
                           loading={rolesQuery.isLoading}
@@ -668,8 +681,14 @@ export function UsuariosPage() {
                         disabled={!oficinaRolEfectiva}
                         loading={asignarRoles.isPending}
                         onClick={() => {
-                          const rolIds = (form.getFieldValue('rolIds') as number[]) ?? []
-                          asignarRoles.mutate({ oficinaId: oficinaRolEfectiva!, rolIds })
+                          void form.validateFields(['rolIds']).then((v) => {
+                            const rolIds = ((v.rolIds as number[]) ?? []).filter((id) => id >= 1)
+                            if (rolIds.length < 1) {
+                              message.warning('Debe asignar al menos un rol')
+                              return
+                            }
+                            asignarRoles.mutate({ oficinaId: oficinaRolEfectiva!, rolIds })
+                          })
                         }}
                       >
                         Guardar roles

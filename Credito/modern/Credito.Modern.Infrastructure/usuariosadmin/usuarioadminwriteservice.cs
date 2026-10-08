@@ -10,7 +10,6 @@ namespace Credito.Modern.Infrastructure.UsuariosAdmin;
 
 public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> options) : IUsuarioAdminWriteService
 {
-    private const string ClaveResetLegacy = "123456";
     private readonly string _cs = options.Value.ConnectionString;
 
     public async Task<MaestroOperacionResponse> GuardarAsync(
@@ -227,10 +226,11 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
             : new MaestroOperacionResponse(false, null, "Usuario no encontrado.");
     }
 
-    public async Task<MaestroOperacionResponse> ResetearClaveAsync(int usuarioId, CancellationToken ct = default)
+    public async Task<ResetearClaveResponse> ResetearClaveAsync(int usuarioId, CancellationToken ct = default)
     {
         Ensure();
-        var hash = UsuarioPasswordHasher.CreateHash(ClaveResetLegacy);
+        var temporal = UsuarioPasswordHasher.GenerateTemporaryPassword();
+        var hash = UsuarioPasswordHasher.CreateTemporaryHash(temporal);
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
         var n = await c.ExecuteAsync(
@@ -239,8 +239,58 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                 new { UsuarioId = usuarioId, Clave = hash },
                 cancellationToken: ct)).ConfigureAwait(false);
         return n > 0
+            ? new ResetearClaveResponse(
+                true,
+                usuarioId,
+                "Clave temporal generada. El usuario deberá cambiarla al iniciar sesión.",
+                temporal)
+            : new ResetearClaveResponse(false, null, "Usuario no encontrado.", null);
+    }
+
+    public async Task<MaestroOperacionResponse> CambiarClaveAsync(
+        int usuarioId,
+        string claveActual,
+        string claveNueva,
+        CancellationToken ct = default)
+    {
+        Ensure();
+        var claveErr = UsuarioValidacion.ValidarClaveNueva(claveNueva);
+        if (claveErr is not null)
+        {
+            return new MaestroOperacionResponse(false, null, claveErr);
+        }
+
+        await using var c = new SqlConnection(_cs);
+        await c.OpenAsync(ct).ConfigureAwait(false);
+        var stored = await c.ExecuteScalarAsync<string?>(
+            new CommandDefinition(
+                "SELECT ClaveUsuario FROM MAESTRO.Usuario WHERE UsuarioId = @UsuarioId AND Estado = CAST(1 AS bit);",
+                new { UsuarioId = usuarioId },
+                cancellationToken: ct)).ConfigureAwait(false);
+        if (string.IsNullOrEmpty(stored))
+        {
+            return new MaestroOperacionResponse(false, null, "Usuario no encontrado.");
+        }
+
+        if (!UsuarioPasswordHasher.Verify(stored, claveActual ?? string.Empty, out _))
+        {
+            return new MaestroOperacionResponse(false, null, "La clave actual no es correcta.");
+        }
+
+        if (string.Equals(claveActual?.Trim(), claveNueva.Trim(), StringComparison.Ordinal))
+        {
+            return new MaestroOperacionResponse(false, null, "La clave nueva debe ser distinta a la actual.");
+        }
+
+        var hash = UsuarioPasswordHasher.CreateHash(claveNueva.Trim());
+        var n = await c.ExecuteAsync(
+            new CommandDefinition(
+                "UPDATE MAESTRO.Usuario SET ClaveUsuario = @Clave WHERE UsuarioId = @UsuarioId;",
+                new { UsuarioId = usuarioId, Clave = hash },
+                cancellationToken: ct)).ConfigureAwait(false);
+        return n > 0
             ? new MaestroOperacionResponse(true, usuarioId, null)
-            : new MaestroOperacionResponse(false, null, "Usuario no encontrado.");
+            : new MaestroOperacionResponse(false, null, "No se pudo actualizar la clave.");
     }
 
     public async Task<MaestroOperacionResponse> AsignarOficinasAsync(
@@ -291,9 +341,10 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
         CancellationToken ct = default)
     {
         Ensure();
-        if (oficinaId < 1)
+        var rolesErr = UsuarioValidacion.ValidarAsignarRoles(oficinaId, rolIds);
+        if (rolesErr is not null)
         {
-            return new MaestroOperacionResponse(false, null, "oficinaId debe ser >= 1.");
+            return new MaestroOperacionResponse(false, null, rolesErr);
         }
 
         await using var c = new SqlConnection(_cs);

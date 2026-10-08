@@ -31,7 +31,7 @@ public class SimuladorCreditoEndpointTests : IClassFixture<CreditoModernWebAppli
     }
 
     [Fact]
-    public async Task Simulador_credito_monto_cero_con_token_devuelve_200_lista_vacia()
+    public async Task Simulador_credito_monto_cero_con_token_devuelve_400()
     {
         var tokenRes = await _client.PostAsJsonAsync("/api/v1/dev/token", new { usuarioId = 1, oficinaId = 1 });
         Assert.Equal(HttpStatusCode.OK, tokenRes.StatusCode);
@@ -43,18 +43,15 @@ public class SimuladorCreditoEndpointTests : IClassFixture<CreditoModernWebAppli
             Content = JsonContent.Create(new
             {
                 monto = 0m,
-                formaPago = "X",
-                nroCuotas = 0,
-                interesMensual = -1m,
-                fechaPrimerPago = new DateTime(1800, 1, 1),
+                formaPago = "M",
+                nroCuotas = 12,
+                interesMensual = 2.5m,
+                fechaPrimerPago = new DateTime(2026, 6, 1),
             }),
         };
         req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var res = await _client.SendAsync(req);
-        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
-        var list = await res.Content.ReadFromJsonAsync<List<JsonElement>>();
-        Assert.NotNull(list);
-        Assert.Empty(list);
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
     }
 
     [Fact]

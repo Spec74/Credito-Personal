@@ -6,13 +6,40 @@ namespace Credito.Modern.Application.Validation;
 public static class UsuarioValidacion
 {
     public const int MaxClave = 100;
-    public const int MinClaveNueva = 6;
+    public const int MinClaveNueva = 8;
+
+    public static string? ValidarClaveNueva(string? clave, string fieldName = "clave")
+    {
+        if (string.IsNullOrWhiteSpace(clave))
+        {
+            return $"{fieldName} es obligatoria.";
+        }
+
+        var v = clave.Trim();
+        if (v.Length < MinClaveNueva)
+        {
+            return $"{fieldName} debe tener al menos {MinClaveNueva} caracteres.";
+        }
+
+        if (v.Length > MaxClave)
+        {
+            return $"{fieldName}: máximo {MaxClave} caracteres.";
+        }
+
+        if (!v.Any(char.IsLetter) || !v.Any(char.IsDigit))
+        {
+            return $"{fieldName} debe incluir al menos una letra y un número.";
+        }
+
+        return null;
+    }
 
     public static string? ValidarGuardar(GuardarUsuarioRequest request, DateTime? hoy = null)
     {
         var esNuevo = request.UsuarioId < 1;
         var clavePlaceholder = string.Equals(request.ClaveUsuario, "********", StringComparison.Ordinal);
         var today = (hoy ?? DateTime.Today).Date;
+        var claveNueva = !clavePlaceholder && !string.IsNullOrWhiteSpace(request.ClaveUsuario);
 
         return ValidationGate.First(
             StringRules.RequireDni(request.NumeroDocumento),
@@ -27,14 +54,23 @@ public static class UsuarioValidacion
             esNuevo && string.IsNullOrWhiteSpace(request.ClaveUsuario)
                 ? "La clave es obligatoria para un usuario nuevo."
                 : null,
-            !esNuevo && !clavePlaceholder && !string.IsNullOrWhiteSpace(request.ClaveUsuario)
-                && request.ClaveUsuario.Trim().Length < MinClaveNueva
-                ? $"La clave debe tener al menos {MinClaveNueva} caracteres."
-                : null,
-            esNuevo && !string.IsNullOrWhiteSpace(request.ClaveUsuario)
-                && request.ClaveUsuario.Trim().Length < MinClaveNueva
-                ? $"La clave debe tener al menos {MinClaveNueva} caracteres."
-                : null,
-            StringRules.OptionalMaxLength(request.ClaveUsuario, "clave", MaxClave));
+            (esNuevo || claveNueva) && !clavePlaceholder
+                ? ValidarClaveNueva(request.ClaveUsuario)
+                : null);
+    }
+
+    public static string? ValidarAsignarRoles(int oficinaId, int[]? rolIds)
+    {
+        if (oficinaId < 1)
+        {
+            return "oficinaId debe ser >= 1.";
+        }
+
+        if (rolIds is null || rolIds.Count(id => id >= 1) < 1)
+        {
+            return "Debe asignar al menos un rol a la oficina.";
+        }
+
+        return null;
     }
 }
