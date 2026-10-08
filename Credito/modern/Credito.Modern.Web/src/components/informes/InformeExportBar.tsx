@@ -3,7 +3,7 @@ import { Button, Space, Tooltip } from 'antd'
 import { DownloadOutlined, FileExcelOutlined, FilePdfOutlined } from '@ant-design/icons'
 
 export interface InformeExportBarProps {
-  onCsv: () => void
+  onCsv?: () => void
   onPdfTabular: () => void
   csvLoading?: boolean
   pdfLoading?: boolean
@@ -18,6 +18,8 @@ export interface InformeExportBarProps {
   pdfLabel?: string
   /** true = archivo .xlsx nativo (p. ej. cobranza). */
   nativeExcel?: boolean
+  /** Oculta Excel/CSV (p. ej. simulador: solo PDF). */
+  hideCsv?: boolean
 }
 
 function DisabledAwareButton({
@@ -52,6 +54,7 @@ export function InformeExportBar({
   csvLabel,
   pdfLabel = 'PDF',
   nativeExcel = false,
+  hideCsv = false,
 }: InformeExportBarProps) {
   const excelLabel = csvLabel ?? (nativeExcel ? 'Excel' : 'Excel (CSV)')
   const excelTip = csvDisabled
@@ -62,20 +65,23 @@ export function InformeExportBar({
   const pdfTip = pdfDisabled
     ? pdfDisabledReason
     : 'PDF con logo y columnas alineadas al informe legacy'
+  const showCsv = !hideCsv && typeof onCsv === 'function'
 
   return (
     <Space wrap className="credix-export-bar credix-informe-export-bar">
-      <DisabledAwareButton disabled={csvDisabled} tip={excelTip}>
-        <Button
-          icon={nativeExcel ? <FileExcelOutlined /> : <DownloadOutlined />}
-          loading={csvLoading}
-          disabled={csvDisabled}
-          className="credix-report-btn credix-report-btn--xls"
-          onClick={onCsv}
-        >
-          {excelLabel}
-        </Button>
-      </DisabledAwareButton>
+      {showCsv ? (
+        <DisabledAwareButton disabled={csvDisabled} tip={excelTip}>
+          <Button
+            icon={nativeExcel ? <FileExcelOutlined /> : <DownloadOutlined />}
+            loading={csvLoading}
+            disabled={csvDisabled}
+            className="credix-report-btn credix-report-btn--xls"
+            onClick={onCsv}
+          >
+            {excelLabel}
+          </Button>
+        </DisabledAwareButton>
+      ) : null}
       <DisabledAwareButton disabled={pdfDisabled} tip={pdfTip}>
         <Button
           icon={<FilePdfOutlined />}

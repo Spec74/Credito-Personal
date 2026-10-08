@@ -926,13 +926,30 @@ export interface RptSimuladorPlanPagosParams {
 }
 
 function querySimuladorPlanPagos(p: RptSimuladorPlanPagosParams): string {
+  const fecha = (p.fechaPrimerPago ?? '').toString().trim().slice(0, 10)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+    throw new Error('Falta la fecha de primer pago para generar el reporte')
+  }
+  if (!(p.productoId > 0)) {
+    throw new Error('Seleccione un producto antes de generar el reporte')
+  }
+  if (!(p.monto > 0)) {
+    throw new Error('El monto debe ser mayor a cero')
+  }
+  if (!(p.nroCuotas >= 1)) {
+    throw new Error('El número de cuotas es inválido')
+  }
+  const forma = (p.formaPago ?? '').trim().toUpperCase()
+  if (!forma) {
+    throw new Error('Falta la modalidad de pago')
+  }
   const q = new URLSearchParams({
     productoId: String(p.productoId),
     monto: String(p.monto),
     nroCuotas: String(p.nroCuotas),
     interesMensual: String(p.interesMensual),
-    fechaPrimerPago: p.fechaPrimerPago.slice(0, 10),
-    formaPago: p.formaPago,
+    fechaPrimerPago: fecha,
+    formaPago: forma,
     gastosAdm: String(p.gastosAdm ?? 0),
     ga: p.ga ?? 'ADE',
   })

@@ -600,7 +600,22 @@ internal static class CreditoInformesLegacyEndpoints
                                 detail: "No se generó plan.");
                         }
 
-                        var pdfBytes = RptSimuladorPlanPagosPdfDocument.Build(dto);
+                        byte[] pdfBytes;
+                        try
+                        {
+                            pdfBytes = RptSimuladorPlanPagosPdfDocument.Build(dto);
+                        }
+                        catch (Exception pdfEx)
+                        {
+                            log.LogError(pdfEx, "QuestPDF falló al armar simulador plan pagos");
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status500InternalServerError,
+                                title: "Error al generar PDF",
+                                detail: env.IsDevelopment()
+                                    ? pdfEx.Message
+                                    : "No se pudo generar el PDF del plan simulado. Intente de nuevo.");
+                        }
+
                         return TypedResults.File(pdfBytes, "application/pdf", "simulador-plan-pagos.pdf");
                     }
                     catch (Exception ex) when (ex is InvalidOperationException or DbException)

@@ -56,7 +56,7 @@ function resolveApiPath(params: URLSearchParams): { path: string | null; error: 
       return {
         path: null,
         error:
-          'El enlace del informe expiró o no es válido en esta sesión. Genérelo de nuevo desde Reportes.',
+          'El enlace del informe expiró o no es válido en esta sesión. Genere el PDF de nuevo desde el simulador o el informe.',
       }
     }
     return { path: stashed, error: null }

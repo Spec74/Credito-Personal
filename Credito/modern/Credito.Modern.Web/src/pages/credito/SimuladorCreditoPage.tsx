@@ -30,7 +30,6 @@ import {
   calcularTem,
   crearCredito,
   crearSolicitudCredito,
-  downloadRptSimuladorPlanPagosCsv,
   openRptSimuladorPlanPagosPdfInTab,
   simularCredito,
   type RptSimuladorPlanPagosParams,
@@ -600,15 +599,26 @@ export function SimuladorCreditoPage() {
     onError: (e) => message.error(errMsg(e)),
   })
 
-  const exportCsv = useMutation({
-    mutationFn: (p: RptSimuladorPlanPagosParams) => downloadRptSimuladorPlanPagosCsv(p),
-  })
+  const [pdfAbriendo, setPdfAbriendo] = useState(false)
 
-  const exportPdf = useMutation({
-    mutationFn: (p: RptSimuladorPlanPagosParams) => openRptSimuladorPlanPagosPdfInTab(p),
-  })
-
-
+  const abrirPdfPlan = () => {
+    if (personaId != null && !clienteDetalleQuery.data) {
+      message.warning('Espere a que cargue la ficha del cliente')
+      return
+    }
+    const params = buildReporteParams()
+    if (!params) return
+    // Abrir en el mismo gesto del clic (si pasa por useMutation el popup se bloquea).
+    setPdfAbriendo(true)
+    try {
+      void openRptSimuladorPlanPagosPdfInTab(params)
+        .catch((e) => message.error(errMsg(e)))
+        .finally(() => setPdfAbriendo(false))
+    } catch (e) {
+      setPdfAbriendo(false)
+      message.error(errMsg(e))
+    }
+  }
 
   const simular = useMutation({
     mutationFn: async (values: SimForm) => {
@@ -810,26 +820,54 @@ export function SimuladorCreditoPage() {
       })) ?? []
 
   const buildReporteParams = (): RptSimuladorPlanPagosParams | null => {
-    if (!productoId) return null
-    const v = form.getFieldsValue()
+    if (!productoId) {
+      message.warning('Seleccione un producto antes de generar el PDF')
+      return null
+    }
+    if (cuotas.length < 1) {
+      message.warning('Simule el plan antes de generar el PDF')
+      return null
+    }
+    const v = form.getFieldsValue(true)
+    const fecha =
+      (typeof v.fechaPrimerPago === 'string' ? v.fechaPrimerPago : '').trim().slice(0, 10) ||
+      form.getFieldValue('fechaPrimerPago')
+    const fechaNorm = (fecha ?? '').toString().trim().slice(0, 10)
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaNorm)) {
+      message.warning('Indique la fecha de primer pago antes de generar el PDF')
+      return null
+    }
+    const monto = Number(v.monto)
+    if (!(monto > 0)) {
+      message.warning('El monto debe ser mayor a cero')
+      return null
+    }
     const detalle = clienteDetalleQuery.data
     const esClienteRegistrado = personaId != null && detalle != null && detalle.personaId === personaId
+    const prendaDesc = (() => {
+      if (prendaPrecarga?.descripcion) return prendaPrecarga.descripcion
+      const desc = prendasEditor
+        .map((p) => p.descripcion.trim())
+        .filter(Boolean)
+        .join(' / ')
+      return desc || undefined
+    })()
 
     return {
-      productoId,
-      monto: v.monto,
-      nroCuotas: v.nroCuotas,
-      interesMensual: v.interesMensual,
-      fechaPrimerPago: v.fechaPrimerPago,
-      formaPago: v.formaPago,
-      gastosAdm: v.gastosAdm ?? 0,
+      productoId: esPrendario ? 2 : productoId,
+      monto,
+      nroCuotas: esPrendario ? 1 : Number(v.nroCuotas) || 1,
+      interesMensual: Number(v.interesMensual) || 0,
+      fechaPrimerPago: fechaNorm,
+      formaPago: esPrendario ? 'M' : (v.formaPago ?? 'M'),
+      gastosAdm: Number(v.gastosAdm) || 0,
       ga: IND_GASTOS_ADM,
       cliente: esClienteRegistrado ? nombreDesdeCliente(detalle) : clienteParaReporte,
       tipoDocumento: esClienteRegistrado
         ? (detalle.tipoPersona?.toUpperCase() === 'J' ? 'J' : 'N')
         : (v.tipoPersona ?? tipoPersona),
       nroDocumento: esClienteRegistrado
-        ? detalle.numeroDocumento
+        ? detalle.numeroDocumento ?? undefined
         : v.numeroDocumento,
       direccionCliente: esClienteRegistrado
         ? direccionClienteReporte(detalle) || undefined
@@ -837,14 +875,7 @@ export function SimuladorCreditoPage() {
       direccionNegocio: esClienteRegistrado
         ? detalle.direccionNegocio ?? undefined
         : v.direccionNegocio,
-      prendaDescripcion: (() => {
-        if (prendaPrecarga?.descripcion) return prendaPrecarga.descripcion
-        const desc = prendasEditor
-          .map((p) => p.descripcion.trim())
-          .filter(Boolean)
-          .join(' / ')
-        return desc || undefined
-      })(),
+      prendaDescripcion: prendaDesc,
       asesor: asesorNombre,
       telefonoCliente: esClienteRegistrado
         ? detalle.celular1 ?? undefined
@@ -1276,26 +1307,23 @@ export function SimuladorCreditoPage() {
               ]}
             />
             <InformeExportBar
-              csvLoading={exportCsv.isPending}
-              pdfLoading={exportPdf.isPending}
-              csvDisabled={!productoId || (personaId != null && !clienteDetalleQuery.data)}
-              pdfDisabled={!productoId || (personaId != null && !clienteDetalleQuery.data)}
-              onCsv={async () => {
-                if (personaId != null && !clienteDetalleQuery.data) {
-                  message.warning('Espere a que cargue la ficha del cliente')
-                  return
-                }
-                const params = buildReporteParams()
-                if (params) exportCsv.mutate(params)
-              }}
-              onPdfTabular={async () => {
-                if (personaId != null && !clienteDetalleQuery.data) {
-                  message.warning('Espere a que cargue la ficha del cliente')
-                  return
-                }
-                const params = buildReporteParams()
-                if (params) exportPdf.mutate(params)
-              }}
+              hideCsv
+              pdfLabel="Generar PDF"
+              pdfLoading={pdfAbriendo}
+              pdfDisabled={
+                !productoId ||
+                cuotas.length < 1 ||
+                pdfAbriendo ||
+                (personaId != null && !clienteDetalleQuery.data)
+              }
+              pdfDisabledReason={
+                personaId != null && !clienteDetalleQuery.data
+                  ? 'Espere a que cargue la ficha del cliente'
+                  : cuotas.length < 1
+                    ? 'Simule el plan antes de generar el PDF'
+                    : 'Seleccione producto y simule'
+              }
+              onPdfTabular={abrirPdfPlan}
             />
           </div>
         ) : null}
