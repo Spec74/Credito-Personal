@@ -1641,6 +1641,43 @@
   flex-wrap: wrap;
 }
 
+.ruta-cobrador-result {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.9fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .ruta-cobrador-result {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ruta-cobrador-result__map {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ruta-cobrador-result__list .ruta-cobrador-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #114885;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ruta-cobrador-result__list .ruta-cobrador-pin--sin-gps {
+  background: #94a3b8;
+}
+
 .caja-ruta-qr-body {
   display: flex;
   flex-direction: column;

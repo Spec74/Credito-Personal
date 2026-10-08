@@ -1,0 +1,53 @@
+.ruta-cobrador-map {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ruta-cobrador-map__canvas {
+  width: 100%;
+  min-height: 280px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--credix-border, #d9e2ec);
+  z-index: 0;
+}
+
+.ruta-cobrador-map__hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--credix-text-secondary, #5a6a7a);
+}
+
+.ruta-cobrador-pin-wrap {
+  background: transparent;
+  border: none;
+}
+
+.ruta-cobrador-pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #114885;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+  border: 2px solid #fff;
+}
+
+.ruta-cobrador-pin--origen {
+  background: #0f766e;
+  font-size: 11px;
+}
+
+.ruta-cobrador-popup-dir {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #4a5568;
+  max-width: 220px;
+}

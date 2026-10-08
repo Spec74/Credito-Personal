@@ -73,7 +73,7 @@ export function CajaDiarioOperacionesBar({
           icon={<EnvironmentOutlined />}
           onClick={() => setRutaOpen(true)}
         >
-          Armar ruta QR
+          Ruta del cobrador
         </Button>
         <Button
           block={variant === 'stack'}

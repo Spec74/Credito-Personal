@@ -29,9 +29,19 @@ import {
 } from '../../utils/gestorInformeForm'
 import { readUrlUserId } from '../../utils/informeUrlParams'
 import { canViewReporteCredito } from '../../utils/reporteCreditoAccess'
+import {
+  RutaCobradorResultModal,
+  type RutaCobradorResult,
+} from '../caja/cajaDiario/RutaCobradorResultModal'
 
 const COBRO_DIARIO_COLUMNS = buildCobroDiarioInformeColumns()
 const MAX_RUTA_WA = 25
+
+function buildApiUrl(urlCortita: string): string {
+  const apiBase = (import.meta.env.VITE_API_BASE_URL as string).replace(/\/$/, '')
+  const relative = urlCortita.replace(/^\/api\/v1/, '')
+  return `${apiBase}${relative}`
+}
 
 type FormValues = {
   oficinaId: number
@@ -42,6 +52,8 @@ export function CobroDiarioPage() {
   const { session } = useAuth()
   const [searchParams] = useSearchParams()
   const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const [rutaResult, setRutaResult] = useState<RutaCobradorResult | null>(null)
+  const [rutaOpen, setRutaOpen] = useState(false)
   const [form] = Form.useForm<FormValues>()
 
   const puedeElegirGestor = canViewReporteCredito(session?.roles ?? [])
@@ -142,14 +154,33 @@ export function CobroDiarioPage() {
   const rutaWa = useMutation({
     mutationFn: (ids: number[]) => generarRutaCobros(ids),
     onSuccess: (res) => {
-      if (!res.exito || !res.urlCortita) {
+      if (!res.exito || !res.paradas?.length) {
         message.error(res.mensaje ?? 'No se pudo generar la ruta')
         return
       }
-      const apiBase = (import.meta.env.VITE_API_BASE_URL as string).replace(/\/$/, '')
-      const relative = (res.urlCortita ?? '').replace(/^\/api\/v1/, '')
-      window.open(`${apiBase}${relative}`, '_blank', 'noopener,noreferrer')
-      message.success('Abra el enlace en el celular (WhatsApp)')
+      const origen =
+        res.latitudOrigen != null &&
+        res.longitudOrigen != null &&
+        res.latitudOrigen !== 0 &&
+        res.longitudOrigen !== 0
+          ? { lat: Number(res.latitudOrigen), lng: Number(res.longitudOrigen) }
+          : null
+      setRutaResult({
+        paradas: res.paradas.map((p) => ({
+          orden: p.orden,
+          creditoId: p.creditoId,
+          cliente: p.cliente,
+          montoCobrar: p.montoCobrar,
+          direccion: p.direccion,
+          latitud: p.latitud,
+          longitud: p.longitud,
+          tieneGps: p.tieneGps,
+        })),
+        origen,
+        urlNavegacionGoogle: res.urlNavegacionGoogle,
+        urlWhatsApp: res.urlCortita ? buildApiUrl(res.urlCortita) : null,
+      })
+      setRutaOpen(true)
     },
     onError: (e) =>
       message.error(e instanceof ApiError ? e.message : 'Error al generar ruta'),
@@ -172,6 +203,7 @@ export function CobroDiarioPage() {
   }
 
   return (
+    <>
     <CredixInformePage
       title="Cobro diario"
       subtitle={
@@ -227,7 +259,7 @@ export function CobroDiarioPage() {
             loading={rutaWa.isPending}
             onClick={() => rutaWa.mutate(selectedIds)}
           >
-            Ruta WhatsApp ({selectedIds.length})
+            Ruta del cobrador ({selectedIds.length})
           </Button>
         </>
       }
@@ -292,5 +324,14 @@ export function CobroDiarioPage() {
         locale={{ emptyText: 'Pulse Consultar (gestor obligatorio, como en MVC).' }}
       />
     </CredixInformePage>
+    <RutaCobradorResultModal
+      open={rutaOpen}
+      result={rutaResult}
+      onClose={() => {
+        setRutaOpen(false)
+        setRutaResult(null)
+      }}
+    />
+    </>
   )
 }

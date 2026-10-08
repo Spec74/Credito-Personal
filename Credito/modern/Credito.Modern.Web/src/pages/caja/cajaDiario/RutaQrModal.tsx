@@ -44,8 +44,8 @@ export function RutaQrModal({
       <div className="caja-ruta-qr-body">
         <QrcodeOutlined className="caja-ruta-qr-icon" aria-hidden />
         <Paragraph type="secondary" className="caja-ruta-qr-hint">
-          Escanee el código con el celular o abra el enlace para iniciar la ruta GPS de cobranza
-          (paridad dlgRutaQR del MVC).
+          Opcional: comparta la lista por WhatsApp con el cobrador temporal. La ruta principal ya
+          está en el mapa de la plataforma (Navegar en Google Maps).
         </Paragraph>
         {qrSrc ? (
           <img

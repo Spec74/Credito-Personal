@@ -194,10 +194,25 @@ export function downloadMorosidadGestorPdf(params: CobroDiarioQueryParams): Prom
   )
 }
 
+export interface RutaCobroParada {
+  orden: number
+  creditoId: number
+  cliente: string
+  montoCobrar: number
+  direccion: string | null
+  latitud: number | null
+  longitud: number | null
+  tieneGps: boolean
+}
+
 export interface GenerarRutaCobrosResponse {
   exito: boolean
   urlCortita: string | null
   mensaje: string | null
+  urlNavegacionGoogle: string | null
+  latitudOrigen: number | null
+  longitudOrigen: number | null
+  paradas: RutaCobroParada[] | null
 }
 
 export function generarRutaCobros(

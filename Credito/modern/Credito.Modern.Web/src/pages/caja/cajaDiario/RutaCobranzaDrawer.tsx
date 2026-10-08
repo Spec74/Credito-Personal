@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Alert, Button, Grid, Radio, Typography } from 'antd'
+import { Alert, Button, Grid, Input, Radio, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { fetchCobroDiario, generarRutaCobros } from '../../../api/creditoPlanes'
 import { ApiError } from '../../../api/errors'
@@ -13,17 +13,24 @@ import {
   cajaToastError,
   cajaToastWarning,
 } from './cajaFeedback'
-import { RutaQrModal } from './RutaQrModal'
+import {
+  RutaCobradorResultModal,
+  type RutaCobradorResult,
+} from './RutaCobradorResultModal'
 
 const { Text } = Typography
 const MAX_RUTA = 25
 
-function buildRutaUrl(urlCortita: string): string {
+function buildApiUrl(urlCortita: string): string {
   const apiBase = (import.meta.env.VITE_API_BASE_URL as string).replace(/\/$/, '')
   const relative = urlCortita.replace(/^\/api\/v1/, '')
   return `${apiBase}${relative}`
 }
 
+/**
+ * Arma la ruta del cobrador (enfoque: morosos / personal temporal).
+ * Resultado: mapa in-app + navegación Google multi-parada (WhatsApp/QR secundarios).
+ */
 export function RutaCobranzaDrawer({
   open,
   oficinaId,
@@ -37,10 +44,12 @@ export function RutaCobranzaDrawer({
 }) {
   const screens = Grid.useBreakpoint()
   const isMobile = screens.md !== true
-  const [filtro, setFiltro] = useState<0 | 1>(0)
+  /** 1 = solo morosos (default profesional para cobrador contratado). */
+  const [filtro, setFiltro] = useState<0 | 1>(1)
   const [selected, setSelected] = useState<number[]>([])
-  const [qrUrl, setQrUrl] = useState<string | null>(null)
-  const [qrOpen, setQrOpen] = useState(false)
+  const [buscar, setBuscar] = useState('')
+  const [result, setResult] = useState<RutaCobradorResult | null>(null)
+  const [resultOpen, setResultOpen] = useState(false)
 
   const query = useQuery({
     queryKey: ['caja-ruta-cartera', oficinaId, usuarioId, filtro],
@@ -51,18 +60,47 @@ export function RutaCobranzaDrawer({
     enabled: open && oficinaId > 0 && usuarioId > 0,
   })
 
-  const filas = useMemo(() => query.data ?? [], [query.data])
+  const filas = useMemo(() => {
+    const rows = query.data ?? []
+    const q = buscar.trim().toLowerCase()
+    if (!q) return rows
+    return rows.filter((r) => {
+      const nombre = (r.cliente ?? '').toLowerCase()
+      const id = String(r.creditoId)
+      return nombre.includes(q) || id.includes(q)
+    })
+  }, [query.data, buscar])
 
   const generar = useMutation({
     mutationFn: () => generarRutaCobros(selected),
     onSuccess: (res) => {
-      if (!res.exito || !res.urlCortita) {
+      if (!res.exito || !res.paradas?.length) {
         cajaToastError(res.mensaje ?? 'No se pudo generar la ruta')
         return
       }
-      const fullUrl = buildRutaUrl(res.urlCortita)
-      setQrUrl(fullUrl)
-      setQrOpen(true)
+      const origen =
+        res.latitudOrigen != null &&
+        res.longitudOrigen != null &&
+        res.latitudOrigen !== 0 &&
+        res.longitudOrigen !== 0
+          ? { lat: Number(res.latitudOrigen), lng: Number(res.longitudOrigen) }
+          : null
+      setResult({
+        paradas: res.paradas.map((p) => ({
+          orden: p.orden,
+          creditoId: p.creditoId,
+          cliente: p.cliente,
+          montoCobrar: p.montoCobrar,
+          direccion: p.direccion,
+          latitud: p.latitud,
+          longitud: p.longitud,
+          tieneGps: p.tieneGps,
+        })),
+        origen,
+        urlNavegacionGoogle: res.urlNavegacionGoogle,
+        urlWhatsApp: res.urlCortita ? buildApiUrl(res.urlCortita) : null,
+      })
+      setResultOpen(true)
     },
     onError: (e) =>
       cajaToastError(
@@ -74,32 +112,33 @@ export function RutaCobranzaDrawer({
     { title: 'Crédito', dataIndex: 'creditoId', width: 80 },
     { title: 'Cliente', dataIndex: 'cliente', ellipsis: true },
     {
-      title: 'Cuota',
-      dataIndex: 'cuotaTotal',
+      title: 'Saldo',
+      dataIndex: 'saldo',
       align: 'right',
       render: formatMoney,
     },
     {
-      title: 'Días atraso',
+      title: 'Días',
       dataIndex: 'diasAtrazo',
-      width: 90,
+      width: 70,
       align: 'center',
     },
   ]
 
   const handleClose = () => {
-    setQrOpen(false)
-    setQrUrl(null)
+    setResultOpen(false)
+    setResult(null)
+    setBuscar('')
     onClose()
   }
 
   return (
     <>
       <CajaDrawer
-        title="Armar ruta de cobranza"
+        title="Ruta del cobrador"
         open={open}
         onClose={handleClose}
-        width={isMobile ? '100%' : 560}
+        width={isMobile ? '100%' : 600}
         footer={
           <Button
             type="primary"
@@ -108,12 +147,20 @@ export function RutaCobranzaDrawer({
             loading={generar.isPending}
             onClick={() => generar.mutate()}
           >
-            Generar QR de ruta ({selected.length})
+            Generar ruta en mapa ({selected.length})
           </Button>
         }
       >
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message="Para personal temporal de cobranza morosa"
+          description="Filtre morosos, seleccione clientes y genere la ruta en la plataforma (mapa + orden). Ya no hace falta abrir un link GPS por cada cliente en WhatsApp."
+        />
+
         <div style={{ marginBottom: 12 }}>
-          <Text strong>Filtrar cartera</Text>
+          <Text strong>Cartera</Text>
           <Radio.Group
             value={filtro}
             onChange={(e) => {
@@ -122,23 +169,48 @@ export function RutaCobranzaDrawer({
             }}
             style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}
           >
+            <Radio value={1}>Solo morosos / atrasados (recomendado)</Radio>
             <Radio value={0}>Cuotas de hoy + atrasados</Radio>
-            <Radio value={1}>Solo atrasados (morosos)</Radio>
           </Radio.Group>
-          <Button
-            size="small"
-            style={{ marginTop: 8 }}
-            onClick={() => void query.refetch()}
-          >
-            Actualizar lista
-          </Button>
         </div>
-        <Alert
-          type="info"
-          showIcon
-          message={`Seleccione máximo ${MAX_RUTA} clientes (toque la tarjeta o el check)`}
+
+        <Input.Search
+          allowClear
+          placeholder="Buscar cliente o N° crédito"
+          value={buscar}
+          onChange={(e) => setBuscar(e.target.value)}
           style={{ marginBottom: 12 }}
         />
+
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
+          <Button size="small" onClick={() => void query.refetch()}>
+            Actualizar
+          </Button>
+          <Button
+            size="small"
+            disabled={filas.length === 0}
+            onClick={() => {
+              const ids = filas.map((r) => r.creditoId).slice(0, MAX_RUTA)
+              if (filas.length > MAX_RUTA) {
+                cajaToastWarning(`Máximo ${MAX_RUTA}: se tomaron los primeros de la lista filtrada`)
+              }
+              setSelected(ids)
+            }}
+          >
+            Seleccionar visibles
+          </Button>
+          <Button size="small" disabled={selected.length === 0} onClick={() => setSelected([])}>
+            Limpiar selección
+          </Button>
+        </div>
+
+        <Alert
+          type="warning"
+          showIcon
+          message={`Máximo ${MAX_RUTA} paradas · ${selected.length} seleccionados`}
+          style={{ marginBottom: 12 }}
+        />
+
         <CredixDataTable<RptCobroDiarioRow>
           mode="operacion"
           rowKey="creditoId"
@@ -162,12 +234,12 @@ export function RutaCobranzaDrawer({
         />
       </CajaDrawer>
 
-      <RutaQrModal
-        open={qrOpen}
-        url={qrUrl}
+      <RutaCobradorResultModal
+        open={resultOpen}
+        result={result}
         onClose={() => {
-          setQrOpen(false)
-          setQrUrl(null)
+          setResultOpen(false)
+          setResult(null)
         }}
       />
     </>

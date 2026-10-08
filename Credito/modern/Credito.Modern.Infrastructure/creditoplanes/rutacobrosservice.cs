@@ -30,6 +30,9 @@ public sealed class RutaCobrosService(
         if (ids.Count == 0)
             return new GenerarRutaCobrosResponse(false, null, "No se recibieron clientes.");
 
+        if (ids.Count > 25)
+            return new GenerarRutaCobrosResponse(false, null, "Máximo 25 créditos por ruta.");
+
         var cartera = await cobroDiario.ListarAsync(usuarioId, oficinaId, ct).ConfigureAwait(false);
         var clientesRuta = cartera.Where(x => ids.Contains(x.CreditoId)).ToList();
         if (clientesRuta.Count == 0)
@@ -37,15 +40,17 @@ public sealed class RutaCobrosService(
 
         var gpsRows = await ObtenerGpsClientesAsync(ids, ct).ConfigureAwait(false);
         var (latOficina, lonOficina) = await ObtenerGpsOficinaAsync(oficinaId, ct).ConfigureAwait(false);
+        var oficinaTieneGps = latOficina != 0 && lonOficina != 0;
 
         var clientesConGps = clientesRuta.Select(c =>
         {
             gpsRows.TryGetValue(c.CreditoId, out var gps);
-            var tieneGps = gps.Latitud is not null && gps.Latitud != 0;
+            var tieneGps = gps.Latitud is not null && gps.Latitud != 0
+                && gps.Longitud is not null && gps.Longitud != 0;
             return new ClienteRutaItem(
                 c,
                 tieneGps ? gps.Latitud!.Value : 0,
-                tieneGps ? gps.Longitud ?? 0 : 0,
+                tieneGps ? gps.Longitud!.Value : 0,
                 tieneGps);
         }).ToList();
 
@@ -55,8 +60,10 @@ public sealed class RutaCobrosService(
 
         if (pendientes.Count > 0)
         {
+            var origenLat = oficinaTieneGps ? latOficina : pendientes[0].Lat;
+            var origenLon = oficinaTieneGps ? lonOficina : pendientes[0].Lon;
             var primer = pendientes
-                .OrderBy(p => Distancia(latOficina, lonOficina, p.Lat, p.Lon))
+                .OrderBy(p => Distancia(origenLat, origenLon, p.Lat, p.Lon))
                 .First();
             rutaOrdenada.Add(primer);
             pendientes.Remove(primer);
@@ -74,10 +81,39 @@ public sealed class RutaCobrosService(
 
         rutaOrdenada.AddRange(sinGps);
 
+        var paradas = new List<RutaCobroParadaDto>();
+        var orden = 1;
+        foreach (var item in rutaOrdenada)
+        {
+            paradas.Add(new RutaCobroParadaDto(
+                orden,
+                item.Datos.CreditoId,
+                item.Datos.Cliente ?? $"Crédito {item.Datos.CreditoId}",
+                item.Datos.Saldo ?? 0m,
+                item.Datos.Direccion,
+                item.TieneGps ? item.Lat : null,
+                item.TieneGps ? item.Lon : null,
+                item.TieneGps));
+            orden++;
+        }
+
+        var urlNav = ConstruirUrlNavegacionGoogle(
+            oficinaTieneGps ? latOficina : null,
+            oficinaTieneGps ? lonOficina : null,
+            paradas);
+
         var texto = ConstruirTextoWhatsApp(rutaOrdenada);
         var idUnico = Guid.NewGuid().ToString("N");
         cache.Set(idUnico, texto, CacheTtl);
-        return new GenerarRutaCobrosResponse(true, $"/api/v1/credito/ruta-wa/{idUnico}", null);
+
+        return new GenerarRutaCobrosResponse(
+            true,
+            $"/api/v1/credito/ruta-wa/{idUnico}",
+            null,
+            urlNav,
+            oficinaTieneGps ? latOficina : null,
+            oficinaTieneGps ? lonOficina : null,
+            paradas);
     }
 
     public string? ObtenerTextoRuta(string cacheId) =>
@@ -125,6 +161,50 @@ public sealed class RutaCobrosService(
         var dlat = (double)(lat1 - lat2);
         var dlon = (double)(lon1 - lon2);
         return Math.Sqrt(dlat * dlat + dlon * dlon);
+    }
+
+    /// <summary>
+    /// URL multi-parada para abrir Google Maps en el celular (navegación turn-by-turn).
+    /// </summary>
+    public static string? ConstruirUrlNavegacionGoogle(
+        decimal? latOrigen,
+        decimal? lonOrigen,
+        IReadOnlyList<RutaCobroParadaDto> paradas)
+    {
+        var conGps = paradas.Where(p => p.TieneGps && p.Latitud is not null && p.Longitud is not null).ToList();
+        if (conGps.Count == 0)
+            return null;
+
+        static string Coord(decimal lat, decimal lon) =>
+            string.Create(CultureInfo.InvariantCulture, $"{lat},{lon}");
+
+        var origin = latOrigen is not null && lonOrigen is not null && latOrigen != 0 && lonOrigen != 0
+            ? Coord(latOrigen.Value, lonOrigen.Value)
+            : Coord(conGps[0].Latitud!.Value, conGps[0].Longitud!.Value);
+
+        var destino = conGps[^1];
+        var destination = Coord(destino.Latitud!.Value, destino.Longitud!.Value);
+
+        var sb = new StringBuilder("https://www.google.com/maps/dir/?api=1");
+        sb.Append(CultureInfo.InvariantCulture, $"&origin={Uri.EscapeDataString(origin)}");
+        sb.Append(CultureInfo.InvariantCulture, $"&destination={Uri.EscapeDataString(destination)}");
+        sb.Append("&travelmode=driving");
+
+        if (conGps.Count > 1)
+        {
+            var middles = conGps.Take(conGps.Count - 1);
+            // Si el origen es la oficina, incluir el primer cliente en waypoints;
+            // si el origen es el primer cliente, omitirlo de waypoints.
+            var origenEsOficina = latOrigen is not null && lonOrigen is not null && latOrigen != 0;
+            var waypoints = origenEsOficina
+                ? middles
+                : middles.Skip(1);
+            var wp = string.Join('|', waypoints.Select(p => Coord(p.Latitud!.Value, p.Longitud!.Value)));
+            if (wp.Length > 0)
+                sb.Append(CultureInfo.InvariantCulture, $"&waypoints={Uri.EscapeDataString(wp)}");
+        }
+
+        return sb.ToString();
     }
 
     private static string ConstruirTextoWhatsApp(List<ClienteRutaItem> rutaOrdenada)
