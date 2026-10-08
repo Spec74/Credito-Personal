@@ -69,7 +69,12 @@ cuotas, gastos administrativos, fecha de primer pago, central de riesgo) lo capt
    Al **desembolsar**, se realinea desde `FechaDesembolso`: cuota *n* = desembolso + *n* periodos;
    `FechaPrimerPago` = 1.ª cuota; `FechaVencimiento` = última; `FechaRemate` = vencimiento + 30 días.
 5. **Remate**: `FechaVencimiento + 30 días` (sin captura manual en la UI).
-6. **Simulador**: default 1.er pago = hoy + 1 mes calendario; muestra preview de vencimiento y remate.
+6. **Simulador** (`/credito/simulador`): si el producto es CREDI PRENDARIO, muestra el mismo editor de bienes
+   (descripción, marca, modelo, serie, color, tasación, etc.). Simular exige tasación ≥ monto.
+   «Crear solicitud prendaria» llama `POST /prendario/crear-solicitud` + `guardar-prendas`
+   (paridad con Nuevo). Roles: ANALISTA o ADMINISTRADOR (política `CreditoRolPrendario`).
+   Atajo en ficha cliente: «Guardar y crédito prendario» → Nuevo; «Solicitar crédito» → Simulador
+   (también puede originar prendario eligiendo el producto).
 
 ## Guardado de bienes
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
@@ -35,7 +35,8 @@ import {
   simularCredito,
   type RptSimuladorPlanPagosParams,
 } from '../../api/creditoPlanes'
-import { fetchCreditoContexto, fetchPrendas, fetchSolicitudCredito } from '../../api/creditoGestion'
+import { fetchCreditoContexto, fetchPrendas, fetchSolicitudCredito, type PrendaItem } from '../../api/creditoGestion'
+import { crearSolicitudPrendaria, guardarBienesPrendario } from '../../api/prendario'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import {
   CredixDataTable,
@@ -43,6 +44,7 @@ import {
   CredixPanel,
   type CredixStatItem,
 } from '../../components/credix'
+import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { fetchProductos } from '../../api/productos'
 import { consultarDniApiPeru, consultarRucApiPeru } from '../../api/apiperu'
 import { ApiError } from '../../api/errors'
@@ -55,9 +57,18 @@ import { ClienteBuscarAutoComplete } from '../../components/caja/ClienteBuscarAu
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
 import {
   esCreditoAdministrador,
+  esCreditoAnalista,
   esCreditoAprobador1,
 } from '../../utils/creditoOperacionPermisos'
-import { prendaAItem, prendaSimuladorDesdeBienes, validarMontoVsTasacion } from '../../utils/prendas'
+import {
+  prendaAItem,
+  prendaSimuladorDesdeBienes,
+  prendaVacia,
+  totalTasacion,
+  validarMontoVsTasacion,
+  validarPrendasForm,
+  type PrendaCampoError,
+} from '../../utils/prendas'
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : 'Error desconocido'
@@ -88,7 +99,6 @@ interface SimForm {
   telefono?: string
   direccionCliente?: string
   direccionNegocio?: string
-  prendaDescripcion?: string
   monto: number
   formaPago: string
   nroCuotas: number
@@ -174,10 +184,13 @@ function direccionClienteReporte(c: ClienteDetalle): string {
 export function SimuladorCreditoPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const queryClient = useQueryClient()
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
   const roles = useMemo(() => session?.roles ?? [], [session?.roles])
   const puedeIrAAprobar = esCreditoAprobador1(roles) || esCreditoAdministrador(roles)
+  /** Misma política API CreditoRolPrendario: analista o administrador. */
+  const puedeOriginacionPrendaria = esCreditoAnalista(roles) || esCreditoAdministrador(roles)
   const [cuotas, setCuotas] = useState<SimuladorCreditoCuota[]>([])
   const [tem, setTem] = useState<number | null>(null)
   const [personaId, setPersonaId] = useState<number | null>(null)
@@ -187,6 +200,10 @@ export function SimuladorCreditoPage() {
   const [productoId, setProductoId] = useState<number | null>(null)
   const [observacion, setObservacion] = useState('')
   const [indCentralRiesgo, setIndCentralRiesgo] = useState(true)
+  const [prendasEditor, setPrendasEditor] = useState<PrendaItem[]>([prendaVacia()])
+  const [erroresPrendas, setErroresPrendas] = useState<PrendaCampoError[]>([])
+  /** Evita reintentar guardar-prendas tras crear solicitud (query puede ir un tick atrasada). */
+  const [bienesPersistidosLocal, setBienesPersistidosLocal] = useState(false)
   const [form] = Form.useForm<SimForm>()
   const tipoPersona = Form.useWatch('tipoPersona', form) ?? 'N'
   const montoActual = Form.useWatch('monto', form)
@@ -233,17 +250,19 @@ export function SimuladorCreditoPage() {
 
   const esConsultaPrendario = productoFromUrl === 2
 
+  const solicitudPrendasId = solicitudCreditoId ?? solicitudFromUrl
+
   const prendasGuardadasQuery = useQuery({
-    queryKey: ['prendas', oficinaId, solicitudFromUrl],
-    queryFn: () => fetchPrendas(oficinaId, solicitudFromUrl!),
-    enabled: oficinaId > 0 && solicitudFromUrl != null && esConsultaPrendario,
+    queryKey: ['prendas', oficinaId, solicitudPrendasId],
+    queryFn: () => fetchPrendas(oficinaId, solicitudPrendasId!),
+    enabled: oficinaId > 0 && solicitudPrendasId != null && (esConsultaPrendario || productoId === 2),
     staleTime: creditoStaleTime.operacion,
   })
 
   const contextoPrendarioQuery = useQuery({
-    queryKey: ['credito-contexto', solicitudFromUrl],
-    queryFn: () => fetchCreditoContexto(solicitudFromUrl!),
-    enabled: oficinaId > 0 && solicitudFromUrl != null && esConsultaPrendario,
+    queryKey: ['credito-contexto', solicitudPrendasId],
+    queryFn: () => fetchCreditoContexto(solicitudPrendasId!),
+    enabled: oficinaId > 0 && solicitudPrendasId != null && (esConsultaPrendario || productoId === 2),
     staleTime: creditoStaleTime.operacion,
   })
 
@@ -257,13 +276,28 @@ export function SimuladorCreditoPage() {
     )
   }, [prendaFromUrl, prendasGuardadasQuery.data, contextoPrendarioQuery.data?.fechaRemate])
 
-  const bienesYaGuardados = (prendasGuardadasQuery.data?.length ?? 0) > 0
+  const bienesYaGuardados =
+    bienesPersistidosLocal || (prendasGuardadasQuery.data?.length ?? 0) > 0
+  /** Bienes ya en BD o precargados desde Prendario Nuevo: no se reeditan aquí. */
+  const bienesBloqueados = bienesYaGuardados || Boolean(prendaPrecarga)
+  const tasacionEfectiva = useMemo(() => {
+    if (prendaPrecarga) return prendaPrecarga.montoTasacion
+    if (prendasGuardadasQuery.data && prendasGuardadasQuery.data.length > 0) {
+      return prendasGuardadasQuery.data.reduce((a, p) => a + (p.valorTasacion || 0), 0)
+    }
+    return totalTasacion(prendasEditor)
+  }, [prendaPrecarga, prendasGuardadasQuery.data, prendasEditor])
 
   useEffect(() => {
     if (observacionFromUrl && !observacion.trim()) {
       setObservacion(observacionFromUrl)
     }
   }, [observacion, observacionFromUrl])
+
+  useEffect(() => {
+    if (!bienesYaGuardados || !prendasGuardadasQuery.data) return
+    setPrendasEditor(prendasGuardadasQuery.data.map(prendaAItem))
+  }, [bienesYaGuardados, prendasGuardadasQuery.data])
 
   useEffect(() => {
     if (productoFromUrl && productoFromUrl !== productoId) {
@@ -366,11 +400,6 @@ export function SimuladorCreditoPage() {
     })
   }, [form, prendaPrecarga, solicitudQuery.data])
 
-  useEffect(() => {
-    if (!prendaPrecarga) return
-    form.setFieldValue('prendaDescripcion', prendaPrecarga.descripcion)
-  }, [form, prendaPrecarga])
-
   const validarDocumento = useMutation({
     mutationFn: async () => {
       const { numeroDocumento } = form.getFieldsValue()
@@ -438,14 +467,53 @@ export function SimuladorCreditoPage() {
   }, [esPrendario, form, formaPagoActual, productoSeleccionado])
 
   const crearSolicitud = useMutation({
-    mutationFn: () =>
-      crearSolicitudCredito({
+    mutationFn: async () => {
+      if (!personaId) {
+        throw new Error('Seleccione un cliente')
+      }
+      if (esPrendario) {
+        if (!puedeOriginacionPrendaria) {
+          throw new Error(
+            'Su rol no puede originar crédito prendario. Use Credi Prendario con un analista o administrador.',
+          )
+        }
+        if (!bienesYaGuardados) {
+          const validacion = validarPrendasForm(prendasEditor)
+          setErroresPrendas(validacion.errores)
+          if (!validacion.ok) {
+            throw new Error(validacion.mensaje ?? 'Complete los bienes en custodia')
+          }
+          const solicitud = await crearSolicitudPrendaria({ oficinaId, personaId })
+          await guardarBienesPrendario({
+            oficinaId,
+            creditoId: solicitud.solicitudCreditoId,
+            prendas: validacion.bienes,
+            fechaRemate: null,
+          })
+          setProductoId(2)
+          await queryClient.invalidateQueries({
+            queryKey: ['prendas', oficinaId, solicitud.solicitudCreditoId],
+          })
+          return solicitud
+        }
+        return crearSolicitudPrendaria({ oficinaId, personaId })
+      }
+      return crearSolicitudCredito({
         oficinaId,
-        personaId: personaId!,
-      }),
+        personaId,
+      })
+    },
     onSuccess: (r) => {
       setSolicitudCreditoId(r.solicitudCreditoId)
-      message.success(`Solicitud #${r.solicitudCreditoId} en estado CRE`)
+      setErroresPrendas([])
+      if (esPrendario) {
+        setBienesPersistidosLocal(true)
+      }
+      message.success(
+        esPrendario
+          ? `Solicitud prendaria #${r.solicitudCreditoId} con bienes en custodia`
+          : `Solicitud #${r.solicitudCreditoId} en estado CRE`,
+      )
     },
     onError: (e) => message.error(errMsg(e)),
   })
@@ -460,21 +528,38 @@ export function SimuladorCreditoPage() {
         throw new Error('Simule el plan antes de generar el crédito')
       }
       if (esPrendario) {
-        const tasacion =
-          prendaPrecarga?.montoTasacion ??
-          (prendasGuardadasQuery.data
-            ? prendasGuardadasQuery.data.reduce((a, p) => a + (p.valorTasacion || 0), 0)
-            : 0)
-        const montoErr = validarMontoVsTasacion(v.monto, tasacion)
+        if (!puedeOriginacionPrendaria) {
+          throw new Error('Su rol no puede generar crédito prendario.')
+        }
+        if (!bienesYaGuardados && !prendaPrecarga) {
+          const validacion = validarPrendasForm(prendasEditor)
+          setErroresPrendas(validacion.errores)
+          if (!validacion.ok) {
+            throw new Error(validacion.mensaje ?? 'Complete los bienes en custodia')
+          }
+          await guardarBienesPrendario({
+            oficinaId,
+            creditoId: solicitudCreditoId,
+            prendas: validacion.bienes,
+            fechaRemate: null,
+          })
+          setBienesPersistidosLocal(true)
+          await queryClient.invalidateQueries({
+            queryKey: ['prendas', oficinaId, solicitudCreditoId],
+          })
+        }
+        const montoErr = validarMontoVsTasacion(v.monto, tasacionEfectiva)
         if (montoErr) throw new Error(montoErr)
         if ((v.formaPago ?? '').toUpperCase() !== 'M' || v.nroCuotas !== 1) {
           throw new Error('El crédito prendario solo admite modalidad mensual y 1 cuota')
         }
       }
+      const pre = prendaPrecarga
+      const yaTieneBienes = bienesYaGuardados || bienesPersistidosLocal
       return crearCredito({
         oficinaId,
         solicitudCreditoId,
-        productoId,
+        productoId: esPrendario ? 2 : productoId,
         tipoCuota: 'F',
         montoInicial: 0,
         montoGastosAdm: v.gastosAdm ?? 0,
@@ -487,13 +572,13 @@ export function SimuladorCreditoPage() {
         observacion: observacion.trim() || null,
         indCentralRiesgo,
         prenda:
-          bienesYaGuardados || !prendaPrecarga
+          yaTieneBienes || !pre
             ? null
             : {
-                descripcion: prendaPrecarga.descripcion,
-                montoTasacion: prendaPrecarga.montoTasacion,
-                fechaRemate: `${prendaPrecarga.fechaRemate}T00:00:00`,
-                observacion: prendaPrecarga.observacion,
+                descripcion: pre.descripcion,
+                montoTasacion: pre.montoTasacion,
+                fechaRemate: `${pre.fechaRemate}T00:00:00`,
+                observacion: pre.observacion,
               },
       })
     },
@@ -540,22 +625,26 @@ export function SimuladorCreditoPage() {
           throw new Error(`El interés debe estar entre ${min.toFixed(2)}% y ${max.toFixed(2)}%`)
         }
       }
-      if (esPrendario && !values.prendaDescripcion?.trim() && !prendaPrecarga) {
-        throw new Error('Ingrese la descripción de la prenda')
-      }
       if (esPrendario) {
+        if (!puedeOriginacionPrendaria) {
+          throw new Error(
+            'Su rol no puede simular originación prendaria. Use un perfil analista o administrador.',
+          )
+        }
         if ((values.formaPago ?? '').toUpperCase() !== 'M') {
           throw new Error('El crédito prendario solo admite modalidad mensual (M)')
         }
         if (values.nroCuotas !== 1) {
           throw new Error('El crédito prendario solo admite 1 cuota')
         }
-        const tasacion =
-          prendaPrecarga?.montoTasacion ??
-          (prendasGuardadasQuery.data
-            ? prendasGuardadasQuery.data.reduce((a, p) => a + (p.valorTasacion || 0), 0)
-            : 0)
-        const montoErr = validarMontoVsTasacion(values.monto, tasacion)
+        if (!bienesBloqueados) {
+          const validacion = validarPrendasForm(prendasEditor)
+          setErroresPrendas(validacion.errores)
+          if (!validacion.ok) {
+            throw new Error(validacion.mensaje ?? 'Complete los bienes en custodia')
+          }
+        }
+        const montoErr = validarMontoVsTasacion(values.monto, tasacionEfectiva)
         if (montoErr) throw new Error(montoErr)
       }
       // Paridad CreditoController.Simulador con cboGA=ADE: gastos no van al SP (solo en cabecera informe).
@@ -667,8 +756,8 @@ export function SimuladorCreditoPage() {
     if (solicitudCreditoId != null) {
       items.push({ value: solicitudCreditoId, label: 'Solicitud' })
     }
-    if (prendaPrecarga) {
-      items.push({ value: formatMoney(prendaPrecarga.montoTasacion), label: 'Tasación prenda' })
+    if (esPrendario && tasacionEfectiva > 0) {
+      items.push({ value: formatMoney(tasacionEfectiva), label: 'Tasación prenda' })
     }
     if (cuotas.length > 0) {
       items.push(
@@ -697,7 +786,8 @@ export function SimuladorCreditoPage() {
     clienteLabel,
     clienteParaReporte,
     solicitudCreditoId,
-    prendaPrecarga,
+    esPrendario,
+    tasacionEfectiva,
     cuotas.length,
     totalInteres,
     totalCuota,
@@ -708,10 +798,16 @@ export function SimuladorCreditoPage() {
   ])
 
   const productoOpts =
-    productosQuery.data?.map((p) => ({
-      value: p.productoId,
-      label: p.denominacion,
-    })) ?? []
+    productosQuery.data
+      ?.filter((p) => {
+        const esProdPrendario =
+          p.productoId === 2 || p.denominacion.toLowerCase().includes('prendario')
+        return !esProdPrendario || puedeOriginacionPrendaria
+      })
+      .map((p) => ({
+        value: p.productoId,
+        label: p.denominacion,
+      })) ?? []
 
   const buildReporteParams = (): RptSimuladorPlanPagosParams | null => {
     if (!productoId) return null
@@ -741,7 +837,14 @@ export function SimuladorCreditoPage() {
       direccionNegocio: esClienteRegistrado
         ? detalle.direccionNegocio ?? undefined
         : v.direccionNegocio,
-      prendaDescripcion: prendaPrecarga?.descripcion ?? v.prendaDescripcion,
+      prendaDescripcion: (() => {
+        if (prendaPrecarga?.descripcion) return prendaPrecarga.descripcion
+        const desc = prendasEditor
+          .map((p) => p.descripcion.trim())
+          .filter(Boolean)
+          .join(' / ')
+        return desc || undefined
+      })(),
       asesor: asesorNombre,
       telefonoCliente: esClienteRegistrado
         ? detalle.celular1 ?? undefined
@@ -797,6 +900,9 @@ export function SimuladorCreditoPage() {
                 setPersonaId(id)
                 setClienteLabel(label)
                 setSolicitudCreditoId(null)
+                setBienesPersistidosLocal(false)
+                setPrendasEditor([prendaVacia()])
+                setErroresPrendas([])
                 setTerminoCliente(label)
               }}
               fullWidth
@@ -956,7 +1062,25 @@ export function SimuladorCreditoPage() {
                 loading={productosQuery.isLoading}
                 options={productoOpts}
                 value={productoId ?? undefined}
-                onChange={(v) => setProductoId(v)}
+                onChange={(v) => {
+                  setProductoId(v)
+                  const prod = productosQuery.data?.find((p) => p.productoId === v)
+                  const nowPrendario =
+                    v === 2 || (prod?.denominacion.toLowerCase().includes('prendario') ?? false)
+                  if (
+                    nowPrendario &&
+                    !prendaPrecarga &&
+                    !bienesYaGuardados &&
+                    solicitudCreditoId != null &&
+                    !esConsultaPrendario
+                  ) {
+                    setSolicitudCreditoId(null)
+                    setBienesPersistidosLocal(false)
+                    message.info(
+                      'Producto prendario: al crear la solicitud se registrarán los bienes en custodia.',
+                    )
+                  }
+                }}
               />
               {productoSeleccionado ? (
                 <Text type="secondary" style={{ display: 'block', marginTop: 4, fontSize: 12 }}>
@@ -973,12 +1097,7 @@ export function SimuladorCreditoPage() {
                 {
                   validator: async (_, value) => {
                     if (!esPrendario || value == null) return
-                    const tasacion =
-                      prendaPrecarga?.montoTasacion ??
-                      (prendasGuardadasQuery.data
-                        ? prendasGuardadasQuery.data.reduce((a, p) => a + (p.valorTasacion || 0), 0)
-                        : 0)
-                    const err = validarMontoVsTasacion(Number(value), tasacion)
+                    const err = validarMontoVsTasacion(Number(value), tasacionEfectiva)
                     if (err) throw new Error(err)
                   },
                 },
@@ -1008,19 +1127,6 @@ export function SimuladorCreditoPage() {
             >
               <InputNumber min={0} step={0.1} className="simulador-field-fluid" />
             </Form.Item>
-            {esPrendario ? (
-              <Form.Item
-                name="prendaDescripcion"
-                label="Descripción de prenda"
-                rules={[{ required: !prendaPrecarga, message: 'Prenda obligatoria' }]}
-              >
-                <Input
-                  placeholder="Ej. laptop, joya, artefacto..."
-                  disabled={Boolean(prendaPrecarga)}
-                  style={{ width: 300 }}
-                />
-              </Form.Item>
-            ) : null}
             <Form.Item
               name="fechaPrimerPago"
               label={esPrendario ? '1.er pago (1.ª cuota)' : 'Primer pago'}
@@ -1037,13 +1143,59 @@ export function SimuladorCreditoPage() {
               <InputNumber min={0} step={1} style={{ width: 120 }} />
             </Form.Item>
           </div>
+          {esPrendario ? (
+            <div style={{ marginTop: 16 }}>
+              {!puedeOriginacionPrendaria ? (
+                <Alert
+                  type="warning"
+                  showIcon
+                  style={{ marginBottom: 12 }}
+                  message="Origen prendario restringido"
+                  description="Solo ANALISTA o ADMINISTRADOR pueden originar CREDI PRENDARIO. Use el módulo Credi Prendario o cambie de producto."
+                />
+              ) : null}
+              {bienesBloqueados ? (
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 12 }}
+                  message="Bienes en custodia"
+                  description={
+                    prendaPrecarga
+                      ? `${prendaPrecarga.descripcion.toUpperCase()} · Tasación ${formatMoney(prendaPrecarga.montoTasacion)}`
+                      : `Tasación total ${formatMoney(tasacionEfectiva)}. Los bienes ya están registrados y no se editan aquí.`
+                  }
+                />
+              ) : (
+                <>
+                  <Text strong style={{ display: 'block', marginBottom: 8 }}>
+                    Bienes en custodia (prenda)
+                  </Text>
+                  <Paragraph type="secondary" style={{ marginBottom: 12 }}>
+                    Registre descripción y tasación de cada bien. El monto del crédito no puede
+                    superar la tasación total. Al crear la solicitud se guardan en la ficha
+                    prendaria (igual que Credi Prendario → Nuevo).
+                  </Paragraph>
+                  <PrendasEditor
+                    value={prendasEditor}
+                    onChange={(next) => {
+                      setPrendasEditor(next)
+                      setErroresPrendas([])
+                      void form.validateFields(['monto']).catch(() => undefined)
+                    }}
+                    errores={erroresPrendas}
+                  />
+                </>
+              )}
+            </div>
+          ) : null}
           <Form.Item className="simulador-acciones" style={{ marginBottom: 0, marginTop: 20 }}>
             <Button
               type="primary"
               icon={<CalculatorOutlined />}
               htmlType="submit"
               loading={simular.isPending}
-              disabled={!prospectoListo || !productoId}
+              disabled={!prospectoListo || !productoId || (esPrendario && !puedeOriginacionPrendaria)}
             >
               Simular
             </Button>
@@ -1168,16 +1320,23 @@ export function SimuladorCreditoPage() {
         ) : (
           <>
             <Paragraph type="secondary">
-              Crea la solicitud asociada al cliente antes de generar el crédito.
+              {esPrendario
+                ? 'Crea la solicitud prendaria y guarda los bienes en custodia (tasación) antes de generar el crédito.'
+                : 'Crea la solicitud asociada al cliente antes de generar el crédito.'}
             </Paragraph>
             <Button
               type="primary"
               icon={<UserAddOutlined />}
               loading={crearSolicitud.isPending}
-              disabled={!personaId || oficinaId < 1}
+              disabled={
+                !personaId ||
+                oficinaId < 1 ||
+                (esPrendario && !puedeOriginacionPrendaria) ||
+                (esPrendario && !bienesBloqueados && tasacionEfectiva <= 0)
+              }
               onClick={() => crearSolicitud.mutate()}
             >
-              Crear solicitud
+              {esPrendario ? 'Crear solicitud prendaria' : 'Crear solicitud'}
             </Button>
           </>
         )}
@@ -1214,7 +1373,8 @@ export function SimuladorCreditoPage() {
               !solicitudCreditoId ||
               !productoId ||
               cuotas.length < 1 ||
-              oficinaId < 1
+              oficinaId < 1 ||
+              (esPrendario && !puedeOriginacionPrendaria)
             }
             onClick={() => generarCredito.mutate()}
           >

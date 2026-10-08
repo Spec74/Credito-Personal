@@ -1,7 +1,7 @@
 # SSD-06 — Crédito prendario y WhatsApp
 
 **Estado:** as-built · 2026-09-11 · ver [SSD-12](SSD-12-validacion.md) (2026-09-27)  
-**Código:** `/credito/prendario`, `/nuevo`, `/gestionar/:personaId` · `/api/v1/prendario/*`  
+**Código:** `/credito/prendario`, `/nuevo`, `/gestionar/:personaId` · `/credito/simulador` (producto prendario) · `/api/v1/prendario/*`  
 **Fuente legacy:** `PrendarioController`, `PrendaBL`, `CrearSolicitudCreditoPrendario` (rama Prendario-Eber)  
 **Doc de ingeniería:** [PARIDAD-PRENDARIO.md](../migration/PARIDAD-PRENDARIO.md) (reglas fijas de alta, categorías, contrato)
 
