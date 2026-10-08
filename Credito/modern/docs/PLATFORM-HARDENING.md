@@ -43,6 +43,18 @@ Cierra el gap de “calidad de plataforma” (~4/5 → checklist de release).
 ## 7. Gate BD
 
 - `deploy/scripts/smoke-db-gate.ps1` — EsPrendario, Prenda, mora, MorosidadEmpresa, QUOTED_IDENTIFIER, ClaveUsuario 256
+- Restore único: `deploy/sql/2026-10-08-prod-bak-restore-completo.sql` (A+B+C). Si ya se aplicó en Azure, el bloque C está cubierto.
+- Sin connection string local: pegar el `SELECT` del propio script (cabecera de error del `.ps1`) en Azure Query Editor.
+
+### Checklist operativo (firma humana)
+
+| Ítem | Quién | Estado |
+|------|-------|--------|
+| Restore A+B+C en Azure | Operación | Confirmar con SELECT final (`CreditoInsQuotedOn = 1`) |
+| `smoke-db-gate.ps1` o Query Editor | Operación (necesita cadena / portal) | Pendiente de evidencia |
+| Checklist responsive ~375px | QA / analista en preprod | Pendiente de firma en `responsive-audit.md` |
+| E2E login Playwright | CI/local con `CREDITO_E2E_*` | Opcional; smoke sin login ya corre |
+| Cookie httpOnly / BFF | Fase futura | No bloquea go-live actual |
 
 ## 8. Responsive
 
