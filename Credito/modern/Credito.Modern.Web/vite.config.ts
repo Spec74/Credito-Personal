@@ -30,6 +30,22 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         // Evita que registerSW.js bloquee el primer paint (Lighthouse render-blocking).
         injectRegister: 'script-defer',
+        // index.html / navegación: network-first para no servir CSP/visor viejos tras deploy.
+        workbox: {
+          navigateFallback: 'index.html',
+          navigateFallbackDenylist: [/^\/api\//, /^\/assets\//],
+          runtimeCaching: [
+            {
+              urlPattern: ({ request }) => request.mode === 'navigate',
+              handler: 'NetworkFirst',
+              options: {
+                cacheName: 'credix-html-navigate',
+                networkTimeoutSeconds: 3,
+                expiration: { maxEntries: 8, maxAgeSeconds: 60 * 60 },
+              },
+            },
+          ],
+        },
         includeAssets: ['favicon.ico', 'favicon-32.png', 'apple-touch-icon.png'],
         manifest: {
           name: 'CrediConfiable',

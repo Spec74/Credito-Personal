@@ -27,7 +27,7 @@ async function assertPdfMagic(blob: Blob): Promise<Blob> {
     }
     if (preview.includes('<!DOCTYPE') || preview.includes('<html')) {
       throw new Error(
-        'Se recibió HTML en lugar del PDF (¿API mal configurada en Vercel?). Contacte a soporte.',
+        'Se recibió HTML en lugar del PDF. Compruebe VITE_API_BASE_URL en Vercel (debe apuntar a Azure /api/v1).',
       )
     }
     throw new Error('El archivo recibido no es un PDF válido. Genere el informe de nuevo.')
@@ -75,7 +75,7 @@ function resolveApiPath(params: URLSearchParams): { path: string | null; error: 
       return {
         path: null,
         error:
-          'El enlace del informe expiró o no es válido en esta sesión. Genere el PDF de nuevo desde el simulador o el informe.',
+          'El enlace del informe expiró o no es válido en esta sesión. Genere el PDF de nuevo desde el módulo de origen.',
       }
     }
     return { path: stashed, error: null }
@@ -91,13 +91,17 @@ function resolveApiPath(params: URLSearchParams): { path: string | null; error: 
 
   return {
     path: null,
-    error: 'Ruta de informe no válida. Vuelva a generar el informe desde Reportes.',
+    error: 'Ruta de informe no válida. Vuelva a generar el informe.',
   }
 }
 
+/**
+ * Visor de informes PDF (todos los módulos).
+ * Desktop: navega la pestaña al blob (visor nativo del navegador) — evita iframe/CSP/PWA rotos.
+ * Móvil: botones Abrir / Descargar.
+ */
 export function ReportViewerPage() {
   const [params] = useSearchParams()
-  // Resolver una sola vez por rid (localStorage); no en cada render estricto.
   const resolved = useMemo(() => resolveApiPath(params), [params])
   const path = resolved.path ?? ''
   const { isAuthenticated, isLoading: authLoading } = useAuth()
@@ -124,8 +128,8 @@ export function ReportViewerPage() {
       return
     }
 
-    let revoked: string | null = null
     let cancelled = false
+    let createdUrl: string | null = null
     setLoading(true)
     setError(null)
 
@@ -134,7 +138,15 @@ export function ReportViewerPage() {
         const blob = await fetchReportBlob(path)
         if (cancelled) return
         const url = URL.createObjectURL(blob)
-        revoked = url
+        createdUrl = url
+
+        // Desktop: el visor nativo del navegador es más fiable que <iframe src=blob:>
+        // (CSP, PWA cache y plugins PDF de Chrome rompían todos los informes).
+        if (!mobile) {
+          window.location.replace(url)
+          return
+        }
+
         setObjectUrl(url)
       } catch (e) {
         if (!cancelled) {
@@ -148,11 +160,14 @@ export function ReportViewerPage() {
 
     return () => {
       cancelled = true
-      if (revoked) URL.revokeObjectURL(revoked)
+      // No revocar si ya navegamos a la blob URL (el navegador la sigue usando).
+      if (createdUrl && mobile) {
+        URL.revokeObjectURL(createdUrl)
+      }
     }
-  }, [path, resolved.error, authLoading, isAuthenticated, reloadToken])
+  }, [path, resolved.error, authLoading, isAuthenticated, reloadToken, mobile])
 
-  if (authLoading || (loading && isAuthenticated)) {
+  if (authLoading || (loading && isAuthenticated && !error)) {
     return (
       <div className="report-viewer report-viewer--loading">
         Cargando informe…
@@ -187,63 +202,50 @@ export function ReportViewerPage() {
           >
             Reintentar
           </Button>
-          <Button href="/credito/simulador">Volver al simulador</Button>
+          <Button onClick={() => window.close()}>Cerrar pestaña</Button>
         </Space>
       </div>
     )
   }
 
+  // Desktop ya hizo location.replace; aquí solo móvil con blob listo.
   if (!objectUrl) {
-    return null
-  }
-
-  if (mobile) {
     return (
-      <div className="report-viewer report-viewer--mobile">
-        <FilePdfOutlined className="report-viewer__icon" />
-        <p>El visor PDF del navegador móvil no embebe el archivo. Ábralo o descárguelo:</p>
-        <Space direction="vertical" size="middle" style={{ width: 'min(100%, 320px)' }}>
-          <Button
-            type="primary"
-            block
-            size="large"
-            icon={<FilePdfOutlined />}
-            href={objectUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => {
-              window.open(objectUrl, '_blank', 'noopener,noreferrer')
-            }}
-          >
-            Abrir PDF
-          </Button>
-          <Button
-            block
-            size="large"
-            icon={<DownloadOutlined />}
-            href={objectUrl}
-            download="informe-credix.pdf"
-          >
-            Descargar PDF
-          </Button>
-        </Space>
+      <div className="report-viewer report-viewer--loading">
+        Abriendo informe…
       </div>
     )
   }
 
   return (
-    <div className="report-viewer report-viewer--desktop">
-      <div className="report-viewer__toolbar">
+    <div className="report-viewer report-viewer--mobile">
+      <FilePdfOutlined className="report-viewer__icon" />
+      <p>El visor PDF del navegador móvil no embebe el archivo. Ábralo o descárguelo:</p>
+      <Space direction="vertical" size="middle" style={{ width: 'min(100%, 320px)' }}>
         <Button
-          size="small"
+          type="primary"
+          block
+          size="large"
+          icon={<FilePdfOutlined />}
+          href={objectUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => {
+            window.open(objectUrl, '_blank', 'noopener,noreferrer')
+          }}
+        >
+          Abrir PDF
+        </Button>
+        <Button
+          block
+          size="large"
           icon={<DownloadOutlined />}
           href={objectUrl}
           download="informe-credix.pdf"
         >
           Descargar PDF
         </Button>
-      </div>
-      <iframe className="report-viewer__frame" title="Informe" src={objectUrl} />
+      </Space>
     </div>
   )
 }
