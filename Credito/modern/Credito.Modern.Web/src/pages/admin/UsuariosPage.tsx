@@ -17,18 +17,22 @@ import {
   Typography,
   message,
 } from 'antd'
-import { EditOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
+import { EditOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import {
   celularPeRule,
+  direccionRealistaRule,
+  disabledFechaNacimiento,
   dniRule,
   emailRule,
   FIELD_MAX,
+  fechaNacimientoRule,
   maxLen,
   required,
   requiredText,
 } from '../../validation/formRules'
 import dayjs from 'dayjs'
+import { consultarDniApiPeru } from '../../api/apiperu'
 import {
   activarUsuario,
   asignarOficinasUsuario,
@@ -114,6 +118,40 @@ export function UsuariosPage() {
       message.success('Estado actualizado')
       void queryClient.invalidateQueries({ queryKey: ['usuarios-gestion'] })
     },
+  })
+
+  const consultarReniec = useMutation({
+    mutationFn: async (dniRaw: string) => {
+      const dni = dniRaw.replace(/\D/g, '')
+      if (dni.length !== 8) {
+        throw new Error('Ingrese un DNI de 8 dígitos')
+      }
+      const existe = await validarDniUsuario(dni)
+      if (existe.existe && usuarioId < 1) {
+        throw new Error('Ya existe un usuario con ese DNI')
+      }
+      return consultarDniApiPeru(dni)
+    },
+    onSuccess: (r) => {
+      const tieneDatos = Boolean(
+        r.success && (r.nombres?.trim() || r.apellidoPaterno?.trim() || r.apellidoMaterno?.trim()),
+      )
+      if (!tieneDatos) {
+        message.warning(
+          r.mensaje?.trim() ||
+            'No se encontraron datos en ApiPerú. Complete nombre y apellidos manualmente.',
+        )
+        return
+      }
+      form.setFieldsValue({
+        nombre: r.nombres ?? '',
+        apePaterno: r.apellidoPaterno ?? '',
+        apeMaterno: r.apellidoMaterno ?? '',
+      })
+      message.success('Datos completados desde ApiPerú')
+    },
+    onError: (e: unknown) =>
+      message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error ApiPerú'),
   })
 
   const resetClave = useMutation({
@@ -315,17 +353,37 @@ export function UsuariosPage() {
                         name="numeroDocumento"
                         label="DNI"
                         rules={[required('DNI obligatorio'), dniRule]}
+                        extra={
+                          usuarioId < 1
+                            ? 'Ingrese el DNI y pulse Validar ApiPerú para completar nombres y apellidos.'
+                            : undefined
+                        }
                       >
-                        <Input
-                          maxLength={FIELD_MAX.dni}
-                          disabled={usuarioId >= 1}
-                          onBlur={async () => {
-                            const dni = form.getFieldValue('numeroDocumento') as string
-                            if (!dni?.trim() || usuarioId >= 1) return
-                            const v = await validarDniUsuario(dni)
-                            if (v.existe) message.warning('Ya existe un usuario con ese DNI')
-                          }}
-                        />
+                        <Space.Compact style={{ width: '100%' }}>
+                          <Input
+                            maxLength={FIELD_MAX.dni}
+                            disabled={usuarioId >= 1}
+                            inputMode="numeric"
+                            onPressEnter={() => {
+                              if (usuarioId >= 1) return
+                              const dni = form.getFieldValue('numeroDocumento') as string
+                              if (dni?.trim()) consultarReniec.mutate(dni)
+                            }}
+                          />
+                          {usuarioId < 1 ? (
+                            <Button
+                              type="default"
+                              icon={<SearchOutlined />}
+                              loading={consultarReniec.isPending}
+                              onClick={() => {
+                                const dni = form.getFieldValue('numeroDocumento') as string
+                                consultarReniec.mutate(dni ?? '')
+                              }}
+                            >
+                              Validar ApiPerú
+                            </Button>
+                          ) : null}
+                        </Space.Compact>
                       </Form.Item>
                       <Space wrap style={{ width: '100%' }}>
                         <Form.Item name="apePaterno" label="Ap. paterno" rules={requiredText(FIELD_MAX.nombre)}>
@@ -346,8 +404,13 @@ export function UsuariosPage() {
                           ]}
                         />
                       </Form.Item>
-                      <Form.Item name="fechaNacimiento" label="Fecha nacimiento">
-                        <CredixDatePicker />
+                      <Form.Item
+                        name="fechaNacimiento"
+                        label="Fecha nacimiento"
+                        rules={[fechaNacimientoRule(18)]}
+                        extra="Mínimo 18 años; no se admiten fechas futuras."
+                      >
+                        <CredixDatePicker disabledDate={(d) => disabledFechaNacimiento(d, 18)} />
                       </Form.Item>
                       <Form.Item name="telefonoMovil" label="Celular" rules={[celularPeRule]}>
                         <Input maxLength={FIELD_MAX.celular} inputMode="numeric" />
@@ -355,8 +418,16 @@ export function UsuariosPage() {
                       <Form.Item name="emailPersonal" label="Email" rules={[emailRule, maxLen(FIELD_MAX.email)]}>
                         <Input type="email" maxLength={FIELD_MAX.email} />
                       </Form.Item>
-                      <Form.Item name="direccion" label="Dirección" rules={[maxLen(FIELD_MAX.direccion)]}>
-                        <Input.TextArea rows={2} maxLength={FIELD_MAX.direccion} />
+                      <Form.Item
+                        name="direccion"
+                        label="Dirección"
+                        rules={[direccionRealistaRule('dirección'), maxLen(FIELD_MAX.direccion)]}
+                      >
+                        <Input.TextArea
+                          rows={2}
+                          maxLength={FIELD_MAX.direccion}
+                          placeholder="Jr. / Av. + número (opcional pero debe ser legible)"
+                        />
                       </Form.Item>
                       <Form.Item
                         name="nombreUsuario"

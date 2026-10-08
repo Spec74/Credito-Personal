@@ -38,5 +38,51 @@ public static class DateRules
         return null;
     }
 
+    /// <summary>
+    /// Fecha de nacimiento opcional: si viene, no futura, edad entre <paramref name="minAgeYears"/> y 120.
+    /// </summary>
+    public static string? OptionalFechaNacimiento(
+        DateTime? value,
+        DateTime today,
+        int minAgeYears = 18,
+        string fieldName = "fecha de nacimiento")
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        var birth = value.Value.Date;
+        var hoy = today.Date;
+        if (birth > hoy)
+        {
+            return $"{fieldName} no puede ser una fecha futura.";
+        }
+
+        var edad = EdadEnAnios(birth, hoy);
+        if (edad > 120)
+        {
+            return $"{fieldName} no es válida (edad mayor a 120 años).";
+        }
+
+        if (edad < minAgeYears)
+        {
+            return $"{fieldName}: debe tener al menos {minAgeYears} años.";
+        }
+
+        return null;
+    }
+
+    public static int EdadEnAnios(DateTime birthDate, DateTime onDate)
+    {
+        var age = onDate.Year - birthDate.Year;
+        if (birthDate.Date > onDate.AddYears(-age))
+        {
+            age--;
+        }
+
+        return age;
+    }
+
     private static CultureInfo CulturaPe { get; } = CultureInfo.GetCultureInfo("es-PE");
 }

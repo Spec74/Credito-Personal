@@ -73,6 +73,11 @@ import {
   TABLA_RIESGO_SBS,
   TABLA_TIPO_VIVIENDA,
 } from './clienteMantenerConstants'
+import {
+  direccionRealistaRule,
+  disabledFechaNacimiento,
+  fechaNacimientoRule,
+} from '../../validation/formRules'
 import '../../styles/cliente-form.css';
 
 const { Text } = Typography
@@ -683,8 +688,13 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                         </Form.Item>
                       </Col>
                       <Col xs={24} md={9}>
-                        <Form.Item name="fechaNacimiento" label="Fecha nacimiento">
-                          <CredixDatePicker />
+                        <Form.Item
+                          name="fechaNacimiento"
+                          label="Fecha nacimiento"
+                          rules={[fechaNacimientoRule(18)]}
+                          extra="Persona natural: mínimo 18 años; no se admiten fechas futuras."
+                        >
+                          <CredixDatePicker disabledDate={(d) => disabledFechaNacimiento(d, 18)} />
                         </Form.Item>
                       </Col>
                     </Row>
@@ -719,11 +729,16 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
               children: (
                 <CredixPanel>
                   <p className="cliente-mantener__section-title">Domicilio y negocio</p>
-                  <Form.Item name="direccion" label="Domicilio">
-                    <Input.TextArea rows={2} />
+                  <Form.Item
+                    name="direccion"
+                    label="Domicilio"
+                    rules={[direccionRealistaRule('domicilio')]}
+                    extra="Ej. Jr. Lima 245 · Evite solo números o textos de prueba."
+                  >
+                    <Input.TextArea rows={2} maxLength={250} placeholder="Jr. / Av. / Calle + número + referencia corta" />
                   </Form.Item>
                   <Form.Item name="direccionRef" label="Referencia domicilio">
-                    <Input />
+                    <Input maxLength={250} />
                   </Form.Item>
                   <Form.Item name="distritoLabel" label="Distrito (Ayacucho)">
                     <AutoComplete
@@ -745,11 +760,16 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                       placeholder="Buscar distrito…"
                     />
                   </Form.Item>
-                  <Form.Item name="direccionNegocio" label="Dirección negocio">
-                    <Input />
+                  <Form.Item
+                    name="direccionNegocio"
+                    label="Dirección negocio"
+                    rules={[direccionRealistaRule('dirección de negocio')]}
+                    extra="Si la informa, debe ser una dirección legible (no solo «123»)."
+                  >
+                    <Input maxLength={250} placeholder="Av. / Jr. + número" />
                   </Form.Item>
                   <Form.Item name="direccionNegocioRef" label="Referencia negocio">
-                    <Input />
+                    <Input maxLength={250} />
                   </Form.Item>
                   <div className="cliente-mantener__map-block">
                     <div className="cliente-mantener__map-actions">

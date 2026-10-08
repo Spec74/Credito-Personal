@@ -111,6 +111,65 @@ public static partial class StringRules
             : "El correo no tiene un formato válido.";
     }
 
+    /// <summary>
+    /// Dirección opcional pero, si se informa, debe parecer una dirección real
+    /// (rechaza "123", solo números, texto demasiado corto, etc.).
+    /// </summary>
+    public static string? OptionalDireccionRealista(string? value, string fieldName = "dirección")
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        return ValidarDireccionRealista(value, fieldName);
+    }
+
+    public static string? ValidarDireccionRealista(string value, string fieldName = "dirección")
+    {
+        var v = value.Trim();
+        if (v.Length > MaxDireccion)
+        {
+            return $"{fieldName} no puede superar {MaxDireccion} caracteres.";
+        }
+
+        if (v.Length < 8)
+        {
+            return $"{fieldName} es demasiado corta (mínimo 8 caracteres).";
+        }
+
+        var letras = LetrasDireccion().Matches(v).Count;
+        if (letras < 3)
+        {
+            return $"{fieldName} debe incluir texto (calle, jirón, avenida, etc.), no solo números.";
+        }
+
+        var sinEspacios = Espacios().Replace(v, string.Empty);
+        if (SoloDigitosYPuntuacion().IsMatch(sinEspacios))
+        {
+            return $"{fieldName} no puede ser solo números o símbolos.";
+        }
+
+        if (CaracterRepetido().IsMatch(sinEspacios))
+        {
+            return $"{fieldName} no parece una dirección válida.";
+        }
+
+        return null;
+    }
+
     [GeneratedRegex(@"\D")]
     private static partial Regex SoloDigitos();
+
+    [GeneratedRegex(@"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]")]
+    private static partial Regex LetrasDireccion();
+
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex Espacios();
+
+    [GeneratedRegex(@"^[\d\W_]+$")]
+    private static partial Regex SoloDigitosYPuntuacion();
+
+    [GeneratedRegex(@"^(.)\1{4,}$", RegexOptions.IgnoreCase)]
+    private static partial Regex CaracterRepetido();
 }

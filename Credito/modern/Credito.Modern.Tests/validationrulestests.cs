@@ -36,6 +36,29 @@ public sealed class ValidationRulesTests
     }
 
     [Fact]
+    public void StringRules_DireccionRealista_RechazaBasura()
+    {
+        Assert.Null(StringRules.OptionalDireccionRealista(null));
+        Assert.Null(StringRules.OptionalDireccionRealista(""));
+        Assert.NotNull(StringRules.OptionalDireccionRealista("123"));
+        Assert.NotNull(StringRules.OptionalDireccionRealista("99999999"));
+        Assert.NotNull(StringRules.OptionalDireccionRealista("abc"));
+        Assert.Null(StringRules.OptionalDireccionRealista("Jr. Lima 245"));
+        Assert.Null(StringRules.OptionalDireccionRealista("Av. Centenario mz A lt 12"));
+    }
+
+    [Fact]
+    public void DateRules_FechaNacimiento_NoFuturaNiMenorDeEdad()
+    {
+        var hoy = new DateTime(2026, 10, 8);
+        Assert.Null(DateRules.OptionalFechaNacimiento(null, hoy));
+        Assert.NotNull(DateRules.OptionalFechaNacimiento(hoy.AddDays(1), hoy));
+        Assert.NotNull(DateRules.OptionalFechaNacimiento(hoy.AddYears(-17), hoy));
+        Assert.Null(DateRules.OptionalFechaNacimiento(hoy.AddYears(-25), hoy));
+        Assert.NotNull(DateRules.OptionalFechaNacimiento(hoy.AddYears(-130), hoy));
+    }
+
+    [Fact]
     public void MaestroValidacion_DenominacionMaxLength()
     {
         Assert.NotNull(MaestroValidacion.ValidarDenominacion("  "));

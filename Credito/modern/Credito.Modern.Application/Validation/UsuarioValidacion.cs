@@ -8,10 +8,11 @@ public static class UsuarioValidacion
     public const int MaxClave = 100;
     public const int MinClaveNueva = 6;
 
-    public static string? ValidarGuardar(GuardarUsuarioRequest request)
+    public static string? ValidarGuardar(GuardarUsuarioRequest request, DateTime? hoy = null)
     {
         var esNuevo = request.UsuarioId < 1;
         var clavePlaceholder = string.Equals(request.ClaveUsuario, "********", StringComparison.Ordinal);
+        var today = (hoy ?? DateTime.Today).Date;
 
         return ValidationGate.First(
             StringRules.RequireDni(request.NumeroDocumento),
@@ -19,9 +20,10 @@ public static class UsuarioValidacion
             StringRules.RequireText(request.ApeMaterno, "apellido materno", StringRules.MaxNombre),
             StringRules.RequireText(request.Nombre, "nombres", StringRules.MaxNombre),
             StringRules.RequireText(request.NombreUsuario, "usuario", StringRules.MaxUsuario),
+            DateRules.OptionalFechaNacimiento(request.FechaNacimiento, today),
             StringRules.OptionalCelularPeruano(request.TelefonoMovil),
             StringRules.OptionalEmail(request.EmailPersonal),
-            StringRules.OptionalMaxLength(request.Direccion, "dirección", StringRules.MaxDireccion),
+            StringRules.OptionalDireccionRealista(request.Direccion, "dirección"),
             esNuevo && string.IsNullOrWhiteSpace(request.ClaveUsuario)
                 ? "La clave es obligatoria para un usuario nuevo."
                 : null,
