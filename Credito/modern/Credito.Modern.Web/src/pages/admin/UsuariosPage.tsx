@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  Alert,
   Button,
   Checkbox,
   Drawer,
@@ -17,7 +18,13 @@ import {
   Typography,
   message,
 } from 'antd'
-import { EditOutlined, PlusOutlined, ReloadOutlined, SearchOutlined } from '@ant-design/icons'
+import {
+  CopyOutlined,
+  EditOutlined,
+  PlusOutlined,
+  ReloadOutlined,
+  SearchOutlined,
+} from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import {
   celularPeRule,
@@ -50,7 +57,7 @@ import { CredixCrudPage, CredixDataTable, CredixDatePicker } from '../../compone
 import { useCrudListStats } from '../../hooks/useCrudListStats'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 
-const { Paragraph } = Typography
+const { Paragraph, Text } = Typography
 
 export function UsuariosPage() {
   const screens = Grid.useBreakpoint()
@@ -154,6 +161,52 @@ export function UsuariosPage() {
       message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error ApiPerú'),
   })
 
+  const CLAVE_RESET_TEMPORAL = '123456'
+
+  const mostrarCredencialesReset = (nombreUsuario: string) => {
+    const usuario = nombreUsuario.trim() || form.getFieldValue('nombreUsuario') || '—'
+    Modal.success({
+      title: 'Clave restablecida',
+      width: 440,
+      content: (
+        <Space direction="vertical" size="middle" style={{ width: '100%', marginTop: 8 }}>
+          <Paragraph type="secondary" style={{ marginBottom: 0 }}>
+            La clave anterior no se puede recuperar (está cifrada). Use estas credenciales
+            temporales para revisar o indicar al usuario que cambie su clave.
+          </Paragraph>
+          <div>
+            <Text type="secondary">Usuario</Text>
+            <Space.Compact style={{ width: '100%', marginTop: 4 }}>
+              <Input value={usuario} readOnly />
+              <Button
+                icon={<CopyOutlined />}
+                onClick={() => {
+                  void navigator.clipboard.writeText(String(usuario)).then(() =>
+                    message.success('Usuario copiado'),
+                  )
+                }}
+              />
+            </Space.Compact>
+          </div>
+          <div>
+            <Text type="secondary">Clave temporal</Text>
+            <Space.Compact style={{ width: '100%', marginTop: 4 }}>
+              <Input.Password value={CLAVE_RESET_TEMPORAL} readOnly visibilityToggle />
+              <Button
+                icon={<CopyOutlined />}
+                onClick={() => {
+                  void navigator.clipboard.writeText(CLAVE_RESET_TEMPORAL).then(() =>
+                    message.success('Clave copiada'),
+                  )
+                }}
+              />
+            </Space.Compact>
+          </div>
+        </Space>
+      ),
+    })
+  }
+
   const resetClave = useMutation({
     mutationFn: resetearClaveUsuario,
     onSuccess: (res) => {
@@ -161,8 +214,15 @@ export function UsuariosPage() {
         message.error(res.mensaje ?? 'Error')
         return
       }
-      message.success('Clave restablecida a 123456')
+      const nombreUsuario =
+        (form.getFieldValue('nombreUsuario') as string | undefined)?.trim() ||
+        detalleQuery.data?.nombreUsuario ||
+        ''
+      form.setFieldValue('claveUsuario', '')
+      mostrarCredencialesReset(nombreUsuario)
     },
+    onError: (e: unknown) =>
+      message.error(e instanceof ApiError ? e.message : 'No se pudo restablecer la clave'),
   })
 
   const asignarOficinas = useMutation({
@@ -204,7 +264,8 @@ export function UsuariosPage() {
       emailPersonal: d.emailPersonal ?? '',
       direccion: d.direccion ?? '',
       nombreUsuario: d.nombreUsuario,
-      claveUsuario: '********',
+      // Vacío = no cambiar. La clave real no se puede mostrar: solo hay hash PBKDF2 en BD.
+      claveUsuario: '',
       estado: d.estado,
     })
     const asignadas = d.oficinas.filter((o) => o.asignado).map((o) => o.oficinaId)
@@ -436,16 +497,47 @@ export function UsuariosPage() {
                       >
                         <Input maxLength={FIELD_MAX.usuario} />
                       </Form.Item>
+                      {usuarioId >= 1 ? (
+                        <Alert
+                          type="info"
+                          showIcon
+                          style={{ marginBottom: 12 }}
+                          message="La clave actual no se puede ver"
+                          description="Por seguridad se guarda cifrada (hash). El ojito solo muestra lo que usted escriba ahora. Para revisar como ese usuario: Resetear clave (queda 123456) o escriba una clave temporal nueva y guarde."
+                        />
+                      ) : null}
                       <Form.Item
                         name="claveUsuario"
-                        label="Clave"
+                        label={usuarioId >= 1 ? 'Nueva clave (opcional)' : 'Clave'}
                         rules={
                           usuarioId < 1
-                            ? [{ required: true, message: 'Clave obligatoria' }, { min: 6, message: 'Mínimo 6 caracteres' }]
-                            : [{ min: 6, message: 'Mínimo 6 caracteres' }]
+                            ? [
+                                { required: true, message: 'Clave obligatoria' },
+                                { min: 6, message: 'Mínimo 6 caracteres' },
+                              ]
+                            : [
+                                {
+                                  validator: async (_, value: string | undefined) => {
+                                    const v = (value ?? '').trim()
+                                    if (!v) return
+                                    if (v.length < 6) {
+                                      throw new Error('Mínimo 6 caracteres')
+                                    }
+                                  },
+                                },
+                              ]
+                        }
+                        extra={
+                          usuarioId >= 1
+                            ? 'Vacío = no cambiar. Si escribe una nueva, el ojito la muestra al tipearla.'
+                            : 'Use el ojito para verificar lo que escribe.'
                         }
                       >
-                        <Input.Password placeholder={usuarioId >= 1 ? 'Dejar ******** para no cambiar' : ''} />
+                        <Input.Password
+                          visibilityToggle
+                          placeholder={usuarioId >= 1 ? 'Dejar vacío para no cambiar' : 'Mínimo 6 caracteres'}
+                          autoComplete="new-password"
+                        />
                       </Form.Item>
                       <Form.Item name="estado" label="Activo" valuePropName="checked">
                         <Switch />
@@ -455,6 +547,7 @@ export function UsuariosPage() {
                         loading={guardar.isPending}
                         onClick={() => {
                           void form.validateFields().then((v) => {
+                            const claveNueva = ((v.claveUsuario as string) ?? '').trim()
                             guardar.mutate({
                               usuarioId,
                               apePaterno: v.apePaterno,
@@ -469,7 +562,8 @@ export function UsuariosPage() {
                               emailPersonal: v.emailPersonal,
                               direccion: v.direccion,
                               nombreUsuario: v.nombreUsuario,
-                              claveUsuario: (v.claveUsuario as string) ?? '',
+                              // Vacío en edición = no tocar clave (backend ignora blanco / ********).
+                              claveUsuario: claveNueva,
                               estado: v.estado,
                             })
                           })
@@ -480,9 +574,21 @@ export function UsuariosPage() {
                       {usuarioId >= 1 ? (
                         <Button
                           style={{ marginLeft: 8 }}
+                          loading={resetClave.isPending}
                           onClick={() =>
                             Modal.confirm({
-                              title: '¿Restablecer clave a 123456?',
+                              title: '¿Restablecer clave temporal?',
+                              content: (
+                                <Paragraph style={{ marginBottom: 0 }}>
+                                  Se asignará la clave <Text code>{CLAVE_RESET_TEMPORAL}</Text> al
+                                  usuario{' '}
+                                  <Text strong>
+                                    {(form.getFieldValue('nombreUsuario') as string) || '…'}
+                                  </Text>
+                                  . La clave anterior quedará invalidada (no es recuperable).
+                                </Paragraph>
+                              ),
+                              okText: 'Restablecer',
                               onOk: () => resetClave.mutateAsync(usuarioId),
                             })
                           }
