@@ -28,10 +28,25 @@ Módulos SSD-01…09 pulidos para piloto (auth, crédito, caja, bóveda, cliente
 
 1. En SSMS local: clic derecho en `CREDITO` → **Tasks** → **Export Data-tier Application** → `.bacpac`.
 2. En Azure Portal: SQL Database `CREDITO` → **Import** (o crear DB desde bacpac en el server `sql-credito-crediconfiable`).
-3. Aplicar scripts pendientes de `deploy/sql/` si el bacpac no los trae (mora, `ClaveUsuario` 256, etc.).
+3. Aplicar scripts pendientes de `deploy/sql/` si el bacpac / bak no los trae (ver tabla abajo).
 4. Probar conexión desde App Service (firewall Azure SQL: Allow Azure services + IP del equipo si usas SSMS).
 
-Smoke mínimo: login → menú → tablero `/inicio` → caja diario → un informe PDF.
+### Azure con bak `CREDITO20260922` (piloto 2026-10)
+
+| Orden | Script | ¿Obligatorio? |
+|-------|--------|----------------|
+| 1 | Restaurar bak en Azure | Sí |
+| 2 | `2026-09-23-prod-bak-deltas-minimos.sql` (geo + prendario + menú + `ClaveUsuario` 256) | Sí |
+| 3 | Mora postergada (`CreditoMora.MovimientoCajaId` NULL + `usp_CreditoMora_*`) | Sí, si el bak aún tiene la columna NOT NULL / faltan SPs |
+| 4 | `2026-09-03-usp-credito-ins-quoted-identifier.sql` | **Sí tras crear `IX_Credito_EsPrendario`**: no cambia el cuerpo del SP; solo `QUOTED_IDENTIFIER ON` (evita error 1934 al generar crédito) |
+| 5 | `2026-10-07-usp-morosidad-empresa.sql` | Solo si falta el SP (en el bak 2026-09-22 **ya venía**) |
+| 6 | `2026-10-06-prendario-drop-fecha-notif-whatsapp.sql` | Solo si existe la columna `FechaNotifWhatsapp3d` (los deltas mínimos **no** la crean) |
+
+**No** reaplicar el cuerpo completo de `usp_Credito_Ins` “a mano” salvo que negocio pida un cambio de reglas: el script del paso 4 recrea el módulo con las opciones SET correctas y deja el texto igual.
+
+**No** ejecutar `2026-09-23-azure-cutover-modern-deltas.sql` sobre este bak: es redundante.
+
+Smoke mínimo: login → menú → tablero `/inicio` → caja diario → un informe PDF → (ACL) `/informes/morosos`.
 
 ## Build
 

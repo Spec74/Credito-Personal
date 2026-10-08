@@ -7,7 +7,7 @@ Regenerar tras cada entrega de base de datos y revisar el `git diff`.
 | --- | --- |
 | Tablas | 63 |
 | SQL_SCALAR_FUNCTION | 7 |
-| SQL_STORED_PROCEDURE | 100 |
+| SQL_STORED_PROCEDURE | 101 |
 | SQL_TABLE_VALUED_FUNCTION | 1 |
 
 ## Esquemas

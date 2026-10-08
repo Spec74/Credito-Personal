@@ -16,3 +16,5 @@ La API expone `GET /api/v1/reportes/catalogo-cobertura` para revisar la matriz d
 Los informes críticos de crédito, caja, bóveda, almacén y ventas tienen pantalla SPA o export moderno. El PDF tabular usa `CredixLegacyReportCatalog` (título normalizado, columnas con etiqueta RDLC). Donde negocio exija el RDLC idéntico, la SPA mantiene puente a MVC mediante `VITE_LEGACY_ORIGIN`.
 
 Actualización 2026-09-22: cobros del día y morosidad por gestor pasan a `completo-datos` (JSON+CSV+PDF). Quedan `parcial` tickets de movimiento, saldos caja chica/actual con layout RDLC distinto, y cobranza pagos (Excel sin PDF tabular).
+
+Actualización 2026-10-07: **Morosos empresariales** (`/informes/morosos`) no forma parte del catálogo RDLC de 52 ítems: es módulo ACL + `usp_MorosidadEmpresa`. Ver [PARIDAD-MOROSIDAD.md](PARIDAD-MOROSIDAD.md) y SSD-07.

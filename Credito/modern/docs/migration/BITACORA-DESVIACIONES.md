@@ -531,3 +531,35 @@ Se normalizan tildes/mayúsculas, se añaden los alias que usa `Program.cs`
 A4 apaisado. Importes y fechas se formatean solo en pantalla (`es-PE` / `dd/MM/yyyy`);
 los `usp_*` no cambian. No se replica el RDLC píxel a píxel.
 
+### 2026-10-06 — Retirada `FechaNotifWhatsapp3d` de `CREDITO.Credito`
+
+**Tipo:** decisión de diseño (operación + modelo)
+
+La columna marcaba “aviso WhatsApp de hoy” para no listar de nuevo el mismo crédito.
+En operación no se usaba de forma confiable (chat `wa.me` manual) y sobrecargaba
+`Credito` con telemetría de integración. Se elimina del legacy (`PrendarioLegacy`) y
+del moderno; script `deploy/sql/2026-10-06-prendario-drop-fecha-notif-whatsapp.sql`.
+Los deltas mínimos del bak 2026-09-22 **no** crean esa columna. Si más adelante Cloud
+API exige idempotencia, irá a tabla auxiliar, no a `Credito`.
+
+### 2026-10-07 — Morosos empresariales en Informes (ACL, no menú)
+
+**Tipo:** paridad + endurecimiento
+
+Módulo legado `MorosidadController` / pantallas bajo Cierre gerencial. El moderno
+expone `/informes/morosos` + `/api/v1/morosidad/*` con `CREDITO.usp_MorosidadEmpresa`
+(ya presente en bak 2026-09-22). ACL: `Morosidad:UsuarioConsultaIds` (default 3, 10);
+`PermitirAdministradores=false` por paridad con el `_Layout` MVC. La ruta está en
+`EXACT_MENU_ROUTES` para que el hub de reportes no la abra sin permisos. Detalle:
+[PARIDAD-MOROSIDAD.md](PARIDAD-MOROSIDAD.md).
+
+### 2026-10-08 — Deltas mínimos bak producción (geo + prendario + clave)
+
+**Tipo:** operación de cutover
+
+Sobre `CREDITO20260922` no se corre el cutover grande: solo
+`2026-09-23-prod-bak-deltas-minimos.sql` (+ mora postergada si aplica) y
+**obligatoriamente** `2026-09-03-usp-credito-ins-quoted-identifier.sql` tras crear
+`IX_Credito_EsPrendario`. No hace falta reescribir el cuerpo de `usp_Credito_Ins`.
+Ver [DEPLOY-AL-SUBIR.md](DEPLOY-AL-SUBIR.md).
+

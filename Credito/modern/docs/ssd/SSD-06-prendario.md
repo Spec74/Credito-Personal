@@ -64,7 +64,8 @@ Política `CreditoRolPrendario` (ANALISTA o administrador).
 | `GET /api/v1/credito/prendas`, `POST /api/v1/credito/guardar-prendas` | Gestión |
 | `GET .../contrato-pdf`, `GET .../acta-entrega-pdf` | Gestión |
 | `GET .../avisos-vencimiento`, `GET .../estado` | Listado / estado canal |
-| `POST .../avisos-vencimiento/enviar`, `POST .../marcar` | Envío / marca |
+| `POST .../avisos-vencimiento/enviar` | Envío Cloud API (sin marca en BD) |
+| `POST .../marcar` | Solo valida que el crédito exista; **no** escribe columna de notificación |
 
 Chat WhatsApp de gestión no pasa por Cloud API (`prendarioWhatsapp.ts` → `wa.me`).
 
@@ -83,7 +84,7 @@ Chat WhatsApp de gestión no pasa por Cloud API (`prendarioWhatsapp.ts` → `wa.
 - [ ] Nuevo no crea segunda solicitud CRE abierta (bitácora alta repetida).
 - [ ] Guardar prendas reemplaza el detalle; `MontoTasacion` = suma insertada.
 - [ ] Contrato/acta 409 sin bienes; con bienes anexan cláusulas.
-- [ ] Aviso 3 días: DES, vencen en N días, aún no notificados hoy, oficina sesión.
+- [ ] Aviso 3 días: DES, vencen en N días, oficina sesión (sin `FechaNotifWhatsapp3d` en BD).
 - [ ] Número de prueba Meta solo entrega a testers de la consola.
 
 ## 8. Desviaciones
@@ -92,6 +93,7 @@ Relato en [BITACORA-DESVIACIONES.md](../migration/BITACORA-DESVIACIONES.md):
 
 - 2026-09-09 — script menú ANALISTA; `Prenda` vs `CreditoPrenda`; `MontoTasacion`; oficina JWT; categoría en SQL; alta repetida; CTE listado; WhatsApp hosted; `usp_Credito_Ins` + índice; contrato QuestPDF
 - 2026-09-09 — prendario restringido al rol ANALISTA en la SPA
+- 2026-10-06 — retirada `FechaNotifWhatsapp3d` (aviso wa.me / Cloud sin idempotencia en `Credito`)
 
 ## 9. Pruebas y evidencia
 

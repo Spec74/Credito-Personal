@@ -1,6 +1,6 @@
 # Documentación de Credito.Modern
 
-**Estado del paquete documental: COMPLETO (100%)** · 2026-09-27 · rama `Eber-migracion`.
+**Estado del paquete documental: COMPLETO (100%)** · 2026-10-08 · rama `Eber-migracion`.
 
 Este es el **índice único** para informática, negocio y auditoría.  
 Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escritos** cuya marca depende del smoke preprod (operación), no de documentación faltante.
@@ -77,6 +77,7 @@ Plantilla: [ssd/SPEC-TEMPLATE.md](ssd/SPEC-TEMPLATE.md).
 | Login E2E | [migration/MODERN-E2E-LOGIN-MENU.md](migration/MODERN-E2E-LOGIN-MENU.md) |
 | Password | [migration/PASSWORD-STORAGE-ROADMAP.md](migration/PASSWORD-STORAGE-ROADMAP.md) |
 | Informes cobertura | [migration/CATALOGO-INFORMES-COBERTURA.md](migration/CATALOGO-INFORMES-COBERTURA.md) |
+| Morosos empresariales | [migration/PARIDAD-MOROSIDAD.md](migration/PARIDAD-MOROSIDAD.md) |
 | Prendario | [migration/PARIDAD-PRENDARIO.md](migration/PARIDAD-PRENDARIO.md) |
 | Bitácora | [migration/BITACORA-DESVIACIONES.md](migration/BITACORA-DESVIACIONES.md) |
 
@@ -110,4 +111,4 @@ Detalle de aceptación: SSD-02 / SSD-03 / SSD-04 §7.
 | Cutover **documentado** (runbooks + checklist) | Completo |
 | Cutover **ejecutado** en preprod | Fuera de alcance documental (SSD-00 §7 operativo) |
 
-**Firma documental:** paquete cerrado 2026-09-27. Cambios futuros → actualizar el SSD del módulo + este índice si cambia el mapa.
+**Firma documental:** paquete realineado 2026-10-08 (Morosos empresariales + retirada `FechaNotifWhatsapp3d` + deploy BAK 2026-09-22). Cambios futuros → actualizar el SSD del módulo + este índice si cambia el mapa.

@@ -59,7 +59,7 @@ El menú vivo de **oficina 1 (CREDITO)** cubre SSD-01 … SSD-09 y SSD-00. Venta
 | SSD-04 | Tesorería / bóveda | Hecho | `boveda_migracion.md` | [SSD-04-boveda.md](SSD-04-boveda.md) |
 | SSD-05 | Clientes | Hecho | `clientes_migracion.md` | [SSD-05-clientes.md](SSD-05-clientes.md) |
 | SSD-06 | Prendario + WhatsApp | Hecho | `PARIDAD-PRENDARIO.md` | [SSD-06-prendario.md](SSD-06-prendario.md) |
-| SSD-07 | Informes y reportes | Hecho | `CATALOGO-INFORMES-COBERTURA.md` | [SSD-07-informes.md](SSD-07-informes.md) |
+| SSD-07 | Informes y reportes (+ Morosos empresa) | Hecho | `CATALOGO-INFORMES-COBERTURA.md`, `PARIDAD-MOROSIDAD.md` | [SSD-07-informes.md](SSD-07-informes.md) |
 | SSD-08 | Admin / seguridad / oficinas | Hecho | `ui_modernizacion_modulos.md` | [SSD-08-admin.md](SSD-08-admin.md) |
 | SSD-09 | Maestros | Hecho | `ui_modernizacion_modulos.md` | [SSD-09-maestros.md](SSD-09-maestros.md) |
 | SSD-10 | Ventas | Hecho (SPA; **no** en menú vivo oficina 1) | `ui_modernizacion_modulos.md` | [SSD-10-ventas.md](SSD-10-ventas.md) |

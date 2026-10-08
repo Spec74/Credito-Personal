@@ -14,6 +14,15 @@
     1) Restaurar CREDITO20260922.bak en Azure (reemplaza la DB vieja).
     2) Ejecutar ESTE archivo.
     3) Revisar el SELECT final.
+    4) DESPUES: 2026-09-03-usp-credito-ins-quoted-identifier.sql
+       (el indice filtrado IX_Credito_EsPrendario exige QUOTED_IDENTIFIER ON
+       en usp_Credito_Ins; el cuerpo del SP no se cambia).
+    5) Mora postergada si aplica (MovimientoCajaId NULL + usp_CreditoMora_*).
+    6) usp_MorosidadEmpresa: ya viene en este bak; solo reaplicar
+       2026-10-07-usp-morosidad-empresa.sql si falta.
+    7) NO agregar FechaNotifWhatsapp3d (retirada 2026-10-06).
+
+  Ver docs/migration/DEPLOY-AL-SUBIR.md.
 ================================================================================
 */
 SET NOCOUNT ON;
