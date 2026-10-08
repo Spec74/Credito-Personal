@@ -54,6 +54,8 @@ internal static class CreditoTestWebHost
                     ["Morosidad:UsuarioConsultaIds:0"] = "3",
                     ["Morosidad:UsuarioConsultaIds:1"] = "10",
                     ["RateLimiting:Disabled"] = "true",
+                    ["OpenTelemetry:ConsoleExporter"] = "false",
+                    ["OpenTelemetry:OtlpEndpoint"] = "",
                     ["WhatsApp:Enabled"] = "false",
                     ["WhatsApp:RunOnStartupIfPending"] = "false",
                     ["WhatsApp:Token"] = "",

@@ -16,9 +16,12 @@
 
 ## Salud y correlación
 
-- `GET /health` — self (+ SQL si hay connection string).
-- Cabecera `X-Correlation-ID` en proxy (eco en respuestas).
+- `GET /health` — self (+ SQL si hay connection string). `GET /health/ready` — + SQL.
+- Cabecera `X-Correlation-ID` en proxy (eco en respuestas); scope de log enriquecido.
+- OpenTelemetry: `OpenTelemetry:OtlpEndpoint` (opcional); consola en Development.
+- Cabeceras de seguridad: `UseCreditoSecurityHeaders` (ver [PLATFORM-HARDENING.md](PLATFORM-HARDENING.md)).
 - Logs API: categoría por operación (login, pagar-cuotas, bóveda, …).
+- Gate BD: `deploy/scripts/smoke-db-gate.ps1`
 
 ## Rollback
 

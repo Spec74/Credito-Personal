@@ -1,0 +1,71 @@
+# Calidad de plataforma Credito.Modern (API + SPA) antes de confiar en deploy.
+name: Credito.Modern quality
+
+on:
+  push:
+    branches: [Eber-migracion]
+    paths:
+      - 'Credito/modern/**'
+      - '.github/workflows/credito-modern-quality.yml'
+  pull_request:
+    branches: [Eber-migracion]
+    paths:
+      - 'Credito/modern/**'
+      - '.github/workflows/credito-modern-quality.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: credito-modern-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api-tests:
+    name: API tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Credito/modern
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+      - name: Restore
+        run: dotnet restore Credito.Modern.sln
+      - name: Build
+        run: dotnet build Credito.Modern.sln -c Release --no-restore
+      - name: Test
+        run: >
+          dotnet test Credito.Modern.Tests/Credito.Modern.Tests.csproj
+          -c Release --no-build --verbosity minimal
+          --logger "trx;LogFileName=api-tests.trx"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: api-test-results
+          path: Credito/modern/**/TestResults/**
+          if-no-files-found: ignore
+
+  web-quality:
+    name: SPA quality
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Credito/modern/Credito.Modern.Web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: Credito/modern/Credito.Modern.Web/package-lock.json
+      - name: Install
+        run: npm ci
+      - name: Quality (lint + typecheck + test + build)
+        run: npm run quality
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-coverage
+          path: Credito/modern/Credito.Modern.Web/coverage/**
+          if-no-files-found: ignore

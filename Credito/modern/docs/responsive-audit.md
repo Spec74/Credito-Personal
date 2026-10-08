@@ -59,20 +59,26 @@ import './styles/credix-responsive-global.css'
 
 ## Checklist manual (DevTools ~375px)
 
-- [ ] `/app/credito/aprobar` — buscador compacto, botón Buscar debajo
-- [ ] `/app/caja/saldos`, `/app/caja/verificar-pagos`, `/app/caja/chica` — toolbar en columna
-- [ ] `/app/caja/maestro` — Incluir inactivas + Nueva caja apilados
-- [ ] `/app/informes/comprobantes-caja-chica` — fechas + Consultar en columna
-- [ ] `/app/informes/*` — export CSV/PDF usable
-- [ ] `/app/tesoreria/boveda` — grids legibles
-- [ ] `/app/clientes` — buscador + acciones en columna
-- [ ] `/app/inicio` — hub 1 columna
+> **Firma operativa (preprod):** completar y fechar antes del cutover. El código ya aplica breakpoints globales; las casillas son evidencia de ejecución, no huecos de implementación.
+
+| Ruta | Criterio | OK | Fecha / quien |
+|------|----------|----|----------------|
+| `/app/credito/aprobar` | Buscador compacto, Buscar debajo | [ ] | |
+| `/app/caja/saldos` … `/chica` | Toolbar en columna | [ ] | |
+| `/app/caja/maestro` | Incluir inactivas + Nueva caja apilados | [ ] | |
+| `/app/informes/comprobantes-caja-chica` | Fechas + Consultar en columna | [ ] | |
+| `/app/informes/*` | Export CSV/PDF usable | [ ] | |
+| `/app/informes/morosos` | Cards + tabla legibles | [ ] | |
+| `/app/tesoreria/boveda` | Grids legibles | [ ] | |
+| `/app/clientes` | Buscador + acciones en columna | [ ] | |
+| `/app/inicio` | Hub 1 columna | [ ] | |
+| `/app/credito/prendario` | Listado usable en móvil | [ ] | |
 
 ---
 
-## Estado del workspace (2026-09-27)
+## Estado del workspace (2026-10-08)
 
-Source completo presente en `Credito/modern`. Guía local: [`run-local.md`](../run-local.md).
+Source completo en `Credito/modern`. Plataforma: [PLATFORM-HARDENING.md](PLATFORM-HARDENING.md). Guía local: [`run-local.md`](../run-local.md).
 
 Al mantener el repositorio: **un** toolbar (`CajaListToolbar`), **un** CSS global responsive, y evitar `@media` duplicados en cada `-module.css`.
 

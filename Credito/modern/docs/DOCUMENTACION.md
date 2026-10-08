@@ -18,6 +18,7 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 | API (visión) | [API-OVERVIEW.md](API-OVERVIEW.md) |
 | Pruebas | [TEST-STRATEGY.md](TEST-STRATEGY.md) |
 | Operaciones / runbooks | [OPS.md](OPS.md) |
+| Endurecimiento plataforma | [PLATFORM-HARDENING.md](PLATFORM-HARDENING.md) |
 | Especificaciones SSD | [ssd/README.md](ssd/README.md) |
 | Correr en local | [../run-local.md](../run-local.md), [../readme.md](../readme.md) |
 | Cutover strangler | [ssd/SSD-00-cutover.md](ssd/SSD-00-cutover.md), [migration/DEPLOY-AL-SUBIR.md](migration/DEPLOY-AL-SUBIR.md) |
@@ -111,4 +112,4 @@ Detalle de aceptación: SSD-02 / SSD-03 / SSD-04 §7.
 | Cutover **documentado** (runbooks + checklist) | Completo |
 | Cutover **ejecutado** en preprod | Fuera de alcance documental (SSD-00 §7 operativo) |
 
-**Firma documental:** paquete realineado 2026-10-08 (Morosos empresariales + retirada `FechaNotifWhatsapp3d` + deploy BAK 2026-09-22). Cambios futuros → actualizar el SSD del módulo + este índice si cambia el mapa.
+**Firma documental:** paquete realineado 2026-10-08 (Morosos + WhatsApp + bak + [PLATFORM-HARDENING](PLATFORM-HARDENING.md): CI, OTel, CSP, ACL shell, E2E, smoke BD). Cambios futuros → actualizar el SSD del módulo + este índice si cambia el mapa.

@@ -136,10 +136,15 @@ _TeamCity*
 *.coverage
 *.coveragexml
 
-# Credito modern — cobertura local / CI
+# Credito modern — cobertura local / CI / artefactos FE
 **/coverage/
 Credito/modern/TestResults/
 Credito/modern/Credito.Modern.Web/coverage/
+Credito/modern/Credito.Modern.Web/dist/
+Credito/modern/Credito.Modern.Web/playwright-report/
+Credito/modern/Credito.Modern.Web/test-results/
+Credito/modern/**/bin/
+Credito/modern/**/obj/
 
 # NCrunch
 _NCrunch_*

@@ -8,11 +8,14 @@
 |------|-------|-----------|
 | **API / contratos** | `Credito.Modern.Tests` | Endpoints, strangler contracts, políticas, ProblemDetails |
 | **Validación** | Tests de reglas + `formRules.test.ts` | Money/string/id; reglas Ant Design |
-| **SPA unit** | `Credito.Modern.Web` (`*.test.ts`) | Menú/rutas (`menuRouteAccess`), resolvers |
+| **SPA unit** | `Credito.Modern.Web` (`*.test.ts`) | Menú/rutas, `tokenStorage`, resolvers |
+| **SPA E2E** | Playwright `e2e/smoke.spec.ts` | Login (opcional) + arranque SPA |
 | **Smoke local** | `deploy/scripts/smoke-local-api.ps1` | health, 401, login/dev, me, menú, database-time |
+| **Smoke BD** | `deploy/scripts/smoke-db-gate.ps1` | Prendario, mora, MorosidadEmpresa, QUOTED_IDENTIFIER |
 | **Smoke strangler** | `smoke-strangler-proxy.ps1`, `verify-strangler-proxy.ps1` | Proxy 9080, SPA `/app/`, API detrás |
 | **Preprod cutover** | `preprod-cutover-checklist.ps1` | Corte A / B (SSD-00) — **ejecución operativa** |
 | **Config prod** | `verify-production-config.ps1` | Plantillas AllowDevToken / menú / CORS |
+| **CI** | `.github/workflows/credito-modern-quality.yml` | `dotnet test` + `npm run quality` |
 
 ## Cómo correr
 

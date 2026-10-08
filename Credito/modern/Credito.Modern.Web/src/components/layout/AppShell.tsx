@@ -146,6 +146,13 @@ export function AppShell() {
     [location.pathname, navigationMenuData, extraAllowedPaths],
   )
 
+  /** No montar rutas sensibles hasta resolver menú (+ ACL extra si aplica). */
+  const routeGatePending =
+    menuQuery.isLoading ||
+    ((location.pathname.startsWith('/informes/cierre-gerencial') ||
+      location.pathname.startsWith('/informes/morosos')) &&
+      (cierrePermisosQuery.isLoading || morosidadPermisosQuery.isLoading))
+
   const defaultOpenKeys = useMemo(
     () =>
       navigationMenuData.length > 0
@@ -430,7 +437,9 @@ export function AppShell() {
         <div className="credix-main">
           <main id="main-content" className="credix-content app-shell-content" tabIndex={-1}>
             <Suspense fallback={<RouteFallback />}>
-              {menuQuery.isLoading || hasCurrentRouteAccess ? (
+              {routeGatePending ? (
+                <RouteFallback />
+              ) : hasCurrentRouteAccess ? (
                 <Outlet />
               ) : (
                 <Result

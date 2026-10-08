@@ -27,6 +27,12 @@ jobs:
         working-directory: Credito/modern
         run: dotnet build Credito.Modern.sln --configuration Release
 
+      - name: Test API (gate antes de publish)
+        working-directory: Credito/modern
+        run: >
+          dotnet test Credito.Modern.Tests/Credito.Modern.Tests.csproj
+          -c Release --no-build --verbosity minimal
+
       - name: dotnet publish
         working-directory: Credito/modern
         run: dotnet publish Credito.Modern.Api/Credito.Modern.Api.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp

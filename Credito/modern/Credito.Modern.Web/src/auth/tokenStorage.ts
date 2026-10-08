@@ -4,10 +4,12 @@ const EXPIRES_AT_KEY = 'credito.accessExpiresAt'
 const PERSIST_REFRESH_KEY = 'credito.refreshPersist'
 
 /**
- * Access token en localStorage: permite abrir informes en pestañas nuevas.
- * Refresh token:
- * - sessionStorage por defecto (cierra pestaña → fin de sesión)
- * - localStorage si el usuario marcó «Recordar sesión»
+ * Modelo de tokens (strangler + visor PDF en pestaña nueva):
+ * - Access: localStorage + memoria. Necesario porque `window.open` del visor no
+ *   hereda sessionStorage; el ticket corto de `reportVisor` no basta para refresh.
+ * - Refresh: sessionStorage por defecto; localStorage solo con «Recordar sesión».
+ * Mitigación XSS: CSP en API + SPA, sin `dangerouslySetInnerHTML`, menú ACL.
+ * Cookie httpOnly/BFF queda como fase futura (rompe el visor multi-pestaña actual).
  */
 const accessStore = localStorage
 

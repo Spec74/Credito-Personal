@@ -221,6 +221,7 @@ static IEnumerable<string> GetRoleClaims(ClaimsPrincipal user) =>
 builder.Services.AddModernInfrastructure(builder.Configuration);
 builder.Services.AddMemoryCache();
 builder.AddCreditoHostSecurity();
+builder.AddCreditoObservability();
 
 builder.Services.ConfigureHttpJsonOptions(options =>
 {
@@ -241,6 +242,9 @@ app.Use(async (context, next) =>
     context.Items["CorrelationId"] = correlationId;
     await next().ConfigureAwait(false);
 });
+
+app.UseCreditoCorrelationLogging();
+app.UseCreditoSecurityHeaders();
 
 if (app.Environment.IsDevelopment())
 {
