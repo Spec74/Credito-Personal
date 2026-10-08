@@ -29,7 +29,7 @@ function samePosition(a: MapLatLng | null | undefined, b: MapLatLng | null | und
 }
 
 function getGoogleMaps(): typeof google.maps | null {
-  return typeof google !== 'undefined' ? google.maps : null
+  return typeof google !== 'undefined' && google.maps ? google.maps : null
 }
 
 function disposeMap(
@@ -50,6 +50,25 @@ function containerHasSize(el: HTMLElement | null): boolean {
   if (!el) return false
   const rect = el.getBoundingClientRect()
   return rect.width >= 40 && rect.height >= 40
+}
+
+function explainMapsError(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err ?? '')
+  const lower = raw.toLowerCase()
+  if (lower.includes('referer') || lower.includes('referrer') || lower.includes('blocked')) {
+    return 'La clave de Google Maps está bloqueada por restricciones de dominio. En Google Cloud → Credenciales, autorice credito-personal.vercel.app y localhost.'
+  }
+  if (lower.includes('apinotactivated') || lower.includes('not activated') || lower.includes('disabled')) {
+    return 'Active en Google Cloud: Maps JavaScript API, Places API y Geocoding API para esta clave.'
+  }
+  if (lower.includes('invalidkey') || lower.includes('invalid key')) {
+    return 'VITE_GOOGLE_MAPS_API_KEY inválida. Verifique la clave en Vercel (tipo Config) y vuelva a desplegar.'
+  }
+  if (lower.includes('csp') || lower.includes('content security') || lower.includes('refused to load')) {
+    return 'El navegador bloqueó el script de Google Maps (CSP). Actualice el despliegue con la CSP corregida.'
+  }
+  if (raw.trim()) return raw
+  return 'No se pudo cargar Google Maps.'
 }
 
 export function GoogleMapLocationPicker({
@@ -105,7 +124,7 @@ export function GoogleMapLocationPicker({
 
     if (!isGoogleMapsConfigured()) {
       setError(
-        'Google Maps no está configurado en este entorno. En Vercel use tipo Config (no Secret) para VITE_GOOGLE_MAPS_API_KEY y restrinja la clave al dominio en Google Cloud.',
+        'Google Maps no está configurado. En Vercel use VITE_GOOGLE_MAPS_API_KEY como Config (no Secret) y restrinja la clave al dominio en Google Cloud.',
       )
       setLoading(false)
       return
@@ -122,10 +141,12 @@ export function GoogleMapLocationPicker({
       const inputEl = searchRef.current?.input
       const mapEl = mapDivRef.current
 
-      if (!maps || !mapEl || !inputEl || !containerHasSize(mapEl)) {
+      if (!maps?.Map || !mapEl || !inputEl || !containerHasSize(mapEl)) {
         attempts += 1
-        if (attempts > 40) {
-          setError('No se pudo preparar el contenedor del mapa. Cambie de pestaña y vuelva a Ubicar.')
+        if (attempts > 50) {
+          setError(
+            'No se pudo preparar el contenedor del mapa. Cambie de pestaña y vuelva a Ubicar, o maximice la ventana.',
+          )
           setLoading(false)
           return
         }
@@ -142,13 +163,16 @@ export function GoogleMapLocationPicker({
           streetViewControl: false,
           fullscreenControl: !disabled,
           gestureHandling: disabled ? 'none' : 'cooperative',
+          mapId: undefined,
         })
         mapRef.current = map
 
+        // Marker clásico (compatible; no requiere Map ID de Advanced Markers).
         const marker = new maps.Marker({
           map,
           position: initial,
           draggable: !disabled,
+          title: 'Ubicación',
         })
         markerRef.current = marker
 
@@ -168,7 +192,9 @@ export function GoogleMapLocationPicker({
         if (maps.places?.Autocomplete) {
           const autocomplete = new maps.places.Autocomplete(inputEl, {
             fields: ['geometry', 'formatted_address', 'name'],
+            componentRestrictions: { country: 'pe' },
           })
+          autocomplete.bindTo('bounds', map)
           autocompleteRef.current = autocomplete
           autocomplete.addListener('place_changed', () => {
             const place = autocomplete.getPlace()
@@ -188,7 +214,7 @@ export function GoogleMapLocationPicker({
         }, 400)
       } catch (err: unknown) {
         if (cancelled) return
-        setError(err instanceof Error ? err.message : 'No se pudo inicializar el mapa')
+        setError(explainMapsError(err))
         setLoading(false)
       }
     }
@@ -203,7 +229,7 @@ export function GoogleMapLocationPicker({
       })
       .catch((err: unknown) => {
         if (cancelled) return
-        setError(err instanceof Error ? err.message : 'No se pudo cargar Google Maps')
+        setError(explainMapsError(err))
         setLoading(false)
       })
 
@@ -262,7 +288,7 @@ export function GoogleMapLocationPicker({
   }
 
   if (error) {
-    return <Alert type="warning" showIcon title={error} />
+    return <Alert type="warning" showIcon message={error} />
   }
 
   const mapHostKey = `gmaps-host-${layoutKey}`
