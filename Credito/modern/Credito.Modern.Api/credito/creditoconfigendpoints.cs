@@ -97,22 +97,41 @@ internal static class CreditoConfigEndpoints
                     if (idsError is not null)
                         return idsError;
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId)
-                        || !MenuIdentity.TryGetUsuarioIdFromJwt(httpContext.User, out var jwtUsuarioId))
+                    // Misma resolución que rpt-cobro-diario: cartera del gestor de la caja,
+                    // no solo el usuario del JWT (CAJA CENTRAL / admin operando otra caja).
+                    var (uid, oid, accessErr) = CobroDiarioReportAccess.ResolveFiltros(
+                        httpContext,
+                        body.UsuarioId,
+                        body.OficinaId,
+                        requiereGestor: true);
+                    if (accessErr is not null)
+                        return accessErr;
+
+                    if (uid is null or < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Parámetros inválidos",
+                            detail: "Seleccione un gestor (usuarioId >= 1).");
+                    }
+
+                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status403Forbidden,
                             title: "Prohibido",
-                            detail: "El token debe incluir vendix:oficina_id y vendix:usuario_id.");
+                            detail: "El token debe incluir vendix:oficina_id.");
                     }
+
+                    var oficinaRuta = oid is > 0 ? oid.Value : jwtOficinaId;
 
                     var log = loggerFactory.CreateLogger("GenerarRutaCobros");
                     try
                     {
                         var response = await rutaCobros
                             .GenerarAsync(
-                                jwtUsuarioId,
-                                jwtOficinaId,
+                                uid.Value,
+                                oficinaRuta,
                                 body.CreditoIds ?? Array.Empty<int>(),
                                 ct)
                             .ConfigureAwait(false);

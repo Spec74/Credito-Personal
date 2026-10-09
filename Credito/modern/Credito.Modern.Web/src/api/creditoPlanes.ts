@@ -217,11 +217,16 @@ export interface GenerarRutaCobrosResponse {
 
 export function generarRutaCobros(
   creditoIds: number[],
+  opts?: { usuarioId?: number; oficinaId?: number },
 ): Promise<GenerarRutaCobrosResponse> {
   return apiFetch<GenerarRutaCobrosResponse>('/credito/generar-ruta-cobros', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ creditoIds }),
+    body: JSON.stringify({
+      creditoIds,
+      usuarioId: opts?.usuarioId,
+      oficinaId: opts?.oficinaId,
+    }),
   })
 }
 

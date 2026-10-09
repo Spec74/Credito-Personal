@@ -31,9 +31,14 @@ public sealed class StranglerStagingContractTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
         {
-            var candidate = Path.Combine(dir.FullName, "Credito.Modern.Api", "appsettings.Staging.json");
-            if (File.Exists(candidate))
-                return candidate;
+            // Linux CI distingue mayúsculas; en repo el archivo es appsettings.staging.json.
+            foreach (var fileName in new[] { "appsettings.Staging.json", "appsettings.staging.json" })
+            {
+                var candidate = Path.Combine(dir.FullName, "Credito.Modern.Api", fileName);
+                if (File.Exists(candidate))
+                    return candidate;
+            }
+
             dir = dir.Parent;
         }
 

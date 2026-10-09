@@ -152,15 +152,26 @@ export function CobroDiarioPage() {
   const cobroStats = useInformeStats(consulta, session?.oficinaId, cobroExtras)
 
   const rutaWa = useMutation({
-    mutationFn: (ids: number[]) => generarRutaCobros(ids),
+    mutationFn: (ids: number[]) => {
+      const v = form.getFieldsValue()
+      const usuarioId = v.usuarioId ?? session?.usuarioId
+      const oficinaId = session?.oficinaId
+      if (!usuarioId || usuarioId < 1 || !oficinaId) {
+        throw new Error('Seleccione un gestor y oficina antes de generar la ruta')
+      }
+      return generarRutaCobros(ids, { usuarioId, oficinaId })
+    },
     onSuccess: (res) => {
-      if (!res.exito) {
-        message.error(res.mensaje ?? 'No se pudo generar la ruta')
+      if (!res?.exito) {
+        message.error(
+          res?.mensaje?.trim() ||
+            'No se pudo generar la ruta. Compruebe que los créditos pertenecen a la cartera del gestor.',
+        )
         return
       }
       if (!res.paradas?.length) {
         message.error(
-          res.mensaje ??
+          res.mensaje?.trim() ||
             'La API aún no devolvió paradas del mapa (despliegue Azure pendiente). Intente de nuevo en unos minutos.',
         )
         return

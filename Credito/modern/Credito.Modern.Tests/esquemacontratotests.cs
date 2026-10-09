@@ -100,14 +100,17 @@ public sealed class EsquemaContratoTests
         var directorio = new DirectoryInfo(AppContext.BaseDirectory);
         while (directorio is not null)
         {
-            if (File.Exists(Path.Combine(directorio.FullName, "credito.modern.sln")))
+            foreach (var fileName in new[] { "Credito.Modern.sln", "credito.modern.sln" })
             {
-                return directorio.FullName;
+                if (File.Exists(Path.Combine(directorio.FullName, fileName)))
+                {
+                    return directorio.FullName;
+                }
             }
 
             directorio = directorio.Parent;
         }
 
-        throw new InvalidOperationException("No se ubico la raiz de Credito/modern (credito.modern.sln).");
+        throw new InvalidOperationException("No se ubico la raiz de Credito/modern (Credito.Modern.sln).");
     }
 }
