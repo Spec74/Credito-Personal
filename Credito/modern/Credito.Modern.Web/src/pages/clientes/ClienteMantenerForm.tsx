@@ -21,6 +21,7 @@ import {
   Typography,
   Dropdown,
   message,
+  type FormProps,
 } from 'antd'
 import {
   EditOutlined,
@@ -117,6 +118,47 @@ interface FormValues {
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : 'Error desconocido'
+}
+
+/** Campos por pestaña — para saltar a la pestaña con el primer error de validación. */
+const CAMPOS_POR_PESTANA: Record<string, string[]> = {
+  identidad: [
+    'tipoPersona',
+    'numeroDocumento',
+    'nombre',
+    'apePaterno',
+    'apeMaterno',
+    'sexoMasculino',
+    'fechaNacimiento',
+    'celular1',
+    'email',
+  ],
+  ubicacion: [
+    'direccion',
+    'direccionRef',
+    'distritoLabel',
+    'direccionNegocio',
+    'direccionNegocioRef',
+  ],
+  calificacion: [
+    'ocupacionId',
+    'ocupacionOtros',
+    'estadoCivilId',
+    'conyugueLabel',
+    'tipoViviendaId',
+    'calificacion',
+    'topeCredito',
+    'clasificacionRiesgoSbsId',
+    'clasificacionRiesgoSbsObs',
+    'activo',
+  ],
+}
+
+function pestanaDeCampo(fieldName: string): string {
+  for (const [tab, fields] of Object.entries(CAMPOS_POR_PESTANA)) {
+    if (fields.includes(fieldName)) return tab
+  }
+  return 'identidad'
 }
 
 type Props = {
@@ -356,6 +398,18 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
     guardar.mutate(values)
   }
 
+  const handleFinishFailed: FormProps<FormValues>['onFinishFailed'] = (info) => {
+    const first = info.errorFields?.[0]
+    const name = first?.name?.[0]
+    const field = typeof name === 'string' ? name : String(name ?? '')
+    const tab = pestanaDeCampo(field)
+    if (tab !== clienteTab) setClienteTab(tab)
+    const msg =
+      (Array.isArray(first?.errors) && first.errors[0]) ||
+      'Complete los campos obligatorios para guardar (p. ej. fecha de nacimiento).'
+    message.warning(msg)
+  }
+
   const validarReniec = useCallback(async () => {
     const doc = form.getFieldValue('numeroDocumento')?.trim() ?? ''
     if (!doc) return
@@ -584,6 +638,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
         form={form}
         layout="vertical"
         disabled={soloConsulta}
+        scrollToFirstError={{ behavior: 'smooth', block: 'center' }}
         initialValues={{
           tipoPersona: 'N',
           sexoMasculino: true,
@@ -591,13 +646,15 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
           activo: true,
         }}
         onFinish={(v) => void handleFinish(v)}
+        onFinishFailed={handleFinishFailed}
       >
         <Tabs
           className="cliente-mantener-tabs"
           type="card"
           activeKey={clienteTab}
           onChange={setClienteTab}
-          destroyOnHidden
+          // No destruir pestañas: si no, al guardar desde Ubicación fallan validaciones
+          // de Identificación (p. ej. fecha nacimiento) sin mostrar el error.
           items={[
             {
               key: 'identidad',
