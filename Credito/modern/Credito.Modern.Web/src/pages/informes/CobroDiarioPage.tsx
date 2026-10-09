@@ -154,8 +154,15 @@ export function CobroDiarioPage() {
   const rutaWa = useMutation({
     mutationFn: (ids: number[]) => generarRutaCobros(ids),
     onSuccess: (res) => {
-      if (!res.exito || !res.paradas?.length) {
+      if (!res.exito) {
         message.error(res.mensaje ?? 'No se pudo generar la ruta')
+        return
+      }
+      if (!res.paradas?.length) {
+        message.error(
+          res.mensaje ??
+            'La API aún no devolvió paradas del mapa (despliegue Azure pendiente). Intente de nuevo en unos minutos.',
+        )
         return
       }
       const origen =

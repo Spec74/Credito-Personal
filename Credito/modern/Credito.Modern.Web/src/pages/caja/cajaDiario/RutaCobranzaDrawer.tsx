@@ -74,8 +74,15 @@ export function RutaCobranzaDrawer({
   const generar = useMutation({
     mutationFn: () => generarRutaCobros(selected),
     onSuccess: (res) => {
-      if (!res.exito || !res.paradas?.length) {
+      if (!res.exito) {
         cajaToastError(res.mensaje ?? 'No se pudo generar la ruta')
+        return
+      }
+      if (!res.paradas?.length) {
+        cajaToastError(
+          res.mensaje ??
+            'La API aún no devolvió paradas del mapa (despliegue Azure pendiente). Intente de nuevo en unos minutos.',
+        )
         return
       }
       const origen =

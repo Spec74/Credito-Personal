@@ -413,14 +413,12 @@ internal static class AuthEndpoints
             .Produces<AuthMeResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status401Unauthorized);
 
-        var runningInCi = string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase);
         var hostingForDevToken = app.Configuration.GetSection(HostingPipelineOptions.SectionName).Get<HostingPipelineOptions>() ?? new();
-        // AllowDevToken=false en Production/PreProduction. En Staging local el override
-        // docker-compose.devtoken.override.yml activa el endpoint sin cambiar el environment
-        // (así ui-config SPA de Staging sigue cargando).
+        // AllowDevToken=false en Production/PreProduction (y appsettings.json).
+        // En Tests/CI el WebApplicationFactory fuerza AllowDevToken=true para emitir JWT de prueba.
+        // No bloquear por variable CI: eso devolvía 404 en /dev/token y tumbaba el gate de Azure.
         if (!app.Environment.IsProduction()
             && !app.Environment.IsEnvironment("PreProduction")
-            && !runningInCi
             && hostingForDevToken.AllowDevToken)
         {
             app.MapPost(
@@ -446,7 +444,7 @@ internal static class AuthEndpoints
                     })
                 .WithName("DevToken")
                 .WithTags("auth")
-                .WithSummary("Emite JWT de desarrollo (AllowDevToken; no Production/PreProduction/CI).")
+                .WithSummary("Emite JWT de desarrollo (AllowDevToken; no Production/PreProduction).")
                 .Produces<DevTokenResponse>(StatusCodes.Status200OK, "application/json")
                 .ProducesProblem(StatusCodes.Status400BadRequest);
         }
