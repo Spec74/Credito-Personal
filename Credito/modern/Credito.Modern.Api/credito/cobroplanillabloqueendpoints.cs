@@ -29,13 +29,8 @@ internal static class CobroPlanillaBloqueEndpoints
                             detail: "oficinaId y cajaDiarioId deben ser >= 1.");
                     }
 
-                    if (body.Planilla is null || body.Planilla.Count == 0)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inválida",
-                            detail: "La planilla enviada está vacía.");
-                    }
+                    // Planilla vacía = solo CompletarImpagos (todos impagos). Null se trata como vacío.
+                    var planilla = body.Planilla ?? [];
 
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)
@@ -72,7 +67,7 @@ internal static class CobroPlanillaBloqueEndpoints
                         }
 
                         var result = await planillaWrite
-                            .EjecutarAsync(body.CajaDiarioId, usuarioId, body.Planilla, ct)
+                            .EjecutarAsync(body.CajaDiarioId, usuarioId, planilla, ct)
                             .ConfigureAwait(false);
 
                         if (!result.Exito)
@@ -117,7 +112,7 @@ internal static class CobroPlanillaBloqueEndpoints
             .WithSummary(
                 "Escritura atómica: paridad CreditoController.CobrarPlanillaBloque (usp_PagarCuotaPagoLibre × N + usp_CompletarImpagos).")
             .WithTags("credito")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
             .Produces<CobrarPlanillaBloqueResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)

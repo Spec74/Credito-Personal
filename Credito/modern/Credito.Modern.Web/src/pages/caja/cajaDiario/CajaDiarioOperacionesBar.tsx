@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Button } from 'antd'
+import { Button, message } from 'antd'
 import {
   FilePdfOutlined,
   EnvironmentOutlined,
@@ -8,6 +8,7 @@ import {
 } from '@ant-design/icons'
 import { openCobroDiarioPdfInTab } from '../../../api/creditoPlanes'
 import { toCobroDiarioQuery } from '../../../utils/gestorInformeForm'
+import { isCobroBloqueEjecutadoHoy } from '../../../utils/cobroBloqueDayLock'
 import type { CajaSession } from './types'
 import { MovimientosCajaModal } from './MovimientosCajaModal'
 import { RutaCobranzaDrawer } from './RutaCobranzaDrawer'
@@ -80,7 +81,15 @@ export function CajaDiarioOperacionesBar({
           type="primary"
           icon={<TeamOutlined />}
           disabled={ctx.indCierre}
-          onClick={() => navigate('/caja/cobro-bloque')}
+          onClick={() => {
+            if (isCobroBloqueEjecutadoHoy()) {
+              message.warning(
+                'El cobro en bloque ya fue ejecutado hoy. No está permitido ingresar nuevamente para evitar alterar los impagos.',
+              )
+              return
+            }
+            navigate('/caja/cobro-bloque')
+          }}
         >
           Cobro en bloque
         </Button>

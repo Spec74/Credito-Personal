@@ -23,6 +23,9 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
         "yyyy-MM-dd HH:mm:ss",
     ];
 
+    /// <summary>Paridad JS legacy <c>tiposPagoDigital = [2, 3, 4, 5]</c>.</summary>
+    private static readonly HashSet<int> TiposPagoDigital = [2, 3, 4, 5];
+
     private readonly string _connectionString = options.Value.ConnectionString;
 
     public async Task<CobrarPlanillaBloqueResponse> EjecutarAsync(
@@ -45,14 +48,6 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
         ArgumentNullException.ThrowIfNull(planilla);
 
         var items = planilla.Where(x => x.MontoPagar > 0).ToList();
-        if (items.Count == 0)
-        {
-            return new CobrarPlanillaBloqueResponse(
-                false,
-                "La planilla enviada está vacía o no tiene montos mayores a cero.",
-                0,
-                0);
-        }
 
         foreach (var item in items)
         {
@@ -64,6 +59,16 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
             if (item.TipoPagoId < 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(planilla), "tipoPagoId inválido en la planilla.");
+            }
+
+            if (TiposPagoDigital.Contains(item.TipoPagoId)
+                && string.IsNullOrWhiteSpace(item.FechaHoraTrans))
+            {
+                return new CobrarPlanillaBloqueResponse(
+                    false,
+                    $"Ingrese la fecha/hora de transferencia para el crédito {item.CreditoId}.",
+                    0,
+                    0);
             }
         }
 
@@ -130,6 +135,7 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
                 pagos++;
             }
 
+            // Siempre completa impagos (también planilla 100% S/ 0 — paridad intención MVC).
             await connection.ExecuteAsync(
                 new CommandDefinition(
                     "CREDITO.usp_CompletarImpagos",
@@ -141,7 +147,9 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new CobrarPlanillaBloqueResponse(
                 true,
-                "Planilla e impagos procesados con éxito.",
+                pagos > 0
+                    ? "Planilla e impagos procesados con éxito."
+                    : "Planilla cerrada: todos los clientes quedaron como impagos.",
                 pagos,
                 1);
         }

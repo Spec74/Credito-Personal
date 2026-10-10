@@ -4,10 +4,13 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Alert,
   Button,
+  Checkbox,
   Input,
   InputNumber,
+  Modal,
   Select,
   Space,
+  Spin,
   Typography,
   message,
 } from 'antd'
@@ -23,18 +26,30 @@ import {
   fetchCreditosGestorDesembolsados,
   type CreditoGestorPendienteRow,
 } from '../../api/cajaDiario'
+import { fetchEstadoPlanPago } from '../../api/creditoPlanes'
 import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CredixDataTable, CredixPage, CredixPanel } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
+import { formatFecha } from '../../utils/formatFecha'
+import {
+  isCobroBloqueEjecutadoHoy,
+  markCobroBloqueEjecutadoHoy,
+} from '../../utils/cobroBloqueDayLock'
+import type { EstadoPlanPagoCuota } from '../../types/api'
+import '../../styles/cobro-bloque.css'
 
 const { Text } = Typography
+
+/** Paridad legacy `tiposPagoDigital = [2, 3, 4, 5]`. */
+const TIPOS_PAGO_DIGITAL = new Set([2, 3, 4, 5])
 
 type RowEdit = {
   montoPagar: number
   tipoPagoId: number
   fechaHoraTrans: string
+  cuotasSeleccionadas: number[]
 }
 
 function nowDatetimeLocal(): string {
@@ -43,24 +58,124 @@ function nowDatetimeLocal(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+function esCuotaPendiente(c: EstadoPlanPagoCuota): boolean {
+  const e = (c.estado ?? '').trim().toUpperCase()
+  return e !== 'PAG' && e !== 'CAN'
+}
+
+function montoCuotaPendiente(c: EstadoPlanPagoCuota): number {
+  const cuota = Number(c.cuota) || 0
+  const cargo = Number(c.cargo) || 0
+  const descuento = Number(c.descuento) || 0
+  const pagoLibre = Number(c.pagoLibre) || 0
+  const mora = Number(c.importeMora) || 0
+  return Math.max(0, cuota + cargo - descuento - pagoLibre + mora)
+}
+
+function CuotasSubgrid({
+  creditoId,
+  deudaMax,
+  selected,
+  onChange,
+}: {
+  creditoId: number
+  deudaMax: number
+  selected: number[]
+  onChange: (planPagoIds: number[], monto: number) => void
+}) {
+  const cuotasQuery = useQuery({
+    queryKey: ['cobro-bloque-cuotas', creditoId],
+    queryFn: () => fetchEstadoPlanPago(creditoId),
+  })
+
+  const pendientes = useMemo(
+    () => (cuotasQuery.data ?? []).filter(esCuotaPendiente),
+    [cuotasQuery.data],
+  )
+
+  if (cuotasQuery.isLoading) {
+    return (
+      <div className="cobro-bloque-subgrid cobro-bloque-subgrid--loading">
+        <Spin size="small" /> <Text type="secondary">Cargando cuotas…</Text>
+      </div>
+    )
+  }
+
+  if (cuotasQuery.isError) {
+    return (
+      <Alert
+        type="warning"
+        showIcon
+        message="No se pudieron cargar las cuotas"
+        description="Puede digitar el monto libre en la fila principal."
+      />
+    )
+  }
+
+  if (pendientes.length === 0) {
+    return (
+      <Text type="secondary" className="cobro-bloque-subgrid">
+        Sin cuotas pendientes seleccionables.
+      </Text>
+    )
+  }
+
+  return (
+    <div className="cobro-bloque-subgrid">
+      <Text type="secondary" className="cobro-bloque-subgrid__hint">
+        Marque cuotas para sumar el monto (o digite libre arriba). Máx. S/{' '}
+        {formatMoney(deudaMax)}.
+      </Text>
+      <div className="cobro-bloque-subgrid__list">
+        {pendientes.map((c) => {
+          const monto = montoCuotaPendiente(c)
+          const checked = selected.includes(c.planPagoId)
+          return (
+            <label key={c.planPagoId} className="cobro-bloque-subgrid__item">
+              <Checkbox
+                checked={checked}
+                onChange={(ev) => {
+                  const next = ev.target.checked
+                    ? [...selected, c.planPagoId]
+                    : selected.filter((id) => id !== c.planPagoId)
+                  const suma = pendientes
+                    .filter((p) => next.includes(p.planPagoId))
+                    .reduce((acc, p) => acc + montoCuotaPendiente(p), 0)
+                  onChange(next, Math.min(suma, deudaMax))
+                }}
+              />
+              <span>
+                Cuota {c.numero} · venc. {formatFecha(c.fechaVencimiento)} · S/{' '}
+                {formatMoney(monto)}
+                {(c.diasAtrazo ?? 0) > 0 ? ` · ${c.diasAtrazo}d atraso` : ''}
+              </span>
+            </label>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export function CobroBloquePage() {
   const navigate = useNavigate()
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
   const [filtro, setFiltro] = useState('')
   const [edits, setEdits] = useState<Record<number, RowEdit>>({})
+  const yaEjecutadoHoy = isCobroBloqueEjecutadoHoy()
 
   const sesionQuery = useQuery({
     queryKey: ['caja-diario-sesion', oficinaId],
     queryFn: () => fetchCajaDiarioSesion(oficinaId),
-    enabled: oficinaId > 0,
+    enabled: oficinaId > 0 && !yaEjecutadoHoy,
     retry: false,
   })
 
   const carteraQuery = useQuery({
     queryKey: ['caja-creditos-gestor-des', 'cobro-bloque'],
     queryFn: fetchCreditosGestorDesembolsados,
-    enabled: !!sesionQuery.data && !sesionQuery.data.indCierre,
+    enabled: !!sesionQuery.data && !sesionQuery.data.indCierre && !yaEjecutadoHoy,
   })
 
   const tiposPagoQuery = useQuery({
@@ -86,17 +201,23 @@ export function CobroBloquePage() {
         montoPagar: 0,
         tipoPagoId: 1,
         fechaHoraTrans: nowDatetimeLocal(),
+        cuotasSeleccionadas: [],
       }
     },
     [edits],
   )
 
-  const patchEdit = (creditoId: number, patch: Partial<RowEdit>, row: CreditoGestorPendienteRow) => {
+  const patchEdit = (
+    creditoId: number,
+    patch: Partial<RowEdit>,
+    row: CreditoGestorPendienteRow,
+  ) => {
     setEdits((prev) => {
       const base = prev[creditoId] ?? {
         montoPagar: 0,
         tipoPagoId: 1,
         fechaHoraTrans: nowDatetimeLocal(),
+        cuotasSeleccionadas: [],
       }
       const next = { ...base, ...patch }
       if (next.montoPagar > row.deudaPendiente) {
@@ -141,8 +262,20 @@ export function CobroBloquePage() {
       impagos: Math.max(0, totalFilas - conCobro),
       total,
       porMetodo: [...porMetodo.values()],
+      totalFilas,
     }
   }, [carteraQuery.data, getEdit, tipoPagoOptions])
+
+  const validarPlanilla = (): string | null => {
+    for (const row of carteraQuery.data ?? []) {
+      const e = getEdit(row)
+      if (e.montoPagar <= 0) continue
+      if (TIPOS_PAGO_DIGITAL.has(e.tipoPagoId) && !e.fechaHoraTrans?.trim()) {
+        return `Ingrese la fecha/hora de transferencia para ${row.personaNombre} (crédito ${row.creditoId}).`
+      }
+    }
+    return null
+  }
 
   const procesar = useMutation({
     mutationFn: async () => {
@@ -150,6 +283,9 @@ export function CobroBloquePage() {
       if (!ctx || ctx.indCierre) {
         throw new Error('No hay caja diario abierta.')
       }
+      const err = validarPlanilla()
+      if (err) throw new Error(err)
+
       const planilla = (carteraQuery.data ?? [])
         .map((row) => {
           const e = getEdit(row)
@@ -169,14 +305,43 @@ export function CobroBloquePage() {
       })
     },
     onSuccess: (r) => {
+      markCobroBloqueEjecutadoHoy()
       message.success(r.mensaje)
       setEdits({})
-      void carteraQuery.refetch()
       navigate('/caja/diario')
     },
     onError: (e) =>
       message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error'),
   })
+
+  const confirmarProcesar = () => {
+    if (yaEjecutadoHoy) {
+      message.warning('El cobro en bloque ya fue ejecutado hoy.')
+      return
+    }
+    if (resumen.totalFilas < 1) {
+      message.warning('No hay clientes en la planilla para procesar.')
+      return
+    }
+    const err = validarPlanilla()
+    if (err) {
+      message.warning(err)
+      return
+    }
+
+    const content =
+      resumen.conCobro > 0
+        ? `¿Registrar el cobro de ${resumen.conCobro} cliente(s) por S/ ${formatMoney(resumen.total)} y marcar el resto como impagos?`
+        : '¿Cerrar la planilla registrando a TODOS los clientes como IMPAGOS (S/ 0.00)?'
+
+    Modal.confirm({
+      title: 'Procesar planilla',
+      content,
+      okText: 'Sí, procesar',
+      cancelText: 'Cancelar',
+      onOk: () => procesar.mutateAsync(),
+    })
+  }
 
   const columns: ColumnsType<CreditoGestorPendienteRow> = [
     {
@@ -194,6 +359,19 @@ export function CobroBloquePage() {
       dataIndex: 'creditoId',
       width: 80,
       align: 'center',
+    },
+    {
+      title: 'Venc.',
+      dataIndex: 'fechaVencimiento',
+      width: 100,
+      render: (v: string) => formatFecha(v),
+    },
+    {
+      title: 'Mora',
+      dataIndex: 'importeMora',
+      width: 90,
+      align: 'right',
+      render: (v: number) => formatMoney(v ?? 0),
     },
     {
       title: 'Deuda',
@@ -215,7 +393,13 @@ export function CobroBloquePage() {
             step={0.01}
             value={e.montoPagar}
             style={{ width: '100%' }}
-            onChange={(v) => patchEdit(row.creditoId, { montoPagar: Number(v) || 0 }, row)}
+            onChange={(v) =>
+              patchEdit(
+                row.creditoId,
+                { montoPagar: Number(v) || 0, cuotasSeleccionadas: [] },
+                row,
+              )
+            }
             onPressEnter={(ev) => {
               const tr = (ev.target as HTMLElement).closest('tr')
               const next = tr?.nextElementSibling?.querySelector<HTMLInputElement>(
@@ -250,13 +434,14 @@ export function CobroBloquePage() {
       width: 190,
       render: (_, row) => {
         const e = getEdit(row)
-        if (e.tipoPagoId <= 1) {
+        if (!TIPOS_PAGO_DIGITAL.has(e.tipoPagoId)) {
           return <Text type="secondary">—</Text>
         }
         return (
           <Input
             type="datetime-local"
             value={e.fechaHoraTrans}
+            status={!e.fechaHoraTrans ? 'error' : undefined}
             onChange={(ev) =>
               patchEdit(row.creditoId, { fechaHoraTrans: ev.target.value }, row)
             }
@@ -267,12 +452,13 @@ export function CobroBloquePage() {
   ]
 
   const ctx = sesionQuery.data
-  const sinCaja = sesionQuery.isError || !ctx || ctx.indCierre
+  const sinCaja = !yaEjecutadoHoy && (sesionQuery.isError || !ctx || ctx.indCierre)
 
   return (
     <CredixPage
+      className="cobro-bloque-page"
       title="Cobro en bloque"
-      subtitle="Planilla de cobranza diaria: digite montos y use Enter/Tab. Todo o nada al procesar."
+      subtitle="Planilla de cobranza diaria: digite montos o seleccione cuotas. Todo o nada al procesar (incluye impagos)."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/caja">Caja</Link> },
@@ -280,7 +466,19 @@ export function CobroBloquePage() {
         { title: 'Cobro en bloque' },
       ]}
     >
-      {sinCaja ? (
+      {yaEjecutadoHoy ? (
+        <Alert
+          type="warning"
+          showIcon
+          message="Cobro en bloque ya ejecutado hoy"
+          description="No está permitido ingresar nuevamente el mismo día para evitar alterar los impagos."
+          action={
+            <Button type="primary" onClick={() => navigate('/caja/diario')}>
+              Ir a caja diario
+            </Button>
+          }
+        />
+      ) : sinCaja ? (
         <Alert
           type="warning"
           showIcon
@@ -294,6 +492,14 @@ export function CobroBloquePage() {
         />
       ) : (
         <>
+          <Alert
+            type="info"
+            showIcon
+            style={{ marginBottom: 12 }}
+            message="Cartera del gestor en sesión"
+            description="Solo aparecen créditos desembolsados registrados por su usuario (mismo criterio del legado). Expanda una fila para marcar cuotas."
+          />
+
           <div className="credix-cobro-bloque-toolbar">
             <Input
               allowClear
@@ -312,14 +518,8 @@ export function CobroBloquePage() {
                 type="primary"
                 icon={<CheckOutlined />}
                 loading={procesar.isPending}
-                disabled={resumen.conCobro < 1}
-                onClick={() => {
-                  if (resumen.conCobro < 1) {
-                    message.warning('Ingrese al menos un monto mayor a cero.')
-                    return
-                  }
-                  void procesar.mutateAsync()
-                }}
+                disabled={resumen.totalFilas < 1}
+                onClick={confirmarProcesar}
               >
                 Procesar planilla
               </Button>
@@ -383,6 +583,25 @@ export function CobroBloquePage() {
                 dataSource={filas}
                 pagination={{ pageSize: 50, showSizeChanger: true }}
                 size="small"
+                expandable={{
+                  expandedRowRender: (row) => {
+                    const e = getEdit(row)
+                    return (
+                      <CuotasSubgrid
+                        creditoId={row.creditoId}
+                        deudaMax={row.deudaPendiente}
+                        selected={e.cuotasSeleccionadas}
+                        onChange={(ids, monto) =>
+                          patchEdit(
+                            row.creditoId,
+                            { cuotasSeleccionadas: ids, montoPagar: monto },
+                            row,
+                          )
+                        }
+                      />
+                    )
+                  },
+                }}
               />
             )}
           </CredixPanel>

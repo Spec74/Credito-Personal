@@ -79,6 +79,13 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
                 p.NombreCompleto AS PersonaNombre,
                 c.MontoCredito,
                 c.PersonaId,
+                c.FechaVencimiento,
+                CAST(ISNULL((
+                    SELECT SUM(ISNULL(pp.ImporteMora, 0))
+                    FROM CREDITO.PlanPago AS pp
+                    WHERE pp.CreditoId = c.CreditoId
+                      AND pp.Estado <> N'CAN'
+                ), 0) AS decimal(18, 2)) AS ImporteMora,
                 CAST(
                     ISNULL((
                         SELECT
@@ -102,7 +109,7 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
             INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
             WHERE c.UsuarioRegId = @UsuarioRegId
               AND c.Estado = 'DES'
-            ORDER BY p.NombreCompleto, c.CreditoId;
+            ORDER BY c.FechaVencimiento ASC, p.NombreCompleto, c.CreditoId;
             """;
         var rows = await connection
             .QueryAsync<CreditoGestorPendienteRowDto>(

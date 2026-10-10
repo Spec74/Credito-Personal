@@ -8,6 +8,10 @@ public sealed class CreditoGestorPendienteRowDto
     public string PersonaNombre { get; set; } = string.Empty;
     public decimal MontoCredito { get; set; }
     public int PersonaId { get; set; }
+    /// <summary>Paridad <c>CreditoPendienteJGrid.FechaVencimiento</c> (orden de planilla).</summary>
+    public DateTime FechaVencimiento { get; set; }
+    /// <summary>Paridad <c>CreditoPendienteJGrid.ImporteMora</c> (mora total no CAN).</summary>
+    public decimal ImporteMora { get; set; }
     /// <summary>
     /// Paridad <c>CreditoPendienteJGrid.DeudaPendiente</c>: capital pendiente + mora total (no CAN).
     /// Calculado set-based en SQL (optimización vs loop EF en BL legado).

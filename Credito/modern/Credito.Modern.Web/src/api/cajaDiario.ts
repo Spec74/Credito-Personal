@@ -488,6 +488,10 @@ export interface CreditoGestorPendienteRow {
   personaNombre: string
   montoCredito: number
   personaId: number
+  /** Orden de planilla (paridad CreditoPendienteJGrid.FechaVencimiento). */
+  fechaVencimiento: string
+  /** Mora total no cancelada. */
+  importeMora: number
   /** Deuda pendiente real (capital + mora); paridad CreditoPendienteJGrid. */
   deudaPendiente: number
 }

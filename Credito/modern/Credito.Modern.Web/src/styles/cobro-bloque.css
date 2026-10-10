@@ -1,0 +1,73 @@
+.cobro-bloque-page .credix-cobro-bloque-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.cobro-bloque-page .credix-cobro-bloque-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e8eef5;
+  background: #f8fbff;
+}
+
+.cobro-bloque-page .credix-cobro-bloque-total {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--credix-brand, #114885);
+}
+
+.cobro-bloque-page .credix-cobro-bloque-metodos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 13px;
+}
+
+.cobro-bloque-subgrid {
+  padding: 4px 8px 8px 36px;
+}
+
+.cobro-bloque-subgrid--loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cobro-bloque-subgrid__hint {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.cobro-bloque-subgrid__list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cobro-bloque-subgrid__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+@media (max-width: 767px) {
+  .cobro-bloque-page .credix-cobro-bloque-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .cobro-bloque-subgrid {
+    padding-left: 8px;
+  }
+}
