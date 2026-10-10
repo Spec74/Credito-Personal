@@ -1,8 +1,12 @@
 /**
  * Layout responsive compartido por todos los módulos CredixPage / Crud / Informe.
+ * Espaciado corporativo: aire entre bloques, toolbars y acciones (no elementos pegados).
  */
 
 .credix-page {
+  --credix-stack-gap: clamp(16px, 2.2vw, 20px);
+  --credix-stack-gap-sm: 12px;
+  --credix-toolbar-gap: 14px;
   min-width: 0;
 }
 
@@ -18,17 +22,35 @@
 .credix-page-body {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--credix-stack-gap);
 }
 
 .credix-filter-bar {
   min-width: 0;
   overflow: visible;
-  padding: clamp(10px, 2vw, 16px);
+  padding: clamp(14px, 2.2vw, 18px);
 }
 
-.credix-filter-bar .credix-list-toolbar {
+.credix-filter-bar .credix-list-toolbar,
+.credix-filter-bar .caja-list-toolbar,
+.credix-filter-bar .caja-saldos-toolbar,
+.credix-filter-bar .caja-verificar-pagos-toolbar,
+.credix-filter-bar .caja-chica-toolbar,
+.credix-filter-bar .caja-maestro-toolbar,
+.credix-filter-bar .credito-tareas-toolbar {
   margin-bottom: 0;
+}
+
+/* Tabs: cada pestaña apila toolbar → acciones → tabla con aire */
+.credix-tabs > .ant-tabs-content-holder {
+  padding-top: 4px;
+}
+
+.credix-tabs > .ant-tabs-content-holder > .ant-tabs-content > .ant-tabs-tabpane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--credix-stack-gap);
+  min-width: 0;
 }
 
 .credix-panel {
@@ -41,12 +63,12 @@
   overflow-x: auto;
 }
 
-/* Banner informativo (paridad MVC, hints) */
+/* Banner informativo (hints de uso) */
 .credix-module-banner {
   margin: 0;
-  padding: 10px 14px;
+  padding: 12px 14px;
   font-size: 13px;
-  line-height: 1.5;
+  line-height: 1.55;
   border-radius: 8px;
   border-left: 4px solid var(--credix-brand, #114885);
   background: var(--credix-brand-light, #e8f2fc);
@@ -54,8 +76,9 @@
   word-break: break-word;
 }
 
+/* El gap del page-body / tabpane separa el banner del siguiente bloque */
 .credix-module-banner--spaced {
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 
 /* KPIs: forzar 3 columnas en desktop ancho si el módulo lo necesita */

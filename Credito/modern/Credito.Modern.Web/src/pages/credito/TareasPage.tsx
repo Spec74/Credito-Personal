@@ -319,9 +319,7 @@ export function TareasPage() {
               Actualizar
             </Button>
             <Link to={`/informes/credito-tarea?estado=${filtro === 'TODAS' ? 'PEN' : filtro}`}>
-              <Button block icon={<UnorderedListOutlined />}>
-                Informe detallado
-              </Button>
+              <Button icon={<UnorderedListOutlined />}>Informe detallado</Button>
             </Link>
             {puedeEditar ? (
               <>

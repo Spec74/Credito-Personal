@@ -18,9 +18,9 @@
     'buscar actions'
     'hint hint';
   align-items: center;
-  gap: 10px 12px;
-  margin-bottom: 12px;
-  padding: 12px 14px;
+  gap: 14px 14px;
+  margin-bottom: 0;
+  padding: 14px 16px;
   border-radius: 10px;
   border: 1px solid var(--credix-border, #e5e7eb);
   border-left: 3px solid var(--credix-brand, #114885);
@@ -106,9 +106,10 @@
 .caja-maestro-toolbar__hint {
   grid-area: hint;
   margin: 0;
-  padding-top: 2px;
+  padding-top: 10px;
+  margin-top: 2px;
   font-size: 12px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--credix-text-muted, #6b7280);
   word-break: break-word;
   border-top: 1px solid var(--credix-border, #e5e7eb);
@@ -131,7 +132,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
 }
 

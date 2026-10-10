@@ -610,7 +610,7 @@ ul.credix-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
-  margin: 0 0 20px;
+  margin: 0 0 0;
   padding: 0;
   list-style: none;
   width: 100%;

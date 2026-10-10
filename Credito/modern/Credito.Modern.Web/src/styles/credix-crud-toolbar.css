@@ -5,7 +5,7 @@
 .credix-crud-toolbar {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
   width: 100%;
   min-width: 0;
 }
@@ -14,10 +14,10 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px 12px;
+  gap: 10px 12px;
   width: 100%;
   min-width: 0;
-  padding: 10px 14px;
+  padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--credix-border, #e5e7eb);
   border-left: 3px solid var(--credix-brand, #114885);
@@ -46,7 +46,7 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .credix-crud-toolbar .credix-list-toolbar {
