@@ -55,7 +55,8 @@ export type CobroBloquePendingProcess = {
   planilla: CobroBloquePlanillaItem[]
 }
 
-const CACHE_PREFIX = 'credix.cobroBloqueCartera.v1'
+/** v2: invalida caché previa sin celular/dirección de contacto. */
+const CACHE_PREFIX = 'credix.cobroBloqueCartera.v2'
 const QUEUE_PREFIX = 'credix.cobroBloquePending.v1'
 
 function cacheKey(usuarioId: number, cajaDiarioId: number, fecha: string) {

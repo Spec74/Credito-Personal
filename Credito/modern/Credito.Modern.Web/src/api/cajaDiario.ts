@@ -503,12 +503,37 @@ export interface CreditoGestorPendienteRow {
   diasAtrazo: number
 }
 
-export function fetchCreditosGestorDesembolsados(): Promise<
-  CreditoGestorPendienteRow[]
-> {
-  return apiFetch<CreditoGestorPendienteRow[]>(
+/**
+ * Planilla del gestor. Si faltan celulares/direcciones, refuerza con el informe
+ * cobro diario (mismo SP que el PDF) para no dejar la columna vacía en campo.
+ */
+export async function fetchCreditosGestorDesembolsados(opts?: {
+  oficinaId?: number
+  usuarioId?: number
+}): Promise<CreditoGestorPendienteRow[]> {
+  const { mergeContactoFromInforme, normalizeCreditoGestorPendienteRow } =
+    await import('../utils/creditoGestorPendiente')
+
+  const payload = await apiFetch<Array<Record<string, unknown>>>(
     '/credito/creditos-gestor-desembolsados',
   )
+  let rows = (payload ?? []).map((r) => normalizeCreditoGestorPendienteRow(r))
+
+  const faltanContactos = rows.some((r) => !r.celular || !r.direccion)
+  const oficinaId = opts?.oficinaId ?? 0
+  const usuarioId = opts?.usuarioId ?? 0
+  if (faltanContactos && oficinaId > 0 && usuarioId > 0) {
+    try {
+      const { fetchCobroDiario } = await import('./creditoPlanes')
+      const { toCobroDiarioQuery } = await import('../utils/gestorInformeForm')
+      const informe = await fetchCobroDiario(toCobroDiarioQuery(oficinaId, usuarioId))
+      rows = mergeContactoFromInforme(rows, informe)
+    } catch {
+      /* refuerzo opcional */
+    }
+  }
+
+  return rows
 }
 
 export function cobrarPlanillaBloque(body: {

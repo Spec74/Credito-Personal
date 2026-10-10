@@ -109,8 +109,8 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
                     AS decimal(18, 2)
                 ) AS DeudaPendiente,
                 TRY_CAST(SUBSTRING(p.Codigo, 3, LEN(p.Codigo)) AS int) AS Orden,
-                p.Celular1 AS Celular,
-                p.Direccion,
+                NULLIF(LTRIM(RTRIM(p.Celular1)), N'') AS Celular,
+                NULLIF(LTRIM(RTRIM(p.Direccion)), N'') AS Direccion,
                 CAST(ISNULL((
                     SELECT TOP (1)
                         ISNULL(pp.Cuota, 0) + ISNULL(pp.Cargo, 0)

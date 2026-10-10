@@ -22,7 +22,8 @@ import {
   PhoneOutlined,
   SearchOutlined,
   ThunderboltOutlined,
-  VerticalAlignTopOutlined,
+  ArrowUpOutlined,
+  WhatsAppOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import {
@@ -276,7 +277,7 @@ export function CobroBloquePage() {
   const resolveOfflineSession = useCallback((): CajaSession | null => {
     if (!allowOfflineSession || usuarioId < 1) return null
     const fecha = fechaOperacionLocal()
-    const prefix = `credix.cobroBloqueCartera.v1:${usuarioId}:`
+    const prefix = `credix.cobroBloqueCartera.v2:${usuarioId}:`
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i)
@@ -310,10 +311,19 @@ export function CobroBloquePage() {
   }, [usuarioId, cajaDiarioId, online])
 
   const carteraQuery = useQuery({
-    queryKey: ['caja-creditos-gestor-des', 'cobro-bloque', cajaDiarioId],
+    queryKey: [
+      'caja-creditos-gestor-des',
+      'cobro-bloque',
+      cajaDiarioId,
+      oficinaId,
+      usuarioId,
+    ],
     queryFn: async () => {
       try {
-        const rows = await fetchCreditosGestorDesembolsados()
+        const rows = await fetchCreditosGestorDesembolsados({
+          oficinaId,
+          usuarioId,
+        })
         return { rows, fromCache: false as const }
       } catch (e) {
         if (!isLikelyNetworkError(e)) throw e
@@ -324,7 +334,8 @@ export function CobroBloquePage() {
         throw e
       }
     },
-    enabled: !!ctx && !ctx.indCierre && !yaEjecutadoHoy && usuarioId > 0,
+    enabled:
+      !!ctx && !ctx.indCierre && !yaEjecutadoHoy && usuarioId > 0 && oficinaId > 0,
   })
 
   useEffect(() => {
@@ -706,14 +717,32 @@ export function CobroBloquePage() {
     {
       title: 'Celular',
       dataIndex: 'celular',
-      className: 'cobro-bloque-col-nowrap',
-      onCell: () => ({ className: 'cobro-bloque-col-nowrap' }),
-      render: (v: string | null) =>
-        v ? (
-          <a href={`tel:${v.replace(/\s+/g, '')}`}>{v}</a>
-        ) : (
-          <Text type="secondary">—</Text>
-        ),
+      className: 'cobro-bloque-col-celular',
+      onCell: () => ({ className: 'cobro-bloque-col-celular' }),
+      render: (v: string | null) => {
+        const digits = (v ?? '').replace(/\D/g, '')
+        if (!digits) {
+          return <Text type="secondary">—</Text>
+        }
+        const wa = digits.startsWith('51') ? digits : `51${digits}`
+        return (
+          <span className="cobro-bloque-celular">
+            <a href={`tel:${digits}`} className="cobro-bloque-celular__tel">
+              {digits}
+            </a>
+            <a
+              className="cobro-bloque-celular__wa"
+              href={`https://wa.me/${wa}`}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="WhatsApp"
+              title="WhatsApp"
+            >
+              <WhatsAppOutlined />
+            </a>
+          </span>
+        )
+      },
     },
     {
       title: 'Venc.',
@@ -869,7 +898,7 @@ export function CobroBloquePage() {
         </div>
         <Space wrap className="cobro-bloque-dock__actions">
           {scrolledDown ? (
-            <Button icon={<VerticalAlignTopOutlined />} onClick={scrollPlanillaTop}>
+            <Button icon={<ArrowUpOutlined />} onClick={scrollPlanillaTop}>
               Arriba
             </Button>
           ) : null}
@@ -1078,13 +1107,28 @@ export function CobroBloquePage() {
                         </header>
 
                         <div className="cobro-bloque-card__meta">
-                          {row.celular ? (
-                            <a
-                              className="cobro-bloque-card__link"
-                              href={`tel:${row.celular.replace(/\s+/g, '')}`}
-                            >
-                              <PhoneOutlined /> {row.celular}
-                            </a>
+                          {row.celular?.replace(/\D/g, '') ? (
+                            <span className="cobro-bloque-celular">
+                              <a
+                                className="cobro-bloque-card__link"
+                                href={`tel:${row.celular.replace(/\D/g, '')}`}
+                              >
+                                <PhoneOutlined /> {row.celular.replace(/\D/g, '')}
+                              </a>
+                              <a
+                                className="cobro-bloque-celular__wa"
+                                href={`https://wa.me/${
+                                  row.celular.replace(/\D/g, '').startsWith('51')
+                                    ? row.celular.replace(/\D/g, '')
+                                    : `51${row.celular.replace(/\D/g, '')}`
+                                }`}
+                                target="_blank"
+                                rel="noreferrer"
+                                aria-label="WhatsApp"
+                              >
+                                <WhatsAppOutlined />
+                              </a>
+                            </span>
                           ) : null}
                           {row.direccion ? (
                             <span className="cobro-bloque-card__dir">

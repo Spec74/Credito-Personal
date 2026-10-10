@@ -1,5 +1,5 @@
 import dayjs, { type Dayjs } from 'dayjs'
-import { Button, DatePicker, Space } from 'antd'
+import { Button, DatePicker, Tooltip } from 'antd'
 import { FieldTimeOutlined } from '@ant-design/icons'
 import '../../../styles/cobro-bloque-fecha-digital.css'
 
@@ -27,7 +27,7 @@ export function nowDatetimeLocal(): string {
 
 /**
  * Fecha/hora del voucher digital (Yape, Plin, transferencia…).
- * Formato PE, botón Ahora y panel Ant Design (sin input nativo legacy).
+ * Formato PE, atajo Ahora y panel Ant Design (sin input nativo legacy).
  */
 export function FechaHoraDigitalField({ value, onChange, status, compact = false }: Props) {
   const current = parseLocal(value)
@@ -50,23 +50,32 @@ export function FechaHoraDigitalField({ value, onChange, status, compact = false
         allowClear={false}
         needConfirm={false}
         showNow
-        size={compact ? 'middle' : 'large'}
-        placeholder="Fecha y hora del pago"
-        prefix={<FieldTimeOutlined />}
+        size={compact ? 'small' : 'large'}
+        placeholder="Hora del pago"
         className="cobro-bloque-fecha-digital__picker"
         getPopupContainer={() => document.body}
         onChange={(d) => onChange(toLocal(d))}
       />
-      <Space size={4} className="cobro-bloque-fecha-digital__actions">
+      {compact ? (
+        <Tooltip title="Usar hora actual">
+          <Button
+            type="default"
+            size="small"
+            icon={<FieldTimeOutlined />}
+            aria-label="Ahora"
+            onClick={() => onChange(nowDatetimeLocal())}
+          />
+        </Tooltip>
+      ) : (
         <Button
           type="default"
-          size="small"
+          size="middle"
           icon={<FieldTimeOutlined />}
           onClick={() => onChange(nowDatetimeLocal())}
         >
           Ahora
         </Button>
-      </Space>
+      )}
     </div>
   )
 }

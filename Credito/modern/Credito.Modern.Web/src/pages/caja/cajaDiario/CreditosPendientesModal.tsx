@@ -42,7 +42,7 @@ export function CreditosPendientesModal({
 
   const query = useQuery({
     queryKey: ['caja-creditos-gestor-des'],
-    queryFn: fetchCreditosGestorDesembolsados,
+    queryFn: () => fetchCreditosGestorDesembolsados(),
     enabled: open,
   })
 
