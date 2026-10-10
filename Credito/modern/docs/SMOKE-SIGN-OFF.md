@@ -90,3 +90,13 @@ Corrida completa por perfiles ACL: ver **[E2E-ROLE-MODULE-MATRIX.md](./E2E-ROLE-
 |------------------|----------------------|
 | `e2e/role-module-matrix.spec.ts` | **4/4 PASS** (ADMIN, GESTOR_CAJA, APROBADOR_REPORTE, CAJERO_ENCARGADO) |
 | `e2e/role-flows.spec.ts` | **4/4 PASS** (seguridad/bóveda/aprobación, cartera, saldos/reportes, caja ABIERTO) |
+
+### Capa 3 — ciclo crédito (API prod)
+
+| Paso | Evidencia |
+|------|-----------|
+| Crear → aprobar → desembolso → cobro | crédito **87691** · desembolso mov. **2287635** · pago **2287636** · ticket ~35 KB |
+| Validar cierre | `puedeCerrar=true` (caja **no** cerrada) |
+| Script | `deploy/scripts/smoke-ciclo-credito-capa3.ps1` |
+
+Detalle: [E2E-ROLE-MODULE-MATRIX.md](./E2E-ROLE-MODULE-MATRIX.md#capa-3--ciclo-de-negocio-2026-10-10).

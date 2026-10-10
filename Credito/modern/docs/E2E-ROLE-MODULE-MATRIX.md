@@ -14,7 +14,7 @@
 | **0 — Inventario** | Login + `/auth/me` + menú por usuario activo | API |
 | **1 — Matriz ACL** | Cada ruta del menú carga; rutas ajenas → **Sin permiso** | Playwright `e2e/role-module-matrix.spec.ts` |
 | **2 — Flujos** | Pantallas clave muestran UI útil (tablas/títulos/estado caja) | Playwright `e2e/role-flows.spec.ts` |
-| **3 — Operación crítica** | Cobro + ticket + ruta mapa + PDF | Ya firmado en [SMOKE-SIGN-OFF.md](./SMOKE-SIGN-OFF.md) |
+| **3 — Ciclo de negocio** | Simular → PEN → aprobar → desembolso → cobro + ticket → validar cierre | Script + evidencia abajo; [SMOKE-SIGN-OFF.md](./SMOKE-SIGN-OFF.md) |
 
 ```powershell
 cd Credito/modern/Credito.Modern.Web
@@ -68,14 +68,41 @@ Ejecutar / evidencia en misma corrida `role-flows.spec.ts` (usuarios, roles, ofi
 | BLOPEZ | FAIL (hash PBKDF2, clave desconocida) | — |
 | DSANCHEZ | intermitente (rate limit / reintentar) | ANALISTA+CAJA (caja ESPERANZA) |
 
-## Qué NO cubre aún (alcance consciente)
+## Capa 3 — Ciclo de negocio (2026-10-10)
 
-- Transacciones destructivas en **todos** los módulos (alta cliente, desembolso, cierre caja, movimiento bóveda, condonación real).
-- Roles inactivos en menú: VENDEDOR, ALMACEN, PROMOTOR (Estado=False / sin usuarios).
-- Módulos legacy de **Ventas/Almacén** no asignados en `RolMenu` actual (menú prod no los entrega).
-- Login UI desde IP no registrada (bloqueo de acceso por cliente).
+Script reutilizable:
 
-Esas capas son **pruebas de negocio** planificadas por sprint; la matriz rol×módulo + smoke crítico ya demuestran que la plataforma moderna responde por ACL y carga operativa.
+```powershell
+cd Credito/modern
+.\deploy\scripts\smoke-ciclo-credito-capa3.ps1 `
+  -BaseUrl "https://crediconfiable-api-g3h7fja3dydsbbb7.centralus-01.azurewebsites.net" `
+  -OperadorUsuario RMANTILLA -OperadorClave "***" `
+  -AprobadorUsuario BQUISPE -AprobadorClave "***" `
+  -PersonaId 48 -OficinaId 1 -MontoCredito 200
+# Por defecto NO cierra la caja. Solo con -AllowCerrarCaja.
+```
+
+### Evidencia corrida prod
+
+| Paso | Actor | Resultado |
+|------|-------|-----------|
+| Simulador S/ 200 · 2 cuotas · TEM 6% · prod CREDI RAPP | `RMANTILLA` | Plan 2× S/ 112 |
+| Solicitud + crédito | `RMANTILLA` / caja **29578 CAJA CENTRAL 1** | **creditoId 87691** estado PEN |
+| Aprobar (`opcion=1`) | `BQUISPE` (APROBADOR 1) | `ok=true` → APR |
+| Validar + realizar desembolso | `RMANTILLA` | `movimientoCajaId=2287635` · saldo 10000→9800 |
+| Cobro CUOTA 1 (planPago **1735681**, S/ 112, efectivo) | `RMANTILLA` | `resultId=2287636` · ticket PDF **~35 KB** `%PDF` |
+| Validar cierre | `RMANTILLA` | Tras rechazar PEN huérfano 87692: **`puedeCerrar=true`** |
+| Cerrar caja | — | **No ejecutado** (cajas operativas del día) |
+| Limpieza | `BQUISPE` | Rechazo crédito accidental **87692** |
+
+Cliente usado: personaId **48** — FERNANDEZ LEON, RUTH MARIA (DNI 76738856).
+
+### Qué queda fuera (consciente)
+
+- Cierre real de caja en prod (validado sí; ejecutado no).
+- Alta de cliente nuevo, bóveda, condonación, prendario con bienes.
+- Roles inactivos (VENDEDOR / ALMACÉN / PROMOTOR) y menús Ventas/Almacén no asignados en `RolMenu`.
+- Login UI desde IP no autorizada (suite usa JWT API).
 
 ## Criterio de cierre plataforma
 
@@ -83,5 +110,7 @@ Esas capas son **pruebas de negocio** planificadas por sprint; la matriz rol×m�
 - [x] Matriz ACL 4 perfiles × rutas menú
 - [x] Flujos UI por perfil
 - [x] Smoke crítico caja (cobro/ticket/ruta/PDF) — ver SMOKE-SIGN-OFF
+- [x] Ciclo negocio capa 3 (crear→aprobar→desembolso→cobro→validar cierre)
 - [ ] Rotar claves expuestas en chat
 - [ ] (Opcional) Playwright CI nightly con secretos
+- [ ] (Opcional) `-AllowCerrarCaja` en ventana controlada post-operación
