@@ -9,7 +9,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Alert,
   Button,
-  Input,
+  Grid,
   InputNumber,
   Select,
   Space,
@@ -57,6 +57,11 @@ import {
 } from '../../../components/caja/cuotasGridMerge'
 import { CajaSection } from '../../../components/caja/CajaSection'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
+import { TipoPagoChips } from '../../../components/caja/TipoPagoChips'
+import {
+  FechaHoraDigitalField,
+  nowDatetimeLocal,
+} from '../components/FechaHoraDigitalField'
 import {
   contarCuotasCobrables,
   contarCuotasConMora,
@@ -113,6 +118,12 @@ export function CobranzasTab({
   const [moraModalOpen, setMoraModalOpen] = useState(false)
   const [solicitarOpen, setSolicitarOpen] = useState(false)
   const [moraSolicitar, setMoraSolicitar] = useState<number | null>(null)
+  const [modoPago, setModoPago] = useState<'cuotas' | 'libre'>('cuotas')
+  const [dockBox, setDockBox] = useState<{ left: number; width: number } | null>(
+    null,
+  )
+  const screens = Grid.useBreakpoint()
+  const isMobile = screens.md !== true
   const moraResumenQuery = useQuery({
     queryKey: ['credito-mora-resumen', creditoId],
     queryFn: () => fetchCreditoMoraResumen(creditoId!),
@@ -137,6 +148,35 @@ export function CobranzasTab({
       })),
     [tiposPagoQuery.data],
   )
+
+  useEffect(() => {
+    const main = document.querySelector('.credix-main')
+    if (!main) return
+    const sync = () => {
+      const r = main.getBoundingClientRect()
+      setDockBox({ left: Math.max(0, r.left), width: Math.max(280, r.width) })
+    }
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(main)
+    window.addEventListener('resize', sync)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', sync)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (tipoPagoId > 1) {
+      setFechaTransferencia((prev) => prev.trim() || nowDatetimeLocal())
+    }
+  }, [tipoPagoId])
+
+  useEffect(() => {
+    if (tipoPagoLibreId > 1) {
+      setFechaPagoLibre((prev) => prev.trim() || nowDatetimeLocal())
+    }
+  }, [tipoPagoLibreId])
 
   const buscar = useMutation({
     mutationFn: ({
@@ -475,8 +515,18 @@ export function CobranzasTab({
   const vuelto =
     importeRecibido != null ? importeRecibido - selectedTotal : null
 
+  const showPagoDock = Boolean(creditoId) && !ctx.indCierre
+
   return (
-    <div className="caja-diario-cobranzas">
+    <div
+      className={[
+        'caja-diario-cobranzas',
+        showPagoDock ? 'caja-diario-cobranzas--dock' : '',
+        isMobile ? 'caja-diario-cobranzas--mobile' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <div className="caja-diario-cobranzas-top">
         <div className="caja-diario-cobranzas-top__search">
           <span className="caja-diario-cobranzas-top__label" id="caja-buscar-cliente-label">
@@ -491,7 +541,7 @@ export function CobranzasTab({
             autoFocus
             fullWidth
             showSearchButton
-            searchButtonLabel="Cargar"
+            searchButtonLabel={isMobile ? 'Ir' : 'Cargar'}
             ariaLabelledBy="caja-buscar-cliente-label"
           />
         </div>
@@ -508,20 +558,13 @@ export function CobranzasTab({
               setPersonaId(0)
             }}
           >
-            GAD pendientes
+            {isMobile ? 'GAD' : 'GAD pendientes'}
           </Button>
           <Button
             icon={<UnorderedListOutlined />}
             onClick={() => setCuotasModalOpen(true)}
           >
-            Cuotas pendientes
-          </Button>
-          <Button
-            icon={<CheckCircleOutlined />}
-            loading={consultandoImpagos || ejecutarCompletarImpagos.isPending}
-            onClick={() => void solicitarCompletarImpagos()}
-          >
-            Completar impagos
+            {isMobile ? 'Pendientes' : 'Cuotas pendientes'}
           </Button>
         </div>
       </div>
@@ -544,33 +587,21 @@ export function CobranzasTab({
           className="caja-diario-mora-banner"
           message={
             <>
-              Mora del crédito:{' '}
-              <strong>{formatMoney(resumenCuotas.moraVigente)}</strong> en cuotas
+              Mora:{' '}
+              <strong>{formatMoney(resumenCuotas.moraVigente)}</strong>
               {(moraResumenQuery.data.saldoPostergado ?? 0) > 0
-                ? ` · ${formatMoney(moraResumenQuery.data.saldoPostergado)} postergada`
+                ? ` · postergada ${formatMoney(moraResumenQuery.data.saldoPostergado)}`
                 : ''}
             </>
           }
-          description="La mora postergada se liquida al cobrar la última cuota. Use «Crédito mora» para el detalle y reportes PDF."
-          action={
-            <Button size="small" onClick={() => setMoraModalOpen(true)}>
-              Ver detalle
-            </Button>
+          description={
+            isMobile
+              ? undefined
+              : 'La mora postergada se liquida al cobrar la última cuota.'
           }
-        />
-      ) : null}
-
-      {moraResumenQuery.data?.indMoraProducto &&
-      (moraResumenQuery.data.saldoPostergado ?? 0) > 0 ? (
-        <Alert
-          type="warning"
-          showIcon
-          style={{ marginBottom: 12 }}
-          message={`Mora postergada acumulada: ${formatMoney(moraResumenQuery.data.saldoPostergado)}`}
-          description="Se cobrará al liquidar la última cuota pendiente (CreditoMora)."
           action={
             <Button size="small" onClick={() => setMoraModalOpen(true)}>
-              Ver historial
+              Detalle
             </Button>
           }
         />
@@ -599,61 +630,69 @@ export function CobranzasTab({
                     S/. {formatMoney(c.montoCredito)}
                   </span>
                 </button>
-                <Button
-                  size="small"
-                  type="link"
-                  icon={<FilePdfOutlined />}
-                  className="caja-diario-credito-chip-mov"
-                  onClick={() => void descargarMovimientosCredito(c.creditoId)}
-                >
-                  Movimientos
-                </Button>
+                {!isMobile ? (
+                  <Button
+                    size="small"
+                    type="link"
+                    icon={<FilePdfOutlined />}
+                    className="caja-diario-credito-chip-mov"
+                    onClick={() => void descargarMovimientosCredito(c.creditoId)}
+                  >
+                    Movimientos
+                  </Button>
+                ) : null}
               </div>
             ))}
           </div>
         ) : null}
 
         <Space wrap className="caja-diario-credito-filters">
-          <Select
-            style={{ minWidth: 220 }}
-            placeholder="Crédito del cliente"
-            value={creditoId ?? undefined}
-            onChange={(id) => cargarCuotas(id)}
-            options={creditosPersona.map((c) => ({
-              value: c.creditoId,
-              label: `${c.creditoId} — ${formatMoney(c.montoCredito)}`,
-            }))}
-            allowClear
-            showSearch
-            optionFilterProp="label"
-            onClear={() => setCreditoId(null)}
-          />
-          <InputNumber
-            min={1}
-            placeholder="Nro. crédito"
-            value={creditoId ?? undefined}
-            onChange={(v) => setCreditoId(v ?? null)}
-            onPressEnter={() => creditoId && cargarCuotas(creditoId)}
-            style={{ width: 130 }}
-          />
-          <Button
-            type="primary"
-            icon={<SearchOutlined />}
-            loading={buscar.isPending}
-            disabled={!creditoId}
-            onClick={() => creditoId && cargarCuotas(creditoId)}
-          >
-            Cuotas
-          </Button>
+          {creditosPersona.length <= 1 || !isMobile ? (
+            <Select
+              style={{ minWidth: isMobile ? '100%' : 220 }}
+              placeholder="Crédito del cliente"
+              value={creditoId ?? undefined}
+              onChange={(id) => cargarCuotas(id)}
+              options={creditosPersona.map((c) => ({
+                value: c.creditoId,
+                label: `${c.creditoId} — ${formatMoney(c.montoCredito)}`,
+              }))}
+              allowClear
+              showSearch
+              optionFilterProp="label"
+              onClear={() => setCreditoId(null)}
+            />
+          ) : null}
+          {!isMobile ? (
+            <>
+              <InputNumber
+                min={1}
+                placeholder="Nro. crédito"
+                value={creditoId ?? undefined}
+                onChange={(v) => setCreditoId(v ?? null)}
+                onPressEnter={() => creditoId && cargarCuotas(creditoId)}
+                style={{ width: 130 }}
+              />
+              <Button
+                type="primary"
+                icon={<SearchOutlined />}
+                loading={buscar.isPending}
+                disabled={!creditoId}
+                onClick={() => creditoId && cargarCuotas(creditoId)}
+              >
+                Cuotas
+              </Button>
+            </>
+          ) : null}
           {creditoId ? (
             <Button
               icon={<HistoryOutlined />}
               onClick={() => setMoraModalOpen(true)}
             >
-              Crédito mora
+              {isMobile ? 'Mora' : 'Crédito mora'}
             </Button>
           ) : null}
-          {creditoId ? (
+          {creditoId && !isMobile ? (
             <Button
               onClick={() => {
                 const mora =
@@ -668,35 +707,6 @@ export function CobranzasTab({
             </Button>
           ) : null}
         </Space>
-
-        <div className="caja-diario-pago-libre-band">
-          <DollarOutlined aria-hidden />
-          <span className="caja-diario-pago-libre-label">Pago libre</span>
-          <Select
-            style={{ width: 130 }}
-            value={tipoPagoLibreId}
-            onChange={setTipoPagoLibreId}
-            loading={tiposPagoQuery.isLoading}
-            options={tipoPagoOptions}
-          />
-          <InputNumber
-            min={0}
-            step={0.01}
-            placeholder="Monto"
-            value={pagoLibre}
-            onChange={setPagoLibre}
-            style={{ width: 110 }}
-          />
-          <Button
-            type="primary"
-            className="caja-btn-pago-libre"
-            disabled={!creditoId || !pagoLibre}
-            loading={ejecutarPagoLibre.isPending}
-            onClick={() => void solicitarPagoLibre()}
-          >
-            Pago libre
-          </Button>
-        </div>
       </CajaSection>
 
       <CajaSection
@@ -705,7 +715,7 @@ export function CobranzasTab({
         title="Plan de cuotas"
         subtitle={
           creditoId
-            ? `${resumenCuotas.filas} fila(s) · ${resumenCuotas.cobrables} cobrable(s)${resumenCuotas.mora > 0 ? ` · ${resumenCuotas.mora} con mora` : ''} · Crédito ${creditoId}`
+            ? `${resumenCuotas.filas} · ${resumenCuotas.cobrables} cobrable(s)${resumenCuotas.mora > 0 ? ` · ${resumenCuotas.mora} mora` : ''}`
             : 'Seleccione un crédito'
         }
       >
@@ -714,89 +724,235 @@ export function CobranzasTab({
           loading={buscar.isPending}
           selectedKeys={selectedKeys}
           onSelectionChange={handleSelectionChange}
+          mobileCards={isMobile}
+          initialVista="cobrables"
+          showLegend={!isMobile}
         />
       </CajaSection>
 
-      <p className="caja-diario-seleccion-resumen">
-        <span>
-          Selección: <strong>{formatMoney(selectedTotal)}</strong>
-        </span>
-        <span>
-          Vuelto:{' '}
-          <strong className={vuelto != null && vuelto < 0 ? 'caja-vuelto-neg' : ''}>
-            {vuelto != null ? formatMoney(vuelto) : '—'}
-          </strong>
-        </span>
-        <span>{selectedKeys.length} cuota(s) seleccionada(s)</span>
-      </p>
-
-      <CajaSection
-        tone="pago"
-        kicker="Cobro"
-        title="Registrar pago"
-        icon={<CreditCardOutlined />}
-      >
-        <div className="caja-diario-pago-dock caja-diario-pago-dock--inline">
-          <div className="caja-diario-pago-totals">
-            <span>
-              TOTAL: <strong>{formatMoney(selectedTotal)}</strong>
-            </span>
-            <span>
-              Recibido:{' '}
-              <InputNumber
-                min={0}
-                step={0.01}
-                size="middle"
-                value={importeRecibido}
-                onChange={setImporteRecibido}
-                style={{ width: 120 }}
-              />
-            </span>
-            <span>
-              VUELTO:{' '}
-              <strong className={vuelto != null && vuelto < 0 ? 'caja-vuelto-neg' : ''}>
-                {vuelto != null ? formatMoney(vuelto) : '—'}
-              </strong>
-            </span>
-          </div>
-          <Space wrap align="center" className="caja-diario-pago-actions">
-            <Select
-              style={{ width: 150 }}
-              value={tipoPagoId}
-              onChange={setTipoPagoId}
-              loading={tiposPagoQuery.isLoading}
-              options={tipoPagoOptions}
-              placeholder="Tipo de pago"
-            />
-            {tipoPagoId > 1 && (
-              <Input
-                type="datetime-local"
-                style={{ width: 210 }}
-                value={fechaTransferencia}
-                onChange={(e) => setFechaTransferencia(e.target.value)}
-                aria-label="Fecha transferencia"
-              />
-            )}
-            <Button
-              type="primary"
-              size="large"
-              className="caja-btn-pagar-cuota"
-              icon={<CreditCardOutlined />}
-              disabled={!creditoId || selectedKeys.length === 0}
-              loading={pagar.isPending}
-              onClick={() => void solicitarPagarCuota()}
+      {showPagoDock ? (
+        <div
+          className="caja-diario-pago-dock-fixed"
+          role="region"
+          aria-label="Registrar pago"
+          style={
+            dockBox
+              ? { left: dockBox.left, width: dockBox.width }
+              : undefined
+          }
+        >
+          <div className="caja-diario-pago-dock-fixed__inner">
+            <div
+              className="caja-diario-pago-modos"
+              role="tablist"
+              aria-label="Modo de cobro"
             >
-              Pagar cuota
-            </Button>
-          </Space>
-        </div>
-      </CajaSection>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={modoPago === 'cuotas'}
+                className={
+                  modoPago === 'cuotas'
+                    ? 'caja-diario-pago-modos__btn is-on'
+                    : 'caja-diario-pago-modos__btn'
+                }
+                onClick={() => setModoPago('cuotas')}
+              >
+                <CreditCardOutlined /> Cuotas
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={modoPago === 'libre'}
+                className={
+                  modoPago === 'libre'
+                    ? 'caja-diario-pago-modos__btn is-on'
+                    : 'caja-diario-pago-modos__btn'
+                }
+                onClick={() => setModoPago('libre')}
+              >
+                <DollarOutlined /> Libre
+              </button>
+            </div>
 
-      <CancelacionCreditoPanel
-        ctx={ctx}
-        creditoId={creditoId}
-        onChanged={onChanged}
-      />
+            {modoPago === 'cuotas' ? (
+              <>
+                <div className="caja-diario-pago-totals">
+                  <span>
+                    Total{' '}
+                    <strong>{formatMoney(selectedTotal)}</strong>
+                    <small> · {selectedKeys.length} cuota(s)</small>
+                  </span>
+                  <span className="caja-diario-pago-recibido">
+                    <span>Recibido</span>
+                    <InputNumber
+                      min={0}
+                      step={0.01}
+                      size="large"
+                      controls={false}
+                      inputMode="decimal"
+                      prefix="S/"
+                      value={importeRecibido}
+                      onChange={setImporteRecibido}
+                    />
+                  </span>
+                  <span>
+                    Vuelto{' '}
+                    <strong
+                      className={
+                        vuelto != null && vuelto < 0 ? 'caja-vuelto-neg' : ''
+                      }
+                    >
+                      {vuelto != null ? formatMoney(vuelto) : '—'}
+                    </strong>
+                  </span>
+                </div>
+                <div className="caja-diario-pago-chips-row">
+                  <Button
+                    size="small"
+                    disabled={selectedTotal <= 0}
+                    onClick={() => setImporteRecibido(selectedTotal)}
+                  >
+                    = Selección
+                  </Button>
+                  <Button
+                    size="small"
+                    disabled={totalCuotasCredito <= 0}
+                    onClick={() => {
+                      prepararCobroTodasCuotas()
+                    }}
+                  >
+                    Todas
+                  </Button>
+                </div>
+                <TipoPagoChips
+                  value={tipoPagoId}
+                  options={tipoPagoOptions}
+                  onChange={setTipoPagoId}
+                />
+                {tipoPagoId > 1 ? (
+                  <FechaHoraDigitalField
+                    value={fechaTransferencia}
+                    status={!fechaTransferencia ? 'error' : undefined}
+                    onChange={setFechaTransferencia}
+                    compact={!isMobile}
+                  />
+                ) : null}
+                <Button
+                  type="primary"
+                  size="large"
+                  block
+                  className="caja-btn-pagar-cuota"
+                  icon={<CreditCardOutlined />}
+                  disabled={!creditoId || selectedKeys.length === 0}
+                  loading={pagar.isPending}
+                  onClick={() => void solicitarPagarCuota()}
+                >
+                  Pagar cuota
+                </Button>
+              </>
+            ) : (
+              <>
+                <div className="caja-diario-pago-libre-dock">
+                  <label className="caja-diario-pago-recibido">
+                    <span>Monto libre</span>
+                    <InputNumber
+                      min={0}
+                      step={0.01}
+                      size="large"
+                      controls={false}
+                      inputMode="decimal"
+                      prefix="S/"
+                      value={pagoLibre}
+                      onChange={setPagoLibre}
+                    />
+                  </label>
+                  <div className="caja-diario-pago-chips-row">
+                    <Button
+                      size="small"
+                      disabled={selectedTotal <= 0}
+                      onClick={() => setPagoLibre(selectedTotal)}
+                    >
+                      = Selección
+                    </Button>
+                    <Button
+                      size="small"
+                      disabled={totalCuotasCredito <= 0}
+                      onClick={() => setPagoLibre(totalCuotasCredito)}
+                    >
+                      Deuda cuotas
+                    </Button>
+                    <Button
+                      size="small"
+                      disabled={!pagoLibre}
+                      onClick={() => setPagoLibre(null)}
+                    >
+                      0
+                    </Button>
+                  </div>
+                </div>
+                <TipoPagoChips
+                  value={tipoPagoLibreId}
+                  options={tipoPagoOptions}
+                  onChange={setTipoPagoLibreId}
+                />
+                {tipoPagoLibreId > 1 ? (
+                  <FechaHoraDigitalField
+                    value={fechaPagoLibre}
+                    status={!fechaPagoLibre ? 'error' : undefined}
+                    onChange={setFechaPagoLibre}
+                    compact={!isMobile}
+                  />
+                ) : null}
+                <Button
+                  type="primary"
+                  size="large"
+                  block
+                  className="caja-btn-pago-libre"
+                  icon={<DollarOutlined />}
+                  disabled={!creditoId || !pagoLibre}
+                  loading={ejecutarPagoLibre.isPending}
+                  onClick={() => void solicitarPagoLibre()}
+                >
+                  Pago libre
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      <details className="caja-diario-excepciones">
+        <summary>Cierre y excepciones</summary>
+        <div className="caja-diario-excepciones__body">
+          <Button
+            icon={<CheckCircleOutlined />}
+            loading={consultandoImpagos || ejecutarCompletarImpagos.isPending}
+            onClick={() => void solicitarCompletarImpagos()}
+          >
+            Completar impagos
+          </Button>
+          {creditoId && isMobile ? (
+            <Button
+              onClick={() => {
+                const mora =
+                  condonacionPendienteQuery.data?.tienePendiente
+                    ? condonacionPendienteQuery.data.moraCondonacion
+                    : sumarMoraVigente(cuotas)
+                setMoraSolicitar(Number(mora.toFixed(2)))
+                setSolicitarOpen(true)
+              }}
+            >
+              Solicitar condonación
+            </Button>
+          ) : null}
+          <CancelacionCreditoPanel
+            ctx={ctx}
+            creditoId={creditoId}
+            onChanged={onChanged}
+          />
+        </div>
+      </details>
 
       <CreditosPendientesModal
         open={cuotasModalOpen}
@@ -819,6 +975,7 @@ export function CobranzasTab({
             cajaToastWarning('Indique fecha y hora')
             return
           }
+          setFechaLibreModalOpen(false)
           cajaConfirm({
             title: 'Confirmar pago libre',
             content: `¿Registrar pago libre de ${formatMoney(pagoLibre ?? 0)}?`,
@@ -828,11 +985,10 @@ export function CobranzasTab({
         confirmLoading={ejecutarPagoLibre.isPending}
         okText="Continuar"
       >
-        <Input
-          type="datetime-local"
+        <FechaHoraDigitalField
           value={fechaPagoLibre}
-          onChange={(e) => setFechaPagoLibre(e.target.value)}
-          style={{ width: '100%' }}
+          onChange={setFechaPagoLibre}
+          status={!fechaPagoLibre ? 'error' : undefined}
         />
       </CajaModal>
 
@@ -855,11 +1011,10 @@ export function CobranzasTab({
         confirmLoading={pagar.isPending}
         okText="Continuar"
       >
-        <Input
-          type="datetime-local"
+        <FechaHoraDigitalField
           value={fechaTransferencia}
-          onChange={(e) => setFechaTransferencia(e.target.value)}
-          style={{ width: '100%' }}
+          onChange={setFechaTransferencia}
+          status={!fechaTransferencia ? 'error' : undefined}
         />
       </CajaModal>
 

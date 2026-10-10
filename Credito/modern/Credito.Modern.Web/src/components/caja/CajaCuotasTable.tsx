@@ -118,6 +118,10 @@ export type CajaCuotasTableProps = {
   pageSize?: number
   extraColumns?: ColumnsType<CuotaCobranzaRow>
   compact?: boolean
+  /** Cards táctiles en móvil (CredixDataTable). */
+  mobileCards?: boolean
+  /** Vista inicial del filtro (p. ej. cobrables en caja). */
+  initialVista?: CuotaVistaFiltro
 }
 
 function CajaCuotasTableInner({
@@ -130,8 +134,10 @@ function CajaCuotasTableInner({
   pageSize = 25,
   extraColumns,
   compact,
+  mobileCards = false,
+  initialVista = 'todas',
 }: CajaCuotasTableProps) {
-  const [vista, setVista] = useState<CuotaVistaFiltro>('todas')
+  const [vista, setVista] = useState<CuotaVistaFiltro>(initialVista)
 
   const cobrables = useMemo(() => contarCuotasCobrables(data), [data])
   const conMora = useMemo(() => contarCuotasConMora(data), [data])
@@ -178,10 +184,12 @@ function CajaCuotasTableInner({
       {showLegend ? <CajaCuotasLegend /> : null}
 
       <div className="caja-cuotas-table-toolbar">
-        <Text type="secondary" className="caja-cuotas-table-hint">
-          Plan completo del crédito: pagadas (check bloqueado), pendientes y con mora
-          seleccionables. Totales al final cuando el sistema los incluye.
-        </Text>
+        {!mobileCards ? (
+          <Text type="secondary" className="caja-cuotas-table-hint">
+            Plan completo del crédito: pagadas (check bloqueado), pendientes y con mora
+            seleccionables. Totales al final cuando el sistema los incluye.
+          </Text>
+        ) : null}
         {showVistaFiltro ? (
           <Segmented<CuotaVistaFiltro>
             size="small"
@@ -198,7 +206,7 @@ function CajaCuotasTableInner({
 
       <CredixDataTable<CuotaCobranzaRow>
         mode="operacion"
-        mobileCards={false}
+        mobileCards={mobileCards}
         className="caja-cuotas-table caja-cuotas-table--auto"
         tableLayout="auto"
         rowKey={(row, index) => cuotaRowKey(row, index)}
@@ -208,12 +216,13 @@ function CajaCuotasTableInner({
         loading={loading}
         rowSelection={rowSelection}
         pagination={{
-          pageSize,
-          showSizeChanger: true,
+          pageSize: mobileCards ? 15 : pageSize,
+          showSizeChanger: !mobileCards,
           pageSizeOptions: ['10', '25', '50', '100'],
           showTotal: (t) => `${t} fila(s)`,
+          simple: mobileCards,
         }}
-        scroll={{ x: 980, y: compact ? 280 : 380 }}
+        scroll={mobileCards ? undefined : { x: 980, y: compact ? 280 : 380 }}
         onRow={(row) =>
           isCuotaFilaResumen(row) ? { 'aria-label': 'Fila de resumen' } : {}
         }

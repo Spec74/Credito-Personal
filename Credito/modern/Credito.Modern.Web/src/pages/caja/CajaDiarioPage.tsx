@@ -51,7 +51,8 @@ export function CajaDiarioPage() {
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
 
-  const [showStats, setShowStats] = useState(true)
+  const [showStats, setShowStats] = useState(false)
+  const [opsOpen, setOpsOpen] = useState(false)
 
   const activeTab: CajaDiarioTabKey = creditoIdQuery
     ? 'cobranzas'
@@ -198,12 +199,20 @@ export function CajaDiarioPage() {
   return (
     <CredixPage
       title="Caja diario"
-      subtitle="Operación diaria: cobranzas, desembolsos, arqueo y cierre."
-      breadcrumb={[
-        { title: <Link to="/inicio">Inicio</Link> },
-        { title: <Link to="/caja">Caja</Link> },
-        { title: 'Caja diario' },
-      ]}
+      subtitle={
+        activeTab === 'cobranzas'
+          ? undefined
+          : 'Operación diaria: cobranzas, desembolsos, arqueo y cierre.'
+      }
+      breadcrumb={
+        activeTab === 'cobranzas'
+          ? undefined
+          : [
+              { title: <Link to="/inicio">Inicio</Link> },
+              { title: <Link to="/caja">Caja</Link> },
+              { title: 'Caja diario' },
+            ]
+      }
       stats={showStats ? cajaStats : []}
       statsVariant="default"
       actions={
@@ -212,17 +221,19 @@ export function CajaDiarioPage() {
             icon={<ReloadOutlined />}
             onClick={() => void cajaQuery.refetch()}
           >
-            Actualizar sesión
+            Actualizar
           </Button>
           <Link to="/caja/verificar-pagos">
             <Button>Verificar pagos</Button>
           </Link>
-          <Link to="/informes/saldo-cartera-caja-diario">
-            <Button>Saldo cartera</Button>
-          </Link>
         </Space>
       }
-      className="caja-diario-page"
+      className={[
+        'caja-diario-page',
+        activeTab === 'cobranzas' ? 'caja-diario-page--cobro' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
       <div className="caja-diario-shell">
         {cantidadImpagosPendientes > 0 ? (
@@ -342,31 +353,48 @@ export function CajaDiarioPage() {
                   className="caja-diario-quick-links"
                   aria-label="Reportes y cierres de caja"
                 >
-                  <Link to="/informes/caja-diario">Informe caja diario</Link>
-                  <Link to="/informes/saldo-cartera-caja-diario">
-                    Saldo cartera
-                  </Link>
+                  <Link to="/informes/caja-diario">Informe</Link>
                   <Link to="/caja/saldos">Cierre masivo</Link>
                 </nav>
               </div>
             </header>
 
             <div className="caja-diario-main-column">
-              <CajaDiarioOperacionesBar
-                ctx={ctx}
-                usuarioId={session?.usuarioId ?? 0}
-                variant="inline"
-              />
+              {activeTab === 'cobranzas' ? (
+                <details
+                  className="caja-diario-ops-collapse"
+                  open={opsOpen}
+                  onToggle={(e) =>
+                    setOpsOpen((e.target as HTMLDetailsElement).open)
+                  }
+                >
+                  <summary>Más acciones (PDF, ruta, cobro en bloque)</summary>
+                  <CajaDiarioOperacionesBar
+                    ctx={ctx}
+                    usuarioId={session?.usuarioId ?? 0}
+                    variant="inline"
+                  />
+                </details>
+              ) : (
+                <CajaDiarioOperacionesBar
+                  ctx={ctx}
+                  usuarioId={session?.usuarioId ?? 0}
+                  variant="inline"
+                />
+              )}
 
               <div className="caja-diario-tabs-panel">
                 <CredixPanel className="caja-diario-main-panel">
-                  {resumenQuery.data?.texto && (
-                    <CredixAlertNote strong="Resumen cuenta caja diario">
-                      <pre className="caja-diario-resumen-pre">
-                        {resumenQuery.data.texto}
-                      </pre>
-                    </CredixAlertNote>
-                  )}
+                  {resumenQuery.data?.texto ? (
+                    <details className="caja-diario-resumen-collapse">
+                      <summary>Resumen cuenta caja</summary>
+                      <CredixAlertNote strong="Resumen cuenta caja diario">
+                        <pre className="caja-diario-resumen-pre">
+                          {resumenQuery.data.texto}
+                        </pre>
+                      </CredixAlertNote>
+                    </details>
+                  ) : null}
 
                   <Tabs
                     className="credix-tabs caja-diario-tabs"
