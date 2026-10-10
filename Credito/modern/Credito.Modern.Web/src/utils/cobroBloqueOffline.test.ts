@@ -88,4 +88,35 @@ describe('cobroBloqueOffline', () => {
     vi.stubGlobal('navigator', { onLine: false })
     expect(isLikelyNetworkError(new Error('x'))).toBe(true)
   })
+
+  it('no lee ni purga caché con cajaDiarioId inválido', () => {
+    saveCobroBloqueCarteraCache({
+      version: 1,
+      usuarioId: 3,
+      oficinaId: 1,
+      cajaDiarioId: 10,
+      fechaOperacion: fechaOperacionLocal(),
+      cachedAt: new Date().toISOString(),
+      session: null,
+      rows: [
+        {
+          creditoId: 1,
+          personaCodigo: 'PE1',
+          personaNombre: 'Ana',
+          montoCredito: 100,
+          personaId: 9,
+          fechaVencimiento: '2026-10-10',
+          importeMora: 0,
+          deudaPendiente: 50,
+          orden: 1,
+          celular: null,
+          direccion: null,
+          cuotaSugerida: 25,
+          diasAtrazo: 0,
+        },
+      ],
+    })
+    expect(loadCobroBloqueCarteraCache({ usuarioId: 3, cajaDiarioId: 0 })).toBeNull()
+    expect(loadCobroBloqueCarteraCache({ usuarioId: 3, cajaDiarioId: 10 })?.rows).toHaveLength(1)
+  })
 })

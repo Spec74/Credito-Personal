@@ -115,6 +115,7 @@ export function loadCobroBloqueCarteraCache(args: {
   usuarioId: number
   cajaDiarioId: number
 }): CobroBloqueCarteraCache | null {
+  if (args.usuarioId < 1 || args.cajaDiarioId < 1) return null
   const fecha = fechaOperacionLocal()
   try {
     purgePrefix(CACHE_PREFIX, cacheKey(args.usuarioId, args.cajaDiarioId, fecha))
@@ -153,6 +154,7 @@ export function loadCobroBloquePendingProcess(args: {
   usuarioId: number
   cajaDiarioId: number
 }): CobroBloquePendingProcess | null {
+  if (args.usuarioId < 1 || args.cajaDiarioId < 1) return null
   const fecha = fechaOperacionLocal()
   try {
     purgePrefix(QUEUE_PREFIX, queueKey(args.usuarioId, args.cajaDiarioId, fecha))

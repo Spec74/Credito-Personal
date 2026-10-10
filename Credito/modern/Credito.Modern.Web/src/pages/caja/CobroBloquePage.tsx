@@ -220,10 +220,14 @@ export function CobroBloquePage() {
     retry: false,
   })
 
-  const ctxOnline = sesionQuery.data
+  const ctxOnline = sesionQuery.data ?? null
+  /** Solo usar snap local si no hay red o la sesión falló por red (nunca si el API dijo “sin caja”). */
+  const allowOfflineSession =
+    !online ||
+    (sesionQuery.isError && isLikelyNetworkError(sesionQuery.error))
 
   const resolveOfflineSession = useCallback((): CajaSession | null => {
-    if (ctxOnline || usuarioId < 1) return null
+    if (!allowOfflineSession || usuarioId < 1) return null
     const fecha = fechaOperacionLocal()
     const prefix = `credix.cobroBloqueCartera.v1:${usuarioId}:`
     try {
@@ -241,7 +245,7 @@ export function CobroBloquePage() {
       /* ignore */
     }
     return null
-  }, [ctxOnline, usuarioId])
+  }, [allowOfflineSession, usuarioId])
 
   const ctxOffline = resolveOfflineSession()
   const ctx = ctxOnline ?? ctxOffline
@@ -263,44 +267,51 @@ export function CobroBloquePage() {
     queryFn: async () => {
       try {
         const rows = await fetchCreditosGestorDesembolsados()
-        if (ctx) {
-          saveCobroBloqueCarteraCache({
-            version: 1,
-            usuarioId,
-            oficinaId,
-            cajaDiarioId: ctx.cajaDiarioId,
-            fechaOperacion: fechaOperacionLocal(),
-            cachedAt: new Date().toISOString(),
-            rows,
-            session: {
-              oficinaId: ctx.oficinaId,
-              cajaDiarioId: ctx.cajaDiarioId,
-              cajaId: ctx.cajaId,
-              cajaDenominacion: ctx.cajaDenominacion,
-              fechaIniOperacion: ctx.fechaIniOperacion,
-              saldoInicial: ctx.saldoInicial,
-              entradas: ctx.entradas,
-              salidas: ctx.salidas,
-              saldoFinal: ctx.saldoFinal,
-              indCierre: ctx.indCierre,
-              esCajaCentral: ctx.esCajaCentral,
-            },
-          })
-        }
-        setUsingCache(false)
-        return rows
+        return { rows, fromCache: false as const }
       } catch (e) {
         if (!isLikelyNetworkError(e)) throw e
         const cache = loadCobroBloqueCarteraCache({ usuarioId, cajaDiarioId })
         if (cache?.rows?.length) {
-          setUsingCache(true)
-          return cache.rows
+          return { rows: cache.rows, fromCache: true as const }
         }
         throw e
       }
     },
     enabled: !!ctx && !ctx.indCierre && !yaEjecutadoHoy && usuarioId > 0,
   })
+
+  useEffect(() => {
+    const data = carteraQuery.data
+    if (!data || !ctx || data.fromCache) {
+      if (data?.fromCache) setUsingCache(true)
+      return
+    }
+    setUsingCache(false)
+    saveCobroBloqueCarteraCache({
+      version: 1,
+      usuarioId,
+      oficinaId,
+      cajaDiarioId: ctx.cajaDiarioId,
+      fechaOperacion: fechaOperacionLocal(),
+      cachedAt: new Date().toISOString(),
+      rows: data.rows,
+      session: {
+        oficinaId: ctx.oficinaId,
+        cajaDiarioId: ctx.cajaDiarioId,
+        cajaId: ctx.cajaId,
+        cajaDenominacion: ctx.cajaDenominacion,
+        fechaIniOperacion: ctx.fechaIniOperacion,
+        saldoInicial: ctx.saldoInicial,
+        entradas: ctx.entradas,
+        salidas: ctx.salidas,
+        saldoFinal: ctx.saldoFinal,
+        indCierre: ctx.indCierre,
+        esCajaCentral: ctx.esCajaCentral,
+      },
+    })
+  }, [carteraQuery.data, ctx, usuarioId, oficinaId])
+
+  const carteraRows = carteraQuery.data?.rows
 
   const tiposPagoQuery = useQuery({
     queryKey: ['valores-tabla', 13],
@@ -414,7 +425,7 @@ export function CobroBloquePage() {
   }
 
   const filas = useMemo(() => {
-    const raw = carteraQuery.data ?? []
+    const raw = carteraRows ?? []
     const q = filtro.trim().toLowerCase()
     if (!q) return raw
     return raw.filter(
@@ -426,13 +437,13 @@ export function CobroBloquePage() {
         String(r.creditoId).includes(q) ||
         String(r.orden ?? '').includes(q),
     )
-  }, [carteraQuery.data, filtro])
+  }, [carteraRows, filtro])
 
   const resumen = useMemo(() => {
     let conCobro = 0
     let total = 0
     const porMetodo = new Map<number, { label: string; monto: number; n: number }>()
-    for (const row of carteraQuery.data ?? []) {
+    for (const row of carteraRows ?? []) {
       const e = getEdit(row)
       if (e.montoPagar <= 0) continue
       conCobro++
@@ -444,7 +455,7 @@ export function CobroBloquePage() {
       cur.n += 1
       porMetodo.set(e.tipoPagoId, cur)
     }
-    const totalFilas = carteraQuery.data?.length ?? 0
+    const totalFilas = carteraRows?.length ?? 0
     return {
       conCobro,
       impagos: Math.max(0, totalFilas - conCobro),
@@ -452,10 +463,10 @@ export function CobroBloquePage() {
       porMetodo: [...porMetodo.values()],
       totalFilas,
     }
-  }, [carteraQuery.data, getEdit, tipoPagoOptions])
+  }, [carteraRows, getEdit, tipoPagoOptions])
 
   const validarPlanilla = (): string | null => {
-    for (const row of carteraQuery.data ?? []) {
+    for (const row of carteraRows ?? []) {
       const e = getEdit(row)
       if (e.montoPagar <= 0) continue
       if (TIPOS_PAGO_DIGITAL.has(e.tipoPagoId) && !e.fechaHoraTrans?.trim()) {
@@ -466,7 +477,7 @@ export function CobroBloquePage() {
   }
 
   const buildPlanillaPayload = () =>
-    (carteraQuery.data ?? [])
+    (carteraRows ?? [])
       .map((row) => {
         const e = getEdit(row)
         return {
@@ -550,7 +561,6 @@ export function CobroBloquePage() {
     const pending = loadCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
     if (!pending) return
 
-    let cancelled = false
     syncingRef.current = true
     setSyncingQueue(true)
     void (async () => {
@@ -560,10 +570,9 @@ export function CobroBloquePage() {
           cajaDiarioId: pending.cajaDiarioId,
           planilla: pending.planilla,
         })
-        if (cancelled) return
+        // No cancelar el éxito: si el request ya fue a BD, hay que cerrar borrador/cola.
         finalizarExito(r.mensaje || 'Planilla sincronizada al recuperar red.')
       } catch (e) {
-        if (cancelled) return
         if (isLikelyNetworkError(e)) {
           message.warning('Aún sin red estable. La cola se reintentará al conectar.')
         } else {
@@ -579,14 +588,10 @@ export function CobroBloquePage() {
         }
       } finally {
         syncingRef.current = false
-        if (!cancelled) setSyncingQueue(false)
+        setSyncingQueue(false)
       }
     })()
-
-    return () => {
-      cancelled = true
-    }
-    // Flush solo al recuperar red / cambiar caja; finalizarExito es estable en este ciclo.
+    // Flush solo al recuperar red / cambiar caja.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [online, yaEjecutadoHoy, usuarioId, cajaDiarioId])
 
