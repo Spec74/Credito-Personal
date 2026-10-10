@@ -23,7 +23,7 @@
 
 .credix-filter-bar {
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
   padding: clamp(10px, 2vw, 16px);
 }
 
@@ -63,23 +63,66 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* Informes: filtros y export */
+/* Informes: filtros y export (Form es el flex container; evita solape Consultar/Segmented) */
 .credix-informe-page .credix-informe-filter-bar {
   min-width: 0;
 }
 
 .credix-informe-filter-row {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.credix-informe-filter-row > .ant-form,
+.credix-informe-filter-row .ant-form {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
-  gap: 10px 12px;
+  gap: 12px 16px;
   width: 100%;
+  max-width: 100%;
 }
 
 .credix-informe-filter-row .ant-form-item {
-  margin-bottom: 0;
-  flex: 1 1 140px;
+  margin-bottom: 0 !important;
+  margin-inline-end: 0 !important;
+  flex: 0 1 auto;
   min-width: 0;
+  max-width: 100%;
+}
+
+.credix-informe-filter-row .ant-form-item:has(.ant-select),
+.credix-informe-filter-row .ant-form-item:has(.ant-picker),
+.credix-informe-filter-row .ant-form-item:has(.ant-input-number),
+.credix-informe-filter-row .ant-form-item:has(.ant-input-affix-wrapper),
+.credix-informe-filter-row .ant-form-item:has(textarea.ant-input) {
+  flex: 1 1 160px;
+}
+
+.credix-informe-filter-row .ant-form-item:has(.ant-segmented) {
+  flex: 1 1 100%;
+  width: 100%;
+}
+
+.credix-informe-filter-row .ant-form-item:has(.ant-btn),
+.credix-informe-filter-row .credix-informe-form__actions {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.credix-informe-filter-row .credix-informe-form__franja {
+  flex: 1 1 100%;
+  width: 100%;
+}
+
+.credix-informe-filter-row .ant-segmented {
+  max-width: 100%;
+}
+
+.credix-informe-filter-row .ant-segmented .ant-segmented-group {
+  flex-wrap: wrap;
+  row-gap: 4px;
 }
 
 .credix-informe-filter-row .ant-picker {
@@ -172,13 +215,18 @@
     grid-template-columns: 1fr;
   }
 
-  .credix-informe-filter-row {
+  .credix-informe-filter-row > .ant-form,
+  .credix-informe-filter-row .ant-form {
     flex-direction: column;
     align-items: stretch;
   }
 
   .credix-informe-filter-row .ant-form-item {
     flex: none;
+    width: 100%;
+  }
+
+  .credix-informe-filter-row .ant-form-item:has(.ant-btn) {
     width: 100%;
   }
 

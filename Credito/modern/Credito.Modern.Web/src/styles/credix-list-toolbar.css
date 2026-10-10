@@ -29,9 +29,8 @@
   width: 100%;
 }
 
-.credix-list-toolbar__buscar .ant-input-affix-wrapper,
-.credix-list-toolbar__buscar .ant-input-search .ant-input-affix-wrapper,
-.credix-list-toolbar__buscar .ant-input-search > .ant-input-group > .ant-input {
+/* Input solo (sin botón) */
+.credix-list-toolbar__buscar > .ant-input-affix-wrapper {
   width: 100%;
   height: 44px;
   max-height: 44px;
@@ -39,6 +38,32 @@
   padding-bottom: 0;
   font-size: 15px;
   border-radius: 10px;
+}
+
+/* Input.Search / Space.Compact: campo + Buscar unidos (sin hueco) */
+.credix-list-toolbar__buscar .ant-input-search,
+.credix-list-toolbar__buscar .ant-space-compact {
+  display: flex !important;
+  width: 100%;
+  max-width: 100%;
+  gap: 0 !important;
+  column-gap: 0 !important;
+}
+
+.credix-list-toolbar__buscar .ant-input-search .ant-input-affix-wrapper,
+.credix-list-toolbar__buscar .ant-space-compact > .ant-input-affix-wrapper,
+.credix-list-toolbar__buscar .ant-input-search > .ant-input-group > .ant-input-affix-wrapper,
+.credix-list-toolbar__buscar .ant-input-search > .ant-input-group > .ant-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto !important;
+  height: 44px;
+  max-height: 44px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 15px;
+  border-radius: 10px 0 0 10px !important;
+  border-inline-end-width: 0;
 }
 
 .credix-list-toolbar__buscar .ant-input-affix-wrapper > input.ant-input {
@@ -49,14 +74,21 @@
   white-space: nowrap;
 }
 
-.credix-list-toolbar__buscar .ant-input-search-button {
-  height: 44px;
+.credix-list-toolbar__buscar .ant-input-search-button,
+.credix-list-toolbar__buscar .ant-space-compact > .ant-btn,
+.credix-list-toolbar__buscar .ant-input-search .ant-btn {
+  flex: 0 0 auto;
+  height: 44px !important;
+  margin-inline-start: 0 !important;
   border-radius: 0 10px 10px 0 !important;
+  font-weight: 600;
+  z-index: 1;
 }
 
 .credix-list-toolbar__buscar .ant-input-affix-wrapper:hover,
 .credix-list-toolbar__buscar .ant-input-search .ant-input-affix-wrapper:hover {
   border-color: #9cb8d9;
+  z-index: 1;
 }
 
 .credix-list-toolbar__buscar .ant-input-affix-wrapper-focused,
@@ -64,6 +96,7 @@
 .credix-list-toolbar__buscar .ant-input-search .ant-input-affix-wrapper-focused {
   border-color: var(--credix-brand, #114885);
   box-shadow: 0 0 0 3px rgba(17, 72, 133, 0.1);
+  z-index: 2;
 }
 
 .credix-list-toolbar__buscar .ant-input-prefix {
@@ -119,7 +152,8 @@
     font-size: 16px;
   }
 
-  .credix-list-toolbar__buscar .ant-input-search-button {
+  .credix-list-toolbar__buscar .ant-input-search-button,
+  .credix-list-toolbar__buscar .ant-space-compact > .ant-btn {
     min-width: 44px;
   }
 

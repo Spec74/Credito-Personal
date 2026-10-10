@@ -89,14 +89,20 @@ export function CreditoVencidoPage() {
       breadcrumb={reportesCreditoBreadcrumb('Crédito vencido')}
       stats={stats}
       filters={
-        <Form form={form} layout="inline" initialValues={defaultValues} onFinish={(v) => consulta.mutate(v)}>
+        <Form
+          form={form}
+          layout="inline"
+          className="credix-informe-form"
+          initialValues={defaultValues}
+          onFinish={(v) => consulta.mutate(v)}
+        >
           <Form.Item name="oficinaId" hidden>
             <InputNumber />
           </Form.Item>
-          <Form.Item name="franja" label="Franja">
+          <Form.Item name="franja" label="Franja" className="credix-informe-form__franja">
             <Segmented options={FRANJA_OPCIONES} aria-label="Franja de vencimiento" />
           </Form.Item>
-          <Form.Item>
+          <Form.Item className="credix-informe-form__actions">
             <Button
               type="primary"
               icon={<SearchOutlined />}
