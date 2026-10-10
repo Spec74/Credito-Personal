@@ -22,6 +22,7 @@ import {
   PhoneOutlined,
   SearchOutlined,
   ThunderboltOutlined,
+  VerticalAlignTopOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import {
@@ -198,6 +199,8 @@ export function CobroBloquePage() {
   const [syncingQueue, setSyncingQueue] = useState(false)
   const draftHydrated = useRef(false)
   const syncingRef = useRef(false)
+  const [scrolledDown, setScrolledDown] = useState(false)
+  const [dockBox, setDockBox] = useState<{ left: number; width: number } | null>(null)
   const yaEjecutadoHoy = isCobroBloqueEjecutadoHoy()
 
   useEffect(() => {
@@ -210,6 +213,37 @@ export function CobroBloquePage() {
       window.removeEventListener('offline', off)
     }
   }, [])
+
+  useEffect(() => {
+    const scroller = document.querySelector('.credix-content')
+    if (!scroller) return
+    const onScroll = () => setScrolledDown(scroller.scrollTop > 240)
+    onScroll()
+    scroller.addEventListener('scroll', onScroll, { passive: true })
+    return () => scroller.removeEventListener('scroll', onScroll)
+  }, [])
+
+  useEffect(() => {
+    const main = document.querySelector('.credix-main')
+    if (!main) return
+    const sync = () => {
+      const r = main.getBoundingClientRect()
+      setDockBox({ left: Math.max(0, r.left), width: Math.max(280, r.width) })
+    }
+    sync()
+    const ro = new ResizeObserver(sync)
+    ro.observe(main)
+    window.addEventListener('resize', sync)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', sync)
+    }
+  }, [])
+
+  const scrollPlanillaTop = () => {
+    const scroller = document.querySelector('.credix-content')
+    scroller?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const sesionQuery = useQuery({
     queryKey: ['caja-diario-sesion', oficinaId],
@@ -655,10 +689,13 @@ export function CobroBloquePage() {
     {
       title: 'Cliente',
       dataIndex: 'personaNombre',
-      ellipsis: true,
+      className: 'cobro-bloque-col-cliente',
+      onCell: () => ({ className: 'cobro-bloque-col-cliente' }),
       render: (_, row) => (
         <div className="cobro-bloque-cliente-cell">
-          <strong>{row.personaNombre}</strong>
+          <strong className="cobro-bloque-cliente-cell__name" title={row.personaNombre}>
+            {row.personaNombre}
+          </strong>
           <span className="cobro-bloque-cliente-cell__meta">
             #{row.creditoId}
             {row.diasAtrazo > 0 ? ` · ${row.diasAtrazo}d atraso` : ''}
@@ -669,7 +706,8 @@ export function CobroBloquePage() {
     {
       title: 'Celular',
       dataIndex: 'celular',
-      width: 110,
+      className: 'cobro-bloque-col-nowrap',
+      onCell: () => ({ className: 'cobro-bloque-col-nowrap' }),
       render: (v: string | null) =>
         v ? (
           <a href={`tel:${v.replace(/\s+/g, '')}`}>{v}</a>
@@ -680,14 +718,16 @@ export function CobroBloquePage() {
     {
       title: 'Venc.',
       dataIndex: 'fechaVencimiento',
-      width: 96,
+      className: 'cobro-bloque-col-nowrap',
+      onCell: () => ({ className: 'cobro-bloque-col-nowrap' }),
       render: (v: string) => formatFecha(v),
     },
     {
       title: 'Cuota sug.',
       dataIndex: 'cuotaSugerida',
-      width: 100,
       align: 'right',
+      className: 'cobro-bloque-col-num',
+      onCell: () => ({ className: 'cobro-bloque-col-num' }),
       render: (v: number, row) => (
         <Button type="link" size="small" onClick={() => aplicarCuotaSugerida(row)}>
           {formatMoney(v ?? 0)}
@@ -697,14 +737,16 @@ export function CobroBloquePage() {
     {
       title: 'Deuda',
       dataIndex: 'deudaPendiente',
-      width: 96,
       align: 'right',
+      className: 'cobro-bloque-col-num',
+      onCell: () => ({ className: 'cobro-bloque-col-num' }),
       render: (v: number) => <strong>{formatMoney(v)}</strong>,
     },
     {
       title: 'Monto a cobrar',
       key: 'monto',
-      width: 130,
+      className: 'cobro-bloque-col-monto',
+      onCell: () => ({ className: 'cobro-bloque-col-monto' }),
       render: (_, row) => {
         const e = getEdit(row)
         return (
@@ -713,7 +755,7 @@ export function CobroBloquePage() {
             max={row.deudaPendiente}
             step={0.01}
             value={e.montoPagar}
-            style={{ width: '100%' }}
+            className="cobro-bloque-input-monto"
             onChange={(v) =>
               patchEdit(
                 row.creditoId,
@@ -736,14 +778,15 @@ export function CobroBloquePage() {
     {
       title: 'Tipo pago',
       key: 'tipo',
-      width: 130,
+      className: 'cobro-bloque-col-tipo',
+      onCell: () => ({ className: 'cobro-bloque-col-tipo' }),
       render: (_, row) => {
         const e = getEdit(row)
         return (
           <Select
             value={e.tipoPagoId}
             options={tipoPagoOptions}
-            style={{ width: '100%' }}
+            className="cobro-bloque-input-tipo"
             onChange={(v) => patchEdit(row.creditoId, { tipoPagoId: v }, row)}
           />
         )
@@ -752,11 +795,12 @@ export function CobroBloquePage() {
     {
       title: 'Hora del voucher',
       key: 'fecha',
-      width: 260,
+      className: 'cobro-bloque-col-fecha',
+      onCell: () => ({ className: 'cobro-bloque-col-fecha' }),
       render: (_, row) => {
         const e = getEdit(row)
         if (!TIPOS_PAGO_DIGITAL.has(e.tipoPagoId)) {
-          return <Text type="secondary">Solo Yape/Plin/transf.</Text>
+          return <Text type="secondary">—</Text>
         }
         return (
           <FechaHoraDigitalField
@@ -775,32 +819,74 @@ export function CobroBloquePage() {
   const sinCaja = !yaEjecutadoHoy && ((!ctx && !sesionQuery.isLoading) || Boolean(ctx?.indCierre))
 
   const toolbar = (
-    <div className="credix-cobro-bloque-toolbar">
+    <div className="cobro-bloque-command">
       <Input
         allowClear
         prefix={<SearchOutlined />}
         placeholder="Buscar cliente, celular, dirección o crédito…"
         value={filtro}
         onChange={(e) => setFiltro(e.target.value)}
-        style={{ maxWidth: fieldMode ? '100%' : 420 }}
+        className="cobro-bloque-command__search"
         aria-label="Filtrar planilla"
       />
-      <Space wrap>
-        <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/caja/diario')}>
-          Volver
-        </Button>
-        <Button
-          type="primary"
-          icon={<CheckOutlined />}
-          loading={procesar.isPending}
-          disabled={resumen.totalFilas < 1}
-          onClick={confirmarProcesar}
-        >
-          Procesar
-        </Button>
-      </Space>
+      <div className="cobro-bloque-command__meta">
+        <span className="cobro-bloque-command__chip">
+          {filas.length}/{resumen.totalFilas} visibles
+        </span>
+        <span className="cobro-bloque-command__chip cobro-bloque-command__chip--accent">
+          {resumen.conCobro} cobros · S/ {formatMoney(resumen.total)}
+        </span>
+      </div>
+      <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/caja/diario')}>
+        Volver
+      </Button>
     </div>
   )
+
+  const actionDock = !yaEjecutadoHoy && !sinCaja ? (
+    <div
+      className="cobro-bloque-dock"
+      role="region"
+      aria-label="Acciones de planilla"
+      style={
+        dockBox
+          ? { left: dockBox.left, width: dockBox.width }
+          : undefined
+      }
+    >
+      <div className="cobro-bloque-dock__inner">
+        <div className="cobro-bloque-dock__stats">
+          <div>
+            <Text type="secondary">A cobrar</Text>
+            <strong>
+              {resumen.conCobro} · S/ {formatMoney(resumen.total)}
+            </strong>
+          </div>
+          <div className="cobro-bloque-dock__impagos">
+            <Text type="secondary">Impagos</Text>
+            <strong>{resumen.impagos}</strong>
+          </div>
+        </div>
+        <Space wrap className="cobro-bloque-dock__actions">
+          {scrolledDown ? (
+            <Button icon={<VerticalAlignTopOutlined />} onClick={scrollPlanillaTop}>
+              Arriba
+            </Button>
+          ) : null}
+          <Button
+            type="primary"
+            size="large"
+            icon={<CheckOutlined />}
+            loading={procesar.isPending}
+            disabled={resumen.totalFilas < 1}
+            onClick={confirmarProcesar}
+          >
+            Procesar planilla
+          </Button>
+        </Space>
+      </div>
+    </div>
+  ) : null
 
   const resumenBar = (
     <div className="credix-cobro-bloque-resumen" role="region" aria-label="Resumen operativo">
@@ -841,7 +927,7 @@ export function CobroBloquePage() {
 
   return (
     <CredixPage
-      className={`cobro-bloque-page${fieldMode ? ' cobro-bloque-page--field' : ''}`}
+      className={`cobro-bloque-page${fieldMode ? ' cobro-bloque-page--field' : ''}${actionDock ? ' cobro-bloque-page--dock' : ''}`}
       title="Cobro en bloque"
       subtitle="Planilla digital de cobro diario: cobro rápido en campo, voucher con un toque y borrador automático."
       breadcrumb={[
@@ -1070,12 +1156,15 @@ export function CobroBloquePage() {
               </div>
             ) : (
               <CredixDataTable
+                mode="operacion"
+                className="cobro-bloque-table"
                 rowKey="creditoId"
                 loading={carteraQuery.isLoading}
                 columns={columns}
                 dataSource={filas}
                 pagination={{ pageSize: 50, showSizeChanger: true }}
-                size="small"
+                size="middle"
+                scroll={{ x: 'max-content' }}
                 expandable={{
                   expandedRowRender: (row) => {
                     const e = getEdit(row)
@@ -1106,26 +1195,7 @@ export function CobroBloquePage() {
             )}
           </CredixPanel>
 
-          {fieldMode ? (
-            <div className="cobro-bloque-sticky">
-              <div>
-                <Text type="secondary">A cobrar</Text>
-                <strong>
-                  {resumen.conCobro} · S/ {formatMoney(resumen.total)}
-                </strong>
-              </div>
-              <Button
-                type="primary"
-                size="large"
-                icon={<CheckOutlined />}
-                loading={procesar.isPending}
-                disabled={resumen.totalFilas < 1}
-                onClick={confirmarProcesar}
-              >
-                Procesar
-              </Button>
-            </div>
-          ) : null}
+          {actionDock}
         </>
       )}
     </CredixPage>

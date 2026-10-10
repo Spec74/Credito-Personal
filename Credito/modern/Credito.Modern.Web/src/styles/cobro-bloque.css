@@ -3,13 +3,58 @@
   margin-bottom: 12px;
 }
 
-.cobro-bloque-page .credix-cobro-bloque-toolbar {
+/* Espacio para el dock fijo inferior */
+.cobro-bloque-page--dock {
+  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+}
+
+/* —— Barra de comando sticky (buscar + chips) —— */
+.cobro-bloque-command {
+  position: sticky;
+  top: 0;
+  z-index: 40;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 10px 12px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid #e8eef5;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+}
+
+.cobro-bloque-command__search {
+  flex: 1 1 220px;
+  min-width: 0;
+  max-width: 440px;
+}
+
+.cobro-bloque-command__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cobro-bloque-command__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--credix-text-muted, #64748b);
+  background: #f1f5f9;
+  white-space: nowrap;
+}
+
+.cobro-bloque-command__chip--accent {
+  color: #0f3d6e;
+  background: #e8f2ff;
 }
 
 .cobro-bloque-page .credix-cobro-bloque-resumen {
@@ -36,16 +81,66 @@
   font-size: 13px;
 }
 
+/* —— Tabla: nombres en una línea, columnas por contenido —— */
+.cobro-bloque-table .ant-table-thead > tr > th,
+.cobro-bloque-table .ant-table-tbody > tr > td {
+  vertical-align: middle;
+}
+
+.cobro-bloque-col-cliente {
+  white-space: nowrap !important;
+}
+
 .cobro-bloque-cliente-cell {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  min-width: 0;
+  min-width: 12rem;
+}
+
+.cobro-bloque-cliente-cell__name {
+  display: block;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--credix-text, #1f2937);
+  line-height: 1.3;
 }
 
 .cobro-bloque-cliente-cell__meta {
   font-size: 12px;
   color: var(--credix-text-muted, #64748b);
+  white-space: nowrap;
+}
+
+.cobro-bloque-col-nowrap,
+.cobro-bloque-col-num {
+  white-space: nowrap !important;
+}
+
+.cobro-bloque-col-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.cobro-bloque-col-monto {
+  min-width: 8.5rem;
+}
+
+.cobro-bloque-col-tipo {
+  min-width: 8rem;
+}
+
+.cobro-bloque-col-fecha {
+  min-width: 14rem;
+}
+
+.cobro-bloque-input-monto {
+  width: 7.5rem !important;
+  min-width: 7.5rem;
+}
+
+.cobro-bloque-input-tipo {
+  width: 8.5rem !important;
+  min-width: 8.5rem;
 }
 
 .cobro-bloque-subgrid {
@@ -83,7 +178,6 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding-bottom: 88px;
 }
 
 .cobro-bloque-field-list__loading {
@@ -128,6 +222,7 @@
   font-weight: 750;
   line-height: 1.25;
   color: var(--credix-text, #1f2937);
+  overflow-wrap: anywhere;
 }
 
 .cobro-bloque-card__deuda {
@@ -180,36 +275,93 @@
   padding-left: 0;
 }
 
-.cobro-bloque-sticky {
-  position: sticky;
+/* —— Dock inferior fijo al área main: Procesar siempre a mano —— */
+.cobro-bloque-dock {
+  position: fixed;
   bottom: 0;
-  z-index: 20;
+  z-index: 90;
+  pointer-events: none;
+  padding: 0 12px calc(10px + env(safe-area-inset-bottom, 0px));
+}
+
+.cobro-bloque-dock__inner {
+  pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 0 -4px;
-  padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
-  border-top: 1px solid #e5e7eb;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(8px);
-  box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.06);
+  padding: 12px 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.97);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 32px rgba(15, 23, 42, 0.14);
 }
 
-.cobro-bloque-sticky strong {
+.cobro-bloque-dock__stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.cobro-bloque-dock__stats strong {
   display: block;
   font-size: 16px;
+  font-weight: 800;
   color: var(--credix-brand, #114885);
+  white-space: nowrap;
+}
+
+.cobro-bloque-dock__impagos {
+  display: none;
+}
+
+.cobro-bloque-dock__actions {
+  flex: 0 0 auto;
+}
+
+.cobro-bloque-dock__actions .ant-btn-primary {
+  min-width: 160px;
+  font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .cobro-bloque-dock__impagos {
+    display: block;
+  }
 }
 
 @media (max-width: 767px) {
-  .cobro-bloque-page .credix-cobro-bloque-toolbar {
+  .cobro-bloque-command {
     flex-direction: column;
     align-items: stretch;
   }
 
+  .cobro-bloque-command__search {
+    max-width: none;
+  }
+
   .cobro-bloque-page.cobro-bloque-page--field .credix-cobro-bloque-resumen {
     display: none;
+  }
+
+  .cobro-bloque-dock__inner {
+    flex-wrap: wrap;
+  }
+
+  .cobro-bloque-dock__actions {
+    width: 100%;
+  }
+
+  .cobro-bloque-dock__actions .ant-space {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .cobro-bloque-dock__actions .ant-btn-primary {
+    flex: 1 1 auto;
+    min-width: 0;
   }
 }
 
