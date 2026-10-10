@@ -47,7 +47,7 @@ const BovedaHistorialGrillas = lazy(() =>
 )
 
 const BOVEDA_SUBTITLE =
-  'Estado de dinero, operaciones y historial — paridad con Boveda/Index del MVC.'
+  'Liquidez de oficina, medios de pago y movimientos de tesorería.'
 
 export function BovedaPage() {
   const { session } = useAuth()
@@ -190,7 +190,7 @@ export function BovedaPage() {
         />
       ) : null}
 
-      <CredixPanel title="Estado de dinero">
+      <CredixPanel title="Posición de liquidez" className="boveda-panel-liquidez">
         <BovedaEstadoDineroPanel
           data={estadoDinero.data}
           loading={estadoDinero.isLoading}
@@ -219,25 +219,35 @@ export function BovedaPage() {
         />
       ) : boveda.data ? (
         <>
-          <CredixPanel title={`Bóveda — ${oficinaLabel}`}>
-            <Space wrap size="middle">
+          <CredixPanel
+            title={`Sesión · ${oficinaLabel}`}
+            className="boveda-panel-sesion"
+            extra={
+              <Space wrap size={6}>
+                <Tag color={boveda.data.indTemporal ? 'orange' : 'blue'}>
+                  {boveda.data.indTemporal ? 'Temporal' : 'Principal'}
+                </Tag>
+                <Tag color={boveda.data.indCierre ? 'default' : 'green'}>
+                  {boveda.data.indCierre ? 'Cerrada' : 'Abierta'}
+                </Tag>
+              </Space>
+            }
+          >
+            <div className="boveda-sesion-meta">
               <Text strong>Bóveda #{boveda.data.bovedaId}</Text>
-              <Tag color={boveda.data.indTemporal ? 'orange' : 'blue'}>
-                {boveda.data.indTemporal ? 'Temporal' : 'Principal'}
-              </Tag>
-              <Tag color={boveda.data.indCierre ? 'default' : 'green'}>
-                {boveda.data.indCierre ? 'Cerrada' : 'Abierta'}
-              </Tag>
               <Text type="secondary">
                 Operación desde {formatFecha(boveda.data.fechaIniOperacion)}
               </Text>
-            </Space>
+            </div>
             <BovedaSaldosGrid
               saldoInicial={boveda.data.saldoInicial}
               entradas={boveda.data.entradas}
               salidas={boveda.data.salidas}
               saldoFinal={boveda.data.saldoFinal}
             />
+          </CredixPanel>
+
+          <CredixPanel title="Medios de pago" className="boveda-panel-medios">
             <BovedaResumenCuenta
               texto={resumen.data?.texto}
               loading={resumen.isLoading}
@@ -247,7 +257,7 @@ export function BovedaPage() {
           </CredixPanel>
 
           {!boveda.data.indCierre ? (
-            <CredixPanel title="Operaciones">
+            <CredixPanel title="Operaciones" className="boveda-panel-ops">
               <div className="boveda-operaciones-panel">
                 <Suspense fallback={<Spin />}>
                   <BovedaOperacionesPanel
@@ -267,7 +277,7 @@ export function BovedaPage() {
             />
           )}
 
-          <CredixPanel title="Historial y movimientos">
+          <CredixPanel title="Historial y movimientos" className="boveda-panel-historial">
             <Suspense fallback={<Spin />}>
               <BovedaHistorialGrillas
                 oficinaId={oficinaId}

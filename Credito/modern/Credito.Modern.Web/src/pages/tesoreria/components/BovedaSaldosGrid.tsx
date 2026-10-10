@@ -14,10 +14,10 @@ export function BovedaSaldosGrid({
   saldoFinal,
 }: Props) {
   const items = [
-    { label: 'Saldo inicial S/.', value: saldoInicial },
-    { label: 'Entradas S/.', value: entradas },
-    { label: 'Salidas S/.', value: salidas },
-    { label: 'Saldo final S/.', value: saldoFinal, highlight: true },
+    { label: 'Saldo inicial', value: saldoInicial },
+    { label: 'Entradas', value: entradas },
+    { label: 'Salidas', value: salidas },
+    { label: 'Saldo final', value: saldoFinal, highlight: true },
   ]
 
   return (

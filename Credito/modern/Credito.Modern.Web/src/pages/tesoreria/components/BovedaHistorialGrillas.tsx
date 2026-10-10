@@ -16,6 +16,7 @@ import { useSecondaryDataReady } from '../../../hooks/useSecondaryDataReady'
 import { formatFecha } from '../../../utils/formatFecha'
 import { formatMoney } from '../../../utils/formatMoney'
 import type { RptMovimientoBovedaRow } from '../../../api/boveda'
+import { TipoPagoCell } from './TipoPagoBrand'
 
 type Props = {
   oficinaId: number
@@ -104,7 +105,12 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
     { title: 'Id', dataIndex: 'movimientoBovedaId', width: 70 },
     { title: 'Fecha', dataIndex: 'fechaReg', width: 100, render: formatFecha },
     { title: 'Op.', dataIndex: 'codOperacion', width: 70 },
-    { title: 'Tipo pago', dataIndex: 'tipoPago', width: 90 },
+    {
+      title: 'Tipo pago',
+      dataIndex: 'tipoPago',
+      width: 140,
+      render: (v: string) => <TipoPagoCell tipoPago={v} />,
+    },
     { title: 'Glosa', dataIndex: 'glosa', ellipsis: true },
     { title: 'Entrada', dataIndex: 'entrada', align: 'right', render: (v) => formatMoney(v ?? 0) },
     { title: 'Salida', dataIndex: 'salida', align: 'right', render: (v) => formatMoney(v ?? 0) },

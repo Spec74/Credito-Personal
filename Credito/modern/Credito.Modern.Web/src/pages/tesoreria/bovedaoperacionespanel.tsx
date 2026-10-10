@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ExclamationCircleOutlined } from '@ant-design/icons'
 import {
@@ -39,6 +39,10 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { useSecondaryDataReady } from '../../hooks/useSecondaryDataReady'
 import type { TipoOperacionListItem } from '../../types/api'
 import { FIELD_MAX, glosaRules, moneyRequired } from '../../validation/formRules'
+import {
+  buildTipoPagoOptions,
+  tipoPagoOptionRender,
+} from './components/TipoPagoBrand'
 
 const { Paragraph } = Typography
 
@@ -102,13 +106,19 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     staleTime: 5 * 60_000,
   })
   const tipoPagoOptions = useMemo(
-    () =>
-      (tiposPagoQuery.data ?? []).map((t) => ({
-        value: t.itemId,
-        label: t.denominacion,
-      })),
+    () => buildTipoPagoOptions(tiposPagoQuery.data ?? []),
     [tiposPagoQuery.data],
   )
+
+  const tipoPagoSelectProps = {
+    showSearch: true,
+    optionFilterProp: 'label' as const,
+    optionRender: tipoPagoOptionRender,
+    labelRender: (props: { label?: ReactNode }) =>
+      typeof props.label === 'string'
+        ? tipoPagoOptionRender({ label: props.label })
+        : props.label,
+  }
 
   const needsCajas =
     activeTab === 'caja' || activeTab === 'analista' || activeTab === 'chica'
@@ -306,7 +316,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   const tabItems = [
     {
       key: 'ingreso',
-      label: 'Ingreso / egreso',
+      label: 'Movimiento',
       children: (
         <Form
           className="boveda-operaciones-form"
@@ -341,10 +351,9 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           <Form.Item name="tipoPagoId" label="Tipo de pago" rules={[{ required: true }]}>
             <Select
               loading={tiposPagoQuery.isLoading}
-              showSearch
-              optionFilterProp="label"
               placeholder="Efectivo, Yape, banco…"
               options={tipoPagoOptions}
+              {...tipoPagoSelectProps}
             />
           </Form.Item>
           {formActions('Registrar movimiento', ingresoEgreso.isPending)}
@@ -353,7 +362,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     },
     {
       key: 'caja',
-      label: 'A caja diaria',
+      label: 'A caja',
       children: (
         <Form
           className="boveda-operaciones-form"
@@ -413,10 +422,9 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               rules={[{ required: true }]}
             >
               <Select
-                showSearch
-                optionFilterProp="label"
                 options={tipoPagoOptions.filter((o) => o.value !== 1)}
                 placeholder="Seleccione medio (no efectivo)"
+                {...tipoPagoSelectProps}
               />
             </Form.Item>
             <Form.Item
@@ -445,7 +453,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     },
     {
       key: 'chica',
-      label: 'A caja chica',
+      label: 'Caja chica',
       children: (
         <Form
           className="boveda-operaciones-form"
@@ -465,7 +473,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     },
     {
       key: 'bancos',
-      label: 'Entre bancos',
+      label: 'Entre medios',
       children: (
         <>
           <Paragraph type="secondary">
@@ -492,10 +500,9 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             >
               <Select
                 loading={tiposPagoQuery.isLoading}
-                showSearch
-                optionFilterProp="label"
                 placeholder="Medio de pago origen"
                 options={tipoPagoOptions}
+                {...tipoPagoSelectProps}
               />
             </Form.Item>
             <Form.Item
@@ -520,10 +527,9 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             >
               <Select
                 loading={tiposPagoQuery.isLoading}
-                showSearch
-                optionFilterProp="label"
                 placeholder="Medio de pago destino"
                 options={tipoPagoOptions}
+                {...tipoPagoSelectProps}
               />
             </Form.Item>
             <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
@@ -539,7 +545,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     },
     {
       key: 'temporal',
-      label: 'Bóveda temporal',
+      label: 'Temporal',
       children: (
         <>
           <Paragraph type="secondary">
@@ -602,7 +608,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     },
     {
       key: 'interoficina',
-      label: 'Transferir bóveda',
+      label: 'Interoficina',
       children: (
         <>
           <Paragraph type="secondary">
@@ -660,7 +666,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     },
     {
       key: 'aceptar',
-      label: 'Aceptar / rechazar',
+      label: 'Pendientes',
       children: (
         <>
           <Paragraph type="secondary">

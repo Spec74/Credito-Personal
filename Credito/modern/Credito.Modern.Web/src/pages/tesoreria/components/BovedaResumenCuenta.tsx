@@ -1,5 +1,5 @@
 import { Alert, Spin, Typography } from 'antd'
-import { FileTextOutlined } from '@ant-design/icons'
+import { WalletOutlined } from '@ant-design/icons'
 import { ApiError } from '../../../api/errors'
 import { formatMoney } from '../../../utils/formatMoney'
 import { parseResumenBovedaTexto } from './bovedaResumenCuentaParse'
@@ -19,7 +19,7 @@ export function BovedaResumenCuenta({ texto, loading, isError, error }: Props) {
     return (
       <div className="boveda-resumen-cuenta boveda-resumen-cuenta--loading">
         <Spin size="small" />
-        <Text type="secondary">Cargando resumen de cuenta…</Text>
+        <Text type="secondary">Cargando saldos por medio de pago…</Text>
       </div>
     )
   }
@@ -27,15 +27,15 @@ export function BovedaResumenCuenta({ texto, loading, isError, error }: Props) {
   if (isError) {
     const msg = error instanceof ApiError ? error.message : 'No se pudo cargar el resumen.'
     return (
-      <Alert type="warning" showIcon message="Resumen de cuenta" description={msg} />
+      <Alert type="warning" showIcon message="Medios de pago" description={msg} />
     )
   }
 
   if (!texto?.trim()) {
     return (
       <div className="boveda-resumen-cuenta boveda-resumen-cuenta--empty">
-        <FileTextOutlined className="boveda-resumen-cuenta__icon" aria-hidden />
-        <Text type="secondary">Sin resumen disponible para esta bóveda.</Text>
+        <WalletOutlined className="boveda-resumen-cuenta__icon" aria-hidden />
+        <Text type="secondary">Sin saldos por medio de pago para esta bóveda.</Text>
       </div>
     )
   }
@@ -43,11 +43,11 @@ export function BovedaResumenCuenta({ texto, loading, isError, error }: Props) {
   const parsed = parseResumenBovedaTexto(texto)
 
   return (
-    <div className="boveda-resumen-cuenta" role="region" aria-label="Resumen de cuenta">
+    <div className="boveda-resumen-cuenta" role="region" aria-label="Medios de pago">
       <div className="boveda-resumen-cuenta__header">
-        <FileTextOutlined className="boveda-resumen-cuenta__icon" aria-hidden />
+        <WalletOutlined className="boveda-resumen-cuenta__icon" aria-hidden />
         <span className="boveda-resumen-cuenta__title">
-          {parsed.titulo ?? 'Resumen de cuenta'}
+          {parsed.titulo ?? 'Saldos por entidad'}
         </span>
       </div>
       <div className="boveda-resumen-cuenta__body">

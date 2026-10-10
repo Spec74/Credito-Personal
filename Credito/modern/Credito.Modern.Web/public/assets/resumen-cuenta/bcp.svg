@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="BCP">
   <rect width="48" height="48" rx="8" fill="#002395"/>
-  <text x="24" y="31" text-anchor="middle" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="900" letter-spacing="-.5">BCP</text>
-  <rect x="8" y="10" width="32" height="3" rx="1" fill="#ff6b00" opacity=".9"/>
+  <rect x="7" y="9" width="34" height="4" rx="2" fill="#ff6a00"/>
+  <text x="24" y="33" text-anchor="middle" fill="#fff" font-family="Arial Black, Arial, sans-serif" font-size="18" font-weight="900" letter-spacing="-0.8">BCP</text>
 </svg>

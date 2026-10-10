@@ -60,7 +60,10 @@ function marcaBase(clave: string): string | null {
   return null
 }
 
-function resolverVariant(clave: string): { etiqueta: string; variant: ResumenCuentaVariant } {
+/** Resuelve marca visual + etiqueta legible desde denominación ValorTabla o clave del SP. */
+export function resolveResumenCuentaVariant(
+  clave: string,
+): { etiqueta: string; variant: ResumenCuentaVariant } {
   const k = normalizarClave(clave)
   const sede = sufijoSede(k)
 
@@ -144,7 +147,7 @@ export function parseResumenBovedaTexto(texto: string): ResumenCuentaParsed {
     const clave = match[1].trim()
     const monto = Number.parseFloat(match[2])
     if (!Number.isFinite(monto)) continue
-    const { etiqueta, variant } = resolverVariant(clave)
+    const { etiqueta, variant } = resolveResumenCuentaVariant(clave)
     items.push({ clave: normalizarClave(clave), etiqueta, monto, variant })
   }
 
