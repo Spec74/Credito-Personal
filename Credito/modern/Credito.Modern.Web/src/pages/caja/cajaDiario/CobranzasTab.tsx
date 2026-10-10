@@ -113,8 +113,6 @@ export function CobranzasTab({
   const [showCxc, setShowCxc] = useState(false)
   const [cuotasModalOpen, setCuotasModalOpen] = useState(false)
   const [consultandoImpagos, setConsultandoImpagos] = useState(false)
-  const [fechaLibreModalOpen, setFechaLibreModalOpen] = useState(false)
-  const [fechaCuotaModalOpen, setFechaCuotaModalOpen] = useState(false)
   const [moraModalOpen, setMoraModalOpen] = useState(false)
   const [solicitarOpen, setSolicitarOpen] = useState(false)
   const [moraSolicitar, setMoraSolicitar] = useState<number | null>(null)
@@ -373,7 +371,6 @@ export function CobranzasTab({
       cajaToastSuccess(msg)
       await maybeDownloadCajaTicket(ctx.oficinaId, movId)
       setPagoLibre(null)
-      setFechaLibreModalOpen(false)
       onChanged()
       void moraResumenQuery.refetch()
       if (creditoId) {
@@ -442,13 +439,20 @@ export function CobranzasTab({
       if (!(await assertSinCxcPendiente(creditoId))) {
         return
       }
-      if (tipoPagoLibreId > 1) {
-        setFechaLibreModalOpen(true)
+      // Fecha ya está en el dock (FechaHoraDigitalField); no abrir modal redundante.
+      if (tipoPagoLibreId > 1 && !fechaPagoLibre.trim()) {
+        cajaToastWarning('Indique la hora del voucher en el panel de cobro')
         return
       }
+      const tipoLabel =
+        tipoPagoOptions.find((o) => o.value === tipoPagoLibreId)?.label ??
+        'pago'
       cajaConfirm({
         title: 'Confirmar pago libre',
-        content: `¿Registrar pago libre de ${formatMoney(pagoLibre)}?`,
+        content:
+          tipoPagoLibreId > 1
+            ? `¿Registrar ${formatMoney(pagoLibre)} por ${tipoLabel}?`
+            : `¿Registrar pago libre de ${formatMoney(pagoLibre)}?`,
         onOk: () => ejecutarPagoLibre.mutateAsync(),
       })
     } catch (e) {
@@ -468,13 +472,19 @@ export function CobranzasTab({
       if (!(await assertSinCxcPendiente(creditoId))) {
         return
       }
+      // Misma fecha del dock; sin segundo modal de fecha/hora.
       if (tipoPagoId > 1 && !fechaTransferencia.trim()) {
-        setFechaCuotaModalOpen(true)
+        cajaToastWarning('Indique la hora del voucher en el panel de cobro')
         return
       }
+      const tipoLabel =
+        tipoPagoOptions.find((o) => o.value === tipoPagoId)?.label ?? 'pago'
       cajaConfirm({
         title: 'Confirmar cobro',
-        content: `¿Cobrar ${selectedKeys.length} cuota(s) por ${formatMoney(selectedTotal)}?`,
+        content:
+          tipoPagoId > 1
+            ? `¿Cobrar ${selectedKeys.length} cuota(s) · ${formatMoney(selectedTotal)} por ${tipoLabel}?`
+            : `¿Cobrar ${selectedKeys.length} cuota(s) por ${formatMoney(selectedTotal)}?`,
         onOk: () => pagar.mutateAsync(),
       })
     } catch (e) {
@@ -965,58 +975,6 @@ export function CobranzasTab({
           })()
         }}
       />
-
-      <CajaModal
-        title="Fecha y hora de transferencia"
-        open={fechaLibreModalOpen}
-        onCancel={() => setFechaLibreModalOpen(false)}
-        onOk={() => {
-          if (!fechaPagoLibre.trim()) {
-            cajaToastWarning('Indique fecha y hora')
-            return
-          }
-          setFechaLibreModalOpen(false)
-          cajaConfirm({
-            title: 'Confirmar pago libre',
-            content: `¿Registrar pago libre de ${formatMoney(pagoLibre ?? 0)}?`,
-            onOk: () => ejecutarPagoLibre.mutateAsync(),
-          })
-        }}
-        confirmLoading={ejecutarPagoLibre.isPending}
-        okText="Continuar"
-      >
-        <FechaHoraDigitalField
-          value={fechaPagoLibre}
-          onChange={setFechaPagoLibre}
-          status={!fechaPagoLibre ? 'error' : undefined}
-        />
-      </CajaModal>
-
-      <CajaModal
-        title="Fecha y hora de transferencia"
-        open={fechaCuotaModalOpen}
-        onCancel={() => setFechaCuotaModalOpen(false)}
-        onOk={() => {
-          if (!fechaTransferencia.trim()) {
-            cajaToastWarning('Indique fecha y hora')
-            return
-          }
-          setFechaCuotaModalOpen(false)
-          cajaConfirm({
-            title: 'Confirmar cobro',
-            content: `¿Cobrar ${selectedKeys.length} cuota(s) por ${formatMoney(selectedTotal)}?`,
-            onOk: () => pagar.mutateAsync(),
-          })
-        }}
-        confirmLoading={pagar.isPending}
-        okText="Continuar"
-      >
-        <FechaHoraDigitalField
-          value={fechaTransferencia}
-          onChange={setFechaTransferencia}
-          status={!fechaTransferencia ? 'error' : undefined}
-        />
-      </CajaModal>
 
       <CajaModal
         title="Solicitar condonación de mora"
