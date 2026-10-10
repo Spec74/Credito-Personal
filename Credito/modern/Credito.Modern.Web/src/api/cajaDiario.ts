@@ -519,10 +519,12 @@ export async function fetchCreditosGestorDesembolsados(opts?: {
   )
   let rows = (payload ?? []).map((r) => normalizeCreditoGestorPendienteRow(r))
 
-  const faltanContactos = rows.some((r) => !r.celular || !r.direccion)
+  const necesitaRefuerzo = rows.some(
+    (r) => !r.celular || !r.direccion || r.cuotaSugerida <= 0,
+  )
   const oficinaId = opts?.oficinaId ?? 0
   const usuarioId = opts?.usuarioId ?? 0
-  if (faltanContactos && oficinaId > 0 && usuarioId > 0) {
+  if (necesitaRefuerzo && oficinaId > 0 && usuarioId > 0) {
     try {
       const { fetchCobroDiario } = await import('./creditoPlanes')
       const { toCobroDiarioQuery } = await import('../utils/gestorInformeForm')

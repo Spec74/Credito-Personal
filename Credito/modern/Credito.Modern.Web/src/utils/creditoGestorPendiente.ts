@@ -12,6 +12,17 @@ function numOr(raw: unknown, fallback = 0): number {
   return Number.isFinite(n) ? n : fallback
 }
 
+/** Monto sugerido desde informe cobro diario (cuota del día + mora). */
+export function sugeridaFromInforme(row: {
+  cuotaTotal?: number | null
+  cuotaPlan?: number | null
+  mora?: number | null
+}): number {
+  const cuota = numOr(row.cuotaTotal, 0) || numOr(row.cuotaPlan, 0)
+  const mora = Math.max(0, numOr(row.mora, 0))
+  return Math.max(0, cuota + mora)
+}
+
 /** Acepta camelCase o PascalCase (por si el host serializa distinto). */
 export function normalizeCreditoGestorPendienteRow(
   raw: Record<string, unknown>,
@@ -40,7 +51,14 @@ export function normalizeCreditoGestorPendienteRow(
 
 export function mergeContactoFromInforme(
   rows: CreditoGestorPendienteRow[],
-  informe: Array<{ creditoId: number; celular?: string | null; direccion?: string | null }>,
+  informe: Array<{
+    creditoId: number
+    celular?: string | null
+    direccion?: string | null
+    cuotaTotal?: number | null
+    cuotaPlan?: number | null
+    mora?: number | null
+  }>,
 ): CreditoGestorPendienteRow[] {
   if (!informe.length) return rows
   const byCredito = new Map(
@@ -49,16 +67,24 @@ export function mergeContactoFromInforme(
       {
         celular: pickNonEmpty(r.celular),
         direccion: pickNonEmpty(r.direccion),
+        sugerida: sugeridaFromInforme(r),
       },
     ]),
   )
   return rows.map((r) => {
     const extra = byCredito.get(r.creditoId)
     if (!extra) return r
+    const cuotaSugerida =
+      r.cuotaSugerida > 0
+        ? r.cuotaSugerida
+        : extra.sugerida > 0
+          ? Math.min(extra.sugerida, r.deudaPendiente > 0 ? r.deudaPendiente : extra.sugerida)
+          : r.cuotaSugerida
     return {
       ...r,
       celular: r.celular ?? extra.celular,
       direccion: r.direccion ?? extra.direccion,
+      cuotaSugerida,
     }
   })
 }

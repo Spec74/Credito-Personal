@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   mergeContactoFromInforme,
   normalizeCreditoGestorPendienteRow,
+  sugeridaFromInforme,
 } from './creditoGestorPendiente'
 
 describe('creditoGestorPendiente', () => {
@@ -41,5 +42,21 @@ describe('creditoGestorPendiente', () => {
     ])
     expect(merged[0]?.celular).toBe('911222333')
     expect(merged[0]?.direccion).toBe('Av. Test')
+  })
+
+  it('rellena cuota sugerida 0 desde cuotaTotal/mora del informe', () => {
+    expect(sugeridaFromInforme({ cuotaTotal: 25, mora: 5 })).toBe(30)
+    expect(sugeridaFromInforme({ cuotaTotal: 0, cuotaPlan: 40, mora: 0 })).toBe(40)
+
+    const base = normalizeCreditoGestorPendienteRow({
+      creditoId: 11,
+      personaNombre: 'Ana',
+      deudaPendiente: 100,
+      cuotaSugerida: 0,
+    })
+    const merged = mergeContactoFromInforme([base], [
+      { creditoId: 11, cuotaTotal: 25, mora: 5 },
+    ])
+    expect(merged[0]?.cuotaSugerida).toBe(30)
   })
 })

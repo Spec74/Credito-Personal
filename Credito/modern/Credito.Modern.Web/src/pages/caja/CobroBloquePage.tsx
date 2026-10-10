@@ -757,11 +757,19 @@ export function CobroBloquePage() {
       align: 'right',
       className: 'cobro-bloque-col-num',
       onCell: () => ({ className: 'cobro-bloque-col-num' }),
-      render: (v: number, row) => (
-        <Button type="link" size="small" onClick={() => aplicarCuotaSugerida(row)}>
-          {formatMoney(v ?? 0)}
-        </Button>
-      ),
+      render: (v: number, row) => {
+        const sug = v || 0
+        return (
+          <Button
+            type="link"
+            size="small"
+            disabled={sug <= 0}
+            onClick={() => aplicarCuotaSugerida(row)}
+          >
+            {sug > 0 ? formatMoney(sug) : '—'}
+          </Button>
+        )
+      },
     },
     {
       title: 'Deuda',
@@ -851,6 +859,7 @@ export function CobroBloquePage() {
     <div className="cobro-bloque-command">
       <Input
         allowClear
+        size="middle"
         prefix={<SearchOutlined />}
         placeholder="Buscar cliente, celular, dirección o crédito…"
         value={filtro}
@@ -866,7 +875,11 @@ export function CobroBloquePage() {
           {resumen.conCobro} cobros · S/ {formatMoney(resumen.total)}
         </span>
       </div>
-      <Button icon={<ArrowLeftOutlined />} onClick={() => navigate('/caja/diario')}>
+      <Button
+        className="cobro-bloque-command__volver"
+        icon={<ArrowLeftOutlined />}
+        onClick={() => navigate('/caja/diario')}
+      >
         Volver
       </Button>
     </div>
@@ -1141,9 +1154,12 @@ export function CobroBloquePage() {
                           <Button
                             size="small"
                             icon={<ThunderboltOutlined />}
+                            disabled={(row.cuotaSugerida || 0) <= 0}
                             onClick={() => aplicarCuotaSugerida(row)}
                           >
-                            Cuota S/ {formatMoney(row.cuotaSugerida)}
+                            {(row.cuotaSugerida || 0) > 0
+                              ? `Cuota S/ ${formatMoney(row.cuotaSugerida)}`
+                              : 'Sin cuota sug.'}
                           </Button>
                           <InputNumber
                             className="cobro-bloque-card__monto"

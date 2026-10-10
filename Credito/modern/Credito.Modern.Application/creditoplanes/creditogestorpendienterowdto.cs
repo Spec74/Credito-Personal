@@ -24,7 +24,10 @@ public sealed class CreditoGestorPendienteRowDto
 
     public string? Direccion { get; set; }
 
-    /// <summary>Primera cuota PEN (cuota+cargo-pagolibre+mora cuota); atajo de cobro en campo.</summary>
+    /// <summary>
+    /// Atajo cobro en campo: cuotas vencidas acumuladas, o la próxima pendiente
+    /// (estado distinto de PAG/CAN; incluye cargo/mora de cuota).
+    /// </summary>
     public decimal CuotaSugerida { get; set; }
 
     /// <summary>Días de atraso de la cuota PEN más antigua (0 si al día).</summary>

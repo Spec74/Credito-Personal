@@ -26,3 +26,103 @@
 .cobro-bloque-fecha-digital--compact .ant-picker {
   font-size: 12px;
 }
+
+/* Trigger táctil (móvil) — altura fija, no se estira */
+.cobro-bloque-fecha-digital__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  margin: 0;
+  border: 1px solid #d9d9d9;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--credix-text, #1f2937);
+  font-size: 14px;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cobro-bloque-fecha-digital__trigger:active {
+  border-color: var(--credix-brand, #114885);
+}
+
+.cobro-bloque-fecha-digital__trigger--error {
+  border-color: #ff4d4f;
+}
+
+.cobro-bloque-fecha-digital__trigger--compact {
+  min-height: 32px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.cobro-bloque-fecha-digital__trigger-value {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cobro-bloque-fecha-digital--mobile.cobro-bloque-fecha-digital--compact {
+  min-width: 0;
+}
+
+.cobro-bloque-fecha-digital__sheet .ant-drawer-body {
+  max-height: min(78vh, 560px);
+  overflow: auto;
+}
+
+.cobro-bloque-fecha-digital__sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cobro-bloque-fecha-digital__sheet-body .ant-picker-calendar {
+  border: 1px solid #e8eef5;
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.cobro-bloque-fecha-digital__sheet-body .ant-picker-calendar-mini .ant-picker-content th,
+.cobro-bloque-fecha-digital__sheet-body .ant-picker-calendar-mini .ant-picker-cell {
+  min-width: 0;
+}
+
+.cobro-bloque-fecha-digital__sheet-time {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.cobro-bloque-fecha-digital__sheet-label {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--credix-text-muted, #64748b);
+}
+
+.cobro-bloque-fecha-digital__time {
+  width: 100% !important;
+}
+
+.cobro-bloque-fecha-digital__sheet-preview {
+  margin: 0;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 750;
+  color: var(--credix-brand, #114885);
+  letter-spacing: 0.02em;
+}
+
+/* Desktop: evitar panel demasiado ancho cerca del borde */
+.cobro-bloque-fecha-digital__dropdown.ant-picker-dropdown {
+  max-width: min(100vw - 16px, 560px);
+}

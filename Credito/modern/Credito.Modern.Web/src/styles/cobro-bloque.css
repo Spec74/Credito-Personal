@@ -32,6 +32,16 @@
   max-width: 440px;
 }
 
+.cobro-bloque-command__search.ant-input-affix-wrapper {
+  min-height: 40px;
+  padding-block: 4px;
+}
+
+.cobro-bloque-command__search.ant-input-affix-wrapper .ant-input {
+  min-height: 0 !important;
+  line-height: 1.35;
+}
+
 .cobro-bloque-command__meta {
   display: flex;
   flex-wrap: wrap;
@@ -376,14 +386,55 @@
   .cobro-bloque-command {
     flex-direction: column;
     align-items: stretch;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 12px;
   }
 
+  /* flex-grow en columna estiraba el input a altura absurda */
   .cobro-bloque-command__search {
+    flex: 0 0 auto !important;
+    width: 100%;
     max-width: none;
+  }
+
+  .cobro-bloque-command__search.ant-input-affix-wrapper {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    padding-block: 0 !important;
+    align-items: center;
+  }
+
+  .cobro-bloque-command__search.ant-input-affix-wrapper .ant-input {
+    height: 38px !important;
+    min-height: 38px !important;
+    max-height: 38px !important;
+    line-height: 38px !important;
+    padding-block: 0 !important;
+  }
+
+  .cobro-bloque-command__meta {
+    flex: 0 0 auto;
+    order: 2;
+  }
+
+  .cobro-bloque-command__volver {
+    order: 3;
+    width: 100%;
   }
 
   .cobro-bloque-page.cobro-bloque-page--field .credix-cobro-bloque-resumen {
     display: none;
+  }
+
+  .cobro-bloque-card__actions {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .cobro-bloque-card__actions .ant-btn {
+    justify-content: center;
   }
 
   .cobro-bloque-dock__inner {
