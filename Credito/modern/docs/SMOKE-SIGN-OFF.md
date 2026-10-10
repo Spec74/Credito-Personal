@@ -38,7 +38,7 @@ cd Credito/modern
 |---|--------|----|-------|-------|
 | 1 | Login SPA en Vercel **sin** `/dev/token` | ✅ | 2026-10-09 | agente + admvendix |
 | 2 | Menú ACL por rol: gestor | ⚠ | — | Mismo token trae CAJA; falta login de un **solo-gestor** |
-| 3 | Menú ACL por rol: cajero | ⚠ | — | Rol CAJA presente en admvendix; falta usuario solo-cajero |
+| 3 | Menú ACL por rol: cajero | ❌→pendiente | 2026-10-10 | Intento `Jvillalobos`/`JVILLALOBOS` + oficina 3 (y 1): API **401** «Usuario, clave u oficina no válidos». Usuario canónico en maestros: **`JVILLALOBOS`** (id 1025). Confirmar clave/oficina y reintentar. |
 | 4 | Menú ACL por rol: encargado / aprobador | ✅* | 2026-10-09 | *Roles APROBADOR 1/2 en sesión admvendix (no usuario dedicado) |
 | 5 | Menú ACL por rol: admin | ✅ | 2026-10-09 | agente |
 | 6 | Caja diario: abrir sesión → cobrar → ticket | ⚠ | 2026-10-09 | Pantalla OK; **admvendix sin caja abierta** — asignar caja y repetir cobro |
@@ -53,7 +53,7 @@ cd Credito/modern
 
 Queda para 100% estricto SSD-00 §7:
 
-1. Asignar/abrir caja a un usuario y hacer **1 cobro + ticket** (#6).
-2. (Opcional) Login de un gestor puro y un cajero puro (#2–#3).
+1. Confirmar clave/oficina de **`JVILLALOBOS`** (cajero) y re-correr smoke (#3 / #6).
+2. Asignar/abrir caja y hacer **1 cobro + ticket** (#6).
 3. (Opcional) Captura responsive 375px (#10).
-4. Rotar clave de `admvendix`.
+4. Rotar claves de `admvendix` y del cajero usadas en chat.
