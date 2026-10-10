@@ -62,6 +62,10 @@ import {
 } from '../../utils/cobroBloqueOffline'
 import type { EstadoPlanPagoCuota } from '../../types/api'
 import type { CajaSession } from './cajaDiario/types'
+import {
+  FechaHoraDigitalField,
+  nowDatetimeLocal,
+} from './components/FechaHoraDigitalField'
 import '../../styles/cobro-bloque.css'
 
 const { Text } = Typography
@@ -70,12 +74,6 @@ const { Text } = Typography
 const TIPOS_PAGO_DIGITAL = new Set([2, 3, 4, 5])
 
 type RowEdit = CobroBloqueRowDraft
-
-function nowDatetimeLocal(): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
 
 function esCuotaPendiente(c: EstadoPlanPagoCuota): boolean {
   const e = (c.estado ?? '').trim().toUpperCase()
@@ -426,6 +424,13 @@ export function CobroBloquePage() {
       const next = { ...base, ...patch }
       if (next.montoPagar > row.deudaPendiente) next.montoPagar = row.deudaPendiente
       if (next.montoPagar < 0) next.montoPagar = 0
+      // Pago digital: asegurar fecha/hora del voucher (por defecto ahora).
+      if (
+        TIPOS_PAGO_DIGITAL.has(next.tipoPagoId) &&
+        !next.fechaHoraTrans?.trim()
+      ) {
+        next.fechaHoraTrans = nowDatetimeLocal()
+      }
       return { ...prev, [creditoId]: next }
     })
   }
@@ -449,8 +454,7 @@ export function CobroBloquePage() {
         r.personaCodigo.toLowerCase().includes(q) ||
         (r.celular ?? '').toLowerCase().includes(q) ||
         (r.direccion ?? '').toLowerCase().includes(q) ||
-        String(r.creditoId).includes(q) ||
-        String(r.orden ?? '').includes(q),
+        String(r.creditoId).includes(q),
     )
   }, [carteraRows, filtro])
 
@@ -649,20 +653,6 @@ export function CobroBloquePage() {
 
   const columns: ColumnsType<CreditoGestorPendienteRow> = [
     {
-      title: 'Nro',
-      key: 'nro',
-      width: 52,
-      align: 'right',
-      render: (_, __, index) => index + 1,
-    },
-    {
-      title: 'Ord.',
-      dataIndex: 'orden',
-      width: 56,
-      align: 'right',
-      render: (v: number | null) => v ?? '—',
-    },
-    {
       title: 'Cliente',
       dataIndex: 'personaNombre',
       ellipsis: true,
@@ -746,7 +736,7 @@ export function CobroBloquePage() {
     {
       title: 'Tipo pago',
       key: 'tipo',
-      width: 140,
+      width: 130,
       render: (_, row) => {
         const e = getEdit(row)
         return (
@@ -760,21 +750,21 @@ export function CobroBloquePage() {
       },
     },
     {
-      title: 'Fecha/hora digital',
+      title: 'Hora del voucher',
       key: 'fecha',
-      width: 190,
+      width: 260,
       render: (_, row) => {
         const e = getEdit(row)
         if (!TIPOS_PAGO_DIGITAL.has(e.tipoPagoId)) {
-          return <Text type="secondary">—</Text>
+          return <Text type="secondary">Solo Yape/Plin/transf.</Text>
         }
         return (
-          <Input
-            type="datetime-local"
+          <FechaHoraDigitalField
+            compact
             value={e.fechaHoraTrans}
             status={!e.fechaHoraTrans ? 'error' : undefined}
-            onChange={(ev) =>
-              patchEdit(row.creditoId, { fechaHoraTrans: ev.target.value }, row)
+            onChange={(fechaHoraTrans) =>
+              patchEdit(row.creditoId, { fechaHoraTrans }, row)
             }
           />
         )
@@ -789,7 +779,7 @@ export function CobroBloquePage() {
       <Input
         allowClear
         prefix={<SearchOutlined />}
-        placeholder="Buscar cliente, celular, dirección, crédito u ord…"
+        placeholder="Buscar cliente, celular, dirección o crédito…"
         value={filtro}
         onChange={(e) => setFiltro(e.target.value)}
         style={{ maxWidth: fieldMode ? '100%' : 420 }}
@@ -853,7 +843,7 @@ export function CobroBloquePage() {
     <CredixPage
       className={`cobro-bloque-page${fieldMode ? ' cobro-bloque-page--field' : ''}`}
       title="Cobro en bloque"
-      subtitle="Planilla digital de cobro diario: mismo orden del reporte, cobro rápido en campo y borrador automático."
+      subtitle="Planilla digital de cobro diario: cobro rápido en campo, voucher con un toque y borrador automático."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/caja">Caja</Link> },
@@ -958,7 +948,7 @@ export function CobroBloquePage() {
           {toolbar}
           {resumenBar}
 
-          <CredixPanel title={`Planilla campo (${filas.length}) · orden cobro diario`}>
+          <CredixPanel title={`Planilla de campo (${filas.length})`}>
             {carteraQuery.isError ? (
               <Alert
                 type="error"
@@ -979,7 +969,7 @@ export function CobroBloquePage() {
                 ) : filas.length === 0 ? (
                   <Text type="secondary">Sin clientes en la planilla.</Text>
                 ) : (
-                  filas.map((row, index) => {
+                  filas.map((row) => {
                     const e = getEdit(row)
                     const enMora = row.diasAtrazo > 0
                     return (
@@ -989,10 +979,6 @@ export function CobroBloquePage() {
                       >
                         <header className="cobro-bloque-card__head">
                           <div>
-                            <span className="cobro-bloque-card__nro">
-                              #{index + 1}
-                              {row.orden != null ? ` · Ord. ${row.orden}` : ''}
-                            </span>
                             <h3 className="cobro-bloque-card__name">{row.personaNombre}</h3>
                             <Text type="secondary">
                               Crédito {row.creditoId} · venc. {formatFecha(row.fechaVencimiento)}
@@ -1053,16 +1039,11 @@ export function CobroBloquePage() {
                         </div>
 
                         {TIPOS_PAGO_DIGITAL.has(e.tipoPagoId) ? (
-                          <Input
-                            type="datetime-local"
+                          <FechaHoraDigitalField
                             value={e.fechaHoraTrans}
                             status={!e.fechaHoraTrans ? 'error' : undefined}
-                            onChange={(ev) =>
-                              patchEdit(
-                                row.creditoId,
-                                { fechaHoraTrans: ev.target.value },
-                                row,
-                              )
+                            onChange={(fechaHoraTrans) =>
+                              patchEdit(row.creditoId, { fechaHoraTrans }, row)
                             }
                           />
                         ) : null}

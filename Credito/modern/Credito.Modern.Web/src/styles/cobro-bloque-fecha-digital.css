@@ -1,0 +1,50 @@
+.cobro-bloque-fecha-digital {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.cobro-bloque-fecha-digital__picker {
+  width: 100% !important;
+  max-width: 100%;
+}
+
+.cobro-bloque-fecha-digital__actions {
+  width: 100%;
+}
+
+.cobro-bloque-fecha-digital__actions .ant-btn {
+  min-height: 30px;
+}
+
+.cobro-bloque-fecha-digital--compact {
+  min-width: 200px;
+}
+
+.cobro-bloque-fecha-digital--compact .cobro-bloque-fecha-digital__actions .ant-btn {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .cobro-bloque-fecha-digital--compact {
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .cobro-bloque-fecha-digital--compact .cobro-bloque-fecha-digital__picker {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .cobro-bloque-fecha-digital--compact .cobro-bloque-fecha-digital__actions {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .cobro-bloque-fecha-digital--compact .cobro-bloque-fecha-digital__actions .ant-btn {
+    width: auto;
+  }
+}
