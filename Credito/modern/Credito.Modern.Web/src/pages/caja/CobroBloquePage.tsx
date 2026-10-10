@@ -7,7 +7,6 @@ import {
   Checkbox,
   Grid,
   Input,
-  InputNumber,
   Modal,
   Select,
   Space,
@@ -67,6 +66,7 @@ import {
   nowDatetimeLocal,
 } from './components/FechaHoraDigitalField'
 import { CobroBloqueFieldCard } from './components/CobroBloqueFieldCard'
+import { MontoCobrarInput } from './components/MontoCobrarInput'
 import '../../styles/cobro-bloque.css'
 
 type VistaCampo = 'todos' | 'mora' | 'cobro'
@@ -794,16 +794,18 @@ export function CobroBloquePage() {
       render: (_, row) => {
         const e = getEdit(row)
         return (
-          <InputNumber
+          <MontoCobrarInput
             min={0}
             max={row.deudaPendiente}
             step={0.01}
             value={e.montoPagar}
             className="cobro-bloque-input-monto"
-            onChange={(v) =>
+            controls={false}
+            inputMode="decimal"
+            onChange={(montoPagar) =>
               patchEdit(
                 row.creditoId,
-                { montoPagar: Number(v) || 0, cuotasSeleccionadas: [] },
+                { montoPagar, cuotasSeleccionadas: [] },
                 row,
               )
             }

@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { Button, InputNumber, Tooltip } from 'antd'
+import { Button, Tooltip } from 'antd'
+import { MontoCobrarInput } from './MontoCobrarInput'
 import {
   EnvironmentOutlined,
   PhoneOutlined,
@@ -172,7 +173,7 @@ export function CobroBloqueFieldCard({
 
         <label className="cobro-bloque-card__monto-label">
           <span>Monto a cobrar</span>
-          <InputNumber
+          <MontoCobrarInput
             className="cobro-bloque-card__monto"
             min={0}
             max={deuda > 0 ? deuda : undefined}
@@ -182,8 +183,7 @@ export function CobroBloqueFieldCard({
             controls={false}
             inputMode="decimal"
             prefix="S/"
-            stringMode={false}
-            onChange={(v) => setMonto(Number(v) || 0)}
+            onChange={setMonto}
           />
         </label>
 
