@@ -5,7 +5,7 @@ import { useAuth } from '../auth/useAuth'
 import type { CredixHubSection } from '../components/credix/CredixHubGrid'
 import { filterHubSectionsByMenu } from '../utils/filterHubSectionsByMenu'
 
-/** Filtra tarjetas del hub por ACL de menú (paridad legacy: solo lo asignado). */
+/** Filtra tarjetas del hub por ACL de menú (solo módulos asignados). */
 export function useAclHubSections(sections: CredixHubSection[]): CredixHubSection[] {
   const { session } = useAuth()
   const menuQuery = useQuery({

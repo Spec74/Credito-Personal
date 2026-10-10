@@ -1,4 +1,4 @@
-/** Roles con acceso a la rejilla Reportes → Crédito del MVC. */
+/** Roles con acceso al índice Reportes → Crédito. */
 const REPORTE_CREDITO_ROLES = [
   'ADMIN',
   'APROBADOR',

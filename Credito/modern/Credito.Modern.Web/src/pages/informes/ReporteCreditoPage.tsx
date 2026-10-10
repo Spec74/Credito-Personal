@@ -182,7 +182,7 @@ export function ReporteCreditoPage() {
   return (
     <CredixInformePage
       title="Reporte de créditos"
-      subtitle="Mismos filtros que Reporte → Crédito: estado, rango de fechas y gestor (TODOS para roles elevados). Oficina = sesión."
+      subtitle="Créditos por estado, rango de fechas y gestor; oficina de sesión. Gestor opcional «Todos» para roles elevados."
       breadcrumb={reportesCreditoBreadcrumb('Reporte créditos')}
       stats={stats}
       filters={

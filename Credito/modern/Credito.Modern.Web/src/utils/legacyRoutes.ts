@@ -238,7 +238,7 @@ export function resolveSpaPathFromLegacyUrl(legacyUrl: string): string | null {
   return null
 }
 
-/** Hub SPA cuando el ítem de menú no trae URL mapeable (paridad módulo MVC). */
+/** Hub SPA cuando el ítem de menú no trae URL mapeable. */
 const MODULO_HUB: Record<string, string> = {
   CREDITO: '/credito',
   REPORTES: '/informes',

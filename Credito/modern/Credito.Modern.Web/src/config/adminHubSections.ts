@@ -1,8 +1,7 @@
 import type { CredixHubSection } from '../components/credix/CredixHubGrid'
 
 /**
- * Hub Administración — paridad menú MVC:
- * Mantenimiento (Oficina, Caja) + Seguridad (Usuario, Rol) + Comisiones.
+ * Hub Administración: Mantenimiento (Oficina, Caja), Seguridad (Usuario, Rol) y Comisiones.
  */
 export const ADMIN_HUB_SECTIONS: CredixHubSection[] = [
   {

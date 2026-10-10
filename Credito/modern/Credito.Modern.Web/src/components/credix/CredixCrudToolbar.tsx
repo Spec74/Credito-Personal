@@ -10,7 +10,7 @@ export type CredixCrudToolbarProps = Omit<
   CredixListToolbarProps,
   'extra'
 > & {
-  /** Selects, AutoComplete, etc. (paridad filtros legacy arriba de la grilla). */
+  /** Selects, AutoComplete, etc. arriba de la grilla. */
   filters?: ReactNode
   incluirInactivos?: boolean
   onIncluirInactivosChange?: (checked: boolean) => void

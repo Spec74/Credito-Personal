@@ -1,8 +1,8 @@
 import type { CredixHubLink, CredixHubSection } from '../components/credix/CredixHubGrid'
 
 /**
- * Índice del módulo Crédito — paridad con menú MVC Reportes → Crédito (`Reporte/Credito.cshtml`)
- * y operaciones `Credito/*`. Cada tarjeta abre la pantalla SPA con filtros y export.
+ * Índice del módulo Crédito: reportes y operaciones de cartera.
+ * Cada tarjeta abre la pantalla SPA con filtros y exportación.
  */
 export const CREDITO_HUB_QUICK_ACCESS: CredixHubLink[] = [
   {

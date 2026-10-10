@@ -14,6 +14,12 @@
   z-index: 0;
 }
 
+@media (max-width: 768px) {
+  .ruta-cobrador-map__canvas {
+    min-height: min(40dvh, 320px);
+  }
+}
+
 .ruta-cobrador-map__hint {
   margin: 0;
   font-size: 12px;

@@ -16,6 +16,7 @@ import { useAuth } from '../../auth/useAuth'
 import { CredixPage } from '../../components/credix'
 import { CredixReportBox } from '../../components/reportes/CredixReportBox'
 import { ReportExportActions } from '../../components/reportes/ReportExportActions'
+import { ReportesSection } from '../../components/reportes/ReportesSection'
 import { CredixDatePicker, CredixRangePicker } from '../../components/credix'
 import {
   GestorSelect,
@@ -231,17 +232,13 @@ export function ReporteCreditoIndexPage() {
     return (
       <CredixPage
         title="Reportes de crédito"
-        breadcrumb={[
-          { title: <Link to="/inicio">Inicio</Link> },
-          { title: 'Reportes' },
-          { title: 'Crédito' },
-        ]}
+        breadcrumb={reportesCreditoIndexBreadcrumb()}
       >
         <Alert
           type="warning"
           showIcon
           message="Sin permiso"
-          description="Esta pantalla está disponible para roles ADMIN, APROBADOR o REPORTEPARCIAL (PARCIAL), igual que en el sistema anterior."
+          description="Esta pantalla está disponible para roles ADMIN, APROBADOR o REPORTEPARCIAL (PARCIAL)."
         />
       </CredixPage>
     )
@@ -253,16 +250,27 @@ export function ReporteCreditoIndexPage() {
   return (
     <CredixPage
       title="Reportes de crédito"
-      subtitle="Cada caja abre el mismo informe que el MVC, con PDF y Excel de la API. La oficina es la de su sesión (el token no autoriza otra). El gestor admite TODOS salvo cobro diario, que exige uno concreto."
+      subtitle="Informes de cartera, clientes y caja en un solo lugar. Cada tarjeta abre la consulta en pantalla o exporta PDF y Excel según los filtros. La oficina es la de su sesión; el gestor admite «Todos» excepto en cobro diario, donde es obligatorio."
       breadcrumb={reportesCreditoIndexBreadcrumb()}
     >
-      <p className="credix-reportes-intro">
-        Operaciones diarias en <Link to="/credito">Crédito → Operaciones</Link>.{' '}
-        <strong>Ver pantalla</strong> consulta en tabla. PDF y Excel descargan el mismo dataset
-        (sesión JWT). Excel es CSV UTF-8, salvo <Link to="/reportes/cobranza">Cobranza pagos</Link>.
-      </p>
+      <div className="credix-reportes-shell">
+        <div className="credix-reportes-intro">
+          Las operaciones del día están en <Link to="/credito">Crédito → Operaciones</Link>.{' '}
+          <strong>Ver pantalla</strong> muestra los resultados en tabla; PDF y Excel exportan el mismo
+          conjunto de datos de su sesión. Excel se entrega en CSV UTF-8, salvo{' '}
+          <Link to="/reportes/cobranza">Cobranza pagos</Link>.
+        </div>
 
-      <div className="credix-reporte-grid">
+        <ol className="credix-reportes-steps" aria-label="Cómo usar los reportes">
+          <li>Ajuste los filtros de la tarjeta</li>
+          <li>Exporte PDF o Excel</li>
+          <li>O abra Ver pantalla para consultar en tabla</li>
+        </ol>
+
+        <ReportesSection
+          title="Cobranza y morosidad"
+          description="Seguimiento de atrasos, aprobaciones y cobro del día por gestor."
+        >
         <CredixReportBox
           title="Reporte morosidad"
           icon={<AuditOutlined />}
@@ -572,7 +580,12 @@ export function ReporteCreditoIndexPage() {
             <GestorSelect allowAll legacyList value={gestorUsuario} onChange={setGestorUsuario} />
           </ReporteField>
         </CredixReportBox>
+        </ReportesSection>
 
+        <ReportesSection
+          title="Cartera y créditos"
+          description="Consulta general de créditos y reportes agrupados por periodo."
+        >
         <CredixReportBox
           title="Reporte créditos"
           icon={<FundOutlined />}
@@ -858,9 +871,13 @@ export function ReporteCreditoIndexPage() {
             </ReporteField>
           </CredixReportBox>
         ) : null}
+        </ReportesSection>
 
         {showAdmin ? (
-          <div className="credix-reporte-grid credix-reporte-grid--secondary">
+          <ReportesSection
+            title="Caja y administración"
+            description="Comprobantes, anulaciones, saldo de cartera y central de riesgos."
+          >
             <CredixReportBox
               title="Comprobantes caja chica"
               icon={<BankOutlined />}
@@ -1041,7 +1058,7 @@ export function ReporteCreditoIndexPage() {
                 </div>
               </ReporteField>
             </CredixReportBox>
-          </div>
+          </ReportesSection>
         ) : null}
       </div>
     </CredixPage>

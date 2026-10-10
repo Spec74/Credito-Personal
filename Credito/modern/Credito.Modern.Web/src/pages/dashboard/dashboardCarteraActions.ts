@@ -11,7 +11,7 @@ import {
   esRolCaja,
 } from '../../utils/creditoOperacionPermisos'
 
-/** Rutas SPA de atajos de cartera (paridad accesos rápidos MVC). */
+/** Rutas SPA de atajos de cartera del dashboard. */
 export const DASHBOARD_CARTERA_ALLOWED_PATHS = [
   '/informes/cobro-diario',
   '/informes/morosidad-gestor',

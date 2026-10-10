@@ -1,4 +1,4 @@
-/** Accesos rápidos del sidebar inferior (paridad MVC `_Layout.cshtml`). */
+/** Accesos rápidos del sidebar inferior. */
 export type QuickActionKind = 'navigate' | 'pdf-observados' | 'pdf-vencidos' | 'pdf-inactivos'
 
 export type QuickActionIcon =
@@ -15,7 +15,7 @@ export interface QuickAction {
   spaPath?: string
   /**
    * `navigate`: abre pantalla SPA.
-   * `pdf-*`: genera el PDF en pestaña nueva (paridad `window.open` del MVC).
+   * `pdf-*`: genera el PDF en pestaña nueva.
    */
   kind: QuickActionKind
   icon: QuickActionIcon

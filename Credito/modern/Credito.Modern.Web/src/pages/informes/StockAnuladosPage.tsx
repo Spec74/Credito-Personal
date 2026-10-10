@@ -31,7 +31,7 @@ export function StockAnuladosPage() {
   return (
     <CredixInformePage
       title="Productos anulados"
-      subtitle="Movimientos de stock anulados (misma consulta que el informe legacy)."
+      subtitle="Movimientos de stock anulados registrados en el sistema."
       breadcrumb={reportesAlmacenBreadcrumb('Productos anulados')}
       stats={stats}
       filters={

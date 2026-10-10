@@ -3,6 +3,7 @@ import { message } from 'antd'
 import { CredixPage } from '../../components/credix'
 import { CredixReportBox } from '../../components/reportes/CredixReportBox'
 import { ReportExportActions } from '../../components/reportes/ReportExportActions'
+import { ReportesSection } from '../../components/reportes/ReportesSection'
 import { ReporteField, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
 import {
   openReporteStockCsvInTab,
@@ -33,12 +34,20 @@ export function ReporteAlmacenIndexPage() {
       subtitle="Stock general y productos anulados. PDF y Excel se abren en otra pestaña; use Ver pantalla para consultar en tabla."
       breadcrumb={reportesAlmacenIndexBreadcrumb()}
     >
-      <p className="credix-reportes-intro">
-        Paridad con <strong>Reporte → Almacén</strong> del sistema anterior. Los catálogos de
-        artículos y movimientos están en <strong>Almacén</strong> y <strong>Maestros</strong>.
-      </p>
-
-      <div className="credix-reporte-grid">
+      <div className="credix-reportes-shell">
+        <div className="credix-reportes-intro">
+          Consulte existencias y movimientos anulados. Los catálogos de artículos y movimientos están
+          en <strong>Almacén</strong> y <strong>Maestros</strong>.
+        </div>
+        <ol className="credix-reportes-steps" aria-label="Cómo usar los reportes">
+          <li>Elija oficina si aplica</li>
+          <li>Exporte PDF o Excel</li>
+          <li>O abra Ver pantalla</li>
+        </ol>
+        <ReportesSection
+          title="Inventario"
+          description="Stock vigente y productos con movimientos anulados."
+        >
         <CredixReportBox
           title="Stock general de productos"
           actions={
@@ -95,6 +104,7 @@ export function ReporteAlmacenIndexPage() {
             Sin filtros adicionales; lista todos los movimientos anulados del sistema.
           </p>
         </CredixReportBox>
+        </ReportesSection>
       </div>
     </CredixPage>
   )

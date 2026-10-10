@@ -64,7 +64,7 @@ export function InformeExportBar({
       : 'Descargar CSV UTF-8 (abre en Excel; mismos datos que la tabla)'
   const pdfTip = pdfDisabled
     ? pdfDisabledReason
-    : 'PDF con logo y columnas alineadas al informe legacy'
+    : 'PDF con logo y columnas del informe oficial'
   const showCsv = !hideCsv && typeof onCsv === 'function'
 
   return (

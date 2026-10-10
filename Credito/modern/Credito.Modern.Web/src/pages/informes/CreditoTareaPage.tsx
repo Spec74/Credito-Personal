@@ -16,7 +16,7 @@ import type { CreditoTareaReportParams, RptCreditoTareaRow } from '../../types/a
 import '../../styles/credito-tareas.css';
 
 const ESTADOS = [
-  { value: 'PEN', label: 'Pendiente (default legacy)' },
+  { value: 'PEN', label: 'Pendiente' },
   { value: 'COM', label: 'Completada' },
   { value: '', label: 'Todos' },
 ]
@@ -61,7 +61,7 @@ export function CreditoTareaPage() {
   return (
     <CredixInformePage
       title="Reporte de tareas"
-      subtitle="Tareas de crédito por estado; pendiente por defecto como en el informe legacy."
+      subtitle="Bandeja de tareas de crédito filtrada por estado; pendientes por defecto."
       breadcrumb={reportesCreditoBreadcrumb('Tareas de crédito')}
       stats={stats}
       filters={

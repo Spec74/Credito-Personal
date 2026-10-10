@@ -133,7 +133,7 @@ export function AppShell() {
   const puedeVerMorosos = morosidadPermisosQuery.data?.puedeConsultar === true
 
   const navigationMenuData = useMemo(() => menuQuery.data ?? [], [menuQuery.data])
-  /** Paridad `_Layout.cshtml`: los 5 accesos rápidos siempre visibles con sesión. */
+  /** Los 5 accesos rápidos siempre visibles con sesión. */
   const quickActionsVisible = quickActions
   const extraAllowedPaths = useMemo(() => {
     const paths: string[] = []

@@ -94,7 +94,7 @@ export function ComprobantesCajaChicaPage() {
     <CredixInformePage
       className="comprobantes-caja-chica-page credix-page--stats-3"
       title="Comprobantes de caja chica"
-      subtitle="Rendiciones cerradas en el rango de fechas — paridad ReporteComprobantesCajaChica (MVC)."
+      subtitle="Comprobantes de rendiciones de caja chica cerradas en el rango de fechas. Exporte CSV y PDF tabular."
       panelTitle="COMPROBANTES RENDIDOS"
       breadcrumb={reportesCreditoBreadcrumb('Comprobantes rendidos')}
       stats={stats}
@@ -157,8 +157,8 @@ export function ComprobantesCajaChicaPage() {
       }
     >
       <p className="credix-module-banner credix-module-banner--spaced">
-        <strong>Paridad MVC:</strong> rango de fechas + reporte RDLC legacy · en modern: tabla con
-        búsqueda en resultados, CSV y PDF tabular con los mismos datos.
+        Indique el rango de fechas y consulte. Puede buscar en los resultados y exportar CSV o PDF
+        tabular con los mismos datos.
       </p>
 
       {!consulta.isSuccess && !consulta.isPending ? (

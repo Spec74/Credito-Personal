@@ -224,13 +224,7 @@ export function CobroDiarioPage() {
     <>
     <CredixInformePage
       title="Cobro diario"
-      subtitle={
-        <>
-          Paridad <strong>Reporte → Crédito → Cobro diario</strong> y PDF/XLS{' '}
-          <em>rptCobroDiario</em>. Requiere gestor; oficina = sesión. Seleccione filas para ruta
-          GPS de cobranza.
-        </>
-      }
+      subtitle="Cartera del día por gestor; seleccione filas para armar la ruta de cobranza. Oficina de sesión; gestor obligatorio. Exporte PDF y Excel."
       breadcrumb={reportesCreditoBreadcrumb('Cobro diario')}
       stats={cobroStats}
       panelTitle="Cartera del día del gestor"
@@ -339,7 +333,7 @@ export function CobroDiarioPage() {
           showSizeChanger: true,
           pageSizeOptions: ['10', '25', '50', '100'],
         }}
-        locale={{ emptyText: 'Pulse Consultar (gestor obligatorio, como en MVC).' }}
+        locale={{ emptyText: 'Pulse Consultar para cargar resultados.' }}
       />
     </CredixInformePage>
     <RutaCobradorResultModal

@@ -23,8 +23,10 @@ export function CredixInformePage({
   searchPlaceholder = 'Buscar en la tabla…',
   tableSearchVariant = 'compact',
   tableResultCount,
+  resultCountLabel = 'registro',
   panelActions,
   panelSearchFirst = true,
+  toolbar,
   className,
 }: {
   title: string
@@ -41,13 +43,22 @@ export function CredixInformePage({
   searchPlaceholder?: string
   /** `prominent` = barra ancha sobre la tabla; `compact` = input en cabecera del panel. */
   tableSearchVariant?: 'compact' | 'prominent'
-  /** Total de filas cargadas (para texto «N clientes»). */
+  /** Total de filas cargadas (para texto «N registros»). */
   tableResultCount?: number
+  /** Etiqueta singular para el conteo (p. ej. `cliente` → «N clientes»). */
+  resultCountLabel?: string
   /** Botones junto al buscador del panel (p. ej. Excel en cabecera de tabla). */
   panelActions?: ReactNode
   /** En cabecera: buscador antes que Excel (franja «Clientes del gestor»). */
   panelSearchFirst?: boolean
+  /** Contenido opcional entre filtros y el panel de resultados. */
+  toolbar?: ReactNode
 }) {
+  const resultCountText = (count: number) => {
+    const label = count === 1 ? resultCountLabel : `${resultCountLabel}s`
+    return `${count} ${label}`
+  }
+
   const [tableSearch, setTableSearch] = useState('')
   const prominent = tableSearchVariant === 'prominent'
 
@@ -80,7 +91,7 @@ export function CredixInformePage({
     const countBadge =
       tableResultCount != null && tableResultCount > 0 ? (
         <span className="credix-informe-panel-count" aria-live="polite">
-          {tableResultCount} cliente{tableResultCount === 1 ? '' : 's'}
+          {resultCountText(tableResultCount)}
         </span>
       ) : null
     return (
@@ -100,7 +111,7 @@ export function CredixInformePage({
         )}
       </Space>
     )
-  }, [panelActions, panelSearchFirst, prominent, searchInput, tableResultCount])
+  }, [panelActions, panelSearchFirst, prominent, resultCountLabel, searchInput, tableResultCount])
 
   const prominentToolbar =
     prominent && enableTableSearch ? (
@@ -114,7 +125,7 @@ export function CredixInformePage({
         </div>
         {tableResultCount != null ? (
           <span className="credix-cobranza-table-search-meta">
-            {tableResultCount} cliente{tableResultCount === 1 ? '' : 's'} cargados
+            {resultCountText(tableResultCount)} cargados
             {tableSearch.trim() ? ' · filtro activo' : ''}
           </span>
         ) : null}
@@ -143,6 +154,7 @@ export function CredixInformePage({
           ) : null}
         </CredixFilterBar>
       )}
+      {toolbar}
       {error}
       <CredixPanel
         title={panelTitle}

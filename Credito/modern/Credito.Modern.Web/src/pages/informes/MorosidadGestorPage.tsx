@@ -120,13 +120,7 @@ export function MorosidadGestorPage() {
   return (
     <CredixInformePage
       title="Morosidad por gestor"
-      subtitle={
-        <>
-          Paridad <strong>Reporte → Crédito → Morosidad gestor</strong> (<em>indMora=true</em>,
-          mismo SP que cobro diario). Solo créditos con mora &gt; 0; gestor opcional (TODOS) para
-          roles elevados.
-        </>
-      }
+      subtitle="Créditos en mora del gestor (solo saldo en mora). Gestor opcional «Todos» para roles elevados. Exporte PDF y Excel."
       breadcrumb={reportesCreditoBreadcrumb('Morosidad gestor')}
       stats={stats}
       panelTitle="REPORTE DE MOROSIDAD"
@@ -201,7 +195,7 @@ export function MorosidadGestorPage() {
         dataSource={filas}
         loading={consulta.isPending}
         pagination={{ pageSize: 25, showSizeChanger: true, pageSizeOptions: ['10', '25', '50', '100'] }}
-        locale={{ emptyText: 'Pulse Consultar (export PDF/CSV aplica filtro mora en servidor).' }}
+        locale={{ emptyText: 'Pulse Consultar para cargar resultados.' }}
       />
     </CredixInformePage>
   )

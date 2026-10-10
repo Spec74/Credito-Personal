@@ -47,6 +47,7 @@ export function CajaHubPage() {
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Caja' },
       ]}
+      searchable
       sections={sections}
     />
   )

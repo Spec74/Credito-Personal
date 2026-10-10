@@ -126,7 +126,7 @@ export function CreditoAprobarPage() {
   const confirmarAprobar = useCallback((row: CreditoPorAprobarRow) => {
     Modal.confirm({
       title: 'Aprobar crédito',
-      content: `¿Aprobar crédito ${row.creditoId} de ${row.cliente ?? 'cliente'}? Se usará la aprobación vigente del legacy.`,
+      content: `¿Aprobar crédito ${row.creditoId} de ${row.cliente ?? 'cliente'}? Se aplicará la aprobación vigente configurada en el sistema.`,
       okText: 'Aprobar',
       cancelText: 'Cancelar',
       onOk: () => aprobar.mutateAsync({ creditoId: row.creditoId, opcion: 1 }),
@@ -136,7 +136,7 @@ export function CreditoAprobarPage() {
   const confirmarRechazar = useCallback((row: CreditoPorAprobarRow) => {
     Modal.confirm({
       title: 'Rechazar solicitud',
-      content: `¿Rechazar crédito ${row.creditoId}? Esta acción usa la misma lógica que el MVC (orden/solicitud).`,
+      content: `¿Rechazar crédito ${row.creditoId}? Se registrará el rechazo según el flujo de solicitud vigente.`,
       okText: 'Rechazar',
       okButtonProps: { danger: true },
       cancelText: 'Cancelar',

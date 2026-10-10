@@ -1,4 +1,4 @@
-/** Centro por defecto (Ayacucho), paridad legacy Oficina/Index. */
+/** Centro por defecto del mapa (Ayacucho). */
 export const DEFAULT_MAP_CENTER = { lat: -13.15878, lng: -74.22321 } as const
 
 export type MapLatLng = { lat: number; lng: number }

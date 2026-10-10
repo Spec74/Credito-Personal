@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import type { CredixHubLink } from './CredixHubGrid'
 
-/** Franja de accesos rápidos (paridad pie del menú MVC). */
 export function CredixQuickAccessStrip({ links }: { links: CredixHubLink[] }) {
   if (links.length === 0) return null
   return (

@@ -405,7 +405,7 @@ export function MorososEmpresaPage() {
           description={
             dataQuery.error instanceof ApiError
               ? dataQuery.error.message
-              : 'Revise la conexión o el procedimiento CREDITO.usp_MorosidadEmpresa.'
+              : 'Revise la conexión e intente de nuevo.'
           }
           action={
             <Button size="small" onClick={() => void dataQuery.refetch()}>

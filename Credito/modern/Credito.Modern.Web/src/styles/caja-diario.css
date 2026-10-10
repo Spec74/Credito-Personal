@@ -1649,8 +1649,40 @@
 }
 
 @media (max-width: 768px) {
+  .ruta-cobrador-result-modal-root .ant-modal-wrap {
+    padding: 0;
+  }
+
+  .ruta-cobrador-result-modal-root .ant-modal {
+    max-width: 100vw !important;
+    width: 100% !important;
+    margin: 0;
+    top: 0;
+    padding-bottom: 0;
+  }
+
+  .ruta-cobrador-result-modal-root .ant-modal-content {
+    min-height: 100dvh;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ruta-cobrador-result-modal-root .ant-modal-body {
+    flex: 1;
+    overflow: auto;
+  }
+
   .ruta-cobrador-result {
     grid-template-columns: 1fr;
+  }
+
+  .ruta-cobrador-result__map {
+    order: -1;
+  }
+
+  .ruta-cobrador-result__list .ant-list {
+    max-height: none !important;
   }
 }
 

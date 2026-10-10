@@ -12,6 +12,7 @@
 | Verificar config prod | `deploy/scripts/verify-production-config.ps1` |
 | Smoke API | `deploy/scripts/smoke-local-api.ps1` |
 | Smoke proxy | `deploy/scripts/smoke-strangler-proxy.ps1` |
+| **Firma smoke prod (100% ops)** | [SMOKE-SIGN-OFF.md](SMOKE-SIGN-OFF.md) |
 | SQL de despliegue | `deploy/sql/` (aplicar **antes** de confiar en migración perezosa / TRF bancos / condonación) |
 
 ## Salud y correlación

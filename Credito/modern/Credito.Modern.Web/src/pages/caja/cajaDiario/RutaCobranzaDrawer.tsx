@@ -85,7 +85,7 @@ export function RutaCobranzaDrawer({
       if (!res.paradas?.length) {
         cajaToastError(
           res.mensaje?.trim() ||
-            'La API aún no devolvió paradas del mapa (despliegue Azure pendiente). Intente de nuevo en unos minutos.',
+            'No se recibieron paradas para el mapa. Verifique la selección e intente nuevamente.',
         )
         return
       }
@@ -122,6 +122,14 @@ export function RutaCobranzaDrawer({
   const columns: ColumnsType<RptCobroDiarioRow> = [
     { title: 'Crédito', dataIndex: 'creditoId', width: 80 },
     { title: 'Cliente', dataIndex: 'cliente', ellipsis: true },
+    { title: 'Dirección', dataIndex: 'direccion', ellipsis: true, minWidth: 120 },
+    {
+      title: 'Celular',
+      dataIndex: 'celular',
+      width: 108,
+      ellipsis: true,
+      render: (v: string | null) => v?.trim() || '—',
+    },
     {
       title: 'Saldo',
       dataIndex: 'saldo',
@@ -166,8 +174,8 @@ export function RutaCobranzaDrawer({
           type="info"
           showIcon
           style={{ marginBottom: 12 }}
-          message="Para personal temporal de cobranza morosa"
-          description="Filtre morosos, seleccione clientes y genere la ruta en la plataforma (mapa + orden). Ya no hace falta abrir un link GPS por cada cliente en WhatsApp."
+          message="Ruta de cobranza"
+          description="Seleccione clientes (máx. 25) y genere la secuencia con mapa e indicaciones de navegación."
         />
 
         <div style={{ marginBottom: 12 }}>

@@ -141,13 +141,7 @@ export function CreditoAprobacionPage() {
   return (
     <CredixInformePage
       title="Créditos aprobados"
-      subtitle={
-        <>
-          Paridad <strong>Reporte → Crédito → Créditos aprobados</strong> y PDF/XLS{' '}
-          <em>rptCreditoAprobacion</em>. Filtros: gestor (TODOS para roles elevados) y fecha;
-          oficina = la de su sesión.
-        </>
-      }
+      subtitle="Créditos aprobados por gestor y fecha; oficina de sesión. Gestor opcional «Todos» para roles elevados. Exporte PDF y Excel."
       breadcrumb={reportesCreditoBreadcrumb('Créditos aprobados')}
       stats={stats}
       panelTitle="Créditos aprobados del día"
@@ -239,7 +233,7 @@ export function CreditoAprobacionPage() {
         dataSource={filas}
         loading={consulta.isPending}
         pagination={{ pageSize: 25, showSizeChanger: true, pageSizeOptions: ['10', '25', '50', '100'] }}
-        locale={{ emptyText: 'Pulse Consultar (mismos filtros que el reporte legacy).' }}
+        locale={{ emptyText: 'Pulse Consultar para cargar resultados.' }}
       />
     </CredixInformePage>
   )

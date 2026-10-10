@@ -1,6 +1,6 @@
 import type { CredixHubSection } from '../components/credix/CredixHubGrid'
 
-/** Índice Informes — paridad menú MVC Reporte / Crédito / Caja / Almacén. */
+/** Índice Informes — cartera, crédito, caja y almacén. */
 export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
   {
     title: 'Cartera y cobranza',
@@ -18,7 +18,7 @@ export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
       {
         to: '/informes/credito-morosidad',
         label: 'Reporte morosidad',
-        description: 'Paridad Reporte Morosidad MVC (PDF rptCreditoMorosidad)',
+        description: 'PDF de morosidad por gestor (reporte oficial)',
       },
       { to: '/informes/saldo-cartera-caja-diario', label: 'Saldo cartera caja diario', description: 'Por mes y año' },
       {

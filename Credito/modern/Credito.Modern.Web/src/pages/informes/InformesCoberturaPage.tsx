@@ -77,20 +77,20 @@ export function InformesCoberturaPage() {
   const soloMvc = (query.data?.items ?? []).filter((i) => i.nivelCobertura === 'solo-mvc')
 
   const stats: CredixStatItem[] = [
-    { value: query.data?.totalCatalogo ?? '—', label: 'Catálogo MVC' },
+    { value: query.data?.totalCatalogo ?? '—', label: 'Informes en catálogo' },
     {
       value: query.data?.completoDatosJsonCsvPdf ?? '—',
       label: 'JSON + CSV + PDF',
       tone: 'green',
     },
-    { value: query.data?.soloMvc ?? '—', label: 'Solo MVC (RDLC)', tone: 'red' },
+    { value: query.data?.soloMvc ?? '—', label: 'Pendiente en pantalla', tone: 'red' },
     { value: query.data?.parcial ?? '—', label: 'Parcial' },
   ]
 
   return (
     <CredixPage
       title="Cobertura de informes"
-      subtitle="Matriz catálogo MVC vs API moderna. Exporte con Datos CSV y PDF tabla en cada pantalla."
+      subtitle="Disponibilidad de informes en pantalla, CSV y PDF. En cada informe use Datos CSV y PDF tabular para exportar."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/informes">Informes</Link> },

@@ -1,4 +1,3 @@
-/** Leyenda de colores de cuotas (paridad visual MVC). */
 export function CajaCuotasLegend() {
   return (
     <ul className="caja-cuotas-legend" aria-label="Leyenda de estados de cuota">

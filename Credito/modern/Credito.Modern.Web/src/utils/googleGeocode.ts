@@ -1,7 +1,7 @@
 import { loadGoogleMapsApi } from '../hooks/useGoogleMapsLoader'
 import type { MapLatLng } from '../config/googleMaps'
 
-/** Centra el mapa en el distrito (paridad autocomplete distrito + geocoder legacy). */
+/** Geocodifica el distrito (Ayacucho, Perú). */
 export async function geocodeDistritoCliente(distritoLabel: string): Promise<MapLatLng | null> {
   const distrito = distritoLabel.trim()
   if (!distrito) {
@@ -13,8 +13,7 @@ export async function geocodeDistritoCliente(distritoLabel: string): Promise<Map
   return geocodeOnce(geocoder, `${distrito}, Ayacucho, Peru`)
 }
 
-/** Centra el mapa en el distrito (paridad autocomplete distrito + geocoder legacy). */
-/** Geocodifica dirección + distrito (paridad legacy geocoder + Ayacucho, Peru). */
+/** Geocodifica domicilio + distrito (Ayacucho, Perú). */
 export async function geocodeDomicilioCliente(
   direccion: string,
   distritoLabel: string,

@@ -126,21 +126,14 @@ export function CreditoMorosidadPage() {
     queried && consulta.isSuccess ? (
       <Typography.Text type="secondary" className="credix-morosidad-filtros-aplicados">
         Corte {formatFecha(form.getFieldValue('hastaFecha')?.format('YYYY-MM-DD'))} · días de atraso{' '}
-        {form.getFieldValue('diasAtrazoIni')} al {form.getFieldValue('diasAtrazoFin')} (paridad Reporte
-        Morosidad MVC)
+        {form.getFieldValue('diasAtrazoIni')} al {form.getFieldValue('diasAtrazoFin')}
       </Typography.Text>
     ) : null
 
   return (
     <CredixInformePage
       title="Reporte morosidad"
-      subtitle={
-        <>
-          Paridad <strong>Reporte → Crédito → Reporte Morosidad</strong> y PDF{' '}
-          <em>rptCreditoMorosidad</em>. Use <strong>+</strong> en cada fila para cliente, celular y
-          dirección (segunda línea del PDF).
-        </>
-      }
+      subtitle="Cartera en mora por fecha de corte y rango de días de atraso. Expanda cada fila para ver datos de contacto. Exporte PDF y Excel."
       breadcrumb={reportesCreditoBreadcrumb('Reporte morosidad')}
       stats={stats}
       panelTitle="Créditos con morosidad"
@@ -227,7 +220,7 @@ export function CreditoMorosidadPage() {
         dataSource={filas}
         loading={consulta.isPending}
         pagination={{ pageSize: 20, showSizeChanger: true, pageSizeOptions: ['10', '20', '50', '100'] }}
-        locale={{ emptyText: 'Pulse Consultar (mismos filtros que el reporte legacy).' }}
+        locale={{ emptyText: 'Pulse Consultar para cargar resultados.' }}
         expandable={{
           expandedRowKeys: expandedKeys,
           onExpandedRowsChange: (keys) => {

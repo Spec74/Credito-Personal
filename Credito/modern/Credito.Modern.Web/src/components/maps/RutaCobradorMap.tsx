@@ -138,13 +138,16 @@ export function RutaCobradorMap({ paradas, origen, height = 420 }: Props) {
     })()
 
     const t = window.setTimeout(() => map.invalidateSize(), 120)
+    const onResize = () => map.invalidateSize()
+    window.addEventListener('resize', onResize)
     return () => {
       cancelled = true
       window.clearTimeout(t)
+      window.removeEventListener('resize', onResize)
       map.remove()
       mapRef.current = null
     }
-  }, [paradas, origen])
+  }, [paradas, origen, height])
 
   return (
     <div className="ruta-cobrador-map">

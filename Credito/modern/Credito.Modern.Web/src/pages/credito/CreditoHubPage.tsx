@@ -26,6 +26,7 @@ export function CreditoHubPage() {
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Crédito' },
       ]}
+      searchable
       intro={
         soloBandeja ? (
           <>

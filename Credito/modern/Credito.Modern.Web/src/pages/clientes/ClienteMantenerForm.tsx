@@ -197,7 +197,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
   const guardarDestinoRef = useRef(guardarDestino)
   /** Mismo criterio que CreditoOperacionRoute (simulador / originación). */
   const puedeContinuarCredito = puedeOperarCreditoCompleto(roles)
-  /** Prendario: originación operativa de analista/admin (paridad hub prendario). */
+  /** Prendario: originación operativa de analista o administrador. */
   const puedeContinuarPrendario = esCreditoAdministrador(roles) || esCreditoAnalista(roles)
   const debouncedDistrito = useDebouncedValue(distritoTerm.trim(), 300)
   const documentoOriginalRef = useRef('')
@@ -907,7 +907,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                       disabled={soloConsulta}
                       height={320}
                       searchPlaceholder="Buscar en Google Maps…"
-                      hintText="Google Maps: clic, arrastre del marcador o búsqueda. Paridad legacy con geocodificación por distrito + domicilio."
+                      hintText="Ubique al cliente en el mapa con clic, arrastre del marcador o búsqueda. También puede geocodificar por distrito y domicilio."
                     />
                   </div>
                 </CredixPanel>
@@ -963,7 +963,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                         <Select
                           options={[...CALIFICACIONES]}
                           disabled={esEdicion}
-                          title={esEdicion ? 'La calificación se conserva del registro (paridad legacy)' : undefined}
+                          title={esEdicion ? 'La calificación no se modifica en edición; se conserva la del registro.' : undefined}
                         />
                       </Form.Item>
                     </Col>

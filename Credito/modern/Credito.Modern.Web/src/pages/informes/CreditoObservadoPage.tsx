@@ -117,12 +117,7 @@ export function CreditoObservadoPage() {
   return (
     <CredixInformePage
       title="Créditos observados"
-      subtitle={
-        <>
-          Paridad <strong>Reporte → Crédito → Créditos observados</strong> y PDF/XLS{' '}
-          <em>rptCreditoObservado</em>. Gestor opcional (TODOS); oficina = sesión.
-        </>
-      }
+      subtitle="Créditos con observaciones por gestor; oficina de sesión. Gestor opcional «Todos». Exporte PDF y Excel."
       breadcrumb={reportesCreditoBreadcrumb('Créditos observados')}
       stats={stats}
       panelTitle="CRÉDITOS OBSERVADOS"
@@ -196,7 +191,7 @@ export function CreditoObservadoPage() {
         dataSource={filas}
         loading={consulta.isPending}
         pagination={{ pageSize: 25, showSizeChanger: true, pageSizeOptions: ['10', '25', '50', '100'] }}
-        locale={{ emptyText: 'Pulse Consultar (mismos filtros que el reporte legacy).' }}
+        locale={{ emptyText: 'Pulse Consultar para cargar resultados.' }}
       />
     </CredixInformePage>
   )

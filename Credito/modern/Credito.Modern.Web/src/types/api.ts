@@ -324,7 +324,7 @@ export interface CobroDiarioParams {
   oficinaId: number
 }
 
-/** Informes por gestor/oficina; usuarioId omitido = TODOS (paridad MVC). */
+/** Informes por gestor/oficina; usuarioId omitido = TODOS. */
 export interface GestorInformeParams {
   oficinaId: number
   usuarioId?: number

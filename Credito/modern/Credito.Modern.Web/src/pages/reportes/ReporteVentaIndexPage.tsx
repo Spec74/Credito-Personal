@@ -2,6 +2,7 @@ import dayjs from 'dayjs'
 import { CredixPage } from '../../components/credix'
 import { CredixReportBox } from '../../components/reportes/CredixReportBox'
 import { ReportExportActions } from '../../components/reportes/ReportExportActions'
+import { ReportesSection } from '../../components/reportes/ReportesSection'
 import { useAuth } from '../../auth/useAuth'
 import { downloadListaPrecioInformeCsv, downloadListaPrecioInformePdf } from '../../api/ventasInformes'
 import { downloadRentabilidadVentaCsv, downloadRentabilidadVentaPdf } from '../../api/ventas'
@@ -20,12 +21,20 @@ export function ReporteVentaIndexPage() {
       subtitle="Rentabilidad de ventas y lista de precios. PDF y Excel (CSV) usan la API moderna."
       breadcrumb={reportesVentaIndexBreadcrumb()}
     >
-      <p className="credix-reportes-intro">
-        Paridad con <strong>Reporte → Venta</strong> del sistema anterior. Los filtros completos
-        están en cada pantalla; desde aquí se exporta el mes en curso de la oficina de la sesión.
-      </p>
-
-      <div className="credix-reporte-grid">
+      <div className="credix-reportes-shell">
+        <div className="credix-reportes-intro">
+          Rentabilidad y listas de precios de la oficina en sesión. Los filtros completos están en
+          cada pantalla; desde aquí puede exportar el mes en curso con un clic.
+        </div>
+        <ol className="credix-reportes-steps" aria-label="Cómo usar los reportes">
+          <li>Revise la tarjeta</li>
+          <li>Exporte PDF o Excel del mes en curso</li>
+          <li>O abra Ver informe para filtros completos</li>
+        </ol>
+        <ReportesSection
+          title="Ventas"
+          description="Rentabilidad del periodo y catálogo de precios vigentes."
+        >
         <CredixReportBox
           title="Rentabilidad de ventas"
           actions={
@@ -62,7 +71,8 @@ export function ReporteVentaIndexPage() {
           }
         >
           <p className="credix-report-card-hint">
-            Equivale a <strong>ReporteAvanceVenta</strong> (<code>usp_RptRentabilidadVenta</code>).
+            Margen y rentabilidad por ventas en el periodo; contado y crédito según filtros en
+            pantalla.
           </p>
         </CredixReportBox>
 
@@ -104,6 +114,7 @@ export function ReporteVentaIndexPage() {
             pantalla.
           </p>
         </CredixReportBox>
+        </ReportesSection>
       </div>
     </CredixPage>
   )

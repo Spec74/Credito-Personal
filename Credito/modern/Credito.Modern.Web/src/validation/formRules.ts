@@ -1,5 +1,5 @@
 /**
- * Reglas Ant Design Form reutilizables (paridad Application/Validation).
+ * Reglas Ant Design Form reutilizables.
  * Usar en Form.Item rules={...} para validación inmediata + mensajes ES vía ConfigProvider.
  */
 import type { Rule } from 'antd/es/form'

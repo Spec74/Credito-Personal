@@ -102,12 +102,7 @@ export function ClientesTopeCreditoPage() {
   return (
     <CredixInformePage
       title="Clientes con tope de crédito"
-      subtitle={
-        <>
-          Paridad <strong>Reporte → Crédito → Clientes tope crédito</strong> y PDF/XLS{' '}
-          <em>rptClienteTopeCredito</em>. Gestor opcional (TODOS); oficina = sesión.
-        </>
-      }
+      subtitle="Clientes en el límite de línea de crédito por gestor; oficina de sesión. Gestor opcional «Todos». Exporte PDF y Excel."
       breadcrumb={reportesCreditoBreadcrumb('Clientes tope crédito')}
       stats={stats}
       panelTitle="CLIENTES TOPE CRÉDITO"
@@ -181,7 +176,7 @@ export function ClientesTopeCreditoPage() {
         dataSource={filas}
         loading={consulta.isPending}
         pagination={{ pageSize: 25, showSizeChanger: true, pageSizeOptions: ['10', '25', '50', '100'] }}
-        locale={{ emptyText: 'Pulse Consultar (mismos filtros que el reporte legacy).' }}
+        locale={{ emptyText: 'Pulse Consultar para cargar resultados.' }}
       />
     </CredixInformePage>
   )

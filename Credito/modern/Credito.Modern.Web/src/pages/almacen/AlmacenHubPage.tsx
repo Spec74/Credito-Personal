@@ -34,6 +34,7 @@ export function AlmacenHubPage() {
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Almacén' },
       ]}
+      searchable
       sections={sections}
     />
   )

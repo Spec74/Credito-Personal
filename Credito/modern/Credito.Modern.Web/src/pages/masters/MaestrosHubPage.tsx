@@ -25,6 +25,7 @@ export function MaestrosHubPage() {
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Maestros' },
       ]}
+      searchable
       sections={sections}
     />
   )

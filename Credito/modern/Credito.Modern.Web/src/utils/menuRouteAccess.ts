@@ -7,10 +7,10 @@ const ALWAYS_ALLOWED = [
   '/inicio',
   '/modulo',
   '/reportes/visor',
-  // Accesos rápidos del layout MVC (siempre disponibles con sesión).
+  // Accesos rápidos (siempre disponibles con sesión).
   '/admin/comisiones',
   '/credito/simulador',
-  // Atajos de cartera del dashboard gestor/admin (paridad PDF/SPA del layout).
+  // Atajos de cartera del dashboard gestor/admin.
   '/informes/cobro-diario',
   '/informes/morosidad-gestor',
   '/informes/creditos-observados',

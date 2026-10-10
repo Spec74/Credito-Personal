@@ -138,8 +138,8 @@ export function CentralRiesgoPage() {
     >
       {consulta.data ? (
         <p style={{ marginBottom: 12, color: 'var(--ant-color-text-secondary)' }}>
-          {consulta.data.length} registro(s). Montos de deuda en formato legacy; use CSV/PDF para
-          revisión tabular.
+          {consulta.data.length} registro(s). Montos con el formato exigido por la central; use
+          CSV/PDF para revisión tabular.
         </p>
       ) : null}
       <CredixDataTable<CentralRiesgoGenerarRow>

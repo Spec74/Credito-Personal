@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-/** Tarjeta de informe con cabecera de marca (paridad .box del MVC Reporte/Credito). */
+/** Tarjeta de informe con cabecera de marca Credix. */
 export function CredixReportBox({
   title,
   children,

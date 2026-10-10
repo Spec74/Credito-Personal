@@ -6,7 +6,7 @@ function cellText(value: unknown): string {
   return String(value)
 }
 
-/** Búsqueda rápida en filas visibles (paridad filtro jqGrid). */
+/** Búsqueda rápida en filas visibles de la tabla. */
 export function filterInformeTableRows<T extends object>(
   rows: readonly T[] | undefined,
   query: string,

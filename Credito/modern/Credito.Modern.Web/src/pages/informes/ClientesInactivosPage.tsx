@@ -127,13 +127,7 @@ export function ClientesInactivosPage() {
   return (
     <CredixInformePage
       title="Clientes inactivos"
-      subtitle={
-        <>
-          Paridad <strong>ReporteClientesInactivos</strong> (MVC sin fechas) o con rango en varios
-          informes. Marque «Sin rango (legacy)» para omitir <code>fechaIni</code>/
-          <code>fechaFin</code>.
-        </>
-      }
+      subtitle="Clientes sin actividad reciente; filtre por rango de fechas o consulte sin fechas. Gestor opcional «Todos». Exporte PDF y Excel."
       breadcrumb={reportesCreditoBreadcrumb('Clientes inactivos')}
       stats={stats}
       panelTitle="CLIENTES INACTIVOS"
@@ -160,7 +154,7 @@ export function ClientesInactivosPage() {
             </Form.Item>
           )}
           <Form.Item name="sinRango" valuePropName="checked">
-            <Checkbox>Sin rango (legacy)</Checkbox>
+            <Checkbox>Sin rango de fechas</Checkbox>
           </Form.Item>
           {!sinRango ? (
             <Form.Item
@@ -209,7 +203,7 @@ export function ClientesInactivosPage() {
       {queried && consulta.isSuccess ? (
         <Typography.Text type="secondary" className="credix-aprobacion-filtros-aplicados">
           {sinRango
-            ? 'Sin rango de fechas (paridad MVC)'
+            ? 'Sin rango de fechas'
             : rango?.[0] && rango[1]
               ? `${formatFecha(rango[0].format('YYYY-MM-DD'))} – ${formatFecha(rango[1].format('YYYY-MM-DD'))}`
               : null}{' '}
@@ -223,7 +217,7 @@ export function ClientesInactivosPage() {
         dataSource={filas}
         loading={consulta.isPending}
         pagination={{ pageSize: 25, showSizeChanger: true, pageSizeOptions: ['10', '25', '50', '100'] }}
-        locale={{ emptyText: 'Pulse Consultar (mismos filtros que el reporte legacy).' }}
+        locale={{ emptyText: 'Pulse Consultar para cargar resultados.' }}
       />
     </CredixInformePage>
   )

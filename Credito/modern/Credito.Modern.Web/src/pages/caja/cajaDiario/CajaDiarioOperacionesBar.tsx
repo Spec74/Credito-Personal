@@ -13,7 +13,7 @@ import { MovimientosCajaModal } from './MovimientosCajaModal'
 import { RutaCobranzaDrawer } from './RutaCobranzaDrawer'
 import { useNavigate } from 'react-router-dom'
 
-/** Botones globales del MVC (PDF, ruta QR, movimientos, cobro bloque). */
+/** PDF, ruta QR, movimientos y cobro bloque. */
 export function CajaDiarioOperacionesBar({
   ctx,
   usuarioId,

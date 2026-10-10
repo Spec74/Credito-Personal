@@ -28,7 +28,7 @@ function filterHubSectionsByQuery(sections: CredixHubSection[], query: string): 
 
 /**
  * Índice de módulo: título + tarjetas funcionales (sin KPIs decorativos ni Accesos rápidos).
- * Los Accesos rápidos viven solo en el sidebar (paridad layout MVC).
+ * Los accesos rápidos viven solo en el sidebar.
  */
 export function CredixModuleHubPage({
   title,

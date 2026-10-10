@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 
-/** Fila de filtros / acciones (paridad formularios inline del MVC). */
 export function CredixFilterBar({
   children,
   className,

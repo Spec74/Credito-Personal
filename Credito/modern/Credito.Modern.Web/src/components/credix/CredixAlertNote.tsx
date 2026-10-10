@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 
-/** Paridad `.alert.note.sticky` del layout legacy. */
 export function CredixAlertNote({
   children,
   strong,

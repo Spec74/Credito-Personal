@@ -102,12 +102,7 @@ export function ClientesBloqueadosPage() {
   return (
     <CredixInformePage
       title="Clientes bloqueados"
-      subtitle={
-        <>
-          Paridad <strong>Reporte → Crédito → Clientes bloqueados</strong> y PDF/XLS{' '}
-          <em>rptClienteBloqueado</em>. Gestor opcional (TODOS); oficina = sesión.
-        </>
-      }
+      subtitle="Clientes con bloqueo activo por gestor; oficina de sesión. Gestor opcional «Todos». Exporte PDF y Excel."
       breadcrumb={reportesCreditoBreadcrumb('Clientes bloqueados')}
       stats={stats}
       panelTitle="CLIENTES BLOQUEADOS"
@@ -181,7 +176,7 @@ export function ClientesBloqueadosPage() {
         dataSource={filas}
         loading={consulta.isPending}
         pagination={{ pageSize: 25, showSizeChanger: true, pageSizeOptions: ['10', '25', '50', '100'] }}
-        locale={{ emptyText: 'Pulse Consultar (mismos filtros que el reporte legacy).' }}
+        locale={{ emptyText: 'Pulse Consultar para cargar resultados.' }}
       />
     </CredixInformePage>
   )

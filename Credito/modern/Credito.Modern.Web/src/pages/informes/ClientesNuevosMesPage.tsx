@@ -143,13 +143,7 @@ export function ClientesNuevosMesPage() {
   return (
     <CredixInformePage
       title="Clientes nuevos del mes"
-      subtitle={
-        <>
-          Paridad <strong>Reporte → Crédito → Clientes nuevos</strong> y PDF/XLS{' '}
-          <em>rptCreditoObservado</em>. Mismo detalle que créditos observados; periodo por defecto = mes
-          calendario.
-        </>
-      }
+      subtitle="Clientes dados de alta en el periodo por gestor; oficina de sesión. Periodo por defecto: mes en curso. Exporte PDF y Excel."
       breadcrumb={reportesCreditoBreadcrumb('Clientes nuevos del mes')}
       stats={stats}
       panelTitle="CLIENTES NUEVOS"
@@ -247,7 +241,7 @@ export function ClientesNuevosMesPage() {
         dataSource={filas}
         loading={consulta.isPending}
         pagination={{ pageSize: 25, showSizeChanger: true, pageSizeOptions: ['10', '25', '50', '100'] }}
-        locale={{ emptyText: 'Pulse Consultar (mismos filtros que el reporte legacy).' }}
+        locale={{ emptyText: 'Pulse Consultar para cargar resultados.' }}
       />
     </CredixInformePage>
   )

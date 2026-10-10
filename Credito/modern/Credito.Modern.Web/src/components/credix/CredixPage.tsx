@@ -18,7 +18,7 @@ export function CredixPage({
   breadcrumb?: BreadcrumbProps['items']
   actions?: ReactNode
   stats?: CredixStatItem[]
-  /** `module` = franja oscura en índice de módulo (paridad MVC `ul.stats`) */
+  /** `module` = franja oscura en índice de módulo. */
   statsVariant?: 'default' | 'module'
   className?: string
   children: ReactNode

@@ -32,6 +32,7 @@ export function VentasHubPage() {
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Ventas' },
       ]}
+      searchable
       sections={sections}
     />
   )
