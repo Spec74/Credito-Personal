@@ -1,12 +1,13 @@
 /**
  * Editor / detalle de bienes en custodia (PrendasEditor).
- * Usado en prendario, consulta crédito y simulador.
+ * Lectura móvil: ficha etiqueta/valor. Escritura: formulario apilado.
+ * Escritorio: tabla (CredixDataTable).
  */
 
 .prendas-editor-mobile {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   width: 100%;
   min-width: 0;
 }
@@ -14,9 +15,11 @@
 .prendas-editor-mobile__card {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 14px 16px 16px;
-  border: 1px solid var(--credix-border, #e5e7eb);
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  padding: 14px 16px 12px;
+  border: 1px solid #e8eef5;
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -24,49 +27,71 @@
 
 .prendas-editor-mobile__head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 8px;
+  gap: 10px;
   margin-bottom: 4px;
   padding-bottom: 10px;
-  border-bottom: 1px solid #eef2f7;
+  border-bottom: 1px solid #e8eef5;
 }
 
-.prendas-editor-mobile__dl {
-  margin: 0;
-  padding: 0;
+.prendas-editor-mobile__head-title {
   display: flex;
   flex-direction: column;
-  gap: 0;
-}
-
-.prendas-editor-mobile__field {
-  display: grid;
-  grid-template-columns: minmax(7.5rem, 34%) minmax(0, 1fr);
-  column-gap: 12px;
-  row-gap: 2px;
-  align-items: start;
+  gap: 4px;
   min-width: 0;
-  margin: 0;
-  padding: 8px 0;
-  border-bottom: 1px dashed #eef2f7;
 }
 
-.prendas-editor-mobile__field:last-child {
+.prendas-editor-mobile__head-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--credix-text-muted, #64748b);
+}
+
+.prendas-editor-mobile__head-name {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+/* Filas etiqueta / valor: siempre en bloque (nunca inline pegado). */
+.prendas-editor-mobile__rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prendas-editor-mobile__row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 10px 0;
+  border-bottom: 1px solid #eef2f7;
+  min-width: 0;
+}
+
+.prendas-editor-mobile__row:last-child {
   border-bottom: none;
-  padding-bottom: 0;
+  padding-bottom: 2px;
 }
 
 .prendas-editor-mobile__label {
   display: block;
   margin: 0;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--credix-text-muted, #64748b);
-  line-height: 1.35;
-  padding-top: 2px;
+  line-height: 1.3;
 }
 
 .prendas-editor-mobile__value {
@@ -75,11 +100,9 @@
   min-width: 0;
   font-size: 14px;
   font-weight: 600;
-  color: var(--credix-text, #1f2937);
+  color: #0f172a;
   line-height: 1.4;
   word-break: break-word;
-  text-transform: none;
-  letter-spacing: normal;
 }
 
 .prendas-editor-mobile__value--muted {
@@ -87,17 +110,27 @@
   color: var(--credix-text-muted, #64748b);
 }
 
+.prendas-editor-mobile__value--money {
+  font-variant-numeric: tabular-nums;
+  color: #047857;
+}
+
 /* Modo edición: etiqueta arriba, control abajo */
 .prendas-editor-mobile__field--edit {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin: 0;
+  padding: 6px 0;
   border-bottom: none;
-  padding: 4px 0;
+  min-width: 0;
 }
 
 .prendas-editor-mobile__field--edit .prendas-editor-mobile__label {
-  padding-top: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+  font-size: 12px;
 }
 
 .prendas-editor-desktop-wrap {
@@ -105,18 +138,20 @@
   min-width: 0;
 }
 
-.prendas-editor-mobile--readonly {
-  max-width: 720px;
+.prendas-editor-mobile__footer {
+  margin-top: 4px;
+  padding-top: 4px;
 }
 
-@media (max-width: 520px) {
-  .prendas-editor-mobile__field {
-    grid-template-columns: 1fr;
-    gap: 2px 0;
-    padding: 10px 0;
+@media (min-width: 480px) {
+  .prendas-editor-mobile__row {
+    display: grid;
+    grid-template-columns: minmax(7.5rem, 32%) minmax(0, 1fr);
+    column-gap: 12px;
+    align-items: start;
   }
 
   .prendas-editor-mobile__label {
-    padding-top: 0;
+    padding-top: 2px;
   }
 }

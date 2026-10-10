@@ -25,6 +25,14 @@ type Props = {
   errores?: PrendaCampoError[]
 }
 
+type DetailField = {
+  key: string
+  label: string
+  value: string
+  muted?: boolean
+  money?: boolean
+}
+
 function celda(texto: string | null | undefined, vacio = '—') {
   const t = (texto ?? '').trim()
   return t.length > 0 ? t : vacio
@@ -40,9 +48,43 @@ function statusCampo(
   return mensaje ? { status: 'error', help: mensaje } : {}
 }
 
+function camposDetalle(prenda: PrendaItem): DetailField[] {
+  return [
+    { key: 'marca', label: 'Marca', value: celda(prenda.marca), muted: !prenda.marca?.trim() },
+    { key: 'modelo', label: 'Modelo', value: celda(prenda.modelo), muted: !prenda.modelo?.trim() },
+    {
+      key: 'serie',
+      label: 'Serie',
+      value: celda(prenda.serie, 'N/T'),
+      muted: !(prenda.serie ?? '').trim(),
+    },
+    { key: 'color', label: 'Color', value: celda(prenda.color), muted: !prenda.color?.trim() },
+    {
+      key: 'codigo',
+      label: 'Código interno',
+      value: celda(prenda.codigoInterno),
+      muted: !prenda.codigoInterno?.trim(),
+    },
+    {
+      key: 'tasacion',
+      label: 'Tasación',
+      value: formatMoney(prenda.valorTasacion),
+      money: true,
+    },
+    {
+      key: 'obs',
+      label: 'Observaciones',
+      value: celda(prenda.observaciones),
+      muted: !prenda.observaciones?.trim(),
+    },
+  ]
+}
+
 /**
  * Detalle de bienes en custodia. El crédito admite varios, y la tasación del crédito es la
  * suma de los que tengan descripción: el servidor la recalcula desde lo guardado.
+ *
+ * Móvil: ficha etiqueta/valor. Escritorio: tabla.
  */
 export function PrendasEditor({
   value,
@@ -54,8 +96,6 @@ export function PrendasEditor({
   const screens = Grid.useBreakpoint()
   const isMobile = screens.md !== true
   const bloqueado = disabled || readOnly
-  /** Consulta: ficha etiqueta/valor en móvil y PC (evita tabla apretada / texto pegado). */
-  const useDetailCards = readOnly || isMobile
 
   const actualizar = useCallback(
     (indice: number, cambios: Partial<PrendaItem>) => {
@@ -87,7 +127,13 @@ export function PrendasEditor({
   const total = useMemo(() => totalTasacion(value), [value])
 
   const footer = (
-    <Row justify="space-between" align="middle" gutter={[8, 8]} style={{ marginTop: 12 }}>
+    <Row
+      justify="space-between"
+      align="middle"
+      gutter={[8, 8]}
+      className="prendas-editor-mobile__footer"
+      style={{ marginTop: isMobile ? 4 : 12 }}
+    >
       {!readOnly ? (
         <Col xs={24} sm="auto">
           <Button block={isMobile} icon={<PlusOutlined />} disabled={bloqueado} onClick={agregar}>
@@ -132,112 +178,113 @@ export function PrendasEditor({
     )
   }
 
-  if (useDetailCards) {
+  if (isMobile) {
     return (
-      <div className={`prendas-editor-mobile${readOnly ? ' prendas-editor-mobile--readonly' : ''}`}>
-        {value.map((prenda, indice) => (
-          <article key={indice} className="prendas-editor-mobile__card">
-            <div className="prendas-editor-mobile__head">
-              <Text strong>Bien #{indice + 1}</Text>
-              {!readOnly ? (
-                <Button
-                  type="text"
-                  danger
-                  size="small"
-                  icon={<DeleteOutlined />}
-                  disabled={bloqueado}
-                  aria-label={`Quitar bien ${indice + 1}`}
-                  onClick={() => eliminar(indice)}
-                />
-              ) : null}
-            </div>
-            {readOnly ? (
-              <dl className="prendas-editor-mobile__dl">
-                {(
-                  [
-                    ['Descripción', celda(prenda.descripcion)],
-                    ['Marca', celda(prenda.marca)],
-                    ['Modelo', celda(prenda.modelo)],
-                    ['Serie', celda(prenda.serie, 'N/T')],
-                    ['Color', celda(prenda.color)],
-                    ['Código interno', celda(prenda.codigoInterno)],
-                    ['Tasación', formatMoney(prenda.valorTasacion)],
-                    ['Observaciones', celda(prenda.observaciones)],
-                  ] as const
-                ).map(([label, valor]) => (
-                  <div key={label} className="prendas-editor-mobile__field">
-                    <dt className="prendas-editor-mobile__label">{label}</dt>
-                    <dd
-                      className={
-                        valor === '—'
-                          ? 'prendas-editor-mobile__value prendas-editor-mobile__value--muted'
-                          : 'prendas-editor-mobile__value'
-                      }
-                    >
-                      {valor}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            ) : (
-              <>
-                {(
-                  [
-                    ['descripcion', 'Descripción', PRENDA_MAX.descripcion, 'Ej. anillo de oro 18k'],
-                    ['marca', 'Marca', PRENDA_MAX.marca, undefined],
-                    ['modelo', 'Modelo', PRENDA_MAX.modelo, undefined],
-                    ['serie', 'Serie', PRENDA_MAX.serie, 'N/T'],
-                    ['color', 'Color', PRENDA_MAX.color, undefined],
-                    ['codigoInterno', 'Código interno', PRENDA_MAX.codigoInterno, undefined],
-                    ['observaciones', 'Observaciones', PRENDA_MAX.observaciones, undefined],
-                  ] as const
-                ).map(([campo, label, max, placeholder]) => {
-                  const err = statusCampo(errores, indice, campo)
-                  return (
-                    <label key={campo} className="prendas-editor-mobile__field prendas-editor-mobile__field--edit">
-                      <span className="prendas-editor-mobile__label">{label}</span>
-                      <Input
-                        disabled={bloqueado}
-                        status={err.status}
-                        maxLength={max}
-                        placeholder={placeholder}
-                        value={(prenda[campo] as string | null | undefined) ?? ''}
-                        onChange={(e) => actualizar(indice, { [campo]: e.target.value })}
-                      />
-                      {err.help ? (
-                        <Text type="danger" style={{ fontSize: 12 }}>
-                          {err.help}
-                        </Text>
-                      ) : null}
-                    </label>
-                  )
-                })}
-                {(() => {
-                  const err = statusCampo(errores, indice, 'valorTasacion')
-                  return (
-                    <label className="prendas-editor-mobile__field prendas-editor-mobile__field--edit">
-                      <span className="prendas-editor-mobile__label">Tasación</span>
-                      <InputNumber
-                        style={{ width: '100%' }}
-                        min={0}
-                        precision={2}
-                        disabled={bloqueado}
-                        status={err.status}
-                        value={prenda.valorTasacion}
-                        onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
-                      />
-                      {err.help ? (
-                        <Text type="danger" style={{ fontSize: 12 }}>
-                          {err.help}
-                        </Text>
-                      ) : null}
-                    </label>
-                  )
-                })()}
-              </>
-            )}
-          </article>
-        ))}
+      <div className="prendas-editor-mobile">
+        {value.map((prenda, indice) => {
+          const titulo = celda(prenda.descripcion, `Bien #${indice + 1}`)
+          return (
+            <article key={indice} className="prendas-editor-mobile__card">
+              <div className="prendas-editor-mobile__head">
+                <div className="prendas-editor-mobile__head-title">
+                  <span className="prendas-editor-mobile__head-kicker">Bien #{indice + 1}</span>
+                  {readOnly ? <p className="prendas-editor-mobile__head-name">{titulo}</p> : null}
+                </div>
+                {!readOnly ? (
+                  <Button
+                    type="text"
+                    danger
+                    size="small"
+                    icon={<DeleteOutlined />}
+                    disabled={bloqueado}
+                    aria-label={`Quitar bien ${indice + 1}`}
+                    onClick={() => eliminar(indice)}
+                  />
+                ) : null}
+              </div>
+
+              {readOnly ? (
+                <ul className="prendas-editor-mobile__rows">
+                  {camposDetalle(prenda).map((campo) => (
+                    <li key={campo.key} className="prendas-editor-mobile__row">
+                      <span className="prendas-editor-mobile__label">{campo.label}</span>
+                      <span
+                        className={[
+                          'prendas-editor-mobile__value',
+                          campo.muted ? 'prendas-editor-mobile__value--muted' : '',
+                          campo.money ? 'prendas-editor-mobile__value--money' : '',
+                        ]
+                          .filter(Boolean)
+                          .join(' ')}
+                      >
+                        {campo.value}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <>
+                  {(
+                    [
+                      ['descripcion', 'Descripción', PRENDA_MAX.descripcion, 'Ej. anillo de oro 18k'],
+                      ['marca', 'Marca', PRENDA_MAX.marca, undefined],
+                      ['modelo', 'Modelo', PRENDA_MAX.modelo, undefined],
+                      ['serie', 'Serie', PRENDA_MAX.serie, 'N/T'],
+                      ['color', 'Color', PRENDA_MAX.color, undefined],
+                      ['codigoInterno', 'Código interno', PRENDA_MAX.codigoInterno, undefined],
+                      ['observaciones', 'Observaciones', PRENDA_MAX.observaciones, undefined],
+                    ] as const
+                  ).map(([campo, label, max, placeholder]) => {
+                    const err = statusCampo(errores, indice, campo)
+                    return (
+                      <label
+                        key={campo}
+                        className="prendas-editor-mobile__field--edit"
+                      >
+                        <span className="prendas-editor-mobile__label">{label}</span>
+                        <Input
+                          disabled={bloqueado}
+                          status={err.status}
+                          maxLength={max}
+                          placeholder={placeholder}
+                          value={(prenda[campo] as string | null | undefined) ?? ''}
+                          onChange={(e) => actualizar(indice, { [campo]: e.target.value })}
+                        />
+                        {err.help ? (
+                          <Text type="danger" style={{ fontSize: 12 }}>
+                            {err.help}
+                          </Text>
+                        ) : null}
+                      </label>
+                    )
+                  })}
+                  {(() => {
+                    const err = statusCampo(errores, indice, 'valorTasacion')
+                    return (
+                      <label className="prendas-editor-mobile__field--edit">
+                        <span className="prendas-editor-mobile__label">Tasación</span>
+                        <InputNumber
+                          style={{ width: '100%' }}
+                          min={0}
+                          precision={2}
+                          disabled={bloqueado}
+                          status={err.status}
+                          value={prenda.valorTasacion}
+                          onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
+                        />
+                        {err.help ? (
+                          <Text type="danger" style={{ fontSize: 12 }}>
+                            {err.help}
+                          </Text>
+                        ) : null}
+                      </label>
+                    )
+                  })()}
+                </>
+              )}
+            </article>
+          )
+        })}
         {footer}
       </div>
     )
