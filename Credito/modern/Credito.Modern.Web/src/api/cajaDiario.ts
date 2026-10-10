@@ -488,12 +488,19 @@ export interface CreditoGestorPendienteRow {
   personaNombre: string
   montoCredito: number
   personaId: number
-  /** Orden de planilla (paridad CreditoPendienteJGrid.FechaVencimiento). */
+  /** Orden de planilla (paridad PDF cobro diario / FechaVencimiento). */
   fechaVencimiento: string
   /** Mora total no cancelada. */
   importeMora: number
   /** Deuda pendiente real (capital + mora); paridad CreditoPendienteJGrid. */
   deudaPendiente: number
+  /** Paridad usp_RptCobroDiario.Orden (código persona). */
+  orden: number | null
+  celular: string | null
+  direccion: string | null
+  /** Primera cuota PEN sugerida para cobro rápido en campo. */
+  cuotaSugerida: number
+  diasAtrazo: number
 }
 
 export function fetchCreditosGestorDesembolsados(): Promise<

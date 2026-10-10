@@ -72,7 +72,10 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
 
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        // Orden = paridad PDF cobro diario (OrderLikeLegacy): vencidos primero, luego FechaVencimiento, Cliente.
         const string sql = """
+            DECLARE @Hoy date = CAST(dbo.ufnFecha() AS date);
+
             SELECT
                 c.CreditoId,
                 p.Codigo AS PersonaCodigo,
@@ -104,12 +107,44 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
                           AND pp.Estado <> N'CAN'
                     ), 0)
                     AS decimal(18, 2)
-                ) AS DeudaPendiente
+                ) AS DeudaPendiente,
+                TRY_CAST(SUBSTRING(p.Codigo, 3, LEN(p.Codigo)) AS int) AS Orden,
+                p.Celular1 AS Celular,
+                p.Direccion,
+                CAST(ISNULL((
+                    SELECT TOP (1)
+                        ISNULL(pp.Cuota, 0) + ISNULL(pp.Cargo, 0)
+                        - ISNULL(pp.PagoLibre, 0) - ISNULL(pp.Descuento, 0)
+                        + ISNULL(pp.ImporteMora, 0)
+                    FROM CREDITO.PlanPago AS pp
+                    WHERE pp.CreditoId = c.CreditoId
+                      AND pp.Estado = N'PEN'
+                    ORDER BY pp.Numero
+                ), 0) AS decimal(18, 2)) AS CuotaSugerida,
+                ISNULL((
+                    SELECT dbo.ufnCalcularDiasAtrazo(MIN(pp.FechaVencimiento), @Hoy)
+                    FROM CREDITO.PlanPago AS pp
+                    WHERE pp.CreditoId = c.CreditoId
+                      AND pp.Estado = N'PEN'
+                ), 0) AS DiasAtrazo
             FROM CREDITO.Credito AS c
             INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
             WHERE c.UsuarioRegId = @UsuarioRegId
               AND c.Estado = 'DES'
-            ORDER BY c.FechaVencimiento ASC, p.NombreCompleto, c.CreditoId;
+            ORDER BY
+                CASE
+                    WHEN c.FechaVencimiento < @Hoy THEN 0
+                    WHEN ISNULL((
+                        SELECT dbo.ufnCalcularDiasAtrazo(MIN(pp.FechaVencimiento), @Hoy)
+                        FROM CREDITO.PlanPago AS pp
+                        WHERE pp.CreditoId = c.CreditoId
+                          AND pp.Estado = N'PEN'
+                    ), 0) > 0 THEN 0
+                    ELSE 1
+                END,
+                c.FechaVencimiento ASC,
+                p.NombreCompleto ASC,
+                c.CreditoId ASC;
             """;
         var rows = await connection
             .QueryAsync<CreditoGestorPendienteRowDto>(

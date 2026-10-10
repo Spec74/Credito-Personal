@@ -1,6 +1,6 @@
 namespace Credito.Modern.Application.CreditoPlanes;
 
-/// <summary>Paridad <c>CajaDiarioBL.LstCreditoPendienteJGrid</c> (créditos DES del gestor).</summary>
+/// <summary>Paridad <c>CajaDiarioBL.LstCreditoPendienteJGrid</c> + campos de ruta cobro diario.</summary>
 public sealed class CreditoGestorPendienteRowDto
 {
     public int CreditoId { get; set; }
@@ -8,15 +8,25 @@ public sealed class CreditoGestorPendienteRowDto
     public string PersonaNombre { get; set; } = string.Empty;
     public decimal MontoCredito { get; set; }
     public int PersonaId { get; set; }
-    /// <summary>Paridad <c>CreditoPendienteJGrid.FechaVencimiento</c> (orden de planilla).</summary>
+    /// <summary>Paridad <c>CreditoPendienteJGrid.FechaVencimiento</c> / orden cobro diario.</summary>
     public DateTime FechaVencimiento { get; set; }
     /// <summary>Paridad <c>CreditoPendienteJGrid.ImporteMora</c> (mora total no CAN).</summary>
     public decimal ImporteMora { get; set; }
     /// <summary>
     /// Paridad <c>CreditoPendienteJGrid.DeudaPendiente</c>: capital pendiente + mora total (no CAN).
-    /// Calculado set-based en SQL (optimización vs loop EF en BL legado).
     /// </summary>
     public decimal DeudaPendiente { get; set; }
-}
 
-public sealed record TieneCxcPendienteResponse(bool TienePendientes);
+    /// <summary>Paridad <c>usp_RptCobroDiario.Orden</c> (número derivado del código persona).</summary>
+    public int? Orden { get; set; }
+
+    public string? Celular { get; set; }
+
+    public string? Direccion { get; set; }
+
+    /// <summary>Primera cuota PEN (cuota+cargo-pagolibre+mora cuota); atajo de cobro en campo.</summary>
+    public decimal CuotaSugerida { get; set; }
+
+    /// <summary>Días de atraso de la cuota PEN más antigua (0 si al día).</summary>
+    public int DiasAtrazo { get; set; }
+}
