@@ -220,7 +220,22 @@ export function CobroBloquePage() {
     retry: false,
   })
 
-  const ctxOnline = sesionQuery.data ?? null
+  const caja = sesionQuery.data
+  const ctxOnline: CajaSession | null = caja
+    ? {
+        oficinaId,
+        cajaDiarioId: caja.cajaDiarioId,
+        cajaId: caja.cajaId,
+        cajaDenominacion: caja.cajaDenominacion,
+        fechaIniOperacion: caja.fechaIniOperacion,
+        saldoInicial: caja.saldoInicial,
+        entradas: caja.entradas,
+        salidas: caja.salidas,
+        saldoFinal: caja.saldoFinal,
+        indCierre: caja.indCierre,
+        esCajaCentral: caja.esCajaCentral,
+      }
+    : null
   /** Solo usar snap local si no hay red o la sesión falló por red (nunca si el API dijo “sin caja”). */
   const allowOfflineSession =
     !online ||

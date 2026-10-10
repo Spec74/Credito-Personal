@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Button, Space, Tabs, Typography } from 'antd'
+import { Alert, Button, Space, Tabs } from 'antd'
 import { ReloadOutlined } from '@ant-design/icons'
 import {
   completarImpagosValidacion,
@@ -13,7 +13,6 @@ import {
 } from '../../api/cajaDiario'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
-import { getLoginProfile } from '../../auth/sessionProfile'
 import {
   CredixAlertNote,
   CredixPage,
@@ -43,8 +42,6 @@ import '../../styles/caja-list-toolbar.css';
 
 export type { CajaSession } from './cajaDiario/types'
 
-const { Text } = Typography
-
 export function CajaDiarioPage() {
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -52,7 +49,6 @@ export function CajaDiarioPage() {
   const tabQuery = searchParams.get('tab')
   const queryClient = useQueryClient()
   const { session } = useAuth()
-  const loginProfile = getLoginProfile()
   const oficinaId = session?.oficinaId ?? 0
 
   const [showStats, setShowStats] = useState(true)
