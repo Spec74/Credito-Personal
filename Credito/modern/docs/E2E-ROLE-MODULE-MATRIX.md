@@ -14,13 +14,14 @@
 | **0 — Inventario** | Login + `/auth/me` + menú por usuario activo | API |
 | **1 — Matriz ACL** | Cada ruta del menú carga; rutas ajenas → **Sin permiso** | Playwright `e2e/role-module-matrix.spec.ts` |
 | **2 — Flujos** | Pantallas clave muestran UI útil (tablas/títulos/estado caja) | Playwright `e2e/role-flows.spec.ts` |
-| **3 — Ciclo de negocio** | Simular → PEN → aprobar → desembolso → cobro + ticket → validar cierre | Script + evidencia abajo; [SMOKE-SIGN-OFF.md](./SMOKE-SIGN-OFF.md) |
+| **3 — Ciclo de negocio** | Simular → PEN → aprobar → desembolso → cobro + ticket → validar cierre | Script + evidencia abajo |
+| **4 — Extras de negocio** | Bóveda TRF, prendario completo, condonación, alta persona | Script + SPA |
 
 ```powershell
 cd Credito/modern/Credito.Modern.Web
 $env:CREDITO_E2E_BASE_URL = "https://credito-personal.vercel.app"
-$env:CREDITO_E2E_PASSWORD = "***"   # en prueba: 123.
-npx playwright test e2e/role-module-matrix.spec.ts e2e/role-flows.spec.ts --workers=1
+$env:CREDITO_E2E_PASSWORD = "***"
+npm run test:e2e:roles
 ```
 
 **Nota:** el login UI desde IP no autorizada (`Auth` / cliente acceso) puede fallar en headless; la suite siembra JWT vía `POST /api/v1/auth/login` y valida la SPA con sesión real.
@@ -95,22 +96,54 @@ cd Credito/modern
 | Cerrar caja | — | **No ejecutado** (cajas operativas del día) |
 | Limpieza | `BQUISPE` | Rechazo crédito accidental **87692** |
 
-Cliente usado: personaId **48** — FERNANDEZ LEON, RUTH MARIA (DNI 76738856).
+Cliente usado: personaId **48** — FERNANDEZ LEON, RUTH MARIA (DNI 76738856).  
+**Nota posterior:** la cuota restante de **87691** se cerró en capa 4 vía **condonación** (ver abajo).
 
-### Qué queda fuera (consciente)
+## Capa 4 — Bóveda / prendario / condonación / alta cliente (2026-10-10)
 
-- Cierre real de caja en prod (validado sí; ejecutado no).
-- Alta de cliente nuevo, bóveda, condonación, prendario con bienes.
-- Roles inactivos (VENDEDOR / ALMACÉN / PROMOTOR) y menús Ventas/Almacén no asignados en `RolMenu`.
-- Login UI desde IP no autorizada (suite usa JWT API).
+```powershell
+cd Credito/modern
+.\deploy\scripts\smoke-ciclo-capa4-extras.ps1 `
+  -BaseUrl "https://crediconfiable-api-g3h7fja3dydsbbb7.centralus-01.azurewebsites.net" `
+  -AdminUsuario RMANTILLA -AdminClave "***" `
+  -AprobadorUsuario BQUISPE -AprobadorClave "***" `
+  -GestorUsuario YCERVANTES -GestorClave "***" `
+  -CreditoCondonarId 87691
+```
+
+### Evidencia corrida prod
+
+| Flujo | Actor | Resultado |
+|-------|-------|-----------|
+| **Bóveda → caja** S/ 50 (efectivo) | `RMANTILLA` | `movimientoBovedaId=77331` · `movimientoCajaId=2287637` · bóveda 78627.15→78577.15 · caja 9912→9962 · ticket bóveda **~36 KB** · informe mov. bóveda PDF **~109 KB** |
+| **Prendario PDF** crédito existente 87690 | `RMANTILLA` | Contrato **~475 KB** `%PDF` (desembolso bloqueado: CxC pendientes — esperado) |
+| **Prendario originación** | `YCERVANTES` → `BQUISPE` → `YCERVANTES` | persona **5486** · crédito **87693** · bienes OK · APR · desembolso mov. **2287638** · caja CARMEN ALTO 1000→500 · contrato **~474 KB** · acta entrega **~85 KB** |
+| **Condonación** crédito prueba 87691 | `RMANTILLA` | Solicitud id **323** → `condonar-credito` **success** · restante S/ 112 · 0 cuotas pendientes · bandeja vacía |
+| **Alta persona rápida** | `RMANTILLA` | personaId **8878** · DNI 99998930 · `PRUEBA CAPA4, E2E` |
+| Validar cierre caja admin | `RMANTILLA` | **`puedeCerrar=true`** (caja **no** cerrada) |
+| SPA Playwright `ciclo-capa4-extras` | — | **2/2 PASS** (bóveda/condonaciones/clientes + prendario 87693 en listado) |
+
+### Fuera de alcance residual (no bloquea firma de plataforma)
+
+| Ítem | Motivo |
+|------|--------|
+| Cierre real de caja / bóveda en prod | Operación de fin de día; validado con `puedeCerrar=true` |
+| Roles VENDEDOR / ALMACÉN / PROMOTOR | Inactivos / sin `RolMenu` en prod |
+| Módulos Ventas/Almacén legacy | No asignados en menú actual |
+| Login UI desde IP no autorizada | Política `Acceso`; E2E usa JWT API |
+| Rotar claves de chat | Acción humana de seguridad (obligatoria post-pruebas) |
+| Playwright CI nightly | Mejora de proceso, no de cobertura funcional |
 
 ## Criterio de cierre plataforma
 
 - [x] Inventario usuarios/roles/menú
 - [x] Matriz ACL 4 perfiles × rutas menú
 - [x] Flujos UI por perfil
-- [x] Smoke crítico caja (cobro/ticket/ruta/PDF) — ver SMOKE-SIGN-OFF
+- [x] Smoke crítico caja (cobro/ticket/ruta/PDF)
 - [x] Ciclo negocio capa 3 (crear→aprobar→desembolso→cobro→validar cierre)
-- [ ] Rotar claves expuestas en chat
-- [ ] (Opcional) Playwright CI nightly con secretos
-- [ ] (Opcional) `-AllowCerrarCaja` en ventana controlada post-operación
+- [x] Capa 4: bóveda TRF + ticket/PDF
+- [x] Capa 4: prendario (bienes→aprobar→desembolso→contrato/acta)
+- [x] Capa 4: condonación (solicitar→ejecutar)
+- [x] Capa 4: alta persona rápida
+- [ ] Rotar claves expuestas en chat *(operación humana)*
+- [ ] (Opcional) Playwright CI nightly / `-AllowCerrarCaja` en ventana controlada

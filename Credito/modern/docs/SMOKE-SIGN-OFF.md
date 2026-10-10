@@ -99,4 +99,15 @@ Corrida completa por perfiles ACL: ver **[E2E-ROLE-MODULE-MATRIX.md](./E2E-ROLE-
 | Validar cierre | `puedeCerrar=true` (caja **no** cerrada) |
 | Script | `deploy/scripts/smoke-ciclo-credito-capa3.ps1` |
 
-Detalle: [E2E-ROLE-MODULE-MATRIX.md](./E2E-ROLE-MODULE-MATRIX.md#capa-3--ciclo-de-negocio-2026-10-10).
+### Capa 4 — bóveda / prendario / condonación / alta
+
+| Flujo | Evidencia |
+|-------|-----------|
+| Bóveda → caja S/ 50 | movBoveda **77331** · movCaja **2287637** · ticket ~36 KB · rpt PDF ~109 KB |
+| Prendario nuevo | crédito **87693** · desembolso **2287638** · contrato/acta PDF |
+| Condonación | crédito **87691** solicitud **323** → ejecutada |
+| Alta persona | personaId **8878** |
+| SPA | `e2e/ciclo-capa4-extras.spec.ts` **2/2 PASS** |
+| Script | `deploy/scripts/smoke-ciclo-capa4-extras.ps1` |
+
+Detalle: [E2E-ROLE-MODULE-MATRIX.md](./E2E-ROLE-MODULE-MATRIX.md).
