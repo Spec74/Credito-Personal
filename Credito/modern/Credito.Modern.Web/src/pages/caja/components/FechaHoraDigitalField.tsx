@@ -113,15 +113,28 @@ export function FechaHoraDigitalField({ value, onChange, status, compact = false
           className="cobro-bloque-fecha-digital__sheet"
           destroyOnClose
           styles={{
-            body: { paddingTop: 8, paddingBottom: 16 },
+            body: { paddingTop: 8, paddingBottom: 12 },
+            footer: { padding: '10px 16px calc(10px + env(safe-area-inset-bottom, 0px))' },
           }}
-          extra={
-            <Button type="primary" onClick={confirmSheet}>
-              Listo
-            </Button>
+          footer={
+            <div className="cobro-bloque-fecha-digital__sheet-footer">
+              <Button
+                size="large"
+                icon={<FieldTimeOutlined />}
+                onClick={() => setDraft(dayjs())}
+              >
+                Ahora
+              </Button>
+              <Button type="primary" size="large" onClick={confirmSheet}>
+                Confirmar
+              </Button>
+            </div>
           }
         >
           <div className="cobro-bloque-fecha-digital__sheet-body">
+            <p className="cobro-bloque-fecha-digital__sheet-preview">
+              {draft.format('DD/MM/YYYY HH:mm')}
+            </p>
             <Calendar
               fullscreen={false}
               value={draft}
@@ -144,16 +157,7 @@ export function FechaHoraDigitalField({ value, onChange, status, compact = false
                   setDraft((prev) => mergeDateTime(prev, prev, t))
                 }}
               />
-              <Button
-                icon={<FieldTimeOutlined />}
-                onClick={() => setDraft(dayjs())}
-              >
-                Ahora
-              </Button>
             </div>
-            <p className="cobro-bloque-fecha-digital__sheet-preview">
-              {draft.format('DD/MM/YYYY HH:mm')}
-            </p>
           </div>
         </Drawer>
       </div>

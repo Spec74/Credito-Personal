@@ -19,9 +19,7 @@ import {
   ArrowLeftOutlined,
   CheckOutlined,
   EnvironmentOutlined,
-  PhoneOutlined,
   SearchOutlined,
-  ThunderboltOutlined,
   ArrowUpOutlined,
   WhatsAppOutlined,
 } from '@ant-design/icons'
@@ -68,7 +66,10 @@ import {
   FechaHoraDigitalField,
   nowDatetimeLocal,
 } from './components/FechaHoraDigitalField'
+import { CobroBloqueFieldCard } from './components/CobroBloqueFieldCard'
 import '../../styles/cobro-bloque.css'
+
+type VistaCampo = 'todos' | 'mora' | 'cobro'
 
 const { Text } = Typography
 
@@ -202,6 +203,7 @@ export function CobroBloquePage() {
   const syncingRef = useRef(false)
   const [scrolledDown, setScrolledDown] = useState(false)
   const [dockBox, setDockBox] = useState<{ left: number; width: number } | null>(null)
+  const [vistaCampo, setVistaCampo] = useState<VistaCampo>('todos')
   const yaEjecutadoHoy = isCobroBloqueEjecutadoHoy()
 
   useEffect(() => {
@@ -492,16 +494,21 @@ export function CobroBloquePage() {
   const filas = useMemo(() => {
     const raw = carteraRows ?? []
     const q = filtro.trim().toLowerCase()
-    if (!q) return raw
-    return raw.filter(
-      (r) =>
-        r.personaNombre.toLowerCase().includes(q) ||
-        r.personaCodigo.toLowerCase().includes(q) ||
-        (r.celular ?? '').toLowerCase().includes(q) ||
-        (r.direccion ?? '').toLowerCase().includes(q) ||
-        String(r.creditoId).includes(q),
-    )
-  }, [carteraRows, filtro])
+    return raw.filter((r) => {
+      if (q) {
+        const hit =
+          r.personaNombre.toLowerCase().includes(q) ||
+          r.personaCodigo.toLowerCase().includes(q) ||
+          (r.celular ?? '').toLowerCase().includes(q) ||
+          (r.direccion ?? '').toLowerCase().includes(q) ||
+          String(r.creditoId).includes(q)
+        if (!hit) return false
+      }
+      if (fieldMode && vistaCampo === 'mora' && r.diasAtrazo <= 0) return false
+      if (fieldMode && vistaCampo === 'cobro' && getEdit(r).montoPagar <= 0) return false
+      return true
+    })
+  }, [carteraRows, filtro, fieldMode, vistaCampo, getEdit])
 
   const resumen = useMemo(() => {
     let conCobro = 0
@@ -857,31 +864,61 @@ export function CobroBloquePage() {
 
   const toolbar = (
     <div className="cobro-bloque-command">
-      <Input
-        allowClear
-        size="middle"
-        prefix={<SearchOutlined />}
-        placeholder="Buscar cliente, celular, dirección o crédito…"
-        value={filtro}
-        onChange={(e) => setFiltro(e.target.value)}
-        className="cobro-bloque-command__search"
-        aria-label="Filtrar planilla"
-      />
+      <div className="cobro-bloque-command__row">
+        <Button
+          className="cobro-bloque-command__volver"
+          icon={<ArrowLeftOutlined />}
+          aria-label="Volver a caja diario"
+          onClick={() => navigate('/caja/diario')}
+        >
+          {fieldMode ? null : 'Volver'}
+        </Button>
+        <Input
+          allowClear
+          size="middle"
+          prefix={<SearchOutlined />}
+          placeholder={fieldMode ? 'Buscar cliente o crédito…' : 'Buscar cliente, celular, dirección o crédito…'}
+          value={filtro}
+          onChange={(e) => setFiltro(e.target.value)}
+          className="cobro-bloque-command__search"
+          aria-label="Filtrar planilla"
+        />
+      </div>
       <div className="cobro-bloque-command__meta">
+        {fieldMode ? (
+          <div className="cobro-bloque-command__vistas" role="tablist" aria-label="Vista de planilla">
+            {(
+              [
+                { id: 'todos' as const, label: 'Todos' },
+                { id: 'mora' as const, label: 'Mora' },
+                { id: 'cobro' as const, label: 'Con cobro' },
+              ] as const
+            ).map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                role="tab"
+                aria-selected={vistaCampo === v.id}
+                className={[
+                  'cobro-bloque-command__vista',
+                  vistaCampo === v.id ? 'cobro-bloque-command__vista--on' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                onClick={() => setVistaCampo(v.id)}
+              >
+                {v.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <span className="cobro-bloque-command__chip">
-          {filas.length}/{resumen.totalFilas} visibles
+          {filas.length}/{resumen.totalFilas}
         </span>
         <span className="cobro-bloque-command__chip cobro-bloque-command__chip--accent">
-          {resumen.conCobro} cobros · S/ {formatMoney(resumen.total)}
+          {resumen.conCobro} · S/ {formatMoney(resumen.total)}
         </span>
       </div>
-      <Button
-        className="cobro-bloque-command__volver"
-        icon={<ArrowLeftOutlined />}
-        onClick={() => navigate('/caja/diario')}
-      >
-        Volver
-      </Button>
     </div>
   )
 
@@ -971,13 +1008,21 @@ export function CobroBloquePage() {
     <CredixPage
       className={`cobro-bloque-page${fieldMode ? ' cobro-bloque-page--field' : ''}${actionDock ? ' cobro-bloque-page--dock' : ''}`}
       title="Cobro en bloque"
-      subtitle="Planilla digital de cobro diario: cobro rápido en campo, voucher con un toque y borrador automático."
-      breadcrumb={[
-        { title: <Link to="/inicio">Inicio</Link> },
-        { title: <Link to="/caja">Caja</Link> },
-        { title: <Link to="/caja/diario">Diario</Link> },
-        { title: 'Cobro en bloque' },
-      ]}
+      subtitle={
+        fieldMode
+          ? undefined
+          : 'Planilla digital de cobro diario: cobro rápido en campo, voucher con un toque y borrador automático.'
+      }
+      breadcrumb={
+        fieldMode
+          ? undefined
+          : [
+              { title: <Link to="/inicio">Inicio</Link> },
+              { title: <Link to="/caja">Caja</Link> },
+              { title: <Link to="/caja/diario">Diario</Link> },
+              { title: 'Cobro en bloque' },
+            ]
+      }
     >
       {yaEjecutadoHoy ? (
         <Alert
@@ -1005,13 +1050,15 @@ export function CobroBloquePage() {
         />
       ) : (
         <>
-          <Alert
-            type="info"
-            showIcon
-            className="cobro-bloque-page__hint"
-            message="Ruta digital (reemplazo del reporte impreso / PWA externo)"
-            description="Orden idéntico al PDF de cobro diario (vencidos primero). Los montos tipados se guardan en este dispositivo si cambia de módulo; al día siguiente el borrador caduca solo y nunca se registra solo en el servidor. Al procesar se confirman cobros + impagos."
-          />
+          {!fieldMode ? (
+            <Alert
+              type="info"
+              showIcon
+              className="cobro-bloque-page__hint"
+              message="Ruta digital (reemplazo del reporte impreso / PWA externo)"
+              description="Orden idéntico al PDF de cobro diario (vencidos primero). Los montos tipados se guardan en este dispositivo si cambia de módulo; al día siguiente el borrador caduca solo y nunca se registra solo en el servidor. Al procesar se confirman cobros + impagos."
+            />
+          ) : null}
 
           {draftBanner ? (
             <Alert
@@ -1076,7 +1123,10 @@ export function CobroBloquePage() {
           {toolbar}
           {resumenBar}
 
-          <CredixPanel title={`Planilla de campo (${filas.length})`}>
+          <CredixPanel
+            title={fieldMode ? `Ruta (${filas.length})` : `Planilla de campo (${filas.length})`}
+            className={fieldMode ? 'cobro-bloque-panel--field' : undefined}
+          >
             {carteraQuery.isError ? (
               <Alert
                 type="error"
@@ -1095,107 +1145,24 @@ export function CobroBloquePage() {
                     <Spin /> Cargando planilla…
                   </div>
                 ) : filas.length === 0 ? (
-                  <Text type="secondary">Sin clientes en la planilla.</Text>
+                  <Text type="secondary">
+                    {vistaCampo === 'cobro'
+                      ? 'Aún no tipó cobros. Cambie a Todos o Mora.'
+                      : vistaCampo === 'mora'
+                        ? 'No hay clientes en mora con este filtro.'
+                        : 'Sin clientes en la planilla.'}
+                  </Text>
                 ) : (
                   filas.map((row) => {
                     const e = getEdit(row)
-                    const enMora = row.diasAtrazo > 0
                     return (
-                      <article
+                      <CobroBloqueFieldCard
                         key={row.creditoId}
-                        className={`cobro-bloque-card${enMora ? ' cobro-bloque-card--mora' : ''}${e.montoPagar > 0 ? ' cobro-bloque-card--cobro' : ''}`}
-                      >
-                        <header className="cobro-bloque-card__head">
-                          <div>
-                            <h3 className="cobro-bloque-card__name">{row.personaNombre}</h3>
-                            <Text type="secondary">
-                              Crédito {row.creditoId} · venc. {formatFecha(row.fechaVencimiento)}
-                              {enMora ? ` · ${row.diasAtrazo}d atraso` : ''}
-                            </Text>
-                          </div>
-                          <div className="cobro-bloque-card__deuda">
-                            <Text type="secondary">Deuda</Text>
-                            <strong>S/ {formatMoney(row.deudaPendiente)}</strong>
-                          </div>
-                        </header>
-
-                        <div className="cobro-bloque-card__meta">
-                          {row.celular?.replace(/\D/g, '') ? (
-                            <span className="cobro-bloque-celular">
-                              <a
-                                className="cobro-bloque-card__link"
-                                href={`tel:${row.celular.replace(/\D/g, '')}`}
-                              >
-                                <PhoneOutlined /> {row.celular.replace(/\D/g, '')}
-                              </a>
-                              <a
-                                className="cobro-bloque-celular__wa"
-                                href={`https://wa.me/${
-                                  row.celular.replace(/\D/g, '').startsWith('51')
-                                    ? row.celular.replace(/\D/g, '')
-                                    : `51${row.celular.replace(/\D/g, '')}`
-                                }`}
-                                target="_blank"
-                                rel="noreferrer"
-                                aria-label="WhatsApp"
-                              >
-                                <WhatsAppOutlined />
-                              </a>
-                            </span>
-                          ) : null}
-                          {row.direccion ? (
-                            <span className="cobro-bloque-card__dir">
-                              <EnvironmentOutlined /> {row.direccion}
-                            </span>
-                          ) : null}
-                        </div>
-
-                        <div className="cobro-bloque-card__actions">
-                          <Button
-                            size="small"
-                            icon={<ThunderboltOutlined />}
-                            disabled={(row.cuotaSugerida || 0) <= 0}
-                            onClick={() => aplicarCuotaSugerida(row)}
-                          >
-                            {(row.cuotaSugerida || 0) > 0
-                              ? `Cuota S/ ${formatMoney(row.cuotaSugerida)}`
-                              : 'Sin cuota sug.'}
-                          </Button>
-                          <InputNumber
-                            className="cobro-bloque-card__monto"
-                            min={0}
-                            max={row.deudaPendiente}
-                            step={0.01}
-                            value={e.montoPagar}
-                            inputMode="decimal"
-                            onChange={(v) =>
-                              patchEdit(
-                                row.creditoId,
-                                { montoPagar: Number(v) || 0, cuotasSeleccionadas: [] },
-                                row,
-                              )
-                            }
-                          />
-                          <Select
-                            value={e.tipoPagoId}
-                            options={tipoPagoOptions}
-                            className="cobro-bloque-card__tipo"
-                            onChange={(v) => patchEdit(row.creditoId, { tipoPagoId: v }, row)}
-                          />
-                        </div>
-
-                        {TIPOS_PAGO_DIGITAL.has(e.tipoPagoId) ? (
-                          <FechaHoraDigitalField
-                            value={e.fechaHoraTrans}
-                            status={!e.fechaHoraTrans ? 'error' : undefined}
-                            onChange={(fechaHoraTrans) =>
-                              patchEdit(row.creditoId, { fechaHoraTrans }, row)
-                            }
-                          />
-                        ) : null}
-
-                        <details className="cobro-bloque-card__cuotas">
-                          <summary>Seleccionar cuotas</summary>
+                        row={row}
+                        edit={e}
+                        tipoPagoOptions={tipoPagoOptions}
+                        onPatch={(patch) => patchEdit(row.creditoId, patch, row)}
+                        cuotasSlot={
                           <CuotasSubgrid
                             creditoId={row.creditoId}
                             deudaMax={row.deudaPendiente}
@@ -1208,8 +1175,8 @@ export function CobroBloquePage() {
                               )
                             }
                           />
-                        </details>
-                      </article>
+                        }
+                      />
                     )
                   })
                 )}

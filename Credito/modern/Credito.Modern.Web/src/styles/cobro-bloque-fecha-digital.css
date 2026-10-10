@@ -116,10 +116,22 @@
 .cobro-bloque-fecha-digital__sheet-preview {
   margin: 0;
   text-align: center;
-  font-size: 16px;
-  font-weight: 750;
+  font-size: 20px;
+  font-weight: 800;
   color: var(--credix-brand, #114885);
   letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.cobro-bloque-fecha-digital__sheet-footer {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 8px;
+}
+
+.cobro-bloque-fecha-digital__sheet-footer .ant-btn {
+  min-height: 48px;
+  font-weight: 700;
 }
 
 /* Desktop: evitar panel demasiado ancho cerca del borde */
