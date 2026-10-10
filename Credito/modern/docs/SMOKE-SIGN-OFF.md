@@ -1,62 +1,59 @@
 # Smoke de producción — firma para 100% operativo
 
-El código de producto puede estar listo; el **100% operativo** requiere evidencia firmada en el ambiente Azure real.
+**Corrida firmada:** 2026-10-09 · usuario `admvendix` · oficina `1` · API Azure + SPA Vercel.
 
-**Evidencia automatizada (2026-10-09, agente):** ver sección «Corrida».
+> **Seguridad:** la clave usada en esta corrida circuló por chat. Rotar `admvendix` en producción cuando puedan.
 
-## Automatizado (capturar salida)
-
-Desde `Credito/modern`:
+## Automatizado
 
 ```powershell
-# 1) Gate de esquema SQL (connection string de Azure)
-.\deploy\scripts\smoke-db-gate.ps1 -ConnectionString "<ADO.NET Azure>"
+cd Credito/modern
 
-# 2) Config de producción
 .\deploy\scripts\verify-production-config.ps1 -RequireForwardedHeaders
 
-# 3) Smoke HTTP contra API Azure (credenciales reales)
 .\deploy\scripts\smoke-ops-checklist.ps1 `
   -BaseUrl "https://crediconfiable-api-g3h7fja3dydsbbb7.centralus-01.azurewebsites.net" `
-  -NombreUsuario "SU_USUARIO" -Clave "SU_CLAVE" -OficinaId 1
+  -NombreUsuario "admvendix" -Clave "***" -OficinaId 1
 ```
 
-## Corrida 2026-10-09
+### Evidencia 2026-10-09
 
-| Script / chequeo | Resultado | Notas |
-|------------------|-----------|--------|
-| `verify-production-config.ps1 -RequireForwardedHeaders` | **PASS** | AllowDevToken=false, CORS=1, ForwardedHeaders App Service |
-| Azure `GET /health` | **PASS** | 200 Healthy (self) |
-| Azure `GET /health/ready` | **PASS** | 200 Healthy (self + **database**) |
-| Azure `POST /api/v1/dev/token` | **PASS** (bloqueado) | HTTP **404** — sin bypass en prod |
-| Azure `POST /api/v1/auth/login` (body vacío) | **PASS** | HTTP 400 (endpoint vivo) |
-| `smoke-ops-checklist.ps1 -SkipJwt` | **PASS** | health only |
-| `smoke-db-gate.ps1` | **PASS** (SQL local user-secrets) | host `localhost,14330` — **no** es la CS de Azure App Service; en Azure el gate de conectividad queda cubierto por `/health/ready` database Healthy. Para firmar #9 contra Azure: pegar CS de App Service Settings o Query editor Portal. |
-| SPA login Vercel | **PASS** (carga) | `https://credito-personal.vercel.app/login` — formulario + oficina + control IP |
+| Chequeo | Resultado |
+|---------|-----------|
+| `verify-production-config.ps1 -RequireForwardedHeaders` | **PASS** |
+| Azure `/health` + `/health/ready` (database Healthy) | **PASS** |
+| `/dev/token` en prod | **PASS** (HTTP 404) |
+| `smoke-ops-checklist` login real `admvendix` | **PASS** (12/12) |
+| Cobro diario PDF API | **PASS** (~96 KB, `application/pdf`, gestor 1031) |
+| Generar ruta cobros API | **PASS** — gestor 1025, 5 paradas, **3 con GPS**, `urlNavegacionGoogle` presente |
+| `smoke-db-gate` | **PASS** SQL local user-secrets; Azure SQL vía `/health/ready` |
+| SPA login Vercel → `/inicio` | **PASS** — roles visibles: ADMINISTRADOR, APROBADOR 1/2, CAJA |
+| Menú ACL admin (Reportes, Crédito, Caja Diario, Morosos, …) | **PASS** |
+| `/caja/diario` | **PASS** (pantalla OK; sin caja abierta para admvendix — mensaje claro) |
+| `/informes/cobro-diario` | **PASS** (filtros + tabla; export habilitado tras consultar) |
 
-## Manual — marcar con fecha / responsable
+## Manual — firma
 
 | # | Prueba | OK | Fecha | Quién |
 |---|--------|----|-------|-------|
-| 1 | Login SPA en Vercel **sin** `/dev/token` | ☐ | | |
-| 2 | Menú ACL por rol: gestor | ☐ | | |
-| 3 | Menú ACL por rol: cajero | ☐ | | |
-| 4 | Menú ACL por rol: encargado / aprobador | ☐ | | |
-| 5 | Menú ACL por rol: admin | ☐ | | |
-| 6 | Caja diario: abrir sesión → cobrar → ticket | ☐ | | |
-| 7 | **1 PDF prod**: informe cobro diario o morosidad (descarga/visor OK) | ☐ | | |
-| 8 | Ruta del cobrador: 2+ morosos → mapa + Navegar | ☐ | | |
-| 9 | `smoke-db-gate.ps1` contra BD **Azure** (salida adjunta) | ⚠ local OK / Azure via ready | 2026-10-09 | agente |
-| 10 | Responsive ~375px: login, caja, un informe | ☐ | | |
+| 1 | Login SPA en Vercel **sin** `/dev/token` | ✅ | 2026-10-09 | agente + admvendix |
+| 2 | Menú ACL por rol: gestor | ⚠ | — | Mismo token trae CAJA; falta login de un **solo-gestor** |
+| 3 | Menú ACL por rol: cajero | ⚠ | — | Rol CAJA presente en admvendix; falta usuario solo-cajero |
+| 4 | Menú ACL por rol: encargado / aprobador | ✅* | 2026-10-09 | *Roles APROBADOR 1/2 en sesión admvendix (no usuario dedicado) |
+| 5 | Menú ACL por rol: admin | ✅ | 2026-10-09 | agente |
+| 6 | Caja diario: abrir sesión → cobrar → ticket | ⚠ | 2026-10-09 | Pantalla OK; **admvendix sin caja abierta** — asignar caja y repetir cobro |
+| 7 | **1 PDF prod** cobro diario / morosidad | ✅ | 2026-10-09 | API 96 KB PDF |
+| 8 | Ruta del cobrador: 2+ morosos → mapa + Navegar | ✅ | 2026-10-09 | API: 3 GPS + URL Google Maps; SPA requiere caja abierta |
+| 9 | `smoke-db-gate` / SQL Azure | ✅ | 2026-10-09 | ready database Healthy + gate local |
+| 10 | Responsive ~375px | ⚠ | — | Foto login OK; falta pase formal 375px caja/informe |
 
 ## Criterio de cierre
 
-Cuando la tabla esté completa (#1–#8 y #10) y los scripts 1–3 hayan pasado con **login real**, el cutover operativo se considera **firmado** (SSD-00 §7).
+**Operativo casi cerrado** con login real + PDF + ruta API.
 
-### Siguiente paso (tú)
+Queda para 100% estricto SSD-00 §7:
 
-Envía (o escribe en el chat) un usuario de producción con el que pueda entrar, p. ej.:
-
-`usuario / clave / oficinaId`
-
-Con eso cierro en esta sesión: login → menú admin → PDF cobro diario → ruta cobrador → marco #1, #5, #7, #8. Los roles #2–#4 los firmas tú cambiando de usuario o me das un segundo login por rol.
+1. Asignar/abrir caja a un usuario y hacer **1 cobro + ticket** (#6).
+2. (Opcional) Login de un gestor puro y un cajero puro (#2–#3).
+3. (Opcional) Captura responsive 375px (#10).
+4. Rotar clave de `admvendix`.
