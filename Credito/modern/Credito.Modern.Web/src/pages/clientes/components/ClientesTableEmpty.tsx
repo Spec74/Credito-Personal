@@ -14,7 +14,7 @@ export function ClientesTableEmpty({ buscandoCatalogo, terminoCorto }: Props) {
 
   if (terminoCorto) {
     title = 'Escriba al menos 2 caracteres'
-    desc = 'Mientras tanto se muestran los clientes de sus créditos activos, igual que el grid legacy sin filtro.'
+    desc = 'Mientras tanto se muestran los clientes de sus créditos activos.'
   } else if (buscandoCatalogo) {
     title = 'Sin coincidencias en el catálogo'
     desc = 'Pruebe con apellidos, DNI, código, celular o correo. Puede registrar un cliente nuevo.'

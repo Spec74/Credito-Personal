@@ -51,7 +51,7 @@ export function ModulePlaceholderPage() {
       }
     >
       <CredixAlertNote>
-        Este ítem del menú (<Text code>#{menuId}</Text>) aún no tiene pantalla en la migración.
+        Este ítem del menú (<Text code>#{menuId}</Text>) aún no tiene pantalla disponible.
         Use el menú lateral para las operaciones disponibles.
       </CredixAlertNote>
     </CredixPage>

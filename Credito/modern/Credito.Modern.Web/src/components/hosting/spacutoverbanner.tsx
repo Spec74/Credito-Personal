@@ -16,8 +16,8 @@ export function SpaCutoverBanner() {
       type="success"
       showIcon
       style={{ marginBottom: 16 }}
-      message="Sistema moderno activo (Fase 5C-7)"
-      description={`Menú y operación diaria en esta SPA. Datos e informes tabulares vía API. Período de observación recomendado: ${data.observacionDias} días antes de retirar el MVC en producción.`}
+      message="Credix web activo"
+      description={`Menú y operación diaria en esta aplicación. Datos e informes vía API. Período de observación: ${data.observacionDias} días.`}
     />
   )
 }

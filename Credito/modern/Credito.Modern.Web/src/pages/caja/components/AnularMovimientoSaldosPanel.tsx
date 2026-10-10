@@ -150,7 +150,7 @@ export function AnularMovimientoSaldosPanel({ oficinaId, onAnulado }: Props) {
         </>
       ) : (
         <p className="caja-saldos-anular-panel__hint">
-          Ingrese el n° y pulse Enter — mismo flujo que Saldos del sistema anterior.
+          Ingrese el n° de movimiento y pulse Enter para anular.
         </p>
       )}
     </CredixPanel>

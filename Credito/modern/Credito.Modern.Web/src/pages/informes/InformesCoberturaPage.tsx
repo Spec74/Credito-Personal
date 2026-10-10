@@ -26,7 +26,11 @@ const columns: ColumnsType<ReporteCoberturaItem> = [
     title: 'Nivel',
     dataIndex: 'nivelCobertura',
     width: 130,
-    render: (n: string) => <Tag color={nivelColor[n] ?? 'default'}>{n}</Tag>,
+    render: (n: string) => (
+      <Tag color={nivelColor[n] ?? 'default'}>
+        {n === 'solo-mvc' ? 'Pendiente en pantalla' : n}
+      </Tag>
+    ),
   },
   { title: 'Informe', dataIndex: 'nombre', ellipsis: true },
   { title: 'Área', dataIndex: 'area', width: 90 },
@@ -99,7 +103,7 @@ export function InformesCoberturaPage() {
       stats={stats}
     >
       <CoberturaTable
-        title="Solo diseño RDLC / ticket (pendiente)"
+        title="Informes pendientes de pantalla (solo exportación)"
         rows={soloMvc}
         loading={query.isLoading}
       />

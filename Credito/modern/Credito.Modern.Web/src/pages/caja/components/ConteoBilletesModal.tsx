@@ -66,7 +66,7 @@ export function ConteoBilletesModal({
       Modal.warning({
         title: 'Conteo insuficiente',
         content:
-          'El conteo de billetes debe ser mayor o igual al saldo final de cajas (paridad legacy).',
+          'El conteo de billetes debe ser mayor o igual al saldo final de cajas.',
       })
       return
     }

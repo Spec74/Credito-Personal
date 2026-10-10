@@ -63,10 +63,8 @@ export function AsignarCajaPage() {
       )}
 
       <Paragraph type="secondary" style={{ marginTop: 16 }}>
-        Tras asignar permanece en{' '}
-        <Link to="/caja/saldos">Saldos caja</Link> (paridad MVC). La caja diario
-        del cajero se abre en{' '}
-        <Link to="/caja/diario">Caja diario</Link>.
+        Tras asignar permanece en <Link to="/caja/saldos">Saldos caja</Link>. La caja
+        diario del cajero se abre en <Link to="/caja/diario">Caja diario</Link>.
       </Paragraph>
     </CredixPage>
   )

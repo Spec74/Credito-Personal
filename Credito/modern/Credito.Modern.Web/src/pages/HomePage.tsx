@@ -84,7 +84,7 @@ const ADMIN_LCP_SUB =
   'Vista completa de la oficina: operación del día, acumulado del mes, flujo de caja, tendencia y rendimiento por analista.'
 
 const ANALISTA_LCP_SUB =
-  'Indicadores de tus créditos en esta oficina — paridad del dashboard legado, con seguimiento y acciones priorizadas.'
+  'Indicadores de tus créditos en esta oficina, con seguimiento y acciones priorizadas.'
 
 export function HomePage() {
   const { session } = useAuth()

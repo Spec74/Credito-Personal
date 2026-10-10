@@ -438,7 +438,7 @@ export function CajaChicaPage() {
     <CredixPage
       className="caja-chica-page credix-page--stats-3"
       title="Caja chica"
-      subtitle="Gastos, rendición de comprobantes y arqueo — pestañas como CajaChica/Index del MVC."
+      subtitle="Gastos, rendición de comprobantes y arqueo en pestañas."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/caja">Caja</Link> },
@@ -472,8 +472,8 @@ export function CajaChicaPage() {
       ) : sesion.data ? (
         <>
           <p className="credix-module-banner credix-module-banner--spaced">
-            <strong>Paridad MVC:</strong> GASTOS · RENDICIÓN (pendientes + comprobantes) · ARQUEO
-            (entradas/salidas, cierre y transferir a bóveda en la misma pestaña).
+            Pestañas: GASTOS · RENDICIÓN (pendientes + comprobantes) · ARQUEO (entradas/salidas,
+            cierre y transferir a bóveda).
           </p>
 
           <Tabs
@@ -866,7 +866,8 @@ export function CajaChicaPage() {
                           Modal.confirm({
                             title: '¿Cerrar caja chica del día?',
                             icon: <ExclamationCircleOutlined />,
-                            content: 'Paridad botón «Cerrar Caja» del MVC en arqueo.',
+                            content:
+                              '¿Cerrar la caja chica del día? Esta acción cierra la sesión en arqueo.',
                             okText: 'Cerrar',
                             onOk: () => cerrarSesion.mutateAsync(),
                           })

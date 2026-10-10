@@ -1048,8 +1048,8 @@ export function CreditoConsultaGestionPanel({
         okText="Crear y asignar"
       >
         <Paragraph type="secondary">
-          Paridad con <strong>Nuevo Aval</strong> del MVC. Valide el DNI con API Perú,
-          cree la persona y asígnela como aval del crédito actual.
+          Valide el DNI con API Perú, cree la persona y asígnela como aval del crédito
+          actual.
         </Paragraph>
         <Form layout="vertical">
           <Form.Item label="DNI">

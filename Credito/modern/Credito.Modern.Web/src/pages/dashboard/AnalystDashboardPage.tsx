@@ -62,8 +62,8 @@ export function AnalystDashboardPage() {
               <p className="dash-kicker">Tablero del gestor</p>
               <h2 className="dash-hello">Cargando…</h2>
               <p className="dash-sub">
-                Indicadores de tus créditos en esta oficina — paridad del dashboard legado, con
-                seguimiento y acciones priorizadas.
+                Indicadores de tus créditos en esta oficina, con seguimiento y acciones
+                priorizadas.
               </p>
             </div>
           </header>
@@ -128,8 +128,8 @@ export function AnalystDashboardPage() {
               {saludo()}, {data.nombreAnalista}
             </h2>
             <p className="dash-sub">
-              Indicadores de tus créditos en esta oficina — paridad del dashboard
-              legado, con seguimiento y acciones priorizadas.
+              Indicadores de tus créditos en esta oficina, con seguimiento y acciones
+              priorizadas.
             </p>
           </div>
           <div className="dash-date">{fechaLarga}</div>
@@ -238,7 +238,7 @@ export function AnalystDashboardPage() {
           <section className="dash-mora-strip" aria-label="Desglose de mora">
             <div className="dash-mora-strip__head">
               <strong>Desglose de mora</strong>
-              <span>Filtros rápidos del listado (valor agregado sobre el legado)</span>
+              <span>Filtros rápidos para abrir el listado de mora</span>
             </div>
             <div className="dash-mora-strip__chips">
               <MoraChip

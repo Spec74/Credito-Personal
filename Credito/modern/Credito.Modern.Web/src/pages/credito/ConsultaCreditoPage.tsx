@@ -533,7 +533,7 @@ export function ConsultaCreditoPage() {
     <CredixPage
       className="credito-consulta-page"
       title="Créditos"
-      subtitle="Búsqueda, solicitud, plan de pagos, gestión, movimientos e impresos con paridad del Creditos MVC."
+      subtitle="Búsqueda, solicitud, plan de pagos, gestión, movimientos e impresos del crédito."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -752,8 +752,8 @@ export function ConsultaCreditoPage() {
           />
         )}
         <Paragraph type="secondary">
-          Misma regla que el MVC: todas las cuentas por cobrar deben estar en
-          estado anulable y se requiere clave de autorización.
+          Todas las cuentas por cobrar deben estar en estado anulable y se requiere
+          clave de autorización.
         </Paragraph>
         <Input.Password
           style={{ marginBottom: 12 }}
@@ -784,7 +784,7 @@ export function ConsultaCreditoPage() {
         okText="Prorrogar"
       >
         <Space direction="vertical">
-          <Paragraph type="secondary">Días de prórroga (paridad MVC).</Paragraph>
+          <Paragraph type="secondary">Indique los días de prórroga.</Paragraph>
           <InputNumber
             min={1}
             value={diasProrroga}

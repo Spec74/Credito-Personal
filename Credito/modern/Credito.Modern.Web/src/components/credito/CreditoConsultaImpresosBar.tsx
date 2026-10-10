@@ -74,7 +74,7 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
             Reportes del crédito
           </Text>
           <Text type="secondary" className="credito-consulta-impresos__hint">
-            PDFs con cabecera del crédito, datos de paridad legacy y formato profesional.
+            PDFs con cabecera del crédito y formato profesional.
           </Text>
         </div>
       </div>
@@ -84,7 +84,7 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
           Documentos disponibles
         </Text>
         <Space wrap size={[8, 8]} className="credito-consulta-impresos__actions">
-          <Tooltip title="Abrir PDF moderno con logo, colores y datos del estado de cuenta">
+          <Tooltip title="Abrir PDF con logo, colores y datos del estado de cuenta">
             <Button
               icon={<FilePdfOutlined />}
               loading={estadoPdf.isPending}
@@ -95,7 +95,7 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
               Estado cuenta
             </Button>
           </Tooltip>
-          <Tooltip title="Abrir PDF moderno con logo, colores y plan de cuotas">
+          <Tooltip title="Abrir PDF con logo, colores y plan de cuotas">
             <Button
               icon={<FilePdfOutlined />}
               loading={planPdf.isPending}
@@ -106,7 +106,7 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
               Plan de pagos
             </Button>
           </Tooltip>
-          <Tooltip title="Abrir PDF moderno de movimientos del crédito">
+          <Tooltip title="Abrir PDF de movimientos del crédito">
             <Button
               icon={<FilePdfOutlined />}
               loading={movPdf.isPending}

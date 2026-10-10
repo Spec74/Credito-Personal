@@ -107,7 +107,7 @@ export function EntradaSalidaTab({
       >
         {esEgreso ? (
           <Paragraph type="warning" style={{ margin: 0 }}>
-            Los egresos requieren clave de administrador (paridad MVC).
+            Los egresos requieren clave de administrador.
           </Paragraph>
         ) : (
           <Paragraph type="secondary" style={{ margin: 0 }}>
@@ -237,7 +237,7 @@ export function EntradaSalidaTab({
         confirmLoading={guardar.isPending}
       >
         <Paragraph type="secondary">
-          Los egresos requieren clave de administrador (paridad MVC).
+          Los egresos requieren clave de administrador.
         </Paragraph>
         <Input.Password
           placeholder="Clave ADMVENDIX"

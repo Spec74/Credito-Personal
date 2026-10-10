@@ -159,7 +159,7 @@ export function ClientesPage() {
     <CredixCrudPage
       className="clientes-page credix-page--stats-3"
       title="Clientes"
-      subtitle="Mantenimiento de clientes con el mismo criterio del MVC: listado por sus créditos o búsqueda en catálogo (2+ caracteres). Doble clic en una fila para abrir la ficha."
+      subtitle="Mantenimiento de clientes: listado por sus créditos o búsqueda en catálogo (2+ caracteres). Doble clic en una fila para abrir la ficha."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Clientes' },
@@ -210,7 +210,7 @@ export function ClientesPage() {
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
-          message="Con menos de 2 caracteres se listan los clientes de sus créditos (paridad grid legacy vacío)."
+          message="Con menos de 2 caracteres se muestran los clientes asociados a sus créditos."
         />
       ) : null}
 

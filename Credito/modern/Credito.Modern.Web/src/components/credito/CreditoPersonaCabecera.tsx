@@ -165,7 +165,7 @@ export function CreditoPersonaCabecera({
   const solicitarCrearSolicitud = () => {
     cajaConfirm({
       title: 'Crear solicitud de crédito',
-      content: '¿Desea crear la solicitud de crédito para este cliente? (estado CRE, paridad MVC).',
+      content: '¿Desea crear la solicitud de crédito para este cliente? (estado CRE).',
       onOk: () => crearSolicitud.mutateAsync(),
     })
   }
@@ -308,7 +308,7 @@ export function CreditoPersonaCabecera({
           cajaConfirm({
             title: 'Confirmar depuración',
             content:
-              '¿Depurar este cliente? No podrá crear solicitudes de crédito (paridad MVC).',
+              '¿Depurar este cliente? No podrá crear solicitudes de crédito.',
             onOk: () => depurar.mutateAsync(),
           })
         }}
@@ -317,8 +317,8 @@ export function CreditoPersonaCabecera({
         okButtonProps={{ danger: true }}
       >
         <Typography.Paragraph type="secondary">
-          Paridad <strong>btnDepurarCliente</strong> / <code>DepurarCredito</code> del sistema
-          clásico. El motivo se guardará en mayúsculas.
+          El cliente quedará depurado y no podrá originar créditos. El motivo se guardará en
+          mayúsculas.
         </Typography.Paragraph>
         <Input.TextArea
           rows={3}

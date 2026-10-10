@@ -510,7 +510,7 @@ export function SaldosPage() {
         </Tag>
         {lectura ? (
           <span style={{ fontSize: 13, color: 'var(--credix-text-muted)' }}>
-            Sin asignar ni cerrar cajas (paridad LECTURA_SALDO).
+            Rol de solo lectura: no puede asignar ni cerrar cajas.
           </span>
         ) : null}
       </div>
@@ -750,7 +750,7 @@ export function SaldosPage() {
                 <CredixPanel title="Cerrar cajas diarias (CERRAR CAJAS)">
                   <Paragraph type="secondary">
                     Saldo final para conteo: <strong>S/ {formatMoney(importeCierre)}</strong>{' '}
-                    (suma de cajas asignadas, paridad footer legacy).
+                    (suma de cajas asignadas).
                   </Paragraph>
                   <Button
                     type="primary"
@@ -778,8 +778,8 @@ export function SaldosPage() {
 
                 <CredixPanel title="Post-cierre bóveda">
                   <Paragraph type="secondary">
-                    Tras el cierre masivo el MVC actualiza cartera y calificación. También puede
-                    ejecutarlo manualmente.
+                    Tras el cierre masivo el sistema actualiza cartera y calificación. También
+                    puede ejecutarlo manualmente.
                   </Paragraph>
                   <Button
                     loading={postCierreBoveda.isPending}

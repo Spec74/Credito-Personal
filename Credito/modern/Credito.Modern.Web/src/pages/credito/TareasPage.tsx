@@ -271,7 +271,7 @@ export function TareasPage() {
     <CredixCrudPage
       className="credito-tareas-page credix-page--stats-3"
       title="Mis tareas"
-      subtitle="Seguimiento de pendientes por crédito con subtareas, filtros y exportación (paridad MVC Tareas)."
+      subtitle="Seguimiento de pendientes por crédito con subtareas, filtros y exportación."
       panelTitle="Listado de tareas"
       stats={stats}
       breadcrumb={[

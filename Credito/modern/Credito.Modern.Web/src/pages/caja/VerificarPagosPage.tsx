@@ -75,7 +75,7 @@ function confirmarVerificacion(row: PagosNoVerificadosRow, onOk: () => void): vo
       <>
         <Paragraph style={{ marginBottom: 8 }}>{detalle}</Paragraph>
         <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-          ¿Desea actualizar el pago como verificado? (paridad doble clic legacy)
+          ¿Desea marcar este depósito como verificado?
         </Paragraph>
       </>
     ),
@@ -245,7 +245,7 @@ export function VerificarPagosPage() {
     <CredixCrudPage
       className="caja-verificar-pagos-page credix-page--stats-3"
       title="Verificar pagos por transferencia"
-      subtitle="Confirme depósitos en cuentas — misma grilla que VerificarPagos del MVC."
+      subtitle="Confirme depósitos en cuentas bancarias de la oficina."
       panelTitle="VERIFICADOR DE PAGOS"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -262,7 +262,7 @@ export function VerificarPagosPage() {
             setPage(1)
           }}
           placeholder="Cliente, movimiento, tipo, nº"
-          hint="Filtro instantáneo. Doble clic en fila = verificar (como legacy)."
+          hint="Filtro instantáneo. Doble clic en la fila para verificar."
           hintShort="Doble clic en fila = verificar."
           filteredCount={filtrados.length}
           totalCount={pendientes.length}
@@ -291,8 +291,8 @@ export function VerificarPagosPage() {
       }
     >
       <p className="credix-module-banner credix-module-banner--spaced">
-        <strong>Paridad MVC:</strong> columnas MOV / CLIENTE / MOVIMIENTO / PAGO / TIPO / FECHA /
-        REGISTRO · doble clic confirma verificación · exportaciones CSV/PDF añadidas en modern.
+        Columnas: MOV / CLIENTE / MOVIMIENTO / PAGO / TIPO / FECHA / REGISTRO. Doble clic
+        confirma verificación. Exporte CSV o PDF desde la barra superior.
       </p>
 
       {oficinaId < 1 ? (

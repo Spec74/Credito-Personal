@@ -5,7 +5,7 @@ function openLegacyPath(path: string): void {
   const url = `${LEGACY_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`
   const opened = window.open(url, '_blank', 'noopener,noreferrer')
   if (!opened) {
-    throw new Error('Permita ventanas emergentes para abrir el informe legacy.')
+    throw new Error('Permita ventanas emergentes para abrir el informe.')
   }
 }
 

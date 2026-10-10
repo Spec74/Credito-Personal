@@ -205,7 +205,7 @@ export function CajaMaestroPage() {
     <CredixCrudPage
       className="caja-maestro-page credix-page--stats-3"
       title={isMantenimiento ? 'Mantenimiento de cajas' : 'Maestro de cajas'}
-      subtitle="Alta y mantenimiento de cajas por oficina y gestor — paridad Caja/Index del MVC."
+      subtitle="Alta y mantenimiento de cajas por oficina y gestor."
       panelTitle="LISTA DE CAJAS"
       stats={stats}
       breadcrumb={breadcrumb}
@@ -297,8 +297,8 @@ export function CajaMaestroPage() {
       }
     >
       <p className="credix-module-banner credix-module-banner--spaced">
-        <strong>Paridad MVC:</strong> denominación, oficina, gestor y estado activo · paginación
-        15/30/45 · doble clic abre el mismo formulario de edición.
+        Campos: denominación, oficina, gestor y estado activo. Paginación 15/30/45. Doble
+        clic abre el formulario de edición.
       </p>
 
       {cajasQuery.isError ? (

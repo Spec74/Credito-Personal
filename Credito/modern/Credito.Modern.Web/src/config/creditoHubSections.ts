@@ -84,7 +84,7 @@ export const CREDITO_HUB_SECTIONS: CredixHubSection[] = [
       {
         to: '/informes/cobro-diario',
         label: 'Cobro diario',
-        description: 'Cartera del día — mismo informe que MVC',
+        description: 'Cartera del día por gestor',
       },
       {
         to: '/informes/cobro-diario-detalle',
