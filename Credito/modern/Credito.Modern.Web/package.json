@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "test:e2e:roles": "playwright test e2e/role-module-matrix.spec.ts e2e/role-flows.spec.ts --workers=1",
     "typecheck": "tsc -b --pretty false",
     "preview": "vite preview",
     "quality": "npm run lint && npm run typecheck && npm run test:coverage && npm run build"

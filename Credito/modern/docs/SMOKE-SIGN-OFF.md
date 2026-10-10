@@ -81,3 +81,12 @@ Clave de prueba: `123.` · oficina `1`.
 - PDF cobro diario + responsive 375px.
 
 **Pendiente operativo (no bloquea smoke):** rotar claves expuestas en chat.
+
+## E2E plataforma (rol × módulo)
+
+Corrida completa por perfiles ACL: ver **[E2E-ROLE-MODULE-MATRIX.md](./E2E-ROLE-MODULE-MATRIX.md)**.
+
+| Suite Playwright | Resultado 2026-10-10 |
+|------------------|----------------------|
+| `e2e/role-module-matrix.spec.ts` | **4/4 PASS** (ADMIN, GESTOR_CAJA, APROBADOR_REPORTE, CAJERO_ENCARGADO) |
+| `e2e/role-flows.spec.ts` | **4/4 PASS** (seguridad/bóveda/aprobación, cartera, saldos/reportes, caja ABIERTO) |
