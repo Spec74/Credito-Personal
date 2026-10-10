@@ -27,6 +27,8 @@ const HUB_CHILDREN: Record<string, string[]> = {
   '/credito/consulta': ['/credito/persona/'],
   '/clientes': ['/clientes/'],
   '/caja': ['/caja/'],
+  // Operación diaria: cobro en bloque es atajo de Caja diario (no ítem de menú propio).
+  '/caja/diario': ['/caja/cobro-bloque'],
   '/tesoreria': ['/tesoreria/'],
   '/tesoreria/boveda': ['/tesoreria/movimiento-boveda'],
   '/maestros': ['/maestros/', '/mantenimiento/'],
@@ -140,6 +142,11 @@ export function hasMenuRouteAccess(
   // Quien ya opera Saldos puede abrir Asignar caja (misma capacidad del modal en Saldos).
   if (allowedPaths.has('/caja/saldos')) {
     allowedPaths.add('/caja/asignar')
+  }
+
+  // Caja diario implica cobro en bloque (botón de operaciones; no hay menú aparte).
+  if (allowedPaths.has('/caja/diario')) {
+    allowedPaths.add('/caja/cobro-bloque')
   }
 
   const adminHub = adminHubIndexAccess(path, allowedPaths)

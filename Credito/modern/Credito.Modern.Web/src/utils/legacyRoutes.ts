@@ -53,6 +53,8 @@ const LEGACY_TO_SPA: Array<{ match: RegExp; spaPath: string }> = [
   { match: /\/credito\/creditos/i, spaPath: '/credito/consulta' },
   { match: /^\/credito$/i, spaPath: '/credito' },
   { match: /^\/caja\/asignar/i, spaPath: '/caja/asignar' },
+  { match: /^\/caja\/cobro-bloque/i, spaPath: '/caja/cobro-bloque' },
+  { match: /^\/caja\/diario/i, spaPath: '/caja/diario' },
   { match: /reportestock(?!anulado)/i, spaPath: '/informes/reporte-stock' },
   { match: /reportestockanulado|stockanulado/i, spaPath: '/informes/stock-anulados' },
   { match: /listarsaldocartera|saldo-cartera/i, spaPath: '/informes/saldo-cartera' },

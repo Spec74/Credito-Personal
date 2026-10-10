@@ -51,6 +51,35 @@ describe('menuRouteAccess', () => {
     expect(hasMenuRouteAccess('/caja/verificar-pagos', [menu('/verificarpagos')])).toBe(true)
   })
 
+  it('caja diario habilita cobro en bloque (atajo operativo)', () => {
+    expect(hasMenuRouteAccess('/caja/cobro-bloque', [menu('/caja/diario')])).toBe(true)
+    expect(hasMenuRouteAccess('/caja/cobro-bloque', [menu('/cajadiario')])).toBe(true)
+    expect(
+      hasMenuRouteAccess('/caja/cobro-bloque', [
+        { ...menu('Credito/CajaDiario', 'CAJA DIARIO'), modulo: 'CREDITO' },
+      ]),
+    ).toBe(true)
+    // Hub módulo CAJA (sin URL) habilita hijos /caja/*
+    expect(
+      hasMenuRouteAccess('/caja/cobro-bloque', [
+        { ...menu('', 'CAJA'), modulo: 'CAJA', url: null },
+      ]),
+    ).toBe(true)
+    // URL /caja legacy = maestro de cajas, no hub operativo
+    expect(hasMenuRouteAccess('/caja/cobro-bloque', [menu('/caja')])).toBe(false)
+    expect(hasMenuRouteAccess('/caja/cobro-bloque', [menu('/clientes')])).toBe(false)
+  })
+
+  it('extraAllowedPaths habilita asignar caja y cobro en bloque por rol', () => {
+    expect(hasMenuRouteAccess('/caja/asignar', [menu('/caja/diario')], ['/caja/asignar'])).toBe(
+      true,
+    )
+    expect(hasMenuRouteAccess('/caja/asignar', [menu('/caja/diario')])).toBe(false)
+    expect(
+      hasMenuRouteAccess('/caja/cobro-bloque', [menu('/clientes')], ['/caja/cobro-bloque']),
+    ).toBe(true)
+  })
+
   it('hub credito no habilita aprobacion ni parametros de simulador', () => {
     expect(hasMenuRouteAccess('/credito/aprobar', [menu('/credito')])).toBe(false)
     expect(hasMenuRouteAccess('/credito/parametros-simulador', [menu('/credito')])).toBe(false)

@@ -6,13 +6,14 @@ import { hasMenuRouteAccess } from './menuRouteAccess'
 export function filterHubSectionsByMenu(
   sections: CredixHubSection[],
   menu: MenuItemDto[],
-  opts?: { includeAlwaysAllowed?: boolean },
+  opts?: { includeAlwaysAllowed?: boolean; extraAllowedPaths?: string[] },
 ): CredixHubSection[] {
+  const extras = opts?.extraAllowedPaths ?? []
   return sections
     .map((section) => ({
       ...section,
       links: section.links.filter((link) =>
-        hasMenuRouteAccess(link.to, menu, [], {
+        hasMenuRouteAccess(link.to, menu, extras, {
           includeAlwaysAllowed: opts?.includeAlwaysAllowed ?? false,
         }),
       ),

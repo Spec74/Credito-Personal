@@ -45,6 +45,7 @@ import {
 import { resolveSpaPathFromModulo } from '../../utils/legacyRoutes'
 import { resolveSpaPathFromMenuItem } from '../../utils/resolveSpaPathFromMenuItem'
 import { hasMenuRouteAccess } from '../../utils/menuRouteAccess'
+import { puedeAsignarCajaUi, puedeCobroBloqueUi } from '../../utils/cajaSaldosPermisos'
 
 const { Text } = Typography
 
@@ -137,10 +138,15 @@ export function AppShell() {
   const quickActionsVisible = quickActions
   const extraAllowedPaths = useMemo(() => {
     const paths: string[] = []
+    const roles = session?.roles ?? []
     if (puedeVerCierreGerencial) paths.push('/informes/cierre-gerencial')
     if (puedeVerMorosos) paths.push('/informes/morosos')
+    // Admin/encargado: Asignar caja por rol (modal o ruta), sin exigir ítem de menú Saldos.
+    if (puedeAsignarCajaUi(roles)) paths.push('/caja/asignar')
+    // Gestor/analista/caja: cobro en bloque es atajo de Caja diario (sin ítem de menú).
+    if (puedeCobroBloqueUi(roles)) paths.push('/caja/cobro-bloque')
     return paths
-  }, [puedeVerCierreGerencial, puedeVerMorosos])
+  }, [puedeVerCierreGerencial, puedeVerMorosos, session?.roles])
   const hasCurrentRouteAccess = useMemo(
     () => hasMenuRouteAccess(location.pathname, navigationMenuData, extraAllowedPaths),
     [location.pathname, navigationMenuData, extraAllowedPaths],
