@@ -50,7 +50,18 @@ import {
   saveCobroBloqueDraft,
   type CobroBloqueRowDraft,
 } from '../../utils/cobroBloqueDraft'
+import {
+  clearCobroBloqueCarteraCache,
+  clearCobroBloquePendingProcess,
+  enqueueCobroBloqueProcess,
+  isBrowserOnline,
+  isLikelyNetworkError,
+  loadCobroBloqueCarteraCache,
+  loadCobroBloquePendingProcess,
+  saveCobroBloqueCarteraCache,
+} from '../../utils/cobroBloqueOffline'
 import type { EstadoPlanPagoCuota } from '../../types/api'
+import type { CajaSession } from './cajaDiario/types'
 import '../../styles/cobro-bloque.css'
 
 const { Text } = Typography
@@ -183,8 +194,24 @@ export function CobroBloquePage() {
   const [filtro, setFiltro] = useState('')
   const [edits, setEdits] = useState<Record<number, RowEdit>>({})
   const [draftBanner, setDraftBanner] = useState<string | null>(null)
+  const [online, setOnline] = useState(() => isBrowserOnline())
+  const [usingCache, setUsingCache] = useState(false)
+  const [pendingSync, setPendingSync] = useState(false)
+  const [syncingQueue, setSyncingQueue] = useState(false)
   const draftHydrated = useRef(false)
+  const syncingRef = useRef(false)
   const yaEjecutadoHoy = isCobroBloqueEjecutadoHoy()
+
+  useEffect(() => {
+    const on = () => setOnline(true)
+    const off = () => setOnline(false)
+    window.addEventListener('online', on)
+    window.addEventListener('offline', off)
+    return () => {
+      window.removeEventListener('online', on)
+      window.removeEventListener('offline', off)
+    }
+  }, [])
 
   const sesionQuery = useQuery({
     queryKey: ['caja-diario-sesion', oficinaId],
@@ -193,13 +220,86 @@ export function CobroBloquePage() {
     retry: false,
   })
 
-  const ctx = sesionQuery.data
+  const ctxOnline = sesionQuery.data
+
+  const resolveOfflineSession = useCallback((): CajaSession | null => {
+    if (ctxOnline || usuarioId < 1) return null
+    const fecha = fechaOperacionLocal()
+    const prefix = `credix.cobroBloqueCartera.v1:${usuarioId}:`
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i)
+        if (!k?.startsWith(prefix) || !k.endsWith(`:${fecha}`)) continue
+        const raw = localStorage.getItem(k)
+        if (!raw) continue
+        const parsed = JSON.parse(raw) as {
+          session?: CajaSession | null
+        }
+        if (parsed.session && !parsed.session.indCierre) return parsed.session
+      }
+    } catch {
+      /* ignore */
+    }
+    return null
+  }, [ctxOnline, usuarioId])
+
+  const ctxOffline = resolveOfflineSession()
+  const ctx = ctxOnline ?? ctxOffline
   const cajaDiarioId = ctx?.cajaDiarioId ?? 0
+  const offlineSesion = Boolean(!ctxOnline && ctxOffline)
+
+  useEffect(() => {
+    if (usuarioId < 1 || cajaDiarioId < 1) {
+      setPendingSync(false)
+      return
+    }
+    setPendingSync(
+      loadCobroBloquePendingProcess({ usuarioId, cajaDiarioId }) != null,
+    )
+  }, [usuarioId, cajaDiarioId, online])
 
   const carteraQuery = useQuery({
-    queryKey: ['caja-creditos-gestor-des', 'cobro-bloque'],
-    queryFn: fetchCreditosGestorDesembolsados,
-    enabled: !!ctx && !ctx.indCierre && !yaEjecutadoHoy,
+    queryKey: ['caja-creditos-gestor-des', 'cobro-bloque', cajaDiarioId],
+    queryFn: async () => {
+      try {
+        const rows = await fetchCreditosGestorDesembolsados()
+        if (ctx) {
+          saveCobroBloqueCarteraCache({
+            version: 1,
+            usuarioId,
+            oficinaId,
+            cajaDiarioId: ctx.cajaDiarioId,
+            fechaOperacion: fechaOperacionLocal(),
+            cachedAt: new Date().toISOString(),
+            rows,
+            session: {
+              oficinaId: ctx.oficinaId,
+              cajaDiarioId: ctx.cajaDiarioId,
+              cajaId: ctx.cajaId,
+              cajaDenominacion: ctx.cajaDenominacion,
+              fechaIniOperacion: ctx.fechaIniOperacion,
+              saldoInicial: ctx.saldoInicial,
+              entradas: ctx.entradas,
+              salidas: ctx.salidas,
+              saldoFinal: ctx.saldoFinal,
+              indCierre: ctx.indCierre,
+              esCajaCentral: ctx.esCajaCentral,
+            },
+          })
+        }
+        setUsingCache(false)
+        return rows
+      } catch (e) {
+        if (!isLikelyNetworkError(e)) throw e
+        const cache = loadCobroBloqueCarteraCache({ usuarioId, cajaDiarioId })
+        if (cache?.rows?.length) {
+          setUsingCache(true)
+          return cache.rows
+        }
+        throw e
+      }
+    },
+    enabled: !!ctx && !ctx.indCierre && !yaEjecutadoHoy && usuarioId > 0,
   })
 
   const tiposPagoQuery = useQuery({
@@ -365,40 +465,130 @@ export function CobroBloquePage() {
     return null
   }
 
+  const buildPlanillaPayload = () =>
+    (carteraQuery.data ?? [])
+      .map((row) => {
+        const e = getEdit(row)
+        return {
+          creditoId: row.creditoId,
+          montoPagar: e.montoPagar,
+          tipoPagoId: e.tipoPagoId,
+          fechaHoraTrans: e.fechaHoraTrans,
+        }
+      })
+      .filter((x) => x.montoPagar > 0)
+
+  const finalizarExito = (mensaje: string) => {
+    markCobroBloqueEjecutadoHoy()
+    clearCobroBloqueDraft({ usuarioId, cajaDiarioId })
+    clearCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
+    clearCobroBloqueCarteraCache({ usuarioId, cajaDiarioId })
+    setPendingSync(false)
+    setEdits({})
+    message.success(mensaje)
+    navigate('/caja/diario')
+  }
+
+  const encolarPorOffline = (planilla: ReturnType<typeof buildPlanillaPayload>) => {
+    if (!ctx) return
+    enqueueCobroBloqueProcess({
+      version: 1,
+      usuarioId,
+      oficinaId,
+      cajaDiarioId: ctx.cajaDiarioId,
+      fechaOperacion: fechaOperacionLocal(),
+      queuedAt: new Date().toISOString(),
+      conCobro: planilla.length,
+      total: planilla.reduce((a, x) => a + x.montoPagar, 0),
+      planilla,
+    })
+    setPendingSync(true)
+    message.warning(
+      'Sin conexión: la planilla quedó en cola en este dispositivo. Se enviará al recuperar red.',
+    )
+  }
+
   const procesar = useMutation({
     mutationFn: async () => {
       if (!ctx || ctx.indCierre) throw new Error('No hay caja diario abierta.')
       const err = validarPlanilla()
       if (err) throw new Error(err)
 
-      const planilla = (carteraQuery.data ?? [])
-        .map((row) => {
-          const e = getEdit(row)
-          return {
-            creditoId: row.creditoId,
-            montoPagar: e.montoPagar,
-            tipoPagoId: e.tipoPagoId,
-            fechaHoraTrans: e.fechaHoraTrans,
-          }
-        })
-        .filter((x) => x.montoPagar > 0)
+      const planilla = buildPlanillaPayload()
 
-      return cobrarPlanillaBloque({
-        oficinaId,
-        cajaDiarioId: ctx.cajaDiarioId,
-        planilla,
-      })
+      if (!isBrowserOnline()) {
+        encolarPorOffline(planilla)
+        return { queued: true as const }
+      }
+
+      try {
+        const r = await cobrarPlanillaBloque({
+          oficinaId,
+          cajaDiarioId: ctx.cajaDiarioId,
+          planilla,
+        })
+        return { queued: false as const, result: r }
+      } catch (e) {
+        if (isLikelyNetworkError(e)) {
+          encolarPorOffline(planilla)
+          return { queued: true as const }
+        }
+        throw e
+      }
     },
     onSuccess: (r) => {
-      markCobroBloqueEjecutadoHoy()
-      clearCobroBloqueDraft({ usuarioId, cajaDiarioId })
-      message.success(r.mensaje)
-      setEdits({})
-      navigate('/caja/diario')
+      if (r.queued) return
+      finalizarExito(r.result.mensaje)
     },
     onError: (e) =>
       message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error'),
   })
+
+  useEffect(() => {
+    if (!online || yaEjecutadoHoy || usuarioId < 1 || cajaDiarioId < 1) return
+    if (syncingRef.current) return
+    const pending = loadCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
+    if (!pending) return
+
+    let cancelled = false
+    syncingRef.current = true
+    setSyncingQueue(true)
+    void (async () => {
+      try {
+        const r = await cobrarPlanillaBloque({
+          oficinaId: pending.oficinaId,
+          cajaDiarioId: pending.cajaDiarioId,
+          planilla: pending.planilla,
+        })
+        if (cancelled) return
+        finalizarExito(r.mensaje || 'Planilla sincronizada al recuperar red.')
+      } catch (e) {
+        if (cancelled) return
+        if (isLikelyNetworkError(e)) {
+          message.warning('Aún sin red estable. La cola se reintentará al conectar.')
+        } else {
+          clearCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
+          setPendingSync(false)
+          message.error(
+            e instanceof ApiError
+              ? e.message
+              : e instanceof Error
+                ? e.message
+                : 'No se pudo sincronizar la planilla en cola.',
+          )
+        }
+      } finally {
+        syncingRef.current = false
+        if (!cancelled) setSyncingQueue(false)
+      }
+    })()
+
+    return () => {
+      cancelled = true
+    }
+    // Flush solo al recuperar red / cambiar caja; finalizarExito es estable en este ciclo.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [online, yaEjecutadoHoy, usuarioId, cajaDiarioId])
 
   const confirmarProcesar = () => {
     if (yaEjecutadoHoy) {
@@ -572,7 +762,7 @@ export function CobroBloquePage() {
     },
   ]
 
-  const sinCaja = !yaEjecutadoHoy && (sesionQuery.isError || !ctx || ctx.indCierre)
+  const sinCaja = !yaEjecutadoHoy && ((!ctx && !sesionQuery.isLoading) || Boolean(ctx?.indCierre))
 
   const toolbar = (
     <div className="credix-cobro-bloque-toolbar">
@@ -698,6 +888,50 @@ export function CobroBloquePage() {
                 </Button>
               }
               onClose={() => setDraftBanner(null)}
+            />
+          ) : null}
+
+          {!online ? (
+            <Alert
+              type="warning"
+              showIcon
+              className="cobro-bloque-page__draft"
+              message="Sin conexión"
+              description="Puede seguir tipando montos sobre la última planilla. Al procesar se encola en este dispositivo y se envía al recuperar red."
+            />
+          ) : null}
+
+          {online && (usingCache || offlineSesion) ? (
+            <Alert
+              type="info"
+              showIcon
+              className="cobro-bloque-page__draft"
+              message="Planilla desde caché local"
+              description="Se muestra la última foto descargada. Al recuperar red estable se actualizará."
+            />
+          ) : null}
+
+          {pendingSync ? (
+            <Alert
+              type="warning"
+              showIcon
+              className="cobro-bloque-page__draft"
+              message={syncingQueue ? 'Sincronizando planilla…' : 'Planilla en cola (pendiente de envío)'}
+              description="Hay un lote listo para enviar. No cierre sesión hasta que se confirme el envío."
+              action={
+                online && !syncingQueue ? (
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={() => {
+                      setOnline(false)
+                      window.setTimeout(() => setOnline(true), 0)
+                    }}
+                  >
+                    Reintentar envío
+                  </Button>
+                ) : undefined
+              }
             />
           ) : null}
 
