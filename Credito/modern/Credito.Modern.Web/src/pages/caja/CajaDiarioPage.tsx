@@ -37,6 +37,7 @@ import {
   resolveCajaDiarioTab,
   type CajaDiarioTabKey,
 } from './cajaDiario/types'
+import { CajaSinSesionAlert } from './components/CajaSinSesionAlert'
 import '../../styles/caja-diario.css';
 import '../../styles/caja-list-toolbar.css';
 
@@ -270,34 +271,11 @@ export function CajaDiarioPage() {
           />
         )}
         {cajaQuery.isSuccess && !ctx && (
-          <Alert
-            type="warning"
-            showIcon
-            message="Sin caja diario abierta"
-            description={
-              <>
-                El usuario{' '}
-                <Text strong>
-                  {loginProfile.nombreUsuario ??
-                    `ID ${session?.usuarioId ?? '?'}`}
-                </Text>{' '}
-                no tiene caja asignada y abierta. Use{' '}
-                <Link to="/caja/asignar">Asignar caja</Link> o{' '}
-                <Link to="/caja/saldos">Saldos y cierres</Link>.
-              </>
-            }
-            action={
-              <Space wrap>
-                <Link to="/caja/asignar">
-                  <Button type="primary" size="small">
-                    Asignar caja
-                  </Button>
-                </Link>
-                <Button size="small" onClick={() => void cajaQuery.refetch()}>
-                  Actualizar
-                </Button>
-              </Space>
-            }
+          <CajaSinSesionAlert
+            variant="diario"
+            refreshing={cajaQuery.isFetching}
+            onRefresh={() => void cajaQuery.refetch()}
+            onAssigned={() => void cajaQuery.refetch()}
           />
         )}
 

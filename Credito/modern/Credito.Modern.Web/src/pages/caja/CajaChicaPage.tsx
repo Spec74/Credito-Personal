@@ -58,6 +58,9 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { filterTableRows } from '../../utils/tableClientFilter'
 import { formatMoney } from '../../utils/formatMoney'
 import { CajaListToolbar } from './components/CajaListToolbar'
+import { CajaSinSesionAlert } from './components/CajaSinSesionAlert'
+import { AsignarCajaModal } from './components/asignarcajamodal'
+import { puedeAsignarCajaUi } from '../../utils/cajaSaldosPermisos'
 import {
   FIELD_MAX,
   glosaRules,
@@ -99,6 +102,8 @@ export function CajaChicaPage() {
   const [transferImporte, setTransferImporte] = useState<number | null>(null)
   const [transferDesc, setTransferDesc] = useState('')
   const [gastoForm] = Form.useForm()
+  const [asignarOpen, setAsignarOpen] = useState(false)
+  const puedeAsignar = puedeAsignarCajaUi(session?.roles ?? [])
 
   const sesion = useQuery({
     queryKey: ['caja-chica-sesion'],
@@ -447,9 +452,11 @@ export function CajaChicaPage() {
       stats={chicaStats}
       actions={
         <Space wrap>
-          <Link to="/caja/asignar">
-            <Button type="primary">Asignar caja</Button>
-          </Link>
+          {puedeAsignar ? (
+            <Button type="primary" onClick={() => setAsignarOpen(true)}>
+              Asignar caja
+            </Button>
+          ) : null}
           <Button onClick={refrescar} loading={sesion.isFetching}>
             Actualizar
           </Button>
@@ -457,17 +464,11 @@ export function CajaChicaPage() {
       }
     >
       {sinSesion ? (
-        <Alert
-          className="caja-chica-page__sesion-alert"
-          type="warning"
-          showIcon
-          message="No hay caja chica abierta"
-          description="Asigne la caja «CAJA CHICA» desde Asignar caja antes de operar."
-          action={
-            <Link to="/caja/asignar">
-              <Button size="small">Ir a asignar</Button>
-            </Link>
-          }
+        <CajaSinSesionAlert
+          variant="chica"
+          refreshing={sesion.isFetching}
+          onRefresh={refrescar}
+          onAssigned={refrescar}
         />
       ) : sesion.data ? (
         <>
@@ -942,6 +943,18 @@ export function CajaChicaPage() {
           onChange={(e) => setTransferDesc(e.target.value)}
         />
       </Modal>
-    </CredixPage>
+    
+      {puedeAsignar && oficinaId > 0 ? (
+        <AsignarCajaModal
+          open={asignarOpen}
+          oficinaId={oficinaId}
+          onClose={() => setAsignarOpen(false)}
+          onSuccess={() => {
+            setAsignarOpen(false)
+            refrescar()
+          }}
+        />
+      ) : null}
+</CredixPage>
   )
 }

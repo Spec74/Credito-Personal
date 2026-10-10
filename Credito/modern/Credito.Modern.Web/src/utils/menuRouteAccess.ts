@@ -137,6 +137,11 @@ export function hasMenuRouteAccess(
     allowedPaths.add('/caja/maestro')
   }
 
+  // Quien ya opera Saldos puede abrir Asignar caja (misma capacidad del modal en Saldos).
+  if (allowedPaths.has('/caja/saldos')) {
+    allowedPaths.add('/caja/asignar')
+  }
+
   const adminHub = adminHubIndexAccess(path, allowedPaths)
   if (adminHub !== null) {
     return adminHub

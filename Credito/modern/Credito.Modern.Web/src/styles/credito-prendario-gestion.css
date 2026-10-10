@@ -1,0 +1,71 @@
+/**
+ * Gestión prendario — toolbar documentos + condiciones del plan.
+ */
+
+.credito-prendario-gestion-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+}
+
+.credito-prendario-gestion-actions .ant-btn {
+  min-height: 36px;
+}
+
+.credito-prendario-plan {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e8eef5;
+  background: #f8fbff;
+}
+
+.credito-prendario-plan__title {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--credix-text-muted, #64748b);
+}
+
+.credito-prendario-plan__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px 16px;
+}
+
+.credito-prendario-plan__item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.credito-prendario-plan__item-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--credix-text-muted, #64748b);
+}
+
+.credito-prendario-plan__item-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--credix-text, #1f2937);
+  word-break: break-word;
+}
+
+.credito-prendario-plan__note {
+  margin: 10px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--credix-text-muted, #64748b);
+}
+
+@media (max-width: 575px) {
+  .credito-prendario-gestion-actions .ant-btn {
+    flex: 1 1 calc(50% - 8px);
+  }
+}

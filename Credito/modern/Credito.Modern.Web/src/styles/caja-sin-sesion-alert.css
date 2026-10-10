@@ -1,0 +1,49 @@
+/**
+ * Alerta sin sesión de caja (diario / chica).
+ * Admin/encargado: CTA Asignar; cajero: solo instrucción.
+ */
+
+.caja-sin-sesion-alert.ant-alert {
+  align-items: flex-start;
+  border-radius: 12px;
+  border: 1px solid #f0d78c;
+  background: #fffbeb;
+}
+
+.caja-sin-sesion-alert .ant-alert-message {
+  font-weight: 700;
+  color: #92400e;
+}
+
+.caja-sin-sesion-alert .ant-alert-description {
+  color: #78350f;
+  line-height: 1.45;
+}
+
+.caja-sin-sesion-alert .ant-alert-action {
+  margin-inline-start: 12px;
+}
+
+.caja-sin-sesion-alert__actions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 575px) {
+  .caja-sin-sesion-alert.ant-alert {
+    flex-direction: column;
+  }
+
+  .caja-sin-sesion-alert .ant-alert-action {
+    margin-inline-start: 0;
+    margin-top: 12px;
+    width: 100%;
+  }
+
+  .caja-sin-sesion-alert__actions {
+    width: 100%;
+  }
+
+  .caja-sin-sesion-alert__actions .ant-btn {
+    flex: 1;
+  }
+}

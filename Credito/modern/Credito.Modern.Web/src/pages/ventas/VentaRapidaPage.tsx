@@ -47,6 +47,7 @@ import {
 import { ApiError } from '../../api/errors'
 
 import { useAuth } from '../../auth/useAuth'
+import { CajaSinSesionAlert } from '../caja/components/CajaSinSesionAlert'
 
 import { CredixDataTable, CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
 
@@ -377,27 +378,15 @@ export function VentaRapidaPage() {
 
       ) : sinCaja ? (
 
-        <Alert
+        <CajaSinSesionAlert
 
-          type="warning"
+          variant="diario"
 
-          showIcon
+          refreshing={caja.isFetching}
 
-          message="No tiene caja diario abierta"
+          onRefresh={() => void caja.refetch()}
 
-          description={
-
-            <>
-
-              Asigne o abra caja en{' '}
-
-              <Link to="/caja/asignar">Asignar caja</Link> o{' '}
-
-              <Link to="/caja/diario">Caja diario</Link>.
-
-            </>
-
-          }
+          onAssigned={() => void caja.refetch()}
 
         />
 

@@ -28,6 +28,7 @@ import {
 } from '../../utils/creditoOperacionPermisos'
 import { prendaAItem, prendaVacia, totalTasacion, buildSimuladorPrendarioPath, validarPrendasForm, type PrendaCampoError } from '../../utils/prendas'
 import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
+import '../../styles/credito-prendario-gestion.css'
 
 const { Paragraph, Text } = Typography
 
@@ -289,7 +290,7 @@ export function CreditoPrendarioGestionPage() {
         <CredixPanel
           title={`Crédito #${creditoId}`}
           extra={
-            <Space wrap>
+            <div className="credito-prendario-gestion-actions">
               <Button
                 icon={<FilePdfOutlined />}
                 loading={imprimirContrato.isPending}
@@ -323,7 +324,7 @@ export function CreditoPrendarioGestionPage() {
                   Chat WhatsApp
                 </Button>
               </Tooltip>
-            </Space>
+            </div>
           }
         >
           {creditosOpciones.length > 1 ? (
@@ -354,33 +355,31 @@ export function CreditoPrendarioGestionPage() {
                 : '. El contrato se asigna al registrar bienes.'}
           </Paragraph>
 
-          <div style={{ marginBottom: 16 }}>
-            <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
-              Condiciones del plan (definidas en el simulador)
-            </Text>
-            <Space wrap size={[16, 8]}>
-              <Text>
-                Modalidad: <Text strong>{labelFormaPago(contexto.data?.formaPago)}</Text>
-              </Text>
-              <Text>
-                Cuotas: <Text strong>{contexto.data?.numeroCuotas || '—'}</Text>
-              </Text>
-              <Text>
-                1.er pago: <Text strong>{formatFecha(contexto.data?.fechaPrimerPago)}</Text>
-              </Text>
-              <Text>
-                Vencimiento:{' '}
-                <Text strong>{formatFecha(contexto.data?.fechaVencimiento)}</Text>
-              </Text>
-              <Text>
-                Remate (venc. + 30 d.): <Text strong>{formatFecha(remateMostrado)}</Text>
-              </Text>
-            </Space>
-            <Paragraph type="secondary" style={{ marginTop: 8, marginBottom: 0 }}>
-              El vencimiento es la última cuota del plan (1.er pago + cuotas). El remate es vencimiento
-              + 30 días. Al desembolsar en caja, las fechas se realinean desde la fecha real de
-              desembolso (base del contrato oficial).
-            </Paragraph>
+          <div className="credito-prendario-plan">
+            <span className="credito-prendario-plan__title">
+              Condiciones del plan
+            </span>
+            <div className="credito-prendario-plan__grid">
+              {(
+                [
+                  ['Modalidad', labelFormaPago(contexto.data?.formaPago)],
+                  ['Cuotas', String(contexto.data?.numeroCuotas || '—')],
+                  ['1.er pago', formatFecha(contexto.data?.fechaPrimerPago)],
+                  ['Vencimiento', formatFecha(contexto.data?.fechaVencimiento)],
+                  ['Remate (venc. + 30 d.)', formatFecha(remateMostrado)],
+                ] as const
+              ).map(([label, value]) => (
+                <div key={label} className="credito-prendario-plan__item">
+                  <span className="credito-prendario-plan__item-label">{label}</span>
+                  <span className="credito-prendario-plan__item-value">{value}</span>
+                </div>
+              ))}
+            </div>
+            <p className="credito-prendario-plan__note">
+              El vencimiento es la última cuota del plan (1.er pago + cuotas). El remate es
+              vencimiento + 30 días. Al desembolsar en caja, las fechas se realinean desde la
+              fecha real de desembolso (base del contrato oficial).
+            </p>
           </div>
 
           {!bienesPersistidos ? (

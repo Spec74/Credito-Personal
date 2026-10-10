@@ -1000,47 +1000,7 @@
   border-color: #dfe8f2;
 }
 
-.prendas-editor-mobile {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  width: 100%;
-  min-width: 0;
-}
-
-.prendas-editor-mobile__card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid #dfe8f2;
-  border-radius: 12px;
-  background: #fff;
-}
-
-.prendas-editor-mobile__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid #eef2f7;
-}
-
-.prendas-editor-mobile__field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.prendas-editor-mobile__field > span {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #64748b;
-}
+/* Detalle de bienes: estilos en prendas-editor.css (evitar override que pega etiqueta+valor). */
 
 .credito-prendario-card .ant-input,
 .credito-prendario-card .ant-input-number,

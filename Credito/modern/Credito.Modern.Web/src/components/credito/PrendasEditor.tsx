@@ -11,6 +11,7 @@ import {
   totalTasacion,
   type PrendaCampoError,
 } from '../../utils/prendas'
+import '../../styles/prendas-editor.css'
 
 const { Text } = Typography
 
@@ -53,6 +54,8 @@ export function PrendasEditor({
   const screens = Grid.useBreakpoint()
   const isMobile = screens.md !== true
   const bloqueado = disabled || readOnly
+  /** Consulta: ficha etiqueta/valor en móvil y PC (evita tabla apretada / texto pegado). */
+  const useDetailCards = readOnly || isMobile
 
   const actualizar = useCallback(
     (indice: number, cambios: Partial<PrendaItem>) => {
@@ -129,9 +132,9 @@ export function PrendasEditor({
     )
   }
 
-  if (isMobile) {
+  if (useDetailCards) {
     return (
-      <div className="prendas-editor-mobile">
+      <div className={`prendas-editor-mobile${readOnly ? ' prendas-editor-mobile--readonly' : ''}`}>
         {value.map((prenda, indice) => (
           <article key={indice} className="prendas-editor-mobile__card">
             <div className="prendas-editor-mobile__head">
@@ -149,40 +152,33 @@ export function PrendasEditor({
               ) : null}
             </div>
             {readOnly ? (
-              <>
-                <div className="prendas-editor-mobile__field">
-                  <span>Descripción</span>
-                  <Text>{celda(prenda.descripcion)}</Text>
-                </div>
-                <div className="prendas-editor-mobile__field">
-                  <span>Marca</span>
-                  <Text>{celda(prenda.marca)}</Text>
-                </div>
-                <div className="prendas-editor-mobile__field">
-                  <span>Modelo</span>
-                  <Text>{celda(prenda.modelo)}</Text>
-                </div>
-                <div className="prendas-editor-mobile__field">
-                  <span>Serie</span>
-                  <Text>{celda(prenda.serie, 'N/T')}</Text>
-                </div>
-                <div className="prendas-editor-mobile__field">
-                  <span>Color</span>
-                  <Text>{celda(prenda.color)}</Text>
-                </div>
-                <div className="prendas-editor-mobile__field">
-                  <span>Código interno</span>
-                  <Text>{celda(prenda.codigoInterno)}</Text>
-                </div>
-                <div className="prendas-editor-mobile__field">
-                  <span>Tasación</span>
-                  <Text strong>{formatMoney(prenda.valorTasacion)}</Text>
-                </div>
-                <div className="prendas-editor-mobile__field">
-                  <span>Observaciones</span>
-                  <Text>{celda(prenda.observaciones)}</Text>
-                </div>
-              </>
+              <dl className="prendas-editor-mobile__dl">
+                {(
+                  [
+                    ['Descripción', celda(prenda.descripcion)],
+                    ['Marca', celda(prenda.marca)],
+                    ['Modelo', celda(prenda.modelo)],
+                    ['Serie', celda(prenda.serie, 'N/T')],
+                    ['Color', celda(prenda.color)],
+                    ['Código interno', celda(prenda.codigoInterno)],
+                    ['Tasación', formatMoney(prenda.valorTasacion)],
+                    ['Observaciones', celda(prenda.observaciones)],
+                  ] as const
+                ).map(([label, valor]) => (
+                  <div key={label} className="prendas-editor-mobile__field">
+                    <dt className="prendas-editor-mobile__label">{label}</dt>
+                    <dd
+                      className={
+                        valor === '—'
+                          ? 'prendas-editor-mobile__value prendas-editor-mobile__value--muted'
+                          : 'prendas-editor-mobile__value'
+                      }
+                    >
+                      {valor}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
             ) : (
               <>
                 {(
@@ -198,8 +194,8 @@ export function PrendasEditor({
                 ).map(([campo, label, max, placeholder]) => {
                   const err = statusCampo(errores, indice, campo)
                   return (
-                    <label key={campo} className="prendas-editor-mobile__field">
-                      <span>{label}</span>
+                    <label key={campo} className="prendas-editor-mobile__field prendas-editor-mobile__field--edit">
+                      <span className="prendas-editor-mobile__label">{label}</span>
                       <Input
                         disabled={bloqueado}
                         status={err.status}
@@ -219,8 +215,8 @@ export function PrendasEditor({
                 {(() => {
                   const err = statusCampo(errores, indice, 'valorTasacion')
                   return (
-                    <label className="prendas-editor-mobile__field">
-                      <span>Tasación</span>
+                    <label className="prendas-editor-mobile__field prendas-editor-mobile__field--edit">
+                      <span className="prendas-editor-mobile__label">Tasación</span>
                       <InputNumber
                         style={{ width: '100%' }}
                         min={0}
@@ -248,7 +244,7 @@ export function PrendasEditor({
   }
 
   return (
-    <>
+    <div className="prendas-editor-desktop-wrap">
       <CredixDataTable
         mode="operacion"
         pagination={false}
@@ -388,6 +384,6 @@ export function PrendasEditor({
         ]}
       />
       {footer}
-    </>
+    </div>
   )
 }
