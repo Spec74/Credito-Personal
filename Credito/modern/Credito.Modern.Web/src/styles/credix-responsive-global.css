@@ -732,6 +732,10 @@
     display: none;
   }
 
+  .credix-reportes-toolbar {
+    grid-template-columns: 1fr;
+  }
+
   .credix-reporte-grid {
     grid-template-columns: 1fr;
   }

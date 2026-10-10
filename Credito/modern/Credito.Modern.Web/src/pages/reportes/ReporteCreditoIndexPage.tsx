@@ -3,11 +3,16 @@ import { Link } from 'react-router-dom'
 import {
   AuditOutlined,
   BankOutlined,
+  CalendarOutlined,
   CheckCircleOutlined,
+  DollarOutlined,
   FileProtectOutlined,
   FundOutlined,
   StopOutlined,
   TeamOutlined,
+  UserDeleteOutlined,
+  UserOutlined,
+  WarningOutlined,
   WalletOutlined,
 } from '@ant-design/icons'
 import { Alert, Checkbox, InputNumber, Select, message } from 'antd'
@@ -71,7 +76,6 @@ import {
   canViewReporteCreditoAprobador,
 } from '../../utils/reporteCreditoAccess'
 import { reportesCreditoIndexBreadcrumb } from '../../utils/reportesBreadcrumbs'
-import { buildInformeScreenQuery } from '../../utils/informeScreenParams'
 import { runOpenReport } from '../../utils/reportExport'
 import { CREDITO_ESTADO_REPORTE_OPTIONS } from '../../utils/creditoEstados'
 
@@ -391,73 +395,30 @@ export function ReporteCreditoIndexPage() {
           </ReporteField>
         </CredixReportBox>
 
+        <h3 className="credix-reportes-block-title">Informes por gestor</h3>
+        <div className="credix-reportes-toolbar">
+          <ReporteField label="Oficina">
+            <OficinaSelect disabled value={oficinaSesion} />
+          </ReporteField>
+          <ReporteField label="Gestor">
+            <GestorSelect allowAll legacyList value={gestorUsuario} onChange={setGestorUsuario} />
+          </ReporteField>
+          <p className="credix-reportes-toolbar__meta">
+            El gestor seleccionado aplica a todas las tarjetas de este bloque. Cobro diario exige un
+            gestor concreto (no «Todos»).
+          </p>
+        </div>
+
         <CredixReportBox
-          title="Cobro diario, observados y morosos por gestor"
-          icon={<TeamOutlined />}
-          className="credix-report-card--wide"
+          title="Cobro diario"
+          icon={<CalendarOutlined />}
           actions={
             <ReportExportActions
-              screenTo="/informes/morosidad-gestor"
-              screenLabel="Morosidad en pantalla"
-              screenSearchParams={gestorScreenParams}
-              screenLinks={[
-                {
-                  label: 'Clientes nuevos',
-                  to: '/informes/clientes-nuevos-mes',
-                  searchParams: gestorNuevosScreenParams,
-                },
-                {
-                  label: 'Inactivos',
-                  to: '/informes/clientes-inactivos',
-                  searchParams: gestorInactivosScreenParams,
-                },
-                {
-                  label: 'Bloqueados',
-                  to: '/informes/clientes-bloqueados',
-                  searchParams: gestorScreenParams,
-                },
-                {
-                  label: 'Tope crédito',
-                  to: '/informes/clientes-tope-credito',
-                  searchParams: gestorScreenParams,
-                },
-              ]}
-              extra={
-                gestorCobroScreenParams ? (
-                  <span className="credix-report-screen-links">
-                    <Link
-                      to={{
-                        pathname: '/informes/cobro-diario',
-                        search: buildInformeScreenQuery(gestorCobroScreenParams).slice(1),
-                      }}
-                    >
-                      Cobro diario
-                    </Link>
-                    <Link
-                      to={{
-                        pathname: '/informes/creditos-observados',
-                        search: buildInformeScreenQuery(gestorScreenParams).slice(1),
-                      }}
-                    >
-                      Observados
-                    </Link>
-                  </span>
-                ) : (
-                  <span className="credix-report-screen-links">
-                    <Link
-                      to={{
-                        pathname: '/informes/creditos-observados',
-                        search: buildInformeScreenQuery(gestorScreenParams).slice(1),
-                      }}
-                    >
-                      Observados
-                    </Link>
-                  </span>
-                )
-              }
+              screenTo={gestorCobroScreenParams ? '/informes/cobro-diario' : undefined}
+              screenSearchParams={gestorCobroScreenParams}
               exports={[
                 {
-                  label: 'Cobro diario PDF',
+                  label: 'PDF',
                   format: 'pdf',
                   title: 'Requiere gestor seleccionado',
                   disabled: !gestorUsuario,
@@ -474,7 +435,7 @@ export function ReporteCreditoIndexPage() {
                   },
                 },
                 {
-                  label: 'Cobro diario XLS',
+                  label: 'XLS',
                   format: 'xls',
                   disabled: !gestorUsuario,
                   onClick: () => {
@@ -489,34 +450,63 @@ export function ReporteCreditoIndexPage() {
                     )
                   },
                 },
+              ]}
+            />
+          }
+        >
+          <p className="credix-report-card-hint">
+            Cobros del día del gestor. Seleccione gestor en la barra superior para exportar o ver
+            pantalla.
+          </p>
+        </CredixReportBox>
+
+        <CredixReportBox
+          title="Morosidad por gestor"
+          icon={<TeamOutlined />}
+          actions={
+            <ReportExportActions
+              screenTo="/informes/morosidad-gestor"
+              screenSearchParams={gestorScreenParams}
+              exports={[
                 {
-                  label: 'Morosidad PDF',
+                  label: 'PDF',
                   format: 'pdf',
                   onClick: () =>
                     runOpenReport('Morosidad gestor', () =>
                       downloadMorosidadGestorPdf(
-                        toCobroDiarioQuery(
-                          gestorParams.oficinaId,
-                          gestorParams.usuarioId,
-                        ),
+                        toCobroDiarioQuery(gestorParams.oficinaId, gestorParams.usuarioId),
                       ),
                     ),
                 },
                 {
-                  label: 'Morosidad XLS',
+                  label: 'XLS',
                   format: 'xls',
                   onClick: () =>
                     runOpenReport('Morosidad gestor XLS', () =>
                       downloadMorosidadGestorCsv(
-                        toCobroDiarioQuery(
-                          gestorParams.oficinaId,
-                          gestorParams.usuarioId,
-                        ),
+                        toCobroDiarioQuery(gestorParams.oficinaId, gestorParams.usuarioId),
                       ),
                     ),
                 },
+              ]}
+            />
+          }
+        >
+          <p className="credix-report-card-hint">
+            Cartera en atraso filtrada por el gestor de la barra superior («Todos» permitido).
+          </p>
+        </CredixReportBox>
+
+        <CredixReportBox
+          title="Créditos observados"
+          icon={<WarningOutlined />}
+          actions={
+            <ReportExportActions
+              screenTo="/informes/creditos-observados"
+              screenSearchParams={gestorScreenParams}
+              exports={[
                 {
-                  label: 'Obs PDF',
+                  label: 'PDF',
                   format: 'pdf',
                   onClick: () =>
                     runOpenReport('Observados PDF', () =>
@@ -524,15 +514,32 @@ export function ReporteCreditoIndexPage() {
                     ),
                 },
                 {
-                  label: 'Obs XLS',
+                  label: 'XLS',
                   format: 'xls',
                   onClick: () =>
                     runOpenReport('Observados XLS', () =>
                       downloadCreditoObservadoCsv(gestorApiParams),
                     ),
                 },
+              ]}
+            />
+          }
+        >
+          <p className="credix-report-card-hint">
+            Créditos marcados como observados según el gestor seleccionado.
+          </p>
+        </CredixReportBox>
+
+        <CredixReportBox
+          title="Clientes nuevos del mes"
+          icon={<UserOutlined />}
+          actions={
+            <ReportExportActions
+              screenTo="/informes/clientes-nuevos-mes"
+              screenSearchParams={gestorNuevosScreenParams}
+              exports={[
                 {
-                  label: 'Clientes nuevos',
+                  label: 'PDF',
                   format: 'pdf',
                   onClick: () =>
                     runOpenReport('Clientes nuevos', () =>
@@ -542,8 +549,25 @@ export function ReporteCreditoIndexPage() {
                       }),
                     ),
                 },
+              ]}
+            />
+          }
+        >
+          <p className="credix-report-card-hint">
+            Altas del mes en curso para el gestor de la barra superior.
+          </p>
+        </CredixReportBox>
+
+        <CredixReportBox
+          title="Clientes inactivos"
+          icon={<UserDeleteOutlined />}
+          actions={
+            <ReportExportActions
+              screenTo="/informes/clientes-inactivos"
+              screenSearchParams={gestorInactivosScreenParams}
+              exports={[
                 {
-                  label: 'Clientes inactivos',
+                  label: 'PDF',
                   format: 'pdf',
                   onClick: () =>
                     runOpenReport('Clientes inactivos', () =>
@@ -553,16 +577,50 @@ export function ReporteCreditoIndexPage() {
                       }),
                     ),
                 },
+              ]}
+            />
+          }
+        >
+          <p className="credix-report-card-hint">
+            Clientes sin movimiento reciente asociados al gestor seleccionado.
+          </p>
+        </CredixReportBox>
+
+        <CredixReportBox
+          title="Clientes bloqueados"
+          icon={<StopOutlined />}
+          actions={
+            <ReportExportActions
+              screenTo="/informes/clientes-bloqueados"
+              screenSearchParams={gestorScreenParams}
+              exports={[
                 {
-                  label: 'Bloqueados',
+                  label: 'PDF',
                   format: 'pdf',
                   onClick: () =>
                     runOpenReport('Clientes bloqueados', () =>
                       downloadClientesBloqueadosPdf(gestorApiParams),
                     ),
                 },
+              ]}
+            />
+          }
+        >
+          <p className="credix-report-card-hint">
+            Clientes bloqueados en la oficina, con filtro opcional por gestor.
+          </p>
+        </CredixReportBox>
+
+        <CredixReportBox
+          title="Tope de crédito"
+          icon={<DollarOutlined />}
+          actions={
+            <ReportExportActions
+              screenTo="/informes/clientes-tope-credito"
+              screenSearchParams={gestorScreenParams}
+              exports={[
                 {
-                  label: 'Tope crédito',
+                  label: 'PDF',
                   format: 'pdf',
                   onClick: () =>
                     runOpenReport('Tope crédito', () =>
@@ -573,12 +631,9 @@ export function ReporteCreditoIndexPage() {
             />
           }
         >
-          <ReporteField label="Oficina">
-            <OficinaSelect disabled value={oficinaSesion} />
-          </ReporteField>
-          <ReporteField label="Gestor">
-            <GestorSelect allowAll legacyList value={gestorUsuario} onChange={setGestorUsuario} />
-          </ReporteField>
+          <p className="credix-report-card-hint">
+            Clientes con tope de crédito configurado, según el gestor de la barra.
+          </p>
         </CredixReportBox>
         </ReportesSection>
 
@@ -599,14 +654,6 @@ export function ReporteCreditoIndexPage() {
                 fechaIni: isoDate(rptRango[0]),
                 fechaFin: isoDate(rptRango[1]),
               }}
-              extra={
-                <Checkbox
-                  checked={rentabilidadTodos}
-                  onChange={(e) => setRentabilidadTodos(e.target.checked)}
-                >
-                  TODOS (rentabilidad)
-                </Checkbox>
-              }
               exports={[
                 {
                   label: 'PDF',
@@ -633,32 +680,6 @@ export function ReporteCreditoIndexPage() {
                         estadoCredito: rptEstado,
                         fechaIni: isoDate(rptRango[0]),
                         fechaFin: isoDate(rptRango[1]),
-                      }),
-                    ),
-                },
-                {
-                  label: 'Rentabilidad PDF',
-                  format: 'pdf',
-                  onClick: () =>
-                    runOpenReport('Rentabilidad PDF', () =>
-                      downloadCreditoRentabilidadPdf({
-                        oficinaId: oficinaSesion,
-                        fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
-                        fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
-                        estadoCredito: rptEstado,
-                      }),
-                    ),
-                },
-                {
-                  label: 'Rentabilidad XLS',
-                  format: 'xls',
-                  onClick: () =>
-                    runOpenReport('Rentabilidad XLS', () =>
-                      downloadCreditoRentabilidadCsv({
-                        oficinaId: oficinaSesion,
-                        fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
-                        fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
-                        estadoCredito: rptEstado,
                       }),
                     ),
                 },
@@ -692,57 +713,118 @@ export function ReporteCreditoIndexPage() {
           </ReporteField>
         </CredixReportBox>
 
+        <CredixReportBox
+          title="Rentabilidad de crédito"
+          icon={<DollarOutlined />}
+          actions={
+            <ReportExportActions
+              screenTo="/informes/credito-rentabilidad"
+              screenSearchParams={{
+                oficinaId: oficinaSesion,
+                estadoCredito: rptEstado,
+                fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
+                fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
+              }}
+              exports={[
+                {
+                  label: 'PDF',
+                  format: 'pdf',
+                  onClick: () =>
+                    runOpenReport('Rentabilidad PDF', () =>
+                      downloadCreditoRentabilidadPdf({
+                        oficinaId: oficinaSesion,
+                        fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
+                        fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
+                        estadoCredito: rptEstado,
+                      }),
+                    ),
+                },
+                {
+                  label: 'XLS',
+                  format: 'xls',
+                  onClick: () =>
+                    runOpenReport('Rentabilidad XLS', () =>
+                      downloadCreditoRentabilidadCsv({
+                        oficinaId: oficinaSesion,
+                        fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
+                        fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
+                        estadoCredito: rptEstado,
+                      }),
+                    ),
+                },
+              ]}
+            />
+          }
+        >
+          <ReporteField label="Oficina">
+            <OficinaSelect disabled value={oficinaSesion} />
+          </ReporteField>
+          <ReporteField label="Estado">
+            <Select
+              size="small"
+              options={CREDITO_ESTADO_REPORTE_OPTIONS}
+              value={rptEstado}
+              onChange={setRptEstado}
+              style={{ width: '100%' }}
+            />
+          </ReporteField>
+          <ReporteField label="Fechas">
+            <CredixRangePicker
+              size="small"
+              value={rptRango}
+              onChange={(v) => v && setRptRango(v as [Dayjs, Dayjs])}
+              format="DD/MM/YYYY"
+              style={{ width: '100%' }}
+              disabled={rentabilidadTodos}
+            />
+          </ReporteField>
+          <ReporteField label="Alcance">
+            <Checkbox
+              checked={rentabilidadTodos}
+              onChange={(e) => setRentabilidadTodos(e.target.checked)}
+            >
+              Histórico completo (desde 2018)
+            </Checkbox>
+          </ReporteField>
+        </CredixReportBox>
+
         {showVarios ? (
-          <CredixReportBox
-            title="Reporte varios"
-            icon={<WalletOutlined />}
-            className="credix-report-card--wide"
-            actions={
-              <ReportExportActions
-                screenTo="/informes/creditos-activos"
-                screenLabel="Créditos activos"
-                extra={
-                  <span className="credix-report-screen-links">
-                    <Link
-                      to={{
-                        pathname: '/informes/clientes-nuevos-mes',
-                        search: buildInformeScreenQuery(variosScreenParams).slice(1),
-                      }}
-                    >
-                      Clientes nuevos
-                    </Link>
-                    <Link
-                      to={{
-                        pathname: '/informes/clientes-inactivos',
-                        search: buildInformeScreenQuery(variosScreenParams).slice(1),
-                      }}
-                    >
-                      Inactivos (con rango)
-                    </Link>
-                    <Link
-                      to={{
-                        pathname: '/informes/clientes-bloqueados',
-                        search: buildInformeScreenQuery(variosScreenParams).slice(1),
-                      }}
-                    >
-                      Bloqueados
-                    </Link>
-                    <Link
-                      to={{
-                        pathname: '/informes/clientes-tope-credito',
-                        search: buildInformeScreenQuery(variosScreenParams).slice(1),
-                      }}
-                    >
-                      Clientes con tope crédito
-                    </Link>
-                  </span>
-                }
-                exports={[
-                  ...(showAdmin
-                    ? [
+          <>
+            <h3 className="credix-reportes-block-title">Consultas por periodo</h3>
+            <div className="credix-reportes-toolbar">
+              <ReporteField label="Oficina">
+                <OficinaSelect disabled value={oficinaSesion} />
+              </ReporteField>
+              <ReporteField label="Gestor">
+                <GestorSelect allowAll legacyList value={variosGestor} onChange={setVariosGestor} />
+              </ReporteField>
+              <ReporteField label="Rango fechas">
+                <CredixRangePicker
+                  size="small"
+                  value={variosRango}
+                  onChange={(v) => v && setVariosRango(v as [Dayjs, Dayjs])}
+                  format="DD/MM/YYYY"
+                  style={{ width: '100%' }}
+                />
+              </ReporteField>
+              <p className="credix-reportes-toolbar__meta">
+                Oficina, gestor y rango aplican a las tarjetas de este bloque.
+              </p>
+            </div>
+
+            {showAdmin ? (
+              <>
+                <CredixReportBox
+                  title="Créditos condonados"
+                  icon={<WalletOutlined />}
+                  actions={
+                    <ReportExportActions
+                      screenTo="/informes/credito-condonado"
+                      screenSearchParams={variosScreenParams}
+                      exports={[
                         {
-                          label: 'Condonación PDF',
-                          format: 'pdf' as const,
+                          label: 'PDF',
+                          format: 'pdf',
                           onClick: () =>
                             runOpenReport('Condonación PDF', () =>
                               downloadCreditoCondonadoPdf({
@@ -752,8 +834,8 @@ export function ReporteCreditoIndexPage() {
                             ),
                         },
                         {
-                          label: 'Condonación XLS',
-                          format: 'xls' as const,
+                          label: 'XLS',
+                          format: 'xls',
                           onClick: () =>
                             runOpenReport('Condonación XLS', () =>
                               downloadCreditoCondonadoCsv({
@@ -762,57 +844,125 @@ export function ReporteCreditoIndexPage() {
                               }),
                             ),
                         },
+                      ]}
+                    />
+                  }
+                >
+                  <p className="credix-report-card-hint">
+                    Condonaciones en el rango y gestor de la barra superior.
+                  </p>
+                </CredixReportBox>
+
+                <CredixReportBox
+                  title="Créditos activos"
+                  icon={<CheckCircleOutlined />}
+                  actions={
+                    <ReportExportActions
+                      screenTo="/informes/creditos-activos"
+                      screenSearchParams={variosScreenParams}
+                      exports={[
                         {
-                          label: 'Activos PDF',
-                          format: 'pdf' as const,
+                          label: 'PDF',
+                          format: 'pdf',
                           onClick: () =>
                             runOpenReport('Activos PDF', () =>
                               downloadCreditosActivosPdf(variosApi),
                             ),
                         },
                         {
-                          label: 'Activos XLS',
-                          format: 'xls' as const,
+                          label: 'XLS',
+                          format: 'xls',
                           onClick: () =>
                             runOpenReport('Activos XLS', () =>
                               downloadCreditosActivosCsv(variosApi),
                             ),
                         },
+                      ]}
+                    />
+                  }
+                >
+                  <p className="credix-report-card-hint">
+                    Cartera activa según filtros del bloque «Consultas por periodo».
+                  </p>
+                </CredixReportBox>
+
+                <CredixReportBox
+                  title="Cierres de crédito"
+                  icon={<FileProtectOutlined />}
+                  actions={
+                    <ReportExportActions
+                      screenTo="/informes/creditos-cierres"
+                      screenSearchParams={variosScreenParams}
+                      exports={[
                         {
-                          label: 'Cierre PDF',
-                          format: 'pdf' as const,
+                          label: 'PDF',
+                          format: 'pdf',
                           onClick: () =>
                             runOpenReport('Cierre PDF', () =>
                               downloadCreditosCierresPdf(variosApi),
                             ),
                         },
                         {
-                          label: 'Cierre XLS',
-                          format: 'xls' as const,
+                          label: 'XLS',
+                          format: 'xls',
                           onClick: () =>
                             runOpenReport('Cierre XLS', () =>
                               downloadCreditosCierresCsv(variosApi),
                             ),
                         },
+                      ]}
+                    />
+                  }
+                >
+                  <p className="credix-report-card-hint">
+                    Créditos cerrados en el periodo seleccionado.
+                  </p>
+                </CredixReportBox>
+
+                <CredixReportBox
+                  title="Morosos pagados"
+                  icon={<AuditOutlined />}
+                  actions={
+                    <ReportExportActions
+                      screenTo="/informes/creditos-morosos-pagados"
+                      screenSearchParams={variosScreenParams}
+                      exports={[
                         {
-                          label: 'Morosos pagados PDF',
-                          format: 'pdf' as const,
+                          label: 'PDF',
+                          format: 'pdf',
                           onClick: () =>
                             runOpenReport('Morosos pagados PDF', () =>
                               downloadCreditosMorososPagadosPdf(variosApi),
                             ),
                         },
                         {
-                          label: 'Morosos pagados XLS',
-                          format: 'xls' as const,
+                          label: 'XLS',
+                          format: 'xls',
                           onClick: () =>
                             runOpenReport('Morosos pagados XLS', () =>
                               downloadCreditosMorososPagadosCsv(variosApi),
                             ),
                         },
+                      ]}
+                    />
+                  }
+                >
+                  <p className="credix-report-card-hint">
+                    Créditos que salieron de mora con pago en el rango indicado.
+                  </p>
+                </CredixReportBox>
+
+                <CredixReportBox
+                  title="Clientes nuevos (periodo)"
+                  icon={<UserOutlined />}
+                  actions={
+                    <ReportExportActions
+                      screenTo="/informes/clientes-nuevos-mes"
+                      screenSearchParams={variosScreenParams}
+                      exports={[
                         {
-                          label: 'Clientes nuevos',
-                          format: 'pdf' as const,
+                          label: 'PDF',
+                          format: 'pdf',
                           onClick: () =>
                             runOpenReport('Clientes nuevos', () =>
                               downloadClientesNuevosMesPdf(
@@ -825,51 +975,75 @@ export function ReporteCreditoIndexPage() {
                               ),
                             ),
                         },
+                      ]}
+                    />
+                  }
+                >
+                  <p className="credix-report-card-hint">
+                    Altas de clientes en el rango de fechas de la barra (no solo el mes actual).
+                  </p>
+                </CredixReportBox>
+
+                <CredixReportBox
+                  title="Informe caja diario"
+                  icon={<BankOutlined />}
+                  actions={
+                    <ReportExportActions
+                      screenTo="/informes/caja-diario"
+                      screenSearchParams={variosScreenParams}
+                      exports={[
                         {
-                          label: 'Caja diario',
-                          format: 'pdf' as const,
+                          label: 'PDF',
+                          format: 'pdf',
                           onClick: () =>
                             runOpenReport('Caja diario', () =>
                               downloadCajaDiarioInformePdf(variosApi),
                             ),
                         },
-                      ]
-                    : []),
-                  {
-                    label: 'Clientes inactivos pagados',
-                    format: 'pdf',
-                    onClick: () =>
-                      runOpenReport('Clientes inactivos pagados', () =>
-                        downloadClientesInactivosPdf(
-                          toClientesInactivosParams(
-                            oficinaSesion,
-                            variosGestor ?? session?.usuarioId,
-                            variosRango[0].format('YYYY-MM-DD'),
-                            variosRango[1].format('YYYY-MM-DD'),
+                      ]}
+                    />
+                  }
+                >
+                  <p className="credix-report-card-hint">
+                    Resumen de cajas diarias del periodo y gestor seleccionados.
+                  </p>
+                </CredixReportBox>
+              </>
+            ) : null}
+
+            <CredixReportBox
+              title="Clientes inactivos (periodo)"
+              icon={<UserDeleteOutlined />}
+              actions={
+                <ReportExportActions
+                  screenTo="/informes/clientes-inactivos"
+                  screenSearchParams={variosScreenParams}
+                  exports={[
+                    {
+                      label: 'PDF',
+                      format: 'pdf',
+                      onClick: () =>
+                        runOpenReport('Clientes inactivos pagados', () =>
+                          downloadClientesInactivosPdf(
+                            toClientesInactivosParams(
+                              oficinaSesion,
+                              variosGestor ?? session?.usuarioId,
+                              variosRango[0].format('YYYY-MM-DD'),
+                              variosRango[1].format('YYYY-MM-DD'),
+                            ),
                           ),
                         ),
-                      ),
-                  },
-                ]}
-              />
-            }
-          >
-            <ReporteField label="Oficina">
-              <OficinaSelect disabled value={oficinaSesion} />
-            </ReporteField>
-            <ReporteField label="Gestor">
-              <GestorSelect allowAll legacyList value={variosGestor} onChange={setVariosGestor} />
-            </ReporteField>
-            <ReporteField label="Rango fechas">
-              <CredixRangePicker
-                size="small"
-                value={variosRango}
-                onChange={(v) => v && setVariosRango(v as [Dayjs, Dayjs])}
-                format="DD/MM/YYYY"
-                style={{ width: '100%' }}
-              />
-            </ReporteField>
-          </CredixReportBox>
+                    },
+                  ]}
+                />
+              }
+            >
+              <p className="credix-report-card-hint">
+                Inactivos con filtro de rango (distinto del listado «sin rango» del bloque por
+                gestor).
+              </p>
+            </CredixReportBox>
+          </>
         ) : null}
         </ReportesSection>
 
