@@ -37,6 +37,11 @@ type Props = {
   ariaLabelledBy?: string
   /** `credito`: buscador destacado en consulta de crédito (botón siempre visible). */
   variant?: ClienteBuscarVariant
+  /**
+   * Si la búsqueda deja un solo resultado (p. ej. DNI exacto), lo carga solo.
+   * Ideal para caja diario / cobro rápido.
+   */
+  autoSelectSingle?: boolean
 }
 
 const norm = (s: string) => s.trim().toLowerCase()
@@ -87,6 +92,7 @@ export function ClienteBuscarAutoComplete({
   searchButtonLabel = 'Buscar',
   ariaLabelledBy,
   variant = 'default',
+  autoSelectSingle = false,
 }: Props) {
   const [options, setOptions] = useState<ClienteBuscarOption[]>([])
   const [loading, setLoading] = useState(false)
@@ -174,7 +180,26 @@ export function ClienteBuscarAutoComplete({
         if (cancelled) {
           return
         }
-        if (opts.length > 0 && norm(debounced) !== norm(selectedRef.current?.label ?? '')) {
+        if (opts.length === 0) {
+          setOpen(false)
+          return
+        }
+        // DNI/código único → cargar sin tocar la lista (caja / cobro rápido).
+        const digitsOnly = /^\d{6,12}$/.test(debounced.trim())
+        if (
+          autoSelectSingle &&
+          opts.length === 1 &&
+          (digitsOnly || debounced.trim().length >= 4) &&
+          norm(debounced) !== norm(selectedRef.current?.label ?? '')
+        ) {
+          const only = opts[0]
+          confirmPersona(
+            { personaId: only.personaId, label: only.hitLabel },
+            { fromList: true },
+          )
+          return
+        }
+        if (norm(debounced) !== norm(selectedRef.current?.label ?? '')) {
           setOpen(true)
         }
       })
@@ -193,7 +218,7 @@ export function ClienteBuscarAutoComplete({
     return () => {
       cancelled = true
     }
-  }, [debounced, minChars, searchWithFallbacks])
+  }, [debounced, minChars, searchWithFallbacks, autoSelectSingle, confirmPersona])
 
   const resolveCliente = useCallback(
     async (rawTerm?: string): Promise<boolean> => {

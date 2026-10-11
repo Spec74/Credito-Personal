@@ -28,21 +28,52 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 CREATE OR ALTER PROC [CREDITO].[usp_SolicitarCondonacion]
-@CajaDiarioId INT ,
-@CreditoId INT ,
-@MoraCondonacion DECIMAL(15,2)
- AS
+    @CajaDiarioId INT,
+    @CreditoId INT,
+    @MoraCondonacion DECIMAL(15, 2)
+AS
+BEGIN
+    SET NOCOUNT ON;
 
- DECLARE @MontoCredito DECIMAL(15,2) = (SELECT MontoCredito + (MontoCredito * Interes / 100)
- FROM CREDITO.Credito WHERE CreditoId=@CreditoId)
+    DECLARE @MontoCredito DECIMAL(15, 2) = (
+        SELECT
+            ISNULL(MontoCredito, 0)
+            + ISNULL(MontoCredito, 0) * ISNULL(Interes, 0) / 100.0
+        FROM CREDITO.Credito
+        WHERE CreditoId = @CreditoId
+    );
 
- DECLARE @Pagos DECIMAL(15,2) = (SELECT SUM(ImportePago) FROM CREDITO.MovimientoCaja
- WHERE CreditoId=@CreditoId AND ImportePago>0 AND Operacion='CUO')
+    IF @MontoCredito IS NULL
+    BEGIN
+        RAISERROR(N'No existe el crédito indicado para condonación.', 16, 1);
+        RETURN;
+    END;
 
- INSERT CREDITO.CreditoCondonacion
- (
-     CreditoId,     CajaDiarioId,     Fecha,     MoraCondonacion,     IndAprobado, TotalPago
- )
- VALUES
- (   @CreditoId,  @CajaDiarioId, dbo.ufnFecha(), @MoraCondonacion,       0  , @MontoCredito - @Pagos + @MoraCondonacion)
+    DECLARE @Pagos DECIMAL(15, 2) = ISNULL((
+        SELECT SUM(ImportePago)
+        FROM CREDITO.MovimientoCaja
+        WHERE CreditoId = @CreditoId
+          AND ImportePago > 0
+          AND Operacion = N'CUO'
+    ), 0);
+
+    INSERT CREDITO.CreditoCondonacion
+    (
+        CreditoId,
+        CajaDiarioId,
+        Fecha,
+        MoraCondonacion,
+        IndAprobado,
+        TotalPago
+    )
+    VALUES
+    (
+        @CreditoId,
+        @CajaDiarioId,
+        dbo.ufnFecha(),
+        @MoraCondonacion,
+        CAST(0 AS bit),
+        @MontoCredito - @Pagos + ISNULL(@MoraCondonacion, 0)
+    );
+END
 GO

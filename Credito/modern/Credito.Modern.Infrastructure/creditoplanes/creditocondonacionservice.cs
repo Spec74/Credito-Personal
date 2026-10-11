@@ -1,4 +1,3 @@
-using System.Data;
 using Credito.Modern.Application.CreditoPlanes;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -72,17 +71,61 @@ public sealed class CreditoCondonacionService(IOptions<SqlDatabaseOptions> optio
             throw new KeyNotFoundException($"No existe el crédito {request.CreditoId} en esta oficina.");
         }
 
-        await connection.ExecuteAsync(
+        // Paridad usp_SolicitarCondonacion + ISNULL (SUM/Interes nulos rompían TotalPago NOT NULL).
+        var inserted = await connection.ExecuteAsync(
             new CommandDefinition(
-                "CREDITO.usp_SolicitarCondonacion",
+                """
+                DECLARE @MontoCredito decimal(15, 2) = (
+                    SELECT
+                        ISNULL(MontoCredito, 0)
+                        + ISNULL(MontoCredito, 0) * ISNULL(Interes, 0) / 100.0
+                    FROM CREDITO.Credito
+                    WHERE CreditoId = @CreditoId
+                );
+
+                IF @MontoCredito IS NULL
+                    THROW 50001, N'No existe el crédito indicado para condonación.', 1;
+
+                DECLARE @Pagos decimal(15, 2) = ISNULL((
+                    SELECT SUM(ImportePago)
+                    FROM CREDITO.MovimientoCaja
+                    WHERE CreditoId = @CreditoId
+                      AND ImportePago > 0
+                      AND Operacion = N'CUO'
+                ), 0);
+
+                INSERT CREDITO.CreditoCondonacion
+                (
+                    CreditoId,
+                    CajaDiarioId,
+                    Fecha,
+                    MoraCondonacion,
+                    IndAprobado,
+                    TotalPago
+                )
+                VALUES
+                (
+                    @CreditoId,
+                    @CajaDiarioId,
+                    dbo.ufnFecha(),
+                    @MoraCondonacion,
+                    CAST(0 AS bit),
+                    @MontoCredito - @Pagos + ISNULL(@MoraCondonacion, 0)
+                );
+                """,
                 new
                 {
                     request.CajaDiarioId,
                     request.CreditoId,
                     request.MoraCondonacion,
                 },
-                commandType: CommandType.StoredProcedure,
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (inserted < 1)
+        {
+            throw new InvalidOperationException(
+                "No se pudo insertar la solicitud de condonación. Verifique el crédito y la caja.");
+        }
 
         return new SolicitarCondonacionResponse(true, null);
     }

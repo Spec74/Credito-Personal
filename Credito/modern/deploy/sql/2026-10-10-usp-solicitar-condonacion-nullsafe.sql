@@ -1,4 +1,13 @@
-CREATE PROC [CREDITO].[usp_SolicitarCondonacion]
+-- Fix: usp_SolicitarCondonacion fallaba con NULL en TotalPago cuando
+-- no hay pagos CUO (SUM → NULL) o Interes/MontoCredito nulos.
+-- Sintoma FE: "No se pudo registrar la solicitud de condonación."
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE OR ALTER PROC [CREDITO].[usp_SolicitarCondonacion]
     @CajaDiarioId INT,
     @CreditoId INT,
     @MoraCondonacion DECIMAL(15, 2)
@@ -47,3 +56,4 @@ BEGIN
         @MontoCredito - @Pagos + ISNULL(@MoraCondonacion, 0)
     );
 END
+GO

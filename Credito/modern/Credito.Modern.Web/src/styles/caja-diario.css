@@ -155,15 +155,20 @@
 }
 
 .caja-diario-cobranzas-top {
+  position: sticky;
+  top: 0;
+  z-index: 35;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
   min-width: 0;
   padding: 12px 14px;
-  background: var(--caja-brand-light);
+  background: rgba(232, 242, 252, 0.96);
   border: 1px solid #c7daf3;
   border-radius: var(--credix-radius);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
 }
 
 .caja-diario-cobranzas-top__search,
@@ -180,6 +185,29 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--caja-brand);
+}
+
+.caja-diario-cobranzas-top__reset {
+  padding-inline: 0;
+  height: auto;
+  font-weight: 650;
+}
+
+.caja-diario-cobranzas-top .credito-buscar-cliente-wrap,
+.caja-diario-cobranzas-top .caja-cliente-buscar-wrap {
+  width: 100%;
+}
+
+.caja-diario-cobranzas-top .ant-input-affix-wrapper-lg {
+  min-height: 48px;
+  border-radius: 12px;
+}
+
+.caja-diario-cobranzas-top .caja-cliente-buscar__submit.ant-btn-primary,
+.caja-diario-cobranzas-top .credito-buscar-cliente__submit.ant-btn-primary {
+  min-height: 48px;
+  border-radius: 12px;
+  font-weight: 750;
 }
 
 .caja-diario-actions-row {

@@ -315,13 +315,23 @@ export function CobranzasTab({
   })
 
   const solicitar = useMutation({
-    mutationFn: () =>
-      solicitarCondonacion({
+    mutationFn: () => {
+      const mora = Number(moraSolicitar ?? 0)
+      if (!creditoId || creditoId < 1) {
+        return Promise.reject(new Error('Seleccione un crédito.'))
+      }
+      if (!(mora > 0)) {
+        return Promise.reject(
+          new Error('Indique un monto de mora mayor a 0 para solicitar la condonación.'),
+        )
+      }
+      return solicitarCondonacion({
         oficinaId: ctx.oficinaId,
         cajaDiarioId: ctx.cajaDiarioId,
-        creditoId: creditoId!,
-        moraCondonacion: moraSolicitar ?? 0,
-      }),
+        creditoId,
+        moraCondonacion: Number(mora.toFixed(2)),
+      })
+    },
     onSuccess: () => {
       cajaToastSuccess('Solicitud de condonación registrada')
       setSolicitarOpen(false)
@@ -553,7 +563,31 @@ export function CobranzasTab({
             showSearchButton
             searchButtonLabel={isMobile ? 'Ir' : 'Cargar'}
             ariaLabelledBy="caja-buscar-cliente-label"
+            placeholder="DNI, nombre o código — Enter o un solo resultado carga solo"
+            minChars={2}
+            debounceMs={220}
+            autoSelectSingle
           />
+          {personaId > 0 || creditoId ? (
+            <Button
+              type="link"
+              className="caja-diario-cobranzas-top__reset"
+              onClick={() => {
+                setClienteLabel('')
+                setPersonaId(0)
+                setCreditosPersona([])
+                setCreditoId(null)
+                setCuotas([])
+                setSelectedKeys([])
+                setImporteRecibido(null)
+                setPagoLibre(null)
+                setShowCxc(false)
+                setModoPago('cuotas')
+              }}
+            >
+              Nuevo cobro
+            </Button>
+          ) : null}
         </div>
         <div
           className="caja-diario-actions-row"
