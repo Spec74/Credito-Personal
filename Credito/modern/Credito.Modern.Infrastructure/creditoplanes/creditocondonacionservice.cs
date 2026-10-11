@@ -29,14 +29,18 @@ public sealed class CreditoCondonacionService(IOptions<SqlDatabaseOptions> optio
             throw new ArgumentOutOfRangeException(nameof(request), "creditoId debe ser >= 1.");
         }
 
-        if (request.MoraCondonacion < 0)
+        if (request.MoraCondonacion <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(request), "moraCondonacion no puede ser negativa.");
+            throw new ArgumentOutOfRangeException(
+                nameof(request),
+                "Indique un monto de mora mayor a 0 para solicitar la condonación.");
         }
 
         EnsureConnection();
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await EnsureCondonacionTableAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var cajaOk = await connection.ExecuteScalarAsync<int>(
             new CommandDefinition(
@@ -71,57 +75,92 @@ public sealed class CreditoCondonacionService(IOptions<SqlDatabaseOptions> optio
             throw new KeyNotFoundException($"No existe el crédito {request.CreditoId} en esta oficina.");
         }
 
-        // Paridad usp_SolicitarCondonacion + ISNULL (SUM/Interes nulos rompían TotalPago NOT NULL).
-        var inserted = await connection.ExecuteAsync(
+        var yaPendiente = await connection.ExecuteScalarAsync<int>(
             new CommandDefinition(
                 """
-                DECLARE @MontoCredito decimal(15, 2) = (
-                    SELECT
-                        ISNULL(MontoCredito, 0)
-                        + ISNULL(MontoCredito, 0) * ISNULL(Interes, 0) / 100.0
-                    FROM CREDITO.Credito
-                    WHERE CreditoId = @CreditoId
-                );
-
-                IF @MontoCredito IS NULL
-                    THROW 50001, N'No existe el crédito indicado para condonación.', 1;
-
-                DECLARE @Pagos decimal(15, 2) = ISNULL((
-                    SELECT SUM(ImportePago)
-                    FROM CREDITO.MovimientoCaja
-                    WHERE CreditoId = @CreditoId
-                      AND ImportePago > 0
-                      AND Operacion = N'CUO'
-                ), 0);
-
-                INSERT CREDITO.CreditoCondonacion
-                (
-                    CreditoId,
-                    CajaDiarioId,
-                    Fecha,
-                    MoraCondonacion,
-                    IndAprobado,
-                    TotalPago
-                )
-                VALUES
-                (
-                    @CreditoId,
-                    @CajaDiarioId,
-                    dbo.ufnFecha(),
-                    @MoraCondonacion,
-                    CAST(0 AS bit),
-                    @MontoCredito - @Pagos + ISNULL(@MoraCondonacion, 0)
-                );
+                SELECT COUNT(1)
+                FROM CREDITO.CreditoCondonacion
+                WHERE CreditoId = @CreditoId
+                  AND IndAprobado = CAST(0 AS bit);
                 """,
-                new
-                {
-                    request.CajaDiarioId,
-                    request.CreditoId,
-                    request.MoraCondonacion,
-                },
+                new { request.CreditoId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
+        if (yaPendiente > 0)
+        {
+            throw new InvalidOperationException(
+                "Ya existe una solicitud de condonación pendiente para este crédito. Revísela en Condonaciones o en la ficha del crédito.");
+        }
 
-        if (inserted < 1)
+        // Insert null-safe (evita TotalPago NULL cuando no hay pagos CUO / Interes nulo).
+        // Devuelve Id para no depender del rowcount de batches Dapper (-1).
+        int? newId;
+        try
+        {
+            newId = await connection.ExecuteScalarAsync<int?>(
+                new CommandDefinition(
+                    """
+                    DECLARE @MontoCredito decimal(15, 2) = (
+                        SELECT
+                            ISNULL(MontoCredito, 0)
+                            + ISNULL(MontoCredito, 0) * ISNULL(Interes, 0) / 100.0
+                        FROM CREDITO.Credito
+                        WHERE CreditoId = @CreditoId
+                    );
+
+                    IF @MontoCredito IS NULL
+                        THROW 50001, N'No existe el crédito indicado para condonación.', 1;
+
+                    DECLARE @Pagos decimal(15, 2) = ISNULL((
+                        SELECT SUM(ImportePago)
+                        FROM CREDITO.MovimientoCaja
+                        WHERE CreditoId = @CreditoId
+                          AND ImportePago > 0
+                          AND Operacion = N'CUO'
+                    ), 0);
+
+                    INSERT CREDITO.CreditoCondonacion
+                    (
+                        CreditoId,
+                        CajaDiarioId,
+                        Fecha,
+                        MoraCondonacion,
+                        IndAprobado,
+                        TotalPago
+                    )
+                    VALUES
+                    (
+                        @CreditoId,
+                        @CajaDiarioId,
+                        dbo.ufnFecha(),
+                        @MoraCondonacion,
+                        CAST(0 AS bit),
+                        @MontoCredito - @Pagos + @MoraCondonacion
+                    );
+
+                    SELECT CAST(SCOPE_IDENTITY() AS int);
+                    """,
+                    new
+                    {
+                        request.CajaDiarioId,
+                        request.CreditoId,
+                        request.MoraCondonacion,
+                    },
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+        }
+        catch (SqlException ex) when (ex.Number is 208 or 207)
+        {
+            throw new InvalidOperationException(
+                "Falta la tabla CREDITO.CreditoCondonacion en la base. Ejecute el script deploy/sql/2026-09-10-credito-condonacion.sql en Azure SQL.",
+                ex);
+        }
+        catch (SqlException ex)
+        {
+            throw new InvalidOperationException(
+                $"No se pudo registrar la condonación en SQL: {TrimSql(ex.Message)}",
+                ex);
+        }
+
+        if (newId is null or < 1)
         {
             throw new InvalidOperationException(
                 "No se pudo insertar la solicitud de condonación. Verifique el crédito y la caja.");
@@ -142,6 +181,7 @@ public sealed class CreditoCondonacionService(IOptions<SqlDatabaseOptions> optio
         EnsureConnection();
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureCondonacionTableAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var rows = await connection.QueryAsync<CondonacionPendienteDto>(
             new CommandDefinition(
@@ -188,6 +228,7 @@ public sealed class CreditoCondonacionService(IOptions<SqlDatabaseOptions> optio
         EnsureConnection();
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureCondonacionTableAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var row = await connection.QueryFirstOrDefaultAsync<PendienteRow>(
             new CommandDefinition(
@@ -232,6 +273,7 @@ public sealed class CreditoCondonacionService(IOptions<SqlDatabaseOptions> optio
         EnsureConnection();
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureCondonacionTableAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var filas = await connection.ExecuteAsync(
             new CommandDefinition(
@@ -250,6 +292,40 @@ public sealed class CreditoCondonacionService(IOptions<SqlDatabaseOptions> optio
         {
             throw new KeyNotFoundException("No existe la solicitud pendiente en esta oficina.");
         }
+    }
+
+    private static async Task EnsureCondonacionTableAsync(
+        SqlConnection connection,
+        CancellationToken cancellationToken)
+    {
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                IF OBJECT_ID(N'CREDITO.CreditoCondonacion', N'U') IS NULL
+                BEGIN
+                    CREATE TABLE CREDITO.CreditoCondonacion (
+                        Id int IDENTITY(1,1) NOT NULL
+                            CONSTRAINT PK_CreditoCondonacion PRIMARY KEY,
+                        CreditoId int NOT NULL,
+                        CajaDiarioId int NOT NULL,
+                        Fecha datetime NOT NULL,
+                        MoraCondonacion decimal(10,2) NOT NULL,
+                        TotalPago decimal(15,2) NOT NULL,
+                        IndAprobado bit NOT NULL,
+                        CONSTRAINT FK_CreditoCondonacion_Credito FOREIGN KEY (CreditoId)
+                            REFERENCES CREDITO.Credito (CreditoId),
+                        CONSTRAINT FK_CreditoCondonacion_CajaDiario FOREIGN KEY (CajaDiarioId)
+                            REFERENCES CREDITO.CajaDiario (CajaDiarioId)
+                    );
+                END
+                """,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
+
+    private static string TrimSql(string message)
+    {
+        var line = message.Split('\n', 2)[0].Trim();
+        return line.Length > 160 ? line[..160] + "…" : line;
     }
 
     private void EnsureConnection()

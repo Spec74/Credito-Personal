@@ -35,6 +35,7 @@ import {
 } from '../../../api/cajaDiario'
 import { downloadMovimientosCreditoPdf } from '../../../api/creditoPlanes'
 import { fetchCreditoContexto } from '../../../api/creditoGestion'
+import { ApiError } from '../../../api/errors'
 import { CajaModal } from '../../../components/caja/CajaModal'
 import {
   cajaToastError,
@@ -367,7 +368,13 @@ export function CobranzasTab({
       setSolicitarOpen(false)
       void condonacionPendienteQuery.refetch()
     },
-    onError: (e) => cajaToastError(errMsg(e)),
+    onError: (e) => {
+      const detail =
+        e instanceof ApiError
+          ? e.problem?.detail || e.message
+          : errMsg(e)
+      cajaToastError(detail || 'No se pudo registrar la solicitud de condonación.')
+    },
   })
 
   const ejecutarPagoLibre = useMutation({

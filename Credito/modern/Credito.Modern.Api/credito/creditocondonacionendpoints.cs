@@ -200,8 +200,9 @@ internal static class CreditoCondonacionEndpoints
         }
 
         log.LogError(ex, "Condonación");
-        // Mensaje SQL corto para el cajero (p. ej. NOT NULL / FK); sin stack.
-        var sqlHint = ex.Message.Split('\n', 2)[0].Trim();
+        // Preferir mensaje SQL útil (también InnerException) para el cajero.
+        var raw = ex.InnerException?.Message ?? ex.Message;
+        var sqlHint = raw.Split('\n', 2)[0].Trim();
         if (sqlHint.Length > 180)
         {
             sqlHint = sqlHint[..180] + "…";
@@ -210,6 +211,8 @@ internal static class CreditoCondonacionEndpoints
         var detail = string.IsNullOrWhiteSpace(sqlHint) || sqlHint == fallback
             ? fallback
             : $"{fallback} ({sqlHint})";
+
+        _ = env; // reservado si más adelante se oculta el hint en prod
 
         return TypedResults.Problem(
             detail: detail,
