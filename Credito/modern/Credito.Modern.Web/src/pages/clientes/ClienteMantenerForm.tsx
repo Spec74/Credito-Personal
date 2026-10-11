@@ -24,6 +24,7 @@ import {
   type FormProps,
 } from 'antd'
 import {
+  AimOutlined,
   EditOutlined,
   EnvironmentOutlined,
   FileSearchOutlined,
@@ -36,6 +37,7 @@ import {
 import dayjs, { type Dayjs } from 'dayjs'
 import { consultarDniApiPeru, consultarRucApiPeru } from '../../api/apiperu'
 import {
+  actualizarUbicacionCliente,
   documentoYaEsCliente,
   guardarCliente,
   habilitarClienteDepurado,
@@ -46,6 +48,10 @@ import {
   toggleClienteBloqueado,
   type GuardarClienteRequest,
 } from '../../api/clientes'
+import {
+  DeviceGeolocationError,
+  getCurrentDevicePosition,
+} from '../../utils/deviceGeolocation'
 import { fetchOcupaciones } from '../../api/ocupaciones'
 import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
@@ -60,7 +66,12 @@ import {
   puedeOperarCreditoCompleto,
 } from '../../utils/creditoOperacionPermisos'
 import { geocodeDistritoCliente, geocodeDomicilioCliente } from '../../utils/googleGeocode'
-import { type MapLatLng, toMapLatLng } from '../../config/googleMaps'
+import {
+  formatCoordinates,
+  hasValidCoordinates,
+  type MapLatLng,
+  toMapLatLng,
+} from '../../config/googleMaps'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { ConyugueAutoComplete } from './components/ConyugueAutoComplete'
 import { CrearPersonaRapidaModal } from './components/CrearPersonaRapidaModal'
@@ -186,6 +197,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
   const [distritoId, setDistritoId] = useState<number | null>(null)
   const [conyuguePersonaId, setConyuguePersonaId] = useState<number | null>(null)
   const [mapLocation, setMapLocation] = useState<MapLatLng | null>(null)
+  const [gpsLoading, setGpsLoading] = useState(false)
   const [clienteTab, setClienteTab] = useState('identidad')
   /** Editable de entrada; ApiPerú rellena al validar (no bloquea alta manual). */
   const [nombresBloqueados, setNombresBloqueados] = useState(false)
@@ -515,6 +527,34 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
     }
     setMapLocation(pos)
     message.success('Ubicación actualizada en el mapa')
+  }
+
+  const registrarMiUbicacion = async () => {
+    if (soloConsulta) return
+    setGpsLoading(true)
+    try {
+      const pos = await getCurrentDevicePosition()
+      setMapLocation(pos)
+      if (esEdicion && personaId > 0) {
+        await actualizarUbicacionCliente(personaId, {
+          latitud: pos.lat,
+          longitud: pos.lng,
+        })
+        message.success(`GPS registrado (${formatCoordinates(pos.lat, pos.lng)}). Ya puede usarse en cobro.`)
+      } else {
+        message.success(
+          `GPS capturado (${formatCoordinates(pos.lat, pos.lng)}). Pulse Guardar para persistirlo.`,
+        )
+      }
+    } catch (e) {
+      if (e instanceof DeviceGeolocationError || e instanceof ApiError) {
+        message.error(e.message)
+      } else {
+        message.error('No se pudo leer la ubicación del dispositivo')
+      }
+    } finally {
+      setGpsLoading(false)
+    }
   }
 
   const stats: CredixStatItem[] = useMemo(
@@ -892,12 +932,27 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                     <div className="cliente-mantener__map-actions">
                       <Button
                         type="primary"
+                        icon={<AimOutlined />}
+                        loading={gpsLoading}
+                        disabled={soloConsulta}
+                        onClick={() => void registrarMiUbicacion()}
+                      >
+                        Registrar mi ubicación
+                      </Button>
+                      <Button
                         icon={<EnvironmentOutlined />}
                         disabled={soloConsulta}
                         onClick={() => void ubicarMapa()}
                       >
                         Ubicar domicilio en el mapa
                       </Button>
+                      {hasValidCoordinates(mapLocation?.lat, mapLocation?.lng) ? (
+                        <Tag>
+                          GPS {formatCoordinates(mapLocation!.lat, mapLocation!.lng)}
+                        </Tag>
+                      ) : (
+                        <Tag>Sin GPS — solo dirección textual</Tag>
+                      )}
                     </div>
                     <GoogleMapLocationPicker
                       layoutKey={`cliente-${personaId}-${esEdicion}-${clienteTab}`}
@@ -907,7 +962,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                       disabled={soloConsulta}
                       height={320}
                       searchPlaceholder="Buscar en Google Maps…"
-                      hintText="Ubique al cliente en el mapa con clic, arrastre del marcador o búsqueda. También puede geocodificar por distrito y domicilio."
+                      hintText="En el negocio del cliente: «Registrar mi ubicación» usa el GPS del celular. También puede geocodificar por domicilio o ajustar el marcador."
                     />
                   </div>
                 </CredixPanel>

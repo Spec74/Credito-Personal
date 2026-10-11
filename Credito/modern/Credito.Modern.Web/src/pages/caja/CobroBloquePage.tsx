@@ -68,6 +68,12 @@ import {
 } from './components/FechaHoraDigitalField'
 import { CobroBloqueFieldCard } from './components/CobroBloqueFieldCard'
 import { MontoCobrarInput } from './components/MontoCobrarInput'
+import {
+  clienteMapaHref,
+  clienteMapaLabel,
+  clienteMapaTitle,
+  clienteTieneGps,
+} from '../../utils/clienteMapaNavegacion'
 import '../../styles/cobro-bloque.css'
 
 type VistaCampo = 'todos' | 'mora' | 'cobro'
@@ -1190,6 +1196,22 @@ export function CobroBloquePage() {
                         edit={e}
                         tipoPagoOptions={tipoPagoOptions}
                         onPatch={(patch) => patchEdit(row.creditoId, patch, row)}
+                        onUbicacionGuardada={(personaId, lat, lng) => {
+                          queryClient.setQueryData(
+                            carteraQueryKey,
+                            (prev: { rows: CreditoGestorPendienteRow[]; fromCache: boolean } | undefined) => {
+                              if (!prev) return prev
+                              return {
+                                ...prev,
+                                rows: prev.rows.map((r) =>
+                                  r.personaId === personaId
+                                    ? { ...r, latitud: lat, longitud: lng }
+                                    : r,
+                                ),
+                              }
+                            },
+                          )
+                        }}
                         cuotasSlot={
                           <CuotasSubgrid
                             creditoId={row.creditoId}
@@ -1225,11 +1247,29 @@ export function CobroBloquePage() {
                     const e = getEdit(row)
                     return (
                       <div>
-                        {row.direccion ? (
-                          <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                            <EnvironmentOutlined /> {row.direccion}
-                          </Text>
-                        ) : null}
+                        {(() => {
+                          const punto = {
+                            direccion: row.direccion,
+                            latitud: row.latitud,
+                            longitud: row.longitud,
+                          }
+                          const href = clienteMapaHref(punto)
+                          const label = clienteMapaLabel(punto)
+                          if (!href || !label) return null
+                          return (
+                            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                              <a
+                                href={href}
+                                target="_blank"
+                                rel="noreferrer"
+                                title={clienteMapaTitle(punto)}
+                              >
+                                <EnvironmentOutlined /> {label}
+                                {clienteTieneGps(punto) ? ' · GPS' : ''}
+                              </a>
+                            </Text>
+                          )
+                        })()}
                         <CuotasSubgrid
                           creditoId={row.creditoId}
                           deudaMax={row.deudaPendiente}

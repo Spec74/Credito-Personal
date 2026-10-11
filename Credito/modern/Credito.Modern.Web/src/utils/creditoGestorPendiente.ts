@@ -1,4 +1,5 @@
 import type { CreditoGestorPendienteRow } from '../api/cajaDiario'
+import { hasValidCoordinates } from '../config/googleMaps'
 
 function pickNonEmpty(...vals: unknown[]): string | null {
   for (const v of vals) {
@@ -10,6 +11,12 @@ function pickNonEmpty(...vals: unknown[]): string | null {
 function numOr(raw: unknown, fallback = 0): number {
   const n = Number(raw)
   return Number.isFinite(n) ? n : fallback
+}
+
+function optionalCoord(raw: unknown): number | null {
+  if (raw == null || raw === '') return null
+  const n = Number(raw)
+  return Number.isFinite(n) ? n : null
 }
 
 /** Monto sugerido desde informe cobro diario (cuota del día + mora). */
@@ -27,6 +34,10 @@ export function sugeridaFromInforme(row: {
 export function normalizeCreditoGestorPendienteRow(
   raw: Record<string, unknown>,
 ): CreditoGestorPendienteRow {
+  const latitud = optionalCoord(raw.latitud ?? raw.Latitud)
+  const longitud = optionalCoord(raw.longitud ?? raw.Longitud)
+  const gpsOk = hasValidCoordinates(latitud, longitud)
+
   return {
     creditoId: numOr(raw.creditoId ?? raw.CreditoId),
     personaCodigo: String(raw.personaCodigo ?? raw.PersonaCodigo ?? ''),
@@ -44,6 +55,8 @@ export function normalizeCreditoGestorPendienteRow(
     })(),
     celular: pickNonEmpty(raw.celular, raw.Celular),
     direccion: pickNonEmpty(raw.direccion, raw.Direccion),
+    latitud: gpsOk ? latitud : null,
+    longitud: gpsOk ? longitud : null,
     cuotaSugerida: numOr(raw.cuotaSugerida ?? raw.CuotaSugerida),
     diasAtrazo: numOr(raw.diasAtrazo ?? raw.DiasAtrazo),
   }

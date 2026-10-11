@@ -498,6 +498,9 @@ export interface CreditoGestorPendienteRow {
   orden: number | null
   celular: string | null
   direccion: string | null
+  /** GPS del cliente (MAESTRO.Cliente), si está registrado. */
+  latitud: number | null
+  longitud: number | null
   /** Primera cuota PEN sugerida para cobro rápido en campo. */
   cuotaSugerida: number
   diasAtrazo: number

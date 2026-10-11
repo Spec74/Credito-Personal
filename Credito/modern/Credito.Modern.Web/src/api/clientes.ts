@@ -191,6 +191,18 @@ export function guardarCliente(
   })
 }
 
+/** Registra solo lat/lng del cliente (captura GPS en campo o ficha). */
+export function actualizarUbicacionCliente(
+  personaId: number,
+  body: { latitud: number; longitud: number },
+): Promise<void> {
+  return apiFetch<void>(`/clientes/${personaId}/ubicacion`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
 export function toggleClienteActivo(personaId: number): Promise<boolean> {
   return apiFetch<boolean>(`/clientes/${personaId}/activar`, { method: 'POST' })
 }

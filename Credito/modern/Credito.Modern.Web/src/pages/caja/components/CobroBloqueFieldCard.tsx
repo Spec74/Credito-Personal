@@ -1,14 +1,27 @@
-import type { ReactNode } from 'react'
-import { Button, Tooltip } from 'antd'
+import { useState, type ReactNode } from 'react'
+import { Button, Tooltip, message } from 'antd'
 import { MontoCobrarInput } from './MontoCobrarInput'
 import {
+  AimOutlined,
   EnvironmentOutlined,
   PhoneOutlined,
   WhatsAppOutlined,
 } from '@ant-design/icons'
 import type { CreditoGestorPendienteRow } from '../../../api/cajaDiario'
+import { actualizarUbicacionCliente } from '../../../api/clientes'
+import { ApiError } from '../../../api/errors'
 import { formatMoney } from '../../../utils/formatMoney'
 import { formatFecha } from '../../../utils/formatFecha'
+import {
+  clienteMapaHref,
+  clienteMapaLabel,
+  clienteMapaTitle,
+  clienteTieneGps,
+} from '../../../utils/clienteMapaNavegacion'
+import {
+  DeviceGeolocationError,
+  getCurrentDevicePosition,
+} from '../../../utils/deviceGeolocation'
 import { FechaHoraDigitalField } from './FechaHoraDigitalField'
 
 const TIPOS_PAGO_DIGITAL = new Set([2, 3, 4, 5])
@@ -27,6 +40,7 @@ type Props = {
   edit: CobroBloqueFieldEdit
   tipoPagoOptions: TipoPagoOpt[]
   onPatch: (patch: Partial<CobroBloqueFieldEdit>) => void
+  onUbicacionGuardada?: (personaId: number, lat: number, lng: number) => void
   cuotasSlot: ReactNode
 }
 
@@ -55,18 +69,50 @@ export function CobroBloqueFieldCard({
   edit,
   tipoPagoOptions,
   onPatch,
+  onUbicacionGuardada,
   cuotasSlot,
 }: Props) {
+  const [gpsLoading, setGpsLoading] = useState(false)
   const enMora = row.diasAtrazo > 0
   const conCobro = edit.montoPagar > 0
   const sug = Math.max(0, row.cuotaSugerida || 0)
   const deuda = Math.max(0, row.deudaPendiente || 0)
   const phone = digitsPhone(row.celular)
   const digital = TIPOS_PAGO_DIGITAL.has(edit.tipoPagoId)
+  const mapaPunto = {
+    direccion: row.direccion,
+    latitud: row.latitud,
+    longitud: row.longitud,
+  }
+  const mapaHref = clienteMapaHref(mapaPunto)
+  const mapaLabel = clienteMapaLabel(mapaPunto)
+  const tieneGps = clienteTieneGps(mapaPunto)
 
   const setMonto = (montoPagar: number) => {
     const capped = Math.min(Math.max(0, montoPagar), deuda > 0 ? deuda : montoPagar)
     onPatch({ montoPagar: capped, cuotasSeleccionadas: [] })
+  }
+
+  const registrarMiUbicacion = async () => {
+    if (row.personaId < 1) return
+    setGpsLoading(true)
+    try {
+      const pos = await getCurrentDevicePosition()
+      await actualizarUbicacionCliente(row.personaId, {
+        latitud: pos.lat,
+        longitud: pos.lng,
+      })
+      onUbicacionGuardada?.(row.personaId, pos.lat, pos.lng)
+      message.success('Ubicación GPS del cliente actualizada')
+    } catch (e) {
+      if (e instanceof DeviceGeolocationError || e instanceof ApiError) {
+        message.error(e.message)
+      } else {
+        message.error('No se pudo registrar la ubicación')
+      }
+    } finally {
+      setGpsLoading(false)
+    }
   }
 
   return (
@@ -106,7 +152,7 @@ export function CobroBloqueFieldCard({
         </div>
       </header>
 
-      {(phone || row.direccion) && (
+      {(phone || mapaHref || row.personaId > 0) && (
         <div className="cobro-bloque-card__contacts" role="group" aria-label="Contacto">
           {phone ? (
             <>
@@ -125,17 +171,36 @@ export function CobroBloqueFieldCard({
               </a>
             </>
           ) : null}
-          {row.direccion ? (
+          {mapaHref && mapaLabel ? (
             <a
-              className="cobro-bloque-card__contact cobro-bloque-card__contact--dir"
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(row.direccion)}`}
+              className={[
+                'cobro-bloque-card__contact',
+                'cobro-bloque-card__contact--dir',
+                tieneGps ? 'cobro-bloque-card__contact--gps' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              href={mapaHref}
               target="_blank"
               rel="noreferrer"
-              title={row.direccion}
+              title={clienteMapaTitle(mapaPunto)}
             >
               <EnvironmentOutlined />
-              <span>{row.direccion}</span>
+              <span>{mapaLabel}</span>
+              {tieneGps ? <em className="cobro-bloque-card__gps-pill">GPS</em> : null}
             </a>
+          ) : null}
+          {row.personaId > 0 ? (
+            <button
+              type="button"
+              className="cobro-bloque-card__contact cobro-bloque-card__contact--gps-btn"
+              disabled={gpsLoading}
+              onClick={() => void registrarMiUbicacion()}
+              title="Ubíquese en el negocio del cliente y registre el GPS del celular"
+            >
+              <AimOutlined />
+              <span>{gpsLoading ? 'Obteniendo GPS…' : 'Registrar mi ubicación'}</span>
+            </button>
           ) : null}
         </div>
       )}

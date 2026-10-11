@@ -380,6 +380,54 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
         return rows > 0;
     }
 
+    public async Task ActualizarUbicacionAsync(
+        int personaId,
+        ActualizarUbicacionClienteRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (personaId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(personaId));
+        }
+
+        // Perú continental + margen (evita basura / (0,0)).
+        if (request.Latitud is < -19.5m or > 0.5m || request.Longitud is < -82.5m or > -67.5m)
+        {
+            throw new ArgumentException("Las coordenadas GPS están fuera del rango válido para Perú.");
+        }
+
+        if (request.Latitud == 0 && request.Longitud == 0)
+        {
+            throw new ArgumentException("La ubicación GPS no es válida.");
+        }
+
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var rows = await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                UPDATE MAESTRO.Cliente
+                SET Latitud = @Latitud,
+                    Longitud = @Longitud
+                WHERE PersonaId = @PersonaId;
+                """,
+                new
+                {
+                    PersonaId = personaId,
+                    request.Latitud,
+                    request.Longitud,
+                },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (rows < 1)
+        {
+            throw new InvalidOperationException(
+                "No se encontró el cliente para actualizar la ubicación. Guarde primero la ficha del cliente.");
+        }
+    }
+
     public async Task<bool> ToggleActivoAsync(int personaId, CancellationToken cancellationToken = default)
     {
         if (personaId < 1)

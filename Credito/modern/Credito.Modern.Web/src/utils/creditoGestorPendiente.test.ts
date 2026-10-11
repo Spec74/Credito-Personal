@@ -31,6 +31,24 @@ describe('creditoGestorPendiente', () => {
     ).toBeNull()
   })
 
+  it('mapea latitud/longitud y descarta 0,0', () => {
+    expect(
+      normalizeCreditoGestorPendienteRow({
+        creditoId: 4,
+        latitud: -13.16,
+        longitud: -74.22,
+      }),
+    ).toMatchObject({ latitud: -13.16, longitud: -74.22 })
+
+    expect(
+      normalizeCreditoGestorPendienteRow({
+        creditoId: 5,
+        Latitud: 0,
+        Longitud: 0,
+      }),
+    ).toMatchObject({ latitud: null, longitud: null })
+  })
+
   it('completa celular desde informe cobro diario', () => {
     const base = normalizeCreditoGestorPendienteRow({
       creditoId: 10,

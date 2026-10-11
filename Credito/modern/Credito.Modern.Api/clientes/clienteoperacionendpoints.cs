@@ -230,7 +230,76 @@ internal static class ClienteOperacionEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
+        app.MapPost(
+                "/api/v1/clientes/{personaId:int}/ubicacion",
+                async Task<Results<Ok, ProblemHttpResult>> (
+                    int personaId,
+                    ActualizarUbicacionClienteRequest body,
+                    IClienteWriteService clientes,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (personaId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Parámetros inválidos",
+                            detail: "personaId debe ser >= 1.");
+                    }
 
+                    var log = loggerFactory.CreateLogger("ClientesUbicacion");
+                    try
+                    {
+                        await clientes
+                            .ActualizarUbicacionAsync(personaId, body, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok();
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        log.LogWarning(ex, "Ubicación inválida personaId={PersonaId}", personaId);
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "La ubicación enviada no es válida."
+                                : ex.Message);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "No se pudo actualizar ubicación personaId={PersonaId}", personaId);
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status404NotFound,
+                            title: "Cliente no encontrado",
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "No se encontró el cliente."
+                                : ex.Message);
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error SQL al actualizar ubicación personaId={PersonaId}", personaId);
+                        var detail = "No se pudo actualizar la ubicación del cliente.";
+                        if (env.IsDevelopment())
+                        {
+                            detail += $" Detalle: {ex.Message}";
+                        }
+
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("ClientesActualizarUbicacion")
+            .WithSummary("Registra latitud/longitud GPS del cliente (captura en campo o ficha).")
+            .WithTags("clientes")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .Produces(StatusCodes.Status200OK)
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
         app.MapPost(
                 "/api/v1/clientes/{personaId:int}/activar",

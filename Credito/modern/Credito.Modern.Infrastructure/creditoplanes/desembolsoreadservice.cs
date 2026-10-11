@@ -147,6 +147,16 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
                 TRY_CAST(SUBSTRING(p.Codigo, 3, LEN(p.Codigo)) AS int) AS Orden,
                 NULLIF(LTRIM(RTRIM(p.Celular1)), N'') AS Celular,
                 NULLIF(LTRIM(RTRIM(p.Direccion)), N'') AS Direccion,
+                CASE
+                    WHEN cl.Latitud IS NULL OR cl.Longitud IS NULL THEN NULL
+                    WHEN cl.Latitud = 0 AND cl.Longitud = 0 THEN NULL
+                    ELSE cl.Latitud
+                END AS Latitud,
+                CASE
+                    WHEN cl.Latitud IS NULL OR cl.Longitud IS NULL THEN NULL
+                    WHEN cl.Latitud = 0 AND cl.Longitud = 0 THEN NULL
+                    ELSE cl.Longitud
+                END AS Longitud,
                 CAST(
                     CASE
                         WHEN ISNULL(pa.VencidasAcum, 0) > 0 THEN pa.VencidasAcum
@@ -157,6 +167,7 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
                 ISNULL(dbo.ufnCalcularDiasAtrazo(pa.MinVenPen, @Hoy), 0) AS DiasAtrazo
             FROM CREDITO.Credito AS c
             INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
+            LEFT JOIN MAESTRO.Cliente AS cl ON cl.PersonaId = c.PersonaId
             LEFT JOIN PlanAgg AS pa ON pa.CreditoId = c.CreditoId
             LEFT JOIN PrimeraPendiente AS fp ON fp.CreditoId = c.CreditoId
             WHERE c.UsuarioRegId = @UsuarioRegId

@@ -24,6 +24,12 @@ public sealed class CreditoGestorPendienteRowDto
 
     public string? Direccion { get; set; }
 
+    /// <summary>GPS del cliente (<c>MAESTRO.Cliente.Latitud</c>), si está registrado.</summary>
+    public decimal? Latitud { get; set; }
+
+    /// <summary>GPS del cliente (<c>MAESTRO.Cliente.Longitud</c>), si está registrado.</summary>
+    public decimal? Longitud { get; set; }
+
     /// <summary>
     /// Atajo cobro en campo: cuotas vencidas acumuladas, o la próxima pendiente
     /// (estado distinto de PAG/CAN; incluye cargo/mora de cuota).

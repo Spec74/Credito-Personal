@@ -19,4 +19,10 @@ public interface IClienteWriteService
         CancellationToken cancellationToken = default);
 
     Task<bool> HabilitarDepuradoAsync(int personaId, CancellationToken cancellationToken = default);
+
+    /// <summary>Actualiza <c>MAESTRO.Cliente.Latitud/Longitud</c> sin tocar el resto de la ficha.</summary>
+    Task ActualizarUbicacionAsync(
+        int personaId,
+        ActualizarUbicacionClienteRequest request,
+        CancellationToken cancellationToken = default);
 }
