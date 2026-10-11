@@ -42,6 +42,11 @@ type Props = {
    * Ideal para caja diario / cobro rápido.
    */
   autoSelectSingle?: boolean
+  /**
+   * Si no hay clientes, permite resolver otro criterio (p. ej. nro. de crédito).
+   * Debe devolver true si cargó algo.
+   */
+  onMiss?: (term: string) => Promise<boolean>
 }
 
 const norm = (s: string) => s.trim().toLowerCase()
@@ -93,6 +98,7 @@ export function ClienteBuscarAutoComplete({
   ariaLabelledBy,
   variant = 'default',
   autoSelectSingle = false,
+  onMiss,
 }: Props) {
   const [options, setOptions] = useState<ClienteBuscarOption[]>([])
   const [loading, setLoading] = useState(false)
@@ -182,6 +188,14 @@ export function ClienteBuscarAutoComplete({
         }
         if (opts.length === 0) {
           setOpen(false)
+          // Nro. crédito u otro criterio cuando no hay cliente.
+          if (
+            autoSelectSingle &&
+            onMiss &&
+            /^\d{4,10}$/.test(debounced.trim())
+          ) {
+            void onMiss(debounced.trim())
+          }
           return
         }
         // DNI/código único → cargar sin tocar la lista (caja / cobro rápido).
@@ -218,7 +232,7 @@ export function ClienteBuscarAutoComplete({
     return () => {
       cancelled = true
     }
-  }, [debounced, minChars, searchWithFallbacks, autoSelectSingle, confirmPersona])
+  }, [debounced, minChars, searchWithFallbacks, autoSelectSingle, confirmPersona, onMiss])
 
   const resolveCliente = useCallback(
     async (rawTerm?: string): Promise<boolean> => {
@@ -260,8 +274,12 @@ export function ClienteBuscarAutoComplete({
         }
 
         if (opts.length === 0) {
+          if (onMiss && (await onMiss(term))) {
+            setOpen(false)
+            return true
+          }
           message.warning(
-            'No se encontró el cliente. Busque por DNI, nombre o código (no use solo la etiqueta completa).',
+            'No se encontró. Pruebe DNI, nombre, código o nro. de crédito.',
           )
           setOpen(false)
           return false
@@ -295,6 +313,7 @@ export function ClienteBuscarAutoComplete({
       searchWithFallbacks,
       confirmPersona,
       onSelectPersona,
+      onMiss,
     ],
   )
 

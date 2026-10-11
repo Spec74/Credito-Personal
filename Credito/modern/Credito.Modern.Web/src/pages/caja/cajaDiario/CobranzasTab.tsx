@@ -11,7 +11,6 @@ import {
   Button,
   Grid,
   InputNumber,
-  Select,
   Space,
 } from 'antd'
 import {
@@ -21,7 +20,6 @@ import {
   FilePdfOutlined,
   FileSearchOutlined,
   HistoryOutlined,
-  SearchOutlined,
   UnorderedListOutlined,
   WalletOutlined,
 } from '@ant-design/icons'
@@ -36,6 +34,7 @@ import {
   pagarCuotas,
 } from '../../../api/cajaDiario'
 import { downloadMovimientosCreditoPdf } from '../../../api/creditoPlanes'
+import { fetchCreditoContexto } from '../../../api/creditoGestion'
 import { CajaModal } from '../../../components/caja/CajaModal'
 import {
   cajaToastError,
@@ -216,7 +215,11 @@ export function CobranzasTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [creditoIdInicial])
 
-  const cargarCreditos = async (pid: number, label: string) => {
+  const cargarCreditos = async (
+    pid: number,
+    label: string,
+    preferCreditoId?: number,
+  ) => {
     setPersonaId(pid)
     setClienteLabel(label)
     const list = await fetchCreditosPorPersona(pid, ctx.esCajaCentral)
@@ -236,16 +239,43 @@ export function CobranzasTab({
       return
     }
 
-    const creditoDefault = list[0].creditoId
-    cargarCuotas(creditoDefault, { silent: true })
+    const preferido =
+      preferCreditoId && list.some((c) => c.creditoId === preferCreditoId)
+        ? preferCreditoId
+        : list[0].creditoId
+    cargarCuotas(preferido, { silent: true })
 
     if (list.length > 1) {
       cajaToastInfo(
-        `${list.length} créditos activos · se cargó el ${creditoDefault}`,
+        `${list.length} créditos activos · se cargó el ${preferido}`,
         'caja-cliente',
       )
     }
   }
+
+  /** Buscador único: si no hay cliente, intentar nro. de crédito. */
+  const cargarPorCreditoId = useCallback(
+    async (term: string): Promise<boolean> => {
+      const id = Number(term.trim())
+      if (!Number.isFinite(id) || id < 1 || !/^\d{4,10}$/.test(term.trim())) {
+        return false
+      }
+      try {
+        const info = await fetchCreditoContexto(id)
+        const nombre = (info.personaNombre ?? '').trim()
+        const label = nombre
+          ? `${nombre} · Crédito ${id}`
+          : `Crédito ${id}`
+        await cargarCreditos(info.personaId, label, id)
+        return true
+      } catch {
+        return false
+      }
+    },
+    // cargarCreditos cierra sobre ctx / setters estables en este tab.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [ctx.esCajaCentral, ctx.oficinaId, ctx.cajaDiarioId],
+  )
 
   const creditoSel = creditosPersona.find((c) => c.creditoId === creditoId)
 
@@ -563,10 +593,11 @@ export function CobranzasTab({
             showSearchButton
             searchButtonLabel={isMobile ? 'Ir' : 'Cargar'}
             ariaLabelledBy="caja-buscar-cliente-label"
-            placeholder="DNI, nombre o código — Enter o un solo resultado carga solo"
+            placeholder="DNI, nombre, código o nro. de crédito"
             minChars={2}
             debounceMs={220}
             autoSelectSingle
+            onMiss={cargarPorCreditoId}
           />
           {personaId > 0 || creditoId ? (
             <Button
@@ -690,53 +721,14 @@ export function CobranzasTab({
           </div>
         ) : null}
 
-        <Space wrap className="caja-diario-credito-filters">
-          {creditosPersona.length <= 1 || !isMobile ? (
-            <Select
-              style={{ minWidth: isMobile ? '100%' : 220 }}
-              placeholder="Crédito del cliente"
-              value={creditoId ?? undefined}
-              onChange={(id) => cargarCuotas(id)}
-              options={creditosPersona.map((c) => ({
-                value: c.creditoId,
-                label: `${c.creditoId} — ${formatMoney(c.montoCredito)}`,
-              }))}
-              allowClear
-              showSearch
-              optionFilterProp="label"
-              onClear={() => setCreditoId(null)}
-            />
-          ) : null}
-          {!isMobile ? (
-            <>
-              <InputNumber
-                min={1}
-                placeholder="Nro. crédito"
-                value={creditoId ?? undefined}
-                onChange={(v) => setCreditoId(v ?? null)}
-                onPressEnter={() => creditoId && cargarCuotas(creditoId)}
-                style={{ width: 130 }}
-              />
-              <Button
-                type="primary"
-                icon={<SearchOutlined />}
-                loading={buscar.isPending}
-                disabled={!creditoId}
-                onClick={() => creditoId && cargarCuotas(creditoId)}
-              >
-                Cuotas
-              </Button>
-            </>
-          ) : null}
-          {creditoId ? (
+        {creditoId ? (
+          <Space wrap className="caja-diario-credito-filters">
             <Button
               icon={<HistoryOutlined />}
               onClick={() => setMoraModalOpen(true)}
             >
               {isMobile ? 'Mora' : 'Crédito mora'}
             </Button>
-          ) : null}
-          {creditoId && !isMobile ? (
             <Button
               onClick={() => {
                 const mora =
@@ -747,10 +739,19 @@ export function CobranzasTab({
                 setSolicitarOpen(true)
               }}
             >
-              Solicitar condonación
+              {isMobile ? 'Condonar' : 'Solicitar condonación'}
             </Button>
-          ) : null}
-        </Space>
+            {creditosPersona.length === 1 && !isMobile ? (
+              <Button
+                type="link"
+                icon={<FilePdfOutlined />}
+                onClick={() => void descargarMovimientosCredito(creditoId)}
+              >
+                Movimientos
+              </Button>
+            ) : null}
+          </Space>
+        ) : null}
       </CajaSection>
 
       <CajaSection
