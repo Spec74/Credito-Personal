@@ -10,7 +10,7 @@ Paridad con `Web/Controllers/ClienteController.cs`, `Views/Cliente/Index.cshtml`
 |--------|--------|-----|
 | `/Cliente/Index` (jqGrid) | `/clientes` | `GET /clientes/listar` |
 | Búsqueda autocomplete | Debounce en listado + `buscar` | `GET /clientes/buscar` |
-| `/Cliente/Mantener/{id}` | `/clientes/nuevo`, `/clientes/editar/:personaId` | `GET /clientes/{id}`, `POST /guardar` |
+| `/Cliente/Mantener/{id}` | `/clientes/nuevo`, `/clientes/editar/:personaId` | `GET /clientes/{id}`, `POST /guardar`, `POST .../ubicacion` |
 | `ObtenerClienteDNI` | Blur DNI en alta | `GET /clientes/por-documento` |
 | Activar / Bloquear | Botones en formulario | `POST .../activar`, `.../bloquear` |
 | Menú **Cliente** (módulo Crédito) | Directo `/clientes` | `resolveSpaPathFromMenuItem` |
@@ -25,6 +25,9 @@ Paridad con `Web/Controllers/ClienteController.cs`, `Views/Cliente/Index.cshtml`
 
 - Google Maps (`GoogleMapLocationPicker`, `VITE_GOOGLE_MAPS_API_KEY`).
 - Geocodificación: al elegir distrito, al cargar sin GPS, botón «Ubicar domicilio» (paridad Leaflet legacy).
+- **GPS dispositivo:** «Registrar mi ubicación» / «Actualizar GPS del dispositivo» → `navigator.geolocation` → en edición `POST /clientes/{id}/ubicacion`; en alta queda en el payload de `guardar`.
+- Coordenadas en `MAESTRO.Cliente.Latitud/Longitud` (no Persona). Validación rango Perú; se ignora `(0,0)`.
+- Cobro en bloque (campo, móvil): captura GPS solo si el cliente aún no tiene coords — ver [SSD-03](ssd/SSD-03-caja.md). Enlace de mapa: etiqueta = dirección; destino = coords si existen (`clienteMapaNavegacion.ts`).
 - ApiPeru vía API (`GET /integraciones/apiperu/dni|ruc`) — token en `ApiPeru:Token` (servidor).
 - `existe-documento` = ya es **cliente** (paridad `ValidarClienteDNI`, no solo persona).
 - Distrito autocomplete (`distritos-buscar`, depa 5 Ayacucho).

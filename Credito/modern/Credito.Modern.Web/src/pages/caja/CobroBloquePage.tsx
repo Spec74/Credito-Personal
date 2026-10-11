@@ -56,6 +56,7 @@ import {
   enqueueCobroBloqueProcess,
   isBrowserOnline,
   isLikelyNetworkError,
+  findCobroBloqueOfflineSession,
   loadCobroBloqueCarteraCache,
   loadCobroBloquePendingProcess,
   saveCobroBloqueCarteraCache,
@@ -286,23 +287,7 @@ export function CobroBloquePage() {
 
   const resolveOfflineSession = useCallback((): CajaSession | null => {
     if (!allowOfflineSession || usuarioId < 1) return null
-    const fecha = fechaOperacionLocal()
-    const prefix = `credix.cobroBloqueCartera.v2:${usuarioId}:`
-    try {
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i)
-        if (!k?.startsWith(prefix) || !k.endsWith(`:${fecha}`)) continue
-        const raw = localStorage.getItem(k)
-        if (!raw) continue
-        const parsed = JSON.parse(raw) as {
-          session?: CajaSession | null
-        }
-        if (parsed.session && !parsed.session.indCierre) return parsed.session
-      }
-    } catch {
-      /* ignore */
-    }
-    return null
+    return findCobroBloqueOfflineSession(usuarioId)
   }, [allowOfflineSession, usuarioId])
 
   const ctxOffline = resolveOfflineSession()
@@ -345,7 +330,15 @@ export function CobroBloquePage() {
         if (!isLikelyNetworkError(e)) throw e
         const cache = loadCobroBloqueCarteraCache({ usuarioId, cajaDiarioId })
         if (cache?.rows?.length) {
-          return { rows: cache.rows, fromCache: true as const }
+          const { normalizeCreditoGestorPendienteRow } = await import(
+            '../../utils/creditoGestorPendiente'
+          )
+          return {
+            rows: cache.rows.map((r) =>
+              normalizeCreditoGestorPendienteRow(r as unknown as Record<string, unknown>),
+            ),
+            fromCache: true as const,
+          }
         }
         throw e
       }
@@ -1201,14 +1194,36 @@ export function CobroBloquePage() {
                             carteraQueryKey,
                             (prev: { rows: CreditoGestorPendienteRow[]; fromCache: boolean } | undefined) => {
                               if (!prev) return prev
-                              return {
-                                ...prev,
-                                rows: prev.rows.map((r) =>
-                                  r.personaId === personaId
-                                    ? { ...r, latitud: lat, longitud: lng }
-                                    : r,
-                                ),
+                              const rows = prev.rows.map((r) =>
+                                r.personaId === personaId
+                                  ? { ...r, latitud: lat, longitud: lng }
+                                  : r,
+                              )
+                              if (ctx && usuarioId > 0) {
+                                saveCobroBloqueCarteraCache({
+                                  version: 1,
+                                  usuarioId,
+                                  oficinaId,
+                                  cajaDiarioId: ctx.cajaDiarioId,
+                                  fechaOperacion: fechaOperacionLocal(),
+                                  cachedAt: new Date().toISOString(),
+                                  rows,
+                                  session: {
+                                    oficinaId: ctx.oficinaId,
+                                    cajaDiarioId: ctx.cajaDiarioId,
+                                    cajaId: ctx.cajaId,
+                                    cajaDenominacion: ctx.cajaDenominacion,
+                                    fechaIniOperacion: ctx.fechaIniOperacion,
+                                    saldoInicial: ctx.saldoInicial,
+                                    entradas: ctx.entradas,
+                                    salidas: ctx.salidas,
+                                    saldoFinal: ctx.saldoFinal,
+                                    indCierre: ctx.indCierre,
+                                    esCajaCentral: ctx.esCajaCentral,
+                                  },
+                                })
                               }
+                              return { ...prev, rows, fromCache: false }
                             },
                           )
                         }}

@@ -55,8 +55,8 @@ Plantilla: [ssd/SPEC-TEMPLATE.md](ssd/SPEC-TEMPLATE.md).
 | Dominio | Documento |
 |---------|-----------|
 | Crédito | [credito_migracion.md](credito_migracion.md) |
-| Clientes | [clientes_migracion.md](clientes_migracion.md) |
-| Caja diario | [caja_diario_migracion.md](caja_diario_migracion.md) |
+| Clientes | [clientes_migracion.md](clientes_migracion.md) (GPS ficha + `POST …/ubicacion`) |
+| Caja diario | [caja_diario_migracion.md](caja_diario_migracion.md) · cobro-bloque GPS campo → [SSD-03](ssd/SSD-03-caja.md) |
 | Caja saldos | [caja_saldos_migracion.md](caja_saldos_migracion.md) |
 | Caja chica / verificar | [caja_chica_verificar_migracion.md](caja_chica_verificar_migracion.md) |
 | Bóveda | [boveda_migracion.md](boveda_migracion.md) |

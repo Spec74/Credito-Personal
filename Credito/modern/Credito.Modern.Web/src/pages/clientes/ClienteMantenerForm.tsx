@@ -535,15 +535,20 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
     try {
       const pos = await getCurrentDevicePosition()
       setMapLocation(pos)
+      const coords = formatCoordinates(pos.lat, pos.lng)
+      const precision =
+        pos.accuracyMeters != null && pos.accuracyMeters > 80
+          ? ` Precisión ~${Math.round(pos.accuracyMeters)} m (mejor al aire libre).`
+          : ''
       if (esEdicion && personaId > 0) {
         await actualizarUbicacionCliente(personaId, {
           latitud: pos.lat,
           longitud: pos.lng,
         })
-        message.success(`GPS registrado (${formatCoordinates(pos.lat, pos.lng)}). Ya puede usarse en cobro.`)
+        message.success(`GPS registrado (${coords}). Ya puede usarse en cobro.${precision}`)
       } else {
         message.success(
-          `GPS capturado (${formatCoordinates(pos.lat, pos.lng)}). Pulse Guardar para persistirlo.`,
+          `GPS capturado (${coords}). Pulse Guardar para persistirlo.${precision}`,
         )
       }
     } catch (e) {

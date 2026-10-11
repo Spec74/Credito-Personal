@@ -55,8 +55,13 @@ export type CobroBloquePendingProcess = {
   planilla: CobroBloquePlanillaItem[]
 }
 
-/** v2: invalida caché previa sin celular/dirección de contacto. */
-const CACHE_PREFIX = 'credix.cobroBloqueCartera.v2'
+/** v3: planilla con lat/lng de cliente (GPS campo). */
+const CACHE_PREFIX = 'credix.cobroBloqueCartera.v3'
+/** Prefijos anteriores (sin lat/lng o schema viejo); se purgan al tocar v3. */
+const LEGACY_CACHE_PREFIXES = [
+  'credix.cobroBloqueCartera.v1',
+  'credix.cobroBloqueCartera.v2',
+] as const
 const QUEUE_PREFIX = 'credix.cobroBloquePending.v1'
 
 function cacheKey(usuarioId: number, cajaDiarioId: number, fecha: string) {
@@ -102,10 +107,47 @@ function purgePrefix(prefix: string, keepKey?: string | null): void {
   }
 }
 
+function purgeLegacyCarteraCaches(): void {
+  for (const prefix of LEGACY_CACHE_PREFIXES) {
+    purgePrefix(prefix)
+  }
+}
+
+/**
+ * Recupera la última sesión de caja tipada en caché (sin conocer aún cajaDiarioId).
+ * Escanea v3; si no hay, intenta v2/v1 del mismo día (migración) y purga legacy al hallar v3.
+ */
+export function findCobroBloqueOfflineSession(
+  usuarioId: number,
+): CobroBloqueSessionSnap | null {
+  if (usuarioId < 1) return null
+  const fecha = fechaOperacionLocal()
+  const prefixes = [CACHE_PREFIX, ...LEGACY_CACHE_PREFIXES]
+  try {
+    for (const prefix of prefixes) {
+      const needle = `${prefix}:${usuarioId}:`
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i)
+        if (!k?.startsWith(needle) || !k.endsWith(`:${fecha}`)) continue
+        const parsed = parseJson<{ session?: CobroBloqueSessionSnap | null }>(
+          localStorage.getItem(k),
+        )
+        if (parsed?.session && !parsed.session.indCierre) {
+          return parsed.session
+        }
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  return null
+}
+
 export function saveCobroBloqueCarteraCache(cache: CobroBloqueCarteraCache): void {
   try {
     const key = cacheKey(cache.usuarioId, cache.cajaDiarioId, cache.fechaOperacion)
     purgePrefix(CACHE_PREFIX, key)
+    purgeLegacyCarteraCaches()
     localStorage.setItem(key, JSON.stringify(cache))
   } catch {
     /* quota */
@@ -120,6 +162,7 @@ export function loadCobroBloqueCarteraCache(args: {
   const fecha = fechaOperacionLocal()
   try {
     purgePrefix(CACHE_PREFIX, cacheKey(args.usuarioId, args.cajaDiarioId, fecha))
+    purgeLegacyCarteraCaches()
     const data = parseJson<CobroBloqueCarteraCache>(
       localStorage.getItem(cacheKey(args.usuarioId, args.cajaDiarioId, fecha)),
     )

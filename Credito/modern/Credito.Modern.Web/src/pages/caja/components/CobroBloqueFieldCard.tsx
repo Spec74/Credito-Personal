@@ -10,6 +10,7 @@ import {
 import type { CreditoGestorPendienteRow } from '../../../api/cajaDiario'
 import { actualizarUbicacionCliente } from '../../../api/clientes'
 import { ApiError } from '../../../api/errors'
+import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import { formatMoney } from '../../../utils/formatMoney'
 import { formatFecha } from '../../../utils/formatFecha'
 import {
@@ -18,6 +19,7 @@ import {
   clienteMapaTitle,
   clienteTieneGps,
 } from '../../../utils/clienteMapaNavegacion'
+import { isBrowserOnline } from '../../../utils/cobroBloqueOffline'
 import {
   DeviceGeolocationError,
   getCurrentDevicePosition,
@@ -93,26 +95,50 @@ export function CobroBloqueFieldCard({
     onPatch({ montoPagar: capped, cuotasSeleccionadas: [] })
   }
 
-  const registrarMiUbicacion = async () => {
+  const registrarMiUbicacion = () => {
     if (row.personaId < 1) return
-    setGpsLoading(true)
-    try {
-      const pos = await getCurrentDevicePosition()
-      await actualizarUbicacionCliente(row.personaId, {
-        latitud: pos.lat,
-        longitud: pos.lng,
-      })
-      onUbicacionGuardada?.(row.personaId, pos.lat, pos.lng)
-      message.success('Ubicación GPS del cliente actualizada')
-    } catch (e) {
-      if (e instanceof DeviceGeolocationError || e instanceof ApiError) {
-        message.error(e.message)
-      } else {
-        message.error('No se pudo registrar la ubicación')
-      }
-    } finally {
-      setGpsLoading(false)
+    if (!isBrowserOnline()) {
+      message.warning('Sin conexión: el GPS se registra cuando haya red.')
+      return
     }
+    cajaConfirm({
+      title: 'Registrar ubicación GPS',
+      content: (
+        <>
+          ¿Está <strong>ahora</strong> en el negocio o domicilio de{' '}
+          <strong>{row.personaNombre}</strong>? Se guardará la posición del celular
+          para las próximas visitas (la etiqueta seguirá mostrando la dirección).
+        </>
+      ),
+      okText: 'Sí, registrar GPS',
+      onOk: async () => {
+        setGpsLoading(true)
+        try {
+          const pos = await getCurrentDevicePosition()
+          await actualizarUbicacionCliente(row.personaId, {
+            latitud: pos.lat,
+            longitud: pos.lng,
+          })
+          onUbicacionGuardada?.(row.personaId, pos.lat, pos.lng)
+          if (pos.accuracyMeters != null && pos.accuracyMeters > 80) {
+            message.warning(
+              `GPS guardado (precisión ~${Math.round(pos.accuracyMeters)} m). Si está bajo techo, salga un momento y vuelva a registrar.`,
+            )
+          } else {
+            message.success('Ubicación GPS del cliente registrada')
+          }
+        } catch (e) {
+          if (e instanceof DeviceGeolocationError || e instanceof ApiError) {
+            message.error(e.message)
+          } else {
+            message.error('No se pudo registrar la ubicación')
+          }
+          throw e
+        } finally {
+          setGpsLoading(false)
+        }
+      },
+    })
   }
 
   return (
@@ -199,8 +225,8 @@ export function CobroBloqueFieldCard({
                 type="button"
                 className="cobro-bloque-card__contact cobro-bloque-card__contact--gps-btn"
                 disabled={gpsLoading}
-                onClick={() => void registrarMiUbicacion()}
-                title="Estando en el negocio del cliente, registre el GPS del celular"
+                onClick={registrarMiUbicacion}
+                title="Solo si aún no hay GPS. Confirme que está en el negocio del cliente"
               >
                 <AimOutlined />
                 <span>{gpsLoading ? 'Obteniendo GPS…' : 'Registrar mi ubicación'}</span>

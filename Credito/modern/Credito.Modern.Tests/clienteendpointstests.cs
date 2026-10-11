@@ -83,6 +83,15 @@ public class ClienteEndpointsTests : IClassFixture<CreditoModernWebApplicationFa
     }
 
     [Fact]
+    public async Task Clientes_ubicacion_sin_jwt_devuelve_401()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/clientes/1/ubicacion",
+            new { latitud = -13.16m, longitud = -74.22m });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task ApiPeru_dni_sin_token_no_filtra_configuracion_interna()
     {
         var tokenRes = await _client.PostAsJsonAsync(
