@@ -314,14 +314,20 @@ export function CobroBloquePage() {
     )
   }, [usuarioId, cajaDiarioId, online])
 
+  const carteraQueryKey = useMemo(
+    () =>
+      [
+        'caja-creditos-gestor-des',
+        'cobro-bloque',
+        cajaDiarioId,
+        oficinaId,
+        usuarioId,
+      ] as const,
+    [cajaDiarioId, oficinaId, usuarioId],
+  )
+
   const carteraQuery = useQuery({
-    queryKey: [
-      'caja-creditos-gestor-des',
-      'cobro-bloque',
-      cajaDiarioId,
-      oficinaId,
-      usuarioId,
-    ],
+    queryKey: carteraQueryKey,
     queryFn: async () => {
       try {
         const rows = await fetchCreditosGestorDesembolsados({
@@ -353,7 +359,7 @@ export function CobroBloquePage() {
       (enriched) => {
         if (cancelled) return
         if (enriched === data.rows) return
-        queryClient.setQueryData(carteraQuery.queryKey, {
+        queryClient.setQueryData(carteraQueryKey, {
           rows: enriched,
           fromCache: false as const,
         })
@@ -362,7 +368,7 @@ export function CobroBloquePage() {
     return () => {
       cancelled = true
     }
-  }, [carteraQuery.data, carteraQuery.queryKey, oficinaId, usuarioId, online])
+  }, [carteraQuery.data, carteraQueryKey, oficinaId, usuarioId, online, queryClient])
 
   useEffect(() => {
     const data = carteraQuery.data
