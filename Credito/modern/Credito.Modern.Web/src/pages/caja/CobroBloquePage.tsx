@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
@@ -25,6 +25,7 @@ import {
 import type { ColumnsType } from 'antd/es/table'
 import {
   cobrarPlanillaBloque,
+  enrichCreditosGestorContactos,
   fetchCajaDiarioSesion,
   fetchCreditosGestorDesembolsados,
   type CreditoGestorPendienteRow,
@@ -187,6 +188,7 @@ function CuotasSubgrid({
 
 export function CobroBloquePage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const screens = Grid.useBreakpoint()
   const fieldMode = screens.md !== true
   const { session } = useAuth()
@@ -338,7 +340,29 @@ export function CobroBloquePage() {
     },
     enabled:
       !!ctx && !ctx.indCierre && !yaEjecutadoHoy && usuarioId > 0 && oficinaId > 0,
+    staleTime: 60_000,
   })
+
+  // Contactos: refuerzo en segundo plano (no bloquea la primera pintura de filas).
+  useEffect(() => {
+    const data = carteraQuery.data
+    if (!data || data.fromCache || !online) return
+    if (!data.rows.some((r) => !r.celular || !r.direccion)) return
+    let cancelled = false
+    void enrichCreditosGestorContactos(data.rows, { oficinaId, usuarioId }).then(
+      (enriched) => {
+        if (cancelled) return
+        if (enriched === data.rows) return
+        queryClient.setQueryData(carteraQuery.queryKey, {
+          rows: enriched,
+          fromCache: false as const,
+        })
+      },
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [carteraQuery.data, carteraQuery.queryKey, oficinaId, usuarioId, online])
 
   useEffect(() => {
     const data = carteraQuery.data
@@ -482,13 +506,19 @@ export function CobroBloquePage() {
     })
   }
 
-  const aplicarCuotaSugerida = (row: CreditoGestorPendienteRow) => {
-    const sug = Math.min(Math.max(0, row.cuotaSugerida || 0), row.deudaPendiente)
-    if (sug <= 0) {
-      message.info('No hay cuota sugerida para este crédito.')
+  /** Rellena monto: cuota parcial si aporta; si no, la deuda completa. */
+  const aplicarMontoRapido = (row: CreditoGestorPendienteRow) => {
+    const deuda = Math.max(0, row.deudaPendiente || 0)
+    const sug = Math.max(0, row.cuotaSugerida || 0)
+    const monto =
+      sug > 0 && sug < deuda - 0.005
+        ? Math.min(sug, deuda)
+        : deuda
+    if (monto <= 0) {
+      message.info('No hay monto pendiente para este crédito.')
       return
     }
-    patchEdit(row.creditoId, { montoPagar: sug, cuotasSeleccionadas: [] }, row)
+    patchEdit(row.creditoId, { montoPagar: monto, cuotasSeleccionadas: [] }, row)
   }
 
   const filas = useMemo(() => {
@@ -759,32 +789,22 @@ export function CobroBloquePage() {
       render: (v: string) => formatFecha(v),
     },
     {
-      title: 'Cuota sug.',
-      dataIndex: 'cuotaSugerida',
-      align: 'right',
-      className: 'cobro-bloque-col-num',
-      onCell: () => ({ className: 'cobro-bloque-col-num' }),
-      render: (v: number, row) => {
-        const sug = v || 0
-        return (
-          <Button
-            type="link"
-            size="small"
-            disabled={sug <= 0}
-            onClick={() => aplicarCuotaSugerida(row)}
-          >
-            {sug > 0 ? formatMoney(sug) : '—'}
-          </Button>
-        )
-      },
-    },
-    {
       title: 'Deuda',
       dataIndex: 'deudaPendiente',
       align: 'right',
       className: 'cobro-bloque-col-num',
       onCell: () => ({ className: 'cobro-bloque-col-num' }),
-      render: (v: number) => <strong>{formatMoney(v)}</strong>,
+      render: (v: number, row) => (
+        <Button
+          type="link"
+          size="small"
+          disabled={(v || 0) <= 0}
+          title="Usar como monto a cobrar"
+          onClick={() => aplicarMontoRapido(row)}
+        >
+          <strong>{formatMoney(v)}</strong>
+        </Button>
+      ),
     },
     {
       title: 'Monto a cobrar',

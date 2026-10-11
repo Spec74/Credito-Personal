@@ -504,38 +504,43 @@ export interface CreditoGestorPendienteRow {
 }
 
 /**
- * Planilla del gestor. Si faltan celulares/direcciones, refuerza con el informe
- * cobro diario (mismo SP que el PDF) para no dejar la columna vacía en campo.
+ * Planilla del gestor (una sola llamada API).
+ * El refuerzo con cobro-diario es opcional y no bloquea la primera pintura
+ * (ver `enrichCreditosGestorContactos`).
  */
-export async function fetchCreditosGestorDesembolsados(opts?: {
+export async function fetchCreditosGestorDesembolsados(_opts?: {
   oficinaId?: number
   usuarioId?: number
 }): Promise<CreditoGestorPendienteRow[]> {
-  const { mergeContactoFromInforme, normalizeCreditoGestorPendienteRow } =
-    await import('../utils/creditoGestorPendiente')
+  const { normalizeCreditoGestorPendienteRow } = await import(
+    '../utils/creditoGestorPendiente'
+  )
 
   const payload = await apiFetch<Array<Record<string, unknown>>>(
     '/credito/creditos-gestor-desembolsados',
   )
-  let rows = (payload ?? []).map((r) => normalizeCreditoGestorPendienteRow(r))
+  return (payload ?? []).map((r) => normalizeCreditoGestorPendienteRow(r))
+}
 
-  const necesitaRefuerzo = rows.some(
-    (r) => !r.celular || !r.direccion || r.cuotaSugerida <= 0,
-  )
-  const oficinaId = opts?.oficinaId ?? 0
-  const usuarioId = opts?.usuarioId ?? 0
-  if (necesitaRefuerzo && oficinaId > 0 && usuarioId > 0) {
-    try {
-      const { fetchCobroDiario } = await import('./creditoPlanes')
-      const { toCobroDiarioQuery } = await import('../utils/gestorInformeForm')
-      const informe = await fetchCobroDiario(toCobroDiarioQuery(oficinaId, usuarioId))
-      rows = mergeContactoFromInforme(rows, informe)
-    } catch {
-      /* refuerzo opcional */
-    }
+/** Completa celular/dirección en segundo plano si el listado vino incompleto. */
+export async function enrichCreditosGestorContactos(
+  rows: CreditoGestorPendienteRow[],
+  opts: { oficinaId: number; usuarioId: number },
+): Promise<CreditoGestorPendienteRow[]> {
+  if (!rows.length || opts.oficinaId < 1 || opts.usuarioId < 1) return rows
+  const faltan = rows.some((r) => !r.celular || !r.direccion)
+  if (!faltan) return rows
+  try {
+    const { mergeContactoFromInforme } = await import('../utils/creditoGestorPendiente')
+    const { fetchCobroDiario } = await import('./creditoPlanes')
+    const { toCobroDiarioQuery } = await import('../utils/gestorInformeForm')
+    const informe = await fetchCobroDiario(
+      toCobroDiarioQuery(opts.oficinaId, opts.usuarioId),
+    )
+    return mergeContactoFromInforme(rows, informe)
+  } catch {
+    return rows
   }
-
-  return rows
 }
 
 export function cobrarPlanillaBloque(body: {

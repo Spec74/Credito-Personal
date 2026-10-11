@@ -142,13 +142,19 @@ export function CobroBloqueFieldCard({
 
       <div className="cobro-bloque-card__pay">
         <div className="cobro-bloque-card__chips" role="group" aria-label="Montos rápidos">
-          <Button
-            type={edit.montoPagar > 0 && Math.abs(edit.montoPagar - sug) < 0.005 ? 'primary' : 'default'}
-            disabled={sug <= 0}
-            onClick={() => setMonto(sug)}
-          >
-            {sug > 0 ? `Cuota S/ ${formatMoney(sug)}` : 'Sin cuota'}
-          </Button>
+          {/* Cuota solo si es menor que la deuda (si no, es lo mismo y sobra). */}
+          {sug > 0 && sug < deuda - 0.005 ? (
+            <Button
+              type={
+                edit.montoPagar > 0 && Math.abs(edit.montoPagar - sug) < 0.005
+                  ? 'primary'
+                  : 'default'
+              }
+              onClick={() => setMonto(sug)}
+            >
+              Cuota S/ {formatMoney(sug)}
+            </Button>
+          ) : null}
           <Button
             type={
               edit.montoPagar > 0 && deuda > 0 && Math.abs(edit.montoPagar - deuda) < 0.005
@@ -158,7 +164,7 @@ export function CobroBloqueFieldCard({
             disabled={deuda <= 0}
             onClick={() => setMonto(deuda)}
           >
-            Deuda
+            Deuda{deuda > 0 ? ` S/ ${formatMoney(deuda)}` : ''}
           </Button>
           <Tooltip title="Quitar monto">
             <Button

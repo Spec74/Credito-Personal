@@ -72,10 +72,66 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
 
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        // Orden = paridad PDF cobro diario (OrderLikeLegacy): vencidos primero, luego FechaVencimiento, Cliente.
+        // Set-based (CTE): evita N subconsultas correlacionadas por crédito (lento en Azure Basic).
         const string sql = """
             DECLARE @Hoy date = CAST(dbo.ufnFecha() AS date);
 
+            ;WITH PlanAgg AS
+            (
+                SELECT
+                    pp.CreditoId,
+                    SUM(CASE WHEN pp.Estado <> N'CAN' THEN ISNULL(pp.ImporteMora, 0) ELSE 0 END)
+                        AS ImporteMora,
+                    SUM(
+                        CASE
+                            WHEN pp.Estado NOT IN (N'PAG', N'CAN')
+                            THEN ISNULL(pp.Cuota, 0) + ISNULL(pp.Cargo, 0)
+                                 - ISNULL(pp.PagoLibre, 0) - ISNULL(pp.Descuento, 0)
+                            ELSE 0
+                        END
+                    ) AS CapitalPendiente,
+                    SUM(
+                        CASE
+                            WHEN pp.Estado NOT IN (N'PAG', N'CAN')
+                             AND pp.FechaVencimiento < @Hoy
+                            THEN ISNULL(pp.Cuota, 0) + ISNULL(pp.Cargo, 0)
+                                 - ISNULL(pp.PagoLibre, 0) - ISNULL(pp.Descuento, 0)
+                                 + ISNULL(pp.ImporteMora, 0)
+                            ELSE 0
+                        END
+                    ) AS VencidasAcum,
+                    MIN(CASE WHEN pp.Estado = N'PEN' THEN pp.FechaVencimiento END) AS MinVenPen
+                FROM CREDITO.PlanPago AS pp
+                INNER JOIN CREDITO.Credito AS c0
+                    ON c0.CreditoId = pp.CreditoId
+                WHERE c0.UsuarioRegId = @UsuarioRegId
+                  AND c0.Estado = N'DES'
+                GROUP BY pp.CreditoId
+            ),
+            PrimeraPendiente AS
+            (
+                SELECT
+                    x.CreditoId,
+                    x.MontoCuota
+                FROM (
+                    SELECT
+                        pp.CreditoId,
+                        ISNULL(pp.Cuota, 0) + ISNULL(pp.Cargo, 0)
+                            - ISNULL(pp.PagoLibre, 0) - ISNULL(pp.Descuento, 0)
+                            + ISNULL(pp.ImporteMora, 0) AS MontoCuota,
+                        ROW_NUMBER() OVER (
+                            PARTITION BY pp.CreditoId
+                            ORDER BY pp.FechaVencimiento ASC, pp.Numero ASC
+                        ) AS rn
+                    FROM CREDITO.PlanPago AS pp
+                    INNER JOIN CREDITO.Credito AS c1
+                        ON c1.CreditoId = pp.CreditoId
+                    WHERE c1.UsuarioRegId = @UsuarioRegId
+                      AND c1.Estado = N'DES'
+                      AND pp.Estado NOT IN (N'PAG', N'CAN')
+                ) AS x
+                WHERE x.rn = 1
+            )
             SELECT
                 c.CreditoId,
                 p.Codigo AS PersonaCodigo,
@@ -83,86 +139,32 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
                 c.MontoCredito,
                 c.PersonaId,
                 c.FechaVencimiento,
-                CAST(ISNULL((
-                    SELECT SUM(ISNULL(pp.ImporteMora, 0))
-                    FROM CREDITO.PlanPago AS pp
-                    WHERE pp.CreditoId = c.CreditoId
-                      AND pp.Estado <> N'CAN'
-                ), 0) AS decimal(18, 2)) AS ImporteMora,
+                CAST(ISNULL(pa.ImporteMora, 0) AS decimal(18, 2)) AS ImporteMora,
                 CAST(
-                    ISNULL((
-                        SELECT
-                            SUM(ISNULL(pp.Cuota, 0))
-                            + SUM(ISNULL(pp.Cargo, 0))
-                            - SUM(ISNULL(pp.PagoLibre, 0))
-                            - SUM(ISNULL(pp.Descuento, 0))
-                        FROM CREDITO.PlanPago AS pp
-                        WHERE pp.CreditoId = c.CreditoId
-                          AND pp.Estado NOT IN (N'PAG', N'CAN')
-                    ), 0)
-                    + ISNULL((
-                        SELECT SUM(ISNULL(pp.ImporteMora, 0))
-                        FROM CREDITO.PlanPago AS pp
-                        WHERE pp.CreditoId = c.CreditoId
-                          AND pp.Estado <> N'CAN'
-                    ), 0)
+                    ISNULL(pa.CapitalPendiente, 0) + ISNULL(pa.ImporteMora, 0)
                     AS decimal(18, 2)
                 ) AS DeudaPendiente,
                 TRY_CAST(SUBSTRING(p.Codigo, 3, LEN(p.Codigo)) AS int) AS Orden,
                 NULLIF(LTRIM(RTRIM(p.Celular1)), N'') AS Celular,
                 NULLIF(LTRIM(RTRIM(p.Direccion)), N'') AS Direccion,
-                /* Cobro rápido en campo: vencidas acumuladas, si no la próxima pendiente. */
-                CAST(ISNULL((
+                CAST(
                     CASE
-                        WHEN EXISTS (
-                            SELECT 1
-                            FROM CREDITO.PlanPago AS pp0
-                            WHERE pp0.CreditoId = c.CreditoId
-                              AND pp0.Estado NOT IN (N'PAG', N'CAN')
-                              AND pp0.FechaVencimiento < @Hoy
-                        )
-                        THEN (
-                            SELECT SUM(
-                                ISNULL(pp.Cuota, 0) + ISNULL(pp.Cargo, 0)
-                                - ISNULL(pp.PagoLibre, 0) - ISNULL(pp.Descuento, 0)
-                                + ISNULL(pp.ImporteMora, 0)
-                            )
-                            FROM CREDITO.PlanPago AS pp
-                            WHERE pp.CreditoId = c.CreditoId
-                              AND pp.Estado NOT IN (N'PAG', N'CAN')
-                              AND pp.FechaVencimiento < @Hoy
-                        )
-                        ELSE (
-                            SELECT TOP (1)
-                                ISNULL(pp.Cuota, 0) + ISNULL(pp.Cargo, 0)
-                                - ISNULL(pp.PagoLibre, 0) - ISNULL(pp.Descuento, 0)
-                                + ISNULL(pp.ImporteMora, 0)
-                            FROM CREDITO.PlanPago AS pp
-                            WHERE pp.CreditoId = c.CreditoId
-                              AND pp.Estado NOT IN (N'PAG', N'CAN')
-                            ORDER BY pp.FechaVencimiento ASC, pp.Numero ASC
-                        )
+                        WHEN ISNULL(pa.VencidasAcum, 0) > 0 THEN pa.VencidasAcum
+                        ELSE ISNULL(fp.MontoCuota, 0)
                     END
-                ), 0) AS decimal(18, 2)) AS CuotaSugerida,
-                ISNULL((
-                    SELECT dbo.ufnCalcularDiasAtrazo(MIN(pp.FechaVencimiento), @Hoy)
-                    FROM CREDITO.PlanPago AS pp
-                    WHERE pp.CreditoId = c.CreditoId
-                      AND pp.Estado = N'PEN'
-                ), 0) AS DiasAtrazo
+                    AS decimal(18, 2)
+                ) AS CuotaSugerida,
+                ISNULL(dbo.ufnCalcularDiasAtrazo(pa.MinVenPen, @Hoy), 0) AS DiasAtrazo
             FROM CREDITO.Credito AS c
             INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
+            LEFT JOIN PlanAgg AS pa ON pa.CreditoId = c.CreditoId
+            LEFT JOIN PrimeraPendiente AS fp ON fp.CreditoId = c.CreditoId
             WHERE c.UsuarioRegId = @UsuarioRegId
-              AND c.Estado = 'DES'
+              AND c.Estado = N'DES'
             ORDER BY
                 CASE
                     WHEN c.FechaVencimiento < @Hoy THEN 0
-                    WHEN ISNULL((
-                        SELECT dbo.ufnCalcularDiasAtrazo(MIN(pp.FechaVencimiento), @Hoy)
-                        FROM CREDITO.PlanPago AS pp
-                        WHERE pp.CreditoId = c.CreditoId
-                          AND pp.Estado = N'PEN'
-                    ), 0) > 0 THEN 0
+                    WHEN ISNULL(dbo.ufnCalcularDiasAtrazo(pa.MinVenPen, @Hoy), 0) > 0 THEN 0
                     ELSE 1
                 END,
                 c.FechaVencimiento ASC,
