@@ -122,7 +122,7 @@ export function CobroBloqueFieldCard({
           onUbicacionGuardada?.(row.personaId, pos.lat, pos.lng)
           if (pos.accuracyMeters != null && pos.accuracyMeters > 80) {
             message.warning(
-              `GPS guardado (precisión ~${Math.round(pos.accuracyMeters)} m). Si está bajo techo, salga un momento y vuelva a registrar.`,
+              `GPS guardado (precisión ~${Math.round(pos.accuracyMeters)} m). Si quedó lejos del negocio, corríjalo en ficha cliente → Ubicación.`,
             )
           } else {
             message.success('Ubicación GPS del cliente registrada')

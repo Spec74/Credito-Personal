@@ -28,7 +28,8 @@ public static class ClienteValidacion
             StringRules.OptionalDireccionRealista(request.Direccion, "domicilio"),
             StringRules.OptionalMaxLength(request.DireccionRef, "referencia domicilio", StringRules.MaxDireccion),
             StringRules.OptionalDireccionRealista(request.DireccionNegocio, "dirección de negocio"),
-            StringRules.OptionalMaxLength(request.DireccionNegocioRef, "referencia negocio", StringRules.MaxDireccion));
+            StringRules.OptionalMaxLength(request.DireccionNegocioRef, "referencia negocio", StringRules.MaxDireccion),
+            ClienteGpsRules.ValidarOpcional(request.Latitud, request.Longitud));
     }
 
     public static string? ValidarPersonaRapida(

@@ -92,11 +92,11 @@ Listado sin término (&lt; 2 caracteres): clientes distintos de créditos del `U
 
 Ninguna financiera propia. Mapa Google vs Leaflet es producto. Relatos de menú/iconos en bitácora 2026-09-09 si aplican al shell.
 
-**GPS 2026-10-10:** captura por dispositivo (`Permissions-Policy: geolocation=(self)`). Corrección de pin malo: ficha cliente (oficina o campo con permiso). En cobro-bloque móvil el botón solo aparece si aún no hay coordenadas (SSD-03). Precisión &gt; ~80 m: aviso suave sin bloquear el guardado.
+**GPS 2026-10-10:** captura por dispositivo (`Permissions-Policy: geolocation=(self)`). Corrección de pin malo: ficha cliente (oficina o campo con permiso). En cobro-bloque móvil el botón solo aparece si aún no hay coordenadas (SSD-03). Precisión &gt; ~80 m: aviso suave sin bloquear el guardado. Geocode automático de distrito = vista previa (no se persiste como GPS). `guardar` y `/ubicacion` validan rango Perú.
 
 ## 9. Pruebas y evidencia
 
-- API: `clienteendpointstests` (listar, documento, buscar, guardar, activar, bloquear, ubicacion 401)
+- API: `clienteendpointstests` (listar, documento, buscar, guardar, activar, bloquear, ubicacion 401/400); `validationrulestests` (`ClienteGpsRules`)
 - SPA: `resolvespapathfrommenuitem.test.ts` (Cliente → `/clientes`); `clienteMapaNavegacion.test.ts`
 - Smoke: buscar DNI, abrir ficha, guardar domicilio; registrar GPS en Ubicación (HTTPS)
 

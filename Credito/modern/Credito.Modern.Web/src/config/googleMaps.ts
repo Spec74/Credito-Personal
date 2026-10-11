@@ -16,7 +16,14 @@ export function hasValidCoordinates(
   lat: number | null | undefined,
   lng: number | null | undefined,
 ): boolean {
-  return lat != null && lng != null && lat !== 0 && lng !== 0
+  return (
+    lat != null &&
+    lng != null &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat !== 0 &&
+    lng !== 0
+  )
 }
 
 export function toMapLatLng(

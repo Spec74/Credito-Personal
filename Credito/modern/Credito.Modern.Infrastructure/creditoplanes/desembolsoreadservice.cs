@@ -149,12 +149,12 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
                 NULLIF(LTRIM(RTRIM(p.Direccion)), N'') AS Direccion,
                 CASE
                     WHEN cl.Latitud IS NULL OR cl.Longitud IS NULL THEN NULL
-                    WHEN cl.Latitud = 0 AND cl.Longitud = 0 THEN NULL
+                    WHEN cl.Latitud = 0 OR cl.Longitud = 0 THEN NULL
                     ELSE cl.Latitud
                 END AS Latitud,
                 CASE
                     WHEN cl.Latitud IS NULL OR cl.Longitud IS NULL THEN NULL
-                    WHEN cl.Latitud = 0 AND cl.Longitud = 0 THEN NULL
+                    WHEN cl.Latitud = 0 OR cl.Longitud = 0 THEN NULL
                     ELSE cl.Longitud
                 END AS Longitud,
                 CAST(

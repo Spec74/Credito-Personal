@@ -115,7 +115,7 @@ function purgeLegacyCarteraCaches(): void {
 
 /**
  * Recupera la última sesión de caja tipada en caché (sin conocer aún cajaDiarioId).
- * Escanea v3; si no hay, intenta v2/v1 del mismo día (migración) y purga legacy al hallar v3.
+ * Escanea v3 y, si hace falta, v2/v1 del mismo día (antes de migrar/purgar).
  */
 export function findCobroBloqueOfflineSession(
   usuarioId: number,
@@ -143,6 +143,48 @@ export function findCobroBloqueOfflineSession(
   return null
 }
 
+function isValidCarteraCache(
+  data: CobroBloqueCarteraCache | null,
+  usuarioId: number,
+  cajaDiarioId: number,
+  fecha: string,
+): data is CobroBloqueCarteraCache {
+  return (
+    !!data &&
+    data.version === 1 &&
+    data.usuarioId === usuarioId &&
+    data.cajaDiarioId === cajaDiarioId &&
+    data.fechaOperacion === fecha &&
+    Array.isArray(data.rows)
+  )
+}
+
+/** Lee v2/v1 del mismo día/caja y lo materializa como v3 (lat/lng pueden ser null). */
+function migrateLegacyCarteraCache(args: {
+  usuarioId: number
+  cajaDiarioId: number
+  fecha: string
+}): CobroBloqueCarteraCache | null {
+  for (const prefix of LEGACY_CACHE_PREFIXES) {
+    const key = `${prefix}:${args.usuarioId}:${args.cajaDiarioId}:${args.fecha}`
+    const legacy = parseJson<CobroBloqueCarteraCache>(localStorage.getItem(key))
+    if (!isValidCarteraCache(legacy, args.usuarioId, args.cajaDiarioId, args.fecha)) {
+      continue
+    }
+    const migrated: CobroBloqueCarteraCache = {
+      ...legacy,
+      rows: legacy.rows.map((r) => ({
+        ...r,
+        latitud: r.latitud ?? null,
+        longitud: r.longitud ?? null,
+      })),
+    }
+    saveCobroBloqueCarteraCache(migrated)
+    return migrated
+  }
+  return null
+}
+
 export function saveCobroBloqueCarteraCache(cache: CobroBloqueCarteraCache): void {
   try {
     const key = cacheKey(cache.usuarioId, cache.cajaDiarioId, cache.fechaOperacion)
@@ -161,22 +203,23 @@ export function loadCobroBloqueCarteraCache(args: {
   if (args.usuarioId < 1 || args.cajaDiarioId < 1) return null
   const fecha = fechaOperacionLocal()
   try {
-    purgePrefix(CACHE_PREFIX, cacheKey(args.usuarioId, args.cajaDiarioId, fecha))
-    purgeLegacyCarteraCaches()
-    const data = parseJson<CobroBloqueCarteraCache>(
-      localStorage.getItem(cacheKey(args.usuarioId, args.cajaDiarioId, fecha)),
-    )
-    if (
-      !data ||
-      data.version !== 1 ||
-      data.usuarioId !== args.usuarioId ||
-      data.cajaDiarioId !== args.cajaDiarioId ||
-      data.fechaOperacion !== fecha ||
-      !Array.isArray(data.rows)
-    ) {
-      return null
+    const key = cacheKey(args.usuarioId, args.cajaDiarioId, fecha)
+    // 1) v3 actual — no purgar legacy antes de intentar migrar.
+    purgePrefix(CACHE_PREFIX, key)
+    let data = parseJson<CobroBloqueCarteraCache>(localStorage.getItem(key))
+    if (isValidCarteraCache(data, args.usuarioId, args.cajaDiarioId, fecha)) {
+      purgeLegacyCarteraCaches()
+      return data
     }
-    return data
+    // 2) Migrar v2/v1 → v3 (preserva planilla offline tras bump de versión).
+    data = migrateLegacyCarteraCache({
+      usuarioId: args.usuarioId,
+      cajaDiarioId: args.cajaDiarioId,
+      fecha,
+    })
+    if (data) return data
+    purgeLegacyCarteraCaches()
+    return null
   } catch {
     return null
   }

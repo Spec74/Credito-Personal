@@ -92,6 +92,45 @@ public class ClienteEndpointsTests : IClassFixture<CreditoModernWebApplicationFa
     }
 
     [Fact]
+    public async Task Clientes_ubicacion_fuera_de_peru_devuelve_400()
+    {
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles = new[] { "ANALISTA" } });
+        Assert.Equal(HttpStatusCode.OK, tokenRes.StatusCode);
+        using var doc = JsonDocument.Parse(await tokenRes.Content.ReadAsStringAsync());
+        var token = doc.RootElement.GetProperty("accessToken").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(token));
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/clientes/1/ubicacion")
+        {
+            Content = JsonContent.Create(new { latitud = 40m, longitud = -74.22m }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Clientes_ubicacion_sin_latitud_devuelve_400()
+    {
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 1, roles = new[] { "ANALISTA" } });
+        Assert.Equal(HttpStatusCode.OK, tokenRes.StatusCode);
+        using var doc = JsonDocument.Parse(await tokenRes.Content.ReadAsStringAsync());
+        var token = doc.RootElement.GetProperty("accessToken").GetString();
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/clientes/1/ubicacion")
+        {
+            Content = JsonContent.Create(new { longitud = -74.22m }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task ApiPeru_dni_sin_token_no_filtra_configuracion_interna()
     {
         var tokenRes = await _client.PostAsJsonAsync(

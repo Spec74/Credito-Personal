@@ -268,6 +268,17 @@ internal static class ClienteOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
+                        // Misma distinción que guardar/detalle: config → 503; sin fila Cliente → 404.
+                        if (ex.Message.Contains("ConnectionString", StringComparison.OrdinalIgnoreCase)
+                            || ex.Message.Contains("CreditoDatabase", StringComparison.OrdinalIgnoreCase))
+                        {
+                            log.LogWarning(ex, "Cadena de conexión no configurada");
+                            return TypedResults.Problem(
+                                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                                statusCode: StatusCodes.Status503ServiceUnavailable,
+                                title: "Configuración incompleta");
+                        }
+
                         log.LogWarning(ex, "No se pudo actualizar ubicación personaId={PersonaId}", personaId);
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status404NotFound,

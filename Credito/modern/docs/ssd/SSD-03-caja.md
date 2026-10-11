@@ -77,8 +77,8 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 | `GET saldos-caja-diario*`, cierre masivo / asignar | Según rol / `LECTURA_SALDO` | `/caja/saldos`, `/caja/asignar` |
 | Caja chica E/S, rendición, `cerrar-caja-chica-diario`, transferir bóveda | Operador | `/caja/chica` |
 | `POST solicitar-condonacion` | Operador | Diario → bandeja SSD-02 |
-| `GET creditos-gestor-desembolsados` | Operador | `/caja/cobro-bloque` (incluye `latitud`/`longitud` de Cliente) |
-| `POST /api/v1/clientes/{id}/ubicacion` | Operador | Cobro-bloque móvil si el cliente **aún no** tiene GPS |
+| `GET creditos-gestor-desembolsados` | CreditoUser | `/caja/cobro-bloque` (incluye `latitud`/`longitud` de Cliente) |
+| `POST /api/v1/clientes/{id}/ubicacion` | CreditoUser | Cobro-bloque móvil si el cliente **aún no** tiene GPS (SPA); API siempre puede actualizar |
 
 ### Cobro en bloque — GPS (producto)
 
@@ -88,7 +88,7 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 | Destino del enlace | Con GPS → `maps?q=lat,lng`; sin GPS → búsqueda por dirección |
 | Botón «Registrar mi ubicación» | Solo **vista móvil** (`fieldMode`) y solo si **faltan** lat/lng |
 | Confirmación | Modal: confirmar que está en el negocio del cliente |
-| Offline | Tipado sí; **no** registra GPS sin red (mensaje claro). Caché planilla `credix.cobroBloqueCartera.v3` (incluye lat/lng) |
+| Offline | Tipado sí; **no** registra GPS sin red (mensaje claro). Caché `credix.cobroBloqueCartera.v3` (lat/lng); al cargar migra v1/v2 → v3 sin perder planilla |
 | Precisión baja | Si el dispositivo reporta &gt; ~80 m, avisa pero guarda (mejor al aire libre) |
 | Tras guardar GPS | Actualiza planilla en memoria + caché local; el botón desaparece |
 | Corregir GPS malo | Ficha cliente → Ubicación (SSD-05), no reaparece el botón en campo |
@@ -128,7 +128,7 @@ Aceptadas de producto: grilla de desembolsos APR (el MVC era un formulario); mod
 ## 9. Pruebas y evidencia
 
 - API: `pagarcuotasendpointtests`, `pagarcuotascancelacionendpointtests`, `completarimpagosvalidacionendpointtests`, `cerrarcajadiarioendpointtests`, `validarcierrecajadiarioendpointtests`, `reconciliarcajadiarioendpointtests`, `transferirsaldoscajadiarioendpointtests`, `saldoscierreendpointtests`, `asignarcajaendpointtests`, `cajachicaoperacionendpointtests`, `creditocondonacionendpointtests`, `clienteendpointstests` (ubicacion 401)
-- SPA: `menuRouteAccess.test.ts` (hub caja vs asignar/saldos/verificar); `clienteMapaNavegacion.test.ts`; `creditoGestorPendiente.test.ts` (lat/lng)
+- SPA: `menuRouteAccess.test.ts` (hub caja vs asignar/saldos/verificar); `clienteMapaNavegacion.test.ts`; `creditoGestorPendiente.test.ts` (lat/lng); `cobroBloqueOffline.test.ts` (v3 + migrate v2)
 - Smoke: abrir diario, cobrar cuota efectivo + Yape (aparece en Verificar), verificar pago, intentar cierre con pendiente digital (bloquea), anular, cierre limpio; encargado en saldos; cobro-bloque móvil registrar GPS a cliente sin coords
 
 ## 10. Go-live

@@ -107,6 +107,47 @@ describe('cobroBloqueOffline', () => {
     ).not.toBeNull()
   })
 
+  it('migra planilla v2 → v3 al cargar (no pierde tipado offline)', () => {
+    const fecha = fechaOperacionLocal()
+    localStorage.setItem(
+      `credix.cobroBloqueCartera.v2:3:10:${fecha}`,
+      JSON.stringify({
+        version: 1,
+        usuarioId: 3,
+        oficinaId: 1,
+        cajaDiarioId: 10,
+        fechaOperacion: fecha,
+        cachedAt: new Date().toISOString(),
+        session: sessionSnap,
+        rows: [
+          {
+            creditoId: 9,
+            personaCodigo: 'PE9',
+            personaNombre: 'Luis',
+            montoCredito: 200,
+            personaId: 11,
+            fechaVencimiento: '2026-10-10',
+            importeMora: 0,
+            deudaPendiente: 80,
+            orden: 1,
+            celular: null,
+            direccion: 'Jr. Cusco',
+            cuotaSugerida: 40,
+            diasAtrazo: 0,
+          },
+        ],
+      }),
+    )
+    const cache = loadCobroBloqueCarteraCache({ usuarioId: 3, cajaDiarioId: 10 })
+    expect(cache?.rows).toHaveLength(1)
+    expect(cache?.rows[0]?.personaNombre).toBe('Luis')
+    expect(cache?.rows[0]?.latitud ?? null).toBeNull()
+    expect(localStorage.getItem(`credix.cobroBloqueCartera.v2:3:10:${fecha}`)).toBeNull()
+    expect(
+      localStorage.getItem(`credix.cobroBloqueCartera.v3:3:10:${fecha}`),
+    ).not.toBeNull()
+  })
+
   it('encola y limpia proceso pendiente', () => {
     enqueueCobroBloqueProcess({
       version: 1,

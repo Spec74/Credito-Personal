@@ -197,7 +197,14 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
   const [distritoId, setDistritoId] = useState<number | null>(null)
   const [conyuguePersonaId, setConyuguePersonaId] = useState<number | null>(null)
   const [mapLocation, setMapLocation] = useState<MapLatLng | null>(null)
+  /** Auto-geocode de distrito: solo vista previa; no se persiste como GPS hasta Ubicar/GPS/arrastre. */
+  const [mapPinPreviewOnly, setMapPinPreviewOnly] = useState(false)
   const [gpsLoading, setGpsLoading] = useState(false)
+
+  const commitMapLocation = useCallback((pos: MapLatLng | null) => {
+    setMapLocation(pos)
+    setMapPinPreviewOnly(false)
+  }, [])
   const [clienteTab, setClienteTab] = useState('identidad')
   /** Editable de entrada; ApiPerú rellena al validar (no bloquea alta manual). */
   const [nombresBloqueados, setNombresBloqueados] = useState(false)
@@ -286,6 +293,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
     setDistritoId(c.distritoId ?? null)
     setConyuguePersonaId(c.conyuguePersonaId ?? null)
     setMapLocation(toMapLatLng(c.latitud, c.longitud))
+    setMapPinPreviewOnly(false)
     setDistritoTerm(c.distritoLabel ?? '')
     form.setFieldsValue({
       tipoPersona: c.tipoPersona === 'J' ? 'J' : 'N',
@@ -328,11 +336,20 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
     if (!distrito) return
     geocodificadoInicialRef.current = true
     void geocodeDistritoCliente(distrito).then((pos) => {
-      if (pos) setMapLocation(pos)
+      if (pos) {
+        setMapLocation(pos)
+        setMapPinPreviewOnly(true)
+      }
     })
   }, [detalle.data, mapLocation])
 
-  const buildPayload = (values: FormValues): GuardarClienteRequest => ({
+  const buildPayload = (values: FormValues): GuardarClienteRequest => {
+    // Preview de distrito no cuenta como GPS registrado (no oculta el botón en cobro-bloque).
+    const persistPin =
+      mapLocation && !mapPinPreviewOnly
+        ? mapLocation
+        : toMapLatLng(detalle.data?.latitud, detalle.data?.longitud)
+    return {
     clienteId,
     tipoPersona: values.tipoPersona,
     nombre: values.nombre.trim().toUpperCase(),
@@ -351,8 +368,8 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
     distritoId,
     direccionNegocio: values.direccionNegocio?.trim() || null,
     direccionNegocioRef: values.direccionNegocioRef?.trim() || null,
-    latitud: mapLocation?.lat ?? null,
-    longitud: mapLocation?.lng ?? null,
+    latitud: persistPin?.lat ?? null,
+    longitud: persistPin?.lng ?? null,
     ocupacionId: ocupacionOtrosVisible ? null : values.ocupacionId ?? null,
     ocupacionOtros: ocupacionOtrosVisible ? values.ocupacionOtros?.trim() : null,
     calificacion: values.calificacion,
@@ -365,7 +382,8 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
       : null,
     clasificacionRiesgoSbsId: values.clasificacionRiesgoSbsId ?? null,
     clasificacionRiesgoSbsObs: values.clasificacionRiesgoSbsObs?.trim() || null,
-  })
+  }
+  }
 
   const guardar = useMutation({
     mutationFn: (values: FormValues) => guardarCliente(buildPayload(values)),
@@ -525,7 +543,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
       )
       return
     }
-    setMapLocation(pos)
+    commitMapLocation(pos)
     message.success('Ubicación actualizada en el mapa')
   }
 
@@ -534,7 +552,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
     setGpsLoading(true)
     try {
       const pos = await getCurrentDevicePosition()
-      setMapLocation(pos)
+      commitMapLocation(pos)
       const coords = formatCoordinates(pos.lat, pos.lng)
       const precision =
         pos.accuracyMeters != null && pos.accuracyMeters > 80
@@ -545,6 +563,12 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
           latitud: pos.lat,
           longitud: pos.lng,
         })
+        queryClient.setQueryData(
+          ['cliente-detalle', personaId],
+          (prev: { latitud?: number | null; longitud?: number | null } | undefined) =>
+            prev ? { ...prev, latitud: pos.lat, longitud: pos.lng } : prev,
+        )
+        void queryClient.invalidateQueries({ queryKey: ['cliente-detalle', personaId] })
         message.success(`GPS registrado (${coords}). Ya puede usarse en cobro.${precision}`)
       } else {
         message.success(
@@ -916,7 +940,8 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                         const pos = await geocodeDistritoCliente(label)
                         if (pos) {
                           setMapLocation(pos)
-                          message.success(`Ubicando ${label} en el mapa`)
+                          setMapPinPreviewOnly(true)
+                          message.success(`Vista aproximada de ${label} en el mapa`)
                         }
                       }}
                       placeholder="Buscar distrito…"
@@ -942,7 +967,8 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                         disabled={soloConsulta}
                         onClick={() => void registrarMiUbicacion()}
                       >
-                        {hasValidCoordinates(mapLocation?.lat, mapLocation?.lng)
+                        {hasValidCoordinates(mapLocation?.lat, mapLocation?.lng) &&
+                        !mapPinPreviewOnly
                           ? 'Actualizar GPS del dispositivo'
                           : 'Registrar mi ubicación'}
                       </Button>
@@ -954,8 +980,9 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                         Ubicar domicilio en el mapa
                       </Button>
                       {hasValidCoordinates(mapLocation?.lat, mapLocation?.lng) ? (
-                        <Tag>
-                          GPS {formatCoordinates(mapLocation!.lat, mapLocation!.lng)}
+                        <Tag color={mapPinPreviewOnly ? 'default' : 'processing'}>
+                          {mapPinPreviewOnly ? 'Vista aproximada' : 'GPS'}{' '}
+                          {formatCoordinates(mapLocation!.lat, mapLocation!.lng)}
                         </Tag>
                       ) : (
                         <Tag>Sin GPS — solo dirección textual</Tag>
@@ -965,11 +992,11 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                       layoutKey={`cliente-${personaId}-${esEdicion}-${clienteTab}`}
                       active={clienteTab === 'ubicacion'}
                       value={mapLocation}
-                      onChange={setMapLocation}
+                      onChange={commitMapLocation}
                       disabled={soloConsulta}
                       height={320}
                       searchPlaceholder="Buscar en Google Maps…"
-                      hintText="Alta/oficina: registre o ajuste el GPS aquí. En campo, cobro en bloque propone capturarlo solo si el cliente aún no tiene coordenadas."
+                      hintText="Alta/oficina: registre GPS del dispositivo o Ubicar/arrastre el pin (la vista aproximada de distrito no se guarda como GPS). En campo, cobro en bloque solo propone capturar si aún no hay coordenadas."
                     />
                   </div>
                 </CredixPanel>

@@ -107,6 +107,17 @@ public sealed class ValidationRulesTests
     }
 
     [Fact]
+    public void ClienteGpsRules_RejectsOutOfPeruAndZero()
+    {
+        Assert.Null(ClienteGpsRules.ValidarOpcional(null, null));
+        Assert.NotNull(ClienteGpsRules.ValidarOpcional(-13.16m, null));
+        Assert.NotNull(ClienteGpsRules.ValidarPar(0, 0));
+        Assert.NotNull(ClienteGpsRules.ValidarPar(0, -74.22m));
+        Assert.NotNull(ClienteGpsRules.ValidarPar(40m, -74.22m));
+        Assert.Null(ClienteGpsRules.ValidarPar(-13.16m, -74.22m));
+    }
+
+    [Fact]
     public void TareaValidacion_RequiresSubtarea()
     {
         Assert.NotNull(TareaValidacion.ValidarGuardar(1, []));

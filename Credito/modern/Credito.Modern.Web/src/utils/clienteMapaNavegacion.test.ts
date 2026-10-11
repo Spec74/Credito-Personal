@@ -24,7 +24,15 @@ describe('clienteMapaNavegacion', () => {
     expect(clienteMapaHref(punto)).toContain(encodeURIComponent('Av. Centenario'))
   })
 
-  it('ignora 0,0', () => {
-    expect(clienteTieneGps({ latitud: 0, longitud: 0 })).toBe(false)
+  it('ignora 0,0 y cae a búsqueda por dirección', () => {
+    const punto = { direccion: 'Jr. Lima', latitud: 0, longitud: 0 }
+    expect(clienteTieneGps(punto)).toBe(false)
+    expect(clienteMapaHref(punto)).toContain('maps/search')
+  })
+
+  it('sin dirección y con GPS usa etiqueta de respaldo', () => {
+    expect(clienteMapaLabel({ latitud: -13.16, longitud: -74.22 })).toBe(
+      'Ver ubicación GPS',
+    )
   })
 })

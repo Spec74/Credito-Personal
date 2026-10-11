@@ -390,15 +390,15 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
             throw new ArgumentOutOfRangeException(nameof(personaId));
         }
 
-        // Perú continental + margen (evita basura / (0,0)).
-        if (request.Latitud is < -19.5m or > 0.5m || request.Longitud is < -82.5m or > -67.5m)
+        if (request.Latitud is null || request.Longitud is null)
         {
-            throw new ArgumentException("Las coordenadas GPS están fuera del rango válido para Perú.");
+            throw new ArgumentException("Debe enviar latitud y longitud juntas.");
         }
 
-        if (request.Latitud == 0 && request.Longitud == 0)
+        var gpsError = ClienteGpsRules.ValidarPar(request.Latitud.Value, request.Longitud.Value);
+        if (gpsError is not null)
         {
-            throw new ArgumentException("La ubicación GPS no es válida.");
+            throw new ArgumentException(gpsError);
         }
 
         EnsureConnection();
@@ -416,8 +416,8 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
                 new
                 {
                     PersonaId = personaId,
-                    request.Latitud,
-                    request.Longitud,
+                    Latitud = request.Latitud.Value,
+                    Longitud = request.Longitud.Value,
                 },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
