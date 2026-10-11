@@ -937,7 +937,9 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                         disabled={soloConsulta}
                         onClick={() => void registrarMiUbicacion()}
                       >
-                        Registrar mi ubicación
+                        {hasValidCoordinates(mapLocation?.lat, mapLocation?.lng)
+                          ? 'Actualizar GPS del dispositivo'
+                          : 'Registrar mi ubicación'}
                       </Button>
                       <Button
                         icon={<EnvironmentOutlined />}
@@ -962,7 +964,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                       disabled={soloConsulta}
                       height={320}
                       searchPlaceholder="Buscar en Google Maps…"
-                      hintText="En el negocio del cliente: «Registrar mi ubicación» usa el GPS del celular. También puede geocodificar por domicilio o ajustar el marcador."
+                      hintText="Alta/oficina: registre o ajuste el GPS aquí. En campo, cobro en bloque propone capturarlo solo si el cliente aún no tiene coordenadas."
                     />
                   </div>
                 </CredixPanel>

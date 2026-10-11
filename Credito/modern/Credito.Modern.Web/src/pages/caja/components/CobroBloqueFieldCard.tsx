@@ -152,58 +152,63 @@ export function CobroBloqueFieldCard({
         </div>
       </header>
 
-      {(phone || mapaHref || row.personaId > 0) && (
-        <div className="cobro-bloque-card__contacts" role="group" aria-label="Contacto">
-          {phone ? (
-            <>
-              <a className="cobro-bloque-card__contact" href={`tel:${phone}`}>
-                <PhoneOutlined />
-                <span>{phone}</span>
-              </a>
+      {(() => {
+        // Solo móvil (esta tarjeta ya vive en fieldMode). Captura GPS solo si falta.
+        const mostrarRegistrarGps = !tieneGps && row.personaId > 0
+        if (!phone && !mapaHref && !mostrarRegistrarGps) return null
+        return (
+          <div className="cobro-bloque-card__contacts" role="group" aria-label="Contacto">
+            {phone ? (
+              <>
+                <a className="cobro-bloque-card__contact" href={`tel:${phone}`}>
+                  <PhoneOutlined />
+                  <span>{phone}</span>
+                </a>
+                <a
+                  className="cobro-bloque-card__contact cobro-bloque-card__contact--wa"
+                  href={waHref(phone)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <WhatsAppOutlined />
+                  <span>WhatsApp</span>
+                </a>
+              </>
+            ) : null}
+            {mapaHref && mapaLabel ? (
               <a
-                className="cobro-bloque-card__contact cobro-bloque-card__contact--wa"
-                href={waHref(phone)}
+                className={[
+                  'cobro-bloque-card__contact',
+                  'cobro-bloque-card__contact--dir',
+                  tieneGps ? 'cobro-bloque-card__contact--gps' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
+                href={mapaHref}
                 target="_blank"
                 rel="noreferrer"
+                title={clienteMapaTitle(mapaPunto)}
               >
-                <WhatsAppOutlined />
-                <span>WhatsApp</span>
+                <EnvironmentOutlined />
+                <span>{mapaLabel}</span>
+                {tieneGps ? <em className="cobro-bloque-card__gps-pill">GPS</em> : null}
               </a>
-            </>
-          ) : null}
-          {mapaHref && mapaLabel ? (
-            <a
-              className={[
-                'cobro-bloque-card__contact',
-                'cobro-bloque-card__contact--dir',
-                tieneGps ? 'cobro-bloque-card__contact--gps' : '',
-              ]
-                .filter(Boolean)
-                .join(' ')}
-              href={mapaHref}
-              target="_blank"
-              rel="noreferrer"
-              title={clienteMapaTitle(mapaPunto)}
-            >
-              <EnvironmentOutlined />
-              <span>{mapaLabel}</span>
-              {tieneGps ? <em className="cobro-bloque-card__gps-pill">GPS</em> : null}
-            </a>
-          ) : null}
-          {row.personaId > 0 ? (
-            <button
-              type="button"
-              className="cobro-bloque-card__contact cobro-bloque-card__contact--gps-btn"
-              disabled={gpsLoading}
-              onClick={() => void registrarMiUbicacion()}
-              title="Ubíquese en el negocio del cliente y registre el GPS del celular"
-            >
-              <AimOutlined />
-              <span>{gpsLoading ? 'Obteniendo GPS…' : 'Registrar mi ubicación'}</span>
-            </button>
-          ) : null}
-        </div>
-      )}
+            ) : null}
+            {mostrarRegistrarGps ? (
+              <button
+                type="button"
+                className="cobro-bloque-card__contact cobro-bloque-card__contact--gps-btn"
+                disabled={gpsLoading}
+                onClick={() => void registrarMiUbicacion()}
+                title="Estando en el negocio del cliente, registre el GPS del celular"
+              >
+                <AimOutlined />
+                <span>{gpsLoading ? 'Obteniendo GPS…' : 'Registrar mi ubicación'}</span>
+              </button>
+            ) : null}
+          </div>
+        )
+      })()}
 
       <div className="cobro-bloque-card__pay">
         <div className="cobro-bloque-card__chips" role="group" aria-label="Montos rápidos">
