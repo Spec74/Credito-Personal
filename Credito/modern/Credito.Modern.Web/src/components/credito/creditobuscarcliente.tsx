@@ -5,6 +5,11 @@ type Props = {
   onChange: (label: string) => void
   onSelectPersona: (personaId: number, label: string) => void
   ariaLabelledBy?: string
+  autoFocus?: boolean
+  autoSelectSingle?: boolean
+  onMiss?: (term: string) => Promise<boolean>
+  placeholder?: string
+  searchButtonLabel?: string
 }
 
 /**
@@ -15,6 +20,11 @@ export function CreditoBuscarCliente({
   onChange,
   onSelectPersona,
   ariaLabelledBy,
+  autoFocus = false,
+  autoSelectSingle = true,
+  onMiss,
+  placeholder = 'DNI, nombre, código o nro. de crédito',
+  searchButtonLabel = 'Buscar',
 }: Props) {
   return (
     <ClienteBuscarAutoComplete
@@ -24,11 +34,14 @@ export function CreditoBuscarCliente({
       onSelectPersona={onSelectPersona}
       fullWidth
       showSearchButton
-      searchButtonLabel="Buscar cliente"
-      debounceMs={280}
+      searchButtonLabel={searchButtonLabel}
+      debounceMs={220}
       minChars={2}
-      placeholder="DNI, nombre o código del cliente"
+      placeholder={placeholder}
       ariaLabelledBy={ariaLabelledBy}
+      autoFocus={autoFocus}
+      autoSelectSingle={autoSelectSingle}
+      onMiss={onMiss}
     />
   )
 }

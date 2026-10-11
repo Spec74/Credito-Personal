@@ -1,10 +1,23 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Button, Input, Modal, Space, Statistic, Tag, Typography, message } from 'antd'
+import {
+  Alert,
+  Button,
+  Dropdown,
+  Input,
+  Modal,
+  Space,
+  Statistic,
+  Tag,
+  Typography,
+  message,
+} from 'antd'
+import type { MenuProps } from 'antd'
 import {
   FileAddOutlined,
   FilePdfOutlined,
   LockOutlined,
+  MoreOutlined,
   PlayCircleOutlined,
   StopOutlined,
   UnlockOutlined,
@@ -219,44 +232,64 @@ export function CreditoPersonaCabecera({
               loading={crearSolicitud.isPending}
               onClick={solicitarCrearSolicitud}
             >
-              Crear solicitud de crédito
+              Crear solicitud
             </Button>
           ) : null}
-          {puedeDepurar ? (
-            <Button
-              icon={<UserDeleteOutlined />}
-              onClick={() => {
-                setObsDepurar('')
-                setModalDepurar(true)
-              }}
-            >
-              Depurar cliente
-            </Button>
-          ) : null}
-          {puedeBloquear ? (
-            <Button
-              danger={!f.bloqueado}
-              icon={f.bloqueado ? <UnlockOutlined /> : <LockOutlined />}
-              loading={bloquearCliente.isPending}
-              onClick={() => {
-                cajaConfirm({
-                  title: f.bloqueado ? 'Desbloquear cliente' : 'Bloquear cliente',
-                  content: f.bloqueado
-                    ? '¿Desea desbloquear este cliente? Volverá a estar disponible para operaciones.'
-                    : '¿Desea bloquear este cliente? Se impedirá crear nuevas solicitudes de crédito.',
-                  onOk: () => bloquearCliente.mutateAsync(),
-                })
-              }}
-            >
-              {f.bloqueado ? 'Desbloquear cliente' : 'Bloquear cliente'}
-            </Button>
-          ) : null}
-          <Link to={`/informes/reporte-cliente?personaId=${personaId}`}>
-            <Button icon={<FilePdfOutlined />}>Ficha cliente</Button>
-          </Link>
           <Link to={`/credito/simulador?personaId=${personaId}`}>
             <Button>Simulador</Button>
           </Link>
+          <Dropdown
+            menu={{
+              items: [
+                {
+                  key: 'ficha',
+                  icon: <FilePdfOutlined />,
+                  label: (
+                    <Link to={`/informes/reporte-cliente?personaId=${personaId}`}>
+                      Ficha cliente PDF
+                    </Link>
+                  ),
+                },
+                ...(puedeDepurar
+                  ? ([
+                      {
+                        key: 'depurar',
+                        icon: <UserDeleteOutlined />,
+                        label: 'Depurar cliente',
+                        onClick: () => {
+                          setObsDepurar('')
+                          setModalDepurar(true)
+                        },
+                      },
+                    ] satisfies NonNullable<MenuProps['items']>)
+                  : []),
+                ...(puedeBloquear
+                  ? ([
+                      {
+                        key: 'bloquear',
+                        danger: !f.bloqueado,
+                        icon: f.bloqueado ? <UnlockOutlined /> : <LockOutlined />,
+                        label: f.bloqueado ? 'Desbloquear cliente' : 'Bloquear cliente',
+                        disabled: bloquearCliente.isPending,
+                        onClick: () => {
+                          cajaConfirm({
+                            title: f.bloqueado ? 'Desbloquear cliente' : 'Bloquear cliente',
+                            content: f.bloqueado
+                              ? '¿Desea desbloquear este cliente? Volverá a estar disponible para operaciones.'
+                              : '¿Desea bloquear este cliente? Se impedirá crear nuevas solicitudes de crédito.',
+                            onOk: () => bloquearCliente.mutateAsync(),
+                          })
+                        },
+                      },
+                    ] satisfies NonNullable<MenuProps['items']>)
+                  : []),
+              ],
+            }}
+            trigger={['click']}
+            placement="bottomRight"
+          >
+            <Button icon={<MoreOutlined />}>Más</Button>
+          </Dropdown>
         </Space>
       </div>
       </div>

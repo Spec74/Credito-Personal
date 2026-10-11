@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { ExportOutlined, UserOutlined } from '@ant-design/icons'
-import { Button, Empty, Tag, Tooltip, Typography } from 'antd'
+import { Button, Empty, Spin, Tag, Tooltip, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   fetchAvalesPersona,
@@ -96,48 +96,32 @@ export function CreditoPersonaAvalesPanel({ oficinaId, personaId }: Props) {
   ]
 
   const rows = query.data ?? []
-  if (query.isLoading) {
-    return (
-      <section className="credito-consulta-avales">
-        <Text type="secondary">Cargando avales y avalados…</Text>
-      </section>
-    )
-  }
 
   return (
-    <section className="credito-consulta-avales" aria-label="Avales y avalados">
-      <div className="credito-consulta-avales__head">
-        <div>
-          <Text strong>Aval y avalados</Text>
-          <Text type="secondary" className="credito-consulta-avales__hint">
-            Haga clic en el nombre para revisar los créditos y avales de esa persona.
-          </Text>
-        </div>
-        {rows.length > 0 ? (
-          <Tag color="processing" className="credito-consulta-avales__context-tag">
-            Se abre en nueva pestaña para conservar esta búsqueda
-          </Tag>
+    <section className="credito-consulta-avales credito-consulta-avales--embedded" aria-label="Avales y avalados">
+      <Text type="secondary" className="credito-consulta-avales__hint">
+        Clic en el nombre abre esa persona en otra pestaña (esta consulta se conserva).
+      </Text>
+      <Spin spinning={query.isLoading || query.isFetching}>
+        {rows.length === 0 && !query.isLoading ? (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="Sin aval asignado ni créditos avalados."
+          />
         ) : null}
-      </div>
-      {rows.length === 0 ? (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description="No hay aval asignado ni créditos avalados para este cliente."
-        />
-      ) : null}
-      {rows.length > 0 ? (
-        <CredixDataTable<CreditoAvalRelacion>
-          mode="operacion"
-          size="small"
-          className="credito-consulta-avales__table"
-          rowKey={(r, i) => `${r.grupo}-${r.creditoId}-${i}`}
-          pagination={rows.length > 8 ? { pageSize: 8, showSizeChanger: false } : false}
-          loading={query.isFetching}
-          columns={columns}
-          dataSource={rows}
-          scroll={{ x: 620 }}
-        />
-      ) : null}
+        {rows.length > 0 ? (
+          <CredixDataTable<CreditoAvalRelacion>
+            mode="operacion"
+            size="small"
+            className="credito-consulta-avales__table"
+            rowKey={(r, i) => `${r.grupo}-${r.creditoId}-${i}`}
+            pagination={rows.length > 8 ? { pageSize: 8, showSizeChanger: false } : false}
+            columns={columns}
+            dataSource={rows}
+            scroll={{ x: 620 }}
+          />
+        ) : null}
+      </Spin>
     </section>
   )
 }

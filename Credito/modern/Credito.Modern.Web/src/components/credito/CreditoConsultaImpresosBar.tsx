@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
-import { Button, Space, Tooltip, Typography, message } from 'antd'
-import { FileExcelOutlined, FilePdfOutlined, PrinterOutlined } from '@ant-design/icons'
+import { Button, Dropdown, Space, Tooltip, Typography, message } from 'antd'
+import type { MenuProps } from 'antd'
+import { DownOutlined, FileExcelOutlined, FilePdfOutlined, PrinterOutlined } from '@ant-design/icons'
 import {
   downloadMovimientosCreditoCsv,
   openMovimientosCreditoPdfInTab,
@@ -22,8 +23,7 @@ type Props = {
 }
 
 /**
- * Paridad botones `btncImpEstadoCuenta`, `btncImpPlanPago`, `btncImpMovimiento` en Creditos.cshtml.
- * PDF moderno con branding corporativo y visor en pestaña nueva.
+ * Reportes del crédito: PDFs principales visibles; el resto en menú.
  */
 export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
   const planPdf = useMutation({
@@ -63,82 +63,66 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
     movCsv.isPending ||
     fichaPdf.isPending
 
+  const masItems: MenuProps['items'] = [
+    {
+      key: 'mov-pdf',
+      icon: <FilePdfOutlined />,
+      label: 'Movimientos PDF',
+      disabled: busy,
+      onClick: () => movPdf.mutate(),
+    },
+    {
+      key: 'mov-csv',
+      icon: <FileExcelOutlined />,
+      label: 'Movimientos CSV',
+      disabled: busy,
+      onClick: () => movCsv.mutate(),
+    },
+    personaId != null && personaId > 0
+      ? {
+          key: 'ficha',
+          icon: <FilePdfOutlined />,
+          label: 'Ficha cliente',
+          disabled: busy,
+          onClick: () => fichaPdf.mutate(),
+        }
+      : null,
+  ].filter(Boolean)
+
   return (
     <section className="credito-consulta-impresos" aria-label="Impresos del crédito">
-      <div className="credito-consulta-impresos__head">
-        <span className="credito-consulta-impresos__icon" aria-hidden>
-          <PrinterOutlined />
-        </span>
-        <div>
-          <Text strong className="credito-consulta-impresos__title">
-            Reportes del crédito
-          </Text>
-          <Text type="secondary" className="credito-consulta-impresos__hint">
-            PDFs con cabecera del crédito y formato profesional.
-          </Text>
-        </div>
-      </div>
-
-      <div className="credito-consulta-impresos__group">
-        <Text type="secondary" className="credito-consulta-impresos__group-label">
-          Documentos disponibles
-        </Text>
-        <Space wrap size={[8, 8]} className="credito-consulta-impresos__actions">
-          <Tooltip title="Abrir PDF con logo, colores y datos del estado de cuenta">
-            <Button
-              icon={<FilePdfOutlined />}
-              loading={estadoPdf.isPending}
-              disabled={busy}
-              className="credix-report-btn credix-report-btn--pdf"
-              onClick={() => estadoPdf.mutate()}
-            >
-              Estado cuenta
-            </Button>
-          </Tooltip>
-          <Tooltip title="Abrir PDF con logo, colores y plan de cuotas">
-            <Button
-              icon={<FilePdfOutlined />}
-              loading={planPdf.isPending}
-              disabled={busy}
-              className="credix-report-btn credix-report-btn--pdf"
-              onClick={() => planPdf.mutate()}
-            >
-              Plan de pagos
-            </Button>
-          </Tooltip>
-          <Tooltip title="Abrir PDF de movimientos del crédito">
-            <Button
-              icon={<FilePdfOutlined />}
-              loading={movPdf.isPending}
-              disabled={busy}
-              className="credix-report-btn credix-report-btn--pdf"
-              onClick={() => movPdf.mutate()}
-            >
-              Movimientos
-            </Button>
-          </Tooltip>
+      <Text type="secondary" className="credito-consulta-impresos__label">
+        <PrinterOutlined aria-hidden /> Reportes
+      </Text>
+      <Space wrap size={[8, 8]} className="credito-consulta-impresos__actions">
+        <Tooltip title="Estado de cuenta en PDF">
           <Button
-            icon={<FileExcelOutlined />}
-            loading={movCsv.isPending}
+            icon={<FilePdfOutlined />}
+            loading={estadoPdf.isPending}
             disabled={busy}
-            className="credix-report-btn credix-report-btn--xls"
-            onClick={() => movCsv.mutate()}
+            className="credix-report-btn credix-report-btn--pdf"
+            onClick={() => estadoPdf.mutate()}
           >
-            Movimientos CSV
+            Estado cuenta
           </Button>
-          {personaId != null && personaId > 0 ? (
-            <Button
-              icon={<FilePdfOutlined />}
-              loading={fichaPdf.isPending}
-              disabled={busy}
-              className="credix-report-btn credix-report-btn--pdf"
-              onClick={() => fichaPdf.mutate()}
-            >
-              Ficha cliente
-            </Button>
-          ) : null}
-        </Space>
-      </div>
+        </Tooltip>
+        <Tooltip title="Plan de cuotas en PDF">
+          <Button
+            icon={<FilePdfOutlined />}
+            loading={planPdf.isPending}
+            disabled={busy}
+            className="credix-report-btn credix-report-btn--pdf"
+            onClick={() => planPdf.mutate()}
+          >
+            Plan de pagos
+          </Button>
+        </Tooltip>
+        <Dropdown menu={{ items: masItems }} trigger={['click']} placement="bottomRight">
+          <Button disabled={busy}>
+            Más reportes <DownOutlined />
+          </Button>
+        </Dropdown>
+      </Space>
     </section>
   )
 }

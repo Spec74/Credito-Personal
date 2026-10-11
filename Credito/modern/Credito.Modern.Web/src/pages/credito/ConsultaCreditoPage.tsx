@@ -210,6 +210,7 @@ export function ConsultaCreditoPage() {
   const aplicarCredito = useCallback(
     (id: number, personaId?: number) => {
       setActiveId(id)
+      setTabActiva('plan')
       const next = new URLSearchParams()
       next.set('creditoId', String(id))
       if (personaId != null && personaId > 0) {
@@ -219,6 +220,21 @@ export function ConsultaCreditoPage() {
     },
     [setSearchParams],
   )
+
+  const aplicarPersona = useCallback(
+    (personaId: number) => {
+      setActiveId(null)
+      setTabActiva('plan')
+      setSearchParams(new URLSearchParams({ personaId: String(personaId) }))
+    },
+    [setSearchParams],
+  )
+
+  const limpiarConsulta = useCallback(() => {
+    setActiveId(null)
+    setTabActiva('plan')
+    setSearchParams(new URLSearchParams())
+  }, [setSearchParams])
 
   const invalidarConsulta = () => {
     void queryClient.invalidateQueries({ queryKey: ['estado-plan-pago', activeId] })
@@ -407,8 +423,8 @@ export function ConsultaCreditoPage() {
       align: 'right',
       render: formatMoney,
     },
-    { title: 'Atrazo', dataIndex: 'diasAtrazo' },
-    { title: 'Mov.', dataIndex: 'movimientoCajaId' },
+    { title: 'Atraso', dataIndex: 'diasAtrazo' },
+    { title: 'Mov.', dataIndex: 'movimientoCajaId', responsive: ['lg'] },
   ]
 
   const movCols: ColumnsType<RptMovimientoCreditoRow> = [
@@ -482,6 +498,8 @@ export function ConsultaCreditoPage() {
       ? moraVigente + moraPostergada
       : moraVigente
 
+  const estadoActivoMeta = getCreditoEstadoMeta(estadoCreditoQuery.data?.cabecera?.estado)
+
   const creditoStats: CredixStatItem[] =
     activeId != null
       ? [
@@ -491,40 +509,19 @@ export function ConsultaCreditoPage() {
               moraQuery.isLoading || moraResumenQuery.isLoading
                 ? '…'
                 : formatMoney(moraTotal),
-            label: 'Mora total (S/.)',
-            tone: 'red',
-          },
-          {
-            value:
-              moraResumenQuery.isLoading
-                ? '…'
-                : formatMoney(moraPostergada),
-            label: 'Mora postergada (S/.)',
-            tone: moraPostergada > 0 ? 'red' : undefined,
+            label: 'Mora total',
+            tone: moraTotal > 0 ? 'red' : undefined,
           },
           {
             value: planQuery.isLoading ? '…' : pendientes,
-            label: 'Cuotas no pagadas',
+            label: 'Cuotas pendientes',
           },
           {
             value: vencimientoQuery.isLoading
               ? '…'
               : formatMoney(vencimientoQuery.data?.creditoVencido),
-            label: 'Vencido total (S/.)',
-            tone: 'red',
-          },
-          {
-            value: vencimientoQuery.isLoading
-              ? '…'
-              : formatMoney(vencimientoQuery.data?.vencidoMenor60),
-            label: 'Venc. menor 60 d. (S/.)',
-          },
-          {
-            value: vencimientoQuery.isLoading
-              ? '…'
-              : formatMoney(vencimientoQuery.data?.vencidoMayor60),
-            label: 'Venc. mayor 60 d. (S/.)',
-            tone: 'red',
+            label: 'Vencido',
+            tone: (vencimientoQuery.data?.creditoVencido ?? 0) > 0 ? 'red' : undefined,
           },
         ]
       : []
@@ -533,7 +530,7 @@ export function ConsultaCreditoPage() {
     <CredixPage
       className="credito-consulta-page"
       title="Créditos"
-      subtitle="Búsqueda, solicitud, plan de pagos, gestión, movimientos e impresos del crédito."
+      subtitle="Busque un cliente, elija el crédito y gestione plan, mora e impresos."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -546,6 +543,8 @@ export function ConsultaCreditoPage() {
         creditoActivoId={activeId}
         personaIdInicial={personaIdFromUrl}
         onSeleccionarCredito={(id, pid) => aplicarCredito(id, pid)}
+        onPersonaSeleccionada={(pid) => aplicarPersona(pid)}
+        onLimpiarConsulta={limpiarConsulta}
       />
 
       {moraResumenQuery.data?.indMoraProducto &&
@@ -575,24 +574,38 @@ export function ConsultaCreditoPage() {
       ) : null}
 
       {activeId != null && (
-        <CredixPanel title={`Crédito ${activeId}`} className="credito-consulta-panel-credito">
-          <CreditoConsultaImpresosBar
-            creditoId={activeId}
-            personaId={personaIdActiva}
-          />
-          <CreditoConsultaAccionesCredito
-            creditoId={activeId}
-            oficinaId={oficinaId}
-            puedeCobrar={accionesCredito.cobrar}
-            puedeMora={accionesCredito.mora}
-            puedeAnular={accionesCredito.anular}
-            puedeProrrogar={accionesCredito.prorrogar}
-            puedeReprogramar={accionesCredito.reprogramar}
-            onAnular={() => void abrirAnular()}
-            onProrrogar={() => setModalProrrogar(true)}
-            onReprogramar={() => setModalReprogramar(true)}
-            onMora={() => setMoraModalOpen(true)}
-          />
+        <CredixPanel
+          title={`Crédito ${activeId}`}
+          className="credito-consulta-panel-credito"
+          extra={
+            estadoActivoMeta ? (
+              <Tag color={estadoActivoMeta.color}>
+                {`${estadoActivoMeta.codigo} · ${estadoActivoMeta.label}`}
+              </Tag>
+            ) : estadoCreditoQuery.data?.cabecera?.estado ? (
+              <Tag>{estadoCreditoQuery.data.cabecera.estado}</Tag>
+            ) : null
+          }
+        >
+          <div className="credito-consulta-toolbar">
+            <CreditoConsultaAccionesCredito
+              creditoId={activeId}
+              oficinaId={oficinaId}
+              puedeCobrar={accionesCredito.cobrar}
+              puedeMora={accionesCredito.mora}
+              puedeAnular={accionesCredito.anular}
+              puedeProrrogar={accionesCredito.prorrogar}
+              puedeReprogramar={accionesCredito.reprogramar}
+              onAnular={() => void abrirAnular()}
+              onProrrogar={() => setModalProrrogar(true)}
+              onReprogramar={() => setModalReprogramar(true)}
+              onMora={() => setMoraModalOpen(true)}
+            />
+            <CreditoConsultaImpresosBar
+              creditoId={activeId}
+              personaId={personaIdActiva}
+            />
+          </div>
           <CreditoConsultaResumenCredito creditoId={activeId} />
           {estadoCreditoQuery.data?.cabecera?.estado === 'PEN' ? (
             <Alert
@@ -600,7 +613,7 @@ export function ConsultaCreditoPage() {
               showIcon
               style={{ marginBottom: 12 }}
               message="Crédito pendiente de aprobación"
-              description="La aprobación se gestiona desde la bandeja Crédito > Aprobar para conservar roles, auditoría y flujo de revisión."
+              description="La aprobación se gestiona desde Crédito → Aprobar."
               action={
                 <Link to="/credito/aprobar">
                   <Button size="small" type="primary">
@@ -611,7 +624,7 @@ export function ConsultaCreditoPage() {
             />
           ) : null}
           <Tabs
-            className="credix-tabs"
+            className="credix-tabs credito-consulta-tabs"
             size="small"
             destroyInactiveTabPane
             activeKey={tabActiva}
@@ -628,7 +641,8 @@ export function ConsultaCreditoPage() {
                     columns={planCols}
                     dataSource={planQuery.data ?? []}
                     loading={planQuery.isLoading}
-                    pagination={{ pageSize: 12 }}
+                    pagination={{ pageSize: 12, showSizeChanger: false }}
+                    scroll={{ x: 1100 }}
                     rowClassName={estadoPlanRowClass}
                     summary={() => (
                       <Table.Summary fixed>
@@ -693,19 +707,15 @@ export function ConsultaCreditoPage() {
                 key: 'mov',
                 label: 'Movimientos',
                 children: (
-                  <>
-                    <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                      Exportar también desde la barra Impresos arriba.
-                    </Text>
-                    <CredixDataTable<RptMovimientoCreditoRow>
-                      mode="operacion"
-                      rowKey={(r, i) => String(r.movimientoCajaId ?? `m-${i}`)}
-                      columns={movCols}
-                      dataSource={movQuery.data ?? []}
-                      loading={movQuery.isLoading}
-                      pagination={{ pageSize: 12 }}
-                    />
-                  </>
+                  <CredixDataTable<RptMovimientoCreditoRow>
+                    mode="operacion"
+                    rowKey={(r, i) => String(r.movimientoCajaId ?? `m-${i}`)}
+                    columns={movCols}
+                    dataSource={movQuery.data ?? []}
+                    loading={movQuery.isLoading}
+                    pagination={{ pageSize: 12, showSizeChanger: false }}
+                    scroll={{ x: 720 }}
+                  />
                 ),
               },
             ]}

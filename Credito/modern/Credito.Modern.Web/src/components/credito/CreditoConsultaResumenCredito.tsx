@@ -66,9 +66,6 @@ export function CreditoConsultaResumenCredito({ creditoId }: Props) {
             <Descriptions.Item label="Total plan">
               {formatMoney(c.total)}
             </Descriptions.Item>
-            <Descriptions.Item label="Cliente" span={2}>
-              {c.cliente}
-            </Descriptions.Item>
           </Descriptions>
         ) : (
           <Text type="secondary">Seleccione un crédito para ver el resumen.</Text>

@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Button, Empty, Input, Spin, Tag, Typography, message } from 'antd'
+import { Button, Collapse, Empty, Segmented, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { SearchOutlined, UserOutlined } from '@ant-design/icons'
 import { Link } from 'react-router-dom'
 import {
+  fetchCreditoContexto,
   fetchCreditosGrillaPersona,
   type CreditoGrillaPersonaRow,
 } from '../../api/creditoGestion'
-import { buscarClientes } from '../../api/clientes'
+import { CreditoBuscarCliente } from './creditobuscarcliente'
 import { CreditoPersonaCabecera } from './CreditoPersonaCabecera'
 import { CreditoPersonaAvalesPanel } from './CreditoPersonaAvalesPanel'
 import { CredixDataTable } from '../credix'
@@ -17,27 +17,16 @@ import { formatFecha } from '../../utils/formatFecha'
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
 import { creditosGrillaPersonaQueryKey } from '../../utils/creditoGrillaQueryKey'
 import { getCreditoEstadoMeta } from '../../utils/creditoEstados'
-import { useDebouncedValue } from '../../hooks/useDebouncedValue'
-import type { ClienteBuscarItem } from '../../types/api'
 
 const { Text } = Typography
-
-function parseClienteLabel(label: string) {
-  const code = label.match(/\[([^\]]*)\]/)?.[1]?.trim() || null
-  const clean = label.replace(/\s*\[[^\]]*\]\s*$/, '').trim()
-  const [documento = '', ...rest] = clean.split(/\s+/)
-  return {
-    documento,
-    nombre: rest.join(' '),
-    code,
-  }
-}
 
 type Props = {
   oficinaId: number
   creditoActivoId: number | null
   personaIdInicial?: number | null
   onSeleccionarCredito: (creditoId: number, personaId: number, clienteLabel: string) => void
+  onPersonaSeleccionada?: (personaId: number, clienteLabel: string) => void
+  onLimpiarConsulta?: () => void
 }
 
 export function CreditoConsultaClienteBar({
@@ -45,6 +34,8 @@ export function CreditoConsultaClienteBar({
   creditoActivoId,
   personaIdInicial,
   onSeleccionarCredito,
+  onPersonaSeleccionada,
+  onLimpiarConsulta,
 }: Props) {
   const [clienteLabel, setClienteLabel] = useState('')
   const [personaId, setPersonaId] = useState<number | null>(personaIdInicial ?? null)
@@ -52,8 +43,6 @@ export function CreditoConsultaClienteBar({
   const [creditosPage, setCreditosPage] = useState(1)
   const creditosPageSize = 25
   const autoCargadoPersonaRef = useRef<number | null>(null)
-  const terminoBusqueda = clienteLabel.trim()
-  const terminoDebounced = useDebouncedValue(terminoBusqueda, 220)
 
   useEffect(() => {
     if (personaIdInicial != null && personaIdInicial > 0) {
@@ -86,28 +75,38 @@ export function CreditoConsultaClienteBar({
     staleTime: creditoStaleTime.listado,
   })
 
-  const clientesQuery = useQuery({
-    queryKey: ['credito-clientes-buscar', terminoDebounced],
-    queryFn: () => buscarClientes(terminoDebounced),
-    enabled: terminoDebounced.length >= 2,
-    staleTime: 30_000,
-  })
+  const cargarPersona = useCallback(
+    (pid: number, label: string) => {
+      autoCargadoPersonaRef.current = null
+      setPersonaId(pid)
+      setClienteLabel(label)
+      onPersonaSeleccionada?.(pid, label)
+    },
+    [onPersonaSeleccionada],
+  )
 
-  const clientesEncontrados = clientesQuery.data ?? []
-
-  const cargarPersona = useCallback((pid: number, label: string) => {
-    autoCargadoPersonaRef.current = null
-    setPersonaId(pid)
-    setClienteLabel(label)
-  }, [])
-
-  const buscarAhora = () => {
-    if (terminoBusqueda.length < 2) {
-      message.warning('Ingrese al menos 2 caracteres: DNI, nombre, código o celular')
-      return
-    }
-    void clientesQuery.refetch()
-  }
+  const cargarPorCreditoId = useCallback(
+    async (term: string): Promise<boolean> => {
+      const raw = term.trim()
+      const id = Number(raw)
+      if (!Number.isFinite(id) || id < 1 || !/^\d{4,10}$/.test(raw)) {
+        return false
+      }
+      try {
+        const info = await fetchCreditoContexto(id)
+        const nombre = (info.personaNombre ?? '').trim()
+        const label = nombre ? `${nombre} · Crédito ${id}` : `Crédito ${id}`
+        autoCargadoPersonaRef.current = info.personaId
+        setPersonaId(info.personaId)
+        setClienteLabel(label)
+        onSeleccionarCredito(id, info.personaId, label)
+        return true
+      } catch {
+        return false
+      }
+    },
+    [onSeleccionarCredito],
+  )
 
   useEffect(() => {
     if (!personaId || creditosQuery.isLoading || creditosQuery.isFetching) {
@@ -139,18 +138,21 @@ export function CreditoConsultaClienteBar({
     [personaId, clienteLabel, onSeleccionarCredito],
   )
 
-  const seleccionarCliente = useCallback(
-    (item: ClienteBuscarItem) => {
-      cargarPersona(item.personaId, item.label)
-    },
-    [cargarPersona],
-  )
+  const limpiar = () => {
+    setClienteLabel('')
+    setPersonaId(null)
+    setGrupoActivo(true)
+    setCreditosPage(1)
+    autoCargadoPersonaRef.current = null
+    onLimpiarConsulta?.()
+  }
 
   const columns: ColumnsType<CreditoGrillaPersonaRow> = [
     {
       title: 'Crédito',
       dataIndex: 'creditoId',
       align: 'center',
+      width: 96,
       render: (id: number) => (
         <strong className={creditoActivoId === id ? 'credito-consulta__credito-id--active' : ''}>
           {id}
@@ -160,10 +162,11 @@ export function CreditoConsultaClienteBar({
     {
       title: 'Estado',
       dataIndex: 'estado',
+      width: 148,
       render: (estado: string | null) => {
         const meta = getCreditoEstadoMeta(estado)
         return meta ? (
-          <Tag color={meta.color}>{`${meta.codigo} - ${meta.label}`}</Tag>
+          <Tag color={meta.color}>{`${meta.codigo} · ${meta.label}`}</Tag>
         ) : (
           estado || '—'
         )
@@ -173,25 +176,28 @@ export function CreditoConsultaClienteBar({
       title: 'Monto',
       dataIndex: 'montoCredito',
       align: 'right',
+      width: 112,
       render: formatMoney,
     },
     {
       title: '1er pago',
       dataIndex: 'fechaPrimerPago',
+      width: 110,
       render: (v: string | null) => (v ? formatFecha(v) : '—'),
     },
     { title: 'Descripción', dataIndex: 'descripcion', ellipsis: true, minWidth: 140 },
     {
       title: '',
       key: 'act',
-      width: 1,
+      width: 88,
+      align: 'right',
       render: (_, row) => (
         <Button
-          type={creditoActivoId === row.creditoId ? 'primary' : 'link'}
+          type={creditoActivoId === row.creditoId ? 'primary' : 'default'}
           size="small"
           onClick={() => seleccionarCredito(row)}
         >
-          {creditoActivoId === row.creditoId ? 'Activo' : 'Ver'}
+          {creditoActivoId === row.creditoId ? 'Activo' : 'Abrir'}
         </Button>
       ),
     },
@@ -199,105 +205,39 @@ export function CreditoConsultaClienteBar({
 
   const items = creditosQuery.data?.items ?? []
   const totalCreditos = creditosQuery.data?.totalCount ?? items.length
+  const usarChips = items.length > 0 && items.length <= 4 && creditosPage === 1
 
   return (
     <section className="credito-consulta-cliente" aria-labelledby="credito-consulta-cliente-label">
-      <div className="credito-consulta-cliente__search">
-        <span className="credito-consulta-cliente__label" id="credito-consulta-cliente-label">
-          <UserOutlined aria-hidden /> Buscar cliente
-        </span>
-        <div className="credito-cliente-search">
-          <div className="credito-cliente-search__bar">
-            <Input
-              size="large"
-              allowClear
-              value={clienteLabel}
-              prefix={<SearchOutlined />}
-              placeholder="Buscar por DNI, nombre, apellidos, código o celular"
-              aria-labelledby="credito-consulta-cliente-label"
-              onChange={(e) => {
-                setClienteLabel(e.target.value)
+      <div className="credito-consulta-search-dock">
+        <div className="credito-consulta-search-dock__search">
+          <span className="credito-consulta-search-dock__label" id="credito-consulta-cliente-label">
+            Buscar cliente
+          </span>
+          <CreditoBuscarCliente
+            value={clienteLabel}
+            onChange={(label) => {
+              setClienteLabel(label)
+              if (!label.trim()) {
                 setPersonaId(null)
                 autoCargadoPersonaRef.current = null
-              }}
-              onPressEnter={() => {
-                const unico = clientesEncontrados[0]
-                if (clientesEncontrados.length === 1 && unico) {
-                  seleccionarCliente(unico)
-                } else {
-                  buscarAhora()
-                }
-              }}
-            />
+              }
+            }}
+            onSelectPersona={cargarPersona}
+            ariaLabelledBy="credito-consulta-cliente-label"
+            autoFocus
+            autoSelectSingle
+            onMiss={cargarPorCreditoId}
+            searchButtonLabel="Cargar"
+          />
+          {personaId != null || creditoActivoId != null ? (
             <Button
-              type="primary"
-              size="large"
-              icon={<SearchOutlined />}
-              loading={clientesQuery.isFetching}
-              onClick={buscarAhora}
+              type="link"
+              className="credito-consulta-search-dock__reset"
+              onClick={limpiar}
             >
-              Buscar cliente
+              Nueva consulta
             </Button>
-          </div>
-
-          <div className="credito-cliente-search__meta">
-            {terminoBusqueda.length < 2 ? (
-              <Text type="secondary">Escriba mínimo 2 caracteres para iniciar la búsqueda.</Text>
-            ) : clientesQuery.isFetching ? (
-              <Text type="secondary">Buscando coincidencias...</Text>
-            ) : clientesEncontrados.length > 0 ? (
-              <Text type="secondary">
-                {clientesEncontrados.length} resultado(s). Seleccione un cliente para cargar su ficha y créditos.
-              </Text>
-            ) : clientesQuery.isSuccess ? (
-              <Text type="secondary">Sin resultados. Pruebe con DNI, primer apellido, código o celular.</Text>
-            ) : (
-              <Text type="secondary">Busca en clientes activos por documento, nombre, código y celular.</Text>
-            )}
-          </div>
-
-          {terminoBusqueda.length >= 2 ? (
-            <Spin spinning={clientesQuery.isFetching}>
-              {clientesEncontrados.length > 0 ? (
-                <div className="credito-cliente-search__results" role="listbox">
-                  {clientesEncontrados.map((item) => {
-                    const parsed = parseClienteLabel(item.label)
-                    const selected = personaId === item.personaId
-                    return (
-                      <button
-                        key={item.personaId}
-                        type="button"
-                        className={
-                          selected
-                            ? 'credito-cliente-search__result credito-cliente-search__result--selected'
-                            : 'credito-cliente-search__result'
-                        }
-                        onClick={() => seleccionarCliente(item)}
-                      >
-                        <span className="credito-cliente-search__avatar" aria-hidden>
-                          <UserOutlined />
-                        </span>
-                        <span className="credito-cliente-search__body">
-                          <strong>{parsed.nombre || item.label}</strong>
-                          <span>
-                            DNI: {parsed.documento || '—'}
-                            {parsed.code ? ` · Código: ${parsed.code}` : ''}
-                          </span>
-                        </span>
-                        <span className="credito-cliente-search__action">
-                          {selected ? 'Seleccionado' : 'Seleccionar'}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-              ) : clientesQuery.isSuccess ? (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="No encontramos clientes con ese criterio"
-                />
-              ) : null}
-            </Spin>
           ) : null}
         </div>
       </div>
@@ -316,56 +256,116 @@ export function CreditoConsultaClienteBar({
             }}
           />
 
-          <CreditoPersonaAvalesPanel oficinaId={oficinaId} personaId={personaId} />
+          <Collapse
+            ghost
+            className="credito-consulta-avales-collapse"
+            items={[
+              {
+                key: 'avales',
+                label: 'Avales y avalados',
+                children: (
+                  <CreditoPersonaAvalesPanel oficinaId={oficinaId} personaId={personaId} />
+                ),
+              },
+            ]}
+          />
 
           <div className="credito-consulta-cliente__creditos">
-          <div className="credito-consulta-cliente__creditos-head">
-            <Text strong>Créditos del cliente</Text>
-            <div className="credito-consulta-cliente__creditos-meta">
-              <Tag color="processing">{totalCreditos} crédito(s)</Tag>
-              <Button
-                type="link"
-                size="small"
-                onClick={() => setGrupoActivo((v) => !v)}
-              >
-                {grupoActivo ? 'Ver histórico' : 'Ver activos'}
-              </Button>
-              <Link to={`/credito/persona/${personaId}`}>Listado completo</Link>
-              <Link to={`/informes/reporte-cliente?personaId=${personaId}`}>
-                Ficha PDF
-              </Link>
+            <div className="credito-consulta-cliente__creditos-head">
+              <div className="credito-consulta-cliente__creditos-title">
+                <Text strong>Créditos del cliente</Text>
+                <Tag color="processing">{totalCreditos}</Tag>
+              </div>
+              <div className="credito-consulta-cliente__creditos-meta">
+                <Segmented
+                  size="small"
+                  value={grupoActivo ? 'activos' : 'historico'}
+                  onChange={(v) => setGrupoActivo(v === 'activos')}
+                  options={[
+                    { label: 'Activos', value: 'activos' },
+                    { label: 'Histórico', value: 'historico' },
+                  ]}
+                />
+                <Link to={`/credito/persona/${personaId}`}>Listado completo</Link>
+              </div>
             </div>
-          </div>
 
-          <CredixDataTable<CreditoGrillaPersonaRow>
-            mode="operacion"
-            className="credito-consulta-cliente__table"
-            rowKey="creditoId"
-            loading={creditosQuery.isLoading || creditosQuery.isFetching}
-            columns={columns}
-            dataSource={items}
-            pagination={{
-              current: creditosPage,
-              pageSize: creditosPageSize,
-              total: totalCreditos,
-              showSizeChanger: false,
-              size: 'small',
-              onChange: setCreditosPage,
-              showTotal: (t) => `${t} crédito(s)`,
-            }}
-            locale={{ emptyText: 'Sin créditos en esta vista' }}
-            onRow={(row) => ({
-              onDoubleClick: () => seleccionarCredito(row),
-              className:
-                creditoActivoId === row.creditoId
-                  ? 'credito-consulta-cliente__row--active'
-                  : '',
-            })}
-          />
-          <Text type="secondary" className="credito-consulta-cliente__hint">
-            Doble clic en una fila o use «Ver» para abrir el plan de pagos y la gestión del crédito.
-          </Text>
-        </div>
+            {usarChips ? (
+              <div className="credito-consulta-creditos-chips" role="list">
+                {items.map((row) => {
+                  const meta = getCreditoEstadoMeta(row.estado)
+                  const active = creditoActivoId === row.creditoId
+                  return (
+                    <button
+                      key={row.creditoId}
+                      type="button"
+                      role="listitem"
+                      className={
+                        active
+                          ? 'credito-consulta-credito-chip is-active'
+                          : 'credito-consulta-credito-chip'
+                      }
+                      onClick={() => seleccionarCredito(row)}
+                    >
+                      <span className="credito-consulta-credito-chip__id">#{row.creditoId}</span>
+                      <span className="credito-consulta-credito-chip__monto">
+                        {formatMoney(row.montoCredito)}
+                      </span>
+                      {meta ? (
+                        <Tag color={meta.color} className="credito-consulta-credito-chip__estado">
+                          {meta.codigo}
+                        </Tag>
+                      ) : null}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <CredixDataTable<CreditoGrillaPersonaRow>
+                mode="operacion"
+                className="credito-consulta-cliente__table"
+                rowKey="creditoId"
+                loading={creditosQuery.isLoading || creditosQuery.isFetching}
+                columns={columns}
+                dataSource={items}
+                size="small"
+                pagination={{
+                  current: creditosPage,
+                  pageSize: creditosPageSize,
+                  total: totalCreditos,
+                  showSizeChanger: false,
+                  size: 'small',
+                  onChange: setCreditosPage,
+                  showTotal: (t) => `${t} crédito(s)`,
+                }}
+                locale={{ emptyText: 'Sin créditos en esta vista' }}
+                onRow={(row) => ({
+                  onDoubleClick: () => seleccionarCredito(row),
+                  className:
+                    creditoActivoId === row.creditoId
+                      ? 'credito-consulta-cliente__row--active'
+                      : '',
+                })}
+              />
+            )}
+
+            {!usarChips && items.length > 0 ? (
+              <Text type="secondary" className="credito-consulta-cliente__hint">
+                Doble clic o «Abrir» para ver el plan y la gestión del crédito.
+              </Text>
+            ) : null}
+
+            {items.length === 0 && !creditosQuery.isLoading ? (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={
+                  grupoActivo
+                    ? 'Sin créditos activos. Pruebe «Histórico» o cree una solicitud.'
+                    : 'Sin créditos en el histórico.'
+                }
+              />
+            ) : null}
+          </div>
         </>
       ) : null}
     </section>
