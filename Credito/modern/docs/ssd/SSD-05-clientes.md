@@ -85,8 +85,8 @@ Listado sin término (&lt; 2 caracteres): clientes distintos de créditos del `U
 - [ ] Guardar redirige a `/clientes`.
 - [ ] Activar / bloquear cambian estado como el MVC.
 - [ ] Prendario nuevo puede ir a `/clientes/nuevo` y volver con `personaId`.
-- [ ] Pestaña Ubicación: «Registrar mi ubicación» / «Actualizar GPS» usa el GPS del dispositivo y persiste lat/lng (edición) o pide Guardar (alta).
-- [ ] Sin GPS, el mapa/geocode de domicilio sigue funcionando (paridad).
+- [ ] Pestaña Ubicación: «Registrar mi ubicación» / «Actualizar GPS del dispositivo» usa el GPS del dispositivo y persiste lat/lng (edición) o pide Guardar (alta). *(smoke HTTPS — [SMOKE-SIGN-OFF § GPS](../SMOKE-SIGN-OFF.md); automatizado: `deviceGeolocation.test.ts`, `ClienteGpsRules`)*
+- [ ] Sin GPS, el mapa/geocode de domicilio sigue funcionando (paridad; geocode distrito = vista previa). *(smoke — SMOKE-SIGN-OFF § GPS)*
 
 ## 8. Desviaciones
 
@@ -97,8 +97,8 @@ Ninguna financiera propia. Mapa Google vs Leaflet es producto. Relatos de menú/
 ## 9. Pruebas y evidencia
 
 - API: `clienteendpointstests` (listar, documento, buscar, guardar, activar, bloquear, ubicacion 401/400); `validationrulestests` (`ClienteGpsRules`)
-- SPA: `resolvespapathfrommenuitem.test.ts` (Cliente → `/clientes`); `clienteMapaNavegacion.test.ts`
-- Smoke: buscar DNI, abrir ficha, guardar domicilio; registrar GPS en Ubicación (HTTPS)
+- SPA: `resolvespapathfrommenuitem.test.ts` (Cliente → `/clientes`); `clienteMapaNavegacion.test.ts`; `deviceGeolocation.test.ts`
+- Smoke: buscar DNI, abrir ficha, guardar domicilio; GPS ficha/campo → [SMOKE-SIGN-OFF § GPS](../SMOKE-SIGN-OFF.md)
 
 ## 10. Go-live
 

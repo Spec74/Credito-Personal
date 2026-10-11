@@ -113,8 +113,8 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 - [ ] `LECTURA_SALDO` ve `/caja/saldos` sin asignar ni cierre masivo.
 - [ ] PDF de cajas asignadas / saldo caja / movimiento bóveda desde Saldos usa JWT, no RDLC MVC.
 - [ ] Hub `/caja` no abre asignar / saldos / verificar.
-- [ ] Cobro-bloque móvil: sin GPS muestra «Registrar mi ubicación»; con GPS solo enlace dirección → coords.
-- [ ] PC (tabla): no muestra el botón de captura GPS (solo enlace de mapa en detalle).
+- [ ] Cobro-bloque móvil: sin GPS muestra «Registrar mi ubicación»; con GPS solo enlace dirección → coords. *(smoke HTTPS — [SMOKE-SIGN-OFF § GPS](../SMOKE-SIGN-OFF.md); automatizado: `clienteMapaNavegacion` + `creditoGestorPendiente` + `cobroBloqueOffline`)*
+- [ ] PC (tabla): columna **Ubicación** con enlace mapa; **sin** botón de captura GPS. *(smoke — SMOKE-SIGN-OFF § GPS)*
 
 ## 8. Desviaciones
 
@@ -127,9 +127,9 @@ Aceptadas de producto: grilla de desembolsos APR (el MVC era un formulario); mod
 
 ## 9. Pruebas y evidencia
 
-- API: `pagarcuotasendpointtests`, `pagarcuotascancelacionendpointtests`, `completarimpagosvalidacionendpointtests`, `cerrarcajadiarioendpointtests`, `validarcierrecajadiarioendpointtests`, `reconciliarcajadiarioendpointtests`, `transferirsaldoscajadiarioendpointtests`, `saldoscierreendpointtests`, `asignarcajaendpointtests`, `cajachicaoperacionendpointtests`, `creditocondonacionendpointtests`, `clienteendpointstests` (ubicacion 401)
-- SPA: `menuRouteAccess.test.ts` (hub caja vs asignar/saldos/verificar); `clienteMapaNavegacion.test.ts`; `creditoGestorPendiente.test.ts` (lat/lng); `cobroBloqueOffline.test.ts` (v3 + migrate v2)
-- Smoke: abrir diario, cobrar cuota efectivo + Yape (aparece en Verificar), verificar pago, intentar cierre con pendiente digital (bloquea), anular, cierre limpio; encargado en saldos; cobro-bloque móvil registrar GPS a cliente sin coords
+- API: `pagarcuotasendpointtests`, `pagarcuotascancelacionendpointtests`, `completarimpagosvalidacionendpointtests`, `cerrarcajadiarioendpointtests`, `validarcierrecajadiarioendpointtests`, `reconciliarcajadiarioendpointtests`, `transferirsaldoscajadiarioendpointtests`, `saldoscierreendpointtests`, `asignarcajaendpointtests`, `cajachicaoperacionendpointtests`, `creditocondonacionendpointtests`, `clienteendpointstests` (ubicacion 401/400)
+- SPA: `menuRouteAccess.test.ts`; `clienteMapaNavegacion.test.ts`; `creditoGestorPendiente.test.ts` (lat/lng); `cobroBloqueOffline.test.ts` (v3 + migrate v2); `deviceGeolocation.test.ts`
+- Smoke: abrir diario, cobrar cuota efectivo + Yape (aparece en Verificar), verificar pago, intentar cierre con pendiente digital (bloquea), anular, cierre limpio; encargado en saldos; **GPS campo/ficha → [SMOKE-SIGN-OFF § GPS](../SMOKE-SIGN-OFF.md)**
 
 ## 10. Go-live
 

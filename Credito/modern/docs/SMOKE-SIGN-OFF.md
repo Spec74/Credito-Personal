@@ -70,6 +70,22 @@ Clave de prueba: `123.` · oficina `1`.
 | 9 | `smoke-db-gate` / SQL Azure | ✅ | 2026-10-09 | ready database Healthy + gate local |
 | 10 | Responsive ~375px | ✅ | 2026-10-10 | `/caja/diario` Emulation 375×812 |
 
+## GPS cliente — cobro-bloque + ficha (SSD-03 / SSD-05 §7)
+
+Evidencia **automatizada** (código, 2026-10-10): `clienteMapaNavegacion.test.ts`, `creditoGestorPendiente.test.ts`, `cobroBloqueOffline.test.ts`, `deviceGeolocation.test.ts`, `clienteendpointstests` (ubicacion 401/400), `ClienteGpsRules`.
+
+Evidencia **operativa HTTPS** (marcar al ejecutar en Dev/preprod; no inventar PASS):
+
+| # | Paso | Entorno | Resultado | Fecha | Notas |
+|---|------|----------|-----------|-------|-------|
+| G1 | PC `/caja/cobro-bloque`: columna **Ubicación** (dirección → maps); **sin** «Registrar mi ubicación» | | ☐ | | Viewport ≥ md |
+| G2 | Móvil (&lt; md): cliente **sin** GPS → botón + confirm → guarda; pill GPS; enlace usa coords | | ☐ | | HTTPS + permiso ubicación |
+| G3 | Móvil offline: tipado OK; GPS muestra aviso de red | | ☐ | | |
+| G4 | Ficha `/clientes/editar/:id` → Ubicación: «Actualizar GPS del dispositivo» corrige pin | | ☐ | | |
+| G5 | Geocode distrito = «Vista aproximada»; no oculta botón de campo hasta Ubicar/GPS/arrastre + Guardar | | ☐ | | |
+
+Al firmar G1–G5, marcar las casillas GPS en [SSD-03 §7](ssd/SSD-03-caja.md) y [SSD-05 §7](ssd/SSD-05-clientes.md).
+
 ## Criterio de cierre
 
 **Operativo 100% (SSD-00 §7 smoke)** con evidencia 2026-10-10:

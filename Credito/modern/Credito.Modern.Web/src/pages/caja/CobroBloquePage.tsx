@@ -787,6 +787,39 @@ export function CobroBloquePage() {
       },
     },
     {
+      title: 'Ubicación',
+      key: 'ubicacion',
+      className: 'cobro-bloque-col-ubicacion',
+      onCell: () => ({ className: 'cobro-bloque-col-ubicacion' }),
+      ellipsis: true,
+      render: (_, row) => {
+        const punto = {
+          direccion: row.direccion,
+          latitud: row.latitud,
+          longitud: row.longitud,
+        }
+        const href = clienteMapaHref(punto)
+        const label = clienteMapaLabel(punto)
+        if (!href || !label) {
+          return <Text type="secondary">—</Text>
+        }
+        return (
+          <a
+            className="cobro-bloque-ubicacion-link"
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            title={clienteMapaTitle(punto)}
+          >
+            <EnvironmentOutlined /> {label}
+            {clienteTieneGps(punto) ? (
+              <em className="cobro-bloque-ubicacion-link__gps">GPS</em>
+            ) : null}
+          </a>
+        )
+      },
+    },
+    {
       title: 'Venc.',
       dataIndex: 'fechaVencimiento',
       className: 'cobro-bloque-col-nowrap',
@@ -1261,43 +1294,18 @@ export function CobroBloquePage() {
                   expandedRowRender: (row) => {
                     const e = getEdit(row)
                     return (
-                      <div>
-                        {(() => {
-                          const punto = {
-                            direccion: row.direccion,
-                            latitud: row.latitud,
-                            longitud: row.longitud,
-                          }
-                          const href = clienteMapaHref(punto)
-                          const label = clienteMapaLabel(punto)
-                          if (!href || !label) return null
-                          return (
-                            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                              <a
-                                href={href}
-                                target="_blank"
-                                rel="noreferrer"
-                                title={clienteMapaTitle(punto)}
-                              >
-                                <EnvironmentOutlined /> {label}
-                                {clienteTieneGps(punto) ? ' · GPS' : ''}
-                              </a>
-                            </Text>
+                      <CuotasSubgrid
+                        creditoId={row.creditoId}
+                        deudaMax={row.deudaPendiente}
+                        selected={e.cuotasSeleccionadas}
+                        onChange={(ids, monto) =>
+                          patchEdit(
+                            row.creditoId,
+                            { cuotasSeleccionadas: ids, montoPagar: monto },
+                            row,
                           )
-                        })()}
-                        <CuotasSubgrid
-                          creditoId={row.creditoId}
-                          deudaMax={row.deudaPendiente}
-                          selected={e.cuotasSeleccionadas}
-                          onChange={(ids, monto) =>
-                            patchEdit(
-                              row.creditoId,
-                              { cuotasSeleccionadas: ids, montoPagar: monto },
-                              row,
-                            )
-                          }
-                        />
-                      </div>
+                        }
+                      />
                     )
                   },
                 }}
