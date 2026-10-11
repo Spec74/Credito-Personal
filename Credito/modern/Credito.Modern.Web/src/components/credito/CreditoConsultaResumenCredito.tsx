@@ -42,7 +42,7 @@ export function CreditoConsultaResumenCredito({ creditoId }: Props) {
             <Descriptions.Item label="Producto">{c.producto}</Descriptions.Item>
             <Descriptions.Item label="Estado">
               {estadoMeta ? (
-                <Tag color={estadoMeta.color}>{`${estadoMeta.codigo} - ${estadoMeta.label}`}</Tag>
+                <Tag>{`${estadoMeta.codigo} · ${estadoMeta.label}`}</Tag>
               ) : (
                 c.estado
               )}

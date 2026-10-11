@@ -100,7 +100,6 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
             icon={<FilePdfOutlined />}
             loading={estadoPdf.isPending}
             disabled={busy}
-            className="credix-report-btn credix-report-btn--pdf"
             onClick={() => estadoPdf.mutate()}
           >
             Estado cuenta
@@ -111,7 +110,6 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
             icon={<FilePdfOutlined />}
             loading={planPdf.isPending}
             disabled={busy}
-            className="credix-report-btn credix-report-btn--pdf"
             onClick={() => planPdf.mutate()}
           >
             Plan de pagos

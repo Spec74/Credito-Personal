@@ -166,7 +166,7 @@ export function CreditoConsultaClienteBar({
       render: (estado: string | null) => {
         const meta = getCreditoEstadoMeta(estado)
         return meta ? (
-          <Tag color={meta.color}>{`${meta.codigo} · ${meta.label}`}</Tag>
+          <Tag>{`${meta.codigo} · ${meta.label}`}</Tag>
         ) : (
           estado || '—'
         )
@@ -312,9 +312,7 @@ export function CreditoConsultaClienteBar({
                         {formatMoney(row.montoCredito)}
                       </span>
                       {meta ? (
-                        <Tag color={meta.color} className="credito-consulta-credito-chip__estado">
-                          {meta.codigo}
-                        </Tag>
+                        <Tag className="credito-consulta-credito-chip__estado">{meta.codigo}</Tag>
                       ) : null}
                     </button>
                   )

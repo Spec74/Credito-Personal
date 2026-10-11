@@ -326,7 +326,11 @@ export function ConsultaCreditoPage() {
       dataIndex: 'estado',
       render: (estado: string | null, row) => {
         const meta = getCreditoEstadoMeta(estado)
-        const tag = meta ? <Tag color={meta.color}>{meta.codigo}</Tag> : estado || '—'
+        const tag = meta ? (
+          <Tag className="credito-plan-estado-tag">{meta.codigo}</Tag>
+        ) : (
+          estado || '—'
+        )
         if (estado?.trim().toUpperCase() !== 'PAG' || !row.movimientoCajaId) {
           return tag
         }
@@ -579,9 +583,7 @@ export function ConsultaCreditoPage() {
           className="credito-consulta-panel-credito"
           extra={
             estadoActivoMeta ? (
-              <Tag color={estadoActivoMeta.color}>
-                {`${estadoActivoMeta.codigo} · ${estadoActivoMeta.label}`}
-              </Tag>
+              <Tag>{`${estadoActivoMeta.codigo} · ${estadoActivoMeta.label}`}</Tag>
             ) : estadoCreditoQuery.data?.cabecera?.estado ? (
               <Tag>{estadoCreditoQuery.data.cabecera.estado}</Tag>
             ) : null
