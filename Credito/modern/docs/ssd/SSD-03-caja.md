@@ -88,7 +88,8 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 |----------|----------------|
 | Cartera | Tipar monto/método + **Añadir a Enviar**. **No** registra en BD. Sin dock de envío (máxima visibilidad) |
 | Enviar | Cola de revisión: editar, quitar. Único dock **Enviar lote** |
-| Enviar lote | `POST cobrar-planilla-bloque` con `CompletarImpagos: false` → pestaña Enviados |
+| Enviar lote | `POST cobrar-planilla-bloque` con `CompletarImpagos: false` → Enviados + tickets (`MovimientoCajaId`) |
+| Tickets | Solo en **Enviados** (reimpresión). Tras el lote se descargan automáticamente; icono impresora por cobro |
 | Offline | Tipados en Enviar; sync al recuperar red; errores visibles por crédito |
 | Day-lock | Suavizado: se puede reabrir Cobro el mismo día |
 | Completar impagos | Solo Caja Diario → Cobranzas |

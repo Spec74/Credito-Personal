@@ -26,6 +26,9 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
     /// <summary>Paridad JS legacy <c>tiposPagoDigital = [2, 3, 4, 5]</c>.</summary>
     private static readonly HashSet<int> TiposPagoDigital = [2, 3, 4, 5];
 
+    private static readonly IReadOnlyList<CobroPlanillaTicketDto> SinTickets =
+        Array.Empty<CobroPlanillaTicketDto>();
+
     private readonly string _connectionString = options.Value.ConnectionString;
 
     public async Task<CobrarPlanillaBloqueResponse> EjecutarAsync(
@@ -69,7 +72,8 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
                     false,
                     $"Ingrese la fecha/hora de transferencia para el crédito {item.CreditoId}.",
                     0,
-                    0);
+                    0,
+                    SinTickets);
             }
         }
 
@@ -100,9 +104,11 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
                     false,
                     "La caja diario no existe o está cerrada.",
                     0,
-                    0);
+                    0,
+                    SinTickets);
             }
 
+            var tickets = new List<CobroPlanillaTicketDto>(items.Count);
             var pagos = 0;
             foreach (var item in items)
             {
@@ -130,9 +136,11 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
                         false,
                         $"Proceso abortado por seguridad: error al procesar el pago del crédito {item.CreditoId}.",
                         pagos,
-                        0);
+                        0,
+                        SinTickets);
                 }
 
+                tickets.Add(new CobroPlanillaTicketDto(item.CreditoId, resultId.Value));
                 pagos++;
             }
 
@@ -157,7 +165,8 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
                     false,
                     "No hay cobros con monto para registrar. Tipé montos o use Completar impagos en Caja Diario.",
                     0,
-                    0);
+                    0,
+                    SinTickets);
             }
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -169,7 +178,8 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
                         : "Planilla cerrada: todos los clientes quedaron como impagos.")
                     : $"Se registraron {pagos} cobro(s) correctamente.",
                 pagos,
-                impagos);
+                impagos,
+                tickets);
         }
         catch
         {

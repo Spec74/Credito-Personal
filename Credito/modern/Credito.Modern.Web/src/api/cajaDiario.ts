@@ -565,6 +565,8 @@ export function cobrarPlanillaBloque(body: {
   mensaje: string
   pagosProcesados: number
   impagosCompletados: number
+  /** Movimientos generados (para ticket PDF / reimpresión). */
+  tickets?: Array<{ creditoId: number; movimientoCajaId: number }>
 }> {
   return apiFetch('/credito/cobrar-planilla-bloque', {
     method: 'POST',

@@ -22,6 +22,7 @@ import {
   CheckOutlined,
   CloseOutlined,
   EnvironmentOutlined,
+  PrinterOutlined,
   SearchOutlined,
   ArrowUpOutlined,
   WhatsAppOutlined,
@@ -29,6 +30,7 @@ import {
 import type { ColumnsType } from 'antd/es/table'
 import {
   cobrarPlanillaBloque,
+  downloadMovimientoCajaTicketPdf,
   enrichCreditosGestorContactos,
   fetchCajaDiarioSesion,
   fetchCreditosGestorDesembolsados,
@@ -74,6 +76,7 @@ import {
 } from '../../utils/cobroBloqueOffline'
 import type { EstadoPlanPagoCuota } from '../../types/api'
 import type { CajaSession } from './cajaDiario/types'
+import { maybeDownloadCajaTicket } from './cajaDiario/cajaPagoHelpers'
 import {
   FechaHoraDigitalField,
   nowDatetimeLocal,
@@ -229,6 +232,8 @@ export function CobroBloquePage() {
   const [cola, setCola] = useState<CobroColaDia>(() =>
     loadCobroCola({ usuarioId: 0, oficinaId: 0, cajaDiarioId: 0 }),
   )
+  const [ticketPrintingId, setTicketPrintingId] = useState<number | null>(null)
+  const [ticketBatchPrinting, setTicketBatchPrinting] = useState(false)
   const carteraRowsRef = useRef<CreditoGestorPendienteRow[]>([])
 
   // Day-lock legacy deprecado: limpiar cualquier marca previa y no bloquear nunca.
@@ -851,8 +856,25 @@ export function CobroBloquePage() {
     },
     onSuccess: (r) => {
       if (r.queued) return
-      aplicarEnviados(r.planilla, 'lote')
+      const ticketMap: Record<number, number | null | undefined> = {}
+      for (const t of r.result.tickets ?? []) {
+        if (t.movimientoCajaId > 0) ticketMap[t.creditoId] = t.movimientoCajaId
+      }
+      aplicarEnviados(r.planilla, 'lote', ticketMap)
+      setTabPrincipal('enviados')
       message.success(r.result.mensaje || `${r.planilla.length} cobro(s) enviado(s).`)
+      // Tickets: descarga tras registrar (paridad Diario). En móvil se espacia para no saturar.
+      const movIds = (r.result.tickets ?? [])
+        .map((t) => t.movimientoCajaId)
+        .filter((id) => id > 0)
+      if (movIds.length > 0 && oficinaId > 0) {
+        void (async () => {
+          for (let i = 0; i < movIds.length; i++) {
+            if (i > 0) await new Promise((res) => window.setTimeout(res, 350))
+            await maybeDownloadCajaTicket(oficinaId, movIds[i])
+          }
+        })()
+      }
     },
     onError: (e) =>
       message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error'),
@@ -901,6 +923,48 @@ export function CobroBloquePage() {
     message.info('Quitado de Enviar (solo en este dispositivo).')
   }
 
+  const imprimirTicket = async (movimientoCajaId: number | null | undefined) => {
+    if (!movimientoCajaId || movimientoCajaId < 1 || oficinaId < 1) {
+      message.warning('Este cobro no tiene ticket disponible para reimprimir.')
+      return
+    }
+    setTicketPrintingId(movimientoCajaId)
+    try {
+      await downloadMovimientoCajaTicketPdf(oficinaId, movimientoCajaId)
+      message.success('Ticket descargado')
+    } catch (e) {
+      message.error(
+        e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'No se pudo imprimir el ticket',
+      )
+    } finally {
+      setTicketPrintingId(null)
+    }
+  }
+
+  const imprimirTicketsEnviados = async () => {
+    const ids = enviadosFiltrados
+      .map((e) => e.movimientoCajaId)
+      .filter((id): id is number => typeof id === 'number' && id > 0)
+    if (ids.length === 0) {
+      message.info('No hay tickets para imprimir en Enviados.')
+      return
+    }
+    setTicketBatchPrinting(true)
+    try {
+      for (let i = 0; i < ids.length; i++) {
+        if (i > 0) await new Promise((res) => window.setTimeout(res, 350))
+        await downloadMovimientoCajaTicketPdf(oficinaId, ids[i]!)
+      }
+      message.success(`${ids.length} ticket(s) descargado(s)`)
+    } catch (e) {
+      message.error(
+        e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error al imprimir tickets',
+      )
+    } finally {
+      setTicketBatchPrinting(false)
+    }
+  }
+
   // Sincronización offline: al recuperar red envía la cola pendiente (sin impagos ni day-lock).
   useEffect(() => {
     if (!online || usuarioId < 1 || cajaDiarioId < 1) return
@@ -929,6 +993,10 @@ export function CobroBloquePage() {
           completarImpagos: false,
         })
         // No cancelar el éxito: si el request ya fue a BD, hay que registrar enviados.
+        const ticketMap: Record<number, number | null | undefined> = {}
+        for (const t of r.tickets ?? []) {
+          if (t.movimientoCajaId > 0) ticketMap[t.creditoId] = t.movimientoCajaId
+        }
         aplicarEnviados(
           planilla.map((p) => ({
             creditoId: p.creditoId,
@@ -937,8 +1005,14 @@ export function CobroBloquePage() {
             fechaHoraTrans: p.fechaHoraTrans ?? '',
           })),
           'sync',
+          ticketMap,
         )
         message.success(r.mensaje || 'Cobros sincronizados al recuperar red.')
+        for (const t of r.tickets ?? []) {
+          if (t.movimientoCajaId > 0) {
+            await maybeDownloadCajaTicket(pending.oficinaId, t.movimientoCajaId)
+          }
+        }
       } catch (e) {
         if (isLikelyNetworkError(e)) {
           message.warning('Aún sin red estable. La cola se reintentará al conectar.')
@@ -1268,6 +1342,26 @@ export function CobroBloquePage() {
       dataIndex: 'enviadoAt',
       render: (v: string) =>
         new Date(v).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }),
+    },
+    {
+      title: 'Ticket',
+      key: 'ticket',
+      width: 88,
+      align: 'center',
+      render: (_, it) =>
+        it.movimientoCajaId && it.movimientoCajaId > 0 ? (
+          <Button
+            type="primary"
+            size="small"
+            icon={<PrinterOutlined />}
+            loading={ticketPrintingId === it.movimientoCajaId}
+            aria-label={`Imprimir ticket crédito ${it.creditoId}`}
+            title="Imprimir ticket"
+            onClick={() => void imprimirTicket(it.movimientoCajaId)}
+          />
+        ) : (
+          <Text type="secondary">—</Text>
+        ),
     },
   ]
 
@@ -1611,43 +1705,86 @@ export function CobroBloquePage() {
               enviadosFiltrados.length === 0 ? (
                 <Text type="secondary">Aún no hay cobros enviados hoy.</Text>
               ) : fieldMode ? (
-                <ul className="cobro-bloque-enviados-list">
-                  {enviadosFiltrados.map((it) => (
-                    <li
-                      key={`${it.creditoId}-${it.enviadoAt}`}
-                      className="cobro-bloque-enviados-list__item"
+                <>
+                  <div className="cobro-bloque-enviados-toolbar">
+                    <Button
+                      type="default"
+                      icon={<PrinterOutlined />}
+                      loading={ticketBatchPrinting}
+                      disabled={
+                        !enviadosFiltrados.some(
+                          (e) => e.movimientoCajaId && e.movimientoCajaId > 0,
+                        )
+                      }
+                      onClick={() => void imprimirTicketsEnviados()}
                     >
-                      <div className="cobro-bloque-enviados-list__main">
-                        <strong title={it.personaNombre}>{it.personaNombre}</strong>
-                        <span className="cobro-bloque-enviados-list__meta">
-                          #{it.creditoId} ·{' '}
-                          {it.origen === 'sync'
-                            ? 'Sync'
-                            : 'Lote'}{' '}
-                          ·{' '}
-                          {new Date(it.enviadoAt).toLocaleTimeString('es-PE', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </div>
-                      <strong className="cobro-bloque-enviados-list__monto">
-                        S/ {formatMoney(it.montoPagar)}
-                      </strong>
-                    </li>
-                  ))}
-                </ul>
+                      Imprimir tickets
+                    </Button>
+                  </div>
+                  <ul className="cobro-bloque-enviados-list">
+                    {enviadosFiltrados.map((it) => (
+                      <li
+                        key={`${it.creditoId}-${it.enviadoAt}`}
+                        className="cobro-bloque-enviados-list__item"
+                      >
+                        <div className="cobro-bloque-enviados-list__main">
+                          <strong title={it.personaNombre}>{it.personaNombre}</strong>
+                          <span className="cobro-bloque-enviados-list__meta">
+                            #{it.creditoId} ·{' '}
+                            {it.origen === 'sync' ? 'Sync' : 'Lote'} ·{' '}
+                            {new Date(it.enviadoAt).toLocaleTimeString('es-PE', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        </div>
+                        <div className="cobro-bloque-enviados-list__right">
+                          <strong className="cobro-bloque-enviados-list__monto">
+                            S/ {formatMoney(it.montoPagar)}
+                          </strong>
+                          {it.movimientoCajaId && it.movimientoCajaId > 0 ? (
+                            <Button
+                              type="primary"
+                              size="large"
+                              className="cobro-bloque-enviados-list__print"
+                              icon={<PrinterOutlined />}
+                              loading={ticketPrintingId === it.movimientoCajaId}
+                              aria-label={`Imprimir ticket ${it.personaNombre}`}
+                              onClick={() => void imprimirTicket(it.movimientoCajaId)}
+                            />
+                          ) : null}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               ) : (
-                <CredixDataTable
-                  mode="operacion"
-                  className="cobro-bloque-table"
-                  rowKey={(it: CobroEnviadoItem) => `${it.creditoId}-${it.enviadoAt}`}
-                  columns={columnsEnviados}
-                  dataSource={enviadosFiltrados}
-                  pagination={{ pageSize: 50, showSizeChanger: true }}
-                  size="middle"
-                  scroll={{ x: 'max-content' }}
-                />
+                <>
+                  <div className="cobro-bloque-enviados-toolbar">
+                    <Button
+                      icon={<PrinterOutlined />}
+                      loading={ticketBatchPrinting}
+                      disabled={
+                        !enviadosFiltrados.some(
+                          (e) => e.movimientoCajaId && e.movimientoCajaId > 0,
+                        )
+                      }
+                      onClick={() => void imprimirTicketsEnviados()}
+                    >
+                      Imprimir todos los tickets
+                    </Button>
+                  </div>
+                  <CredixDataTable
+                    mode="operacion"
+                    className="cobro-bloque-table"
+                    rowKey={(it: CobroEnviadoItem) => `${it.creditoId}-${it.enviadoAt}`}
+                    columns={columnsEnviados}
+                    dataSource={enviadosFiltrados}
+                    pagination={{ pageSize: 50, showSizeChanger: true }}
+                    size="middle"
+                    scroll={{ x: 'max-content' }}
+                  />
+                </>
               )
             ) : carteraQuery.isError ? (
               <Alert

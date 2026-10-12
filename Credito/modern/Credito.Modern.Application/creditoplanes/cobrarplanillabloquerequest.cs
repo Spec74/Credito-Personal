@@ -7,6 +7,9 @@ public sealed record PagoPlanillaItemDto(
     int TipoPagoId,
     string? FechaHoraTrans);
 
+/// <summary>Ticket generado por un cobro de la planilla (<c>MovimientoCajaId</c>).</summary>
+public sealed record CobroPlanillaTicketDto(int CreditoId, int MovimientoCajaId);
+
 /// <summary>Cuerpo de <c>POST /api/v1/credito/cobrar-planilla-bloque</c>.</summary>
 /// <param name="CompletarImpagos">
 /// Si es <c>true</c>, tras los pagos ejecuta <c>usp_CompletarImpagos</c> (paridad MVC antigua).
@@ -18,9 +21,10 @@ public sealed record CobrarPlanillaBloqueRequest(
     IReadOnlyList<PagoPlanillaItemDto> Planilla,
     bool CompletarImpagos = false);
 
-/// <summary>Resultado atómico de la planilla.</summary>
+/// <summary>Resultado atómico de la planilla (incluye IDs de ticket para reimpresión).</summary>
 public sealed record CobrarPlanillaBloqueResponse(
     bool Exito,
     string Mensaje,
     int PagosProcesados,
-    int ImpagosCompletados);
+    int ImpagosCompletados,
+    IReadOnlyList<CobroPlanillaTicketDto> Tickets);
