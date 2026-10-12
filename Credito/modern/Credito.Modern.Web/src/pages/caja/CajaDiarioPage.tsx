@@ -295,7 +295,7 @@ export function CajaDiarioPage() {
                   className="caja-diario-session-name"
                   role="button"
                   tabIndex={0}
-                  title="Mostrar u ocultar saldos del encabezado"
+                  title="Ver detalle de saldos (inicial, entradas, salidas)"
                   onClick={() => setShowStats((v) => !v)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -317,14 +317,6 @@ export function CajaDiarioPage() {
 
               <dl className="caja-diario-session-bar__meta">
                 <div>
-                  <dt>Sesión</dt>
-                  <dd>#{ctx.cajaDiarioId}</dd>
-                </div>
-                <div>
-                  <dt>Inicio</dt>
-                  <dd>{formatFechaHora(ctx.fechaIniOperacion)}</dd>
-                </div>
-                <div>
                   <dt>Efectivo</dt>
                   <dd>
                     {saldoQuery.data != null
@@ -332,29 +324,7 @@ export function CajaDiarioPage() {
                       : '…'}
                   </dd>
                 </div>
-                <div>
-                  <dt>Neto</dt>
-                  <dd>{formatMoney(ctx.saldoFinal)}</dd>
-                </div>
               </dl>
-
-              <div className="caja-diario-session-bar__actions">
-                <Button
-                  className="caja-diario-recalc-btn"
-                  size="middle"
-                  loading={recalcular.isPending}
-                  onClick={() => recalcular.mutate()}
-                >
-                  Recalcular saldos
-                </Button>
-                <nav
-                  className="caja-diario-quick-links"
-                  aria-label="Reportes y cierres de caja"
-                >
-                  <Link to="/informes/caja-diario">Informe</Link>
-                  <Link to="/caja/saldos">Cierre masivo</Link>
-                </nav>
-              </div>
             </header>
 
             <div className="caja-diario-main-column">
@@ -366,11 +336,13 @@ export function CajaDiarioPage() {
                     setOpsOpen((e.target as HTMLDetailsElement).open)
                   }
                 >
-                  <summary>Más acciones (PDF, ruta, cobro en bloque)</summary>
+                  <summary>Más acciones</summary>
                   <CajaDiarioOperacionesBar
                     ctx={ctx}
                     usuarioId={session?.usuarioId ?? 0}
                     variant="inline"
+                    onRecalcular={() => recalcular.mutate()}
+                    recalculando={recalcular.isPending}
                   />
                 </details>
               ) : (
@@ -378,6 +350,8 @@ export function CajaDiarioPage() {
                   ctx={ctx}
                   usuarioId={session?.usuarioId ?? 0}
                   variant="inline"
+                  onRecalcular={() => recalcular.mutate()}
+                  recalculando={recalcular.isPending}
                 />
               )}
 

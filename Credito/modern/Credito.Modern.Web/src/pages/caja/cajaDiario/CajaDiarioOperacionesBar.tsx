@@ -4,6 +4,7 @@ import {
   FilePdfOutlined,
   EnvironmentOutlined,
   UnorderedListOutlined,
+  ReloadOutlined,
   TeamOutlined,
 } from '@ant-design/icons'
 import { openCobroDiarioPdfInTab } from '../../../api/creditoPlanes'
@@ -13,15 +14,19 @@ import { MovimientosCajaModal } from './MovimientosCajaModal'
 import { RutaCobranzaDrawer } from './RutaCobranzaDrawer'
 import { useNavigate } from 'react-router-dom'
 
-/** PDF, ruta QR, movimientos y Cobro campo. */
+/** PDF, ruta QR, movimientos, recalcular y Cobro campo. */
 export function CajaDiarioOperacionesBar({
   ctx,
   usuarioId,
   variant = 'stack',
+  onRecalcular,
+  recalculando,
 }: {
   ctx: CajaSession
   usuarioId: number
   variant?: 'stack' | 'inline'
+  onRecalcular?: () => void
+  recalculando?: boolean
 }) {
   const navigate = useNavigate()
   const [movOpen, setMovOpen] = useState(false)
@@ -55,26 +60,9 @@ export function CajaDiarioOperacionesBar({
             Acciones rápidas
           </span>
           <span className="caja-diario-ops-heading__hint">
-            Reportes, ruta y cobro en campo.
+            PDF, ruta, movimientos y cobro en campo.
           </span>
         </div>
-        <Button
-          block={variant === 'stack'}
-          className="caja-diario-ops-report"
-          icon={<FilePdfOutlined />}
-          loading={pdfLoading}
-          onClick={() => void cobrosDiaPdf()}
-        >
-          Cobros del día (PDF)
-        </Button>
-        <Button
-          block={variant === 'stack'}
-          className="caja-diario-ops-ruta"
-          icon={<EnvironmentOutlined />}
-          onClick={() => setRutaOpen(true)}
-        >
-          Ruta del cobrador
-        </Button>
         <Button
           block={variant === 'stack'}
           type="primary"
@@ -91,6 +79,34 @@ export function CajaDiarioOperacionesBar({
         >
           Movimientos
         </Button>
+        <Button
+          block={variant === 'stack'}
+          className="caja-diario-ops-ruta"
+          icon={<EnvironmentOutlined />}
+          onClick={() => setRutaOpen(true)}
+        >
+          Ruta del cobrador
+        </Button>
+        <Button
+          block={variant === 'stack'}
+          className="caja-diario-ops-report"
+          icon={<FilePdfOutlined />}
+          loading={pdfLoading}
+          onClick={() => void cobrosDiaPdf()}
+        >
+          Cobros del día (PDF)
+        </Button>
+        {onRecalcular ? (
+          <Button
+            block={variant === 'stack'}
+            icon={<ReloadOutlined />}
+            loading={recalculando}
+            disabled={ctx.indCierre}
+            onClick={onRecalcular}
+          >
+            Recalcular saldos
+          </Button>
+        ) : null}
       </nav>
 
       <MovimientosCajaModal
