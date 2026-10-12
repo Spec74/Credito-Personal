@@ -82,15 +82,16 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 | `POST pagar-cuota-importe-libre` | Operador | Diario cobranzas (pago libre) |
 | `POST /api/v1/clientes/{id}/ubicacion` | CreditoUser | Cobro móvil si el cliente **aún no** tiene GPS (SPA); API siempre puede actualizar |
 
-### Cobro campo — Cartera → Enviados
+### Cobro campo — Cartera → Enviados (coordinado con Diario)
 
 | Concepto | Comportamiento |
 |----------|----------------|
 | Cartera | Tipar monto/método + **Cobrar** (uno) o **Registrar** (varios tipados) |
 | Registrar | `POST cobrar-planilla-bloque` con `CompletarImpagos: false` → Enviados + `MovimientoCajaId` |
+| Diario → Enviados | Pago en Cobranzas marca el crédito en Enviados (`origen: diario`) y limpia tipado/offline |
+| Caches | Tras cobro (Diario o Cobro) se invalidan sesión, movimientos, cartera gestor |
 | Tickets | Solo en **Enviados** (Imprimir bajo demanda) |
-| Offline | Tipados en Cartera; sync al recuperar red; errores visibles por crédito |
-| Day-lock | Suavizado: se puede reabrir Cobro el mismo día |
+| Offline | Tipados en Cartera; sync omite ya enviados / sin deuda; errores por crédito |
 | Completar impagos | Solo Caja Diario → Cobranzas |
 
 ### Cobro campo — GPS (producto)

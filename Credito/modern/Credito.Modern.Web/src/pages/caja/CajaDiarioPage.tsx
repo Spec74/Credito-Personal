@@ -21,6 +21,7 @@ import {
 } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatFechaHora } from '../../utils/formatFecha'
+import { invalidateCajaOperacion } from '../../utils/cajaOperacionSync'
 import { CajaDiarioOperacionesBar } from './cajaDiario/CajaDiarioOperacionesBar'
 import { ArqueoTab } from './cajaDiario/ArqueoTab'
 import { CobranzasTab } from './cajaDiario/CobranzasTab'
@@ -150,13 +151,10 @@ export function CajaDiarioPage() {
   })
 
   const invalidateCaja = () => {
-    void queryClient.invalidateQueries({ queryKey: ['caja-movimientos'] })
-    void queryClient.invalidateQueries({ queryKey: ['caja-saldo'] })
-    void queryClient.invalidateQueries({ queryKey: ['caja-resumen-ingreso'] })
-    void queryClient.invalidateQueries({ queryKey: ['caja-cxc'] })
-    void queryClient.invalidateQueries({ queryKey: ['caja-cxc-inline'] })
-    void queryClient.invalidateQueries({ queryKey: ['caja-desembolsos'] })
-    void queryClient.invalidateQueries({ queryKey: ['caja-impagos-validacion'] })
+    invalidateCajaOperacion(queryClient, {
+      oficinaId,
+      cajaDiarioId: ctx?.cajaDiarioId ?? 0,
+    })
   }
 
   const refreshCaja = () => {

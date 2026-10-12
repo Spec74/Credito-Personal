@@ -53,6 +53,10 @@ import {
   type CobroEnviadoItem,
 } from '../../utils/cobroCola'
 import {
+  invalidateCajaOperacion,
+  removeCreditosFromPendingProcess,
+} from '../../utils/cajaOperacionSync'
+import {
   clearCobroBloqueDraft,
   draftHasMontos,
   fechaOperacionLocal,
@@ -353,6 +357,24 @@ export function CobroBloquePage() {
     [cajaDiarioId, oficinaId, usuarioId],
   )
 
+  // Diario puede haber marcado Enviados en otro módulo: rehidratar al volver.
+  useEffect(() => {
+    const reload = () => {
+      if (usuarioId < 1 || cajaDiarioId < 1) return
+      setCola(loadCobroCola({ usuarioId, oficinaId, cajaDiarioId }))
+      void queryClient.invalidateQueries({ queryKey: ['caja-creditos-gestor-des'] })
+    }
+    const onVis = () => {
+      if (document.visibilityState === 'visible') reload()
+    }
+    window.addEventListener('focus', reload)
+    document.addEventListener('visibilitychange', onVis)
+    return () => {
+      window.removeEventListener('focus', reload)
+      document.removeEventListener('visibilitychange', onVis)
+    }
+  }, [usuarioId, oficinaId, cajaDiarioId, queryClient])
+
   const carteraQuery = useQuery({
     queryKey: carteraQueryKey,
     queryFn: async () => {
@@ -380,7 +402,7 @@ export function CobroBloquePage() {
       }
     },
     enabled: !!ctx && !ctx.indCierre && usuarioId > 0 && oficinaId > 0,
-    staleTime: 60_000,
+    staleTime: 0,
   })
 
   // Contactos: refuerzo en segundo plano (no bloquea la primera pintura de filas).
@@ -718,7 +740,7 @@ export function CobroBloquePage() {
     })
   }
 
-  /** Registra enviados en cola local, limpia tipados y refresca cartera. Sin navegar ni day-lock. */
+  /** Registra enviados locales, limpia tipados y sincroniza caches Diario+Cobro. */
   const aplicarEnviados = (
     planilla: PlanillaItem[],
     origen: CobroEnviadoItem['origen'],
@@ -747,7 +769,7 @@ export function CobroBloquePage() {
       return next
     })
     quitarDePending(ids)
-    void queryClient.invalidateQueries({ queryKey: carteraQueryKey })
+    invalidateCajaOperacion(queryClient, { oficinaId, cajaDiarioId })
   }
 
   const marcarErrorCola = (planilla: PlanillaItem[], mensaje: string) => {
@@ -905,20 +927,51 @@ export function CobroBloquePage() {
     const pending = loadCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
     if (!pending) return
 
-    const colaHoy = loadCobroCola({ usuarioId, oficinaId, cajaDiarioId })
-    const planilla = pending.planilla.filter(
-      (p) => p.montoPagar > 0 && !isCreditoEnviadoHoy(colaHoy, p.creditoId),
-    )
-    if (planilla.length === 0) {
-      clearCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
-      setPendingSync(false)
-      return
-    }
-
     syncingRef.current = true
     setSyncingQueue(true)
     void (async () => {
       try {
+        // Refetch cartera: omitir ya enviados locales o sin deuda (cobrados en Diario).
+        let deudaByCredito = new Map<number, number>()
+        try {
+          const rows = await fetchCreditosGestorDesembolsados({
+            oficinaId: pending.oficinaId,
+            usuarioId,
+          })
+          deudaByCredito = new Map(rows.map((r) => [r.creditoId, r.deudaPendiente ?? 0]))
+        } catch {
+          /* si falla, seguimos con filtro local */
+        }
+        const colaHoy = loadCobroCola({ usuarioId, oficinaId, cajaDiarioId })
+        const planilla = pending.planilla.filter((p) => {
+          if (p.montoPagar <= 0) return false
+          if (isCreditoEnviadoHoy(colaHoy, p.creditoId)) return false
+          if (deudaByCredito.size > 0) {
+            const deuda = deudaByCredito.get(p.creditoId)
+            if (deuda == null || deuda <= 0) return false
+          }
+          return true
+        })
+        const omitidos = pending.planilla.length - planilla.length
+        if (planilla.length === 0) {
+          clearCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
+          setPendingSync(false)
+          if (omitidos > 0) {
+            message.info(
+              `${omitidos} cobro(s) omitido(s): ya registrados o sin deuda pendiente.`,
+            )
+          }
+          return
+        }
+        if (omitidos > 0) {
+          removeCreditosFromPendingProcess(
+            { usuarioId, cajaDiarioId },
+            pending.planilla
+              .filter((p) => !planilla.some((x) => x.creditoId === p.creditoId))
+              .map((p) => p.creditoId),
+          )
+        }
+
         const r = await cobrarPlanillaBloque({
           oficinaId: pending.oficinaId,
           cajaDiarioId: pending.cajaDiarioId,
@@ -940,7 +993,11 @@ export function CobroBloquePage() {
           'sync',
           ticketMap,
         )
-        message.success(r.mensaje || 'Cobros sincronizados al recuperar red.')
+        message.success(
+          omitidos > 0
+            ? `${r.mensaje || 'Sincronizado'}. ${omitidos} omitido(s) (ya cobrados).`
+            : r.mensaje || 'Cobros sincronizados al recuperar red.',
+        )
       } catch (e) {
         if (isLikelyNetworkError(e)) {
           message.warning('Aún sin red estable. La cola se reintentará al conectar.')
@@ -953,7 +1010,7 @@ export function CobroBloquePage() {
                 : 'No se pudo sincronizar la cola.'
           // Conservar tipados en Cartera y mostrar error por crédito.
           marcarErrorCola(
-            planilla.map((p) => ({
+            pending.planilla.map((p) => ({
               creditoId: p.creditoId,
               montoPagar: p.montoPagar,
               tipoPagoId: p.tipoPagoId,
@@ -1245,7 +1302,13 @@ export function CobroBloquePage() {
       title: 'Origen',
       dataIndex: 'origen',
       render: (v: CobroEnviadoItem['origen']) =>
-        v === 'cobrar_ya' ? 'Directo' : v === 'sync' ? 'Sincronizado' : 'Lote',
+        v === 'cobrar_ya'
+          ? 'Cobro'
+          : v === 'sync'
+            ? 'Sincronizado'
+            : v === 'diario'
+              ? 'Diario'
+              : 'Lote',
     },
     {
       title: 'Hora',
@@ -1595,7 +1658,14 @@ export function CobroBloquePage() {
                           <strong title={it.personaNombre}>{it.personaNombre}</strong>
                           <span className="cobro-bloque-enviados-list__meta">
                             #{it.creditoId} ·{' '}
-                            {it.origen === 'sync' ? 'Sync' : 'Lote'} ·{' '}
+                            {it.origen === 'sync'
+                              ? 'Sync'
+                              : it.origen === 'diario'
+                                ? 'Diario'
+                                : it.origen === 'cobrar_ya'
+                                  ? 'Cobro'
+                                  : 'Lote'}{' '}
+                            ·{' '}
                             {new Date(it.enviadoAt).toLocaleTimeString('es-PE', {
                               hour: '2-digit',
                               minute: '2-digit',

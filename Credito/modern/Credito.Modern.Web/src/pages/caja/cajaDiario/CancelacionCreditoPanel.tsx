@@ -10,6 +10,8 @@ import { CajaCuotasTable } from '../../../components/caja/CajaCuotasTable'
 import { CajaSection } from '../../../components/caja/CajaSection'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import { formatMoney } from '../../../utils/formatMoney'
+import { useAuth } from '../../../auth/useAuth'
+import { syncDiarioPagoHaciaCobro } from '../../../utils/cajaOperacionSync'
 import { assertSinCxcPendiente } from './cajaPagoHelpers'
 import { cajaToastError, cajaToastSuccess } from './cajaFeedback'
 import type { CajaSession } from './types'
@@ -20,32 +22,21 @@ export function CancelacionCreditoPanel({
   ctx,
   creditoId,
   onChanged,
+  clienteLabel,
 }: {
   ctx: CajaSession
   creditoId: number | null
   onChanged: () => void
+  clienteLabel?: string
 }) {
+  const { session } = useAuth()
+  const usuarioId = session?.usuarioId ?? 0
   const [expanded, setExpanded] = useState(false)
 
   const query = useQuery({
     queryKey: ['cuotas-cancelacion', creditoId],
     queryFn: () => fetchCuotasPendientes(creditoId!, true),
     enabled: expanded && creditoId != null && creditoId > 0,
-  })
-
-  const cancelacion = useMutation({
-    mutationFn: () =>
-      pagarCuotasCancelacion({
-        oficinaId: ctx.oficinaId,
-        cajaDiarioId: ctx.cajaDiarioId,
-        creditoId: creditoId!,
-      }),
-    onSuccess: () => {
-      cajaToastSuccess('Cancelación de crédito registrada', 'caja-cancel')
-      setExpanded(false)
-      onChanged()
-    },
-    onError: (e) => cajaToastError(errMsg(e)),
   })
 
   const rows = useMemo(() => query.data ?? [], [query.data])
@@ -57,6 +48,33 @@ export function CancelacionCreditoPanel({
     }),
     [rows],
   )
+
+  const cancelacion = useMutation({
+    mutationFn: () =>
+      pagarCuotasCancelacion({
+        oficinaId: ctx.oficinaId,
+        cajaDiarioId: ctx.cajaDiarioId,
+        creditoId: creditoId!,
+      }),
+    onSuccess: (r) => {
+      cajaToastSuccess('Cancelación de crédito registrada', 'caja-cancel')
+      if (creditoId && usuarioId > 0) {
+        syncDiarioPagoHaciaCobro({
+          usuarioId,
+          oficinaId: ctx.oficinaId,
+          cajaDiarioId: ctx.cajaDiarioId,
+          creditoId,
+          personaNombre: clienteLabel,
+          montoPagar: totales.pagoCuota,
+          tipoPagoId: 1,
+          movimientoCajaId: r.resultId ?? null,
+        })
+      }
+      setExpanded(false)
+      onChanged()
+    },
+    onError: (e) => cajaToastError(errMsg(e)),
+  })
 
   if (!creditoId) {
     return null

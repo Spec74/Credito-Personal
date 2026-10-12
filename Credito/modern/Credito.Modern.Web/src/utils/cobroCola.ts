@@ -14,7 +14,7 @@ export type CobroEnviadoItem = {
   tipoPagoId: number
   enviadoAt: string
   movimientoCajaId?: number | null
-  origen: 'cobrar_ya' | 'lote' | 'sync'
+  origen: 'cobrar_ya' | 'lote' | 'sync' | 'diario'
 }
 
 export type CobroColaDia = {

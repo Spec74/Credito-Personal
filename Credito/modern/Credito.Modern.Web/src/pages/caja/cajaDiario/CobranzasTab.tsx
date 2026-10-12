@@ -78,6 +78,8 @@ import { CxcInlinePanel } from './CxcInlinePanel'
 import { CreditosPendientesModal } from './CreditosPendientesModal'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
+import { useAuth } from '../../../auth/useAuth'
+import { syncDiarioPagoHaciaCobro } from '../../../utils/cajaOperacionSync'
 import { assertSinCxcPendiente } from './cajaPagoHelpers'
 
 export function CobranzasTab({
@@ -89,6 +91,8 @@ export function CobranzasTab({
   creditoIdInicial: string | null
   onChanged: () => void
 }) {
+  const { session } = useAuth()
+  const usuarioId = session?.usuarioId ?? 0
   const [clienteLabel, setClienteLabel] = useState('')
   const [personaId, setPersonaId] = useState(0)
   const [creditosPersona, setCreditosPersona] = useState<CreditoPorPersonaRow[]>(
@@ -334,6 +338,18 @@ export function CobranzasTab({
       }),
     onSuccess: (r) => {
       cajaToastSuccess(`Pago registrado (${r.resultId ?? 'OK'})`)
+      if (creditoId && usuarioId > 0) {
+        syncDiarioPagoHaciaCobro({
+          usuarioId,
+          oficinaId: ctx.oficinaId,
+          cajaDiarioId: ctx.cajaDiarioId,
+          creditoId,
+          personaNombre: clienteLabel || creditoSel?.descripcion,
+          montoPagar: importeRecibido ?? 0,
+          tipoPagoId,
+          movimientoCajaId: r.resultId ?? null,
+        })
+      }
       onChanged()
       void moraResumenQuery.refetch()
       if (creditoId) {
@@ -412,6 +428,24 @@ export function CobranzasTab({
           ? r.mensaje
           : 'Pago libre registrado'
       cajaToastSuccess(msg)
+      const movId =
+        'movimientoCajaId' in r
+          ? r.movimientoCajaId
+          : 'resultId' in r
+            ? r.resultId
+            : null
+      if (creditoId && usuarioId > 0) {
+        syncDiarioPagoHaciaCobro({
+          usuarioId,
+          oficinaId: ctx.oficinaId,
+          cajaDiarioId: ctx.cajaDiarioId,
+          creditoId,
+          personaNombre: clienteLabel || creditoSel?.descripcion,
+          montoPagar: pagoLibre ?? 0,
+          tipoPagoId: tipoPagoLibreId,
+          movimientoCajaId: movId ?? null,
+        })
+      }
       setPagoLibre(null)
       onChanged()
       void moraResumenQuery.refetch()
@@ -1020,6 +1054,7 @@ export function CobranzasTab({
           <CancelacionCreditoPanel
             ctx={ctx}
             creditoId={creditoId}
+            clienteLabel={clienteLabel}
             onChanged={onChanged}
           />
         </div>
