@@ -505,6 +505,25 @@
   margin-top: 0.35rem;
 }
 
+.cobro-bloque-card__cola-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 0.35rem;
+}
+
+.cobro-bloque-card__cola-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  color: #64748b;
+}
+
+.cobro-bloque-card__quitar.ant-btn {
+  min-height: 44px;
+  font-weight: 650;
+}
+
 .cobro-bloque-card__head {
   display: flex;
   justify-content: space-between;

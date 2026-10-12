@@ -593,8 +593,8 @@ export function CobranzasTab({
         message={isMobile ? 'Cobro en campo' : 'Cobranza en campo → módulo Cobro'}
         description={
           isMobile
-            ? 'Planilla, GPS y cola Por enviar / Enviados.'
-            : 'Para tipar la planilla del gestor (GPS, offline, cola Por enviar / Enviados) use Cobro. Aquí: consulta, pago puntual, GAD y Completar impagos al cierre.'
+            ? 'Planilla, GPS y cola Enviar → Enviados.'
+            : 'Para tipar la planilla (Cartera → Enviar → lote → Enviados) use Cobro. Aquí: consulta, pago puntual, GAD y Completar impagos al cierre.'
         }
         action={
           <Link to="/caja/cobro">

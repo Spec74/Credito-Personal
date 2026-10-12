@@ -1,10 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  addCobroPendiente,
   clearCobroColaDia,
   clearCobroColaError,
   isCreditoEnviadoHoy,
+  isCreditoPendiente,
   loadCobroCola,
   markCobroEnviados,
+  removeCobroPendiente,
   setCobroColaError,
 } from './cobroCola'
 import { fechaOperacionLocal } from './cobroBloqueDraft'
@@ -36,7 +39,18 @@ describe('cobroCola', () => {
   })
   afterEach(() => vi.unstubAllGlobals())
 
-  it('persiste enviados del día y limpia error al marcar enviado', () => {
+  it('membresía pendiente sobrevive sin depender del monto', () => {
+    const cola = addCobroPendiente(CTX, 55)
+    expect(isCreditoPendiente(cola, 55)).toBe(true)
+    expect(loadCobroCola(CTX).pendientes).toEqual([55])
+    const still = removeCobroPendiente(CTX, 99)
+    expect(still.pendientes).toEqual([55])
+    const gone = removeCobroPendiente(CTX, 55)
+    expect(gone.pendientes).toEqual([])
+  })
+
+  it('persiste enviados del día, limpia pendiente y error', () => {
+    addCobroPendiente(CTX, 100)
     setCobroColaError(CTX, 100, 'falló')
     const cola = markCobroEnviados(CTX, [
       {
@@ -44,20 +58,20 @@ describe('cobroCola', () => {
         personaNombre: 'Ana',
         montoPagar: 25,
         tipoPagoId: 1,
-        origen: 'cobrar_ya',
+        origen: 'lote',
       },
     ])
     expect(cola.fechaOperacion).toBe(fechaOperacionLocal())
     expect(cola.enviados).toHaveLength(1)
-    expect(cola.enviados[0]?.creditoId).toBe(100)
+    expect(cola.pendientes).toEqual([])
     expect(cola.errores['100']).toBeUndefined()
     expect(isCreditoEnviadoHoy(cola, 100)).toBe(true)
-    expect(loadCobroCola(CTX).enviados).toHaveLength(1)
   })
 
   it('carga vacía si caja/usuario inválidos', () => {
     const cola = loadCobroCola({ usuarioId: 0, oficinaId: 1, cajaDiarioId: 0 })
     expect(cola.enviados).toEqual([])
+    expect(cola.pendientes).toEqual([])
   })
 
   it('clearCobroColaError quita solo ese crédito', () => {

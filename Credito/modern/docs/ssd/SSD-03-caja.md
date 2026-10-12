@@ -86,10 +86,10 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 
 | Concepto | Comportamiento |
 |----------|----------------|
-| Tipar | Solo borrador local (Por enviar). **No** registra en BD |
-| Cobrar ya | Online: `pagar-cuota-importe-libre` + ticket → Enviados |
-| Enviar cola | Lote con montos &gt; 0; `CompletarImpagos: false` (nunca cierra impagos desde Cobro) |
-| Offline | Tipados en Por enviar; sync al recuperar red; errores visibles por crédito |
+| Cartera | Tipar monto/método + **Añadir a Enviar**. **No** registra en BD. Sin dock de envío (máxima visibilidad) |
+| Enviar | Cola de revisión: editar, quitar. Único dock **Enviar lote** |
+| Enviar lote | `POST cobrar-planilla-bloque` con `CompletarImpagos: false` → pestaña Enviados |
+| Offline | Tipados en Enviar; sync al recuperar red; errores visibles por crédito |
 | Day-lock | Suavizado: se puede reabrir Cobro el mismo día |
 | Completar impagos | Solo Caja Diario → Cobranzas |
 

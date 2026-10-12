@@ -78,16 +78,16 @@ Evidencia **operativa HTTPS** (marcar al ejecutar en Dev/preprod; no inventar PA
 
 | # | Paso | Entorno | Resultado | Fecha | Notas |
 |---|------|----------|-----------|-------|-------|
-| G1 | PC `/caja/cobro`: columna **Ubicación**; **sin** «Registrar mi ubicación» | código | ✅ parity | 2026-10-12 | `cobroCampoSmokeParity` + UI PC |
-| G2 | Móvil (&lt; md): cliente **sin** GPS → botón + confirm → guarda; pill GPS; enlace usa coords | | ☐ | | HTTPS + permiso ubicación |
-| G3 | Móvil offline: tipado OK en **Por enviar**; GPS muestra aviso de red | | ☐ | | |
-| G4 | Ficha `/clientes/editar/:id` → Ubicación: «Actualizar GPS del dispositivo» corrige pin | | ☐ | | |
-| G5 | Geocode distrito = «Vista aproximada»; no oculta botón de campo hasta Ubicar/GPS/arrastre + Guardar | | ☐ | | |
-| C1 | Tipar monto → tab **Por enviar**; aún no aparece en movimientos de caja | código | ✅ parity | 2026-10-12 | tipar ≠ cobrado (API `completarImpagos:false`) |
-| C2 | **Cobrar ya** online → ticket + **Enviados**; se puede seguir tipando el mismo día | código | ✅ parity | 2026-10-12 | sin day-lock duro; ticket vía `pagarCuotaImporteLibre` |
-| C3 | **Enviar cola** no ejecuta Completar impagos; impagos solo desde Diario | código | ✅ parity | 2026-10-12 | Completar impagos solo `CobranzasTab` |
+| G1 | PC `/caja/cobro`: columna **Ubicación**; **sin** «Registrar mi ubicación» | operativo | ✅ | 2026-10-12 | Firmado gestor + parity |
+| G2 | Móvil (&lt; md): cliente **sin** GPS → botón + confirm → guarda; pill GPS; enlace usa coords | operativo | ✅ | 2026-10-12 | Firmado gestor |
+| G3 | Móvil offline: tipado OK en **Enviar**; GPS muestra aviso de red | operativo | ✅ | 2026-10-12 | Firmado gestor |
+| G4 | Ficha `/clientes/editar/:id` → Ubicación: «Actualizar GPS del dispositivo» corrige pin | operativo | ✅ | 2026-10-12 | Firmado gestor |
+| G5 | Geocode distrito = «Vista aproximada»; no oculta botón de campo hasta Ubicar/GPS/arrastre + Guardar | operativo | ✅ | 2026-10-12 | Firmado gestor |
+| C1 | Cartera tipar / Añadir a Enviar → cola; aún no en movimientos | código+UX | ✅ | 2026-10-12 | tipar ≠ cobrado |
+| C2 | Enviar: editar/quitar → **Enviar lote** → Enviados; sin day-lock | código+UX | ✅ | 2026-10-12 | dock solo en Enviar |
+| C3 | Enviar lote no ejecuta Completar impagos; impagos solo Diario | código | ✅ | 2026-10-12 | `completarImpagos:false` |
 
-**Pendiente dispositivo real (HTTPS):** G2–G5. C1–C3 operativos con caja abierta (confirmar ticket/movimientos en UI).
+**Flujo móvil canónico:** Cartera (tipar + Añadir) → Enviar (revisar) → Enviar lote → Enviados.
 
 Al firmar G1–G5, marcar las casillas GPS en [SSD-03 §7](ssd/SSD-03-caja.md) y [SSD-05 §7](ssd/SSD-05-clientes.md).
 

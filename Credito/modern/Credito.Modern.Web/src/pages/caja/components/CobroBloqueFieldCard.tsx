@@ -47,8 +47,12 @@ type Props = {
   /** Cobro ya persistido hoy en este dispositivo. */
   enviado?: boolean
   errorMsg?: string | null
-  onCobrarYa?: () => void
-  cobrarYaLoading?: boolean
+  /** Añade el tipado a la cola «Enviar» (no cobra en servidor). */
+  onAnadirACola?: () => void
+  /** Quitar de la cola (solo en tab Enviar). */
+  onQuitarDeCola?: () => void
+  /** Estamos en la cola de revisión. */
+  enColaRevision?: boolean
 }
 
 function digitsPhone(raw: string | null | undefined): string {
@@ -80,8 +84,9 @@ export function CobroBloqueFieldCard({
   cuotasSlot,
   enviado = false,
   errorMsg = null,
-  onCobrarYa,
-  cobrarYaLoading = false,
+  onAnadirACola,
+  onQuitarDeCola,
+  enColaRevision = false,
 }: Props) {
   const [gpsLoading, setGpsLoading] = useState(false)
   const enMora = row.diasAtrazo > 0
@@ -177,7 +182,7 @@ export function CobroBloqueFieldCard({
               </span>
             ) : conCobro ? (
               <span className="cobro-bloque-card__badge cobro-bloque-card__badge--tipado">
-                Por enviar
+                En cola
               </span>
             ) : null}
           </div>
@@ -343,17 +348,36 @@ export function CobroBloqueFieldCard({
           </p>
         ) : null}
 
-        {!enviado && onCobrarYa ? (
+        {!enviado && enColaRevision ? (
+          <div className="cobro-bloque-card__cola-actions">
+            <Button
+              danger
+              block
+              size="large"
+              className="cobro-bloque-card__quitar"
+              disabled={edit.montoPagar <= 0}
+              onClick={onQuitarDeCola}
+            >
+              Quitar de Enviar
+            </Button>
+            <p className="cobro-bloque-card__cola-hint">
+              {edit.montoPagar <= 0
+                ? 'Digite el nuevo monto. La fila no se quita al borrar: use Quitar de Enviar para sacarla.'
+                : 'Puede editar monto o método. El cobro se registra solo al pulsar Enviar lote.'}
+            </p>
+          </div>
+        ) : null}
+
+        {!enviado && !enColaRevision && onAnadirACola ? (
           <Button
             type="primary"
             block
             size="large"
             className="cobro-bloque-card__cobrar-ya"
             disabled={edit.montoPagar <= 0}
-            loading={cobrarYaLoading}
-            onClick={onCobrarYa}
+            onClick={onAnadirACola}
           >
-            {isBrowserOnline() ? 'Cobrar ya' : 'Guardar en Por enviar'}
+            Añadir a Enviar
           </Button>
         ) : null}
       </div>

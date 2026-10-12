@@ -1,10 +1,10 @@
 /**
  * Cola del día para Cobro campo (/caja/cobro).
  *
- * - Tipar montos ≠ cobrado (viven en borrador / edits).
- * - «Por enviar» se deriva de tipados con monto &gt; 0.
+ * - «Enviar» = membresía explícita (`pendientes`), no el monto tipado.
+ *   Así el gestor puede borrar/reescribir el monto sin que desaparezca la fila.
+ * - Tipar ≠ cobrado; solo Enviar lote registra en BD.
  * - «Enviados» se persiste local tras cobro exitoso (hoy + caja).
- * - Errores de sync quedan visibles sin borrar el tipado.
  */
 
 import { fechaOperacionLocal } from './cobroBloqueDraft'
@@ -25,6 +25,8 @@ export type CobroColaDia = {
   oficinaId: number
   cajaDiarioId: number
   fechaOperacion: string
+  /** Créditos en cola Enviar (membresía; independiente del monto tipado). */
+  pendientes: number[]
   enviados: CobroEnviadoItem[]
   /** Mensaje de error por creditoId (último intento fallido). */
   errores: Record<string, string>
@@ -60,6 +62,14 @@ function purgeOtherDays(keepKey: string): void {
   }
 }
 
+function normalizePendientes(raw: unknown): number[] {
+  if (!Array.isArray(raw)) return []
+  const ids = raw
+    .map((x) => Number(x))
+    .filter((id) => Number.isFinite(id) && id > 0)
+  return [...new Set(ids)]
+}
+
 function emptyCola(args: {
   usuarioId: number
   oficinaId: number
@@ -72,6 +82,7 @@ function emptyCola(args: {
     oficinaId: args.oficinaId,
     cajaDiarioId: args.cajaDiarioId,
     fechaOperacion: args.fechaOperacion,
+    pendientes: [],
     enviados: [],
     errores: {},
   }
@@ -92,7 +103,9 @@ export function loadCobroCola(args: {
   const key = storageKey(args.usuarioId, args.cajaDiarioId, fecha)
   try {
     purgeOtherDays(key)
-    const data = parseJson<CobroColaDia>(localStorage.getItem(key))
+    const data = parseJson<CobroColaDia & { pendientes?: unknown }>(
+      localStorage.getItem(key),
+    )
     if (
       !data ||
       data.version !== 1 ||
@@ -106,6 +119,7 @@ export function loadCobroCola(args: {
     return {
       ...data,
       oficinaId: args.oficinaId || data.oficinaId,
+      pendientes: normalizePendientes(data.pendientes),
       errores: data.errores && typeof data.errores === 'object' ? data.errores : {},
     }
   } catch {
@@ -117,10 +131,66 @@ export function saveCobroCola(cola: CobroColaDia): void {
   try {
     const key = storageKey(cola.usuarioId, cola.cajaDiarioId, cola.fechaOperacion)
     purgeOtherDays(key)
-    localStorage.setItem(key, JSON.stringify(cola))
+    localStorage.setItem(
+      key,
+      JSON.stringify({
+        ...cola,
+        pendientes: normalizePendientes(cola.pendientes),
+      }),
+    )
   } catch {
     /* quota */
   }
+}
+
+export function addCobroPendiente(
+  args: {
+    usuarioId: number
+    oficinaId: number
+    cajaDiarioId: number
+  },
+  creditoId: number,
+): CobroColaDia {
+  const cola = loadCobroCola(args)
+  if (creditoId < 1 || cola.pendientes.includes(creditoId)) {
+    return cola
+  }
+  const next: CobroColaDia = {
+    ...cola,
+    oficinaId: args.oficinaId || cola.oficinaId,
+    pendientes: [...cola.pendientes, creditoId],
+  }
+  saveCobroCola(next)
+  return next
+}
+
+export function removeCobroPendiente(
+  args: {
+    usuarioId: number
+    oficinaId: number
+    cajaDiarioId: number
+  },
+  creditoId: number,
+): CobroColaDia {
+  const cola = loadCobroCola(args)
+  if (!cola.pendientes.includes(creditoId)) {
+    const nextErrores = { ...cola.errores }
+    delete nextErrores[String(creditoId)]
+    if (!(String(creditoId) in cola.errores)) return cola
+    const cleaned: CobroColaDia = { ...cola, errores: nextErrores }
+    saveCobroCola(cleaned)
+    return cleaned
+  }
+  const nextErrores = { ...cola.errores }
+  delete nextErrores[String(creditoId)]
+  const next: CobroColaDia = {
+    ...cola,
+    oficinaId: args.oficinaId || cola.oficinaId,
+    pendientes: cola.pendientes.filter((id) => id !== creditoId),
+    errores: nextErrores,
+  }
+  saveCobroCola(next)
+  return next
 }
 
 export function markCobroEnviados(
@@ -140,6 +210,7 @@ export function markCobroEnviados(
   const next: CobroColaDia = {
     ...cola,
     oficinaId: args.oficinaId || cola.oficinaId,
+    pendientes: cola.pendientes.filter((id) => !sentIds.has(id)),
     enviados: [
       ...items.map((i) => ({ ...i, enviadoAt: now })),
       ...keep,
@@ -203,4 +274,11 @@ export function isCreditoEnviadoHoy(
   creditoId: number,
 ): boolean {
   return cola.enviados.some((e) => e.creditoId === creditoId)
+}
+
+export function isCreditoPendiente(
+  cola: CobroColaDia,
+  creditoId: number,
+): boolean {
+  return cola.pendientes.includes(creditoId)
 }
