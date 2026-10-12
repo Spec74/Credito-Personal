@@ -156,5 +156,9 @@ public sealed record PrendarioWhatsAppEstadoDto(
     int DailyHourLocal,
     DateTimeOffset ProximaCorrida,
     bool CorreAlArrancar,
-    PrendarioWhatsAppPasadaDto? UltimaPasada);
+    PrendarioWhatsAppPasadaDto? UltimaPasada,
+    /// <summary>True si hay VerifyToken (Meta puede verificar el webhook GET).</summary>
+    bool WebhookVerifyTokenConfigurado,
+    /// <summary>True si hay AppSecret (firma POST). Obligatorio fuera de Development.</summary>
+    bool WebhookAppSecretConfigurado);
 

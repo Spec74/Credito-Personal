@@ -50,6 +50,32 @@ Los scripts sueltos (`2026-09-23-prod-bak-deltas-minimos`, `2026-06-credito-mora
 
 Smoke mínimo: login → menú → tablero `/inicio` → caja diario → un informe PDF → (ACL) `/informes/morosos`.
 
+## WhatsApp Cloud API (Meta → Azure)
+
+Callback URL (App Service):
+
+`https://crediconfiable-api-g3h7fja3dydsbbb7.centralus-01.azurewebsites.net/api/v1/integraciones/whatsapp/webhook`
+
+| App Setting | Uso |
+|-------------|-----|
+| `WhatsApp__VerifyToken` | Mismo string que «Token de verificación» en Meta |
+| `WhatsApp__AppSecret` | App Secret (firma POST; obligatorio en prod) |
+| `WhatsApp__Token` | System User token permanente |
+| `WhatsApp__PhoneNumberId` | ID del número de producción |
+| `WhatsApp__Enabled` | `true` solo cuando quieras el job 08:00 Lima |
+| `WhatsApp__TemplateVencimientoPrendario` | `aviso_vencimiento_prendario` (aprobada) |
+| `WhatsApp__TemplateLang` | idioma aprobado (`es`) |
+| `WhatsApp__RunOnStartupIfPending` | `false` en prod |
+
+Orden Meta:
+
+1. Deploy API con webhook.
+2. Setear env vars (mínimo VerifyToken + AppSecret).
+3. Smoke: `GET .../webhook?hub.mode=subscribe&hub.verify_token=<token>&hub.challenge=12345` → body `12345`.
+4. App Dashboard → Verificar y guardar → suscribir `messages`.
+5. Probar envío manual en SPA prendario (no hace falta `Enabled=true`).
+6. Activar `WhatsApp__Enabled=true` con **1 instancia** App Service (pasada en memoria).
+
 ## Build
 
 ```powershell

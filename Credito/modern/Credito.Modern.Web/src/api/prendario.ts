@@ -150,6 +150,9 @@ export interface PrendarioWhatsAppEstado {
   proximaCorrida: string
   correAlArrancar: boolean
   ultimaPasada: PrendarioWhatsAppPasada | null
+  /** Presente desde API con webhook Meta; opcional en builds viejos. */
+  webhookVerifyTokenConfigurado?: boolean
+  webhookAppSecretConfigurado?: boolean
 }
 
 export function fetchPrendarioAvisosEstado(): Promise<PrendarioWhatsAppEstado> {

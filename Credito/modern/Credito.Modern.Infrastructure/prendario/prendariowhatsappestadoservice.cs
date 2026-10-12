@@ -23,6 +23,8 @@ public sealed class PrendarioWhatsAppEstadoService(
             hora,
             proxima,
             cfg.RunOnStartupIfPending,
-            pasadas.Ultima);
+            pasadas.Ultima,
+            !string.IsNullOrWhiteSpace(cfg.VerifyToken),
+            !string.IsNullOrWhiteSpace(cfg.AppSecret));
     }
 }

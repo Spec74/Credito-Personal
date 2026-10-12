@@ -70,7 +70,22 @@ function AvisosCanalAlert({
         showIcon
         style={{ marginTop: 12 }}
         message="WhatsApp Business no está configurado"
-        description="Falta el token o el número de envío en el servidor. El aviso automático y el envío de la plantilla quedan en pausa hasta completar user-secrets."
+        description="Falta el token o el Phone Number ID en el servidor (WhatsApp__Token / WhatsApp__PhoneNumberId)."
+      />
+    )
+  }
+
+  if (
+    estado.webhookVerifyTokenConfigurado === false
+    || estado.webhookAppSecretConfigurado === false
+  ) {
+    return (
+      <Alert
+        type="warning"
+        showIcon
+        style={{ marginTop: 12 }}
+        message="Webhook Meta incompleto"
+        description={`Configure WhatsApp__VerifyToken y WhatsApp__AppSecret en Azure para Verificar y guardar en Meta. ${pasada}`}
       />
     )
   }
@@ -346,8 +361,8 @@ export function CreditoPrendarioPage() {
       >
         <Text type="secondary">
           Se envía la plantilla aprobada aviso_vencimiento_prendario por WhatsApp Business a quienes
-          vencen exactamente en 3 días y aún no fueron avisados hoy. Un crédito avisado no se vuelve
-          a notificar hasta mañana.
+          vencen exactamente en 3 días (según listado actual). El envío no marca créditos en BD: puede
+          reenviarse si vuelve a aparecer en la lista.
         </Text>
         <AvisosCanalAlert estado={estadoAvisos.data} pendientes={pendientes} />
         {ultimoEnvio && (ultimoEnvio.enviados > 0 || ultimoEnvio.fallidos > 0 || ultimoEnvio.omitidos > 0) ? (
@@ -373,7 +388,7 @@ export function CreditoPrendarioPage() {
           dataSource={avisos.data ?? []}
           locale={{
             emptyText: canalListo
-              ? 'Nadie vence en 3 días o el aviso de hoy ya se envió. El automático cubre el resto a las 08:00.'
+              ? 'Nadie vence en 3 días en esta oficina. El automático (si está activo) corre a las 08:00 Lima.'
               : 'No hay pendientes. Configure WhatsApp Business para enviar la plantilla.',
           }}
           columns={[

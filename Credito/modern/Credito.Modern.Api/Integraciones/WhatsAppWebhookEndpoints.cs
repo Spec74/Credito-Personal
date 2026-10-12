@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Credito.Modern.Infrastructure.Integraciones;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Options;
 
 namespace Credito.Modern.Api.Integraciones;
@@ -8,6 +9,7 @@ namespace Credito.Modern.Api.Integraciones;
 internal static class WhatsAppWebhookEndpoints
 {
     public const string Route = "/api/v1/integraciones/whatsapp/webhook";
+    public const string RateLimitPolicy = "whatsapp-webhook";
 
     public static void MapWhatsAppWebhookEndpoints(this WebApplication app)
     {
@@ -15,12 +17,16 @@ internal static class WhatsAppWebhookEndpoints
             .WithName("WhatsAppWebhookVerify")
             .WithTags("integraciones", "whatsapp")
             .AllowAnonymous()
+            .DisableAntiforgery()
+            .RequireRateLimiting(RateLimitPolicy)
             .ExcludeFromDescription();
 
         app.MapPost(Route, Recibir)
             .WithName("WhatsAppWebhookReceive")
             .WithTags("integraciones", "whatsapp")
             .AllowAnonymous()
+            .DisableAntiforgery()
+            .RequireRateLimiting(RateLimitPolicy)
             .ExcludeFromDescription();
     }
 
@@ -58,6 +64,7 @@ internal static class WhatsAppWebhookEndpoints
     private static async Task<IResult> Recibir(
         HttpRequest request,
         IOptions<WhatsAppOptions> options,
+        IHostEnvironment env,
         ILoggerFactory loggerFactory,
         CancellationToken cancellationToken)
     {
@@ -69,7 +76,18 @@ internal static class WhatsAppWebhookEndpoints
         var body = ms.ToArray();
 
         var appSecret = opts.AppSecret?.Trim() ?? string.Empty;
-        if (!string.IsNullOrEmpty(appSecret))
+        if (string.IsNullOrEmpty(appSecret))
+        {
+            if (!env.IsDevelopment())
+            {
+                log.LogError("WhatsApp webhook POST rechazado: AppSecret obligatorio fuera de Development.");
+                return Results.Unauthorized();
+            }
+
+            log.LogWarning(
+                "WhatsApp webhook POST sin AppSecret en Development: se acepta el payload.");
+        }
+        else
         {
             var signature = request.Headers["X-Hub-Signature-256"].ToString();
             if (!WhatsAppWebhookSignature.EsValida(signature, body, appSecret))
@@ -78,20 +96,18 @@ internal static class WhatsAppWebhookEndpoints
                 return Results.Unauthorized();
             }
         }
-        else
-        {
-            log.LogWarning(
-                "WhatsApp webhook POST sin AppSecret: se acepta el payload (configurar WhatsApp__AppSecret en producción).");
-        }
 
-        try
+        if (body.Length > 0)
         {
-            using var doc = JsonDocument.Parse(body);
-            RegistrarEventos(doc.RootElement, log);
-        }
-        catch (JsonException ex)
-        {
-            log.LogWarning(ex, "WhatsApp webhook POST con JSON inválido; se responde 200 para evitar reintentos inútiles.");
+            try
+            {
+                using var doc = JsonDocument.Parse(body);
+                RegistrarEventos(doc.RootElement, log);
+            }
+            catch (JsonException ex)
+            {
+                log.LogWarning(ex, "WhatsApp webhook POST con JSON inválido; se responde 200 para evitar reintentos inútiles.");
+            }
         }
 
         // Meta reintenta si no es 200; siempre ACK rápido.

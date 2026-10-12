@@ -56,6 +56,14 @@ public sealed class WhatsAppWebhookEndpointTests : IClassFixture<WhatsAppWebhook
     }
 
     [Fact]
+    public async Task Get_challenge_401_sin_challenge()
+    {
+        var url = $"{Route}?hub.mode=subscribe&hub.verify_token=credix-test-verify";
+        using var resp = await _client.GetAsync(url);
+        Assert.Equal(HttpStatusCode.Unauthorized, resp.StatusCode);
+    }
+
+    [Fact]
     public async Task Post_status_con_firma_valida_responde_200()
     {
         var payload =
@@ -75,6 +83,40 @@ public sealed class WhatsAppWebhookEndpointTests : IClassFixture<WhatsAppWebhook
         using var resp = await _client.SendAsync(req);
         Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
     }
+
+    [Fact]
+    public async Task Post_firma_invalida_responde_401()
+    {
+        var payload = """{"object":"whatsapp_business_account"}""";
+        using var req = new HttpRequestMessage(HttpMethod.Post, Route)
+        {
+            Content = new StringContent(payload, Encoding.UTF8, "application/json"),
+        };
+        req.Headers.TryAddWithoutValidation("X-Hub-Signature-256", "sha256=deadbeef");
+
+        using var resp = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.Unauthorized, resp.StatusCode);
+    }
+}
+
+public sealed class WhatsAppWebhookProdFailClosedTests : IClassFixture<WhatsAppWebhookProdFactory>
+{
+    private const string Route = "/api/v1/integraciones/whatsapp/webhook";
+    private readonly HttpClient _client;
+
+    public WhatsAppWebhookProdFailClosedTests(WhatsAppWebhookProdFactory factory) =>
+        _client = factory.CreateClient();
+
+    [Fact]
+    public async Task Post_sin_app_secret_en_production_responde_401()
+    {
+        using var req = new HttpRequestMessage(HttpMethod.Post, Route)
+        {
+            Content = new StringContent("""{"object":"whatsapp_business_account"}""", Encoding.UTF8, "application/json"),
+        };
+        using var resp = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.Unauthorized, resp.StatusCode);
+    }
 }
 
 public sealed class WhatsAppWebhookWebApplicationFactory : WebApplicationFactory<Program>
@@ -90,6 +132,27 @@ public sealed class WhatsAppWebhookWebApplicationFactory : WebApplicationFactory
                     {
                         ["WhatsApp:VerifyToken"] = "credix-test-verify",
                         ["WhatsApp:AppSecret"] = "test-app-secret",
+                    });
+            });
+    }
+}
+
+/// <summary>Simula Production sin AppSecret (fail-closed).</summary>
+public sealed class WhatsAppWebhookProdFactory : WebApplicationFactory<Program>
+{
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        CreditoTestWebHost.Configure(builder, requireClientAcceso: false);
+        builder.UseEnvironment("Production");
+        builder.ConfigureAppConfiguration(
+            (_, config) =>
+            {
+                config.AddInMemoryCollection(
+                    new Dictionary<string, string?>
+                    {
+                        ["WhatsApp:VerifyToken"] = "credix-test-verify",
+                        ["WhatsApp:AppSecret"] = "",
+                        ["Hosting:DisableHttpsRedirection"] = "true",
                     });
             });
     }

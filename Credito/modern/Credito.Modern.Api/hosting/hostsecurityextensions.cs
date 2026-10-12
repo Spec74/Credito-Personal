@@ -160,6 +160,30 @@ internal static class HostSecurityExtensions
                             QueueLimit = 0,
                         });
                 });
+
+            // Meta puede reintentar/ráfagas de status; límite generoso por IP (anónimo).
+            options.AddPolicy(
+                "whatsapp-webhook",
+                context =>
+                {
+                    var opts = context.RequestServices.GetRequiredService<IOptions<LoginRateLimitOptions>>().Value;
+                    if (opts.Disabled)
+                    {
+                        return RateLimitPartition.GetNoLimiter("disabled");
+                    }
+
+                    var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                    return RateLimitPartition.GetFixedWindowLimiter(
+                        "wa-hook-" + ip,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            AutoReplenishment = true,
+                            PermitLimit = 300,
+                            Window = TimeSpan.FromMinutes(1),
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0,
+                        });
+                });
         });
 
         return builder;

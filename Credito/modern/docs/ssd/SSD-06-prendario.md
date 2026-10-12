@@ -97,7 +97,7 @@ Relato en [BITACORA-DESVIACIONES.md](../migration/BITACORA-DESVIACIONES.md):
 
 ## 9. Pruebas y evidencia
 
-- API: `prendarioendpointtests`, `prendariodocumentotests`, `whatsappvencimientoprendariotests`
+- API: `prendarioendpointtests`, `prendariodocumentotests`, `whatsappvencimientoprendariotests`, `whatsappwebhooktests`
 - SPA: `menuRouteAccess.test.ts` (hub crédito vs prendario; listado vs nuevo), `prendarioWhatsapp.test.ts`, `resolvespapathfrommenuitem.test.ts`
 - Smoke: analista abre listado; gestor no; enviar plantilla a un tester Meta
 
