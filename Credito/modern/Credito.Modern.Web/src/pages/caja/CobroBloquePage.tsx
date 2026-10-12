@@ -778,10 +778,10 @@ export function CobroBloquePage() {
   }
 
   const enviarPlanilla = useMutation({
-    mutationFn: async (planillaIn?: PlanillaItem[]) => {
+    mutationFn: async (planillaIn: PlanillaItem[] | undefined) => {
       if (!ctx || ctx.indCierre) throw new Error('No hay caja diario abierta.')
 
-      const planilla = planillaIn ?? buildPlanillaPayload()
+      const planilla = planillaIn && planillaIn.length > 0 ? planillaIn : buildPlanillaPayload()
       if (planilla.length === 0) throw new Error('No hay cobros tipados.')
 
       const rows = (carteraRows ?? []).filter((r) =>
@@ -991,7 +991,7 @@ export function CobroBloquePage() {
       content: `¿Registrar ${resumen.conCobro} cobro(s) por S/ ${formatMoney(resumen.total)}? Pasarán a Enviados.`,
       okText: 'Sí, registrar',
       cancelText: 'Cancelar',
-      onOk: () => enviarPlanilla.mutateAsync(),
+      onOk: () => enviarPlanilla.mutateAsync(undefined),
     })
   }
 
