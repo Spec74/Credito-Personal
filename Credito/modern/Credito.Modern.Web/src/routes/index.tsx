@@ -203,7 +203,11 @@ export function AppRoutes() {
         <Route path="/caja" element={<Pages.CajaHubPage />} />
         <Route path="/caja/maestro" element={<Pages.CajaMaestroPage />} />
         <Route path="/caja/diario" element={<Pages.CajaDiarioPage />} />
-        <Route path="/caja/cobro-bloque" element={<Pages.CobroBloquePage />} />
+        <Route path="/caja/cobro" element={<Pages.CobroBloquePage />} />
+        <Route
+          path="/caja/cobro-bloque"
+          element={<Navigate to="/caja/cobro" replace />}
+        />
         <Route path="/caja/chica" element={<Pages.CajaChicaPage />} />
         <Route path="/caja/asignar" element={<Pages.AsignarCajaPage />} />
         <Route path="/caja/saldos" element={<Pages.SaldosPage />} />

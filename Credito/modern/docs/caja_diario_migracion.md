@@ -4,8 +4,8 @@ Spec SSD del módulo caja: [docs/ssd/SSD-03-caja.md](ssd/SSD-03-caja.md).
 
 Documento de verificación de migración (`Credito/Web/Views/Credito/CajaDiario.cshtml` → `Credito.Modern.Web` `/caja/diario`).
 
-**Última revisión:** 2026-10-10 (GPS cobro-bloque + auditoría P0/P1)  
-**Ruta SPA:** `/caja/diario` · cobro campo `/caja/cobro-bloque`  
+**Última revisión:** 2026-10-12 (Cobro campo `/caja/cobro` cola Por enviar/Enviados; GPS)  
+**Ruta SPA:** `/caja/diario` · cobro campo `/caja/cobro` (alias `/caja/cobro-bloque` → redirect)  
 **API base:** `/api/v1/credito/*`, `/api/v1/ventas/caja-diario-venta-rapida`, `POST /api/v1/clientes/{id}/ubicacion`
 
 ---
@@ -36,7 +36,7 @@ Documento de verificación de migración (`Credito/Web/Views/Credito/CajaDiario.
 | Sesión / saldos en pantalla | Sidebar + KPIs `CajaDiarioPage` | + recalcular, enlaces informes |
 | `btnCxcPendiente` GAD | Cobranzas → GAD / tab CxC | |
 | `btnCuotaPendiente` | Cobranzas → Cuotas pendientes | `GET creditos-gestor-desembolsados` (DES gestor) |
-| `btnCompletarCoutaPendienteImpago` | Cobranzas → Completar impagos | Confirmación + `POST completar-impagos`. Cobranza tipada en campo: `/caja/cobro-bloque` (ver abajo). |
+| `btnCompletarCoutaPendienteImpago` | Cobranzas → Completar impagos | Confirmación + `POST completar-impagos`. Cobranza tipada en campo: `/caja/cobro` (ver abajo). |
 | Buscar cliente + chips crédito | `ClienteBuscarAutoComplete` + chips | + PDF movimientos crédito |
 | `btnPagar` cuotas | Pagar cuota + TieneCxc + confirm + ticket | |
 | `btnPagoLibre` | Pago libre + mismas reglas | |
@@ -130,17 +130,21 @@ Paridad consulta pendiente: mora vigente (`usp_CalcularMoraPendiente`) + mora po
 
 ---
 
-## Cobro en bloque (campo) — `/caja/cobro-bloque`
+## Cobro campo — `/caja/cobro`
 
-Spec canónica: [SSD-03 § cobro GPS](ssd/SSD-03-caja.md). Resumen ingeniería:
+Spec canónica: [SSD-03 § Cobro campo](ssd/SSD-03-caja.md). Resumen ingeniería:
 
 | Tema | Modern |
 |------|--------|
 | Planilla | `GET creditos-gestor-desembolsados` (+ lat/lng Cliente) |
-| Tipado offline | Caché `credix.cobroBloqueCartera.v3` + cola proceso |
+| Cola del día | Tabs **Cartera** / **Por enviar** / **Enviados** — tipar ≠ cobrado |
+| Cobrar ya | Online: `POST pagar-cuota-importe-libre` + ticket |
+| Enviar cola | `POST cobrar-planilla-bloque` con `CompletarImpagos: false` |
+| Tipado offline | Caché `credix.cobroBloqueCartera.v3` + cola `credix.cobroCola.v1` + pending sync |
 | Móvil (`fieldMode`) | Botón «Registrar mi ubicación» **solo si falta GPS** → `POST …/ubicacion` |
 | PC (tabla) | Columna **Ubicación**: etiqueta = dirección; enlace = coords si hay GPS. **Sin** botón de captura |
 | Corregir GPS | Ficha cliente → Ubicación ([SSD-05](ssd/SSD-05-clientes.md)) |
+| Impagos | Solo Diario → Completar impagos (no desde Cobro) |
 
 ---
 
@@ -148,7 +152,7 @@ Spec canónica: [SSD-03 § cobro GPS](ssd/SSD-03-caja.md). Resumen ingeniería:
 
 | Pantalla modern | Legacy aproximado |
 |-----------------|-------------------|
-| `/caja/cobro-bloque` | Cobranza tipada en campo (GPS + offline) — **✅** ver sección arriba / SSD-03 |
+| `/caja/cobro` | Cobranza tipada en campo (cola + GPS + offline) — **✅** SSD-03 |
 | `/caja/asignar` | Asignación caja |
 | `/caja/saldos` | Saldos / cierres masivos — **✅ completo** (ver `CAJA_SALDOS_MIGRACION.md`) |
 | `/caja/verificar-pagos` | Pagos transferencia — **✅ completo** (ver `CAJA_CHICA_VERIFICAR_MIGRACION.md`) |
@@ -187,11 +191,12 @@ Con sesión de **cajero** (caja abierta) en `http://localhost:5173`:
 
 Con **encargado/admin**: `/caja/saldos` (asignar, reportes) y `/caja/verificar-pagos` de la oficina.
 
-### Humo GPS cobro-bloque / ficha (HTTPS)
+### Humo Cobro campo + GPS / ficha (HTTPS)
 
 Checklist operativo firmable: [SMOKE-SIGN-OFF.md § GPS](SMOKE-SIGN-OFF.md). Resumen:
 
-1. PC `/caja/cobro-bloque`: columna Ubicación con enlace; **sin** «Registrar mi ubicación».
+1. PC `/caja/cobro`: columna Ubicación con enlace; **sin** «Registrar mi ubicación». Tipar → badge Por enviar; **Cobrar ya** o **Enviar cola** registra; no cierra impagos.
 2. Móvil (viewport &lt; md) mismo cliente **sin** GPS: botón + confirmación → persiste; pill GPS.
-3. Offline: tipado OK; GPS avisa «cuando haya red».
+3. Offline: tipado OK en Por enviar; GPS avisa «cuando haya red»; al recuperar red sincroniza.
 4. Ficha `/clientes/editar/:id` → Ubicación: «Actualizar GPS del dispositivo» corrige pin.
+5. Diario Cobranzas: banner «Ir a Cobro»; Completar impagos sigue solo aquí.

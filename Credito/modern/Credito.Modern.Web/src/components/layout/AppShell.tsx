@@ -144,7 +144,10 @@ export function AppShell() {
     // Admin/encargado: Asignar caja por rol (modal o ruta), sin exigir ítem de menú Saldos.
     if (puedeAsignarCajaUi(roles)) paths.push('/caja/asignar')
     // Gestor/analista/caja: cobro en bloque es atajo de Caja diario (sin ítem de menú).
-    if (puedeCobroBloqueUi(roles)) paths.push('/caja/cobro-bloque')
+    if (puedeCobroBloqueUi(roles)) {
+      paths.push('/caja/cobro')
+      paths.push('/caja/cobro-bloque')
+    }
     return paths
   }, [puedeVerCierreGerencial, puedeVerMorosos, session?.roles])
   const hasCurrentRouteAccess = useMemo(

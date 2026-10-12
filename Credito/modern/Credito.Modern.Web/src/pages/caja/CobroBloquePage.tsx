@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
+  Badge,
   Button,
   Checkbox,
   Grid,
@@ -11,12 +12,15 @@ import {
   Select,
   Space,
   Spin,
+  Tabs,
+  Tag,
   Typography,
   message,
 } from 'antd'
 import {
   ArrowLeftOutlined,
   CheckOutlined,
+  CloseOutlined,
   EnvironmentOutlined,
   SearchOutlined,
   ArrowUpOutlined,
@@ -28,6 +32,7 @@ import {
   enrichCreditosGestorContactos,
   fetchCajaDiarioSesion,
   fetchCreditosGestorDesembolsados,
+  pagarCuotaImporteLibre,
   type CreditoGestorPendienteRow,
 } from '../../api/cajaDiario'
 import { fetchEstadoPlanPago } from '../../api/creditoPlanes'
@@ -36,11 +41,17 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CredixDataTable, CredixPage, CredixPanel } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
-import { formatFecha } from '../../utils/formatFecha'
+import { formatFecha, toLegacyFechaTransferencia } from '../../utils/formatFecha'
+import { clearCobroBloqueEjecutadoHoy } from '../../utils/cobroBloqueDayLock'
 import {
-  isCobroBloqueEjecutadoHoy,
-  markCobroBloqueEjecutadoHoy,
-} from '../../utils/cobroBloqueDayLock'
+  clearCobroColaError,
+  isCreditoEnviadoHoy,
+  loadCobroCola,
+  markCobroEnviados,
+  setCobroColaError,
+  type CobroColaDia,
+  type CobroEnviadoItem,
+} from '../../utils/cobroCola'
 import {
   clearCobroBloqueDraft,
   draftHasMontos,
@@ -51,7 +62,6 @@ import {
   type CobroBloqueRowDraft,
 } from '../../utils/cobroBloqueDraft'
 import {
-  clearCobroBloqueCarteraCache,
   clearCobroBloquePendingProcess,
   enqueueCobroBloqueProcess,
   isBrowserOnline,
@@ -63,6 +73,7 @@ import {
 } from '../../utils/cobroBloqueOffline'
 import type { EstadoPlanPagoCuota } from '../../types/api'
 import type { CajaSession } from './cajaDiario/types'
+import { maybeDownloadCajaTicket } from './cajaDiario/cajaPagoHelpers'
 import {
   FechaHoraDigitalField,
   nowDatetimeLocal,
@@ -78,6 +89,7 @@ import {
 import '../../styles/cobro-bloque.css'
 
 type VistaCampo = 'todos' | 'mora' | 'cobro'
+type TabPrincipal = 'cartera' | 'por-enviar' | 'enviados'
 
 const { Text } = Typography
 
@@ -213,7 +225,17 @@ export function CobroBloquePage() {
   const [scrolledDown, setScrolledDown] = useState(false)
   const [dockBox, setDockBox] = useState<{ left: number; width: number } | null>(null)
   const [vistaCampo, setVistaCampo] = useState<VistaCampo>('todos')
-  const yaEjecutadoHoy = isCobroBloqueEjecutadoHoy()
+  const [tabPrincipal, setTabPrincipal] = useState<TabPrincipal>('cartera')
+  const [cola, setCola] = useState<CobroColaDia>(() =>
+    loadCobroCola({ usuarioId: 0, oficinaId: 0, cajaDiarioId: 0 }),
+  )
+  const [cobrarYaId, setCobrarYaId] = useState<number | null>(null)
+  const carteraRowsRef = useRef<CreditoGestorPendienteRow[]>([])
+
+  // Day-lock legacy deprecado: limpiar cualquier marca previa y no bloquear nunca.
+  useEffect(() => {
+    clearCobroBloqueEjecutadoHoy()
+  }, [])
 
   useEffect(() => {
     const on = () => setOnline(true)
@@ -260,7 +282,7 @@ export function CobroBloquePage() {
   const sesionQuery = useQuery({
     queryKey: ['caja-diario-sesion', oficinaId],
     queryFn: () => fetchCajaDiarioSesion(oficinaId),
-    enabled: oficinaId > 0 && !yaEjecutadoHoy,
+    enabled: oficinaId > 0,
     retry: false,
   })
 
@@ -294,6 +316,20 @@ export function CobroBloquePage() {
   const ctx = ctxOnline ?? ctxOffline
   const cajaDiarioId = ctx?.cajaDiarioId ?? 0
   const offlineSesion = Boolean(!ctxOnline && ctxOffline)
+
+  const colaArgs = useMemo(
+    () => ({ usuarioId, oficinaId, cajaDiarioId }),
+    [usuarioId, oficinaId, cajaDiarioId],
+  )
+
+  useEffect(() => {
+    setCola(loadCobroCola({ usuarioId, oficinaId, cajaDiarioId }))
+  }, [usuarioId, oficinaId, cajaDiarioId])
+
+  const enviadosSet = useMemo(
+    () => new Set(cola.enviados.map((e) => e.creditoId)),
+    [cola.enviados],
+  )
 
   useEffect(() => {
     if (usuarioId < 1 || cajaDiarioId < 1) {
@@ -343,8 +379,7 @@ export function CobroBloquePage() {
         throw e
       }
     },
-    enabled:
-      !!ctx && !ctx.indCierre && !yaEjecutadoHoy && usuarioId > 0 && oficinaId > 0,
+    enabled: !!ctx && !ctx.indCierre && usuarioId > 0 && oficinaId > 0,
     staleTime: 60_000,
   })
 
@@ -401,6 +436,7 @@ export function CobroBloquePage() {
   }, [carteraQuery.data, ctx, usuarioId, oficinaId])
 
   const carteraRows = carteraQuery.data?.rows
+  carteraRowsRef.current = carteraRows ?? []
 
   const tiposPagoQuery = useQuery({
     queryKey: ['valores-tabla', 13],
@@ -419,7 +455,7 @@ export function CobroBloquePage() {
 
   // Recuperar borrador al abrir sesión de caja (solo una vez).
   useEffect(() => {
-    if (draftHydrated.current || yaEjecutadoHoy || usuarioId < 1 || cajaDiarioId < 1) return
+    if (draftHydrated.current || usuarioId < 1 || cajaDiarioId < 1) return
     draftHydrated.current = true
     const { draft, discardedStale } = loadCobroBloqueDraft({
       usuarioId,
@@ -431,23 +467,51 @@ export function CobroBloquePage() {
         'Se descartó un borrador antiguo (otro día o caja). No se registró nada en el servidor.',
       )
     }
+    const next: Record<number, RowEdit> = {}
+    const colaHoy = loadCobroCola({ usuarioId, oficinaId, cajaDiarioId })
+    let hayDraft = false
     if (draft && draftHasMontos(draft)) {
-      const next: Record<number, RowEdit> = {}
       for (const [k, v] of Object.entries(draft.edits)) {
         const id = Number(k)
-        if (Number.isFinite(id) && v) next[id] = v
+        if (Number.isFinite(id) && v && !isCreditoEnviadoHoy(colaHoy, id)) next[id] = v
       }
-      setEdits(next)
       if (draft.filtro) setFiltro(draft.filtro)
+      hayDraft = true
+    }
+    // Migración: cola offline legacy («Procesar planilla») → restaurar en Por enviar.
+    let restauradosPending = 0
+    const pending = loadCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
+    if (pending) {
+      for (const item of pending.planilla) {
+        if (item.montoPagar <= 0 || next[item.creditoId]) continue
+        if (isCreditoEnviadoHoy(colaHoy, item.creditoId)) continue
+        next[item.creditoId] = {
+          montoPagar: item.montoPagar,
+          tipoPagoId: item.tipoPagoId,
+          fechaHoraTrans: item.fechaHoraTrans?.trim() || nowDatetimeLocal(),
+          cuotasSeleccionadas: [],
+        }
+        restauradosPending++
+      }
+      setPendingSync(true)
+    }
+    if (Object.keys(next).length > 0) {
+      setEdits((prev) => ({ ...next, ...prev }))
+    }
+    if (hayDraft && draft) {
       setDraftBanner(
         `Borrador recuperado (${formatDraftAge(draft.updatedAt)}). Puede continuar donde lo dejó.`,
       )
+    } else if (restauradosPending > 0) {
+      setDraftBanner(
+        `Se restauraron ${restauradosPending} cobro(s) pendientes de envío en Por enviar.`,
+      )
     }
-  }, [usuarioId, oficinaId, cajaDiarioId, yaEjecutadoHoy])
+  }, [usuarioId, oficinaId, cajaDiarioId])
 
   // Autoguardado al navegar a otro módulo / minimizar.
   useEffect(() => {
-    if (yaEjecutadoHoy || usuarioId < 1 || cajaDiarioId < 1) return
+    if (usuarioId < 1 || cajaDiarioId < 1) return
     const persist = () => {
       const editsMap: Record<string, RowEdit> = {}
       for (const [k, v] of Object.entries(edits)) {
@@ -482,7 +546,7 @@ export function CobroBloquePage() {
       document.removeEventListener('visibilitychange', onVis)
       window.removeEventListener('pagehide', persist)
     }
-  }, [edits, filtro, usuarioId, oficinaId, cajaDiarioId, yaEjecutadoHoy])
+  }, [edits, filtro, usuarioId, oficinaId, cajaDiarioId])
 
   const getEdit = useCallback(
     (row: CreditoGestorPendienteRow): RowEdit => edits[row.creditoId] ?? defaultEdit(),
@@ -494,7 +558,14 @@ export function CobroBloquePage() {
     patch: Partial<RowEdit>,
     row: CreditoGestorPendienteRow,
   ) => {
+    if (enviadosSet.has(creditoId) && (patch.montoPagar ?? 0) > 0) {
+      message.info('Este crédito ya fue enviado hoy. Revise la pestaña Enviados.')
+      return
+    }
     setDraftBanner(null)
+    if (cola.errores[String(creditoId)]) {
+      setCola(clearCobroColaError(colaArgs, creditoId))
+    }
     setEdits((prev) => {
       const base = prev[creditoId] ?? defaultEdit()
       const next = { ...base, ...patch }
@@ -526,6 +597,13 @@ export function CobroBloquePage() {
     patchEdit(row.creditoId, { montoPagar: monto, cuotasSeleccionadas: [] }, row)
   }
 
+  /** Tipado (monto > 0) y aún no enviado. Tipar ≠ cobrado. */
+  const esPorEnviar = useCallback(
+    (row: CreditoGestorPendienteRow): boolean =>
+      !enviadosSet.has(row.creditoId) && (edits[row.creditoId]?.montoPagar ?? 0) > 0,
+    [edits, enviadosSet],
+  )
+
   const filas = useMemo(() => {
     const raw = carteraRows ?? []
     const q = filtro.trim().toLowerCase()
@@ -539,19 +617,34 @@ export function CobroBloquePage() {
           String(r.creditoId).includes(q)
         if (!hit) return false
       }
+      if (tabPrincipal === 'por-enviar') return esPorEnviar(r)
       if (fieldMode && vistaCampo === 'mora' && r.diasAtrazo <= 0) return false
-      if (fieldMode && vistaCampo === 'cobro' && getEdit(r).montoPagar <= 0) return false
+      if (fieldMode && vistaCampo === 'cobro' && !esPorEnviar(r)) return false
       return true
     })
-  }, [carteraRows, filtro, fieldMode, vistaCampo, getEdit])
+  }, [carteraRows, filtro, fieldMode, vistaCampo, tabPrincipal, esPorEnviar])
+
+  const enviadosFiltrados = useMemo(() => {
+    const q = filtro.trim().toLowerCase()
+    if (!q) return cola.enviados
+    return cola.enviados.filter(
+      (e) =>
+        e.personaNombre.toLowerCase().includes(q) || String(e.creditoId).includes(q),
+    )
+  }, [cola.enviados, filtro])
+
+  const enviadosTotal = useMemo(
+    () => cola.enviados.reduce((a, e) => a + (e.montoPagar || 0), 0),
+    [cola.enviados],
+  )
 
   const resumen = useMemo(() => {
     let conCobro = 0
     let total = 0
     const porMetodo = new Map<number, { label: string; monto: number; n: number }>()
     for (const row of carteraRows ?? []) {
+      if (!esPorEnviar(row)) continue
       const e = getEdit(row)
-      if (e.montoPagar <= 0) continue
       conCobro++
       total += e.montoPagar
       const label =
@@ -564,17 +657,16 @@ export function CobroBloquePage() {
     const totalFilas = carteraRows?.length ?? 0
     return {
       conCobro,
-      impagos: Math.max(0, totalFilas - conCobro),
       total,
       porMetodo: [...porMetodo.values()],
       totalFilas,
     }
-  }, [carteraRows, getEdit, tipoPagoOptions])
+  }, [carteraRows, esPorEnviar, getEdit, tipoPagoOptions])
 
   const validarPlanilla = (): string | null => {
     for (const row of carteraRows ?? []) {
+      if (!esPorEnviar(row)) continue
       const e = getEdit(row)
-      if (e.montoPagar <= 0) continue
       if (TIPOS_PAGO_DIGITAL.has(e.tipoPagoId) && !e.fechaHoraTrans?.trim()) {
         return `Ingrese la fecha/hora de transferencia para ${row.personaNombre} (crédito ${row.creditoId}).`
       }
@@ -582,8 +674,10 @@ export function CobroBloquePage() {
     return null
   }
 
+  /** Solo tipados con monto > 0 que aún no fueron enviados. */
   const buildPlanillaPayload = () =>
     (carteraRows ?? [])
+      .filter((row) => esPorEnviar(row))
       .map((row) => {
         const e = getEdit(row)
         return {
@@ -595,18 +689,70 @@ export function CobroBloquePage() {
       })
       .filter((x) => x.montoPagar > 0)
 
-  const finalizarExito = (mensaje: string) => {
-    markCobroBloqueEjecutadoHoy()
-    clearCobroBloqueDraft({ usuarioId, cajaDiarioId })
-    clearCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
-    clearCobroBloqueCarteraCache({ usuarioId, cajaDiarioId })
-    setPendingSync(false)
-    setEdits({})
-    message.success(mensaje)
-    navigate('/caja/diario')
+  type PlanillaItem = ReturnType<typeof buildPlanillaPayload>[number]
+
+  /** Quita créditos de la cola offline legacy (evita doble cobro al sincronizar). */
+  const quitarDePending = (creditoIds: number[]) => {
+    if (usuarioId < 1 || cajaDiarioId < 1) return
+    const pending = loadCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
+    if (!pending) return
+    const ids = new Set(creditoIds)
+    const resto = pending.planilla.filter((p) => !ids.has(p.creditoId))
+    if (resto.length === 0) {
+      clearCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
+      setPendingSync(false)
+      return
+    }
+    if (resto.length === pending.planilla.length) return
+    enqueueCobroBloqueProcess({
+      ...pending,
+      conCobro: resto.length,
+      total: resto.reduce((a, x) => a + x.montoPagar, 0),
+      planilla: resto,
+    })
   }
 
-  const encolarPorOffline = (planilla: ReturnType<typeof buildPlanillaPayload>) => {
+  /** Registra enviados en cola local, limpia tipados y refresca cartera. Sin navegar ni day-lock. */
+  const aplicarEnviados = (
+    planilla: PlanillaItem[],
+    origen: CobroEnviadoItem['origen'],
+    extra?: Record<number, number | null | undefined>,
+  ) => {
+    if (planilla.length === 0) return
+    const nombres = new Map(
+      carteraRowsRef.current.map((r) => [r.creditoId, r.personaNombre] as const),
+    )
+    const nextCola = markCobroEnviados(
+      { usuarioId, oficinaId, cajaDiarioId },
+      planilla.map((p) => ({
+        creditoId: p.creditoId,
+        personaNombre: nombres.get(p.creditoId) ?? `Crédito ${p.creditoId}`,
+        montoPagar: p.montoPagar,
+        tipoPagoId: p.tipoPagoId,
+        movimientoCajaId: extra?.[p.creditoId] ?? null,
+        origen,
+      })),
+    )
+    setCola(nextCola)
+    const ids = planilla.map((p) => p.creditoId)
+    setEdits((prev) => {
+      const next = { ...prev }
+      for (const id of ids) delete next[id]
+      return next
+    })
+    quitarDePending(ids)
+    void queryClient.invalidateQueries({ queryKey: carteraQueryKey })
+  }
+
+  const marcarErrorCola = (planilla: PlanillaItem[], mensaje: string) => {
+    let last: CobroColaDia | null = null
+    for (const p of planilla) {
+      last = setCobroColaError({ usuarioId, oficinaId, cajaDiarioId }, p.creditoId, mensaje)
+    }
+    if (last) setCola(last)
+  }
+
+  const encolarPorOffline = (planilla: PlanillaItem[]) => {
     if (!ctx) return
     enqueueCobroBloqueProcess({
       version: 1,
@@ -621,17 +767,18 @@ export function CobroBloquePage() {
     })
     setPendingSync(true)
     message.warning(
-      'Sin conexión: la planilla quedó en cola en este dispositivo. Se enviará al recuperar red.',
+      'Sin conexión: los cobros quedaron en Por enviar en este dispositivo. Se enviarán al recuperar red.',
     )
   }
 
-  const procesar = useMutation({
+  const enviarCola = useMutation({
     mutationFn: async () => {
       if (!ctx || ctx.indCierre) throw new Error('No hay caja diario abierta.')
       const err = validarPlanilla()
       if (err) throw new Error(err)
 
       const planilla = buildPlanillaPayload()
+      if (planilla.length === 0) throw new Error('No hay cobros en Por enviar.')
 
       if (!isBrowserOnline()) {
         encolarPorOffline(planilla)
@@ -643,29 +790,117 @@ export function CobroBloquePage() {
           oficinaId,
           cajaDiarioId: ctx.cajaDiarioId,
           planilla,
+          completarImpagos: false,
         })
-        return { queued: false as const, result: r }
+        return { queued: false as const, planilla, result: r }
       } catch (e) {
         if (isLikelyNetworkError(e)) {
           encolarPorOffline(planilla)
           return { queued: true as const }
         }
+        marcarErrorCola(
+          planilla,
+          e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error al enviar',
+        )
         throw e
       }
     },
     onSuccess: (r) => {
       if (r.queued) return
-      finalizarExito(r.result.mensaje)
+      aplicarEnviados(r.planilla, 'lote')
+      message.success(r.result.mensaje || `${r.planilla.length} cobro(s) enviado(s).`)
     },
     onError: (e) =>
       message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error'),
   })
 
+  const cobrarYa = async (row: CreditoGestorPendienteRow) => {
+    if (cobrarYaId != null) return
+    if (!ctx || ctx.indCierre) {
+      message.warning('No hay caja diario abierta.')
+      return
+    }
+    if (enviadosSet.has(row.creditoId)) {
+      message.info('Este crédito ya fue enviado hoy.')
+      return
+    }
+    const e = getEdit(row)
+    if (e.montoPagar <= 0) {
+      message.warning('Digite un monto mayor a cero.')
+      return
+    }
+    const digital = TIPOS_PAGO_DIGITAL.has(e.tipoPagoId)
+    if (digital && !e.fechaHoraTrans?.trim()) {
+      message.warning(
+        `Ingrese la fecha/hora de transferencia para ${row.personaNombre} (crédito ${row.creditoId}).`,
+      )
+      return
+    }
+    if (!isBrowserOnline()) {
+      message.info('Sin conexión: quedó en Por enviar. Se registrará al enviar la cola con red.')
+      return
+    }
+
+    setCobrarYaId(row.creditoId)
+    try {
+      const r = await pagarCuotaImporteLibre({
+        oficinaId,
+        cajaDiarioId: ctx.cajaDiarioId,
+        creditoId: row.creditoId,
+        importeRecibido: e.montoPagar,
+        tipoPagoId: e.tipoPagoId,
+        fechaPagoTransferencia: digital
+          ? toLegacyFechaTransferencia(e.fechaHoraTrans) ?? null
+          : null,
+      })
+      await maybeDownloadCajaTicket(oficinaId, r.resultId)
+      aplicarEnviados(
+        [
+          {
+            creditoId: row.creditoId,
+            montoPagar: e.montoPagar,
+            tipoPagoId: e.tipoPagoId,
+            fechaHoraTrans: e.fechaHoraTrans,
+          },
+        ],
+        'cobrar_ya',
+        { [row.creditoId]: r.resultId },
+      )
+      message.success(`Cobro registrado: ${row.personaNombre}`)
+    } catch (err) {
+      if (isLikelyNetworkError(err)) {
+        message.warning('Sin conexión estable: quedó en Por enviar.')
+      } else {
+        const msg =
+          err instanceof ApiError ? err.message : err instanceof Error ? err.message : 'Error'
+        setCola(setCobroColaError(colaArgs, row.creditoId, msg))
+        message.error(msg)
+      }
+    } finally {
+      setCobrarYaId(null)
+    }
+  }
+
+  const quitarTipado = (row: CreditoGestorPendienteRow) => {
+    patchEdit(row.creditoId, { montoPagar: 0, cuotasSeleccionadas: [] }, row)
+  }
+
+  // Sincronización offline: al recuperar red envía la cola pendiente (sin impagos ni day-lock).
   useEffect(() => {
-    if (!online || yaEjecutadoHoy || usuarioId < 1 || cajaDiarioId < 1) return
+    if (!online || usuarioId < 1 || cajaDiarioId < 1) return
     if (syncingRef.current) return
     const pending = loadCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
     if (!pending) return
+
+    const colaHoy = loadCobroCola({ usuarioId, oficinaId, cajaDiarioId })
+    const planilla = pending.planilla.filter(
+      (p) => p.montoPagar > 0 && !isCreditoEnviadoHoy(colaHoy, p.creditoId),
+    )
+    if (planilla.length === 0) {
+      clearCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
+      setPendingSync(false)
+      return
+    }
 
     syncingRef.current = true
     setSyncingQueue(true)
@@ -674,23 +909,43 @@ export function CobroBloquePage() {
         const r = await cobrarPlanillaBloque({
           oficinaId: pending.oficinaId,
           cajaDiarioId: pending.cajaDiarioId,
-          planilla: pending.planilla,
+          planilla,
+          completarImpagos: false,
         })
-        // No cancelar el éxito: si el request ya fue a BD, hay que cerrar borrador/cola.
-        finalizarExito(r.mensaje || 'Planilla sincronizada al recuperar red.')
+        // No cancelar el éxito: si el request ya fue a BD, hay que registrar enviados.
+        aplicarEnviados(
+          planilla.map((p) => ({
+            creditoId: p.creditoId,
+            montoPagar: p.montoPagar,
+            tipoPagoId: p.tipoPagoId,
+            fechaHoraTrans: p.fechaHoraTrans ?? '',
+          })),
+          'sync',
+        )
+        message.success(r.mensaje || 'Cobros sincronizados al recuperar red.')
       } catch (e) {
         if (isLikelyNetworkError(e)) {
           message.warning('Aún sin red estable. La cola se reintentará al conectar.')
         } else {
-          clearCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
-          setPendingSync(false)
-          message.error(
+          const msg =
             e instanceof ApiError
               ? e.message
               : e instanceof Error
                 ? e.message
-                : 'No se pudo sincronizar la planilla en cola.',
+                : 'No se pudo sincronizar la cola.'
+          // Conservar tipados (siguen en Por enviar) y mostrar error por crédito.
+          marcarErrorCola(
+            planilla.map((p) => ({
+              creditoId: p.creditoId,
+              montoPagar: p.montoPagar,
+              tipoPagoId: p.tipoPagoId,
+              fechaHoraTrans: p.fechaHoraTrans ?? '',
+            })),
+            msg,
           )
+          clearCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
+          setPendingSync(false)
+          message.error(msg)
         }
       } finally {
         syncingRef.current = false
@@ -699,15 +954,11 @@ export function CobroBloquePage() {
     })()
     // Flush solo al recuperar red / cambiar caja.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [online, yaEjecutadoHoy, usuarioId, cajaDiarioId])
+  }, [online, usuarioId, cajaDiarioId])
 
-  const confirmarProcesar = () => {
-    if (yaEjecutadoHoy) {
-      message.warning('El cobro en bloque ya fue ejecutado hoy.')
-      return
-    }
-    if (resumen.totalFilas < 1) {
-      message.warning('No hay clientes en la planilla para procesar.')
+  const confirmarEnviarCola = () => {
+    if (resumen.conCobro < 1) {
+      message.warning('No hay cobros en Por enviar. Tipie montos o use Cobrar ya.')
       return
     }
     const err = validarPlanilla()
@@ -716,17 +967,12 @@ export function CobroBloquePage() {
       return
     }
 
-    const content =
-      resumen.conCobro > 0
-        ? `¿Registrar el cobro de ${resumen.conCobro} cliente(s) por S/ ${formatMoney(resumen.total)} y marcar el resto como impagos?`
-        : '¿Cerrar la planilla registrando a TODOS los clientes como IMPAGOS (S/ 0.00)?'
-
     Modal.confirm({
-      title: 'Procesar planilla',
-      content,
-      okText: 'Sí, procesar',
+      title: 'Enviar cola',
+      content: `¿Registrar ${resumen.conCobro} cobro(s) por S/ ${formatMoney(resumen.total)}? Pasarán a la pestaña Enviados.`,
+      okText: 'Sí, enviar',
       cancelText: 'Cancelar',
-      onOk: () => procesar.mutateAsync(),
+      onOk: () => enviarCola.mutateAsync(),
     })
   }
 
@@ -918,9 +1164,94 @@ export function CobroBloquePage() {
         )
       },
     },
+    {
+      title: 'Acción',
+      key: 'accion',
+      className: 'cobro-bloque-col-accion',
+      onCell: () => ({ className: 'cobro-bloque-col-accion' }),
+      render: (_, row) => {
+        if (enviadosSet.has(row.creditoId)) {
+          return <Tag color="success">Enviado</Tag>
+        }
+        const errorMsg = cola.errores[String(row.creditoId)]
+        if (!esPorEnviar(row)) {
+          return errorMsg ? (
+            <Text type="danger" title={errorMsg}>
+              Error
+            </Text>
+          ) : (
+            <Text type="secondary">—</Text>
+          )
+        }
+        return (
+          <Space size={4} wrap>
+            <Button
+              type="primary"
+              size="small"
+              loading={cobrarYaId === row.creditoId}
+              disabled={cobrarYaId != null && cobrarYaId !== row.creditoId}
+              onClick={() => void cobrarYa(row)}
+            >
+              {online ? 'Cobrar ya' : 'Guardar'}
+            </Button>
+            <Button
+              size="small"
+              icon={<CloseOutlined />}
+              aria-label="Quitar de Por enviar"
+              title="Quitar de Por enviar (borra el monto tipado)"
+              onClick={() => quitarTipado(row)}
+            />
+            {errorMsg ? (
+              <Text type="danger" title={errorMsg}>
+                Error
+              </Text>
+            ) : null}
+          </Space>
+        )
+      },
+    },
   ]
 
-  const sinCaja = !yaEjecutadoHoy && ((!ctx && !sesionQuery.isLoading) || Boolean(ctx?.indCierre))
+  const columnsEnviados: ColumnsType<CobroEnviadoItem> = [
+    {
+      title: 'Cliente',
+      dataIndex: 'personaNombre',
+      render: (_, it) => (
+        <div className="cobro-bloque-cliente-cell">
+          <strong className="cobro-bloque-cliente-cell__name" title={it.personaNombre}>
+            {it.personaNombre}
+          </strong>
+          <span className="cobro-bloque-cliente-cell__meta">#{it.creditoId}</span>
+        </div>
+      ),
+    },
+    {
+      title: 'Monto',
+      dataIndex: 'montoPagar',
+      align: 'right',
+      render: (v: number) => <strong>S/ {formatMoney(v)}</strong>,
+    },
+    {
+      title: 'Tipo pago',
+      dataIndex: 'tipoPagoId',
+      render: (v: number) =>
+        tipoPagoOptions.find((o) => o.value === v)?.label ?? `Tipo ${v}`,
+    },
+    {
+      title: 'Origen',
+      dataIndex: 'origen',
+      render: (v: CobroEnviadoItem['origen']) =>
+        v === 'cobrar_ya' ? 'Cobrar ya' : v === 'sync' ? 'Sincronizado' : 'Cola',
+    },
+    {
+      title: 'Hora',
+      dataIndex: 'enviadoAt',
+      render: (v: string) =>
+        new Date(v).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' }),
+    },
+  ]
+
+  const sinCaja = (!ctx && !sesionQuery.isLoading) || Boolean(ctx?.indCierre)
 
   const toolbar = (
     <div className="cobro-bloque-command">
@@ -945,13 +1276,13 @@ export function CobroBloquePage() {
         />
       </div>
       <div className="cobro-bloque-command__meta">
-        {fieldMode ? (
+        {fieldMode && tabPrincipal === 'cartera' ? (
           <div className="cobro-bloque-command__vistas" role="tablist" aria-label="Vista de planilla">
             {(
               [
                 { id: 'todos' as const, label: 'Todos' },
                 { id: 'mora' as const, label: 'Mora' },
-                { id: 'cobro' as const, label: 'Con cobro' },
+                { id: 'cobro' as const, label: 'Tipados' },
               ] as const
             ).map((v) => (
               <button
@@ -973,20 +1304,80 @@ export function CobroBloquePage() {
           </div>
         ) : null}
         <span className="cobro-bloque-command__chip">
-          {filas.length}/{resumen.totalFilas}
+          {tabPrincipal === 'enviados'
+            ? `${enviadosFiltrados.length}/${cola.enviados.length}`
+            : tabPrincipal === 'por-enviar'
+              ? `${filas.length}/${resumen.conCobro}`
+              : `${filas.length}/${resumen.totalFilas}`}
         </span>
         <span className="cobro-bloque-command__chip cobro-bloque-command__chip--accent">
-          {resumen.conCobro} · S/ {formatMoney(resumen.total)}
+          {tabPrincipal === 'enviados'
+            ? `Enviados ${cola.enviados.length} · S/ ${formatMoney(enviadosTotal)}`
+            : `Por enviar ${resumen.conCobro} · S/ ${formatMoney(resumen.total)}`}
         </span>
       </div>
     </div>
   )
 
-  const actionDock = !yaEjecutadoHoy && !sinCaja ? (
+  const tabsPrincipal = (
+    <Tabs
+      className="cobro-bloque-tabs"
+      size={fieldMode ? 'small' : 'middle'}
+      activeKey={tabPrincipal}
+      onChange={(k) => setTabPrincipal(k as TabPrincipal)}
+      items={[
+        {
+          key: 'cartera',
+          label: (
+            <span className="cobro-bloque-tabs__label">
+              Cartera
+              <Badge
+                className="cobro-bloque-tabs__badge"
+                count={resumen.totalFilas}
+                overflowCount={999}
+                showZero
+                color="#8c8c8c"
+              />
+            </span>
+          ),
+        },
+        {
+          key: 'por-enviar',
+          label: (
+            <span className="cobro-bloque-tabs__label">
+              {fieldMode ? 'Enviar' : 'Por enviar'}
+              <Badge
+                className="cobro-bloque-tabs__badge"
+                count={resumen.conCobro}
+                showZero
+                color="#faad14"
+              />
+            </span>
+          ),
+        },
+        {
+          key: 'enviados',
+          label: (
+            <span className="cobro-bloque-tabs__label">
+              Enviados
+              <Badge
+                className="cobro-bloque-tabs__badge"
+                count={cola.enviados.length}
+                showZero
+                color="#52c41a"
+              />
+            </span>
+          ),
+        },
+      ]}
+    />
+  )
+
+  const actionDock = !sinCaja && tabPrincipal !== 'enviados' ? (
     <div
       className="cobro-bloque-dock"
       role="region"
-      aria-label="Acciones de planilla"
+      aria-label="Acciones de cobro"
       style={
         dockBox
           ? { left: dockBox.left, width: dockBox.width }
@@ -996,41 +1387,56 @@ export function CobroBloquePage() {
       <div className="cobro-bloque-dock__inner">
         <div className="cobro-bloque-dock__stats">
           <div>
-            <Text type="secondary">A cobrar</Text>
+            <Text type="secondary" className="cobro-bloque-dock__stats-label">
+              Por enviar
+            </Text>
             <strong>
               {resumen.conCobro} · S/ {formatMoney(resumen.total)}
             </strong>
           </div>
-          <div className="cobro-bloque-dock__impagos">
-            <Text type="secondary">Impagos</Text>
-            <strong>{resumen.impagos}</strong>
-          </div>
+          {cola.enviados.length > 0 ? (
+            <div className="cobro-bloque-dock__enviados">
+              <Text type="secondary" className="cobro-bloque-dock__stats-label">
+                Enviados
+              </Text>
+              <strong>{cola.enviados.length}</strong>
+            </div>
+          ) : null}
         </div>
         <Space wrap className="cobro-bloque-dock__actions">
           {scrolledDown ? (
-            <Button icon={<ArrowUpOutlined />} onClick={scrollPlanillaTop}>
-              Arriba
+            <Button icon={<ArrowUpOutlined />} onClick={scrollPlanillaTop} aria-label="Ir arriba">
+              {fieldMode ? null : 'Arriba'}
             </Button>
           ) : null}
           <Button
             type="primary"
             size="large"
             icon={<CheckOutlined />}
-            loading={procesar.isPending}
-            disabled={resumen.totalFilas < 1}
-            onClick={confirmarProcesar}
+            loading={enviarCola.isPending}
+            disabled={resumen.conCobro < 1}
+            onClick={confirmarEnviarCola}
           >
-            Procesar planilla
+            {fieldMode ? `Enviar (${resumen.conCobro})` : 'Enviar cola'}
           </Button>
         </Space>
       </div>
     </div>
   ) : null
 
-  const resumenBar = (
+  const resumenBar = fieldMode ? (
+    <div className="cobro-bloque-resumen-mobile" role="region" aria-label="Resumen operativo">
+      <span className="cobro-bloque-resumen-mobile__pill cobro-bloque-resumen-mobile__pill--send">
+        Enviar {resumen.conCobro} · S/ {formatMoney(resumen.total)}
+      </span>
+      <span className="cobro-bloque-resumen-mobile__pill cobro-bloque-resumen-mobile__pill--ok">
+        Enviados {cola.enviados.length}
+      </span>
+    </div>
+  ) : (
     <div className="credix-cobro-bloque-resumen" role="region" aria-label="Resumen operativo">
       <div>
-        <Text type="secondary">Con cobro</Text>
+        <Text type="secondary">Por enviar</Text>
         <div>
           <strong>
             {resumen.conCobro} · S/ {formatMoney(resumen.total)}
@@ -1038,13 +1444,15 @@ export function CobroBloquePage() {
         </div>
       </div>
       <div>
-        <Text type="secondary">Impagos (S/ 0)</Text>
+        <Text type="secondary">Enviados hoy</Text>
         <div>
-          <strong>{resumen.impagos}</strong>
+          <strong>
+            {cola.enviados.length} · S/ {formatMoney(enviadosTotal)}
+          </strong>
         </div>
       </div>
       <div>
-        <Text type="secondary">Total cobrado</Text>
+        <Text type="secondary">Total por enviar</Text>
         <div className="credix-cobro-bloque-total">S/ {formatMoney(resumen.total)}</div>
       </div>
       <div>
@@ -1067,11 +1475,11 @@ export function CobroBloquePage() {
   return (
     <CredixPage
       className={`cobro-bloque-page${fieldMode ? ' cobro-bloque-page--field' : ''}${actionDock ? ' cobro-bloque-page--dock' : ''}`}
-      title="Cobro en bloque"
+      title="Cobro"
       subtitle={
         fieldMode
           ? undefined
-          : 'Planilla digital de cobro diario: cobro rápido en campo, voucher con un toque y borrador automático.'
+          : 'Tipar ≠ cobrado. Use Cobrar ya o Enviar cola para registrar. Completar impagos solo en Caja Diario.'
       }
       breadcrumb={
         fieldMode
@@ -1080,23 +1488,11 @@ export function CobroBloquePage() {
               { title: <Link to="/inicio">Inicio</Link> },
               { title: <Link to="/caja">Caja</Link> },
               { title: <Link to="/caja/diario">Diario</Link> },
-              { title: 'Cobro en bloque' },
+              { title: 'Cobro' },
             ]
       }
     >
-      {yaEjecutadoHoy ? (
-        <Alert
-          type="warning"
-          showIcon
-          message="Cobro en bloque ya ejecutado hoy"
-          description="No está permitido ingresar nuevamente el mismo día para evitar alterar los impagos."
-          action={
-            <Button type="primary" onClick={() => navigate('/caja/diario')}>
-              Ir a caja diario
-            </Button>
-          }
-        />
-      ) : sinCaja ? (
+      {sinCaja ? (
         <Alert
           type="warning"
           showIcon
@@ -1116,7 +1512,7 @@ export function CobroBloquePage() {
               showIcon
               className="cobro-bloque-page__hint"
               message="Ruta digital (reemplazo del reporte impreso / PWA externo)"
-              description="Orden idéntico al PDF de cobro diario (vencidos primero). Los montos tipados se guardan en este dispositivo si cambia de módulo; al día siguiente el borrador caduca solo y nunca se registra solo en el servidor. Al procesar se confirman cobros + impagos."
+              description="Tipar no cobra: los montos tipados quedan en Por enviar y se guardan en este dispositivo (el borrador caduca al día siguiente). Enviar cola o Cobrar ya sí registra el cobro en el servidor. Completar impagos solo se hace en Caja Diario."
             />
           ) : null}
 
@@ -1142,7 +1538,7 @@ export function CobroBloquePage() {
               showIcon
               className="cobro-bloque-page__draft"
               message="Sin conexión"
-              description="Puede seguir tipando montos sobre la última planilla. Al procesar se encola en este dispositivo y se envía al recuperar red."
+              description="Puede seguir tipando montos sobre la última planilla. Al enviar la cola se guarda en este dispositivo y se envía al recuperar red. Cobrar ya sin red deja el cobro en Por enviar."
             />
           ) : null}
 
@@ -1161,8 +1557,8 @@ export function CobroBloquePage() {
               type="warning"
               showIcon
               className="cobro-bloque-page__draft"
-              message={syncingQueue ? 'Sincronizando planilla…' : 'Planilla en cola (pendiente de envío)'}
-              description="Hay un lote listo para enviar. No cierre sesión hasta que se confirme el envío."
+              message={syncingQueue ? 'Sincronizando cola…' : 'Cola pendiente de envío'}
+              description="Hay cobros en cola listos para enviar. No cierre sesión hasta que se confirme el envío."
               action={
                 online && !syncingQueue ? (
                   <Button
@@ -1180,14 +1576,69 @@ export function CobroBloquePage() {
             />
           ) : null}
 
-          {toolbar}
-          {resumenBar}
+          <div className="cobro-bloque-sticky-chrome">
+            {tabsPrincipal}
+            {toolbar}
+            {resumenBar}
+          </div>
 
           <CredixPanel
-            title={fieldMode ? `Ruta (${filas.length})` : `Planilla de campo (${filas.length})`}
+            title={
+              tabPrincipal === 'enviados'
+                ? `Enviados (${enviadosFiltrados.length})`
+                : tabPrincipal === 'por-enviar'
+                  ? `Por enviar (${filas.length})`
+                  : fieldMode
+                    ? `Ruta (${filas.length})`
+                    : `Planilla de campo (${filas.length})`
+            }
             className={fieldMode ? 'cobro-bloque-panel--field' : undefined}
           >
-            {carteraQuery.isError ? (
+            {tabPrincipal === 'enviados' ? (
+              enviadosFiltrados.length === 0 ? (
+                <Text type="secondary">Aún no hay cobros enviados hoy.</Text>
+              ) : fieldMode ? (
+                <ul className="cobro-bloque-enviados-list">
+                  {enviadosFiltrados.map((it) => (
+                    <li
+                      key={`${it.creditoId}-${it.enviadoAt}`}
+                      className="cobro-bloque-enviados-list__item"
+                    >
+                      <div className="cobro-bloque-enviados-list__main">
+                        <strong title={it.personaNombre}>{it.personaNombre}</strong>
+                        <span className="cobro-bloque-enviados-list__meta">
+                          #{it.creditoId} ·{' '}
+                          {it.origen === 'cobrar_ya'
+                            ? 'Cobrar ya'
+                            : it.origen === 'sync'
+                              ? 'Sync'
+                              : 'Cola'}{' '}
+                          ·{' '}
+                          {new Date(it.enviadoAt).toLocaleTimeString('es-PE', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
+                      <strong className="cobro-bloque-enviados-list__monto">
+                        S/ {formatMoney(it.montoPagar)}
+                      </strong>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <CredixDataTable
+                  mode="operacion"
+                  className="cobro-bloque-table"
+                  rowKey={(it: CobroEnviadoItem) => `${it.creditoId}-${it.enviadoAt}`}
+                  columns={columnsEnviados}
+                  dataSource={enviadosFiltrados}
+                  pagination={{ pageSize: 50, showSizeChanger: true }}
+                  size="middle"
+                  scroll={{ x: 'max-content' }}
+                />
+              )
+            ) : carteraQuery.isError ? (
               <Alert
                 type="error"
                 showIcon
@@ -1206,7 +1657,9 @@ export function CobroBloquePage() {
                   </div>
                 ) : filas.length === 0 ? (
                   <Text type="secondary">
-                    {vistaCampo === 'cobro'
+                    {tabPrincipal === 'por-enviar'
+                      ? 'No hay cobros por enviar. Tipie montos en Cartera.'
+                      : vistaCampo === 'cobro'
                       ? 'Aún no tipó cobros. Cambie a Todos o Mora.'
                       : vistaCampo === 'mora'
                         ? 'No hay clientes en mora con este filtro.'
@@ -1222,6 +1675,10 @@ export function CobroBloquePage() {
                         edit={e}
                         tipoPagoOptions={tipoPagoOptions}
                         onPatch={(patch) => patchEdit(row.creditoId, patch, row)}
+                        enviado={enviadosSet.has(row.creditoId)}
+                        errorMsg={cola.errores[String(row.creditoId)] ?? null}
+                        onCobrarYa={() => void cobrarYa(row)}
+                        cobrarYaLoading={cobrarYaId === row.creditoId}
                         onUbicacionGuardada={(personaId, lat, lng) => {
                           queryClient.setQueryData(
                             carteraQueryKey,

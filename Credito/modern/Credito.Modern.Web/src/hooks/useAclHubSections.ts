@@ -20,7 +20,10 @@ export function useAclHubSections(sections: CredixHubSection[]): CredixHubSectio
     const paths: string[] = []
     const roles = session?.roles ?? []
     if (puedeAsignarCajaUi(roles)) paths.push('/caja/asignar')
-    if (puedeCobroBloqueUi(roles)) paths.push('/caja/cobro-bloque')
+    if (puedeCobroBloqueUi(roles)) {
+      paths.push('/caja/cobro')
+      paths.push('/caja/cobro-bloque')
+    }
     return paths
   }, [session?.roles])
 

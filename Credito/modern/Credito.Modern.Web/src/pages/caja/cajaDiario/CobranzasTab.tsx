@@ -5,6 +5,7 @@ import {
   useState,
   type Key,
 } from 'react'
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Alert,
@@ -20,6 +21,7 @@ import {
   FilePdfOutlined,
   FileSearchOutlined,
   HistoryOutlined,
+  TeamOutlined,
   UnorderedListOutlined,
   WalletOutlined,
 } from '@ant-design/icons'
@@ -584,6 +586,30 @@ export function CobranzasTab({
         .filter(Boolean)
         .join(' ')}
     >
+      <Alert
+        type="info"
+        showIcon
+        className="caja-diario-cobro-bridge"
+        message={isMobile ? 'Cobro en campo' : 'Cobranza en campo → módulo Cobro'}
+        description={
+          isMobile
+            ? 'Planilla, GPS y cola Por enviar / Enviados.'
+            : 'Para tipar la planilla del gestor (GPS, offline, cola Por enviar / Enviados) use Cobro. Aquí: consulta, pago puntual, GAD y Completar impagos al cierre.'
+        }
+        action={
+          <Link to="/caja/cobro">
+            <Button
+              type="primary"
+              icon={<TeamOutlined />}
+              disabled={ctx.indCierre}
+              size={isMobile ? 'middle' : 'middle'}
+              block={isMobile}
+            >
+              Ir a Cobro
+            </Button>
+          </Link>
+        }
+      />
       <div className="caja-diario-cobranzas-top">
         <div className="caja-diario-cobranzas-top__search">
           <span className="caja-diario-cobranzas-top__label" id="caja-buscar-cliente-label">

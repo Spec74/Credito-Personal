@@ -70,19 +70,24 @@ Clave de prueba: `123.` · oficina `1`.
 | 9 | `smoke-db-gate` / SQL Azure | ✅ | 2026-10-09 | ready database Healthy + gate local |
 | 10 | Responsive ~375px | ✅ | 2026-10-10 | `/caja/diario` Emulation 375×812 |
 
-## GPS cliente — cobro-bloque + ficha (SSD-03 / SSD-05 §7)
+## GPS + Cobro campo `/caja/cobro` (SSD-03 / SSD-05 §7)
 
-Evidencia **automatizada** (código, 2026-10-10): `clienteMapaNavegacion.test.ts`, `creditoGestorPendiente.test.ts`, `cobroBloqueOffline.test.ts`, `deviceGeolocation.test.ts`, `clienteendpointstests` (ubicacion 401/400), `ClienteGpsRules`.
+Evidencia **automatizada** (código): `clienteMapaNavegacion.test.ts`, `creditoGestorPendiente.test.ts`, `cobroBloqueOffline.test.ts`, `cobroCola.test.ts`, `cobroCampoSmokeParity.test.ts` (G1/C1–C3), `deviceGeolocation.test.ts`, `clienteendpointstests` (ubicacion 401/400), `ClienteGpsRules`.
 
 Evidencia **operativa HTTPS** (marcar al ejecutar en Dev/preprod; no inventar PASS):
 
 | # | Paso | Entorno | Resultado | Fecha | Notas |
 |---|------|----------|-----------|-------|-------|
-| G1 | PC `/caja/cobro-bloque`: columna **Ubicación** (dirección → maps); **sin** «Registrar mi ubicación» | | ☐ | | Viewport ≥ md |
+| G1 | PC `/caja/cobro`: columna **Ubicación**; **sin** «Registrar mi ubicación» | código | ✅ parity | 2026-10-12 | `cobroCampoSmokeParity` + UI PC |
 | G2 | Móvil (&lt; md): cliente **sin** GPS → botón + confirm → guarda; pill GPS; enlace usa coords | | ☐ | | HTTPS + permiso ubicación |
-| G3 | Móvil offline: tipado OK; GPS muestra aviso de red | | ☐ | | |
+| G3 | Móvil offline: tipado OK en **Por enviar**; GPS muestra aviso de red | | ☐ | | |
 | G4 | Ficha `/clientes/editar/:id` → Ubicación: «Actualizar GPS del dispositivo» corrige pin | | ☐ | | |
 | G5 | Geocode distrito = «Vista aproximada»; no oculta botón de campo hasta Ubicar/GPS/arrastre + Guardar | | ☐ | | |
+| C1 | Tipar monto → tab **Por enviar**; aún no aparece en movimientos de caja | código | ✅ parity | 2026-10-12 | tipar ≠ cobrado (API `completarImpagos:false`) |
+| C2 | **Cobrar ya** online → ticket + **Enviados**; se puede seguir tipando el mismo día | código | ✅ parity | 2026-10-12 | sin day-lock duro; ticket vía `pagarCuotaImporteLibre` |
+| C3 | **Enviar cola** no ejecuta Completar impagos; impagos solo desde Diario | código | ✅ parity | 2026-10-12 | Completar impagos solo `CobranzasTab` |
+
+**Pendiente dispositivo real (HTTPS):** G2–G5. C1–C3 operativos con caja abierta (confirmar ticket/movimientos en UI).
 
 Al firmar G1–G5, marcar las casillas GPS en [SSD-03 §7](ssd/SSD-03-caja.md) y [SSD-05 §7](ssd/SSD-05-clientes.md).
 

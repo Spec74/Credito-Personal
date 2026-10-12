@@ -154,6 +154,43 @@
   width: 100%;
 }
 
+.caja-diario-cobro-bridge {
+  border-radius: 12px;
+}
+
+.caja-diario-cobro-bridge .ant-alert-action {
+  margin-inline-start: 12px;
+}
+
+@media (max-width: 767px) {
+  .caja-diario-cobro-bridge {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .caja-diario-cobro-bridge.ant-alert {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+
+  .caja-diario-cobro-bridge .ant-alert-content {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  .caja-diario-cobro-bridge .ant-alert-action {
+    margin: 0;
+    width: 100%;
+  }
+
+  .caja-diario-cobro-bridge .ant-alert-action a {
+    display: block;
+    width: 100%;
+  }
+}
+
 .caja-diario-cobranzas-top {
   position: sticky;
   top: 0;

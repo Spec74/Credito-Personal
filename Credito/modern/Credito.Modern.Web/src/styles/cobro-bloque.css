@@ -5,24 +5,151 @@
 
 /* Espacio para el dock fijo inferior */
 .cobro-bloque-page--dock {
-  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(108px + env(safe-area-inset-bottom, 0px));
 }
 
-/* —— Barra de comando sticky (buscar + chips) —— */
-.cobro-bloque-command {
+/* Chrome sticky: tabs + búsqueda + resumen compacto (móvil) */
+.cobro-bloque-sticky-chrome {
   position: sticky;
   top: 0;
-  z-index: 40;
+  z-index: 45;
+  margin: 0 0 10px;
+  padding: 2px 0 4px;
+  background: color-mix(in srgb, var(--credix-bg, #f5f7fb) 94%, #fff);
+  backdrop-filter: blur(10px);
+}
+
+/* Tabs Cartera / Por enviar / Enviados */
+.cobro-bloque-tabs {
+  margin: 0 0 8px;
+}
+
+.cobro-bloque-tabs .ant-tabs-nav {
+  margin-bottom: 0 !important;
+}
+
+.cobro-bloque-tabs .ant-tabs-nav::before {
+  border-bottom-color: #e8eef5 !important;
+}
+
+.cobro-bloque-tabs .ant-tabs-tab {
+  padding: 8px 10px !important;
+  margin: 0 2px 0 0 !important;
+}
+
+.cobro-bloque-tabs__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 650;
+}
+
+.cobro-bloque-tabs__badge.ant-badge {
+  line-height: 1;
+}
+
+.cobro-bloque-tabs__badge .ant-badge-count {
+  box-shadow: none;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0 5px;
+}
+
+.cobro-bloque-resumen-mobile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.cobro-bloque-resumen-mobile__pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.cobro-bloque-resumen-mobile__pill--send {
+  color: #ad6800;
+  background: #fff7e6;
+  border: 1px solid #ffe58f;
+}
+
+.cobro-bloque-resumen-mobile__pill--ok {
+  color: #166534;
+  background: #dcfce7;
+  border: 1px solid #86efac;
+}
+
+.cobro-bloque-enviados-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cobro-bloque-enviados-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e8eef5;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.cobro-bloque-enviados-list__main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cobro-bloque-enviados-list__main strong {
+  font-size: 15px;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cobro-bloque-enviados-list__meta {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.cobro-bloque-enviados-list__monto {
+  flex: 0 0 auto;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--credix-brand, #114885);
+  white-space: nowrap;
+}
+
+.cobro-bloque-col-accion {
+  min-width: 148px;
+}
+
+/* —— Barra de comando (buscar + chips); sticky vía .cobro-bloque-sticky-chrome —— */
+.cobro-bloque-command {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 12px;
-  margin: 0 0 12px;
+  margin: 0 0 10px;
   padding: 10px 12px;
   border: 1px solid #e8eef5;
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(10px);
   box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
 }
 
@@ -356,6 +483,28 @@
   background: linear-gradient(180deg, #f4fff7 0%, #fff 36%);
 }
 
+.cobro-bloque-card--enviado {
+  opacity: 0.88;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.18);
+}
+
+.cobro-bloque-card__badge--tipado {
+  color: #ad6800;
+  background: #fff7e6;
+}
+
+.cobro-bloque-card__error {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #a8071a;
+  line-height: 1.35;
+}
+
+.cobro-bloque-card__cobrar-ya {
+  margin-top: 0.35rem;
+}
+
 .cobro-bloque-card__head {
   display: flex;
   justify-content: space-between;
@@ -671,14 +820,27 @@
   align-items: center;
   gap: 16px;
   min-width: 0;
+  flex: 1 1 auto;
+}
+
+.cobro-bloque-dock__stats-label {
+  display: block !important;
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  margin-bottom: 2px;
 }
 
 .cobro-bloque-dock__stats strong {
   display: block;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   color: var(--credix-brand, #114885);
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.cobro-bloque-dock__enviados strong {
+  color: #166534;
 }
 
 .cobro-bloque-dock__impagos {
@@ -696,6 +858,11 @@
 }
 
 @media (min-width: 768px) {
+  .cobro-bloque-sticky-chrome {
+    position: sticky;
+    top: 0;
+  }
+
   .cobro-bloque-dock__impagos {
     display: block;
   }
@@ -703,21 +870,71 @@
   .cobro-bloque-command__search {
     max-width: 440px;
   }
+
+  .cobro-bloque-col-accion .ant-btn {
+    min-height: 32px;
+  }
 }
 
 @media (max-width: 767px) {
+  .cobro-bloque-page--dock {
+    padding-bottom: calc(124px + env(safe-area-inset-bottom, 0px));
+  }
+
   .cobro-bloque-page--field .credix-page-subtitle,
   .cobro-bloque-page--field .credix-page-breadcrumb {
     display: none;
   }
 
   .cobro-bloque-page--field .credix-page-title {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     margin-bottom: 0;
   }
 
   .cobro-bloque-page--field .credix-page-head {
-    margin-bottom: 10px;
+    margin-bottom: 8px;
+  }
+
+  /* Alerts compactos: no empujar la planilla fuera de viewport */
+  .cobro-bloque-page--field .cobro-bloque-page__hint .ant-alert-description,
+  .cobro-bloque-page--field .cobro-bloque-page__draft .ant-alert-description {
+    display: none;
+  }
+
+  .cobro-bloque-page--field .ant-alert {
+    padding: 8px 10px;
+    margin-bottom: 8px;
+  }
+
+  .cobro-bloque-sticky-chrome {
+    margin-left: -2px;
+    margin-right: -2px;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .cobro-bloque-tabs {
+    margin-bottom: 8px;
+  }
+
+  .cobro-bloque-tabs .ant-tabs-nav-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .cobro-bloque-tabs .ant-tabs-tab {
+    padding: 8px 8px !important;
+    flex: 1 1 0;
+    justify-content: center;
+  }
+
+  .cobro-bloque-tabs .ant-tabs-nav-list {
+    width: 100%;
+  }
+
+  .cobro-bloque-tabs__label {
+    font-size: 13px;
+    gap: 4px;
   }
 
   .cobro-bloque-command {
@@ -776,13 +993,34 @@
     min-height: 34px;
   }
 
+  .cobro-bloque-command__chip--accent {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+
   .cobro-bloque-page.cobro-bloque-page--field .credix-cobro-bloque-resumen {
     display: none;
+  }
+
+  .cobro-bloque-dock {
+    padding-left: 8px;
+    padding-right: 8px;
   }
 
   .cobro-bloque-dock__inner {
     flex-wrap: wrap;
     gap: 10px;
+    border-radius: 14px;
+    padding: 10px 12px;
+  }
+
+  .cobro-bloque-dock__stats {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .cobro-bloque-dock__enviados {
+    text-align: right;
   }
 
   .cobro-bloque-dock__actions {
@@ -791,13 +1029,31 @@
 
   .cobro-bloque-dock__actions .ant-space {
     width: 100%;
-    justify-content: flex-end;
+    justify-content: stretch;
+  }
+
+  .cobro-bloque-dock__actions .ant-space-item {
+    flex: 1 1 auto;
   }
 
   .cobro-bloque-dock__actions .ant-btn-primary {
-    flex: 1 1 auto;
+    width: 100%;
     min-width: 0;
     min-height: 48px;
     font-size: 16px;
+  }
+
+  .cobro-bloque-card__cobrar-ya.ant-btn {
+    min-height: 48px;
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .cobro-bloque-card__name {
+    font-size: 1.05rem;
+  }
+
+  .cobro-bloque-card__deuda strong {
+    font-size: 1.15rem;
   }
 }

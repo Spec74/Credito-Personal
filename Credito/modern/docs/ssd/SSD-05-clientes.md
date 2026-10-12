@@ -60,7 +60,7 @@ No hay cálculo de cuota aquí.
 | `GET /api/v1/clientes/{id}`, `POST /guardar` | `CreditoUser` | Formulario |
 | `GET por-documento`, `GET existe-documento` | `CreditoUser` | Alta / blur DNI |
 | `POST .../activar`, `.../bloquear`, `habilitar-depurado` | `CreditoUser` | Ficha |
-| `POST /api/v1/clientes/{personaId}/ubicacion` | `CreditoUser` | Ficha Ubicación / cobro-bloque móvil |
+| `POST /api/v1/clientes/{personaId}/ubicacion` | `CreditoUser` | Ficha Ubicación / Cobro campo móvil |
 | `GET distritos-buscar`, `GET personas-buscar` | `CreditoUser` | Formulario |
 | `POST crear-persona-rapida` | `CreditoUser` | Modal |
 | `GET /integraciones/apiperu/dni\|ruc` | User | Consulta documento |
@@ -92,7 +92,7 @@ Listado sin término (&lt; 2 caracteres): clientes distintos de créditos del `U
 
 Ninguna financiera propia. Mapa Google vs Leaflet es producto. Relatos de menú/iconos en bitácora 2026-09-09 si aplican al shell.
 
-**GPS 2026-10-10:** captura por dispositivo (`Permissions-Policy: geolocation=(self)`). Corrección de pin malo: ficha cliente (oficina o campo con permiso). En cobro-bloque móvil el botón solo aparece si aún no hay coordenadas (SSD-03). Precisión &gt; ~80 m: aviso suave sin bloquear el guardado. Geocode automático de distrito = vista previa (no se persiste como GPS). `guardar` y `/ubicacion` validan rango Perú.
+**GPS 2026-10-10:** captura por dispositivo (`Permissions-Policy: geolocation=(self)`). Corrección de pin malo: ficha cliente (oficina o campo con permiso). En Cobro campo (`/caja/cobro`) móvil el botón solo aparece si aún no hay coordenadas (SSD-03). Precisión &gt; ~80 m: aviso suave sin bloquear el guardado. Geocode automático de distrito = vista previa (no se persiste como GPS). `guardar` y `/ubicacion` validan rango Perú.
 
 ## 9. Pruebas y evidencia
 

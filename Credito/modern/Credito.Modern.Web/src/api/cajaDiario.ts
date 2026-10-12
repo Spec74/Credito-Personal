@@ -555,6 +555,11 @@ export function cobrarPlanillaBloque(body: {
     tipoPagoId: number
     fechaHoraTrans?: string | null
   }>
+  /**
+   * Cobro PWA moderno: siempre `false` (impagos solo desde Caja Diario).
+   * `true` solo si se necesita paridad del MVC antiguo.
+   */
+  completarImpagos?: boolean
 }): Promise<{
   exito: boolean
   mensaje: string
@@ -564,7 +569,10 @@ export function cobrarPlanillaBloque(body: {
   return apiFetch('/credito/cobrar-planilla-bloque', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      ...body,
+      completarImpagos: body.completarImpagos ?? false,
+    }),
   })
 }
 

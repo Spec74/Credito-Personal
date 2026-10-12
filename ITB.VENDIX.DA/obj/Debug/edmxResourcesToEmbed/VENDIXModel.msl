@@ -1,0 +1,1978 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+  <EntityContainerMapping StorageEntityContainer="VENDIXModelStoreContainer" CdmEntityContainer="VENDIXEntities">
+    <EntitySetMapping Name="Almacen">
+      <EntityTypeMapping TypeName="VENDIXModel.Almacen">
+        <MappingFragment StoreEntitySet="Almacen">
+          <ScalarProperty Name="AlmacenId" ColumnName="AlmacenId" />
+          <ScalarProperty Name="OficinaId" ColumnName="OficinaId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="IndEstadoApertura" ColumnName="IndEstadoApertura" />
+          <ScalarProperty Name="FechaApertura" ColumnName="FechaApertura" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Articulo">
+      <EntityTypeMapping TypeName="VENDIXModel.Articulo">
+        <MappingFragment StoreEntitySet="Articulo">
+          <ScalarProperty Name="ArticuloId" ColumnName="ArticuloId" />
+          <ScalarProperty Name="ModeloId" ColumnName="ModeloId" />
+          <ScalarProperty Name="TipoArticuloId" ColumnName="TipoArticuloId" />
+          <ScalarProperty Name="CodArticulo" ColumnName="CodArticulo" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="Imagen" ColumnName="Imagen" />
+          <ScalarProperty Name="IndPerecible" ColumnName="IndPerecible" />
+          <ScalarProperty Name="IndImportado" ColumnName="IndImportado" />
+          <ScalarProperty Name="IndCanjeable" ColumnName="IndCanjeable" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Marca">
+      <EntityTypeMapping TypeName="VENDIXModel.Marca">
+        <MappingFragment StoreEntitySet="Marca">
+          <ScalarProperty Name="MarcaId" ColumnName="MarcaId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Modelo">
+      <EntityTypeMapping TypeName="VENDIXModel.Modelo">
+        <MappingFragment StoreEntitySet="Modelo">
+          <ScalarProperty Name="ModeloId" ColumnName="ModeloId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="MarcaId" ColumnName="MarcaId" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Movimiento">
+      <EntityTypeMapping TypeName="VENDIXModel.Movimiento">
+        <MappingFragment StoreEntitySet="Movimiento">
+          <ScalarProperty Name="MovimientoId" ColumnName="MovimientoId" />
+          <ScalarProperty Name="TipoMovimientoId" ColumnName="TipoMovimientoId" />
+          <ScalarProperty Name="AlmacenId" ColumnName="AlmacenId" />
+          <ScalarProperty Name="Fecha" ColumnName="Fecha" />
+          <ScalarProperty Name="SubTotal" ColumnName="SubTotal" />
+          <ScalarProperty Name="IGV" ColumnName="IGV" />
+          <ScalarProperty Name="AjusteRedondeo" ColumnName="AjusteRedondeo" />
+          <ScalarProperty Name="TotalImporte" ColumnName="TotalImporte" />
+          <ScalarProperty Name="EstadoId" ColumnName="EstadoId" />
+          <ScalarProperty Name="Observacion" ColumnName="Observacion" />
+          <ScalarProperty Name="Documento" ColumnName="Documento" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MovimientoDet">
+      <EntityTypeMapping TypeName="VENDIXModel.MovimientoDet">
+        <MappingFragment StoreEntitySet="MovimientoDet">
+          <ScalarProperty Name="MovimientoDetId" ColumnName="MovimientoDetId" />
+          <ScalarProperty Name="MovimientoId" ColumnName="MovimientoId" />
+          <ScalarProperty Name="ArticuloId" ColumnName="ArticuloId" />
+          <ScalarProperty Name="Cantidad" ColumnName="Cantidad" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="PrecioUnitario" ColumnName="PrecioUnitario" />
+          <ScalarProperty Name="Descuento" ColumnName="Descuento" />
+          <ScalarProperty Name="Importe" ColumnName="Importe" />
+          <ScalarProperty Name="IndCorrelativo" ColumnName="IndCorrelativo" />
+          <ScalarProperty Name="UnidadMedidaT10" ColumnName="UnidadMedidaT10" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MovimientoDoc">
+      <EntityTypeMapping TypeName="VENDIXModel.MovimientoDoc">
+        <MappingFragment StoreEntitySet="MovimientoDoc">
+          <ScalarProperty Name="MovimientoDocId" ColumnName="MovimientoDocId" />
+          <ScalarProperty Name="MovimientoId" ColumnName="MovimientoId" />
+          <ScalarProperty Name="TipoDocumentoId" ColumnName="TipoDocumentoId" />
+          <ScalarProperty Name="SerieDocumento" ColumnName="SerieDocumento" />
+          <ScalarProperty Name="NroDocumento" ColumnName="NroDocumento" />
+          <ScalarProperty Name="RemitenteId" ColumnName="RemitenteId" />
+          <ScalarProperty Name="DestinatarioId" ColumnName="DestinatarioId" />
+          <ScalarProperty Name="DestinoRef" ColumnName="DestinoRef" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="SerieArticulo">
+      <EntityTypeMapping TypeName="VENDIXModel.SerieArticulo">
+        <MappingFragment StoreEntitySet="SerieArticulo">
+          <ScalarProperty Name="SerieArticuloId" ColumnName="SerieArticuloId" />
+          <ScalarProperty Name="NumeroSerie" ColumnName="NumeroSerie" />
+          <ScalarProperty Name="AlmacenId" ColumnName="AlmacenId" />
+          <ScalarProperty Name="ArticuloId" ColumnName="ArticuloId" />
+          <ScalarProperty Name="EstadoId" ColumnName="EstadoId" />
+          <ScalarProperty Name="MovimientoDetEntId" ColumnName="MovimientoDetEntId" />
+          <ScalarProperty Name="MovimientoDetSalId" ColumnName="MovimientoDetSalId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="TipoArticulo">
+      <EntityTypeMapping TypeName="VENDIXModel.TipoArticulo">
+        <MappingFragment StoreEntitySet="TipoArticulo">
+          <ScalarProperty Name="TipoArticuloId" ColumnName="TipoArticuloId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="IndTieneCodigo" ColumnName="IndTieneCodigo" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="IndMovimientoAlmacen" ColumnName="IndMovimientoAlmacen" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="TipoMovimiento">
+      <EntityTypeMapping TypeName="VENDIXModel.TipoMovimiento">
+        <MappingFragment StoreEntitySet="TipoMovimiento">
+          <ScalarProperty Name="TipoMovimientoId" ColumnName="TipoMovimientoId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="IndEntrada" ColumnName="IndEntrada" />
+          <ScalarProperty Name="IndTransferencia" ColumnName="IndTransferencia" />
+          <ScalarProperty Name="IndDevolucion" ColumnName="IndDevolucion" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Transferencia">
+      <EntityTypeMapping TypeName="VENDIXModel.Transferencia">
+        <MappingFragment StoreEntitySet="Transferencia">
+          <ScalarProperty Name="TransferenciaId" ColumnName="TransferenciaId" />
+          <ScalarProperty Name="AlmacenOrigenId" ColumnName="AlmacenOrigenId" />
+          <ScalarProperty Name="AlmacenDestinoId" ColumnName="AlmacenDestinoId" />
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="Fecha" ColumnName="Fecha" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="TransferenciaSerie">
+      <EntityTypeMapping TypeName="VENDIXModel.TransferenciaSerie">
+        <MappingFragment StoreEntitySet="TransferenciaSerie">
+          <ScalarProperty Name="TransferenciaSerieId" ColumnName="TransferenciaSerieId" />
+          <ScalarProperty Name="TransferenciaId" ColumnName="TransferenciaId" />
+          <ScalarProperty Name="SerieArticuloId" ColumnName="SerieArticuloId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Aprobacion">
+      <EntityTypeMapping TypeName="VENDIXModel.Aprobacion">
+        <MappingFragment StoreEntitySet="Aprobacion">
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Nivel" ColumnName="Nivel" />
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="Fecha" ColumnName="Fecha" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Boveda">
+      <EntityTypeMapping TypeName="VENDIXModel.Boveda">
+        <MappingFragment StoreEntitySet="Boveda">
+          <ScalarProperty Name="BovedaId" ColumnName="BovedaId" />
+          <ScalarProperty Name="OficinaId" ColumnName="OficinaId" />
+          <ScalarProperty Name="SaldoInicial" ColumnName="SaldoInicial" />
+          <ScalarProperty Name="Entradas" ColumnName="Entradas" />
+          <ScalarProperty Name="Salidas" ColumnName="Salidas" />
+          <ScalarProperty Name="SaldoFinal" ColumnName="SaldoFinal" />
+          <ScalarProperty Name="FechaIniOperacion" ColumnName="FechaIniOperacion" />
+          <ScalarProperty Name="FechaFinOperacion" ColumnName="FechaFinOperacion" />
+          <ScalarProperty Name="IndCierre" ColumnName="IndCierre" />
+          <ScalarProperty Name="IndTemporal" ColumnName="IndTemporal" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="BovedaMovTemp">
+      <EntityTypeMapping TypeName="VENDIXModel.BovedaMovTemp">
+        <MappingFragment StoreEntitySet="BovedaMovTemp">
+          <ScalarProperty Name="BovedaMovTempId" ColumnName="BovedaMovTempId" />
+          <ScalarProperty Name="BovedaInicioId" ColumnName="BovedaInicioId" />
+          <ScalarProperty Name="BovedaDestinoId" ColumnName="BovedaDestinoId" />
+          <ScalarProperty Name="CodOperacion" ColumnName="CodOperacion" />
+          <ScalarProperty Name="Glosa" ColumnName="Glosa" />
+          <ScalarProperty Name="Importe" ColumnName="Importe" />
+          <ScalarProperty Name="UsuarioRegId" ColumnName="UsuarioRegId" />
+          <ScalarProperty Name="MovimientoBovedaIniId" ColumnName="MovimientoBovedaIniId" />
+          <ScalarProperty Name="FechaReg" ColumnName="FechaReg" />
+          <ScalarProperty Name="IndEntrada" ColumnName="IndEntrada" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Caja">
+      <EntityTypeMapping TypeName="VENDIXModel.Caja">
+        <MappingFragment StoreEntitySet="Caja">
+          <ScalarProperty Name="CajaId" ColumnName="CajaId" />
+          <ScalarProperty Name="OficinaId" ColumnName="OficinaId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="UsuarioRegId" ColumnName="UsuarioRegId" />
+          <ScalarProperty Name="FechaReg" ColumnName="FechaReg" />
+          <ScalarProperty Name="IndAbierto" ColumnName="IndAbierto" />
+          <ScalarProperty Name="UsuarioModId" ColumnName="UsuarioModId" />
+          <ScalarProperty Name="FechaMod" ColumnName="FechaMod" />
+          <ScalarProperty Name="CajeroId" ColumnName="CajeroId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="CajaChicaDiario">
+      <EntityTypeMapping TypeName="VENDIXModel.CajaChicaDiario">
+        <MappingFragment StoreEntitySet="CajaChicaDiario">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="SaldoInicial" ColumnName="SaldoInicial" />
+          <ScalarProperty Name="Entradas" ColumnName="Entradas" />
+          <ScalarProperty Name="Salidas" ColumnName="Salidas" />
+          <ScalarProperty Name="SaldoFinal" ColumnName="SaldoFinal" />
+          <ScalarProperty Name="FechaIniOperacion" ColumnName="FechaIniOperacion" />
+          <ScalarProperty Name="FechaFinOperacion" ColumnName="FechaFinOperacion" />
+          <ScalarProperty Name="IndCierre" ColumnName="IndCierre" />
+          <ScalarProperty Name="TransBoveda" ColumnName="TransBoveda" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="CajaDiario">
+      <EntityTypeMapping TypeName="VENDIXModel.CajaDiario">
+        <MappingFragment StoreEntitySet="CajaDiario">
+          <ScalarProperty Name="CajaDiarioId" ColumnName="CajaDiarioId" />
+          <ScalarProperty Name="CajaId" ColumnName="CajaId" />
+          <ScalarProperty Name="UsuarioAsignadoId" ColumnName="UsuarioAsignadoId" />
+          <ScalarProperty Name="SaldoInicial" ColumnName="SaldoInicial" />
+          <ScalarProperty Name="Entradas" ColumnName="Entradas" />
+          <ScalarProperty Name="Salidas" ColumnName="Salidas" />
+          <ScalarProperty Name="SaldoFinal" ColumnName="SaldoFinal" />
+          <ScalarProperty Name="FechaIniOperacion" ColumnName="FechaIniOperacion" />
+          <ScalarProperty Name="FechaFinOperacion" ColumnName="FechaFinOperacion" />
+          <ScalarProperty Name="IndCierre" ColumnName="IndCierre" />
+          <ScalarProperty Name="TransBoveda" ColumnName="TransBoveda" />
+          <ScalarProperty Name="MontoPorCobrar" ColumnName="MontoPorCobrar" />
+          <ScalarProperty Name="MontoCobrado" ColumnName="MontoCobrado" />
+          <ScalarProperty Name="SaldoCartera" ColumnName="SaldoCartera" />
+          <ScalarProperty Name="NroClientesSaldoCartera" ColumnName="NroClientesSaldoCartera" />
+          <ScalarProperty Name="SaldoMoraCartera" ColumnName="SaldoMoraCartera" />
+          <ScalarProperty Name="NroClientesSaldoMoraCartera" ColumnName="NroClientesSaldoMoraCartera" />
+          <ScalarProperty Name="NroClientesNuevos" ColumnName="NroClientesNuevos" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Cargo">
+      <EntityTypeMapping TypeName="VENDIXModel.Cargo">
+        <MappingFragment StoreEntitySet="Cargo">
+          <ScalarProperty Name="CargoId" ColumnName="CargoId" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="NumCuota" ColumnName="NumCuota" />
+          <ScalarProperty Name="TipoCargoT2" ColumnName="TipoCargoT2" />
+          <ScalarProperty Name="Importe" ColumnName="Importe" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="Fecha" ColumnName="Fecha" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="CentralRiesgo">
+      <EntityTypeMapping TypeName="VENDIXModel.CentralRiesgo">
+        <MappingFragment StoreEntitySet="CentralRiesgo">
+          <ScalarProperty Name="Anio" ColumnName="Anio" />
+          <ScalarProperty Name="Mes" ColumnName="Mes" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
+          <ScalarProperty Name="CuotasAtrazo" ColumnName="CuotasAtrazo" />
+          <ScalarProperty Name="DeudaAtrazo" ColumnName="DeudaAtrazo" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Credito">
+      <EntityTypeMapping TypeName="VENDIXModel.Credito">
+        <MappingFragment StoreEntitySet="Credito">
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="ProductoId" ColumnName="ProductoId" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="MontoProducto" ColumnName="MontoProducto" />
+          <ScalarProperty Name="MontoInicial" ColumnName="MontoInicial" />
+          <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+          <ScalarProperty Name="MontoGastosAdm" ColumnName="MontoGastosAdm" />
+          <ScalarProperty Name="CentralRiesgo" ColumnName="CentralRiesgo" />
+          <ScalarProperty Name="MontoDesembolso" ColumnName="MontoDesembolso" />
+          <ScalarProperty Name="TipoGastoAdm" ColumnName="TipoGastoAdm" />
+          <ScalarProperty Name="FormaPago" ColumnName="FormaPago" />
+          <ScalarProperty Name="NumeroCuotas" ColumnName="NumeroCuotas" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="FechaPrimerPago" ColumnName="FechaPrimerPago" />
+          <ScalarProperty Name="FechaAprobacion" ColumnName="FechaAprobacion" />
+          <ScalarProperty Name="FechaDesembolso" ColumnName="FechaDesembolso" />
+          <ScalarProperty Name="Observacion" ColumnName="Observacion" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="OficinaId" ColumnName="OficinaId" />
+          <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+          <ScalarProperty Name="FechaPagado" ColumnName="FechaPagado" />
+          <ScalarProperty Name="OrdenVentaId" ColumnName="OrdenVentaId" />
+          <ScalarProperty Name="TipoCuota" ColumnName="TipoCuota" />
+          <ScalarProperty Name="Calificacion" ColumnName="Calificacion" />
+          <ScalarProperty Name="IndCondonacion" ColumnName="IndCondonacion" />
+          <ScalarProperty Name="MontoCondonacion" ColumnName="MontoCondonacion" />
+          <ScalarProperty Name="PersonaAvalId" ColumnName="PersonaAvalId" />
+          <ScalarProperty Name="UsuarioRegId" ColumnName="UsuarioRegId" />
+          <ScalarProperty Name="FechaReg" ColumnName="FechaReg" />
+          <ScalarProperty Name="UsuarioModId" ColumnName="UsuarioModId" />
+          <ScalarProperty Name="FechaMod" ColumnName="FechaMod" />
+          <ScalarProperty Name="IndIrrecuperable" ColumnName="IndIrrecuperable" />
+          <ScalarProperty Name="EsPrendario" ColumnName="EsPrendario" />
+          <ScalarProperty Name="MontoTasacion" ColumnName="MontoTasacion" />
+          <ScalarProperty Name="NumeroContratoPrendario" ColumnName="NumeroContratoPrendario" />
+          <ScalarProperty Name="FechaRemate" ColumnName="FechaRemate" />
+          <ScalarProperty Name="PrendaId" ColumnName="PrendaId" />
+          <ScalarProperty Name="FechaNotifWhatsapp3d" ColumnName="FechaNotifWhatsapp3d" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Prenda">
+      <EntityTypeMapping TypeName="VENDIXModel.Prenda">
+        <MappingFragment StoreEntitySet="Prenda">
+          <ScalarProperty Name="PrendaId" ColumnName="PrendaId" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="Marca" ColumnName="Marca" />
+          <ScalarProperty Name="Modelo" ColumnName="Modelo" />
+          <ScalarProperty Name="Serie" ColumnName="Serie" />
+          <ScalarProperty Name="Color" ColumnName="Color" />
+          <ScalarProperty Name="ValorTasacion" ColumnName="ValorTasacion" />
+          <ScalarProperty Name="Observaciones" ColumnName="Observaciones" />
+          <ScalarProperty Name="FotoPath" ColumnName="FotoPath" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="FechaRegistro" ColumnName="FechaRegistro" />
+          <ScalarProperty Name="CodigoInterno" ColumnName="CodigoInterno" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="CreditoImagen">
+      <EntityTypeMapping TypeName="VENDIXModel.CreditoImagen">
+        <MappingFragment StoreEntitySet="CreditoImagen">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Imagen" ColumnName="Imagen" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="CuentaxCobrar">
+      <EntityTypeMapping TypeName="VENDIXModel.CuentaxCobrar">
+        <MappingFragment StoreEntitySet="CuentaxCobrar">
+          <ScalarProperty Name="CuentaxCobrarId" ColumnName="CuentaxCobrarId" />
+          <ScalarProperty Name="Operacion" ColumnName="Operacion" />
+          <ScalarProperty Name="Monto" ColumnName="Monto" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="GastosAdm">
+      <EntityTypeMapping TypeName="VENDIXModel.GastosAdm">
+        <MappingFragment StoreEntitySet="GastosAdm">
+          <ScalarProperty Name="GastosAdmId" ColumnName="GastosAdmId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="MontoMinimo" ColumnName="MontoMinimo" />
+          <ScalarProperty Name="MontoMaximo" ColumnName="MontoMaximo" />
+          <ScalarProperty Name="IndPorcentaje" ColumnName="IndPorcentaje" />
+          <ScalarProperty Name="Valor" ColumnName="Valor" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="Ind" ColumnName="Ind" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MovimientoCaja">
+      <EntityTypeMapping TypeName="VENDIXModel.MovimientoCaja">
+        <MappingFragment StoreEntitySet="MovimientoCaja">
+          <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+          <ScalarProperty Name="CajaDiarioId" ColumnName="CajaDiarioId" />
+          <ScalarProperty Name="Operacion" ColumnName="Operacion" />
+          <ScalarProperty Name="ImportePago" ColumnName="ImportePago" />
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="TipoPagoId" ColumnName="TipoPagoId" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="IndEntrada" ColumnName="IndEntrada" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="UsuarioRegId" ColumnName="UsuarioRegId" />
+          <ScalarProperty Name="FechaReg" ColumnName="FechaReg" />
+          <ScalarProperty Name="OrdenVentaId" ColumnName="OrdenVentaId" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MovimientoCajaAnu">
+      <EntityTypeMapping TypeName="VENDIXModel.MovimientoCajaAnu">
+        <MappingFragment StoreEntitySet="MovimientoCajaAnu">
+          <ScalarProperty Name="MovimientoCajaAnuId" ColumnName="MovimientoCajaAnuId" />
+          <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+          <ScalarProperty Name="Observacion" ColumnName="Observacion" />
+          <ScalarProperty Name="UsuarioRegId" ColumnName="UsuarioRegId" />
+          <ScalarProperty Name="FechaReg" ColumnName="FechaReg" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MovimientoCajaChica">
+      <EntityTypeMapping TypeName="VENDIXModel.MovimientoCajaChica">
+        <MappingFragment StoreEntitySet="MovimientoCajaChica">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="CajaChicaDiarioId" ColumnName="CajaChicaDiarioId" />
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="Operacion" ColumnName="Operacion" />
+          <ScalarProperty Name="Importe" ColumnName="Importe" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="IndEntrada" ColumnName="IndEntrada" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="UsuarioRegId" ColumnName="UsuarioRegId" />
+          <ScalarProperty Name="FechaReg" ColumnName="FechaReg" />
+          <ScalarProperty Name="IndRendido" ColumnName="IndRendido" />
+          <ScalarProperty Name="ImporteRendido" ColumnName="ImporteRendido" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MovimientoCajaExtension">
+      <EntityTypeMapping TypeName="VENDIXModel.MovimientoCajaExtension">
+        <MappingFragment StoreEntitySet="MovimientoCajaExtension">
+          <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+          <ScalarProperty Name="FechaTransferencia" ColumnName="FechaTransferencia" />
+          <ScalarProperty Name="IndTransferenciaVerificada" ColumnName="IndTransferenciaVerificada" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MovimientoRendidoCajaChica">
+      <EntityTypeMapping TypeName="VENDIXModel.MovimientoRendidoCajaChica">
+        <MappingFragment StoreEntitySet="MovimientoRendidoCajaChica">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="MovimientoCajaChicaId" ColumnName="MovimientoCajaChicaId" />
+          <ScalarProperty Name="TipoDocumentoId" ColumnName="TipoDocumentoId" />
+          <ScalarProperty Name="Fecha" ColumnName="Fecha" />
+          <ScalarProperty Name="Serie" ColumnName="Serie" />
+          <ScalarProperty Name="Numero" ColumnName="Numero" />
+          <ScalarProperty Name="RUC" ColumnName="RUC" />
+          <ScalarProperty Name="RazonSocial" ColumnName="RazonSocial" />
+          <ScalarProperty Name="DetalleGasto" ColumnName="DetalleGasto" />
+          <ScalarProperty Name="Importe" ColumnName="Importe" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="PlanPago">
+      <EntityTypeMapping TypeName="VENDIXModel.PlanPago">
+        <MappingFragment StoreEntitySet="PlanPago">
+          <ScalarProperty Name="PlanPagoId" ColumnName="PlanPagoId" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Numero" ColumnName="Numero" />
+          <ScalarProperty Name="Capital" ColumnName="Capital" />
+          <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+          <ScalarProperty Name="Amortizacion" ColumnName="Amortizacion" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="GastosAdm" ColumnName="GastosAdm" />
+          <ScalarProperty Name="Cuota" ColumnName="Cuota" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
+          <ScalarProperty Name="ImporteMora" ColumnName="ImporteMora" />
+          <ScalarProperty Name="Descuento" ColumnName="Descuento" />
+          <ScalarProperty Name="PagoCuota" ColumnName="PagoCuota" />
+          <ScalarProperty Name="FechaPagoCuota" ColumnName="FechaPagoCuota" />
+          <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+          <ScalarProperty Name="UsuarioModId" ColumnName="UsuarioModId" />
+          <ScalarProperty Name="FechaMod" ColumnName="FechaMod" />
+          <ScalarProperty Name="PagoLibre" ColumnName="PagoLibre" />
+          <ScalarProperty Name="Cargo" ColumnName="Cargo" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Producto">
+      <EntityTypeMapping TypeName="VENDIXModel.Producto">
+        <MappingFragment StoreEntitySet="Producto">
+          <ScalarProperty Name="IndMora" ColumnName="IndMora" />
+          <ScalarProperty Name="ProductoId" ColumnName="ProductoId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="InteresMinima" ColumnName="InteresMinima" />
+          <ScalarProperty Name="InteresMaxima" ColumnName="InteresMaxima" />
+          <ScalarProperty Name="DiasGracia" ColumnName="DiasGracia" />
+          <ScalarProperty Name="ImporteMoratorio" ColumnName="ImporteMoratorio" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="SaldoCarteraMensual">
+      <EntityTypeMapping TypeName="VENDIXModel.SaldoCarteraMensual">
+        <MappingFragment StoreEntitySet="SaldoCarteraMensual">
+          <ScalarProperty Name="SaldoCarteraId" ColumnName="SaldoCarteraId" />
+          <ScalarProperty Name="OficinaId" ColumnName="OficinaId" />
+          <ScalarProperty Name="AgenteId" ColumnName="AgenteId" />
+          <ScalarProperty Name="Anio" ColumnName="Anio" />
+          <ScalarProperty Name="Mes" ColumnName="Mes" />
+          <ScalarProperty Name="FechaCierre" ColumnName="FechaCierre" />
+          <ScalarProperty Name="NroDesembolsos" ColumnName="NroDesembolsos" />
+          <ScalarProperty Name="MontoDesembolsos" ColumnName="MontoDesembolsos" />
+          <ScalarProperty Name="SaldoCartera" ColumnName="SaldoCartera" />
+          <ScalarProperty Name="NroClientesSaldoCartera" ColumnName="NroClientesSaldoCartera" />
+          <ScalarProperty Name="SaldoMoraCartera" ColumnName="SaldoMoraCartera" />
+          <ScalarProperty Name="NroClientesSaldoMoraCartera" ColumnName="NroClientesSaldoMoraCartera" />
+          <ScalarProperty Name="SaldoVencido" ColumnName="SaldoVencido" />
+          <ScalarProperty Name="SaldoMorosidad" ColumnName="SaldoMorosidad" />
+          <ScalarProperty Name="NroClientesNuevos" ColumnName="NroClientesNuevos" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Acceso">
+      <EntityTypeMapping TypeName="VENDIXModel.Acceso">
+        <MappingFragment StoreEntitySet="Acceso">
+          <ScalarProperty Name="AccesoId" ColumnName="AccesoId" />
+          <ScalarProperty Name="DireccionIp" ColumnName="DireccionIp" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Departamento">
+      <EntityTypeMapping TypeName="VENDIXModel.Departamento">
+        <MappingFragment StoreEntitySet="Departamento">
+          <ScalarProperty Name="idDepa" ColumnName="idDepa" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Distrito">
+      <EntityTypeMapping TypeName="VENDIXModel.Distrito">
+        <MappingFragment StoreEntitySet="Distrito">
+          <ScalarProperty Name="idDist" ColumnName="idDist" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="idProv" ColumnName="idProv" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Menu">
+      <EntityTypeMapping TypeName="VENDIXModel.Menu">
+        <MappingFragment StoreEntitySet="Menu">
+          <ScalarProperty Name="MenuId" ColumnName="MenuId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="Modulo" ColumnName="Modulo" />
+          <ScalarProperty Name="Url" ColumnName="Url" />
+          <ScalarProperty Name="Icono" ColumnName="Icono" />
+          <ScalarProperty Name="IndPadre" ColumnName="IndPadre" />
+          <ScalarProperty Name="Orden" ColumnName="Orden" />
+          <ScalarProperty Name="Referencia" ColumnName="Referencia" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Oficina">
+      <EntityTypeMapping TypeName="VENDIXModel.Oficina">
+        <MappingFragment StoreEntitySet="Oficina">
+          <ScalarProperty Name="OficinaId" ColumnName="OficinaId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="Telefono" ColumnName="Telefono" />
+          <ScalarProperty Name="IndPrincipal" ColumnName="IndPrincipal" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="UsuarioAsignadoId" ColumnName="UsuarioAsignadoId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Persona">
+      <EntityTypeMapping TypeName="VENDIXModel.Persona">
+        <MappingFragment StoreEntitySet="Persona">
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="Nombre" ColumnName="Nombre" />
+          <ScalarProperty Name="ApePaterno" ColumnName="ApePaterno" />
+          <ScalarProperty Name="ApeMaterno" ColumnName="ApeMaterno" />
+          <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+          <ScalarProperty Name="TipoDocumento" ColumnName="TipoDocumento" />
+          <ScalarProperty Name="NumeroDocumento" ColumnName="NumeroDocumento" />
+          <ScalarProperty Name="Codigo" ColumnName="Codigo" />
+          <ScalarProperty Name="Sexo" ColumnName="Sexo" />
+          <ScalarProperty Name="TipoPersona" ColumnName="TipoPersona" />
+          <ScalarProperty Name="EmailPersonal" ColumnName="EmailPersonal" />
+          <ScalarProperty Name="FechaNacimiento" ColumnName="FechaNacimiento" />
+          <ScalarProperty Name="Direccion" ColumnName="Direccion" />
+          <ScalarProperty Name="DireccionRef" ColumnName="DireccionRef" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="Celular1" ColumnName="Celular1" />
+          <ScalarProperty Name="ConyuguePersonaId" ColumnName="ConyuguePersonaId" />
+          <ScalarProperty Name="TipoViviendaId" ColumnName="TipoViviendaId" />
+          <ScalarProperty Name="EstadoCivilId" ColumnName="EstadoCivilId" />
+          <ScalarProperty Name="DistritoId" ColumnName="DistritoId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="PersonaDepurado">
+      <EntityTypeMapping TypeName="VENDIXModel.PersonaDepurado">
+        <MappingFragment StoreEntitySet="PersonaDepurado">
+          <ScalarProperty Name="PersonaDepuradoId" ColumnName="PersonaDepuradoId" />
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="UsuarioRegId" ColumnName="UsuarioRegId" />
+          <ScalarProperty Name="FechaReg" ColumnName="FechaReg" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Provincia">
+      <EntityTypeMapping TypeName="VENDIXModel.Provincia">
+        <MappingFragment StoreEntitySet="Provincia">
+          <ScalarProperty Name="idProv" ColumnName="idProv" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="idDepa" ColumnName="idDepa" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Rol">
+      <EntityTypeMapping TypeName="VENDIXModel.Rol">
+        <MappingFragment StoreEntitySet="Rol">
+          <ScalarProperty Name="RolId" ColumnName="RolId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="RolMenu">
+      <EntityTypeMapping TypeName="VENDIXModel.RolMenu">
+        <MappingFragment StoreEntitySet="RolMenu">
+          <ScalarProperty Name="RolMenuId" ColumnName="RolMenuId" />
+          <ScalarProperty Name="RolId" ColumnName="RolId" />
+          <ScalarProperty Name="MenuId" ColumnName="MenuId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="TipoDocumento">
+      <EntityTypeMapping TypeName="VENDIXModel.TipoDocumento">
+        <MappingFragment StoreEntitySet="TipoDocumento">
+          <ScalarProperty Name="TipoDocumentoId" ColumnName="TipoDocumentoId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="IndVenta" ColumnName="IndVenta" />
+          <ScalarProperty Name="IndAlmacen" ColumnName="IndAlmacen" />
+          <ScalarProperty Name="IndAlmacenMov" ColumnName="IndAlmacenMov" />
+          <ScalarProperty Name="IndCajaChica" ColumnName="IndCajaChica" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="TipoOperacion">
+      <EntityTypeMapping TypeName="VENDIXModel.TipoOperacion">
+        <MappingFragment StoreEntitySet="TipoOperacion">
+          <ScalarProperty Name="TipoOperacionId" ColumnName="TipoOperacionId" />
+          <ScalarProperty Name="Codigo" ColumnName="Codigo" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="IndEntrada" ColumnName="IndEntrada" />
+          <ScalarProperty Name="IndCajaDiario" ColumnName="IndCajaDiario" />
+          <ScalarProperty Name="IndBoveda" ColumnName="IndBoveda" />
+          <ScalarProperty Name="IndCajaChica" ColumnName="IndCajaChica" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Usuario">
+      <EntityTypeMapping TypeName="VENDIXModel.Usuario">
+        <MappingFragment StoreEntitySet="Usuario">
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="NombreUsuario" ColumnName="NombreUsuario" />
+          <ScalarProperty Name="ClaveUsuario" ColumnName="ClaveUsuario" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="UsuarioOficina">
+      <EntityTypeMapping TypeName="VENDIXModel.UsuarioOficina">
+        <MappingFragment StoreEntitySet="UsuarioOficina">
+          <ScalarProperty Name="UsuarioOficinaId" ColumnName="UsuarioOficinaId" />
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="OficinaId" ColumnName="OficinaId" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="UsuarioRol">
+      <EntityTypeMapping TypeName="VENDIXModel.UsuarioRol">
+        <MappingFragment StoreEntitySet="UsuarioRol">
+          <ScalarProperty Name="UsuarioRolId" ColumnName="UsuarioRolId" />
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="RolId" ColumnName="RolId" />
+          <ScalarProperty Name="OficinaId" ColumnName="OficinaId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="ValorTabla">
+      <EntityTypeMapping TypeName="VENDIXModel.ValorTabla">
+        <MappingFragment StoreEntitySet="ValorTabla">
+          <ScalarProperty Name="TablaId" ColumnName="TablaId" />
+          <ScalarProperty Name="ItemId" ColumnName="ItemId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="DesCorta" ColumnName="DesCorta" />
+          <ScalarProperty Name="Valor" ColumnName="Valor" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="ListaPrecio">
+      <EntityTypeMapping TypeName="VENDIXModel.ListaPrecio">
+        <MappingFragment StoreEntitySet="ListaPrecio">
+          <ScalarProperty Name="ListaPrecioId" ColumnName="ListaPrecioId" />
+          <ScalarProperty Name="ArticuloId" ColumnName="ArticuloId" />
+          <ScalarProperty Name="Monto" ColumnName="Monto" />
+          <ScalarProperty Name="Descuento" ColumnName="Descuento" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="Puntos" ColumnName="Puntos" />
+          <ScalarProperty Name="PuntosCanje" ColumnName="PuntosCanje" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="OrdenVenta">
+      <EntityTypeMapping TypeName="VENDIXModel.OrdenVenta">
+        <MappingFragment StoreEntitySet="OrdenVenta">
+          <ScalarProperty Name="OrdenVentaId" ColumnName="OrdenVentaId" />
+          <ScalarProperty Name="OficinaId" ColumnName="OficinaId" />
+          <ScalarProperty Name="Subtotal" ColumnName="Subtotal" />
+          <ScalarProperty Name="TotalImpuesto" ColumnName="TotalImpuesto" />
+          <ScalarProperty Name="TotalNeto" ColumnName="TotalNeto" />
+          <ScalarProperty Name="TotalDescuento" ColumnName="TotalDescuento" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="UsuarioRegId" ColumnName="UsuarioRegId" />
+          <ScalarProperty Name="FechaReg" ColumnName="FechaReg" />
+          <ScalarProperty Name="UsuarioModId" ColumnName="UsuarioModId" />
+          <ScalarProperty Name="FechaMod" ColumnName="FechaMod" />
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="MovimientoAlmacenId" ColumnName="MovimientoAlmacenId" />
+          <ScalarProperty Name="TipoVenta" ColumnName="TipoVenta" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="OrdenVentaDet">
+      <EntityTypeMapping TypeName="VENDIXModel.OrdenVentaDet">
+        <MappingFragment StoreEntitySet="OrdenVentaDet">
+          <ScalarProperty Name="OrdenVentaDetId" ColumnName="OrdenVentaDetId" />
+          <ScalarProperty Name="OrdenVentaId" ColumnName="OrdenVentaId" />
+          <ScalarProperty Name="ArticuloId" ColumnName="ArticuloId" />
+          <ScalarProperty Name="Cantidad" ColumnName="Cantidad" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="ValorVenta" ColumnName="ValorVenta" />
+          <ScalarProperty Name="Descuento" ColumnName="Descuento" />
+          <ScalarProperty Name="Subtotal" ColumnName="Subtotal" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="OrdenVentaDetSerie">
+      <EntityTypeMapping TypeName="VENDIXModel.OrdenVentaDetSerie">
+        <MappingFragment StoreEntitySet="OrdenVentaDetSerie">
+          <ScalarProperty Name="OrdenVentaDetSerieId" ColumnName="OrdenVentaDetSerieId" />
+          <ScalarProperty Name="OrdenVentaDetId" ColumnName="OrdenVentaDetId" />
+          <ScalarProperty Name="SerieArticuloId" ColumnName="SerieArticuloId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="TarjetaPunto">
+      <EntityTypeMapping TypeName="VENDIXModel.TarjetaPunto">
+        <MappingFragment StoreEntitySet="TarjetaPunto">
+          <ScalarProperty Name="TarjetaPuntoId" ColumnName="TarjetaPuntoId" />
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="TotalPuntos" ColumnName="TotalPuntos" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="TarjetaPuntoDet">
+      <EntityTypeMapping TypeName="VENDIXModel.TarjetaPuntoDet">
+        <MappingFragment StoreEntitySet="TarjetaPuntoDet">
+          <ScalarProperty Name="TarjetaPuntoDetId" ColumnName="TarjetaPuntoDetId" />
+          <ScalarProperty Name="TarjetaPuntoId" ColumnName="TarjetaPuntoId" />
+          <ScalarProperty Name="OrdenVentaId" ColumnName="OrdenVentaId" />
+          <ScalarProperty Name="ValorCanje" ColumnName="ValorCanje" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionName="VENDIXModel.Store.Split" FunctionImportName="Split">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.Split_Result">
+          <ScalarProperty Name="Name" ColumnName="Name" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_CrearMovimientoDet" FunctionName="VENDIXModel.Store.usp_CrearMovimientoDet" />
+    <FunctionImportMapping FunctionImportName="usp_EliminarMovimientoDet" FunctionName="VENDIXModel.Store.usp_EliminarMovimientoDet" />
+    <FunctionImportMapping FunctionImportName="usp_ExisteSerieArticulo" FunctionName="VENDIXModel.Store.usp_ExisteSerieArticulo" />
+    <FunctionImportMapping FunctionImportName="usp_GenerarKardex" FunctionName="VENDIXModel.Store.usp_GenerarKardex">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_GenerarKardex_Result">
+          <ScalarProperty Name="MovimientoDetId" ColumnName="MovimientoDetId" />
+          <ScalarProperty Name="Fecha" ColumnName="Fecha" />
+          <ScalarProperty Name="Concepto" ColumnName="Concepto" />
+          <ScalarProperty Name="CantEnt" ColumnName="CantEnt" />
+          <ScalarProperty Name="PUEnt" ColumnName="PUEnt" />
+          <ScalarProperty Name="TotalEnt" ColumnName="TotalEnt" />
+          <ScalarProperty Name="CantSal" ColumnName="CantSal" />
+          <ScalarProperty Name="PUSal" ColumnName="PUSal" />
+          <ScalarProperty Name="TotalSal" ColumnName="TotalSal" />
+          <ScalarProperty Name="CantSaldo" ColumnName="CantSaldo" />
+          <ScalarProperty Name="PUSaldo" ColumnName="PUSaldo" />
+          <ScalarProperty Name="TotalSaldo" ColumnName="TotalSaldo" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_ListarSerieKardex" FunctionName="VENDIXModel.Store.usp_ListarSerieKardex" />
+    <FunctionImportMapping FunctionImportName="usp_Movimiento_Upd" FunctionName="VENDIXModel.Store.usp_Movimiento_Upd" />
+    <FunctionImportMapping FunctionImportName="usp_ReporteStock" FunctionName="VENDIXModel.Store.usp_ReporteStock">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_ReporteStock_Result">
+          <ScalarProperty Name="Nro" ColumnName="Nro" />
+          <ScalarProperty Name="TipoArticulo" ColumnName="TipoArticulo" />
+          <ScalarProperty Name="ArticuloId" ColumnName="ArticuloId" />
+          <ScalarProperty Name="Articulo" ColumnName="Articulo" />
+          <ScalarProperty Name="Stock" ColumnName="Stock" />
+          <ScalarProperty Name="Series" ColumnName="Series" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="ActualizarClientesNuevos" FunctionName="VENDIXModel.Store.ActualizarClientesNuevos" />
+    <FunctionImportMapping FunctionImportName="usp_ActualizarSaldoCartera" FunctionName="VENDIXModel.Store.usp_ActualizarSaldoCartera" />
+    <FunctionImportMapping FunctionImportName="usp_ActualizarSaldosBoveda" FunctionName="VENDIXModel.Store.usp_ActualizarSaldosBoveda" />
+    <FunctionImportMapping FunctionImportName="usp_ActualizarSaldosCajaDiario" FunctionName="VENDIXModel.Store.usp_ActualizarSaldosCajaDiario" />
+    <FunctionImportMapping FunctionImportName="usp_CalcularMontoPorCobrar" FunctionName="VENDIXModel.Store.usp_CalcularMontoPorCobrar" />
+    <FunctionImportMapping FunctionImportName="usp_CalcularMoraPendiente" FunctionName="VENDIXModel.Store.usp_CalcularMoraPendiente" />
+    <FunctionImportMapping FunctionImportName="usp_CalcularTEM" FunctionName="VENDIXModel.Store.usp_CalcularTEM" />
+    <FunctionImportMapping FunctionImportName="usp_CalificarCliente" FunctionName="VENDIXModel.Store.usp_CalificarCliente" />
+    <FunctionImportMapping FunctionImportName="usp_CentralRiesgoGenerar" FunctionName="VENDIXModel.Store.usp_CentralRiesgoGenerar">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_CentralRiesgoGenerar_Result">
+          <ScalarProperty Name="Anio" ColumnName="Anio" />
+          <ScalarProperty Name="Mes" ColumnName="Mes" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+          <ScalarProperty Name="Entidad" ColumnName="Entidad" />
+          <ScalarProperty Name="TipoDoc" ColumnName="TipoDoc" />
+          <ScalarProperty Name="NumDoc" ColumnName="NumDoc" />
+          <ScalarProperty Name="RazonSocial" ColumnName="RazonSocial" />
+          <ScalarProperty Name="ApePat" ColumnName="ApePat" />
+          <ScalarProperty Name="ApeMat" ColumnName="ApeMat" />
+          <ScalarProperty Name="Nombres" ColumnName="Nombres" />
+          <ScalarProperty Name="TipoPersona" ColumnName="TipoPersona" />
+          <ScalarProperty Name="ModalidadCredito" ColumnName="ModalidadCredito" />
+          <ScalarProperty Name="DeudaMenor30" ColumnName="DeudaMenor30" />
+          <ScalarProperty Name="DeudaMayor30" ColumnName="DeudaMayor30" />
+          <ScalarProperty Name="Calificacion" ColumnName="Calificacion" />
+          <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
+          <ScalarProperty Name="Direccion" ColumnName="Direccion" />
+          <ScalarProperty Name="celular" ColumnName="celular" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_CerrarBovedaTemporal" FunctionName="VENDIXModel.Store.usp_CerrarBovedaTemporal" />
+    <FunctionImportMapping FunctionImportName="usp_CompletarImpagos" FunctionName="VENDIXModel.Store.usp_CompletarImpagos" />
+    <FunctionImportMapping FunctionImportName="usp_CompletarImpagosValidacion" FunctionName="VENDIXModel.Store.usp_CompletarImpagosValidacion" />
+    <FunctionImportMapping FunctionImportName="usp_Credito_Del" FunctionName="VENDIXModel.Store.usp_Credito_Del" />
+    <FunctionImportMapping FunctionImportName="usp_Credito_Ins" FunctionName="VENDIXModel.Store.usp_Credito_Ins" />
+    <FunctionImportMapping FunctionImportName="usp_Credito_Upd" FunctionName="VENDIXModel.Store.usp_Credito_Upd" />
+    <FunctionImportMapping FunctionImportName="usp_CuotasPendientes" FunctionName="VENDIXModel.Store.usp_CuotasPendientes">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_CuotasPendientes_Result">
+          <ScalarProperty Name="PlanPagoId" ColumnName="PlanPagoId" />
+          <ScalarProperty Name="Glosa" ColumnName="Glosa" />
+          <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+          <ScalarProperty Name="Amortizacion" ColumnName="Amortizacion" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="GastosAdm" ColumnName="GastosAdm" />
+          <ScalarProperty Name="Cuota" ColumnName="Cuota" />
+          <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
+          <ScalarProperty Name="ImporteMora" ColumnName="ImporteMora" />
+          <ScalarProperty Name="Descuento" ColumnName="Descuento" />
+          <ScalarProperty Name="Cargo" ColumnName="Cargo" />
+          <ScalarProperty Name="PagoLibre" ColumnName="PagoLibre" />
+          <ScalarProperty Name="PagoCuota" ColumnName="PagoCuota" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_EntradaSalidaCajaChicaDiario" FunctionName="VENDIXModel.Store.usp_EntradaSalidaCajaChicaDiario" />
+    <FunctionImportMapping FunctionImportName="usp_EntradaSalidaCajaDiario" FunctionName="VENDIXModel.Store.usp_EntradaSalidaCajaDiario" />
+    <FunctionImportMapping FunctionImportName="usp_EstadoPlanPago" FunctionName="VENDIXModel.Store.usp_EstadoPlanPago">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_EstadoPlanPago_Result">
+          <ScalarProperty Name="PlanPagoId" ColumnName="PlanPagoId" />
+          <ScalarProperty Name="Numero" ColumnName="Numero" />
+          <ScalarProperty Name="Capital" ColumnName="Capital" />
+          <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+          <ScalarProperty Name="Amortizacion" ColumnName="Amortizacion" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="GastosAdm" ColumnName="GastosAdm" />
+          <ScalarProperty Name="Cuota" ColumnName="Cuota" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
+          <ScalarProperty Name="ImporteMora" ColumnName="ImporteMora" />
+          <ScalarProperty Name="Descuento" ColumnName="Descuento" />
+          <ScalarProperty Name="Cargo" ColumnName="Cargo" />
+          <ScalarProperty Name="PagoLibre" ColumnName="PagoLibre" />
+          <ScalarProperty Name="FechaPagoCuota" ColumnName="FechaPagoCuota" />
+          <ScalarProperty Name="PagoCuota" ColumnName="PagoCuota" />
+          <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_FechaBD" FunctionName="VENDIXModel.Store.usp_FechaBD" />
+    <FunctionImportMapping FunctionImportName="usp_ListarSaldoCartera" FunctionName="VENDIXModel.Store.usp_ListarSaldoCartera">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_ListarSaldoCartera_Result">
+          <ScalarProperty Name="AgenteId" ColumnName="AgenteId" />
+          <ScalarProperty Name="OficinaId" ColumnName="OficinaId" />
+          <ScalarProperty Name="NroDesembolsos" ColumnName="NroDesembolsos" />
+          <ScalarProperty Name="MontoDesembolsos" ColumnName="MontoDesembolsos" />
+          <ScalarProperty Name="SaldoCartera" ColumnName="SaldoCartera" />
+          <ScalarProperty Name="NroClientesSaldoCartera" ColumnName="NroClientesSaldoCartera" />
+          <ScalarProperty Name="SaldoMoraCartera" ColumnName="SaldoMoraCartera" />
+          <ScalarProperty Name="NroClientesSaldoMoraCartera" ColumnName="NroClientesSaldoMoraCartera" />
+          <ScalarProperty Name="SaldoVencido" ColumnName="SaldoVencido" />
+          <ScalarProperty Name="SaldoMorosidad" ColumnName="SaldoMorosidad" />
+          <ScalarProperty Name="NroClientesNuevos" ColumnName="NroClientesNuevos" />
+          <ScalarProperty Name="FechaCierre" ColumnName="FechaCierre" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_MovimientoCaja_Del" FunctionName="VENDIXModel.Store.usp_MovimientoCaja_Del" />
+    <FunctionImportMapping FunctionImportName="usp_PagarCuentaxCobrar" FunctionName="VENDIXModel.Store.usp_PagarCuentaxCobrar" />
+    <FunctionImportMapping FunctionImportName="usp_PagarCuotaPagoLibre" FunctionName="VENDIXModel.Store.usp_PagarCuotaPagoLibre" />
+    <FunctionImportMapping FunctionImportName="usp_PagarCuotas" FunctionName="VENDIXModel.Store.usp_PagarCuotas" />
+    <FunctionImportMapping FunctionImportName="usp_PagarCuotasCancelacion" FunctionName="VENDIXModel.Store.usp_PagarCuotasCancelacion" />
+    <FunctionImportMapping FunctionImportName="usp_PagosNoVerificados" FunctionName="VENDIXModel.Store.usp_PagosNoVerificados">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_PagosNoVerificados_Result">
+          <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="Movimiento" ColumnName="Movimiento" />
+          <ScalarProperty Name="ImportePago" ColumnName="ImportePago" />
+          <ScalarProperty Name="TipoPago" ColumnName="TipoPago" />
+          <ScalarProperty Name="FechaTransferencia" ColumnName="FechaTransferencia" />
+          <ScalarProperty Name="Registro" ColumnName="Registro" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_ProrrogarCredito" FunctionName="VENDIXModel.Store.usp_ProrrogarCredito" />
+    <FunctionImportMapping FunctionImportName="usp_RecalcularCajaDiario" FunctionName="VENDIXModel.Store.usp_RecalcularCajaDiario" />
+    <FunctionImportMapping FunctionImportName="usp_ReconciliarCajaDiario" FunctionName="VENDIXModel.Store.usp_ReconciliarCajaDiario" />
+    <FunctionImportMapping FunctionImportName="usp_RegenerarPlanPago" FunctionName="VENDIXModel.Store.usp_RegenerarPlanPago" />
+    <FunctionImportMapping FunctionImportName="usp_ReprogramarCredito" FunctionName="VENDIXModel.Store.usp_ReprogramarCredito" />
+    <FunctionImportMapping FunctionImportName="usp_RptCajaDiario" FunctionName="VENDIXModel.Store.usp_RptCajaDiario">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCajaDiario_Result">
+          <ScalarProperty Name="CajaDiarioId" ColumnName="CajaDiarioId" />
+          <ScalarProperty Name="Oficina" ColumnName="Oficina" />
+          <ScalarProperty Name="Caja" ColumnName="Caja" />
+          <ScalarProperty Name="Agente" ColumnName="Agente" />
+          <ScalarProperty Name="SaldoInicial" ColumnName="SaldoInicial" />
+          <ScalarProperty Name="Entradas" ColumnName="Entradas" />
+          <ScalarProperty Name="Salidas" ColumnName="Salidas" />
+          <ScalarProperty Name="SaldoFinal" ColumnName="SaldoFinal" />
+          <ScalarProperty Name="FechaIniOperacion" ColumnName="FechaIniOperacion" />
+          <ScalarProperty Name="FechaFinOperacion" ColumnName="FechaFinOperacion" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptCredito" FunctionName="VENDIXModel.Store.usp_RptCredito">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCredito_Result">
+          <ScalarProperty Name="Producto" ColumnName="Producto" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="FechaDesembolso" ColumnName="FechaDesembolso" />
+          <ScalarProperty Name="FechaVcto" ColumnName="FechaVcto" />
+          <ScalarProperty Name="FormaPago" ColumnName="FormaPago" />
+          <ScalarProperty Name="NumeroCuotas" ColumnName="NumeroCuotas" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="MontoProducto" ColumnName="MontoProducto" />
+          <ScalarProperty Name="MontoInicial" ColumnName="MontoInicial" />
+          <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+          <ScalarProperty Name="TipoGastoAdm" ColumnName="TipoGastoAdm" />
+          <ScalarProperty Name="MontoGastosAdm" ColumnName="MontoGastosAdm" />
+          <ScalarProperty Name="MontoDesembolso" ColumnName="MontoDesembolso" />
+          <ScalarProperty Name="Observacion" ColumnName="Observacion" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptCreditoAprobacion" FunctionName="VENDIXModel.Store.usp_RptCreditoAprobacion">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCreditoAprobacion_Result">
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Oficina" ColumnName="Oficina" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="FechaAprobacion" ColumnName="FechaAprobacion" />
+          <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="NumeroCuotas" ColumnName="NumeroCuotas" />
+          <ScalarProperty Name="MontoDesembolso" ColumnName="MontoDesembolso" />
+          <ScalarProperty Name="Gestor" ColumnName="Gestor" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptCreditoMorosidad" FunctionName="VENDIXModel.Store.usp_RptCreditoMorosidad">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCreditoMorosidad_Result">
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="Direccion" ColumnName="Direccion" />
+          <ScalarProperty Name="Celular" ColumnName="Celular" />
+          <ScalarProperty Name="FechaDesembolso" ColumnName="FechaDesembolso" />
+          <ScalarProperty Name="FechaVcto" ColumnName="FechaVcto" />
+          <ScalarProperty Name="Articulo" ColumnName="Articulo" />
+          <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+          <ScalarProperty Name="SaldoCredito" ColumnName="SaldoCredito" />
+          <ScalarProperty Name="FechaUltPago" ColumnName="FechaUltPago" />
+          <ScalarProperty Name="CapitalAtrazo" ColumnName="CapitalAtrazo" />
+          <ScalarProperty Name="GA" ColumnName="GA" />
+          <ScalarProperty Name="InteresAtrazo" ColumnName="InteresAtrazo" />
+          <ScalarProperty Name="Mora" ColumnName="Mora" />
+          <ScalarProperty Name="ImporteLibre" ColumnName="ImporteLibre" />
+          <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
+          <ScalarProperty Name="CuotasAtrazo" ColumnName="CuotasAtrazo" />
+          <ScalarProperty Name="DeudaAtrazo" ColumnName="DeudaAtrazo" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptCreditoRentabilidad" FunctionName="VENDIXModel.Store.usp_RptCreditoRentabilidad">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCreditoRentabilidad_Result">
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Oficina" ColumnName="Oficina" />
+          <ScalarProperty Name="Codigo" ColumnName="Codigo" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="FechaDesembolso" ColumnName="FechaDesembolso" />
+          <ScalarProperty Name="FechaPago" ColumnName="FechaPago" />
+          <ScalarProperty Name="NumeroCuotas" ColumnName="NumeroCuotas" />
+          <ScalarProperty Name="FormaPago" ColumnName="FormaPago" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="SumCuota" ColumnName="SumCuota" />
+          <ScalarProperty Name="CuotasPagadas" ColumnName="CuotasPagadas" />
+          <ScalarProperty Name="MontoGastosAdm" ColumnName="MontoGastosAdm" />
+          <ScalarProperty Name="SumInteres" ColumnName="SumInteres" />
+          <ScalarProperty Name="SumMora" ColumnName="SumMora" />
+          <ScalarProperty Name="SumPago" ColumnName="SumPago" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptCreditosCierres" FunctionName="VENDIXModel.Store.usp_RptCreditosCierres">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCreditosCierres_Result">
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="Agente" ColumnName="Agente" />
+          <ScalarProperty Name="Codigo" ColumnName="Codigo" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+          <ScalarProperty Name="FormaPago" ColumnName="FormaPago" />
+          <ScalarProperty Name="NumeroCuotas" ColumnName="NumeroCuotas" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="MontoGastosAdm" ColumnName="MontoGastosAdm" />
+          <ScalarProperty Name="CentralRiesgo" ColumnName="CentralRiesgo" />
+          <ScalarProperty Name="FechaPrimerPago" ColumnName="FechaPrimerPago" />
+          <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+          <ScalarProperty Name="SumAmortizacion" ColumnName="SumAmortizacion" />
+          <ScalarProperty Name="SumInteres" ColumnName="SumInteres" />
+          <ScalarProperty Name="SumCuota" ColumnName="SumCuota" />
+          <ScalarProperty Name="SumNroCuota" ColumnName="SumNroCuota" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptCreditosMorososPagados" FunctionName="VENDIXModel.Store.usp_RptCreditosMorososPagados">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCreditosMorososPagados_Result">
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="FormaPago" ColumnName="FormaPago" />
+          <ScalarProperty Name="NumeroCuotas" ColumnName="NumeroCuotas" />
+          <ScalarProperty Name="MontoGastosAdm" ColumnName="MontoGastosAdm" />
+          <ScalarProperty Name="CentralRiesgo" ColumnName="CentralRiesgo" />
+          <ScalarProperty Name="FechaPrimerPago" ColumnName="FechaPrimerPago" />
+          <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+          <ScalarProperty Name="FechaPagado" ColumnName="FechaPagado" />
+          <ScalarProperty Name="Agente" ColumnName="Agente" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptCreditoVencido" FunctionName="VENDIXModel.Store.usp_RptCreditoVencido">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCreditoVencido_Result">
+          <ScalarProperty Name="Gestor" ColumnName="Gestor" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+          <ScalarProperty Name="FormaPago" ColumnName="FormaPago" />
+          <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+          <ScalarProperty Name="CreditoVencido" ColumnName="CreditoVencido" />
+          <ScalarProperty Name="VencidoMenor60" ColumnName="VencidoMenor60" />
+          <ScalarProperty Name="VencidoMayor60" ColumnName="VencidoMayor60" />
+          <ScalarProperty Name="VencidoIrrecuperable" ColumnName="VencidoIrrecuperable" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptMovimientoCajaAnulado" FunctionName="VENDIXModel.Store.usp_RptMovimientoCajaAnulado">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptMovimientoCajaAnulado_Result">
+          <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+          <ScalarProperty Name="Operacion" ColumnName="Operacion" />
+          <ScalarProperty Name="ImportePago" ColumnName="ImportePago" />
+          <ScalarProperty Name="Persona" ColumnName="Persona" />
+          <ScalarProperty Name="Descripcion" ColumnName="Descripcion" />
+          <ScalarProperty Name="FechaReg" ColumnName="FechaReg" />
+          <ScalarProperty Name="UsuarioRegistro" ColumnName="UsuarioRegistro" />
+          <ScalarProperty Name="MotivoAnulacion" ColumnName="MotivoAnulacion" />
+          <ScalarProperty Name="FechaAnulacion" ColumnName="FechaAnulacion" />
+          <ScalarProperty Name="UsuarioAnulacion" ColumnName="UsuarioAnulacion" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptMovimientoCredito" FunctionName="VENDIXModel.Store.usp_RptMovimientoCredito">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptMovimientoCredito_Result">
+          <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+          <ScalarProperty Name="Fecha" ColumnName="Fecha" />
+          <ScalarProperty Name="Operacion" ColumnName="Operacion" />
+          <ScalarProperty Name="Glosa" ColumnName="Glosa" />
+          <ScalarProperty Name="ImportePago" ColumnName="ImportePago" />
+          <ScalarProperty Name="Saldo" ColumnName="Saldo" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptSaldoCarteraCajaDiario" FunctionName="VENDIXModel.Store.usp_RptSaldoCarteraCajaDiario">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptSaldoCarteraCajaDiario_Result">
+          <ScalarProperty Name="AgenteId" ColumnName="AgenteId" />
+          <ScalarProperty Name="Oficina" ColumnName="Oficina" />
+          <ScalarProperty Name="Caja" ColumnName="Caja" />
+          <ScalarProperty Name="Agente" ColumnName="Agente" />
+          <ScalarProperty Name="FechaCierreIni" ColumnName="FechaCierreIni" />
+          <ScalarProperty Name="SalidasIni" ColumnName="SalidasIni" />
+          <ScalarProperty Name="MontoCobradoIni" ColumnName="MontoCobradoIni" />
+          <ScalarProperty Name="PocentajeCobroIni" ColumnName="PocentajeCobroIni" />
+          <ScalarProperty Name="SaldoCarteraSinMoraIni" ColumnName="SaldoCarteraSinMoraIni" />
+          <ScalarProperty Name="NroClientesCarteraSinMoraIni" ColumnName="NroClientesCarteraSinMoraIni" />
+          <ScalarProperty Name="SaldoMoraCarteraIni" ColumnName="SaldoMoraCarteraIni" />
+          <ScalarProperty Name="NroClientesSaldoMoraCarteraIni" ColumnName="NroClientesSaldoMoraCarteraIni" />
+          <ScalarProperty Name="NroClientesNuevosIni" ColumnName="NroClientesNuevosIni" />
+          <ScalarProperty Name="SaldoVencidoIni" ColumnName="SaldoVencidoIni" />
+          <ScalarProperty Name="SaldoMorosidadIni" ColumnName="SaldoMorosidadIni" />
+          <ScalarProperty Name="FechaCierreFin" ColumnName="FechaCierreFin" />
+          <ScalarProperty Name="SalidasFin" ColumnName="SalidasFin" />
+          <ScalarProperty Name="MontoCobradoFin" ColumnName="MontoCobradoFin" />
+          <ScalarProperty Name="PocentajeCobroFin" ColumnName="PocentajeCobroFin" />
+          <ScalarProperty Name="SaldoCarteraSinMoraFin" ColumnName="SaldoCarteraSinMoraFin" />
+          <ScalarProperty Name="NroClientesCarteraSinMoraFin" ColumnName="NroClientesCarteraSinMoraFin" />
+          <ScalarProperty Name="SaldoMoraCarteraFin" ColumnName="SaldoMoraCarteraFin" />
+          <ScalarProperty Name="NroClientesSaldoMoraCarteraFin" ColumnName="NroClientesSaldoMoraCarteraFin" />
+          <ScalarProperty Name="NroClientesNuevosFin" ColumnName="NroClientesNuevosFin" />
+          <ScalarProperty Name="SaldoVencidoFin" ColumnName="SaldoVencidoFin" />
+          <ScalarProperty Name="SaldoMorosidadFin" ColumnName="SaldoMorosidadFin" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptSaldosCaja" FunctionName="VENDIXModel.Store.usp_RptSaldosCaja">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptSaldosCaja_Result">
+          <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+          <ScalarProperty Name="Operacion" ColumnName="Operacion" />
+          <ScalarProperty Name="FechaReg" ColumnName="FechaReg" />
+          <ScalarProperty Name="Codigo" ColumnName="Codigo" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="ImportePago" ColumnName="ImportePago" />
+          <ScalarProperty Name="IndEntrada" ColumnName="IndEntrada" />
+          <ScalarProperty Name="Glosa" ColumnName="Glosa" />
+          <ScalarProperty Name="TipoPago" ColumnName="TipoPago" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptSaldosCajaResumenIngreso" FunctionName="VENDIXModel.Store.usp_RptSaldosCajaResumenIngreso" />
+    <FunctionImportMapping FunctionImportName="usp_SolicitudCredito_Del" FunctionName="VENDIXModel.Store.usp_SolicitudCredito_Del" />
+    <FunctionImportMapping FunctionImportName="usp_TransferirBoveda" FunctionName="VENDIXModel.Store.usp_TransferirBoveda" />
+    <FunctionImportMapping FunctionImportName="usp_UsuariosNoAsignadosCaja" FunctionName="VENDIXModel.Store.usp_UsuariosNoAsignadosCaja">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_UsuariosNoAsignadosCaja_Result">
+          <ScalarProperty Name="Id" ColumnName="Id" />
+          <ScalarProperty Name="Valor" ColumnName="Valor" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_AgregarPuntos" FunctionName="VENDIXModel.Store.usp_AgregarPuntos" />
+    <FunctionImportMapping FunctionImportName="usp_CanjearPuntos" FunctionName="VENDIXModel.Store.usp_CanjearPuntos" />
+    <FunctionImportMapping FunctionImportName="usp_MenuLst" FunctionName="VENDIXModel.Store.usp_MenuLst">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_MenuLst_Result">
+          <ScalarProperty Name="MenuId" ColumnName="MenuId" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="Modulo" ColumnName="Modulo" />
+          <ScalarProperty Name="Url" ColumnName="Url" />
+          <ScalarProperty Name="Icono" ColumnName="Icono" />
+          <ScalarProperty Name="IndPadre" ColumnName="IndPadre" />
+          <ScalarProperty Name="Orden" ColumnName="Orden" />
+          <ScalarProperty Name="Referencia" ColumnName="Referencia" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_CodigoBarras_Lst" FunctionName="VENDIXModel.Store.usp_CodigoBarras_Lst">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_CodigoBarras_Lst_Result">
+          <ScalarProperty Name="Serie1" ColumnName="Serie1" />
+          <ScalarProperty Name="Articulo1" ColumnName="Articulo1" />
+          <ScalarProperty Name="Precio1" ColumnName="Precio1" />
+          <ScalarProperty Name="Serie2" ColumnName="Serie2" />
+          <ScalarProperty Name="Articulo2" ColumnName="Articulo2" />
+          <ScalarProperty Name="Precio2" ColumnName="Precio2" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_OrdenVenta_Del" FunctionName="VENDIXModel.Store.usp_OrdenVenta_Del" />
+    <FunctionImportMapping FunctionImportName="usp_OrdenVentaDet_Ins" FunctionName="VENDIXModel.Store.usp_OrdenVentaDet_Ins" />
+    <FunctionImportMapping FunctionImportName="usp_OrdenVentaDet_update" FunctionName="VENDIXModel.Store.usp_OrdenVentaDet_update" />
+    <FunctionImportMapping FunctionImportName="usp_RptRentabilidadVenta" FunctionName="VENDIXModel.Store.usp_RptRentabilidadVenta">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptRentabilidadVenta_Result">
+          <ScalarProperty Name="Nro" ColumnName="Nro" />
+          <ScalarProperty Name="Codigo" ColumnName="Codigo" />
+          <ScalarProperty Name="Articulo" ColumnName="Articulo" />
+          <ScalarProperty Name="MovimientoId" ColumnName="MovimientoId" />
+          <ScalarProperty Name="FechaEnt" ColumnName="FechaEnt" />
+          <ScalarProperty Name="PrecioEnt" ColumnName="PrecioEnt" />
+          <ScalarProperty Name="OrdenVentaId" ColumnName="OrdenVentaId" />
+          <ScalarProperty Name="FechaSal" ColumnName="FechaSal" />
+          <ScalarProperty Name="PrecioSal" ColumnName="PrecioSal" />
+          <ScalarProperty Name="Modalidad" ColumnName="Modalidad" />
+          <ScalarProperty Name="Rentabilidad" ColumnName="Rentabilidad" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="uspCreditoVencido" FunctionName="VENDIXModel.Store.uspCreditoVencido">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.uspCreditoVencido_Result">
+          <ScalarProperty Name="CreditoVencido" ColumnName="CreditoVencido" />
+          <ScalarProperty Name="VencidoMenor60" ColumnName="VencidoMenor60" />
+          <ScalarProperty Name="VencidoMayor60" ColumnName="VencidoMayor60" />
+          <ScalarProperty Name="VencidoIrrecuperable" ColumnName="VencidoIrrecuperable" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_ObtenerSaldoCuentaCajadiario" FunctionName="VENDIXModel.Store.usp_ObtenerSaldoCuentaCajadiario" />
+    <EntitySetMapping Name="BovedaMov">
+      <EntityTypeMapping TypeName="VENDIXModel.BovedaMov">
+        <MappingFragment StoreEntitySet="BovedaMov">
+          <ScalarProperty Name="FechaReg" ColumnName="FechaReg" />
+          <ScalarProperty Name="UsuarioRegId" ColumnName="UsuarioRegId" />
+          <ScalarProperty Name="CajaDiarioId" ColumnName="CajaDiarioId" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="IndEntrada" ColumnName="IndEntrada" />
+          <ScalarProperty Name="Importe" ColumnName="Importe" />
+          <ScalarProperty Name="Glosa" ColumnName="Glosa" />
+          <ScalarProperty Name="TipoPagoId" ColumnName="TipoPagoId" />
+          <ScalarProperty Name="CodOperacion" ColumnName="CodOperacion" />
+          <ScalarProperty Name="BovedaId" ColumnName="BovedaId" />
+          <ScalarProperty Name="MovimientoBovedaId" ColumnName="MovimientoBovedaId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="usp_ResumenCuentaBoveda" FunctionName="VENDIXModel.Store.usp_ResumenCuentaBoveda" />
+    <FunctionImportMapping FunctionImportName="usp_CerrarBoveda" FunctionName="VENDIXModel.Store.usp_CerrarBoveda" />
+    <EntitySetMapping Name="BovedaCuenta">
+      <EntityTypeMapping TypeName="VENDIXModel.BovedaCuenta">
+        <MappingFragment StoreEntitySet="BovedaCuenta">
+          <ScalarProperty Name="SaldoInicial" ColumnName="SaldoInicial" />
+          <ScalarProperty Name="TipoPagoId" ColumnName="TipoPagoId" />
+          <ScalarProperty Name="BovedaId" ColumnName="BovedaId" />
+          <ScalarProperty Name="BovedaCuentaId" ColumnName="BovedaCuentaId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptMovimientoBoveda" FunctionName="VENDIXModel.Store.usp_RptMovimientoBoveda">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptMovimientoBoveda_Result">
+          <ScalarProperty Name="MovimientoBovedaId" ColumnName="MovimientoBovedaId" />
+          <ScalarProperty Name="FechaReg" ColumnName="FechaReg" />
+          <ScalarProperty Name="CodOperacion" ColumnName="CodOperacion" />
+          <ScalarProperty Name="Glosa" ColumnName="Glosa" />
+          <ScalarProperty Name="Entrada" ColumnName="Entrada" />
+          <ScalarProperty Name="Salida" ColumnName="Salida" />
+          <ScalarProperty Name="TipoPago" ColumnName="TipoPago" />
+          <ScalarProperty Name="Agente" ColumnName="Agente" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptSaldosCajaResumenTipoCuenta" FunctionName="VENDIXModel.Store.usp_RptSaldosCajaResumenTipoCuenta" />
+    <FunctionImportMapping FunctionImportName="usp_RptCajasAsignadas" FunctionName="VENDIXModel.Store.usp_RptCajasAsignadas">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCajasAsignadas_Result">
+          <ScalarProperty Name="CajaDiarioId" ColumnName="CajaDiarioId" />
+          <ScalarProperty Name="Caja" ColumnName="Caja" />
+          <ScalarProperty Name="Modo" ColumnName="Modo" />
+          <ScalarProperty Name="Cajero" ColumnName="Cajero" />
+          <ScalarProperty Name="FechaIniOperacion" ColumnName="FechaIniOperacion" />
+          <ScalarProperty Name="FechaFinOperacion" ColumnName="FechaFinOperacion" />
+          <ScalarProperty Name="SaldoInicial" ColumnName="SaldoInicial" />
+          <ScalarProperty Name="Salidas" ColumnName="Salidas" />
+          <ScalarProperty Name="Entradas" ColumnName="Entradas" />
+          <ScalarProperty Name="SaldoFinal" ColumnName="SaldoFinal" />
+          <ScalarProperty Name="Resumen" ColumnName="Resumen" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_ObtenerMontoPendientePlanPago" FunctionName="VENDIXModel.Store.usp_ObtenerMontoPendientePlanPago" />
+    <FunctionImportMapping FunctionImportName="usp_RptClientesBloqueados" FunctionName="VENDIXModel.Store.usp_RptClientesBloqueados">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptClientesBloqueados_Result">
+          <ScalarProperty Name="Agente" ColumnName="Agente" />
+          <ScalarProperty Name="NumeroDocumento" ColumnName="NumeroDocumento" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="Direccion" ColumnName="Direccion" />
+          <ScalarProperty Name="DireccionRef" ColumnName="DireccionRef" />
+          <ScalarProperty Name="Celular" ColumnName="Celular" />
+          <ScalarProperty Name="Calificacion" ColumnName="Calificacion" />
+          <ScalarProperty Name="Nota" ColumnName="Nota" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptClientesTopeCredito" FunctionName="VENDIXModel.Store.usp_RptClientesTopeCredito">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptClientesTopeCredito_Result">
+          <ScalarProperty Name="Agente" ColumnName="Agente" />
+          <ScalarProperty Name="NumeroDocumento" ColumnName="NumeroDocumento" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="Direccion" ColumnName="Direccion" />
+          <ScalarProperty Name="DireccionRef" ColumnName="DireccionRef" />
+          <ScalarProperty Name="Celular" ColumnName="Celular" />
+          <ScalarProperty Name="Calificacion" ColumnName="Calificacion" />
+          <ScalarProperty Name="TopeCredito" ColumnName="TopeCredito" />
+          <ScalarProperty Name="Nota" ColumnName="Nota" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <EntitySetMapping Name="Ocupacion">
+      <EntityTypeMapping TypeName="VENDIXModel.Ocupacion">
+        <MappingFragment StoreEntitySet="Ocupacion">
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="Denominacion" ColumnName="Denominacion" />
+          <ScalarProperty Name="OcupacionId" ColumnName="OcupacionId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Cliente">
+      <EntityTypeMapping TypeName="VENDIXModel.Cliente">
+        <MappingFragment StoreEntitySet="Cliente">
+          <ScalarProperty Name="ClasificacionRiesgoSBSObs" ColumnName="ClasificacionRiesgoSBSObs" />
+          <ScalarProperty Name="ClasificacionRiesgoSBS" ColumnName="ClasificacionRiesgoSBS" />
+          <ScalarProperty Name="TopeCredito" ColumnName="TopeCredito" />
+          <ScalarProperty Name="Bloqueado" ColumnName="Bloqueado" />
+          <ScalarProperty Name="UsuarioRegId" ColumnName="UsuarioRegId" />
+          <ScalarProperty Name="AvalPersonaId" ColumnName="AvalPersonaId" />
+          <ScalarProperty Name="DireccionNegocioRef" ColumnName="DireccionNegocioRef" />
+          <ScalarProperty Name="DireccionNegocio" ColumnName="DireccionNegocio" />
+          <ScalarProperty Name="Nota" ColumnName="Nota" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="FechaRegistro" ColumnName="FechaRegistro" />
+          <ScalarProperty Name="Calificacion" ColumnName="Calificacion" />
+          <ScalarProperty Name="ActividadEconId" ColumnName="ActividadEconId" />
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="ClienteId" ColumnName="ClienteId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptCobroDiarioDetalle" FunctionName="VENDIXModel.Store.usp_RptCobroDiarioDetalle">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCobroDiarioDetalle_Result">
+          <ScalarProperty Name="Nro" ColumnName="Nro" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="FormaPago" ColumnName="FormaPago" />
+          <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="MontoTotal" ColumnName="MontoTotal" />
+          <ScalarProperty Name="FechaPrimerPago" ColumnName="FechaPrimerPago" />
+          <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+          <ScalarProperty Name="Saldo" ColumnName="Saldo" />
+          <ScalarProperty Name="TotalPago" ColumnName="TotalPago" />
+          <ScalarProperty Name="DiasAtrazoMora" ColumnName="DiasAtrazoMora" />
+          <ScalarProperty Name="Pagos" ColumnName="Pagos" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <EntitySetMapping Name="Subtarea">
+      <EntityTypeMapping TypeName="VENDIXModel.Subtarea">
+        <MappingFragment StoreEntitySet="Subtarea">
+          <ScalarProperty Name="FechaCompletada" ColumnName="FechaCompletada" />
+          <ScalarProperty Name="Completada" ColumnName="Completada" />
+          <ScalarProperty Name="Titulo" ColumnName="Titulo" />
+          <ScalarProperty Name="TareaId" ColumnName="TareaId" />
+          <ScalarProperty Name="SubtareaId" ColumnName="SubtareaId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="Tarea">
+      <EntityTypeMapping TypeName="VENDIXModel.Tarea">
+        <MappingFragment StoreEntitySet="Tarea">
+          <ScalarProperty Name="UsuarioCreadorId" ColumnName="UsuarioCreadorId" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="FechaCompletada" ColumnName="FechaCompletada" />
+          <ScalarProperty Name="FechaCreacion" ColumnName="FechaCreacion" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="TareaId" ColumnName="TareaId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="CreditoMora">
+      <EntityTypeMapping TypeName="VENDIXModel.CreditoMora">
+        <MappingFragment StoreEntitySet="CreditoMora">
+          <ScalarProperty Name="InteresMora" ColumnName="InteresMora" />
+          <ScalarProperty Name="SaldoMora" ColumnName="SaldoMora" />
+          <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
+          <ScalarProperty Name="Mora" ColumnName="Mora" />
+          <ScalarProperty Name="Fecha" ColumnName="Fecha" />
+          <ScalarProperty Name="MovimientoCajaId" ColumnName="MovimientoCajaId" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="CreditoMoraId" ColumnName="CreditoMoraId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptClientesInactivos" FunctionName="VENDIXModel.Store.usp_RptClientesInactivos">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptClientesInactivos_Result">
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="Agente" ColumnName="Agente" />
+          <ScalarProperty Name="Codigo" ColumnName="Codigo" />
+          <ScalarProperty Name="Dni" ColumnName="Dni" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="Direccion" ColumnName="Direccion" />
+          <ScalarProperty Name="DireccionRef" ColumnName="DireccionRef" />
+          <ScalarProperty Name="Celular" ColumnName="Celular" />
+          <ScalarProperty Name="Calificacion" ColumnName="Calificacion" />
+          <ScalarProperty Name="DireccionNegocio" ColumnName="DireccionNegocio" />
+          <ScalarProperty Name="DireccionNegocioRef" ColumnName="DireccionNegocioRef" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptCreditosActivos" FunctionName="VENDIXModel.Store.usp_RptCreditosActivos">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCreditosActivos_Result">
+          <ScalarProperty Name="Nro" ColumnName="Nro" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="Agente" ColumnName="Agente" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+          <ScalarProperty Name="FormaPago" ColumnName="FormaPago" />
+          <ScalarProperty Name="NumeroCuotas" ColumnName="NumeroCuotas" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="MontoInteres" ColumnName="MontoInteres" />
+          <ScalarProperty Name="MontoCreditoTotal" ColumnName="MontoCreditoTotal" />
+          <ScalarProperty Name="MontoGastosAdm" ColumnName="MontoGastosAdm" />
+          <ScalarProperty Name="CentralRiesgo" ColumnName="CentralRiesgo" />
+          <ScalarProperty Name="FechaPrimerPago" ColumnName="FechaPrimerPago" />
+          <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+          <ScalarProperty Name="Cuota" ColumnName="Cuota" />
+          <ScalarProperty Name="NroCuotasPagado" ColumnName="NroCuotasPagado" />
+          <ScalarProperty Name="Pagado" ColumnName="Pagado" />
+          <ScalarProperty Name="InteresPagado" ColumnName="InteresPagado" />
+          <ScalarProperty Name="NroCuotasPen" ColumnName="NroCuotasPen" />
+          <ScalarProperty Name="SaldoCapital" ColumnName="SaldoCapital" />
+          <ScalarProperty Name="SaldoInteres" ColumnName="SaldoInteres" />
+          <ScalarProperty Name="Saldo" ColumnName="Saldo" />
+          <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
+          <ScalarProperty Name="Mora" ColumnName="Mora" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RegistrarTransferenciaBancos" FunctionName="VENDIXModel.Store.usp_RegistrarTransferenciaBancos" />
+    <FunctionImportMapping FunctionImportName="usp_CerrarCajasDiarios" FunctionName="VENDIXModel.Store.usp_CerrarCajasDiarios" />
+    <FunctionImportMapping FunctionImportName="usp_SimuladorCredito" FunctionName="VENDIXModel.Store.usp_SimuladorCredito">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_SimuladorCredito_Result">
+          <ScalarProperty Name="Numero" ColumnName="Numero" />
+          <ScalarProperty Name="Capital" ColumnName="Capital" />
+          <ScalarProperty Name="FechaPago" ColumnName="FechaPago" />
+          <ScalarProperty Name="Amortizacion" ColumnName="Amortizacion" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="GastosAdm" ColumnName="GastosAdm" />
+          <ScalarProperty Name="Cuota" ColumnName="Cuota" />
+          <ScalarProperty Name="Saldo" ColumnName="Saldo" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptAval" FunctionName="VENDIXModel.Store.usp_RptAval">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptAval_Result">
+          <ScalarProperty Name="Grupo" ColumnName="Grupo" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="Persona" ColumnName="Persona" />
+          <ScalarProperty Name="Dni" ColumnName="Dni" />
+          <ScalarProperty Name="Celular" ColumnName="Celular" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_DashboardRanking" FunctionName="VENDIXModel.Store.usp_DashboardRanking">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardRanking_Result">
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+          <ScalarProperty Name="TotalCobrado" ColumnName="TotalCobrado" />
+          <ScalarProperty Name="Posicion" ColumnName="Posicion" />
+          <ScalarProperty Name="EsUsuarioActual" ColumnName="EsUsuarioActual" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_DashboardTopAnterior" FunctionName="VENDIXModel.Store.usp_DashboardTopAnterior">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardTopAnterior_Result">
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+          <ScalarProperty Name="TotalCobrado" ColumnName="TotalCobrado" />
+          <ScalarProperty Name="Posicion" ColumnName="Posicion" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_RptCobroDiario" FunctionName="VENDIXModel.Store.usp_RptCobroDiario">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_RptCobroDiario_Result">
+          <ScalarProperty Name="Nro" ColumnName="Nro" />
+          <ScalarProperty Name="Orden" ColumnName="Orden" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Cliente" ColumnName="Cliente" />
+          <ScalarProperty Name="Celular" ColumnName="Celular" />
+          <ScalarProperty Name="MontoCredito" ColumnName="MontoCredito" />
+          <ScalarProperty Name="Interes" ColumnName="Interes" />
+          <ScalarProperty Name="CuotaPlan" ColumnName="CuotaPlan" />
+          <ScalarProperty Name="Saldo" ColumnName="Saldo" />
+          <ScalarProperty Name="DiasAtrazo" ColumnName="DiasAtrazo" />
+          <ScalarProperty Name="NroCuotasPen" ColumnName="NroCuotasPen" />
+          <ScalarProperty Name="CuotaTotal" ColumnName="CuotaTotal" />
+          <ScalarProperty Name="Direccion" ColumnName="Direccion" />
+          <ScalarProperty Name="FechaPago" ColumnName="FechaPago" />
+          <ScalarProperty Name="TienePagoReal" ColumnName="TienePagoReal" />
+          <ScalarProperty Name="FechaPrimerPago" ColumnName="FechaPrimerPago" />
+          <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+          <ScalarProperty Name="Mora" ColumnName="Mora" />
+          <ScalarProperty Name="MontoTotal" ColumnName="MontoTotal" />
+          <ScalarProperty Name="Negocio" ColumnName="Negocio" />
+          <ScalarProperty Name="FormaPago" ColumnName="FormaPago" />
+          <ScalarProperty Name="TopeCredito" ColumnName="TopeCredito" />
+          <ScalarProperty Name="ClasificacionRiesgoSBS" ColumnName="ClasificacionRiesgoSBS" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_DashboardAdminFlujoCaja" FunctionName="VENDIXModel.Store.usp_DashboardAdminFlujoCaja">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardAdminFlujoCaja_Result">
+          <ScalarProperty Name="Operacion" ColumnName="Operacion" />
+          <ScalarProperty Name="IndEntrada" ColumnName="IndEntrada" />
+          <ScalarProperty Name="Concepto" ColumnName="Concepto" />
+          <ScalarProperty Name="EsTransferencia" ColumnName="EsTransferencia" />
+          <ScalarProperty Name="CantidadHoy" ColumnName="CantidadHoy" />
+          <ScalarProperty Name="ImporteHoy" ColumnName="ImporteHoy" />
+          <ScalarProperty Name="CantidadAyer" ColumnName="CantidadAyer" />
+          <ScalarProperty Name="ImporteAyer" ColumnName="ImporteAyer" />
+          <ScalarProperty Name="CantidadMesActual" ColumnName="CantidadMesActual" />
+          <ScalarProperty Name="ImporteMesActual" ColumnName="ImporteMesActual" />
+          <ScalarProperty Name="CantidadMesAnteriorComparable" ColumnName="CantidadMesAnteriorComparable" />
+          <ScalarProperty Name="ImporteMesAnteriorComparable" ColumnName="ImporteMesAnteriorComparable" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_DashboardAdminHistorico" FunctionName="VENDIXModel.Store.usp_DashboardAdminHistorico">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardAdminHistorico_Result">
+          <ScalarProperty Name="Fecha" ColumnName="Fecha" />
+          <ScalarProperty Name="Colocaciones" ColumnName="Colocaciones" />
+          <ScalarProperty Name="Desembolsado" ColumnName="Desembolsado" />
+          <ScalarProperty Name="Cobrado" ColumnName="Cobrado" />
+          <ScalarProperty Name="Entradas" ColumnName="Entradas" />
+          <ScalarProperty Name="Salidas" ColumnName="Salidas" />
+          <ScalarProperty Name="FlujoNeto" ColumnName="FlujoNeto" />
+          <ScalarProperty Name="FlujoOperativo" ColumnName="FlujoOperativo" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_DashboardAdminHistoricoMensual" FunctionName="VENDIXModel.Store.usp_DashboardAdminHistoricoMensual">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardAdminHistoricoMensual_Result">
+          <ScalarProperty Name="FechaMes" ColumnName="FechaMes" />
+          <ScalarProperty Name="EsMesActual" ColumnName="EsMesActual" />
+          <ScalarProperty Name="Colocaciones" ColumnName="Colocaciones" />
+          <ScalarProperty Name="Desembolsado" ColumnName="Desembolsado" />
+          <ScalarProperty Name="Cobrado" ColumnName="Cobrado" />
+          <ScalarProperty Name="Entradas" ColumnName="Entradas" />
+          <ScalarProperty Name="Salidas" ColumnName="Salidas" />
+          <ScalarProperty Name="FlujoNeto" ColumnName="FlujoNeto" />
+          <ScalarProperty Name="FlujoOperativo" ColumnName="FlujoOperativo" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_DashboardAdminAnalistas" FunctionName="VENDIXModel.Store.usp_DashboardAdminAnalistas">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardAdminAnalistas_Result">
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="NombreUsuario" ColumnName="NombreUsuario" />
+          <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+          <ScalarProperty Name="TotalClientes" ColumnName="TotalClientes" />
+          <ScalarProperty Name="ClientesNuevosMes" ColumnName="ClientesNuevosMes" />
+          <ScalarProperty Name="ColocacionesHoy" ColumnName="ColocacionesHoy" />
+          <ScalarProperty Name="ColocacionesMes" ColumnName="ColocacionesMes" />
+          <ScalarProperty Name="DesembolsoHoy" ColumnName="DesembolsoHoy" />
+          <ScalarProperty Name="DesembolsoMes" ColumnName="DesembolsoMes" />
+          <ScalarProperty Name="CobradoHoy" ColumnName="CobradoHoy" />
+          <ScalarProperty Name="CobradoMes" ColumnName="CobradoMes" />
+          <ScalarProperty Name="CobradoMesAnteriorComparable" ColumnName="CobradoMesAnteriorComparable" />
+          <ScalarProperty Name="VariacionCobranza" ColumnName="VariacionCobranza" />
+          <ScalarProperty Name="ClientesMora" ColumnName="ClientesMora" />
+          <ScalarProperty Name="MontoMora" ColumnName="MontoMora" />
+          <ScalarProperty Name="PorcentajeMora" ColumnName="PorcentajeMora" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_DashboardAdminResumen" FunctionName="VENDIXModel.Store.usp_DashboardAdminResumen">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardAdminResumen_Result">
+          <ScalarProperty Name="TotalAnalistas" ColumnName="TotalAnalistas" />
+          <ScalarProperty Name="TotalClientes" ColumnName="TotalClientes" />
+          <ScalarProperty Name="CreditosHoy" ColumnName="CreditosHoy" />
+          <ScalarProperty Name="CreditosAyer" ColumnName="CreditosAyer" />
+          <ScalarProperty Name="CreditosAnteayer" ColumnName="CreditosAnteayer" />
+          <ScalarProperty Name="CreditosMesActual" ColumnName="CreditosMesActual" />
+          <ScalarProperty Name="CreditosMesAnteriorComparable" ColumnName="CreditosMesAnteriorComparable" />
+          <ScalarProperty Name="DesembolsoHoy" ColumnName="DesembolsoHoy" />
+          <ScalarProperty Name="DesembolsoAyer" ColumnName="DesembolsoAyer" />
+          <ScalarProperty Name="DesembolsoAnteayer" ColumnName="DesembolsoAnteayer" />
+          <ScalarProperty Name="DesembolsoMesActual" ColumnName="DesembolsoMesActual" />
+          <ScalarProperty Name="DesembolsoMesAnteriorComparable" ColumnName="DesembolsoMesAnteriorComparable" />
+          <ScalarProperty Name="CobradoHoy" ColumnName="CobradoHoy" />
+          <ScalarProperty Name="CobradoAyer" ColumnName="CobradoAyer" />
+          <ScalarProperty Name="CobradoAnteayer" ColumnName="CobradoAnteayer" />
+          <ScalarProperty Name="CobradoMesActual" ColumnName="CobradoMesActual" />
+          <ScalarProperty Name="CobradoMesAnteriorComparable" ColumnName="CobradoMesAnteriorComparable" />
+          <ScalarProperty Name="EntradasHoy" ColumnName="EntradasHoy" />
+          <ScalarProperty Name="SalidasHoy" ColumnName="SalidasHoy" />
+          <ScalarProperty Name="FlujoNetoHoy" ColumnName="FlujoNetoHoy" />
+          <ScalarProperty Name="EntradasAyer" ColumnName="EntradasAyer" />
+          <ScalarProperty Name="SalidasAyer" ColumnName="SalidasAyer" />
+          <ScalarProperty Name="FlujoNetoAyer" ColumnName="FlujoNetoAyer" />
+          <ScalarProperty Name="EntradasAnteayer" ColumnName="EntradasAnteayer" />
+          <ScalarProperty Name="SalidasAnteayer" ColumnName="SalidasAnteayer" />
+          <ScalarProperty Name="FlujoNetoAnteayer" ColumnName="FlujoNetoAnteayer" />
+          <ScalarProperty Name="EntradasMesActual" ColumnName="EntradasMesActual" />
+          <ScalarProperty Name="SalidasMesActual" ColumnName="SalidasMesActual" />
+          <ScalarProperty Name="FlujoNetoMesActual" ColumnName="FlujoNetoMesActual" />
+          <ScalarProperty Name="EntradasMesAnteriorComparable" ColumnName="EntradasMesAnteriorComparable" />
+          <ScalarProperty Name="SalidasMesAnteriorComparable" ColumnName="SalidasMesAnteriorComparable" />
+          <ScalarProperty Name="FlujoNetoMesAnteriorComparable" ColumnName="FlujoNetoMesAnteriorComparable" />
+          <ScalarProperty Name="SaldoCartera" ColumnName="SaldoCartera" />
+          <ScalarProperty Name="SaldoCreditos" ColumnName="SaldoCreditos" />
+          <ScalarProperty Name="SaldoMoraCartera" ColumnName="SaldoMoraCartera" />
+          <ScalarProperty Name="SaldoVencido" ColumnName="SaldoVencido" />
+          <ScalarProperty Name="SaldoMorosidad" ColumnName="SaldoMorosidad" />
+          <ScalarProperty Name="ClientesMora" ColumnName="ClientesMora" />
+          <ScalarProperty Name="CreditosPorVencerSemana" ColumnName="CreditosPorVencerSemana" />
+          <ScalarProperty Name="FechaConsulta" ColumnName="FechaConsulta" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <EntitySetMapping Name="CreditoCondonacion">
+      <EntityTypeMapping TypeName="VENDIXModel.CreditoCondonacion">
+        <MappingFragment StoreEntitySet="CreditoCondonacion">
+          <ScalarProperty Name="IndAprobado" ColumnName="IndAprobado" />
+          <ScalarProperty Name="TotalPago" ColumnName="TotalPago" />
+          <ScalarProperty Name="MoraCondonacion" ColumnName="MoraCondonacion" />
+          <ScalarProperty Name="Fecha" ColumnName="Fecha" />
+          <ScalarProperty Name="CajaDiarioId" ColumnName="CajaDiarioId" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="Id" ColumnName="Id" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="CierreGerencial">
+      <EntityTypeMapping TypeName="VENDIXModel.CierreGerencial">
+        <MappingFragment StoreEntitySet="CierreGerencial">
+          <ScalarProperty Name="Observacion" ColumnName="Observacion" />
+          <ScalarProperty Name="FechaCierre" ColumnName="FechaCierre" />
+          <ScalarProperty Name="UsuarioCierreId" ColumnName="UsuarioCierreId" />
+          <ScalarProperty Name="Version" ColumnName="Version" />
+          <ScalarProperty Name="Estado" ColumnName="Estado" />
+          <ScalarProperty Name="FechaCorte" ColumnName="FechaCorte" />
+          <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+          <ScalarProperty Name="CierreGerencialId" ColumnName="CierreGerencialId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="CierreGerencialDetalle">
+      <EntityTypeMapping TypeName="VENDIXModel.CierreGerencialDetalle">
+        <MappingFragment StoreEntitySet="CierreGerencialDetalle">
+          <ScalarProperty Name="NroOperacionesMes" ColumnName="NroOperacionesMes" />
+          <ScalarProperty Name="DesembolsosMes" ColumnName="DesembolsosMes" />
+          <ScalarProperty Name="MontoCobradoMes" ColumnName="MontoCobradoMes" />
+          <ScalarProperty Name="MontoClientesNuevosMes" ColumnName="MontoClientesNuevosMes" />
+          <ScalarProperty Name="ClientesNuevosMes" ColumnName="ClientesNuevosMes" />
+          <ScalarProperty Name="DefinicionVencidos" ColumnName="DefinicionVencidos" />
+          <ScalarProperty Name="ClientesVencidosCierre" ColumnName="ClientesVencidosCierre" />
+          <ScalarProperty Name="VencidosCuotasCierre" ColumnName="VencidosCuotasCierre" />
+          <ScalarProperty Name="MoraGeneral" ColumnName="MoraGeneral" />
+          <ScalarProperty Name="TotalClientesActivos" ColumnName="TotalClientesActivos" />
+          <ScalarProperty Name="CapitalCierre" ColumnName="CapitalCierre" />
+          <ScalarProperty Name="FuenteInicial" ColumnName="FuenteInicial" />
+          <ScalarProperty Name="TipoCartera" ColumnName="TipoCartera" />
+          <ScalarProperty Name="Orden" ColumnName="Orden" />
+          <ScalarProperty Name="Mercado" ColumnName="Mercado" />
+          <ScalarProperty Name="Supervisor" ColumnName="Supervisor" />
+          <ScalarProperty Name="Asesor" ColumnName="Asesor" />
+          <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+          <ScalarProperty Name="NombreUsuario" ColumnName="NombreUsuario" />
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="CierreGerencialId" ColumnName="CierreGerencialId" />
+          <ScalarProperty Name="CierreGerencialDetalleId" ColumnName="CierreGerencialDetalleId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="MetaGerencialAnalista">
+      <EntityTypeMapping TypeName="VENDIXModel.MetaGerencialAnalista">
+        <MappingFragment StoreEntitySet="MetaGerencialAnalista">
+          <ScalarProperty Name="FechaModificacion" ColumnName="FechaModificacion" />
+          <ScalarProperty Name="UsuarioModificacionId" ColumnName="UsuarioModificacionId" />
+          <ScalarProperty Name="FechaRegistro" ColumnName="FechaRegistro" />
+          <ScalarProperty Name="UsuarioRegistroId" ColumnName="UsuarioRegistroId" />
+          <ScalarProperty Name="Activo" ColumnName="Activo" />
+          <ScalarProperty Name="MetaRecuperacionVencidosMes" ColumnName="MetaRecuperacionVencidosMes" />
+          <ScalarProperty Name="MetaVencidosMaximoCierre" ColumnName="MetaVencidosMaximoCierre" />
+          <ScalarProperty Name="MetaClientesActivosCierre" ColumnName="MetaClientesActivosCierre" />
+          <ScalarProperty Name="MetaCapitalCierre" ColumnName="MetaCapitalCierre" />
+          <ScalarProperty Name="FuenteInicial" ColumnName="FuenteInicial" />
+          <ScalarProperty Name="TipoCartera" ColumnName="TipoCartera" />
+          <ScalarProperty Name="Orden" ColumnName="Orden" />
+          <ScalarProperty Name="Mercado" ColumnName="Mercado" />
+          <ScalarProperty Name="Supervisor" ColumnName="Supervisor" />
+          <ScalarProperty Name="Asesor" ColumnName="Asesor" />
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+          <ScalarProperty Name="MetaGerencialAnalistaId" ColumnName="MetaGerencialAnalistaId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <EntitySetMapping Name="VencidoGerencialAperturaDetalle">
+      <EntityTypeMapping TypeName="VENDIXModel.VencidoGerencialAperturaDetalle">
+        <MappingFragment StoreEntitySet="VencidoGerencialAperturaDetalle">
+          <ScalarProperty Name="FechaRegistro" ColumnName="FechaRegistro" />
+          <ScalarProperty Name="CierreOrigenId" ColumnName="CierreOrigenId" />
+          <ScalarProperty Name="SaldoVencidoApertura" ColumnName="SaldoVencidoApertura" />
+          <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+          <ScalarProperty Name="PlanPagoId" ColumnName="PlanPagoId" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+          <ScalarProperty Name="VencidoGerencialAperturaDetalleId" ColumnName="VencidoGerencialAperturaDetalleId" />
+        </MappingFragment>
+      </EntityTypeMapping>
+    </EntitySetMapping>
+    <FunctionImportMapping FunctionImportName="ufn_ActividadGerencialMensual" FunctionName="VENDIXModel.Store.ufn_ActividadGerencialMensual">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.ufn_ActividadGerencialMensual_Result">
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="ClientesNuevosMes" ColumnName="ClientesNuevosMes" />
+          <ScalarProperty Name="MontoClientesNuevosMes" ColumnName="MontoClientesNuevosMes" />
+          <ScalarProperty Name="MontoCobradoMes" ColumnName="MontoCobradoMes" />
+          <ScalarProperty Name="DesembolsosMes" ColumnName="DesembolsosMes" />
+          <ScalarProperty Name="NroOperacionesMes" ColumnName="NroOperacionesMes" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="ufn_ClientesNuevosGerenciales" FunctionName="VENDIXModel.Store.ufn_ClientesNuevosGerenciales">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.ufn_ClientesNuevosGerenciales_Result">
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="ClientesNuevosMes" ColumnName="ClientesNuevosMes" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="ufn_MetricasGerencialesActuales" FunctionName="VENDIXModel.Store.ufn_MetricasGerencialesActuales">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.ufn_MetricasGerencialesActuales_Result">
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="CapitalActual" ColumnName="CapitalActual" />
+          <ScalarProperty Name="ClientesActivosActual" ColumnName="ClientesActivosActual" />
+          <ScalarProperty Name="VencidosActual" ColumnName="VencidosActual" />
+          <ScalarProperty Name="ClientesVencidosActual" ColumnName="ClientesVencidosActual" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="ufn_RecuperacionVencidosGerencial" FunctionName="VENDIXModel.Store.ufn_RecuperacionVencidosGerencial">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.ufn_RecuperacionVencidosGerencial_Result">
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="VencidosApertura" ColumnName="VencidosApertura" />
+          <ScalarProperty Name="VencidosAperturaPendiente" ColumnName="VencidosAperturaPendiente" />
+          <ScalarProperty Name="RecuperacionVencidosActual" ColumnName="RecuperacionVencidosActual" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="ufn_SaldosCuotasGerenciales" FunctionName="VENDIXModel.Store.ufn_SaldosCuotasGerenciales">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.ufn_SaldosCuotasGerenciales_Result">
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="CreditoId" ColumnName="CreditoId" />
+          <ScalarProperty Name="PlanPagoId" ColumnName="PlanPagoId" />
+          <ScalarProperty Name="FechaVencimiento" ColumnName="FechaVencimiento" />
+          <ScalarProperty Name="ImporteCuota" ColumnName="ImporteCuota" />
+          <ScalarProperty Name="SaldoCuota" ColumnName="SaldoCuota" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_DashboardGestorClientesMora" FunctionName="VENDIXModel.Store.usp_DashboardGestorClientesMora">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardGestorClientesMora_Result">
+          <ScalarProperty Name="PersonaId" ColumnName="PersonaId" />
+          <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+          <ScalarProperty Name="CreditosMora" ColumnName="CreditosMora" />
+          <ScalarProperty Name="SaldoMora" ColumnName="SaldoMora" />
+          <ScalarProperty Name="PrimeraCuotaVencida" ColumnName="PrimeraCuotaVencida" />
+          <ScalarProperty Name="FechaUltimoPago" ColumnName="FechaUltimoPago" />
+          <ScalarProperty Name="DiasAtraso" ColumnName="DiasAtraso" />
+          <ScalarProperty Name="CodigoClasificacion" ColumnName="CodigoClasificacion" />
+          <ScalarProperty Name="Clasificacion" ColumnName="Clasificacion" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_GenerarCierreGerencialMensual" FunctionName="VENDIXModel.Store.usp_GenerarCierreGerencialMensual">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_GenerarCierreGerencialMensual_Result">
+          <ScalarProperty Name="CierreGerencialId" ColumnName="CierreGerencialId" />
+          <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+          <ScalarProperty Name="Creado" ColumnName="Creado" />
+          <ScalarProperty Name="Resultado" ColumnName="Resultado" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_GuardarMetaGerencialDefinitiva" FunctionName="VENDIXModel.Store.usp_GuardarMetaGerencialDefinitiva">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_GuardarMetaGerencialDefinitiva_Result">
+          <ScalarProperty Name="MetaGerencialAnalistaId" ColumnName="MetaGerencialAnalistaId" />
+          <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="MetaCapitalCierre" ColumnName="MetaCapitalCierre" />
+          <ScalarProperty Name="MetaClientesActivosCierre" ColumnName="MetaClientesActivosCierre" />
+          <ScalarProperty Name="MetaVencidosMaximoCierre" ColumnName="MetaVencidosMaximoCierre" />
+          <ScalarProperty Name="MetaRecuperacionVencidosMes" ColumnName="MetaRecuperacionVencidosMes" />
+          <ScalarProperty Name="Activo" ColumnName="Activo" />
+          <ScalarProperty Name="UsuarioRegistroId" ColumnName="UsuarioRegistroId" />
+          <ScalarProperty Name="FechaRegistro" ColumnName="FechaRegistro" />
+          <ScalarProperty Name="UsuarioModificacionId" ColumnName="UsuarioModificacionId" />
+          <ScalarProperty Name="FechaModificacion" ColumnName="FechaModificacion" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_IntentarGenerarCierreGerencialMensual" FunctionName="VENDIXModel.Store.usp_IntentarGenerarCierreGerencialMensual">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_IntentarGenerarCierreGerencialMensual_Result">
+          <ScalarProperty Name="CierreGerencialId" ColumnName="CierreGerencialId" />
+          <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+          <ScalarProperty Name="Creado" ColumnName="Creado" />
+          <ScalarProperty Name="Resultado" ColumnName="Resultado" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_ListarMetasGerencialesDefinitivas" FunctionName="VENDIXModel.Store.usp_ListarMetasGerencialesDefinitivas">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_ListarMetasGerencialesDefinitivas_Result">
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="NombreUsuario" ColumnName="NombreUsuario" />
+          <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+          <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+          <ScalarProperty Name="CapitalBase" ColumnName="CapitalBase" />
+          <ScalarProperty Name="ClientesActivosBase" ColumnName="ClientesActivosBase" />
+          <ScalarProperty Name="VencidosBaseComparable" ColumnName="VencidosBaseComparable" />
+          <ScalarProperty Name="VencidosBaseLegacy" ColumnName="VencidosBaseLegacy" />
+          <ScalarProperty Name="ClientesVencidosBase" ColumnName="ClientesVencidosBase" />
+          <ScalarProperty Name="MetaCapitalCierre" ColumnName="MetaCapitalCierre" />
+          <ScalarProperty Name="MetaClientesActivosCierre" ColumnName="MetaClientesActivosCierre" />
+          <ScalarProperty Name="MetaVencidosMaximoCierre" ColumnName="MetaVencidosMaximoCierre" />
+          <ScalarProperty Name="MetaRecuperacionVencidosMes" ColumnName="MetaRecuperacionVencidosMes" />
+          <ScalarProperty Name="Configurada" ColumnName="Configurada" />
+          <ScalarProperty Name="PeriodoCerrado" ColumnName="PeriodoCerrado" />
+          <ScalarProperty Name="PuedeEditar" ColumnName="PuedeEditar" />
+          <ScalarProperty Name="FechaLimiteEdicion" ColumnName="FechaLimiteEdicion" />
+          <ScalarProperty Name="Asesor" ColumnName="Asesor" />
+          <ScalarProperty Name="Supervisor" ColumnName="Supervisor" />
+          <ScalarProperty Name="Mercado" ColumnName="Mercado" />
+          <ScalarProperty Name="Orden" ColumnName="Orden" />
+          <ScalarProperty Name="TipoCartera" ColumnName="TipoCartera" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_ObtenerAvanceMetasGerenciales" FunctionName="VENDIXModel.Store.usp_ObtenerAvanceMetasGerenciales" />
+    <FunctionImportMapping FunctionImportName="usp_ObtenerAvanceMetasGerencialesBase" FunctionName="VENDIXModel.Store.usp_ObtenerAvanceMetasGerencialesBase">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_ObtenerAvanceMetasGerencialesBase_Result">
+          <ScalarProperty Name="Orden" ColumnName="Orden" />
+          <ScalarProperty Name="UsuarioId" ColumnName="UsuarioId" />
+          <ScalarProperty Name="NombreUsuario" ColumnName="NombreUsuario" />
+          <ScalarProperty Name="NombreCompleto" ColumnName="NombreCompleto" />
+          <ScalarProperty Name="Asesor" ColumnName="Asesor" />
+          <ScalarProperty Name="Supervisor" ColumnName="Supervisor" />
+          <ScalarProperty Name="Mercado" ColumnName="Mercado" />
+          <ScalarProperty Name="TipoCartera" ColumnName="TipoCartera" />
+          <ScalarProperty Name="Periodo" ColumnName="Periodo" />
+          <ScalarProperty Name="CapitalBase" ColumnName="CapitalBase" />
+          <ScalarProperty Name="MetaCapitalCierre" ColumnName="MetaCapitalCierre" />
+          <ScalarProperty Name="CapitalActual" ColumnName="CapitalActual" />
+          <ScalarProperty Name="DiferenciaCapital" ColumnName="DiferenciaCapital" />
+          <ScalarProperty Name="CumplimientoCapitalPct" ColumnName="CumplimientoCapitalPct" />
+          <ScalarProperty Name="EstadoCapital" ColumnName="EstadoCapital" />
+          <ScalarProperty Name="ClientesBase" ColumnName="ClientesBase" />
+          <ScalarProperty Name="MetaClientesActivosCierre" ColumnName="MetaClientesActivosCierre" />
+          <ScalarProperty Name="ClientesActivosActual" ColumnName="ClientesActivosActual" />
+          <ScalarProperty Name="DiferenciaClientes" ColumnName="DiferenciaClientes" />
+          <ScalarProperty Name="CumplimientoClientesPct" ColumnName="CumplimientoClientesPct" />
+          <ScalarProperty Name="EstadoClientes" ColumnName="EstadoClientes" />
+          <ScalarProperty Name="VencidosBaseComparable" ColumnName="VencidosBaseComparable" />
+          <ScalarProperty Name="VencidosBaseLegacy" ColumnName="VencidosBaseLegacy" />
+          <ScalarProperty Name="MetaVencidosMaximoCierre" ColumnName="MetaVencidosMaximoCierre" />
+          <ScalarProperty Name="VencidosActual" ColumnName="VencidosActual" />
+          <ScalarProperty Name="MargenVencidos" ColumnName="MargenVencidos" />
+          <ScalarProperty Name="EstadoVencidos" ColumnName="EstadoVencidos" />
+          <ScalarProperty Name="ClientesVencidosBase" ColumnName="ClientesVencidosBase" />
+          <ScalarProperty Name="ClientesVencidosActual" ColumnName="ClientesVencidosActual" />
+          <ScalarProperty Name="ClientesVencidosPct" ColumnName="ClientesVencidosPct" />
+          <ScalarProperty Name="MetaRecuperacionVencidosMes" ColumnName="MetaRecuperacionVencidosMes" />
+          <ScalarProperty Name="RecuperacionVencidosActual" ColumnName="RecuperacionVencidosActual" />
+          <ScalarProperty Name="EstadoRecuperacion" ColumnName="EstadoRecuperacion" />
+          <ScalarProperty Name="MetaConfigurada" ColumnName="MetaConfigurada" />
+          <ScalarProperty Name="FechaCalculo" ColumnName="FechaCalculo" />
+          <ScalarProperty Name="AvanceNoOficial" ColumnName="AvanceNoOficial" />
+          <ScalarProperty Name="ClientesNuevosMes" ColumnName="ClientesNuevosMes" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_SolicitarCondonacion" FunctionName="VENDIXModel.Store.usp_SolicitarCondonacion" />
+    <FunctionImportMapping FunctionImportName="usp_DashboardProductividad" FunctionName="VENDIXModel.Store.usp_DashboardProductividad">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardProductividad_Result">
+          <ScalarProperty Name="Anio" ColumnName="Anio" />
+          <ScalarProperty Name="Mes" ColumnName="Mes" />
+          <ScalarProperty Name="NombreMes" ColumnName="NombreMes" />
+          <ScalarProperty Name="MontoCobrado" ColumnName="MontoCobrado" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+    <FunctionImportMapping FunctionImportName="usp_DashboardGestor" FunctionName="VENDIXModel.Store.usp_DashboardGestor">
+      <ResultMapping>
+        <ComplexTypeMapping TypeName="VENDIXModel.usp_DashboardGestor_Result">
+          <ScalarProperty Name="TotalClientes" ColumnName="TotalClientes" />
+          <ScalarProperty Name="ClientesNuevosActual" ColumnName="ClientesNuevosActual" />
+          <ScalarProperty Name="ClientesNuevosAnterior" ColumnName="ClientesNuevosAnterior" />
+          <ScalarProperty Name="CreditosActual" ColumnName="CreditosActual" />
+          <ScalarProperty Name="CreditosAnterior" ColumnName="CreditosAnterior" />
+          <ScalarProperty Name="CobradoActual" ColumnName="CobradoActual" />
+          <ScalarProperty Name="CobradoAnterior" ColumnName="CobradoAnterior" />
+          <ScalarProperty Name="SaldoActual" ColumnName="SaldoActual" />
+          <ScalarProperty Name="MontoMora" ColumnName="MontoMora" />
+          <ScalarProperty Name="ClientesMora" ColumnName="ClientesMora" />
+          <ScalarProperty Name="ClientesMoraSinPago" ColumnName="ClientesMoraSinPago" />
+          <ScalarProperty Name="ClientesMoraNuncaPagaron" ColumnName="ClientesMoraNuncaPagaron" />
+          <ScalarProperty Name="ClientesMoraDejaronPagar" ColumnName="ClientesMoraDejaronPagar" />
+          <ScalarProperty Name="ClientesMoraPagandoConAtraso" ColumnName="ClientesMoraPagandoConAtraso" />
+          <ScalarProperty Name="PorVencerSemana" ColumnName="PorVencerSemana" />
+          <ScalarProperty Name="CobradoHoy" ColumnName="CobradoHoy" />
+          <ScalarProperty Name="CobradoAyer" ColumnName="CobradoAyer" />
+        </ComplexTypeMapping>
+      </ResultMapping>
+    </FunctionImportMapping>
+  </EntityContainerMapping>
+</Mapping>

@@ -44,6 +44,11 @@ type Props = {
   onPatch: (patch: Partial<CobroBloqueFieldEdit>) => void
   onUbicacionGuardada?: (personaId: number, lat: number, lng: number) => void
   cuotasSlot: ReactNode
+  /** Cobro ya persistido hoy en este dispositivo. */
+  enviado?: boolean
+  errorMsg?: string | null
+  onCobrarYa?: () => void
+  cobrarYaLoading?: boolean
 }
 
 function digitsPhone(raw: string | null | undefined): string {
@@ -73,10 +78,14 @@ export function CobroBloqueFieldCard({
   onPatch,
   onUbicacionGuardada,
   cuotasSlot,
+  enviado = false,
+  errorMsg = null,
+  onCobrarYa,
+  cobrarYaLoading = false,
 }: Props) {
   const [gpsLoading, setGpsLoading] = useState(false)
   const enMora = row.diasAtrazo > 0
-  const conCobro = edit.montoPagar > 0
+  const conCobro = edit.montoPagar > 0 && !enviado
   const sug = Math.max(0, row.cuotaSugerida || 0)
   const deuda = Math.max(0, row.deudaPendiente || 0)
   const phone = digitsPhone(row.celular)
@@ -147,6 +156,7 @@ export function CobroBloqueFieldCard({
         'cobro-bloque-card',
         enMora ? 'cobro-bloque-card--mora' : '',
         conCobro ? 'cobro-bloque-card--cobro' : '',
+        enviado ? 'cobro-bloque-card--enviado' : '',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -161,9 +171,13 @@ export function CobroBloqueFieldCard({
             ) : (
               <span className="cobro-bloque-card__badge">Al día</span>
             )}
-            {conCobro ? (
+            {enviado ? (
               <span className="cobro-bloque-card__badge cobro-bloque-card__badge--ok">
-                Cobro tipado
+                Enviado
+              </span>
+            ) : conCobro ? (
+              <span className="cobro-bloque-card__badge cobro-bloque-card__badge--tipado">
+                Por enviar
               </span>
             ) : null}
           </div>
@@ -321,6 +335,26 @@ export function CobroBloqueFieldCard({
               onChange={(fechaHoraTrans) => onPatch({ fechaHoraTrans })}
             />
           </div>
+        ) : null}
+
+        {errorMsg ? (
+          <p className="cobro-bloque-card__error" role="alert">
+            {errorMsg}
+          </p>
+        ) : null}
+
+        {!enviado && onCobrarYa ? (
+          <Button
+            type="primary"
+            block
+            size="large"
+            className="cobro-bloque-card__cobrar-ya"
+            disabled={edit.montoPagar <= 0}
+            loading={cobrarYaLoading}
+            onClick={onCobrarYa}
+          >
+            {isBrowserOnline() ? 'Cobrar ya' : 'Guardar en Por enviar'}
+          </Button>
         ) : null}
       </div>
 

@@ -1,6 +1,6 @@
 # SSD-03 — Caja (diario, chica, saldos, verificar)
 
-**Estado:** as-built · 2026-09-11 · cobro en bloque GPS campo 2026-10-10 · validación E/S, transferencias y rendiciones 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
+**Estado:** as-built · 2026-09-11 · Cobro campo (`/caja/cobro`) cola + GPS 2026-10-12 · validación E/S, transferencias y rendiciones 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
 **Código:** `/caja/*` · `/api/v1/credito/*` (caja) + venta rápida de mostrador  
 **Fuente legacy:** `CajaDiarioController`, `CajaChicaController`, `SaldosController`, `VerificarPagosController`, `CajaController` (maestro), vista `Credito/CajaDiario.cshtml`  
 **Doc de ingeniería:** [caja_diario_migracion.md](../caja_diario_migracion.md), [caja_saldos_migracion.md](../caja_saldos_migracion.md), [caja_chica_verificar_migracion.md](../caja_chica_verificar_migracion.md)
@@ -21,9 +21,9 @@ Operación de efectivo del día: cobrar, desembolsar, arqueo, cierre, caja chica
 **Entra**
 
 - `/caja/diario`, `/caja/chica`, `/caja/saldos`, `/caja/asignar`, `/caja/verificar-pagos`, `/caja/maestro` (`/mantenimiento/cajas`)
-- `/caja/cobro-bloque` — planilla del gestor (campo), offline tipado, GPS cliente
+- `/caja/cobro` — Cobro campo del gestor (cola Cartera / Por enviar / Enviados, offline, GPS). Alias legacy `/caja/cobro-bloque` → redirect
 - Mora postergada al cobrar; solicitar condonación desde diario (bandeja en SSD-02)
-- Tickets PDF de movimiento cuando el SP devuelve `MovimientoCajaId`
+- Tickets PDF de movimiento cuando el SP devuelve `MovimientoCajaId` (`Cobrar ya` en Cobro; diario Cobranzas)
 
 **No entra**
 
@@ -77,10 +77,23 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 | `GET saldos-caja-diario*`, cierre masivo / asignar | Según rol / `LECTURA_SALDO` | `/caja/saldos`, `/caja/asignar` |
 | Caja chica E/S, rendición, `cerrar-caja-chica-diario`, transferir bóveda | Operador | `/caja/chica` |
 | `POST solicitar-condonacion` | Operador | Diario → bandeja SSD-02 |
-| `GET creditos-gestor-desembolsados` | CreditoUser | `/caja/cobro-bloque` (incluye `latitud`/`longitud` de Cliente) |
-| `POST /api/v1/clientes/{id}/ubicacion` | CreditoUser | Cobro-bloque móvil si el cliente **aún no** tiene GPS (SPA); API siempre puede actualizar |
+| `GET creditos-gestor-desembolsados` | CreditoUser | `/caja/cobro` (incluye `latitud`/`longitud` de Cliente) |
+| `POST cobrar-planilla-bloque` | Operador | Cobro → Enviar cola (`CompletarImpagos: false`). Impagos solo vía `POST completar-impagos` en Diario |
+| `POST pagar-cuota-importe-libre` | Operador | Cobro → Cobrar ya (ticket) / Diario cobranzas |
+| `POST /api/v1/clientes/{id}/ubicacion` | CreditoUser | Cobro móvil si el cliente **aún no** tiene GPS (SPA); API siempre puede actualizar |
 
-### Cobro en bloque — GPS (producto)
+### Cobro campo — cola y tipar ≠ cobrado
+
+| Concepto | Comportamiento |
+|----------|----------------|
+| Tipar | Solo borrador local (Por enviar). **No** registra en BD |
+| Cobrar ya | Online: `pagar-cuota-importe-libre` + ticket → Enviados |
+| Enviar cola | Lote con montos &gt; 0; `CompletarImpagos: false` (nunca cierra impagos desde Cobro) |
+| Offline | Tipados en Por enviar; sync al recuperar red; errores visibles por crédito |
+| Day-lock | Suavizado: se puede reabrir Cobro el mismo día |
+| Completar impagos | Solo Caja Diario → Cobranzas |
+
+### Cobro campo — GPS (producto)
 
 | Regla | Comportamiento |
 |-------|----------------|
@@ -113,8 +126,9 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 - [ ] `LECTURA_SALDO` ve `/caja/saldos` sin asignar ni cierre masivo.
 - [ ] PDF de cajas asignadas / saldo caja / movimiento bóveda desde Saldos usa JWT, no RDLC MVC.
 - [ ] Hub `/caja` no abre asignar / saldos / verificar.
-- [ ] Cobro-bloque móvil: sin GPS muestra «Registrar mi ubicación»; con GPS solo enlace dirección → coords. *(smoke HTTPS — [SMOKE-SIGN-OFF § GPS](../SMOKE-SIGN-OFF.md); automatizado: `clienteMapaNavegacion` + `creditoGestorPendiente` + `cobroBloqueOffline`)*
-- [ ] PC (tabla): columna **Ubicación** con enlace mapa; **sin** botón de captura GPS. *(smoke — SMOKE-SIGN-OFF § GPS)*
+- [ ] Cobro móvil (`/caja/cobro`): sin GPS muestra «Registrar mi ubicación»; con GPS solo enlace dirección → coords. *(smoke HTTPS G2 — [SMOKE-SIGN-OFF](../SMOKE-SIGN-OFF.md); automatizado: `clienteMapaNavegacion` + `cobroCampoSmokeParity`)*
+- [x] PC (tabla): columna **Ubicación** con enlace mapa; **sin** botón de captura GPS. *(parity código 2026-10-12 — G1; confirmar viewport en HTTPS)*
+- [x] Cola tipar ≠ cobrado; Enviar cola / Cobrar ya con `CompletarImpagos: false`; sin day-lock duro. *(parity C1–C3 — `cobroCampoSmokeParity`)*
 
 ## 8. Desviaciones
 

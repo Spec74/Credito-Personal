@@ -1,0 +1,3053 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="VENDIXModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityType Name="Almacen">
+    <Key>
+      <PropertyRef Name="AlmacenId" />
+    </Key>
+    <Property Name="AlmacenId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="OficinaId" Type="int" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="100" />
+    <Property Name="Descripcion" Type="varchar" MaxLength="250" />
+    <Property Name="IndEstadoApertura" Type="bit" />
+    <Property Name="FechaApertura" Type="datetime" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Articulo">
+    <Key>
+      <PropertyRef Name="ArticuloId" />
+    </Key>
+    <Property Name="ArticuloId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="ModeloId" Type="int" />
+    <Property Name="TipoArticuloId" Type="int" />
+    <Property Name="CodArticulo" Type="varchar" MaxLength="20" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="200" />
+    <Property Name="Descripcion" Type="varchar" MaxLength="250" />
+    <Property Name="Imagen" Type="varchar(max)" />
+    <Property Name="IndPerecible" Type="bit" />
+    <Property Name="IndImportado" Type="bit" />
+    <Property Name="IndCanjeable" Type="bit" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Marca">
+    <Key>
+      <PropertyRef Name="MarcaId" />
+    </Key>
+    <Property Name="MarcaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="100" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Modelo">
+    <Key>
+      <PropertyRef Name="ModeloId" />
+    </Key>
+    <Property Name="ModeloId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="70" />
+    <Property Name="MarcaId" Type="int" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Movimiento">
+    <Key>
+      <PropertyRef Name="MovimientoId" />
+    </Key>
+    <Property Name="MovimientoId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="TipoMovimientoId" Type="int" Nullable="false" />
+    <Property Name="AlmacenId" Type="int" Nullable="false" />
+    <Property Name="Fecha" Type="datetime" Nullable="false" />
+    <Property Name="SubTotal" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="IGV" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="AjusteRedondeo" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="TotalImporte" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="EstadoId" Type="int" Nullable="false" />
+    <Property Name="Observacion" Type="varchar" MaxLength="500" />
+    <Property Name="Documento" Type="varchar" MaxLength="50" />
+  </EntityType>
+  <EntityType Name="MovimientoDet">
+    <Key>
+      <PropertyRef Name="MovimientoDetId" />
+    </Key>
+    <Property Name="MovimientoDetId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="MovimientoId" Type="int" Nullable="false" />
+    <Property Name="ArticuloId" Type="int" Nullable="false" />
+    <Property Name="Cantidad" Type="int" Nullable="false" />
+    <Property Name="Descripcion" Type="varchar(max)" />
+    <Property Name="PrecioUnitario" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Descuento" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Importe" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="IndCorrelativo" Type="bit" Nullable="false" />
+    <Property Name="UnidadMedidaT10" Type="int" />
+  </EntityType>
+  <EntityType Name="MovimientoDoc">
+    <Key>
+      <PropertyRef Name="MovimientoDocId" />
+    </Key>
+    <Property Name="MovimientoDocId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="MovimientoId" Type="int" />
+    <Property Name="TipoDocumentoId" Type="int" />
+    <Property Name="SerieDocumento" Type="varchar" MaxLength="12" />
+    <Property Name="NroDocumento" Type="varchar" MaxLength="12" />
+    <Property Name="RemitenteId" Type="int" />
+    <Property Name="DestinatarioId" Type="int" />
+    <Property Name="DestinoRef" Type="varchar" MaxLength="150" />
+  </EntityType>
+  <EntityType Name="SerieArticulo">
+    <Key>
+      <PropertyRef Name="SerieArticuloId" />
+    </Key>
+    <Property Name="SerieArticuloId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="NumeroSerie" Type="varchar" MaxLength="20" Nullable="false" />
+    <Property Name="AlmacenId" Type="int" Nullable="false" />
+    <Property Name="ArticuloId" Type="int" Nullable="false" />
+    <Property Name="EstadoId" Type="int" Nullable="false" />
+    <Property Name="MovimientoDetEntId" Type="int" />
+    <Property Name="MovimientoDetSalId" Type="int" />
+  </EntityType>
+  <EntityType Name="TipoArticulo">
+    <Key>
+      <PropertyRef Name="TipoArticuloId" />
+    </Key>
+    <Property Name="TipoArticuloId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="100" />
+    <Property Name="Descripcion" Type="varchar" MaxLength="250" />
+    <Property Name="IndTieneCodigo" Type="bit" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+    <Property Name="IndMovimientoAlmacen" Type="bit" />
+  </EntityType>
+  <EntityType Name="TipoMovimiento">
+    <Key>
+      <PropertyRef Name="TipoMovimientoId" />
+    </Key>
+    <Property Name="TipoMovimientoId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="70" />
+    <Property Name="Descripcion" Type="varchar" MaxLength="250" />
+    <Property Name="IndEntrada" Type="bit" Nullable="false" />
+    <Property Name="IndTransferencia" Type="bit" />
+    <Property Name="IndDevolucion" Type="bit" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Transferencia">
+    <Key>
+      <PropertyRef Name="TransferenciaId" />
+    </Key>
+    <Property Name="TransferenciaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="AlmacenOrigenId" Type="int" Nullable="false" />
+    <Property Name="AlmacenDestinoId" Type="int" Nullable="false" />
+    <Property Name="UsuarioId" Type="int" Nullable="false" />
+    <Property Name="Fecha" Type="datetime" Nullable="false" />
+    <Property Name="Estado" Type="char" MaxLength="3" Nullable="false" />
+  </EntityType>
+  <EntityType Name="TransferenciaSerie">
+    <Key>
+      <PropertyRef Name="TransferenciaSerieId" />
+    </Key>
+    <Property Name="TransferenciaSerieId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="TransferenciaId" Type="int" Nullable="false" />
+    <Property Name="SerieArticuloId" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Aprobacion">
+    <Key>
+      <PropertyRef Name="CreditoId" />
+      <PropertyRef Name="Nivel" />
+    </Key>
+    <Property Name="CreditoId" Type="int" Nullable="false" />
+    <Property Name="Nivel" Type="int" Nullable="false" />
+    <Property Name="UsuarioId" Type="int" />
+    <Property Name="Fecha" Type="datetime" />
+  </EntityType>
+  <EntityType Name="Boveda">
+    <Key>
+      <PropertyRef Name="BovedaId" />
+    </Key>
+    <Property Name="BovedaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="OficinaId" Type="int" Nullable="false" />
+    <Property Name="SaldoInicial" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Entradas" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Salidas" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="SaldoFinal" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="FechaIniOperacion" Type="datetime" Nullable="false" />
+    <Property Name="FechaFinOperacion" Type="datetime" />
+    <Property Name="IndCierre" Type="bit" Nullable="false" />
+    <Property Name="IndTemporal" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="BovedaCuenta">
+    <Key>
+      <PropertyRef Name="BovedaCuentaId" />
+    </Key>
+    <Property Name="BovedaCuentaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="BovedaId" Type="int" Nullable="false" />
+    <Property Name="TipoPagoId" Type="smallint" />
+    <Property Name="SaldoInicial" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+  </EntityType>
+  <EntityType Name="BovedaMov">
+    <Key>
+      <PropertyRef Name="MovimientoBovedaId" />
+    </Key>
+    <Property Name="MovimientoBovedaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="BovedaId" Type="int" Nullable="false" />
+    <Property Name="CodOperacion" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="Glosa" Type="varchar(max)" />
+    <Property Name="Importe" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="IndEntrada" Type="bit" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+    <Property Name="CajaDiarioId" Type="int" />
+    <Property Name="UsuarioRegId" Type="int" Nullable="false" />
+    <Property Name="FechaReg" Type="datetime" Nullable="false" />
+    <Property Name="TipoPagoId" Type="smallint" Nullable="false" />
+  </EntityType>
+  <EntityType Name="BovedaMovTemp">
+    <Key>
+      <PropertyRef Name="BovedaMovTempId" />
+    </Key>
+    <Property Name="BovedaMovTempId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="BovedaInicioId" Type="int" Nullable="false" />
+    <Property Name="BovedaDestinoId" Type="int" Nullable="false" />
+    <Property Name="CodOperacion" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="Glosa" Type="varchar(max)" />
+    <Property Name="Importe" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="UsuarioRegId" Type="int" Nullable="false" />
+    <Property Name="MovimientoBovedaIniId" Type="int" Nullable="false" />
+    <Property Name="FechaReg" Type="datetime" Nullable="false" />
+    <Property Name="IndEntrada" Type="bit" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Caja">
+    <Key>
+      <PropertyRef Name="CajaId" />
+    </Key>
+    <Property Name="CajaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="OficinaId" Type="int" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="100" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+    <Property Name="UsuarioRegId" Type="int" Nullable="false" />
+    <Property Name="FechaReg" Type="datetime" Nullable="false" />
+    <Property Name="IndAbierto" Type="bit" Nullable="false" />
+    <Property Name="UsuarioModId" Type="int" />
+    <Property Name="FechaMod" Type="datetime" />
+    <Property Name="CajeroId" Type="int" />
+  </EntityType>
+  <EntityType Name="CajaChicaDiario">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="UsuarioId" Type="int" Nullable="false" />
+    <Property Name="SaldoInicial" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+    <Property Name="Entradas" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+    <Property Name="Salidas" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+    <Property Name="SaldoFinal" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+    <Property Name="FechaIniOperacion" Type="datetime" Nullable="false" />
+    <Property Name="FechaFinOperacion" Type="datetime" />
+    <Property Name="IndCierre" Type="bit" Nullable="false" />
+    <Property Name="TransBoveda" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="CajaDiario">
+    <Key>
+      <PropertyRef Name="CajaDiarioId" />
+    </Key>
+    <Property Name="CajaDiarioId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="CajaId" Type="int" Nullable="false" />
+    <Property Name="UsuarioAsignadoId" Type="int" Nullable="false" />
+    <Property Name="SaldoInicial" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Entradas" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Salidas" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="SaldoFinal" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="FechaIniOperacion" Type="datetime" Nullable="false" />
+    <Property Name="FechaFinOperacion" Type="datetime" />
+    <Property Name="IndCierre" Type="bit" Nullable="false" />
+    <Property Name="TransBoveda" Type="bit" Nullable="false" />
+    <Property Name="MontoPorCobrar" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="MontoCobrado" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="SaldoCartera" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="NroClientesSaldoCartera" Type="int" Nullable="false" />
+    <Property Name="SaldoMoraCartera" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="NroClientesSaldoMoraCartera" Type="int" Nullable="false" />
+    <Property Name="NroClientesNuevos" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Cargo">
+    <Key>
+      <PropertyRef Name="CargoId" />
+    </Key>
+    <Property Name="CargoId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="CreditoId" Type="int" Nullable="false" />
+    <Property Name="NumCuota" Type="int" Nullable="false" />
+    <Property Name="TipoCargoT2" Type="int" Nullable="false" />
+    <Property Name="Importe" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Descripcion" Type="varchar(max)" Nullable="false" />
+    <Property Name="Estado" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="UsuarioId" Type="int" Nullable="false" />
+    <Property Name="Fecha" Type="datetime" Nullable="false" />
+  </EntityType>
+  <EntityType Name="CentralRiesgo">
+    <Key>
+      <PropertyRef Name="Anio" />
+      <PropertyRef Name="Mes" />
+      <PropertyRef Name="CreditoId" />
+    </Key>
+    <Property Name="Anio" Type="int" Nullable="false" />
+    <Property Name="Mes" Type="int" Nullable="false" />
+    <Property Name="CreditoId" Type="int" Nullable="false" />
+    <Property Name="DiasAtrazo" Type="int" Nullable="false" />
+    <Property Name="CuotasAtrazo" Type="int" Nullable="false" />
+    <Property Name="DeudaAtrazo" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+  </EntityType>
+  <EntityType Name="CierreGerencial">
+    <Key>
+      <PropertyRef Name="CierreGerencialId" />
+    </Key>
+    <Property Name="CierreGerencialId" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Periodo" Type="date" Nullable="false" />
+    <Property Name="FechaCorte" Type="date" Nullable="false" />
+    <Property Name="Estado" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="Version" Type="int" Nullable="false" />
+    <Property Name="UsuarioCierreId" Type="int" Nullable="false" />
+    <Property Name="FechaCierre" Type="datetime2" Precision="0" Nullable="false" />
+    <Property Name="Observacion" Type="varchar" MaxLength="500" />
+  </EntityType>
+  <EntityType Name="CierreGerencialDetalle">
+    <Key>
+      <PropertyRef Name="CierreGerencialDetalleId" />
+    </Key>
+    <Property Name="CierreGerencialDetalleId" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="CierreGerencialId" Type="bigint" Nullable="false" />
+    <Property Name="UsuarioId" Type="int" Nullable="false" />
+    <Property Name="NombreUsuario" Type="varchar" MaxLength="100" />
+    <Property Name="NombreCompleto" Type="varchar" MaxLength="250" />
+    <Property Name="Asesor" Type="varchar" MaxLength="150" />
+    <Property Name="Supervisor" Type="varchar" MaxLength="150" />
+    <Property Name="Mercado" Type="varchar" MaxLength="150" />
+    <Property Name="Orden" Type="smallint" />
+    <Property Name="TipoCartera" Type="varchar" MaxLength="20" Nullable="false" />
+    <Property Name="FuenteInicial" Type="varchar" MaxLength="250" />
+    <Property Name="CapitalCierre" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+    <Property Name="TotalClientesActivos" Type="int" Nullable="false" />
+    <Property Name="MoraGeneral" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+    <Property Name="VencidosCuotasCierre" Type="decimal" Precision="18" Scale="2" />
+    <Property Name="ClientesVencidosCierre" Type="int" />
+    <Property Name="DefinicionVencidos" Type="varchar" MaxLength="50" />
+    <Property Name="ClientesNuevosMes" Type="int" />
+    <Property Name="MontoClientesNuevosMes" Type="decimal" Precision="18" Scale="2" />
+    <Property Name="MontoCobradoMes" Type="decimal" Precision="18" Scale="2" />
+    <Property Name="DesembolsosMes" Type="decimal" Precision="18" Scale="2" />
+    <Property Name="NroOperacionesMes" Type="int" />
+  </EntityType>
+  <EntityType Name="Credito">
+    <Key>
+      <PropertyRef Name="CreditoId" />
+    </Key>
+    <Property Name="CreditoId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="PersonaId" Type="int" Nullable="false" />
+    <Property Name="ProductoId" Type="int" Nullable="false" />
+    <Property Name="Descripcion" Type="varchar(max)" Nullable="false" />
+    <Property Name="MontoProducto" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="MontoInicial" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="MontoCredito" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="MontoGastosAdm" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="CentralRiesgo" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="MontoDesembolso" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="TipoGastoAdm" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="FormaPago" Type="char" MaxLength="1" Nullable="false" />
+    <Property Name="NumeroCuotas" Type="int" Nullable="false" />
+    <Property Name="Interes" Type="decimal" Precision="4" Scale="2" Nullable="false" />
+    <Property Name="FechaPrimerPago" Type="date" Nullable="false" />
+    <Property Name="FechaAprobacion" Type="datetime" />
+    <Property Name="FechaDesembolso" Type="datetime" />
+    <Property Name="Observacion" Type="varchar(max)" />
+    <Property Name="Estado" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="OficinaId" Type="int" Nullable="false" />
+    <Property Name="FechaVencimiento" Type="date" Nullable="false" />
+    <Property Name="FechaPagado" Type="datetime" />
+    <Property Name="OrdenVentaId" Type="int" />
+    <Property Name="TipoCuota" Type="char" MaxLength="1" Nullable="false" />
+    <Property Name="Calificacion" Type="char" MaxLength="1" Nullable="false" />
+    <Property Name="IndCondonacion" Type="bit" Nullable="false" />
+    <Property Name="MontoCondonacion" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="PersonaAvalId" Type="int" />
+    <Property Name="UsuarioRegId" Type="int" Nullable="false" />
+    <Property Name="FechaReg" Type="datetime" Nullable="false" />
+    <Property Name="UsuarioModId" Type="int" />
+    <Property Name="FechaMod" Type="datetime" />
+    <Property Name="IndIrrecuperable" Type="bit" Nullable="false" />
+    <Property Name="EsPrendario" Type="bit" Nullable="false" />
+    <Property Name="MontoTasacion" Type="decimal" Precision="16" Scale="2" />
+    <Property Name="NumeroContratoPrendario" Type="varchar" MaxLength="50" />
+    <Property Name="FechaRemate" Type="datetime" />
+    <Property Name="PrendaId" Type="int" />
+    <Property Name="FechaNotifWhatsapp3d" Type="datetime" />
+  </EntityType>
+  <EntityType Name="Prenda">
+    <Key>
+      <PropertyRef Name="PrendaId" />
+    </Key>
+    <Property Name="PrendaId" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="CreditoId" Type="int" Nullable="false" />
+    <Property Name="Descripcion" Type="varchar" MaxLength="250" Nullable="false" />
+    <Property Name="Marca" Type="varchar" MaxLength="100" />
+    <Property Name="Modelo" Type="varchar" MaxLength="100" />
+    <Property Name="Serie" Type="varchar" MaxLength="100" />
+    <Property Name="Color" Type="varchar" MaxLength="50" />
+    <Property Name="ValorTasacion" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Observaciones" Type="varchar" MaxLength="500" />
+    <Property Name="FotoPath" Type="varchar" MaxLength="250" />
+    <Property Name="Estado" Type="varchar" MaxLength="50" />
+    <Property Name="FechaRegistro" Type="datetime" />
+    <Property Name="CodigoInterno" Type="varchar" MaxLength="50" />
+  </EntityType>
+  <EntityType Name="CreditoCondonacion">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="CreditoId" Type="int" Nullable="false" />
+    <Property Name="CajaDiarioId" Type="int" Nullable="false" />
+    <Property Name="Fecha" Type="datetime" Nullable="false" />
+    <Property Name="MoraCondonacion" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+    <Property Name="TotalPago" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+    <Property Name="IndAprobado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="CreditoImagen">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="CreditoId" Type="int" Nullable="false" />
+    <Property Name="Imagen" Type="varchar" MaxLength="50" Nullable="false" />
+  </EntityType>
+  <EntityType Name="CreditoMora">
+    <Key>
+      <PropertyRef Name="CreditoMoraId" />
+    </Key>
+    <Property Name="CreditoMoraId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="CreditoId" Type="int" Nullable="false" />
+    <Property Name="MovimientoCajaId" Type="int" Nullable="false" />
+    <Property Name="Fecha" Type="datetime" Nullable="false" />
+    <Property Name="Mora" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+    <Property Name="DiasAtrazo" Type="int" Nullable="false" />
+    <Property Name="SaldoMora" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+    <Property Name="InteresMora" Type="decimal" Precision="10" Scale="2" Nullable="false" />
+  </EntityType>
+  <EntityType Name="CuentaxCobrar">
+    <Key>
+      <PropertyRef Name="CuentaxCobrarId" />
+    </Key>
+    <Property Name="CuentaxCobrarId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Operacion" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="Monto" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Estado" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="MovimientoCajaId" Type="int" />
+    <Property Name="CreditoId" Type="int" />
+  </EntityType>
+  <EntityType Name="GastosAdm">
+    <Key>
+      <PropertyRef Name="GastosAdmId" />
+    </Key>
+    <Property Name="GastosAdmId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="MontoMinimo" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="MontoMaximo" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="IndPorcentaje" Type="bit" Nullable="false" />
+    <Property Name="Valor" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+    <Property Name="Ind" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="MetaGerencialAnalista">
+    <Key>
+      <PropertyRef Name="MetaGerencialAnalistaId" />
+    </Key>
+    <Property Name="MetaGerencialAnalistaId" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Periodo" Type="date" Nullable="false" />
+    <Property Name="UsuarioId" Type="int" Nullable="false" />
+    <Property Name="Asesor" Type="varchar" MaxLength="150" />
+    <Property Name="Supervisor" Type="varchar" MaxLength="150" />
+    <Property Name="Mercado" Type="varchar" MaxLength="150" />
+    <Property Name="Orden" Type="smallint" />
+    <Property Name="TipoCartera" Type="varchar" MaxLength="20" Nullable="false" />
+    <Property Name="FuenteInicial" Type="varchar" MaxLength="250" />
+    <Property Name="MetaCapitalCierre" Type="decimal" Precision="18" Scale="2" />
+    <Property Name="MetaClientesActivosCierre" Type="int" />
+    <Property Name="MetaVencidosMaximoCierre" Type="decimal" Precision="18" Scale="2" />
+    <Property Name="MetaRecuperacionVencidosMes" Type="decimal" Precision="18" Scale="2" />
+    <Property Name="Activo" Type="bit" Nullable="false" />
+    <Property Name="UsuarioRegistroId" Type="int" />
+    <Property Name="FechaRegistro" Type="datetime2" Precision="0" Nullable="false" />
+    <Property Name="UsuarioModificacionId" Type="int" />
+    <Property Name="FechaModificacion" Type="datetime2" Precision="0" />
+  </EntityType>
+  <EntityType Name="MovimientoCaja">
+    <Key>
+      <PropertyRef Name="MovimientoCajaId" />
+    </Key>
+    <Property Name="MovimientoCajaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="CajaDiarioId" Type="int" Nullable="false" />
+    <Property Name="Operacion" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="ImportePago" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="PersonaId" Type="int" />
+    <Property Name="TipoPagoId" Type="int" Nullable="false" />
+    <Property Name="Descripcion" Type="varchar(max)" />
+    <Property Name="IndEntrada" Type="bit" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+    <Property Name="UsuarioRegId" Type="int" Nullable="false" />
+    <Property Name="FechaReg" Type="datetime" Nullable="false" />
+    <Property Name="OrdenVentaId" Type="int" />
+    <Property Name="CreditoId" Type="int" />
+  </EntityType>
+  <EntityType Name="MovimientoCajaAnu">
+    <Key>
+      <PropertyRef Name="MovimientoCajaAnuId" />
+    </Key>
+    <Property Name="MovimientoCajaAnuId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="MovimientoCajaId" Type="int" />
+    <Property Name="Observacion" Type="varchar(max)" />
+    <Property Name="UsuarioRegId" Type="int" />
+    <Property Name="FechaReg" Type="datetime" />
+  </EntityType>
+  <EntityType Name="MovimientoCajaChica">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="CajaChicaDiarioId" Type="int" Nullable="false" />
+    <Property Name="PersonaId" Type="int" Nullable="false" />
+    <Property Name="Operacion" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="Importe" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+    <Property Name="Descripcion" Type="varchar" MaxLength="254" Nullable="false" />
+    <Property Name="IndEntrada" Type="bit" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+    <Property Name="UsuarioRegId" Type="int" Nullable="false" />
+    <Property Name="FechaReg" Type="datetime" Nullable="false" />
+    <Property Name="IndRendido" Type="bit" Nullable="false" />
+    <Property Name="ImporteRendido" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+  </EntityType>
+  <EntityType Name="MovimientoCajaExtension">
+    <Key>
+      <PropertyRef Name="MovimientoCajaId" />
+    </Key>
+    <Property Name="MovimientoCajaId" Type="int" Nullable="false" />
+    <Property Name="FechaTransferencia" Type="varchar" MaxLength="16" />
+    <Property Name="IndTransferenciaVerificada" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="MovimientoRendidoCajaChica">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="MovimientoCajaChicaId" Type="int" Nullable="false" />
+    <Property Name="TipoDocumentoId" Type="int" Nullable="false" />
+    <Property Name="Fecha" Type="date" Nullable="false" />
+    <Property Name="Serie" Type="varchar" MaxLength="10" />
+    <Property Name="Numero" Type="varchar" MaxLength="10" />
+    <Property Name="RUC" Type="varchar" MaxLength="11" />
+    <Property Name="RazonSocial" Type="varchar" MaxLength="254" />
+    <Property Name="DetalleGasto" Type="varchar" MaxLength="254" Nullable="false" />
+    <Property Name="Importe" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+  </EntityType>
+  <EntityType Name="PlanPago">
+    <Key>
+      <PropertyRef Name="PlanPagoId" />
+    </Key>
+    <Property Name="PlanPagoId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="CreditoId" Type="int" Nullable="false" />
+    <Property Name="Numero" Type="int" Nullable="false" />
+    <Property Name="Capital" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="FechaVencimiento" Type="date" Nullable="false" />
+    <Property Name="Amortizacion" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Interes" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="GastosAdm" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Cuota" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Estado" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="DiasAtrazo" Type="int" Nullable="false" />
+    <Property Name="ImporteMora" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Descuento" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="PagoCuota" Type="decimal" Precision="16" Scale="2" />
+    <Property Name="FechaPagoCuota" Type="datetime" />
+    <Property Name="MovimientoCajaId" Type="int" />
+    <Property Name="UsuarioModId" Type="int" />
+    <Property Name="FechaMod" Type="datetime" />
+    <Property Name="PagoLibre" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Cargo" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Producto">
+    <Key>
+      <PropertyRef Name="ProductoId" />
+    </Key>
+    <Property Name="ProductoId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="255" Nullable="false" />
+    <Property Name="InteresMinima" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="InteresMaxima" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="DiasGracia" Type="int" Nullable="false" />
+    <Property Name="ImporteMoratorio" Type="decimal" Precision="8" Scale="3" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+    <Property Name="IndMora" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="SaldoCarteraMensual">
+    <Key>
+      <PropertyRef Name="SaldoCarteraId" />
+    </Key>
+    <Property Name="SaldoCarteraId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="OficinaId" Type="int" Nullable="false" />
+    <Property Name="AgenteId" Type="int" Nullable="false" />
+    <Property Name="Anio" Type="int" Nullable="false" />
+    <Property Name="Mes" Type="int" Nullable="false" />
+    <Property Name="FechaCierre" Type="datetime" Nullable="false" />
+    <Property Name="NroDesembolsos" Type="int" Nullable="false" />
+    <Property Name="MontoDesembolsos" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+    <Property Name="SaldoCartera" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+    <Property Name="NroClientesSaldoCartera" Type="int" Nullable="false" />
+    <Property Name="SaldoMoraCartera" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+    <Property Name="NroClientesSaldoMoraCartera" Type="int" Nullable="false" />
+    <Property Name="SaldoVencido" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+    <Property Name="SaldoMorosidad" Type="decimal" Precision="15" Scale="2" Nullable="false" />
+    <Property Name="NroClientesNuevos" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Subtarea">
+    <Key>
+      <PropertyRef Name="SubtareaId" />
+    </Key>
+    <Property Name="SubtareaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="TareaId" Type="int" Nullable="false" />
+    <Property Name="Titulo" Type="nvarchar" MaxLength="500" Nullable="false" />
+    <Property Name="Completada" Type="bit" Nullable="false" />
+    <Property Name="FechaCompletada" Type="datetime" />
+  </EntityType>
+  <EntityType Name="Tarea">
+    <Key>
+      <PropertyRef Name="TareaId" />
+    </Key>
+    <Property Name="TareaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="CreditoId" Type="int" Nullable="false" />
+    <Property Name="FechaCreacion" Type="datetime" Nullable="false" />
+    <Property Name="FechaCompletada" Type="datetime" />
+    <Property Name="Estado" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="UsuarioCreadorId" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="VencidoGerencialAperturaDetalle">
+    <Key>
+      <PropertyRef Name="VencidoGerencialAperturaDetalleId" />
+    </Key>
+    <Property Name="VencidoGerencialAperturaDetalleId" Type="bigint" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Periodo" Type="date" Nullable="false" />
+    <Property Name="UsuarioId" Type="int" Nullable="false" />
+    <Property Name="CreditoId" Type="int" Nullable="false" />
+    <Property Name="PlanPagoId" Type="int" Nullable="false" />
+    <Property Name="FechaVencimiento" Type="date" Nullable="false" />
+    <Property Name="SaldoVencidoApertura" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+    <Property Name="CierreOrigenId" Type="bigint" Nullable="false" />
+    <Property Name="FechaRegistro" Type="datetime2" Precision="0" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Acceso">
+    <Key>
+      <PropertyRef Name="AccesoId" />
+    </Key>
+    <Property Name="AccesoId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="DireccionIp" Type="varchar" MaxLength="20" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Cliente">
+    <Key>
+      <PropertyRef Name="ClienteId" />
+    </Key>
+    <Property Name="ClienteId" Type="int" Nullable="false" />
+    <Property Name="PersonaId" Type="int" Nullable="false" />
+    <Property Name="ActividadEconId" Type="int" />
+    <Property Name="Calificacion" Type="char" MaxLength="1" />
+    <Property Name="FechaRegistro" Type="datetime" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+    <Property Name="Nota" Type="varchar" MaxLength="500" />
+    <Property Name="DireccionNegocio" Type="varchar" MaxLength="300" />
+    <Property Name="DireccionNegocioRef" Type="varchar" MaxLength="300" />
+    <Property Name="AvalPersonaId" Type="int" />
+    <Property Name="UsuarioRegId" Type="int" Nullable="false" />
+    <Property Name="Bloqueado" Type="bit" Nullable="false" />
+    <Property Name="TopeCredito" Type="decimal" Precision="15" Scale="2" />
+    <Property Name="ClasificacionRiesgoSBS" Type="int" />
+    <Property Name="ClasificacionRiesgoSBSObs" Type="varchar" MaxLength="500" />
+  </EntityType>
+  <EntityType Name="Departamento">
+    <Key>
+      <PropertyRef Name="idDepa" />
+    </Key>
+    <Property Name="idDepa" Type="int" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="50" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Distrito">
+    <Key>
+      <PropertyRef Name="idDist" />
+    </Key>
+    <Property Name="idDist" Type="int" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="idProv" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Menu">
+    <Key>
+      <PropertyRef Name="MenuId" />
+    </Key>
+    <Property Name="MenuId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="255" />
+    <Property Name="Modulo" Type="varchar" MaxLength="255" />
+    <Property Name="Url" Type="varchar" MaxLength="255" />
+    <Property Name="Icono" Type="varchar" MaxLength="255" />
+    <Property Name="IndPadre" Type="bit" />
+    <Property Name="Orden" Type="decimal" Precision="3" Scale="1" />
+    <Property Name="Referencia" Type="decimal" Precision="3" Scale="1" />
+  </EntityType>
+  <EntityType Name="Ocupacion">
+    <Key>
+      <PropertyRef Name="OcupacionId" />
+    </Key>
+    <Property Name="OcupacionId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="200" />
+    <Property Name="Estado" Type="bit" />
+  </EntityType>
+  <EntityType Name="Oficina">
+    <Key>
+      <PropertyRef Name="OficinaId" />
+    </Key>
+    <Property Name="OficinaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="100" />
+    <Property Name="Descripcion" Type="varchar" MaxLength="250" />
+    <Property Name="Telefono" Type="varchar" MaxLength="20" />
+    <Property Name="IndPrincipal" Type="bit" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+    <Property Name="UsuarioAsignadoId" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Persona">
+    <Key>
+      <PropertyRef Name="PersonaId" />
+    </Key>
+    <Property Name="PersonaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Nombre" Type="varchar" MaxLength="70" Nullable="false" />
+    <Property Name="ApePaterno" Type="varchar" MaxLength="70" />
+    <Property Name="ApeMaterno" Type="varchar" MaxLength="70" />
+    <Property Name="NombreCompleto" Type="varchar" MaxLength="250" />
+    <Property Name="TipoDocumento" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="NumeroDocumento" Type="varchar" MaxLength="12" Nullable="false" />
+    <Property Name="Codigo" Type="varchar" MaxLength="50" />
+    <Property Name="Sexo" Type="char" MaxLength="1" />
+    <Property Name="TipoPersona" Type="char" MaxLength="1" Nullable="false" />
+    <Property Name="EmailPersonal" Type="varchar" MaxLength="100" />
+    <Property Name="FechaNacimiento" Type="datetime" />
+    <Property Name="Direccion" Type="varchar" MaxLength="300" />
+    <Property Name="DireccionRef" Type="varchar" MaxLength="300" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+    <Property Name="Celular1" Type="varchar" MaxLength="10" />
+    <Property Name="ConyuguePersonaId" Type="int" />
+    <Property Name="TipoViviendaId" Type="int" />
+    <Property Name="EstadoCivilId" Type="int" />
+    <Property Name="DistritoId" Type="int" />
+  </EntityType>
+  <EntityType Name="PersonaDepurado">
+    <Key>
+      <PropertyRef Name="PersonaDepuradoId" />
+    </Key>
+    <Property Name="PersonaDepuradoId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="PersonaId" Type="int" Nullable="false" />
+    <Property Name="Descripcion" Type="varchar(max)" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+    <Property Name="UsuarioRegId" Type="int" Nullable="false" />
+    <Property Name="FechaReg" Type="datetime" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Provincia">
+    <Key>
+      <PropertyRef Name="idProv" />
+    </Key>
+    <Property Name="idProv" Type="int" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="idDepa" Type="int" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Rol">
+    <Key>
+      <PropertyRef Name="RolId" />
+    </Key>
+    <Property Name="RolId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="255" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="RolMenu">
+    <Key>
+      <PropertyRef Name="RolMenuId" />
+    </Key>
+    <Property Name="RolMenuId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="RolId" Type="int" />
+    <Property Name="MenuId" Type="int" />
+  </EntityType>
+  <EntityType Name="TipoDocumento">
+    <Key>
+      <PropertyRef Name="TipoDocumentoId" />
+    </Key>
+    <Property Name="TipoDocumentoId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="100" Nullable="false" />
+    <Property Name="Descripcion" Type="varchar" MaxLength="250" />
+    <Property Name="IndVenta" Type="bit" Nullable="false" />
+    <Property Name="IndAlmacen" Type="bit" Nullable="false" />
+    <Property Name="IndAlmacenMov" Type="bit" Nullable="false" />
+    <Property Name="IndCajaChica" Type="bit" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="TipoOperacion">
+    <Key>
+      <PropertyRef Name="TipoOperacionId" />
+    </Key>
+    <Property Name="TipoOperacionId" Type="int" Nullable="false" />
+    <Property Name="Codigo" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="IndEntrada" Type="bit" Nullable="false" />
+    <Property Name="IndCajaDiario" Type="bit" Nullable="false" />
+    <Property Name="IndBoveda" Type="bit" Nullable="false" />
+    <Property Name="IndCajaChica" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="Usuario">
+    <Key>
+      <PropertyRef Name="UsuarioId" />
+    </Key>
+    <Property Name="UsuarioId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="PersonaId" Type="int" Nullable="false" />
+    <Property Name="NombreUsuario" Type="nvarchar" MaxLength="50" Nullable="false" />
+    <Property Name="ClaveUsuario" Type="nvarchar" MaxLength="50" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="UsuarioOficina">
+    <Key>
+      <PropertyRef Name="UsuarioOficinaId" />
+    </Key>
+    <Property Name="UsuarioOficinaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="UsuarioId" Type="int" Nullable="false" />
+    <Property Name="OficinaId" Type="int" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="UsuarioRol">
+    <Key>
+      <PropertyRef Name="UsuarioRolId" />
+    </Key>
+    <Property Name="UsuarioRolId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="UsuarioId" Type="int" />
+    <Property Name="RolId" Type="int" />
+    <Property Name="OficinaId" Type="int" />
+  </EntityType>
+  <EntityType Name="ValorTabla">
+    <Key>
+      <PropertyRef Name="TablaId" />
+      <PropertyRef Name="ItemId" />
+    </Key>
+    <Property Name="TablaId" Type="int" Nullable="false" />
+    <Property Name="ItemId" Type="int" Nullable="false" />
+    <Property Name="Denominacion" Type="varchar" MaxLength="70" />
+    <Property Name="DesCorta" Type="varchar" MaxLength="30" />
+    <Property Name="Valor" Type="varchar" MaxLength="100" />
+  </EntityType>
+  <EntityType Name="ListaPrecio">
+    <Key>
+      <PropertyRef Name="ListaPrecioId" />
+    </Key>
+    <Property Name="ListaPrecioId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="ArticuloId" Type="int" />
+    <Property Name="Monto" Type="decimal" Precision="16" Scale="2" />
+    <Property Name="Descuento" Type="decimal" Precision="16" Scale="2" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+    <Property Name="Puntos" Type="int" />
+    <Property Name="PuntosCanje" Type="int" />
+  </EntityType>
+  <EntityType Name="OrdenVenta">
+    <Key>
+      <PropertyRef Name="OrdenVentaId" />
+    </Key>
+    <Property Name="OrdenVentaId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="OficinaId" Type="int" Nullable="false" />
+    <Property Name="Subtotal" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="TotalImpuesto" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="TotalNeto" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="TotalDescuento" Type="decimal" Precision="16" Scale="2" Nullable="false" />
+    <Property Name="Estado" Type="char" MaxLength="3" Nullable="false" />
+    <Property Name="UsuarioRegId" Type="int" Nullable="false" />
+    <Property Name="FechaReg" Type="datetime" Nullable="false" />
+    <Property Name="UsuarioModId" Type="int" />
+    <Property Name="FechaMod" Type="datetime" />
+    <Property Name="PersonaId" Type="int" Nullable="false" />
+    <Property Name="MovimientoAlmacenId" Type="int" />
+    <Property Name="TipoVenta" Type="char" MaxLength="3" Nullable="false" />
+  </EntityType>
+  <EntityType Name="OrdenVentaDet">
+    <Key>
+      <PropertyRef Name="OrdenVentaDetId" />
+    </Key>
+    <Property Name="OrdenVentaDetId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="OrdenVentaId" Type="int" Nullable="false" />
+    <Property Name="ArticuloId" Type="int" Nullable="false" />
+    <Property Name="Cantidad" Type="int" Nullable="false" />
+    <Property Name="Descripcion" Type="varchar(max)" Nullable="false" />
+    <Property Name="ValorVenta" Type="decimal" Precision="16" Scale="4" Nullable="false" />
+    <Property Name="Descuento" Type="decimal" Precision="16" Scale="4" Nullable="false" />
+    <Property Name="Subtotal" Type="decimal" Precision="16" Scale="4" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="OrdenVentaDetSerie">
+    <Key>
+      <PropertyRef Name="OrdenVentaDetSerieId" />
+    </Key>
+    <Property Name="OrdenVentaDetSerieId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="OrdenVentaDetId" Type="int" />
+    <Property Name="SerieArticuloId" Type="int" />
+  </EntityType>
+  <EntityType Name="TarjetaPunto">
+    <Key>
+      <PropertyRef Name="TarjetaPuntoId" />
+    </Key>
+    <Property Name="TarjetaPuntoId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="PersonaId" Type="int" Nullable="false" />
+    <Property Name="TotalPuntos" Type="int" Nullable="false" />
+    <Property Name="Estado" Type="bit" Nullable="false" />
+  </EntityType>
+  <EntityType Name="TarjetaPuntoDet">
+    <Key>
+      <PropertyRef Name="TarjetaPuntoDetId" />
+    </Key>
+    <Property Name="TarjetaPuntoDetId" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="TarjetaPuntoId" Type="int" Nullable="false" />
+    <Property Name="OrdenVentaId" Type="int" Nullable="false" />
+    <Property Name="ValorCanje" Type="int" Nullable="false" />
+  </EntityType>
+  <Association Name="FK__Boveda__OficinaI__046664EF">
+    <End Role="Oficina" Type="Self.Oficina" Multiplicity="1" />
+    <End Role="Boveda" Type="Self.Boveda" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Oficina">
+        <PropertyRef Name="OficinaId" />
+      </Principal>
+      <Dependent Role="Boveda">
+        <PropertyRef Name="OficinaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__BovedaCue__Boved__5A6F5FCC">
+    <End Role="Boveda" Type="Self.Boveda" Multiplicity="1" />
+    <End Role="BovedaCuenta" Type="Self.BovedaCuenta" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Boveda">
+        <PropertyRef Name="BovedaId" />
+      </Principal>
+      <Dependent Role="BovedaCuenta">
+        <PropertyRef Name="BovedaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Caja__OficinaId__092B1A0C">
+    <End Role="Oficina" Type="Self.Oficina" Multiplicity="1" />
+    <End Role="Caja" Type="Self.Caja" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Oficina">
+        <PropertyRef Name="OficinaId" />
+      </Principal>
+      <Dependent Role="Caja">
+        <PropertyRef Name="OficinaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CajaChica__Usuar__473C8FC7">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="1" />
+    <End Role="CajaChicaDiario" Type="Self.CajaChicaDiario" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="CajaChicaDiario">
+        <PropertyRef Name="UsuarioId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CajaDiari__CajaI__0EE3F362">
+    <End Role="Caja" Type="Self.Caja" Multiplicity="1" />
+    <End Role="CajaDiario" Type="Self.CajaDiario" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Caja">
+        <PropertyRef Name="CajaId" />
+      </Principal>
+      <Dependent Role="CajaDiario">
+        <PropertyRef Name="CajaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CajaDiari__Usuar__0DEFCF29">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="1" />
+    <End Role="CajaDiario" Type="Self.CajaDiario" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="CajaDiario">
+        <PropertyRef Name="UsuarioAsignadoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Cargo__CreditoId__109731AA">
+    <End Role="Credito" Type="Self.Credito" Multiplicity="1" />
+    <End Role="Cargo" Type="Self.Cargo" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Credito">
+        <PropertyRef Name="CreditoId" />
+      </Principal>
+      <Dependent Role="Cargo">
+        <PropertyRef Name="CreditoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CentralRi__Credi__6E0D0F7C">
+    <End Role="Credito" Type="Self.Credito" Multiplicity="1" />
+    <End Role="CentralRiesgo" Type="Self.CentralRiesgo" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Credito">
+        <PropertyRef Name="CreditoId" />
+      </Principal>
+      <Dependent Role="CentralRiesgo">
+        <PropertyRef Name="CreditoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Credito__OrdenVe__3E5DFC5A">
+    <End Role="OrdenVenta" Type="Self.OrdenVenta" Multiplicity="0..1" />
+    <End Role="Credito" Type="Self.Credito" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="OrdenVenta">
+        <PropertyRef Name="OrdenVentaId" />
+      </Principal>
+      <Dependent Role="Credito">
+        <PropertyRef Name="OrdenVentaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CreditoCo__CajaD__2A8B4280">
+    <End Role="CajaDiario" Type="Self.CajaDiario" Multiplicity="1" />
+    <End Role="CreditoCondonacion" Type="Self.CreditoCondonacion" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="CajaDiario">
+        <PropertyRef Name="CajaDiarioId" />
+      </Principal>
+      <Dependent Role="CreditoCondonacion">
+        <PropertyRef Name="CajaDiarioId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CreditoCo__Credi__29971E47">
+    <End Role="Credito" Type="Self.Credito" Multiplicity="1" />
+    <End Role="CreditoCondonacion" Type="Self.CreditoCondonacion" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Credito">
+        <PropertyRef Name="CreditoId" />
+      </Principal>
+      <Dependent Role="CreditoCondonacion">
+        <PropertyRef Name="CreditoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CreditoEx__Credi__5AFA3B08">
+    <End Role="Credito" Type="Self.Credito" Multiplicity="1" />
+    <End Role="Aprobacion" Type="Self.Aprobacion" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Credito">
+        <PropertyRef Name="CreditoId" />
+      </Principal>
+      <Dependent Role="Aprobacion">
+        <PropertyRef Name="CreditoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CreditoEx__Usuar__5BEE5F41">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="0..1" />
+    <End Role="Aprobacion" Type="Self.Aprobacion" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="Aprobacion">
+        <PropertyRef Name="UsuarioId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CreditoIm__Credi__1BE81D6E">
+    <End Role="Credito" Type="Self.Credito" Multiplicity="1" />
+    <End Role="CreditoImagen" Type="Self.CreditoImagen" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Credito">
+        <PropertyRef Name="CreditoId" />
+      </Principal>
+      <Dependent Role="CreditoImagen">
+        <PropertyRef Name="CreditoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Prenda_Credito">
+    <End Role="Credito" Type="Self.Credito" Multiplicity="1" />
+    <End Role="Prenda" Type="Self.Prenda" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Credito">
+        <PropertyRef Name="CreditoId" />
+      </Principal>
+      <Dependent Role="Prenda">
+        <PropertyRef Name="CreditoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CreditoMo__Credi__17786E0C">
+    <End Role="Credito" Type="Self.Credito" Multiplicity="1" />
+    <End Role="CreditoMora" Type="Self.CreditoMora" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Credito">
+        <PropertyRef Name="CreditoId" />
+      </Principal>
+      <Dependent Role="CreditoMora">
+        <PropertyRef Name="CreditoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CreditoMo__Movim__186C9245">
+    <End Role="MovimientoCaja" Type="Self.MovimientoCaja" Multiplicity="1" />
+    <End Role="CreditoMora" Type="Self.CreditoMora" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MovimientoCaja">
+        <PropertyRef Name="MovimientoCajaId" />
+      </Principal>
+      <Dependent Role="CreditoMora">
+        <PropertyRef Name="MovimientoCajaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CuentasxC__Movim__3A58614C">
+    <End Role="MovimientoCaja" Type="Self.MovimientoCaja" Multiplicity="0..1" />
+    <End Role="CuentaxCobrar" Type="Self.CuentaxCobrar" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MovimientoCaja">
+        <PropertyRef Name="MovimientoCajaId" />
+      </Principal>
+      <Dependent Role="CuentaxCobrar">
+        <PropertyRef Name="MovimientoCajaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__CuentaxCo__Credi__3D69D821">
+    <End Role="Credito" Type="Self.Credito" Multiplicity="0..1" />
+    <End Role="CuentaxCobrar" Type="Self.CuentaxCobrar" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Credito">
+        <PropertyRef Name="CreditoId" />
+      </Principal>
+      <Dependent Role="CuentaxCobrar">
+        <PropertyRef Name="CreditoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Distrito__idProv__37FA4C37">
+    <End Role="Provincia" Type="Self.Provincia" Multiplicity="1" />
+    <End Role="Distrito" Type="Self.Distrito" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Provincia">
+        <PropertyRef Name="idProv" />
+      </Principal>
+      <Dependent Role="Distrito">
+        <PropertyRef Name="idProv" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Movimient__CajaC__4FD1D5C8">
+    <End Role="CajaChicaDiario" Type="Self.CajaChicaDiario" Multiplicity="1" />
+    <End Role="MovimientoCajaChica" Type="Self.MovimientoCajaChica" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="CajaChicaDiario">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="MovimientoCajaChica">
+        <PropertyRef Name="CajaChicaDiarioId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Movimient__CajaD__149CCCB8">
+    <End Role="CajaDiario" Type="Self.CajaDiario" Multiplicity="1" />
+    <End Role="MovimientoCaja" Type="Self.MovimientoCaja" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="CajaDiario">
+        <PropertyRef Name="CajaDiarioId" />
+      </Principal>
+      <Dependent Role="MovimientoCaja">
+        <PropertyRef Name="CajaDiarioId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Movimient__Movim__31A25463">
+    <End Role="MovimientoCaja" Type="Self.MovimientoCaja" Multiplicity="1" />
+    <End Role="MovimientoCajaExtension" Type="Self.MovimientoCajaExtension" Multiplicity="0..1" />
+    <ReferentialConstraint>
+      <Principal Role="MovimientoCaja">
+        <PropertyRef Name="MovimientoCajaId" />
+      </Principal>
+      <Dependent Role="MovimientoCajaExtension">
+        <PropertyRef Name="MovimientoCajaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Movimient__Movim__51A5DAF8">
+    <End Role="MovimientoCaja" Type="Self.MovimientoCaja" Multiplicity="0..1" />
+    <End Role="MovimientoCajaAnu" Type="Self.MovimientoCajaAnu" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MovimientoCaja">
+        <PropertyRef Name="MovimientoCajaId" />
+      </Principal>
+      <Dependent Role="MovimientoCajaAnu">
+        <PropertyRef Name="MovimientoCajaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Movimient__Movim__75035A77">
+    <End Role="MovimientoCajaChica" Type="Self.MovimientoCajaChica" Multiplicity="1" />
+    <End Role="MovimientoRendidoCajaChica" Type="Self.MovimientoRendidoCajaChica" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MovimientoCajaChica">
+        <PropertyRef Name="Id" />
+      </Principal>
+      <Dependent Role="MovimientoRendidoCajaChica">
+        <PropertyRef Name="MovimientoCajaChicaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Movimient__Perso__50C5FA01">
+    <End Role="Persona" Type="Self.Persona" Multiplicity="1" />
+    <End Role="MovimientoCajaChica" Type="Self.MovimientoCajaChica" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Persona">
+        <PropertyRef Name="PersonaId" />
+      </Principal>
+      <Dependent Role="MovimientoCajaChica">
+        <PropertyRef Name="PersonaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Movimient__Usuar__17793963">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="1" />
+    <End Role="MovimientoCaja" Type="Self.MovimientoCaja" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="MovimientoCaja">
+        <PropertyRef Name="UsuarioRegId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Movimient__Usuar__53A266AC">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="1" />
+    <End Role="MovimientoCajaChica" Type="Self.MovimientoCajaChica" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="MovimientoCajaChica">
+        <PropertyRef Name="UsuarioRegId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__OrdenVent__Orden__08A10A27">
+    <End Role="OrdenVentaDet" Type="Self.OrdenVentaDet" Multiplicity="0..1" />
+    <End Role="OrdenVentaDetSerie" Type="Self.OrdenVentaDetSerie" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="OrdenVentaDet">
+        <PropertyRef Name="OrdenVentaDetId" />
+      </Principal>
+      <Dependent Role="OrdenVentaDetSerie">
+        <PropertyRef Name="OrdenVentaDetId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__OrdenVent__Serie__09952E60">
+    <End Role="SerieArticulo" Type="Self.SerieArticulo" Multiplicity="0..1" />
+    <End Role="OrdenVentaDetSerie" Type="Self.OrdenVentaDetSerie" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="SerieArticulo">
+        <PropertyRef Name="SerieArticuloId" />
+      </Principal>
+      <Dependent Role="OrdenVentaDetSerie">
+        <PropertyRef Name="SerieArticuloId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__PersonaDe__Perso__57C7FD4B">
+    <End Role="Persona" Type="Self.Persona" Multiplicity="1" />
+    <End Role="PersonaDepurado" Type="Self.PersonaDepurado" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Persona">
+        <PropertyRef Name="PersonaId" />
+      </Principal>
+      <Dependent Role="PersonaDepurado">
+        <PropertyRef Name="PersonaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__PlanPago__Credit__75592B89">
+    <End Role="Credito" Type="Self.Credito" Multiplicity="1" />
+    <End Role="PlanPago" Type="Self.PlanPago" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Credito">
+        <PropertyRef Name="CreditoId" />
+      </Principal>
+      <Dependent Role="PlanPago">
+        <PropertyRef Name="CreditoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Provincia__idDep__38EE7070">
+    <End Role="Departamento" Type="Self.Departamento" Multiplicity="1" />
+    <End Role="Provincia" Type="Self.Provincia" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Departamento">
+        <PropertyRef Name="idDepa" />
+      </Principal>
+      <Dependent Role="Provincia">
+        <PropertyRef Name="idDepa" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__RolMenu__MenuId__6BCFC14F">
+    <End Role="Menu" Type="Self.Menu" Multiplicity="0..1" />
+    <End Role="RolMenu" Type="Self.RolMenu" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Menu">
+        <PropertyRef Name="MenuId" />
+      </Principal>
+      <Dependent Role="RolMenu">
+        <PropertyRef Name="MenuId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__RolMenu__RolId__6ADB9D16">
+    <End Role="Rol" Type="Self.Rol" Multiplicity="0..1" />
+    <End Role="RolMenu" Type="Self.RolMenu" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Rol">
+        <PropertyRef Name="RolId" />
+      </Principal>
+      <Dependent Role="RolMenu">
+        <PropertyRef Name="RolId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Subtarea__TareaI__7DB89C09">
+    <End Role="Tarea" Type="Self.Tarea" Multiplicity="1" />
+    <End Role="Subtarea" Type="Self.Subtarea" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Tarea">
+        <PropertyRef Name="TareaId" />
+      </Principal>
+      <Dependent Role="Subtarea">
+        <PropertyRef Name="TareaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Tarea__CreditoId__78F3E6EC">
+    <End Role="Credito" Type="Self.Credito" Multiplicity="1" />
+    <End Role="Tarea" Type="Self.Tarea" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Credito">
+        <PropertyRef Name="CreditoId" />
+      </Principal>
+      <Dependent Role="Tarea">
+        <PropertyRef Name="CreditoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__TarjetaPu__Orden__17442F39">
+    <End Role="OrdenVenta" Type="Self.OrdenVenta" Multiplicity="1" />
+    <End Role="TarjetaPuntoDet" Type="Self.TarjetaPuntoDet" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="OrdenVenta">
+        <PropertyRef Name="OrdenVentaId" />
+      </Principal>
+      <Dependent Role="TarjetaPuntoDet">
+        <PropertyRef Name="OrdenVentaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__TarjetaPu__Perso__118B55E3">
+    <End Role="Persona" Type="Self.Persona" Multiplicity="1" />
+    <End Role="TarjetaPunto" Type="Self.TarjetaPunto" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Persona">
+        <PropertyRef Name="PersonaId" />
+      </Principal>
+      <Dependent Role="TarjetaPunto">
+        <PropertyRef Name="PersonaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__TarjetaPu__Tarje__16500B00">
+    <End Role="TarjetaPunto" Type="Self.TarjetaPunto" Multiplicity="1" />
+    <End Role="TarjetaPuntoDet" Type="Self.TarjetaPuntoDet" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="TarjetaPunto">
+        <PropertyRef Name="TarjetaPuntoId" />
+      </Principal>
+      <Dependent Role="TarjetaPuntoDet">
+        <PropertyRef Name="TarjetaPuntoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Transfere__Almac__3552E9B6">
+    <End Role="Almacen" Type="Self.Almacen" Multiplicity="1" />
+    <End Role="Transferencia" Type="Self.Transferencia" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Almacen">
+        <PropertyRef Name="AlmacenId" />
+      </Principal>
+      <Dependent Role="Transferencia">
+        <PropertyRef Name="AlmacenOrigenId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Transfere__Almac__36470DEF">
+    <End Role="Almacen" Type="Self.Almacen" Multiplicity="1" />
+    <End Role="Transferencia" Type="Self.Transferencia" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Almacen">
+        <PropertyRef Name="AlmacenId" />
+      </Principal>
+      <Dependent Role="Transferencia">
+        <PropertyRef Name="AlmacenDestinoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Transfere__Serie__382F5661">
+    <End Role="SerieArticulo" Type="Self.SerieArticulo" Multiplicity="1" />
+    <End Role="TransferenciaSerie" Type="Self.TransferenciaSerie" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="SerieArticulo">
+        <PropertyRef Name="SerieArticuloId" />
+      </Principal>
+      <Dependent Role="TransferenciaSerie">
+        <PropertyRef Name="SerieArticuloId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Transfere__Trans__39237A9A">
+    <End Role="Transferencia" Type="Self.Transferencia" Multiplicity="1" />
+    <End Role="TransferenciaSerie" Type="Self.TransferenciaSerie" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Transferencia">
+        <PropertyRef Name="TransferenciaId" />
+      </Principal>
+      <Dependent Role="TransferenciaSerie">
+        <PropertyRef Name="TransferenciaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Transfere__Usuar__373B3228">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="1" />
+    <End Role="Transferencia" Type="Self.Transferencia" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="Transferencia">
+        <PropertyRef Name="UsuarioId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__Usuario__Persona__33C07256">
+    <End Role="Persona" Type="Self.Persona" Multiplicity="1" />
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Persona">
+        <PropertyRef Name="PersonaId" />
+      </Principal>
+      <Dependent Role="Usuario">
+        <PropertyRef Name="PersonaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__UsuarioOf__Ofici__768259EC">
+    <End Role="Oficina" Type="Self.Oficina" Multiplicity="1" />
+    <End Role="UsuarioOficina" Type="Self.UsuarioOficina" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Oficina">
+        <PropertyRef Name="OficinaId" />
+      </Principal>
+      <Dependent Role="UsuarioOficina">
+        <PropertyRef Name="OficinaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__UsuarioOf__Usuar__758E35B3">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="1" />
+    <End Role="UsuarioOficina" Type="Self.UsuarioOficina" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="UsuarioOficina">
+        <PropertyRef Name="UsuarioId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__UsuarioRo__Ofici__764D4FC2">
+    <End Role="Oficina" Type="Self.Oficina" Multiplicity="0..1" />
+    <End Role="UsuarioRol" Type="Self.UsuarioRol" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Oficina">
+        <PropertyRef Name="OficinaId" />
+      </Principal>
+      <Dependent Role="UsuarioRol">
+        <PropertyRef Name="OficinaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__UsuarioRo__RolId__71889AA5">
+    <End Role="Rol" Type="Self.Rol" Multiplicity="0..1" />
+    <End Role="UsuarioRol" Type="Self.UsuarioRol" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Rol">
+        <PropertyRef Name="RolId" />
+      </Principal>
+      <Dependent Role="UsuarioRol">
+        <PropertyRef Name="RolId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK__UsuarioRo__Usuar__7094766C">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="0..1" />
+    <End Role="UsuarioRol" Type="Self.UsuarioRol" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="UsuarioRol">
+        <PropertyRef Name="UsuarioId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ALMACEN_OficinaId">
+    <End Role="Oficina" Type="Self.Oficina" Multiplicity="0..1" />
+    <End Role="Almacen" Type="Self.Almacen" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Oficina">
+        <PropertyRef Name="OficinaId" />
+      </Principal>
+      <Dependent Role="Almacen">
+        <PropertyRef Name="OficinaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ARTICULO_ModeloId">
+    <End Role="Modelo" Type="Self.Modelo" Multiplicity="0..1" />
+    <End Role="Articulo" Type="Self.Articulo" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Modelo">
+        <PropertyRef Name="ModeloId" />
+      </Principal>
+      <Dependent Role="Articulo">
+        <PropertyRef Name="ModeloId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ARTICULO_TipoArticuloId">
+    <End Role="TipoArticulo" Type="Self.TipoArticulo" Multiplicity="0..1" />
+    <End Role="Articulo" Type="Self.Articulo" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="TipoArticulo">
+        <PropertyRef Name="TipoArticuloId" />
+      </Principal>
+      <Dependent Role="Articulo">
+        <PropertyRef Name="TipoArticuloId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_BovedaMovTemp_Boveda">
+    <End Role="Boveda" Type="Self.Boveda" Multiplicity="1" />
+    <End Role="BovedaMovTemp" Type="Self.BovedaMovTemp" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Boveda">
+        <PropertyRef Name="BovedaId" />
+      </Principal>
+      <Dependent Role="BovedaMovTemp">
+        <PropertyRef Name="BovedaInicioId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_BovedaMovTemp_Boveda1">
+    <End Role="Boveda" Type="Self.Boveda" Multiplicity="1" />
+    <End Role="BovedaMovTemp" Type="Self.BovedaMovTemp" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Boveda">
+        <PropertyRef Name="BovedaId" />
+      </Principal>
+      <Dependent Role="BovedaMovTemp">
+        <PropertyRef Name="BovedaDestinoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Caja_Usuario">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="1" />
+    <End Role="Caja" Type="Self.Caja" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="Caja">
+        <PropertyRef Name="UsuarioRegId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Caja_Usuario1">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="0..1" />
+    <End Role="Caja" Type="Self.Caja" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="Caja">
+        <PropertyRef Name="UsuarioModId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Cargo_Usuario">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="1" />
+    <End Role="Cargo" Type="Self.Cargo" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="Cargo">
+        <PropertyRef Name="UsuarioId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_CierreDetalle_Cierre">
+    <End Role="CierreGerencial" Type="Self.CierreGerencial" Multiplicity="1" />
+    <End Role="CierreGerencialDetalle" Type="Self.CierreGerencialDetalle" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="CierreGerencial">
+        <PropertyRef Name="CierreGerencialId" />
+      </Principal>
+      <Dependent Role="CierreGerencialDetalle">
+        <PropertyRef Name="CierreGerencialId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Cliente_Persona">
+    <End Role="Persona" Type="Self.Persona" Multiplicity="1" />
+    <End Role="Cliente" Type="Self.Cliente" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Persona">
+        <PropertyRef Name="PersonaId" />
+      </Principal>
+      <Dependent Role="Cliente">
+        <PropertyRef Name="PersonaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Credito_Oficina">
+    <End Role="Oficina" Type="Self.Oficina" Multiplicity="1" />
+    <End Role="Credito" Type="Self.Credito" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Oficina">
+        <PropertyRef Name="OficinaId" />
+      </Principal>
+      <Dependent Role="Credito">
+        <PropertyRef Name="OficinaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Credito_Persona">
+    <End Role="Persona" Type="Self.Persona" Multiplicity="1" />
+    <End Role="Credito" Type="Self.Credito" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Persona">
+        <PropertyRef Name="PersonaId" />
+      </Principal>
+      <Dependent Role="Credito">
+        <PropertyRef Name="PersonaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Credito_Producto">
+    <End Role="Producto" Type="Self.Producto" Multiplicity="1" />
+    <End Role="Credito" Type="Self.Credito" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Producto">
+        <PropertyRef Name="ProductoId" />
+      </Principal>
+      <Dependent Role="Credito">
+        <PropertyRef Name="ProductoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Credito_Usuario3">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="1" />
+    <End Role="Credito" Type="Self.Credito" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="Credito">
+        <PropertyRef Name="UsuarioRegId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Credito_Usuario4">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="0..1" />
+    <End Role="Credito" Type="Self.Credito" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="Credito">
+        <PropertyRef Name="UsuarioModId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_DETENTRADASALIDA_ArticuloId">
+    <End Role="Articulo" Type="Self.Articulo" Multiplicity="1" />
+    <End Role="MovimientoDet" Type="Self.MovimientoDet" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Articulo">
+        <PropertyRef Name="ArticuloId" />
+      </Principal>
+      <Dependent Role="MovimientoDet">
+        <PropertyRef Name="ArticuloId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_DETENTRADASALIDA_EntradaSalidaId">
+    <End Role="Movimiento" Type="Self.Movimiento" Multiplicity="1" />
+    <End Role="MovimientoDet" Type="Self.MovimientoDet" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Movimiento">
+        <PropertyRef Name="MovimientoId" />
+      </Principal>
+      <Dependent Role="MovimientoDet">
+        <PropertyRef Name="MovimientoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_DETORDENVENTA_ArticuloId">
+    <End Role="Articulo" Type="Self.Articulo" Multiplicity="1" />
+    <End Role="OrdenVentaDet" Type="Self.OrdenVentaDet" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Articulo">
+        <PropertyRef Name="ArticuloId" />
+      </Principal>
+      <Dependent Role="OrdenVentaDet">
+        <PropertyRef Name="ArticuloId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_DETORDENVENTA_OrdenVentaId">
+    <End Role="OrdenVenta" Type="Self.OrdenVenta" Multiplicity="1" />
+    <End Role="OrdenVentaDet" Type="Self.OrdenVentaDet" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="OrdenVenta">
+        <PropertyRef Name="OrdenVentaId" />
+      </Principal>
+      <Dependent Role="OrdenVentaDet">
+        <PropertyRef Name="OrdenVentaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_DOCENTRADASALIDA_DestinatarioId">
+    <End Role="Persona" Type="Self.Persona" Multiplicity="0..1" />
+    <End Role="MovimientoDoc" Type="Self.MovimientoDoc" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Persona">
+        <PropertyRef Name="PersonaId" />
+      </Principal>
+      <Dependent Role="MovimientoDoc">
+        <PropertyRef Name="DestinatarioId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_DOCENTRADASALIDA_MovimientoId">
+    <End Role="Movimiento" Type="Self.Movimiento" Multiplicity="0..1" />
+    <End Role="MovimientoDoc" Type="Self.MovimientoDoc" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Movimiento">
+        <PropertyRef Name="MovimientoId" />
+      </Principal>
+      <Dependent Role="MovimientoDoc">
+        <PropertyRef Name="MovimientoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_DOCENTRADASALIDA_RemitenteId">
+    <End Role="Persona" Type="Self.Persona" Multiplicity="0..1" />
+    <End Role="MovimientoDoc" Type="Self.MovimientoDoc" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Persona">
+        <PropertyRef Name="PersonaId" />
+      </Principal>
+      <Dependent Role="MovimientoDoc">
+        <PropertyRef Name="RemitenteId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_DOCENTRADASALIDA_TipoDocumentoId">
+    <End Role="TipoDocumento" Type="Self.TipoDocumento" Multiplicity="0..1" />
+    <End Role="MovimientoDoc" Type="Self.MovimientoDoc" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="TipoDocumento">
+        <PropertyRef Name="TipoDocumentoId" />
+      </Principal>
+      <Dependent Role="MovimientoDoc">
+        <PropertyRef Name="TipoDocumentoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ENTRADASALIDA_AlmacenId">
+    <End Role="Almacen" Type="Self.Almacen" Multiplicity="1" />
+    <End Role="Movimiento" Type="Self.Movimiento" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Almacen">
+        <PropertyRef Name="AlmacenId" />
+      </Principal>
+      <Dependent Role="Movimiento">
+        <PropertyRef Name="AlmacenId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ENTRADASALIDA_TipoMovimientoId">
+    <End Role="TipoMovimiento" Type="Self.TipoMovimiento" Multiplicity="1" />
+    <End Role="Movimiento" Type="Self.Movimiento" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="TipoMovimiento">
+        <PropertyRef Name="TipoMovimientoId" />
+      </Principal>
+      <Dependent Role="Movimiento">
+        <PropertyRef Name="TipoMovimientoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ListaPrecio_Articulo">
+    <End Role="Articulo" Type="Self.Articulo" Multiplicity="0..1" />
+    <End Role="ListaPrecio" Type="Self.ListaPrecio" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Articulo">
+        <PropertyRef Name="ArticuloId" />
+      </Principal>
+      <Dependent Role="ListaPrecio">
+        <PropertyRef Name="ArticuloId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MODELO_MarcaId">
+    <End Role="Marca" Type="Self.Marca" Multiplicity="0..1" />
+    <End Role="Modelo" Type="Self.Modelo" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Marca">
+        <PropertyRef Name="MarcaId" />
+      </Principal>
+      <Dependent Role="Modelo">
+        <PropertyRef Name="MarcaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MovimientoBoveda_Boveda">
+    <End Role="Boveda" Type="Self.Boveda" Multiplicity="1" />
+    <End Role="BovedaMov" Type="Self.BovedaMov" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Boveda">
+        <PropertyRef Name="BovedaId" />
+      </Principal>
+      <Dependent Role="BovedaMov">
+        <PropertyRef Name="BovedaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MovimientoCaja_Credito">
+    <End Role="Credito" Type="Self.Credito" Multiplicity="0..1" />
+    <End Role="MovimientoCaja" Type="Self.MovimientoCaja" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Credito">
+        <PropertyRef Name="CreditoId" />
+      </Principal>
+      <Dependent Role="MovimientoCaja">
+        <PropertyRef Name="CreditoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MovimientoCaja_OrdenVenta">
+    <End Role="OrdenVenta" Type="Self.OrdenVenta" Multiplicity="0..1" />
+    <End Role="MovimientoCaja" Type="Self.MovimientoCaja" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="OrdenVenta">
+        <PropertyRef Name="OrdenVentaId" />
+      </Principal>
+      <Dependent Role="MovimientoCaja">
+        <PropertyRef Name="OrdenVentaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MovimientoCaja_Persona">
+    <End Role="Persona" Type="Self.Persona" Multiplicity="0..1" />
+    <End Role="MovimientoCaja" Type="Self.MovimientoCaja" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Persona">
+        <PropertyRef Name="PersonaId" />
+      </Principal>
+      <Dependent Role="MovimientoCaja">
+        <PropertyRef Name="PersonaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_MovimientoRendidoCajaChica_TipoDocumento">
+    <End Role="TipoDocumento" Type="Self.TipoDocumento" Multiplicity="1" />
+    <End Role="MovimientoRendidoCajaChica" Type="Self.MovimientoRendidoCajaChica" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="TipoDocumento">
+        <PropertyRef Name="TipoDocumentoId" />
+      </Principal>
+      <Dependent Role="MovimientoRendidoCajaChica">
+        <PropertyRef Name="TipoDocumentoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Oficina_Usuario">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="1" />
+    <End Role="Oficina" Type="Self.Oficina" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="Oficina">
+        <PropertyRef Name="UsuarioAsignadoId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_ORDENVENTA_OficinaId">
+    <End Role="Oficina" Type="Self.Oficina" Multiplicity="1" />
+    <End Role="OrdenVenta" Type="Self.OrdenVenta" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Oficina">
+        <PropertyRef Name="OficinaId" />
+      </Principal>
+      <Dependent Role="OrdenVenta">
+        <PropertyRef Name="OficinaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_OrdenVenta_Persona">
+    <End Role="Persona" Type="Self.Persona" Multiplicity="1" />
+    <End Role="OrdenVenta" Type="Self.OrdenVenta" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Persona">
+        <PropertyRef Name="PersonaId" />
+      </Principal>
+      <Dependent Role="OrdenVenta">
+        <PropertyRef Name="PersonaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_OrdenVenta_Usuario">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="1" />
+    <End Role="OrdenVenta" Type="Self.OrdenVenta" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="OrdenVenta">
+        <PropertyRef Name="UsuarioRegId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_OrdenVenta_Usuario1">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="0..1" />
+    <End Role="OrdenVenta" Type="Self.OrdenVenta" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="OrdenVenta">
+        <PropertyRef Name="UsuarioModId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_PlanPago_MovimientoCaja">
+    <End Role="MovimientoCaja" Type="Self.MovimientoCaja" Multiplicity="0..1" />
+    <End Role="PlanPago" Type="Self.PlanPago" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MovimientoCaja">
+        <PropertyRef Name="MovimientoCajaId" />
+      </Principal>
+      <Dependent Role="PlanPago">
+        <PropertyRef Name="MovimientoCajaId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_PlanPago_Usuario">
+    <End Role="Usuario" Type="Self.Usuario" Multiplicity="0..1" />
+    <End Role="PlanPago" Type="Self.PlanPago" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Usuario">
+        <PropertyRef Name="UsuarioId" />
+      </Principal>
+      <Dependent Role="PlanPago">
+        <PropertyRef Name="UsuarioModId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_SERIEARTICULO_AlmacenId">
+    <End Role="Almacen" Type="Self.Almacen" Multiplicity="1" />
+    <End Role="SerieArticulo" Type="Self.SerieArticulo" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Almacen">
+        <PropertyRef Name="AlmacenId" />
+      </Principal>
+      <Dependent Role="SerieArticulo">
+        <PropertyRef Name="AlmacenId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_SERIEARTICULO_ArticuloId">
+    <End Role="Articulo" Type="Self.Articulo" Multiplicity="1" />
+    <End Role="SerieArticulo" Type="Self.SerieArticulo" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Articulo">
+        <PropertyRef Name="ArticuloId" />
+      </Principal>
+      <Dependent Role="SerieArticulo">
+        <PropertyRef Name="ArticuloId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_SERIEARTICULO_MOVIMIENTODET">
+    <End Role="MovimientoDet" Type="Self.MovimientoDet" Multiplicity="0..1" />
+    <End Role="SerieArticulo" Type="Self.SerieArticulo" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="MovimientoDet">
+        <PropertyRef Name="MovimientoDetId" />
+      </Principal>
+      <Dependent Role="SerieArticulo">
+        <PropertyRef Name="MovimientoDetEntId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_VencidoGerencialApertura_Cierre">
+    <End Role="CierreGerencial" Type="Self.CierreGerencial" Multiplicity="1" />
+    <End Role="VencidoGerencialAperturaDetalle" Type="Self.VencidoGerencialAperturaDetalle" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="CierreGerencial">
+        <PropertyRef Name="CierreGerencialId" />
+      </Principal>
+      <Dependent Role="VencidoGerencialAperturaDetalle">
+        <PropertyRef Name="CierreOrigenId" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Function Name="usp_CrearMovimientoDet" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="ALMACEN">
+    <Parameter Name="MovimientoId" Type="int" Mode="In" />
+    <Parameter Name="MovimientoDetId" Type="int" Mode="In" />
+    <Parameter Name="ArticuloId" Type="int" Mode="In" />
+    <Parameter Name="IndAutogenerar" Type="bit" Mode="In" />
+    <Parameter Name="ListaSerie" Type="varchar(max)" Mode="In" />
+    <Parameter Name="Cantidad" Type="int" Mode="In" />
+    <Parameter Name="IndCorrelativo" Type="bit" Mode="In" />
+    <Parameter Name="PrecioUnitario" Type="decimal" Mode="In" />
+    <Parameter Name="Descuento" Type="decimal" Mode="In" />
+    <Parameter Name="Medida" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_EliminarMovimientoDet" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="ALMACEN">
+    <Parameter Name="MovimientoDetId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_ExisteSerieArticulo" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="ALMACEN">
+    <Parameter Name="ListaSerie" Type="varchar(max)" Mode="In" />
+    <Parameter Name="Cantidad" Type="int" Mode="In" />
+    <Parameter Name="IndCorrelativo" Type="bit" Mode="In" />
+  </Function>
+  <Function Name="usp_GenerarKardex" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="ALMACEN">
+    <Parameter Name="ArticuloId" Type="int" Mode="In" />
+    <Parameter Name="AlmacenId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_ListarSerieKardex" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="ALMACEN">
+    <Parameter Name="MovimientoDetalleId" Type="int" Mode="In" />
+    <Parameter Name="IndStock" Type="bit" Mode="In" />
+  </Function>
+  <Function Name="usp_Movimiento_Upd" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="ALMACEN">
+    <Parameter Name="Flag" Type="int" Mode="In" />
+    <Parameter Name="MovimientoId" Type="int" Mode="In" />
+    <Parameter Name="TipoMovimientoId" Type="int" Mode="In" />
+    <Parameter Name="FechaMov" Type="date" Mode="In" />
+    <Parameter Name="Observacion" Type="varchar(max)" Mode="In" />
+  </Function>
+  <Function Name="usp_ReporteStock" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="ALMACEN">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="ActualizarClientesNuevos" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="ufn_ActividadGerencialMensual" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="Periodo" Type="date" Mode="In" />
+    <Parameter Name="FechaCorte" Type="date" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="UsuarioId" Type="int" Nullable="false" />
+          <Property Name="ClientesNuevosMes" Type="int" Nullable="false" />
+          <Property Name="MontoClientesNuevosMes" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="MontoCobradoMes" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="DesembolsosMes" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="NroOperacionesMes" Type="int" Nullable="false" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="ufn_ClientesNuevosGerenciales" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="Periodo" Type="date" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="UsuarioId" Type="int" Nullable="false" />
+          <Property Name="ClientesNuevosMes" Type="int" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="ufn_FechaGerencial" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO" ReturnType="datetime2" />
+  <Function Name="ufn_MetricasGerencialesActuales" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="FechaCorte" Type="date" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="UsuarioId" Type="int" Nullable="false" />
+          <Property Name="CapitalActual" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="ClientesActivosActual" Type="int" />
+          <Property Name="VencidosActual" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="ClientesVencidosActual" Type="int" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="ufn_RecuperacionVencidosGerencial" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="Periodo" Type="date" Mode="In" />
+    <Parameter Name="FechaCorte" Type="date" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="UsuarioId" Type="int" Nullable="false" />
+          <Property Name="VencidosApertura" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="VencidosAperturaPendiente" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="RecuperacionVencidosActual" Type="decimal" Precision="18" Scale="2" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="ufn_SaldosCuotasGerenciales" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="FechaCorte" Type="date" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="UsuarioId" Type="int" Nullable="false" />
+          <Property Name="PersonaId" Type="int" Nullable="false" />
+          <Property Name="CreditoId" Type="int" Nullable="false" />
+          <Property Name="PlanPagoId" Type="int" Nullable="false" />
+          <Property Name="FechaVencimiento" Type="date" Nullable="false" />
+          <Property Name="ImporteCuota" Type="decimal" Precision="18" Scale="2" />
+          <Property Name="SaldoCuota" Type="decimal" Precision="18" Scale="2" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="usp_ActualizarSaldoCartera" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_ActualizarSaldosBoveda" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="BovedaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_ActualizarSaldosCajaDiario" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_CalcularMontoPorCobrar" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_CalcularMoraPendiente" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_CalcularTEM" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="TEA" Type="decimal" Mode="In" />
+    <Parameter Name="FormaPago" Type="char" Mode="In" />
+  </Function>
+  <Function Name="usp_CalificarCliente" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_CentralRiesgoGenerar" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="Anio" Type="int" Mode="In" />
+    <Parameter Name="Mes" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_CerrarBoveda" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="UsuarioRegId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_CerrarBovedaTemporal" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="UsuarioRegId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_CerrarCajasDiarios" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioCierreId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="Sobrante" Type="decimal" Mode="In" />
+  </Function>
+  <Function Name="usp_CompletarImpagos" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_CompletarImpagosValidacion" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_Credito_Del" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+    <Parameter Name="Observacion" Type="varchar(max)" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_Credito_Ins" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="SolicitudCreditoId" Type="int" Mode="In" />
+    <Parameter Name="ProductoId" Type="int" Mode="In" />
+    <Parameter Name="TipoCuota" Type="char" Mode="In" />
+    <Parameter Name="MontoInicial" Type="decimal" Mode="In" />
+    <Parameter Name="MontoCredito" Type="decimal" Mode="In" />
+    <Parameter Name="MontoGastosAdm" Type="decimal" Mode="In" />
+    <Parameter Name="IndGastoAdm" Type="char" Mode="In" />
+    <Parameter Name="FormaPago" Type="char" Mode="In" />
+    <Parameter Name="NroCuotas" Type="int" Mode="In" />
+    <Parameter Name="Interes" Type="decimal" Mode="In" />
+    <Parameter Name="FechaPrimerPago" Type="date" Mode="In" />
+    <Parameter Name="Observacion" Type="varchar(max)" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="IndCentralRiesgo" Type="bit" Mode="In" />
+  </Function>
+  <Function Name="usp_Credito_Upd" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="Opcion" Type="int" Mode="In" />
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_CuotasPendientes" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+    <Parameter Name="FechaCalculo" Type="date" Mode="In" />
+    <Parameter Name="IndCancelacion" Type="bit" Mode="In" />
+  </Function>
+  <Function Name="usp_DashboardAdminAnalistas" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="FechaCorte" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_DashboardAdminFlujoCaja" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="FechaCorte" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_DashboardAdminHistorico" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="FechaCorte" Type="date" Mode="In" />
+    <Parameter Name="Dias" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_DashboardAdminHistoricoMensual" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="FechaCorte" Type="date" Mode="In" />
+    <Parameter Name="Meses" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_DashboardAdminResumen" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="FechaCorte" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_DashboardGestor" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="FechaCorte" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_DashboardGestorClientesMora" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="Tipo" Type="varchar" Mode="In" />
+    <Parameter Name="FechaCorte" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_DashboardProductividad" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_DashboardRanking" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="FechaCorte" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_DashboardTopAnterior" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_EntradaSalidaCajaChicaDiario" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaChicaDiarioId" Type="int" Mode="In" />
+    <Parameter Name="PersonaId" Type="int" Mode="In" />
+    <Parameter Name="TipoOperacionId" Type="int" Mode="In" />
+    <Parameter Name="Importe" Type="decimal" Mode="In" />
+    <Parameter Name="Decripcion" Type="varchar(max)" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_EntradaSalidaCajaDiario" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+    <Parameter Name="PersonaId" Type="int" Mode="In" />
+    <Parameter Name="TipoOperacionId" Type="int" Mode="In" />
+    <Parameter Name="Importe" Type="decimal" Mode="In" />
+    <Parameter Name="Decripcion" Type="varchar(max)" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="TipoPagoId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_EstadoPlanPago" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_FechaBD" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO" />
+  <Function Name="usp_GenerarCierreGerencialMensual" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="Periodo" Type="date" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="UsuarioCierreId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_GuardarMetaGerencialDefinitiva" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="Periodo" Type="date" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="MetaCapitalCierre" Type="decimal" Mode="In" />
+    <Parameter Name="MetaClientesActivosCierre" Type="int" Mode="In" />
+    <Parameter Name="MetaVencidosMaximoCierre" Type="decimal" Mode="In" />
+    <Parameter Name="MetaRecuperacionVencidosMes" Type="decimal" Mode="In" />
+    <Parameter Name="UsuarioRegistroId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_IntentarGenerarCierreGerencialMensual" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="UsuarioCierreId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_ListarMetasGerencialesDefinitivas" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="Periodo" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_ListarSaldoCartera" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="Anio" Type="int" Mode="In" />
+    <Parameter Name="Mes" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_MovimientoCaja_Del" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="MovimientoCajaId" Type="int" Mode="In" />
+    <Parameter Name="Observacion" Type="varchar(max)" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_ObtenerAvanceMetasGerenciales" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="Periodo" Type="date" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_ObtenerAvanceMetasGerencialesBase" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="Periodo" Type="date" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_ObtenerMontoPendientePlanPago" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_ObtenerSaldoCuentaCajadiario" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+    <Parameter Name="TipoPagoId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_PagarCuentaxCobrar" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OrdenVentaId" Type="int" Mode="In" />
+    <Parameter Name="CuentaxCobrarId" Type="int" Mode="In" />
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_PagarCuotaPagoLibre" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+    <Parameter Name="ImporteRecibido" Type="decimal" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="TipoPagoId" Type="int" Mode="In" />
+    <Parameter Name="FechaPagoTransferencia" Type="varchar" Mode="In" />
+  </Function>
+  <Function Name="usp_PagarCuotas" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+    <Parameter Name="ListaPlanPagoId" Type="varchar(max)" Mode="In" />
+    <Parameter Name="ImporteRecibido" Type="decimal" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="FechaPago" Type="date" Mode="In" />
+    <Parameter Name="TipoPagoId" Type="int" Mode="In" />
+    <Parameter Name="FechaPagoTransferencia" Type="varchar" Mode="In" />
+  </Function>
+  <Function Name="usp_PagarCuotasCancelacion" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="FechaPago" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_PagosNoVerificados" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO" />
+  <Function Name="usp_ProrrogarCredito" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+    <Parameter Name="Dias" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RecalcularCajaDiario" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_ReconciliarCajaDiario" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RegenerarPlanPago" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RegistrarTransferenciaBancos" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="BovedaId" Type="int" Mode="In" />
+    <Parameter Name="TipoPagoOrigenId" Type="smallint" Mode="In" />
+    <Parameter Name="TipoPagoDestinoId" Type="smallint" Mode="In" />
+    <Parameter Name="Importe" Type="decimal" Mode="In" />
+    <Parameter Name="Glosa" Type="varchar(max)" Mode="In" />
+    <Parameter Name="UsuarioRegId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_ReprogramarCredito" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_ResumenCuentaBoveda" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="BovedaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptAval" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="PersonaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptCajaDiario" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="FechaInicio" Type="date" Mode="In" />
+    <Parameter Name="FechaFin" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_RptCajasAsignadas" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptClientesBloqueados" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptClientesInactivos" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="FechaInicio" Type="date" Mode="In" />
+    <Parameter Name="FechaFin" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_RptClientesTopeCredito" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptCobroDiario" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptCobroDiarioDetalle" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptCredito" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="GestorId" Type="int" Mode="In" />
+    <Parameter Name="Estado" Type="char" Mode="In" />
+    <Parameter Name="FechaDesIni" Type="date" Mode="In" />
+    <Parameter Name="FechaDesFin" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_RptCreditoAprobacion" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="FechaAprobacion" Type="date" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptCreditoMorosidad" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="HastaFecha" Type="date" Mode="In" />
+    <Parameter Name="DiasAtrazoIni" Type="int" Mode="In" />
+    <Parameter Name="DiasAtrazoFin" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptCreditoRentabilidad" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficnaId" Type="int" Mode="In" />
+    <Parameter Name="FechaIni" Type="date" Mode="In" />
+    <Parameter Name="FechaFin" Type="date" Mode="In" />
+    <Parameter Name="EstadoCredito" Type="char" Mode="In" />
+  </Function>
+  <Function Name="usp_RptCreditosActivos" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="FechaIni" Type="date" Mode="In" />
+    <Parameter Name="FechaFin" Type="date" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptCreditosCierres" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="FechaIni" Type="date" Mode="In" />
+    <Parameter Name="FechaFin" Type="date" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptCreditosMorososPagados" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="FechaInicio" Type="date" Mode="In" />
+    <Parameter Name="FechaFin" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_RptCreditoVencido" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="VencidoMenor60" Type="char" Mode="In" />
+    <Parameter Name="VencidoMayor60" Type="char" Mode="In" />
+    <Parameter Name="VencidoIrrecuperable" Type="char" Mode="In" />
+  </Function>
+  <Function Name="usp_RptMovimientoBoveda" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="BovedaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptMovimientoCajaAnulado" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="FechaIni" Type="date" Mode="In" />
+    <Parameter Name="FechaFin" Type="date" Mode="In" />
+  </Function>
+  <Function Name="usp_RptMovimientoCredito" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptSaldoCarteraCajaDiario" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="AnioIni" Type="int" Mode="In" />
+    <Parameter Name="MesIni" Type="int" Mode="In" />
+    <Parameter Name="AnioFin" Type="int" Mode="In" />
+    <Parameter Name="MesFin" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptSaldosCaja" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+    <Parameter Name="IndCajaChica" Type="bit" Mode="In" />
+  </Function>
+  <Function Name="usp_RptSaldosCajaResumenIngreso" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_RptSaldosCajaResumenTipoCuenta" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_SimuladorCredito" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="Monto" Type="decimal" Mode="In" />
+    <Parameter Name="FormaPago" Type="char" Mode="In" />
+    <Parameter Name="NroCuotas" Type="int" Mode="In" />
+    <Parameter Name="InteresMensual" Type="decimal" Mode="In" />
+    <Parameter Name="FechaPrimerPago" Type="date" Mode="In" />
+    <Parameter Name="GastosAdm" Type="decimal" Mode="In" />
+  </Function>
+  <Function Name="usp_SolicitarCondonacion" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+    <Parameter Name="MoraCondonacion" Type="decimal" Mode="In" />
+  </Function>
+  <Function Name="usp_SolicitudCredito_Del" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_TransferirBoveda" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="BovedaInicioId" Type="int" Mode="In" />
+    <Parameter Name="BovedaDestinoId" Type="int" Mode="In" />
+    <Parameter Name="Glosa" Type="varchar(max)" Mode="In" />
+    <Parameter Name="Monto" Type="decimal" Mode="In" />
+    <Parameter Name="UsuarioRegId" Type="int" Mode="In" />
+    <Parameter Name="flagAceptar" Type="int" Mode="In" />
+    <Parameter Name="BovedaMovTempId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_UsuariosNoAsignadosCaja" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="uspCreditoVencido" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="CREDITO">
+    <Parameter Name="CreditoId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="Split" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="stringToSplit" Type="varchar(max)" Mode="In" />
+    <Parameter Name="Separador" Type="varchar" Mode="In" />
+    <ReturnType>
+      <CollectionType>
+        <RowType>
+          <Property Name="Name" Type="nvarchar" MaxLength="500" />
+        </RowType>
+      </CollectionType>
+    </ReturnType>
+  </Function>
+  <Function Name="ufnCalcularDiasAtrazo" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" ReturnType="int">
+    <Parameter Name="FechaVencimiento" Type="date" Mode="In" />
+    <Parameter Name="FechaHoy" Type="date" Mode="In" />
+  </Function>
+  <Function Name="ufnCalcularImporteCobrado" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" ReturnType="decimal">
+    <Parameter Name="Anio" Type="int" Mode="In" />
+    <Parameter Name="Mes" Type="int" Mode="In" />
+    <Parameter Name="UsuarioRegId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="ufnCalcularMora" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" ReturnType="decimal">
+    <Parameter Name="Importe" Type="decimal" Mode="In" />
+    <Parameter Name="DiasAtrazo" Type="int" Mode="In" />
+    <Parameter Name="DiasGracia" Type="int" Mode="In" />
+  </Function>
+  <Function Name="ufnCalificar" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" ReturnType="char">
+    <Parameter Name="DiasAtrazo" Type="int" Mode="In" />
+    <Parameter Name="CalificacionAnterior" Type="char" Mode="In" />
+  </Function>
+  <Function Name="ufnFecha" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" ReturnType="datetime" />
+  <Function Name="ufnListarSerie" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" ReturnType="varchar(max)">
+    <Parameter Name="OrdenVentaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="ufnResumenCuentaCajaDiario" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="true" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo" ReturnType="varchar">
+    <Parameter Name="CajaDiarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_AgregarPuntos" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="CodCliente" Type="numeric" Mode="In" />
+    <Parameter Name="OrdenVentaId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_CanjearPuntos" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="dbo">
+    <Parameter Name="CodCliente" Type="numeric" Mode="In" />
+    <Parameter Name="NumeroSerie" Type="varchar" Mode="In" />
+  </Function>
+  <Function Name="usp_MenuLst" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="MAESTRO">
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_CodigoBarras_Lst" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="VENTAS">
+    <Parameter Name="pMovimientoId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_OrdenVenta_Del" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="VENTAS">
+    <Parameter Name="OrdenVentaId" Type="int" Mode="In" />
+    <Parameter Name="OrdenVentaDetId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_OrdenVentaDet_Ins" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="VENTAS">
+    <Parameter Name="OrdenVentaId" Type="int" Mode="In" />
+    <Parameter Name="NumeroSerie" Type="varchar" Mode="In" />
+    <Parameter Name="UsuarioId" Type="int" Mode="In" />
+  </Function>
+  <Function Name="usp_OrdenVentaDet_update" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="VENTAS">
+    <Parameter Name="OrdenVentaDetId" Type="int" Mode="In" />
+    <Parameter Name="Descuento" Type="decimal" Mode="In" />
+  </Function>
+  <Function Name="usp_RptRentabilidadVenta" Aggregate="false" BuiltIn="false" NiladicFunction="false" IsComposable="false" ParameterTypeSemantics="AllowImplicitConversion" Schema="VENTAS">
+    <Parameter Name="FechaIni" Type="date" Mode="In" />
+    <Parameter Name="FechaFin" Type="date" Mode="In" />
+    <Parameter Name="IndContado" Type="bit" Mode="In" />
+    <Parameter Name="IndCredito" Type="bit" Mode="In" />
+    <Parameter Name="OficinaId" Type="int" Mode="In" />
+  </Function>
+  <EntityContainer Name="VENDIXModelStoreContainer">
+    <EntitySet Name="Almacen" EntityType="Self.Almacen" Schema="ALMACEN" store:Type="Tables" />
+    <EntitySet Name="Articulo" EntityType="Self.Articulo" Schema="ALMACEN" store:Type="Tables" />
+    <EntitySet Name="Marca" EntityType="Self.Marca" Schema="ALMACEN" store:Type="Tables" />
+    <EntitySet Name="Modelo" EntityType="Self.Modelo" Schema="ALMACEN" store:Type="Tables" />
+    <EntitySet Name="Movimiento" EntityType="Self.Movimiento" Schema="ALMACEN" store:Type="Tables" />
+    <EntitySet Name="MovimientoDet" EntityType="Self.MovimientoDet" Schema="ALMACEN" store:Type="Tables" />
+    <EntitySet Name="MovimientoDoc" EntityType="Self.MovimientoDoc" Schema="ALMACEN" store:Type="Tables" />
+    <EntitySet Name="SerieArticulo" EntityType="Self.SerieArticulo" Schema="ALMACEN" store:Type="Tables" />
+    <EntitySet Name="TipoArticulo" EntityType="Self.TipoArticulo" Schema="ALMACEN" store:Type="Tables" />
+    <EntitySet Name="TipoMovimiento" EntityType="Self.TipoMovimiento" Schema="ALMACEN" store:Type="Tables" />
+    <EntitySet Name="Transferencia" EntityType="Self.Transferencia" Schema="ALMACEN" store:Type="Tables" />
+    <EntitySet Name="TransferenciaSerie" EntityType="Self.TransferenciaSerie" Schema="ALMACEN" store:Type="Tables" />
+    <EntitySet Name="Aprobacion" EntityType="Self.Aprobacion" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="Boveda" EntityType="Self.Boveda" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="BovedaCuenta" EntityType="Self.BovedaCuenta" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="BovedaMov" EntityType="Self.BovedaMov" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="BovedaMovTemp" EntityType="Self.BovedaMovTemp" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="Caja" EntityType="Self.Caja" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="CajaChicaDiario" EntityType="Self.CajaChicaDiario" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="CajaDiario" EntityType="Self.CajaDiario" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="Cargo" EntityType="Self.Cargo" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="CentralRiesgo" EntityType="Self.CentralRiesgo" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="CierreGerencial" EntityType="Self.CierreGerencial" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="CierreGerencialDetalle" EntityType="Self.CierreGerencialDetalle" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="Credito" EntityType="Self.Credito" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="Prenda" EntityType="Self.Prenda" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="CreditoCondonacion" EntityType="Self.CreditoCondonacion" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="CreditoImagen" EntityType="Self.CreditoImagen" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="CreditoMora" EntityType="Self.CreditoMora" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="CuentaxCobrar" EntityType="Self.CuentaxCobrar" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="GastosAdm" EntityType="Self.GastosAdm" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="MetaGerencialAnalista" EntityType="Self.MetaGerencialAnalista" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="MovimientoCaja" EntityType="Self.MovimientoCaja" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="MovimientoCajaAnu" EntityType="Self.MovimientoCajaAnu" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="MovimientoCajaChica" EntityType="Self.MovimientoCajaChica" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="MovimientoCajaExtension" EntityType="Self.MovimientoCajaExtension" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="MovimientoRendidoCajaChica" EntityType="Self.MovimientoRendidoCajaChica" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="PlanPago" EntityType="Self.PlanPago" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="Producto" EntityType="Self.Producto" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="SaldoCarteraMensual" EntityType="Self.SaldoCarteraMensual" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="Subtarea" EntityType="Self.Subtarea" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="Tarea" EntityType="Self.Tarea" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="VencidoGerencialAperturaDetalle" EntityType="Self.VencidoGerencialAperturaDetalle" Schema="CREDITO" store:Type="Tables" />
+    <EntitySet Name="Acceso" EntityType="Self.Acceso" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="Cliente" EntityType="Self.Cliente" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="Departamento" EntityType="Self.Departamento" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="Distrito" EntityType="Self.Distrito" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="Menu" EntityType="Self.Menu" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="Ocupacion" EntityType="Self.Ocupacion" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="Oficina" EntityType="Self.Oficina" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="Persona" EntityType="Self.Persona" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="PersonaDepurado" EntityType="Self.PersonaDepurado" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="Provincia" EntityType="Self.Provincia" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="Rol" EntityType="Self.Rol" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="RolMenu" EntityType="Self.RolMenu" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="TipoDocumento" EntityType="Self.TipoDocumento" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="TipoOperacion" EntityType="Self.TipoOperacion" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="Usuario" EntityType="Self.Usuario" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="UsuarioOficina" EntityType="Self.UsuarioOficina" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="UsuarioRol" EntityType="Self.UsuarioRol" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="ValorTabla" EntityType="Self.ValorTabla" Schema="MAESTRO" store:Type="Tables" />
+    <EntitySet Name="ListaPrecio" EntityType="Self.ListaPrecio" Schema="VENTAS" store:Type="Tables" />
+    <EntitySet Name="OrdenVenta" EntityType="Self.OrdenVenta" Schema="VENTAS" store:Type="Tables" />
+    <EntitySet Name="OrdenVentaDet" EntityType="Self.OrdenVentaDet" Schema="VENTAS" store:Type="Tables" />
+    <EntitySet Name="OrdenVentaDetSerie" EntityType="Self.OrdenVentaDetSerie" Schema="VENTAS" store:Type="Tables" />
+    <EntitySet Name="TarjetaPunto" EntityType="Self.TarjetaPunto" Schema="VENTAS" store:Type="Tables" />
+    <EntitySet Name="TarjetaPuntoDet" EntityType="Self.TarjetaPuntoDet" Schema="VENTAS" store:Type="Tables" />
+    <AssociationSet Name="FK__Boveda__OficinaI__046664EF" Association="Self.FK__Boveda__OficinaI__046664EF">
+      <End Role="Oficina" EntitySet="Oficina" />
+      <End Role="Boveda" EntitySet="Boveda" />
+    </AssociationSet>
+    <AssociationSet Name="FK__BovedaCue__Boved__5A6F5FCC" Association="Self.FK__BovedaCue__Boved__5A6F5FCC">
+      <End Role="Boveda" EntitySet="Boveda" />
+      <End Role="BovedaCuenta" EntitySet="BovedaCuenta" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Caja__OficinaId__092B1A0C" Association="Self.FK__Caja__OficinaId__092B1A0C">
+      <End Role="Oficina" EntitySet="Oficina" />
+      <End Role="Caja" EntitySet="Caja" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CajaChica__Usuar__473C8FC7" Association="Self.FK__CajaChica__Usuar__473C8FC7">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="CajaChicaDiario" EntitySet="CajaChicaDiario" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CajaDiari__CajaI__0EE3F362" Association="Self.FK__CajaDiari__CajaI__0EE3F362">
+      <End Role="Caja" EntitySet="Caja" />
+      <End Role="CajaDiario" EntitySet="CajaDiario" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CajaDiari__Usuar__0DEFCF29" Association="Self.FK__CajaDiari__Usuar__0DEFCF29">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="CajaDiario" EntitySet="CajaDiario" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Cargo__CreditoId__109731AA" Association="Self.FK__Cargo__CreditoId__109731AA">
+      <End Role="Credito" EntitySet="Credito" />
+      <End Role="Cargo" EntitySet="Cargo" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CentralRi__Credi__6E0D0F7C" Association="Self.FK__CentralRi__Credi__6E0D0F7C">
+      <End Role="Credito" EntitySet="Credito" />
+      <End Role="CentralRiesgo" EntitySet="CentralRiesgo" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Credito__OrdenVe__3E5DFC5A" Association="Self.FK__Credito__OrdenVe__3E5DFC5A">
+      <End Role="OrdenVenta" EntitySet="OrdenVenta" />
+      <End Role="Credito" EntitySet="Credito" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CreditoCo__CajaD__2A8B4280" Association="Self.FK__CreditoCo__CajaD__2A8B4280">
+      <End Role="CajaDiario" EntitySet="CajaDiario" />
+      <End Role="CreditoCondonacion" EntitySet="CreditoCondonacion" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CreditoCo__Credi__29971E47" Association="Self.FK__CreditoCo__Credi__29971E47">
+      <End Role="Credito" EntitySet="Credito" />
+      <End Role="CreditoCondonacion" EntitySet="CreditoCondonacion" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CreditoEx__Credi__5AFA3B08" Association="Self.FK__CreditoEx__Credi__5AFA3B08">
+      <End Role="Credito" EntitySet="Credito" />
+      <End Role="Aprobacion" EntitySet="Aprobacion" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CreditoEx__Usuar__5BEE5F41" Association="Self.FK__CreditoEx__Usuar__5BEE5F41">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="Aprobacion" EntitySet="Aprobacion" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CreditoIm__Credi__1BE81D6E" Association="Self.FK__CreditoIm__Credi__1BE81D6E">
+      <End Role="Credito" EntitySet="Credito" />
+      <End Role="CreditoImagen" EntitySet="CreditoImagen" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Prenda_Credito" Association="Self.FK_Prenda_Credito">
+      <End Role="Credito" EntitySet="Credito" />
+      <End Role="Prenda" EntitySet="Prenda" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CreditoMo__Credi__17786E0C" Association="Self.FK__CreditoMo__Credi__17786E0C">
+      <End Role="Credito" EntitySet="Credito" />
+      <End Role="CreditoMora" EntitySet="CreditoMora" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CreditoMo__Movim__186C9245" Association="Self.FK__CreditoMo__Movim__186C9245">
+      <End Role="MovimientoCaja" EntitySet="MovimientoCaja" />
+      <End Role="CreditoMora" EntitySet="CreditoMora" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CuentasxC__Movim__3A58614C" Association="Self.FK__CuentasxC__Movim__3A58614C">
+      <End Role="MovimientoCaja" EntitySet="MovimientoCaja" />
+      <End Role="CuentaxCobrar" EntitySet="CuentaxCobrar" />
+    </AssociationSet>
+    <AssociationSet Name="FK__CuentaxCo__Credi__3D69D821" Association="Self.FK__CuentaxCo__Credi__3D69D821">
+      <End Role="Credito" EntitySet="Credito" />
+      <End Role="CuentaxCobrar" EntitySet="CuentaxCobrar" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Distrito__idProv__37FA4C37" Association="Self.FK__Distrito__idProv__37FA4C37">
+      <End Role="Provincia" EntitySet="Provincia" />
+      <End Role="Distrito" EntitySet="Distrito" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Movimient__CajaC__4FD1D5C8" Association="Self.FK__Movimient__CajaC__4FD1D5C8">
+      <End Role="CajaChicaDiario" EntitySet="CajaChicaDiario" />
+      <End Role="MovimientoCajaChica" EntitySet="MovimientoCajaChica" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Movimient__CajaD__149CCCB8" Association="Self.FK__Movimient__CajaD__149CCCB8">
+      <End Role="CajaDiario" EntitySet="CajaDiario" />
+      <End Role="MovimientoCaja" EntitySet="MovimientoCaja" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Movimient__Movim__31A25463" Association="Self.FK__Movimient__Movim__31A25463">
+      <End Role="MovimientoCaja" EntitySet="MovimientoCaja" />
+      <End Role="MovimientoCajaExtension" EntitySet="MovimientoCajaExtension" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Movimient__Movim__51A5DAF8" Association="Self.FK__Movimient__Movim__51A5DAF8">
+      <End Role="MovimientoCaja" EntitySet="MovimientoCaja" />
+      <End Role="MovimientoCajaAnu" EntitySet="MovimientoCajaAnu" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Movimient__Movim__75035A77" Association="Self.FK__Movimient__Movim__75035A77">
+      <End Role="MovimientoCajaChica" EntitySet="MovimientoCajaChica" />
+      <End Role="MovimientoRendidoCajaChica" EntitySet="MovimientoRendidoCajaChica" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Movimient__Perso__50C5FA01" Association="Self.FK__Movimient__Perso__50C5FA01">
+      <End Role="Persona" EntitySet="Persona" />
+      <End Role="MovimientoCajaChica" EntitySet="MovimientoCajaChica" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Movimient__Usuar__17793963" Association="Self.FK__Movimient__Usuar__17793963">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="MovimientoCaja" EntitySet="MovimientoCaja" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Movimient__Usuar__53A266AC" Association="Self.FK__Movimient__Usuar__53A266AC">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="MovimientoCajaChica" EntitySet="MovimientoCajaChica" />
+    </AssociationSet>
+    <AssociationSet Name="FK__OrdenVent__Orden__08A10A27" Association="Self.FK__OrdenVent__Orden__08A10A27">
+      <End Role="OrdenVentaDet" EntitySet="OrdenVentaDet" />
+      <End Role="OrdenVentaDetSerie" EntitySet="OrdenVentaDetSerie" />
+    </AssociationSet>
+    <AssociationSet Name="FK__OrdenVent__Serie__09952E60" Association="Self.FK__OrdenVent__Serie__09952E60">
+      <End Role="SerieArticulo" EntitySet="SerieArticulo" />
+      <End Role="OrdenVentaDetSerie" EntitySet="OrdenVentaDetSerie" />
+    </AssociationSet>
+    <AssociationSet Name="FK__PersonaDe__Perso__57C7FD4B" Association="Self.FK__PersonaDe__Perso__57C7FD4B">
+      <End Role="Persona" EntitySet="Persona" />
+      <End Role="PersonaDepurado" EntitySet="PersonaDepurado" />
+    </AssociationSet>
+    <AssociationSet Name="FK__PlanPago__Credit__75592B89" Association="Self.FK__PlanPago__Credit__75592B89">
+      <End Role="Credito" EntitySet="Credito" />
+      <End Role="PlanPago" EntitySet="PlanPago" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Provincia__idDep__38EE7070" Association="Self.FK__Provincia__idDep__38EE7070">
+      <End Role="Departamento" EntitySet="Departamento" />
+      <End Role="Provincia" EntitySet="Provincia" />
+    </AssociationSet>
+    <AssociationSet Name="FK__RolMenu__MenuId__6BCFC14F" Association="Self.FK__RolMenu__MenuId__6BCFC14F">
+      <End Role="Menu" EntitySet="Menu" />
+      <End Role="RolMenu" EntitySet="RolMenu" />
+    </AssociationSet>
+    <AssociationSet Name="FK__RolMenu__RolId__6ADB9D16" Association="Self.FK__RolMenu__RolId__6ADB9D16">
+      <End Role="Rol" EntitySet="Rol" />
+      <End Role="RolMenu" EntitySet="RolMenu" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Subtarea__TareaI__7DB89C09" Association="Self.FK__Subtarea__TareaI__7DB89C09">
+      <End Role="Tarea" EntitySet="Tarea" />
+      <End Role="Subtarea" EntitySet="Subtarea" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Tarea__CreditoId__78F3E6EC" Association="Self.FK__Tarea__CreditoId__78F3E6EC">
+      <End Role="Credito" EntitySet="Credito" />
+      <End Role="Tarea" EntitySet="Tarea" />
+    </AssociationSet>
+    <AssociationSet Name="FK__TarjetaPu__Orden__17442F39" Association="Self.FK__TarjetaPu__Orden__17442F39">
+      <End Role="OrdenVenta" EntitySet="OrdenVenta" />
+      <End Role="TarjetaPuntoDet" EntitySet="TarjetaPuntoDet" />
+    </AssociationSet>
+    <AssociationSet Name="FK__TarjetaPu__Perso__118B55E3" Association="Self.FK__TarjetaPu__Perso__118B55E3">
+      <End Role="Persona" EntitySet="Persona" />
+      <End Role="TarjetaPunto" EntitySet="TarjetaPunto" />
+    </AssociationSet>
+    <AssociationSet Name="FK__TarjetaPu__Tarje__16500B00" Association="Self.FK__TarjetaPu__Tarje__16500B00">
+      <End Role="TarjetaPunto" EntitySet="TarjetaPunto" />
+      <End Role="TarjetaPuntoDet" EntitySet="TarjetaPuntoDet" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Transfere__Almac__3552E9B6" Association="Self.FK__Transfere__Almac__3552E9B6">
+      <End Role="Almacen" EntitySet="Almacen" />
+      <End Role="Transferencia" EntitySet="Transferencia" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Transfere__Almac__36470DEF" Association="Self.FK__Transfere__Almac__36470DEF">
+      <End Role="Almacen" EntitySet="Almacen" />
+      <End Role="Transferencia" EntitySet="Transferencia" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Transfere__Serie__382F5661" Association="Self.FK__Transfere__Serie__382F5661">
+      <End Role="SerieArticulo" EntitySet="SerieArticulo" />
+      <End Role="TransferenciaSerie" EntitySet="TransferenciaSerie" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Transfere__Trans__39237A9A" Association="Self.FK__Transfere__Trans__39237A9A">
+      <End Role="Transferencia" EntitySet="Transferencia" />
+      <End Role="TransferenciaSerie" EntitySet="TransferenciaSerie" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Transfere__Usuar__373B3228" Association="Self.FK__Transfere__Usuar__373B3228">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="Transferencia" EntitySet="Transferencia" />
+    </AssociationSet>
+    <AssociationSet Name="FK__Usuario__Persona__33C07256" Association="Self.FK__Usuario__Persona__33C07256">
+      <End Role="Persona" EntitySet="Persona" />
+      <End Role="Usuario" EntitySet="Usuario" />
+    </AssociationSet>
+    <AssociationSet Name="FK__UsuarioOf__Ofici__768259EC" Association="Self.FK__UsuarioOf__Ofici__768259EC">
+      <End Role="Oficina" EntitySet="Oficina" />
+      <End Role="UsuarioOficina" EntitySet="UsuarioOficina" />
+    </AssociationSet>
+    <AssociationSet Name="FK__UsuarioOf__Usuar__758E35B3" Association="Self.FK__UsuarioOf__Usuar__758E35B3">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="UsuarioOficina" EntitySet="UsuarioOficina" />
+    </AssociationSet>
+    <AssociationSet Name="FK__UsuarioRo__Ofici__764D4FC2" Association="Self.FK__UsuarioRo__Ofici__764D4FC2">
+      <End Role="Oficina" EntitySet="Oficina" />
+      <End Role="UsuarioRol" EntitySet="UsuarioRol" />
+    </AssociationSet>
+    <AssociationSet Name="FK__UsuarioRo__RolId__71889AA5" Association="Self.FK__UsuarioRo__RolId__71889AA5">
+      <End Role="Rol" EntitySet="Rol" />
+      <End Role="UsuarioRol" EntitySet="UsuarioRol" />
+    </AssociationSet>
+    <AssociationSet Name="FK__UsuarioRo__Usuar__7094766C" Association="Self.FK__UsuarioRo__Usuar__7094766C">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="UsuarioRol" EntitySet="UsuarioRol" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ALMACEN_OficinaId" Association="Self.FK_ALMACEN_OficinaId">
+      <End Role="Oficina" EntitySet="Oficina" />
+      <End Role="Almacen" EntitySet="Almacen" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ARTICULO_ModeloId" Association="Self.FK_ARTICULO_ModeloId">
+      <End Role="Modelo" EntitySet="Modelo" />
+      <End Role="Articulo" EntitySet="Articulo" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ARTICULO_TipoArticuloId" Association="Self.FK_ARTICULO_TipoArticuloId">
+      <End Role="TipoArticulo" EntitySet="TipoArticulo" />
+      <End Role="Articulo" EntitySet="Articulo" />
+    </AssociationSet>
+    <AssociationSet Name="FK_BovedaMovTemp_Boveda" Association="Self.FK_BovedaMovTemp_Boveda">
+      <End Role="Boveda" EntitySet="Boveda" />
+      <End Role="BovedaMovTemp" EntitySet="BovedaMovTemp" />
+    </AssociationSet>
+    <AssociationSet Name="FK_BovedaMovTemp_Boveda1" Association="Self.FK_BovedaMovTemp_Boveda1">
+      <End Role="Boveda" EntitySet="Boveda" />
+      <End Role="BovedaMovTemp" EntitySet="BovedaMovTemp" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Caja_Usuario" Association="Self.FK_Caja_Usuario">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="Caja" EntitySet="Caja" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Caja_Usuario1" Association="Self.FK_Caja_Usuario1">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="Caja" EntitySet="Caja" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Cargo_Usuario" Association="Self.FK_Cargo_Usuario">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="Cargo" EntitySet="Cargo" />
+    </AssociationSet>
+    <AssociationSet Name="FK_CierreDetalle_Cierre" Association="Self.FK_CierreDetalle_Cierre">
+      <End Role="CierreGerencial" EntitySet="CierreGerencial" />
+      <End Role="CierreGerencialDetalle" EntitySet="CierreGerencialDetalle" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Cliente_Persona" Association="Self.FK_Cliente_Persona">
+      <End Role="Persona" EntitySet="Persona" />
+      <End Role="Cliente" EntitySet="Cliente" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Credito_Oficina" Association="Self.FK_Credito_Oficina">
+      <End Role="Oficina" EntitySet="Oficina" />
+      <End Role="Credito" EntitySet="Credito" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Credito_Persona" Association="Self.FK_Credito_Persona">
+      <End Role="Persona" EntitySet="Persona" />
+      <End Role="Credito" EntitySet="Credito" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Credito_Producto" Association="Self.FK_Credito_Producto">
+      <End Role="Producto" EntitySet="Producto" />
+      <End Role="Credito" EntitySet="Credito" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Credito_Usuario3" Association="Self.FK_Credito_Usuario3">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="Credito" EntitySet="Credito" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Credito_Usuario4" Association="Self.FK_Credito_Usuario4">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="Credito" EntitySet="Credito" />
+    </AssociationSet>
+    <AssociationSet Name="FK_DETENTRADASALIDA_ArticuloId" Association="Self.FK_DETENTRADASALIDA_ArticuloId">
+      <End Role="Articulo" EntitySet="Articulo" />
+      <End Role="MovimientoDet" EntitySet="MovimientoDet" />
+    </AssociationSet>
+    <AssociationSet Name="FK_DETENTRADASALIDA_EntradaSalidaId" Association="Self.FK_DETENTRADASALIDA_EntradaSalidaId">
+      <End Role="Movimiento" EntitySet="Movimiento" />
+      <End Role="MovimientoDet" EntitySet="MovimientoDet" />
+    </AssociationSet>
+    <AssociationSet Name="FK_DETORDENVENTA_ArticuloId" Association="Self.FK_DETORDENVENTA_ArticuloId">
+      <End Role="Articulo" EntitySet="Articulo" />
+      <End Role="OrdenVentaDet" EntitySet="OrdenVentaDet" />
+    </AssociationSet>
+    <AssociationSet Name="FK_DETORDENVENTA_OrdenVentaId" Association="Self.FK_DETORDENVENTA_OrdenVentaId">
+      <End Role="OrdenVenta" EntitySet="OrdenVenta" />
+      <End Role="OrdenVentaDet" EntitySet="OrdenVentaDet" />
+    </AssociationSet>
+    <AssociationSet Name="FK_DOCENTRADASALIDA_DestinatarioId" Association="Self.FK_DOCENTRADASALIDA_DestinatarioId">
+      <End Role="Persona" EntitySet="Persona" />
+      <End Role="MovimientoDoc" EntitySet="MovimientoDoc" />
+    </AssociationSet>
+    <AssociationSet Name="FK_DOCENTRADASALIDA_MovimientoId" Association="Self.FK_DOCENTRADASALIDA_MovimientoId">
+      <End Role="Movimiento" EntitySet="Movimiento" />
+      <End Role="MovimientoDoc" EntitySet="MovimientoDoc" />
+    </AssociationSet>
+    <AssociationSet Name="FK_DOCENTRADASALIDA_RemitenteId" Association="Self.FK_DOCENTRADASALIDA_RemitenteId">
+      <End Role="Persona" EntitySet="Persona" />
+      <End Role="MovimientoDoc" EntitySet="MovimientoDoc" />
+    </AssociationSet>
+    <AssociationSet Name="FK_DOCENTRADASALIDA_TipoDocumentoId" Association="Self.FK_DOCENTRADASALIDA_TipoDocumentoId">
+      <End Role="TipoDocumento" EntitySet="TipoDocumento" />
+      <End Role="MovimientoDoc" EntitySet="MovimientoDoc" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ENTRADASALIDA_AlmacenId" Association="Self.FK_ENTRADASALIDA_AlmacenId">
+      <End Role="Almacen" EntitySet="Almacen" />
+      <End Role="Movimiento" EntitySet="Movimiento" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ENTRADASALIDA_TipoMovimientoId" Association="Self.FK_ENTRADASALIDA_TipoMovimientoId">
+      <End Role="TipoMovimiento" EntitySet="TipoMovimiento" />
+      <End Role="Movimiento" EntitySet="Movimiento" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ListaPrecio_Articulo" Association="Self.FK_ListaPrecio_Articulo">
+      <End Role="Articulo" EntitySet="Articulo" />
+      <End Role="ListaPrecio" EntitySet="ListaPrecio" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MODELO_MarcaId" Association="Self.FK_MODELO_MarcaId">
+      <End Role="Marca" EntitySet="Marca" />
+      <End Role="Modelo" EntitySet="Modelo" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MovimientoBoveda_Boveda" Association="Self.FK_MovimientoBoveda_Boveda">
+      <End Role="Boveda" EntitySet="Boveda" />
+      <End Role="BovedaMov" EntitySet="BovedaMov" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MovimientoCaja_Credito" Association="Self.FK_MovimientoCaja_Credito">
+      <End Role="Credito" EntitySet="Credito" />
+      <End Role="MovimientoCaja" EntitySet="MovimientoCaja" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MovimientoCaja_OrdenVenta" Association="Self.FK_MovimientoCaja_OrdenVenta">
+      <End Role="OrdenVenta" EntitySet="OrdenVenta" />
+      <End Role="MovimientoCaja" EntitySet="MovimientoCaja" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MovimientoCaja_Persona" Association="Self.FK_MovimientoCaja_Persona">
+      <End Role="Persona" EntitySet="Persona" />
+      <End Role="MovimientoCaja" EntitySet="MovimientoCaja" />
+    </AssociationSet>
+    <AssociationSet Name="FK_MovimientoRendidoCajaChica_TipoDocumento" Association="Self.FK_MovimientoRendidoCajaChica_TipoDocumento">
+      <End Role="TipoDocumento" EntitySet="TipoDocumento" />
+      <End Role="MovimientoRendidoCajaChica" EntitySet="MovimientoRendidoCajaChica" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Oficina_Usuario" Association="Self.FK_Oficina_Usuario">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="Oficina" EntitySet="Oficina" />
+    </AssociationSet>
+    <AssociationSet Name="FK_ORDENVENTA_OficinaId" Association="Self.FK_ORDENVENTA_OficinaId">
+      <End Role="Oficina" EntitySet="Oficina" />
+      <End Role="OrdenVenta" EntitySet="OrdenVenta" />
+    </AssociationSet>
+    <AssociationSet Name="FK_OrdenVenta_Persona" Association="Self.FK_OrdenVenta_Persona">
+      <End Role="Persona" EntitySet="Persona" />
+      <End Role="OrdenVenta" EntitySet="OrdenVenta" />
+    </AssociationSet>
+    <AssociationSet Name="FK_OrdenVenta_Usuario" Association="Self.FK_OrdenVenta_Usuario">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="OrdenVenta" EntitySet="OrdenVenta" />
+    </AssociationSet>
+    <AssociationSet Name="FK_OrdenVenta_Usuario1" Association="Self.FK_OrdenVenta_Usuario1">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="OrdenVenta" EntitySet="OrdenVenta" />
+    </AssociationSet>
+    <AssociationSet Name="FK_PlanPago_MovimientoCaja" Association="Self.FK_PlanPago_MovimientoCaja">
+      <End Role="MovimientoCaja" EntitySet="MovimientoCaja" />
+      <End Role="PlanPago" EntitySet="PlanPago" />
+    </AssociationSet>
+    <AssociationSet Name="FK_PlanPago_Usuario" Association="Self.FK_PlanPago_Usuario">
+      <End Role="Usuario" EntitySet="Usuario" />
+      <End Role="PlanPago" EntitySet="PlanPago" />
+    </AssociationSet>
+    <AssociationSet Name="FK_SERIEARTICULO_AlmacenId" Association="Self.FK_SERIEARTICULO_AlmacenId">
+      <End Role="Almacen" EntitySet="Almacen" />
+      <End Role="SerieArticulo" EntitySet="SerieArticulo" />
+    </AssociationSet>
+    <AssociationSet Name="FK_SERIEARTICULO_ArticuloId" Association="Self.FK_SERIEARTICULO_ArticuloId">
+      <End Role="Articulo" EntitySet="Articulo" />
+      <End Role="SerieArticulo" EntitySet="SerieArticulo" />
+    </AssociationSet>
+    <AssociationSet Name="FK_SERIEARTICULO_MOVIMIENTODET" Association="Self.FK_SERIEARTICULO_MOVIMIENTODET">
+      <End Role="MovimientoDet" EntitySet="MovimientoDet" />
+      <End Role="SerieArticulo" EntitySet="SerieArticulo" />
+    </AssociationSet>
+    <AssociationSet Name="FK_VencidoGerencialApertura_Cierre" Association="Self.FK_VencidoGerencialApertura_Cierre">
+      <End Role="CierreGerencial" EntitySet="CierreGerencial" />
+      <End Role="VencidoGerencialAperturaDetalle" EntitySet="VencidoGerencialAperturaDetalle" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>

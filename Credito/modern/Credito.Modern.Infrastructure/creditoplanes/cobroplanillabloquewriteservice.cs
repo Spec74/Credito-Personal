@@ -32,6 +32,7 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
         int cajaDiarioId,
         int usuarioId,
         IReadOnlyList<PagoPlanillaItemDto> planilla,
+        bool completarImpagos = false,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(_connectionString))
@@ -135,23 +136,40 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
                 pagos++;
             }
 
-            // Siempre completa impagos (también planilla 100% S/ 0 — paridad intención MVC).
-            await connection.ExecuteAsync(
-                new CommandDefinition(
-                    "CREDITO.usp_CompletarImpagos",
-                    new { CajaDiarioId = cajaDiarioId },
-                    transaction: transaction,
-                    commandType: CommandType.StoredProcedure,
-                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+            var impagos = 0;
+            if (completarImpagos)
+            {
+                // Solo flujo legacy / cierre explícito de planilla (no Cobro PWA moderno).
+                await connection.ExecuteAsync(
+                    new CommandDefinition(
+                        "CREDITO.usp_CompletarImpagos",
+                        new { CajaDiarioId = cajaDiarioId },
+                        transaction: transaction,
+                        commandType: CommandType.StoredProcedure,
+                        cancellationToken: cancellationToken)).ConfigureAwait(false);
+                impagos = 1;
+            }
+
+            if (pagos < 1 && !completarImpagos)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return new CobrarPlanillaBloqueResponse(
+                    false,
+                    "No hay cobros con monto para registrar. Tipé montos o use Completar impagos en Caja Diario.",
+                    0,
+                    0);
+            }
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new CobrarPlanillaBloqueResponse(
                 true,
-                pagos > 0
-                    ? "Planilla e impagos procesados con éxito."
-                    : "Planilla cerrada: todos los clientes quedaron como impagos.",
+                completarImpagos
+                    ? (pagos > 0
+                        ? "Planilla e impagos procesados con éxito."
+                        : "Planilla cerrada: todos los clientes quedaron como impagos.")
+                    : $"Se registraron {pagos} cobro(s) correctamente.",
                 pagos,
-                1);
+                impagos);
         }
         catch
         {

@@ -67,7 +67,12 @@ internal static class CobroPlanillaBloqueEndpoints
                         }
 
                         var result = await planillaWrite
-                            .EjecutarAsync(body.CajaDiarioId, usuarioId, planilla, ct)
+                            .EjecutarAsync(
+                                body.CajaDiarioId,
+                                usuarioId,
+                                planilla,
+                                body.CompletarImpagos,
+                                ct)
                             .ConfigureAwait(false);
 
                         if (!result.Exito)
@@ -110,7 +115,7 @@ internal static class CobroPlanillaBloqueEndpoints
                 })
             .WithName("CreditoCobrarPlanillaBloque")
             .WithSummary(
-                "Escritura atómica: paridad CreditoController.CobrarPlanillaBloque (usp_PagarCuotaPagoLibre × N + usp_CompletarImpagos).")
+                "Cobro de cola/planilla: usp_PagarCuotaPagoLibre × N. CompletarImpagos opcional (false = Cobro PWA; true = paridad MVC).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
             .Produces<CobrarPlanillaBloqueResponse>(StatusCodes.Status200OK, "application/json")
