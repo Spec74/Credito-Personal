@@ -35,8 +35,8 @@
 
 .caja-diario-page ul.credix-stats li {
   background: #fff;
-  border: 1px solid #d9e4f2;
-  border-radius: 10px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 12px);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
   padding: 12px 14px;
   align-items: flex-start;
@@ -67,24 +67,22 @@
 }
 
 .caja-diario-page ul.credix-stats li:last-child:has(span.green) {
-  border-top-color: #047857;
-  background: linear-gradient(180deg, #ecfdf5 0%, #fff 55%);
+  border-top-color: var(--credix-success, #047857);
+  background: var(--credix-success-bg, #ecfdf5);
 }
 
 .caja-diario-page ul.credix-stats li:last-child:has(span.green) strong {
-  color: #047857;
-  letter-spacing: 0.04em;
+  color: var(--credix-success, #047857);
   font-size: 1.05rem;
 }
 
 .caja-diario-page ul.credix-stats li:last-child:has(span.red) {
-  border-top-color: #b91c1c;
-  background: linear-gradient(180deg, #fef2f2 0%, #fff 55%);
+  border-top-color: var(--credix-danger, #b91c1c);
+  background: var(--credix-danger-bg, #fef2f2);
 }
 
 .caja-diario-page ul.credix-stats li:last-child:has(span.red) strong {
-  color: #b91c1c;
-  letter-spacing: 0.04em;
+  color: var(--credix-danger, #b91c1c);
   font-size: 1.05rem;
 }
 
@@ -201,11 +199,10 @@
   width: 100%;
   min-width: 0;
   padding: 12px 14px;
-  background: rgba(232, 242, 252, 0.96);
-  border: 1px solid #c7daf3;
-  border-radius: var(--credix-radius);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  background: #fff;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 12px);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .caja-diario-cobranzas-top__search,
@@ -217,11 +214,9 @@
 .caja-diario-cobranzas-top__label {
   display: block;
   margin-bottom: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--caja-brand);
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--credix-text-muted, #64748b);
 }
 
 .caja-diario-cobranzas-top__reset {
@@ -308,12 +303,11 @@
   width: 100%;
   min-width: 0;
   padding: 12px 16px;
-  background:
-    linear-gradient(90deg, rgba(232, 242, 252, 0.95) 0%, #fff 42%),
-    #fff;
-  border: 1px solid #d9e4f2;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  background: #fff;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-left: 3px solid var(--caja-brand, #114885);
+  border-radius: var(--credix-radius, 12px);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 @media (min-width: 900px) {
@@ -332,23 +326,21 @@
 
 .caja-diario-session-status {
   flex: 0 0 auto;
-  padding: 3px 8px;
+  padding: 3px 9px;
   border-radius: 999px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 650;
 }
 
 .caja-diario-session-status.is-abierto {
-  background: #ecfdf5;
-  color: #047857;
-  border: 1px solid #a7f3d0;
+  background: var(--credix-success-bg, #f0fdf4);
+  color: var(--credix-success, #15803d);
+  border: 1px solid #bbf7d0;
 }
 
 .caja-diario-session-status.is-cerrado {
-  background: #fef2f2;
-  color: #b91c1c;
+  background: var(--credix-danger-bg, #fef2f2);
+  color: var(--credix-danger, #b91c1c);
   border: 1px solid #fecaca;
 }
 
@@ -399,10 +391,8 @@
 .caja-diario-session-bar__meta dt {
   margin: 0;
   color: var(--credix-text-muted);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 650;
 }
 
 .caja-diario-session-bar__meta dd {
@@ -425,20 +415,18 @@
 
 .caja-diario-side-section__eyebrow {
   display: block;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #55708f;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--credix-text-muted, #64748b);
 }
 
 .caja-diario-recalc-btn.ant-btn {
   justify-content: center;
   min-height: 36px;
-  border-color: #c9d8ea;
-  background: #f8fbff;
+  border-color: var(--credix-border, #e5e7eb);
+  background: #fff;
   color: var(--caja-brand);
-  font-weight: 700;
+  font-weight: 650;
 }
 
 .caja-diario-recalc-btn.ant-btn:hover {
@@ -479,9 +467,9 @@
   gap: 8px;
   margin-top: 0;
   padding: 12px;
-  border: 1px solid #dbe7f5;
-  border-radius: 12px;
-  background: #f8fbff;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 12px);
+  background: #fff;
 }
 
 .caja-diario-ops-bar {
@@ -491,9 +479,9 @@
   gap: 8px;
   width: 100%;
   padding: 12px 14px;
-  border: 1px solid #dbe7f5;
-  border-radius: 12px;
-  background: linear-gradient(90deg, #f8fbff 0%, #fff 100%);
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 12px);
+  background: #fff;
   min-width: 0;
 }
 
@@ -524,12 +512,12 @@
   justify-content: flex-start;
   height: auto;
   min-height: 38px;
-  border-radius: 9px;
-  font-weight: 700;
+  border-radius: var(--credix-radius, 8px);
+  font-weight: 650;
 }
 
 .caja-diario-ops-report.ant-btn {
-  border-color: #bfd4ec;
+  border-color: var(--credix-border, #e5e7eb);
   background: #fff;
   color: var(--caja-brand);
 }
@@ -540,27 +528,27 @@
 }
 
 .caja-diario-ops-ruta.ant-btn {
-  background: #16a34a !important;
-  border-color: #16a34a !important;
-  color: #fff !important;
+  background: var(--credix-success, #16a34a);
+  border-color: var(--credix-success, #16a34a);
+  color: #fff;
 }
 
 .caja-diario-ops-ruta.ant-btn:hover {
-  background: #15803d !important;
-  border-color: #15803d !important;
-  color: #fff !important;
+  background: var(--credix-success-hover, #15803d);
+  border-color: var(--credix-success-hover, #15803d);
+  color: #fff;
 }
 
-/* —— Tabs —— */
+/* —— Tabs: alineados a .credix-tabs (sin mayúsculas legacy) —— */
 .caja-diario-tabs-panel {
   min-width: 0;
 }
 
 .caja-diario-tabs .ant-tabs-tab-btn {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .caja-diario-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
@@ -639,10 +627,8 @@
 
 .caja-section__kicker {
   display: block;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 650;
   color: var(--credix-text-muted);
 }
 
@@ -770,45 +756,31 @@
   gap: 2px;
   min-width: 112px;
   padding: 10px 12px;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 8px);
+  background: #f8fafc;
   cursor: pointer;
   transition:
     border-color 0.15s,
-    box-shadow 0.15s,
-    transform 0.1s;
+    background 0.15s,
+    box-shadow 0.15s;
 }
 
 .caja-diario-credito-chip:hover {
-  border-color: #93c5fd;
-  transform: translateY(-1px);
+  border-color: #bfd4ec;
+  background: #fff;
 }
 
 .caja-diario-credito-chip.is-active {
   border-color: var(--caja-brand);
-  border-style: dashed;
   background: var(--caja-brand-light);
-  box-shadow: 0 0 0 2px rgba(17, 72, 133, 0.12);
+  box-shadow: inset 0 0 0 1px var(--caja-brand);
 }
 
 .caja-diario-credito-chip-id {
   font-size: 12px;
   font-weight: 700;
   color: var(--caja-brand);
-}
-
-.caja-diario-credito-chip-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 2px;
-}
-
-.caja-diario-credito-chip-mov {
-  font-size: 11px;
-  padding: 0 4px;
-  height: auto;
 }
 
 .caja-diario-credito-chip-wrap {
@@ -841,52 +813,42 @@
   gap: 10px;
   padding: 12px;
   margin-top: 10px;
-  background: linear-gradient(90deg, #1e3a5f 0%, var(--caja-brand) 100%);
-  border-radius: 8px;
-  color: #fff;
+  background: var(--caja-brand-light, #e8f2fc);
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-left: 3px solid var(--caja-brand);
+  border-radius: var(--credix-radius, 8px);
+  color: var(--credix-text, #1f2937);
 }
 
 .caja-diario-pago-libre-label {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--caja-brand);
 }
 
 .caja-btn-pago-libre.ant-btn-primary {
-  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
-  border: none !important;
-  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.35);
-  font-weight: 600;
+  background: #0f766e;
+  border-color: #0f766e;
+  box-shadow: none;
+  font-weight: 650;
 }
 
 .caja-btn-pago-libre.ant-btn-primary:not(:disabled):hover {
-  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%) !important;
-  filter: brightness(1.03);
+  background: #0d9488;
+  border-color: #0d9488;
 }
 
 .caja-btn-pagar-cuota.ant-btn-primary {
-  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 55%, #3b82f6 100%) !important;
-  border: none !important;
-  box-shadow: 0 3px 12px rgba(37, 99, 235, 0.4);
-  font-weight: 700;
+  background: var(--caja-brand);
+  border-color: var(--caja-brand);
+  box-shadow: none;
+  font-weight: 650;
   min-width: 148px;
 }
 
 .caja-btn-pagar-cuota.ant-btn-primary:not(:disabled):hover {
-  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%) !important;
-}
-
-.caja-btn-pago-libre.ant-btn-primary {
-  background: linear-gradient(135deg, #0d9488 0%, #14b8a6 100%) !important;
-  border: none !important;
-  box-shadow: 0 2px 8px rgba(13, 148, 136, 0.35);
-  font-weight: 600;
-}
-
-.caja-btn-pago-libre.ant-btn-primary:not(:disabled):hover {
-  background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%) !important;
-  filter: brightness(1.03);
+  background: var(--caja-brand-hover);
+  border-color: var(--caja-brand-hover);
 }
 
 .caja-cuotas-table--auto table {
@@ -1005,12 +967,10 @@
 }
 
 .caja-creditos-pendientes-table .ant-table-thead > tr > th {
-  background: #eef5fc !important;
-  font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--caja-brand, #114885);
+  background: #f8fafc !important;
+  font-weight: 650;
+  font-size: 12px;
+  color: var(--credix-text-muted, #64748b);
 }
 
 .caja-creditos-pendientes-table .ant-table-tbody > tr > td {
@@ -1382,10 +1342,10 @@
 .caja-diario-arqueo-pane {
   min-width: 0;
   background: #fff;
-  border: 1px solid #d9e4f2;
-  border-radius: 12px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 12px);
   padding: 12px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .caja-diario-arqueo-pane__head {
@@ -1399,9 +1359,8 @@
 .caja-diario-arqueo-pane__head h3 {
   margin: 0;
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--caja-brand);
-  letter-spacing: 0.02em;
 }
 
 .caja-diario-arqueo-pane__table {
@@ -1841,11 +1800,7 @@
 
 .caja-modal-root .ant-modal-header,
 .caja-drawer-root .ant-drawer-header {
-  background: linear-gradient(
-    135deg,
-    var(--caja-brand, #114885) 0%,
-    #1a5a9e 100%
-  );
+  background: var(--caja-brand, #114885);
   border-bottom: none;
   padding: 14px 56px 14px 20px;
   margin: 0;
