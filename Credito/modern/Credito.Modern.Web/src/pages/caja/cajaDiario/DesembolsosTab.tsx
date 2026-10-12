@@ -14,7 +14,6 @@ import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBusca
 import { CredixDataTable } from '../../../components/credix'
 import type { DesembolsoPendienteRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
-import { maybeDownloadCajaTicket } from './cajaPagoHelpers'
 import { cajaToastError, cajaToastSuccess } from './cajaFeedback'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
@@ -44,16 +43,13 @@ export function DesembolsosTab({
         cajaDiarioId: ctx.cajaDiarioId,
         creditoId,
       }),
-    onSuccess: async (r) => {
+    onSuccess: (r) => {
       cajaToastSuccess(
         r.yaRegistrado
           ? 'Desembolso ya estaba registrado'
           : `Desembolso OK (mov. ${r.movimientoCajaId})`,
         'caja-desembolso',
       )
-      if (!r.yaRegistrado) {
-        await maybeDownloadCajaTicket(ctx.oficinaId, r.movimientoCajaId)
-      }
       onChanged()
       void query.refetch()
     },

@@ -10,10 +10,7 @@ import { CajaCuotasTable } from '../../../components/caja/CajaCuotasTable'
 import { CajaSection } from '../../../components/caja/CajaSection'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import { formatMoney } from '../../../utils/formatMoney'
-import {
-  assertSinCxcPendiente,
-  maybeDownloadCajaTicket,
-} from './cajaPagoHelpers'
+import { assertSinCxcPendiente } from './cajaPagoHelpers'
 import { cajaToastError, cajaToastSuccess } from './cajaFeedback'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
@@ -43,9 +40,8 @@ export function CancelacionCreditoPanel({
         cajaDiarioId: ctx.cajaDiarioId,
         creditoId: creditoId!,
       }),
-    onSuccess: async (r) => {
+    onSuccess: () => {
       cajaToastSuccess('Cancelación de crédito registrada', 'caja-cancel')
-      await maybeDownloadCajaTicket(ctx.oficinaId, r.resultId)
       setExpanded(false)
       onChanged()
     },

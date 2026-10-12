@@ -78,10 +78,7 @@ import { CxcInlinePanel } from './CxcInlinePanel'
 import { CreditosPendientesModal } from './CreditosPendientesModal'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
-import {
-  assertSinCxcPendiente,
-  maybeDownloadCajaTicket,
-} from './cajaPagoHelpers'
+import { assertSinCxcPendiente } from './cajaPagoHelpers'
 
 export function CobranzasTab({
   ctx,
@@ -335,9 +332,8 @@ export function CobranzasTab({
           selectedKeys.length > 0 && selectedKeys.length === cuotasPagables.length,
         aplicarMoraPostergada: moraResumenQuery.data?.indMoraProducto === true,
       }),
-    onSuccess: async (r) => {
+    onSuccess: (r) => {
       cajaToastSuccess(`Pago registrado (${r.resultId ?? 'OK'})`)
-      await maybeDownloadCajaTicket(ctx.oficinaId, r.resultId)
       onChanged()
       void moraResumenQuery.refetch()
       if (creditoId) {
@@ -410,15 +406,12 @@ export function CobranzasTab({
             : null,
       })
     },
-    onSuccess: async (r) => {
-      const movId =
-        'movimientoCajaId' in r ? r.movimientoCajaId : r.resultId
+    onSuccess: (r) => {
       const msg =
         'mensaje' in r && r.mensaje
           ? r.mensaje
           : 'Pago libre registrado'
       cajaToastSuccess(msg)
-      await maybeDownloadCajaTicket(ctx.oficinaId, movId)
       setPagoLibre(null)
       onChanged()
       void moraResumenQuery.refetch()

@@ -14,7 +14,6 @@ import { CredixDataTable } from '../../../components/credix'
 import type { CuentaPorCobrarPendienteRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
 import { formatFecha } from '../../../utils/formatFecha'
-import { maybeDownloadCajaTicket } from './cajaPagoHelpers'
 import { cajaToastError, cajaToastSuccess } from './cajaFeedback'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
@@ -53,9 +52,8 @@ export function CxcInlinePanel({
         ordenVentaId: row.ordenVentaId,
         cuentaxCobrarId: row.cuentaxCobrarId,
       }),
-    onSuccess: async (r) => {
+    onSuccess: () => {
       cajaToastSuccess('CxC cobrada', 'caja-cxc')
-      await maybeDownloadCajaTicket(ctx.oficinaId, r.resultId)
       onChanged()
       void query.refetch()
     },

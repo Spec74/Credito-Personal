@@ -76,7 +76,6 @@ import {
 } from '../../utils/cobroBloqueOffline'
 import type { EstadoPlanPagoCuota } from '../../types/api'
 import type { CajaSession } from './cajaDiario/types'
-import { maybeDownloadCajaTicket } from './cajaDiario/cajaPagoHelpers'
 import {
   FechaHoraDigitalField,
   nowDatetimeLocal,
@@ -863,18 +862,6 @@ export function CobroBloquePage() {
       aplicarEnviados(r.planilla, 'lote', ticketMap)
       setTabPrincipal('enviados')
       message.success(r.result.mensaje || `${r.planilla.length} cobro(s) enviado(s).`)
-      // Tickets: descarga tras registrar (paridad Diario). En móvil se espacia para no saturar.
-      const movIds = (r.result.tickets ?? [])
-        .map((t) => t.movimientoCajaId)
-        .filter((id) => id > 0)
-      if (movIds.length > 0 && oficinaId > 0) {
-        void (async () => {
-          for (let i = 0; i < movIds.length; i++) {
-            if (i > 0) await new Promise((res) => window.setTimeout(res, 350))
-            await maybeDownloadCajaTicket(oficinaId, movIds[i])
-          }
-        })()
-      }
     },
     onError: (e) =>
       message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error'),
@@ -1008,11 +995,6 @@ export function CobroBloquePage() {
           ticketMap,
         )
         message.success(r.mensaje || 'Cobros sincronizados al recuperar red.')
-        for (const t of r.tickets ?? []) {
-          if (t.movimientoCajaId > 0) {
-            await maybeDownloadCajaTicket(pending.oficinaId, t.movimientoCajaId)
-          }
-        }
       } catch (e) {
         if (isLikelyNetworkError(e)) {
           message.warning('Aún sin red estable. La cola se reintentará al conectar.')
