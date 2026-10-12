@@ -47,12 +47,9 @@ type Props = {
   /** Cobro ya persistido hoy en este dispositivo. */
   enviado?: boolean
   errorMsg?: string | null
-  /** Añade el tipado a la cola «Enviar» (no cobra en servidor). */
-  onAnadirACola?: () => void
-  /** Quitar de la cola (solo en tab Enviar). */
-  onQuitarDeCola?: () => void
-  /** Estamos en la cola de revisión. */
-  enColaRevision?: boolean
+  /** Registra el cobro tipado en el servidor. */
+  onCobrar?: () => void
+  cobrando?: boolean
 }
 
 function digitsPhone(raw: string | null | undefined): string {
@@ -84,9 +81,8 @@ export function CobroBloqueFieldCard({
   cuotasSlot,
   enviado = false,
   errorMsg = null,
-  onAnadirACola,
-  onQuitarDeCola,
-  enColaRevision = false,
+  onCobrar,
+  cobrando = false,
 }: Props) {
   const [gpsLoading, setGpsLoading] = useState(false)
   const enMora = row.diasAtrazo > 0
@@ -348,36 +344,17 @@ export function CobroBloqueFieldCard({
           </p>
         ) : null}
 
-        {!enviado && enColaRevision ? (
-          <div className="cobro-bloque-card__cola-actions">
-            <Button
-              danger
-              block
-              size="large"
-              className="cobro-bloque-card__quitar"
-              disabled={edit.montoPagar <= 0}
-              onClick={onQuitarDeCola}
-            >
-              Quitar de Enviar
-            </Button>
-            <p className="cobro-bloque-card__cola-hint">
-              {edit.montoPagar <= 0
-                ? 'Digite el nuevo monto. La fila no se quita al borrar: use Quitar de Enviar para sacarla.'
-                : 'Puede editar monto o método. El cobro se registra solo al pulsar Enviar lote.'}
-            </p>
-          </div>
-        ) : null}
-
-        {!enviado && !enColaRevision && onAnadirACola ? (
+        {!enviado && onCobrar ? (
           <Button
             type="primary"
             block
             size="large"
             className="cobro-bloque-card__cobrar-ya"
             disabled={edit.montoPagar <= 0}
-            onClick={onAnadirACola}
+            loading={cobrando}
+            onClick={onCobrar}
           >
-            Añadir a Enviar
+            Cobrar
           </Button>
         ) : null}
       </div>

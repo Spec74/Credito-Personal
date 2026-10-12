@@ -80,14 +80,14 @@ Evidencia **operativa HTTPS** (marcar al ejecutar en Dev/preprod; no inventar PA
 |---|------|----------|-----------|-------|-------|
 | G1 | PC `/caja/cobro`: columna **Ubicación**; **sin** «Registrar mi ubicación» | operativo | ✅ | 2026-10-12 | Firmado gestor + parity |
 | G2 | Móvil (&lt; md): cliente **sin** GPS → botón + confirm → guarda; pill GPS; enlace usa coords | operativo | ✅ | 2026-10-12 | Firmado gestor |
-| G3 | Móvil offline: tipado OK en **Enviar**; GPS muestra aviso de red | operativo | ✅ | 2026-10-12 | Firmado gestor |
+| G3 | Móvil offline: tipado OK en **Cartera**; GPS muestra aviso de red | operativo | ✅ | 2026-10-12 | Firmado gestor |
 | G4 | Ficha `/clientes/editar/:id` → Ubicación: «Actualizar GPS del dispositivo» corrige pin | operativo | ✅ | 2026-10-12 | Firmado gestor |
 | G5 | Geocode distrito = «Vista aproximada»; no oculta botón de campo hasta Ubicar/GPS/arrastre + Guardar | operativo | ✅ | 2026-10-12 | Firmado gestor |
-| C1 | Cartera tipar / Añadir a Enviar → cola; aún no en movimientos | código+UX | ✅ | 2026-10-12 | tipar ≠ cobrado |
-| C2 | Enviar: editar/quitar → **Enviar lote** → Enviados; sin day-lock | código+UX | ✅ | 2026-10-12 | dock solo en Enviar |
-| C3 | Enviar lote no ejecuta Completar impagos; impagos solo Diario | código | ✅ | 2026-10-12 | `completarImpagos:false` |
+| C1 | Cartera tipar → **Cobrar** / **Registrar**; sin pestaña Enviar | código+UX | ✅ | 2026-10-12 | 2 pestañas |
+| C2 | Dock Registrar en Cartera → Enviados; sin day-lock | código+UX | ✅ | 2026-10-12 | dock en Cartera |
+| C3 | Cobrar/Registrar no ejecuta Completar impagos; impagos solo Diario | código | ✅ | 2026-10-12 | `completarImpagos:false` |
 
-**Flujo móvil canónico:** Cartera (tipar + Añadir) → Enviar (revisar) → Enviar lote → Enviados.
+**Flujo móvil canónico:** Cartera (tipar + Cobrar/Registrar) → Enviados (imprimir).
 
 Al firmar G1–G5, marcar las casillas GPS en [SSD-03 §7](ssd/SSD-03-caja.md) y [SSD-05 §7](ssd/SSD-05-clientes.md).
 

@@ -20,7 +20,6 @@ import {
 import {
   ArrowLeftOutlined,
   CheckOutlined,
-  CloseOutlined,
   EnvironmentOutlined,
   PrinterOutlined,
   SearchOutlined,
@@ -45,12 +44,10 @@ import { formatMoney } from '../../utils/formatMoney'
 import { formatFecha } from '../../utils/formatFecha'
 import { clearCobroBloqueEjecutadoHoy } from '../../utils/cobroBloqueDayLock'
 import {
-  addCobroPendiente,
   clearCobroColaError,
   isCreditoEnviadoHoy,
   loadCobroCola,
   markCobroEnviados,
-  removeCobroPendiente,
   setCobroColaError,
   type CobroColaDia,
   type CobroEnviadoItem,
@@ -91,7 +88,7 @@ import {
 import '../../styles/cobro-bloque.css'
 
 type VistaCampo = 'todos' | 'mora' | 'cobro'
-type TabPrincipal = 'cartera' | 'por-enviar' | 'enviados'
+type TabPrincipal = 'cartera' | 'enviados'
 
 const { Text } = Typography
 
@@ -334,12 +331,6 @@ export function CobroBloquePage() {
     [cola.enviados],
   )
 
-  /** Membresía explícita de la cola Enviar (sobrevive a borrar/reescribir monto). */
-  const pendientesSet = useMemo(
-    () => new Set(cola.pendientes),
-    [cola.pendientes],
-  )
-
   useEffect(() => {
     if (usuarioId < 1 || cajaDiarioId < 1) {
       setPendingSync(false)
@@ -487,7 +478,7 @@ export function CobroBloquePage() {
       if (draft.filtro) setFiltro(draft.filtro)
       hayDraft = true
     }
-    // Migración: cola offline legacy («Procesar planilla») → restaurar en Enviar.
+    // Cola offline pendiente → restaurar tipados en Cartera.
     let restauradosPending = 0
     const pending = loadCobroBloquePendingProcess({ usuarioId, cajaDiarioId })
     if (pending) {
@@ -506,18 +497,7 @@ export function CobroBloquePage() {
     }
     if (Object.keys(next).length > 0) {
       setEdits((prev) => ({ ...next, ...prev }))
-      // Migrar tipados existentes → membresía Enviar (permite editar monto sin perder la fila).
-      let colaMig = loadCobroCola({ usuarioId, oficinaId, cajaDiarioId })
-      for (const [k, v] of Object.entries(next)) {
-        const id = Number(k)
-        if (!Number.isFinite(id) || (v.montoPagar ?? 0) <= 0) continue
-        if (isCreditoEnviadoHoy(colaMig, id)) continue
-        colaMig = addCobroPendiente(
-          { usuarioId, oficinaId, cajaDiarioId },
-          id,
-        )
-      }
-      setCola(colaMig)
+      setCola(loadCobroCola({ usuarioId, oficinaId, cajaDiarioId }))
     }
     if (hayDraft && draft) {
       setDraftBanner(
@@ -525,7 +505,7 @@ export function CobroBloquePage() {
       )
     } else if (restauradosPending > 0) {
       setDraftBanner(
-        `Se restauraron ${restauradosPending} cobro(s) pendientes de envío en Enviar.`,
+        `Se restauraron ${restauradosPending} cobro(s) tipados pendientes de registrar.`,
       )
     }
   }, [usuarioId, oficinaId, cajaDiarioId])
@@ -536,11 +516,7 @@ export function CobroBloquePage() {
     const persist = () => {
       const editsMap: Record<string, RowEdit> = {}
       for (const [k, v] of Object.entries(edits)) {
-        const id = Number(k)
-        const enCola = Number.isFinite(id) && pendientesSet.has(id)
-        // Conservar tipado en cola aunque monto esté en 0 (edición en curso).
         if (
-          enCola ||
           (v.montoPagar ?? 0) > 0 ||
           (v.cuotasSeleccionadas?.length ?? 0) > 0 ||
           v.tipoPagoId !== 1
@@ -575,7 +551,7 @@ export function CobroBloquePage() {
       document.removeEventListener('visibilitychange', onVis)
       window.removeEventListener('pagehide', persist)
     }
-  }, [edits, filtro, usuarioId, oficinaId, cajaDiarioId, pendientesSet])
+  }, [edits, filtro, usuarioId, oficinaId, cajaDiarioId])
 
   const getEdit = useCallback(
     (row: CreditoGestorPendienteRow): RowEdit => edits[row.creditoId] ?? defaultEdit(),
@@ -626,14 +602,11 @@ export function CobroBloquePage() {
     patchEdit(row.creditoId, { montoPagar: monto, cuotasSeleccionadas: [] }, row)
   }
 
-  /**
-   * En cola Enviar por membresía (Añadir a Enviar), no por monto tipado.
-   * Así borrar el monto para editarlo no saca la fila de la lista.
-   */
-  const esPorEnviar = useCallback(
+  /** Tipado listo para registrar: monto &gt; 0 y aún no enviado hoy. */
+  const esTipado = useCallback(
     (row: CreditoGestorPendienteRow): boolean =>
-      !enviadosSet.has(row.creditoId) && pendientesSet.has(row.creditoId),
-    [enviadosSet, pendientesSet],
+      !enviadosSet.has(row.creditoId) && (edits[row.creditoId]?.montoPagar ?? 0) > 0,
+    [enviadosSet, edits],
   )
 
   const filas = useMemo(() => {
@@ -649,19 +622,11 @@ export function CobroBloquePage() {
           String(r.creditoId).includes(q)
         if (!hit) return false
       }
-      if (tabPrincipal === 'por-enviar') return esPorEnviar(r)
       if (fieldMode && vistaCampo === 'mora' && r.diasAtrazo <= 0) return false
-      if (
-        fieldMode &&
-        vistaCampo === 'cobro' &&
-        !esPorEnviar(r) &&
-        (edits[r.creditoId]?.montoPagar ?? 0) <= 0
-      ) {
-        return false
-      }
+      if (fieldMode && vistaCampo === 'cobro' && !esTipado(r)) return false
       return true
     })
-  }, [carteraRows, filtro, fieldMode, vistaCampo, tabPrincipal, esPorEnviar, edits])
+  }, [carteraRows, filtro, fieldMode, vistaCampo, esTipado])
 
   const enviadosFiltrados = useMemo(() => {
     const q = filtro.trim().toLowerCase()
@@ -678,15 +643,12 @@ export function CobroBloquePage() {
   )
 
   const resumen = useMemo(() => {
-    let enCola = 0
     let listos = 0
     let total = 0
     const porMetodo = new Map<number, { label: string; monto: number; n: number }>()
     for (const row of carteraRows ?? []) {
-      if (!esPorEnviar(row)) continue
-      enCola++
+      if (!esTipado(row)) continue
       const e = getEdit(row)
-      if (e.montoPagar <= 0) continue
       listos++
       total += e.montoPagar
       const label =
@@ -698,22 +660,18 @@ export function CobroBloquePage() {
     }
     const totalFilas = carteraRows?.length ?? 0
     return {
-      /** Ítems en cola Enviar (badge), aunque el monto esté en 0 al editar. */
-      enCola,
-      /** Con monto &gt; 0 listos para Enviar lote. */
       conCobro: listos,
       total,
       porMetodo: [...porMetodo.values()],
       totalFilas,
     }
-  }, [carteraRows, esPorEnviar, getEdit, tipoPagoOptions])
+  }, [carteraRows, esTipado, getEdit, tipoPagoOptions])
 
-  const validarPlanilla = (): string | null => {
-    for (const row of carteraRows ?? []) {
-      if (!esPorEnviar(row)) continue
+  const validarPlanilla = (rows: CreditoGestorPendienteRow[]): string | null => {
+    for (const row of rows) {
       const e = getEdit(row)
       if (e.montoPagar <= 0) {
-        return `Complete el monto de ${row.personaNombre} (crédito ${row.creditoId}) o quítelo de Enviar.`
+        return `Digite un monto mayor a cero para ${row.personaNombre} (crédito ${row.creditoId}).`
       }
       if (TIPOS_PAGO_DIGITAL.has(e.tipoPagoId) && !e.fechaHoraTrans?.trim()) {
         return `Ingrese la fecha/hora de transferencia para ${row.personaNombre} (crédito ${row.creditoId}).`
@@ -722,10 +680,10 @@ export function CobroBloquePage() {
     return null
   }
 
-  /** Solo tipados con monto > 0 que aún no fueron enviados. */
+  /** Tipados con monto &gt; 0 que aún no fueron enviados. */
   const buildPlanillaPayload = () =>
     (carteraRows ?? [])
-      .filter((row) => esPorEnviar(row))
+      .filter((row) => esTipado(row))
       .map((row) => {
         const e = getEdit(row)
         return {
@@ -815,18 +773,22 @@ export function CobroBloquePage() {
     })
     setPendingSync(true)
     message.warning(
-      'Sin conexión: los cobros quedaron en Enviar en este dispositivo. Se registrarán al recuperar red.',
+      'Sin conexión: los cobros quedaron tipados en este dispositivo. Se registrarán al recuperar red.',
     )
   }
 
-  const enviarCola = useMutation({
-    mutationFn: async () => {
+  const enviarPlanilla = useMutation({
+    mutationFn: async (planillaIn?: PlanillaItem[]) => {
       if (!ctx || ctx.indCierre) throw new Error('No hay caja diario abierta.')
-      const err = validarPlanilla()
-      if (err) throw new Error(err)
 
-      const planilla = buildPlanillaPayload()
-      if (planilla.length === 0) throw new Error('No hay cobros en Enviar.')
+      const planilla = planillaIn ?? buildPlanillaPayload()
+      if (planilla.length === 0) throw new Error('No hay cobros tipados.')
+
+      const rows = (carteraRows ?? []).filter((r) =>
+        planilla.some((p) => p.creditoId === r.creditoId),
+      )
+      const err = validarPlanilla(rows)
+      if (err) throw new Error(err)
 
       if (!isBrowserOnline()) {
         encolarPorOffline(planilla)
@@ -859,7 +821,8 @@ export function CobroBloquePage() {
       for (const t of r.result.tickets ?? []) {
         if (t.movimientoCajaId > 0) ticketMap[t.creditoId] = t.movimientoCajaId
       }
-      aplicarEnviados(r.planilla, 'lote', ticketMap)
+      const origen = r.planilla.length === 1 ? 'cobrar_ya' : 'lote'
+      aplicarEnviados(r.planilla, origen, ticketMap)
       setTabPrincipal('enviados')
       message.success(r.result.mensaje || `${r.planilla.length} cobro(s) enviado(s).`)
     },
@@ -867,11 +830,8 @@ export function CobroBloquePage() {
       message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error'),
   })
 
-  /**
-   * Cartera → cola «Enviar»: no cobra en servidor.
-   * El gestor tipa, añade, revisa en Enviar y solo entonces envía el lote.
-   */
-  const anadirAEnviar = (row: CreditoGestorPendienteRow) => {
+  /** Cartera → registra ya (un crédito). */
+  const cobrarFila = (row: CreditoGestorPendienteRow) => {
     if (!ctx || ctx.indCierre) {
       message.warning('No hay caja diario abierta.')
       return
@@ -880,34 +840,20 @@ export function CobroBloquePage() {
       message.info('Este crédito ya fue enviado hoy.')
       return
     }
+    const err = validarPlanilla([row])
+    if (err) {
+      message.warning(err)
+      return
+    }
     const e = getEdit(row)
-    if (e.montoPagar <= 0) {
-      message.warning('Digite un monto mayor a cero.')
-      return
-    }
-    if (TIPOS_PAGO_DIGITAL.has(e.tipoPagoId) && !e.fechaHoraTrans?.trim()) {
-      message.warning(
-        `Ingrese la fecha/hora de transferencia para ${row.personaNombre} (crédito ${row.creditoId}).`,
-      )
-      return
-    }
-    setCola(addCobroPendiente(colaArgs, row.creditoId))
-    message.success({
-      content: `${row.personaNombre} · S/ ${formatMoney(e.montoPagar)} en Enviar`,
-      duration: 2,
-      key: 'anadir-enviar',
-    })
-    // En móvil: ir a la cola para revisar; en PC se queda tipando la planilla.
-    if (fieldMode) {
-      setTabPrincipal('por-enviar')
-      setVistaCampo('todos')
-    }
-  }
-
-  const quitarTipado = (row: CreditoGestorPendienteRow) => {
-    patchEdit(row.creditoId, { montoPagar: 0, cuotasSeleccionadas: [] }, row)
-    setCola(removeCobroPendiente(colaArgs, row.creditoId))
-    message.info('Quitado de Enviar (solo en este dispositivo).')
+    void enviarPlanilla.mutateAsync([
+      {
+        creditoId: row.creditoId,
+        montoPagar: e.montoPagar,
+        tipoPagoId: e.tipoPagoId,
+        fechaHoraTrans: e.fechaHoraTrans,
+      },
+    ])
   }
 
   const imprimirTicket = async (movimientoCajaId: number | null | undefined) => {
@@ -1005,7 +951,7 @@ export function CobroBloquePage() {
               : e instanceof Error
                 ? e.message
                 : 'No se pudo sincronizar la cola.'
-          // Conservar tipados (siguen en Enviar) y mostrar error por crédito.
+          // Conservar tipados en Cartera y mostrar error por crédito.
           marcarErrorCola(
             planilla.map((p) => ({
               creditoId: p.creditoId,
@@ -1028,23 +974,24 @@ export function CobroBloquePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [online, usuarioId, cajaDiarioId])
 
-  const confirmarEnviarCola = () => {
+  const confirmarEnviarTipados = () => {
     if (resumen.conCobro < 1) {
-      message.warning('No hay cobros en Enviar. Tipie en Cartera y pulse Añadir a Enviar.')
+      message.warning('Tipie un monto mayor a cero en Cartera para cobrar.')
       return
     }
-    const err = validarPlanilla()
+    const rows = (carteraRows ?? []).filter((r) => esTipado(r))
+    const err = validarPlanilla(rows)
     if (err) {
       message.warning(err)
       return
     }
 
     Modal.confirm({
-      title: 'Enviar lote',
-      content: `¿Registrar ${resumen.conCobro} cobro(s) por S/ ${formatMoney(resumen.total)} en el servidor? Pasarán a Enviados. Aún puede editar o quitar ítems antes de confirmar.`,
+      title: 'Registrar cobros',
+      content: `¿Registrar ${resumen.conCobro} cobro(s) por S/ ${formatMoney(resumen.total)}? Pasarán a Enviados.`,
       okText: 'Sí, registrar',
-      cancelText: 'Seguir revisando',
-      onOk: () => enviarCola.mutateAsync(),
+      cancelText: 'Cancelar',
+      onOk: () => enviarPlanilla.mutateAsync(),
     })
   }
 
@@ -1246,37 +1193,18 @@ export function CobroBloquePage() {
           return <Tag color="success">Enviado</Tag>
         }
         const errorMsg = cola.errores[String(row.creditoId)]
-        if (!esPorEnviar(row)) {
-          return errorMsg ? (
-            <Text type="danger" title={errorMsg}>
-              Error
-            </Text>
-          ) : (
-            <Text type="secondary">—</Text>
-          )
-        }
+        const tipado = esTipado(row)
         return (
           <Space size={4} wrap>
-            {tabPrincipal === 'por-enviar' ? (
-              <Button
-                size="small"
-                danger
-                icon={<CloseOutlined />}
-                aria-label="Quitar de Enviar"
-                title="Quitar de Enviar (borra el monto tipado)"
-                onClick={() => quitarTipado(row)}
-              >
-                Quitar
-              </Button>
-            ) : (
-              <Button
-                type="primary"
-                size="small"
-                onClick={() => anadirAEnviar(row)}
-              >
-                Añadir a Enviar
-              </Button>
-            )}
+            <Button
+              type="primary"
+              size="small"
+              loading={enviarPlanilla.isPending}
+              disabled={!tipado}
+              onClick={() => cobrarFila(row)}
+            >
+              Cobrar
+            </Button>
             {errorMsg ? (
               <Text type="danger" title={errorMsg}>
                 Error
@@ -1402,15 +1330,15 @@ export function CobroBloquePage() {
         <span className="cobro-bloque-command__chip">
           {tabPrincipal === 'enviados'
             ? `${enviadosFiltrados.length}/${cola.enviados.length}`
-            : tabPrincipal === 'por-enviar'
-              ? `${filas.length}/${resumen.conCobro}`
-              : `${filas.length}/${resumen.totalFilas}`}
+            : `${filas.length}/${resumen.totalFilas}`}
         </span>
-        {tabPrincipal !== 'cartera' ? (
+        {tabPrincipal === 'enviados' ? (
           <span className="cobro-bloque-command__chip cobro-bloque-command__chip--accent">
-            {tabPrincipal === 'enviados'
-              ? `S/ ${formatMoney(enviadosTotal)}`
-              : `S/ ${formatMoney(resumen.total)}`}
+            {`S/ ${formatMoney(enviadosTotal)}`}
+          </span>
+        ) : resumen.conCobro > 0 ? (
+          <span className="cobro-bloque-command__chip cobro-bloque-command__chip--accent">
+            {`${resumen.conCobro} tipados · S/ ${formatMoney(resumen.total)}`}
           </span>
         ) : null}
       </div>
@@ -1440,20 +1368,6 @@ export function CobroBloquePage() {
           ),
         },
         {
-          key: 'por-enviar',
-          label: (
-            <span className="cobro-bloque-tabs__label">
-              Enviar
-              <Badge
-                className="cobro-bloque-tabs__badge"
-                count={resumen.enCola}
-                showZero
-                color="#faad14"
-              />
-            </span>
-          ),
-        },
-        {
           key: 'enviados',
           label: (
             <span className="cobro-bloque-tabs__label">
@@ -1471,13 +1385,13 @@ export function CobroBloquePage() {
     />
   )
 
-  /** Dock solo en Enviar: ahí se revisa y se registra el lote. Cartera queda limpia. */
+  /** Dock en Cartera cuando hay tipados: registrar lote sin pestaña intermedia. */
   const actionDock =
-    !sinCaja && tabPrincipal === 'por-enviar' ? (
+    !sinCaja && tabPrincipal === 'cartera' && resumen.conCobro > 0 ? (
       <div
         className="cobro-bloque-dock"
         role="region"
-        aria-label="Enviar lote de cobros"
+        aria-label="Registrar cobros tipados"
         style={
           dockBox
             ? { left: dockBox.left, width: dockBox.width }
@@ -1488,9 +1402,7 @@ export function CobroBloquePage() {
           <div className="cobro-bloque-dock__stats">
             <div>
               <Text type="secondary" className="cobro-bloque-dock__stats-label">
-                {resumen.enCola > resumen.conCobro
-                  ? `${resumen.enCola} en cola · ${resumen.conCobro} con monto`
-                  : 'Listos para registrar'}
+                Tipados listos
               </Text>
               <strong>
                 {resumen.conCobro} · S/ {formatMoney(resumen.total)}
@@ -1507,55 +1419,27 @@ export function CobroBloquePage() {
               type="primary"
               size="large"
               icon={<CheckOutlined />}
-              loading={enviarCola.isPending}
+              loading={enviarPlanilla.isPending}
               disabled={resumen.conCobro < 1}
-              onClick={confirmarEnviarCola}
+              onClick={confirmarEnviarTipados}
             >
-              {fieldMode
-                ? `Enviar lote (${resumen.conCobro})`
-                : `Enviar lote (${resumen.conCobro})`}
+              {`Registrar (${resumen.conCobro})`}
             </Button>
           </Space>
         </div>
       </div>
     ) : null
 
-  /** Resumen PC solo en Enviar/Enviados; en móvil los tabs + dock bastan. */
+  /** Resumen PC en Enviados; en Cartera bastan tabs + dock. */
   const resumenBar =
     fieldMode || tabPrincipal === 'cartera' ? null : (
       <div className="credix-cobro-bloque-resumen" role="region" aria-label="Resumen operativo">
-        <div>
-          <Text type="secondary">En cola</Text>
-          <div>
-            <strong>
-              {resumen.conCobro} · S/ {formatMoney(resumen.total)}
-            </strong>
-          </div>
-        </div>
         <div>
           <Text type="secondary">Enviados hoy</Text>
           <div>
             <strong>
               {cola.enviados.length} · S/ {formatMoney(enviadosTotal)}
             </strong>
-          </div>
-        </div>
-        <div>
-          <Text type="secondary">Total en cola</Text>
-          <div className="credix-cobro-bloque-total">S/ {formatMoney(resumen.total)}</div>
-        </div>
-        <div>
-          <Text type="secondary">Por método</Text>
-          <div className="credix-cobro-bloque-metodos">
-            {resumen.porMetodo.length === 0 ? (
-              <Text type="secondary">Sin montos aún</Text>
-            ) : (
-              resumen.porMetodo.map((m) => (
-                <span key={m.label}>
-                  {m.label}: {m.n} · S/ {formatMoney(m.monto)}
-                </span>
-              ))
-            )}
           </div>
         </div>
       </div>
@@ -1568,7 +1452,7 @@ export function CobroBloquePage() {
       subtitle={
         fieldMode
           ? undefined
-          : '1) Cartera: tipar y Añadir a Enviar · 2) Enviar: revisar/editar · 3) Enviar lote → Enviados. Completar impagos solo en Caja Diario.'
+          : 'Tipar monto en Cartera → Cobrar (o Registrar tipados) → Enviados. Completar impagos solo en Caja Diario.'
       }
       breadcrumb={
         fieldMode
@@ -1601,7 +1485,7 @@ export function CobroBloquePage() {
               showIcon
               className="cobro-bloque-page__hint"
               message="Ruta digital (reemplazo del reporte impreso / PWA externo)"
-              description="Tipar o Añadir a Enviar no cobra. Solo Enviar lote registra en el servidor. Puede editar o quitar ítems en la pestaña Enviar antes de confirmar. Completar impagos solo en Caja Diario."
+              description="Digite el monto y pulse Cobrar (uno) o Registrar (varios tipados). Los registrados pasan a Enviados; imprima tickets ahí. Completar impagos solo en Caja Diario."
             />
           ) : null}
 
@@ -1627,7 +1511,7 @@ export function CobroBloquePage() {
               showIcon
               className="cobro-bloque-page__draft"
               message="Sin conexión"
-              description="Puede tipar y armar la cola Enviar sin red. Al recuperar conexión, Enviar lote registra los cobros (o se reintenta la cola pendiente)."
+              description="Puede tipar cobros sin red. Al recuperar conexión se registran solos (o use Reintentar envío)."
             />
           ) : null}
 
@@ -1675,11 +1559,9 @@ export function CobroBloquePage() {
             title={
               tabPrincipal === 'enviados'
                 ? `Enviados (${enviadosFiltrados.length})`
-                : tabPrincipal === 'por-enviar'
-                  ? `Enviar (${filas.length})`
-                  : fieldMode
-                    ? `Ruta (${filas.length})`
-                    : `Planilla de campo (${filas.length})`
+                : fieldMode
+                  ? `Ruta (${filas.length})`
+                  : `Planilla de campo (${filas.length})`
             }
             className={fieldMode ? 'cobro-bloque-panel--field' : undefined}
           >
@@ -1787,9 +1669,7 @@ export function CobroBloquePage() {
                   </div>
                 ) : filas.length === 0 ? (
                   <Text type="secondary">
-                    {tabPrincipal === 'por-enviar'
-                      ? 'Cola vacía. En Cartera tipie el monto y pulse Añadir a Enviar.'
-                      : vistaCampo === 'cobro'
+                    {vistaCampo === 'cobro'
                       ? 'Aún no tipó cobros. Cambie a Todos o Mora.'
                       : vistaCampo === 'mora'
                         ? 'No hay clientes en mora con este filtro.'
@@ -1807,17 +1687,8 @@ export function CobroBloquePage() {
                         onPatch={(patch) => patchEdit(row.creditoId, patch, row)}
                         enviado={enviadosSet.has(row.creditoId)}
                         errorMsg={cola.errores[String(row.creditoId)] ?? null}
-                        enColaRevision={tabPrincipal === 'por-enviar'}
-                        onAnadirACola={
-                          tabPrincipal === 'cartera'
-                            ? () => anadirAEnviar(row)
-                            : undefined
-                        }
-                        onQuitarDeCola={
-                          tabPrincipal === 'por-enviar'
-                            ? () => quitarTipado(row)
-                            : undefined
-                        }
+                        cobrando={enviarPlanilla.isPending}
+                        onCobrar={() => cobrarFila(row)}
                         onUbicacionGuardada={(personaId, lat, lng) => {
                           queryClient.setQueryData(
                             carteraQueryKey,

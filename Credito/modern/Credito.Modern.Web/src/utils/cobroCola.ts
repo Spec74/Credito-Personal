@@ -1,10 +1,8 @@
 /**
  * Cola del día para Cobro campo (/caja/cobro).
  *
- * - «Enviar» = membresía explícita (`pendientes`), no el monto tipado.
- *   Así el gestor puede borrar/reescribir el monto sin que desaparezca la fila.
- * - Tipar ≠ cobrado; solo Enviar lote registra en BD.
- * - «Enviados» se persiste local tras cobro exitoso (hoy + caja).
+ * - Tipar en Cartera → Cobrar / Registrar → «Enviados» (local tras cobro exitoso).
+ * - `pendientes` se conserva por compatibilidad de storage; la UI ya no usa pestaña Enviar.
  */
 
 import { fechaOperacionLocal } from './cobroBloqueDraft'

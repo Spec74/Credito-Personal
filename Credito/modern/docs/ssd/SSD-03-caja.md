@@ -78,19 +78,18 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 | Caja chica E/S, rendición, `cerrar-caja-chica-diario`, transferir bóveda | Operador | `/caja/chica` |
 | `POST solicitar-condonacion` | Operador | Diario → bandeja SSD-02 |
 | `GET creditos-gestor-desembolsados` | CreditoUser | `/caja/cobro` (incluye `latitud`/`longitud` de Cliente) |
-| `POST cobrar-planilla-bloque` | Operador | Cobro → Enviar cola (`CompletarImpagos: false`). Impagos solo vía `POST completar-impagos` en Diario |
-| `POST pagar-cuota-importe-libre` | Operador | Cobro → Cobrar ya (ticket) / Diario cobranzas |
+| `POST cobrar-planilla-bloque` | Operador | Cobro Cartera → Cobrar/Registrar (`CompletarImpagos: false`). Impagos solo vía `POST completar-impagos` en Diario |
+| `POST pagar-cuota-importe-libre` | Operador | Diario cobranzas (pago libre) |
 | `POST /api/v1/clientes/{id}/ubicacion` | CreditoUser | Cobro móvil si el cliente **aún no** tiene GPS (SPA); API siempre puede actualizar |
 
-### Cobro campo — cola y tipar ≠ cobrado
+### Cobro campo — Cartera → Enviados
 
 | Concepto | Comportamiento |
 |----------|----------------|
-| Cartera | Tipar monto/método + **Añadir a Enviar**. **No** registra en BD. Sin dock de envío (máxima visibilidad) |
-| Enviar | Cola de revisión: editar, quitar. Único dock **Enviar lote** |
-| Enviar lote | `POST cobrar-planilla-bloque` con `CompletarImpagos: false` → Enviados + tickets (`MovimientoCajaId`) |
-| Tickets | Solo en **Enviados** (reimpresión). Tras el lote se descargan automáticamente; icono impresora por cobro |
-| Offline | Tipados en Enviar; sync al recuperar red; errores visibles por crédito |
+| Cartera | Tipar monto/método + **Cobrar** (uno) o **Registrar** (varios tipados) |
+| Registrar | `POST cobrar-planilla-bloque` con `CompletarImpagos: false` → Enviados + `MovimientoCajaId` |
+| Tickets | Solo en **Enviados** (Imprimir bajo demanda) |
+| Offline | Tipados en Cartera; sync al recuperar red; errores visibles por crédito |
 | Day-lock | Suavizado: se puede reabrir Cobro el mismo día |
 | Completar impagos | Solo Caja Diario → Cobranzas |
 
@@ -129,7 +128,7 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 - [ ] Hub `/caja` no abre asignar / saldos / verificar.
 - [ ] Cobro móvil (`/caja/cobro`): sin GPS muestra «Registrar mi ubicación»; con GPS solo enlace dirección → coords. *(smoke HTTPS G2 — [SMOKE-SIGN-OFF](../SMOKE-SIGN-OFF.md); automatizado: `clienteMapaNavegacion` + `cobroCampoSmokeParity`)*
 - [x] PC (tabla): columna **Ubicación** con enlace mapa; **sin** botón de captura GPS. *(parity código 2026-10-12 — G1; confirmar viewport en HTTPS)*
-- [x] Cola tipar ≠ cobrado; Enviar cola / Cobrar ya con `CompletarImpagos: false`; sin day-lock duro. *(parity C1–C3 — `cobroCampoSmokeParity`)*
+- [x] Cartera Cobrar/Registrar con `CompletarImpagos: false`; tickets solo Enviados; sin day-lock duro. *(parity C1–C3 — `cobroCampoSmokeParity`)*
 
 ## 8. Desviaciones
 
