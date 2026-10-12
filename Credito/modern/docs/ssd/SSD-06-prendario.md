@@ -104,3 +104,18 @@ Relato en [BITACORA-DESVIACIONES.md](../migration/BITACORA-DESVIACIONES.md):
 ## 10. Go-live
 
 Listo en Development (token de prueba en user-secrets). Producción: WABA y token propios (`WhatsApp__*`), no el número +1 555 de Meta.
+
+## 11. Webhook Cloud API (Meta)
+
+Endpoint anónimo en Modern API (sin JWT):
+
+| Método | Ruta | Uso |
+|--------|------|-----|
+| `GET` | `/api/v1/integraciones/whatsapp/webhook` | Challenge Meta (`hub.verify_token` ↔ `WhatsApp__VerifyToken`) |
+| `POST` | `/api/v1/integraciones/whatsapp/webhook` | Status / inbound; firma `X-Hub-Signature-256` si hay `WhatsApp__AppSecret` |
+
+**Callback URL (prod Azure):**  
+`https://crediconfiable-api-g3h7fja3dydsbbb7.centralus-01.azurewebsites.net/api/v1/integraciones/whatsapp/webhook`
+
+En App Dashboard → Configurar webhooks: pegar URL + Verify Token; suscribir campo `messages`.  
+Env vars host: `WhatsApp__VerifyToken`, `WhatsApp__AppSecret`, además de Token / PhoneNumberId / Enabled.

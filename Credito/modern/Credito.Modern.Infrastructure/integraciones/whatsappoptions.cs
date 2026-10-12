@@ -10,6 +10,18 @@ public sealed class WhatsAppOptions
 
     public string PhoneNumberId { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Token arbitrario que Meta envía en GET de verificación del webhook.
+    /// Debe coincidir con el valor pegado en App Dashboard → Configurar webhooks.
+    /// </summary>
+    public string VerifyToken { get; set; } = string.Empty;
+
+    /// <summary>
+    /// App Secret de Meta (App Dashboard → Configuración de la app).
+    /// Si está vacío, el POST del webhook acepta sin validar firma (solo Development).
+    /// </summary>
+    public string AppSecret { get; set; } = string.Empty;
+
     public string ApiVersion { get; set; } = "v25.0";
 
     public string TemplateVencimientoPrendario { get; set; } = "aviso_vencimiento_prendario";

@@ -28,6 +28,8 @@ services:
       WhatsApp__Enabled: ${WHATSAPP_ENABLED:-false}
       WhatsApp__Token: ${WHATSAPP_TOKEN:-}
       WhatsApp__PhoneNumberId: ${WHATSAPP_PHONE_NUMBER_ID:-}
+      WhatsApp__VerifyToken: ${WHATSAPP_VERIFY_TOKEN:-}
+      WhatsApp__AppSecret: ${WHATSAPP_APP_SECRET:-}
       WhatsApp__ApiVersion: ${WHATSAPP_API_VERSION:-v25.0}
     ports:
       - "5080:8080"

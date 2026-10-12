@@ -5,6 +5,7 @@ using System.Security.Claims;
 using System.Text;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Api.Hosting;
+using Credito.Modern.Api.Integraciones;
 using Credito.Modern.Api.Admin;
 using Credito.Modern.Api.Almacen;
 using Credito.Modern.Api.Articulos;
@@ -315,6 +316,7 @@ app.MapBovedaTransferenciaBancosEndpoints();
 app.MapClienteExtensionEndpoints();
 app.MapAlmacenConstanciaEndpoints();
 app.MapHostingEndpoints();
+app.MapWhatsAppWebhookEndpoints();
 
 app.Run();
 
