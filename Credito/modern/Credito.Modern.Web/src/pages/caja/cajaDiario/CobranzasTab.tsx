@@ -602,12 +602,16 @@ export function CobranzasTab({
     importeRecibido != null ? importeRecibido - selectedTotal : null
 
   const showPagoDock = Boolean(creditoId) && !ctx.indCierre
+  /** PC: panel en flujo (no tapa la grilla). Móvil: dock fijo inferior. */
+  const pagoDockClass = isMobile
+    ? 'caja-diario-pago-dock-fixed'
+    : 'caja-diario-pago-dock-panel'
 
   return (
     <div
       className={[
         'caja-diario-cobranzas',
-        showPagoDock ? 'caja-diario-cobranzas--dock' : '',
+        showPagoDock && isMobile ? 'caja-diario-cobranzas--dock' : '',
         isMobile ? 'caja-diario-cobranzas--mobile' : '',
       ]
         .filter(Boolean)
@@ -837,16 +841,16 @@ export function CobranzasTab({
 
       {showPagoDock ? (
         <div
-          className="caja-diario-pago-dock-fixed"
+          className={pagoDockClass}
           role="region"
           aria-label="Registrar pago"
           style={
-            dockBox
-              ? { left: dockBox.left, width: dockBox.width }
+            isMobile && dockBox
+              ? { left: dockBox.left, width: dockBox.width, right: 'auto' }
               : undefined
           }
         >
-          <div className="caja-diario-pago-dock-fixed__inner">
+          <div className={`${pagoDockClass}__inner`}>
             <div
               className="caja-diario-pago-modos"
               role="tablist"
@@ -882,58 +886,73 @@ export function CobranzasTab({
 
             {modoPago === 'cuotas' ? (
               <>
-                <div className="caja-diario-pago-totals">
-                  <span>
-                    Total{' '}
-                    <strong>{formatMoney(selectedTotal)}</strong>
-                    <small> · {selectedKeys.length} cuota(s)</small>
-                  </span>
-                  <span className="caja-diario-pago-recibido">
-                    <span>Recibido</span>
-                    <InputNumber
-                      min={0}
-                      step={0.01}
-                      size="large"
-                      controls={false}
-                      inputMode="decimal"
-                      prefix="S/"
-                      value={importeRecibido}
-                      onChange={setImporteRecibido}
-                    />
-                  </span>
-                  <span>
-                    Vuelto{' '}
-                    <strong
-                      className={
-                        vuelto != null && vuelto < 0 ? 'caja-vuelto-neg' : ''
-                      }
+                <div className="caja-diario-pago-dock-row">
+                  <div className="caja-diario-pago-totals">
+                    <span>
+                      Total{' '}
+                      <strong>{formatMoney(selectedTotal)}</strong>
+                      <small> · {selectedKeys.length} cuota(s)</small>
+                    </span>
+                    <span className="caja-diario-pago-recibido">
+                      <span>Recibido</span>
+                      <InputNumber
+                        min={0}
+                        step={0.01}
+                        size={isMobile ? 'large' : 'middle'}
+                        controls={false}
+                        inputMode="decimal"
+                        prefix="S/"
+                        value={importeRecibido}
+                        onChange={setImporteRecibido}
+                      />
+                    </span>
+                    <span>
+                      Vuelto{' '}
+                      <strong
+                        className={
+                          vuelto != null && vuelto < 0 ? 'caja-vuelto-neg' : ''
+                        }
+                      >
+                        {vuelto != null ? formatMoney(vuelto) : '—'}
+                      </strong>
+                    </span>
+                  </div>
+                  <div className="caja-diario-pago-chips-row">
+                    <Button
+                      size="small"
+                      disabled={selectedTotal <= 0}
+                      onClick={() => setImporteRecibido(selectedTotal)}
                     >
-                      {vuelto != null ? formatMoney(vuelto) : '—'}
-                    </strong>
-                  </span>
-                </div>
-                <div className="caja-diario-pago-chips-row">
+                      = Selección
+                    </Button>
+                    <Button
+                      size="small"
+                      disabled={totalCuotasCredito <= 0}
+                      onClick={() => {
+                        prepararCobroTodasCuotas()
+                      }}
+                    >
+                      Todas
+                    </Button>
+                  </div>
                   <Button
-                    size="small"
-                    disabled={selectedTotal <= 0}
-                    onClick={() => setImporteRecibido(selectedTotal)}
+                    type="primary"
+                    size={isMobile ? 'large' : 'middle'}
+                    block={isMobile}
+                    className="caja-btn-pagar-cuota"
+                    icon={<CreditCardOutlined />}
+                    disabled={!creditoId || selectedKeys.length === 0}
+                    loading={pagar.isPending}
+                    onClick={() => void solicitarPagarCuota()}
                   >
-                    = Selección
-                  </Button>
-                  <Button
-                    size="small"
-                    disabled={totalCuotasCredito <= 0}
-                    onClick={() => {
-                      prepararCobroTodasCuotas()
-                    }}
-                  >
-                    Todas
+                    Pagar cuota
                   </Button>
                 </div>
                 <TipoPagoChips
                   value={tipoPagoId}
                   options={tipoPagoOptions}
                   onChange={setTipoPagoId}
+                  wrap={!isMobile}
                 />
                 {tipoPagoId > 1 ? (
                   <FechaHoraDigitalField
@@ -943,63 +962,66 @@ export function CobranzasTab({
                     compact={!isMobile}
                   />
                 ) : null}
-                <Button
-                  type="primary"
-                  size="large"
-                  block
-                  className="caja-btn-pagar-cuota"
-                  icon={<CreditCardOutlined />}
-                  disabled={!creditoId || selectedKeys.length === 0}
-                  loading={pagar.isPending}
-                  onClick={() => void solicitarPagarCuota()}
-                >
-                  Pagar cuota
-                </Button>
               </>
             ) : (
               <>
-                <div className="caja-diario-pago-libre-dock">
-                  <label className="caja-diario-pago-recibido">
-                    <span>Monto libre</span>
-                    <InputNumber
-                      min={0}
-                      step={0.01}
-                      size="large"
-                      controls={false}
-                      inputMode="decimal"
-                      prefix="S/"
-                      value={pagoLibre}
-                      onChange={setPagoLibre}
-                    />
-                  </label>
-                  <div className="caja-diario-pago-chips-row">
-                    <Button
-                      size="small"
-                      disabled={selectedTotal <= 0}
-                      onClick={() => setPagoLibre(selectedTotal)}
-                    >
-                      = Selección
-                    </Button>
-                    <Button
-                      size="small"
-                      disabled={totalCuotasCredito <= 0}
-                      onClick={() => setPagoLibre(totalCuotasCredito)}
-                    >
-                      Deuda cuotas
-                    </Button>
-                    <Button
-                      size="small"
-                      disabled={!pagoLibre}
-                      onClick={() => setPagoLibre(null)}
-                    >
-                      0
-                    </Button>
+                <div className="caja-diario-pago-dock-row">
+                  <div className="caja-diario-pago-libre-dock">
+                    <label className="caja-diario-pago-recibido">
+                      <span>Monto libre</span>
+                      <InputNumber
+                        min={0}
+                        step={0.01}
+                        size={isMobile ? 'large' : 'middle'}
+                        controls={false}
+                        inputMode="decimal"
+                        prefix="S/"
+                        value={pagoLibre}
+                        onChange={setPagoLibre}
+                      />
+                    </label>
+                    <div className="caja-diario-pago-chips-row">
+                      <Button
+                        size="small"
+                        disabled={selectedTotal <= 0}
+                        onClick={() => setPagoLibre(selectedTotal)}
+                      >
+                        = Selección
+                      </Button>
+                      <Button
+                        size="small"
+                        disabled={totalCuotasCredito <= 0}
+                        onClick={() => setPagoLibre(totalCuotasCredito)}
+                      >
+                        Deuda cuotas
+                      </Button>
+                      <Button
+                        size="small"
+                        disabled={!pagoLibre}
+                        onClick={() => setPagoLibre(null)}
+                      >
+                        0
+                      </Button>
+                    </div>
                   </div>
+                  <Button
+                    type="primary"
+                    size={isMobile ? 'large' : 'middle'}
+                    block={isMobile}
+                    className="caja-btn-pago-libre"
+                    icon={<DollarOutlined />}
+                    disabled={!creditoId || !pagoLibre}
+                    loading={ejecutarPagoLibre.isPending}
+                    onClick={() => void solicitarPagoLibre()}
+                  >
+                    Pago libre
+                  </Button>
                 </div>
                 <TipoPagoChips
                   value={tipoPagoLibreId}
                   options={tipoPagoOptions}
                   onChange={setTipoPagoLibreId}
+                  wrap={!isMobile}
                 />
                 {tipoPagoLibreId > 1 ? (
                   <FechaHoraDigitalField
@@ -1009,18 +1031,6 @@ export function CobranzasTab({
                     compact={!isMobile}
                   />
                 ) : null}
-                <Button
-                  type="primary"
-                  size="large"
-                  block
-                  className="caja-btn-pago-libre"
-                  icon={<DollarOutlined />}
-                  disabled={!creditoId || !pagoLibre}
-                  loading={ejecutarPagoLibre.isPending}
-                  onClick={() => void solicitarPagoLibre()}
-                >
-                  Pago libre
-                </Button>
               </>
             )}
           </div>
