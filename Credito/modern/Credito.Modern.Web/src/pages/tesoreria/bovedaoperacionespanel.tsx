@@ -608,13 +608,14 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     },
     {
       key: 'interoficina',
-      label: 'Interoficina',
+      label: 'Fondear / interoficina',
       children: (
         <>
           <Paragraph type="secondary">
-            Origen: bóveda #{bovedaId}. Elija la oficina destino con bóveda principal
-            abierta; el monto saldrá de esta bóveda hasta que la oficina destino acepte
-            o rechace.
+            Fondeo a sucursales (Pichari, Huanta, Andahuaylas…) o devolución a
+            central. Origen: bóveda #{bovedaId}. Elija destino con bóveda principal
+            abierta: el saldo se acredita de inmediato en ambas bóvedas (no espera
+            aceptación).
           </Paragraph>
           {bovedasDestinoQuery.data?.length === 0 ? (
             <Alert
@@ -659,7 +660,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             <Form.Item name="glosa" label="Glosa" rules={glosaRules}>
               <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
             </Form.Item>
-            {formActions('Enviar transferencia', transferir.isPending)}
+            {formActions('Transferir ahora', transferir.isPending)}
           </Form>
         </>
       ),
@@ -669,8 +670,15 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       label: 'Pendientes',
       children: (
         <>
+          <Alert
+            type="warning"
+            showIcon
+            style={{ marginBottom: 12 }}
+            message="Flujo de aceptación incompleto en BD"
+            description="El fondeo a sucursales use la pestaña Fondear / interoficina (inmediato). Esta pestaña es legado parcial: el USP no completa aceptación (flag 1)."
+          />
           <Paragraph type="secondary">
-            Transferencias enviadas por otras oficinas hacia esta bóveda. Elija la
+            Transferencias temporales hacia esta bóveda (si existen). Elija la
             pendiente y acepte o rechace.
           </Paragraph>
           {(transferenciasPendientesQuery.data?.length ?? 0) === 0 &&

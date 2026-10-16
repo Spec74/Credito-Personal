@@ -4,6 +4,27 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-16 — Cierre cajas diarios multisucursal (`OficinaId=1` fijo)
+
+**Defecto:** `usp_CerrarCajasDiarios` armaba el CTE de movimientos con
+`C.OficinaId = 1` fijo, pero marcaba `TransBoveda = 1` con `@OficinaId`. En
+sucursales (Pichari, Huanta, Andahuaylas) el cierre podía dejar diarios
+“transferidos” sin asientos `TRE` correctos en su bóveda.
+
+**Corrección:** filtrar el CTE con `C.OficinaId = @OficinaId`.  
+Deploy: `deploy/sql/2026-10-16-usp-cerrar-cajas-diarios-oficina.sql`.  
+Plan: [PLAN-MULTISUCURSAL-PRENDARIO.md](PLAN-MULTISUCURSAL-PRENDARIO.md).
+
+### 2026-10-16 — Fondeo bóveda central → sucursal (inmediato)
+
+**Regla de negocio deliberada (gerencia):** la autonomía de sucursales se
+fondea con transferencia bóveda↔bóveda **inmediata** (`flagAceptar = 0` en
+`usp_TransferirBoveda`: TRS origen + TRE destino). No se exige aceptación en
+destino para operar Pichari / Andahuaylas. La UI de “Pendientes” queda
+documentada como incompleta respecto al USP hasta una fase 2.
+
+---
+
 ## Regla de decisión
 
 Ante una diferencia entre legacy y moderno se aplica este criterio:

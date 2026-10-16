@@ -215,6 +215,9 @@ export function buildSimuladorPrendarioPath(opts: {
   solicitudCreditoId: number
   prendas: PrendaItem[]
   fechaRemate?: string | null
+  /** Campos de crédito capturados en originación (P-02). */
+  monto?: number | null
+  interesMensual?: number | null
 }): string {
   const q = new URLSearchParams({
     personaId: String(opts.personaId),
@@ -229,6 +232,16 @@ export function buildSimuladorPrendarioPath(opts: {
     if (pre.observacion) {
       q.set('prendaObservacion', pre.observacion)
     }
+  }
+  if (opts.monto != null && Number.isFinite(opts.monto) && opts.monto > 0) {
+    q.set('monto', String(opts.monto))
+  }
+  if (
+    opts.interesMensual != null &&
+    Number.isFinite(opts.interesMensual) &&
+    opts.interesMensual >= 0
+  ) {
+    q.set('interesMensual', String(opts.interesMensual))
   }
   return `/credito/simulador?${q.toString()}`
 }

@@ -1,9 +1,9 @@
 # SSD-06 — Crédito prendario y WhatsApp
 
-**Estado:** as-built · 2026-09-11 · ver [SSD-12](SSD-12-validacion.md) (2026-09-27)  
+**Estado:** as-built · 2026-09-11 · ver [SSD-12](SSD-12-validacion.md) (2026-09-27) · **originación unificada en curso 2026-10-16**  
 **Código:** `/credito/prendario`, `/nuevo`, `/gestionar/:personaId` · `/credito/simulador` (producto prendario) · `/api/v1/prendario/*`  
 **Fuente legacy:** `PrendarioController`, `PrendaBL`, `CrearSolicitudCreditoPrendario` (rama Prendario-Eber)  
-**Doc de ingeniería:** [PARIDAD-PRENDARIO.md](../migration/PARIDAD-PRENDARIO.md) (reglas fijas de alta, categorías, contrato)
+**Doc de ingeniería:** [PARIDAD-PRENDARIO.md](../migration/PARIDAD-PRENDARIO.md) · [PLAN-MULTISUCURSAL-PRENDARIO.md](../migration/PLAN-MULTISUCURSAL-PRENDARIO.md)
 
 ## 1. Propósito y actores
 
@@ -86,6 +86,8 @@ Chat WhatsApp de gestión no pasa por Cloud API (`prendarioWhatsapp.ts` → `wa.
 - [ ] Contrato/acta 409 sin bienes; con bienes anexan cláusulas.
 - [ ] Aviso 3 días: DES, vencen en N días, oficina sesión (sin `FechaNotifWhatsapp3d` en BD).
 - [ ] Número de prueba Meta solo entrega a testers de la consola.
+- [ ] Originación: cliente + bienes + campos de crédito en un flujo continuo (plan P-02…P-03).
+- [ ] Tras solicitar, la misma ventana ofrece PDF simulación, acta y contrato (listado solo reimpresión).
 
 ## 8. Desviaciones
 
@@ -94,6 +96,7 @@ Relato en [BITACORA-DESVIACIONES.md](../migration/BITACORA-DESVIACIONES.md):
 - 2026-09-09 — script menú ANALISTA; `Prenda` vs `CreditoPrenda`; `MontoTasacion`; oficina JWT; categoría en SQL; alta repetida; CTE listado; WhatsApp hosted; `usp_Credito_Ins` + índice; contrato QuestPDF
 - 2026-09-09 — prendario restringido al rol ANALISTA en la SPA
 - 2026-10-06 — retirada `FechaNotifWhatsapp3d` (aviso wa.me / Cloud sin idempotencia en `Credito`)
+- **2026-10-16 — Originación unificada (gerencia):** menos pasos; bienes + crédito juntos; PDFs en la misma ventana. Ver [PLAN-MULTISUCURSAL-PRENDARIO.md](../migration/PLAN-MULTISUCURSAL-PRENDARIO.md). Sin cambio de tablas.
 
 ## 9. Pruebas y evidencia
 

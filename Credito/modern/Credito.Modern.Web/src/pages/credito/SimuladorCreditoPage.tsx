@@ -308,6 +308,24 @@ export function SimuladorCreditoPage() {
     }
   }, [productoFromUrl, productoId])
 
+  /** Originación prendaria (P-02): monto e interés capturados en /prendario/nuevo. */
+  useEffect(() => {
+    if (productoFromUrl !== 2) return
+    const montoRaw = searchParams.get('monto')
+    const interesRaw = searchParams.get('interesMensual')
+    const patch: { monto?: number; interesMensual?: number } = {}
+    if (montoRaw) {
+      const monto = Number(montoRaw)
+      if (Number.isFinite(monto) && monto > 0) patch.monto = monto
+    }
+    if (interesRaw) {
+      const interes = Number(interesRaw)
+      if (Number.isFinite(interes) && interes >= 0) patch.interesMensual = interes
+    }
+    if (Object.keys(patch).length === 0) return
+    form.setFieldsValue(patch)
+  }, [productoFromUrl, searchParams, form])
+
   useEffect(() => {
     if (personaIdFromUrl !== null && personaIdFromUrl !== personaId) {
       setPersonaId(personaIdFromUrl)

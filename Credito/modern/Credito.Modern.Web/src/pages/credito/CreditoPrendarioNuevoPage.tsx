@@ -6,7 +6,18 @@ import {
   FileSearchOutlined,
   UserAddOutlined,
 } from '@ant-design/icons'
-import { Alert, Button, Col, Input, Row, Space, Steps, Typography, message } from 'antd'
+import {
+  Alert,
+  Button,
+  Col,
+  Input,
+  InputNumber,
+  Row,
+  Space,
+  Steps,
+  Typography,
+  message,
+} from 'antd'
 import { consultarDniApiPeru } from '../../api/apiperu'
 import { obtenerCliente, obtenerPersonaPorDocumento } from '../../api/clientes'
 import { crearSolicitudPrendaria, guardarBienesPrendario } from '../../api/prendario'
@@ -60,6 +71,9 @@ export function CreditoPrendarioNuevoPage() {
   const [clienteLabel, setClienteLabel] = useState('')
   const [prendas, setPrendas] = useState<PrendaItem[]>([prendaVacia()])
   const [erroresPrendas, setErroresPrendas] = useState<PrendaCampoError[]>([])
+  /** Campos de crédito en la misma pantalla (plan P-02); se llevan al simulador. */
+  const [montoCredito, setMontoCredito] = useState<number | null>(500)
+  const [interesMensual, setInteresMensual] = useState<number | null>(8)
 
   const elegirCliente = (id: number, label: string) => {
     setPersonaId(id)
@@ -165,6 +179,12 @@ export function CreditoPrendarioNuevoPage() {
       if (!validacion.ok) {
         throw new Error(validacion.mensaje ?? 'Complete los bienes en custodia')
       }
+      if (montoCredito == null || montoCredito <= 0) {
+        throw new Error('Indique el monto del crédito')
+      }
+      if (interesMensual == null || interesMensual < 0) {
+        throw new Error('Indique el interés mensual')
+      }
       const solicitud = await crearSolicitudPrendaria({ oficinaId, personaId })
       await guardarBienesPrendario({
         oficinaId,
@@ -172,9 +192,14 @@ export function CreditoPrendarioNuevoPage() {
         prendas: validacion.bienes,
         fechaRemate: null,
       })
-      return { solicitudCreditoId: solicitud.solicitudCreditoId, bienes: validacion.bienes }
+      return {
+        solicitudCreditoId: solicitud.solicitudCreditoId,
+        bienes: validacion.bienes,
+        monto: montoCredito,
+        interesMensual,
+      }
     },
-    onSuccess: ({ solicitudCreditoId, bienes }) => {
+    onSuccess: ({ solicitudCreditoId, bienes, monto, interesMensual: interes }) => {
       setErroresPrendas([])
       message.success(`Solicitud prendaria #${solicitudCreditoId} creada`)
       if (!personaId) return
@@ -183,6 +208,8 @@ export function CreditoPrendarioNuevoPage() {
           personaId,
           solicitudCreditoId,
           prendas: bienes,
+          monto,
+          interesMensual: interes,
         }),
       )
     },
@@ -201,7 +228,7 @@ export function CreditoPrendarioNuevoPage() {
   return (
     <CredixPage
       title="Nuevo crédito prendario"
-      subtitle="Registre el cliente y el bien en custodia. Tras crear la solicitud, el plan (cuotas y 1.er pago) define el vencimiento; el remate es vencimiento + 30 días."
+      subtitle="Cliente, bienes y datos del crédito en esta pantalla. Luego simula, solicita y podrá emitir plan, acta y contrato sin volver al listado (en curso)."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -212,9 +239,13 @@ export function CreditoPrendarioNuevoPage() {
     >
       <Steps
         size="small"
-        current={personaId ? 1 : 0}
-        style={{ marginBottom: 24, maxWidth: 640 }}
-        items={[{ title: 'Cliente' }, { title: 'Bienes' }, { title: 'Simulador' }]}
+        current={personaId ? (tasacion > 0 ? 2 : 1) : 0}
+        style={{ marginBottom: 24, maxWidth: 720 }}
+        items={[
+          { title: 'Cliente' },
+          { title: 'Bienes y crédito' },
+          { title: 'Simular y solicitar' },
+        ]}
       />
 
       <Row gutter={[16, 16]}>
@@ -375,9 +406,35 @@ export function CreditoPrendarioNuevoPage() {
           disabled={!personaId}
           errores={erroresPrendas}
         />
-        <Paragraph style={{ marginTop: 12, marginBottom: 4 }}>
-          <Text strong>Siguiente paso:</Text> se guardan los bienes y se abre el simulador para
-          definir monto, plazo y tasa. Luego no podrá agregar ni editar bienes en este crédito.
+        <Row gutter={[16, 12]} style={{ marginTop: 16 }}>
+          <Col xs={24} sm={12}>
+            <Text type="secondary">Monto del crédito (S/)</Text>
+            <InputNumber
+              style={{ width: '100%', marginTop: 4 }}
+              min={1}
+              step={10}
+              disabled={!personaId}
+              value={montoCredito}
+              onChange={(v) => setMontoCredito(v)}
+              prefix="S/"
+            />
+          </Col>
+          <Col xs={24} sm={12}>
+            <Text type="secondary">Interés mensual (%)</Text>
+            <InputNumber
+              style={{ width: '100%', marginTop: 4 }}
+              min={0}
+              max={100}
+              step={0.1}
+              disabled={!personaId}
+              value={interesMensual}
+              onChange={(v) => setInteresMensual(v)}
+            />
+          </Col>
+        </Row>
+        <Paragraph type="secondary" style={{ marginTop: 12, marginBottom: 4 }}>
+          Modalidad prendaria: mensual · 1 cuota. El primer pago y la simulación se confirman en el
+          siguiente paso; los bienes no se podrán editar después.
         </Paragraph>
         <Button
           type="primary"
@@ -386,7 +443,7 @@ export function CreditoPrendarioNuevoPage() {
           loading={crear.isPending}
           onClick={() => crear.mutate()}
         >
-          Crear solicitud y simular
+          Continuar: simular y solicitar
         </Button>
       </CredixPanel>
     </CredixPage>

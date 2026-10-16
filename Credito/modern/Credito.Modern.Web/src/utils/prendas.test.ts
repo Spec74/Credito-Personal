@@ -31,11 +31,15 @@ describe('prendaSimuladorDesdeBienes', () => {
       solicitudCreditoId: 86048,
       prendas: [{ ...prendaVacia(), descripcion: 'MOTO KTM', valorTasacion: 900 }],
       fechaRemate: '2026-10-30',
+      monto: 1500,
+      interesMensual: 8,
     })
     const q = new URLSearchParams(href.split('?')[1])
     expect(q.get('productoId')).toBe('2')
     expect(q.get('prendaDescripcion')).toBe('MOTO KTM')
     expect(q.get('prendaMontoTasacion')).toBe('900')
+    expect(q.get('monto')).toBe('1500')
+    expect(q.get('interesMensual')).toBe('8')
     expect(href.startsWith('/credito/simulador?')).toBe(true)
   })
 })

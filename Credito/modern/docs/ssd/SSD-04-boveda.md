@@ -1,9 +1,9 @@
 # SSD-04 — Tesorería / bóveda
 
-**Estado:** as-built · 2026-09-11 · validación movimientos/bancos/inter-oficina 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
+**Estado:** as-built · 2026-09-11 · validación movimientos/bancos/inter-oficina 2026-09-27 ([SSD-12](SSD-12-validacion.md)) · **multisucursal en curso 2026-10-16**  
 **Código:** `/tesoreria/boveda`, `/tesoreria/movimiento-boveda` · `/api/v1/credito/*` (bóveda)  
 **Fuente legacy:** `BovedaController`, `Views/Boveda/Index.cshtml`  
-**Doc de ingeniería:** [boveda_migracion.md](../boveda_migracion.md)
+**Doc de ingeniería:** [boveda_migracion.md](../boveda_migracion.md) · [PLAN-MULTISUCURSAL-PRENDARIO.md](../migration/PLAN-MULTISUCURSAL-PRENDARIO.md)
 
 ## 1. Propósito y actores
 
@@ -80,14 +80,27 @@ La puerta de negocio es el menú BOVEDA en la SPA. La API replica al MVC: autent
 - [ ] Informe movimientos accesible desde bóveda (mismo permiso de menú).
 - [ ] Caja diario no abre `/tesoreria/movimiento-boveda`.
 - [ ] Ticket PDF de un movimiento de bóveda usa API JWT.
+- [ ] Cierre de cajas diarios en oficina ≠ 1 genera `TRE` en la bóveda de esa oficina (no solo oficina 1).
+- [ ] Desde central, transferencia interoficina a Pichari acredita saldo en destino de inmediato.
 
 ## 8. Desviaciones
 
 - 2026-09-10 — transferencia entre bancos + `usp_ActualizarSaldosBoveda` ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
 - 2026-09-10 — informe movimientos no exige ítem de menú extra
 - 2026-09-09 — comprobante de movimiento (tabla incorrecta, corregida)
+- **2026-10-16 — multisucursal:** `usp_CerrarCajasDiarios` filtraba movimientos con `OficinaId = 1` fijo; corregido a `@OficinaId` (Pichari / Huanta / Andahuaylas). Deploy: `2026-10-16-usp-cerrar-cajas-diarios-oficina.sql`.
+- **2026-10-16 — fondeo central:** transferencia inter-oficina (`flagAceptar = 0`) es **inmediata** (TRS origen + TRE destino). La pestaña Pendientes (aceptación) no está completa en el USP; no es el camino de fondeo a sucursales.
 
 Producto: destino inter-oficina por ID de bóveda, no combo de oficina.
+
+### 8.1 Autonomía de sucursales (gerencia)
+
+| Paso | Actor | Mecanismo |
+|------|-------|-----------|
+| Fondear | Central (Huamanga) | Interoficina → bóveda de Pichari / Huanta / Andahuaylas |
+| Operar | Encargado sucursal | Transferir / asignar a cajeros; Caja Diario |
+| Cerrar día | Sucursal | Cerrar cajas → bóveda; cerrar bóveda arrastra saldo |
+| Ida y vuelta | Central ↔ sucursal | Misma transferencia inter-oficina |
 
 ## 9. Pruebas y evidencia
 

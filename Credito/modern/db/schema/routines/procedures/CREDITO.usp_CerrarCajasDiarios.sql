@@ -1,7 +1,7 @@
--- EXEC CREDITO.usp_CerrarCajasDiarios 1025
+-- EXEC CREDITO.usp_CerrarCajasDiarios @UsuarioCierreId, @OficinaId
+-- Multisucursal: filtrar cajas por @OficinaId (antes: OficinaId=1 fijo en el CTE).
 
-
-CREATE PROC [CREDITO].[usp_CerrarCajasDiarios]
+CREATE OR ALTER PROC [CREDITO].[usp_CerrarCajasDiarios]
 @UsuarioCierreId INT ,
 @OficinaId INT = 1,
 @Sobrante DECIMAL(15,2)=0
@@ -19,7 +19,7 @@ IF EXISTS(SELECT 1 FROM CREDITO.Boveda WHERE OficinaId=@OficinaId AND IndCierre=
 	FROM CREDITO.MovimientoCaja MC
 	INNER JOIN CREDITO.CajaDiario CD ON CD.CajaDiarioId = MC.CajaDiarioId
 	INNER JOIN CREDITO.Caja C ON C.CajaId = CD.CajaId
-	WHERE CD.IndCierre=1 AND cd.TransBoveda=0  AND C.OficinaId=1
+	WHERE CD.IndCierre=1 AND cd.TransBoveda=0  AND C.OficinaId=@OficinaId
 	AND MC.Estado=1	
 	GROUP BY C.Denominacion, CD.CajaDiarioId,MC.TipoPagoId	
 ),

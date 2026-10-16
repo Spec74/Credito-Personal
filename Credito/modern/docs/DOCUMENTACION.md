@@ -13,6 +13,8 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 |------------|------|
 | Índice / este archivo | [DOCUMENTACION.md](DOCUMENTACION.md) |
 | Arquitectura | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Presentación gerencia (slides) | [PRESENTACION_ARQUITECTURA.html](PRESENTACION_ARQUITECTURA.html) |
+| Plan multisucursal + prendario | [migration/PLAN-MULTISUCURSAL-PRENDARIO.md](migration/PLAN-MULTISUCURSAL-PRENDARIO.md) |
 | Glosario | [GLOSARIO.md](GLOSARIO.md) |
 | Ambientes | [AMBIENTES.md](AMBIENTES.md) |
 | API (visión) | [API-OVERVIEW.md](API-OVERVIEW.md) |
