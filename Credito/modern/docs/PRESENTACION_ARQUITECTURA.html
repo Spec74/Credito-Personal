@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Credito — Arquitectura y módulos | Presentación ejecutiva</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-slide: #111827;
+      --panel: #1e293b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --ok: #4ade80;
+      --warn: #fbbf24;
+      --line: #334155;
+      --font: "Segoe UI", system-ui, -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; height: 100%;
+      background: var(--bg); color: var(--text);
+      font-family: var(--font);
+    }
+    .deck { height: 100%; position: relative; overflow: hidden; }
+    .slide {
+      display: none;
+      height: 100%;
+      padding: clamp(28px, 5vw, 64px) clamp(28px, 6vw, 80px);
+      flex-direction: column;
+      justify-content: center;
+      gap: 18px;
+      background: var(--bg-slide);
+    }
+    .slide.active { display: flex; }
+    .eyebrow {
+      color: var(--accent);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 4.2vw, 3rem);
+      line-height: 1.15;
+      font-weight: 750;
+      max-width: 18ch;
+    }
+    h2 {
+      margin: 0;
+      font-size: clamp(1.4rem, 3vw, 2.2rem);
+      font-weight: 700;
+    }
+    p, li { color: var(--muted); font-size: clamp(1rem, 1.6vw, 1.2rem); line-height: 1.45; }
+    .lead { color: var(--text); max-width: 52ch; font-size: clamp(1.05rem, 1.8vw, 1.35rem); }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px 18px;
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      color: var(--text);
+    }
+    .card ul { margin: 0; padding-left: 1.1rem; }
+    .card li { margin: 4px 0; font-size: 0.95rem; }
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      font-size: 0.75rem;
+      font-weight: 650;
+      color: var(--accent);
+      margin-right: 6px;
+    }
+    .pill.ok { color: var(--ok); }
+    .pill.warn { color: var(--warn); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: clamp(0.85rem, 1.3vw, 1rem);
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    th { color: var(--accent); font-weight: 650; }
+    td { color: var(--muted); }
+    td:first-child { color: var(--text); font-weight: 650; white-space: nowrap; }
+    .footer-bar {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 24px;
+      background: rgba(15, 23, 42, 0.92);
+      border-top: 1px solid var(--line);
+      font-size: 0.8rem;
+      color: var(--muted);
+      z-index: 5;
+    }
+    .progress {
+      height: 3px;
+      background: var(--line);
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 6;
+    }
+    .progress > i {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+      width: 0;
+      transition: width 0.2s ease;
+    }
+    kbd {
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-size: 0.75rem;
+      color: var(--text);
+    }
+    @media (max-width: 800px) {
+      .grid2, .grid3 { grid-template-columns: 1fr; }
+      h1 { max-width: none; }
+      td:first-child { white-space: normal; }
+    }
+    @media print {
+      .footer-bar, .progress { display: none; }
+      .slide {
+        display: flex !important;
+        page-break-after: always;
+        height: auto;
+        min-height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress"><i id="bar"></i></div>
+  <div class="deck" id="deck">
+
+    <section class="slide active">
+      <div>
+        <span class="pill">CrediConfiable / Credix</span>
+        <span class="pill ok">Candidato a go-live</span>
+        <span class="pill warn">Presentación ejecutiva</span>
+      </div>
+      <p class="eyebrow">Documentación de arquitectura</p>
+      <h1>Arquitectura, stack y flujos del sistema Credito</h1>
+      <p class="lead">
+        Visión para gerencia y jefatura: cómo era el sistema legado, qué
+        tecnologías usa la plataforma moderna, y qué hace cada módulo.
+      </p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Mensaje clave</p>
+      <h2>Un solo producto, modernizado con control</h2>
+      <p class="lead">
+        Migración con patrón <strong style="color:var(--text)">strangler</strong>:
+        la SPA y la API modernas corren sobre la misma SQL Server, conviviendo
+        con el MVC legado hasta el cutover firmado.
+      </p>
+      <div class="grid3">
+        <div class="card"><h3>Sin reescribir el dinero</h3><p>Las reglas financieras siguen en procedimientos SQL (usp_*).</p></div>
+        <div class="card"><h3>Innovación en campo</h3><p>Cobro con cola Enviados, GPS, offline y WhatsApp prendario.</p></div>
+        <div class="card"><h3>Riesgo acotado</h3><p>Se valida módulo a módulo sin apagar el legado de golpe.</p></div>
+      </div>
+    </section>
+
+    <!-- ===== SISTEMA LEGADO ===== -->
+    <section class="slide">
+      <p class="eyebrow">Sistema legado · Antes</p>
+      <h2>CREDIX / CREDICONFIABLE (VENDIX)</h2>
+      <p class="lead">
+        Sistema comercial de ventas y crédito usado en oficinas: crédito, caja,
+        bóveda, clientes, ventas, almacén e informes — todo en una aplicación
+        web clásica servida por IIS.
+      </p>
+      <div class="grid3">
+        <div class="card">
+          <h3>Producto</h3>
+          <ul>
+            <li>UI: CREDIX / CREDICONFIABLE</li>
+            <li>Marca interna: VENDIX</li>
+            <li>Solución: Creditos.sln</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Quién lo usaba</h3>
+          <ul>
+            <li>Administrador · Analista/Gestor</li>
+            <li>Cajero · Aprobador</li>
+            <li>Encargado / Gerencia · Lectura</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Proyectos</h3>
+          <ul>
+            <li>Web (MVC + vistas Razor)</li>
+            <li>ITB.VENDIX.BL (negocio)</li>
+            <li>ITB.VENDIX.DA (EF6 + SQL)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Sistema legado · Stack</p>
+      <h2>Tecnologías que usaba</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Plataforma</h3>
+          <ul>
+            <li>.NET Framework <strong style="color:var(--text)">4.8</strong></li>
+            <li>ASP.NET MVC <strong style="color:var(--text)">5.3</strong></li>
+            <li>Entity Framework <strong style="color:var(--text)">6.5</strong> (Database First / EDMX)</li>
+            <li>Hosting: <strong style="color:var(--text)">IIS</strong></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Interfaz e informes</h3>
+          <ul>
+            <li>Plantilla <strong style="color:var(--text)">mango</strong> + jQuery 1.7 / jQuery UI</li>
+            <li>Grillas <strong style="color:var(--text)">jqGrid</strong> (JSON desde controllers)</li>
+            <li>Reportes <strong style="color:var(--text)">RDLC</strong> + ReportViewer 15 (~37 reportes)</li>
+            <li>Sin SPA: cada pantalla se renderiza en el servidor</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Sesión y seguridad</h3>
+          <ul>
+            <li>Login: usuario + clave + oficina</li>
+            <li>Sesión ASP.NET + VendixGlobal en memoria</li>
+            <li>Menú: usp_MenuLst → sidebar accordion</li>
+            <li>Filtro [Autenticado] / SessionHelper</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Datos</h3>
+          <ul>
+            <li>SQL Server · BD <strong style="color:var(--text)">CREDITO</strong></li>
+            <li>Conn: VENDIXEntities</li>
+            <li>Motor de dinero: procedimientos <strong style="color:var(--text)">usp_*</strong></li>
+            <li>Reloj de negocio: usp_FechaBD</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Sistema legado · Arquitectura</p>
+      <h2>Cómo estaba construido</h2>
+      <table>
+        <thead>
+          <tr><th>Capa</th><th>Componente</th><th>Responsabilidad</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>UI</td><td>Razor + mango / jQuery / jqGrid</td><td>Pantallas server-side y grillas JSON</td></tr>
+          <tr><td>Web</td><td>Controllers + Views + RDLC</td><td>HTTP, auth, ReportViewer, tickets</td></tr>
+          <tr><td>BL</td><td>ITB.VENDIX.BL</td><td>Casos de uso (Crédito, Caja, Almacén…)</td></tr>
+          <tr><td>DA</td><td>ITB.VENDIX.DA + EF6</td><td>Modelo EDMX, CRUD, wrappers usp_*</td></tr>
+          <tr><td>SQL</td><td>SQL Server CREDITO</td><td>Tablas + lógica monetaria usp_*</td></tr>
+        </tbody>
+      </table>
+      <p>
+        Flujo típico: navegador → MVC → BL → DA/EF → SQL. A veces el BL escribía
+        SQL directo (venta rápida, parte de almacén).
+      </p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Sistema legado · Operación diaria</p>
+      <h2>Cómo se trabajaba en la práctica</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Pantallas</h3>
+          <ul>
+            <li>Crédito: ficha, estados CRE/PEN/AP1/APR/DES, aprobación, simulador</li>
+            <li>Caja: diario, chica, saldos, verificar pagos, tickets RDLC</li>
+            <li>Informes: ReporteController + ~37 .rdlc (plan pagos, kardex…)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Límites que motivan modernizar</h3>
+          <ul>
+            <li>UI acoplada a MVC + jQuery (sin PWA / offline de campo)</li>
+            <li>Dependencia de RDLC / ReportViewer</li>
+            <li>Validación dispersa entre BL y vistas</li>
+            <li>Sesión servidor; evolución incremental difícil</li>
+          </ul>
+        </div>
+      </div>
+      <p class="lead" style="max-width:56ch">
+        Lo que <strong style="color:var(--ok)">no se cambia</strong>: SQL Server,
+        usp_*, menú ACL y las reglas de crédito/caja.
+      </p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Contraste</p>
+      <h2>Legado vs plataforma moderna</h2>
+      <table>
+        <thead>
+          <tr><th>Aspecto</th><th>Legado (VENDIX / MVC)</th><th>Moderno (Credix)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>UI</td><td>Razor + jQuery + jqGrid</td><td>React SPA + Ant Design + PWA</td></tr>
+          <tr><td>Backend</td><td>MVC 5 + BL + EF6</td><td>.NET 10 Minimal APIs + Dapper</td></tr>
+          <tr><td>Auth</td><td>Sesión ASP.NET</td><td>JWT + refresh</td></tr>
+          <tr><td>Informes</td><td>RDLC / ReportViewer</td><td>QuestPDF / ClosedXML (+ puente RDLC opcional)</td></tr>
+          <tr><td>Campo</td><td>Pantalla oficina</td><td>Cobro GPS, offline, WhatsApp</td></tr>
+          <tr><td>Motor dinero</td><td>usp_* en SQL</td><td>Los mismos usp_* en SQL</td></tr>
+          <tr><td>Convive</td><td>Aplicación única IIS</td><td>Strangler: /app + /api/v1 + resto → MVC</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Stack tecnológico · Moderno</p>
+      <h2>Capas de la plataforma nueva</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Frontend</h3>
+          <ul>
+            <li>React 19 · Vite · TypeScript</li>
+            <li>Ant Design 6 · React Router 7</li>
+            <li>TanStack Query · PWA</li>
+            <li>Mapas: Leaflet + Google Maps</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Backend y datos</h3>
+          <ul>
+            <li>.NET 10 Minimal APIs · JWT</li>
+            <li>Dapper + SQL Server (BD CREDITO)</li>
+            <li>QuestPDF · ClosedXML</li>
+            <li>HealthChecks · OpenTelemetry</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Seguridad</h3>
+          <ul>
+            <li>Login JWT (usuario + oficina)</li>
+            <li>Refresh token + rate limit</li>
+            <li>Menú ACL por rol</li>
+            <li>Escrituras atadas a la oficina del token</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Despliegue</h3>
+          <ul>
+            <li>Dev: Vite + dotnet run</li>
+            <li>Staging: Docker + nginx</li>
+            <li>Prod: Azure App Service / IIS + ARR</li>
+            <li>Proxy: /app → SPA · /api/v1 → API</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Arquitectura · Moderna</p>
+      <h2>Cómo fluye una operación hoy</h2>
+      <table>
+        <thead>
+          <tr><th>Capa</th><th>Componente</th><th>Rol</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Usuario</td><td>SPA Credix (/app)</td><td>Interfaz moderna</td></tr>
+          <tr><td>Proxy</td><td>nginx / IIS ARR</td><td>Enruta SPA, API o MVC</td></tr>
+          <tr><td>API</td><td>Credito.Modern.Api</td><td>Casos de uso + JWT + PDF</td></tr>
+          <tr><td>Datos</td><td>SQL Server CREDITO</td><td>Tablas + usp_* (negocio)</td></tr>
+          <tr><td>Legado</td><td>MVC 4.8 + EF6</td><td>Convive hasta cutover</td></tr>
+        </tbody>
+      </table>
+      <p>Contrato: el dinero se calcula en SQL; C# orquesta, valida y presenta errores claros.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Mapa de módulos</p>
+      <h2>Qué cubre el sistema</h2>
+      <table>
+        <thead>
+          <tr><th>Módulo</th><th>Para qué sirve</th><th>Quién lo usa</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Auth / Inicio</td><td>Login, menú, tablero</td><td>Todos</td></tr>
+          <tr><td>Crédito</td><td>Consultar, simular, aprobar, gestionar</td><td>Gestor · Analista · Aprobador</td></tr>
+          <tr><td>Caja</td><td>Cobrar, desembolsar, arqueo, cierre</td><td>Cajero · Encargado</td></tr>
+          <tr><td>Tesorería</td><td>Bóveda y transferencias de oficina</td><td>Encargado · Admin</td></tr>
+          <tr><td>Clientes</td><td>Ficha, tope, GPS, SBS</td><td>Gestor · Analista</td></tr>
+          <tr><td>Prendario</td><td>Bienes, contrato, aviso WhatsApp</td><td>Analista</td></tr>
+          <tr><td>Informes</td><td>Cartera, cobranza, caja, Excel/PDF</td><td>Gestor · Encargado · Gerencia</td></tr>
+          <tr><td>Admin</td><td>Usuarios, roles, oficinas, cajas</td><td>Administrador</td></tr>
+          <tr><td>Ventas / Almacén</td><td>Mostrador e inventario</td><td>Cajero / Almacén</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Flujo crítico</p>
+      <h2>Caja Diario — operación del día</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Secuencia</h3>
+          <ul>
+            <li>Abrir sesión de caja</li>
+            <li>Cobrar (cuotas / pago libre)</li>
+            <li>Desembolsos y egreso/ingreso</li>
+            <li>Arqueo y cierre</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Diseño operativo</h3>
+          <ul>
+            <li>Barra: caja + estado + efectivo</li>
+            <li>Verificar pagos si hay transferencias</li>
+            <li>Acciones especiales en “Más acciones”</li>
+            <li>Cierre con validación de impagos</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Flujo crítico</p>
+      <h2>Cobro en campo — Cartera → Enviados</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Secuencia</h3>
+          <ul>
+            <li>Planilla de cartera</li>
+            <li>Tipar o Cobrar ya</li>
+            <li>Cola Enviados del día</li>
+            <li>Sync con cobros hechos en Diario</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Capacidades nuevas</h3>
+          <ul>
+            <li>GPS en móvil (ubicación de cobro)</li>
+            <li>Modo offline + sincronización</li>
+            <li>PWA instalable</li>
+            <li>Ticket solo bajo demanda</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Integración</p>
+      <h2>Prendario + WhatsApp</h2>
+      <div class="grid3">
+        <div class="card"><h3>Gestión</h3><p>Listado, bienes, contrato y acta en PDF.</p></div>
+        <div class="card"><h3>Aviso automático</h3><p>Plantilla Cloud API a 3 días del vencimiento (08:00 Lima).</p></div>
+        <div class="card"><h3>Webhook Meta</h3><p>Verificación + firma AppSecret en API moderna.</p></div>
+      </div>
+      <p class="lead">Complementa el canal humano (wa.me) con mensajería formal y auditable.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Módulos en detalle</p>
+      <h2>Crédito · Clientes · Tesorería · Informes</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Crédito</h3>
+          <ul>
+            <li>Consulta, simulador, parámetros</li>
+            <li>Aprobación 1.ª / 2.ª</li>
+            <li>Tareas, condonaciones, ficha persona</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Clientes</h3>
+          <ul>
+            <li>Alta y edición de ficha</li>
+            <li>ApiPerú (DNI/RUC)</li>
+            <li>GPS / Maps en domicilio</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Tesorería</h3>
+          <ul>
+            <li>Bóveda de oficina</li>
+            <li>E/S y transferencias</li>
+            <li>Informe de movimientos</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Informes</h3>
+          <ul>
+            <li>Cartera, cobranza, caja, stock</li>
+            <li>PDF Credix + Excel</li>
+            <li>Morosos y cierre gerencial</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Gobierno</p>
+      <h2>Admin · Maestros · Ventas · Almacén</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Admin</h3>
+          <ul>
+            <li>Usuarios, roles, oficinas</li>
+            <li>Comisiones (reservado)</li>
+            <li>Mantenimiento de cajas</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Catálogo y operación comercial</h3>
+          <ul>
+            <li>Maestros: marca → artículo → almacén</li>
+            <li>Ventas: venta rápida, órdenes, puntos</li>
+            <li>Almacén: entrada/salida/kardex</li>
+          </ul>
+        </div>
+      </div>
+      <p>SPA lista; activación en menú vivo depende de la oficina.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Estado del proyecto</p>
+      <h2>Qué ya está y qué falta para cutover</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>En código / operativo</h3>
+          <ul>
+            <li>Caja Diario con paridad</li>
+            <li>Cobro Enviados + sync</li>
+            <li>GPS / offline / PWA</li>
+            <li>WhatsApp prendario + webhook</li>
+            <li>UI Diario simplificada</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Pendiente de decisión</h3>
+          <ul>
+            <li>Smoke preprod firmado</li>
+            <li>OK de negocio por módulo crítico</li>
+            <li>Apagado gradual del MVC</li>
+            <li>Menú vivo Ventas/Almacén por oficina</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Cierre</p>
+      <h2>Pedido a gerencia</h2>
+      <p class="lead">
+        Avalar el plan de cutover por etapas: validar Caja + Cobro + Crédito en
+        preprod, firmar OK de negocio y programar el apagado gradual del MVC.
+      </p>
+      <div class="grid3">
+        <div class="card"><h3>Beneficio</h3><p>Operación de campo moderna sin tocar el motor financiero.</p></div>
+        <div class="card"><h3>Control</h3><p>Strangler: conviven ambos mundos hasta el OK.</p></div>
+        <div class="card"><h3>Siguiente paso</h3><p>Smoke preprod + checklist SSD-00.</p></div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="footer-bar">
+    <span>Credito.Modern · Arquitectura y módulos</span>
+    <span>
+      <kbd>←</kbd> <kbd>→</kbd> navegar · <kbd>F</kbd> pantalla completa ·
+      <span id="pos">1 / 1</span>
+    </span>
+  </div>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')]
+    const pos = document.getElementById('pos')
+    const bar = document.getElementById('bar')
+    let i = 0
+
+    function show(n) {
+      i = Math.max(0, Math.min(slides.length - 1, n))
+      slides.forEach((s, idx) => s.classList.toggle('active', idx === i))
+      pos.textContent = `${i + 1} / ${slides.length}`
+      bar.style.width = `${((i + 1) / slides.length) * 100}%`
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault(); show(i + 1)
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault(); show(i - 1)
+      } else if (e.key === 'Home') {
+        show(0)
+      } else if (e.key === 'End') {
+        show(slides.length - 1)
+      } else if (e.key === 'f' || e.key === 'F') {
+        if (!document.fullscreenElement) document.documentElement.requestFullscreen()
+        else document.exitFullscreen()
+      }
+    })
+
+    let touchX = null
+    document.addEventListener('touchstart', (e) => { touchX = e.changedTouches[0].screenX })
+    document.addEventListener('touchend', (e) => {
+      if (touchX == null) return
+      const dx = e.changedTouches[0].screenX - touchX
+      if (Math.abs(dx) > 40) show(i + (dx < 0 ? 1 : -1))
+      touchX = null
+    })
+
+    show(0)
+  </script>
+</body>
+</html>
