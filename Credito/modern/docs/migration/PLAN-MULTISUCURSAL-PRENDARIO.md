@@ -43,7 +43,7 @@ Central ↔ Sucursal (ida y vuelta cuando lo pidan)
 
 | Id | Prioridad | Trabajo | Estado |
 |----|-----------|---------|--------|
-| B-01 | P1 | Fix `usp_CerrarCajasDiarios`: `C.OficinaId = @OficinaId` (hoy hay `= 1` fijo) | **Hecho** (schema + deploy) |
+| B-01 | P1 | Fix destino bóveda: prod forzaba OficinaId=1; ahora `@OficinaId` + conservar MOVS_BASE (saldo inicial + movs) | **Hecho** (schema + deploy alineado a prod) |
 | B-02 | P1 | Smoke cierre cajas en oficina ≠ 1 (Pichari / Huanta) | Pendiente operación |
 | B-03 | P2 | UI Interoficina: texto “fondeo inmediato” + etiqueta clara | **Hecho** |
 | B-04 | P2 | Documentar / ocultar o advertir pestaña Pendientes hasta completar USP | **Hecho** (aviso) |

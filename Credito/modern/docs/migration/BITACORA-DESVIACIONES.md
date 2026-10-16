@@ -4,14 +4,16 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
-### 2026-10-16 — Cierre cajas diarios multisucursal (`OficinaId=1` fijo)
+### 2026-10-16 — Cierre cajas diarios: destino forzado a bóveda central
 
-**Defecto:** `usp_CerrarCajasDiarios` armaba el CTE de movimientos con
-`C.OficinaId = 1` fijo, pero marcaba `TransBoveda = 1` con `@OficinaId`. En
-sucursales (Pichari, Huanta, Andahuaylas) el cierre podía dejar diarios
-“transferidos” sin asientos `TRE` correctos en su bóveda.
+**Producción (script 16/10/2026):** el origen de cajas ya usaba `@OficinaId`, y
+el CTE `MOVS_BASE` unificaba SaldoInicial (efectivo) + movimientos del día
+(bancos/apps). Pero el **destino** estaba forzado a la bóveda principal de
+`OficinaId = 1` (“para las tarjetas del dashboard”), de modo que el cierre en
+Pichari/Huanta acreditaba en Huamanga.
 
-**Corrección:** filtrar el CTE con `C.OficinaId = @OficinaId`.  
+**Corrección (autonomía sucursal):** conservar `MOVS_BASE`; destino =
+bóveda abierta de `@OficinaId` (temporal de esa oficina si existe).  
 Deploy: `deploy/sql/2026-10-16-usp-cerrar-cajas-diarios-oficina.sql`.  
 Plan: [PLAN-MULTISUCURSAL-PRENDARIO.md](PLAN-MULTISUCURSAL-PRENDARIO.md).
 

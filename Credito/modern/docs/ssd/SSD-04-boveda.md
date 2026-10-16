@@ -88,7 +88,7 @@ La puerta de negocio es el menú BOVEDA en la SPA. La API replica al MVC: autent
 - 2026-09-10 — transferencia entre bancos + `usp_ActualizarSaldosBoveda` ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
 - 2026-09-10 — informe movimientos no exige ítem de menú extra
 - 2026-09-09 — comprobante de movimiento (tabla incorrecta, corregida)
-- **2026-10-16 — multisucursal:** `usp_CerrarCajasDiarios` filtraba movimientos con `OficinaId = 1` fijo; corregido a `@OficinaId` (Pichari / Huanta / Andahuaylas). Deploy: `2026-10-16-usp-cerrar-cajas-diarios-oficina.sql`.
+- **2026-10-16 — multisucursal:** en prod el destino del cierre iba a bóveda de `OficinaId=1`; ahora acredita en la bóveda de `@OficinaId`, conservando CTE `MOVS_BASE` (saldo inicial + movimientos). Deploy: `2026-10-16-usp-cerrar-cajas-diarios-oficina.sql`.
 - **2026-10-16 — fondeo central:** transferencia inter-oficina (`flagAceptar = 0`) es **inmediata** (TRS origen + TRE destino). La pestaña Pendientes (aceptación) no está completa en el USP; no es el camino de fondeo a sucursales.
 
 Producto: destino inter-oficina por ID de bóveda, no combo de oficina.
