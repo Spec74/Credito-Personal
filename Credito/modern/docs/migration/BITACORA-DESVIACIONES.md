@@ -4,6 +4,18 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-17 — Roles “desaparecen” al editar usuario multisucursal
+
+**Confusión de negocio:** usuario con sede Pichari entra con menú de ADMINISTRADOR;
+al abrir Roles como ADMVENDIX solo se ve ANALISTA (u otros). Causa: los roles viven
+en `MAESTRO.UsuarioRol` **por oficina**. La UI listaba/editaba una sola sede
+(por defecto la primera alfabética, p. ej. OFICINA PRINCIPAL) y al cambiar de sede
+limpiaba el multi-select. El login en Pichari seguía usando la fila de Pichari.
+
+**Corrección UX:** pestaña Roles muestra resumen de roles en **todas** las oficinas
+asignadas; deja explícito “Editando roles de: {sede}”; no vacía la selección al
+cambiar oficina; el guardado indica la sede afectada.
+
 ### 2026-10-17 — Alta oficina falla: `TESORERIA.Boveda` inexistente
 
 **Defecto:** al crear oficina desde SPA (`OficinaWriteService.GuardarAsync`) se

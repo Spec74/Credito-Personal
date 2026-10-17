@@ -78,14 +78,16 @@ Resetear clave: paridad MVC (`123456`) con hash `$pbk2$` para el login moderno.
 
 - [ ] Ítem USUARIO abre listado; sin ítem, 403 de ruta aunque exista el padre SEGURIDAD.
 - [ ] Guardar usuario y asignar oficina/rol permite login SPA en esa oficina.
+- [ ] Roles se asignan **por oficina** (`UsuarioRol`); la UI muestra resumen de todas las sedes y edita una sede a la vez.
 - [ ] Resetear clave deja `123456` verificable por el hasher (claro legado o `$pbk2$`).
-- [ ] Rol + menús cambia `usp_MenuLst` en el siguiente login.
+- [ ] Rol + menús cambia `usp_MenuLst` en el siguiente login (solo la oficina elegida en login).
 - [ ] `/admin/comisiones` no inventa liquidación.
 - [ ] Gestor no llama `POST /usuarios/guardar` (403).
 
 ## 8. Desviaciones
 
 - 2026-09-10 — Comisiones: paridad del vacío del MVC ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
+- **2026-10-17 — Roles por oficina:** menú/login = `UsuarioRol` de la sede elegida; no son globales. UX de Usuarios aclara resumen multi-sede ([BITACORA](../migration/BITACORA-DESVIACIONES.md)).
 
 Password: [PASSWORD-STORAGE-ROADMAP.md](../migration/PASSWORD-STORAGE-ROADMAP.md) (columna 256).
 

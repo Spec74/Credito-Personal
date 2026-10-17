@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
@@ -90,15 +90,50 @@ export function UsuariosPage() {
     enabled: usuarioId >= 1 && drawerOpen,
   })
 
+  const oficinasAsignadas = useMemo(
+    () => (detalleQuery.data?.oficinas ?? []).filter((o) => o.asignado),
+    [detalleQuery.data?.oficinas],
+  )
+
+  /** Oficina seleccionada para editar roles (no confundir con otras sedes del mismo usuario). */
   const oficinaRolEfectiva =
-    oficinaRolId ??
-    detalleQuery.data?.oficinas.find((o) => o.asignado)?.oficinaId
+    oficinaRolId ?? oficinasAsignadas[0]?.oficinaId
+
+  const oficinaRolLabel =
+    oficinasAsignadas.find((o) => o.oficinaId === oficinaRolEfectiva)?.denominacion ??
+    'oficina'
 
   const rolesQuery = useQuery({
     queryKey: ['usuario-roles', usuarioId, oficinaRolEfectiva],
     queryFn: () => fetchRolesAsignacion(usuarioId, oficinaRolEfectiva!),
     enabled: usuarioId >= 1 && oficinaRolEfectiva != null && oficinaRolEfectiva >= 1,
   })
+
+  /** Resumen de roles en TODAS las oficinas asignadas (evita creer que “no tiene admin” cuando sí lo tiene en Pichari). */
+  const rolesResumenQueries = useQueries({
+    queries: oficinasAsignadas.map((o) => ({
+      queryKey: ['usuario-roles', usuarioId, o.oficinaId] as const,
+      queryFn: () => fetchRolesAsignacion(usuarioId, o.oficinaId),
+      enabled: usuarioId >= 1 && drawerOpen && o.oficinaId >= 1,
+    })),
+  })
+
+  const rolesPorOficina = useMemo(() => {
+    return oficinasAsignadas.map((o, i) => {
+      const q = rolesResumenQueries[i]
+      const nombres =
+        q?.data
+          ?.filter((r) => r.asignado)
+          .map((r) => r.denominacion)
+          .filter(Boolean) ?? []
+      return {
+        oficinaId: o.oficinaId,
+        denominacion: o.denominacion,
+        roles: nombres,
+        loading: q?.isLoading ?? false,
+      }
+    })
+  }, [oficinasAsignadas, rolesResumenQueries])
 
   const guardar = useMutation({
     mutationFn: guardarUsuario,
@@ -236,21 +271,25 @@ export function UsuariosPage() {
         message.error(res.mensaje ?? 'Error')
         return
       }
-      message.success('Oficinas asignadas')
+      message.success('Oficinas asignadas. Revise Roles en cada sede nueva.')
       void detalleQuery.refetch()
+      void queryClient.invalidateQueries({ queryKey: ['usuario-roles', usuarioId] })
     },
   })
 
   const asignarRoles = useMutation({
     mutationFn: ({ oficinaId, rolIds }: { oficinaId: number; rolIds: number[] }) =>
       asignarRolesUsuario(usuarioId, oficinaId, rolIds),
-    onSuccess: (res) => {
+    onSuccess: (res, vars) => {
       if (!res.success) {
         message.error(res.mensaje ?? 'Error')
         return
       }
-      message.success('Roles asignados')
-      void rolesQuery.refetch()
+      const sede =
+        oficinasAsignadas.find((o) => o.oficinaId === vars.oficinaId)?.denominacion ??
+        `oficina #${vars.oficinaId}`
+      message.success(`Roles guardados en ${sede}`)
+      void queryClient.invalidateQueries({ queryKey: ['usuario-roles', usuarioId] })
     },
   })
 
@@ -637,24 +676,87 @@ export function UsuariosPage() {
                   disabled: usuarioId < 1,
                   children: (
                     <>
-                      <Paragraph type="secondary">
-                        Roles por oficina; el login usa los roles de la oficina elegida.
+                      <Alert
+                        type="info"
+                        showIcon
+                        style={{ marginBottom: 12 }}
+                        message="Los roles son por oficina"
+                        description={
+                          <>
+                            Al iniciar sesión el usuario elige sede; menú y permisos salen solo de
+                            los roles de <Text strong>esa</Text> oficina (
+                            <Text code>MAESTRO.UsuarioRol</Text>). Tener ADMINISTRADOR en Huamanga no
+                            implica ADMINISTRADOR en Pichari, y al revés.
+                          </>
+                        }
+                      />
+
+                      {oficinasAsignadas.length === 0 ? (
+                        <Alert
+                          type="warning"
+                          showIcon
+                          style={{ marginBottom: 12 }}
+                          message="Asigne al menos una oficina en la pestaña Oficinas antes de definir roles."
+                        />
+                      ) : (
+                        <div style={{ marginBottom: 16 }}>
+                          <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                            Resumen actual (todas las sedes del usuario)
+                          </Text>
+                          <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                            {rolesPorOficina.map((row) => (
+                              <div key={row.oficinaId}>
+                                <Space wrap size={[4, 4]} align="center">
+                                  <Button
+                                    type={
+                                      row.oficinaId === oficinaRolEfectiva ? 'primary' : 'default'
+                                    }
+                                    size="small"
+                                    onClick={() => setOficinaRolId(row.oficinaId)}
+                                  >
+                                    {row.denominacion}
+                                  </Button>
+                                  {row.loading ? (
+                                    <Tag>Cargando…</Tag>
+                                  ) : row.roles.length === 0 ? (
+                                    <Tag color="orange">Sin roles</Tag>
+                                  ) : (
+                                    row.roles.map((nombre) => (
+                                      <Tag key={`${row.oficinaId}-${nombre}`} color="blue">
+                                        {nombre}
+                                      </Tag>
+                                    ))
+                                  )}
+                                </Space>
+                              </div>
+                            ))}
+                          </Space>
+                        </div>
+                      )}
+
+                      <Paragraph type="secondary" style={{ marginBottom: 8 }}>
+                        Editando roles de:{' '}
+                        <Text strong>{oficinaRolLabel}</Text>
+                        {oficinaRolEfectiva != null ? (
+                          <>
+                            {' '}
+                            <Text type="secondary">(id {oficinaRolEfectiva})</Text>
+                          </>
+                        ) : null}
                       </Paragraph>
                       <Select
-                        placeholder="Oficina para roles"
+                        placeholder="Oficina para editar roles"
                         style={{ width: '100%', marginBottom: 12 }}
                         value={oficinaRolEfectiva}
-                        onChange={(v) => {
-                          setOficinaRolId(v)
-                          form.setFieldValue('rolIds', [])
-                        }}
-                        options={oficinasOptions
-                          .filter((o) => o.asignado)
-                          .map((o) => ({ value: o.oficinaId, label: o.denominacion }))}
+                        onChange={(v) => setOficinaRolId(v)}
+                        options={oficinasAsignadas.map((o) => ({
+                          value: o.oficinaId,
+                          label: o.denominacion,
+                        }))}
                       />
                       <Form.Item
                         name="rolIds"
-                        label="Roles"
+                        label={`Roles en ${oficinaRolLabel}`}
                         rules={[
                           {
                             validator: async (_, value: number[] | undefined) => {
@@ -691,7 +793,7 @@ export function UsuariosPage() {
                           })
                         }}
                       >
-                        Guardar roles
+                        Guardar roles en {oficinaRolLabel}
                       </Button>
                     </>
                   ),
