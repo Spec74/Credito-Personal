@@ -4,6 +4,17 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-17 — Alta oficina falla: `TESORERIA.Boveda` inexistente
+
+**Defecto:** al crear oficina desde SPA (`OficinaWriteService.GuardarAsync`) se
+insertaba en `TESORERIA.Boveda`. En la BD real la tabla es `CREDITO.Boveda`
+(paridad `OficinaBL.CrearOficina`). Resultado: DbException genérica
+“No se pudo completar la operación.” al dar de alta Pichari.
+
+**Corrección:** `INSERT INTO CREDITO.Boveda` con `IndTemporal=0`; coerce
+`UsuarioAsignadoId`; al marcar Principal se limpia en las demás oficinas;
+detalle SQL visible en ProblemDetails de maestros.
+
 ### 2026-10-16 — Cierre cajas diarios: destino forzado a bóveda central
 
 **Producción (script 16/10/2026):** el origen de cajas ya usaba `@OficinaId`, y

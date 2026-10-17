@@ -587,8 +587,16 @@ internal static class MaestroEndpoints
         catch (DbException ex)
         {
             log.LogError(ex, "Error en operación de maestro {Operation}", operation);
-            var detail = "No se pudo completar la operación.";
-            if (env.IsDevelopment())
+            // Superficie mensaje SQL corto (p. ej. objeto inexistente) para operar multisucursal en prod.
+            var sqlHint = string.IsNullOrWhiteSpace(ex.Message)
+                ? null
+                : ex.Message.Length > 280
+                    ? ex.Message[..280] + "…"
+                    : ex.Message;
+            var detail = sqlHint is null
+                ? "No se pudo completar la operación."
+                : $"No se pudo completar la operación. {sqlHint}";
+            if (env.IsDevelopment() && sqlHint is null)
                 detail += $" Detalle: {ex.Message}";
             return TypedResults.Problem(
                 detail: detail,

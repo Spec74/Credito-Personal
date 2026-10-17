@@ -198,8 +198,24 @@ public sealed class OficinaWriteService(IOptions<SqlDatabaseOptions> options) : 
         await using var tx = (SqlTransaction)await c.BeginTransactionAsync(ct).ConfigureAwait(false);
         try
         {
+            // UsuarioAsignadoId es NOT NULL + FK a MAESTRO.Usuario (default legado = 3).
+            var usuarioAsignadoId = request.UsuarioAsignadoId > 0 ? request.UsuarioAsignadoId : 3;
+
             if (request.OficinaId < 1)
             {
+                if (request.IndPrincipal)
+                {
+                    await c.ExecuteAsync(
+                        new CommandDefinition(
+                            """
+                            UPDATE MAESTRO.Oficina
+                            SET IndPrincipal = CAST(0 AS bit)
+                            WHERE IndPrincipal = CAST(1 AS bit);
+                            """,
+                            transaction: tx,
+                            cancellationToken: ct)).ConfigureAwait(false);
+                }
+
                 var id = await c.ExecuteScalarAsync<int>(
                     new CommandDefinition(
                         """
@@ -209,17 +225,30 @@ public sealed class OficinaWriteService(IOptions<SqlDatabaseOptions> options) : 
                             @Denominacion, @Descripcion, @Telefono, @IndPrincipal, @Estado, @UsuarioAsignadoId, @Latitud, @Longitud);
                         SELECT CAST(SCOPE_IDENTITY() AS int);
                         """,
-                        request,
+                        new
+                        {
+                            request.Denominacion,
+                            request.Descripcion,
+                            request.Telefono,
+                            request.IndPrincipal,
+                            request.Estado,
+                            UsuarioAsignadoId = usuarioAsignadoId,
+                            request.Latitud,
+                            request.Longitud,
+                        },
                         transaction: tx,
                         cancellationToken: ct)).ConfigureAwait(false);
 
+                // Paridad OficinaBL.CrearOficina → CREDITO.Boveda (no TESORERIA).
                 await c.ExecuteAsync(
                     new CommandDefinition(
                         """
-                        INSERT INTO TESORERIA.Boveda (
-                            OficinaId, SaldoInicial, Entradas, Salidas, SaldoFinal, FechaIniOperacion, IndCierre)
+                        INSERT INTO CREDITO.Boveda (
+                            OficinaId, SaldoInicial, Entradas, Salidas, SaldoFinal,
+                            FechaIniOperacion, IndCierre, IndTemporal)
                         VALUES (
-                            @OficinaId, 0, 0, 0, 0, CAST(GETDATE() AS date), CAST(0 AS bit));
+                            @OficinaId, 0, 0, 0, 0,
+                            CAST(GETDATE() AS date), CAST(0 AS bit), CAST(0 AS bit));
                         """,
                         new { OficinaId = id },
                         transaction: tx,
@@ -227,6 +256,21 @@ public sealed class OficinaWriteService(IOptions<SqlDatabaseOptions> options) : 
 
                 await tx.CommitAsync(ct).ConfigureAwait(false);
                 return new MaestroOperacionResponse(true, id, null);
+            }
+
+            if (request.IndPrincipal)
+            {
+                await c.ExecuteAsync(
+                    new CommandDefinition(
+                        """
+                        UPDATE MAESTRO.Oficina
+                        SET IndPrincipal = CAST(0 AS bit)
+                        WHERE IndPrincipal = CAST(1 AS bit)
+                          AND OficinaId <> @OficinaId;
+                        """,
+                        new { request.OficinaId },
+                        transaction: tx,
+                        cancellationToken: ct)).ConfigureAwait(false);
             }
 
             var n = await c.ExecuteAsync(
@@ -243,7 +287,18 @@ public sealed class OficinaWriteService(IOptions<SqlDatabaseOptions> options) : 
                         Longitud = @Longitud
                     WHERE OficinaId = @OficinaId;
                     """,
-                    request,
+                    new
+                    {
+                        request.OficinaId,
+                        request.Denominacion,
+                        request.Descripcion,
+                        request.Telefono,
+                        request.IndPrincipal,
+                        request.Estado,
+                        UsuarioAsignadoId = usuarioAsignadoId,
+                        request.Latitud,
+                        request.Longitud,
+                    },
                     transaction: tx,
                     cancellationToken: ct)).ConfigureAwait(false);
             await tx.CommitAsync(ct).ConfigureAwait(false);

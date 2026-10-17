@@ -94,6 +94,32 @@ Alta de oficina nueva: fila `MAESTRO.Oficina` + bóveda abierta + cajas + usuari
 
 ---
 
+## 5.1 Checklist de alta de sucursal (Pichari / Andahuaylas)
+
+Orden profesional para que la sucursal opere con autonomía:
+
+| # | Paso | Dónde | Estado / nota |
+|---|------|-------|----------------|
+| 1 | Crear oficina (no principal) + ubicación | `/mantenimiento/oficinas` | Debe crear también `CREDITO.Boveda` abierta (IndCierre=0, IndTemporal=0). **Bug 2026-10-17:** el moderno insertaba `TESORERIA.Boveda` (esquema inexistente) → “No se pudo completar la operación”. Corregido a `CREDITO.Boveda`. |
+| 2 | Verificar bóveda de la oficina | `/tesoreria/boveda` (logueado en esa oficina) o SQL | `SELECT * FROM CREDITO.Boveda WHERE OficinaId=@id AND IndCierre=0` |
+| 3 | Asignar usuarios a la oficina | Usuarios / `UsuarioOficina` | Encargado + cajeros deben poder elegir esa oficina al login |
+| 4 | Crear cajas de la sucursal | Maestro de cajas | Al menos una caja operativa por cajero / turno |
+| 5 | Fondear desde central | Bóveda Huamanga → **Fondear / interoficina** | Transferencia inmediata a bóveda Pichari |
+| 6 | Asignar / transferir a cajeros | Saldos / bóveda→caja | Ciclo diario autónomo |
+| 7 | Smoke cierre | Cerrar cajas + bóveda en Pichari | Tras deploy `usp_CerrarCajasDiarios` (destino `@OficinaId`) |
+| 8 | Menú / roles | Menú por oficina | Confirmar que aparecen Caja Diario, Cobro, Bóveda |
+
+**No basta con crear la oficina:** sin usuarios, cajas y fondeo, la sucursal no opera.
+
+### Bug corregido (alta oficina)
+
+- **Síntoma:** modal Nueva oficina → “No se pudo completar la operación.”
+- **Causa:** `OficinaWriteService` hacía `INSERT INTO TESORERIA.Boveda` (no existe en BD CREDITO).
+- **Fix:** `INSERT INTO CREDITO.Boveda` (+ `IndTemporal=0`), paridad `OficinaBL.CrearOficina`.
+- **Extra:** `UsuarioAsignadoId` 0 → default 3; al marcar Principal se limpia el flag en las demás.
+
+---
+
 ## 6. Mensaje a gerencia (una frase)
 
 > La base ya es multisucursal; corregimos el cierre de cajas para que Pichari y Andahuaylas cuadren, el central fondea con transferencia inmediata a cada bóveda, y el prendario se unifica en un solo llenado con documentos al instante sin reestructurar la BD.

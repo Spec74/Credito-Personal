@@ -97,10 +97,13 @@ Producto: destino inter-oficina por ID de bóveda, no combo de oficina.
 
 | Paso | Actor | Mecanismo |
 |------|-------|-----------|
+| Alta sucursal | Admin | `/mantenimiento/oficinas` → crea `MAESTRO.Oficina` + `CREDITO.Boveda` |
 | Fondear | Central (Huamanga) | Interoficina → bóveda de Pichari / Huanta / Andahuaylas |
 | Operar | Encargado sucursal | Transferir / asignar a cajeros; Caja Diario |
 | Cerrar día | Sucursal | Cerrar cajas → bóveda; cerrar bóveda arrastra saldo |
 | Ida y vuelta | Central ↔ sucursal | Misma transferencia inter-oficina |
+
+Checklist completo: [PLAN-MULTISUCURSAL-PRENDARIO.md §5.1](../migration/PLAN-MULTISUCURSAL-PRENDARIO.md).
 
 ## 9. Pruebas y evidencia
 
