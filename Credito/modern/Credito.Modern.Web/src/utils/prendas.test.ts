@@ -4,6 +4,7 @@ import {
   prendaSimuladorDesdeBienes,
   prendaVacia,
   buildSimuladorPrendarioPath,
+  totalTasacion,
   validarMontoVsTasacion,
   validarPrendasForm,
 } from './prendas'
@@ -66,6 +67,28 @@ describe('validarPrendasForm', () => {
   })
 })
 
+describe('totalTasacion / varios bienes', () => {
+  it('suma tasación de todos los bienes válidos', () => {
+    const total = totalTasacion([
+      { ...prendaVacia(), descripcion: 'Moto', valorTasacion: 1000 },
+      { ...prendaVacia(), descripcion: 'Laptop', valorTasacion: 2000 },
+      { ...prendaVacia(), descripcion: '', valorTasacion: 999 },
+      { ...prendaVacia(), descripcion: 'Sin valor', valorTasacion: 0 },
+    ])
+    expect(total).toBe(3000)
+  })
+
+  it('bloquea monto si supera la suma de 2+ bienes', () => {
+    const tasacion = totalTasacion([
+      { ...prendaVacia(), descripcion: 'A', valorTasacion: 1000 },
+      { ...prendaVacia(), descripcion: 'B', valorTasacion: 2000 },
+    ])
+    expect(tasacion).toBe(3000)
+    expect(validarMontoVsTasacion(3000.01, tasacion)).toMatch(/supera/i)
+    expect(validarMontoVsTasacion(3000, tasacion)).toBeNull()
+  })
+})
+
 describe('validarMontoVsTasacion', () => {
   it('bloquea monto mayor a tasación', () => {
     expect(validarMontoVsTasacion(5000, 3000)).toMatch(/tasación/i)
@@ -73,6 +96,10 @@ describe('validarMontoVsTasacion', () => {
 
   it('acepta monto dentro de tasación', () => {
     expect(validarMontoVsTasacion(2000, 3000)).toBeNull()
+  })
+
+  it('exige bienes cuando tasación es cero', () => {
+    expect(validarMontoVsTasacion(500, 0)).toMatch(/bienes/i)
   })
 })
 

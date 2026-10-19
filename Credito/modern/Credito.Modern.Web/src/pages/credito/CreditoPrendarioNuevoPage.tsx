@@ -299,12 +299,22 @@ export function CreditoPrendarioNuevoPage() {
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const validacionBienes = useMemo(() => validarPrendasForm(prendas), [prendas])
+  /** Suma de todos los bienes válidos (descripción + tasación > 0), incl. 2+. */
   const tasacion = useMemo(() => totalTasacion(prendas), [prendas])
+  const cantidadBienes = validacionBienes.bienes.length
+
+  // No usar max= en InputNumber: Ant Design recorta el valor y oculta el exceso → no se veía la alerta.
   const errorMontoVsTasacion = useMemo(() => {
-    if (montoCredito == null) return null
-    if (!(tasacion > 0) && !(montoCredito > 0)) return null
+    if (montoCredito == null || !(montoCredito > 0)) {
+      if (personaId && !(tasacion > 0)) {
+        return 'Registre bienes con tasación antes de indicar el monto del crédito'
+      }
+      return null
+    }
     return validarMontoVsTasacion(montoCredito, tasacion)
-  }, [montoCredito, tasacion])
+  }, [montoCredito, tasacion, personaId])
+
   const errorInteres = useMemo(() => {
     if (interesMensual == null || !productoPrendario) return null
     const min = productoPrendario.interesMinima
@@ -314,7 +324,26 @@ export function CreditoPrendarioNuevoPage() {
     }
     return null
   }, [interesMensual, productoPrendario])
-  const bienesListos = useMemo(() => validarPrendasForm(prendas).ok, [prendas])
+
+  const errorFecha = useMemo(() => {
+    if (!fechaPrimerPago?.trim()) return 'Indique la fecha del primer pago'
+    return null
+  }, [fechaPrimerPago])
+
+  const bienesListos = validacionBienes.ok
+
+  // Mostrar errores de filas en cuanto hay contenido (varios bienes incluidos).
+  useEffect(() => {
+    const hayIntento = prendas.some(
+      (p) => p.descripcion.trim().length > 0 || (p.valorTasacion ?? 0) > 0,
+    )
+    if (!hayIntento) {
+      setErroresPrendas([])
+      return
+    }
+    setErroresPrendas(validarPrendasForm(prendas).errores)
+  }, [prendas])
+
   const puedeContinuar =
     personaId != null &&
     oficinaId > 0 &&
@@ -325,7 +354,7 @@ export function CreditoPrendarioNuevoPage() {
     interesMensual != null &&
     interesMensual >= 0 &&
     !errorInteres &&
-    Boolean(fechaPrimerPago?.trim()) &&
+    !errorFecha &&
     gastosAdm != null &&
     gastosAdm >= 0
 
@@ -334,12 +363,16 @@ export function CreditoPrendarioNuevoPage() {
     stats.push({ label: 'Cliente', value: clienteLabel || `Persona #${personaId}` })
   }
   if (tasacion > 0) {
-    stats.push({ label: 'Tasación', value: formatMoney(tasacion), tone: 'green' })
+    stats.push({
+      label: cantidadBienes > 1 ? `Tasación (${cantidadBienes} bienes)` : 'Tasación',
+      value: formatMoney(tasacion),
+      tone: 'green',
+    })
   }
-  if (montoCredito != null && montoCredito > 0 && !errorMontoVsTasacion) {
+  if (montoCredito != null && montoCredito > 0 && tasacion > 0 && !errorMontoVsTasacion) {
     stats.push({
       label: 'Cupo usado',
-      value: `${((montoCredito / Math.max(tasacion, 1)) * 100).toFixed(0)}%`,
+      value: `${((montoCredito / tasacion) * 100).toFixed(0)}%`,
     })
   }
 
@@ -563,7 +596,6 @@ export function CreditoPrendarioNuevoPage() {
               style={{ width: '100%', marginTop: 4 }}
               min={1}
               step={10}
-              max={tasacion > 0 ? tasacion : undefined}
               disabled={!personaId}
               status={errorMontoVsTasacion ? 'error' : undefined}
               value={montoCredito}
@@ -575,14 +607,18 @@ export function CreditoPrendarioNuevoPage() {
                 type={errorMontoVsTasacion ? 'danger' : 'secondary'}
                 style={{ display: 'block', marginTop: 4, fontSize: 12 }}
               >
-                Máximo por tasación: {formatMoney(tasacion)}
+                Tope = suma de {cantidadBienes} bien{cantidadBienes === 1 ? '' : 'es'}:{' '}
+                {formatMoney(tasacion)}
                 {montoCredito != null && montoCredito > 0 && !errorMontoVsTasacion
                   ? ` · queda ${formatMoney(Math.max(0, tasacion - montoCredito))}`
                   : null}
+                {montoCredito != null && montoCredito > tasacion
+                  ? ` · exceso ${formatMoney(montoCredito - tasacion)}`
+                  : null}
               </Text>
             ) : personaId ? (
-              <Text type="secondary" style={{ display: 'block', marginTop: 4, fontSize: 12 }}>
-                Registre al menos un bien con tasación para habilitar el monto.
+              <Text type="danger" style={{ display: 'block', marginTop: 4, fontSize: 12 }}>
+                Sin tasación válida aún. Agregue uno o más bienes con descripción y tasación &gt; 0.
               </Text>
             ) : null}
           </Col>
@@ -601,11 +637,13 @@ export function CreditoPrendarioNuevoPage() {
               style={{ width: '100%', marginTop: 4 }}
               min={0}
               step={1}
-              disabled={!personaId}
+              disabled
               value={gastosAdm}
-              onChange={(v) => setGastosAdm(v)}
               prefix="S/"
             />
+            <Text type="secondary" style={{ display: 'block', marginTop: 4, fontSize: 12 }}>
+              Calculado según monto y central de riesgo (tabla GastosAdm).
+            </Text>
           </Col>
           <Col xs={24} sm={12} md={8}>
             <Text type="secondary">
@@ -640,9 +678,15 @@ export function CreditoPrendarioNuevoPage() {
               type="date"
               style={{ width: '100%', marginTop: 4 }}
               disabled={!personaId}
+              status={errorFecha && personaId ? 'error' : undefined}
               value={fechaPrimerPago}
               onChange={(e) => setFechaPrimerPago(e.target.value)}
             />
+            {errorFecha && personaId ? (
+              <Text type="danger" style={{ display: 'block', marginTop: 4, fontSize: 12 }}>
+                {errorFecha}
+              </Text>
+            ) : null}
           </Col>
           <Col xs={24} md={16}>
             <Text type="secondary">Observación</Text>
