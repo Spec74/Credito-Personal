@@ -22,6 +22,7 @@ import {
 } from 'antd'
 import { consultarDniApiPeru } from '../../api/apiperu'
 import { obtenerCliente, obtenerPersonaPorDocumento } from '../../api/clientes'
+import { calcularGastosAdm } from '../../api/gastosAdm'
 import { fetchProductos } from '../../api/productos'
 import { crearSolicitudPrendaria, guardarBienesPrendario } from '../../api/prendario'
 import { ApiError } from '../../api/errors'
@@ -108,10 +109,33 @@ export function CreditoPrendarioNuevoPage() {
     [productosQuery.data],
   )
 
+  /** Paridad legacy: central de riesgo solo cambia el trámite (GastosAdm), no el desembolso (ADE = monto). */
   useEffect(() => {
-    if (montoCredito == null || !(montoCredito > 0)) return
-    setGastosAdm(Number((montoCredito * 0.01).toFixed(2)))
-  }, [montoCredito])
+    if (montoCredito == null || !(montoCredito > 0)) {
+      setGastosAdm(0)
+      return
+    }
+    let cancelled = false
+    void calcularGastosAdm(montoCredito, indCentralRiesgo)
+      .then((r) => {
+        if (!cancelled) setGastosAdm(r.gastosAdm)
+      })
+      .catch(() => {
+        if (!cancelled) setGastosAdm(0)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [montoCredito, indCentralRiesgo])
+
+  const montoDesembolsar = useMemo(() => {
+    if (montoCredito == null || !(montoCredito > 0)) return null
+    // Solo CAP descuenta trámite del desembolso; prendario usa ADE (pago adelantado).
+    if (indGastosAdm === 'CAP') {
+      return Math.max(0, montoCredito - (gastosAdm ?? 0))
+    }
+    return montoCredito
+  }, [montoCredito, gastosAdm, indGastosAdm])
 
   const elegirCliente = (id: number, label: string) => {
     setPersonaId(id)
@@ -499,7 +523,7 @@ export function CreditoPrendarioNuevoPage() {
                 checked={indCentralRiesgo}
                 onChange={(e) => setIndCentralRiesgo(e.target.checked)}
               >
-                Incluir central de riesgo
+                Incluir central de riesgo al trámite
               </Checkbox>
             </div>
           </Col>
@@ -579,15 +603,16 @@ export function CreditoPrendarioNuevoPage() {
             />
           </Col>
         </Row>
-        {montoCredito != null && montoCredito > 0 ? (
+        {montoDesembolsar != null ? (
           <Paragraph style={{ marginTop: 12, marginBottom: 4 }}>
             <Text strong style={{ color: 'var(--credix-primary, #1677ff)' }}>
-              Monto a desembolsar:{' '}
-              {formatMoney(montoCredito - (indCentralRiesgo ? gastosAdm ?? 0 : 0))}
+              Monto a desembolsar: {formatMoney(montoDesembolsar)}
             </Text>
-            {indCentralRiesgo ? (
-              <Text type="secondary"> (monto − trámite adm. si incluye central de riesgo)</Text>
-            ) : null}
+            <Text type="secondary">
+              {' '}
+              (con ADE = monto del crédito; el trámite adm. se cobra aparte
+              {indCentralRiesgo ? ', con cargo de central de riesgo' : ''})
+            </Text>
           </Paragraph>
         ) : null}
         <Paragraph type="secondary" style={{ marginTop: 8, marginBottom: 4 }}>

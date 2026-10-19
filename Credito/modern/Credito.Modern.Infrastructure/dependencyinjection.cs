@@ -174,6 +174,7 @@ public static class DependencyInjection
         services.AddScoped<ICreditoAnulacionReadService, CreditoAnulacionReadService>();
         services.AddScoped<ICreditoScopeReadService, CreditoScopeReadService>();
         services.AddScoped<ICreditoSolicitudWriteService, CreditoSolicitudWriteService>();
+        services.AddScoped<IGastosAdmReadService, GastosAdmReadService>();
         services.AddScoped<ICajaDiarioOficinaReadService, CajaDiarioOficinaReadService>();
         services.AddScoped<ICompletarImpagosValidacionReadService, CompletarImpagosValidacionReadService>();
         services.AddScoped<ICompletarImpagosWriteService, CompletarImpagosWriteService>();

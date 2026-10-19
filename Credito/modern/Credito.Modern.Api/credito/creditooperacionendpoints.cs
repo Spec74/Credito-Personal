@@ -94,7 +94,63 @@ internal static class CreditoOperacionEndpoints
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
+        app.MapGet(
+                "/api/v1/credito/calcular-gastos-adm",
+                async Task<Results<Ok<CalcularGastosAdmResponse>, ProblemHttpResult>> (
+                    decimal monto,
+                    bool incluyeCentralRiesgo,
+                    IGastosAdmReadService gastosAdm,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (monto <= 0)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "monto debe ser mayor a cero.");
+                    }
 
+                    var log = loggerFactory.CreateLogger("CalcularGastosAdm");
+                    try
+                    {
+                        var valor = await gastosAdm
+                            .CalcularAsync(monto, incluyeCentralRiesgo, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(new CalcularGastosAdmResponse(valor));
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error al calcular gastos administrativos");
+                        var detail = "No se pudo calcular el trámite administrativo.";
+                        if (env.IsDevelopment())
+                            detail += $" Detalle: {ex.Message}";
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("CalcularGastosAdm")
+            .WithSummary(
+                "Paridad CreditoController.CalcularGastosAdm / GastosAdmBL: tabla CREDITO.GastosAdm. "
+                + "incluyeCentralRiesgo=false omite filas Ind=1. No define el monto a desembolsar "
+                + "(con ADE el desembolso es el monto del crédito completo).")
+            .WithTags("credito")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .Produces<CalcularGastosAdmResponse>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
         app.MapGet(
                 "/api/v1/credito/tiene-cxc-pendiente",

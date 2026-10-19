@@ -45,6 +45,7 @@ import {
   type CredixStatItem,
 } from '../../components/credix'
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
+import { calcularGastosAdm } from '../../api/gastosAdm'
 import { fetchProductos } from '../../api/productos'
 import { consultarDniApiPeru, consultarRucApiPeru } from '../../api/apiperu'
 import { ApiError } from '../../api/errors'
@@ -498,11 +499,21 @@ export function SimuladorCreditoPage() {
   })
 
   useEffect(() => {
-    if (typeof montoActual !== 'number' || !Number.isFinite(montoActual)) return
-    // Si vino gastosAdm desde Nuevo, no pisar el valor capturado ahí.
-    if (prefillDesdeNuevo && searchParams.has('gastosAdm')) return
-    form.setFieldValue('gastosAdm', Number((montoActual * 0.01).toFixed(2)))
-  }, [form, montoActual, prefillDesdeNuevo, searchParams])
+    if (typeof montoActual !== 'number' || !Number.isFinite(montoActual) || montoActual <= 0) {
+      return
+    }
+    let cancelled = false
+    void calcularGastosAdm(montoActual, indCentralRiesgo)
+      .then((r) => {
+        if (!cancelled) form.setFieldValue('gastosAdm', r.gastosAdm)
+      })
+      .catch(() => {
+        /* conservar valor actual del form si falla la API */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [form, montoActual, indCentralRiesgo])
 
   useEffect(() => {
     if (!productoSeleccionado) return
@@ -1488,7 +1499,7 @@ export function SimuladorCreditoPage() {
             checked={indCentralRiesgo}
             onChange={(e) => setIndCentralRiesgo(e.target.checked)}
           >
-            Incluir en central de riesgo
+            Incluir central de riesgo al trámite
           </Checkbox>
           <Button
             type="primary"
