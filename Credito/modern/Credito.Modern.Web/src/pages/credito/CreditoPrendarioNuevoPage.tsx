@@ -128,14 +128,9 @@ export function CreditoPrendarioNuevoPage() {
     }
   }, [montoCredito, indCentralRiesgo])
 
-  const montoDesembolsar = useMemo(() => {
-    if (montoCredito == null || !(montoCredito > 0)) return null
-    // Solo CAP descuenta trámite del desembolso; prendario usa ADE (pago adelantado).
-    if (indGastosAdm === 'CAP') {
-      return Math.max(0, montoCredito - (gastosAdm ?? 0))
-    }
-    return montoCredito
-  }, [montoCredito, gastosAdm, indGastosAdm])
+  // Prendario usa ADE: el desembolso es el monto del crédito (CAP restaría el trámite; no aplica aquí).
+  const montoDesembolsar =
+    montoCredito != null && montoCredito > 0 ? montoCredito : null
 
   const elegirCliente = (id: number, label: string) => {
     setPersonaId(id)
