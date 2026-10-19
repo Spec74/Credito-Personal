@@ -4,6 +4,35 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-17 — Dos WSULCA activos: login “configuración incompleta”
+
+**Síntoma:** login con `wsulca` / Pichari devolvía 503 “configuración incompleta”.
+En admin había #1038 y #1039 ambos `WSULCA` activos en la misma oficina.
+
+**Causa:** `QuerySingleOrDefault` sobre `Usuario`+`UsuarioOficina` lanzaba
+`InvalidOperationException` (“más de un elemento”); el endpoint lo mapeaba al
+mensaje genérico de cadena SQL no configurada.
+
+**Corrección:** login detecta ambigüedad → 409 con texto claro; admin bloquea
+guardar `NombreUsuario` activo duplicado. Datos: script
+`deploy/sql/2026-10-17-fix-nombreusuario-duplicado-wsulca.sql` (renombrar/desactivar #1038).
+
+### 2026-10-17 — Header con roles JWT obsoletos + NombreUsuario tipado
+
+**Síntoma:** en admin, usuario #1038 solo tiene ANALISTA en Pichari, pero el shell
+mostraba tags ADMINISTRADOR/ANALISTA/CAJA y menú amplio. El header decía `wsulca`
+mientras en ficha `NombreUsuario = CREDITO_E2E_USER`.
+
+**Causa:** (1) `GET /auth/me` devolvía roles del **access JWT** emitidos al login
+(no relectura de `MAESTRO.UsuarioRol`); (2) el nombre del header salía de
+`sessionStorage` con el texto tipado en el login, no de `MAESTRO.Usuario.NombreUsuario`
+(p. ej. renombrado a `CREDITO_E2E_USER` para E2E). El menú sí sale de
+`usp_MenuLst` por UsuarioRol; los tags/ACL de rol en shell no.
+
+**Corrección:** `/auth/me` lee NombreUsuario, oficina y roles vivos; al cargar
+sesión la SPA hace refresh JWT (roles actualizados) y pinta el nombre desde `/me`.
+Si tras logout el login `wsulca` falla, restaurar `NombreUsuario` en ficha admin.
+
 ### 2026-10-17 — Roles “desaparecen” al editar usuario multisucursal
 
 **Confusión de negocio:** usuario con sede Pichari entra con menú de ADMINISTRADOR;

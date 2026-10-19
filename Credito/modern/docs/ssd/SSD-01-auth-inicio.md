@@ -62,7 +62,7 @@ La verificación de clave es en C# (`UsuarioPasswordHasher` / `UsuarioPasswordHa
 |---------------|----------|----------|
 | `POST /api/v1/auth/login` | Anónimo + rate limit `auth-login` | `/login` |
 | `POST /api/v1/auth/refresh` | Anónimo + rate limit `auth-refresh` (cuerpo = refresh JWT) | Sesión |
-| `GET /api/v1/auth/me` | `CreditoUser` | Shell |
+| `GET /api/v1/auth/me` | `CreditoUser` | Shell (roles + `nombreUsuario` vivos desde MAESTRO; ids del JWT) |
 | `GET /api/v1/menu` | Sin política JWT; Bearer o query si `Menu:PermiteParametrosQuery` | Shell |
 | `GET /api/v1/oficinas` | Anónimo (combo del login) | `/login` |
 | `GET /api/v1/database-time` | Anónimo (`usp_FechaBD`) | Reloj |
@@ -74,6 +74,7 @@ La verificación de clave es en C# (`UsuarioPasswordHasher` / `UsuarioPasswordHa
 ## 6. Seguridad
 
 - Claims `vendix:usuario_id`, `vendix:oficina_id`, `vendix:usuario_oficina_id`, roles `ClaimTypes.Role`.
+- `/auth/me` y el refresh releen `MAESTRO.UsuarioRol` / `NombreUsuario` para no mostrar roles o login tipado obsoletos.
 - Tableros acotados a la oficina del JWT (no compañía).
 - Token WhatsApp / ApiPerú / JWT signing key fuera de Git.
 - `Hosting:AllowDevToken` solo Development.
@@ -92,6 +93,7 @@ La verificación de clave es en C# (`UsuarioPasswordHasher` / `UsuarioPasswordHa
 
 ## 8. Desviaciones
 
+- 2026-10-17 — `/auth/me` roles JWT obsoletos + nombre tipado vs `NombreUsuario` ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
 - 2026-09-10 — tableros Inicio acotados a oficina JWT ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
 - 2026-09-09 — `menutree` duplicado / iconos
 

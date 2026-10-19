@@ -24,6 +24,9 @@ export interface AuthMeResponse {
   oficinaId: number
   usuarioOficinaId: number | null
   roles: string[]
+  /** NombreUsuario actual en MAESTRO (no el texto tipado en el login). */
+  nombreUsuario?: string | null
+  oficinaDenominacion?: string | null
 }
 
 export interface RefreshRequest {
@@ -135,6 +138,8 @@ export interface SessionInfo {
   oficinaId: number
   usuarioOficinaId: number
   roles: string[]
+  nombreUsuario?: string | null
+  oficinaDenominacion?: string | null
 }
 
 export interface CajaDiarioVentaRapida {

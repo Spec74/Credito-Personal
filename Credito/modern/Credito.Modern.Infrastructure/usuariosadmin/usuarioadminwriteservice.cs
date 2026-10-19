@@ -49,6 +49,25 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
             return new MaestroOperacionResponse(false, null, "Ya existe un usuario con ese DNI.");
         }
 
+        var loginDuplicado = await c.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT COUNT(1)
+                FROM MAESTRO.Usuario AS u
+                WHERE UPPER(LTRIM(RTRIM(u.NombreUsuario))) = @NombreUsuario
+                  AND u.Estado = CAST(1 AS bit)
+                  AND (@UsuarioId < 1 OR u.UsuarioId <> @UsuarioId);
+                """,
+                new { NombreUsuario = nombreUsuario, request.UsuarioId },
+                cancellationToken: ct)).ConfigureAwait(false);
+        if (loginDuplicado > 0)
+        {
+            return new MaestroOperacionResponse(
+                false,
+                null,
+                $"Ya existe un usuario activo con el nombre de usuario «{nombreUsuario}». Elija otro o desactive el duplicado.");
+        }
+
         var actualizarClave = !string.IsNullOrWhiteSpace(request.ClaveUsuario)
             && !string.Equals(request.ClaveUsuario, "********", StringComparison.Ordinal);
         string? claveAlmacenar = null;

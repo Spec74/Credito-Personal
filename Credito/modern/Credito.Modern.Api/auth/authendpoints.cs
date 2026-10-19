@@ -171,6 +171,19 @@ internal static class AuthEndpoints
                         detail: "El cliente no está autorizado (MAESTRO.Acceso), igual que en el login MVC con tk inválido.");
                 }
 
+                if (outcome.Status == LegacyLoginStatus.NombreUsuarioAmbiguo)
+                {
+                    log.LogWarning(
+                        "Login ambiguo: varios MAESTRO.Usuario activos con NombreUsuario={NombreUsuario} OficinaId={OficinaId}.",
+                        body.NombreUsuario?.Trim() ?? string.Empty,
+                        body.OficinaId);
+                    return TypedResults.Problem(
+                        statusCode: StatusCodes.Status409Conflict,
+                        title: "Usuario duplicado",
+                        detail:
+                        "Hay más de un usuario activo con ese nombre de usuario en la oficina. Un administrador debe renombrar o desactivar el duplicado en Seguridad → Usuario.");
+                }
+
                 if (outcome.Status != LegacyLoginStatus.Success)
                 {
                     log.LogWarning(
@@ -231,6 +244,7 @@ internal static class AuthEndpoints
         .ProducesProblem(StatusCodes.Status400BadRequest)
         .ProducesProblem(StatusCodes.Status401Unauthorized)
         .ProducesProblem(StatusCodes.Status403Forbidden)
+        .ProducesProblem(StatusCodes.Status409Conflict)
         .ProducesProblem(StatusCodes.Status429TooManyRequests)
         .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
@@ -373,8 +387,14 @@ internal static class AuthEndpoints
 
         app.MapGet(
                 "/api/v1/auth/me",
-                async Task<Results<Ok<AuthMeResponse>, ProblemHttpResult>> (HttpContext httpContext) =>
+                async Task<Results<Ok<AuthMeResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    ILegacyLoginService loginService,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
                 {
+                    var log = loggerFactory.CreateLogger("AuthMe");
                     var user = httpContext.User;
                     var u = user.FindFirst(VendixClaims.UsuarioId)?.Value;
                     var o = user.FindFirst(VendixClaims.OficinaId)?.Value;
@@ -398,20 +418,56 @@ internal static class AuthEndpoints
                         usuarioOficinaId = uoi;
                     }
 
-                    var roles = user
+                    // Fallback: claims del access JWT (pueden estar obsoletos tras cambiar roles/NombreUsuario).
+                    var jwtRoles = user
                         .FindAll(ClaimTypes.Role)
                         .Select(static c => c.Value)
                         .Distinct(StringComparer.OrdinalIgnoreCase)
                         .OrderBy(static r => r, StringComparer.OrdinalIgnoreCase)
                         .ToList();
-                    return TypedResults.Ok(new AuthMeResponse(usuarioId, oficinaId, usuarioOficinaId, roles));
+
+                    try
+                    {
+                        var profile = await loginService
+                            .GetSessionProfileAsync(usuarioId, oficinaId, ct)
+                            .ConfigureAwait(false);
+                        if (profile is not null)
+                        {
+                            return TypedResults.Ok(
+                                new AuthMeResponse(
+                                    usuarioId,
+                                    oficinaId,
+                                    usuarioOficinaId,
+                                    profile.Roles,
+                                    profile.NombreUsuario,
+                                    profile.OficinaDenominacion));
+                        }
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "AuthMe sin cadena SQL; se usan roles del JWT");
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "AuthMe no pudo leer perfil en SQL; se usan roles del JWT");
+                        if (env.IsDevelopment())
+                        {
+                            return TypedResults.Problem(
+                                detail: $"No se pudo leer perfil de sesión: {ex.Message}",
+                                statusCode: StatusCodes.Status503ServiceUnavailable,
+                                title: "Error de base de datos");
+                        }
+                    }
+
+                    return TypedResults.Ok(new AuthMeResponse(usuarioId, oficinaId, usuarioOficinaId, jwtRoles));
                 })
             .WithName("AuthMe")
             .WithTags("auth")
-            .WithSummary("Devuelve usuario, oficina y roles del access JWT actual.")
+            .WithSummary("Identidad de sesión: ids JWT + NombreUsuario/roles/oficina vivos desde MAESTRO.")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<AuthMeResponse>(StatusCodes.Status200OK, "application/json")
-            .ProducesProblem(StatusCodes.Status401Unauthorized);
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
         var hostingForDevToken = app.Configuration.GetSection(HostingPipelineOptions.SectionName).Get<HostingPipelineOptions>() ?? new();
         // AllowDevToken=false en Production/PreProduction (y appsettings.json).

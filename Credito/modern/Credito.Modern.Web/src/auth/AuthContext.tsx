@@ -7,32 +7,49 @@ import {
 } from 'react'
 import { fetchMe, login as apiLogin } from '../api/auth'
 import { refreshSessionTokens } from '../api/client'
-import type { LoginRequest, SessionInfo } from '../types/api'
+import type { AuthMeResponse, LoginRequest, SessionInfo } from '../types/api'
 import {
   clearTokens,
   getAccessExpiresAt,
   hasStoredSession,
   saveTokens,
 } from './tokenStorage'
-import { clearLoginProfile } from './sessionProfile'
+import { clearLoginProfile, getLoginProfile, saveLoginProfile } from './sessionProfile'
 import {
   readRequiereCambioClave,
   writeRequiereCambioClave,
 } from './passwordChangeGate'
 import { AuthContext, type AuthContextValue } from './authStore'
 
+function sessionFromMe(me: AuthMeResponse, fallbackUsuarioOficinaId = 0): SessionInfo {
+  const nombreUsuario = me.nombreUsuario?.trim() || null
+  const oficinaDenominacion = me.oficinaDenominacion?.trim() || null
+  if (nombreUsuario || oficinaDenominacion) {
+    const prev = getLoginProfile()
+    saveLoginProfile(
+      nombreUsuario || prev.nombreUsuario || '',
+      oficinaDenominacion || prev.oficinaLabel || '',
+    )
+  }
+  return {
+    usuarioId: me.usuarioId,
+    oficinaId: me.oficinaId,
+    usuarioOficinaId: me.usuarioOficinaId ?? fallbackUsuarioOficinaId,
+    roles: me.roles ?? [],
+    nombreUsuario,
+    oficinaDenominacion,
+  }
+}
+
 async function loadSession(): Promise<SessionInfo | null> {
   if (!hasStoredSession()) {
     return null
   }
   try {
+    // Refresh alinea claims de rol del access JWT con MAESTRO.UsuarioRol.
+    await refreshSessionTokens()
     const me = await fetchMe()
-    return {
-      usuarioId: me.usuarioId,
-      oficinaId: me.oficinaId,
-      usuarioOficinaId: me.usuarioOficinaId ?? 0,
-      roles: me.roles ?? [],
-    }
+    return sessionFromMe(me)
   } catch {
     clearTokens()
     return null
@@ -116,12 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       roles: [],
     })
     const me = await fetchMe()
-    setSession({
-      usuarioId: me.usuarioId,
-      oficinaId: me.oficinaId,
-      usuarioOficinaId: me.usuarioOficinaId ?? tokens.usuarioOficinaId,
-      roles: me.roles ?? [],
-    })
+    setSession(sessionFromMe(me, tokens.usuarioOficinaId))
   }, [])
 
   const clearRequiereCambioClave = useCallback(() => {

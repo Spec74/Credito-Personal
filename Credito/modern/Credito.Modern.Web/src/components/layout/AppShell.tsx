@@ -110,8 +110,9 @@ export function AppShell() {
     staleTime: 10 * 60_000,
   })
 
+  const rolesKey = (session?.roles ?? []).join('|')
   const menuQuery = useQuery({
-    queryKey: ['menu', session?.oficinaId, session?.usuarioId],
+    queryKey: ['menu', session?.oficinaId, session?.usuarioId, rolesKey],
     queryFn: fetchMenu,
     enabled: (session?.oficinaId ?? 0) > 0 && (session?.usuarioId ?? 0) > 0,
     staleTime: 5 * 60_000,
@@ -183,6 +184,9 @@ export function AppShell() {
   }, [session, queryClient])
 
   const oficinaNombre = useMemo(() => {
+    if (session?.oficinaDenominacion?.trim()) {
+      return session.oficinaDenominacion.trim()
+    }
     if (profile.oficinaLabel) {
       return profile.oficinaLabel
     }
@@ -194,10 +198,17 @@ export function AppShell() {
       oficinasQuery.data?.find((o) => o.oficinaId === id)?.denominacion ??
       `Oficina ${id}`
     )
-  }, [profile.oficinaLabel, session?.oficinaId, oficinasQuery.data])
+  }, [
+    session?.oficinaDenominacion,
+    profile.oficinaLabel,
+    session?.oficinaId,
+    oficinasQuery.data,
+  ])
 
   const usuarioNombre =
-    profile.nombreUsuario ?? (session ? `Usuario ${session.usuarioId}` : '')
+    session?.nombreUsuario?.trim() ||
+    profile.nombreUsuario ||
+    (session ? `Usuario ${session.usuarioId}` : '')
 
   const menuItems = useMemo(() => {
     const base = buildAntMenuItems(navigationMenuData)

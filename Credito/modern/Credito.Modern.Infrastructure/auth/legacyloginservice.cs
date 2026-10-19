@@ -26,7 +26,7 @@ public sealed class LegacyLoginService(
                u.ClaveUsuario AS ClaveAlmacenada
         FROM MAESTRO.UsuarioOficina AS uo
         INNER JOIN MAESTRO.Usuario AS u ON u.UsuarioId = uo.UsuarioId
-        WHERE u.NombreUsuario = @NombreUsuario
+        WHERE UPPER(LTRIM(RTRIM(u.NombreUsuario))) = @NombreUsuario
           AND uo.OficinaId = @OficinaId
           AND uo.Estado = CAST(1 AS bit)
           AND u.Estado = CAST(1 AS bit);
@@ -49,6 +49,15 @@ public sealed class LegacyLoginService(
         ORDER BY r.Denominacion;
         """;
 
+    private const string SqlSessionProfile = """
+        SELECT u.NombreUsuario,
+               o.Denominacion AS OficinaDenominacion
+        FROM MAESTRO.Usuario AS u
+        LEFT JOIN MAESTRO.Oficina AS o ON o.OficinaId = @OficinaId
+        WHERE u.UsuarioId = @UsuarioId
+          AND u.Estado = CAST(1 AS bit);
+        """;
+
     private readonly string _connectionString = sqlOptions.Value.ConnectionString;
     private readonly AuthOptions _auth = authOptions.Value;
 
@@ -60,7 +69,7 @@ public sealed class LegacyLoginService(
                 "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
         }
 
-        var nombreUsuario = (request.NombreUsuario ?? string.Empty).Trim();
+        var nombreUsuario = (request.NombreUsuario ?? string.Empty).Trim().ToUpperInvariant();
         var clave = request.Clave ?? string.Empty;
         var oficinaId = request.OficinaId;
         var clienteAcceso = request.ClienteAcceso?.Trim();
@@ -94,13 +103,26 @@ public sealed class LegacyLoginService(
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        var row = await connection.QuerySingleOrDefaultAsync<UsuarioOficinaRow>(
-                new CommandDefinition(
-                    SqlUsuarioOficina,
-                    new { NombreUsuario = nombreUsuario, OficinaId = oficinaId },
-                    cancellationToken: cancellationToken))
-            .ConfigureAwait(false);
+        var candidatos = (await connection.QueryAsync<UsuarioOficinaRow>(
+                    new CommandDefinition(
+                        SqlUsuarioOficina,
+                        new { NombreUsuario = nombreUsuario, OficinaId = oficinaId },
+                        cancellationToken: cancellationToken))
+                .ConfigureAwait(false))
+            .ToList();
 
+        if (candidatos.Count > 1)
+        {
+            logger.LogWarning(
+                "Login ambiguo: {Count} usuarios activos con NombreUsuario={NombreUsuario} en OficinaId={OficinaId} (UsuarioId: {Ids}).",
+                candidatos.Count,
+                nombreUsuario,
+                oficinaId,
+                string.Join(',', candidatos.Select(static r => r.UsuarioId)));
+            return new LegacyLoginOutcome(LegacyLoginStatus.NombreUsuarioAmbiguo, 0, 0, 0, []);
+        }
+
+        var row = candidatos.Count == 1 ? candidatos[0] : null;
         if (row is null || string.IsNullOrEmpty(row.ClaveAlmacenada))
         {
             return new LegacyLoginOutcome(LegacyLoginStatus.CredencialesInvalidas, 0, 0, 0, []);
@@ -173,6 +195,44 @@ public sealed class LegacyLoginService(
         return await LoadRolesAsync(connection, usuarioId, oficinaId, cancellationToken).ConfigureAwait(false);
     }
 
+    public async Task<AuthSessionProfile?> GetSessionProfileAsync(
+        int usuarioId,
+        int oficinaId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(_connectionString))
+        {
+            throw new InvalidOperationException(
+                "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
+        }
+
+        if (usuarioId < 1 || oficinaId < 1)
+        {
+            return null;
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var row = await connection.QuerySingleOrDefaultAsync<SessionProfileRow>(
+                new CommandDefinition(
+                    SqlSessionProfile,
+                    new { UsuarioId = usuarioId, OficinaId = oficinaId },
+                    cancellationToken: cancellationToken))
+            .ConfigureAwait(false);
+
+        if (row is null || string.IsNullOrWhiteSpace(row.NombreUsuario))
+        {
+            return null;
+        }
+
+        var roles = await LoadRolesAsync(connection, usuarioId, oficinaId, cancellationToken).ConfigureAwait(false);
+        return new AuthSessionProfile(
+            row.NombreUsuario.Trim(),
+            string.IsNullOrWhiteSpace(row.OficinaDenominacion) ? null : row.OficinaDenominacion.Trim(),
+            roles);
+    }
+
     private static async Task<IReadOnlyList<string>> LoadRolesAsync(
         SqlConnection connection,
         int usuarioId,
@@ -194,6 +254,8 @@ public sealed class LegacyLoginService(
     }
 
     private sealed record UsuarioOficinaRow(int UsuarioId, int OficinaId, int UsuarioOficinaId, string? ClaveAlmacenada);
+
+    private sealed record SessionProfileRow(string NombreUsuario, string? OficinaDenominacion);
 
     private static bool IsClaveUsuarioColumnTruncate(Exception ex)
     {
