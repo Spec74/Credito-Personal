@@ -300,12 +300,47 @@ export function CreditoPrendarioNuevoPage() {
   })
 
   const tasacion = useMemo(() => totalTasacion(prendas), [prendas])
+  const errorMontoVsTasacion = useMemo(() => {
+    if (montoCredito == null) return null
+    if (!(tasacion > 0) && !(montoCredito > 0)) return null
+    return validarMontoVsTasacion(montoCredito, tasacion)
+  }, [montoCredito, tasacion])
+  const errorInteres = useMemo(() => {
+    if (interesMensual == null || !productoPrendario) return null
+    const min = productoPrendario.interesMinima
+    const max = productoPrendario.interesMaxima
+    if (interesMensual < min || interesMensual > max) {
+      return `El interés debe estar entre ${min.toFixed(2)}% y ${max.toFixed(2)}%`
+    }
+    return null
+  }, [interesMensual, productoPrendario])
+  const bienesListos = useMemo(() => validarPrendasForm(prendas).ok, [prendas])
+  const puedeContinuar =
+    personaId != null &&
+    oficinaId > 0 &&
+    bienesListos &&
+    montoCredito != null &&
+    montoCredito > 0 &&
+    !errorMontoVsTasacion &&
+    interesMensual != null &&
+    interesMensual >= 0 &&
+    !errorInteres &&
+    Boolean(fechaPrimerPago?.trim()) &&
+    gastosAdm != null &&
+    gastosAdm >= 0
+
   const stats: CredixStatItem[] = []
   if (personaId) {
     stats.push({ label: 'Cliente', value: clienteLabel || `Persona #${personaId}` })
   }
   if (tasacion > 0) {
     stats.push({ label: 'Tasación', value: formatMoney(tasacion), tone: 'green' })
+  }
+  if (montoCredito != null && montoCredito > 0 && !errorMontoVsTasacion) {
+    stats.push({
+      label: 'Cupo usado',
+      value: `${((montoCredito / Math.max(tasacion, 1)) * 100).toFixed(0)}%`,
+    })
   }
 
   return (
@@ -528,11 +563,28 @@ export function CreditoPrendarioNuevoPage() {
               style={{ width: '100%', marginTop: 4 }}
               min={1}
               step={10}
+              max={tasacion > 0 ? tasacion : undefined}
               disabled={!personaId}
+              status={errorMontoVsTasacion ? 'error' : undefined}
               value={montoCredito}
               onChange={(v) => setMontoCredito(v)}
               prefix="S/"
             />
+            {tasacion > 0 ? (
+              <Text
+                type={errorMontoVsTasacion ? 'danger' : 'secondary'}
+                style={{ display: 'block', marginTop: 4, fontSize: 12 }}
+              >
+                Máximo por tasación: {formatMoney(tasacion)}
+                {montoCredito != null && montoCredito > 0 && !errorMontoVsTasacion
+                  ? ` · queda ${formatMoney(Math.max(0, tasacion - montoCredito))}`
+                  : null}
+              </Text>
+            ) : personaId ? (
+              <Text type="secondary" style={{ display: 'block', marginTop: 4, fontSize: 12 }}>
+                Registre al menos un bien con tasación para habilitar el monto.
+              </Text>
+            ) : null}
           </Col>
           <Col xs={24} sm={12} md={8}>
             <Text type="secondary">Número de cuotas</Text>
@@ -568,13 +620,19 @@ export function CreditoPrendarioNuevoPage() {
             </Text>
             <InputNumber
               style={{ width: '100%', marginTop: 4 }}
-              min={0}
-              max={100}
+              min={productoPrendario?.interesMinima ?? 0}
+              max={productoPrendario?.interesMaxima ?? 100}
               step={0.1}
               disabled={!personaId}
+              status={errorInteres ? 'error' : undefined}
               value={interesMensual}
               onChange={(v) => setInteresMensual(v)}
             />
+            {errorInteres ? (
+              <Text type="danger" style={{ display: 'block', marginTop: 4, fontSize: 12 }}>
+                {errorInteres}
+              </Text>
+            ) : null}
           </Col>
           <Col xs={24} sm={12} md={8}>
             <Text type="secondary">Primer pago</Text>
@@ -598,7 +656,30 @@ export function CreditoPrendarioNuevoPage() {
             />
           </Col>
         </Row>
-        {montoDesembolsar != null ? (
+        {errorMontoVsTasacion ? (
+          <Alert
+            type="error"
+            showIcon
+            style={{ marginTop: 12 }}
+            message="Monto mayor que la tasación"
+            description={
+              <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                <Text>{errorMontoVsTasacion}</Text>
+                {tasacion > 0 ? (
+                  <Button
+                    size="small"
+                    type="primary"
+                    ghost
+                    onClick={() => setMontoCredito(Number(tasacion.toFixed(2)))}
+                  >
+                    Ajustar monto a la tasación ({formatMoney(tasacion)})
+                  </Button>
+                ) : null}
+              </Space>
+            }
+          />
+        ) : null}
+        {montoDesembolsar != null && !errorMontoVsTasacion ? (
           <Paragraph style={{ marginTop: 12, marginBottom: 4 }}>
             <Text strong style={{ color: 'var(--credix-primary, #1677ff)' }}>
               Monto a desembolsar: {formatMoney(montoDesembolsar)}
@@ -614,10 +695,29 @@ export function CreditoPrendarioNuevoPage() {
           Modalidad prendaria fija: mensual · 1 cuota. Al continuar se crea la solicitud con los
           bienes (ya no editables) y se abre el simulador con estos datos para confirmar el plan.
         </Paragraph>
+        {!puedeContinuar && personaId ? (
+          <Alert
+            type="warning"
+            showIcon
+            style={{ marginBottom: 12 }}
+            message="Complete lo pendiente para continuar"
+            description={
+              !bienesListos
+                ? 'Agregue al menos un bien con descripción y tasación mayor a cero.'
+                : errorMontoVsTasacion
+                  ? 'Corrija el monto del crédito respecto a la tasación.'
+                  : errorInteres
+                    ? errorInteres
+                    : !fechaPrimerPago?.trim()
+                      ? 'Indique la fecha del primer pago.'
+                      : 'Revise monto, interés y trámite administrativo.'
+            }
+          />
+        ) : null}
         <Button
           type="primary"
           icon={<FileAddOutlined />}
-          disabled={!personaId || oficinaId < 1}
+          disabled={!puedeContinuar}
           loading={crear.isPending}
           onClick={() => crear.mutate()}
         >

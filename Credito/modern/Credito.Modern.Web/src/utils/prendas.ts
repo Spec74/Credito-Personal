@@ -160,7 +160,12 @@ export function validarMontoVsTasacion(montoCredito: number, montoTasacion: numb
     return 'Debe registrar bienes con tasación antes de continuar'
   }
   if (montoCredito > montoTasacion) {
-    return `El monto del crédito no puede superar la tasación (S/ ${montoTasacion.toFixed(2)})`
+    const exceso = montoCredito - montoTasacion
+    return (
+      `El monto solicitado (S/ ${montoCredito.toFixed(2)}) supera la tasación total ` +
+      `(S/ ${montoTasacion.toFixed(2)}) en S/ ${exceso.toFixed(2)}. ` +
+      `Baje el monto o aumente la tasación de los bienes.`
+    )
   }
   return null
 }
