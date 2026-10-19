@@ -308,12 +308,17 @@ export function SimuladorCreditoPage() {
     }
   }, [productoFromUrl, productoId])
 
-  /** Originación prendaria (P-02): monto e interés capturados en /prendario/nuevo. */
+  /** Originación prendaria: campos capturados en /prendario/nuevo (paridad Gestionar). */
+  const prefillDesdeNuevo = productoFromUrl === 2 && searchParams.has('monto')
   useEffect(() => {
     if (productoFromUrl !== 2) return
+    const patch: Record<string, unknown> = {}
     const montoRaw = searchParams.get('monto')
     const interesRaw = searchParams.get('interesMensual')
-    const patch: { monto?: number; interesMensual?: number } = {}
+    const cuotasRaw = searchParams.get('nroCuotas')
+    const formaRaw = searchParams.get('formaPago')
+    const fechaRaw = searchParams.get('fechaPrimerPago')
+    const gastosRaw = searchParams.get('gastosAdm')
     if (montoRaw) {
       const monto = Number(montoRaw)
       if (Number.isFinite(monto) && monto > 0) patch.monto = monto
@@ -321,6 +326,27 @@ export function SimuladorCreditoPage() {
     if (interesRaw) {
       const interes = Number(interesRaw)
       if (Number.isFinite(interes) && interes >= 0) patch.interesMensual = interes
+    }
+    if (cuotasRaw) {
+      const n = Number(cuotasRaw)
+      if (Number.isFinite(n) && n >= 1) patch.nroCuotas = n
+    }
+    if (formaRaw?.trim()) {
+      patch.formaPago = formaRaw.trim().toUpperCase()
+    } else if (montoRaw) {
+      patch.formaPago = 'M'
+      patch.nroCuotas = patch.nroCuotas ?? 1
+    }
+    if (fechaRaw?.trim()) {
+      patch.fechaPrimerPago = fechaRaw.trim().slice(0, 10)
+    }
+    if (gastosRaw) {
+      const g = Number(gastosRaw)
+      if (Number.isFinite(g) && g >= 0) patch.gastosAdm = g
+    }
+    const cr = searchParams.get('indCentralRiesgo')
+    if (cr === '0' || cr === '1') {
+      setIndCentralRiesgo(cr === '1')
     }
     if (Object.keys(patch).length === 0) return
     form.setFieldsValue(patch)
@@ -472,20 +498,33 @@ export function SimuladorCreditoPage() {
   })
 
   useEffect(() => {
-    if (typeof montoActual === 'number' && Number.isFinite(montoActual)) {
-      form.setFieldValue('gastosAdm', Number((montoActual * 0.01).toFixed(2)))
-    }
-  }, [form, montoActual])
+    if (typeof montoActual !== 'number' || !Number.isFinite(montoActual)) return
+    // Si vino gastosAdm desde Nuevo, no pisar el valor capturado ahí.
+    if (prefillDesdeNuevo && searchParams.has('gastosAdm')) return
+    form.setFieldValue('gastosAdm', Number((montoActual * 0.01).toFixed(2)))
+  }, [form, montoActual, prefillDesdeNuevo, searchParams])
 
   useEffect(() => {
     if (!productoSeleccionado) return
-    form.setFieldValue('interesMensual', productoSeleccionado.interesMaxima)
+    // Prefill desde /prendario/nuevo: no sobrescribir interés / fechas capturados.
+    if (!prefillDesdeNuevo) {
+      form.setFieldValue('interesMensual', productoSeleccionado.interesMaxima)
+    }
     if (esPrendario) {
       form.setFieldValue('formaPago', 'M')
       form.setFieldValue('nroCuotas', 1)
     }
-    form.setFieldValue('fechaPrimerPago', fechaPorModalidad(formaPagoActual, esPrendario))
-  }, [esPrendario, form, formaPagoActual, productoSeleccionado])
+    if (!(prefillDesdeNuevo && searchParams.has('fechaPrimerPago'))) {
+      form.setFieldValue('fechaPrimerPago', fechaPorModalidad(formaPagoActual, esPrendario))
+    }
+  }, [
+    esPrendario,
+    form,
+    formaPagoActual,
+    productoSeleccionado,
+    prefillDesdeNuevo,
+    searchParams,
+  ])
 
   const crearSolicitud = useMutation({
     mutationFn: async () => {

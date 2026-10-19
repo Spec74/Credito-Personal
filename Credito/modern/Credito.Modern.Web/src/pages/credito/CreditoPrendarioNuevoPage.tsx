@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   FileAddOutlined,
   FileSearchOutlined,
@@ -9,10 +9,12 @@ import {
 import {
   Alert,
   Button,
+  Checkbox,
   Col,
   Input,
   InputNumber,
   Row,
+  Select,
   Space,
   Steps,
   Typography,
@@ -20,6 +22,7 @@ import {
 } from 'antd'
 import { consultarDniApiPeru } from '../../api/apiperu'
 import { obtenerCliente, obtenerPersonaPorDocumento } from '../../api/clientes'
+import { fetchProductos } from '../../api/productos'
 import { crearSolicitudPrendaria, guardarBienesPrendario } from '../../api/prendario'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
@@ -31,6 +34,7 @@ import {
   buildSimuladorPrendarioPath,
   prendaVacia,
   totalTasacion,
+  validarMontoVsTasacion,
   validarPrendasForm,
   type PrendaCampoError,
 } from '../../utils/prendas'
@@ -42,6 +46,18 @@ import {
 } from '../../utils/internalReturnTo'
 
 const { Paragraph, Text } = Typography
+
+const IND_GASTOS_ADM = 'ADE' as const
+
+function defaultFechaPrimerPagoPrendario(): string {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  d.setMonth(d.getMonth() + 1)
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
 
 type ConsultaDni =
   | { kind: 'existente'; personaId: number; label: string }
@@ -71,9 +87,31 @@ export function CreditoPrendarioNuevoPage() {
   const [clienteLabel, setClienteLabel] = useState('')
   const [prendas, setPrendas] = useState<PrendaItem[]>([prendaVacia()])
   const [erroresPrendas, setErroresPrendas] = useState<PrendaCampoError[]>([])
-  /** Campos de crédito en la misma pantalla (plan P-02); se llevan al simulador. */
+  /** Campos de crédito (paridad Gestionar legacy / simulador); se llevan al simulador. */
   const [montoCredito, setMontoCredito] = useState<number | null>(500)
   const [interesMensual, setInteresMensual] = useState<number | null>(8)
+  const [nroCuotas] = useState(1)
+  const [formaPago] = useState('M')
+  const [gastosAdm, setGastosAdm] = useState<number | null>(5)
+  const [fechaPrimerPago, setFechaPrimerPago] = useState(defaultFechaPrimerPagoPrendario)
+  const [observacion, setObservacion] = useState('')
+  const [indCentralRiesgo, setIndCentralRiesgo] = useState(true)
+  const [indGastosAdm] = useState(IND_GASTOS_ADM)
+
+  const productosQuery = useQuery({
+    queryKey: ['productos'],
+    queryFn: fetchProductos,
+    staleTime: 10 * 60_000,
+  })
+  const productoPrendario = useMemo(
+    () => productosQuery.data?.find((p) => p.productoId === 2) ?? null,
+    [productosQuery.data],
+  )
+
+  useEffect(() => {
+    if (montoCredito == null || !(montoCredito > 0)) return
+    setGastosAdm(Number((montoCredito * 0.01).toFixed(2)))
+  }, [montoCredito])
 
   const elegirCliente = (id: number, label: string) => {
     setPersonaId(id)
@@ -185,6 +223,25 @@ export function CreditoPrendarioNuevoPage() {
       if (interesMensual == null || interesMensual < 0) {
         throw new Error('Indique el interés mensual')
       }
+      if (productoPrendario) {
+        const min = productoPrendario.interesMinima
+        const max = productoPrendario.interesMaxima
+        if (interesMensual < min || interesMensual > max) {
+          throw new Error(
+            `El interés debe estar entre ${min.toFixed(2)}% y ${max.toFixed(2)}%`,
+          )
+        }
+      }
+      const montoVsTasacion = validarMontoVsTasacion(montoCredito, totalTasacion(validacion.bienes))
+      if (montoVsTasacion) {
+        throw new Error(montoVsTasacion)
+      }
+      if (!fechaPrimerPago?.trim()) {
+        throw new Error('Indique la fecha del primer pago')
+      }
+      if (gastosAdm == null || gastosAdm < 0) {
+        throw new Error('Indique el trámite administrativo')
+      }
       const solicitud = await crearSolicitudPrendaria({ oficinaId, personaId })
       await guardarBienesPrendario({
         oficinaId,
@@ -195,11 +252,19 @@ export function CreditoPrendarioNuevoPage() {
       return {
         solicitudCreditoId: solicitud.solicitudCreditoId,
         bienes: validacion.bienes,
-        monto: montoCredito,
-        interesMensual,
+        credito: {
+          monto: montoCredito,
+          interesMensual,
+          nroCuotas,
+          formaPago,
+          fechaPrimerPago: fechaPrimerPago.trim().slice(0, 10),
+          gastosAdm,
+          observacion: observacion.trim() || null,
+          indCentralRiesgo,
+        },
       }
     },
-    onSuccess: ({ solicitudCreditoId, bienes, monto, interesMensual: interes }) => {
+    onSuccess: ({ solicitudCreditoId, bienes, credito }) => {
       setErroresPrendas([])
       message.success(`Solicitud prendaria #${solicitudCreditoId} creada`)
       if (!personaId) return
@@ -208,8 +273,7 @@ export function CreditoPrendarioNuevoPage() {
           personaId,
           solicitudCreditoId,
           prendas: bienes,
-          monto,
-          interesMensual: interes,
+          credito,
         }),
       )
     },
@@ -228,7 +292,7 @@ export function CreditoPrendarioNuevoPage() {
   return (
     <CredixPage
       title="Nuevo crédito prendario"
-      subtitle="Cliente, bienes y datos del crédito en esta pantalla. Luego simula, solicita y podrá emitir plan, acta y contrato sin volver al listado (en curso)."
+      subtitle="Cliente, bienes y plan de crédito (monto, interés, trámite, primer pago) en esta pantalla. Luego confirma la simulación y solicita; PDFs en la misma ventana siguen en curso."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -407,7 +471,39 @@ export function CreditoPrendarioNuevoPage() {
           errores={erroresPrendas}
         />
         <Row gutter={[16, 12]} style={{ marginTop: 16 }}>
-          <Col xs={24} sm={12}>
+          <Col xs={24} sm={12} md={8}>
+            <Text type="secondary">Modalidad</Text>
+            <Select
+              style={{ width: '100%', marginTop: 4 }}
+              disabled
+              value={formaPago}
+              options={[{ value: 'M', label: 'MENSUAL' }]}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Text type="secondary">Trámite administrativo</Text>
+            <Select
+              style={{ width: '100%', marginTop: 4 }}
+              disabled={!personaId}
+              value={indGastosAdm}
+              options={[
+                { value: IND_GASTOS_ADM, label: 'Trámite adm. pago adelantado (ADE)' },
+              ]}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Text type="secondary">&nbsp;</Text>
+            <div style={{ marginTop: 8 }}>
+              <Checkbox
+                disabled={!personaId}
+                checked={indCentralRiesgo}
+                onChange={(e) => setIndCentralRiesgo(e.target.checked)}
+              >
+                Incluir central de riesgo
+              </Checkbox>
+            </div>
+          </Col>
+          <Col xs={24} sm={12} md={8}>
             <Text type="secondary">Monto del crédito (S/)</Text>
             <InputNumber
               style={{ width: '100%', marginTop: 4 }}
@@ -419,8 +515,38 @@ export function CreditoPrendarioNuevoPage() {
               prefix="S/"
             />
           </Col>
-          <Col xs={24} sm={12}>
-            <Text type="secondary">Interés mensual (%)</Text>
+          <Col xs={24} sm={12} md={8}>
+            <Text type="secondary">Número de cuotas</Text>
+            <InputNumber
+              style={{ width: '100%', marginTop: 4 }}
+              min={1}
+              disabled
+              value={nroCuotas}
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Text type="secondary">Trámite adm. (S/)</Text>
+            <InputNumber
+              style={{ width: '100%', marginTop: 4 }}
+              min={0}
+              step={1}
+              disabled={!personaId}
+              value={gastosAdm}
+              onChange={(v) => setGastosAdm(v)}
+              prefix="S/"
+            />
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Text type="secondary">
+              Interés mensual (%)
+              {productoPrendario ? (
+                <Text type="secondary" style={{ fontWeight: 400 }}>
+                  {' '}
+                  (min {productoPrendario.interesMinima.toFixed(2)} · max{' '}
+                  {productoPrendario.interesMaxima.toFixed(2)})
+                </Text>
+              ) : null}
+            </Text>
             <InputNumber
               style={{ width: '100%', marginTop: 4 }}
               min={0}
@@ -431,10 +557,42 @@ export function CreditoPrendarioNuevoPage() {
               onChange={(v) => setInteresMensual(v)}
             />
           </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Text type="secondary">Primer pago</Text>
+            <Input
+              type="date"
+              style={{ width: '100%', marginTop: 4 }}
+              disabled={!personaId}
+              value={fechaPrimerPago}
+              onChange={(e) => setFechaPrimerPago(e.target.value)}
+            />
+          </Col>
+          <Col xs={24} md={16}>
+            <Text type="secondary">Observación</Text>
+            <Input
+              style={{ width: '100%', marginTop: 4 }}
+              disabled={!personaId}
+              value={observacion}
+              onChange={(e) => setObservacion(e.target.value)}
+              maxLength={200}
+              placeholder="Opcional"
+            />
+          </Col>
         </Row>
-        <Paragraph type="secondary" style={{ marginTop: 12, marginBottom: 4 }}>
-          Modalidad prendaria: mensual · 1 cuota. El primer pago y la simulación se confirman en el
-          siguiente paso; los bienes no se podrán editar después.
+        {montoCredito != null && montoCredito > 0 ? (
+          <Paragraph style={{ marginTop: 12, marginBottom: 4 }}>
+            <Text strong style={{ color: 'var(--credix-primary, #1677ff)' }}>
+              Monto a desembolsar:{' '}
+              {formatMoney(montoCredito - (indCentralRiesgo ? gastosAdm ?? 0 : 0))}
+            </Text>
+            {indCentralRiesgo ? (
+              <Text type="secondary"> (monto − trámite adm. si incluye central de riesgo)</Text>
+            ) : null}
+          </Paragraph>
+        ) : null}
+        <Paragraph type="secondary" style={{ marginTop: 8, marginBottom: 4 }}>
+          Modalidad prendaria fija: mensual · 1 cuota. Al continuar se crea la solicitud con los
+          bienes (ya no editables) y se abre el simulador con estos datos para confirmar el plan.
         </Paragraph>
         <Button
           type="primary"

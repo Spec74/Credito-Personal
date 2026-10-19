@@ -210,13 +210,28 @@ export function prendaSimuladorDesdeBienes(
   }
 }
 
+/** Prefill de crédito desde Credi Prendario → Nuevo hacia el simulador. */
+export type CreditoPrendarioPrefill = {
+  monto?: number | null
+  interesMensual?: number | null
+  nroCuotas?: number | null
+  formaPago?: string | null
+  fechaPrimerPago?: string | null
+  gastosAdm?: number | null
+  observacion?: string | null
+  indCentralRiesgo?: boolean | null
+}
+
 export function buildSimuladorPrendarioPath(opts: {
   personaId: number
   solicitudCreditoId: number
   prendas: PrendaItem[]
   fechaRemate?: string | null
-  /** Campos de crédito capturados en originación (P-02). */
+  /** Campos de crédito capturados en originación (paridad Gestionar legacy). */
+  credito?: CreditoPrendarioPrefill | null
+  /** @deprecated prefer `credito.monto` */
   monto?: number | null
+  /** @deprecated prefer `credito.interesMensual` */
   interesMensual?: number | null
 }): string {
   const q = new URLSearchParams({
@@ -233,15 +248,37 @@ export function buildSimuladorPrendarioPath(opts: {
       q.set('prendaObservacion', pre.observacion)
     }
   }
-  if (opts.monto != null && Number.isFinite(opts.monto) && opts.monto > 0) {
-    q.set('monto', String(opts.monto))
+  const c = opts.credito ?? {
+    monto: opts.monto,
+    interesMensual: opts.interesMensual,
+  }
+  if (c.monto != null && Number.isFinite(c.monto) && c.monto > 0) {
+    q.set('monto', String(c.monto))
   }
   if (
-    opts.interesMensual != null &&
-    Number.isFinite(opts.interesMensual) &&
-    opts.interesMensual >= 0
+    c.interesMensual != null &&
+    Number.isFinite(c.interesMensual) &&
+    c.interesMensual >= 0
   ) {
-    q.set('interesMensual', String(opts.interesMensual))
+    q.set('interesMensual', String(c.interesMensual))
+  }
+  if (c.nroCuotas != null && Number.isFinite(c.nroCuotas) && c.nroCuotas >= 1) {
+    q.set('nroCuotas', String(c.nroCuotas))
+  }
+  if (c.formaPago?.trim()) {
+    q.set('formaPago', c.formaPago.trim().toUpperCase())
+  }
+  if (c.fechaPrimerPago?.trim()) {
+    q.set('fechaPrimerPago', c.fechaPrimerPago.trim().slice(0, 10))
+  }
+  if (c.gastosAdm != null && Number.isFinite(c.gastosAdm) && c.gastosAdm >= 0) {
+    q.set('gastosAdm', String(c.gastosAdm))
+  }
+  if (c.observacion?.trim()) {
+    q.set('observacion', c.observacion.trim())
+  }
+  if (c.indCentralRiesgo != null) {
+    q.set('indCentralRiesgo', c.indCentralRiesgo ? '1' : '0')
   }
   return `/credito/simulador?${q.toString()}`
 }

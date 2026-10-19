@@ -74,7 +74,7 @@ Listado: solo consulta + reimpresión + WhatsApp
 | Id | Prioridad | Trabajo | Estado |
 |----|-----------|---------|--------|
 | P-01 | P1 | Documentar flujo objetivo (este plan + SSD-06) | **Hecho** |
-| P-02 | P1 | Campos de crédito en `/prendario/nuevo` + pasar a simulador | **Hecho** (monto/interés → query) |
+| P-02 | P1 | Campos de crédito en `/prendario/nuevo` + pasar a simulador | **Hecho** (monto, interés, cuotas, modalidad, trámite, 1.er pago, obs., central → query) |
 | P-03 | P2 | Unificar simular + generar + PDFs en una sola pantalla | Pendiente |
 | P-04 | P2 | Listado sin originación forzada (solo consulta/reimpresión) | Pendiente |
 | P-05 | P3 | Endpoint compuesto opcional `originar-prendario` | Opcional |
