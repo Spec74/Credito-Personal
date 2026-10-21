@@ -20,7 +20,8 @@ Modelo de intranet + campana (Workplace / Slack anuncios / BambooHR):
 
 - El gerente escribe título + texto.
 - Sube **imágenes** (jpg/png/webp, ≤ 2 MB) y **PDF** (≤ 8 MB).
-- Alcance: **toda la red** o **solo esta sede**.
+- Alcance: **todas las sedes** o **una sede elegida** (Huamanga, Pichari, Huanta, Andahuaylas). El encargado no elige: publica solo en la suya.
+- Puede **editar** título, texto, vigencia, destino y archivos, o **retirar** el aviso (deja de verse; no se borra el historial de lecturas).
 - El personal ve campana (no leídos) + bandeja `/comunicados`.
 - Marcar leído no borra el aviso. El permanente sigue en la bandeja.
 - La imagen se ve en la ficha; el PDF se descarga.

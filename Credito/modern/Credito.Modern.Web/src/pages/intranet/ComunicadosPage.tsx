@@ -87,7 +87,11 @@ export function ComunicadosPage() {
                 <strong>{c.titulo}</strong>
                 <span className="credix-comunicado-card__meta">
                   <span>{c.permanente ? 'Siempre visible' : `Hasta ${formatFecha(c.fechaFin)}`}</span>
-                  {c.alcance === 'RED' ? <span>Toda la red</span> : <span>Esta sede</span>}
+                  {c.alcance === 'RED' ? (
+                    <span>Todas las sedes</span>
+                  ) : (
+                    <span>{c.oficinaNombre?.trim() || 'Esta sede'}</span>
+                  )}
                   {c.adjuntos > 0 ? <span>{c.adjuntos} archivo{c.adjuntos === 1 ? '' : 's'}</span> : null}
                   {c.leido ? null : <span>Nuevo</span>}
                 </span>

@@ -11,20 +11,27 @@ public sealed class IntranetService(IOptions<SqlDatabaseOptions> options) : IInt
     private readonly string _cs = options.Value.ConnectionString;
 
     public Task<IReadOnlyList<ComunicadoRowDto>> ListarComunicadosAsync(
-        int oficinaId, int usuarioId, bool incluirVencidos, CancellationToken ct = default)
+        int oficinaId, int usuarioId, bool incluirVencidos, bool gestion, bool esAdmin, CancellationToken ct = default)
         => QueryList<ComunicadoRowDto>(
             "MAESTRO.usp_ComunicadoListar",
-            new { OficinaId = oficinaId, UsuarioId = usuarioId, IncluirVencidos = incluirVencidos },
+            new
+            {
+                OficinaId = oficinaId,
+                UsuarioId = usuarioId,
+                IncluirVencidos = incluirVencidos,
+                Gestion = gestion,
+                EsAdmin = esAdmin,
+            },
             ct);
 
     public async Task<(ComunicadoRowDto? Cab, IReadOnlyList<ComunicadoAdjuntoDto> Adjuntos)> ObtenerComunicadoAsync(
-        int comunicadoId, int oficinaId, int usuarioId, CancellationToken ct = default)
+        int comunicadoId, int oficinaId, int usuarioId, bool esAdmin, CancellationToken ct = default)
     {
         await using var cn = await Open(ct).ConfigureAwait(false);
         await using var multi = await cn.QueryMultipleAsync(
             new CommandDefinition(
                 "MAESTRO.usp_ComunicadoObtener",
-                new { ComunicadoId = comunicadoId, OficinaId = oficinaId, UsuarioId = usuarioId },
+                new { ComunicadoId = comunicadoId, OficinaId = oficinaId, UsuarioId = usuarioId, EsAdmin = esAdmin },
                 commandType: CommandType.StoredProcedure,
                 cancellationToken: ct)).ConfigureAwait(false);
         var cab = await multi.ReadFirstOrDefaultAsync<ComunicadoRowDto>().ConfigureAwait(false);
@@ -33,8 +40,19 @@ public sealed class IntranetService(IOptions<SqlDatabaseOptions> options) : IInt
     }
 
     public async Task<int> GuardarComunicadoAsync(
-        GuardarComunicadoRequest request, int oficinaId, int usuarioId, CancellationToken ct = default)
+        GuardarComunicadoRequest request, int oficinaId, int usuarioId, bool esAdmin, CancellationToken ct = default)
     {
+        var alcance = (request.Alcance ?? "").Trim().ToUpperInvariant();
+        var destino = oficinaId;
+        if (alcance == "RED")
+        {
+            destino = 0;
+        }
+        else if (esAdmin && request.OficinaDestinoId is > 0)
+        {
+            destino = request.OficinaDestinoId.Value;
+        }
+
         var row = await QuerySingle<IdRow>(
             "MAESTRO.usp_ComunicadoGuardar",
             new
@@ -42,8 +60,8 @@ public sealed class IntranetService(IOptions<SqlDatabaseOptions> options) : IInt
                 request.ComunicadoId,
                 request.Titulo,
                 request.Cuerpo,
-                request.Alcance,
-                OficinaId = oficinaId,
+                Alcance = alcance,
+                OficinaId = destino,
                 request.FechaIni,
                 request.FechaFin,
                 UsuarioId = usuarioId,
@@ -52,8 +70,12 @@ public sealed class IntranetService(IOptions<SqlDatabaseOptions> options) : IInt
         return row.ComunicadoId;
     }
 
-    public Task BajaComunicadoAsync(int comunicadoId, int usuarioId, CancellationToken ct = default)
-        => Exec("MAESTRO.usp_ComunicadoBaja", new { ComunicadoId = comunicadoId, UsuarioId = usuarioId }, ct);
+    public Task BajaComunicadoAsync(
+        int comunicadoId, int oficinaId, int usuarioId, bool esAdmin, CancellationToken ct = default)
+        => Exec(
+            "MAESTRO.usp_ComunicadoBaja",
+            new { ComunicadoId = comunicadoId, UsuarioId = usuarioId, OficinaId = oficinaId, EsAdmin = esAdmin },
+            ct);
 
     public Task MarcarLeidoAsync(int comunicadoId, int usuarioId, CancellationToken ct = default)
         => Exec("MAESTRO.usp_ComunicadoMarcarLeido", new { ComunicadoId = comunicadoId, UsuarioId = usuarioId }, ct);
@@ -75,10 +97,16 @@ public sealed class IntranetService(IOptions<SqlDatabaseOptions> options) : IInt
     }
 
     public Task<ComunicadoAdjuntoContenidoDto?> DescargarAdjuntoAsync(
-        int adjuntoId, int oficinaId, CancellationToken ct = default)
+        int adjuntoId, int oficinaId, bool esAdmin, CancellationToken ct = default)
         => QuerySingleOrDefault<ComunicadoAdjuntoContenidoDto>(
             "MAESTRO.usp_ComunicadoAdjuntoGet",
-            new { AdjuntoId = adjuntoId, OficinaId = oficinaId },
+            new { AdjuntoId = adjuntoId, OficinaId = oficinaId, EsAdmin = esAdmin },
+            ct);
+
+    public Task BajaAdjuntoAsync(int adjuntoId, int oficinaId, bool esAdmin, CancellationToken ct = default)
+        => Exec(
+            "MAESTRO.usp_ComunicadoAdjuntoDel",
+            new { AdjuntoId = adjuntoId, OficinaId = oficinaId, EsAdmin = esAdmin },
             ct);
 
     public Task<IReadOnlyList<AgendaEventoDto>> ListarAgendaAsync(

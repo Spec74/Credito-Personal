@@ -6,6 +6,7 @@ public sealed record ComunicadoRowDto(
     string Cuerpo,
     string Alcance,
     int? OficinaId,
+    string? OficinaNombre,
     DateTime FechaIni,
     DateTime? FechaFin,
     bool Permanente,
@@ -29,7 +30,8 @@ public sealed record GuardarComunicadoRequest(
     string Cuerpo,
     string Alcance,
     DateTime FechaIni,
-    DateTime? FechaFin);
+    DateTime? FechaFin,
+    int? OficinaDestinoId = null);
 
 public sealed record IdResponse(int Id);
 

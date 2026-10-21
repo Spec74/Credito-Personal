@@ -12,12 +12,15 @@ internal static class IntranetEndpoints
     public static void MapIntranetEndpoints(this WebApplication app)
     {
         app.MapGet("/api/v1/comunicados", async (
-            HttpContext http, bool vencidos, IIntranetService svc, ILoggerFactory log, IHostEnvironment env, CancellationToken ct) =>
+            HttpContext http, bool vencidos, bool gestion, IIntranetService svc, ILoggerFactory log, IHostEnvironment env, CancellationToken ct) =>
         {
             if (!Ids(http, out var o, out var u, out var err)) return err!;
+            PuedePublicar(http, out var admin);
+            if (gestion && !PuedePublicar(http, out _))
+                return Results.Problem(statusCode: 403, title: "Prohibido", detail: "Solo admin o encargado gestiona avisos.");
             try
             {
-                return Results.Ok(await svc.ListarComunicadosAsync(o, u, vencidos, ct));
+                return Results.Ok(await svc.ListarComunicadosAsync(o, u, vencidos, gestion, admin, ct));
             }
             catch (Exception ex) when (ex is InvalidOperationException or DbException)
             {
@@ -29,9 +32,10 @@ internal static class IntranetEndpoints
             int id, HttpContext http, IIntranetService svc, ILoggerFactory log, IHostEnvironment env, CancellationToken ct) =>
         {
             if (!Ids(http, out var o, out var u, out var err)) return err!;
+            PuedePublicar(http, out var admin);
             try
             {
-                var (cab, adj) = await svc.ObtenerComunicadoAsync(id, o, u, ct);
+                var (cab, adj) = await svc.ObtenerComunicadoAsync(id, o, u, admin, ct);
                 if (cab is null) return Results.Problem(statusCode: 404, title: "No encontrado", detail: "Aviso no disponible.");
                 return Results.Ok(new { cabecera = cab, adjuntos = adj });
             }
@@ -50,9 +54,11 @@ internal static class IntranetEndpoints
             var alcance = (body.Alcance ?? "").Trim().ToUpperInvariant();
             if (alcance == "RED" && !admin)
                 return Results.Problem(statusCode: 403, title: "Prohibido", detail: "Solo el administrador publica a toda la red.");
+            if (alcance == "OFICINA" && admin && body.OficinaDestinoId is not > 0)
+                return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: "Elija la sede donde será visible.");
             try
             {
-                var id = await svc.GuardarComunicadoAsync(body with { Alcance = alcance }, o, u, ct);
+                var id = await svc.GuardarComunicadoAsync(body with { Alcance = alcance }, o, u, admin, ct);
                 return Results.Ok(new IdResponse(id));
             }
             catch (SqlException ex)
@@ -64,11 +70,18 @@ internal static class IntranetEndpoints
         app.MapPost("/api/v1/comunicados/{id:int}/baja", async (
             int id, HttpContext http, IIntranetService svc, CancellationToken ct) =>
         {
-            if (!Ids(http, out _, out var u, out var err)) return err!;
-            if (!PuedePublicar(http, out _))
+            if (!Ids(http, out var o, out var u, out var err)) return err!;
+            if (!PuedePublicar(http, out var admin))
                 return Results.Problem(statusCode: 403, title: "Prohibido", detail: "Solo admin o encargado retira avisos.");
-            await svc.BajaComunicadoAsync(id, u, ct);
-            return Results.Ok(new IdResponse(id));
+            try
+            {
+                await svc.BajaComunicadoAsync(id, o, u, admin, ct);
+                return Results.Ok(new IdResponse(id));
+            }
+            catch (SqlException ex)
+            {
+                return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: ex.Message);
+            }
         }).RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser);
 
         app.MapPost("/api/v1/comunicados/{id:int}/leido", async (
@@ -115,10 +128,28 @@ internal static class IntranetEndpoints
             int adjuntoId, HttpContext http, IIntranetService svc, CancellationToken ct) =>
         {
             if (!Ids(http, out var o, out _, out var err)) return err!;
-            var file = await svc.DescargarAdjuntoAsync(adjuntoId, o, ct);
+            PuedePublicar(http, out var admin);
+            var file = await svc.DescargarAdjuntoAsync(adjuntoId, o, admin, ct);
             if (file is null)
                 return Results.Problem(statusCode: 404, title: "No encontrado", detail: "Archivo no disponible.");
             return Results.File(file.Contenido, file.ContentType, file.NombreOriginal);
+        }).RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser);
+
+        app.MapPost("/api/v1/comunicados/adjunto/{adjuntoId:int}/baja", async (
+            int adjuntoId, HttpContext http, IIntranetService svc, CancellationToken ct) =>
+        {
+            if (!Ids(http, out var o, out _, out var err)) return err!;
+            if (!PuedePublicar(http, out var admin))
+                return Results.Problem(statusCode: 403, title: "Prohibido", detail: "Solo admin o encargado quita archivos.");
+            try
+            {
+                await svc.BajaAdjuntoAsync(adjuntoId, o, admin, ct);
+                return Results.Ok(new IdResponse(adjuntoId));
+            }
+            catch (SqlException ex)
+            {
+                return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: ex.Message);
+            }
         }).RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser);
 
         app.MapGet("/api/v1/agenda", async (

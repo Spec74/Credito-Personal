@@ -90,7 +90,9 @@ GO
 CREATE OR ALTER PROC [MAESTRO].[usp_ComunicadoListar]
     @OficinaId int,
     @UsuarioId int,
-    @IncluirVencidos bit = 0
+    @IncluirVencidos bit = 0,
+    @Gestion bit = 0,
+    @EsAdmin bit = 0
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -102,6 +104,7 @@ BEGIN
         c.Cuerpo,
         c.Alcance,
         c.OficinaId,
+        o.Denominacion AS OficinaNombre,
         c.FechaIni,
         c.FechaFin,
         CASE WHEN c.FechaFin IS NULL THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END AS Permanente,
@@ -117,8 +120,13 @@ BEGIN
     LEFT JOIN MAESTRO.ComunicadoLectura AS l
         ON l.ComunicadoId = c.ComunicadoId AND l.UsuarioId = @UsuarioId
     LEFT JOIN MAESTRO.Usuario AS u ON u.UsuarioId = c.UsuarioRegId
+    LEFT JOIN MAESTRO.Oficina AS o ON o.OficinaId = c.OficinaId
     WHERE c.Estado = CAST(1 AS bit)
-      AND (c.Alcance = N'RED' OR c.OficinaId = @OficinaId)
+      AND (
+            (@Gestion = 1 AND @EsAdmin = 1)
+            OR c.Alcance = N'RED'
+            OR c.OficinaId = @OficinaId
+          )
       AND (
             @IncluirVencidos = 1
             OR (c.FechaIni <= @Ahora AND (c.FechaFin IS NULL OR c.FechaFin >= @Ahora))
@@ -133,10 +141,12 @@ GO
 CREATE OR ALTER PROC [MAESTRO].[usp_ComunicadoObtener]
     @ComunicadoId int,
     @OficinaId int,
-    @UsuarioId int
+    @UsuarioId int,
+    @EsAdmin bit = 0
 AS
 BEGIN
     SET NOCOUNT ON;
+    DECLARE @Ahora datetime = dbo.ufnFecha();
 
     SELECT
         c.ComunicadoId,
@@ -144,18 +154,30 @@ BEGIN
         c.Cuerpo,
         c.Alcance,
         c.OficinaId,
+        o.Denominacion AS OficinaNombre,
         c.FechaIni,
         c.FechaFin,
         CASE WHEN c.FechaFin IS NULL THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END AS Permanente,
+        CASE WHEN c.FechaIni <= @Ahora
+              AND (c.FechaFin IS NULL OR c.FechaFin >= @Ahora)
+             THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END AS Vigente,
         CASE WHEN l.UsuarioId IS NULL THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END AS Leido,
+        (SELECT COUNT(*) FROM MAESTRO.ComunicadoAdjunto a WHERE a.ComunicadoId = c.ComunicadoId) AS Adjuntos,
         c.UsuarioRegId,
+        u.NombreUsuario,
         c.FechaReg
     FROM MAESTRO.Comunicado AS c
     LEFT JOIN MAESTRO.ComunicadoLectura AS l
         ON l.ComunicadoId = c.ComunicadoId AND l.UsuarioId = @UsuarioId
+    LEFT JOIN MAESTRO.Usuario AS u ON u.UsuarioId = c.UsuarioRegId
+    LEFT JOIN MAESTRO.Oficina AS o ON o.OficinaId = c.OficinaId
     WHERE c.ComunicadoId = @ComunicadoId
       AND c.Estado = CAST(1 AS bit)
-      AND (c.Alcance = N'RED' OR c.OficinaId = @OficinaId);
+      AND (
+            @EsAdmin = 1
+            OR c.Alcance = N'RED'
+            OR c.OficinaId = @OficinaId
+          );
 
     SELECT
         a.AdjuntoId,
@@ -167,7 +189,11 @@ BEGIN
     INNER JOIN MAESTRO.Comunicado AS c ON c.ComunicadoId = a.ComunicadoId
     WHERE a.ComunicadoId = @ComunicadoId
       AND c.Estado = CAST(1 AS bit)
-      AND (c.Alcance = N'RED' OR c.OficinaId = @OficinaId);
+      AND (
+            @EsAdmin = 1
+            OR c.Alcance = N'RED'
+            OR c.OficinaId = @OficinaId
+          );
 END
 GO
 
@@ -201,7 +227,14 @@ BEGIN
 
     IF @Alcance = N'OFICINA' AND (@OficinaId IS NULL OR @OficinaId < 1)
     BEGIN
-        RAISERROR(N'La sede es obligatoria.', 16, 1);
+        RAISERROR(N'Elija la sede donde será visible el aviso.', 16, 1);
+        RETURN;
+    END;
+
+    IF @Alcance = N'OFICINA'
+       AND NOT EXISTS (SELECT 1 FROM MAESTRO.Oficina WHERE OficinaId = @OficinaId AND Estado = 1)
+    BEGIN
+        RAISERROR(N'La sede no existe o está inactiva.', 16, 1);
         RETURN;
     END;
 
@@ -251,14 +284,26 @@ GO
 
 CREATE OR ALTER PROC [MAESTRO].[usp_ComunicadoBaja]
     @ComunicadoId int,
-    @UsuarioId int
+    @UsuarioId int,
+    @OficinaId int,
+    @EsAdmin bit = 0
 AS
 BEGIN
     SET NOCOUNT ON;
     UPDATE MAESTRO.Comunicado
     SET Estado = 0
-    WHERE ComunicadoId = @ComunicadoId AND Estado = 1;
-    SELECT @@ROWCOUNT AS Filas;
+    WHERE ComunicadoId = @ComunicadoId
+      AND Estado = 1
+      AND (
+            @EsAdmin = 1
+            OR (Alcance = N'OFICINA' AND OficinaId = @OficinaId)
+          );
+    IF @@ROWCOUNT = 0
+    BEGIN
+        RAISERROR(N'No puede retirar este aviso.', 16, 1);
+        RETURN;
+    END;
+    SELECT @ComunicadoId AS ComunicadoId;
 END
 GO
 
@@ -314,7 +359,8 @@ GO
 
 CREATE OR ALTER PROC [MAESTRO].[usp_ComunicadoAdjuntoGet]
     @AdjuntoId int,
-    @OficinaId int
+    @OficinaId int,
+    @EsAdmin bit = 0
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -328,7 +374,36 @@ BEGIN
     INNER JOIN MAESTRO.Comunicado AS c ON c.ComunicadoId = a.ComunicadoId
     WHERE a.AdjuntoId = @AdjuntoId
       AND c.Estado = 1
-      AND (c.Alcance = N'RED' OR c.OficinaId = @OficinaId);
+      AND (
+            @EsAdmin = 1
+            OR c.Alcance = N'RED'
+            OR c.OficinaId = @OficinaId
+          );
+END
+GO
+
+CREATE OR ALTER PROC [MAESTRO].[usp_ComunicadoAdjuntoDel]
+    @AdjuntoId int,
+    @OficinaId int,
+    @EsAdmin bit = 0
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DELETE a
+    FROM MAESTRO.ComunicadoAdjunto AS a
+    INNER JOIN MAESTRO.Comunicado AS c ON c.ComunicadoId = a.ComunicadoId
+    WHERE a.AdjuntoId = @AdjuntoId
+      AND c.Estado = 1
+      AND (
+            @EsAdmin = 1
+            OR (c.Alcance = N'OFICINA' AND c.OficinaId = @OficinaId)
+          );
+    IF @@ROWCOUNT = 0
+    BEGIN
+        RAISERROR(N'No puede quitar este archivo.', 16, 1);
+        RETURN;
+    END;
+    SELECT @AdjuntoId AS AdjuntoId;
 END
 GO
 

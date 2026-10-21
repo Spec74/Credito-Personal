@@ -7,6 +7,7 @@ export interface ComunicadoRow {
   cuerpo: string
   alcance: string
   oficinaId: number | null
+  oficinaNombre: string | null
   fechaIni: string
   fechaFin: string | null
   permanente: boolean
@@ -47,8 +48,12 @@ export interface BandejaItem {
   fecha: string
 }
 
-export function fetchComunicados(vencidos = false) {
-  return apiFetch<ComunicadoRow[]>(`/comunicados?vencidos=${vencidos ? 'true' : 'false'}`)
+export function fetchComunicados(vencidos = false, gestion = false) {
+  const q = new URLSearchParams({
+    vencidos: vencidos ? 'true' : 'false',
+    gestion: gestion ? 'true' : 'false',
+  })
+  return apiFetch<ComunicadoRow[]>(`/comunicados?${q}`)
 }
 
 export function fetchComunicado(id: number) {
@@ -62,6 +67,7 @@ export function saveComunicado(body: {
   titulo: string
   cuerpo: string
   alcance: string
+  oficinaDestinoId?: number | null
   fechaIni: string
   fechaFin: string | null
 }) {
@@ -84,6 +90,10 @@ export async function subirComunicadoAdjunto(id: number, file: File) {
   const fd = new FormData()
   fd.append('archivo', file)
   return apiFetch<{ id: number }>(`/comunicados/${id}/adjunto`, { method: 'POST', body: fd })
+}
+
+export function bajaAdjunto(adjuntoId: number) {
+  return apiFetch<{ id: number }>(`/comunicados/adjunto/${adjuntoId}/baja`, { method: 'POST' })
 }
 
 export function adjuntoUrl(adjuntoId: number) {

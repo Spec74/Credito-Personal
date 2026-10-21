@@ -26,7 +26,7 @@ Patrón de inbox (Slack / Outlook / Workplace):
 |----------|----------|---------|
 | Un módulo o dos | Dos rutas: `/comunicados` y `/agenda` + campana común | El gerente publica normas; el cajero agenda un cobro. Si se mezclan, la bandeja se ensucia. |
 | Caducidad | `FechaFin` o NULL (permanente) | El reglamento “siempre presente” es el caso que gerencia nombró. |
-| Alcance del aviso | RED (solo ADMIN) / OFICINA (admin o encargado) | Encargado de Pichari no publica a Huamanga. |
+| Alcance del aviso | RED (todas las sedes, solo ADMIN) o **una sede elegida** | Workplace/Viva apuntan por ubicación. El gerente en Huamanga puede avisar solo a Pichari. El encargado no elige otra sede. |
 | Alcance de agenda | PERSONAL / OFICINA | Igual que un calendario compartido de sucursal, no un Exchange de empresa. |
 | Archivos | Imagen ≤ 2 MB, PDF ≤ 8 MB, **varbinary en SQL** | App Service de Azure no tiene disco durable entre instancias. |
 | Canal de llegada | Campana en el chrome + bandeja | El personal no abre el correo. WhatsApp queda fuera (no hay contrato ni plantilla). |

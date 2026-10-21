@@ -42,6 +42,8 @@ JWT con oficina y usuario. RED solo ADMIN. Adjunto no se sirve sin token. No toc
 - [ ] Aviso sin fecha fin sigue en bandeja.
 - [ ] PDF e imagen se descargan; la imagen se ve en la ficha.
 - [ ] Encargado no publica a toda la red (solo su sede) salvo ADMIN.
+- [ ] Admin elige sede destino o todas las sedes.
+- [ ] Editar cambia texto/vigencia/destino; eliminar lo retira de campana y bandeja.
 - [ ] Evento personal no lo ve otro usuario.
 - [ ] Chrome móvil: sede + Cambiar sede táctil; sin letras C/E/H ni “N roles”.
 

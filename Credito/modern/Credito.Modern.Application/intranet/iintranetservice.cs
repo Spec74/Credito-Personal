@@ -3,15 +3,15 @@ namespace Credito.Modern.Application.Intranet;
 public interface IIntranetService
 {
     Task<IReadOnlyList<ComunicadoRowDto>> ListarComunicadosAsync(
-        int oficinaId, int usuarioId, bool incluirVencidos, CancellationToken ct = default);
+        int oficinaId, int usuarioId, bool incluirVencidos, bool gestion, bool esAdmin, CancellationToken ct = default);
 
     Task<(ComunicadoRowDto? Cab, IReadOnlyList<ComunicadoAdjuntoDto> Adjuntos)> ObtenerComunicadoAsync(
-        int comunicadoId, int oficinaId, int usuarioId, CancellationToken ct = default);
+        int comunicadoId, int oficinaId, int usuarioId, bool esAdmin, CancellationToken ct = default);
 
     Task<int> GuardarComunicadoAsync(
-        GuardarComunicadoRequest request, int oficinaId, int usuarioId, CancellationToken ct = default);
+        GuardarComunicadoRequest request, int oficinaId, int usuarioId, bool esAdmin, CancellationToken ct = default);
 
-    Task BajaComunicadoAsync(int comunicadoId, int usuarioId, CancellationToken ct = default);
+    Task BajaComunicadoAsync(int comunicadoId, int oficinaId, int usuarioId, bool esAdmin, CancellationToken ct = default);
 
     Task MarcarLeidoAsync(int comunicadoId, int usuarioId, CancellationToken ct = default);
 
@@ -19,7 +19,9 @@ public interface IIntranetService
         int comunicadoId, string nombre, string contentType, byte[] contenido, CancellationToken ct = default);
 
     Task<ComunicadoAdjuntoContenidoDto?> DescargarAdjuntoAsync(
-        int adjuntoId, int oficinaId, CancellationToken ct = default);
+        int adjuntoId, int oficinaId, bool esAdmin, CancellationToken ct = default);
+
+    Task BajaAdjuntoAsync(int adjuntoId, int oficinaId, bool esAdmin, CancellationToken ct = default);
 
     Task<IReadOnlyList<AgendaEventoDto>> ListarAgendaAsync(
         int oficinaId, int usuarioId, DateTime desde, DateTime hasta, CancellationToken ct = default);

@@ -211,6 +211,31 @@ body.credix-density-comfortable .credix-page {
   gap: 10px;
 }
 
+.credix-comunicado-adjuntos-edit {
+  margin: 0 0 16px;
+}
+
+.credix-comunicado-adjuntos-edit p {
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.credix-comunicado-adjuntos-edit ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.credix-comunicado-adjuntos-edit li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: var(--credix-touch-min);
+}
+
 .credix-comunicado-img {
   display: block;
   width: 100%;
