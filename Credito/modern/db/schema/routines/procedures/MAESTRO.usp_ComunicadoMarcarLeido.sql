@@ -1,0 +1,1 @@
+﻿CREATE OR ALTER PROC [MAESTRO].[usp_ComunicadoMarcarLeido] AS BEGIN SET NOCOUNT ON; END

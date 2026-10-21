@@ -248,6 +248,18 @@ export const PlaUifPage = lazyNamed(
   () => import('../pages/informes/PlaUifPage'),
   'PlaUifPage',
 )
+export const ComunicadosPage = lazyNamed(
+  () => import('../pages/intranet/ComunicadosPage'),
+  'ComunicadosPage',
+)
+export const AdminComunicadosPage = lazyNamed(
+  () => import('../pages/intranet/AdminComunicadosPage'),
+  'AdminComunicadosPage',
+)
+export const AgendaPage = lazyNamed(
+  () => import('../pages/intranet/AgendaPage'),
+  'AgendaPage',
+)
 
 export const SaldoCarteraPage = lazyNamed(
   () => import('../pages/reports/SaldoCarteraPage'),

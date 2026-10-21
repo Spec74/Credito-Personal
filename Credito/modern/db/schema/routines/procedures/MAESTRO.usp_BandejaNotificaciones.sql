@@ -1,0 +1,1 @@
+﻿CREATE OR ALTER PROC [MAESTRO].[usp_BandejaNotificaciones] AS BEGIN SET NOCOUNT ON; END

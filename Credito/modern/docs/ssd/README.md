@@ -17,7 +17,7 @@ No es un diario de fases. No duplica el inventario de endpoints de `readme.md` n
 | Código operativo (menú vivo CREDITO + SPA extra) | Casi: candidato a go-live | API .NET 10 + `Credito.Modern.Web` |
 | Paridad de negocio (`usp_*`, no inventar reglas) | Sí, con desviaciones registradas | `docs/migration/BITACORA-DESVIACIONES.md` |
 | Docs de ingeniería por módulo | Sí (crédito/caja/bóveda/clientes + SSD para el resto) | `docs/*_migracion.md` + `docs/ssd/` |
-| SSD / Spec Kit (visión, spec, criterios, trazabilidad) | As-built **00–12** + cambio **SSD-13** (Spec Kit) | `docs/ssd/` · `docs/speckit/` |
+| SSD / Spec Kit (visión, spec, criterios, trazabilidad) | As-built **00–12** + cambios **SSD-13/14** (Spec Kit) | `docs/ssd/` · `docs/speckit/` |
 | Validación FE/BE transversal | Sí | [SSD-12-validacion.md](SSD-12-validacion.md) |
 | Documentación completa del software (índice + arquitectura) | Sí | [DOCUMENTACION.md](../DOCUMENTACION.md), [ARCHITECTURE.md](../ARCHITECTURE.md) |
 | Cutover preprod/prod | Pendiente de **ejecución** (docs listos) | `DEPLOY-AL-SUBIR.md`, `PHASE-5-OPERATIONS-CUTOVER.md`, [SSD-00](SSD-00-cutover.md) |
@@ -66,6 +66,7 @@ El menú vivo de **oficina 1 (CREDITO)** cubre SSD-01 … SSD-09 y SSD-00. Venta
 | SSD-11 | Almacén | Hecho (SPA; **no** en menú vivo oficina 1) | `ui_modernizacion_modulos.md` | [SSD-11-almacen.md](SSD-11-almacen.md) |
 | SSD-12 | Validación FE/BE transversal | Hecho | `Application/Validation`, `formRules.ts` | [SSD-12-validacion.md](SSD-12-validacion.md) |
 | SSD-13 | Experiencia operativa + red de sedes | Spec de cambio (no código aún) | Spec Kit `001-experiencia-operativa` | [SSD-13-experiencia-operativa.md](SSD-13-experiencia-operativa.md) |
+| SSD-14 | Comunicados y agenda | As-built | Spec Kit `002-comunicados-agenda` | [SSD-14-comunicados-agenda.md](SSD-14-comunicados-agenda.md) |
 | SSD-00 | Cutover y strangler | Parcial (corte no ejecutado) | `STRANGLER-MIGRATION`, `DEPLOY-AL-SUBIR`, `MIGRATION-CLOSURE` | [SSD-00-cutover.md](SSD-00-cutover.md) |
 
 ## Qué no hacer

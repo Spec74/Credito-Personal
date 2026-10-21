@@ -820,3 +820,48 @@
   gap: 8px 12px;
   font-size: 12px;
 }
+
+/* Chrome + intranet (avisos / agenda) */
+@media (max-width: 991px) {
+  .credix-header-end .ant-btn {
+    min-width: var(--credix-touch-min, 40px);
+    min-height: var(--credix-touch-min, 40px);
+  }
+
+  .credix-page-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credix-page-actions {
+    width: 100%;
+  }
+
+  .credix-page-actions .ant-btn,
+  .credix-page-actions a {
+    min-height: 40px;
+  }
+
+  .ant-picker-calendar {
+    overflow-x: auto;
+  }
+
+  .ant-picker-calendar-full .ant-picker-calendar-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 640px) {
+  .credix-content {
+    padding: 12px 10px 20px;
+  }
+
+  .credix-footer {
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+
+  .credix-notify-dropdown {
+    max-width: calc(100vw - 12px);
+  }
+}

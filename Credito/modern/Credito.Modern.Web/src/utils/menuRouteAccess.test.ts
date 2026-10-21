@@ -171,6 +171,9 @@ describe('menuRouteAccess', () => {
 
   it('accesos rápidos del layout siempre habilitan comisiones, simulador y cartera gestor', () => {
     expect(hasMenuRouteAccess('/admin/comisiones', [])).toBe(true)
+    expect(hasMenuRouteAccess('/admin/comunicados', [])).toBe(true)
+    expect(hasMenuRouteAccess('/comunicados', [])).toBe(true)
+    expect(hasMenuRouteAccess('/agenda', [])).toBe(true)
     expect(hasMenuRouteAccess('/credito/simulador', [])).toBe(true)
     expect(hasMenuRouteAccess('/informes/cobro-diario', [])).toBe(true)
     expect(hasMenuRouteAccess('/informes/morosidad-gestor', [])).toBe(true)

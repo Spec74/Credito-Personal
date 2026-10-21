@@ -42,6 +42,11 @@ export const ADMIN_HUB_SECTIONS: CredixHubSection[] = [
         label: 'Comisiones',
         description: 'Parámetros y consulta de comisiones',
       },
+      {
+        to: '/admin/comunicados',
+        label: 'Avisos',
+        description: 'Publicar noticias, reglamentos y archivos',
+      },
     ],
   },
 ]

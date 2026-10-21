@@ -67,7 +67,8 @@ body.credix-app-body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 0 clamp(12px, 2vw, 20px);
+  padding: 0 max(clamp(12px, 2vw, 20px), env(safe-area-inset-right))
+    0 max(clamp(12px, 2vw, 20px), env(safe-area-inset-left));
   background: var(--credix-brand);
   color: #fff;
   box-shadow: var(--credix-shadow-md);
@@ -85,6 +86,10 @@ body.credix-app-body {
   flex: 1;
 }
 
+.credix-header-end {
+  flex-shrink: 0;
+}
+
 .credix-header-brand {
   display: inline-flex;
   align-items: center;
@@ -98,11 +103,21 @@ body.credix-app-body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
   font-size: 13px;
   opacity: 0.95;
   overflow: hidden;
+}
+
+.credix-header-user__name,
+.credix-header-user__office {
+  overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.credix-header-user__name {
+  max-width: min(36vw, 220px);
 }
 
 .credix-header .ant-btn-text {
@@ -119,8 +134,8 @@ body.credix-app-body {
 .credix-layout {
   flex: 1;
   display: flex;
-  height: calc(100vh - var(--credix-header-h));
-  min-height: calc(100vh - var(--credix-header-h));
+  min-height: 0;
+  height: auto;
   overflow: hidden;
   width: 100%;
 }
@@ -2389,6 +2404,20 @@ ul.credix-stats--module li span.red {
 
   .credix-header-user {
     font-size: 12px;
+  }
+
+  .credix-header-user__office {
+    display: none;
+  }
+
+  .credix-header-user__name {
+    max-width: min(46vw, 200px);
+  }
+
+  .credix-header {
+    height: 48px;
+    gap: 8px;
+    padding: 0 10px;
   }
 
   ul.credix-stats {

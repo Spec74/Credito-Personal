@@ -61,9 +61,9 @@ export function CredixContextBar({
         aria-label="Densidad de pantalla"
         onChange={(v) => setDensity(v as CredixDensity)}
         options={[
-          { label: 'C', value: 'compact' },
-          { label: 'E', value: 'standard' },
-          { label: 'H', value: 'comfortable' },
+          { label: 'Compacto', value: 'compact' },
+          { label: 'Estándar', value: 'standard' },
+          { label: 'Holgado', value: 'comfortable' },
         ]}
       />
     </div>

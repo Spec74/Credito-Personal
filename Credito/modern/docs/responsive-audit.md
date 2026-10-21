@@ -22,7 +22,8 @@ Un solo patrón de **toolbar de listado**:
 
 | Módulo / ruta | Layout | Toolbar / búsqueda | Responsive | Archivo principal |
 |---------------|--------|-------------------|------------|-------------------|
-| Shell / menú | AppShell | — | OK | `credix-design-system.css` |
+| Shell / menú | AppShell + ContextBar | Campana avisos | OK (≤991: sin oficina en header, sin roles, sin C/E/H; Cambiar sede táctil) | `credix-oleada-a.css` + design system |
+| **Avisos / agenda** | CredixPage | Campana + bandeja | OK (móvil: lista del día; imagen inline) | `pages/intranet/*` |
 | Hubs (`/inicio`, `/caja`, …) | CredixHubGrid | — | OK (1 col ≤480px) | design system |
 | **Aprobación crédito** | CredixPage | Tarjeta búsqueda propia | OK | `credito-aprobacion-module.css` |
 | **Saldos** | CredixPage | `SaldosTableToolbar` → `CajaListToolbar` | OK | `caja-saldos-module.css` + list-toolbar |

@@ -9,6 +9,7 @@ const ALWAYS_ALLOWED = [
   '/reportes/visor',
   // Accesos rápidos (siempre disponibles con sesión).
   '/admin/comisiones',
+  '/admin/comunicados',
   '/credito/simulador',
   // Atajos de cartera del dashboard gestor/admin.
   '/informes/cobro-diario',
@@ -16,6 +17,8 @@ const ALWAYS_ALLOWED = [
   '/informes/creditos-observados',
   '/informes/clientes-inactivos',
   '/informes/saldo-cartera',
+  '/comunicados',
+  '/agenda',
 ]
 
 const HUB_CHILDREN: Record<string, string[]> = {

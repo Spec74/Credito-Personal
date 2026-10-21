@@ -4,6 +4,14 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-21 — Comunicados, agenda y chrome móvil
+
+**Qué hay:** avisos del gerente (vigencia o permanente, PDF/imagen en SQL),
+agenda personal/sede con recordatorio, campana en el encabezado. La barra
+de sede en móvil es dos filas táctiles (sin letras C/E/H). Spec: SSD-14.
+
+**Qué no hay:** envío WhatsApp del aviso; recordatorio por correo.
+
 ### 2026-10-21 — T-C7 PLA/UIF con piso legal (no cifra inventada)
 
 **Qué hay:** D.S. 020-2017-JUS art. 24.4: RO individual US$ 10 000; múltiples

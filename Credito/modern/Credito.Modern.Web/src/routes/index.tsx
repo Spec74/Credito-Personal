@@ -227,6 +227,9 @@ export function AppRoutes() {
         <Route path="/admin/usuarios" element={<Pages.UsuariosPage />} />
         <Route path="/admin/roles" element={<Pages.RolesPage />} />
         <Route path="/admin/comisiones" element={<Pages.ComisionesPage />} />
+        <Route path="/admin/comunicados" element={<Pages.AdminComunicadosPage />} />
+        <Route path="/comunicados" element={<Pages.ComunicadosPage />} />
+        <Route path="/agenda" element={<Pages.AgendaPage />} />
         <Route path="/tesoreria" element={<Pages.TesoreriaHubPage />} />
         <Route path="/tesoreria/boveda" element={<Pages.BovedaPage />} />
         <Route

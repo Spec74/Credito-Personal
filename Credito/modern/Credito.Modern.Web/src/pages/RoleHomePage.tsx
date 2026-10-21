@@ -12,6 +12,8 @@ export function RoleHomeStrip({ roles }: { roles: string[] }) {
           {a.label}
         </Link>
       ))}
+      <Link to="/comunicados">Avisos</Link>
+      <Link to="/agenda">Agenda</Link>
       <Link to="/inicio?vista=modulos">Todas las pantallas</Link>
     </nav>
   )
@@ -39,6 +41,12 @@ export function RoleHomePage({ roles }: { roles: string[] }) {
             {a.label}
           </Link>
         ))}
+        <Link to="/comunicados" className="credix-role-home__action">
+          Avisos
+        </Link>
+        <Link to="/agenda" className="credix-role-home__action">
+          Agenda
+        </Link>
       </nav>
     </CredixPage>
   )

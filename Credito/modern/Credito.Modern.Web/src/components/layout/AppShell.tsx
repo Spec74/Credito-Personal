@@ -25,6 +25,7 @@ import { useAuth } from '../../auth/useAuth'
 import { getLoginProfile } from '../../auth/sessionProfile'
 import { BrandLogo } from '../brand/BrandLogo'
 import { CredixContextBar } from '../credix/CredixContextBar'
+import { CredixNotifyBell } from './CredixNotifyBell'
 import { applyCredixDensity, readCredixDensity } from '../../theme/credixDensity'
 import { rememberInforme } from '../../utils/informesRecientes'
 import { RouteFallback } from './RouteFallback'
@@ -404,24 +405,25 @@ export function AppShell() {
           </span>
           <span className="credix-header-user">
             <UserOutlined />
-            <Text strong style={{ color: '#fff' }}>
+            <Text strong className="credix-header-user__name" style={{ color: '#fff' }}>
               {usuarioNombre}
             </Text>
             {oficinaNombre ? (
-              <Text style={{ color: 'rgba(255,255,255,0.85)' }}> · {oficinaNombre}</Text>
+              <Text className="credix-header-user__office" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                {' '}
+                · {oficinaNombre}
+              </Text>
             ) : null}
           </span>
         </div>
         <div className="credix-header-end">
-          {screens.md &&
+          <CredixNotifyBell />
+          {screens.lg &&
             roleTags.slice(0, 3).map((rol) => (
               <Tag key={rol}>{rol}</Tag>
             ))}
-          {screens.md && roleTags.length > 3 ? (
+          {screens.lg && roleTags.length > 3 ? (
             <Tag>+{roleTags.length - 3}</Tag>
-          ) : null}
-          {!screens.md && roleTags.length > 0 ? (
-            <Tag>{roleTags.length} roles</Tag>
           ) : null}
           <Button
             type="text"
