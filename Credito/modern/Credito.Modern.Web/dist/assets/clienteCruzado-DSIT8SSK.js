@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-8BhlS34s.js";var t;function n(){return(n=e((()=>{t=`Si el cliente ya existe (otra sede incluida), úselo aquí. No cree un duplicado. Los créditos de otra oficina se ven al entrar en esa sede.`})))()}export{n,t};

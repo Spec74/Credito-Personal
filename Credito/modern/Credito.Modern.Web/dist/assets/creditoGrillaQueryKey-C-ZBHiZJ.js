@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-8BhlS34s.js";function t(e,t,n,r,i){return[`creditos-grilla-persona`,e,t,n,r,i]}function n(){return(n=e((()=>{})))()}export{n,t};
