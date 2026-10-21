@@ -1,0 +1,231 @@
+/* Densidad y patrones de trabajo — Oleada A. No reduce el tamaño de fuente. */
+
+:root {
+  --credix-density-row: 40px;
+  --credix-density-pad: 12px;
+  --credix-density-gap: 16px;
+}
+
+body.credix-density-compact {
+  --credix-density-row: 36px;
+  --credix-density-pad: 8px;
+  --credix-density-gap: 12px;
+}
+
+body.credix-density-comfortable {
+  --credix-density-row: 48px;
+  --credix-density-pad: 16px;
+  --credix-density-gap: 20px;
+}
+
+body.credix-density-compact .credix-page {
+  --credix-stack-gap: 12px;
+}
+
+body.credix-density-comfortable .credix-page {
+  --credix-stack-gap: 20px;
+}
+
+.credix-context-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 36px;
+  padding: 4px clamp(12px, 2vw, 20px);
+  background: var(--credix-surface);
+  border-bottom: 1px solid var(--credix-border);
+  font-size: 13px;
+  color: var(--credix-text);
+}
+
+.credix-context-bar__facts {
+  display: flex;
+  align-items: center;
+  gap: 8px 14px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.credix-context-bar__office,
+.credix-context-bar__caja {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: min(42vw, 280px);
+}
+
+.credix-context-bar__caja.is-open {
+  color: var(--credix-success);
+}
+
+.credix-context-bar__caja.is-closed {
+  color: var(--credix-text-muted);
+}
+
+.credix-context-bar__cambiar {
+  border: 0;
+  background: none;
+  padding: 0 4px;
+  min-height: 24px;
+  color: var(--credix-primary, #114885);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+}
+
+.credix-context-bar__density {
+  flex-shrink: 0;
+}
+
+.credix-work-canvas {
+  display: grid;
+  gap: var(--credix-density-gap);
+  align-items: start;
+}
+
+@media (min-width: 992px) {
+  .credix-work-canvas--full {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(220px, 0.75fr);
+  }
+
+  .credix-work-canvas--no-context {
+    grid-template-columns: minmax(0, 1.4fr) minmax(220px, 0.6fr);
+  }
+
+  .credix-work-canvas--no-result {
+    grid-template-columns: minmax(240px, 0.85fr) minmax(0, 1.15fr);
+  }
+}
+
+.credix-work-canvas__context,
+.credix-work-canvas__work,
+.credix-work-canvas__result {
+  min-width: 0;
+}
+
+.credix-queue {
+  display: grid;
+  gap: var(--credix-density-gap);
+  align-items: start;
+}
+
+@media (min-width: 992px) {
+  .credix-queue {
+    grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.6fr);
+  }
+}
+
+.credix-queue__list,
+.credix-queue__detail {
+  min-width: 0;
+}
+
+.credix-queue__detail {
+  background: var(--credix-surface);
+  border: 1px solid var(--credix-border);
+  border-radius: var(--credix-radius);
+  padding: var(--credix-density-pad);
+}
+
+.credix-queue__empty {
+  margin: 0;
+  color: var(--credix-text-muted);
+}
+
+.credix-money-confirm__amount {
+  margin: 0 0 8px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--credix-text);
+}
+
+.credix-role-home {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.credix-role-home__action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--credix-touch-min);
+  padding: 14px 16px;
+  border: 1px solid var(--credix-border);
+  border-radius: var(--credix-radius);
+  background: var(--credix-surface);
+  color: var(--credix-text);
+  font-weight: 600;
+  text-align: center;
+  text-decoration: none;
+}
+
+.credix-role-home__action:hover {
+  border-color: var(--credix-brand);
+  color: var(--credix-brand);
+}
+
+.credix-role-home__action.is-primary {
+  background: var(--credix-brand);
+  border-color: var(--credix-brand);
+  color: #fff;
+}
+
+.credix-role-home__action.is-primary:hover {
+  background: var(--credix-brand-hover);
+  color: #fff;
+}
+
+.credix-role-home-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 var(--credix-density-gap);
+  padding: 4px 2px 0;
+}
+
+.credix-role-home-strip a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--credix-border);
+  background: var(--credix-surface);
+  color: var(--credix-text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.credix-role-home-strip a.is-primary {
+  background: var(--credix-brand);
+  border-color: var(--credix-brand);
+  color: #fff;
+}
+
+.credix-wizard-list {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.credix-wizard-list span {
+  color: var(--credix-text-muted);
+}
+
+.credix-record {
+  display: grid;
+  gap: var(--credix-density-gap);
+}
+
+@media (min-width: 992px) {
+  .credix-record {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.4fr);
+  }
+
+  .credix-record__header {
+    grid-column: 1 / -1;
+  }
+}

@@ -368,7 +368,7 @@ export function MorososEmpresaPage() {
     <CredixPage
       className="morosos-empresa-page"
       title="Morosidad empresarial"
-      subtitle="Todos los clientes morosos de la empresa, clasificados según su comportamiento de pago (nunca pagó, dejó de pagar, paga con atraso)."
+      subtitle={undefined}
       breadcrumb={breadcrumb}
       actions={
         <Space wrap>

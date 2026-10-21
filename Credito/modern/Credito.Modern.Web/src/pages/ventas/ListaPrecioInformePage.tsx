@@ -81,7 +81,7 @@ export function ListaPrecioInformePage() {
   return (
     <CredixInformePage
       title="Informe lista de precios"
-      subtitle="Consulta de precios por marca y filtros de descuento o puntos."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/ventas">Ventas</Link> },

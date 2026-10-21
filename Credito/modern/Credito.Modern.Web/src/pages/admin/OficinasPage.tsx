@@ -165,17 +165,21 @@ export function OficinasPage() {
   return (
     <CredixCrudPage
       title={isMantenimiento ? 'Mantenimiento de oficinas' : 'Oficinas'}
-      subtitle="Alta, edición y activación de oficinas (incluye bóveda al crear)."
+      subtitle={undefined}
       stats={stats}
       breadcrumb={breadcrumb}
       actions={
-        isMantenimiento ? undefined : (
-          <Space wrap size="small">
-            <Link to="/admin/usuarios">Usuarios</Link>
-            <Link to="/admin/roles">Roles</Link>
-            <Link to="/maestros/almacenes">Almacenes</Link>
-          </Space>
-        )
+        <Space wrap size="small">
+          <Link to="/mantenimiento/oficinas/nueva-sucursal">
+            <Button type="primary">Nueva sucursal</Button>
+          </Link>
+          {isMantenimiento ? null : (
+            <>
+              <Link to="/admin/usuarios">Usuarios</Link>
+              <Link to="/admin/roles">Roles</Link>
+            </>
+          )}
+        </Space>
       }
       toolbar={
         <Space wrap>

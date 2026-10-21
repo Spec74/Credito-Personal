@@ -94,7 +94,7 @@ export function ComprobantesCajaChicaPage() {
     <CredixInformePage
       className="comprobantes-caja-chica-page credix-page--stats-3"
       title="Comprobantes de caja chica"
-      subtitle="Comprobantes de rendiciones de caja chica cerradas en el rango de fechas. Exporte CSV y PDF tabular."
+      subtitle={undefined}
       panelTitle="COMPROBANTES RENDIDOS"
       breadcrumb={reportesCreditoBreadcrumb('Comprobantes rendidos')}
       stats={stats}

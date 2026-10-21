@@ -254,7 +254,7 @@ export function ReporteCreditoIndexPage() {
   return (
     <CredixPage
       title="Reportes de crédito"
-      subtitle="Informes de cartera, clientes y caja en un solo lugar. Cada tarjeta abre la consulta en pantalla o exporta PDF y Excel según los filtros. La oficina es la de su sesión; el gestor admite «Todos» excepto en cobro diario, donde es obligatorio."
+      subtitle={undefined}
       breadcrumb={reportesCreditoIndexBreadcrumb()}
     >
       <div className="credix-reportes-shell">

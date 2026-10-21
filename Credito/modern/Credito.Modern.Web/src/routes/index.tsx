@@ -214,6 +214,10 @@ export function AppRoutes() {
         <Route path="/caja/verificar-pagos" element={<Pages.VerificarPagosPage />} />
         <Route path="/admin" element={<Pages.AdminHubPage />} />
         <Route path="/mantenimiento/oficinas" element={<Pages.OficinasPage />} />
+        <Route
+          path="/mantenimiento/oficinas/nueva-sucursal"
+          element={<Pages.NuevaSucursalWizardPage />}
+        />
         <Route path="/mantenimiento/cajas" element={<Pages.CajaMaestroPage />} />
         <Route
           path="/admin/oficinas"
@@ -228,6 +232,8 @@ export function AppRoutes() {
           path="/tesoreria/movimiento-boveda"
           element={<Pages.MovimientoBovedaPage />}
         />
+        <Route path="/tesoreria/fondear-sucursales" element={<Pages.FondearSucursalesPage />} />
+        <Route path="/tesoreria/red" element={<Pages.RedSucursalesPage />} />
         <Route path="/modulo/:menuId" element={<Pages.ModulePlaceholderPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/inicio" replace />} />

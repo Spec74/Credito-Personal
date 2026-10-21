@@ -136,7 +136,7 @@ export function EstadoCreditoPage() {
   return (
     <CredixInformePage
       title="Estado de crédito"
-      subtitle="Cabecera y cuotas del plan de pagos de un crédito; indique el número de crédito."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Estado crédito')}
       stats={stats}
       filters={

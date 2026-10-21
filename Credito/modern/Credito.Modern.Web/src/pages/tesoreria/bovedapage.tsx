@@ -46,8 +46,7 @@ const BovedaHistorialGrillas = lazy(() =>
   })),
 )
 
-const BOVEDA_SUBTITLE =
-  'Liquidez de oficina, medios de pago y movimientos de tesorería.'
+const BOVEDA_SUBTITLE = undefined
 
 export function BovedaPage() {
   const { session } = useAuth()

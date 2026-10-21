@@ -192,7 +192,7 @@ export function RolesPage() {
   return (
     <CredixCrudPage
       title="Roles"
-      subtitle="Alta de roles, activación y asignación de menús."
+      subtitle={undefined}
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },

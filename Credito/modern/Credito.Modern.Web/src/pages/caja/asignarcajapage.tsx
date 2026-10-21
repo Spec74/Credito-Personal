@@ -26,7 +26,7 @@ export function AsignarCajaPage() {
   return (
     <CredixPage
       title="Asignar caja"
-      subtitle="Abre una caja cerrada con el cajero configurado en el maestro. El saldo inicial sale de la bóveda."
+      subtitle={undefined}
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },

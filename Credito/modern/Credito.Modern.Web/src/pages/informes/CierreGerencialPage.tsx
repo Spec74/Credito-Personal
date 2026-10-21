@@ -544,7 +544,7 @@ export function CierreGerencialPage() {
     <CredixPage
       className="cierre-gerencial-page"
       title="Cierre y metas gerenciales"
-      subtitle="Seguimiento mensual de capital, clientes, vencidos y recuperación por analista. El cierre oficial se consolida tras el cierre de bóveda (fin de mes o días 1–2)."
+      subtitle={undefined}
       breadcrumb={breadcrumb}
       actions={
         <Space wrap>

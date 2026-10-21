@@ -61,10 +61,6 @@ export function AnalystDashboardPage() {
             <div>
               <p className="dash-kicker">Tablero del gestor</p>
               <h2 className="dash-hello">Cargando…</h2>
-              <p className="dash-sub">
-                Indicadores de tus créditos en esta oficina, con seguimiento y acciones
-                priorizadas.
-              </p>
             </div>
           </header>
           <Skeleton active paragraph={{ rows: 10 }} />
@@ -102,7 +98,7 @@ export function AnalystDashboardPage() {
   return (
     <CredixPage
       title="Inicio"
-      subtitle="Seguimiento de tu cobranza, cartera y prioridades del día."
+      subtitle={undefined}
       actions={
         <>
           {desdeAdmin ? (
@@ -127,10 +123,6 @@ export function AnalystDashboardPage() {
             <h2 className="dash-hello">
               {saludo()}, {data.nombreAnalista}
             </h2>
-            <p className="dash-sub">
-              Indicadores de tus créditos en esta oficina, con seguimiento y acciones
-              priorizadas.
-            </p>
           </div>
           <div className="dash-date">{fechaLarga}</div>
         </header>

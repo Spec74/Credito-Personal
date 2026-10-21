@@ -203,7 +203,7 @@ export function MovimientoAlmacenPage() {
 
       title="Movimiento de almacén"
 
-      subtitle="Edición avanzada por número de movimiento. Para el flujo completo use entrada de almacén."
+      subtitle={undefined}
 
       stats={stats}
 

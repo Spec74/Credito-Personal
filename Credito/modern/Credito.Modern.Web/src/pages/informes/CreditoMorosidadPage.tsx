@@ -133,7 +133,7 @@ export function CreditoMorosidadPage() {
   return (
     <CredixInformePage
       title="Reporte morosidad"
-      subtitle="Cartera en mora por fecha de corte y rango de días de atraso. Expanda cada fila para ver datos de contacto. Exporte PDF y Excel."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Reporte morosidad')}
       stats={stats}
       panelTitle="Créditos con morosidad"

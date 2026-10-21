@@ -76,6 +76,28 @@ public sealed class PrendarioDocumentoTests
         Assert.Equal(1, PrendarioPdfMerge.ContarPaginas(pdf));
     }
 
+    [Fact]
+    public void Comprobante_devolucion_genera_pdf()
+    {
+        var contrato = DocumentoDePrueba();
+        var dto = new PrendarioDevolucionDto(
+            1,
+            contrato.CreditoId,
+            contrato.NumeroContrato,
+            contrato.FechaEmision,
+            "DEVUELTO",
+            contrato.ApellidosNombres,
+            contrato.DniCliente,
+            contrato.Domicilio,
+            contrato.Distrito,
+            "HUAMANGA",
+            "AYACUCHO",
+            contrato.Bienes[0]);
+        var pdf = RptDevolucionPrendarioPdfDocument.Build(dto);
+        AssertPdf(pdf);
+        Assert.Equal(1, PrendarioPdfMerge.ContarPaginas(pdf));
+    }
+
     private static PrendarioContratoDto DocumentoDePrueba() =>
         new(
             80392,

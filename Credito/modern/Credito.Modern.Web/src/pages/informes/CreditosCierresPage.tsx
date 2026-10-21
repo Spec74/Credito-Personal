@@ -75,7 +75,7 @@ export function CreditosCierresPage() {
   return (
     <CredixInformePage
       title="Créditos cierres"
-      subtitle="Créditos cerrados en el rango de fechas; gestor opcional (TODOS) para roles elevados."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Créditos cierres')}
       stats={stats}
       filters={

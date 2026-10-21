@@ -57,13 +57,6 @@
   word-break: break-word;
 }
 
-.credito-prendario-plan__note {
-  margin: 10px 0 0;
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--credix-text-muted, #64748b);
-}
-
 @media (max-width: 575px) {
   .credito-prendario-gestion-actions .ant-btn {
     flex: 1 1 calc(50% - 8px);

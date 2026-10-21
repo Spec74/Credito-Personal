@@ -120,7 +120,7 @@ export function MorosidadGestorPage() {
   return (
     <CredixInformePage
       title="Morosidad por gestor"
-      subtitle="Créditos en mora del gestor (solo saldo en mora). Gestor opcional «Todos» para roles elevados. Exporte PDF y Excel."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Morosidad gestor')}
       stats={stats}
       panelTitle="REPORTE DE MOROSIDAD"

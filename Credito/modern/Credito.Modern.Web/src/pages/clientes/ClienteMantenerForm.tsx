@@ -658,15 +658,11 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
       className="cliente-mantener-page"
       title={esEdicion ? 'Mantener cliente' : 'Nuevo cliente'}
       subtitle={
-        <>
-          Identificación, domicilio con <strong>Google Maps</strong> y calificación crediticia.
-          Validación <Tag className="cliente-mantener__doc-tag">ApiPeru</Tag> en servidor.
-          {soloConsulta
-            ? ' Consulta: pulse Editar para modificar y guardar.'
-            : returnTo
-              ? ' Tras guardar volverá a la solicitud de origen.'
-              : null}
-        </>
+        soloConsulta
+          ? 'Consulta. Pulse Editar para modificar.'
+          : returnTo
+            ? 'Tras guardar vuelve a la solicitud.'
+            : undefined
       }
       stats={stats}
       breadcrumb={[

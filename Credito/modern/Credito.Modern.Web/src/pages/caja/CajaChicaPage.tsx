@@ -443,7 +443,7 @@ export function CajaChicaPage() {
     <CredixPage
       className="caja-chica-page credix-page--stats-3"
       title="Caja chica"
-      subtitle="Gastos, rendición de comprobantes y arqueo en pestañas."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/caja">Caja</Link> },

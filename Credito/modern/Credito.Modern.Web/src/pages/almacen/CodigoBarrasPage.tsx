@@ -111,7 +111,7 @@ export function CodigoBarrasPage() {
 
       title="Códigos de barras"
 
-      subtitle="Series y artículos asociados a un movimiento de almacén."
+      subtitle={undefined}
 
       breadcrumb={[
 

@@ -3,6 +3,7 @@ import { Suspense, lazy, useMemo } from 'react'
 import { Skeleton } from 'antd'
 import { branding } from '../config/branding'
 import { CredixHubGrid, CredixPage } from '../components/credix'
+import { RoleHomePage, RoleHomeStrip } from './RoleHomePage'
 import { useAuth } from '../auth/useAuth'
 import { useAclHubSections } from '../hooks/useAclHubSections'
 import { filterCreditoHomeLinks } from '../utils/creditoHubFilter'
@@ -21,6 +22,11 @@ const AdminDashboardPage = lazy(() =>
 const AnalystDashboardPage = lazy(() =>
   import('./dashboard/AnalystDashboardPage').then((m) => ({
     default: m.AnalystDashboardPage,
+  })),
+)
+const RedSucursalesPage = lazy(() =>
+  import('./tesoreria/RedSucursalesPage').then((m) => ({
+    default: m.RedSucursalesPage,
   })),
 )
 
@@ -71,7 +77,7 @@ function DashboardBootFallback({
           <div>
             <p className="dash-kicker">{kicker}</p>
             <h2 className="dash-hello">{title}</h2>
-            <p className="dash-sub">{subtitle}</p>
+            {subtitle ? <p className="dash-sub">{subtitle}</p> : null}
           </div>
         </header>
         <Skeleton active paragraph={{ rows: 8 }} />
@@ -80,50 +86,68 @@ function DashboardBootFallback({
   )
 }
 
-const ADMIN_LCP_SUB =
-  'Vista completa de la oficina: operación del día, acumulado del mes, flujo de caja, tendencia y rendimiento por analista.'
-
-const ANALISTA_LCP_SUB =
-  'Indicadores de tus créditos en esta oficina, con seguimiento y acciones priorizadas.'
-
 export function HomePage() {
   const { session } = useAuth()
   const [params] = useSearchParams()
   const roles = useMemo(() => session?.roles ?? [], [session?.roles])
 
   const vista = params.get('vista')
-  if (debeMostrarDashboardAnalista(roles, vista)) {
+  if (vista === 'modulos') {
+    return <HomeHubPage roles={roles} />
+  }
+  if (vista === 'red') {
     return (
       <Suspense
         fallback={
           <DashboardBootFallback
-            kicker="Tablero del gestor"
+            kicker="Red"
             title="Cargando…"
-            subtitle={ANALISTA_LCP_SUB}
+            subtitle="Sucursales de la red"
           />
         }
       >
-        <AnalystDashboardPage />
+        <RedSucursalesPage />
       </Suspense>
+    )
+  }
+  if (debeMostrarDashboardAnalista(roles, vista)) {
+    return (
+      <>
+        <RoleHomeStrip roles={roles} />
+        <Suspense
+          fallback={
+            <DashboardBootFallback
+              kicker="Tablero del gestor"
+              title="Cargando…"
+              subtitle=""
+            />
+          }
+        >
+          <AnalystDashboardPage />
+        </Suspense>
+      </>
     )
   }
   if (debeMostrarDashboardAdmin(roles, vista)) {
     return (
-      <Suspense
-        fallback={
-          <DashboardBootFallback
-            kicker="Tablero gerencial"
-            title="Cargando…"
-            subtitle={ADMIN_LCP_SUB}
-          />
-        }
-      >
-        <AdminDashboardPage />
-      </Suspense>
+      <>
+        <RoleHomeStrip roles={roles} />
+        <Suspense
+          fallback={
+            <DashboardBootFallback
+              kicker="Tablero gerencial"
+              title="Cargando…"
+              subtitle=""
+            />
+          }
+        >
+          <AdminDashboardPage />
+        </Suspense>
+      </>
     )
   }
 
-  return <HomeHubPage roles={roles} />
+  return <RoleHomePage roles={roles} />
 }
 
 function HomeHubPage({ roles }: { roles: string[] }) {

@@ -85,7 +85,7 @@ export function CreditoVencidoPage() {
   return (
     <CredixInformePage
       title="Crédito vencido"
-      subtitle="Cartera vencida por franja de días; oficina validada por sesión."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Crédito vencido')}
       stats={stats}
       filters={

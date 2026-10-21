@@ -80,7 +80,7 @@ export function CentralRiesgoPage() {
   return (
     <CredixInformePage
       title="Central de riesgo"
-      subtitle="Generación mensual para central de riesgo; incluye exportación TXT DM007898."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Central de riesgo')}
       stats={stats}
       filters={

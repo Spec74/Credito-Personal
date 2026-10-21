@@ -86,7 +86,7 @@ export function PlanPagosPage() {
   return (
     <CredixInformePage
       title="Plan de pagos (crédito)"
-      subtitle="Cuotas del plan de pagos de un crédito; indique el número de crédito y consulte."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Plan de pagos')}
       stats={stats}
       filters={

@@ -224,7 +224,7 @@ export function CobroDiarioPage() {
     <>
     <CredixInformePage
       title="Cobro diario"
-      subtitle="Cartera del día por gestor; seleccione filas para armar la ruta de cobranza. Oficina de sesión; gestor obligatorio. Exporte PDF y Excel."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Cobro diario')}
       stats={cobroStats}
       panelTitle="Cartera del día del gestor"

@@ -66,6 +66,22 @@ public class PrendarioEndpointTests : IClassFixture<CreditoModernWebApplicationF
     }
 
     [Fact]
+    public async Task Devolver_prenda_sin_jwt_devuelve_401()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/prendario/devolver-prenda",
+            new { oficinaId = 1, prendaId = 1 });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Devolucion_pdf_sin_jwt_devuelve_401()
+    {
+        var response = await _client.GetAsync("/api/v1/prendario/devolucion-pdf?oficinaId=1&prendaId=1");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Avisos_vencimiento_sin_jwt_devuelve_401()
     {
         var response = await _client.GetAsync("/api/v1/prendario/avisos-vencimiento?oficinaId=1");

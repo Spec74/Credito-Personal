@@ -143,7 +143,7 @@ export function ClientesNuevosMesPage() {
   return (
     <CredixInformePage
       title="Clientes nuevos del mes"
-      subtitle="Clientes dados de alta en el periodo por gestor; oficina de sesión. Periodo por defecto: mes en curso. Exporte PDF y Excel."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Clientes nuevos del mes')}
       stats={stats}
       panelTitle="CLIENTES NUEVOS"

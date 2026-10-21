@@ -61,7 +61,7 @@ export function CreditoTareaPage() {
   return (
     <CredixInformePage
       title="Reporte de tareas"
-      subtitle="Bandeja de tareas de crédito filtrada por estado; pendientes por defecto."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Tareas de crédito')}
       stats={stats}
       filters={

@@ -141,7 +141,7 @@ export function CreditoAprobacionPage() {
   return (
     <CredixInformePage
       title="Créditos aprobados"
-      subtitle="Créditos aprobados por gestor y fecha; oficina de sesión. Gestor opcional «Todos» para roles elevados. Exporte PDF y Excel."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Créditos aprobados')}
       stats={stats}
       panelTitle="Créditos aprobados del día"

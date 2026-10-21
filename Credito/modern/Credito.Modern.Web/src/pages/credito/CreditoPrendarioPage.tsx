@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PlusOutlined, SearchOutlined, WhatsAppOutlined } from '@ant-design/icons'
-import { Alert, Badge, Button, Input, Modal, Space, Tag, Tooltip, Typography, message } from 'antd'
+import { Alert, Badge, Button, Input, Modal, Segmented, Space, Tag, Tooltip, Typography, message } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   enviarAvisosVencimientoPrendario,
@@ -12,6 +12,7 @@ import {
   fetchPrendarioResumen,
   type PrendarioAvisoEnvioResumen,
   type PrendarioAvisoVencimiento,
+  type PrendarioCategoria,
   type PrendarioCreditoRow,
   type PrendarioWhatsAppEstado,
   type PrendarioWhatsAppPasada,
@@ -23,6 +24,7 @@ import { formatFecha, formatFechaHora } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { celularPrendarioEsValido } from '../../utils/prendarioWhatsapp'
 import { situacionPrendario } from '../../utils/prendarioSituacion'
+import { ltvObservado } from '../../utils/prendas'
 
 const { Text } = Typography
 
@@ -120,6 +122,7 @@ export function CreditoPrendarioPage() {
   const [buscar, setBuscar] = useState('')
   const [termino, setTermino] = useState('')
   const [page, setPage] = useState(1)
+  const [categoria, setCategoria] = useState<PrendarioCategoria | undefined>()
   const [avisosOpen, setAvisosOpen] = useState(false)
   const [ultimoEnvio, setUltimoEnvio] = useState<PrendarioAvisoEnvioResumen | null>(null)
   const queryClient = useQueryClient()
@@ -131,8 +134,9 @@ export function CreditoPrendarioPage() {
   })
 
   const listado = useQuery({
-    queryKey: ['prendario-creditos', oficinaId, termino, page],
-    queryFn: () => fetchPrendarioCreditos({ oficinaId, buscar: termino, page, pageSize: 20 }),
+    queryKey: ['prendario-creditos', oficinaId, termino, page, categoria],
+    queryFn: () =>
+      fetchPrendarioCreditos({ oficinaId, buscar: termino, categoria, page, pageSize: 20 }),
     enabled: oficinaId > 0,
   })
 
@@ -222,6 +226,16 @@ export function CreditoPrendarioPage() {
       render: (v: number) => formatMoney(v),
     },
     {
+      title: 'LTV',
+      key: 'ltv',
+      width: 72,
+      align: 'right',
+      render: (_, row) => {
+        const pct = ltvObservado(row.montoCredito, row.montoTasacion)
+        return pct == null ? '—' : `${pct}%`
+      },
+    },
+    {
       title: 'Vence',
       dataIndex: 'fechaVencimiento',
       width: 110,
@@ -282,7 +296,7 @@ export function CreditoPrendarioPage() {
   return (
     <CredixPage
       title="Crédito prendario"
-      subtitle="Cartera prendaria. Si falta registrar bienes, use Completar bienes; con bienes, solo consulta y documentos."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -300,6 +314,20 @@ export function CreditoPrendarioPage() {
         </Space>
       }
     >
+      <Segmented
+        style={{ marginBottom: 12 }}
+        value={categoria ?? 'todas'}
+        onChange={(v) => {
+          setPage(1)
+          setCategoria(v === 'todas' ? undefined : (v as PrendarioCategoria))
+        }}
+        options={[
+          { label: 'Todas', value: 'todas' },
+          { label: 'Por vencer', value: 'PorVencer' },
+          { label: 'Vencidos', value: 'Vencido' },
+          { label: 'Remate', value: 'Rematado' },
+        ]}
+      />
       <Space.Compact style={{ width: 'min(480px, 100%)', marginBottom: 16 }}>
         <Input
           placeholder="Cliente, DNI o contrato"

@@ -20,6 +20,7 @@ import { saveLoginProfile } from '../auth/sessionProfile'
 import { BrandLogo } from '../components/brand/BrandLogo'
 import { branding } from '../config/branding'
 import { fetchClientPublicIp } from '../utils/clientIp'
+import { parseLoginOficinaId } from '../utils/sucursalRed'
 
 const { Text } = Typography
 
@@ -68,14 +69,23 @@ export function LoginPage() {
     }
   }, [isLoading, isAuthenticated, from, navigate])
 
+  const oficinaPrefill = parseLoginOficinaId(location.search)
+
   useEffect(() => {
     const list = oficinasQuery.data
-    if (!list?.length || form.getFieldValue('oficinaId')) {
+    if (!list?.length) {
+      return
+    }
+    if (oficinaPrefill > 0 && list.some((o) => o.oficinaId === oficinaPrefill)) {
+      form.setFieldValue('oficinaId', oficinaPrefill)
+      return
+    }
+    if (form.getFieldValue('oficinaId')) {
       return
     }
     const principal = list.find((o) => o.indPrincipal) ?? list[0]
     form.setFieldValue('oficinaId', principal.oficinaId)
-  }, [oficinasQuery.data, form])
+  }, [oficinasQuery.data, form, oficinaPrefill])
 
   if (isLoading) {
     return (
@@ -218,12 +228,6 @@ export function LoginPage() {
           <Form.Item name="recordar" valuePropName="checked" style={{ marginBottom: 8 }}>
             <Checkbox>Recordar sesión en este equipo</Checkbox>
           </Form.Item>
-
-          <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-            IP detectada para control de acceso:{' '}
-            <strong>{ipResolved ? (clientIp ?? 'no disponible') : 'obteniendo…'}</strong>.
-            Si el equipo no está autorizado, solicite el alta a un administrador.
-          </Text>
 
           <Button
             type="primary"

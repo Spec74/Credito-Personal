@@ -94,7 +94,7 @@ export function InformesCoberturaPage() {
   return (
     <CredixPage
       title="Cobertura de informes"
-      subtitle="Disponibilidad de informes en pantalla, CSV y PDF. En cada informe use Datos CSV y PDF tabular para exportar."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/informes">Informes</Link> },

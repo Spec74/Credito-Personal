@@ -141,7 +141,7 @@ export function TipoArticuloPage() {
   return (
     <CredixCrudPage
       title="Tipos de artículo"
-      subtitle="Alta, edición y activación de tipos de artículo."
+      subtitle={undefined}
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },

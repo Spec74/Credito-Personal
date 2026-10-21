@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CalculatorOutlined, FilePdfOutlined, PlusOutlined, WhatsAppOutlined } from '@ant-design/icons'
-import { Alert, Button, Input, Select, Space, Tooltip, Typography, message } from 'antd'
+import { Alert, Button, Input, InputNumber, Modal, Select, Space, Tooltip, Typography, message } from 'antd'
 import {
   fetchCreditoContexto,
   fetchCreditosGrillaPersona,
@@ -11,22 +11,26 @@ import {
   guardarPrendas,
   type PrendaItem,
 } from '../../api/creditoGestion'
+import { prorrogarCredito } from '../../api/creditoPlanes'
 import {
+  devolverPrenda,
   downloadActaEntregaPrendarioPdf,
   downloadContratoPrendarioPdf,
+  downloadDevolucionPrendarioPdf,
 } from '../../api/prendario'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
-import { CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
+import { confirmMoney, CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { getCreditoEstadoMeta } from '../../utils/creditoEstados'
 import {
   puedeCompletarBienesPrendarioUi,
+  puedeProrrogarCreditoUi,
   esCreditoProductoPrendario,
 } from '../../utils/creditoOperacionPermisos'
-import { prendaAItem, prendaVacia, totalTasacion, buildSimuladorPrendarioPath, validarPrendasForm, type PrendaCampoError } from '../../utils/prendas'
+import { ltvObservado, prendaAItem, prendaVacia, totalTasacion, buildSimuladorPrendarioPath, validarPrendasForm, type PrendaCampoError } from '../../utils/prendas'
 import { abrirWhatsAppPrendario } from '../../utils/prendarioWhatsapp'
 import '../../styles/credito-prendario-gestion.css'
 
@@ -68,6 +72,9 @@ export function CreditoPrendarioGestionPage() {
   const [prendas, setPrendas] = useState<PrendaItem[]>([prendaVacia()])
   const [fechaRematePrenda, setFechaRematePrenda] = useState('')
   const [erroresPrendas, setErroresPrendas] = useState<PrendaCampoError[]>([])
+  const [modalProrrogar, setModalProrrogar] = useState(false)
+  const [diasProrroga, setDiasProrroga] = useState(7)
+  const puedeProrrogar = puedeProrrogarCreditoUi(roles)
 
   const ficha = useQuery({
     queryKey: ['persona-credito-ficha', oficinaId, personaId],
@@ -166,11 +173,43 @@ export function CreditoPrendarioGestionPage() {
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const devolverBien = useMutation({
+    mutationFn: (prendaId: number) => devolverPrenda({ oficinaId, prendaId }),
+    onSuccess: async (res) => {
+      message.success('Bien devuelto')
+      void queryClient.invalidateQueries({ queryKey: ['prendas', oficinaId, creditoId] })
+      try {
+        await downloadDevolucionPrendarioPdf(oficinaId, res.prendaId)
+      } catch (e) {
+        message.warning(errMsg(e))
+      }
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const imprimirDevolucion = useMutation({
+    mutationFn: (prendaId: number) => downloadDevolucionPrendarioPdf(oficinaId, prendaId),
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const prorrogar = useMutation({
+    mutationFn: () => prorrogarCredito({ oficinaId, creditoId, dias: diasProrroga }),
+    onSuccess: () => {
+      setModalProrrogar(false)
+      message.success('Vencimiento prorrogado')
+      void queryClient.invalidateQueries({ queryKey: ['credito-contexto', creditoId] })
+      void queryClient.invalidateQueries({ queryKey: ['prendario-creditos'] })
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
   const bienesPersistidos = (bienes.data ?? []).length > 0
   const esPrendario = esCreditoProductoPrendario(contexto.data ?? {})
   const puedeEditarBienes =
     puedeCompletarBienes && esPrendario && !bienesPersistidos && creditoId > 0
   const puedeImprimir = bienesPersistidos
+  const creditoDesembolsado = (contexto.data?.estado ?? '').toUpperCase() === 'DES'
+  const puedePedirDevolucion = puedeCompletarBienes && esPrendario && !creditoDesembolsado
   const estadoMeta = getCreditoEstadoMeta(contexto.data?.estado)
   const necesitaElegirCredito =
     creditoIdUrl < 1 &&
@@ -200,6 +239,11 @@ export function CreditoPrendarioGestionPage() {
   if (tasacion > 0) {
     stats.push({ label: 'Tasación', value: formatMoney(tasacion), tone: 'green' })
   }
+  const montoCredito = creditosOpciones.find((c) => c.creditoId === creditoId)?.montoCredito
+  const ltv = montoCredito != null ? ltvObservado(montoCredito, tasacion) : null
+  if (ltv != null) {
+    stats.push({ label: 'LTV', value: `${ltv}%` })
+  }
 
   if (personaId < 1) {
     return (
@@ -215,11 +259,7 @@ export function CreditoPrendarioGestionPage() {
   return (
     <CredixPage
       title="Gestión prendaria"
-      subtitle={
-        bienesPersistidos
-          ? 'Consulta de bienes en custodia, contrato y acta.'
-          : 'Si faltan bienes, regístrelos una sola vez aquí. Luego solo consulta y documentos.'
-      }
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -307,6 +347,9 @@ export function CreditoPrendarioGestionPage() {
               >
                 Acta de entrega
               </Button>
+              {puedeProrrogar && creditoDesembolsado ? (
+                <Button onClick={() => setModalProrrogar(true)}>Prorrogar</Button>
+              ) : null}
               <Tooltip title="Abre un chat libre con el cliente. El aviso oficial de vencimiento (plantilla a 3 días) se envía desde el listado o de forma automática a las 08:00.">
                 <Button
                   icon={<WhatsAppOutlined />}
@@ -375,11 +418,6 @@ export function CreditoPrendarioGestionPage() {
                 </div>
               ))}
             </div>
-            <p className="credito-prendario-plan__note">
-              El vencimiento es la última cuota del plan (1.er pago + cuotas). El remate es
-              vencimiento + 30 días. Al desembolsar en caja, las fechas se realinean desde la
-              fecha real de desembolso (base del contrato oficial).
-            </p>
           </div>
 
           {!bienesPersistidos ? (
@@ -429,6 +467,67 @@ export function CreditoPrendarioGestionPage() {
             readOnly={!puedeEditarBienes}
             errores={erroresPrendas}
           />
+          {(bienes.data ?? []).length > 0 ? (
+            <div style={{ marginTop: 12 }}>
+              {(bienes.data ?? []).map((b) => {
+                const estado = (b.estado ?? 'EN CUSTODIA').trim().toUpperCase()
+                const enCustodia = estado === 'EN CUSTODIA'
+                return (
+                  <div
+                    key={b.prendaId}
+                    style={{
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      gap: 8,
+                      alignItems: 'center',
+                      marginBottom: 8,
+                    }}
+                  >
+                    <Text>
+                      {b.descripcion || 'Bien'} · {estado}
+                    </Text>
+                    {enCustodia ? (
+                      <Button
+                        size="small"
+                        disabled={!puedePedirDevolucion || devolverBien.isPending}
+                        onClick={() =>
+                          confirmMoney({
+                            title: `Devolver ${b.descripcion || 'bien'}`,
+                            amount: b.valorTasacion,
+                            officeLabel: `Crédito #${creditoId}`,
+                            consequence: creditoDesembolsado
+                              ? 'Cierre el crédito antes de devolver.'
+                              : 'El bien sale de custodia. Esta acción no se deshace.',
+                            okText: 'Devolver',
+                            onOk: async () => {
+                              await devolverBien.mutateAsync(b.prendaId)
+                            },
+                          })
+                        }
+                      >
+                        Devolver
+                      </Button>
+                    ) : null}
+                    {estado === 'DEVUELTO' ? (
+                      <Button
+                        size="small"
+                        icon={<FilePdfOutlined />}
+                        loading={imprimirDevolucion.isPending}
+                        onClick={() => imprimirDevolucion.mutate(b.prendaId)}
+                      >
+                        Comprobante
+                      </Button>
+                    ) : null}
+                  </div>
+                )
+              })}
+              {creditoDesembolsado ? (
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  La devolución se habilita cuando el crédito ya no está desembolsado.
+                </Text>
+              ) : null}
+            </div>
+          ) : null}
 
           {puedeEditarBienes ? (
             <Button
@@ -442,6 +541,30 @@ export function CreditoPrendarioGestionPage() {
           ) : null}
         </CredixPanel>
       ) : null}
+
+      <Modal
+        title={`Prorrogar crédito ${creditoId || ''}`}
+        open={modalProrrogar}
+        onCancel={() => setModalProrrogar(false)}
+        onOk={() => {
+          if (diasProrroga < 1) {
+            message.warning('Indique al menos 1 día')
+            return
+          }
+          prorrogar.mutate()
+        }}
+        confirmLoading={prorrogar.isPending}
+        okText="Prorrogar"
+      >
+        <label htmlFor="dias-prorroga-gestion">Días</label>
+        <InputNumber
+          id="dias-prorroga-gestion"
+          min={1}
+          value={diasProrroga}
+          onChange={(v) => setDiasProrroga(v ?? 7)}
+          style={{ width: '100%', marginTop: 8 }}
+        />
+      </Modal>
     </CredixPage>
   )
 }

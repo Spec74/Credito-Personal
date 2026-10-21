@@ -171,7 +171,7 @@ export function CreditoCondonacionesPage() {
   return (
     <CredixCrudPage
       title="Solicitudes de condonación"
-      subtitle="Bandeja de mora a condonar aún no aprobada. El administrador aprueba en la ficha del crédito."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -183,7 +183,7 @@ export function CreditoCondonacionesPage() {
           value={buscar}
           onChange={setBuscar}
           placeholder="Cliente, crédito, usuario…"
-          hint="Doble clic en fila abre la ficha del crédito."
+          hint={undefined}
           filteredCount={filtrados.length}
           totalCount={rows.length}
           loading={listQuery.isFetching}

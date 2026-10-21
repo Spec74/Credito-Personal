@@ -244,7 +244,7 @@ export function TransferenciaAlmacenPage() {
   return (
     <CredixPage
       title="Transferencias de almacén"
-      subtitle="Traslado de series entre oficinas: alta, escaneo y confirmación."
+      subtitle={undefined}
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },

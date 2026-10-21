@@ -94,7 +94,7 @@ export function CajasAsignadasPage() {
   return (
     <CredixInformePage
       title="Cajas asignadas (oficina)"
-      subtitle="Sesiones de caja diario abiertas o del día en la oficina del usuario en sesión."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/informes">Informes</Link> },

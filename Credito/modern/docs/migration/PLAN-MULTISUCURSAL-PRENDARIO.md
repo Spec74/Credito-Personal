@@ -123,3 +123,5 @@ Orden profesional para que la sucursal opere con autonomía:
 ## 6. Mensaje a gerencia (una frase)
 
 > La base ya es multisucursal; corregimos el cierre de cajas para que Pichari y Andahuaylas cuadren, el central fondea con transferencia inmediata a cada bóveda, y el prendario se unifica en un solo llenado con documentos al instante sin reestructurar la BD.
+
+UX de siguiente nivel, home por rol, wizard de sede y ciclo prendario completo: [SSD-13](../ssd/SSD-13-experiencia-operativa.md).

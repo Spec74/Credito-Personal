@@ -7,10 +7,7 @@ import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import type { SorterResult } from 'antd/es/table/interface'
 import { listarClientes, type ClienteListadoRow } from '../../api/clientes'
 import { ApiError } from '../../api/errors'
-import {
-  extractSearchTermsFromInput,
-  primaryCatalogSearchTerm,
-} from '../../components/caja/clienteBuscarResolve'
+import { primaryCatalogSearchTerm } from '../../components/caja/clienteBuscarResolve'
 import {
   CredixCrudPage,
   CredixDataTable,
@@ -18,6 +15,7 @@ import {
   type CredixStatItem,
 } from '../../components/credix'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { CLIENTE_CRUZADO_AVISO } from '../../utils/clienteCruzado'
 import { ClientesTableEmpty } from './components/ClientesTableEmpty'
 import '../../styles/clientes-module.css';
 
@@ -127,11 +125,6 @@ export function ClientesPage() {
     }
   }
 
-  const terminos = useMemo(
-    () => (buscarRaw ? extractSearchTermsFromInput(buscarRaw) : []),
-    [buscarRaw],
-  )
-
   const stats: CredixStatItem[] = useMemo(() => {
     if (!listado.data) {
       return []
@@ -159,7 +152,7 @@ export function ClientesPage() {
     <CredixCrudPage
       className="clientes-page credix-page--stats-3"
       title="Clientes"
-      subtitle="Mantenimiento de clientes: listado por sus créditos o búsqueda en catálogo (2+ caracteres). Doble clic en una fila para abrir la ficha."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Clientes' },
@@ -189,7 +182,7 @@ export function ClientesPage() {
           placeholder="Apellidos, DNI, código, celular, email"
           hint={
             buscarAplicado
-              ? `Buscando en catálogo completo${terminos.length > 1 ? ` · ${terminos.join(' · ')}` : ''}`
+              ? CLIENTE_CRUZADO_AVISO
               : 'Mostrando clientes de sus créditos (sin filtro o menos de 2 caracteres).'
           }
           hintShort={buscarAplicado ? 'Catálogo completo' : 'Mis créditos'}

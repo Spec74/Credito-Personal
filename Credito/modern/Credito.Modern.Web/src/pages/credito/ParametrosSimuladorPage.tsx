@@ -86,7 +86,7 @@ export function ParametrosSimuladorPage() {
 
       title="Parámetros del simulador"
 
-      subtitle="Factores de compensación de cuota para el simulador de crédito."
+      subtitle={undefined}
 
       stats={stats}
 

@@ -11,6 +11,7 @@ public interface IPrendarioReadService
         string? buscar,
         int page,
         int pageSize,
+        PrendarioCategoria? categoria = null,
         CancellationToken cancellationToken = default);
 
     Task<PrendarioDocumentoConsulta<PrendarioContratoDto>> ObtenerContratoAsync(
@@ -21,6 +22,11 @@ public interface IPrendarioReadService
     Task<PrendarioDocumentoConsulta<PrendarioActaDto>> ObtenerActaAsync(
         int oficinaId,
         int creditoId,
+        CancellationToken cancellationToken = default);
+
+    Task<PrendarioDocumentoConsulta<PrendarioDevolucionDto>> ObtenerDevolucionAsync(
+        int oficinaId,
+        long prendaId,
         CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<PrendarioAvisoVencimientoDto>> ListarAvisosVencimientoAsync(

@@ -28,17 +28,19 @@ import { crearSolicitudPrendaria, guardarBienesPrendario } from '../../api/prend
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import type { PrendaItem } from '../../api/creditoGestion'
-import { CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
+import { CredixPage, CredixPanel, CredixWorkCanvas, type CredixStatItem } from '../../components/credix'
 import { ClienteBuscarAutoComplete } from '../../components/caja/ClienteBuscarAutoComplete'
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import {
   buildSimuladorPrendarioPath,
   prendaVacia,
   totalTasacion,
+  ltvObservado,
   validarMontoVsTasacion,
   validarPrendasForm,
   type PrendaCampoError,
 } from '../../utils/prendas'
+import { CLIENTE_CRUZADO_AVISO } from '../../utils/clienteCruzado'
 import { formatMoney } from '../../utils/formatMoney'
 import {
   PRENDARIO_NUEVO_PATH,
@@ -46,7 +48,7 @@ import {
   labelClienteFicha,
 } from '../../utils/internalReturnTo'
 
-const { Paragraph, Text } = Typography
+const { Text } = Typography
 
 const IND_GASTOS_ADM = 'ADE' as const
 
@@ -370,16 +372,19 @@ export function CreditoPrendarioNuevoPage() {
     })
   }
   if (montoCredito != null && montoCredito > 0 && tasacion > 0 && !errorMontoVsTasacion) {
-    stats.push({
-      label: 'Cupo usado',
-      value: `${((montoCredito / tasacion) * 100).toFixed(0)}%`,
-    })
+    const ltv = ltvObservado(montoCredito, tasacion)
+    if (ltv != null) {
+      stats.push({
+        label: 'LTV',
+        value: `${ltv}%`,
+      })
+    }
   }
 
   return (
     <CredixPage
       title="Nuevo crédito prendario"
-      subtitle="Cliente, bienes y plan de crédito (monto, interés, trámite, primer pago) en esta pantalla. Luego confirma la simulación y solicita; PDFs en la misma ventana siguen en curso."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -399,13 +404,10 @@ export function CreditoPrendarioNuevoPage() {
         ]}
       />
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} lg={12}>
-          <CredixPanel title="Buscar cliente existente">
-            <Paragraph type="secondary" style={{ marginBottom: 12 }}>
-              Escriba DNI, apellido o nombre: aparecen coincidencias al instante. Toque una vez el
-              resultado para seleccionarlo (escritorio y móvil).
-            </Paragraph>
+      <CredixWorkCanvas
+        context={(
+          <div>
+          <CredixPanel title="Cliente existente">
             <ClienteBuscarAutoComplete
               variant="credito"
               value={terminoCliente}
@@ -427,15 +429,11 @@ export function CreditoPrendarioNuevoPage() {
               minChars={2}
               placeholder="DNI, apellido o nombre"
             />
+            <Text type="secondary" style={{ display: 'block', marginTop: 8, fontSize: 12 }}>
+              {CLIENTE_CRUZADO_AVISO}
+            </Text>
           </CredixPanel>
-        </Col>
-
-        <Col xs={24} lg={12}>
-          <CredixPanel title="Nuevo cliente (Clientes + ApiPerú)">
-            <Paragraph type="secondary" style={{ marginBottom: 12 }}>
-              El alta vive en el módulo de Clientes: consulta RENIEC y guarda la ficha completa. Aquí
-              solo se consulta el DNI para no duplicar.
-            </Paragraph>
+          <CredixPanel title="Nuevo cliente">
             <Space.Compact style={{ width: '100%', marginBottom: 12 }}>
               <Input
                 placeholder="DNI 8 dígitos"
@@ -508,25 +506,16 @@ export function CreditoPrendarioNuevoPage() {
               </Button>
             </Space>
           </CredixPanel>
-        </Col>
-      </Row>
-
-      <CredixPanel title="Bienes en custodia">
+          </div>
+        )}
+        work={(
+      <CredixPanel title="Bienes y crédito">
         {personaId ? (
           <Alert
             type="success"
             showIcon
             style={{ marginBottom: 12 }}
-            message={
-              recienRegistrado
-                ? `Cliente registrado y seleccionado: ${clienteLabel || `Persona #${personaId}`}`
-                : `Cliente seleccionado: ${clienteLabel || `Persona #${personaId}`}`
-            }
-            description={
-              recienRegistrado
-                ? 'No hace falta buscarlo de nuevo. Continúe con los bienes en custodia.'
-                : undefined
-            }
+            message={clienteLabel || `Persona #${personaId}`}
             action={
               <Button size="small" onClick={limpiarCliente}>
                 Cambiar
@@ -538,16 +527,9 @@ export function CreditoPrendarioNuevoPage() {
             type="warning"
             showIcon
             style={{ marginBottom: 12 }}
-            message="Seleccione un cliente existente o regístrelo en Clientes antes de cargar los bienes."
+            message="Seleccione un cliente para cargar bienes."
           />
         )}
-        <Alert
-          type="info"
-          showIcon
-          style={{ marginBottom: 12 }}
-          message="Los bienes se registran una sola vez aquí"
-          description="En gestión solo se consultan. El vencimiento lo calcula el simulador con la modalidad (mensual en prendario), las cuotas y la fecha del primer pago."
-        />
         <PrendasEditor
           value={prendas}
           onChange={(next) => {
@@ -723,51 +705,50 @@ export function CreditoPrendarioNuevoPage() {
             }
           />
         ) : null}
-        {montoDesembolsar != null && !errorMontoVsTasacion ? (
-          <Paragraph style={{ marginTop: 12, marginBottom: 4 }}>
-            <Text strong style={{ color: 'var(--credix-primary, #1677ff)' }}>
-              Monto a desembolsar: {formatMoney(montoDesembolsar)}
-            </Text>
-            <Text type="secondary">
-              {' '}
-              (con ADE = monto del crédito; el trámite adm. se cobra aparte
-              {indCentralRiesgo ? ', con cargo de central de riesgo' : ''})
-            </Text>
-          </Paragraph>
-        ) : null}
-        <Paragraph type="secondary" style={{ marginTop: 8, marginBottom: 4 }}>
-          Modalidad prendaria fija: mensual · 1 cuota. Al continuar se crea la solicitud con los
-          bienes (ya no editables) y se abre el simulador con estos datos para confirmar el plan.
-        </Paragraph>
-        {!puedeContinuar && personaId ? (
-          <Alert
-            type="warning"
-            showIcon
-            style={{ marginBottom: 12 }}
-            message="Complete lo pendiente para continuar"
-            description={
-              !bienesListos
-                ? 'Agregue al menos un bien con descripción y tasación mayor a cero.'
-                : errorMontoVsTasacion
-                  ? 'Corrija el monto del crédito respecto a la tasación.'
-                  : errorInteres
-                    ? errorInteres
-                    : !fechaPrimerPago?.trim()
-                      ? 'Indique la fecha del primer pago.'
-                      : 'Revise monto, interés y trámite administrativo.'
-            }
-          />
-        ) : null}
-        <Button
-          type="primary"
-          icon={<FileAddOutlined />}
-          disabled={!puedeContinuar}
-          loading={crear.isPending}
-          onClick={() => crear.mutate()}
-        >
-          Continuar: simular y solicitar
-        </Button>
       </CredixPanel>
+        )}
+        result={(
+          <CredixPanel title="Resultado">
+            {montoDesembolsar != null && !errorMontoVsTasacion ? (
+              <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 20 }}>
+                Desembolso {formatMoney(montoDesembolsar)}
+              </Text>
+            ) : (
+              <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
+                Complete cliente, bienes y monto.
+              </Text>
+            )}
+            {!puedeContinuar && personaId ? (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginBottom: 12 }}
+                message={
+                  !bienesListos
+                    ? 'Falta un bien con tasación.'
+                    : errorMontoVsTasacion
+                      ? 'El monto supera la tasación.'
+                      : errorInteres
+                        ? errorInteres
+                        : !fechaPrimerPago?.trim()
+                          ? 'Indique el primer pago.'
+                          : 'Revise monto e interés.'
+                }
+              />
+            ) : null}
+            <Button
+              type="primary"
+              icon={<FileAddOutlined />}
+              disabled={!puedeContinuar}
+              loading={crear.isPending}
+              onClick={() => crear.mutate()}
+              block
+            >
+              Simular y solicitar
+            </Button>
+          </CredixPanel>
+        )}
+      />
     </CredixPage>
   )
 }

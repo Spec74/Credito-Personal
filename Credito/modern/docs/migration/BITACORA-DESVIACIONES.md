@@ -4,6 +4,39 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-21 — Oficinas locales Huanta y Pichari
+
+**Qué hay:** script `deploy/sql/local/2026-10-21-oficinas-huanta-pichari.sql` (no entra en
+`apply-migrations`). Activa oficina 3 como HUANTA, crea PICHARI (4), bóveda abierta y
+roles de RMANTILLA/YCERVANTES. Azure no se toca (ya tiene sedes).
+
+### 2026-10-21 — Cambio de sede y `usp_DevolverPrenda` en BD
+
+**Qué hay:** `CREDITO.usp_DevolverPrenda` aplicado en la base local (puerto 14330).
+El tablero red ya no manda a `/login` con sesión viva (rebote a Inicio): cierra
+sesión y abre login con `?oficinaId=`. La barra de contexto tiene «Cambiar sede».
+
+**Qué no hay:** umbral PLA/UIF (sigue sin cifra de gerencia).
+
+### 2026-10-20 — T-C2 `usp_DevolverPrenda`
+
+**Qué hay:** procedimiento nuevo sobre columnas existentes (`Estado`, `FechaMod`,
+`UsuarioModId`). No se crea tabla. No se libera garantía de un crédito `DES`.
+Comprobante QuestPDF. Script `deploy/sql/2026-10-20-usp-devolver-prenda.sql`.
+
+**Qué no hay:** renovación como crédito nuevo (se usa `usp_ProrrogarCredito`);
+TEA/TCEA; umbral PLA (sin cifra UIF).
+
+### 2026-10-20 — Oleada C: LTV, cola remate y lo que no se inventa
+
+**Qué hay:** LTV observado en listado/nuevo/gestión (`MontoCredito / MontoTasacion`).
+El tope vigente sigue siendo 100% (`validarMontoVsTasacion`). El listado acepta
+`categoria` en servidor (paginación sobre el CASE ya documentado). Se muestra
+`Prenda.Estado`. La búsqueda de persona sigue siendo global, con aviso de no duplicar.
+
+**Qué no hay (y no se inventó):** tope LTV 80%, renovación (≠ prórroga),
+TEA/TCEA, umbral PLA. `DEVUELTO` quedó en T-C2. Contrato: `docs/speckit/001-experiencia-operativa/contrato-datos-c.md`.
+
 ### 2026-10-17 — Dos WSULCA activos: login “configuración incompleta”
 
 **Síntoma:** login con `wsulca` / Pichari devolvía 503 “configuración incompleta”.

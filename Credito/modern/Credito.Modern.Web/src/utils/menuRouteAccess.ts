@@ -30,7 +30,12 @@ const HUB_CHILDREN: Record<string, string[]> = {
   // Operación diaria: Cobro campo es atajo de Caja diario (no ítem de menú propio).
   '/caja/diario': ['/caja/cobro', '/caja/cobro-bloque'],
   '/tesoreria': ['/tesoreria/'],
-  '/tesoreria/boveda': ['/tesoreria/movimiento-boveda'],
+  '/tesoreria/boveda': [
+    '/tesoreria/movimiento-boveda',
+    '/tesoreria/fondear-sucursales',
+    '/tesoreria/red',
+  ],
+  '/mantenimiento/oficinas': ['/mantenimiento/oficinas/'],
   '/maestros': ['/maestros/', '/mantenimiento/'],
   '/almacen': ['/almacen/'],
   '/ventas': ['/ventas/'],
@@ -153,6 +158,17 @@ export function hasMenuRouteAccess(
   const adminHub = adminHubIndexAccess(path, allowedPaths)
   if (adminHub !== null) {
     return adminHub
+  }
+
+  if (path === '/informes') {
+    return allowedPaths.has('/reportes/credito')
+  }
+
+  if (path === '/tesoreria') {
+    return (
+      allowedPaths.has('/tesoreria') ||
+      allowedPaths.has('/tesoreria/boveda')
+    )
   }
 
   const prendario = prendarioAccess(path, allowedPaths)

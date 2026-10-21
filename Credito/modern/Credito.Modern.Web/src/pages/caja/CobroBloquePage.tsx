@@ -1515,7 +1515,7 @@ export function CobroBloquePage() {
       subtitle={
         fieldMode
           ? undefined
-          : 'Tipar monto en Cartera → Cobrar (o Registrar tipados) → Enviados. Completar impagos solo en Caja Diario.'
+          : undefined
       }
       breadcrumb={
         fieldMode

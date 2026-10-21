@@ -258,7 +258,7 @@ export function SalidaAlmacenPage() {
 
       title="Salida de almacén"
 
-      subtitle="Registro de salida por escaneo o ingreso de series en almacén."
+      subtitle={undefined}
 
       stats={stats}
 

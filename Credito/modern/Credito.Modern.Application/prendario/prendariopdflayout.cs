@@ -73,6 +73,14 @@ internal static class PrendarioPdfLayout
             .Text("CRÉDITOS PRENDARIOS").FontColor(Colors.White).SemiBold().FontSize(8);
     }
 
+    public static void EncabezadoDevolucion(ColumnDescriptor col, string numeroContrato)
+    {
+        Encabezado(col, "COMPROBANTE DE DEVOLUCIÓN", numeroContrato);
+        col.Item().PaddingTop(4).AlignCenter().Width(168).Background(ActaAzul)
+            .PaddingVertical(3).AlignCenter()
+            .Text("CRÉDITOS PRENDARIOS").FontColor(Colors.White).SemiBold().FontSize(8);
+    }
+
     public static void Par(ColumnDescriptor col, string labelIzq, string valorIzq, string labelDer, string valorDer)
     {
         col.Item().Table(table =>

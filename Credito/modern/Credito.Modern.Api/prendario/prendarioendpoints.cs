@@ -106,6 +106,7 @@ internal static class PrendarioEndpoints
                     IHostEnvironment env,
                     CancellationToken ct,
                     string? buscar = null,
+                    string? categoria = null,
                     int page = 1,
                     int pageSize = 20) =>
                 {
@@ -124,8 +125,15 @@ internal static class PrendarioEndpoints
                     var log = loggerFactory.CreateLogger("PrendarioListar");
                     try
                     {
+                        PrendarioCategoria? filtro = null;
+                        if (!string.IsNullOrWhiteSpace(categoria)
+                            && Enum.TryParse<PrendarioCategoria>(categoria, ignoreCase: true, out var parsed))
+                        {
+                            filtro = parsed;
+                        }
+
                         var pagina = await prendarioRead
-                            .ListarAsync(oficinaId, buscar, page, pageSize, ct)
+                            .ListarAsync(oficinaId, buscar, page, pageSize, filtro, ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(pagina);
                     }
@@ -321,6 +329,182 @@ internal static class PrendarioEndpoints
                 })
             .WithName("PrendarioActaEntregaPdf")
             .WithSummary("Acta de entrega voluntaria en PDF (QuestPDF). Exige al menos un bien en custodia.")
+            .WithTags("prendario")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario)
+            .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+
+
+        app.MapPost(
+                "/api/v1/prendario/devolver-prenda",
+                async Task<Results<Ok<DevolverPrendaResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    DevolverPrendaRequest body,
+                    IPrendarioWriteService prendarioWrite,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (body.OficinaId < 1 || body.PrendaId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "oficinaId y prendaId deben ser >= 1.");
+                    }
+
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
+                    if (oficinaError is not null)
+                    {
+                        return oficinaError;
+                    }
+
+                    var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
+                    if (usuarioError is not null)
+                    {
+                        return usuarioError;
+                    }
+
+                    var log = loggerFactory.CreateLogger("PrendarioDevolver");
+                    try
+                    {
+                        var response = await prendarioWrite
+                            .DevolverAsync(body, usuarioId, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(response);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (ArgumentOutOfRangeException ex)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Parámetros inválidos",
+                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
+                    }
+                    catch (DbException ex)
+                    {
+                        var negocio = MensajeNegocioDevolucion(ex);
+                        if (negocio is { } n)
+                        {
+                            log.LogWarning(ex, "Devolución rechazada por contrato");
+                            return TypedResults.Problem(
+                                statusCode: n.NotFound ? StatusCodes.Status404NotFound : StatusCodes.Status409Conflict,
+                                title: n.NotFound ? "No encontrado" : "No se puede devolver",
+                                detail: n.Detail);
+                        }
+
+                        log.LogError(ex, "Error al ejecutar CREDITO.usp_DevolverPrenda");
+                        var detail = "No se pudo devolver el bien.";
+                        if (env.IsDevelopment())
+                        {
+                            detail += $" Detalle: {ex.Message}";
+                        }
+
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("PrendarioDevolverPrenda")
+            .WithSummary("Escritura: CREDITO.usp_DevolverPrenda. EN CUSTODIA → DEVUELTO (no DES).")
+            .WithTags("prendario")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario)
+            .Produces<DevolverPrendaResponse>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+
+
+        app.MapGet(
+                "/api/v1/prendario/devolucion-pdf",
+                async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    int oficinaId,
+                    long prendaId,
+                    IPrendarioReadService prendarioRead,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (oficinaId < 1 || prendaId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "oficinaId y prendaId deben ser >= 1.");
+                    }
+
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+                    if (oficinaError is not null)
+                    {
+                        return oficinaError;
+                    }
+
+                    var log = loggerFactory.CreateLogger("PrendarioDevolucionPdf");
+                    try
+                    {
+                        var consulta = await prendarioRead
+                            .ObtenerDevolucionAsync(oficinaId, prendaId, ct)
+                            .ConfigureAwait(false);
+                        return consulta.Estado switch
+                        {
+                            PrendarioDocumentoEstado.NoEncontrado => TypedResults.Problem(
+                                statusCode: StatusCodes.Status404NotFound,
+                                title: "No encontrado",
+                                detail: "El bien no existe en esta oficina."),
+                            PrendarioDocumentoEstado.SinBienes => TypedResults.Problem(
+                                statusCode: StatusCodes.Status409Conflict,
+                                title: "Aún en custodia",
+                                detail: "Devuelva el bien antes de imprimir el comprobante."),
+                            _ => TypedResults.File(
+                                RptDevolucionPrendarioPdfDocument.Build(consulta.Documento!),
+                                "application/pdf",
+                                $"DevolucionPrendario_{consulta.Documento!.PrendaId}.pdf"),
+                        };
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error al generar el comprobante de devolución");
+                        var detail = "No se pudo generar el documento.";
+                        if (env.IsDevelopment())
+                        {
+                            detail += $" Detalle: {ex.Message}";
+                        }
+
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("PrendarioDevolucionPdf")
+            .WithSummary("Comprobante de devolución (QuestPDF). Exige Prenda.Estado = DEVUELTO.")
             .WithTags("prendario")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario)
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
@@ -560,6 +744,26 @@ internal static class PrendarioEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
+    }
+
+    static (string Detail, bool NotFound)? MensajeNegocioDevolucion(DbException ex)
+    {
+        var msg = (ex.Message ?? string.Empty).Split('\n')[0].Trim();
+        if (msg.Contains("no encontrado", StringComparison.OrdinalIgnoreCase))
+        {
+            return (msg, true);
+        }
+
+        if (msg.Contains("devuelto", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("custodia", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("desembolsado", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("incompletos", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("actualizó", StringComparison.OrdinalIgnoreCase))
+        {
+            return (msg, false);
+        }
+
+        return null;
     }
 
     static async Task<(T? Documento, ProblemHttpResult? Error)> ConsultarDocumentoPrendarioAsync<T>(

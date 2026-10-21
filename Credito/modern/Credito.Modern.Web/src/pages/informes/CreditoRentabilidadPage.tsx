@@ -135,7 +135,7 @@ export function CreditoRentabilidadPage() {
   return (
     <CredixInformePage
       title="Rentabilidad de créditos"
-      subtitle="Rentabilidad por estado de crédito y rango de fechas."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Rentabilidad créditos')}
       stats={stats}
       filters={

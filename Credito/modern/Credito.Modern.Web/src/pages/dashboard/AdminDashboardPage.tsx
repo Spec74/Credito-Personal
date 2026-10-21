@@ -307,10 +307,6 @@ export function AdminDashboardPage() {
             <div>
               <p className="dash-kicker">Tablero gerencial</p>
               <h2 className="dash-hello">Cargando…</h2>
-              <p className="dash-sub">
-                Vista completa de la oficina: operación del día, acumulado del mes, flujo de caja,
-                tendencia y rendimiento por analista.
-              </p>
             </div>
           </header>
           <Skeleton active paragraph={{ rows: 8 }} />
@@ -359,10 +355,6 @@ export function AdminDashboardPage() {
           <div>
             <p className="dash-kicker">Tablero gerencial</p>
             <h2 className="dash-hello">{shell.nombreOficina}</h2>
-            <p className="dash-sub">
-              Vista completa de la oficina: operación del día, acumulado del mes, flujo de caja, tendencia y
-              rendimiento por analista.
-            </p>
           </div>
           <div className="dash-date">{fechaLarga}</div>
         </header>

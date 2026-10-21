@@ -208,7 +208,7 @@ export function CobranzaPagosPage() {
   return (
     <CredixInformePage
       title="Cobranza pagos por gestor"
-      subtitle="Elija gestor y pulse Enter o selecciónelo para cargar la cartera. Expanda una fila para ver las cuotas."
+      subtitle={undefined}
       breadcrumb={reportesCobranzaBreadcrumb()}
       enableTableSearch={queried && filas.length > 0}
       tableSearchVariant="compact"

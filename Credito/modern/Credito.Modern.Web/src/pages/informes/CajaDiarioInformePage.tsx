@@ -122,7 +122,7 @@ export function CajaDiarioInformePage() {
   return (
     <CredixInformePage
       title="Informe caja diario"
-      subtitle="Sesiones de caja diario por oficina y rango; gestor opcional (TODOS) para roles elevados."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/informes">Informes</Link> },

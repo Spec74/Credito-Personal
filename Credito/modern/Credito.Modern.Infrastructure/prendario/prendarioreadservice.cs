@@ -58,6 +58,7 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
         string? buscar,
         int page,
         int pageSize,
+        PrendarioCategoria? categoria = null,
         CancellationToken cancellationToken = default)
     {
         var pagina = page < 1 ? 1 : page;
@@ -110,7 +111,8 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                        OR p.NumeroDocumento LIKE '%' + @Buscar + '%'
                        OR c.NumeroContratoPrendario LIKE '%' + @Buscar + '%');
 
-                SELECT COUNT(*) FROM #PrendarioListado;
+                SELECT COUNT(*) FROM #PrendarioListado
+                WHERE (@Categoria IS NULL OR Categoria = @Categoria);
 
                 SELECT CreditoId,
                        PersonaId,
@@ -128,6 +130,7 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                        Categoria,
                        DiasParaVencer
                 FROM #PrendarioListado
+                WHERE (@Categoria IS NULL OR Categoria = @Categoria)
                 ORDER BY CreditoId DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
                 """,
@@ -135,6 +138,7 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                 {
                     OficinaId = oficinaId,
                     Buscar = termino,
+                    Categoria = categoria is { } cat ? (int)cat : (int?)null,
                     DiasAviso = DiasAvisoVencimiento,
                     Offset = (pagina - 1) * tamano,
                     PageSize = tamano,
@@ -245,6 +249,95 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
             bienes);
 
         return new PrendarioDocumentoConsulta<PrendarioActaDto>(PrendarioDocumentoEstado.Ok, acta);
+    }
+
+    public async Task<PrendarioDocumentoConsulta<PrendarioDevolucionDto>> ObtenerDevolucionAsync(
+        int oficinaId,
+        long prendaId,
+        CancellationToken cancellationToken = default)
+    {
+        if (oficinaId < 1 || prendaId < 1)
+        {
+            return new PrendarioDocumentoConsulta<PrendarioDevolucionDto>(
+                PrendarioDocumentoEstado.NoEncontrado, null);
+        }
+
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var row = await connection.QueryFirstOrDefaultAsync<DevolucionRow>(
+            new CommandDefinition(
+                """
+                SELECT p.PrendaId,
+                       c.CreditoId,
+                       c.NumeroContratoPrendario,
+                       p.FechaMod,
+                       p.FechaRegistro,
+                       p.Estado,
+                       per.NombreCompleto,
+                       per.NumeroDocumento,
+                       per.Direccion,
+                       d.Denominacion AS Distrito,
+                       pr.Denominacion AS Provincia,
+                       dep.Denominacion AS Departamento,
+                       p.Descripcion,
+                       p.Marca,
+                       p.Modelo,
+                       p.Serie,
+                       p.Color,
+                       p.ValorTasacion,
+                       p.CodigoInterno,
+                       p.Observaciones
+                FROM CREDITO.Prenda AS p
+                INNER JOIN CREDITO.Credito AS c ON c.CreditoId = p.CreditoId
+                INNER JOIN MAESTRO.Persona AS per ON per.PersonaId = c.PersonaId
+                LEFT JOIN MAESTRO.Distrito AS d ON d.idDist = per.DistritoId
+                LEFT JOIN MAESTRO.Provincia AS pr ON pr.idProv = d.idProv
+                LEFT JOIN MAESTRO.Departamento AS dep ON dep.idDepa = pr.idDepa
+                WHERE p.PrendaId = @PrendaId
+                  AND c.OficinaId = @OficinaId
+                  AND (c.EsPrendario = CAST(1 AS bit) OR c.ProductoId = 2);
+                """,
+                new { OficinaId = oficinaId, PrendaId = prendaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (row is null)
+        {
+            return new PrendarioDocumentoConsulta<PrendarioDevolucionDto>(
+                PrendarioDocumentoEstado.NoEncontrado, null);
+        }
+
+        if (!string.Equals(row.Estado, "DEVUELTO", StringComparison.OrdinalIgnoreCase))
+        {
+            return new PrendarioDocumentoConsulta<PrendarioDevolucionDto>(
+                PrendarioDocumentoEstado.SinBienes, null);
+        }
+
+        var dto = new PrendarioDevolucionDto(
+            row.PrendaId,
+            row.CreditoId,
+            string.IsNullOrWhiteSpace(row.NumeroContratoPrendario)
+                ? row.CreditoId.ToString(CultureInfo.InvariantCulture)
+                : row.NumeroContratoPrendario.Trim(),
+            row.FechaMod ?? row.FechaRegistro,
+            row.Estado,
+            row.NombreCompleto,
+            row.NumeroDocumento,
+            row.Direccion,
+            row.Distrito,
+            row.Provincia,
+            row.Departamento,
+            new PrendarioBienDocumentoDto(
+                row.Descripcion,
+                row.Marca,
+                row.Modelo,
+                row.Serie ?? "N/T",
+                row.Color,
+                row.ValorTasacion,
+                row.CodigoInterno,
+                row.Observaciones));
+
+        return new PrendarioDocumentoConsulta<PrendarioDevolucionDto>(PrendarioDocumentoEstado.Ok, dto);
     }
 
     private async Task<(DocumentoCabeceraRow? Cabecera, IReadOnlyList<PrendarioBienDocumentoDto> Bienes)>
@@ -411,6 +504,30 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
         public string? ConyugeNombre { get; init; }
         public string? ConyugeDni { get; init; }
         public string? EjecutivoNombre { get; init; }
+    }
+
+    private sealed class DevolucionRow
+    {
+        public long PrendaId { get; init; }
+        public int CreditoId { get; init; }
+        public string? NumeroContratoPrendario { get; init; }
+        public DateTime? FechaMod { get; init; }
+        public DateTime FechaRegistro { get; init; }
+        public string Estado { get; init; } = "";
+        public string NombreCompleto { get; init; } = "";
+        public string NumeroDocumento { get; init; } = "";
+        public string? Direccion { get; init; }
+        public string? Distrito { get; init; }
+        public string? Provincia { get; init; }
+        public string? Departamento { get; init; }
+        public string Descripcion { get; init; } = "";
+        public string? Marca { get; init; }
+        public string? Modelo { get; init; }
+        public string? Serie { get; init; }
+        public string? Color { get; init; }
+        public decimal ValorTasacion { get; init; }
+        public string? CodigoInterno { get; init; }
+        public string? Observaciones { get; init; }
     }
 
     private sealed class PrendarioAvisoVencimientoRow

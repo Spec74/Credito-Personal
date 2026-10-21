@@ -120,7 +120,7 @@ export function CreditoCondonadoPage() {
   return (
     <CredixInformePage
       title="Créditos condonados"
-      subtitle="Créditos pagados con condonación; gestor opcional (TODOS) para roles elevados. Periodo por defecto = mes calendario."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Créditos condonados')}
       stats={stats}
       filters={

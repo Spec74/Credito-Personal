@@ -128,7 +128,7 @@ export function KardexPage() {
   return (
     <CredixInformePage
       title="Kardex de artículo"
-      subtitle="Movimientos de entrada y salida por artículo y almacén."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/almacen">Almacén</Link> },

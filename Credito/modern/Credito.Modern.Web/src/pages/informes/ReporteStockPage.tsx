@@ -54,7 +54,7 @@ export function ReporteStockPage() {
   return (
     <CredixInformePage
       title="Stock general de productos"
-      subtitle="Stock de artículos por oficina; la oficina debe coincidir con la del usuario en sesión."
+      subtitle={undefined}
       breadcrumb={reportesAlmacenBreadcrumb('Stock general')}
       stats={stats}
       filters={

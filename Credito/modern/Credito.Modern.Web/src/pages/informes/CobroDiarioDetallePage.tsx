@@ -113,7 +113,7 @@ export function CobroDiarioDetallePage() {
   return (
     <CredixInformePage
       title="Cobro diario (detalle)"
-      subtitle="Detalle de cartera del día por gestor y oficina."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Cobro diario detalle')}
       stats={stats}
       filters={

@@ -4,6 +4,7 @@ import {
   prendaSimuladorDesdeBienes,
   prendaVacia,
   buildSimuladorPrendarioPath,
+  ltvObservado,
   totalTasacion,
   validarMontoVsTasacion,
   validarPrendasForm,
@@ -107,5 +108,14 @@ describe('esCelularPeruano', () => {
   it('valida 9 dígitos que empiezan con 9', () => {
     expect(esCelularPeruano('987654321')).toBe(true)
     expect(esCelularPeruano('187654321')).toBe(false)
+  })
+})
+
+describe('ltvObservado', () => {
+  it('muestra el % usado sin inventar un tope distinto de 100', () => {
+    expect(ltvObservado(800, 1000)).toBe(80)
+    expect(ltvObservado(1000, 1000)).toBe(100)
+    expect(ltvObservado(1, 3)).toBe(33.3)
+    expect(ltvObservado(500, 0)).toBeNull()
   })
 })

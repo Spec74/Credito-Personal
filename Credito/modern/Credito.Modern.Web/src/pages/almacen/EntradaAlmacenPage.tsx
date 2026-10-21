@@ -44,7 +44,7 @@ import {
 import { ApiError } from '../../api/errors'
 import { fetchValoresTabla } from '../../api/maestros'
 import { useAuth } from '../../auth/useAuth'
-import { CredixDataTable, CredixDatePicker, CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
+import { CredixDataTable, CredixDatePicker, CredixPage, CredixPanel, CredixWorkCanvas, type CredixStatItem } from '../../components/credix'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 
@@ -603,7 +603,7 @@ export function EntradaAlmacenPage() {
   return (
     <CredixPage
       title="Entrada de almacén"
-      subtitle="Alta por pasos: cabecera, documentos, detalle y confirmación."
+      subtitle={undefined}
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -614,6 +614,8 @@ export function EntradaAlmacenPage() {
       {oficinaId < 1 ? (
         <Alert type="warning" showIcon message="Sesión sin oficina válida." />
       ) : movimientoId < 1 ? (
+        <CredixWorkCanvas
+          work={(
         <>
           <CredixPanel>
             <Space wrap>
@@ -685,7 +687,11 @@ export function EntradaAlmacenPage() {
             />
           )}
         </>
+          )}
+        />
       ) : (
+        <CredixWorkCanvas
+          work={(
         <>
           <CredixPanel>
             <Space wrap>
@@ -719,6 +725,8 @@ export function EntradaAlmacenPage() {
             </>
           )}
         </>
+          )}
+        />
       )}
 
       <Modal

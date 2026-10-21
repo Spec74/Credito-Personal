@@ -28,6 +28,11 @@ import {
 import type { ColumnsType } from 'antd/es/table'
 import { obtenerCliente, type ClienteDetalle } from '../../api/clientes'
 import {
+  motivoBloqueoOriginacion,
+  montoSobreTope,
+  topeCreditoVisible,
+} from '../../utils/clienteOriginacion'
+import {
   calcularTem,
   crearCredito,
   crearSolicitudCredito,
@@ -42,6 +47,7 @@ import {
   CredixDataTable,
   CredixPage,
   CredixPanel,
+  CredixWorkCanvas,
   type CredixStatItem,
 } from '../../components/credix'
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
@@ -385,6 +391,8 @@ export function SimuladorCreditoPage() {
     setClienteLabel(labelDesdeCliente(c))
   }, [clienteDetalleQuery.data, personaId])
 
+  const bloqueoOriginacion = motivoBloqueoOriginacion(clienteDetalleQuery.data)
+
   const productoSeleccionado = useMemo(
     () => productosQuery.data?.find((p) => p.productoId === productoId) ?? null,
     [productoId, productosQuery.data],
@@ -541,6 +549,9 @@ export function SimuladorCreditoPage() {
     mutationFn: async () => {
       if (!personaId) {
         throw new Error('Seleccione un cliente')
+      }
+      if (bloqueoOriginacion) {
+        throw new Error(bloqueoOriginacion)
       }
       if (esPrendario) {
         if (!puedeOriginacionPrendaria) {
@@ -838,6 +849,19 @@ export function SimuladorCreditoPage() {
     if (solicitudCreditoId != null) {
       items.push({ value: solicitudCreditoId, label: 'Solicitud' })
     }
+    const detalle = clienteDetalleQuery.data
+    const tope = topeCreditoVisible(detalle?.topeCredito)
+    if (tope != null) {
+      items.push({
+        value: formatMoney(tope),
+        label: 'Tope',
+        tone: montoSobreTope(montoSim, tope) ? 'red' : undefined,
+      })
+    }
+    const bloqueo = motivoBloqueoOriginacion(detalle)
+    if (bloqueo) {
+      items.push({ value: bloqueo, label: 'Ficha', tone: 'red' })
+    }
     if (esPrendario && tasacionEfectiva > 0) {
       items.push({ value: formatMoney(tasacionEfectiva), label: 'Tasación prenda' })
     }
@@ -877,6 +901,7 @@ export function SimuladorCreditoPage() {
     montoSim,
     nroCuotasSim,
     gastosAdmSim,
+    clienteDetalleQuery.data,
   ])
 
   const productoOpts =
@@ -957,8 +982,8 @@ export function SimuladorCreditoPage() {
 
   return (
     <CredixPage
-      title="Simulador y originación de crédito"
-      subtitle="Cliente, plan de pagos, solicitud y alta para aprobación."
+      title="Simulador"
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -988,13 +1013,12 @@ export function SimuladorCreditoPage() {
         />
       ) : null}
 
-      <CredixPanel title="1. Cliente o prospecto">
+      <CredixWorkCanvas
+        work={(
+          <>
+      <CredixPanel title="1. Cliente">
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           <Card size="small" title="Cliente existente">
-            <Paragraph type="secondary" style={{ marginBottom: 12 }}>
-              Escriba DNI, apellido o nombre. Toque un resultado para seleccionarlo; el reporte usará
-              domicilio, teléfono y documento de la ficha registrada.
-            </Paragraph>
             <ClienteBuscarAutoComplete
               variant="credito"
               value={terminoCliente}
@@ -1378,11 +1402,6 @@ export function SimuladorCreditoPage() {
                 { key: 'saldo', label: 'Saldo final', children: formatMoney(cuotas.at(-1)?.saldo ?? 0) },
               ]}
             />
-            <Paragraph type="secondary" style={{ marginBottom: 12, fontSize: 12 }}>
-              G.A. en cuotas = 0 con modalidad ADE (trámite administrativo se cobra adelantado; no se
-              reparte en el plan). El importe de trámite queda en la cabecera del PDF / al generar el
-              crédito.
-            </Paragraph>
             <InformeExportBar
               hideCsv
               pdfLabel="Generar PDF"
@@ -1455,11 +1474,9 @@ export function SimuladorCreditoPage() {
           />
         ) : (
           <>
-            <Paragraph type="secondary">
-              {esPrendario
-                ? 'Crea la solicitud prendaria y guarda los bienes en custodia (tasación) antes de generar el crédito.'
-                : 'Crea la solicitud asociada al cliente antes de generar el crédito.'}
-            </Paragraph>
+            {bloqueoOriginacion ? (
+              <Alert type="error" showIcon style={{ marginBottom: 12 }} message={bloqueoOriginacion} />
+            ) : null}
             <Button
               type="primary"
               icon={<UserAddOutlined />}
@@ -1467,6 +1484,7 @@ export function SimuladorCreditoPage() {
               disabled={
                 !personaId ||
                 oficinaId < 1 ||
+                Boolean(bloqueoOriginacion) ||
                 (esPrendario && !puedeOriginacionPrendaria) ||
                 (esPrendario && !bienesBloqueados && tasacionEfectiva <= 0)
               }
@@ -1510,6 +1528,7 @@ export function SimuladorCreditoPage() {
               !productoId ||
               cuotas.length < 1 ||
               oficinaId < 1 ||
+              Boolean(bloqueoOriginacion) ||
               (esPrendario && !puedeOriginacionPrendaria)
             }
             onClick={() => generarCredito.mutate()}
@@ -1518,6 +1537,9 @@ export function SimuladorCreditoPage() {
           </Button>
         </Space>
       </CredixPanel>
+          </>
+        )}
+      />
 
       <Modal
         title="Alta rápida de persona"

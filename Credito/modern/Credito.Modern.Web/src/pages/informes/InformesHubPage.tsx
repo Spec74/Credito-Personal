@@ -6,6 +6,7 @@ import { INFORMES_HUB_SECTIONS } from '../../config/informesHubSections'
 import { fetchCierreGerencialPermisos } from '../../api/cierreGerencial'
 import { fetchMorosidadPermisos } from '../../api/morosidadEmpresa'
 import { useAclHubSections } from '../../hooks/useAclHubSections'
+import { readInformesRecientes } from '../../utils/informesRecientes'
 
 export function InformesHubPage() {
   const cierrePermisos = useQuery({
@@ -37,6 +38,7 @@ export function InformesHubPage() {
   }, [cierrePermisos.data?.puedeConsultar, morosidadPermisos.data?.puedeConsultar])
 
   const sections = useAclHubSections(baseSections)
+  const recientes = readInformesRecientes()
 
   return (
     <CredixModuleHubPage
@@ -47,6 +49,17 @@ export function InformesHubPage() {
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Informes' },
       ]}
+      intro={
+        recientes.length > 0 ? (
+          <nav className="credix-role-home-strip" aria-label="Informes recientes">
+            {recientes.map((r) => (
+              <Link key={r.to} to={r.to}>
+                {r.label}
+              </Link>
+            ))}
+          </nav>
+        ) : undefined
+      }
       sections={sections}
     />
   )

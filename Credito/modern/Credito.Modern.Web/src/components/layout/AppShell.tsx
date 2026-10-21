@@ -24,6 +24,9 @@ import { fetchMorosidadPermisos } from '../../api/morosidadEmpresa'
 import { useAuth } from '../../auth/useAuth'
 import { getLoginProfile } from '../../auth/sessionProfile'
 import { BrandLogo } from '../brand/BrandLogo'
+import { CredixContextBar } from '../credix/CredixContextBar'
+import { applyCredixDensity, readCredixDensity } from '../../theme/credixDensity'
+import { rememberInforme } from '../../utils/informesRecientes'
 import { RouteFallback } from './RouteFallback'
 import { branding } from '../../config/branding'
 import {
@@ -101,8 +104,13 @@ export function AppShell() {
 
   useEffect(() => {
     document.body.classList.add('credix-app-body')
+    applyCredixDensity(readCredixDensity())
     return () => document.body.classList.remove('credix-app-body')
   }, [])
+
+  useEffect(() => {
+    rememberInforme(location.pathname)
+  }, [location.pathname])
 
   const oficinasQuery = useQuery({
     queryKey: ['oficinas'],
@@ -428,6 +436,14 @@ export function AppShell() {
           </Button>
         </div>
       </header>
+      <CredixContextBar
+        oficinaId={session?.oficinaId ?? 0}
+        oficinaNombre={oficinaNombre}
+        onCambiarSede={() => {
+          logout()
+          navigate('/login')
+        }}
+      />
 
       <div className="credix-layout">
         {!isMobile && (

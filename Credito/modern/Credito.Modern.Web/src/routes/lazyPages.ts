@@ -361,6 +361,10 @@ export const OficinasPage = lazyNamed(
   () => import('../pages/admin/OficinasPage'),
   'OficinasPage',
 )
+export const NuevaSucursalWizardPage = lazyNamed(
+  () => import('../pages/admin/NuevaSucursalWizardPage'),
+  'NuevaSucursalWizardPage',
+)
 export const UsuariosPage = lazyNamed(
   () => import('../pages/admin/UsuariosPage'),
   'UsuariosPage',
@@ -385,4 +389,12 @@ export const BovedaPage = lazyNamed(
 export const MovimientoBovedaPage = lazyNamed(
   () => import('../pages/tesoreria/movimientobovedapage'),
   'MovimientoBovedaPage',
+)
+export const FondearSucursalesPage = lazyNamed(
+  () => import('../pages/tesoreria/FondearSucursalesPage'),
+  'FondearSucursalesPage',
+)
+export const RedSucursalesPage = lazyNamed(
+  () => import('../pages/tesoreria/RedSucursalesPage'),
+  'RedSucursalesPage',
 )

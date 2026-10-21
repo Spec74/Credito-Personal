@@ -127,7 +127,7 @@ export function ClientesInactivosPage() {
   return (
     <CredixInformePage
       title="Clientes inactivos"
-      subtitle="Clientes sin actividad reciente; filtre por rango de fechas o consulte sin fechas. Gestor opcional «Todos». Exporte PDF y Excel."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Clientes inactivos')}
       stats={stats}
       panelTitle="CLIENTES INACTIVOS"

@@ -197,11 +197,7 @@ export function CajaDiarioPage() {
   return (
     <CredixPage
       title="Caja diario"
-      subtitle={
-        activeTab === 'cobranzas'
-          ? undefined
-          : 'Operación diaria: cobranzas, desembolsos, arqueo y cierre.'
-      }
+      subtitle={undefined}
       breadcrumb={
         activeTab === 'cobranzas'
           ? undefined

@@ -161,7 +161,7 @@ export function SaldoCarteraPage() {
   return (
     <CredixInformePage
       title="Saldo de cartera"
-      subtitle="Saldos de cartera por agente y oficina en el período indicado."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },

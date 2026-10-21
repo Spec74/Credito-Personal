@@ -117,7 +117,7 @@ export function CreditoObservadoPage() {
   return (
     <CredixInformePage
       title="Créditos observados"
-      subtitle="Créditos con observaciones por gestor; oficina de sesión. Gestor opcional «Todos». Exporte PDF y Excel."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Créditos observados')}
       stats={stats}
       panelTitle="CRÉDITOS OBSERVADOS"

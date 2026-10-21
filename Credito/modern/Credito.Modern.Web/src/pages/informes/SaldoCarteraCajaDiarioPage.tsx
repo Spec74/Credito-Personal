@@ -91,7 +91,7 @@ export function SaldoCarteraCajaDiarioPage() {
   return (
     <CredixInformePage
       title="Saldo cartera por caja diario"
-      subtitle="Evolución de cartera por caja entre periodos; gestor opcional (TODOS) para roles elevados."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Saldo cartera caja')}
       stats={stats}
       filters={

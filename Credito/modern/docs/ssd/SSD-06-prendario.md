@@ -46,7 +46,11 @@ Identificación: `EsPrendario = 1` **o** `ProductoId = 2`. Alta fija: ver tablas
 | Procedimiento / tabla | Uso |
 |-----------------------|-----|
 | `CREDITO.Credito` (`EsPrendario`, `ProductoId = 2`) | Cartera (listado: `EsPrendario = 1` **o** `ProductoId = 2`) |
-| `CREDITO.Prenda` | Bienes (reemplazo completo al guardar) |
+| `CREDITO.Prenda` | Bienes (primera carga). `Estado` default `EN CUSTODIA`. |
+| `CREDITO.usp_DevolverPrenda` | `EN CUSTODIA` → `DEVUELTO` (`FechaMod`, `UsuarioModId`). Bloquea crédito `DES`. |
+| `CREDITO.usp_ProrrogarCredito` | Suma días al vencimiento (solo `DES`). No es renovación. |
+| LTV observado | `MontoCredito / MontoTasacion` en listado/canvas. Tope vigente 100%. |
+| `GET .../creditos?categoria=` | Filtro servidor del CASE 0–5 (SinBienes…Vigente). Cola remate = `Rematado`. |
 | Alta solicitud / generar | Mismos valores que `CrearSolicitudCreditoPrendario` / `CrearCredito` |
 | Aviso 3 días (Cloud API / listado) | Sin columna en `Credito`; idempotencia no persistida en BD |
 | Plantilla Meta `aviso_vencimiento_prendario` (es) | Cloud API v25.0 |
@@ -59,10 +63,11 @@ Política `CreditoRolPrendario` (ANALISTA o administrador).
 
 | Método y ruta | Pantalla |
 |---------------|----------|
-| `GET /api/v1/prendario/resumen`, `GET .../creditos` | Listado |
+| `GET /api/v1/prendario/resumen`, `GET .../creditos` (`buscar`, `categoria`) | Listado + cola remate |
 | `POST /api/v1/prendario/crear-solicitud` | Nuevo |
 | `GET /api/v1/credito/prendas`, `POST /api/v1/credito/guardar-prendas` | Gestión |
 | `GET .../contrato-pdf`, `GET .../acta-entrega-pdf` | Gestión |
+| `POST .../devolver-prenda`, `GET .../devolucion-pdf` | Gestión: devolver + comprobante |
 | `GET .../avisos-vencimiento`, `GET .../estado` | Listado / estado canal |
 | `POST .../avisos-vencimiento/enviar` | Envío Cloud API (sin marca en BD) |
 | `POST .../marcar` | Solo valida que el crédito exista; **no** escribe columna de notificación |

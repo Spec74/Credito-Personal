@@ -63,7 +63,15 @@ npm run build
 dotnet test ../Credito.Modern.sln
 ```
 
-## Siguiente iteración (opcional)
+## Siguiente nivel (gerencia, 2026-10-20)
+
+El pedido ya no es “pulir RDLC”. Es **Credix Work OS**: cero ruido, home por rol, originación en un canvas, sucursales de verdad. Spec y oleadas:
+
+- [SSD-13](ssd/SSD-13-experiencia-operativa.md)
+- [Spec Kit 001](speckit/001-experiencia-operativa/spec.md)
+- [Constitución UX](speckit/CONSTITUTION-UX.md)
+
+## Siguiente iteración (opcional, no P0)
 
 - Sustituir exports legacy restantes en `ReporteCreditoIndexPage` por rutas SPA cuando exista PDF tabular.
 - Pulir modales de rendición caja chica si el negocio pide paridad pixel-perfect.

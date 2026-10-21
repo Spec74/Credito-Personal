@@ -92,7 +92,7 @@ export function MovimientoCajaAnuladoPage() {
   return (
     <CredixInformePage
       title="Comprobantes de caja anulados"
-      subtitle="Movimientos de caja anulados en el rango de fechas; oficina validada por sesión."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Movimientos anulados')}
       stats={stats}
       filters={

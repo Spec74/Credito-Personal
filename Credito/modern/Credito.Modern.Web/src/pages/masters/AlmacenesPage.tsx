@@ -160,7 +160,7 @@ export function AlmacenesPage() {
   return (
     <CredixCrudPage
       title="Almacenes"
-      subtitle="Alta, edición y activación de almacenes por oficina."
+      subtitle={undefined}
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },

@@ -153,7 +153,7 @@ export function ModelosPage() {
   return (
     <CredixCrudPage
       title="Modelos"
-      subtitle="Alta, edición y activación de modelos por marca."
+      subtitle={undefined}
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },

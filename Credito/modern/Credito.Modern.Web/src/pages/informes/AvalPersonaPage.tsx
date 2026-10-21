@@ -79,7 +79,7 @@ export function AvalPersonaPage() {
   return (
     <CredixInformePage
       title="Avales de créditos por persona"
-      subtitle="Busque un cliente y consulte los avales asociados a sus créditos."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Avales por persona')}
       stats={stats}
       filters={

@@ -534,7 +534,7 @@ export function ConsultaCreditoPage() {
     <CredixPage
       className="credito-consulta-page"
       title="Créditos"
-      subtitle="Busque un cliente, elija el crédito y gestione plan, mora e impresos."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -796,8 +796,9 @@ export function ConsultaCreditoPage() {
         okText="Prorrogar"
       >
         <Space direction="vertical">
-          <Paragraph type="secondary">Indique los días de prórroga.</Paragraph>
+          <label htmlFor="dias-prorroga-consulta">Días</label>
           <InputNumber
+            id="dias-prorroga-consulta"
             min={1}
             value={diasProrroga}
             onChange={(v) => setDiasProrroga(v ?? 1)}

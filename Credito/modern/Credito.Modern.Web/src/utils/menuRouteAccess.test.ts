@@ -111,6 +111,16 @@ describe('menuRouteAccess', () => {
     expect(hasMenuRouteAccess('/tesoreria/movimiento-boveda', [menu('/tesoreria')])).toBe(true)
   })
 
+  it('bóveda habilita fondeo y red; oficinas habilita el wizard de sucursal', () => {
+    expect(hasMenuRouteAccess('/tesoreria/fondear-sucursales', [menu('/boveda')])).toBe(true)
+    expect(hasMenuRouteAccess('/tesoreria/red', [menu('/boveda')])).toBe(true)
+    expect(hasMenuRouteAccess('/tesoreria', [menu('/boveda')])).toBe(true)
+    expect(hasMenuRouteAccess('/tesoreria', [])).toBe(false)
+    expect(hasMenuRouteAccess('/mantenimiento/oficinas/nueva-sucursal', [menu('/oficina')])).toBe(
+      true,
+    )
+  })
+
   it('caja diario no habilita informe de movimiento boveda', () => {
     expect(hasMenuRouteAccess('/tesoreria/movimiento-boveda', [menu('/cajadiario')])).toBe(false)
   })
@@ -181,6 +191,8 @@ describe('menuRouteAccess', () => {
     }
     expect(hasMenuRouteAccess('/informes/cierre-gerencial', [menuReportesCredito])).toBe(false)
     expect(hasMenuRouteAccess('/informes/cobro-diario', [menuReportesCredito])).toBe(true)
+    expect(hasMenuRouteAccess('/informes', [menuReportesCredito])).toBe(true)
+    expect(hasMenuRouteAccess('/informes', [])).toBe(false)
   })
 
   it('extraAllowedPaths habilita cierre gerencial (UsuarioConsultaIds)', () => {

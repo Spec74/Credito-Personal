@@ -365,7 +365,7 @@ export function ListaPreciosPage() {
 
       title="Lista de precios"
 
-      subtitle="Precios, descuentos y puntos por artículo."
+      subtitle={undefined}
 
       stats={stats}
 

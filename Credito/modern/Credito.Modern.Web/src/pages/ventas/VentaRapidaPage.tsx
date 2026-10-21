@@ -49,7 +49,7 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CajaSinSesionAlert } from '../caja/components/CajaSinSesionAlert'
 
-import { CredixDataTable, CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
+import { CredixDataTable, CredixPage, CredixPanel, CredixWorkCanvas, type CredixStatItem } from '../../components/credix'
 
 import type { ClienteBuscarItem } from '../../types/api'
 
@@ -348,7 +348,7 @@ export function VentaRapidaPage() {
 
       title="Venta rápida"
 
-      subtitle="Registro de pedido al contado con series y cobro en caja."
+      subtitle={undefined}
 
       stats={stats}
 
@@ -412,6 +412,8 @@ export function VentaRapidaPage() {
 
 
 
+          <CredixWorkCanvas
+            context={(
           <CredixPanel title="Cliente">
 
             <Space direction="vertical" style={{ width: '100%' }}>
@@ -523,9 +525,8 @@ export function VentaRapidaPage() {
             </Space>
 
           </CredixPanel>
-
-
-
+            )}
+            work={(
           <CredixPanel title="Artículos">
 
             <Space wrap align="end">
@@ -621,9 +622,8 @@ export function VentaRapidaPage() {
             </p>
 
           </CredixPanel>
-
-
-
+            )}
+            result={(
           <Button
 
             type="primary"
@@ -636,11 +636,15 @@ export function VentaRapidaPage() {
 
             onClick={() => cobrar.mutate()}
 
+            block
+
           >
 
             Realizar pedido y cobrar
 
           </Button>
+            )}
+          />
 
         </>
 

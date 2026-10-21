@@ -399,7 +399,7 @@ export function UsuariosPage() {
   return (
     <CredixCrudPage
       title="Usuarios"
-      subtitle="Persona, credenciales, oficinas y roles por oficina."
+      subtitle={undefined}
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -680,15 +680,7 @@ export function UsuariosPage() {
                         type="info"
                         showIcon
                         style={{ marginBottom: 12 }}
-                        message="Los roles son por oficina"
-                        description={
-                          <>
-                            Al iniciar sesión el usuario elige sede; menú y permisos salen solo de
-                            los roles de <Text strong>esa</Text> oficina (
-                            <Text code>MAESTRO.UsuarioRol</Text>). Tener ADMINISTRADOR en Huamanga no
-                            implica ADMINISTRADOR en Pichari, y al revés.
-                          </>
-                        }
+                        message="Roles por sede: elija oficina y marque solo los de esa sucursal."
                       />
 
                       {oficinasAsignadas.length === 0 ? (

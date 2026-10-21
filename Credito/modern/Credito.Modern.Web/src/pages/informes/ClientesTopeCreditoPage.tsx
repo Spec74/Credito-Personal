@@ -102,7 +102,7 @@ export function ClientesTopeCreditoPage() {
   return (
     <CredixInformePage
       title="Clientes con tope de crédito"
-      subtitle="Clientes en el límite de línea de crédito por gestor; oficina de sesión. Gestor opcional «Todos». Exporte PDF y Excel."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Clientes tope crédito')}
       stats={stats}
       panelTitle="CLIENTES TOPE CRÉDITO"

@@ -102,7 +102,7 @@ export function ClientesBloqueadosPage() {
   return (
     <CredixInformePage
       title="Clientes bloqueados"
-      subtitle="Clientes con bloqueo activo por gestor; oficina de sesión. Gestor opcional «Todos». Exporte PDF y Excel."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Clientes bloqueados')}
       stats={stats}
       panelTitle="CLIENTES BLOQUEADOS"

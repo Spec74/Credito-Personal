@@ -132,7 +132,7 @@ export function CreditosMorososPagadosPage() {
   return (
     <CredixInformePage
       title="Créditos morosos pagados"
-      subtitle="Créditos que estuvieron en mora y fueron pagados; gestor opcional (TODOS) para roles elevados."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Morosos pagados')}
       stats={stats}
       filters={

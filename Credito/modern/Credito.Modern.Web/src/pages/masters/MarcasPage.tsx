@@ -166,7 +166,7 @@ export function MarcasPage() {
   return (
     <CredixCrudPage
       title="Marcas"
-      subtitle="Alta, edición y activación de marcas."
+      subtitle={undefined}
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },

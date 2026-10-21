@@ -252,7 +252,7 @@ export function CanjearPuntosPage() {
   return (
     <CredixPage
       title="Canje de puntos"
-      subtitle="Canjee artículos con los puntos acumulados del cliente."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/ventas">Ventas</Link> },

@@ -31,7 +31,7 @@ export function ReporteAlmacenIndexPage() {
   return (
     <CredixPage
       title="Reportes de almacén"
-      subtitle="Stock general y productos anulados. PDF y Excel se abren en otra pestaña; use Ver pantalla para consultar en tabla."
+      subtitle={undefined}
       breadcrumb={reportesAlmacenIndexBreadcrumb()}
     >
       <div className="credix-reportes-shell">

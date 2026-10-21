@@ -152,6 +152,14 @@ export function esCelularPeruano(celular: string | null | undefined): boolean {
   return digits.length === 9 && digits.startsWith('9')
 }
 
+/** LTV observado (%). No es un tope: el tope vigente es 100% (monto ≤ tasación). */
+export function ltvObservado(montoCredito: number, montoTasacion: number): number | null {
+  if (!(montoTasacion > 0) || !(montoCredito >= 0)) {
+    return null
+  }
+  return Math.round((montoCredito / montoTasacion) * 1000) / 10
+}
+
 export function validarMontoVsTasacion(montoCredito: number, montoTasacion: number): string | null {
   if (!(montoCredito > 0)) {
     return 'El monto del crédito debe ser mayor a cero'

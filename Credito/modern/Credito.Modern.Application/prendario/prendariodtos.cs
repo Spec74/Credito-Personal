@@ -113,6 +113,24 @@ public sealed record PrendarioDocumentoConsulta<T>(
     T? Documento)
     where T : class;
 
+public sealed record DevolverPrendaRequest(int OficinaId, long PrendaId);
+
+public sealed record DevolverPrendaResponse(long PrendaId, int CreditoId, string Estado, DateTime? FechaMod);
+
+public sealed record PrendarioDevolucionDto(
+    long PrendaId,
+    int CreditoId,
+    string NumeroContrato,
+    DateTime FechaDevolucion,
+    string Estado,
+    string ApellidosNombres,
+    string DniCliente,
+    string? Domicilio,
+    string? Distrito,
+    string? Provincia,
+    string? Departamento,
+    PrendarioBienDocumentoDto Bien);
+
 /// <summary>Paridad <c>CreditoBL.CreditoPorVencerWhatsapp</c>.</summary>
 public sealed record PrendarioAvisoVencimientoDto(
     int CreditoId,

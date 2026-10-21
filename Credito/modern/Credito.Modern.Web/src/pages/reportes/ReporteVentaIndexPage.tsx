@@ -18,7 +18,7 @@ export function ReporteVentaIndexPage() {
   return (
     <CredixPage
       title="Reportes de venta"
-      subtitle="Rentabilidad de ventas y lista de precios. PDF y Excel (CSV) usan la API moderna."
+      subtitle={undefined}
       breadcrumb={reportesVentaIndexBreadcrumb()}
     >
       <div className="credix-reportes-shell">

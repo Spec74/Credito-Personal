@@ -111,7 +111,7 @@ export function RentabilidadVentaPage() {
   return (
     <CredixInformePage
       title="Rentabilidad de ventas"
-      subtitle="Rentabilidad por ventas en el periodo; contado y/o crédito según filtros."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/informes">Informes</Link> },

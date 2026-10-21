@@ -45,7 +45,7 @@ Alta y ficha de persona/cliente para crédito y prendario.
 
 | Procedimiento / tabla | Uso |
 |-----------------------|-----|
-| Persona / Cliente (MAESTRO) | CRUD ficha |
+| Persona / Cliente (MAESTRO) | CRUD ficha. Búsqueda de persona **global**; la cartera se opera en la oficina del JWT. |
 | `ValidarClienteDNI` equivalente | `existe-documento` |
 | Ubigeo `distritos-buscar` | Autocomplete (depa 5 Ayacucho en UI) |
 | ApiPerú (HTTP externo) | DNI/RUC; token servidor `ApiPeru:Token` |

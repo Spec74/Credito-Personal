@@ -121,7 +121,7 @@ export function MovimientoBovedaPage() {
   return (
     <CredixInformePage
       title="Movimientos de bóveda"
-      subtitle="Detalle de entradas y salidas por bóveda abierta o indicada."
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/tesoreria">Tesorería</Link> },

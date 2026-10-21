@@ -4,15 +4,12 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Alert,
   Button,
-  Modal,
   Space,
   Tag,
-  Typography,
   message,
 } from 'antd'
 import {
   CheckOutlined,
-  ExclamationCircleOutlined,
   FileExcelOutlined,
   FilePdfOutlined,
 } from '@ant-design/icons'
@@ -28,6 +25,8 @@ import { useAuth } from '../../auth/useAuth'
 import {
   CredixCrudPage,
   CredixDataTable,
+  CredixQueue,
+  confirmMoney,
   type CredixStatItem,
 } from '../../components/credix'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
@@ -37,8 +36,6 @@ import { formatMoney } from '../../utils/formatMoney'
 import { CajaListToolbar } from './components/CajaListToolbar'
 import { VerificarPagosTableEmpty } from './components/VerificarPagosTableEmpty'
 import '../../styles/caja-verificar-pagos-module.css';
-
-const { Paragraph } = Typography
 
 const PAGE_SIZES = ['45', '60', '75'] as const
 
@@ -59,28 +56,12 @@ function pagoRowText(row: PagosNoVerificadosRow): string {
 }
 
 function confirmarVerificacion(row: PagosNoVerificadosRow, onOk: () => void): void {
-  const detalle = [
-    row.movimientoCajaId,
-    row.movimiento,
-    row.tipoPago,
-    row.fechaTransferencia,
-  ]
-    .filter(Boolean)
-    .join(' — ')
-
-  Modal.confirm({
+  confirmMoney({
     title: 'Verificar depósito',
-    icon: <ExclamationCircleOutlined />,
-    content: (
-      <>
-        <Paragraph style={{ marginBottom: 8 }}>{detalle}</Paragraph>
-        <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-          ¿Desea marcar este depósito como verificado?
-        </Paragraph>
-      </>
-    ),
+    amount: row.importePago,
+    officeLabel: [row.cliente, row.movimiento, row.tipoPago].filter(Boolean).join(' · '),
+    consequence: 'El depósito quedará marcado como verificado.',
     okText: 'Sí, verificar',
-    cancelText: 'No',
     onOk,
   })
 }
@@ -240,12 +221,13 @@ export function VerificarPagosPage() {
   }
 
   const buscando = buscarDebounced.length > 0
+  const selected = filtrados.find((r) => r.movimientoCajaId === selectedId) ?? null
 
   return (
     <CredixCrudPage
       className="caja-verificar-pagos-page credix-page--stats-3"
       title="Verificar pagos por transferencia"
-      subtitle="Confirme depósitos en cuentas bancarias de la oficina."
+      subtitle={undefined}
       panelTitle="VERIFICADOR DE PAGOS"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -262,8 +244,8 @@ export function VerificarPagosPage() {
             setPage(1)
           }}
           placeholder="Cliente, movimiento, tipo, nº"
-          hint="Filtro instantáneo. Doble clic en la fila para verificar."
-          hintShort="Doble clic en fila = verificar."
+          hint="Doble clic verifica el depósito."
+          hintShort="Doble clic = verificar."
           filteredCount={filtrados.length}
           totalCount={pendientes.length}
           loading={listQuery.isFetching}
@@ -290,11 +272,6 @@ export function VerificarPagosPage() {
         />
       }
     >
-      <p className="credix-module-banner credix-module-banner--spaced">
-        Columnas: MOV / CLIENTE / MOVIMIENTO / PAGO / TIPO / FECHA / REGISTRO. Doble clic
-        confirma verificación. Exporte CSV o PDF desde la barra superior.
-      </p>
-
       {oficinaId < 1 ? (
         <Alert type="warning" message="Sesión sin oficina activa." showIcon />
       ) : null}
@@ -308,6 +285,22 @@ export function VerificarPagosPage() {
         />
       ) : null}
 
+      <CredixQueue
+        emptyDetail="Seleccione un pago"
+        detail={
+          selected ? (
+            <div>
+              <p style={{ margin: '0 0 8px', fontWeight: 700 }}>{selected.cliente ?? selected.movimiento}</p>
+              <p style={{ margin: '0 0 12px', fontSize: 22, fontWeight: 700 }}>
+                S/ {formatMoney(selected.importePago)}
+              </p>
+              <Button type="primary" onClick={() => pedirVerificar(selected)}>
+                Verificar
+              </Button>
+            </div>
+          ) : undefined
+        }
+        list={(
       <CredixDataTable<PagosNoVerificadosRow>
         mode="operacion"
         className="caja-verificar-pagos-table"
@@ -343,6 +336,8 @@ export function VerificarPagosPage() {
             <VerificarPagosTableEmpty buscando={buscando} />
           ),
         }}
+      />
+        )}
       />
     </CredixCrudPage>
   )

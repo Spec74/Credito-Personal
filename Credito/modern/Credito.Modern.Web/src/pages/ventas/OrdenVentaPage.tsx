@@ -327,7 +327,7 @@ export function OrdenVentaPage() {
   return (
     <CredixPage
       title="Orden de venta"
-      subtitle="Alta, detalle por series y envío a contado o crédito."
+      subtitle={undefined}
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },

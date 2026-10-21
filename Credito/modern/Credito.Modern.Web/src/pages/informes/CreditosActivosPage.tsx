@@ -75,7 +75,7 @@ export function CreditosActivosPage() {
   return (
     <CredixInformePage
       title="Créditos activos"
-      subtitle="Créditos activos por oficina y rango de fechas; gestor opcional (TODOS) para roles elevados."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Créditos activos')}
       stats={stats}
       filters={

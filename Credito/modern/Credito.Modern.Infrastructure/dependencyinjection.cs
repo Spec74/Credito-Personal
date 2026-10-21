@@ -282,6 +282,7 @@ public static class DependencyInjection
         services.AddScoped<IReportesExportPoliticaReadService, ReportesExportPoliticaReadService>();
         services.AddScoped<IReportesCatalogoCoberturaReadService, ReportesCatalogoCoberturaReadService>();
         services.AddScoped<IPrendarioReadService, PrendarioReadService>();
+        services.AddScoped<IPrendarioWriteService, PrendarioWriteService>();
         services.AddScoped<IDashboardAnalistaReadService, DashboardAnalistaReadService>();
         services.AddScoped<IDashboardAdminReadService, DashboardAdminReadService>();
         return services;

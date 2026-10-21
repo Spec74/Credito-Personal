@@ -48,12 +48,16 @@ export function fetchPrendarioResumen(oficinaId: number): Promise<PrendarioResum
 export function fetchPrendarioCreditos(params: {
   oficinaId: number
   buscar?: string
+  categoria?: PrendarioCategoria
   page?: number
   pageSize?: number
 }): Promise<PrendarioListaPage> {
   const q = new URLSearchParams({ oficinaId: String(params.oficinaId) })
   if (params.buscar?.trim()) {
     q.set('buscar', params.buscar.trim())
+  }
+  if (params.categoria) {
+    q.set('categoria', params.categoria)
   }
   q.set('page', String(params.page ?? 1))
   q.set('pageSize', String(params.pageSize ?? 20))
@@ -88,6 +92,22 @@ export function downloadContratoPrendarioPdf(oficinaId: number, creditoId: numbe
 export function downloadActaEntregaPrendarioPdf(oficinaId: number, creditoId: number, numeroContrato: string) {
   const q = new URLSearchParams({ oficinaId: String(oficinaId), creditoId: String(creditoId) })
   return apiDownload(`/prendario/acta-entrega-pdf?${q}`, `ActaEntregaPrendario_${numeroContrato}.pdf`)
+}
+
+export function devolverPrenda(body: { oficinaId: number; prendaId: number }) {
+  return apiFetch<{ prendaId: number; creditoId: number; estado: string; fechaMod: string | null }>(
+    '/prendario/devolver-prenda',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+  )
+}
+
+export function downloadDevolucionPrendarioPdf(oficinaId: number, prendaId: number) {
+  const q = new URLSearchParams({ oficinaId: String(oficinaId), prendaId: String(prendaId) })
+  return apiDownload(`/prendario/devolucion-pdf?${q}`, `DevolucionPrendario_${prendaId}.pdf`)
 }
 
 export interface PrendarioAvisoVencimiento {

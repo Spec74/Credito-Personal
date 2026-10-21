@@ -101,7 +101,7 @@ export function ReporteClientePage() {
   return (
     <CredixInformePage
       title="Reporte cliente (ficha)"
-      subtitle="Ficha del cliente con datos personales, cónyuge y avales de créditos."
+      subtitle={undefined}
       breadcrumb={reportesCreditoBreadcrumb('Ficha cliente')}
       stats={stats}
       filters={

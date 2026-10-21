@@ -171,7 +171,7 @@ export function ConstanciaAlmacenPage() {
 
       title="Constancia de almacén"
 
-      subtitle="Comprobante de entrada o salida por número de movimiento."
+      subtitle={undefined}
 
       breadcrumb={[
 

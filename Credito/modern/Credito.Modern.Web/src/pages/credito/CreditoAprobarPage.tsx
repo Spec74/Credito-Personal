@@ -21,6 +21,7 @@ import { useAuth } from '../../auth/useAuth'
 import {
   CredixCrudPage,
   CredixDataTable,
+  CredixQueue,
   type CredixStatItem,
 } from '../../components/credix'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
@@ -49,6 +50,7 @@ export function CreditoAprobarPage() {
   const [buscar, setBuscar] = useState('')
   const buscarResuelto = useMemo(() => resolveAprobarBuscar(buscar), [buscar])
   const buscarAplicado = useDebouncedValue(buscarResuelto.aplicado, 350)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(15)
   const [sortField, setSortField] = useState('agente')
@@ -323,6 +325,11 @@ export function CreditoAprobarPage() {
     ]
   }, [listQuery.data, page, total, filtrado])
 
+  const selected = useMemo(
+    () => listQuery.data?.items.find((r) => r.creditoId === selectedId) ?? null,
+    [listQuery.data, selectedId],
+  )
+
   const aplicarBusqueda = () => {
     setPage(1)
     if (!buscarResuelto.terminoCorto) {
@@ -334,7 +341,7 @@ export function CreditoAprobarPage() {
     <CredixCrudPage
       className="credito-aprobacion-page credix-page--stats-3"
       title="Créditos por aprobar"
-      subtitle="Bandeja PEN de la oficina actual con búsqueda avanzada y aprobación en la misma pantalla."
+      subtitle={undefined}
       panelTitle="CREDITOS POR APROBAR"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -386,11 +393,30 @@ export function CreditoAprobarPage() {
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
-          message="Hay solicitudes en preparación (CRE)"
-          description="Estas filas aún no se pueden aprobar. Abra Continuar, simule el plan y pulse Generar crédito para aprobación para que pasen a PEN."
+          message="Hay solicitudes CRE: use Continuar para pasarlas a PEN."
         />
       ) : null}
 
+      <CredixQueue
+        emptyDetail="Seleccione un crédito"
+        detail={
+          selected ? (
+            <div>
+              <p style={{ margin: '0 0 8px', fontWeight: 700 }}>{selected.cliente ?? selected.codigo}</p>
+              <p style={{ margin: '0 0 4px' }}>S/ {formatMoney(selected.monto)}</p>
+              <p style={{ margin: '0 0 12px', color: 'var(--credix-text-muted)' }}>
+                {selected.agente ?? 'Sin gestor'} · {selected.estado}
+              </p>
+              <Button
+                type="primary"
+                onClick={() => navigate(`/credito/consulta?creditoId=${selected.creditoId}`)}
+              >
+                Abrir consulta
+              </Button>
+            </div>
+          ) : undefined
+        }
+        list={(
       <CredixDataTable<CreditoPorAprobarRow>
         mode="operacion"
         className="credito-aprobacion-table"
@@ -410,6 +436,7 @@ export function CreditoAprobarPage() {
         }}
         onChange={onTableChange}
         onRow={(row) => ({
+          onClick: () => setSelectedId(row.creditoId),
           onDoubleClick: () =>
             navigate(`/credito/consulta?creditoId=${row.creditoId}`),
         })}
@@ -423,6 +450,8 @@ export function CreditoAprobarPage() {
             />
           ),
         }}
+      />
+        )}
       />
     </CredixCrudPage>
   )

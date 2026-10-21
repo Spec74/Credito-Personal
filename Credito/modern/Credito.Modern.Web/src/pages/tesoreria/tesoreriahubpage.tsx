@@ -7,6 +7,8 @@ const SECTIONS = [
     title: 'Operaciones',
     links: [
       { to: '/tesoreria/boveda', label: 'Bóveda' },
+      { to: '/tesoreria/fondear-sucursales', label: 'Fondear sucursales' },
+      { to: '/tesoreria/red', label: 'Red de sucursales' },
       { to: '/tesoreria/movimiento-boveda', label: 'Informe movimiento bóveda' },
     ],
   },

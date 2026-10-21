@@ -40,7 +40,7 @@ import {
   fetchSaldosCajaDiarioBoveda,
 } from '../../api/saldosCaja'
 import { useAuth } from '../../auth/useAuth'
-import { getLoginProfile } from '../../auth/sessionProfile'
+import { buildCerrarCajasDiariosBody } from '../../utils/sucursalRed'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { useResponsiveColumns } from '../../hooks/useResponsiveColumns'
 import type { RptCajasAsignadasRow } from '../../types/api'
@@ -90,8 +90,6 @@ export function SaldosPage() {
   const lectura = esLecturaSaldoCaja(roles)
   const puedeOperar = puedeOperarCierreSaldos(roles)
   const puedeAnular = puedeAnularMovimientoCaja(roles)
-  const oficinaLabel = getLoginProfile().oficinaLabel ?? `Oficina #${oficinaId}`
-
   const [tab, setTab] = useState('asignadas')
   const [filtro, setFiltro] = useState('')
   const [conteoOpen, setConteoOpen] = useState(false)
@@ -193,7 +191,8 @@ export function SaldosPage() {
   }, [asignadasFiltradas])
 
   const cerrar = useMutation({
-    mutationFn: (sobrante: number) => cerrarCajasDiarios({ oficinaId, sobrante }),
+    mutationFn: (sobrante: number) =>
+      cerrarCajasDiarios(buildCerrarCajasDiariosBody(oficinaId, sobrante)),
     onSuccess: async (r) => {
       message.success(`Cierre ejecutado (código ${r.resultCode})`)
       setConteoOpen(false)
@@ -484,7 +483,7 @@ export function SaldosPage() {
     <CredixPage
       className="caja-saldos-page credix-page--stats-3"
       title="Saldos caja"
-      subtitle={`${oficinaLabel} · cajas asignadas, saldos por sesión y cierre masivo.`}
+      subtitle={undefined}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/caja">Caja</Link> },

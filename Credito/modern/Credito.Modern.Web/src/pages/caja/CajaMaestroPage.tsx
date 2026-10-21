@@ -205,7 +205,7 @@ export function CajaMaestroPage() {
     <CredixCrudPage
       className="caja-maestro-page credix-page--stats-3"
       title={isMantenimiento ? 'Mantenimiento de cajas' : 'Maestro de cajas'}
-      subtitle="Alta y mantenimiento de cajas por oficina y gestor."
+      subtitle={undefined}
       panelTitle="LISTA DE CAJAS"
       stats={stats}
       breadcrumb={breadcrumb}
