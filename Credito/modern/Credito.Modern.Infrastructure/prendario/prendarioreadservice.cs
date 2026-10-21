@@ -89,11 +89,9 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                        c.FechaRemate,
                        c.Estado,
                        c.EsPrendario,
-                       (SELECT COUNT(*) FROM CREDITO.Prenda AS pr
-                        WHERE pr.CreditoId = c.CreditoId) AS Bienes,
+                       ISNULL(pr.Bienes, 0) AS Bienes,
                        CASE
-                           WHEN (SELECT COUNT(*) FROM CREDITO.Prenda AS pr
-                                 WHERE pr.CreditoId = c.CreditoId) = 0 THEN 0
+                           WHEN ISNULL(pr.Bienes, 0) = 0 THEN 0
                            WHEN c.Estado <> 'DES' THEN 1
                            WHEN c.FechaRemate IS NOT NULL AND c.FechaRemate < @Hoy THEN 2
                            WHEN c.FechaVencimiento < @Hoy THEN 3
@@ -104,6 +102,11 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                 INTO #PrendarioListado
                 FROM CREDITO.Credito AS c
                 INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
+                LEFT JOIN (
+                    SELECT CreditoId, COUNT(*) AS Bienes
+                    FROM CREDITO.Prenda
+                    GROUP BY CreditoId
+                ) AS pr ON pr.CreditoId = c.CreditoId
                 WHERE c.OficinaId = @OficinaId
                   AND (c.EsPrendario = CAST(1 AS bit) OR c.ProductoId = 2)
                   AND (@Buscar IS NULL
@@ -143,6 +146,7 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                     Offset = (pagina - 1) * tamano,
                     PageSize = tamano,
                 },
+                commandTimeout: 60,
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
         var total = await multi.ReadFirstAsync<int>().ConfigureAwait(false);
