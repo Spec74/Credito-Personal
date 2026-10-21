@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Button } from 'antd'
 import { fetchOficinas } from '../../api/oficinas'
 import { fetchBovedaAbierta, fetchBovedasDestinoTransferencia } from '../../api/boveda'
-import { fetchDashboardAdminShell } from '../../api/dashboard'
+import { fetchDashboardAdminDetalle, fetchDashboardAdminShell } from '../../api/dashboard'
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage, CredixDataTable } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
@@ -48,6 +48,13 @@ export function RedSucursalesPage() {
     retry: false,
   })
 
+  const detalle = useQuery({
+    queryKey: ['dashboard-admin-detalle', oficinaId],
+    queryFn: fetchDashboardAdminDetalle,
+    enabled: admin && oficinaId > 0 && !!kpis.data,
+    retry: false,
+  })
+
   const saldoPorOficina = new Map(
     (destinos.data ?? []).map((d) => [d.oficinaId, d.saldoFinal]),
   )
@@ -56,6 +63,7 @@ export function RedSucursalesPage() {
   }
 
   const r = kpis.data?.resumen
+  const cartera = detalle.data?.cartera
 
   return (
     <CredixPage
@@ -78,8 +86,8 @@ export function RedSucursalesPage() {
       stats={
         r
           ? [
-              { value: formatMoney(r.saldoCartera), label: 'Cartera' },
-              { value: formatMoney(r.saldoMoraCartera), label: 'Mora' },
+              { value: cartera ? formatMoney(cartera.saldoCartera) : '…', label: 'Cartera' },
+              { value: cartera ? formatMoney(cartera.saldoMoraCartera) : '…', label: 'Mora' },
               { value: formatMoney(r.flujoNetoHoy), label: 'Caja hoy' },
               { value: formatMoney(r.desembolsoHoy), label: 'Desembolsos' },
               { value: formatMoney(propia.data?.saldoFinal ?? 0), label: 'Bóveda' },
