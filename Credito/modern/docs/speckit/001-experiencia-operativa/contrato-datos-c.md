@@ -11,7 +11,7 @@
 | **Cola remate** | `Credito.FechaRemate` (vencimiento + 30 d). Categoría `REMATADO` / `VENCIDO` / `PORVENCER` ya en listado y WhatsApp 3 d. | Filtrar la misma lista (sin nuevo cálculo). | Acta de remate / pipeline de venta si gerencia lo pide. |
 | **Hoja resumen** | Contrato y acta QuestPDF (`contrato-pdf`, `acta-entrega-pdf`). Interés del crédito. **No hay TEA/TCEA** en USP. | Reimprimir contrato/acta. No inventar TEA. | Campos TEA/TCEA en `usp` si SBS/gerencia lo exige. |
 | **Cliente otra sede** | `MAESTRO.Persona` es **global**. Búsqueda no filtra oficina. Créditos y edición operativa van con `vendix:oficina_id`. | Buscar y ver ficha. Operar cartera solo en la sede del login. | Consulta de cartera ajena (solo lectura) si gerencia la autoriza. |
-| **PLA umbral** | No hay tabla ni USP. | Nada. | Umbral UIF de gerencia; no se inventa bitácora. |
+| **PLA umbral** | Piso legal: D.S. 020-2017-JUS art. 24.4. RO individual **US$ 10 000**; múltiples mes **US$ 50 000**. ROS **sin** monto. Detalle: [contrato-pla-uif.md](contrato-pla-uif.md). | Cola RO + bitácora inusual. TC SBS del mes (parámetro). Gerencia solo puede **bajar** el piso. | Oficial de cumplimiento + envío ROSEL (fuera del sistema). |
 
 ## T-Q1 — decisiones 2026-10-20
 

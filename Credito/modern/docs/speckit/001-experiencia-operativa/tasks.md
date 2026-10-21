@@ -40,7 +40,7 @@ Contrato: [contrato-datos-c.md](contrato-datos-c.md). Lo que no tiene `usp_*` qu
 - [x] T-C4 Renovación = prórroga existente (`usp_ProrrogarCredito`) en consulta y gestión
 - [x] T-C5 Hoja = contrato/acta QuestPDF ya existentes (sin TEA/TCEA)
 - [x] T-C6 Búsqueda de persona global + aviso de no duplicar; cartera solo en la sede del JWT
-- [ ] T-C7 (Opcional) bitácora PLA umbral — **sin umbral UIF**: no se inventa tabla/USP
+- [x] T-C7 PLA/UIF con **piso legal** (no cifra inventada): RO US$ 10 000 / 50 000 (D.S. 020-2017-JUS); ROS sin monto; TC SBS parámetro. [contrato-pla-uif.md](contrato-pla-uif.md)
 
 ## Oleada E — Estándar en el resto (SSD-03…11)
 
@@ -58,4 +58,4 @@ Contrato: [contrato-datos-c.md](contrato-datos-c.md). Lo que no tiene `usp_*` qu
 - [x] T-Q1 Cerrado 2026-10-20: LTV 100%; renovación=prórroga; ventas of.1 no; wizard SPA
 - [x] T-Q2 Checklist [checklist.md](checklist.md) — review 2026-10-21 (P0 A–E + cambio de sede)
 - [x] T-Q3 `/speckit.analyze` antes de Oleada C (contrato datos vs UI) → [contrato-datos-c.md](contrato-datos-c.md)
-- [x] T-Q4 `/speckit.converge` A+B+C+E. T-C7 sigue sin umbral UIF.
+- [x] T-Q4 `/speckit.converge` A+B+C+E. T-C7 usa piso legal UIF (no umbral inventado).

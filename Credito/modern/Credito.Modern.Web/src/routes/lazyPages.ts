@@ -244,6 +244,10 @@ export const ReporteClientePage = lazyNamed(
   () => import('../pages/informes/ReporteClientePage'),
   'ReporteClientePage',
 )
+export const PlaUifPage = lazyNamed(
+  () => import('../pages/informes/PlaUifPage'),
+  'PlaUifPage',
+)
 
 export const SaldoCarteraPage = lazyNamed(
   () => import('../pages/reports/SaldoCarteraPage'),

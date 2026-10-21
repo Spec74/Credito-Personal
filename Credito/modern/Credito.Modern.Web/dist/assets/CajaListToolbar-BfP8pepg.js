@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-8BhlS34s.js";import{h as t}from"./credix-B2Q8ToLb.js";function n(){return(n=e((()=>{t()})))()}export{n as t};

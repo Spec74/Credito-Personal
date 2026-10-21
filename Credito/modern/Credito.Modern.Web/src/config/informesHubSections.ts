@@ -45,6 +45,7 @@ export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
       { to: '/informes/creditos-observados', label: 'Créditos observados', description: 'Observados en cartera' },
       { to: '/informes/credito-condonado', label: 'Créditos condonados', description: 'Condonaciones' },
       { to: '/informes/central-riesgo', label: 'Central de riesgo', description: 'CSV, PDF y TXT regulatorio' },
+      { to: '/informes/pla-uif', label: 'PLA / UIF', description: 'RO legal US$ 10 000 / 50 000 y bitácora ROS' },
       { to: '/informes/aval-persona', label: 'Aval por persona', description: 'Avales de la persona' },
       { to: '/informes/plan-pagos', label: 'Plan de pagos', description: 'Por número de crédito' },
       { to: '/informes/estado-credito', label: 'Estado de crédito', description: 'Cabecera y cuotas' },

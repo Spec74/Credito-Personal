@@ -4,6 +4,17 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-21 — T-C7 PLA/UIF con piso legal (no cifra inventada)
+
+**Qué hay:** D.S. 020-2017-JUS art. 24.4: RO individual US$ 10 000; múltiples
+mes US$ 50 000; TC = promedio venta SBS del mes anterior. ROS sin monto
+(art. 25). Tablas `CREDITO.PlaParametro` / `PlaInusual` y USP. Pantalla
+`/informes/pla-uif` (mismo ACL que reportes crédito). Gerencia solo puede
+**bajar** el piso. Contrato: [contrato-pla-uif.md](../speckit/001-experiencia-operativa/contrato-pla-uif.md).
+
+**Qué no hay:** envío a ROSEL; umbral en soles inventado; norma sectorial
+de empeño US$ 2 500 (sigue en prepublicación, no se usa).
+
 ### 2026-10-21 — Oficinas locales Huanta y Pichari
 
 **Qué hay:** script `deploy/sql/local/2026-10-21-oficinas-huanta-pichari.sql` (no entra en
@@ -16,7 +27,7 @@ roles de RMANTILLA/YCERVANTES. Azure no se toca (ya tiene sedes).
 El tablero red ya no manda a `/login` con sesión viva (rebote a Inicio): cierra
 sesión y abre login con `?oficinaId=`. La barra de contexto tiene «Cambiar sede».
 
-**Qué no hay:** umbral PLA/UIF (sigue sin cifra de gerencia).
+**Qué no hay:** envío ROSEL (lo hace el oficial). El umbral RO ya no espera cifra de gerencia: es el piso legal UIF.
 
 ### 2026-10-20 — T-C2 `usp_DevolverPrenda`
 

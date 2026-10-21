@@ -7,7 +7,7 @@ Equivalente a [GitHub Spec Kit](https://github.com/github/spec-kit) **sin instal
 | Artefacto | Ruta |
 |-----------|------|
 | Constitución UX (nueva; no pisa la de `usp_*`) | [CONSTITUTION-UX.md](CONSTITUTION-UX.md) |
-| Feature 001 — sistema Credix (todas las pantallas) | [001-experiencia-operativa/spec.md](001-experiencia-operativa/spec.md) · [modulos.md](001-experiencia-operativa/modulos.md) · [contrato C](001-experiencia-operativa/contrato-datos-c.md) |
+| Feature 001 — sistema Credix (todas las pantallas) | [001-experiencia-operativa/spec.md](001-experiencia-operativa/spec.md) · [modulos.md](001-experiencia-operativa/modulos.md) · [contrato C](001-experiencia-operativa/contrato-datos-c.md) · [PLA/UIF](001-experiencia-operativa/contrato-pla-uif.md) |
 | SSD catálogo | [../ssd/SSD-13-experiencia-operativa.md](../ssd/SSD-13-experiencia-operativa.md) |
 
 As-built (no es change): [../ssd/README.md](../ssd/README.md).

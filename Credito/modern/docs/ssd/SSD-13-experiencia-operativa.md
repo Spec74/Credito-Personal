@@ -65,7 +65,7 @@ Reusa JWT, `UsuarioOficina`, bóveda, caja, `usp_*` de crédito/caja/informes, `
 | Remate | Filtro `categoria` sobre el CASE ya existente. |
 | Hoja | Contrato y acta QuestPDF. Sin TEA/TCEA. |
 | Cliente cruzado | `MAESTRO.Persona` global. Operar cartera solo con `vendix:oficina_id`. |
-| PLA | Sin umbral UIF: no se inventó bitácora. |
+| PLA | Piso legal D.S. 020-2017-JUS (US$ 10 000 / 50 000). Bitácora inusual. Sin cifra inventada en S/. |
 
 ## 5. API y SPA
 

@@ -142,7 +142,7 @@ El sistema es funcional; “completo” para el sector microfinanzas + prenda + 
 | Cliente red | Por oficina | Consulta cruzada de existencia (no editar sin permiso) |
 | Informes | Catálogo | KPI de decisión + archivo |
 | Ventas/almacén | SPA lista, menú no en of. 1 | Mismo estándar el día que una sede los active |
-| Cumplimiento | DNI / cliente | Umbral PLA visible (si gerencia lo pide) |
+| Cumplimiento | DNI / cliente | RO legal US$ 10k/50k + bitácora ROS (oficial) |
 
 Cada ítem de datos nuevos: `usp_*`/tabla **antes** de UI.
 

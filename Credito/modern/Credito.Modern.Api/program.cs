@@ -15,6 +15,7 @@ using Credito.Modern.Api.Dashboard;
 using Credito.Modern.Api.Credito;
 using Credito.Modern.Api.Maestros;
 using Credito.Modern.Api.Prendario;
+using Credito.Modern.Api.Pla;
 using Credito.Modern.Api.Ventas;
 using Credito.Modern.Application.Auth;
 using Credito.Modern.Application.CajaMaestro;
@@ -286,6 +287,7 @@ app.MapReportesCatalogoEndpoints();
 
 app.MapClienteOperacionEndpoints();
 app.MapPrendarioEndpoints();
+app.MapPlaEndpoints();
 app.MapCreditoTareasCrudEndpoints();
 app.MapCreditoOperacionEndpoints();
 app.MapCobroPlanillaBloqueEndpoints();

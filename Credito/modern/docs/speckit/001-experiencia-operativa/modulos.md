@@ -24,7 +24,7 @@ Maestros          Ventas *        Almacén *            Validación transversal
 | **03 Caja** | Diario, chica, saldos, asignar, verificar, maestro, cobro campo | Diario es un mundo; cobro/bloque/verificar no se ven desde Hoy | Hoy cajero → diario o cobro; verificar en cola | Arqueo guiado; desembolso APR desde la misma cola; ticket siempre a 1 clic |
 | **04 Bóveda** | Estado, movimientos, interoficina | Destino por ID; pestaña Pendientes incompleta | Elegir **sede**; MoneyConfirm | Vista red B-05; una bóveda abierta por oficina (B-06) |
 | **05 Clientes** | Listado CRUD, ficha larga, GPS, ApiPerú | Ficha densa; alta saca del flujo de crédito | Alta rápida embebida; ficha = Record por pestañas | Cliente único de red (visión cross-sede, no editar otra oficina sin permiso) |
-| **06 Prendario** | Listado, nuevo, gestionar | Nuevo → gestión → PDF | WorkCanvas único | C: LTV, remate, `usp_DevolverPrenda`, prórroga. PLA sin umbral UIF. |
+| **06 Prendario** | Listado, nuevo, gestionar | Nuevo → gestión → PDF | WorkCanvas único | C: LTV, remate, `usp_DevolverPrenda`, prórroga. PLA: piso legal UIF. |
 | **07 Informes** | Hub + ~30 pantallas + índices + morosos + cierre gerencial | Catálogo = ruido; gerencia pide Excel | 6–8 informes “de decisión” en Hoy; el resto en búsqueda | Cierre gerencial + morosos en el tablero red, no isla ACL |
 | **08 Admin** | Usuarios, roles, oficinas, comisiones | Oficina ≠ sucursal operable | Wizard provisión de sede | Roles **por oficina** visibles en la ficha de usuario (matriz sede × rol) |
 | **09 Maestros** | Marcas, modelos, tipos, artículos, almacenes | CRUD genérico, OK | Mismo Page + filtros; densidad | Nomenclatura por sede solo si el negocio lo pide (hoy global) |

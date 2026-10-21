@@ -15,7 +15,7 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 | Arquitectura | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Presentación gerencia (slides) | [PRESENTACION_ARQUITECTURA.html](PRESENTACION_ARQUITECTURA.html) |
 | Plan multisucursal + prendario | [migration/PLAN-MULTISUCURSAL-PRENDARIO.md](migration/PLAN-MULTISUCURSAL-PRENDARIO.md) |
-| Siguiente nivel UI / ventaja competitiva (Spec Kit) | [ssd/SSD-13-experiencia-operativa.md](ssd/SSD-13-experiencia-operativa.md) · [speckit/001](speckit/001-experiencia-operativa/spec.md) · [contrato C](speckit/001-experiencia-operativa/contrato-datos-c.md) |
+| Siguiente nivel UI / ventaja competitiva (Spec Kit) | [ssd/SSD-13-experiencia-operativa.md](ssd/SSD-13-experiencia-operativa.md) · [speckit/001](speckit/001-experiencia-operativa/spec.md) · [contrato C](speckit/001-experiencia-operativa/contrato-datos-c.md) · [PLA/UIF](speckit/001-experiencia-operativa/contrato-pla-uif.md) |
 | Glosario | [GLOSARIO.md](GLOSARIO.md) |
 | Ambientes | [AMBIENTES.md](AMBIENTES.md) |
 | API (visión) | [API-OVERVIEW.md](API-OVERVIEW.md) |

@@ -62,7 +62,7 @@ Tasación (peso/calidad o ítem) → LTV → desembolso → custodia etiquetada
 | Remate (aviso 60 días / diario en guía Caja Arequipa) | `FechaRemate`, WhatsApp 3d | Cola y acta de remate |
 | Hoja resumen TEA/TCEA | Contrato + plan | PDF transparencia |
 | Multi-sede: tasa oro / tope centralizado | Oficinas + JWT | Tablero red + fondeo consolidado (B-05) |
-| PLA: registro SBS empresas de préstamo/empeño (Res. 6338-2012, 650-2024; UIF) | Cliente + DNI | Bitácora de umbral; no “somos banco” |
+| PLA: sujeto obligado (Ley 29038); registro SBS 650-2024; RO/ROS D.S. 020-2017-JUS | Cliente + DNI | RO US$ 10k / 50k + bitácora ROS; no “somos banco” |
 
 **Conclusión:** no hay que copiar un ERP indio. Hay que **cerrar el ciclo de prenda + el día de caja de cada sede**. Eso es la ventaja frente a Excel + MVC.
 

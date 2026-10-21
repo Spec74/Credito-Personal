@@ -191,6 +191,8 @@ describe('menuRouteAccess', () => {
     }
     expect(hasMenuRouteAccess('/informes/cierre-gerencial', [menuReportesCredito])).toBe(false)
     expect(hasMenuRouteAccess('/informes/cobro-diario', [menuReportesCredito])).toBe(true)
+    expect(hasMenuRouteAccess('/informes/pla-uif', [menuReportesCredito])).toBe(true)
+    expect(hasMenuRouteAccess('/informes/pla-uif', [])).toBe(false)
     expect(hasMenuRouteAccess('/informes', [menuReportesCredito])).toBe(true)
     expect(hasMenuRouteAccess('/informes', [])).toBe(false)
   })

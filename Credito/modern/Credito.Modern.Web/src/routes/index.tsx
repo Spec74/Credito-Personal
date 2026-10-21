@@ -116,6 +116,7 @@ export function AppRoutes() {
         <Route path="/informes/cobro-diario-detalle" element={<Pages.CobroDiarioDetallePage />} />
         <Route path="/informes/aval-persona" element={<Pages.AvalPersonaPage />} />
         <Route path="/informes/central-riesgo" element={<Pages.CentralRiesgoPage />} />
+        <Route path="/informes/pla-uif" element={<Pages.PlaUifPage />} />
         <Route path="/informes/plan-pagos" element={<Pages.PlanPagosPage />} />
         <Route path="/informes/estado-credito" element={<Pages.EstadoCreditoPage />} />
         <Route path="/informes/credito-tarea" element={<Pages.CreditoTareaPage />} />
