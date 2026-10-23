@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-/** Lista densa + panel de detalle. */
+/** Lista densa + panel de detalle. Sin selección, la lista usa todo el ancho. */
 export function CredixQueue({
   list,
   detail,
@@ -10,10 +10,14 @@ export function CredixQueue({
   detail?: ReactNode
   emptyDetail?: string
 }) {
+  const conDetalle = detail != null
   return (
-    <div className="credix-queue">
+    <div
+      className={conDetalle ? 'credix-queue credix-queue--con-detalle' : 'credix-queue credix-queue--sin-detalle'}
+      aria-label={conDetalle ? undefined : emptyDetail}
+    >
       <div className="credix-queue__list">{list}</div>
-      <div className="credix-queue__detail">{detail ?? <p className="credix-queue__empty">{emptyDetail}</p>}</div>
+      {conDetalle ? <div className="credix-queue__detail">{detail}</div> : null}
     </div>
   )
 }

@@ -318,11 +318,12 @@ body.credix-density-comfortable .credix-page {
   display: grid;
   gap: var(--credix-density-gap);
   align-items: start;
+  grid-template-columns: minmax(0, 1fr);
 }
 
-@media (min-width: 992px) {
-  .credix-queue {
-    grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.6fr);
+@media (min-width: 1280px) {
+  .credix-queue--con-detalle {
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
   }
 }
 

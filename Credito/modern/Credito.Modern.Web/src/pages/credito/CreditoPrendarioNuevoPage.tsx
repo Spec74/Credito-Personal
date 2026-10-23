@@ -47,6 +47,7 @@ import {
   buildClientesNuevoHref,
   labelClienteFicha,
 } from '../../utils/internalReturnTo'
+import '../../styles/credito-prendario-nuevo.css'
 
 const { Text } = Typography
 
@@ -383,6 +384,7 @@ export function CreditoPrendarioNuevoPage() {
 
   return (
     <CredixPage
+      className="prendario-nuevo-page"
       title="Nuevo crédito prendario"
       subtitle={undefined}
       breadcrumb={[
@@ -406,7 +408,7 @@ export function CreditoPrendarioNuevoPage() {
 
       <CredixWorkCanvas
         context={(
-          <div>
+          <div className="prendario-nuevo-cliente">
           <CredixPanel title="Cliente existente">
             <ClienteBuscarAutoComplete
               variant="credito"
@@ -556,7 +558,7 @@ export function CreditoPrendarioNuevoPage() {
               disabled={!personaId}
               value={indGastosAdm}
               options={[
-                { value: IND_GASTOS_ADM, label: 'Trámite adm. pago adelantado (ADE)' },
+                { value: IND_GASTOS_ADM, label: 'ADE — pago adelantado' },
               ]}
             />
           </Col>

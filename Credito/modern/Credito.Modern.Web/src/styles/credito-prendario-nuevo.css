@@ -1,0 +1,59 @@
+/**
+ * Nuevo prendario: no aplastar bienes en 3 columnas estrechas.
+ * Móvil/tablet: todo apilado. PC ancha: cliente a la izquierda, bienes al centro,
+ * resultado abajo (o a la derecha solo en pantallas muy anchas).
+ */
+
+.prendario-nuevo-page .credix-work-canvas--full {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.prendario-nuevo-page .credix-panel {
+  overflow: visible;
+}
+
+.prendario-nuevo-page .credix-panel-body {
+  overflow-x: auto;
+}
+
+.prendario-nuevo-cliente {
+  display: grid;
+  gap: var(--credix-density-gap, 16px);
+}
+
+.prendario-nuevo-page .ant-select-selection-item {
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .prendario-nuevo-cliente {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+@media (min-width: 1280px) {
+  .prendario-nuevo-page .credix-work-canvas--full {
+    grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  }
+
+  .prendario-nuevo-page .credix-work-canvas__result {
+    grid-column: 1 / -1;
+  }
+
+  .prendario-nuevo-cliente {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 1440px) {
+  .prendario-nuevo-page .credix-work-canvas--full {
+    grid-template-columns: minmax(280px, 320px) minmax(0, 1fr) minmax(260px, 300px);
+  }
+
+  .prendario-nuevo-page .credix-work-canvas__result {
+    grid-column: auto;
+    position: sticky;
+    top: 12px;
+  }
+}

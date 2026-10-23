@@ -148,13 +148,13 @@ export function CreditoAprobarPage() {
 
   const columns: ColumnsType<CreditoPorAprobarRow> = useMemo(
     () => [
-      { title: 'Crédito', dataIndex: 'creditoId', width: 82, sorter: true },
-      { title: 'Código', dataIndex: 'codigo', width: 96, sorter: true },
+      { title: 'Crédito', dataIndex: 'creditoId', width: 96, sorter: true },
+      { title: 'Código', dataIndex: 'codigo', width: 110, sorter: true },
       {
         title: 'Cliente',
         dataIndex: 'cliente',
         ellipsis: true,
-        minWidth: 150,
+        minWidth: 180,
         sorter: true,
         render: (nombre: string | null) => (
           <span className="credito-aprobacion-table__cliente">{nombre ?? '—'}</span>
@@ -163,7 +163,7 @@ export function CreditoAprobarPage() {
       {
         title: 'Documento',
         dataIndex: 'documento',
-        width: 118,
+        width: 132,
         ellipsis: true,
         sorter: true,
         render: (doc: string | null) => (
@@ -173,7 +173,7 @@ export function CreditoAprobarPage() {
       {
         title: 'Monto',
         dataIndex: 'monto',
-        width: 108,
+        width: 118,
         align: 'right',
         sorter: true,
         render: (v: number) => (
@@ -183,16 +183,16 @@ export function CreditoAprobarPage() {
       {
         title: 'Interés',
         dataIndex: 'interes',
-        width: 96,
+        width: 108,
         align: 'right',
         render: formatMoney,
         sorter: true,
       },
-      { title: 'Gestor', dataIndex: 'agente', width: 132, ellipsis: true, sorter: true },
+      { title: 'Gestor', dataIndex: 'agente', width: 150, ellipsis: true, sorter: true },
       {
         title: 'Estado',
         dataIndex: 'estado',
-        width: 110,
+        width: 120,
         align: 'center',
         render: (estado: string) => {
           const meta = getCreditoEstadoMeta(estado)
@@ -202,7 +202,7 @@ export function CreditoAprobarPage() {
       {
         title: 'Acciones',
         key: 'acciones',
-        width: puedeAprobar ? 270 : 170,
+        width: puedeAprobar ? 300 : 190,
         fixed: 'right',
         render: (_, row) => (
           <div className="credito-aprobacion-actions">
@@ -424,7 +424,7 @@ export function CreditoAprobarPage() {
         columns={columns}
         dataSource={listQuery.data?.items ?? []}
         loading={listQuery.isLoading}
-        scroll={{ x: 'max-content' }}
+        scroll={{ x: 1180 }}
         pagination={{
           current: page,
           pageSize,

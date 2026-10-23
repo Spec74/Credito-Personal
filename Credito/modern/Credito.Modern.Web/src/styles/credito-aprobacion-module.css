@@ -257,9 +257,20 @@
   margin: 0;
 }
 
-/* Tabla */
+/* Tabla: cabeceras enteras, sin partir “Crédito” / “Interés” */
 .credito-aprobacion-table {
   min-width: 0;
+}
+
+.credito-aprobacion-table .ant-table-thead > tr > th {
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  padding-inline: 10px !important;
+}
+
+.credito-aprobacion-table .ant-table-tbody > tr > td {
+  vertical-align: middle;
 }
 
 .credito-aprobacion-table .ant-table-tbody > tr {
@@ -289,7 +300,7 @@
 
 .credito-aprobacion-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
   justify-content: flex-end;
 }
