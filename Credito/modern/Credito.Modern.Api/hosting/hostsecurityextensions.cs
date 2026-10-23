@@ -1,5 +1,6 @@
 using System.Net;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +46,15 @@ internal static class HostSecurityExtensions
             .ValidateOnStart();
 
         builder.Services.AddSingleton<IConfigureOptions<ForwardedHeadersOptions>, ConfigureForwardedHeadersOptions>();
+
+        const long maxAdjuntoBytes = 12L * 1024 * 1024;
+        builder.Services.Configure<FormOptions>(o =>
+        {
+            o.MultipartBodyLengthLimit = maxAdjuntoBytes;
+            o.ValueLengthLimit = 12 * 1024 * 1024;
+            o.MultipartHeadersLengthLimit = 16_384;
+        });
+        builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = maxAdjuntoBytes);
 
         builder.Services
             .AddOptions<BrowserCorsOptions>()

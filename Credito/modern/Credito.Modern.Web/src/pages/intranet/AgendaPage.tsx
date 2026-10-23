@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button, DatePicker, Drawer, Form, Grid, Input, Modal, Radio, Segmented, Select, Space, Switch } from 'antd'
+import { Button, Drawer, Form, Grid, Input, Modal, Radio, Segmented, Select, Space } from 'antd'
 import { LeftOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
@@ -10,6 +10,7 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage } from '../../components/credix'
 import { esCreditoAdministrador, esCreditoEncargado } from '../../utils/creditoOperacionPermisos'
+import { AgendaCuandoFields } from './agenda/AgendaCuandoFields'
 import { AgendaMiniMonth } from './agenda/AgendaMiniMonth'
 import { AgendaMonthView } from './agenda/AgendaMonthView'
 import { AgendaSchedule } from './agenda/AgendaSchedule'
@@ -369,26 +370,7 @@ export function AgendaPage() {
           <Form.Item name="titulo" label="Título" rules={[{ required: true, message: 'Escriba qué hay que recordar' }]}>
             <Input maxLength={160} placeholder="Ej. Cierre de caja / Visita a Huanta" />
           </Form.Item>
-          <Form.Item name="todoElDia" label="Todo el día" valuePropName="checked">
-            <Switch />
-          </Form.Item>
-          <Form.Item noStyle shouldUpdate={(a, b) => a.todoElDia !== b.todoElDia}>
-            {({ getFieldValue }) => {
-              const todo = getFieldValue('todoElDia') as boolean
-              return (
-                <>
-                  <Form.Item name="cuando" label={todo ? 'Día' : 'Empieza'} rules={[{ required: true }]}>
-                    <DatePicker showTime={todo ? false : { format: 'HH:mm' }} style={{ width: '100%' }} />
-                  </Form.Item>
-                  {todo ? null : (
-                    <Form.Item name="hasta" label="Termina" rules={[{ required: true, message: 'Elija la hora de fin' }]}>
-                      <DatePicker showTime={{ format: 'HH:mm' }} style={{ width: '100%' }} />
-                    </Form.Item>
-                  )}
-                </>
-              )
-            }}
-          </Form.Item>
+          <AgendaCuandoFields disabled={soloLectura} />
           <Form.Item name="recordatorioMinutos" label="Avisarme">
             <Select
               allowClear

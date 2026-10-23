@@ -34,7 +34,7 @@ Script: `deploy/sql/2026-10-21-comunicados-agenda.sql` (aplicar también en Azur
 
 ## 6. Seguridad
 
-JWT con oficina y usuario. RED solo ADMIN. Adjunto no se sirve sin token. No toca crédito ni caja.
+JWT con oficina y usuario. RED solo ADMIN. ENCARGADO publica solo su sede. `/admin/comunicados` no es ALWAYS_ALLOWED. Adjunto no se sirve sin token. No toca crédito ni caja.
 
 ## 7. Criterios
 
@@ -56,7 +56,7 @@ JWT con oficina y usuario. RED solo ADMIN. Adjunto no se sirve sin token. No toc
 
 ## 9. Pruebas
 
-`IntranetEndpointTests` (401) · `menuRouteAccess` rutas always-allowed · `agendaLayout.test` · `intranetLabels.test` · `formatFecha` relativo.
+`IntranetEndpointTests` (401) · `menuRouteAccess` (publicar avisos no es ALWAYS_ALLOWED) · `puedePublicarAvisos` / `puedeMutarAviso` · `agendaLayout.test` · `intranetLabels.test` · `formatFecha` relativo.
 
 ## 10. Go-live
 

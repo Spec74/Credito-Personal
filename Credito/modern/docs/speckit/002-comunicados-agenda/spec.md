@@ -37,6 +37,7 @@ Modelo Outlook / Google Calendar, recortado a sucursal:
 - Recordatorio: 15 / 30 / 60 / 1440 minutos antes (o ninguno).
 - La campana muestra los que ya vencieron y no se descartaron.
 - Vistas Google Calendar: Día / Semana (PC) / 3 días (móvil) / Mes / Agenda. Clic en un hueco crea. Línea de ahora. Personal vs sede con color. Tocar un evento lo edita. Semana empieza lunes.
+- Crear/editar: fecha legible + hora en pasos de 15 min (no DatePicker con reloj ni segundos). En móvil, controles de 40 px y popup fuera del drawer.
 
 No calcula cuota ni mora. No sustituye tareas de crédito.
 
@@ -45,8 +46,8 @@ No calcula cuota ni mora. No sustituye tareas de crédito.
 | Ruta | Quién |
 |------|--------|
 | `/comunicados`, `/agenda` | Cualquier sesión (como simulador) |
-| `/admin/comunicados` | Siempre permitida (como comisiones); publica ADMIN o ENCARGADO |
-| Publicar / borrar comunicado | ADMIN o ENCARGADO |
+| `/admin/comunicados` | Solo ADMIN o ENCARGADO (atajo por rol, no ALWAYS_ALLOWED) |
+| Publicar / borrar comunicado | ADMIN (red o una sede) · ENCARGADO (solo su oficina) |
 | Evento de sede | ADMIN o ENCARGADO |
 | Evento personal | El dueño |
 | RED | Solo ADMIN |

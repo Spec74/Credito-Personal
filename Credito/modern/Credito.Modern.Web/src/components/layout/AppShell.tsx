@@ -50,6 +50,7 @@ import { resolveSpaPathFromModulo } from '../../utils/legacyRoutes'
 import { resolveSpaPathFromMenuItem } from '../../utils/resolveSpaPathFromMenuItem'
 import { hasMenuRouteAccess } from '../../utils/menuRouteAccess'
 import { puedeAsignarCajaUi, puedeCobroBloqueUi } from '../../utils/cajaSaldosPermisos'
+import { puedePublicarAvisos } from '../../utils/creditoOperacionPermisos'
 
 const { Text } = Typography
 
@@ -158,6 +159,7 @@ export function AppShell() {
       paths.push('/caja/cobro')
       paths.push('/caja/cobro-bloque')
     }
+    if (puedePublicarAvisos(roles)) paths.push('/admin/comunicados')
     return paths
   }, [puedeVerCierreGerencial, puedeVerMorosos, session?.roles])
   const hasCurrentRouteAccess = useMemo(

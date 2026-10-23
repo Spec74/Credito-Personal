@@ -169,9 +169,10 @@ describe('menuRouteAccess', () => {
     expect(hasMenuRouteAccess('/caja/maestro', [menuCajaMaestro])).toBe(true)
   })
 
-  it('accesos rápidos del layout siempre habilitan comisiones, simulador y cartera gestor', () => {
+  it('accesos rápidos del layout: comisiones y lectura de avisos; publicar avisos solo con extra de rol', () => {
     expect(hasMenuRouteAccess('/admin/comisiones', [])).toBe(true)
-    expect(hasMenuRouteAccess('/admin/comunicados', [])).toBe(true)
+    expect(hasMenuRouteAccess('/admin/comunicados', [])).toBe(false)
+    expect(hasMenuRouteAccess('/admin/comunicados', [], ['/admin/comunicados'])).toBe(true)
     expect(hasMenuRouteAccess('/comunicados', [])).toBe(true)
     expect(hasMenuRouteAccess('/agenda', [])).toBe(true)
     expect(hasMenuRouteAccess('/credito/simulador', [])).toBe(true)

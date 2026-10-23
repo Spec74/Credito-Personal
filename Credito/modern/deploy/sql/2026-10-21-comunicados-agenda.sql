@@ -353,7 +353,7 @@ BEGIN
         LEFT(@ContentType, 80),
         DATALENGTH(@Contenido),
         @Contenido);
-    SELECT SCOPE_IDENTITY() AS AdjuntoId, DATALENGTH(@Contenido) AS TamanoBytes;
+    SELECT CAST(SCOPE_IDENTITY() AS int) AS AdjuntoId;
 END
 GO
 

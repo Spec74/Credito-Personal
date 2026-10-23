@@ -86,7 +86,11 @@ export async function apiFetch<T>(
   if (!text) {
     return undefined as T
   }
-  return JSON.parse(text) as T
+  try {
+    return JSON.parse(text) as T
+  } catch {
+    throw new ApiError('La respuesta del servidor no es válida.', 502)
+  }
 }
 
 export function getApiBaseUrl(): string {

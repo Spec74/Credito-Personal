@@ -4,6 +4,7 @@ import { fetchMenu } from '../api/menu'
 import { useAuth } from '../auth/useAuth'
 import type { CredixHubSection } from '../components/credix/CredixHubGrid'
 import { puedeAsignarCajaUi, puedeCobroBloqueUi } from '../utils/cajaSaldosPermisos'
+import { puedePublicarAvisos } from '../utils/creditoOperacionPermisos'
 import { filterHubSectionsByMenu } from '../utils/filterHubSectionsByMenu'
 
 /** Filtra tarjetas del hub por ACL de menú (solo módulos asignados). */
@@ -24,6 +25,7 @@ export function useAclHubSections(sections: CredixHubSection[]): CredixHubSectio
       paths.push('/caja/cobro')
       paths.push('/caja/cobro-bloque')
     }
+    if (puedePublicarAvisos(roles)) paths.push('/admin/comunicados')
     return paths
   }, [session?.roles])
 

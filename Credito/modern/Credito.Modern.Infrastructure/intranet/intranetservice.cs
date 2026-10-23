@@ -1,4 +1,5 @@
 using System.Data;
+using System.Globalization;
 using Credito.Modern.Application.Intranet;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -83,17 +84,26 @@ public sealed class IntranetService(IOptions<SqlDatabaseOptions> options) : IInt
     public async Task<int> SubirAdjuntoAsync(
         int comunicadoId, string nombre, string contentType, byte[] contenido, CancellationToken ct = default)
     {
-        var row = await QuerySingle<AdjuntoIdRow>(
-            "MAESTRO.usp_ComunicadoAdjuntoIns",
-            new
-            {
-                ComunicadoId = comunicadoId,
-                NombreOriginal = nombre,
-                ContentType = contentType,
-                Contenido = contenido,
-            },
-            ct).ConfigureAwait(false);
-        return row.AdjuntoId;
+        await using var cn = await Open(ct).ConfigureAwait(false);
+        var raw = await cn.ExecuteScalarAsync<object>(
+            new CommandDefinition(
+                "MAESTRO.usp_ComunicadoAdjuntoIns",
+                new
+                {
+                    ComunicadoId = comunicadoId,
+                    NombreOriginal = nombre,
+                    ContentType = contentType,
+                    Contenido = contenido,
+                },
+                commandType: CommandType.StoredProcedure,
+                commandTimeout: 120,
+                cancellationToken: ct)).ConfigureAwait(false);
+        if (raw is null or DBNull)
+        {
+            throw new InvalidOperationException("No se obtuvo el identificador del archivo.");
+        }
+
+        return Convert.ToInt32(raw, CultureInfo.InvariantCulture);
     }
 
     public Task<ComunicadoAdjuntoContenidoDto?> DescargarAdjuntoAsync(
@@ -153,7 +163,6 @@ public sealed class IntranetService(IOptions<SqlDatabaseOptions> options) : IInt
 
     private sealed record IdRow(int ComunicadoId);
     private sealed record EventoIdRow(int EventoId);
-    private sealed record AdjuntoIdRow(int AdjuntoId);
 
     private async Task<IReadOnlyList<T>> QueryList<T>(string proc, object param, CancellationToken ct)
     {

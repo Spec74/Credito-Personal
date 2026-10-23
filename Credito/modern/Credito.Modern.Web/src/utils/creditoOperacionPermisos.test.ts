@@ -6,6 +6,8 @@ import {
   puedeOperarCreditoCompleto,
   puedeCompletarBienesPrendarioUi,
   esCreditoProductoPrendario,
+  puedeMutarAviso,
+  puedePublicarAvisos,
 } from './creditoOperacionPermisos'
 
 describe('creditoOperacionPermisos', () => {
@@ -40,6 +42,25 @@ describe('dashboard admin en inicio', () => {
     expect(debeMostrarDashboardAdmin(['ADMINISTRADOR', 'ANALISTA'])).toBe(true)
     expect(debeMostrarDashboardAdmin(['ANALISTA'])).toBe(false)
     expect(debeMostrarDashboardAdmin(['CAJERO'])).toBe(false)
+  })
+})
+
+describe('avisos intranet', () => {
+  it('solo admin o encargado publican', () => {
+    expect(puedePublicarAvisos(['ADMINISTRADOR'])).toBe(true)
+    expect(puedePublicarAvisos(['ADMIN'])).toBe(true)
+    expect(puedePublicarAvisos(['ENCARGADO'])).toBe(true)
+    expect(puedePublicarAvisos(['ANALISTA'])).toBe(false)
+    expect(puedePublicarAvisos(['ANALISTA', 'CAJA'])).toBe(false)
+    expect(puedePublicarAvisos(['APROBADOR 1'])).toBe(false)
+    expect(puedePublicarAvisos(['CAJERO ENCARGADO'])).toBe(false)
+  })
+
+  it('encargado no muta avisos de red', () => {
+    expect(puedeMutarAviso(['ADMINISTRADOR'], 'RED')).toBe(true)
+    expect(puedeMutarAviso(['ENCARGADO'], 'RED')).toBe(false)
+    expect(puedeMutarAviso(['ENCARGADO'], 'OFICINA')).toBe(true)
+    expect(puedeMutarAviso(['ANALISTA'], 'OFICINA')).toBe(false)
   })
 })
 

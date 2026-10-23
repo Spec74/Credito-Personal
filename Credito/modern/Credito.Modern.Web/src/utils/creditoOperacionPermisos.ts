@@ -109,6 +109,18 @@ export function esCreditoEncargado(roles: string[]): boolean {
 
 }
 
+/** Consola de avisos: ADMIN o ENCARGADO (no ANALISTA/CAJA por substring). */
+export function puedePublicarAvisos(roles: string[]): boolean {
+  return esCreditoAdministrador(roles) || esCreditoEncargado(roles)
+}
+
+/** Encargado no muta avisos de toda la red. */
+export function puedeMutarAviso(roles: string[], alcance: string): boolean {
+  if (!puedePublicarAvisos(roles)) return false
+  if (alcance.trim().toUpperCase() === 'RED') return esCreditoAdministrador(roles)
+  return true
+}
+
 
 
 /**

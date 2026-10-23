@@ -15,6 +15,7 @@ import {
   Switch,
   Upload,
   message,
+  type UploadFile,
 } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
@@ -28,12 +29,33 @@ import {
   type ComunicadoAdjunto,
   type ComunicadoRow,
 } from '../../api/intranet'
+import { archivosDeUpload } from '../../api/intranetParse'
 import { fetchOficinas } from '../../api/oficinas'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage } from '../../components/credix'
-import { esCreditoAdministrador } from '../../utils/creditoOperacionPermisos'
+import {
+  esCreditoAdministrador,
+  puedeMutarAviso,
+  puedePublicarAvisos,
+} from '../../utils/creditoOperacionPermisos'
 import { destinoAviso, vigenciaAviso } from './intranetLabels'
+
+function validarAdjunto(file: File) {
+  const nombre = file.name.toLowerCase()
+  const esPdf = nombre.endsWith('.pdf')
+  const esImg = /\.(jpe?g|png|webp)$/.test(nombre)
+  if (!esPdf && !esImg) {
+    message.error('Solo imagen (jpg, png, webp) o PDF.')
+    return Upload.LIST_IGNORE
+  }
+  const maxMb = esPdf ? 8 : 2
+  if (file.size > maxMb * 1024 * 1024) {
+    message.error(esPdf ? 'El PDF no puede superar 8 MB.' : 'La imagen no puede superar 2 MB.')
+    return Upload.LIST_IGNORE
+  }
+  return false
+}
 
 type FormValues = {
   titulo: string
@@ -42,12 +64,14 @@ type FormValues = {
   oficinaDestinoId?: number
   permanente: boolean
   fechaFin?: dayjs.Dayjs
-  archivos?: { originFileObj?: File }[]
+  archivos?: UploadFile[]
 }
 
 export function AdminComunicadosPage() {
   const { session } = useAuth()
-  const admin = esCreditoAdministrador(session?.roles ?? [])
+  const roles = session?.roles ?? []
+  const admin = esCreditoAdministrador(roles)
+  const publica = puedePublicarAvisos(roles)
   const movil = !Grid.useBreakpoint().md
   const qc = useQueryClient()
   const [form] = Form.useForm<FormValues>()
@@ -68,6 +92,7 @@ export function AdminComunicadosPage() {
   const lista = useQuery({
     queryKey: ['comunicados', 'gestion'],
     queryFn: () => fetchComunicados(true, true),
+    enabled: publica,
   })
 
   const visibles = useMemo(() => {
@@ -101,28 +126,51 @@ export function AdminComunicadosPage() {
         comunicadoId: editando?.comunicadoId ?? null,
         titulo: v.titulo.trim(),
         cuerpo: v.cuerpo.trim(),
-        alcance: v.alcance,
-        oficinaDestinoId: v.alcance === 'OFICINA' ? v.oficinaDestinoId ?? session?.oficinaId ?? null : null,
+        alcance: admin ? v.alcance : 'OFICINA',
+        oficinaDestinoId: admin && v.alcance === 'OFICINA' ? v.oficinaDestinoId ?? session?.oficinaId ?? null : session?.oficinaId ?? null,
         fechaIni: editando?.fechaIni ?? dayjs().toISOString(),
         fechaFin: v.permanente ? null : (v.fechaFin?.endOf('day').toISOString() ?? null),
       })
-      const files = (v.archivos ?? []).map((f) => f.originFileObj).filter((f): f is File => !!f)
-      for (const file of files) {
-        await subirComunicadoAdjunto(saved.id, file)
+      const fallidos: string[] = []
+      for (const file of archivosDeUpload(v.archivos)) {
+        try {
+          await subirComunicadoAdjunto(saved.id, file)
+        } catch {
+          fallidos.push(file.name)
+        }
       }
-      return saved
+      return { id: saved.id, fallidos }
     },
-    onSuccess: () => {
+    onSuccess: (r) => {
       const eraEdicion = editando != null
       cerrar()
-      message.success(eraEdicion ? 'Aviso actualizado' : 'Aviso publicado')
+      if (r.fallidos.length === 1) {
+        message.warning(`Aviso publicado. No se pudo adjuntar “${r.fallidos[0]}”. Edítelo y vuelva a adjuntar.`)
+      } else if (r.fallidos.length > 1) {
+        message.warning(`Aviso publicado. No se pudieron adjuntar ${r.fallidos.length} archivos.`)
+      } else {
+        message.success(eraEdicion ? 'Aviso actualizado' : 'Aviso publicado')
+      }
       void qc.invalidateQueries({ queryKey: ['comunicados'] })
       void qc.invalidateQueries({ queryKey: ['bandeja'] })
     },
-    onError: (e) => setError(e instanceof ApiError ? e.message : 'No se pudo guardar el aviso.'),
+    onError: (e) => {
+      void qc.invalidateQueries({ queryKey: ['comunicados'] })
+      void qc.invalidateQueries({ queryKey: ['bandeja'] })
+      if (e instanceof ApiError) {
+        setError(e.message)
+        return
+      }
+      setError(
+        e instanceof TypeError
+          ? 'La conexión se cortó al publicar. Si el aviso aparece en la lista, ya quedó guardado; el archivo hay que adjuntarlo al editar.'
+          : 'No se pudo guardar el aviso.',
+      )
+    },
   })
 
   const cargarEdicion = async (row: ComunicadoRow) => {
+    if (!puedeMutarAviso(roles, row.alcance)) return
     setError(null)
     try {
       const detalle = await fetchComunicado(row.comunicadoId)
@@ -174,7 +222,7 @@ export function AdminComunicadosPage() {
     })
   }
 
-  const puedeMutar = (row: ComunicadoRow) => admin || row.alcance !== 'RED'
+  const puedeMutar = (row: ComunicadoRow) => puedeMutarAviso(roles, row.alcance)
 
   const abrirNuevo = () => {
     resetFormulario()
@@ -190,9 +238,11 @@ export function AdminComunicadosPage() {
         { title: 'Publicar' },
       ]}
       actions={
-        <Button type="primary" onClick={abrirNuevo}>
-          Nuevo aviso
-        </Button>
+        publica ? (
+          <Button type="primary" onClick={abrirNuevo}>
+            Nuevo aviso
+          </Button>
+        ) : undefined
       }
       stats={[
         { value: lista.data?.length ?? 0, label: 'Publicados' },
@@ -336,9 +386,15 @@ export function AdminComunicadosPage() {
             label={editando ? 'Agregar PDF o imagen' : 'PDF o imagen'}
             extra="Imagen hasta 2 MB. PDF hasta 8 MB."
             valuePropName="fileList"
-            getValueFromEvent={(e) => e?.fileList}
+            getValueFromEvent={(e: { fileList?: UploadFile[] } | UploadFile[]) =>
+              Array.isArray(e) ? e : (e?.fileList ?? [])
+            }
           >
-            <Upload beforeUpload={() => false} multiple accept=".pdf,.jpg,.jpeg,.png,.webp">
+            <Upload
+              multiple
+              accept=".pdf,.jpg,.jpeg,.png,.webp"
+              beforeUpload={(file) => validarAdjunto(file)}
+            >
               <Button icon={<UploadOutlined />}>Adjuntar</Button>
             </Upload>
           </Form.Item>

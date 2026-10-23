@@ -15,8 +15,8 @@ internal static class IntranetEndpoints
             HttpContext http, bool vencidos, bool gestion, IIntranetService svc, ILoggerFactory log, IHostEnvironment env, CancellationToken ct) =>
         {
             if (!Ids(http, out var o, out var u, out var err)) return err!;
-            PuedePublicar(http, out var admin);
-            if (gestion && !PuedePublicar(http, out _))
+            var publica = PuedePublicar(http, out var admin);
+            if (gestion && !publica)
                 return Results.Problem(statusCode: 403, title: "Prohibido", detail: "Solo admin o encargado gestiona avisos.");
             try
             {
@@ -52,13 +52,28 @@ internal static class IntranetEndpoints
             if (!PuedePublicar(http, out var admin))
                 return Results.Problem(statusCode: 403, title: "Prohibido", detail: "Solo admin o encargado publica avisos.");
             var alcance = (body.Alcance ?? "").Trim().ToUpperInvariant();
-            if (alcance == "RED" && !admin)
-                return Results.Problem(statusCode: 403, title: "Prohibido", detail: "Solo el administrador publica a toda la red.");
+            if (!admin)
+            {
+                if (alcance == "RED")
+                    return Results.Problem(statusCode: 403, title: "Prohibido", detail: "Solo el administrador publica a toda la red.");
+                alcance = "OFICINA";
+            }
             if (alcance == "OFICINA" && admin && body.OficinaDestinoId is not > 0)
                 return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: "Elija la sede donde será visible.");
+            if (body.ComunicadoId is > 0)
+            {
+                var (cab, _) = await svc.ObtenerComunicadoAsync(body.ComunicadoId.Value, o, u, admin, ct);
+                if (BloqueoRed(admin, cab, "Solo el administrador modifica avisos de toda la red.") is { } block)
+                    return block;
+            }
             try
             {
-                var id = await svc.GuardarComunicadoAsync(body with { Alcance = alcance }, o, u, admin, ct);
+                var id = await svc.GuardarComunicadoAsync(
+                    body with { Alcance = alcance, OficinaDestinoId = admin ? body.OficinaDestinoId : o },
+                    o,
+                    u,
+                    admin,
+                    ct);
                 return Results.Ok(new IdResponse(id));
             }
             catch (SqlException ex)
@@ -73,6 +88,9 @@ internal static class IntranetEndpoints
             if (!Ids(http, out var o, out var u, out var err)) return err!;
             if (!PuedePublicar(http, out var admin))
                 return Results.Problem(statusCode: 403, title: "Prohibido", detail: "Solo admin o encargado retira avisos.");
+            var (cab, _) = await svc.ObtenerComunicadoAsync(id, o, u, admin, ct);
+            if (BloqueoRed(admin, cab, "Solo el administrador retira avisos de toda la red.") is { } block)
+                return block;
             try
             {
                 await svc.BajaComunicadoAsync(id, o, u, admin, ct);
@@ -80,7 +98,7 @@ internal static class IntranetEndpoints
             }
             catch (SqlException ex)
             {
-                return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: ex.Message);
+                return SqlFallo(ex);
             }
         }).RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser);
 
@@ -93,35 +111,54 @@ internal static class IntranetEndpoints
         }).RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser);
 
         app.MapPost("/api/v1/comunicados/{id:int}/adjunto", async (
-            int id, HttpRequest req, HttpContext http, IIntranetService svc, CancellationToken ct) =>
+            int id, HttpRequest req, HttpContext http, IIntranetService svc, ILoggerFactory log, IHostEnvironment env, CancellationToken ct) =>
         {
-            if (!Ids(http, out _, out _, out var err)) return err!;
-            if (!PuedePublicar(http, out _))
+            if (!Ids(http, out var o, out var u, out var err)) return err!;
+            if (!PuedePublicar(http, out var admin))
                 return Results.Problem(statusCode: 403, title: "Prohibido", detail: "Solo admin o encargado adjunta.");
+            var (cab, _) = await svc.ObtenerComunicadoAsync(id, o, u, admin, ct);
+            if (BloqueoRed(admin, cab, "Solo el administrador adjunta en avisos de toda la red.") is { } block)
+                return block;
             if (!req.HasFormContentType)
                 return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: "Use multipart/form-data.");
-            var form = await req.ReadFormAsync(ct);
-            var file = form.Files.GetFile("archivo");
-            if (file is null || file.Length < 1)
-                return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: "Seleccione un archivo.");
-            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-            var okImg = ext is ".jpg" or ".jpeg" or ".png" or ".webp";
-            var okPdf = ext == ".pdf";
-            if (!okImg && !okPdf)
-                return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: "Solo imagen (jpg/png/webp) o PDF.");
-            if (okImg && file.Length > 2 * 1024 * 1024)
-                return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: "La imagen no puede superar 2 MB.");
-            if (okPdf && file.Length > 8 * 1024 * 1024)
-                return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: "El PDF no puede superar 8 MB.");
-            await using var ms = new MemoryStream();
-            await file.CopyToAsync(ms, ct);
-            var adjuntoId = await svc.SubirAdjuntoAsync(
-                id,
-                file.FileName,
-                string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
-                ms.ToArray(),
-                ct);
-            return Results.Ok(new IdResponse(adjuntoId));
+            try
+            {
+                var form = await req.ReadFormAsync(ct);
+                var file = form.Files.GetFile("archivo");
+                if (file is null || file.Length < 1)
+                    return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: "Seleccione un archivo.");
+                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                var okImg = ext is ".jpg" or ".jpeg" or ".png" or ".webp";
+                var okPdf = ext == ".pdf";
+                if (!okImg && !okPdf)
+                    return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: "Solo imagen (jpg/png/webp) o PDF.");
+                if (okImg && file.Length > 2 * 1024 * 1024)
+                    return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: "La imagen no puede superar 2 MB.");
+                if (okPdf && file.Length > 8 * 1024 * 1024)
+                    return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: "El PDF no puede superar 8 MB.");
+                await using var ms = new MemoryStream();
+                await file.CopyToAsync(ms, ct);
+                var adjuntoId = await svc.SubirAdjuntoAsync(
+                    id,
+                    file.FileName,
+                    string.IsNullOrWhiteSpace(file.ContentType) ? "application/octet-stream" : file.ContentType,
+                    ms.ToArray(),
+                    ct);
+                return Results.Ok(new IdResponse(adjuntoId));
+            }
+            catch (SqlException ex)
+            {
+                return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: ex.Message);
+            }
+            catch (Exception ex) when (
+                ex is InvalidOperationException
+                    or DbException
+                    or InvalidCastException
+                    or IOException
+                    or BadHttpRequestException)
+            {
+                return Fallo(log, env, ex, "No se pudo guardar el archivo.");
+            }
         }).RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser).DisableAntiforgery();
 
         app.MapGet("/api/v1/comunicados/adjunto/{adjuntoId:int}", async (
@@ -148,7 +185,7 @@ internal static class IntranetEndpoints
             }
             catch (SqlException ex)
             {
-                return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: ex.Message);
+                return SqlFallo(ex);
             }
         }).RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser);
 
@@ -220,12 +257,29 @@ internal static class IntranetEndpoints
 
     private static bool PuedePublicar(HttpContext http, out bool admin)
     {
-        var roles = http.User.FindAll(ClaimTypes.Role)
-            .Select(c => c.Value.Trim().ToUpperInvariant())
-            .ToList();
-        admin = roles.Any(r => r is "ADMIN" or "ADMINISTRADOR" || r.Contains("ADMINISTRADOR"));
-        var encargado = roles.Any(r => r.Contains("ENCARGADO"));
-        return admin || encargado;
+        var roles = http.User.FindAll(ClaimTypes.Role).Select(static c => c.Value).ToList();
+        admin = CreditoAuthorizationPolicies.HasAdministrador(roles);
+        return admin || CreditoAuthorizationPolicies.HasEncargado(roles);
+    }
+
+    private static bool EsRed(ComunicadoRowDto? cab) =>
+        string.Equals(cab?.Alcance, "RED", StringComparison.OrdinalIgnoreCase);
+
+    private static IResult? BloqueoRed(bool admin, ComunicadoRowDto? cab, string detalle)
+    {
+        if (cab is null)
+            return Results.Problem(statusCode: 404, title: "No encontrado", detail: "Aviso no disponible.");
+        if (!admin && EsRed(cab))
+            return Results.Problem(statusCode: 403, title: "Prohibido", detail: detalle);
+        return null;
+    }
+
+    private static IResult SqlFallo(SqlException ex)
+    {
+        var msg = ex.Message ?? "";
+        if (msg.Contains("No puede", StringComparison.OrdinalIgnoreCase))
+            return Results.Problem(statusCode: 403, title: "Prohibido", detail: msg);
+        return Results.Problem(statusCode: 400, title: "Solicitud inválida", detail: msg);
     }
 
     private static IResult Fallo(ILoggerFactory log, IHostEnvironment env, Exception ex, string titulo)

@@ -521,6 +521,60 @@
   outline-offset: 2px;
 }
 
+.credix-cuando {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.credix-cuando__fecha .ant-picker {
+  width: 100%;
+  min-height: var(--credix-touch-min);
+}
+
+.credix-cuando__fecha .ant-picker-input > input {
+  text-transform: capitalize;
+  font-size: 15px;
+}
+
+.credix-cuando__horas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.credix-cuando__horas .ant-select {
+  width: 100%;
+  min-width: 0;
+}
+
+.credix-cuando__horas .ant-select-selector {
+  min-height: var(--credix-touch-min) !important;
+  align-items: center !important;
+}
+
+.credix-cuando__horas .ant-select-selection-item {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.credix-cuando__sep {
+  color: var(--credix-text-muted);
+  font-size: 16px;
+  padding: 0 2px;
+}
+
+.credix-cuando-allday {
+  margin-bottom: 0 !important;
+}
+
+.credix-cuando-allday .ant-checkbox-wrapper {
+  min-height: var(--credix-touch-min);
+  display: inline-flex;
+  align-items: center;
+}
+
 .credix-agenda-card {
   display: flex;
   align-items: flex-start;

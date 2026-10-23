@@ -1,5 +1,9 @@
 import { apiFetch, getApiBaseUrl } from './client'
+import { ApiError } from './errors'
 import { getAccessToken } from '../auth/tokenStorage'
+import { idDeRespuesta } from './intranetParse'
+
+export { archivosDeUpload, idDeRespuesta } from './intranetParse'
 
 export interface ComunicadoRow {
   comunicadoId: number
@@ -62,7 +66,7 @@ export function fetchComunicado(id: number) {
   )
 }
 
-export function saveComunicado(body: {
+export async function saveComunicado(body: {
   comunicadoId?: number | null
   titulo: string
   cuerpo: string
@@ -70,12 +74,17 @@ export function saveComunicado(body: {
   oficinaDestinoId?: number | null
   fechaIni: string
   fechaFin: string | null
-}) {
-  return apiFetch<{ id: number }>('/comunicados', {
+}): Promise<{ id: number }> {
+  const r = await apiFetch<{ id?: number; Id?: number }>('/comunicados', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
+  const id = idDeRespuesta(r)
+  if (id < 1) {
+    throw new ApiError('No se obtuvo el identificador del aviso.', 502)
+  }
+  return { id }
 }
 
 export function bajaComunicado(id: number) {

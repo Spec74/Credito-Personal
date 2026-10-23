@@ -7,7 +7,7 @@ import { fetchComunicado, fetchComunicados, marcarComunicadoLeido } from '../../
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage } from '../../components/credix'
 import { formatRelativo } from '../../utils/formatFecha'
-import { esCreditoAdministrador, esCreditoEncargado } from '../../utils/creditoOperacionPermisos'
+import { puedePublicarAvisos } from '../../utils/creditoOperacionPermisos'
 import { AdjuntoVista } from './AdjuntoVista'
 import { destinoAviso, previewTexto, vigenciaAviso } from './intranetLabels'
 
@@ -17,8 +17,7 @@ export function ComunicadosPage() {
   const { session } = useAuth()
   const qc = useQueryClient()
   const [params, setParams] = useSearchParams()
-  const puedeEditar =
-    esCreditoAdministrador(session?.roles ?? []) || esCreditoEncargado(session?.roles ?? [])
+  const puedeEditar = puedePublicarAvisos(session?.roles ?? [])
   const abierto = Number(params.get('id')) || null
   const filtro = (params.get('f') as Filtro) || 'todos'
   const q = params.get('q') ?? ''

@@ -31,7 +31,7 @@ Patrón de inbox (Slack / Outlook / Workplace):
 | Archivos | Imagen ≤ 2 MB, PDF ≤ 8 MB, **varbinary en SQL** | App Service de Azure no tiene disco durable entre instancias. |
 | Canal de llegada | Campana en el chrome + bandeja | El personal no abre el correo. WhatsApp queda fuera (no hay contrato ni plantilla). |
 | Recordatorio | Minutos antes; la campana lo muestra cuando `FechaIni − minutos ≤ ahora` y no está descartado | Outlook/Google. Sin push nativo ni mail (no hay SMTP de avisos internos). |
-| Quién publica | ADMIN o ENCARGADO | Gerente y encargado de sede. El resto solo lee. |
+| Quién publica | ADMIN o ENCARGADO (rol, no substring) | Gerente: red o una sede. Encargado: solo su oficina. Analista/caja sin ENCARGADO no abre `/admin/comunicados`. |
 
 ## Qué recortamos a propósito
 
@@ -73,5 +73,13 @@ La lista + mini-mes no es un calendario. Gerencia pidió **el límite de Google 
 | Duración | `FechaFin` ya estaba en el USP; ahora se envía (1 h por defecto). | Sin zonas horarias. |
 
 Medible: crear un evento desde un hueco de la semana = 1 clic + título + Guardar (≤ 3 acciones). En 360 px la vista por defecto es **Agenda** (lista, como GCal Android).
+
+### Fecha y hora del evento (2026-10-23)
+
+El `DatePicker` de Ant con `showTime` es ruidoso: ISO con segundos, calendario + reloj en columnas, y en el celular el overlay queda angosto dentro del drawer.
+
+Patrón Google Calendar (web, captura gerencia): **una fecha legible** (“viernes, 23 de octubre”) y **dos listas de hora** en pasos de 15 min (09:00 – 10:00). No hay datetime único ni segundos.
+
+En Credix: `CredixDatePicker` (solo día, popup en `body`, `inputReadOnly`) + `Select` 00:00…23:45 cada 15 min. Perú usa 24 h (no am/pm). Al cambiar el inicio se conserva la duración. “Todo el día” oculta las horas.
 
 Medible (constitución §12): abrir un aviso desde la campana ≤ 2 toques; agendar en móvil ≤ 4 campos visibles; leer en 360 px sin scroll horizontal.
