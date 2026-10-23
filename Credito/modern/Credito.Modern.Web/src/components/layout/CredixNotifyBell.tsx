@@ -1,13 +1,16 @@
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Badge, Button, Dropdown } from 'antd'
+import { Badge, Button, Popover } from 'antd'
 import { BellOutlined } from '@ant-design/icons'
-import { descartarAgenda, fetchBandeja, marcarComunicadoLeido } from '../../api/intranet'
-import { formatFecha } from '../../utils/formatFecha'
+import { descartarAgenda, fetchBandeja, marcarComunicadoLeido, type BandejaItem } from '../../api/intranet'
+import { formatRelativo } from '../../utils/formatFecha'
 
 export function CredixNotifyBell() {
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const [open, setOpen] = useState(false)
+
   const bandeja = useQuery({
     queryKey: ['bandeja'],
     queryFn: fetchBandeja,
@@ -18,49 +21,111 @@ export function CredixNotifyBell() {
   const items = bandeja.data ?? []
 
   const ack = useMutation({
-    mutationFn: async (row: { tipo: string; id: number }) => {
+    mutationFn: async (row: BandejaItem) => {
       if (row.tipo === 'COMUNICADO') await marcarComunicadoLeido(row.id)
       else await descartarAgenda(row.id)
     },
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['bandeja'] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['bandeja'] })
+      void qc.invalidateQueries({ queryKey: ['comunicados'] })
+    },
   })
 
+  const marcarTodos = useMutation({
+    mutationFn: async () => {
+      await Promise.all(
+        items.map((n) =>
+          n.tipo === 'COMUNICADO' ? marcarComunicadoLeido(n.id) : descartarAgenda(n.id),
+        ),
+      )
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['bandeja'] })
+      void qc.invalidateQueries({ queryKey: ['comunicados'] })
+    },
+  })
+
+  const abrir = (n: BandejaItem) => {
+    void ack.mutateAsync(n)
+    setOpen(false)
+    navigate(n.tipo === 'COMUNICADO' ? `/comunicados?id=${n.id}` : `/agenda?id=${n.id}`)
+  }
+
   return (
-    <Dropdown
-      trigger={['click']}
+    <Popover
+      trigger="click"
       placement="bottomRight"
-      overlayClassName="credix-notify-dropdown"
-      menu={{
-        items: [
-          ...items.slice(0, 8).map((n) => ({
-            key: `${n.tipo}-${n.id}`,
-            label: (
-              <button
-                type="button"
-                className="credix-notify-item"
-                onClick={() => {
-                  void ack.mutateAsync(n)
-                  navigate(n.tipo === 'COMUNICADO' ? '/comunicados' : '/agenda')
-                }}
+      open={open}
+      onOpenChange={setOpen}
+      arrow={false}
+      rootClassName="credix-notify-popover"
+      content={
+        <div className="credix-notify-panel" role="dialog" aria-label="Avisos y recordatorios">
+          <div className="credix-notify-panel__head">
+            <strong>{items.length === 0 ? 'Nada pendiente' : `${items.length} sin ver`}</strong>
+            {items.length > 0 ? (
+              <Button
+                type="link"
+                size="small"
+                loading={marcarTodos.isPending}
+                onClick={() => void marcarTodos.mutate()}
               >
-                <strong>{n.titulo}</strong>
-                <span>{n.tipo === 'COMUNICADO' ? 'Aviso' : 'Agenda'} · {formatFecha(n.fecha)}</span>
-              </button>
-            ),
-          })),
-          items.length === 0
-            ? { key: 'empty', label: 'Sin avisos nuevos', disabled: true }
-            : {
-                key: 'all',
-                label: 'Ver bandeja',
-                onClick: () => navigate('/comunicados'),
-              },
-        ],
-      }}
+                Marcar todo
+              </Button>
+            ) : null}
+          </div>
+
+          {items.length === 0 ? (
+            <div className="credix-notify-panel__empty">
+              <p>Está al día. Los avisos y recordatorios aparecen aquí.</p>
+              <nav>
+                <Link to="/comunicados" onClick={() => setOpen(false)}>
+                  Avisos
+                </Link>
+                <Link to="/agenda" onClick={() => setOpen(false)}>
+                  Agenda
+                </Link>
+              </nav>
+            </div>
+          ) : (
+            <ul className="credix-notify-panel__list">
+              {items.map((n) => (
+                <li key={`${n.tipo}-${n.id}`}>
+                  <button type="button" className="credix-notify-row" onClick={() => abrir(n)}>
+                    <i
+                      className={`credix-notify-row__dot${n.tipo === 'AGENDA' ? ' is-agenda' : ''}`}
+                      aria-hidden
+                    />
+                    <div>
+                      <strong>{n.titulo}</strong>
+                      <span>{n.tipo === 'COMUNICADO' ? 'Aviso' : 'Recordatorio'}</span>
+                    </div>
+                    <time dateTime={n.fecha}>{formatRelativo(n.fecha)}</time>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="credix-notify-panel__foot">
+            <Link to="/comunicados" onClick={() => setOpen(false)}>
+              Ver avisos
+            </Link>
+            <Link to="/agenda" onClick={() => setOpen(false)}>
+              Ver agenda
+            </Link>
+          </div>
+        </div>
+      }
     >
-      <Badge count={items.length} size="small" overflowCount={9}>
-        <Button type="text" icon={<BellOutlined />} aria-label="Avisos" />
+      <Badge count={items.length} size="small" overflowCount={9} offset={[-2, 4]}>
+        <Button
+          type="text"
+          className="credix-notify-trigger"
+          icon={<BellOutlined />}
+          aria-label={items.length > 0 ? `Avisos, ${items.length} sin ver` : 'Avisos'}
+        />
       </Badge>
-    </Dropdown>
+    </Popover>
   )
 }

@@ -36,7 +36,7 @@ Modelo Outlook / Google Calendar, recortado a sucursal:
 - Fecha/hora, todo el día, notas.
 - Recordatorio: 15 / 30 / 60 / 1440 minutos antes (o ninguno).
 - La campana muestra los que ya vencieron y no se descartaron.
-- En móvil: selector de día + lista. En escritorio: mes.
+- Vistas Google Calendar: Día / Semana (PC) / 3 días (móvil) / Mes / Agenda. Clic en un hueco crea. Línea de ahora. Personal vs sede con color. Tocar un evento lo edita. Semana empieza lunes.
 
 No calcula cuota ni mora. No sustituye tareas de crédito.
 

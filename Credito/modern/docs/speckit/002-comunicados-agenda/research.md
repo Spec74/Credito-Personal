@@ -47,3 +47,31 @@ Patrón de inbox (Slack / Outlook / Workplace):
 - Leer: lista con “Nuevo”, vigencia o “Siempre visible”, imagen en pantalla, PDF para descargar.
 - Agenda escritorio: mes con puntos. Agenda móvil: día elegido + lista (el calendario Ant Design no cabe en 360 px).
 - Chrome móvil: sede y **Cambiar sede** táctiles; sin letras C/E/H ni “N roles”.
+
+## Superficies 2026-10-23 — de “lista básica” a Work OS
+
+La primera entrega cumplía el contrato (publicar / leer / recordatorio) pero **se sentía un formulario**. Revisión contra bandejas reales:
+
+| Superficie | Qué se copió | Fuentes | Qué se recortó |
+|------------|--------------|---------|----------------|
+| **Campana** | Cajón propio (no menú Ant). Una fila = título + tipo + tiempo relativo. Un punto de no leído. “Marcar todo”. Pie: Ver avisos / Ver agenda. Vacío: “Nada pendiente”. | [Notification center (Courier)](https://www.courier.com/blog/in-app-notification-center-design), [PatternFly drawer](https://www.patternfly.org/components/notification-drawer/design-guidelines/) | Sin swipe, sin toast de cada aviso, sin preferencias por canal. |
+| **Bandeja avisos** | Master-detail: lista izquierda + lectura derecha. En móvil, una sola cara y **Volver**. Búsqueda, Todos / Nuevos / Siempre. Punto + título más pesado = no leído (un solo señal). Estado vacío del panel: “Elija un aviso”. | [Master-detail](https://uxpatternsguide.com/patterns/master-detail/), Sketch inbox, Outlook lectura | Sin marcar no leído otra vez, sin pin, sin HTML. |
+| **Publicar** | La lista es la pantalla. Redactar / editar abre **drawer** (como usuarios/roles). El encargado no muta RED. | Workplace compose, Credix admin drawers | Sin vista previa HTML. |
+| **Agenda** | Escritorio: mini-mes + lista del día + “Después”. Móvil: **tira de 14 días** (Outlook/Todoist) + agenda del día; se saltan los vacíos en “Después”. Tocar evento = editar. Recordatorio visible. | [Outlook Agenda mobile](https://saee.cc/outlook-calendar) (98 % se queda en agenda, no en mes), Google Calendar upcoming | Sin RRULE, sin Day grid, sin invitados. |
+
+## Agenda 2026-10-23 — límite Google Calendar
+
+La lista + mini-mes no es un calendario. Gerencia pidió **el límite de Google Calendar**, usable en PC y celular. Fuentes: [ayuda GCal escritorio](https://support.google.com/calendar/answer/72143), [vistas Android](https://support.google.com/calendar/answer/6110849), [system design week grid](https://completefrontend.com/system-design/problems/google-calendar).
+
+| Pieza Google | En Credix | Recorte consciente |
+|--------------|-----------|--------------------|
+| Vistas Día / Semana / Mes / Agenda (Schedule) | Igual. En móvil, **3 días** en lugar de Semana (7 columnas de 40 px son ilegibles). | Año. Recurrencia RRULE. Invitados. |
+| Grilla de horas + franja *todo el día* | Sí. 00–23, scroll al ahora. Clic en hueco = crear (snap 30 min). Clic en todo el día = evento sin hora. | Sin arrastrar para alargar (arrastre en táctil pelea con el scroll). |
+| Línea de ahora (roja, 2007+) | Sí, solo en la columna de hoy; se mueve cada minuto. | — |
+| Mini-mes a la izquierda + calendarios con color | Personal `#114885` / Sede ámbar. Se ocultan. Semana empieza **lunes** (Perú). | Sin más calendarios (cumpleaños, feriados). |
+| FAB móvil + Crear en PC | FAB 56 px esquina inferior. Drawer con empieza / termina. | Bottom sheet a 1/4 de pantalla: el drawer Credix ya es el patrón del sistema. |
+| Duración | `FechaFin` ya estaba en el USP; ahora se envía (1 h por defecto). | Sin zonas horarias. |
+
+Medible: crear un evento desde un hueco de la semana = 1 clic + título + Guardar (≤ 3 acciones). En 360 px la vista por defecto es **Agenda** (lista, como GCal Android).
+
+Medible (constitución §12): abrir un aviso desde la campana ≤ 2 toques; agendar en móvil ≤ 4 campos visibles; leer en 360 px sin scroll horizontal.

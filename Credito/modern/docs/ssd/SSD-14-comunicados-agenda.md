@@ -1,6 +1,6 @@
 # SSD-14 — Comunicados y agenda
 
-**Estado:** as-built · 2026-10-21  
+**Estado:** as-built · 2026-10-23  
 **Código:** `/comunicados`, `/agenda`, `/admin/comunicados` · `/api/v1/comunicados/*` · `/api/v1/agenda/*` · `/api/v1/bandeja`  
 **Doc:** [spec 002](../speckit/002-comunicados-agenda/spec.md) · [research](../speckit/002-comunicados-agenda/research.md) · [contrato](../speckit/002-comunicados-agenda/contrato.md)
 
@@ -10,8 +10,8 @@ Canal interno del gerente (avisos, reglamentos con PDF/imagen, vigencia o perman
 
 ## 2. Alcance
 
-**Entra:** publicar (admin/encargado), bandeja de todos, adjuntos SQL, eventos personales/sede, recordatorio en campana, chrome móvil de sede.  
-**No entra:** WhatsApp masivo, TEA, ROSEL, recalcular mora, correo, recurrencia RRULE.
+**Entra:** publicar (admin/encargado), bandeja master-detail, adjuntos SQL, agenda tipo Google Calendar (Día/Semana/3 días/Mes/Agenda), recordatorio en campana, chrome móvil de sede.  
+**No entra:** WhatsApp masivo, TEA, ROSEL, recalcular mora, correo, recurrencia RRULE, invitados, arrastrar para alargar.
 
 ## 3. Paridad MVC
 
@@ -29,8 +29,8 @@ Script: `deploy/sql/2026-10-21-comunicados-agenda.sql` (aplicar también en Azur
 |-----|-----|
 | GET/POST `/api/v1/comunicados` | `/comunicados` lectura · `/admin/comunicados` publicación |
 | GET adjunto (JWT) | Imagen inline (blob) · PDF descarga |
-| GET/POST `/api/v1/agenda` | `/agenda` mes (desktop) / lista del día (móvil) |
-| GET `/api/v1/bandeja` | `CredixNotifyBell` en el header |
+| GET/POST `/api/v1/agenda` | `/agenda` grilla Google: Día/Semana/Mes/Agenda + línea de ahora |
+| GET `/api/v1/bandeja` | `CredixNotifyBell`: cajón con marcar todo y pie Avisos/Agenda |
 
 ## 6. Seguridad
 
@@ -46,6 +46,9 @@ JWT con oficina y usuario. RED solo ADMIN. Adjunto no se sirve sin token. No toc
 - [ ] Editar cambia texto/vigencia/destino; eliminar lo retira de campana y bandeja.
 - [ ] Evento personal no lo ve otro usuario.
 - [ ] Chrome móvil: sede + Cambiar sede táctil; sin letras C/E/H ni “N roles”.
+- [ ] Campana: cajón con marcar todo; clic abre el aviso o el evento.
+- [ ] Bandeja avisos: lista + lectura en PC; en móvil una cara y Volver.
+- [ ] Agenda: clic en hueco crea; línea de ahora en hoy; Personal/Sede se ocultan.
 
 ## 8. Desviaciones
 
@@ -53,8 +56,8 @@ JWT con oficina y usuario. RED solo ADMIN. Adjunto no se sirve sin token. No toc
 
 ## 9. Pruebas
 
-`IntranetEndpointTests` (401) · `menuRouteAccess` rutas always-allowed.
+`IntranetEndpointTests` (401) · `menuRouteAccess` rutas always-allowed · `agendaLayout.test` · `intranetLabels.test` · `formatFecha` relativo.
 
 ## 10. Go-live
 
-Código en `Eber-migracion`. Falta aplicar el SQL en Azure (igual que PLA).
+Código en `Eber-migracion`. SQL de comunicados/agenda **aplicado en Azure** (2026-10-21). SPA: campana + bandeja + calendario Google.

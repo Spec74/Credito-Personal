@@ -4,6 +4,14 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Superficies intranet (campana, bandeja, calendario)
+
+**Qué hay:** campana tipo cajón (marcar todo); avisos lista+lectura; agenda
+tipo Google Calendar (Día/Semana/3 días/Mes/Agenda, línea de ahora, clic
+en hueco). Spec: SSD-14.
+
+**Qué no hay:** RRULE, invitados, arrastrar para alargar, WhatsApp/correo.
+
 ### 2026-10-21 — Comunicados, agenda y chrome móvil
 
 **Qué hay:** avisos del gerente (vigencia o permanente, PDF/imagen en SQL),

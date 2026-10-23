@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Button } from 'antd'
 import { adjuntoUrl, descargarAdjunto, type ComunicadoAdjunto } from '../../api/intranet'
 import { getAccessToken } from '../../auth/tokenStorage'
+import { tamanoArchivo, tipoArchivo } from './intranetLabels'
 
 export function AdjuntoVista({ adjunto }: { adjunto: ComunicadoAdjunto }) {
   const esImagen = adjunto.contentType.startsWith('image/')
@@ -27,28 +28,31 @@ export function AdjuntoVista({ adjunto }: { adjunto: ComunicadoAdjunto }) {
     }
   }, [adjunto.adjuntoId, esImagen])
 
-  if (esImagen && src) {
-    return (
-      <li>
-        <img className="credix-comunicado-img" src={src} alt={adjunto.nombreOriginal} />
-        <Button
-          type="link"
-          onClick={() => void descargarAdjunto(adjunto.adjuntoId, adjunto.nombreOriginal)}
-        >
-          {adjunto.nombreOriginal}
-        </Button>
-      </li>
-    )
-  }
-
-  return (
-    <li>
+  const chip = (
+    <div className="credix-adjunto-chip">
+      <div className="credix-adjunto-chip__meta">
+        <strong>{adjunto.nombreOriginal}</strong>
+        <span>
+          {tipoArchivo(adjunto.contentType, adjunto.nombreOriginal)} · {tamanoArchivo(adjunto.tamanoBytes)}
+        </span>
+      </div>
       <Button
         type="link"
         onClick={() => void descargarAdjunto(adjunto.adjuntoId, adjunto.nombreOriginal)}
       >
-        {adjunto.nombreOriginal}
+        Descargar
       </Button>
-    </li>
+    </div>
   )
+
+  if (esImagen && src) {
+    return (
+      <li>
+        <img className="credix-comunicado-img" src={src} alt={adjunto.nombreOriginal} />
+        {chip}
+      </li>
+    )
+  }
+
+  return <li>{chip}</li>
 }

@@ -1,23 +1,48 @@
-import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useMemo } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Empty, Segmented, Spin } from 'antd'
+import { Button, Empty, Input, Segmented, Spin } from 'antd'
+import { ArrowLeftOutlined } from '@ant-design/icons'
 import { fetchComunicado, fetchComunicados, marcarComunicadoLeido } from '../../api/intranet'
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage } from '../../components/credix'
-import { formatFecha } from '../../utils/formatFecha'
+import { formatRelativo } from '../../utils/formatFecha'
 import { esCreditoAdministrador, esCreditoEncargado } from '../../utils/creditoOperacionPermisos'
 import { AdjuntoVista } from './AdjuntoVista'
+import { destinoAviso, previewTexto, vigenciaAviso } from './intranetLabels'
 
 type Filtro = 'todos' | 'nuevos' | 'permanentes'
 
 export function ComunicadosPage() {
   const { session } = useAuth()
   const qc = useQueryClient()
+  const [params, setParams] = useSearchParams()
   const puedeEditar =
     esCreditoAdministrador(session?.roles ?? []) || esCreditoEncargado(session?.roles ?? [])
-  const [abierto, setAbierto] = useState<number | null>(null)
-  const [filtro, setFiltro] = useState<Filtro>('todos')
+  const abierto = Number(params.get('id')) || null
+  const filtro = (params.get('f') as Filtro) || 'todos'
+  const q = params.get('q') ?? ''
+
+  const setAbierto = (id: number | null) => {
+    const next = new URLSearchParams(params)
+    if (id == null) next.delete('id')
+    else next.set('id', String(id))
+    setParams(next, { replace: true })
+  }
+
+  const setFiltro = (f: Filtro) => {
+    const next = new URLSearchParams(params)
+    if (f === 'todos') next.delete('f')
+    else next.set('f', f)
+    setParams(next, { replace: true })
+  }
+
+  const setQ = (value: string) => {
+    const next = new URLSearchParams(params)
+    if (!value.trim()) next.delete('q')
+    else next.set('q', value)
+    setParams(next, { replace: true })
+  }
 
   const lista = useQuery({
     queryKey: ['comunicados'],
@@ -38,84 +63,162 @@ export function ComunicadosPage() {
     },
   })
 
-  const filas = (lista.data ?? []).filter((c) => {
-    if (filtro === 'nuevos') return !c.leido
-    if (filtro === 'permanentes') return c.permanente
-    return true
-  })
+  const vigentes = lista.data ?? []
+  const nNuevos = vigentes.filter((c) => !c.leido).length
+  const nPerm = vigentes.filter((c) => c.permanente).length
+
+  const filas = useMemo(() => {
+    const term = q.trim().toLowerCase()
+    return vigentes.filter((c) => {
+      if (filtro === 'nuevos' && c.leido) return false
+      if (filtro === 'permanentes' && !c.permanente) return false
+      if (!term) return true
+      return `${c.titulo} ${c.cuerpo} ${c.oficinaNombre ?? ''}`.toLowerCase().includes(term)
+    })
+  }, [vigentes, filtro, q])
+
+  const abrir = (id: number, yaLeido: boolean) => {
+    setAbierto(id)
+    if (!yaLeido) void leido.mutate(id)
+  }
 
   return (
     <CredixPage
       title="Avisos"
-      subtitle="Lo que gerencia quiere que vea toda la sede: noticias, horarios y reglamentos."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: 'Avisos' },
       ]}
       actions={
-        puedeEditar ? <Link to="/admin/comunicados">Publicar aviso</Link> : undefined
+        puedeEditar ? (
+          <Link to="/admin/comunicados">
+            <Button type="primary">Publicar</Button>
+          </Link>
+        ) : undefined
       }
+      stats={[
+        { value: nNuevos, label: 'Nuevos', tone: nNuevos > 0 ? 'red' : 'default' },
+        { value: vigentes.length, label: 'Vigentes' },
+        { value: nPerm, label: 'Siempre visibles' },
+      ]}
     >
-      <Segmented<Filtro>
-        value={filtro}
-        onChange={setFiltro}
-        options={[
-          { label: 'Todos', value: 'todos' },
-          { label: 'Nuevos', value: 'nuevos' },
-          { label: 'Siempre visibles', value: 'permanentes' },
-        ]}
-        block
-        style={{ marginBottom: 12, maxWidth: 480 }}
-      />
+      <div className="credix-inbox-toolbar">
+        <Input
+          allowClear
+          placeholder="Buscar aviso"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          aria-label="Buscar aviso"
+        />
+        <Segmented<Filtro>
+          value={filtro}
+          onChange={setFiltro}
+          options={[
+            { label: 'Todos', value: 'todos' },
+            { label: `Nuevos${nNuevos ? ` ${nNuevos}` : ''}`, value: 'nuevos' },
+            { label: 'Siempre', value: 'permanentes' },
+          ]}
+        />
+      </div>
 
-      {lista.isLoading ? (
-        <Spin />
-      ) : filas.length === 0 ? (
-        <Empty description={filtro === 'nuevos' ? 'No hay avisos nuevos' : 'No hay avisos vigentes'} />
-      ) : (
-        <ul className="credix-comunicado-list">
-          {filas.map((c) => (
-            <li key={c.comunicadoId}>
-              <button
-                type="button"
-                className={`credix-comunicado-card ${c.leido ? 'is-read' : ''}`}
-                onClick={() => {
-                  setAbierto(c.comunicadoId)
-                  if (!c.leido) void leido.mutate(c.comunicadoId)
-                }}
-              >
-                <strong>{c.titulo}</strong>
-                <span className="credix-comunicado-card__meta">
-                  <span>{c.permanente ? 'Siempre visible' : `Hasta ${formatFecha(c.fechaFin)}`}</span>
-                  {c.alcance === 'RED' ? (
-                    <span>Todas las sedes</span>
-                  ) : (
-                    <span>{c.oficinaNombre?.trim() || 'Esta sede'}</span>
-                  )}
-                  {c.adjuntos > 0 ? <span>{c.adjuntos} archivo{c.adjuntos === 1 ? '' : 's'}</span> : null}
-                  {c.leido ? null : <span>Nuevo</span>}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {abierto != null && detalle.isLoading ? <Spin style={{ marginTop: 16 }} /> : null}
-
-      {detalle.data ? (
-        <article className="credix-comunicado-detalle">
-          <h2>{detalle.data.cabecera.titulo}</h2>
-          <p>{detalle.data.cabecera.cuerpo}</p>
-          {detalle.data.adjuntos.length > 0 ? (
-            <ul className="credix-comunicado-adjuntos">
-              {detalle.data.adjuntos.map((a) => (
-                <AdjuntoVista key={a.adjuntoId} adjunto={a} />
+      <div className={`credix-inbox${abierto != null ? ' is-reading' : ''}`}>
+        <div className="credix-inbox__list">
+          {lista.isLoading ? (
+            <div className="credix-inbox__empty">
+              <Spin />
+            </div>
+          ) : filas.length === 0 ? (
+            <div className="credix-inbox__empty">
+              <Empty
+                description={
+                  q
+                    ? 'Ningún aviso coincide'
+                    : filtro === 'nuevos'
+                      ? 'No hay avisos nuevos'
+                      : 'No hay avisos vigentes'
+                }
+              />
+            </div>
+          ) : (
+            <ul className="credix-inbox__scroll">
+              {filas.map((c) => (
+                <li key={c.comunicadoId}>
+                  <button
+                    type="button"
+                    className={`credix-inbox-row${c.leido ? ' is-read' : ''}${
+                      abierto === c.comunicadoId ? ' is-active' : ''
+                    }`}
+                    onClick={() => abrir(c.comunicadoId, c.leido)}
+                  >
+                    <i className="credix-inbox-row__mark" aria-hidden />
+                    <div>
+                      <strong>{c.titulo}</strong>
+                      <p className="credix-inbox-row__preview">{previewTexto(c.cuerpo)}</p>
+                      <div className="credix-chip-row">
+                        <span className={`credix-chip${c.permanente ? ' credix-chip--brand' : ''}`}>
+                          {vigenciaAviso(c)}
+                        </span>
+                        <span className="credix-chip">{destinoAviso(c)}</span>
+                        {c.adjuntos > 0 ? (
+                          <span className="credix-chip">
+                            {c.adjuntos} archivo{c.adjuntos === 1 ? '' : 's'}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                  </button>
+                </li>
               ))}
             </ul>
+          )}
+        </div>
+
+        <div className="credix-inbox__detail">
+          {abierto != null ? (
+            <Button
+              type="link"
+              className="credix-aviso-lectura__back"
+              icon={<ArrowLeftOutlined />}
+              onClick={() => setAbierto(null)}
+            >
+              Volver a la lista
+            </Button>
           ) : null}
-        </article>
-      ) : null}
+
+          {abierto == null ? (
+            <div className="credix-inbox__empty">
+              <Empty description="Elija un aviso para leerlo" />
+            </div>
+          ) : detalle.isLoading ? (
+            <div className="credix-inbox__empty">
+              <Spin />
+            </div>
+          ) : detalle.data ? (
+            <article className="credix-aviso-lectura">
+              <h2>{detalle.data.cabecera.titulo}</h2>
+              <p className="credix-aviso-lectura__meta">
+                <span>{detalle.data.cabecera.nombreUsuario?.trim() || 'Gerencia'}</span>
+                <span>·</span>
+                <span>{formatRelativo(detalle.data.cabecera.fechaReg)}</span>
+                <span>·</span>
+                <span>{destinoAviso(detalle.data.cabecera)}</span>
+                <span>·</span>
+                <span>{vigenciaAviso(detalle.data.cabecera)}</span>
+              </p>
+              <p className="credix-aviso-lectura__cuerpo">{detalle.data.cabecera.cuerpo}</p>
+              {detalle.data.adjuntos.length > 0 ? (
+                <ul className="credix-comunicado-adjuntos">
+                  {detalle.data.adjuntos.map((a) => (
+                    <AdjuntoVista key={a.adjuntoId} adjunto={a} />
+                  ))}
+                </ul>
+              ) : null}
+            </article>
+          ) : (
+            <Empty description="No se pudo abrir el aviso" />
+          )}
+        </div>
+      </div>
     </CredixPage>
   )
 }

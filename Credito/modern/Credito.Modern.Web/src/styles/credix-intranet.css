@@ -1,0 +1,645 @@
+/* Intranet: campana, avisos, agenda. Tokens --credix-*. */
+
+.credix-notify-trigger.ant-btn {
+  min-width: var(--credix-touch-min);
+  min-height: var(--credix-touch-min);
+  color: #fff !important;
+}
+
+.credix-notify-popover .ant-popover-inner {
+  padding: 0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.credix-notify-panel {
+  width: min(380px, calc(100vw - 16px));
+  max-height: min(70vh, 520px);
+  display: flex;
+  flex-direction: column;
+  background: var(--credix-surface);
+}
+
+.credix-notify-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--credix-border);
+}
+
+.credix-notify-panel__head strong {
+  font-size: 14px;
+  color: var(--credix-text);
+}
+
+.credix-notify-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  flex: 1;
+}
+
+.credix-notify-panel__empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--credix-text-muted);
+}
+
+.credix-notify-panel__empty p {
+  margin: 0 0 12px;
+}
+
+.credix-notify-panel__empty nav {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.credix-notify-row {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: start;
+  width: 100%;
+  min-height: var(--credix-touch-min);
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--credix-border);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.credix-notify-row:hover,
+.credix-notify-row:focus-visible {
+  background: var(--credix-brand-light);
+  outline: none;
+}
+
+.credix-notify-row__dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--credix-brand);
+}
+
+.credix-notify-row__dot.is-agenda {
+  background: var(--credix-warning);
+}
+
+.credix-notify-row strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--credix-text);
+}
+
+.credix-notify-row span {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--credix-text-muted);
+}
+
+.credix-notify-row time {
+  font-size: 11px;
+  color: var(--credix-text-muted);
+  white-space: nowrap;
+  padding-top: 2px;
+}
+
+.credix-notify-panel__foot {
+  display: flex;
+  border-top: 1px solid var(--credix-border);
+}
+
+.credix-notify-panel__foot a {
+  flex: 1;
+  min-height: var(--credix-touch-min);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--credix-brand);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.credix-notify-panel__foot a + a {
+  border-left: 1px solid var(--credix-border);
+}
+
+.credix-inbox-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.credix-inbox-toolbar .ant-input-affix-wrapper,
+.credix-inbox-toolbar .ant-input {
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.credix-inbox-toolbar .ant-segmented {
+  flex: 1 1 240px;
+}
+
+.credix-inbox {
+  display: grid;
+  grid-template-columns: minmax(260px, 34%) minmax(0, 1fr);
+  min-height: min(620px, calc(100dvh - 220px));
+  border: 1px solid var(--credix-border);
+  border-radius: var(--credix-radius);
+  background: var(--credix-surface);
+  overflow: hidden;
+}
+
+.credix-inbox__list {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-right: 1px solid var(--credix-border);
+  background: var(--credix-bg);
+}
+
+.credix-inbox__scroll {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  flex: 1;
+}
+
+.credix-inbox-row {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr);
+  gap: 8px;
+  width: 100%;
+  min-height: var(--credix-touch-min);
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--credix-border);
+  background: var(--credix-surface);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.credix-inbox-row:hover,
+.credix-inbox-row:focus-visible {
+  background: var(--credix-brand-light);
+  outline: none;
+}
+
+.credix-inbox-row.is-active {
+  background: var(--credix-brand-light);
+  box-shadow: inset 3px 0 0 var(--credix-brand);
+}
+
+.credix-inbox-row.is-read strong {
+  font-weight: 500;
+}
+
+.credix-inbox-row__mark {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.credix-inbox-row:not(.is-read) .credix-inbox-row__mark {
+  background: var(--credix-brand);
+}
+
+.credix-inbox-row:not(.is-read) strong {
+  font-weight: 700;
+}
+
+.credix-inbox-row strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.3;
+  color: var(--credix-text);
+}
+
+.credix-inbox-row__preview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--credix-text-muted);
+}
+
+.credix-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.credix-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--credix-bg);
+  color: var(--credix-text-muted);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.credix-chip--brand {
+  background: var(--credix-brand-light);
+  color: var(--credix-brand);
+}
+
+.credix-chip--warn {
+  background: var(--credix-warning-bg);
+  color: var(--credix-warning);
+}
+
+.credix-chip--ok {
+  background: var(--credix-success-bg);
+  color: var(--credix-success);
+}
+
+.credix-inbox__detail {
+  min-width: 0;
+  overflow: auto;
+  padding: 20px 24px 28px;
+  background: var(--credix-surface);
+}
+
+.credix-inbox__empty {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.credix-aviso-lectura h2 {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+  line-height: 1.25;
+  color: var(--credix-brand);
+}
+
+.credix-aviso-lectura__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin: 0 0 16px;
+  color: var(--credix-text-muted);
+  font-size: 13px;
+}
+
+.credix-aviso-lectura__cuerpo {
+  white-space: pre-wrap;
+  margin: 0 0 20px;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.credix-aviso-lectura__back {
+  margin-bottom: 8px;
+}
+
+@media (min-width: 992px) {
+  .credix-aviso-lectura__back {
+    display: none;
+  }
+}
+
+.credix-cal-cell {
+  position: relative;
+  height: 100%;
+}
+
+.credix-adjunto-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--credix-border);
+  border-radius: var(--credix-radius);
+  background: var(--credix-bg);
+  min-height: var(--credix-touch-min);
+}
+
+.credix-adjunto-chip__meta {
+  min-width: 0;
+}
+
+.credix-adjunto-chip__meta strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credix-adjunto-chip__meta span {
+  font-size: 12px;
+  color: var(--credix-text-muted);
+}
+
+.credix-comunicado-img {
+  display: block;
+  width: 100%;
+  max-width: 720px;
+  max-height: 420px;
+  object-fit: contain;
+  border-radius: var(--credix-radius);
+  background: var(--credix-bg);
+  border: 1px solid var(--credix-border);
+}
+
+.credix-gestion-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.credix-gestion-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--credix-border);
+  border-radius: var(--credix-radius);
+  background: var(--credix-surface);
+}
+
+.credix-gestion-card__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.credix-gestion-card__body button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.credix-gestion-card__body strong {
+  display: block;
+  font-size: 15px;
+}
+
+.credix-agenda {
+  display: grid;
+  grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.credix-agenda__cal {
+  padding: 8px 8px 12px;
+  border: 1px solid var(--credix-border);
+  border-radius: var(--credix-radius);
+  background: var(--credix-surface);
+}
+
+.credix-agenda__cal .ant-picker-calendar {
+  background: transparent;
+}
+
+.credix-agenda__cal .ant-picker-calendar-header {
+  padding: 4px 8px 8px;
+}
+
+.credix-agenda__hoy {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px 8px;
+}
+
+.credix-agenda-dot {
+  width: 6px;
+  height: 6px;
+  margin: 2px auto 0;
+  border-radius: 50%;
+  background: var(--credix-brand);
+}
+
+.credix-agenda-dot--sede {
+  background: var(--credix-warning);
+}
+
+.credix-agenda__board {
+  min-width: 0;
+}
+
+.credix-agenda__dayhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.credix-agenda__dayhead h2 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: var(--credix-brand);
+  text-transform: capitalize;
+}
+
+.credix-week-strip {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 0 10px;
+  margin-bottom: 8px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+}
+
+.credix-week-strip button {
+  flex: 0 0 48px;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border: 1px solid var(--credix-border);
+  border-radius: 10px;
+  background: var(--credix-surface);
+  cursor: pointer;
+  font: inherit;
+  color: var(--credix-text);
+  scroll-snap-align: start;
+}
+
+.credix-week-strip button.is-today {
+  border-color: var(--credix-brand);
+}
+
+.credix-week-strip button.is-active {
+  background: var(--credix-brand);
+  border-color: var(--credix-brand);
+  color: #fff;
+}
+
+.credix-week-strip button span {
+  font-size: 11px;
+  text-transform: capitalize;
+  opacity: 0.75;
+}
+
+.credix-week-strip button strong {
+  font-size: 16px;
+  line-height: 1.1;
+}
+
+.credix-week-strip button i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.credix-agenda-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--credix-touch-min);
+  padding: 12px 14px;
+  border: 1px solid var(--credix-border);
+  border-radius: var(--credix-radius);
+  background: var(--credix-surface);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.credix-agenda-card:hover,
+.credix-agenda-card:focus-visible {
+  border-color: var(--credix-brand);
+  outline: none;
+}
+
+.credix-agenda-card__time {
+  flex: 0 0 64px;
+  font-weight: 700;
+  color: var(--credix-brand);
+  font-size: 13px;
+}
+
+.credix-agenda-card__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.credix-agenda-card__body strong {
+  display: block;
+}
+
+.credix-agenda-group {
+  margin: 0 0 18px;
+}
+
+.credix-agenda-group--despues {
+  margin-top: 24px;
+}
+
+.credix-agenda-group h3 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  text-transform: capitalize;
+  color: var(--credix-text-muted);
+}
+
+.credix-agenda-stack {
+  display: grid;
+  gap: 8px;
+}
+
+@media (max-width: 991px) {
+  .credix-inbox {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .credix-inbox.is-reading .credix-inbox__list,
+  .credix-inbox:not(.is-reading) .credix-inbox__detail {
+    display: none;
+  }
+
+  .credix-inbox__list {
+    border: 1px solid var(--credix-border);
+    border-radius: var(--credix-radius);
+    overflow: hidden;
+  }
+
+  .credix-inbox__detail {
+    padding: 4px 0 16px;
+    background: transparent;
+  }
+
+  .credix-agenda {
+    grid-template-columns: 1fr;
+  }
+
+  .credix-agenda__cal {
+    display: none;
+  }
+
+  .credix-gestion-card {
+    flex-direction: column;
+  }
+
+  .credix-gestion-card__actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+
+  .credix-gestion-card__actions .ant-btn {
+    flex: 1;
+    min-height: var(--credix-touch-min);
+  }
+}
+
+@media (max-width: 640px) {
+  .credix-notify-panel {
+    width: min(100vw - 12px, 420px);
+    max-height: min(78vh, 560px);
+  }
+
+  .credix-inbox-toolbar .ant-segmented {
+    width: 100%;
+  }
+}

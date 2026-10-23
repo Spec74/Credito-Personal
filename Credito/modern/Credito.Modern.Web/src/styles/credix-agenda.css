@@ -1,0 +1,586 @@
+/* Agenda estilo Google Calendar, tokens Credix. */
+
+.credix-page--agenda .credix-page-head {
+  margin-bottom: 10px;
+}
+
+.credix-gcal-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.credix-gcal-toolbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.credix-gcal-toolbar__nav h2 {
+  margin: 0 0 0 6px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--credix-text);
+  text-transform: capitalize;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.credix-gcal {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  min-height: min(680px, calc(100dvh - 210px));
+  border: 1px solid var(--credix-border);
+  border-radius: var(--credix-radius);
+  background: var(--credix-surface);
+  overflow: hidden;
+}
+
+.credix-gcal.is-movil {
+  grid-template-columns: 1fr;
+  min-height: min(620px, calc(100dvh - 230px));
+}
+
+.credix-gcal__side {
+  border-right: 1px solid var(--credix-border);
+  padding: 12px 10px 16px;
+  overflow: auto;
+}
+
+.credix-gcal__main {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.credix-gcal-cals {
+  margin-top: 16px;
+}
+
+.credix-gcal-cals--row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0 0 8px;
+  padding: 0 2px;
+}
+
+.credix-gcal-cals p {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--credix-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.credix-gcal-cals label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.credix-gcal-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--credix-brand);
+  flex-shrink: 0;
+}
+
+.credix-gcal-swatch.is-sede {
+  background: var(--credix-warning);
+}
+
+.credix-gcal-mini__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.credix-gcal-mini__nav strong {
+  font-size: 13px;
+  text-transform: capitalize;
+}
+
+.credix-gcal-mini__nav button {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: var(--credix-text);
+  border-radius: 50%;
+}
+
+.credix-gcal-mini__nav button:hover {
+  background: var(--credix-brand-light);
+}
+
+.credix-gcal-mini__dow,
+.credix-gcal-mini__grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+}
+
+.credix-gcal-mini__dow span {
+  font-size: 11px;
+  color: var(--credix-text-muted);
+  padding: 4px 0;
+}
+
+.credix-gcal-mini__grid button {
+  position: relative;
+  height: 30px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  border-radius: 50%;
+  color: var(--credix-text);
+}
+
+.credix-gcal-mini__grid button.is-out {
+  color: #b0b6c0;
+}
+
+.credix-gcal-mini__grid button.is-today {
+  font-weight: 700;
+  color: var(--credix-brand);
+}
+
+.credix-gcal-mini__grid button.is-active {
+  background: var(--credix-brand);
+  color: #fff;
+}
+
+.credix-gcal-mini__grid button i {
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.credix-gcal-grid {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.credix-gcal-grid__head,
+.credix-gcal-allday {
+  display: grid;
+  grid-template-columns: 56px repeat(auto-fit, minmax(0, 1fr));
+  border-bottom: 1px solid var(--credix-border);
+  flex-shrink: 0;
+}
+
+.credix-gcal-gutter {
+  border-right: 1px solid var(--credix-border);
+  font-size: 10px;
+  color: var(--credix-text-muted);
+  padding: 4px;
+}
+
+.credix-gcal-dhead {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 6px;
+  text-transform: capitalize;
+}
+
+.credix-gcal-dhead span {
+  font-size: 11px;
+  color: var(--credix-text-muted);
+}
+
+.credix-gcal-dhead strong {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 16px;
+}
+
+.credix-gcal-dhead.is-today strong {
+  background: var(--credix-brand);
+  color: #fff;
+}
+
+.credix-gcal-allday {
+  min-height: 40px;
+  align-items: stretch;
+}
+
+.credix-gcal-allday__col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  border: 0;
+  border-right: 1px solid var(--credix-border);
+  background: none;
+  min-height: 40px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.credix-gcal-pill {
+  display: block;
+  width: 100%;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--credix-brand);
+  color: #fff;
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.credix-gcal-pill.is-sede {
+  background: var(--credix-warning);
+  color: #fff;
+}
+
+.credix-gcal-grid__scroll {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  overflow: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.credix-gcal-hours {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--credix-surface);
+  border-right: 1px solid var(--credix-border);
+}
+
+.credix-gcal-hour {
+  position: relative;
+}
+
+.credix-gcal-hour span {
+  position: absolute;
+  top: -8px;
+  right: 6px;
+  font-size: 11px;
+  color: var(--credix-text-muted);
+}
+
+.credix-gcal-days {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+}
+
+.credix-gcal-col {
+  position: relative;
+  border-right: 1px solid var(--credix-border);
+  cursor: pointer;
+}
+
+.credix-gcal-col.is-today {
+  background: rgba(17, 72, 133, 0.04);
+}
+
+.credix-gcal-slot {
+  border-top: 1px solid var(--credix-border);
+  pointer-events: none;
+}
+
+.credix-gcal-now {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 2px solid #d93025;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.credix-gcal-now i {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #d93025;
+}
+
+.credix-gcal-block {
+  position: absolute;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--credix-brand);
+  color: #fff;
+  cursor: pointer;
+  overflow: hidden;
+  text-align: left;
+  font: inherit;
+}
+
+.credix-gcal-block strong {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.credix-gcal-block span {
+  font-size: 11px;
+  opacity: 0.9;
+}
+
+.credix-gcal-block.is-sede {
+  background: #a16207;
+}
+
+.credix-gcal-block:hover,
+.credix-gcal-block:focus-visible {
+  filter: brightness(1.08);
+  outline: 2px solid #fff;
+  outline-offset: -2px;
+}
+
+.credix-gcal-month {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.credix-gcal-month__dow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--credix-border);
+  text-align: center;
+  font-size: 12px;
+  color: var(--credix-text-muted);
+  padding: 8px 0;
+}
+
+.credix-gcal-month__week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  flex: 1;
+  min-height: 88px;
+  border-bottom: 1px solid var(--credix-border);
+}
+
+.credix-gcal-mcell {
+  min-height: 88px;
+  padding: 4px;
+  border-right: 1px solid var(--credix-border);
+  cursor: pointer;
+  background: var(--credix-surface);
+}
+
+.credix-gcal-mcell.is-out {
+  background: var(--credix-bg);
+}
+
+.credix-gcal-mcell__num {
+  width: 26px;
+  height: 26px;
+  border: 0;
+  background: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+}
+
+.credix-gcal-mcell.is-today .credix-gcal-mcell__num {
+  background: var(--credix-brand);
+  color: #fff;
+  font-weight: 700;
+}
+
+.credix-gcal-mchip {
+  display: block;
+  width: 100%;
+  margin-top: 2px;
+  padding: 1px 4px;
+  border: 0;
+  border-radius: 3px;
+  background: var(--credix-brand);
+  color: #fff;
+  font-size: 11px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.credix-gcal-mchip.is-sede {
+  background: #a16207;
+}
+
+.credix-gcal-mchip.is-more {
+  background: transparent;
+  color: var(--credix-text-muted);
+}
+
+.credix-gcal-schedule {
+  padding: 8px 16px 24px;
+  overflow: auto;
+  flex: 1;
+}
+
+.credix-gcal-sgroup {
+  margin: 0 0 18px;
+}
+
+.credix-gcal-sgroup header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.credix-gcal-sgroup header strong {
+  text-transform: capitalize;
+  color: var(--credix-brand);
+}
+
+.credix-gcal-sgroup header span {
+  color: var(--credix-text-muted);
+  font-size: 13px;
+}
+
+.credix-gcal-sgroup ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.credix-gcal-link {
+  border: 0;
+  background: none;
+  color: var(--credix-brand);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.credix-gcal-fab {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 30;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--credix-brand);
+  color: #fff;
+  font-size: 20px;
+  box-shadow: 0 6px 16px rgba(17, 72, 133, 0.35);
+  cursor: pointer;
+}
+
+.credix-gcal-fab:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.credix-agenda-card {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--credix-touch-min);
+  padding: 12px 14px;
+  border: 1px solid var(--credix-border);
+  border-radius: var(--credix-radius);
+  background: var(--credix-surface);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.credix-agenda-card:hover,
+.credix-agenda-card:focus-visible {
+  border-color: var(--credix-brand);
+  outline: none;
+}
+
+.credix-agenda-card__time {
+  flex: 0 0 92px;
+  font-weight: 700;
+  color: var(--credix-brand);
+  font-size: 13px;
+}
+
+.credix-agenda-card__body {
+  min-width: 0;
+  flex: 1;
+}
+
+@media (max-width: 991px) {
+  .credix-gcal-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credix-gcal-toolbar .ant-segmented {
+    width: 100%;
+  }
+
+  .credix-gcal-toolbar__nav h2 {
+    font-size: 1rem;
+  }
+
+  .credix-gcal-grid__head,
+  .credix-gcal-allday,
+  .credix-gcal-grid__scroll {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .credix-gcal-mcell {
+    min-height: 72px;
+  }
+
+  .credix-page--agenda {
+    padding-bottom: 72px;
+  }
+}

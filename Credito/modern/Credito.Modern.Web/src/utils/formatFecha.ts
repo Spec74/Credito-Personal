@@ -1,3 +1,35 @@
+/** ISO → “Hace 5 min / En 2 h / Ayer”. Para campana y bandeja, no para caja. */
+export function formatRelativo(value: string | null | undefined, nowMs = Date.now()): string {
+  if (!value) {
+    return '—'
+  }
+  const t = Date.parse(value)
+  if (Number.isNaN(t)) {
+    return formatFecha(value)
+  }
+  const diff = nowMs - t
+  const abs = Math.abs(diff)
+  const min = Math.round(abs / 60_000)
+  if (min < 1) {
+    return diff >= 0 ? 'Ahora' : 'En instantes'
+  }
+  if (min < 60) {
+    return diff >= 0 ? `Hace ${min} min` : `En ${min} min`
+  }
+  const h = Math.round(min / 60)
+  if (h < 24) {
+    return diff >= 0 ? `Hace ${h} h` : `En ${h} h`
+  }
+  const d = Math.round(h / 24)
+  if (d === 1) {
+    return diff >= 0 ? 'Ayer' : 'Mañana'
+  }
+  if (d < 7) {
+    return diff >= 0 ? `Hace ${d} días` : `En ${d} días`
+  }
+  return formatFecha(value)
+}
+
 /** ISO o fecha API → DD/MM/YYYY (solo día; sin hora en pantalla). */
 export function formatFecha(value: string | null | undefined): string {
   if (!value) {
