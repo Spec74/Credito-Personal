@@ -4,6 +4,16 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Índices de caminos calientes
+
+**Qué hay:** índices en hijos de `CreditoId` (cargo, tarea, imagen, mora, CxC,
+central, PLA), `CajaDiario (CajaId, IndCierre)`, `Caja.OficinaId` y
+`BovedaMov`. FK `PlaInusual→Credito`. Se confía `RolMenu` si no hay
+huérfanos. Script `deploy/sql/2026-10-23-indices-caminos-calientes.sql`.
+
+**Qué no hay:** no se indexan las ~87 FK de almacén; no se agregan columnas
+de auditoría (romperían INSERT de USP).
+
 ### 2026-10-23 — Rechazar solicitud PEN (hijos que el USP no borraba)
 
 **Qué hay:** el rechazo de bandeja quita, en C# y en
