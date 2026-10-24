@@ -585,7 +585,6 @@ function NavPanel({
                   triggerSubMenuAction: 'click' as const,
                 })}
             onClick={onMenuClick}
-            popupClassName="credix-menu-collapsed-popup"
             getPopupContainer={() => document.body}
             style={{ borderInlineEnd: 0 }}
           />
