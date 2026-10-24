@@ -263,14 +263,15 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
         : `Bóveda #${bovedaId}`,
       consequence: 'El saldo se acredita de inmediato en origen y destino. No espera aceptación.',
       okText: 'Transferir',
-      onOk: () =>
-        transferir.mutateAsync({
+      onOk: async () => {
+        await transferir.mutateAsync({
           oficinaId,
           bovedaInicioId: bovedaId,
           bovedaDestinoId: v.bovedaDestinoId,
           glosa: v.glosa,
           monto: v.monto,
-        }),
+        })
+      },
     })
   }
 
@@ -282,7 +283,9 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       consequence:
         'Borra la fila temporal y el movimiento de origen. No acredita en esta bóveda.',
       okText: 'Anular',
-      onOk: () => anularPendiente.mutateAsync(t.bovedaMovTempId),
+      onOk: async () => {
+        await anularPendiente.mutateAsync(t.bovedaMovTempId)
+      },
     })
   }
 

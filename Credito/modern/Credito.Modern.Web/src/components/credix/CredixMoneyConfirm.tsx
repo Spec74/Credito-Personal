@@ -10,7 +10,7 @@ export function confirmMoney(options: {
   officeLabel?: string
   consequence: string
   okText?: string
-  onOk: () => void | Promise<void>
+  onOk: () => void | Promise<unknown>
 }): void {
   Modal.confirm({
     title: options.title,

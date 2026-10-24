@@ -66,13 +66,16 @@ export function BovedaResumenCuenta({ texto, loading, isError, error }: Props) {
                   />
                 </div>
                 <div className="boveda-resumen-cuenta__item-meta">
-                  <span className="boveda-resumen-cuenta__item-label">{item.etiqueta}</span>
+                  <span className="boveda-resumen-cuenta__item-label" translate="no">
+                    {item.etiqueta}
+                  </span>
                   <span
                     className={
                       item.monto < 0
                         ? 'boveda-resumen-cuenta__item-monto boveda-resumen-cuenta__item-monto--neg'
                         : 'boveda-resumen-cuenta__item-monto'
                     }
+                    translate="no"
                   >
                     S/ {formatMoney(item.monto)}
                   </span>

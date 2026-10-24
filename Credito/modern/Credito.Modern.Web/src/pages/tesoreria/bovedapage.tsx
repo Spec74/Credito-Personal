@@ -266,17 +266,17 @@ export function BovedaPage() {
                   saldoFinal={boveda.data.saldoFinal}
                 />
               </CredixPanel>
-
-              <CredixPanel title="Medios de pago" className="boveda-panel-medios">
-                <BovedaResumenCuenta
-                  texto={resumen.data?.texto}
-                  loading={resumen.isLoading}
-                  isError={resumen.isError}
-                  error={resumen.error}
-                />
-              </CredixPanel>
             </div>
           </div>
+
+          <CredixPanel title="Medios de pago" className="boveda-panel-medios">
+            <BovedaResumenCuenta
+              texto={resumen.data?.texto}
+              loading={resumen.isLoading}
+              isError={resumen.isError}
+              error={resumen.error}
+            />
+          </CredixPanel>
 
           <CredixPanel title="Historial y movimientos" className="boveda-panel-historial">
             <Suspense fallback={<Spin />}>

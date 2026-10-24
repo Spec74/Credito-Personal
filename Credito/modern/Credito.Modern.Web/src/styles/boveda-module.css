@@ -192,15 +192,16 @@
 
 .boveda-resumen-cuenta__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: 10px;
 }
 
 .boveda-resumen-cuenta__item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  gap: 10px;
+  min-width: 0;
+  padding: 10px 12px;
   background: #fff;
   border: 1px solid var(--credix-border, #e5e7eb);
   border-radius: 10px;
@@ -307,6 +308,11 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   align-items: start;
+  min-width: 0;
+}
+
+.boveda-work > * {
+  min-width: 0;
 }
 
 .boveda-side {
@@ -454,7 +460,7 @@
 
 @media (min-width: 1100px) {
   .boveda-work {
-    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.75fr);
+    grid-template-columns: minmax(0, 1fr) 280px;
   }
 
   .boveda-ops {

@@ -4,6 +4,14 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Bóveda: medios a todo el ancho
+
+**Qué hay:** los medios de pago salen debajo de operaciones (no en la
+columna estrecha). La sesión queda a la derecha. Evita que la grilla
+de 2 columnas se meta en el formulario.
+
+**Qué no hay:** no se cambia cómo se calculan los saldos.
+
 ### 2026-10-23 — Simulador prendario: cotización ≠ ficha de bienes
 
 **Qué hay:** al elegir prendario en el simulador (prospecto o cliente) solo
