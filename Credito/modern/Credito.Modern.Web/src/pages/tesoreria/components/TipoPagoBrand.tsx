@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { resolveResumenCuentaVariant } from './bovedaResumenCuentaParse'
+import { esMarcaTipoPago, medioEtiquetaUi, medioNombreMarca } from './bovedaResumenCuentaParse'
 import { ResumenCuentaBrandLogo } from './resumenCuentaBrandIcons'
 
 type TipoPagoOption = {
@@ -12,7 +12,7 @@ type TipoPagoOption = {
 export function buildTipoPagoOptions(
   items: { itemId: number; denominacion: string }[],
 ): TipoPagoOption[] {
-  return items.map((t) => ({
+  return items.filter(esMarcaTipoPago).map((t) => ({
     value: t.itemId,
     label: t.denominacion,
     searchText: t.denominacion,
@@ -20,17 +20,22 @@ export function buildTipoPagoOptions(
 }
 
 export function TipoPagoOptionLabel({ denominacion }: { denominacion: string }) {
-  const { variant, etiqueta } = resolveResumenCuentaVariant(denominacion)
+  const { variant, aria } = medioEtiquetaUi(denominacion)
+  const nombre = medioNombreMarca(denominacion)
   return (
-    <span className="boveda-tipo-pago-opt">
-      <ResumenCuentaBrandLogo
-        variant={variant}
-        etiqueta={etiqueta}
-        className="boveda-tipo-pago-opt__icon"
-        size={22}
-      />
-      <span className="boveda-tipo-pago-opt__text">{denominacion}</span>
+    <span className="boveda-tipo-pago-opt" translate="no" title={nombre} aria-label={aria}>
+      <ResumenCuentaBrandLogo variant={variant} etiqueta={nombre} size="sm" tone="mark" />
+      <span className="boveda-tipo-pago-opt__text">{nombre}</span>
     </span>
+  )
+}
+
+/** El dropdown de Ant Design vive en portal: no hereda translate="no" de la página. */
+export function tipoPagoPopupRender(menu: ReactNode): ReactNode {
+  return (
+    <div className="medio-marca-dropdown" translate="no">
+      {menu}
+    </div>
   )
 }
 
@@ -49,16 +54,12 @@ export function tipoPagoOptionRender(option: {
 export function TipoPagoCell({ tipoPago }: { tipoPago?: string | null }) {
   const raw = tipoPago?.trim()
   if (!raw) return <span>—</span>
-  const { variant, etiqueta } = resolveResumenCuentaVariant(raw)
+  const { variant, aria } = medioEtiquetaUi(raw)
+  const nombre = medioNombreMarca(raw)
   return (
-    <span className="boveda-tipo-pago-cell">
-      <ResumenCuentaBrandLogo
-        variant={variant}
-        etiqueta={etiqueta}
-        className="boveda-tipo-pago-cell__icon"
-        size={20}
-      />
-      <span className="boveda-tipo-pago-cell__text">{raw}</span>
+    <span className="boveda-tipo-pago-cell" translate="no" title={aria} aria-label={aria}>
+      <ResumenCuentaBrandLogo variant={variant} etiqueta={nombre} size="sm" />
+      <span className="boveda-tipo-pago-cell__text">{nombre}</span>
     </span>
   )
 }

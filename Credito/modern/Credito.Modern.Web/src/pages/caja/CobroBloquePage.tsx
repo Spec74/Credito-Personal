@@ -40,6 +40,11 @@ import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CredixDataTable, CredixPage, CredixPanel } from '../../components/credix'
+import {
+  TipoPagoCell,
+  tipoPagoOptionRender,
+  tipoPagoPopupRender,
+} from '../tesoreria/components/TipoPagoBrand'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatFecha } from '../../utils/formatFecha'
 import { clearCobroBloqueEjecutadoHoy } from '../../utils/cobroBloqueDayLock'
@@ -1213,6 +1218,9 @@ export function CobroBloquePage() {
             value={e.tipoPagoId}
             options={tipoPagoOptions}
             className="cobro-bloque-input-tipo"
+            optionRender={tipoPagoOptionRender}
+            popupRender={tipoPagoPopupRender}
+            popupClassName="medio-marca-dropdown"
             onChange={(v) => patchEdit(row.creditoId, { tipoPagoId: v }, row)}
           />
         )
@@ -1295,8 +1303,11 @@ export function CobroBloquePage() {
     {
       title: 'Tipo pago',
       dataIndex: 'tipoPagoId',
-      render: (v: number) =>
-        tipoPagoOptions.find((o) => o.value === v)?.label ?? `Tipo ${v}`,
+      render: (v: number) => (
+        <TipoPagoCell
+          tipoPago={tipoPagoOptions.find((o) => o.value === v)?.label ?? `Tipo ${v}`}
+        />
+      ),
     },
     {
       title: 'Origen',

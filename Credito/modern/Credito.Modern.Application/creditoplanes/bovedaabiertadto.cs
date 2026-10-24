@@ -39,6 +39,33 @@ public sealed record BovedaRedPosicionDto(
     decimal MontoCajaChica,
     decimal EfectivoOficina);
 
+/// <summary>Saldo de una marca en una sede (bóveda principal abierta).</summary>
+public sealed record BovedaMedioSedeDto(
+    int OficinaId,
+    string Oficina,
+    bool IndPrincipal,
+    int? BovedaId,
+    decimal Monto,
+    bool EsLegado = false);
+
+/// <summary>Marca de medio (Yape, BCP…) con total y, en central, desglose por sucursal.</summary>
+public sealed record BovedaMedioMarcaDto(
+    short TipoPagoId,
+    string Marca,
+    string Variant,
+    decimal Total,
+    IReadOnlyList<BovedaMedioSedeDto> Sedes);
+
+/// <summary>
+/// Resumen estructurado. Central: total de red + lista por oficina.
+/// Sucursal: solo su bóveda. No usa ítems 6–8 del catálogo como si fueran marcas.
+/// </summary>
+public sealed record BovedaMediosRedDto(
+    bool EsCentral,
+    int OficinaId,
+    string Oficina,
+    IReadOnlyList<BovedaMedioMarcaDto> Marcas);
+
 /// <summary>Fila leftover en <c>BovedaMovTemp</c> hacia la bóveda destino. El USP no acepta: solo anula (flag 2).</summary>
 public sealed record BovedaTransferenciaPendienteDto(
     int BovedaMovTempId,

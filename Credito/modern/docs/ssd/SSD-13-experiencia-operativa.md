@@ -107,6 +107,8 @@ JWT oficina/usuario. Menú exacto. Tablero red ≠ ver todo. Validación SSD-12 
 
 Producto, no financieras. PLAN-MULTISUCURSAL, SSD-06 WhatsApp, bitácora existente.
 
+- **2026-10-24 — alcance de red as-built:** usuarios (SSD-08), cierre gerencial y morosos (SSD-07) ya aíslan sucursal vs Central. No ensancha RoleHome.
+
 ## 9. Pruebas
 
 [tasks.md](../speckit/001-experiencia-operativa/tasks.md) · browser por **hilo** (originación, cobro, tesorería, inicio de cada rol), no un screenshot.

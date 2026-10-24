@@ -97,6 +97,36 @@ export function fetchBovedaRedPosicion(oficinaId: number): Promise<BovedaRedPosi
   )
 }
 
+export interface BovedaMedioSede {
+  oficinaId: number
+  oficina: string
+  indPrincipal: boolean
+  bovedaId: number | null
+  monto: number
+  esLegado: boolean
+}
+
+export interface BovedaMedioMarca {
+  tipoPagoId: number
+  marca: string
+  variant: string
+  total: number
+  sedes: BovedaMedioSede[]
+}
+
+export interface BovedaMediosRed {
+  esCentral: boolean
+  oficinaId: number
+  oficina: string
+  marcas: BovedaMedioMarca[]
+}
+
+export function fetchBovedaMediosRed(oficinaId: number): Promise<BovedaMediosRed> {
+  return apiFetch<BovedaMediosRed>(
+    `/credito/boveda-medios-red?oficinaId=${oficinaId}`,
+  )
+}
+
 export function fetchBovedaEstadoDinero(oficinaId: number): Promise<BovedaEstadoDinero> {
   return apiFetch<BovedaEstadoDinero>(
     `/credito/boveda-estado-dinero?oficinaId=${oficinaId}`,

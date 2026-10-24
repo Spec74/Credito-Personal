@@ -57,6 +57,31 @@ public sealed class CierreGerencialReadService(IOptions<SqlDatabaseOptions> opti
         return rows.AsList();
     }
 
+    public async Task<HashSet<int>> ListarUsuarioIdsDeOficinaAsync(
+        int oficinaId,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureConnection();
+        if (oficinaId < 1)
+        {
+            return [];
+        }
+
+        const string sql = """
+            SELECT uo.UsuarioId
+            FROM MAESTRO.UsuarioOficina AS uo
+            WHERE uo.OficinaId = @OficinaId
+              AND uo.Estado = CAST(1 AS bit);
+            """;
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var ids = await connection.QueryAsync<int>(
+            new CommandDefinition(sql, new { OficinaId = oficinaId }, cancellationToken: cancellationToken))
+            .ConfigureAwait(false);
+        return ids.ToHashSet();
+    }
+
     private void EnsureConnection()
     {
         if (string.IsNullOrWhiteSpace(_connectionString))

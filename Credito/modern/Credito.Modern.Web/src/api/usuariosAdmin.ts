@@ -16,6 +16,8 @@ export interface UsuarioGestionRow {
   celular1: string | null
   emailPersonal: string | null
   estado: boolean
+  enEstaSede: boolean
+  sedes: string | null
 }
 
 export interface UsuarioGestionPage {
@@ -24,12 +26,17 @@ export interface UsuarioGestionPage {
   totalRecords: number
   totalPages: number
   rows: UsuarioGestionRow[]
+  esCentral: boolean
+  oficinaId: number
+  oficina: string | null
+  verRed: boolean
 }
 
 export interface OficinaAsignacion {
   oficinaId: number
   denominacion: string
   asignado: boolean
+  editable: boolean
 }
 
 export interface RolAsignacion {
@@ -54,6 +61,10 @@ export interface UsuarioDetalle {
   emailPersonal: string | null
   direccion: string | null
   oficinas: OficinaAsignacion[]
+  puedeAsignarOtrasOficinas: boolean
+  puedeDesactivarCuenta: boolean
+  enEstaSede: boolean
+  otrasSedes: string[] | null
 }
 
 export interface UsuarioReporteGestor {
@@ -71,12 +82,17 @@ export function fetchUsuariosGestion(params: {
   page?: number
   pageSize?: number
   incluirInactivos?: boolean
+  verRed?: boolean
+  sedeId?: number
 }): Promise<UsuarioGestionPage> {
   const q = new URLSearchParams()
   q.set('page', String(params.page ?? 1))
   q.set('pageSize', String(params.pageSize ?? 25))
   if (params.incluirInactivos) q.set('incluirInactivos', 'true')
   if (params.buscar?.trim()) q.set('buscar', params.buscar.trim())
+  if (params.verRed === false) q.set('verRed', 'false')
+  if (params.verRed === true) q.set('verRed', 'true')
+  if (params.sedeId && params.sedeId >= 1) q.set('sedeId', String(params.sedeId))
   return apiFetch(`/usuarios/gestion?${q}`)
 }
 

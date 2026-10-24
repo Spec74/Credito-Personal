@@ -48,7 +48,10 @@ public sealed record MorosidadEmpresaResponse(
     bool Success,
     string FechaCorte,
     MorosidadResumenDto Resumen,
-    IReadOnlyList<MorosidadEmpresaItemDto> Filas);
+    IReadOnlyList<MorosidadEmpresaItemDto> Filas,
+    bool EsCentral = false,
+    int OficinaId = 0,
+    string? Oficina = null);
 
 public sealed record MorosidadPermisosResponse(bool PuedeConsultar);
 

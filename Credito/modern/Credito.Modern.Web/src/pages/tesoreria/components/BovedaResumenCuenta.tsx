@@ -1,27 +1,47 @@
 import { Alert, Spin, Typography } from 'antd'
 import { WalletOutlined } from '@ant-design/icons'
+import type { BovedaMediosRed } from '../../../api/boveda'
 import { ApiError } from '../../../api/errors'
 import { formatMoney } from '../../../utils/formatMoney'
-import { parseResumenBovedaTexto } from './bovedaResumenCuentaParse'
+import { etiquetaSede, type ResumenCuentaVariant } from './bovedaResumenCuentaParse'
 import { ResumenCuentaBrandLogo } from './resumenCuentaBrandIcons'
+import { marcaDesdeTipoPagoId } from './resumencuentabrands'
 
 const { Text } = Typography
 
+const VARIANTS: ReadonlySet<string> = new Set([
+  'efectivo',
+  'yape',
+  'plin',
+  'interbank',
+  'bcp',
+  'banco-nacion',
+  'bbva',
+  'scotiabank',
+  'transferencia',
+  'otro',
+])
+
+function asVariant(raw: string): ResumenCuentaVariant {
+  return (VARIANTS.has(raw) ? raw : 'otro') as ResumenCuentaVariant
+}
+
 type Props = {
-  texto?: string | null
+  data?: BovedaMediosRed | null
   loading: boolean
   isError: boolean
   error?: unknown
-  /** El panel de página ya trae título. */
   hideHeader?: boolean
+  eagerLogos?: boolean
 }
 
 export function BovedaResumenCuenta({
-  texto,
+  data,
   loading,
   isError,
   error,
   hideHeader = false,
+  eagerLogos = false,
 }: Props) {
   if (loading) {
     return (
@@ -39,7 +59,7 @@ export function BovedaResumenCuenta({
     )
   }
 
-  if (!texto?.trim()) {
+  if (!data || data.marcas.length === 0) {
     return (
       <div className="boveda-resumen-cuenta boveda-resumen-cuenta--empty">
         <WalletOutlined className="boveda-resumen-cuenta__icon" aria-hidden />
@@ -48,54 +68,92 @@ export function BovedaResumenCuenta({
     )
   }
 
-  const parsed = parseResumenBovedaTexto(texto)
+  const red = data.esCentral
 
   return (
-    <div className="boveda-resumen-cuenta" role="region" aria-label="Medios de pago">
+    <div
+      className={
+        red
+          ? 'boveda-resumen-cuenta boveda-resumen-cuenta--red'
+          : 'boveda-resumen-cuenta'
+      }
+      role="region"
+      aria-label={red ? 'Medios de pago por sucursal' : 'Medios de pago'}
+      translate="no"
+    >
       {hideHeader ? null : (
-      <div className="boveda-resumen-cuenta__header">
-        <WalletOutlined className="boveda-resumen-cuenta__icon" aria-hidden />
-        <span className="boveda-resumen-cuenta__title">
-          {parsed.titulo ?? 'Saldos por entidad'}
-        </span>
-      </div>
+        <div className="boveda-resumen-cuenta__header">
+          <WalletOutlined className="boveda-resumen-cuenta__icon" aria-hidden />
+          <span className="boveda-resumen-cuenta__title">Saldos por entidad</span>
+        </div>
       )}
       <div className="boveda-resumen-cuenta__body">
-        {parsed.items.length > 0 ? (
-          <div className="boveda-resumen-cuenta__grid">
-            {parsed.items.map((item) => (
+        <div className="boveda-resumen-cuenta__grid">
+          {data.marcas.map((marca) => {
+            const variant = marcaDesdeTipoPagoId(marca.tipoPagoId) ?? asVariant(marca.variant)
+            return (
               <div
-                key={item.clave}
-                className={`boveda-resumen-cuenta__item boveda-resumen-cuenta__item--${item.variant}`}
+                key={marca.tipoPagoId}
+                className={`boveda-resumen-cuenta__item boveda-resumen-cuenta__item--${variant}`}
+                title={marca.marca}
               >
-                <div className="boveda-resumen-cuenta__item-icon" title={item.etiqueta}>
+                <div className="boveda-resumen-cuenta__item-icon">
                   <ResumenCuentaBrandLogo
-                    variant={item.variant}
-                    etiqueta={item.etiqueta}
-                    className="boveda-resumen-cuenta__brand-svg"
+                    variant={variant}
+                    etiqueta={marca.marca}
+                    tone="logo"
+                    eager={eagerLogos}
                   />
                 </div>
                 <div className="boveda-resumen-cuenta__item-meta">
-                  <span className="boveda-resumen-cuenta__item-label" translate="no">
-                    {item.etiqueta}
-                  </span>
                   <span
                     className={
-                      item.monto < 0
+                      marca.total < 0
                         ? 'boveda-resumen-cuenta__item-monto boveda-resumen-cuenta__item-monto--neg'
                         : 'boveda-resumen-cuenta__item-monto'
                     }
                     translate="no"
                   >
-                    S/ {formatMoney(item.monto)}
+                    S/ {formatMoney(marca.total)}
                   </span>
                 </div>
+                {red && marca.sedes.length > 0 ? (
+                  <ul className="boveda-resumen-cuenta__sedes">
+                    {marca.sedes.map((sede) => {
+                      const nombre = sede.esLegado
+                        ? sede.oficina
+                        : etiquetaSede(sede.oficina, sede.indPrincipal)
+                      return (
+                        <li
+                          key={`${marca.tipoPagoId}-${sede.oficinaId}-${sede.esLegado ? 'leg' : 'real'}`}
+                          className={
+                            sede.esLegado
+                              ? 'boveda-resumen-cuenta__sede boveda-resumen-cuenta__sede--legado'
+                              : 'boveda-resumen-cuenta__sede'
+                          }
+                        >
+                          <span className="boveda-resumen-cuenta__sede-nom" translate="no">
+                            {nombre}
+                          </span>
+                          <span
+                            className={
+                              sede.monto < 0
+                                ? 'boveda-resumen-cuenta__sede-monto boveda-resumen-cuenta__sede-monto--neg'
+                                : 'boveda-resumen-cuenta__sede-monto'
+                            }
+                            translate="no"
+                          >
+                            {formatMoney(sede.monto)}
+                          </span>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                ) : null}
               </div>
-            ))}
-          </div>
-        ) : (
-          <p className="boveda-resumen-cuenta__texto">{parsed.textoPlano ?? texto}</p>
-        )}
+            )
+          })}
+        </div>
       </div>
     </div>
   )

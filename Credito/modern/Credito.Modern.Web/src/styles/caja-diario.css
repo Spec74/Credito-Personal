@@ -1624,6 +1624,9 @@
 
 .caja-tipo-pago-chips__btn {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   flex: 0 0 auto;
   min-width: 64px;
   min-height: 34px;

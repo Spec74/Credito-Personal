@@ -7,7 +7,7 @@ import {
   fetchBovedaAbierta,
   fetchBovedaEstadoDinero,
   fetchExisteBovedaTemporal,
-  fetchResumenCuentaBoveda,
+  fetchBovedaMediosRed,
 } from '../../api/boveda'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
@@ -60,9 +60,9 @@ export function BovedaPage() {
   const bovedaId = boveda.data?.bovedaId
 
   const resumen = useQuery({
-    queryKey: ['resumen-cuenta-boveda', bovedaId],
-    queryFn: () => fetchResumenCuentaBoveda(bovedaId!),
-    enabled: !!bovedaId && secondaryReady,
+    queryKey: ['boveda-medios-red', oficinaId],
+    queryFn: () => fetchBovedaMediosRed(oficinaId),
+    enabled: oficinaId > 0 && secondaryReady,
   })
 
   const sinBoveda =
@@ -107,7 +107,7 @@ export function BovedaPage() {
     void boveda.refetch()
     void estadoDinero.refetch()
     void temporal.refetch()
-    if (bovedaId) void resumen.refetch()
+    if (oficinaId > 0) void resumen.refetch()
   }
 
   const deltaMedios = Number(boveda.data?.deltaMedios ?? 0)
@@ -133,6 +133,7 @@ export function BovedaPage() {
   return (
     <CredixPage
       className="boveda-page"
+      translate="no"
       title="Bóveda"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -193,27 +194,28 @@ export function BovedaPage() {
         />
       ) : null}
 
-      <CredixPanel
-        title="Cajones y cartera (no mezclar)"
-        className="boveda-panel-liquidez"
-      >
-        <BovedaEstadoDineroPanel
-          data={estadoDinero.data}
-          loading={estadoDinero.isLoading}
-        />
-      </CredixPanel>
-
       {boveda.isLoading ? (
         <CredixPanel>
           <Spin />
         </CredixPanel>
       ) : sinBoveda ? (
-        <Alert
-          type="warning"
-          showIcon
-          message="No hay bóveda abierta para esta oficina."
-          description="La bóveda del día se crea al iniciar sesión. Revise con soporte si el problema persiste."
-        />
+        <>
+          <Alert
+            type="warning"
+            showIcon
+            message="No hay bóveda abierta para esta oficina."
+            description="La bóveda del día se crea al iniciar sesión. Revise con soporte si el problema persiste."
+          />
+          <CredixPanel
+            title="Cajones y cartera (no mezclar)"
+            className="boveda-panel-liquidez"
+          >
+            <BovedaEstadoDineroPanel
+              data={estadoDinero.data}
+              loading={estadoDinero.isLoading}
+            />
+          </CredixPanel>
+        </>
       ) : boveda.isError ? (
         <Alert
           type="error"
@@ -226,9 +228,30 @@ export function BovedaPage() {
         />
       ) : boveda.data ? (
         <>
+          <CredixPanel title="Medios de pago" className="boveda-panel-medios">
+            <BovedaResumenCuenta
+              data={resumen.data}
+              loading={resumen.isLoading}
+              isError={resumen.isError}
+              error={resumen.error}
+              hideHeader
+              eagerLogos
+            />
+          </CredixPanel>
+
+          <CredixPanel
+            title="Cajones y cartera (no mezclar)"
+            className="boveda-panel-liquidez"
+          >
+            <BovedaEstadoDineroPanel
+              data={estadoDinero.data}
+              loading={estadoDinero.isLoading}
+            />
+          </CredixPanel>
+
           {!boveda.data.indCierre ? (
             <CredixPanel
-              title={<span translate="no">Operaciones</span>}
+              title="Operaciones"
               className="boveda-panel-ops"
               extra={sesionExtra}
             >
@@ -249,16 +272,6 @@ export function BovedaPage() {
             />
           )}
 
-          <CredixPanel title="Medios de pago" className="boveda-panel-medios">
-            <BovedaResumenCuenta
-              texto={resumen.data?.texto}
-              loading={resumen.isLoading}
-              isError={resumen.isError}
-              error={resumen.error}
-              hideHeader
-            />
-          </CredixPanel>
-
           <CredixPanel title="Historial" className="boveda-panel-historial">
             <Suspense fallback={<Spin />}>
               <BovedaHistorialGrillas
@@ -268,7 +281,17 @@ export function BovedaPage() {
             </Suspense>
           </CredixPanel>
         </>
-      ) : null}
+      ) : (
+        <CredixPanel
+          title="Cajones y cartera (no mezclar)"
+          className="boveda-panel-liquidez"
+        >
+          <BovedaEstadoDineroPanel
+            data={estadoDinero.data}
+            loading={estadoDinero.isLoading}
+          />
+        </CredixPanel>
+      )}
     </CredixPage>
   )
 }

@@ -757,6 +757,9 @@
 
 .cobro-bloque-card__metodo {
   appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   flex: 0 0 auto;
   min-width: 76px;
   min-height: 40px;

@@ -9,11 +9,37 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
 {
     private readonly string _cs = options.Value.ConnectionString;
 
+    public async Task<UsuarioAdminScope?> ResolveScopeAsync(int oficinaId, CancellationToken ct = default)
+    {
+        Ensure();
+        if (oficinaId < 1)
+        {
+            return null;
+        }
+
+        const string sql = """
+            SELECT o.OficinaId,
+                   CAST(o.IndPrincipal AS bit) AS EsCentral,
+                   o.Denominacion AS Oficina
+            FROM MAESTRO.Oficina AS o
+            WHERE o.OficinaId = @OficinaId;
+            """;
+
+        await using var c = new SqlConnection(_cs);
+        await c.OpenAsync(ct).ConfigureAwait(false);
+        return await c.QuerySingleOrDefaultAsync<UsuarioAdminScope>(
+            new CommandDefinition(sql, new { OficinaId = oficinaId }, cancellationToken: ct))
+            .ConfigureAwait(false);
+    }
+
     public async Task<UsuarioGestionPageDto> ListGestionAsync(
+        UsuarioAdminScope scope,
         string? buscar,
         int page,
         int pageSize,
         bool incluirInactivos,
+        bool verRed,
+        int? sedeId,
         CancellationToken ct = default)
     {
         Ensure();
@@ -21,17 +47,42 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         var ps = pageSize < 1 ? 25 : Math.Min(pageSize, 200);
         var skip = (p - 1) * ps;
         var term = string.IsNullOrWhiteSpace(buscar) ? null : buscar.Trim();
+        var red = scope.EsCentral && verRed;
+        var sedeFiltro = scope.EsCentral && sedeId is >= 1 ? sedeId : red ? null : scope.OficinaId;
 
-        var estadoFilter = incluirInactivos ? "" : "AND u.Estado = CAST(1 AS bit)";
+        var estadoFilter = incluirInactivos
+            ? ""
+            : red
+                ? "AND u.Estado = CAST(1 AS bit)"
+                : "AND u.Estado = CAST(1 AS bit) AND uo.Estado = CAST(1 AS bit)";
         var buscarFilter = term is null ? "" : "AND u.NombreUsuario LIKE '%' + @Buscar + '%'";
+        var sedeJoin = red
+            ? ""
+            : """
+              INNER JOIN MAESTRO.UsuarioOficina AS uo
+                  ON uo.UsuarioId = u.UsuarioId
+                 AND uo.OficinaId = @SedeId
+              """;
+        var sedeExists = red && sedeFiltro is >= 1
+            ? """
+              AND EXISTS (
+                  SELECT 1
+                  FROM MAESTRO.UsuarioOficina AS xf
+                  WHERE xf.UsuarioId = u.UsuarioId
+                    AND xf.OficinaId = @SedeId
+                    AND xf.Estado = CAST(1 AS bit))
+              """
+            : "";
 
         var countSql = $"""
             SELECT COUNT(1)
             FROM MAESTRO.Usuario AS u
             INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+            {sedeJoin}
             WHERE 1 = 1
               {estadoFilter}
-              {buscarFilter};
+              {buscarFilter}
+              {sedeExists};
             """;
 
         var sql = $"""
@@ -40,48 +91,105 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
                    p.NombreCompleto,
                    p.Celular1,
                    p.EmailPersonal,
-                   u.Estado
+                   u.Estado,
+                   CAST(CASE WHEN EXISTS (
+                       SELECT 1
+                       FROM MAESTRO.UsuarioOficina AS xs
+                       WHERE xs.UsuarioId = u.UsuarioId
+                         AND xs.OficinaId = @OficinaSesion
+                         AND xs.Estado = CAST(1 AS bit)) THEN 1 ELSE 0 END AS bit) AS EnEstaSede,
+                   STUFF((
+                       SELECT N', ' + o.Denominacion
+                       FROM MAESTRO.UsuarioOficina AS xo
+                       INNER JOIN MAESTRO.Oficina AS o ON o.OficinaId = xo.OficinaId
+                       WHERE xo.UsuarioId = u.UsuarioId
+                         AND xo.Estado = CAST(1 AS bit)
+                         AND o.Estado = CAST(1 AS bit)
+                       ORDER BY o.IndPrincipal DESC, o.Denominacion
+                       FOR XML PATH(N''), TYPE).value(N'.', N'nvarchar(400)'), 1, 2, N'') AS Sedes
             FROM MAESTRO.Usuario AS u
             INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+            {sedeJoin}
             WHERE 1 = 1
               {estadoFilter}
               {buscarFilter}
+              {sedeExists}
             ORDER BY u.NombreUsuario
             OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;
             """;
 
+        var args = new
+        {
+            Buscar = term,
+            Skip = skip,
+            Take = ps,
+            SedeId = sedeFiltro ?? scope.OficinaId,
+            OficinaSesion = scope.OficinaId,
+        };
+
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
         var total = await c.ExecuteScalarAsync<int>(
-            new CommandDefinition(countSql, new { Buscar = term }, cancellationToken: ct)).ConfigureAwait(false);
+            new CommandDefinition(countSql, args, cancellationToken: ct)).ConfigureAwait(false);
         var rows = (await c.QueryAsync<UsuarioGestionListItemDto>(
-            new CommandDefinition(sql, new { Buscar = term, Skip = skip, Take = ps }, cancellationToken: ct))
+            new CommandDefinition(sql, args, cancellationToken: ct))
             .ConfigureAwait(false)).ToList();
         var totalPages = total == 0 ? 0 : (int)Math.Ceiling(total / (double)ps);
-        return new UsuarioGestionPageDto(p, ps, total, totalPages, rows);
+        return new UsuarioGestionPageDto(
+            p,
+            ps,
+            total,
+            totalPages,
+            rows,
+            scope.EsCentral,
+            scope.OficinaId,
+            scope.Oficina,
+            red);
     }
 
-    public async Task<IReadOnlyList<UsuarioReporteGestorDto>> ListReporteGestoresAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<UsuarioReporteGestorDto>> ListReporteGestoresAsync(
+        UsuarioAdminScope scope,
+        CancellationToken ct = default)
     {
         Ensure();
-        const string sql = """
+        var sedeFilter = scope.EsCentral
+            ? ""
+            : """
+              AND EXISTS (
+                  SELECT 1
+                  FROM MAESTRO.UsuarioOficina AS uo
+                  WHERE uo.UsuarioId = u.UsuarioId
+                    AND uo.OficinaId = @OficinaId
+                    AND uo.Estado = CAST(1 AS bit))
+              """;
+        var sql = $"""
             SELECT u.UsuarioId,
                    u.NombreUsuario,
                    p.NombreCompleto
             FROM MAESTRO.Usuario AS u
             INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
             WHERE u.Estado = CAST(1 AS bit)
+              {sedeFilter}
             ORDER BY p.NombreCompleto, u.NombreUsuario;
             """;
 
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
         var rows = await c.QueryAsync<UsuarioReporteGestorDto>(
-            new CommandDefinition(sql, cancellationToken: ct)).ConfigureAwait(false);
+            new CommandDefinition(sql, new { scope.OficinaId }, cancellationToken: ct))
+            .ConfigureAwait(false);
         return rows.ToList();
     }
 
-    public async Task<UsuarioPersonaDetalleDto?> GetDetalleAsync(int usuarioId, CancellationToken ct = default)
+    public Task<UsuarioPersonaDetalleDto?> GetDetalleAsync(
+        int usuarioId,
+        CancellationToken ct = default) =>
+        GetDetalleAsync(new UsuarioAdminScope(0, EsCentral: true, Oficina: ""), usuarioId, ct);
+
+    public async Task<UsuarioPersonaDetalleDto?> GetDetalleAsync(
+        UsuarioAdminScope scope,
+        int usuarioId,
+        CancellationToken ct = default)
     {
         Ensure();
         const string sqlUsuario = """
@@ -107,14 +215,20 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         const string sqlOficinas = """
             SELECT o.OficinaId,
                    o.Denominacion,
-                   CAST(CASE WHEN uo.UsuarioOficinaId IS NOT NULL THEN 1 ELSE 0 END AS bit) AS Asignado
+                   CAST(CASE WHEN uo.UsuarioOficinaId IS NOT NULL AND uo.Estado = CAST(1 AS bit) THEN 1 ELSE 0 END AS bit) AS Asignado
             FROM MAESTRO.Oficina AS o
             LEFT JOIN MAESTRO.UsuarioOficina AS uo
                 ON uo.OficinaId = o.OficinaId
                AND uo.UsuarioId = @UsuarioId
-               AND uo.Estado = CAST(1 AS bit)
             WHERE o.Estado = CAST(1 AS bit)
-            ORDER BY o.Denominacion;
+            ORDER BY o.IndPrincipal DESC, o.Denominacion;
+            """;
+
+        const string sqlEnSede = """
+            SELECT COUNT(1)
+            FROM MAESTRO.UsuarioOficina AS uo
+            WHERE uo.UsuarioId = @UsuarioId
+              AND uo.OficinaId = @OficinaId;
             """;
 
         await using var c = new SqlConnection(_cs);
@@ -127,9 +241,36 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
             return null;
         }
 
-        var oficinas = (await c.QueryAsync<OficinaAsignacionDto>(
+        if (!scope.EsCentral)
+        {
+            var enSede = await c.ExecuteScalarAsync<int>(
+                new CommandDefinition(
+                    sqlEnSede,
+                    new { UsuarioId = usuarioId, scope.OficinaId },
+                    cancellationToken: ct)).ConfigureAwait(false);
+            if (enSede < 1)
+            {
+                return null;
+            }
+        }
+
+        var oficinasRaw = (await c.QueryAsync<OficinaAsignacionRow>(
             new CommandDefinition(sqlOficinas, new { UsuarioId = usuarioId }, cancellationToken: ct))
             .ConfigureAwait(false)).ToList();
+
+        var oficinas = oficinasRaw
+            .Select(o => new OficinaAsignacionDto(
+                o.OficinaId,
+                o.Denominacion,
+                o.Asignado,
+                scope.EsCentral || o.OficinaId == scope.OficinaId))
+            .ToList();
+
+        var otras = oficinas
+            .Where(o => o.Asignado && o.OficinaId != scope.OficinaId)
+            .Select(o => o.Denominacion)
+            .ToList();
+        var enEstaSede = oficinas.Any(o => o.Asignado && o.OficinaId == scope.OficinaId);
 
         return new UsuarioPersonaDetalleDto(
             row.UsuarioId,
@@ -146,7 +287,11 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
             row.Celular1,
             row.EmailPersonal,
             row.Direccion,
-            oficinas);
+            oficinas,
+            scope.EsCentral,
+            scope.EsCentral,
+            enEstaSede,
+            otras);
     }
 
     public async Task<PersonaPorDniDto?> GetPersonaPorDniAsync(string numeroDocumento, CancellationToken ct = default)
@@ -200,11 +345,17 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
     }
 
     public async Task<List<RolAsignacionDto>> GetRolesAsignacionAsync(
+        UsuarioAdminScope scope,
         int usuarioId,
         int oficinaId,
         CancellationToken ct = default)
     {
         Ensure();
+        if (!scope.EsCentral && oficinaId != scope.OficinaId)
+        {
+            return [];
+        }
+
         const string sql = """
             SELECT r.RolId,
                    r.Denominacion,
@@ -244,6 +395,13 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         public string? Celular1 { get; init; }
         public string? EmailPersonal { get; init; }
         public string? Direccion { get; init; }
+    }
+
+    private sealed class OficinaAsignacionRow
+    {
+        public int OficinaId { get; init; }
+        public string Denominacion { get; init; } = "";
+        public bool Asignado { get; init; }
     }
 
     private void Ensure()

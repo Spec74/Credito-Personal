@@ -42,6 +42,8 @@ public sealed class MetaGerencialDefinitivaDto
     public string Mercado { get; set; } = string.Empty;
     public short? Orden { get; set; }
     public string TipoCartera { get; set; } = string.Empty;
+    public int OficinaId { get; set; }
+    public string? Oficina { get; set; }
 }
 
 public sealed class AvanceMetaGerencialDto
@@ -87,6 +89,8 @@ public sealed class AvanceMetaGerencialDto
     public decimal MontoCobradoMes { get; set; }
     public decimal DesembolsosMes { get; set; }
     public int NroOperacionesMes { get; set; }
+    public int OficinaId { get; set; }
+    public string? Oficina { get; set; }
 }
 
 public sealed record MetaGerencialGuardarItemDto(
@@ -106,14 +110,20 @@ public sealed record CierreGerencialAvanceResponse(
     string? FechaCalculo,
     bool AvanceNoOficial,
     int Total,
-    IReadOnlyList<AvanceMetaGerencialDto> Filas);
+    IReadOnlyList<AvanceMetaGerencialDto> Filas,
+    bool EsCentral = false,
+    int OficinaId = 0,
+    string? Oficina = null);
 
 public sealed record CierreGerencialMetasResponse(
     string Periodo,
     bool PeriodoCerrado,
     bool PuedeEditar,
     string? FechaLimiteEdicion,
-    IReadOnlyList<MetaGerencialDefinitivaDto> Metas);
+    IReadOnlyList<MetaGerencialDefinitivaDto> Metas,
+    bool EsCentral = false,
+    int OficinaId = 0,
+    string? Oficina = null);
 
 public sealed record CierreGerencialPermisosResponse(
     bool PuedeConsultar,
@@ -134,6 +144,10 @@ public interface ICierreGerencialReadService
 
     Task<IReadOnlyList<MetaGerencialDefinitivaDto>> ListarMetasAsync(
         DateTime periodo,
+        CancellationToken cancellationToken = default);
+
+    Task<HashSet<int>> ListarUsuarioIdsDeOficinaAsync(
+        int oficinaId,
         CancellationToken cancellationToken = default);
 }
 

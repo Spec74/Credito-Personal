@@ -23,6 +23,14 @@ public interface IBovedaOficinaReadService
     Task<IReadOnlyList<BovedaRedPosicionDto>> ListarPosicionRedAsync(
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Medios por marca (ItemId 1–5). Central ve desglose por oficina;
+    /// sucursal solo la suya. Sin USP nuevo.
+    /// </summary>
+    Task<BovedaMediosRedDto> ListarMediosRedAsync(
+        int oficinaId,
+        CancellationToken cancellationToken = default);
+
     /// <summary>Transferencias pendientes hacia la bóveda destino (paridad <c>ListarTransferencias</c>).</summary>
     Task<IReadOnlyList<BovedaTransferenciaPendienteDto>> ListarTransferenciasPendientesAsync(
         int bovedaDestinoId,

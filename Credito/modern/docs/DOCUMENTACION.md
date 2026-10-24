@@ -1,6 +1,7 @@
 # Documentación de Credito.Modern
 
-**Estado del paquete documental: COMPLETO (100%)** · 2026-10-08 · rama `Eber-migracion`.
+**Estado del paquete documental: COMPLETO (100%)** · 2026-10-24 · rama `Eber-migracion`.
+Una base `CREDITO`; sucursal = `OficinaId`. Alcance sucursal vs Central en SSD-07/08.
 
 Este es el **índice único** para informática, negocio y auditoría.  
 Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escritos** cuya marca depende del smoke preprod (operación), no de documentación faltante.

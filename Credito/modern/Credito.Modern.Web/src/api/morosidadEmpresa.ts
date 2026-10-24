@@ -38,6 +38,9 @@ export interface MorosidadEmpresaResponse {
   fechaCorte: string
   resumen: MorosidadResumen
   filas: MorosidadEmpresaItem[]
+  esCentral?: boolean
+  oficinaId?: number
+  oficina?: string | null
 }
 
 export type MorosidadTipo =
@@ -69,10 +72,16 @@ export function fetchMorosidadEmpresa(params?: {
   return apiFetch(`/morosidad/empresa${qs ? `?${qs}` : ''}`)
 }
 
-export function downloadMorosidadExcel(fechaInicio: string, fechaFin: string): Promise<void> {
+export function downloadMorosidadExcel(
+  fechaInicio: string,
+  fechaFin: string,
+  oficinaId?: number | null,
+): Promise<void> {
   const stamp = `${fechaInicio}_${fechaFin}`.replace(/-/g, '')
+  const sede =
+    oficinaId != null && oficinaId > 0 ? `&oficinaId=${oficinaId}` : ''
   return apiDownload(
-    `/morosidad/excel?fechaInicio=${encodeURIComponent(fechaInicio)}&fechaFin=${encodeURIComponent(fechaFin)}`,
+    `/morosidad/excel?fechaInicio=${encodeURIComponent(fechaInicio)}&fechaFin=${encodeURIComponent(fechaFin)}${sede}`,
     `MOROSIDAD_EMPRESA_${stamp}.xlsx`,
   )
 }

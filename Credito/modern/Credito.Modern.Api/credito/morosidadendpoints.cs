@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Security.Claims;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Oficinas;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Data.SqlClient;
 
@@ -42,6 +43,7 @@ internal static class MorosidadEndpoints
                     DateTime? fechaCorte,
                     IMorosidadAccessService access,
                     IMorosidadReadService read,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -56,12 +58,22 @@ internal static class MorosidadEndpoints
                         return ForbiddenConsulta();
                     }
 
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, oficinaId, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
+                    {
+                        return oficinaProblem;
+                    }
+
+                    var oficinaEfectiva = info!.EsCentral ? oficinaId : info.OficinaId;
+
                     var log = loggerFactory.CreateLogger("MorosidadEmpresa");
                     try
                     {
                         var filas = await read.ObtenerMorososEmpresaAsync(
                                 tipo ?? "TODOS",
-                                oficinaId,
+                                oficinaEfectiva,
                                 gestorId,
                                 fechaCorte,
                                 ct)
@@ -83,7 +95,10 @@ internal static class MorosidadEndpoints
                             true,
                             fechaIso,
                             resumen,
-                            filas));
+                            filas,
+                            info.EsCentral,
+                            info.OficinaId,
+                            info.Oficina));
                     }
                     catch (SqlException ex)
                     {
@@ -112,8 +127,10 @@ internal static class MorosidadEndpoints
                     HttpContext httpContext,
                     string? fechaInicio,
                     string? fechaFin,
+                    int? oficinaId,
                     IMorosidadAccessService access,
                     IMorosidadReadService read,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -127,6 +144,16 @@ internal static class MorosidadEndpoints
                     {
                         return ForbiddenConsulta();
                     }
+
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, oficinaId, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
+                    {
+                        return oficinaProblem;
+                    }
+
+                    var oficinaEfectiva = info!.EsCentral ? oficinaId : info.OficinaId;
 
                     if (!TryParseFecha(fechaInicio, out var inicio) ||
                         !TryParseFecha(fechaFin, out var fin))
@@ -154,7 +181,7 @@ internal static class MorosidadEndpoints
                         // la primera cuota vencida mostrada en el archivo (paridad legado).
                         var filas = (await read.ObtenerMorososEmpresaAsync(
                                     "TODOS",
-                                    null,
+                                    oficinaEfectiva,
                                     null,
                                     fin,
                                     ct)

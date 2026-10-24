@@ -49,6 +49,12 @@ IF @flagAceptar = 0
 			RETURN
 		END
 
+		IF @TipoPagoId NOT BETWEEN 1 AND 5
+		BEGIN
+			RAISERROR(N'El medio debe ser una marca (1-5). No use tipos de sede (6-8).', 16, 1)
+			RETURN
+		END
+
 		IF NOT EXISTS (SELECT 1 FROM CREDITO.Boveda WHERE BovedaId = @BovedaInicioId AND IndCierre = 0)
 		BEGIN
 			RAISERROR(N'La bóveda de origen no está abierta.', 16, 1)
@@ -174,7 +180,7 @@ SELECT @BovedaNuevoId=@@IDENTITY
 	FROM MAESTRO.ValorTabla vt
 	LEFT JOIN CUENTAS C ON  vt.ItemId=c.TipoPagoId
 	LEFT JOIN CREDITO.BovedaCuenta BC ON BC.BovedaId = @BovedaId and BC.TipoPagoId = vt.ItemId
-	WHERE vt.TablaId=13 AND vt.ItemId>0
+	WHERE vt.TablaId=13 AND vt.ItemId BETWEEN 1 AND 5
 
 	DELETE CREDITO.BovedaCuenta WHERE BovedaId=@BovedaNuevoId AND SaldoInicial=0
 GO
@@ -219,7 +225,7 @@ SELECT @BovedaId,'TRE','CIERRE BOVEDA TEMPORAL',vt.ItemId, ISNULL(BC.SaldoInicia
 FROM MAESTRO.ValorTabla vt
 LEFT JOIN CUENTAS C ON vt.ItemId = C.TipoPagoId
 LEFT JOIN CREDITO.BovedaCuenta BC ON BC.BovedaId = @BovedaIdTemporal AND BC.TipoPagoId = vt.ItemId
-WHERE vt.TablaId=13 AND vt.ItemId>0
+WHERE vt.TablaId=13 AND vt.ItemId BETWEEN 1 AND 5
 AND ISNULL(BC.SaldoInicial,0) + ISNULL(c.Importe,0) <> 0
 
 UPDATE CREDITO.Boveda

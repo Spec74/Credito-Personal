@@ -1,6 +1,6 @@
 # SSD-04 — Tesorería / bóveda
 
-**Estado:** as-built · 2026-09-11 · validación movimientos/bancos/inter-oficina 2026-09-27 ([SSD-12](SSD-12-validacion.md)) · **multisucursal en curso 2026-10-16**  
+**Estado:** as-built · 2026-09-11 · validación movimientos/bancos/inter-oficina 2026-09-27 ([SSD-12](SSD-12-validacion.md)) · **multisucursal 2026-10-16…24**  
 **Código:** `/tesoreria/boveda`, `/tesoreria/movimiento-boveda` · `/api/v1/credito/*` (bóveda)  
 **Fuente legacy:** `BovedaController`, `Views/Boveda/Index.cshtml`  
 **Doc de ingeniería:** [boveda_migracion.md](../boveda_migracion.md) · [PLAN-MULTISUCURSAL-PRENDARIO.md](../migration/PLAN-MULTISUCURSAL-PRENDARIO.md)
@@ -91,6 +91,7 @@ La puerta de negocio es el menú BOVEDA en la SPA. La API replica al MVC: autent
 - **2026-10-16 — multisucursal:** en prod el destino del cierre iba a bóveda de `OficinaId=1`; ahora acredita en la bóveda de `@OficinaId`, conservando CTE `MOVS_BASE` (saldo inicial + movimientos). Deploy: `2026-10-16-usp-cerrar-cajas-diarios-oficina.sql`.
 - **2026-10-16 — fondeo central:** transferencia inter-oficina (`flagAceptar = 0`) es **inmediata** (TRS origen + TRE destino). Pendientes no es el camino de fondeo: solo anula leftovers (`flag 2`).
 - **2026-10-23 — Pendientes:** sin aceptación inventada. API 400 si tempId > 0 y flag ≠ 2; destino debe ser la oficina del token.
+- **2026-10-24 — marcas 1–5:** wordmark oficial PNG (Yape, BCP, Interbank, BN, CASH). 6–8 no son catálogo vigente. Huanta = `OficinaId`, no medio legado.
 
 Producto: destino inter-oficina por ID de bóveda, no combo de oficina.
 

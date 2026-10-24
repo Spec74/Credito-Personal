@@ -11,6 +11,9 @@ Términos usados en SSD, arquitectura y runbooks. Índice: [DOCUMENTACION.md](DO
 | **Corte A / Corte B** | Checklist `preprod-cutover-checklist.ps1`: A = API+proxy; B = SPA `/app/` |
 | **Menú vivo** | Resultado de `MAESTRO.usp_MenuLst` para la oficina/usuario de sesión |
 | **Oficina 1 CREDITO** | Oficina piloto del menú crédito/caja; ventas/almacén pueden no estar en ese menú |
+| **IndPrincipal** | Oficina Central (Huamanga). Ve la red, fondea. El resto son sucursales |
+| **Sede** | Una fila `MAESTRO.Oficina`. No es un servidor ni una base distinta |
+| **UsuarioOficina** | Asignación usuario ↔ sede. Un login puede operar en varias; roles van por `UsuarioRol.OficinaId` |
 | **`usp_*`** | Procedimiento almacenado SQL; contrato de negocio (el C# no inventa cuotas/mora) |
 | **JWT / Bearer** | Access token; claims `vendix:usuario_id`, `vendix:oficina_id`, `vendix:usuario_oficina_id` |
 | **`$pbk2$`** | Prefijo de clave hasheada PBKDF2; el legado podía guardar clave en claro |

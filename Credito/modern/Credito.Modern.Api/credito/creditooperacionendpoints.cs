@@ -5466,7 +5466,70 @@ internal static class CreditoOperacionEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
+        app.MapGet(
+                "/api/v1/credito/boveda-medios-red",
+                async Task<Results<Ok<BovedaMediosRedDto>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    int oficinaId,
+                    IBovedaOficinaReadService bovedaOficina,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (oficinaId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "oficinaId debe ser un entero >= 1.");
+                    }
 
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+                    if (oficinaError is not null)
+                    {
+                        return oficinaError;
+                    }
+
+                    var log = loggerFactory.CreateLogger("BovedaMediosRed");
+                    try
+                    {
+                        var dto = await bovedaOficina
+                            .ListarMediosRedAsync(oficinaId, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(dto);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Medios red bóveda: configuración incompleta");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error al listar medios de la red");
+                        var detail = "No se pudo listar los medios de pago de la red.";
+                        if (env.IsDevelopment())
+                        {
+                            detail += $" Detalle: {ex.Message}";
+                        }
+
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("CreditoBovedaMediosRed")
+            .WithSummary("Medios por marca (1–5). Central: total + desglose por sede. Sucursal: solo la suya.")
+            .WithTags("credito", "boveda")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .Produces<BovedaMediosRedDto>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
         app.MapGet(
                 "/api/v1/credito/boveda-transferencias-pendientes",

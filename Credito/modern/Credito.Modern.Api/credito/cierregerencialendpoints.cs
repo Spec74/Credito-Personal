@@ -3,9 +3,9 @@ using System.Globalization;
 using System.Security.Claims;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Oficinas;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Options;
 
 namespace Credito.Modern.Api.Credito;
 
@@ -39,8 +39,10 @@ internal static class CierreGerencialEndpoints
                 async Task<Results<Ok<CierreGerencialAvanceResponse>, ProblemHttpResult>> (
                     HttpContext httpContext,
                     DateTime periodo,
+                    int? sedeId,
                     ICierreGerencialAccessService access,
                     ICierreGerencialReadService read,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -55,18 +57,18 @@ internal static class CierreGerencialEndpoints
                         return ForbiddenConsulta();
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oficinaId))
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, sedeId, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Oficina no válida",
-                            detail: "El token no contiene una oficina válida.");
+                        return oficinaProblem;
                     }
 
                     var log = loggerFactory.CreateLogger("CierreGerencialAvance");
                     try
                     {
-                        var filas = await read.ObtenerAvanceAsync(periodo, oficinaId, ct).ConfigureAwait(false);
+                        var filas = await ObtenerAvanceRedAsync(read, periodo, info!, ct).ConfigureAwait(false);
                         var periodoIso = PrimerDia(periodo).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
                         return TypedResults.Ok(new CierreGerencialAvanceResponse(
                             periodoIso,
@@ -75,7 +77,10 @@ internal static class CierreGerencialEndpoints
                                 : null,
                             filas.Count > 0 && filas[0].AvanceNoOficial,
                             filas.Count,
-                            filas));
+                            filas,
+                            info!.EsCentral,
+                            info.OficinaId,
+                            info.Oficina));
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
@@ -111,8 +116,10 @@ internal static class CierreGerencialEndpoints
                 async Task<Results<Ok<CierreGerencialMetasResponse>, ProblemHttpResult>> (
                     HttpContext httpContext,
                     DateTime periodo,
+                    int? sedeId,
                     ICierreGerencialAccessService access,
                     ICierreGerencialReadService read,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -127,10 +134,19 @@ internal static class CierreGerencialEndpoints
                         return ForbiddenConsulta();
                     }
 
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, sedeId, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
+                    {
+                        return oficinaProblem;
+                    }
+
                     var log = loggerFactory.CreateLogger("CierreGerencialMetas");
                     try
                     {
-                        var metas = await read.ListarMetasAsync(periodo, ct).ConfigureAwait(false);
+                        var metas = await FiltrarMetasPorSedeAsync(read, periodo, info!, sedeId, ct)
+                            .ConfigureAwait(false);
                         var puedeEditar =
                             access.PuedeGestionarMetas(usuarioId, roles) &&
                             metas.Count > 0 &&
@@ -143,7 +159,10 @@ internal static class CierreGerencialEndpoints
                             metas.Count > 0
                                 ? metas[0].FechaLimiteEdicion.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture)
                                 : null,
-                            metas));
+                            metas,
+                            info!.EsCentral,
+                            info.OficinaId,
+                            info.Oficina));
                     }
                     catch (SqlException ex)
                     {
@@ -171,8 +190,10 @@ internal static class CierreGerencialEndpoints
                 async Task<Results<FileContentHttpResult, ProblemHttpResult, NotFound<string>>> (
                     HttpContext httpContext,
                     DateTime periodo,
+                    int? sedeId,
                     ICierreGerencialAccessService access,
                     ICierreGerencialReadService read,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -187,19 +208,19 @@ internal static class CierreGerencialEndpoints
                         return ForbiddenConsulta();
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oficinaId))
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, sedeId, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Oficina no válida",
-                            detail: "El token no contiene una oficina válida.");
+                        return oficinaProblem;
                     }
 
                     var log = loggerFactory.CreateLogger("CierreGerencialExcel");
                     try
                     {
                         var periodoNormalizado = PrimerDia(periodo);
-                        var filas = await read.ObtenerAvanceAsync(periodoNormalizado, oficinaId, ct)
+                        var filas = await ObtenerAvanceRedAsync(read, periodoNormalizado, info!, ct)
                             .ConfigureAwait(false);
                         if (filas.Count == 0)
                         {
@@ -251,7 +272,9 @@ internal static class CierreGerencialEndpoints
                     HttpContext httpContext,
                     GuardarMetasGerencialesRequest body,
                     ICierreGerencialAccessService access,
+                    ICierreGerencialReadService read,
                     ICierreGerencialWriteService write,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -267,6 +290,28 @@ internal static class CierreGerencialEndpoints
                             statusCode: StatusCodes.Status403Forbidden,
                             title: "Sin permiso",
                             detail: "Su usuario no está autorizado para registrar o modificar las metas.");
+                    }
+
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, sedeId: null, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
+                    {
+                        return oficinaProblem;
+                    }
+
+                    if (!info!.EsCentral)
+                    {
+                        var idsSede = await read.ListarUsuarioIdsDeOficinaAsync(info.OficinaId, ct)
+                            .ConfigureAwait(false);
+                        if (body.Metas is not null &&
+                            body.Metas.Any(m => !idsSede.Contains(m.UsuarioId)))
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status403Forbidden,
+                                title: "Sin permiso",
+                                detail: "Solo puede editar metas de analistas asignados a su sede.");
+                        }
                     }
 
                     var log = loggerFactory.CreateLogger("CierreGerencialGuardarMetas");
@@ -371,4 +416,58 @@ internal static class CierreGerencialEndpoints
 
     private static DateTime PrimerDia(DateTime periodo) =>
         new(periodo.Year, periodo.Month, 1);
+
+    private static async Task<IReadOnlyList<AvanceMetaGerencialDto>> ObtenerAvanceRedAsync(
+        ICierreGerencialReadService read,
+        DateTime periodo,
+        SesionOficinaInfo info,
+        CancellationToken ct)
+    {
+        var destinos = info.Destinos;
+        if (destinos.Count == 0)
+        {
+            return [];
+        }
+
+        var all = new List<AvanceMetaGerencialDto>();
+        foreach (var dest in destinos)
+        {
+            var filas = await read.ObtenerAvanceAsync(periodo, dest.OficinaId, ct).ConfigureAwait(false);
+            foreach (var fila in filas)
+            {
+                fila.OficinaId = dest.OficinaId;
+                fila.Oficina = dest.Denominacion;
+            }
+
+            all.AddRange(filas);
+        }
+
+        return all;
+    }
+
+    private static async Task<IReadOnlyList<MetaGerencialDefinitivaDto>> FiltrarMetasPorSedeAsync(
+        ICierreGerencialReadService read,
+        DateTime periodo,
+        SesionOficinaInfo info,
+        int? sedeId,
+        CancellationToken ct)
+    {
+        var metas = await read.ListarMetasAsync(periodo, ct).ConfigureAwait(false);
+        if (info.EsCentral && sedeId is not >= 1)
+        {
+            return metas;
+        }
+
+        var oficinaFiltro = info.EsCentral ? sedeId!.Value : info.OficinaId;
+        var ids = await read.ListarUsuarioIdsDeOficinaAsync(oficinaFiltro, ct).ConfigureAwait(false);
+        var dest = info.Destinos.FirstOrDefault();
+        var filtradas = metas.Where(m => ids.Contains(m.UsuarioId)).ToList();
+        foreach (var meta in filtradas)
+        {
+            meta.OficinaId = oficinaFiltro;
+            meta.Oficina = dest?.Denominacion ?? info.Oficina;
+        }
+
+        return filtradas;
+    }
 }

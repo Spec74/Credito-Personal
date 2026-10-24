@@ -1,6 +1,6 @@
 # SSD-08 — Administración (seguridad y oficinas)
 
-**Estado:** as-built · 2026-09-11 · validación usuarios/roles/oficinas con `formRules` / `UsuarioValidacion` 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
+**Estado:** as-built · 2026-09-11 · validación usuarios/roles/oficinas con `formRules` / `UsuarioValidacion` 2026-09-27 ([SSD-12](SSD-12-validacion.md)) · **alcance por sede 2026-10-24**  
 **Código:** `/admin/*`, `/mantenimiento/oficinas` · `/api/v1/usuarios/*`, `/api/v1/roles/*`, `/api/v1/oficinas/*`  
 **Fuente legacy:** `UsuarioController`, `RolController`, `OficinaController`, `ComisionController`  
 **Doc de ingeniería:** [ui_modernizacion_modulos.md](../ui_modernizacion_modulos.md) (no hay `*_migracion.md` propio)
@@ -11,7 +11,8 @@ Dar de alta oficinas, usuarios, roles/menús y (vacío a propósito) comisiones.
 
 | Rol | Uso |
 |-----|-----|
-| Administrador | Único que escribe usuarios, roles, activar, resetear clave, asignar oficinas/roles/menús |
+| Administrador en sucursal | Lista y escribe solo `UsuarioOficina` de su sede. Alta queda en esa oficina. No apaga `Usuario.Estado` global |
+| Administrador en Central (`IndPrincipal`) | Ve la red (`verRed`), asigna otras sedes y puede desactivar la cuenta |
 | Cualquier autenticado | Combo de oficinas activas en login (SSD-01); gestores para filtros de informe |
 | Resto | Sin ítem USUARIO/ROL/OFICINA no entra |
 
@@ -20,7 +21,7 @@ Dar de alta oficinas, usuarios, roles/menús y (vacío a propósito) comisiones.
 **Entra**
 
 - Hub `/admin` (mapa; no sustituye ítems exactos)
-- Usuarios: listado, ficha, guardar, activar, resetear clave (`123456` hasheada), oficinas y roles
+- Usuarios: listado, ficha, guardar, activar, resetear clave (`123456` hasheada), oficinas y roles. Un login / DNI; varias sedes vía `UsuarioOficina` + `UsuarioRol.OficinaId`
 - Roles: listado, guardar, activar, menús del rol
 - Oficinas: `/mantenimiento/oficinas` (`/admin/oficinas` redirige)
 - Comisiones: pantalla reservada (el MVC no calcula)
@@ -46,7 +47,7 @@ Dar de alta oficinas, usuarios, roles/menús y (vacío a propósito) comisiones.
 
 | Tabla / procedimiento | Uso |
 |-----------------------|-----|
-| `MAESTRO.Usuario`, `UsuarioOficina`, roles | CRUD; `ClaveUsuario` nvarchar(256), hasher C# |
+| `MAESTRO.Usuario`, `UsuarioOficina`, `UsuarioRol` | Un usuario, N sedes. `ClaveUsuario` nvarchar(256), hasher C#. Alcance de listado/escritura = oficina JWT salvo Central + `verRed` |
 | `MAESTRO.Rol`, menú por rol (`usp_MenuLst` consume esto) | Asignar menús |
 | `MAESTRO.Oficina` | Alta/edición/activar |
 | Comisiones | **Ningún** `usp_*` ni tabla |
@@ -71,6 +72,7 @@ Resetear clave: paridad MVC (`123456`) con hash `$pbk2$` para el login moderno.
 - Hub `/admin` no abre usuarios/roles/oficinas; sí puede abrir `/admin/comisiones`.
 - Padre SEGURIDAD no se mapea a `/admin`.
 - Escrituras de usuario/rol: solo `CreditoRolAdministrador`.
+- Alcance 2026-10-24: sucursal no ve ni edita sedes ajenas; quitar de sede ≠ borrar la cuenta. Central reemplaza el set de oficinas y limpia `UsuarioRol` huérfanos.
 
 ## 7. Criterios de aceptación
 
@@ -83,11 +85,15 @@ Resetear clave: paridad MVC (`123456`) con hash `$pbk2$` para el login moderno.
 - [ ] Rol + menús cambia `usp_MenuLst` en el siguiente login (solo la oficina elegida en login).
 - [ ] `/admin/comisiones` no inventa liquidación.
 - [ ] Gestor no llama `POST /usuarios/guardar` (403).
+- [ ] Admin de sucursal no lista usuarios que no tienen `UsuarioOficina` en su sede.
+- [ ] Admin de sucursal no desactiva `Usuario.Estado`; solo quita o reincorpora en su sede.
+- [ ] Central con «Ver toda la red» ve la columna Sedes.
 
 ## 8. Desviaciones
 
 - 2026-09-10 — Comisiones: paridad del vacío del MVC ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
 - **2026-10-17 — Roles por oficina:** menú/login = `UsuarioRol` de la sede elegida; no son globales. UX de Usuarios aclara resumen multi-sede ([BITACORA](../migration/BITACORA-DESVIACIONES.md)).
+- **2026-10-24 — alcance sucursal vs Central:** listado, alta, roles y desactivar acotados a la oficina JWT; Central ve la red. No son islas (un login, varias `UsuarioOficina`).
 
 Password: [PASSWORD-STORAGE-ROADMAP.md](../migration/PASSWORD-STORAGE-ROADMAP.md) (columna 256).
 

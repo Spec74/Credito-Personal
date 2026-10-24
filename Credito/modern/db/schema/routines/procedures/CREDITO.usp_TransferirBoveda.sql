@@ -37,6 +37,12 @@ IF @flagAceptar = 0
 			RETURN
 		END
 
+		IF @TipoPagoId NOT BETWEEN 1 AND 5
+		BEGIN
+			RAISERROR(N'El medio debe ser una marca (1-5). No use tipos de sede (6-8).', 16, 1)
+			RETURN
+		END
+
 		IF NOT EXISTS (SELECT 1 FROM CREDITO.Boveda WHERE BovedaId = @BovedaInicioId AND IndCierre = 0)
 		BEGIN
 			RAISERROR(N'La bóveda de origen no está abierta.', 16, 1)

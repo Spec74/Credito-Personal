@@ -2,6 +2,11 @@ import { Popover } from 'antd'
 import { InfoCircleOutlined } from '@ant-design/icons'
 import { formatMoney } from '../../../utils/formatMoney'
 import { parseResumenCuentaCaja } from '../../../utils/resumenCuentaCaja'
+import { ResumenCuentaBrandLogo } from '../../tesoreria/components/resumenCuentaBrandIcons'
+import {
+  medioEtiquetaUi,
+  medioNombreMarca,
+} from '../../tesoreria/components/bovedaResumenCuentaParse'
 
 type Props = {
   resumen?: string | null
@@ -28,12 +33,23 @@ export function ResumenCuentaCaja({ resumen, caja }: Props) {
       content={
         items.length > 0 ? (
           <ul className="caja-saldos-resumen__lista">
-            {items.map((item) => (
-              <li key={item.cuenta}>
-                <span>{item.cuenta}</span>
-                <strong>{formatMoney(item.importe)}</strong>
-              </li>
-            ))}
+            {items.map((item) => {
+              const { variant, aria } = medioEtiquetaUi(item.cuenta)
+              const nombre = medioNombreMarca(item.cuenta)
+              return (
+                <li key={item.cuenta} title={aria}>
+                  <span className="caja-saldos-resumen__cuenta" translate="no">
+                    <ResumenCuentaBrandLogo
+                      variant={variant}
+                      etiqueta={nombre}
+                      size="sm"
+                    />
+                    {nombre}
+                  </span>
+                  <strong>{formatMoney(item.importe)}</strong>
+                </li>
+              )
+            })}
           </ul>
         ) : (
           <p className="caja-saldos-resumen__crudo">{texto}</p>

@@ -13,7 +13,11 @@ import { useAuth } from '../../auth/useAuth'
 import { CredixPage, CredixDataTable, confirmMoney } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
 import { resolverBovedaDestinoPorSede } from '../../utils/sucursalRed'
-import { buildTipoPagoOptions, tipoPagoOptionRender } from './components/TipoPagoBrand'
+import {
+  buildTipoPagoOptions,
+  tipoPagoOptionRender,
+  tipoPagoPopupRender,
+} from './components/TipoPagoBrand'
 import type { BovedaDestinoTransferencia } from '../../api/boveda'
 
 export function FondearSucursalesPage() {
@@ -72,6 +76,7 @@ export function FondearSucursalesPage() {
       void queryClient.invalidateQueries({ queryKey: ['bovedas-destino-transferencia'] })
       void queryClient.invalidateQueries({ queryKey: ['boveda-abierta'] })
       void queryClient.invalidateQueries({ queryKey: ['boveda-red-posicion'] })
+      void queryClient.invalidateQueries({ queryKey: ['boveda-medios-red'] })
     },
     onError: (e: unknown) =>
       message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error'),
@@ -127,6 +132,8 @@ export function FondearSucursalesPage() {
           optionFilterProp="label"
           showSearch
           optionRender={tipoPagoOptionRender}
+          popupRender={tipoPagoPopupRender}
+          popupClassName="medio-marca-dropdown"
           onChange={(v) => setTipoPagoId(Number(v) || 1)}
         />
       </div>

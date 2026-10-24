@@ -40,19 +40,36 @@ internal sealed class FakeRptCobroDiarioDetalleReadService : IRptCobroDiarioDeta
 
 internal sealed class FakeUsuarioAdminReadService : IUsuarioAdminReadService
 {
+    public Task<UsuarioAdminScope?> ResolveScopeAsync(
+        int oficinaId,
+        CancellationToken cancellationToken = default) =>
+        Task.FromResult<UsuarioAdminScope?>(new UsuarioAdminScope(oficinaId, true, "Oficina Test"));
+
     public Task<UsuarioGestionPageDto> ListGestionAsync(
+        UsuarioAdminScope scope,
         string? buscar,
         int page,
         int pageSize,
         bool incluirInactivos,
+        bool verRed,
+        int? sedeId,
         CancellationToken cancellationToken = default) =>
         throw new NotSupportedException();
 
     public Task<IReadOnlyList<UsuarioReporteGestorDto>> ListReporteGestoresAsync(
+        UsuarioAdminScope scope,
         CancellationToken cancellationToken = default) =>
         throw new NotSupportedException();
 
-    public Task<UsuarioPersonaDetalleDto?> GetDetalleAsync(int usuarioId, CancellationToken cancellationToken = default) =>
+    public Task<UsuarioPersonaDetalleDto?> GetDetalleAsync(
+        int usuarioId,
+        CancellationToken cancellationToken = default) =>
+        GetDetalleAsync(new UsuarioAdminScope(1, true, "Oficina Test"), usuarioId, cancellationToken);
+
+    public Task<UsuarioPersonaDetalleDto?> GetDetalleAsync(
+        UsuarioAdminScope scope,
+        int usuarioId,
+        CancellationToken cancellationToken = default) =>
         Task.FromResult<UsuarioPersonaDetalleDto?>(
             new UsuarioPersonaDetalleDto(
                 usuarioId,
@@ -83,6 +100,7 @@ internal sealed class FakeUsuarioAdminReadService : IUsuarioAdminReadService
         throw new NotSupportedException();
 
     public Task<List<RolAsignacionDto>> GetRolesAsignacionAsync(
+        UsuarioAdminScope scope,
         int usuarioId,
         int oficinaId,
         CancellationToken cancellationToken = default) =>

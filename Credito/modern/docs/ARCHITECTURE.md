@@ -1,6 +1,6 @@
 # Arquitectura — Credito.Modern
 
-**Estado:** as-built · 2026-09-27  
+**Estado:** as-built · 2026-10-24  
 **Audiencia:** informática / desarrollo  
 **Specs por módulo:** [ssd/README.md](ssd/README.md) · índice general: [DOCUMENTACION.md](DOCUMENTACION.md)
 
@@ -60,6 +60,24 @@ Dependencias: Api → Application → Domain; Infrastructure implementa Applicat
 2. Excepción declarada: donde el MVC ya escribía SQL en BL (venta rápida, parte de almacén), el moderno replica esa paridad y lo dice en el SSD del módulo.
 3. Reloj de negocio: `CREDITO.usp_FechaBD`.
 4. Esquema versionado / snapshot: `db/schema/`.
+
+---
+
+## 3.1 Una base, varias sedes
+
+**Decisión (2026-10-24):** una sola base `CREDITO`. La sucursal no es un servidor.
+
+| Pieza | Modelo |
+|-------|--------|
+| Física | Un SQL Server (local o Azure). Backup FULL + log. |
+| Lógica | `MAESTRO.Oficina` + `OficinaId` en bóveda, caja, crédito, `UsuarioOficina` |
+| Central | `Oficina.IndPrincipal` (Huamanga). Fondea, ve la red. |
+| Sucursal | Filtro de fila (JWT `vendix:oficina_id` + USP). Autonomía de caja/bóveda, no de datos. |
+| Alta de sede | Oficina + bóveda abierta + cajas + `UsuarioOficina`. Sin SQL nuevo. |
+
+No hay una base por sucursal ni un mallado entre sedes. Fondeo (`usp_TransferirBoveda`), cierre gerencial de 19 carteras y un DNI / un login cruzan oficinas en el mismo ledger. Si cae la línea en Pichari, se endurece el enlace y (más adelante) una cola de cobros al mismo SQL; no un Express que «se reconcilia de noche».
+
+Se revisaría el modelo físico solo ante otra RUC, 20+ sedes con reportes pesados, o días enteros offline: réplica de lectura o cola local, no partir el ledger.
 
 ---
 
@@ -129,3 +147,4 @@ Detalle tabular: [AMBIENTES.md](AMBIENTES.md). Runbooks: [OPS.md](OPS.md).
 - No es un segundo motor de cuotas/mora en C#.
 - No es copia píxel a píxel de ReportViewer.
 - No es microservicios: un API + una SPA + una BD CREDITO.
+- No es un SQL por sucursal ni bases que se sincronizan entre sí.

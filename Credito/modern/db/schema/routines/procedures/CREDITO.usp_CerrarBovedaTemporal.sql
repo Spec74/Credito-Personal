@@ -39,7 +39,7 @@ SELECT @BovedaId,'TRE','CIERRE BOVEDA TEMPORAL',vt.ItemId, ISNULL(BC.SaldoInicia
 FROM MAESTRO.ValorTabla vt
 LEFT JOIN CUENTAS C ON vt.ItemId = C.TipoPagoId
 LEFT JOIN CREDITO.BovedaCuenta BC ON BC.BovedaId = @BovedaIdTemporal AND BC.TipoPagoId = vt.ItemId
-WHERE vt.TablaId=13 AND vt.ItemId>0
+WHERE vt.TablaId=13 AND vt.ItemId BETWEEN 1 AND 5
 AND ISNULL(BC.SaldoInicial,0) + ISNULL(c.Importe,0) <> 0
 
 UPDATE CREDITO.Boveda

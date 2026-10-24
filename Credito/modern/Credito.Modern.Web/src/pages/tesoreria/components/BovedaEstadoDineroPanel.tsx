@@ -21,8 +21,14 @@ function KpiCard({ value, label, to, hint }: Tile) {
       <span className="boveda-estado-dinero__value" translate="no">
         {formatMoney(value)}
       </span>
-      <span className="boveda-estado-dinero__label">{label}</span>
-      {hint ? <span className="boveda-estado-dinero__hint">{hint}</span> : null}
+      <span className="boveda-estado-dinero__label" translate="no">
+        {label}
+      </span>
+      {hint ? (
+        <span className="boveda-estado-dinero__hint" translate="no">
+          {hint}
+        </span>
+      ) : null}
     </>
   )
   const className = to
@@ -67,7 +73,7 @@ export function BovedaEstadoDineroPanel({ data, loading }: Props) {
       value: data.montoCajas,
       label: 'Cajas diarias',
       to: '/caja/saldos',
-      hint: 'Ver saldos de caja',
+      hint: 'Efectivo de caja y analista',
     },
     {
       value: data.montoPlanPagoPendiente,
@@ -83,7 +89,7 @@ export function BovedaEstadoDineroPanel({ data, loading }: Props) {
   ]
 
   return (
-    <div className="boveda-estado-dinero">
+    <div className="boveda-estado-dinero" translate="no">
       {tiles.map((tile) => (
         <KpiCard key={tile.label} {...tile} />
       ))}

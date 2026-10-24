@@ -15,20 +15,37 @@ internal static class UsuarioAdminEndpoints
         app.MapGet(
                 "/api/v1/usuarios/gestion",
                 async Task<Results<Ok<UsuarioGestionPageDto>, ProblemHttpResult>> (
+                    HttpContext http,
                     string? buscar,
                     int? page,
                     int? pageSize,
                     bool? incluirInactivos,
+                    bool? verRed,
+                    int? sedeId,
                     IUsuarioAdminReadService usuarios,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
                     var log = loggerFactory.CreateLogger("UsuariosGestion");
+                    var (scope, scopeError) = await RequireScopeAsync(http, usuarios, ct).ConfigureAwait(false);
+                    if (scopeError is not null)
+                    {
+                        return scopeError;
+                    }
+
                     try
                     {
                         var result = await usuarios
-                            .ListGestionAsync(buscar, page ?? 1, pageSize ?? 25, incluirInactivos == true, ct)
+                            .ListGestionAsync(
+                                scope!,
+                                buscar,
+                                page ?? 1,
+                                pageSize ?? 25,
+                                incluirInactivos == true,
+                                scope!.EsCentral && verRed != false,
+                                sedeId,
+                                ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(result);
                     }
@@ -45,15 +62,22 @@ internal static class UsuarioAdminEndpoints
         app.MapGet(
                 "/api/v1/usuarios/reporte-gestores",
                 async Task<Results<Ok<IReadOnlyList<UsuarioReporteGestorDto>>, ProblemHttpResult>> (
+                    HttpContext http,
                     IUsuarioAdminReadService usuarios,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
                     var log = loggerFactory.CreateLogger("UsuariosReporteGestores");
+                    var (scope, scopeError) = await RequireScopeAsync(http, usuarios, ct).ConfigureAwait(false);
+                    if (scopeError is not null)
+                    {
+                        return scopeError;
+                    }
+
                     try
                     {
-                        var rows = await usuarios.ListReporteGestoresAsync(ct).ConfigureAwait(false);
+                        var rows = await usuarios.ListReporteGestoresAsync(scope!, ct).ConfigureAwait(false);
                         return TypedResults.Ok(rows);
                     }
                     catch (Exception ex) when (ex is InvalidOperationException or DbException)
@@ -69,6 +93,7 @@ internal static class UsuarioAdminEndpoints
         app.MapGet(
                 "/api/v1/usuarios/{usuarioId:int}/detalle",
                 async Task<Results<Ok<UsuarioPersonaDetalleDto>, ProblemHttpResult>> (
+                    HttpContext http,
                     int usuarioId,
                     IUsuarioAdminReadService usuarios,
                     ILoggerFactory loggerFactory,
@@ -84,9 +109,15 @@ internal static class UsuarioAdminEndpoints
                     }
 
                     var log = loggerFactory.CreateLogger("UsuarioDetalle");
+                    var (scope, scopeError) = await RequireScopeAsync(http, usuarios, ct).ConfigureAwait(false);
+                    if (scopeError is not null)
+                    {
+                        return scopeError;
+                    }
+
                     try
                     {
-                        var detalle = await usuarios.GetDetalleAsync(usuarioId, ct).ConfigureAwait(false);
+                        var detalle = await usuarios.GetDetalleAsync(scope!, usuarioId, ct).ConfigureAwait(false);
                         if (detalle is null)
                         {
                             return TypedResults.Problem(
@@ -186,6 +217,7 @@ internal static class UsuarioAdminEndpoints
         app.MapGet(
                 "/api/v1/usuarios/{usuarioId:int}/roles-asignacion",
                 async Task<Results<Ok<List<RolAsignacionDto>>, ProblemHttpResult>> (
+                    HttpContext http,
                     int usuarioId,
                     int oficinaId,
                     IUsuarioAdminReadService usuarios,
@@ -202,9 +234,17 @@ internal static class UsuarioAdminEndpoints
                     }
 
                     var log = loggerFactory.CreateLogger("UsuarioRolesAsignacion");
+                    var (scope, scopeError) = await RequireScopeAsync(http, usuarios, ct).ConfigureAwait(false);
+                    if (scopeError is not null)
+                    {
+                        return scopeError;
+                    }
+
                     try
                     {
-                        var roles = await usuarios.GetRolesAsignacionAsync(usuarioId, oficinaId, ct).ConfigureAwait(false);
+                        var roles = await usuarios
+                            .GetRolesAsignacionAsync(scope!, usuarioId, oficinaId, ct)
+                            .ConfigureAwait(false);
                         return TypedResults.Ok(roles);
                     }
                     catch (Exception ex) when (ex is InvalidOperationException or DbException)
@@ -220,7 +260,9 @@ internal static class UsuarioAdminEndpoints
         app.MapPost(
                 "/api/v1/usuarios/guardar",
                 async Task<Results<Ok<MaestroOperacionResponse>, ProblemHttpResult>> (
+                    HttpContext http,
                     GuardarUsuarioRequest body,
+                    IUsuarioAdminReadService usuarios,
                     IUsuarioAdminWriteService write,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -230,12 +272,18 @@ internal static class UsuarioAdminEndpoints
                     if (edgeError is not null)
                         return edgeError;
 
+                    var (scope, scopeError) = await RequireScopeAsync(http, usuarios, ct).ConfigureAwait(false);
+                    if (scopeError is not null)
+                    {
+                        return scopeError;
+                    }
+
                     return await WriteAsync(
                         loggerFactory,
                         env,
                         "GuardarUsuario",
                         ct,
-                        token => write.GuardarAsync(body, token)).ConfigureAwait(false);
+                        token => write.GuardarAsync(scope!, body, token)).ConfigureAwait(false);
                 })
             .WithName("GuardarUsuario")
             .WithTags("usuarios-admin")
@@ -246,7 +294,9 @@ internal static class UsuarioAdminEndpoints
         app.MapPost(
                 "/api/v1/usuarios/{usuarioId:int}/activar",
                 async Task<Results<Ok<MaestroOperacionResponse>, ProblemHttpResult>> (
+                    HttpContext http,
                     int usuarioId,
+                    IUsuarioAdminReadService usuarios,
                     IUsuarioAdminWriteService write,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -260,12 +310,18 @@ internal static class UsuarioAdminEndpoints
                             detail: "usuarioId debe ser >= 1.");
                     }
 
+                    var (scope, scopeError) = await RequireScopeAsync(http, usuarios, ct).ConfigureAwait(false);
+                    if (scopeError is not null)
+                    {
+                        return scopeError;
+                    }
+
                     return await WriteAsync(
                         loggerFactory,
                         env,
                         "ActivarUsuario",
                         ct,
-                        token => write.ActivarAsync(usuarioId, token)).ConfigureAwait(false);
+                        token => write.ActivarAsync(scope!, usuarioId, token)).ConfigureAwait(false);
                 })
             .WithName("ActivarUsuario")
             .WithTags("usuarios-admin")
@@ -275,7 +331,9 @@ internal static class UsuarioAdminEndpoints
         app.MapPost(
                 "/api/v1/usuarios/{usuarioId:int}/resetear-clave",
                 async Task<Results<Ok<ResetearClaveResponse>, ProblemHttpResult>> (
+                    HttpContext http,
                     int usuarioId,
+                    IUsuarioAdminReadService usuarios,
                     IUsuarioAdminWriteService write,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -289,10 +347,16 @@ internal static class UsuarioAdminEndpoints
                             detail: "usuarioId debe ser >= 1.");
                     }
 
+                    var (scope, scopeError) = await RequireScopeAsync(http, usuarios, ct).ConfigureAwait(false);
+                    if (scopeError is not null)
+                    {
+                        return scopeError;
+                    }
+
                     var log = loggerFactory.CreateLogger("ResetearClaveUsuario");
                     try
                     {
-                        var response = await write.ResetearClaveAsync(usuarioId, ct).ConfigureAwait(false);
+                        var response = await write.ResetearClaveAsync(scope!, usuarioId, ct).ConfigureAwait(false);
                         return TypedResults.Ok(response);
                     }
                     catch (InvalidOperationException ex)
@@ -324,8 +388,10 @@ internal static class UsuarioAdminEndpoints
         app.MapPost(
                 "/api/v1/usuarios/{usuarioId:int}/asignar-oficinas",
                 async Task<Results<Ok<MaestroOperacionResponse>, ProblemHttpResult>> (
+                    HttpContext http,
                     int usuarioId,
                     AsignarOficinasRequest body,
+                    IUsuarioAdminReadService usuarios,
                     IUsuarioAdminWriteService write,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -339,12 +405,18 @@ internal static class UsuarioAdminEndpoints
                             detail: "usuarioId debe ser >= 1.");
                     }
 
+                    var (scope, scopeError) = await RequireScopeAsync(http, usuarios, ct).ConfigureAwait(false);
+                    if (scopeError is not null)
+                    {
+                        return scopeError;
+                    }
+
                     return await WriteAsync(
                         loggerFactory,
                         env,
                         "AsignarOficinasUsuario",
                         ct,
-                        token => write.AsignarOficinasAsync(usuarioId, body.OficinaIds, token)).ConfigureAwait(false);
+                        token => write.AsignarOficinasAsync(scope!, usuarioId, body.OficinaIds, token)).ConfigureAwait(false);
                 })
             .WithName("AsignarOficinasUsuario")
             .WithTags("usuarios-admin")
@@ -354,8 +426,10 @@ internal static class UsuarioAdminEndpoints
         app.MapPost(
                 "/api/v1/usuarios/{usuarioId:int}/asignar-roles",
                 async Task<Results<Ok<MaestroOperacionResponse>, ProblemHttpResult>> (
+                    HttpContext http,
                     int usuarioId,
                     AsignarRolesRequest body,
+                    IUsuarioAdminReadService usuarios,
                     IUsuarioAdminWriteService write,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -376,17 +450,58 @@ internal static class UsuarioAdminEndpoints
                         return rolesError;
                     }
 
+                    var (scope, scopeError) = await RequireScopeAsync(http, usuarios, ct).ConfigureAwait(false);
+                    if (scopeError is not null)
+                    {
+                        return scopeError;
+                    }
+
                     return await WriteAsync(
                         loggerFactory,
                         env,
                         "AsignarRolesUsuario",
                         ct,
-                        token => write.AsignarRolesAsync(usuarioId, body.OficinaId, body.RolIds, token)).ConfigureAwait(false);
+                        token => write.AsignarRolesAsync(scope!, usuarioId, body.OficinaId, body.RolIds, token)).ConfigureAwait(false);
                 })
             .WithName("AsignarRolesUsuario")
             .WithTags("usuarios-admin")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
             .Produces<MaestroOperacionResponse>();
+    }
+
+    private static async Task<(UsuarioAdminScope? Scope, ProblemHttpResult? Error)> RequireScopeAsync(
+        HttpContext http,
+        IUsuarioAdminReadService usuarios,
+        CancellationToken ct)
+    {
+        if (!MenuIdentity.TryGetOficinaIdFromJwt(http.User, out var oficinaId))
+        {
+            return (null, TypedResults.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Solicitud inválida",
+                detail: "El token no contiene una oficina válida (vendix:oficina_id)."));
+        }
+
+        try
+        {
+            var scope = await usuarios.ResolveScopeAsync(oficinaId, ct).ConfigureAwait(false);
+            if (scope is null)
+            {
+                return (null, TypedResults.Problem(
+                    statusCode: StatusCodes.Status400BadRequest,
+                    title: "Solicitud inválida",
+                    detail: "La oficina de la sesión no existe."));
+            }
+
+            return (scope, null);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or DbException)
+        {
+            return (null, ReadError(
+                http.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("UsuariosAdminScope"),
+                http.RequestServices.GetRequiredService<IHostEnvironment>(),
+                ex));
+        }
     }
 
     private static ProblemHttpResult ReadError(ILogger log, IHostEnvironment env, Exception ex)

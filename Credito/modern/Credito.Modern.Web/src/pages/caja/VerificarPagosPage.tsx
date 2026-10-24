@@ -35,6 +35,7 @@ import { filterTableRows } from '../../utils/tableClientFilter'
 import { formatMoney } from '../../utils/formatMoney'
 import { CajaListToolbar } from './components/CajaListToolbar'
 import { VerificarPagosTableEmpty } from './components/VerificarPagosTableEmpty'
+import { TipoPagoCell } from '../tesoreria/components/TipoPagoBrand'
 import '../../styles/caja-verificar-pagos-module.css';
 
 const PAGE_SIZES = ['45', '60', '75'] as const
@@ -151,7 +152,12 @@ export function VerificarPagosPage() {
           <span className="caja-verificar-pagos-table__importe">{formatMoney(v)}</span>
         ),
       },
-      { title: 'Tipo', dataIndex: 'tipoPago', width: 100 },
+      {
+        title: 'Tipo',
+        dataIndex: 'tipoPago',
+        width: 140,
+        render: (v: string) => <TipoPagoCell tipoPago={v} />,
+      },
       {
         title: 'F. transferencia',
         dataIndex: 'fechaTransferencia',

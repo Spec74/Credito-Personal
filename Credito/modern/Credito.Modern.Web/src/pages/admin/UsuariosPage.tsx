@@ -67,6 +67,7 @@ export function UsuariosPage() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
   const [incluirInactivos, setIncluirInactivos] = useState(true)
+  const [verRed, setVerRed] = useState(true)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [usuarioId, setUsuarioId] = useState(0)
   const [oficinaRolId, setOficinaRolId] = useState<number | undefined>()
@@ -74,13 +75,14 @@ export function UsuariosPage() {
   const queryClient = useQueryClient()
 
   const usuariosQuery = useQuery({
-    queryKey: ['usuarios-gestion', buscarDebounced, page, pageSize, incluirInactivos],
+    queryKey: ['usuarios-gestion', buscarDebounced, page, pageSize, incluirInactivos, verRed],
     queryFn: () =>
       fetchUsuariosGestion({
         buscar: buscarDebounced,
         page,
         pageSize,
         incluirInactivos,
+        verRed,
       }),
   })
 
@@ -90,14 +92,21 @@ export function UsuariosPage() {
     enabled: usuarioId >= 1 && drawerOpen,
   })
 
+  const esCentral = usuariosQuery.data?.esCentral === true
+  const oficinaSesionId = usuariosQuery.data?.oficinaId ?? 0
+  const oficinaSesionNombre = usuariosQuery.data?.oficina?.trim() || 'esta sucursal'
+
   const oficinasAsignadas = useMemo(
     () => (detalleQuery.data?.oficinas ?? []).filter((o) => o.asignado),
     [detalleQuery.data?.oficinas],
   )
 
-  /** Oficina seleccionada para editar roles (no confundir con otras sedes del mismo usuario). */
-  const oficinaRolEfectiva =
-    oficinaRolId ?? oficinasAsignadas[0]?.oficinaId
+  /** Sucursal solo edita roles de su sede. Central elige. */
+  const oficinaRolEfectiva = esCentral
+    ? (oficinaRolId ?? oficinasAsignadas[0]?.oficinaId)
+    : oficinaSesionId >= 1
+      ? oficinaSesionId
+      : oficinasAsignadas[0]?.oficinaId
 
   const oficinaRolLabel =
     oficinasAsignadas.find((o) => o.oficinaId === oficinaRolEfectiva)?.denominacion ??
@@ -349,11 +358,28 @@ export function UsuariosPage() {
     { title: 'Usuario', dataIndex: 'nombreUsuario', width: 120 },
     { title: 'Nombre', dataIndex: 'nombreCompleto', ellipsis: true },
     { title: 'Celular', dataIndex: 'celular1', width: 100 },
+    ...(esCentral
+      ? [
+          {
+            title: 'Sedes',
+            dataIndex: 'sedes',
+            ellipsis: true,
+            render: (v: string | null) => v || '—',
+          } satisfies ColumnsType<UsuarioGestionRow>[number],
+        ]
+      : []),
     {
       title: 'Estado',
       dataIndex: 'estado',
-      width: 90,
-      render: (v: boolean) => (v ? <Tag color="green">Activo</Tag> : <Tag>Inactivo</Tag>),
+      width: 110,
+      render: (v: boolean, row: UsuarioGestionRow) =>
+        esCentral ? (
+          v ? <Tag color="green">Activo</Tag> : <Tag>Inactivo</Tag>
+        ) : row.enEstaSede && v ? (
+          <Tag color="green">En esta sede</Tag>
+        ) : (
+          <Tag>Fuera de sede</Tag>
+        ),
     },
     {
       title: '',
@@ -369,12 +395,29 @@ export function UsuariosPage() {
             loading={activar.isPending}
             onClick={() =>
               Modal.confirm({
-                title: row.estado ? '¿Desactivar usuario?' : '¿Activar usuario?',
+                title: esCentral
+                  ? row.estado
+                    ? '¿Desactivar la cuenta?'
+                    : '¿Activar la cuenta?'
+                  : row.enEstaSede
+                    ? '¿Quitar de esta sucursal?'
+                    : '¿Reincorporar a esta sucursal?',
+                content: esCentral
+                  ? 'Afecta el acceso en todas las sedes.'
+                  : row.enEstaSede
+                    ? 'Sigue existiendo. Si tiene otras sedes, ahí puede seguir entrando.'
+                    : `Vuelve a ${oficinaSesionNombre}.`,
                 onOk: () => activar.mutateAsync(row.usuarioId),
               })
             }
           >
-            {row.estado ? 'Desactivar' : 'Activar'}
+            {esCentral
+              ? row.estado
+                ? 'Desactivar'
+                : 'Activar'
+              : row.enEstaSede
+                ? 'Quitar de sede'
+                : 'Reincorporar'}
           </Button>
         </Space>
       ),
@@ -399,7 +442,13 @@ export function UsuariosPage() {
   return (
     <CredixCrudPage
       title="Usuarios"
-      subtitle={undefined}
+      subtitle={
+        esCentral
+          ? verRed
+            ? 'Toda la red. Puede filtrar por sede al editar.'
+            : `Personal de ${oficinaSesionNombre}`
+          : `Personal de ${oficinaSesionNombre}`
+      }
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -434,6 +483,17 @@ export function UsuariosPage() {
           >
             Incluir inactivos
           </Checkbox>
+          {esCentral ? (
+            <Checkbox
+              checked={verRed}
+              onChange={(e) => {
+                setVerRed(e.target.checked)
+                setPage(1)
+              }}
+            >
+              Ver toda la red
+            </Checkbox>
+          ) : null}
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
             Nuevo usuario
           </Button>
@@ -578,9 +638,23 @@ export function UsuariosPage() {
                           autoComplete="new-password"
                         />
                       </Form.Item>
-                      <Form.Item name="estado" label="Activo" valuePropName="checked">
-                        <Switch />
-                      </Form.Item>
+                      {esCentral ? (
+                        <Form.Item name="estado" label="Activo" valuePropName="checked">
+                          <Switch />
+                        </Form.Item>
+                      ) : (
+                        <Alert
+                          type="info"
+                          showIcon
+                          style={{ marginBottom: 12 }}
+                          message={`Se asigna a ${oficinaSesionNombre}`}
+                          description={
+                            usuarioId < 1
+                              ? 'Al guardar queda en esta sucursal. Luego defina sus roles.'
+                              : 'Para quitarlo use «Quitar de sede» en la lista. No se apaga la cuenta de otras sucursales.'
+                          }
+                        />
+                      )}
                       <Button
                         type="primary"
                         loading={guardar.isPending}
@@ -603,7 +677,7 @@ export function UsuariosPage() {
                               nombreUsuario: v.nombreUsuario,
                               // Vacío en edición = no tocar clave (backend ignora blanco / ********).
                               claveUsuario: claveNueva,
-                              estado: v.estado,
+                              estado: v.estado !== false,
                             })
                           })
                         }}
@@ -642,10 +716,11 @@ export function UsuariosPage() {
                   key: 'oficinas',
                   label: 'Oficinas',
                   disabled: usuarioId < 1,
-                  children: (
+                  children: esCentral ? (
                     <>
                       <Paragraph type="secondary">
-                        Guarde el usuario primero. Reemplaza todas las oficinas asignadas.
+                        Central puede asignar varias sedes. Los roles de una sede que quite se
+                        borran.
                       </Paragraph>
                       <Form.Item name="oficinaIds" label="Oficinas">
                         <Select
@@ -668,6 +743,25 @@ export function UsuariosPage() {
                         Guardar oficinas
                       </Button>
                     </>
+                  ) : (
+                    <>
+                      <Paragraph>
+                        Este usuario está en <Text strong>{oficinaSesionNombre}</Text>.
+                      </Paragraph>
+                      {(detalleQuery.data?.otrasSedes ?? []).length > 0 ? (
+                        <Alert
+                          type="info"
+                          showIcon
+                          message="También trabaja en otras sedes"
+                          description={(detalleQuery.data?.otrasSedes ?? []).join(', ')}
+                        />
+                      ) : (
+                        <Paragraph type="secondary">
+                          No está asignado a otras sucursales. Central es quien lo habilita en más
+                          de una sede.
+                        </Paragraph>
+                      )}
+                    </>
                   ),
                 },
                 {
@@ -680,7 +774,11 @@ export function UsuariosPage() {
                         type="info"
                         showIcon
                         style={{ marginBottom: 12 }}
-                        message="Roles por sede: elija oficina y marque solo los de esa sucursal."
+                        message={
+                          esCentral
+                            ? 'Roles por sede: elija oficina y marque solo los de esa sucursal.'
+                            : `Roles solo de ${oficinaSesionNombre}.`
+                        }
                       />
 
                       {oficinasAsignadas.length === 0 ? (
@@ -704,7 +802,11 @@ export function UsuariosPage() {
                                       row.oficinaId === oficinaRolEfectiva ? 'primary' : 'default'
                                     }
                                     size="small"
-                                    onClick={() => setOficinaRolId(row.oficinaId)}
+                                    disabled={!esCentral && row.oficinaId !== oficinaSesionId}
+                                    onClick={() => {
+                                      if (!esCentral && row.oficinaId !== oficinaSesionId) return
+                                      setOficinaRolId(row.oficinaId)
+                                    }}
                                   >
                                     {row.denominacion}
                                   </Button>
@@ -736,16 +838,18 @@ export function UsuariosPage() {
                           </>
                         ) : null}
                       </Paragraph>
-                      <Select
-                        placeholder="Oficina para editar roles"
-                        style={{ width: '100%', marginBottom: 12 }}
-                        value={oficinaRolEfectiva}
-                        onChange={(v) => setOficinaRolId(v)}
-                        options={oficinasAsignadas.map((o) => ({
-                          value: o.oficinaId,
-                          label: o.denominacion,
-                        }))}
-                      />
+                      {esCentral ? (
+                        <Select
+                          placeholder="Oficina para editar roles"
+                          style={{ width: '100%', marginBottom: 12 }}
+                          value={oficinaRolEfectiva}
+                          onChange={(v) => setOficinaRolId(v)}
+                          options={oficinasAsignadas.map((o) => ({
+                            value: o.oficinaId,
+                            label: o.denominacion,
+                          }))}
+                        />
+                      ) : null}
                       <Form.Item
                         name="rolIds"
                         label={`Roles en ${oficinaRolLabel}`}

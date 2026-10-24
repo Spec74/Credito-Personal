@@ -13,6 +13,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
     private readonly string _cs = options.Value.ConnectionString;
 
     public async Task<MaestroOperacionResponse> GuardarAsync(
+        UsuarioAdminScope scope,
         GuardarUsuarioRequest request,
         CancellationToken ct = default)
     {
@@ -172,12 +173,22 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                             PersonaId = personaId.Value,
                             NombreUsuario = nombreUsuario,
                             ClaveUsuario = claveAlmacenar,
-                            request.Estado,
+                            Estado = true,
                         },
                         transaction: tx,
                         cancellationToken: ct)).ConfigureAwait(false);
+                await AsegurarSedeAsync(c, tx, usuarioId, scope.OficinaId, activo: true, ct)
+                    .ConfigureAwait(false);
                 await tx.CommitAsync(ct).ConfigureAwait(false);
                 return new MaestroOperacionResponse(true, usuarioId, null);
+            }
+
+            if (!scope.EsCentral
+                && !await PerteneceASedeAsync(c, tx, request.UsuarioId, scope.OficinaId, soloActivo: false, ct)
+                    .ConfigureAwait(false))
+            {
+                await tx.RollbackAsync(ct).ConfigureAwait(false);
+                return new MaestroOperacionResponse(false, null, "Este usuario no pertenece a esta sucursal.");
             }
 
             var sqlUpdate = actualizarClave
@@ -186,14 +197,14 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                   SET PersonaId = @PersonaId,
                       NombreUsuario = @NombreUsuario,
                       ClaveUsuario = @ClaveUsuario,
-                      Estado = @Estado
+                      Estado = CASE WHEN @PuedeEstado = 1 THEN @Estado ELSE Estado END
                   WHERE UsuarioId = @UsuarioId;
                   """
                 : """
                   UPDATE MAESTRO.Usuario
                   SET PersonaId = @PersonaId,
                       NombreUsuario = @NombreUsuario,
-                      Estado = @Estado
+                      Estado = CASE WHEN @PuedeEstado = 1 THEN @Estado ELSE Estado END
                   WHERE UsuarioId = @UsuarioId;
                   """;
 
@@ -207,6 +218,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                         NombreUsuario = nombreUsuario,
                         ClaveUsuario = claveAlmacenar,
                         request.Estado,
+                        PuedeEstado = scope.EsCentral ? 1 : 0,
                     },
                     transaction: tx,
                     cancellationToken: ct)).ConfigureAwait(false);
@@ -226,32 +238,85 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
         }
     }
 
-    public async Task<MaestroOperacionResponse> ActivarAsync(int usuarioId, CancellationToken ct = default)
+    public async Task<MaestroOperacionResponse> ActivarAsync(
+        UsuarioAdminScope scope,
+        int usuarioId,
+        CancellationToken ct = default)
     {
         Ensure();
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
-        var n = await c.ExecuteAsync(
-            new CommandDefinition(
-                """
-                UPDATE MAESTRO.Usuario
-                SET Estado = CASE WHEN Estado = CAST(1 AS bit) THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END
-                WHERE UsuarioId = @UsuarioId;
-                """,
-                new { UsuarioId = usuarioId },
-                cancellationToken: ct)).ConfigureAwait(false);
-        return n > 0
-            ? new MaestroOperacionResponse(true, usuarioId, null)
-            : new MaestroOperacionResponse(false, null, "Usuario no encontrado.");
+        if (scope.EsCentral)
+        {
+            var n = await c.ExecuteAsync(
+                new CommandDefinition(
+                    """
+                    UPDATE MAESTRO.Usuario
+                    SET Estado = CASE WHEN Estado = CAST(1 AS bit) THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END
+                    WHERE UsuarioId = @UsuarioId;
+                    """,
+                    new { UsuarioId = usuarioId },
+                    cancellationToken: ct)).ConfigureAwait(false);
+            return n > 0
+                ? new MaestroOperacionResponse(true, usuarioId, null)
+                : new MaestroOperacionResponse(false, null, "Usuario no encontrado.");
+        }
+
+        await using var tx = (SqlTransaction)await c.BeginTransactionAsync(ct).ConfigureAwait(false);
+        try
+        {
+            if (!await PerteneceASedeAsync(c, tx, usuarioId, scope.OficinaId, soloActivo: false, ct)
+                    .ConfigureAwait(false))
+            {
+                await tx.RollbackAsync(ct).ConfigureAwait(false);
+                return new MaestroOperacionResponse(false, null, "Este usuario no pertenece a esta sucursal.");
+            }
+
+            var activo = await c.ExecuteScalarAsync<bool>(
+                new CommandDefinition(
+                    """
+                    SELECT CAST(CASE WHEN uo.Estado = CAST(1 AS bit) THEN 1 ELSE 0 END AS bit)
+                    FROM MAESTRO.UsuarioOficina AS uo
+                    WHERE uo.UsuarioId = @UsuarioId AND uo.OficinaId = @OficinaId;
+                    """,
+                    new { UsuarioId = usuarioId, scope.OficinaId },
+                    transaction: tx,
+                    cancellationToken: ct)).ConfigureAwait(false);
+
+            await AsegurarSedeAsync(c, tx, usuarioId, scope.OficinaId, activo: !activo, ct)
+                .ConfigureAwait(false);
+            if (activo)
+            {
+                await QuitarRolesSedeAsync(c, tx, usuarioId, scope.OficinaId, ct).ConfigureAwait(false);
+            }
+
+            await tx.CommitAsync(ct).ConfigureAwait(false);
+            return new MaestroOperacionResponse(true, usuarioId, null);
+        }
+        catch
+        {
+            await tx.RollbackAsync(ct).ConfigureAwait(false);
+            throw;
+        }
     }
 
-    public async Task<ResetearClaveResponse> ResetearClaveAsync(int usuarioId, CancellationToken ct = default)
+    public async Task<ResetearClaveResponse> ResetearClaveAsync(
+        UsuarioAdminScope scope,
+        int usuarioId,
+        CancellationToken ct = default)
     {
         Ensure();
         var temporal = UsuarioPasswordHasher.GenerateTemporaryPassword();
         var hash = UsuarioPasswordHasher.CreateTemporaryHash(temporal);
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
+        if (!scope.EsCentral
+            && !await PerteneceASedeAsync(c, null, usuarioId, scope.OficinaId, soloActivo: true, ct)
+                .ConfigureAwait(false))
+        {
+            return new ResetearClaveResponse(false, null, "Este usuario no pertenece a esta sucursal.", null);
+        }
+
         var n = await c.ExecuteAsync(
             new CommandDefinition(
                 "UPDATE MAESTRO.Usuario SET ClaveUsuario = @Clave WHERE UsuarioId = @UsuarioId;",
@@ -313,6 +378,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
     }
 
     public async Task<MaestroOperacionResponse> AsignarOficinasAsync(
+        UsuarioAdminScope scope,
         int usuarioId,
         int[] oficinaIds,
         CancellationToken ct = default)
@@ -323,6 +389,27 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
         await using var tx = (SqlTransaction)await c.BeginTransactionAsync(ct).ConfigureAwait(false);
         try
         {
+            if (!scope.EsCentral)
+            {
+                if (!await PerteneceASedeAsync(c, tx, usuarioId, scope.OficinaId, soloActivo: false, ct)
+                        .ConfigureAwait(false)
+                    && !oficinaIds.Contains(scope.OficinaId))
+                {
+                    await tx.RollbackAsync(ct).ConfigureAwait(false);
+                    return new MaestroOperacionResponse(false, null, "Este usuario no pertenece a esta sucursal.");
+                }
+
+                var queda = oficinaIds.Contains(scope.OficinaId);
+                await AsegurarSedeAsync(c, tx, usuarioId, scope.OficinaId, queda, ct).ConfigureAwait(false);
+                if (!queda)
+                {
+                    await QuitarRolesSedeAsync(c, tx, usuarioId, scope.OficinaId, ct).ConfigureAwait(false);
+                }
+
+                await tx.CommitAsync(ct).ConfigureAwait(false);
+                return new MaestroOperacionResponse(true, usuarioId, null);
+            }
+
             await c.ExecuteAsync(
                 new CommandDefinition(
                     "DELETE FROM MAESTRO.UsuarioOficina WHERE UsuarioId = @UsuarioId;",
@@ -343,6 +430,23 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                         cancellationToken: ct)).ConfigureAwait(false);
             }
 
+            await c.ExecuteAsync(
+                new CommandDefinition(
+                    """
+                    DELETE ur
+                    FROM MAESTRO.UsuarioRol AS ur
+                    WHERE ur.UsuarioId = @UsuarioId
+                      AND NOT EXISTS (
+                          SELECT 1
+                          FROM MAESTRO.UsuarioOficina AS uo
+                          WHERE uo.UsuarioId = ur.UsuarioId
+                            AND uo.OficinaId = ur.OficinaId
+                            AND uo.Estado = CAST(1 AS bit));
+                    """,
+                    new { UsuarioId = usuarioId },
+                    transaction: tx,
+                    cancellationToken: ct)).ConfigureAwait(false);
+
             await tx.CommitAsync(ct).ConfigureAwait(false);
             return new MaestroOperacionResponse(true, usuarioId, null);
         }
@@ -354,12 +458,18 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
     }
 
     public async Task<MaestroOperacionResponse> AsignarRolesAsync(
+        UsuarioAdminScope scope,
         int usuarioId,
         int oficinaId,
         int[] rolIds,
         CancellationToken ct = default)
     {
         Ensure();
+        if (!scope.EsCentral && oficinaId != scope.OficinaId)
+        {
+            return new MaestroOperacionResponse(false, null, "Solo puede asignar roles de esta sucursal.");
+        }
+
         var rolesErr = UsuarioValidacion.ValidarAsignarRoles(oficinaId, rolIds);
         if (rolesErr is not null)
         {
@@ -368,6 +478,15 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
 
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
+        if (!await PerteneceASedeAsync(c, null, usuarioId, oficinaId, soloActivo: true, ct)
+                .ConfigureAwait(false))
+        {
+            return new MaestroOperacionResponse(
+                false,
+                null,
+                "Asigne primero la oficina antes de definir roles.");
+        }
+
         await using var tx = (SqlTransaction)await c.BeginTransactionAsync(ct).ConfigureAwait(false);
         try
         {
@@ -403,6 +522,97 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
             throw;
         }
     }
+
+    private static async Task<bool> PerteneceASedeAsync(
+        SqlConnection c,
+        SqlTransaction? tx,
+        int usuarioId,
+        int oficinaId,
+        bool soloActivo,
+        CancellationToken ct)
+    {
+        var sql = soloActivo
+            ? """
+              SELECT COUNT(1)
+              FROM MAESTRO.UsuarioOficina AS uo
+              WHERE uo.UsuarioId = @UsuarioId
+                AND uo.OficinaId = @OficinaId
+                AND uo.Estado = CAST(1 AS bit);
+              """
+            : """
+              SELECT COUNT(1)
+              FROM MAESTRO.UsuarioOficina AS uo
+              WHERE uo.UsuarioId = @UsuarioId
+                AND uo.OficinaId = @OficinaId;
+              """;
+        var n = await c.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                sql,
+                new { UsuarioId = usuarioId, OficinaId = oficinaId },
+                transaction: tx,
+                cancellationToken: ct)).ConfigureAwait(false);
+        return n > 0;
+    }
+
+    private static async Task AsegurarSedeAsync(
+        SqlConnection c,
+        SqlTransaction tx,
+        int usuarioId,
+        int oficinaId,
+        bool activo,
+        CancellationToken ct)
+    {
+        var n = await c.ExecuteAsync(
+            new CommandDefinition(
+                """
+                UPDATE MAESTRO.UsuarioOficina
+                SET Estado = @Estado
+                WHERE UsuarioId = @UsuarioId AND OficinaId = @OficinaId;
+                """,
+                new
+                {
+                    UsuarioId = usuarioId,
+                    OficinaId = oficinaId,
+                    Estado = activo,
+                },
+                transaction: tx,
+                cancellationToken: ct)).ConfigureAwait(false);
+        if (n > 0)
+        {
+            return;
+        }
+
+        await c.ExecuteAsync(
+            new CommandDefinition(
+                """
+                INSERT INTO MAESTRO.UsuarioOficina (UsuarioId, OficinaId, Estado)
+                VALUES (@UsuarioId, @OficinaId, @Estado);
+                """,
+                new
+                {
+                    UsuarioId = usuarioId,
+                    OficinaId = oficinaId,
+                    Estado = activo,
+                },
+                transaction: tx,
+                cancellationToken: ct)).ConfigureAwait(false);
+    }
+
+    private static Task QuitarRolesSedeAsync(
+        SqlConnection c,
+        SqlTransaction tx,
+        int usuarioId,
+        int oficinaId,
+        CancellationToken ct) =>
+        c.ExecuteAsync(
+            new CommandDefinition(
+                """
+                DELETE FROM MAESTRO.UsuarioRol
+                WHERE UsuarioId = @UsuarioId AND OficinaId = @OficinaId;
+                """,
+                new { UsuarioId = usuarioId, OficinaId = oficinaId },
+                transaction: tx,
+                cancellationToken: ct));
 
     private void Ensure()
     {

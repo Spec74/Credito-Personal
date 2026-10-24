@@ -92,9 +92,19 @@ namespace Credito.Modern.Application.CreditoPlanes
                         "CIERRE Y METAS GERENCIALES · " + NombrePeriodo(meta.Periodo));
 
                     hoja.Range("A3:O3").Merge();
+                    var sedes = filas
+                        .Select(x => x.Oficina)
+                        .Where(s => !string.IsNullOrWhiteSpace(s))
+                        .Distinct(StringComparer.OrdinalIgnoreCase)
+                        .ToList();
                     hoja.Cell("A3").Value =
                         (meta.AvanceNoOficial ? "AVANCE NO OFICIAL" : "CIERRE OFICIAL") +
                         "  ·  Calculado: " + meta.FechaCalculo.ToString("dd/MM/yyyy HH:mm:ss") +
+                        (sedes.Count == 0
+                            ? string.Empty
+                            : sedes.Count == 1
+                                ? "  ·  Sede " + sedes[0]
+                                : "  ·  " + sedes.Count + " sedes") +
                         "  ·  " + Empresa;
                     hoja.Range("A3:O3").Style.Fill.BackgroundColor =
                         XLColor.FromHtml("#" + (meta.AvanceNoOficial ? Naranja : VerdeTexto));

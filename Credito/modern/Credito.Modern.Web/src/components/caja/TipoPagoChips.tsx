@@ -1,11 +1,10 @@
-type Opt = { value: number; label: string }
+import { ResumenCuentaBrandLogo } from '../../pages/tesoreria/components/resumenCuentaBrandIcons'
+import {
+  medioEtiquetaUi,
+  medioNombreMarca,
+} from '../../pages/tesoreria/components/bovedaResumenCuentaParse'
 
-function shortLabel(label: string): string {
-  const t = label.trim()
-  if (t.length <= 10) return t
-  const first = t.split(/\s+/)[0] ?? t
-  return first.length <= 12 ? first : `${first.slice(0, 10)}…`
-}
+type Opt = { value: number; label: string }
 
 function dedupeOptions(options: Opt[]): Opt[] {
   const seen = new Set<number>()
@@ -44,15 +43,20 @@ export function TipoPagoChips({
         .join(' ')}
       role="radiogroup"
       aria-label="Forma de pago"
+      translate="no"
     >
       {uniq.map((opt) => {
         const active = value === opt.value
+        const { variant, aria } = medioEtiquetaUi(opt.label)
+        const nombre = medioNombreMarca(opt.label)
         return (
           <button
             key={opt.value}
             type="button"
             role="radio"
             aria-checked={active}
+            aria-label={aria}
+            title={aria}
             disabled={disabled}
             className={[
               'caja-tipo-pago-chips__btn',
@@ -62,7 +66,8 @@ export function TipoPagoChips({
               .join(' ')}
             onClick={() => onChange(opt.value)}
           >
-            {shortLabel(opt.label)}
+            <ResumenCuentaBrandLogo variant={variant} etiqueta={nombre} size="sm" />
+            <span translate="no">{nombre}</span>
           </button>
         )
       })}

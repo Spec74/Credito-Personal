@@ -23,6 +23,7 @@ import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInf
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { reportesCobranzaBreadcrumb } from '../../utils/reportesBreadcrumbs'
+import { TipoPagoCell } from '../tesoreria/components/TipoPagoBrand'
 
 /** 25 filas por página: equilibrio entre lectura y scroll (106 clientes ≈ 5 páginas). Use 10 si expande muchas filas. */
 const DEFAULT_PAGE_SIZE = 25
@@ -122,7 +123,12 @@ export function CobranzaPagosPage() {
       ellipsis: true,
       render: (v) => <span className="credix-cobranza-cliente">{v}</span>,
     },
-    { title: 'Tipo', dataIndex: 'formaPago', width: 88 },
+    {
+      title: 'Tipo',
+      dataIndex: 'formaPago',
+      width: 140,
+      render: (v: string) => <TipoPagoCell tipoPago={v} />,
+    },
     {
       title: 'Crédito',
       dataIndex: 'montoCredito',

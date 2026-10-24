@@ -42,6 +42,8 @@ import {
   CredixPage,
   CredixPanel,
 } from '../../components/credix'
+import { fetchOficinas } from '../../api/oficinas'
+import { useAuth } from '../../auth/useAuth'
 import { formatMoney } from '../../utils/formatMoney'
 import '../../styles/cierre-gerencial.css';
 
@@ -82,6 +84,7 @@ function coincideFiltro(
     nombreUsuario?: string
     mercado?: string
     supervisor?: string
+    oficina?: string | null
   },
   tipo: TipoFiltro,
   buscar: string,
@@ -89,7 +92,7 @@ function coincideFiltro(
   if (tipo && row.tipoCartera?.toUpperCase() !== tipo) return false
   const q = buscar.trim().toUpperCase()
   if (!q) return true
-  const haystack = [row.nombreCompleto, row.nombreUsuario, row.mercado, row.supervisor]
+  const haystack = [row.nombreCompleto, row.nombreUsuario, row.mercado, row.supervisor, row.oficina]
     .filter(Boolean)
     .join(' ')
     .toUpperCase()
@@ -153,6 +156,7 @@ function EstadoTag({ estado }: { estado?: string }) {
 
 export function CierreGerencialPage() {
   const queryClient = useQueryClient()
+  const { session } = useAuth()
   const [periodo, setPeriodo] = useState<Dayjs>(() => dayjs().startOf('month'))
   const periodoKey = periodoIso(periodo)
   const [tipoFiltro, setTipoFiltro] = useState<TipoFiltro>('')
@@ -160,22 +164,40 @@ export function CierreGerencialPage() {
   const buscarDeferred = useDeferredValue(buscar)
   const [tab, setTab] = useState<TabKey>('avance')
   const [metasEdit, setMetasEdit] = useState<MetaGerencialRow[]>([])
+  const [sedeId, setSedeId] = useState<number | undefined>(undefined)
 
   const permisos = useQuery({
     queryKey: ['cierre-gerencial-permisos'],
     queryFn: fetchCierreGerencialPermisos,
   })
 
+  const oficinasQ = useQuery({
+    queryKey: ['oficinas-activas'],
+    queryFn: fetchOficinas,
+    staleTime: 5 * 60_000,
+  })
+
+  const esCentral =
+    oficinasQ.data?.some((o) => o.oficinaId === session?.oficinaId && o.indPrincipal) === true
+  const sedeQuery = esCentral ? sedeId : undefined
+  const oficinaSesion = oficinasQ.data?.find((o) => o.oficinaId === session?.oficinaId)
+  const sedeSeleccionada = sedeId
+    ? oficinasQ.data?.find((o) => o.oficinaId === sedeId)
+    : undefined
+  const verSedeColumna = esCentral && !sedeId
+
+  const permisosOk = permisos.data?.puedeConsultar === true
+
   const avance = useQuery({
-    queryKey: ['cierre-gerencial-avance', periodoKey],
-    queryFn: () => fetchCierreGerencialAvance(periodoKey),
-    enabled: permisos.data?.puedeConsultar === true,
+    queryKey: ['cierre-gerencial-avance', periodoKey, sedeQuery ?? 'red'],
+    queryFn: () => fetchCierreGerencialAvance(periodoKey, sedeQuery),
+    enabled: permisosOk,
   })
 
   const metas = useQuery({
-    queryKey: ['cierre-gerencial-metas', periodoKey],
-    queryFn: () => fetchCierreGerencialMetas(periodoKey),
-    enabled: permisos.data?.puedeConsultar === true,
+    queryKey: ['cierre-gerencial-metas', periodoKey, sedeQuery ?? 'red'],
+    queryFn: () => fetchCierreGerencialMetas(periodoKey, sedeQuery),
+    enabled: permisosOk,
   })
 
   useEffect(() => {
@@ -185,7 +207,7 @@ export function CierreGerencialPage() {
   }, [metas.data])
 
   const excel = useMutation({
-    mutationFn: () => downloadCierreGerencialExcel(periodoKey),
+    mutationFn: () => downloadCierreGerencialExcel(periodoKey, sedeQuery),
     onSuccess: () => message.success('Excel descargado'),
     onError: (e) => message.error(e instanceof ApiError ? e.message : 'No se pudo exportar'),
   })
@@ -205,8 +227,8 @@ export function CierreGerencialPage() {
       }),
     onSuccess: async (r) => {
       message.success(r.message)
-      await queryClient.invalidateQueries({ queryKey: ['cierre-gerencial-metas', periodoKey] })
-      await queryClient.invalidateQueries({ queryKey: ['cierre-gerencial-avance', periodoKey] })
+      await queryClient.invalidateQueries({ queryKey: ['cierre-gerencial-metas'] })
+      await queryClient.invalidateQueries({ queryKey: ['cierre-gerencial-avance'] })
     },
     onError: (e) => message.error(e instanceof ApiError ? e.message : 'No se pudo guardar'),
   })
@@ -258,6 +280,19 @@ export function CierreGerencialPage() {
   const avanceColumns: ColumnsType<AvanceMetaGerencialRow> = useMemo(
     () => [
       { title: '#', dataIndex: 'orden', width: 48, align: 'center', fixed: 'left' },
+      ...(verSedeColumna
+        ? [
+            {
+              title: 'Sede',
+              dataIndex: 'oficina',
+              width: 120,
+              ellipsis: true,
+              render: (v: string | null) => (
+                <span translate="no">{v?.trim() || '—'}</span>
+              ),
+            } satisfies ColumnsType<AvanceMetaGerencialRow>[number],
+          ]
+        : []),
       {
         title: 'Analista',
         key: 'analista',
@@ -380,7 +415,7 @@ export function CierreGerencialPage() {
         render: (v: string) => <EstadoTag estado={v} />,
       },
     ],
-    [],
+    [verSedeColumna],
   )
 
   const metasColumns: ColumnsType<MetaGerencialRow> = useMemo(
@@ -543,7 +578,15 @@ export function CierreGerencialPage() {
     <CredixPage
       className="cierre-gerencial-page"
       title="Cierre y metas gerenciales"
-      subtitle={undefined}
+      subtitle={
+        esCentral
+          ? sedeSeleccionada?.denominacion
+            ? `Sede ${sedeSeleccionada.denominacion}`
+            : 'Toda la red'
+          : oficinaSesion?.denominacion
+            ? `Sede ${oficinaSesion.denominacion}`
+            : undefined
+      }
       breadcrumb={breadcrumb}
       actions={
         <Space wrap>
@@ -659,6 +702,21 @@ export function CierreGerencialPage() {
                 }}
               />
             </Form.Item>
+            {esCentral ? (
+              <Form.Item label="Sede">
+                <Select
+                  allowClear
+                  placeholder="Todas las sedes"
+                  style={{ width: 200 }}
+                  value={sedeId}
+                  onChange={(v) => setSedeId(v)}
+                  options={(oficinasQ.data ?? []).map((o) => ({
+                    value: o.oficinaId,
+                    label: o.denominacion || `Sede ${o.oficinaId}`,
+                  }))}
+                />
+              </Form.Item>
+            ) : null}
             <Form.Item label="Cartera">
               <Select
                 style={{ width: 150 }}
@@ -714,7 +772,7 @@ export function CierreGerencialPage() {
                   <CredixDataTable
                     mode="operacion"
                     className="cierre-gerencial-table"
-                    rowKey={(r) => `${r.usuarioId}-${r.tipoCartera}`}
+                    rowKey={(r) => `${r.oficinaId ?? 0}-${r.usuarioId}-${r.tipoCartera}`}
                     loading={avance.isLoading}
                     columns={avanceColumns}
                     dataSource={avanceFiltrado}
@@ -725,7 +783,7 @@ export function CierreGerencialPage() {
                     }}
                     size="small"
                     tableLayout="fixed"
-                    scroll={{ x: 2140 }}
+                    scroll={{ x: verSedeColumna ? 2260 : 2140 }}
                     locale={{
                       emptyText: (
                         <Empty
@@ -779,7 +837,7 @@ export function CierreGerencialPage() {
                   <CredixDataTable
                     mode="operacion"
                     className="cierre-gerencial-table"
-                    rowKey={(r) => `${r.usuarioId}-${r.tipoCartera}`}
+                    rowKey={(r) => `${r.oficinaId ?? 0}-${r.usuarioId}-${r.tipoCartera}`}
                     loading={metas.isLoading}
                     columns={metasColumns}
                     dataSource={metasFiltradas}

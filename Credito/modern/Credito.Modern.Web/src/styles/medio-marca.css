@@ -1,0 +1,72 @@
+/**
+ * mark = símbolo cuadrado (select).
+ * logo = wordmark oficial, misma altura, ancho proporcional (resumen).
+ */
+.medio-marca {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-shrink: 0;
+  line-height: 0;
+  vertical-align: middle;
+}
+
+.medio-marca--mark img {
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.medio-marca--md.medio-marca--mark img {
+  width: 24px;
+  height: 24px;
+}
+
+.medio-marca--lg.medio-marca--mark img {
+  width: 32px;
+  height: 32px;
+}
+
+.medio-marca--logo {
+  height: 28px;
+}
+
+.medio-marca--logo img,
+.medio-marca--logo svg {
+  display: block;
+  height: 28px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.boveda-tipo-pago-opt,
+.boveda-tipo-pago-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.boveda-tipo-pago-opt__text,
+.boveda-tipo-pago-cell__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111827;
+  letter-spacing: 0.01em;
+}
+
+.medio-marca-dropdown .ant-select-item {
+  min-height: 36px;
+}
+
+.medio-marca-dropdown .ant-select-item-option-content {
+  display: flex;
+  align-items: center;
+}

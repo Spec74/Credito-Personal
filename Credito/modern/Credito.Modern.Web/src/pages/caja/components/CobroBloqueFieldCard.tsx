@@ -25,6 +25,11 @@ import {
   getCurrentDevicePosition,
 } from '../../../utils/deviceGeolocation'
 import { FechaHoraDigitalField } from './FechaHoraDigitalField'
+import { ResumenCuentaBrandLogo } from '../../tesoreria/components/resumenCuentaBrandIcons'
+import {
+  medioEtiquetaUi,
+  medioNombreMarca,
+} from '../../tesoreria/components/bovedaResumenCuentaParse'
 
 const TIPOS_PAGO_DIGITAL = new Set([2, 3, 4, 5])
 
@@ -59,13 +64,6 @@ function digitsPhone(raw: string | null | undefined): string {
 function waHref(digits: string): string {
   const n = digits.startsWith('51') ? digits : `51${digits}`
   return `https://wa.me/${n}`
-}
-
-function shortTipoLabel(label: string): string {
-  const t = label.trim()
-  if (t.length <= 10) return t
-  const first = t.split(/\s+/)[0] ?? t
-  return first.length <= 12 ? first : `${first.slice(0, 10)}…`
 }
 
 /**
@@ -304,15 +302,24 @@ export function CobroBloqueFieldCard({
           />
         </label>
 
-        <div className="cobro-bloque-card__metodos" role="radiogroup" aria-label="Forma de pago">
+        <div
+          className="cobro-bloque-card__metodos"
+          role="radiogroup"
+          aria-label="Forma de pago"
+          translate="no"
+        >
           {tipoPagoOptions.map((opt) => {
             const active = edit.tipoPagoId === opt.value
+            const { variant, aria } = medioEtiquetaUi(opt.label)
+            const nombre = medioNombreMarca(opt.label)
             return (
               <button
                 key={opt.value}
                 type="button"
                 role="radio"
                 aria-checked={active}
+                aria-label={aria}
+                title={aria}
                 className={[
                   'cobro-bloque-card__metodo',
                   active ? 'cobro-bloque-card__metodo--active' : '',
@@ -321,7 +328,8 @@ export function CobroBloqueFieldCard({
                   .join(' ')}
                 onClick={() => onPatch({ tipoPagoId: opt.value })}
               >
-                {shortTipoLabel(opt.label)}
+                <ResumenCuentaBrandLogo variant={variant} etiqueta={nombre} size="sm" />
+                <span translate="no">{nombre}</span>
               </button>
             )
           })}

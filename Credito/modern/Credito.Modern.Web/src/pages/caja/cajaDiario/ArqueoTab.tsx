@@ -40,6 +40,7 @@ import type { CajaSession } from './types'
 import { errMsg } from './types'
 import { useAuth } from '../../../auth/useAuth'
 import { puedeAnularMovimientoCaja } from '../../../utils/cajaSaldosPermisos'
+import { TipoPagoCell } from '../../tesoreria/components/TipoPagoBrand'
 
 const { Paragraph, Text } = Typography
 
@@ -193,7 +194,12 @@ export function ArqueoTab({
         </Text>
       ),
     },
-    { title: 'Tipo pago', dataIndex: 'tipoPago', width: 100 },
+    {
+      title: 'Tipo pago',
+      dataIndex: 'tipoPago',
+      width: 140,
+      render: (v: string) => <TipoPagoCell tipoPago={v} />,
+    },
     { title: 'Glosa', dataIndex: 'glosa', ellipsis: true },
     {
       title: '',

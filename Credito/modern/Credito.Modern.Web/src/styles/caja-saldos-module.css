@@ -124,6 +124,13 @@
   border-top: 1px dashed var(--credix-border, #e5e7eb);
 }
 
+.caja-saldos-resumen__cuenta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .caja-saldos-resumen__lista strong {
   color: var(--credix-brand, #114885);
   font-variant-numeric: tabular-nums;

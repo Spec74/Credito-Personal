@@ -23,7 +23,9 @@ public sealed record UsuarioGestionListItemDto(
     string NombreCompleto,
     string? Celular1,
     string? EmailPersonal,
-    bool Estado);
+    bool Estado,
+    bool EnEstaSede = true,
+    string? Sedes = null);
 
 /// <summary>Usuario activo para filtros de reportes (gestor).</summary>
 public sealed record UsuarioReporteGestorDto(
@@ -36,7 +38,11 @@ public sealed record UsuarioGestionPageDto(
     int PageSize,
     int TotalRecords,
     int TotalPages,
-    List<UsuarioGestionListItemDto> Rows);
+    List<UsuarioGestionListItemDto> Rows,
+    bool EsCentral = false,
+    int OficinaId = 0,
+    string? Oficina = null,
+    bool VerRed = false);
 
 public sealed record UsuarioPersonaDetalleDto(
     int UsuarioId,
@@ -53,9 +59,20 @@ public sealed record UsuarioPersonaDetalleDto(
     string? Celular1,
     string? EmailPersonal,
     string? Direccion,
-    List<OficinaAsignacionDto> Oficinas);
+    List<OficinaAsignacionDto> Oficinas,
+    bool PuedeAsignarOtrasOficinas = false,
+    bool PuedeDesactivarCuenta = false,
+    bool EnEstaSede = false,
+    IReadOnlyList<string>? OtrasSedes = null);
 
-public sealed record OficinaAsignacionDto(int OficinaId, string Denominacion, bool Asignado);
+public sealed record OficinaAsignacionDto(
+    int OficinaId,
+    string Denominacion,
+    bool Asignado,
+    bool Editable = true);
+
+/// <summary>Sede de la sesión JWT para acotar gestión de usuarios.</summary>
+public sealed record UsuarioAdminScope(int OficinaId, bool EsCentral, string Oficina);
 
 public sealed record RolAsignacionDto(int RolId, string Denominacion, bool Asignado);
 

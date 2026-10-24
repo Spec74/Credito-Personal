@@ -4,6 +4,50 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-24 — Una sola base para la red
+
+**Qué hay:** arquitectura física = un SQL `CREDITO`. Sucursal = `OficinaId`,
+no un servidor. Central = `IndPrincipal`. Documentado en
+`ARCHITECTURE.md` §3.1 y SSD-07/08.
+
+**Qué no hay:** no se abre SQL por sede ni réplica entre locales.
+Andahuaylas se da de alta como Oficina + bóveda + cajas + usuarios.
+
+### 2026-10-24 — Usuarios, cierre gerencial y morosos por sede
+
+**Qué hay:** el mismo criterio sucursal / Central. Sucursal lista y
+escribe solo su `UsuarioOficina`; el alta nace en la oficina del JWT;
+quitar de sede no apaga la cuenta. Cierre gerencial llama
+`usp_ObtenerAvanceMetasGerenciales` por oficina (Central recorre
+activas o `sedeId` y sella sede). Metas oficiales siguen siendo las
+19 carteras; sucursal solo ve/guarda analistas de su sede. Morosos
+fuerza `@OficinaId` del JWT; Central honra el filtro o pide la red.
+Excel igual. `SesionOficina` resuelve `IndPrincipal` con
+`IOficinaReadService.GetActivas`.
+
+**Qué no hay:** no se inventa USP, no se toca
+`usp_GenerarCierreGerencialMensual`, no se ensancha RoleHome ni las
+listas ACL `UsuarioConsultaIds` / `UsuarioMetasIds`.
+
+### 2026-10-24 — Medios 1–5: wordmark oficial PNG
+
+**Qué hay:** Yape, BCP, Interbank, Banco de la Nación y CASH usan
+PNG oficiales (wordmark + mark recortado). El select es marca 20×20
++ nombre. BCP = medialuna naranja + «BCP». CASH = clip circular.
+Yape en resumen = lockup horizontal. `translate="no"` en UI operativa.
+
+**Qué no hay:** no se inventan SVG de marca. Ítems 6–8 no son medios
+de catálogo vigente (legado pre-multisucursal).
+
+### 2026-10-24 — Huanta es oficina, no medio 6–8
+
+**Qué hay:** script `2026-10-24-boveda-huanta-sede.sql` alinea montos
+legado de Principal hacia la bóveda de Huanta en marcas 1–5. Sede =
+`Boveda.OficinaId`.
+
+**Qué no hay:** no se usa `usp_TransferirBoveda` para pasar saldo
+negativo. No se indexan tablas de 1,6 M ahora.
+
 ### 2026-10-24 — Bóveda: cuadre y contrato de asientos
 
 **Qué hay:** tablero Red = efectivo por sede (no cartera).

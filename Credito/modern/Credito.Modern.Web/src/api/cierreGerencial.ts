@@ -43,6 +43,8 @@ export interface AvanceMetaGerencialRow {
   montoCobradoMes: number
   desembolsosMes: number
   nroOperacionesMes: number
+  oficinaId: number
+  oficina: string | null
 }
 
 export interface CierreGerencialAvance {
@@ -51,6 +53,9 @@ export interface CierreGerencialAvance {
   avanceNoOficial: boolean
   total: number
   filas: AvanceMetaGerencialRow[]
+  esCentral?: boolean
+  oficinaId?: number
+  oficina?: string | null
 }
 
 export interface MetaGerencialRow {
@@ -71,6 +76,8 @@ export interface MetaGerencialRow {
   fechaLimiteEdicion: string
   tipoCartera: string
   orden: number | null
+  oficinaId?: number
+  oficina?: string | null
 }
 
 export interface CierreGerencialMetas {
@@ -79,6 +86,9 @@ export interface CierreGerencialMetas {
   puedeEditar: boolean
   fechaLimiteEdicion: string | null
   metas: MetaGerencialRow[]
+  esCentral?: boolean
+  oficinaId?: number
+  oficina?: string | null
 }
 
 function periodoQuery(periodo: string): string {
@@ -91,19 +101,32 @@ export function fetchCierreGerencialPermisos(): Promise<CierreGerencialPermisos>
   return apiFetch('/cierre-gerencial/permisos')
 }
 
-export function fetchCierreGerencialAvance(periodo: string): Promise<CierreGerencialAvance> {
-  return apiFetch(`/cierre-gerencial/avance?periodo=${periodoQuery(periodo)}`)
+function sedeQuery(sedeId?: number | null): string {
+  return sedeId != null && sedeId > 0 ? `&sedeId=${sedeId}` : ''
 }
 
-export function fetchCierreGerencialMetas(periodo: string): Promise<CierreGerencialMetas> {
-  return apiFetch(`/cierre-gerencial/metas?periodo=${periodoQuery(periodo)}`)
+export function fetchCierreGerencialAvance(
+  periodo: string,
+  sedeId?: number | null,
+): Promise<CierreGerencialAvance> {
+  return apiFetch(`/cierre-gerencial/avance?periodo=${periodoQuery(periodo)}${sedeQuery(sedeId)}`)
 }
 
-export function downloadCierreGerencialExcel(periodo: string): Promise<void> {
+export function fetchCierreGerencialMetas(
+  periodo: string,
+  sedeId?: number | null,
+): Promise<CierreGerencialMetas> {
+  return apiFetch(`/cierre-gerencial/metas?periodo=${periodoQuery(periodo)}${sedeQuery(sedeId)}`)
+}
+
+export function downloadCierreGerencialExcel(
+  periodo: string,
+  sedeId?: number | null,
+): Promise<void> {
   const d = periodo.length >= 7 ? `${periodo.slice(0, 7)}-01` : periodo
   const stamp = d.replace(/-/g, '_')
   return apiDownload(
-    `/cierre-gerencial/excel?periodo=${periodoQuery(periodo)}`,
+    `/cierre-gerencial/excel?periodo=${periodoQuery(periodo)}${sedeQuery(sedeId)}`,
     `cierre_gerencial_${stamp}.xlsx`,
   )
 }

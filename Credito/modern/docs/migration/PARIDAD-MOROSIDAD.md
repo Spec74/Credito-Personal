@@ -44,6 +44,12 @@ Reglas (mismas que el comentario del SP / dashboard gestor mora):
 
 El resumen de tarjetas (clientes, créditos, saldo, conteos por código) lo arma el C# sobre el resultado del SP; no hay segundo SP.
 
+**Alcance por sede (2026-10-24):** la ACL no cambia. Lo que cambia es el
+`@OficinaId` efectivo. Sucursal: la API ignora el query y usa
+`vendix:oficina_id`. Central (`IndPrincipal`): `null` = toda la red; un
+id = esa sede. El Excel usa el mismo criterio (`oficinaId` query solo
+honrado en Central). La SPA oculta el combo de sede en sucursal.
+
 ## Despliegue Azure (BAK 2026-09-22)
 
 En el bak de producción el procedimiento **ya viene**. No hace falta reaplicarlo salvo que falte o se quiera alinear el cuerpo con el script del repo.

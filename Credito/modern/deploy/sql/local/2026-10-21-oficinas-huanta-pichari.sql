@@ -1,23 +1,17 @@
--- SOLO BD local de desarrollo.
--- No aplicar en Azure: las sedes de producción ya existen con sus IDs reales.
--- Huanta = oficina 3 inactiva (SUCURSAL AYACUCCHO). Pichari = alta nueva.
--- Asigna RMANTILLA y YCERVANTES con los mismos roles de la oficina 1.
+-- SOLO BD local de desarrollo. NO aplicar en Azure.
+-- NO renombrar oficina 3: en producción es SUCURSAL AYACUCCHO.
+-- Huanta es oficina nueva (Azure = 10). Usar 2026-10-24-alinear-sedes-azure.sql.
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
 BEGIN TRAN;
 
+-- NO renombrar oficina 3 a HUANTA. Eso mezcló Ayacucho con Huanta.
 UPDATE MAESTRO.Oficina
-SET Denominacion = N'HUANTA',
-    Descripcion = N'Sucursal Huanta',
-    Estado = CAST(1 AS bit),
+SET Estado = CAST(1 AS bit),
     IndPrincipal = CAST(0 AS bit)
-WHERE OficinaId = 3
-  AND (
-        Denominacion LIKE N'%AYACUCCHO%'
-        OR Denominacion LIKE N'%HUANTA%'
-      );
+WHERE OficinaId = 3;
 
 IF NOT EXISTS (
     SELECT 1

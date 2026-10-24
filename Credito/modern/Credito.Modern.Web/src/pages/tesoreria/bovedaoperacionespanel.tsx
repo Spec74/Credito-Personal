@@ -43,11 +43,44 @@ import { useSecondaryDataReady } from '../../hooks/useSecondaryDataReady'
 import type { TipoOperacionListItem } from '../../types/api'
 import { FIELD_MAX, glosaRules, moneyRequired } from '../../validation/formRules'
 import {
+  TipoPagoOptionLabel,
   buildTipoPagoOptions,
   tipoPagoOptionRender,
+  tipoPagoPopupRender,
 } from './components/TipoPagoBrand'
 
 const { Paragraph } = Typography
+
+function MedioRuta({ origen, destino }: { origen: string; destino: string }) {
+  return (
+    <p className="boveda-medio-ruta">
+      <span className="boveda-medio-ruta__chip">{origen}</span>
+      <span className="boveda-medio-ruta__arrow" aria-hidden>
+        →
+      </span>
+      <span className="boveda-medio-ruta__chip">{destino}</span>
+    </p>
+  )
+}
+
+function MedioFijo({
+  label,
+  denominacion,
+  hint,
+}: {
+  label: string
+  denominacion: string
+  hint: string
+}) {
+  return (
+    <Form.Item label={label}>
+      <div className="boveda-medio-fijo">
+        <TipoPagoOptionLabel denominacion={denominacion} />
+        <span className="boveda-medio-fijo__hint">{hint}</span>
+      </div>
+    </Form.Item>
+  )
+}
 
 const OPS_GROUPS: { title: string; items: { key: string; label: string }[] }[] = [
   { title: 'Registrar', items: [{ key: 'ingreso', label: 'Movimiento' }] },
@@ -78,15 +111,15 @@ const OPS_COPY: Record<string, { title: string; blurb: string }> = {
   },
   caja: {
     title: 'Transferir a caja',
-    blurb: 'Pasa saldo a una caja diaria abierta de esta oficina.',
+    blurb: 'Pasa efectivo a una caja diaria abierta. El medio es efectivo en origen y destino.',
   },
   analista: {
     title: 'Transferir a analista',
-    blurb: 'Descuenta el medio de origen y abona efectivo en la caja del analista.',
+    blurb: 'El analista ya tiene caja. Se descuenta el medio (Yape, banco…) y se abona efectivo en esa caja.',
   },
   chica: {
     title: 'Caja chica',
-    blurb: 'Pasa saldo a la caja chica abierta.',
+    blurb: 'Pasa efectivo a la caja chica abierta.',
   },
   bancos: {
     title: 'Entre medios',
@@ -124,6 +157,7 @@ function invalidateBoveda(
   void queryClient.invalidateQueries({ queryKey: ['boveda-listar', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['existe-boveda-temporal', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['resumen-cuenta-boveda', bovedaId] })
+  void queryClient.invalidateQueries({ queryKey: ['boveda-medios-red', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['rpt-movimiento-boveda', bovedaId] })
   void queryClient.invalidateQueries({ queryKey: ['saldos-caja-diario-boveda', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['validar-cierre-saldos', oficinaId] })
@@ -179,6 +213,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     showSearch: true,
     optionFilterProp: 'label' as const,
     optionRender: tipoPagoOptionRender,
+    popupRender: tipoPagoPopupRender,
+    popupClassName: 'medio-marca-dropdown',
     labelRender: (props: { label?: ReactNode }) =>
       typeof props.label === 'string'
         ? tipoPagoOptionRender({ label: props.label })
@@ -321,6 +357,58 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           tipoPagoId: v.tipoPagoId && v.tipoPagoId > 0 ? v.tipoPagoId : 1,
         })
       },
+    })
+  }
+
+  const efectivoLabel =
+    tipoPagoOptions.find((o) => o.value === 1)?.label ?? 'Efectivo'
+  const cajasAbiertas = cajasQuery.data ?? []
+  const cajasConAnalista = cajasAbiertas.filter((c) => c.usuarioAsignadoId > 0)
+
+  const pedirCaja = (v: { cajaId: number; importe: number; descripcion: string }) => {
+    const caja = cajasAbiertas.find((c) => c.cajaId === v.cajaId)
+    confirmMoney({
+      title: 'Transferir a caja',
+      amount: v.importe,
+      officeLabel: caja?.etiqueta,
+      consequence:
+        'Sale efectivo de la bóveda y entra efectivo en la caja diaria. El medio no cambia.',
+      okText: 'Transferir',
+      onOk: () =>
+        aCaja.mutateAsync({
+          oficinaId,
+          cajaId: v.cajaId,
+          importe: v.importe,
+          descripcion: v.descripcion,
+          tipoPagoOrigenId: 1,
+          tipoPagoDestinoId: 1,
+        }),
+    })
+  }
+
+  const pedirAnalista = (v: {
+    usuarioAnalistaId: number
+    tipoPagoOrigenId: number
+    importe: number
+    descripcion: string
+  }) => {
+    const caja = cajasConAnalista.find((c) => c.usuarioAsignadoId === v.usuarioAnalistaId)
+    const medio =
+      tipoPagoOptions.find((o) => o.value === v.tipoPagoOrigenId)?.label ?? 'el medio'
+    confirmMoney({
+      title: 'Transferir a analista',
+      amount: v.importe,
+      officeLabel: caja?.etiqueta,
+      consequence: `Sale ${medio} de la bóveda y entra efectivo en la caja del analista.`,
+      okText: 'Transferir',
+      onOk: () =>
+        aAnalista.mutateAsync({
+          oficinaId,
+          usuarioAnalistaId: v.usuarioAnalistaId,
+          tipoPagoOrigenId: v.tipoPagoOrigenId,
+          importe: v.importe,
+          descripcion: v.descripcion,
+        }),
     })
   }
 
@@ -477,30 +565,47 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
         <Form
           className="boveda-operaciones-form"
           layout="vertical"
+          initialValues={{ tipoPagoOrigenId: 1, tipoPagoDestinoId: 1 }}
           onFinish={(v) =>
-            aCaja.mutate({
-              oficinaId,
+            pedirCaja({
               cajaId: v.cajaId,
               importe: v.importe,
               descripcion: v.descripcion,
             })
           }
         >
+          <MedioRuta
+            origen={`Bóveda · ${efectivoLabel}`}
+            destino={`Caja diaria · ${efectivoLabel}`}
+          />
+          {!cajasQuery.isLoading && cajasAbiertas.length === 0 ? (
+            <Alert
+              type="warning"
+              showIcon
+              style={{ marginBottom: 14 }}
+              message="No hay cajas diarias abiertas en esta oficina."
+            />
+          ) : null}
           <div className="boveda-operaciones-form__row">
-          <Form.Item name="cajaId" label="Caja abierta" rules={[{ required: true }]}>
+          <Form.Item name="cajaId" label="Caja diaria abierta" rules={[{ required: true }]}>
             <Select
               loading={cajasQuery.isLoading}
               showSearch
               optionFilterProp="label"
               placeholder="Seleccione caja"
-              options={(cajasQuery.data ?? []).map((c) => ({
+              options={cajasAbiertas.map((c) => ({
                 value: c.cajaId,
                 label: c.etiqueta,
               }))}
             />
           </Form.Item>
-          {importeField}
+          <MedioFijo
+            label="Medio"
+            denominacion={efectivoLabel}
+            hint="Efectivo. No cambia de medio."
+          />
           </div>
+          {importeField}
           {descripcionField}
           {formActions('Transferir a caja', aCaja.isPending)}
         </Form>
@@ -511,8 +616,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             layout="vertical"
             initialValues={{ tipoPagoOrigenId: 2 }}
             onFinish={(v) =>
-              aAnalista.mutate({
-                oficinaId,
+              pedirAnalista({
                 usuarioAnalistaId: v.usuarioAnalistaId,
                 tipoPagoOrigenId: v.tipoPagoOrigenId,
                 importe: v.importe,
@@ -520,18 +624,45 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               })
             }
           >
+            <MedioRuta
+              origen="Bóveda · Yape o banco"
+              destino={`Caja del analista · ${efectivoLabel}`}
+            />
+            {!cajasQuery.isLoading && cajasAbiertas.length > 0 && cajasConAnalista.length === 0 ? (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginBottom: 14 }}
+                message="Hay cajas abiertas, pero ninguna tiene analista asignado. Use Transferir a caja."
+              />
+            ) : null}
+            {!cajasQuery.isLoading && cajasAbiertas.length === 0 ? (
+              <Alert
+                type="warning"
+                showIcon
+                style={{ marginBottom: 14 }}
+                message="No hay cajas diarias abiertas. El analista necesita una caja asignada."
+              />
+            ) : null}
             <div className="boveda-operaciones-form__row">
             <Form.Item
               name="tipoPagoOrigenId"
-              label="Banco / medio de origen"
+              label="Medio de origen"
               rules={[{ required: true }]}
             >
               <Select
                 options={tipoPagoOptions.filter((o) => o.value !== 1)}
-                placeholder="Seleccione medio (no efectivo)"
+                placeholder="Yape, Plin o banco"
                 {...tipoPagoSelectProps}
               />
             </Form.Item>
+            <MedioFijo
+              label="Destino"
+              denominacion={efectivoLabel}
+              hint="Efectivo en la caja del analista."
+            />
+            </div>
+            <div className="boveda-operaciones-form__row">
             <Form.Item
               name="usuarioAnalistaId"
               label="Analista (caja abierta)"
@@ -542,16 +673,14 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                 showSearch
                 optionFilterProp="label"
                 placeholder="Seleccione analista"
-                options={(cajasQuery.data ?? [])
-                  .filter((c) => c.usuarioAsignadoId > 0)
-                  .map((c) => ({
-                    value: c.usuarioAsignadoId,
-                    label: c.etiqueta,
-                  }))}
+                options={cajasConAnalista.map((c) => ({
+                  value: c.usuarioAsignadoId,
+                  label: c.etiqueta,
+                }))}
               />
             </Form.Item>
-            </div>
             {importeField}
+            </div>
             {descripcionField}
             {formActions('Transferir a analista', aAnalista.isPending)}
           </Form>
@@ -568,6 +697,15 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             })
           }
         >
+          <MedioRuta
+            origen={`Bóveda · ${efectivoLabel}`}
+            destino={`Caja chica · ${efectivoLabel}`}
+          />
+          <MedioFijo
+            label="Medio"
+            denominacion={efectivoLabel}
+            hint="Efectivo. La caja chica no recibe Yape ni bancos."
+          />
           {importeDescripcionFields}
           {formActions('Transferir a caja chica', aCajaChica.isPending)}
         </Form>

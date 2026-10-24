@@ -19,6 +19,7 @@ import { CredixDataTable, CredixInformePage } from '../../components/credix'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { TipoPagoCell } from './components/TipoPagoBrand'
 import '../../styles/boveda-module.css';
 
 type FormValues = { bovedaId: number }
@@ -97,7 +98,12 @@ export function MovimientoBovedaPage() {
       align: 'right',
       render: (v: number | null) => (v != null ? formatMoney(v) : '—'),
     },
-    { title: 'Tipo pago', dataIndex: 'tipoPago', width: 100, ellipsis: true },
+    {
+      title: 'Tipo pago',
+      dataIndex: 'tipoPago',
+      width: 140,
+      render: (v: string) => <TipoPagoCell tipoPago={v} />,
+    },
     { title: 'Agente', dataIndex: 'agente', width: 120, ellipsis: true },
     {
       title: '',

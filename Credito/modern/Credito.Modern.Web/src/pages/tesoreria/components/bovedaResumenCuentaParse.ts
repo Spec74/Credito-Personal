@@ -30,12 +30,36 @@ function normalizarClave(raw: string): string {
   return raw.trim().replace(/\s+/g, ' ').toUpperCase()
 }
 
-/** Sufijo de sede/cuenta cuando el SP distingue Central vs Huanta. */
+/** Prefijos de marca. Lo que sobra en ValorTabla.Denominacion es la sede. */
+const PREFIJOS_MARCA = [
+  /^BANCO DE LA NACI[OÓ]N\b/,
+  /^BCO NACI[OÓ]N\b/,
+  /^BCO CREDITO\b/,
+  /^BANCO CREDITO\b/,
+  /^SCOTIABANK\b/,
+  /^INTERBANK\b/,
+  /^EFECTIVO\b/,
+  /^YAPE\b/,
+  /^PLIN\b/,
+  /^BBVA\b/,
+  /^BCP\b/,
+]
+
+function tituloSede(raw: string): string {
+  return raw.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
+/** Sede en el nombre del catálogo: «YAPE ANDAHUAYLAS» → Andahuaylas. */
 function sufijoSede(clave: string): string {
-  const k = normalizarClave(clave)
-  if (k.includes('HUANTA')) return ' Huanta'
-  if (k.includes('CENTRAL')) return ' Central'
-  return ''
+  let k = normalizarClave(clave)
+  for (const re of PREFIJOS_MARCA) {
+    if (re.test(k)) {
+      k = k.replace(re, '').trim()
+      break
+    }
+  }
+  if (!k) return ''
+  return ` ${tituloSede(k)}`
 }
 
 /**
@@ -105,6 +129,85 @@ export function resolveResumenCuentaVariant(
     .toLowerCase()
     .replace(/\b\w/g, (c) => c.toUpperCase())
   return { etiqueta, variant: 'otro' }
+}
+
+/**
+ * El wordmark ya dice el banco (y Yape/Plin también). Junto al logo
+ * solo va lo que aporta: sede, o «Efectivo» porque el icono no nombra.
+ */
+const MARCA_EN_EL_LOGO: ReadonlySet<ResumenCuentaVariant> = new Set([
+  'yape',
+  'plin',
+  'interbank',
+  'bcp',
+  'banco-nacion',
+  'bbva',
+  'scotiabank',
+])
+
+export function medioComplemento(
+  etiqueta: string,
+  variant: ResumenCuentaVariant,
+): string {
+  if (variant === 'efectivo') return 'Efectivo'
+  if (!MARCA_EN_EL_LOGO.has(variant)) return etiqueta
+  return sufijoSede(etiqueta).trim()
+}
+
+/** Catálogo 1–5 es marca. 6–8 y «YAPE HUANTA» son sede disfrazada: no van al combo. */
+export function esMarcaTipoPago(item: { itemId: number; denominacion: string }): boolean {
+  if (item.itemId >= 6 && item.itemId <= 8) return false
+  return !/\s+(HUANTA|PICHARI|ANDAHUAYLAS|HUAMANGA|CENTRAL)\s*$/i.test(
+    item.denominacion.trim(),
+  )
+}
+
+/** Nombre corto de sede para la lista (Oficina.Denominacion). */
+export function etiquetaSede(oficina: string, indPrincipal: boolean): string {
+  if (indPrincipal) return 'Central'
+  const raw = oficina.replace(/^(SUCURSAL|OFICINA)\s+/i, '').trim()
+  if (!raw) return oficina
+  return raw.replace(/\S+/g, (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+}
+
+export function medioEtiquetaUi(raw: string): {
+  variant: ResumenCuentaVariant
+  aria: string
+  visible: string
+} {
+  const { etiqueta, variant } = resolveResumenCuentaVariant(raw)
+  return {
+    variant,
+    aria: etiqueta,
+    visible: medioComplemento(etiqueta, variant),
+  }
+}
+
+/** Nombre de marca para combos y chips. El icono no sustituye al texto. */
+export function medioNombreMarca(raw: string): string {
+  const { variant, etiqueta } = resolveResumenCuentaVariant(raw)
+  switch (variant) {
+    case 'efectivo':
+      return 'Efectivo'
+    case 'yape':
+      return 'Yape'
+    case 'plin':
+      return 'Plin'
+    case 'interbank':
+      return 'Interbank'
+    case 'bcp':
+      return 'BCP'
+    case 'banco-nacion':
+      return 'Banco de la Nación'
+    case 'bbva':
+      return 'BBVA'
+    case 'scotiabank':
+      return 'Scotiabank'
+    case 'transferencia':
+      return 'Transferencia'
+    default:
+      return etiqueta
+  }
 }
 
 /**

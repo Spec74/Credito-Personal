@@ -17,8 +17,9 @@ export function confirmMoney(options: {
     okText: options.okText ?? 'Confirmar',
     okButtonProps: { danger: true },
     cancelText: 'Cancelar',
+    modalRender: (node) => <div translate="no">{node}</div>,
     content: (
-      <div className="credix-money-confirm">
+      <div className="credix-money-confirm" translate="no">
         <p className="credix-money-confirm__amount">S/ {formatMoney(options.amount)}</p>
         {options.officeLabel ? (
           <Text type="secondary" style={{ display: 'block' }}>

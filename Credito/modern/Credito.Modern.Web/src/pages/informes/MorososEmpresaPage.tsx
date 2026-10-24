@@ -41,6 +41,8 @@ import {
   CredixPage,
   CredixPanel,
 } from '../../components/credix'
+import { fetchOficinas } from '../../api/oficinas'
+import { useAuth } from '../../auth/useAuth'
 import { formatMoney } from '../../utils/formatMoney'
 import '../../styles/morosos-empresa.css'
 
@@ -80,12 +82,13 @@ function resumenTipo(filas: MorosidadEmpresaItem[], codigo: string) {
 }
 
 export function MorososEmpresaPage() {
+  const { session } = useAuth()
   const [fechaCorte, setFechaCorte] = useState<Dayjs>(() => dayjs())
   const [fechaCorteAplicada, setFechaCorteAplicada] = useState(() => dayjs().format('YYYY-MM-DD'))
   const [tipoActivo, setTipoActivo] = useState<MorosidadTipo>('TODOS')
   const [buscar, setBuscar] = useState('')
   const buscarDeferred = useDeferredValue(buscar)
-  const [oficinaFiltro, setOficinaFiltro] = useState<string>('')
+  const [oficinaFiltro, setOficinaFiltro] = useState<number | undefined>(undefined)
   const [gestorFiltro, setGestorFiltro] = useState('')
   const [orden, setOrden] = useState<OrdenKey>('DIAS_DESC')
   const [pagina, setPagina] = useState(1)
@@ -99,9 +102,27 @@ export function MorososEmpresaPage() {
     staleTime: 5 * 60_000,
   })
 
+  const oficinasQ = useQuery({
+    queryKey: ['oficinas-activas'],
+    queryFn: fetchOficinas,
+    staleTime: 5 * 60_000,
+  })
+
+  const esCentral =
+    oficinasQ.data?.some((o) => o.oficinaId === session?.oficinaId && o.indPrincipal) === true
+  const oficinaSesion = oficinasQ.data?.find((o) => o.oficinaId === session?.oficinaId)
+  const sedeSeleccionada = oficinaFiltro
+    ? oficinasQ.data?.find((o) => o.oficinaId === oficinaFiltro)
+    : undefined
+  const oficinaConsulta = esCentral ? oficinaFiltro : undefined
+
   const dataQuery = useQuery({
-    queryKey: ['morosidad-empresa', fechaCorteAplicada],
-    queryFn: () => fetchMorosidadEmpresa({ fechaCorte: fechaCorteAplicada }),
+    queryKey: ['morosidad-empresa', fechaCorteAplicada, oficinaConsulta ?? 'red'],
+    queryFn: () =>
+      fetchMorosidadEmpresa({
+        fechaCorte: fechaCorteAplicada,
+        oficinaId: oficinaConsulta,
+      }),
     enabled: permisos.data?.puedeConsultar === true,
     staleTime: 60_000,
   })
@@ -117,6 +138,7 @@ export function MorososEmpresaPage() {
       await downloadMorosidadExcel(
         exportInicio.format('YYYY-MM-DD'),
         exportFin.format('YYYY-MM-DD'),
+        esCentral ? oficinaFiltro : session?.oficinaId,
       )
     },
     onSuccess: () => {
@@ -135,17 +157,6 @@ export function MorososEmpresaPage() {
   })
 
   const filas = dataQuery.data?.filas ?? []
-
-  const oficinasOptions = useMemo(() => {
-    const map = new Map<string, string>()
-    for (const f of filas) {
-      const key = f.oficinaId == null ? 'VARIAS' : String(f.oficinaId)
-      map.set(key, f.oficina || 'Sin oficina')
-    }
-    return [...map.entries()]
-      .sort((a, b) => a[1].localeCompare(b[1], 'es'))
-      .map(([value, label]) => ({ value, label }))
-  }, [filas])
 
   const gestoresOptions = useMemo(() => {
     const set = new Set<string>()
@@ -169,14 +180,6 @@ export function MorososEmpresaPage() {
         if (!haystack.includes(q)) return false
       }
 
-      if (oficinaFiltro) {
-        if (oficinaFiltro === 'VARIAS') {
-          if (item.oficinaId != null) return false
-        } else if (String(item.oficinaId ?? '') !== oficinaFiltro) {
-          return false
-        }
-      }
-
       if (gestorQ) {
         const responsable = etiquetaGestor(item).toUpperCase()
         if (!responsable.includes(gestorQ)) return false
@@ -184,7 +187,7 @@ export function MorososEmpresaPage() {
 
       return true
     })
-  }, [filas, buscarDeferred, oficinaFiltro, gestorFiltro])
+  }, [filas, buscarDeferred, gestorFiltro])
 
   const kpis = useMemo(() => {
     let saldo = 0
@@ -323,7 +326,7 @@ export function MorososEmpresaPage() {
   const limpiarFiltros = () => {
     setTipoActivo('TODOS')
     setBuscar('')
-    setOficinaFiltro('')
+    setOficinaFiltro(undefined)
     setGestorFiltro('')
     setOrden('DIAS_DESC')
     setPagina(1)
@@ -368,7 +371,15 @@ export function MorososEmpresaPage() {
     <CredixPage
       className="morosos-empresa-page"
       title="Morosidad empresarial"
-      subtitle={undefined}
+      subtitle={
+        esCentral
+          ? sedeSeleccionada?.denominacion
+            ? `Sede ${sedeSeleccionada.denominacion}`
+            : 'Toda la red'
+          : oficinaSesion?.denominacion
+            ? `Sede ${oficinaSesion.denominacion}`
+            : undefined
+      }
       breadcrumb={breadcrumb}
       actions={
         <Space wrap>
@@ -506,17 +517,22 @@ export function MorososEmpresaPage() {
             }}
             style={{ minWidth: 220, flex: '1 1 14rem' }}
           />
-          <Select
-            allowClear
-            placeholder="Todas las oficinas"
-            value={oficinaFiltro || undefined}
-            options={oficinasOptions}
-            onChange={(v) => {
-              setOficinaFiltro(v ?? '')
-              setPagina(1)
-            }}
-            style={{ minWidth: 180 }}
-          />
+          {esCentral ? (
+            <Select
+              allowClear
+              placeholder="Todas las sedes"
+              value={oficinaFiltro}
+              options={(oficinasQ.data ?? []).map((o) => ({
+                value: o.oficinaId,
+                label: o.denominacion || `Sede ${o.oficinaId}`,
+              }))}
+              onChange={(v) => {
+                setOficinaFiltro(v)
+                setPagina(1)
+              }}
+              style={{ minWidth: 180 }}
+            />
+          ) : null}
           <AutoComplete
             allowClear
             options={gestoresOptions}
