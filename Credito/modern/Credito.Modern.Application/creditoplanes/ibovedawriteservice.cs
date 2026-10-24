@@ -20,5 +20,6 @@ public interface IBovedaWriteService
         int usuarioRegId,
         int flagAceptar,
         int bovedaMovTempId,
+        short tipoPagoId = 1,
         CancellationToken cancellationToken = default);
 }

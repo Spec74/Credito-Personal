@@ -4,6 +4,23 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-24 — Bóveda: cuadre y contrato de asientos
+
+**Qué hay:** tablero Red = efectivo por sede (no cartera).
+`usp_TransferirBoveda` lleva `@TipoPagoId` (default 1) en
+TRS/TRE y no deja overdraw del medio. `usp_CerrarBoveda` exige una
+sola principal y cajas en orden. `usp_CerrarBovedaTemporal` devuelve
+todos los medios y borra ENCARGADO solo de esa oficina.
+`usp_CerrarCajasDiarios` redondea a 2 decimales. La pantalla muestra
+SI+E−S, Σ medios y efectivo de oficina (sin mezclar cartera). Índice
+B-06 en el mismo script de deploy.
+
+**Qué no hay:** no se inventa flag 1 ni se toca
+`usp_ActualizarSaldosBoveda`. MVC sigue válido: el nuevo parámetro
+va al final con default.
+
+**Script:** `deploy/sql/2026-10-24-boveda-cuadre-contrato.sql`
+
 ### 2026-10-24 — Bóveda: operaciones como escritorio
 
 **Qué hay:** cada operación tiene título y una línea de para qué.

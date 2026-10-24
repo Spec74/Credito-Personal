@@ -10,4 +10,5 @@ public sealed record BovedaEstadoDineroDto(
     decimal VencidoMenor60,
     decimal VencidoMayor60,
     decimal VencidoIrrecuperable,
-    decimal TotalFondo);
+    decimal TotalFondo,
+    decimal EfectivoOficina);

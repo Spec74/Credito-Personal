@@ -5402,6 +5402,73 @@ internal static class CreditoOperacionEndpoints
 
 
         app.MapGet(
+                "/api/v1/credito/boveda-red-posicion",
+                async Task<Results<Ok<List<BovedaRedPosicionDto>>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    int oficinaId,
+                    IBovedaOficinaReadService bovedaOficina,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (oficinaId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inv?lida",
+                            detail: "oficinaId debe ser un entero >= 1.");
+                    }
+
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+                    if (oficinaError is not null)
+                    {
+                        return oficinaError;
+                    }
+
+                    var log = loggerFactory.CreateLogger("BovedaRedPosicion");
+                    try
+                    {
+                        var rows = await bovedaOficina
+                            .ListarPosicionRedAsync(ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(rows.ToList());
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Posici?n red b?veda: configuraci?n incompleta");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuraci?n incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error al listar posici?n de efectivo de la red");
+                        var detail = "No se pudo listar la posici?n de efectivo de la red.";
+                        if (env.IsDevelopment())
+                        {
+                            detail += $" Detalle: {ex.Message}";
+                        }
+
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("CreditoBovedaRedPosicion")
+            .WithSummary("Efectivo de oficina por sede (b?veda + cajas + chica). No mezcla cartera. CreditoUser.")
+            .WithTags("credito", "boveda")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .Produces<List<BovedaRedPosicionDto>>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+
+
+        app.MapGet(
                 "/api/v1/credito/boveda-transferencias-pendientes",
                 async Task<Results<Ok<List<BovedaTransferenciaPendienteDto>>, ProblemHttpResult>> (
                     HttpContext httpContext,
@@ -5996,6 +6063,7 @@ internal static class CreditoOperacionEndpoints
                                 usuarioId,
                                 body.FlagAceptar,
                                 body.BovedaMovTempId,
+                                body.TipoPagoId < 1 ? (short)1 : body.TipoPagoId,
                                 ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(response);
@@ -6030,7 +6098,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoTransferirBoveda")
             .WithSummary(
-                "Escritura: CREDITO.usp_TransferirBoveda. Fondeo inmediato (flag 0) o anulación de BovedaMovTemp (flag 2). El USP no implementa aceptación.")
+                "Escritura: CREDITO.usp_TransferirBoveda. Fondeo inmediato (flag 0) con TipoPagoId, o anulación de BovedaMovTemp (flag 2). El USP no implementa aceptación.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<CajaDiarioOperacionResponse>(StatusCodes.Status200OK, "application/json")
@@ -7433,6 +7501,7 @@ internal static class CreditoOperacionEndpoints
                                 body.UsuarioId,
                                 usuarioId,
                                 serverTime.Value,
+                                body.TipoPagoId < 1 ? (short)1 : body.TipoPagoId,
                                 ct)
                             .ConfigureAwait(false);
 

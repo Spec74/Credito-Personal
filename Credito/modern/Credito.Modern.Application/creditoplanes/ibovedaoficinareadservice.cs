@@ -19,6 +19,10 @@ public interface IBovedaOficinaReadService
         int oficinaOrigenId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Efectivo de oficina por sede. Sin USP nuevo; misma cuenta que el cuadre.</summary>
+    Task<IReadOnlyList<BovedaRedPosicionDto>> ListarPosicionRedAsync(
+        CancellationToken cancellationToken = default);
+
     /// <summary>Transferencias pendientes hacia la bóveda destino (paridad <c>ListarTransferencias</c>).</summary>
     Task<IReadOnlyList<BovedaTransferenciaPendienteDto>> ListarTransferenciasPendientesAsync(
         int bovedaDestinoId,

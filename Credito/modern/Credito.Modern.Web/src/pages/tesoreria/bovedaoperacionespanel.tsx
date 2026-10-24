@@ -130,6 +130,7 @@ function invalidateBoveda(
   void queryClient.invalidateQueries({ queryKey: ['cajas-transferencia-boveda', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['bovedas-destino-transferencia', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['boveda-transferencias-pendientes', bovedaId] })
+  void queryClient.invalidateQueries({ queryKey: ['boveda-red-posicion'] })
 }
 
 type Props = {
@@ -292,15 +293,23 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     onError: (e) => message.error(errMsg(e)),
   })
 
-  const pedirFondeo = (v: { bovedaDestinoId: number; monto: number; glosa: string }) => {
+  const pedirFondeo = (v: {
+    bovedaDestinoId: number
+    monto: number
+    glosa: string
+    tipoPagoId?: number
+  }) => {
     const dest = bovedasDestinoQuery.data?.find((d) => d.bovedaId === v.bovedaDestinoId)
+    const medio =
+      tipoPagoOptions.find((o) => o.value === (v.tipoPagoId && v.tipoPagoId > 0 ? v.tipoPagoId : 1))
+        ?.label ?? 'efectivo'
     confirmMoney({
       title: dest ? `Fondear ${dest.oficina}` : 'Fondear / transferir ahora',
       amount: v.monto,
       officeLabel: dest
         ? `Bóveda #${bovedaId} → ${dest.oficina} · #${dest.bovedaId}`
         : `Bóveda #${bovedaId}`,
-      consequence: 'El saldo se acredita de inmediato en origen y destino. No espera aceptación.',
+      consequence: `Viaja ${medio}. Se acredita de inmediato en origen y destino. No espera aceptación.`,
       okText: 'Transferir',
       onOk: async () => {
         await transferir.mutateAsync({
@@ -309,6 +318,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           bovedaDestinoId: v.bovedaDestinoId,
           glosa: v.glosa,
           monto: v.monto,
+          tipoPagoId: v.tipoPagoId && v.tipoPagoId > 0 ? v.tipoPagoId : 1,
         })
       },
     })
@@ -630,13 +640,17 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           <Form
             className="boveda-operaciones-form"
             layout="vertical"
-            initialValues={{ usuarioId: existeTemporal ? 0 : undefined }}
+            initialValues={{
+              usuarioId: existeTemporal ? 0 : undefined,
+              tipoPagoId: 1,
+            }}
             onFinish={(v) =>
               temporal.mutate({
                 oficinaId,
                 importe: v.importe,
                 descripcion: v.descripcion,
                 usuarioId: existeTemporal ? 0 : v.usuarioId,
+                tipoPagoId: v.tipoPagoId && v.tipoPagoId > 0 ? v.tipoPagoId : 1,
               })
             }
           >
@@ -672,6 +686,18 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                 />
               </Form.Item>
             )}
+            <Form.Item
+              name="tipoPagoId"
+              label="Medio"
+              rules={[{ required: true, message: 'Seleccione el medio' }]}
+            >
+              <Select
+                loading={tiposPagoQuery.isLoading}
+                placeholder="Efectivo, Yape, banco…"
+                options={tipoPagoOptions}
+                {...tipoPagoSelectProps}
+              />
+            </Form.Item>
             {importeDescripcionFields}
             {formActions(
               existeTemporal ? 'Transferir a temporal' : 'Asignar temporal',
@@ -692,6 +718,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           <Form
             className="boveda-operaciones-form"
             layout="vertical"
+            initialValues={{ tipoPagoId: 1 }}
             onFinish={pedirFondeo}
           >
             <div className="boveda-operaciones-form__row">
@@ -711,10 +738,22 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                 }))}
               />
             </Form.Item>
+            <Form.Item
+              name="tipoPagoId"
+              label="Medio"
+              rules={[{ required: true, message: 'Seleccione el medio' }]}
+            >
+              <Select
+                loading={tiposPagoQuery.isLoading}
+                placeholder="Efectivo, Yape, banco…"
+                options={tipoPagoOptions}
+                {...tipoPagoSelectProps}
+              />
+            </Form.Item>
+            </div>
             <Form.Item name="monto" label="Monto" rules={moneyRequired('Monto mayor a cero')}>
               <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
             </Form.Item>
-            </div>
             <Form.Item name="glosa" label="Glosa" rules={glosaRules}>
               <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
             </Form.Item>
@@ -768,7 +807,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             <Alert
               type="success"
               showIcon
-              message="Validación correcta: puede cerrar la bóveda principal."
+              message="Cajas en orden y Σ medios = saldo. Puede cerrar la principal."
             />
           ) : validacionCierre.isError ? (
             <Alert

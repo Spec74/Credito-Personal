@@ -73,47 +73,35 @@ export function BovedaPage() {
   const stats = useMemo((): CredixStatItem[] => {
     if (boveda.isLoading) {
       return [
-        { value: '…', label: 'Saldo' },
+        { value: '…', label: 'Saldo inicial' },
         { value: '…', label: 'Entradas' },
         { value: '…', label: 'Salidas' },
-        { value: '…', label: 'Total fondo' },
+        { value: '…', label: 'Saldo final' },
       ]
     }
     if (sinBoveda || !boveda.data) {
       return [
-        { value: '—', label: 'Saldo', tone: sinBoveda ? 'red' : undefined },
+        { value: '—', label: 'Saldo inicial', tone: sinBoveda ? 'red' : undefined },
         { value: '—', label: 'Entradas' },
         { value: '—', label: 'Salidas' },
-        {
-          value: formatMoney(estadoDinero.data?.totalFondo ?? 0),
-          label: 'Total fondo',
-        },
+        { value: '—', label: 'Saldo final' },
       ]
     }
     const abierta = !boveda.data.indCierre
+    const delta = Number(boveda.data.deltaMedios ?? 0)
+    const descuadre = Math.abs(delta) > 0.01
     return [
-      {
-        value: formatMoney(boveda.data.saldoFinal),
-        label: 'Saldo',
-        detail: abierta ? 'Abierta' : 'Cerrada',
-        tone: abierta ? 'green' : 'default',
-      },
+      { value: formatMoney(boveda.data.saldoInicial), label: 'Saldo inicial' },
       { value: formatMoney(boveda.data.entradas), label: 'Entradas' },
       { value: formatMoney(boveda.data.salidas), label: 'Salidas' },
       {
-        value: estadoDinero.isLoading
-          ? '…'
-          : formatMoney(estadoDinero.data?.totalFondo ?? 0),
-        label: 'Total fondo',
+        value: formatMoney(boveda.data.saldoFinal),
+        label: 'Saldo final',
+        detail: abierta ? 'SI + E − S' : 'Cerrada',
+        tone: descuadre ? 'red' : abierta ? 'green' : 'default',
       },
     ]
-  }, [
-    boveda.data,
-    boveda.isLoading,
-    sinBoveda,
-    estadoDinero.data?.totalFondo,
-    estadoDinero.isLoading,
-  ])
+  }, [boveda.data, boveda.isLoading, sinBoveda])
 
   const refrescar = () => {
     void boveda.refetch()
@@ -121,6 +109,12 @@ export function BovedaPage() {
     void temporal.refetch()
     if (bovedaId) void resumen.refetch()
   }
+
+  const deltaMedios = Number(boveda.data?.deltaMedios ?? 0)
+  const sumaMedios = Number(boveda.data?.sumaMedios ?? 0)
+  const descuadre = !!boveda.data && Math.abs(deltaMedios) > 0.01
+  const efectivoOficina =
+    estadoDinero.data?.efectivoOficina ?? estadoDinero.data?.totalFondo
 
   const sesionExtra = boveda.data ? (
     <Space wrap size={8} className="boveda-contexto" translate="no">
@@ -168,8 +162,39 @@ export function BovedaPage() {
         />
       ) : null}
 
+      {boveda.data ? (
+        <div
+          className={descuadre ? 'boveda-cuadre boveda-cuadre--roto' : 'boveda-cuadre'}
+          translate="no"
+        >
+          <span>
+            SI {formatMoney(boveda.data.saldoInicial)} + E{' '}
+            {formatMoney(boveda.data.entradas)} − S {formatMoney(boveda.data.salidas)} ={' '}
+            <strong>{formatMoney(boveda.data.saldoFinal)}</strong>
+          </span>
+          <span>
+            Σ medios {formatMoney(sumaMedios)}
+            {descuadre
+              ? ` · delta ${formatMoney(deltaMedios)}`
+              : ' = saldo final'}
+          </span>
+          {efectivoOficina != null ? (
+            <span>Efectivo de oficina {formatMoney(efectivoOficina)}</span>
+          ) : null}
+        </div>
+      ) : null}
+
+      {descuadre ? (
+        <Alert
+          type="error"
+          showIcon
+          message="El cuadre de medios no cierra"
+          description="La suma por efectivo, Yape y bancos no coincide con el saldo final. No cierre hasta corregir los asientos."
+        />
+      ) : null}
+
       <CredixPanel
-        title="Fuera de esta bóveda"
+        title="Cajones y cartera (no mezclar)"
         className="boveda-panel-liquidez"
       >
         <BovedaEstadoDineroPanel

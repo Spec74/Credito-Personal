@@ -46,9 +46,21 @@ public sealed class BovedaAbiertaReadService(IOptions<SqlDatabaseOptions> option
             ORDER BY IndTemporal, BovedaId;
             """;
 
-        return await connection
+        var row = await connection
             .QueryFirstOrDefaultAsync<BovedaAbiertaDto>(
                 new CommandDefinition(sql, new { OficinaId = oficinaId }, cancellationToken: cancellationToken))
             .ConfigureAwait(false);
+        if (row is null)
+        {
+            return null;
+        }
+
+        var sumaMedios = await connection.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(
+                BovedaCuadreSql.SumaMedios,
+                new { BovedaId = row.BovedaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+        var delta = decimal.Round(sumaMedios - row.SaldoFinal, 2);
+        return row with { SumaMedios = sumaMedios, DeltaMedios = delta };
     }
 }

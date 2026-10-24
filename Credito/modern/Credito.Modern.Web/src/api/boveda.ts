@@ -12,6 +12,8 @@ export interface BovedaAbiertaDto {
   fechaFinOperacion: string | null
   indCierre: boolean
   indTemporal: boolean
+  sumaMedios?: number
+  deltaMedios?: number
 }
 
 export interface RptMovimientoBovedaRow {
@@ -43,6 +45,7 @@ export interface BovedaEstadoDinero {
   vencidoMayor60: number
   vencidoIrrecuperable: number
   totalFondo: number
+  efectivoOficina?: number
 }
 
 export interface BovedaListadoRow {
@@ -70,6 +73,28 @@ export interface BovedaDestinoTransferencia {
   oficina: string
   saldoFinal: number
   fechaIniOperacion: string
+}
+
+export interface BovedaRedPosicion {
+  oficinaId: number
+  oficina: string
+  indPrincipal: boolean
+  bovedaId: number | null
+  saldoInicial: number
+  entradas: number
+  salidas: number
+  saldoFinal: number
+  sumaMedios: number
+  deltaMedios: number
+  montoCajas: number
+  montoCajaChica: number
+  efectivoOficina: number
+}
+
+export function fetchBovedaRedPosicion(oficinaId: number): Promise<BovedaRedPosicion[]> {
+  return apiFetch<BovedaRedPosicion[]>(
+    `/credito/boveda-red-posicion?oficinaId=${oficinaId}`,
+  )
 }
 
 export function fetchBovedaEstadoDinero(oficinaId: number): Promise<BovedaEstadoDinero> {
@@ -293,9 +318,11 @@ export function transferirBoveda(body: {
   bovedaDestinoId: number
   glosa: string
   monto: number
+  tipoPagoId?: number
 }): Promise<CajaDiarioOperacionResponse> {
   return postJson('/credito/transferir-boveda', {
     ...body,
+    tipoPagoId: body.tipoPagoId && body.tipoPagoId > 0 ? body.tipoPagoId : 1,
     flagAceptar: 0,
     bovedaMovTempId: 0,
   })
@@ -322,6 +349,7 @@ export function asignarBovedaTemporal(body: {
   importe: number
   descripcion: string
   usuarioId: number
+  tipoPagoId?: number
 }): Promise<AsignarBovedaTemporalResponse> {
   return postJson('/credito/asignar-boveda-temporal', body)
 }

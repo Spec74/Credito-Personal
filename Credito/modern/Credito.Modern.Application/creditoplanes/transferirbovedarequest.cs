@@ -11,4 +11,5 @@ public sealed record TransferirBovedaRequest(
     string Glosa = "",
     decimal Monto = 0m,
     int FlagAceptar = 0,
-    int BovedaMovTempId = 0);
+    int BovedaMovTempId = 0,
+    short TipoPagoId = 1);

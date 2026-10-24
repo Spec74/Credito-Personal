@@ -60,6 +60,7 @@ public sealed class BovedaWriteService(IOptions<SqlDatabaseOptions> options) : I
         int usuarioRegId,
         int flagAceptar,
         int bovedaMovTempId,
+        short tipoPagoId = 1,
         CancellationToken cancellationToken = default)
     {
         return ExecuteIntProcAsync(
@@ -73,6 +74,7 @@ public sealed class BovedaWriteService(IOptions<SqlDatabaseOptions> options) : I
                 UsuarioRegId = usuarioRegId,
                 flagAceptar = flagAceptar,
                 BovedaMovTempId = bovedaMovTempId,
+                TipoPagoId = tipoPagoId < 1 ? (short)1 : tipoPagoId,
             },
             cancellationToken);
     }

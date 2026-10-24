@@ -1,69 +1,55 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Button } from 'antd'
-import { fetchOficinas } from '../../api/oficinas'
-import { fetchBovedaAbierta, fetchBovedasDestinoTransferencia } from '../../api/boveda'
-import { fetchDashboardAdminDetalle, fetchDashboardAdminShell } from '../../api/dashboard'
+import { fetchBovedaRedPosicion, type BovedaRedPosicion } from '../../api/boveda'
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage, CredixDataTable } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
-import { esCreditoAdministrador } from '../../utils/creditoOperacionPermisos'
 import { loginSedePath } from '../../utils/sucursalRed'
-import type { OficinaListItem } from '../../types/api'
 
 export function RedSucursalesPage() {
   const { session, logout } = useAuth()
   const navigate = useNavigate()
   const oficinaId = session?.oficinaId ?? 0
-  const admin = esCreditoAdministrador(session?.roles ?? [])
 
   const entrarSede = (destinoId: number) => {
     logout()
     navigate(loginSedePath(destinoId))
   }
 
-  const oficinas = useQuery({
-    queryKey: ['oficinas'],
-    queryFn: fetchOficinas,
-  })
-
-  const destinos = useQuery({
-    queryKey: ['bovedas-destino-transferencia', oficinaId],
-    queryFn: () => fetchBovedasDestinoTransferencia(oficinaId),
+  const red = useQuery({
+    queryKey: ['boveda-red-posicion', oficinaId],
+    queryFn: () => fetchBovedaRedPosicion(oficinaId),
     enabled: oficinaId > 0,
     retry: false,
   })
 
-  const propia = useQuery({
-    queryKey: ['boveda-abierta', oficinaId],
-    queryFn: () => fetchBovedaAbierta(oficinaId),
-    enabled: oficinaId > 0,
-    retry: false,
-  })
+  const filas = red.data ?? []
+  const propia = filas.find((r) => r.oficinaId === oficinaId)
+  const efectivoRed = filas.reduce((s, r) => s + (r.efectivoOficina || 0), 0)
+  const descuadres = filas.filter((r) => r.bovedaId && Math.abs(r.deltaMedios) > 0.01).length
+  const conBoveda = filas.filter((r) => r.bovedaId).length
 
-  const kpis = useQuery({
-    queryKey: ['dashboard-admin-shell', oficinaId],
-    queryFn: fetchDashboardAdminShell,
-    enabled: admin && oficinaId > 0,
-    retry: false,
-  })
-
-  const detalle = useQuery({
-    queryKey: ['dashboard-admin-detalle', oficinaId],
-    queryFn: fetchDashboardAdminDetalle,
-    enabled: admin && oficinaId > 0 && !!kpis.data,
-    retry: false,
-  })
-
-  const saldoPorOficina = new Map(
-    (destinos.data ?? []).map((d) => [d.oficinaId, d.saldoFinal]),
+  const stats = useMemo(
+    () =>
+      oficinaId < 1
+        ? undefined
+        : [
+            { value: String(conBoveda), label: 'Sedes con bóveda' },
+            { value: formatMoney(efectivoRed), label: 'Efectivo de la red' },
+            {
+              value: String(descuadres),
+              label: 'Descuadres',
+              tone: descuadres > 0 ? ('red' as const) : ('green' as const),
+            },
+            {
+              value: formatMoney(propia?.saldoFinal ?? 0),
+              label: 'Bóveda esta sede',
+            },
+          ],
+    [oficinaId, conBoveda, efectivoRed, descuadres, propia?.saldoFinal],
   )
-  if (propia.data) {
-    saldoPorOficina.set(oficinaId, propia.data.saldoFinal)
-  }
-
-  const r = kpis.data?.resumen
-  const cartera = detalle.data?.cartera
 
   return (
     <CredixPage
@@ -73,6 +59,7 @@ export function RedSucursalesPage() {
         { title: <Link to="/tesoreria">Tesorería</Link> },
         { title: 'Red' },
       ]}
+      stats={stats}
       actions={
         <>
           <Link to="/tesoreria/fondear-sucursales">
@@ -83,45 +70,57 @@ export function RedSucursalesPage() {
           </Link>
         </>
       }
-      stats={
-        r
-          ? [
-              { value: cartera ? formatMoney(cartera.saldoCartera) : '…', label: 'Cartera' },
-              { value: cartera ? formatMoney(cartera.saldoMoraCartera) : '…', label: 'Mora' },
-              { value: formatMoney(r.flujoNetoHoy), label: 'Caja hoy' },
-              { value: formatMoney(r.desembolsoHoy), label: 'Desembolsos' },
-              { value: formatMoney(propia.data?.saldoFinal ?? 0), label: 'Bóveda' },
-              { value: formatMoney(r.cobradoHoy), label: 'Cobrado' },
-            ]
-          : undefined
-      }
     >
-      <CredixDataTable<OficinaListItem>
+      <CredixDataTable<BovedaRedPosicion>
         rowKey="oficinaId"
-        loading={oficinas.isLoading}
-        dataSource={oficinas.data ?? []}
+        loading={red.isLoading}
+        dataSource={filas}
+        locale={{ emptyText: 'No hay oficinas activas.' }}
         columns={[
-          { title: 'Sede', dataIndex: 'denominacion', ellipsis: true },
+          { title: 'Sede', dataIndex: 'oficina', ellipsis: true },
           {
             title: 'Rol',
-            width: 110,
+            width: 100,
             render: (_, row) => (row.indPrincipal ? 'Central' : 'Sucursal'),
           },
           {
-            title: 'Bóveda',
-            width: 140,
+            title: 'Saldo bóveda',
+            width: 130,
+            align: 'right',
+            render: (_, row) => (row.bovedaId ? formatMoney(row.saldoFinal) : '—'),
+          },
+          {
+            title: 'Σ medios',
+            width: 120,
+            align: 'right',
+            render: (_, row) => (row.bovedaId ? formatMoney(row.sumaMedios) : '—'),
+          },
+          {
+            title: 'Delta',
+            width: 110,
             align: 'right',
             render: (_, row) => {
-              const saldo = saldoPorOficina.get(row.oficinaId)
-              return saldo == null ? '—' : formatMoney(saldo)
+              if (!row.bovedaId) return '—'
+              const roto = Math.abs(row.deltaMedios) > 0.01
+              return (
+                <span style={roto ? { color: '#9b1c1c', fontWeight: 600 } : undefined}>
+                  {formatMoney(row.deltaMedios)}
+                </span>
+              )
             },
+          },
+          {
+            title: 'Efectivo oficina',
+            width: 140,
+            align: 'right',
+            render: (_, row) => formatMoney(row.efectivoOficina),
           },
           {
             title: '',
             width: 160,
             render: (_, row) =>
               row.oficinaId === oficinaId ? (
-                <span>Sede actual</span>
+                <Link to="/tesoreria/boveda">Bóveda</Link>
               ) : (
                 <Button type="link" size="small" onClick={() => entrarSede(row.oficinaId)}>
                   Entrar en esa sede

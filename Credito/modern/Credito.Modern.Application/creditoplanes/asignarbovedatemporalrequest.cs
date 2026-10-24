@@ -8,4 +8,5 @@ public sealed record AsignarBovedaTemporalRequest(
     int OficinaId,
     decimal Importe,
     string Descripcion,
-    int UsuarioId = 0);
+    int UsuarioId = 0,
+    short TipoPagoId = 1);

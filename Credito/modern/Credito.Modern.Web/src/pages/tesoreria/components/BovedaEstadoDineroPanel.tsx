@@ -53,6 +53,11 @@ export function BovedaEstadoDineroPanel({ data, loading }: Props) {
 
   const tiles: Tile[] = [
     {
+      value: data.efectivoOficina ?? data.totalFondo,
+      label: 'Efectivo de oficina',
+      hint: 'Bóveda + cajas + chica',
+    },
+    {
       value: data.montoCajaChica,
       label: 'Caja chica',
       to: '/caja/caja-chica',
@@ -67,12 +72,13 @@ export function BovedaEstadoDineroPanel({ data, loading }: Props) {
     {
       value: data.montoPlanPagoPendiente,
       label: 'Por cobrar (plan)',
+      hint: 'No es efectivo',
     },
     {
       value: data.creditoVencido,
       label: 'Cartera vencida',
       to: '/informes/credito-vencido',
-      hint: 'Ver informe',
+      hint: 'No es efectivo',
     },
   ]
 

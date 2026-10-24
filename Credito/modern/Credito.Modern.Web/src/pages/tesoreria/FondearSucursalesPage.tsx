@@ -1,17 +1,19 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Button, InputNumber, message } from 'antd'
+import { Alert, Button, InputNumber, Select, message } from 'antd'
 import {
   fetchBovedaAbierta,
   fetchBovedasDestinoTransferencia,
   transferirBoveda,
 } from '../../api/boveda'
+import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage, CredixDataTable, confirmMoney } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
 import { resolverBovedaDestinoPorSede } from '../../utils/sucursalRed'
+import { buildTipoPagoOptions, tipoPagoOptionRender } from './components/TipoPagoBrand'
 import type { BovedaDestinoTransferencia } from '../../api/boveda'
 
 export function FondearSucursalesPage() {
@@ -19,6 +21,7 @@ export function FondearSucursalesPage() {
   const oficinaId = session?.oficinaId ?? 0
   const queryClient = useQueryClient()
   const [montos, setMontos] = useState<Record<number, number>>({})
+  const [tipoPagoId, setTipoPagoId] = useState(1)
 
   const origen = useQuery({
     queryKey: ['boveda-abierta', oficinaId],
@@ -33,6 +36,17 @@ export function FondearSucursalesPage() {
     enabled: oficinaId > 0,
     retry: false,
   })
+
+  const tiposPago = useQuery({
+    queryKey: ['valores-tabla', 13],
+    queryFn: () => fetchValoresTabla(13),
+    enabled: oficinaId > 0,
+    staleTime: 5 * 60_000,
+  })
+  const tipoPagoOptions = useMemo(
+    () => buildTipoPagoOptions(tiposPago.data ?? []),
+    [tiposPago.data],
+  )
 
   const filas = useMemo(() => destinos.data ?? [], [destinos.data])
 
@@ -49,6 +63,7 @@ export function FondearSucursalesPage() {
         bovedaDestinoId: destino.bovedaId,
         monto,
         glosa: `Fondeo ${row.oficina}`,
+        tipoPagoId: tipoPagoId > 0 ? tipoPagoId : 1,
       })
     },
     onSuccess: (_, row) => {
@@ -56,6 +71,7 @@ export function FondearSucursalesPage() {
       setMontos((prev) => ({ ...prev, [row.oficinaId]: 0 }))
       void queryClient.invalidateQueries({ queryKey: ['bovedas-destino-transferencia'] })
       void queryClient.invalidateQueries({ queryKey: ['boveda-abierta'] })
+      void queryClient.invalidateQueries({ queryKey: ['boveda-red-posicion'] })
     },
     onError: (e: unknown) =>
       message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error'),
@@ -69,7 +85,9 @@ export function FondearSucursalesPage() {
       officeLabel: session?.oficinaDenominacion
         ? `${session.oficinaDenominacion} → ${row.oficina}`
         : row.oficina,
-      consequence: 'La transferencia acredita de inmediato en origen y destino.',
+      consequence: `Viaja ${
+        tipoPagoOptions.find((o) => o.value === tipoPagoId)?.label ?? 'el medio seleccionado'
+      }. Se acredita de inmediato en origen y destino.`,
       okText: 'Fondear',
       onOk: async () => {
         await enviar.mutateAsync(row)
@@ -97,6 +115,21 @@ export function FondearSucursalesPage() {
       ) : origen.isError ? (
         <Alert type="warning" showIcon message="No hay bóveda abierta en esta sede." />
       ) : null}
+
+      <div style={{ maxWidth: 320, marginBottom: 12 }}>
+        <label htmlFor="fondeo-medio">Medio que viaja</label>
+        <Select
+          id="fondeo-medio"
+          style={{ width: '100%', marginTop: 4 }}
+          value={tipoPagoId}
+          loading={tiposPago.isLoading}
+          options={tipoPagoOptions}
+          optionFilterProp="label"
+          showSearch
+          optionRender={tipoPagoOptionRender}
+          onChange={(v) => setTipoPagoId(Number(v) || 1)}
+        />
+      </div>
 
       <CredixDataTable<BovedaDestinoTransferencia>
         rowKey="oficinaId"

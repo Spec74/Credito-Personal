@@ -167,6 +167,119 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         return rows.ToList();
     }
 
+    public async Task<IReadOnlyList<BovedaRedPosicionDto>> ListarPosicionRedAsync(
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(_connectionString))
+        {
+            throw new InvalidOperationException(
+                "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        const string oficinasSql = """
+            SELECT
+                o.OficinaId,
+                COALESCE(o.Denominacion, CONCAT('Oficina ', o.OficinaId)) AS Oficina,
+                o.IndPrincipal,
+                b.BovedaId,
+                ISNULL(b.SaldoInicial, 0) AS SaldoInicial,
+                ISNULL(b.Entradas, 0) AS Entradas,
+                ISNULL(b.Salidas, 0) AS Salidas,
+                ISNULL(b.SaldoFinal, 0) AS SaldoFinal
+            FROM MAESTRO.Oficina AS o
+            LEFT JOIN CREDITO.Boveda AS b
+                ON b.OficinaId = o.OficinaId
+               AND b.IndCierre = CAST(0 AS bit)
+               AND b.IndTemporal = CAST(0 AS bit)
+            WHERE o.Estado = CAST(1 AS bit)
+            ORDER BY o.IndPrincipal DESC, o.Denominacion, o.OficinaId;
+            """;
+
+        var oficinas = (await connection
+            .QueryAsync<RedOficinaRow>(
+                new CommandDefinition(oficinasSql, cancellationToken: cancellationToken))
+            .ConfigureAwait(false)).ToList();
+
+        var cajas = (await connection
+            .QueryAsync<(int OficinaId, decimal Monto)>(
+                new CommandDefinition(
+                    """
+                    SELECT c.OficinaId, ISNULL(SUM(cd.SaldoFinal), 0) AS Monto
+                    FROM CREDITO.CajaDiario AS cd
+                    INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                    WHERE cd.IndCierre = CAST(0 AS bit)
+                      AND cd.TransBoveda = CAST(0 AS bit)
+                    GROUP BY c.OficinaId;
+                    """,
+                    cancellationToken: cancellationToken))
+            .ConfigureAwait(false))
+            .ToDictionary(x => x.OficinaId, x => x.Monto);
+
+        var chicas = (await connection
+            .QueryAsync<(int OficinaId, decimal Monto)>(
+                new CommandDefinition(
+                    """
+                    SELECT c.OficinaId, ISNULL(SUM(ccd.SaldoFinal), 0) AS Monto
+                    FROM CREDITO.CajaChicaDiario AS ccd
+                    INNER JOIN CREDITO.Caja AS c ON c.CajaId = ccd.Id
+                    WHERE ccd.IndCierre = CAST(0 AS bit)
+                      AND ccd.TransBoveda = CAST(0 AS bit)
+                    GROUP BY c.OficinaId;
+                    """,
+                    cancellationToken: cancellationToken))
+            .ConfigureAwait(false))
+            .ToDictionary(x => x.OficinaId, x => x.Monto);
+
+        var result = new List<BovedaRedPosicionDto>(oficinas.Count);
+        foreach (var row in oficinas)
+        {
+            var sumaMedios = 0m;
+            if (row.BovedaId is > 0)
+            {
+                sumaMedios = await connection.ExecuteScalarAsync<decimal>(
+                    new CommandDefinition(
+                        BovedaCuadreSql.SumaMedios,
+                        new { BovedaId = row.BovedaId.Value },
+                        cancellationToken: cancellationToken)).ConfigureAwait(false);
+            }
+
+            var montoCajas = cajas.GetValueOrDefault(row.OficinaId);
+            var montoChica = chicas.GetValueOrDefault(row.OficinaId);
+            var delta = decimal.Round(sumaMedios - row.SaldoFinal, 2);
+            result.Add(new BovedaRedPosicionDto(
+                row.OficinaId,
+                row.Oficina,
+                row.IndPrincipal,
+                row.BovedaId,
+                row.SaldoInicial,
+                row.Entradas,
+                row.Salidas,
+                row.SaldoFinal,
+                sumaMedios,
+                row.BovedaId is > 0 ? delta : 0m,
+                montoCajas,
+                montoChica,
+                row.SaldoFinal + montoCajas + montoChica));
+        }
+
+        return result;
+    }
+
+    private sealed class RedOficinaRow
+    {
+        public int OficinaId { get; init; }
+        public string Oficina { get; init; } = "";
+        public bool IndPrincipal { get; init; }
+        public int? BovedaId { get; init; }
+        public decimal SaldoInicial { get; init; }
+        public decimal Entradas { get; init; }
+        public decimal Salidas { get; init; }
+        public decimal SaldoFinal { get; init; }
+    }
+
     public async Task<IReadOnlyList<BovedaTransferenciaPendienteDto>> ListarTransferenciasPendientesAsync(
         int bovedaDestinoId,
         CancellationToken cancellationToken = default)

@@ -67,7 +67,7 @@ public sealed class BovedaEstadoDineroReadService(
         var menor = vencido?.VencidoMenor60 ?? 0m;
         var mayor = vencido?.VencidoMayor60 ?? 0m;
         var irrec = vencido?.VencidoIrrecuperable ?? 0m;
-        var total = montoCajaChica + montoCajas + saldoBovedaAbierta + montoPlan + cv;
+        var efectivoOficina = montoCajaChica + montoCajas + saldoBovedaAbierta;
 
         return new BovedaEstadoDineroDto(
             saldoBovedaAbierta,
@@ -78,7 +78,8 @@ public sealed class BovedaEstadoDineroReadService(
             menor,
             mayor,
             irrec,
-            total);
+            efectivoOficina,
+            efectivoOficina);
     }
 
     private void EnsureConnection()

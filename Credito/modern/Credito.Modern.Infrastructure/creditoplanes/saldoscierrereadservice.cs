@@ -169,6 +169,33 @@ public sealed class SaldosCierreReadService(IOptions<SqlDatabaseOptions> options
                 "EXISTEN CAJAS CERRADAS NO ENVIADAS A BOVEDA. REVISE FORMULARIO SALDOS CAJA.");
         }
 
+        var abiertasBoveda = await connection.QueryAsync<(int BovedaId, decimal SaldoFinal, bool IndTemporal)>(
+            new CommandDefinition(
+                """
+                SELECT BovedaId, SaldoFinal, IndTemporal
+                FROM CREDITO.Boveda
+                WHERE OficinaId = @OficinaId AND IndCierre = CAST(0 AS bit);
+                """,
+                new { OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        foreach (var vault in abiertasBoveda)
+        {
+            var sumaMedios = await connection.ExecuteScalarAsync<decimal>(
+                new CommandDefinition(
+                    BovedaCuadreSql.SumaMedios,
+                    new { vault.BovedaId },
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+            var delta = decimal.Round(sumaMedios - vault.SaldoFinal, 2);
+            if (Math.Abs(delta) > BovedaCuadreSql.Tolerancia)
+            {
+                var cual = vault.IndTemporal ? "temporal" : "principal";
+                return new ValidarCierreSaldosResponse(
+                    false,
+                    $"La bóveda {cual} no cuadra: Σ medios ({sumaMedios:0.00}) ≠ saldo final ({vault.SaldoFinal:0.00}). Delta {delta:0.00}.");
+            }
+        }
+
         return new ValidarCierreSaldosResponse(true, string.Empty);
     }
 

@@ -29,6 +29,13 @@ public class BovedaEndpointTests : IClassFixture<CreditoModernWebApplicationFact
     }
 
     [Fact]
+    public async Task Boveda_red_posicion_sin_jwt_devuelve_401()
+    {
+        var response = await _client.GetAsync("/api/v1/credito/boveda-red-posicion?oficinaId=1");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Boveda_listar_sin_jwt_devuelve_401()
     {
         var response = await _client.GetAsync("/api/v1/credito/boveda-listar?oficinaId=1&page=1&pageSize=5");

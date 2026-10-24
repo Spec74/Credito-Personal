@@ -17,6 +17,7 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
         int usuarioAsignadoId,
         int usuarioRegId,
         DateTime fechaOperacion,
+        short tipoPagoId = 1,
         CancellationToken cancellationToken = default)
     {
         if (oficinaId < 1 || usuarioRegId < 1)
@@ -168,6 +169,7 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
                 descripcion,
                 importe,
                 usuarioRegId,
+                tipoPagoId < 1 ? (short)1 : tipoPagoId,
                 cancellationToken).ConfigureAwait(false);
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -259,6 +261,7 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
         string glosa,
         decimal monto,
         int usuarioRegId,
+        short tipoPagoId,
         CancellationToken cancellationToken)
     {
         var dynamicParams = new DynamicParameters(new
@@ -270,6 +273,7 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
             UsuarioRegId = usuarioRegId,
             flagAceptar = 0,
             BovedaMovTempId = 0,
+            TipoPagoId = tipoPagoId < 1 ? (short)1 : tipoPagoId,
         });
         dynamicParams.Add("ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
         await connection.ExecuteAsync(

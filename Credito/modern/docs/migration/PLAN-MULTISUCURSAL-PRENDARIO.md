@@ -47,8 +47,8 @@ Central ↔ Sucursal (ida y vuelta cuando lo pidan)
 | B-02 | P1 | Smoke cierre cajas en oficina ≠ 1 (Pichari / Huanta) | Pendiente operación |
 | B-03 | P2 | UI Interoficina: texto “fondeo inmediato” + etiqueta clara | **Hecho** |
 | B-04 | P2 | Pendientes = leftovers + Anular (flag 2); API bloquea flag ≠ 2 | **Hecho** |
-| B-05 | P3 | Vista consolidada “Fondear sucursales” (central) + rol | Pendiente |
-| B-06 | P3 | Índice UNIQUE: una bóveda principal abierta por `OficinaId` | Pendiente |
+| B-05 | P3 | Vista consolidada “Fondear sucursales” (central) + rol | Hecho + medio + tablero cash por sede |
+| B-06 | P3 | Índice UNIQUE: una bóveda principal abierta por `OficinaId` | Script listo (`2026-10-24-boveda-cuadre-contrato.sql`) |
 | B-07 | P4 | Capacitación ciclo autonomía Pichari → Andahuaylas | Pendiente negocio |
 
 ### Deploy B-01

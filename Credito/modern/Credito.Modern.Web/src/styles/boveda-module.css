@@ -23,10 +23,29 @@
   align-items: center;
 }
 
+.boveda-cuadre {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 10px 14px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: var(--credix-radius, 8px);
+  background: var(--credix-surface, #fff);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--credix-text, #111827);
+}
+
+.boveda-cuadre--roto {
+  border-color: #f19999;
+  background: #fff7f7;
+  color: #9b1c1c;
+}
+
 /* —— Fuera de esta bóveda (4 baldosas, sin repetir saldo/total) —— */
 .boveda-estado-dinero {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
 }
 

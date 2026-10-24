@@ -10,5 +10,6 @@ public interface IBovedaTemporalWriteService
         int usuarioAsignadoId,
         int usuarioRegId,
         DateTime fechaOperacion,
+        short tipoPagoId = 1,
         CancellationToken cancellationToken = default);
 }
