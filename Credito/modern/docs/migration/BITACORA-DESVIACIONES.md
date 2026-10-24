@@ -4,6 +4,15 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Simulador prendario: cotización ≠ ficha de bienes
+
+**Qué hay:** al elegir prendario en el simulador (prospecto o cliente) solo
+se pide la **garantía** para el PDF. Marca, serie y tasación se piden al
+crear la solicitud, cuando sí se persisten.
+
+**Qué no hay:** no se inhabilita el editor prendario ni se inventa USP.
+Desde Credi Prendario → Nuevo la ficha ya viene y no se reedita.
+
 ### 2026-10-23 — Bóveda: pendientes = leftovers, no aceptación
 
 **Qué hay:** Fondeo pide confirmación de importe y acredita al instante

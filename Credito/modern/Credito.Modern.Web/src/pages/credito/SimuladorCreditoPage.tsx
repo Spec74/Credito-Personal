@@ -70,6 +70,7 @@ import {
   esCreditoAprobador1,
 } from '../../utils/creditoOperacionPermisos'
 import {
+  PRENDA_MAX,
   prendaAItem,
   prendaSimuladorDesdeBienes,
   prendaVacia,
@@ -115,6 +116,8 @@ interface SimForm {
   interesMensual: number
   fechaPrimerPago: string
   gastosAdm?: number
+  /** Solo cotización: sale en el PDF. La ficha de bienes se pide al originar. */
+  prendaDescripcion?: string
 }
 
 type PrendaPreCarga = {
@@ -219,6 +222,7 @@ export function SimuladorCreditoPage() {
   const tipoPersona = Form.useWatch('tipoPersona', form) ?? 'N'
   const montoActual = Form.useWatch('monto', form)
   const formaPagoActual = Form.useWatch('formaPago', form) ?? 'M'
+  const garantiaActual = Form.useWatch('prendaDescripcion', form)
   const prospectoValues = Form.useWatch([], form) as Partial<SimForm> | undefined
 
   const personaIdFromUrl = useMemo(() => {
@@ -403,7 +407,18 @@ export function SimuladorCreditoPage() {
       productoSeleccionado?.denominacion?.toLowerCase().includes('prendario') ||
       esConsultaPrendario,
   )
+  /** Cotización: no hay ficha de custodia aún. El PDF solo usa la descripción. */
+  const cotizaPrendario = esPrendario && !bienesBloqueados
   const prevEsPrendarioRef = useRef(false)
+
+  useEffect(() => {
+    if (!esPrendario) return
+    const actual = (form.getFieldValue('prendaDescripcion') as string | undefined)?.trim()
+    if (actual) return
+    if (prendaPrecarga?.descripcion) {
+      form.setFieldValue('prendaDescripcion', prendaPrecarga.descripcion)
+    }
+  }, [esPrendario, prendaPrecarga, form])
   const clienteParaReporte =
     personaId != null && clienteDetalleQuery.data
       ? nombreDesdeCliente(clienteDetalleQuery.data)
@@ -739,15 +754,14 @@ export function SimuladorCreditoPage() {
         if (!(values.nroCuotas >= 1)) {
           throw new Error('Indique el número de cuotas')
         }
-        if (!bienesBloqueados) {
-          const validacion = validarPrendasForm(prendasEditor)
-          setErroresPrendas(validacion.errores)
-          if (!validacion.ok) {
-            throw new Error(validacion.mensaje ?? 'Complete los bienes en custodia')
-          }
+        const garantia = (values.prendaDescripcion ?? '').trim()
+        if (cotizaPrendario && !garantia) {
+          throw new Error('Indique la descripción de la garantía para el plan')
         }
-        const montoErr = validarMontoVsTasacion(values.monto, tasacionEfectiva)
-        if (montoErr) throw new Error(montoErr)
+        if (tasacionEfectiva > 0) {
+          const montoErr = validarMontoVsTasacion(values.monto, tasacionEfectiva)
+          if (montoErr) throw new Error(montoErr)
+        }
       }
       // Paridad CreditoController.Simulador con cboGA=ADE: gastos no van al SP (solo en cabecera informe).
       const gastosSp = 0
@@ -952,6 +966,8 @@ export function SimuladorCreditoPage() {
     const esClienteRegistrado = personaId != null && detalle != null && detalle.personaId === personaId
     const prendaDesc = (() => {
       if (prendaPrecarga?.descripcion) return prendaPrecarga.descripcion
+      const fromForm = (v.prendaDescripcion ?? '').trim()
+      if (fromForm) return fromForm
       const desc = prendasEditor
         .map((p) => p.descripcion.trim())
         .filter(Boolean)
@@ -1038,7 +1054,8 @@ export function SimuladorCreditoPage() {
                 setClienteLabel(label)
                 setSolicitudCreditoId(null)
                 setBienesPersistidosLocal(false)
-                setPrendasEditor([prendaVacia()])
+                const desc = (form.getFieldValue('prendaDescripcion') as string | undefined)?.trim() ?? ''
+                setPrendasEditor([{ ...prendaVacia(), descripcion: desc }])
                 setErroresPrendas([])
                 setTerminoCliente(label)
               }}
@@ -1288,8 +1305,34 @@ export function SimuladorCreditoPage() {
             <Form.Item name="gastosAdm" label="Trámite adm.">
               <InputNumber min={0} step={1} style={{ width: 120 }} />
             </Form.Item>
+            {cotizaPrendario ? (
+              <Form.Item
+                className="simulador-field--wide"
+                name="prendaDescripcion"
+                label="Garantía"
+                extra="Texto del PDF. Marca, serie y tasación se piden al crear la solicitud."
+                rules={[
+                  { required: true, whitespace: true, message: 'Describa el bien para el plan' },
+                  { max: PRENDA_MAX.descripcion },
+                ]}
+              >
+                <Input
+                  maxLength={PRENDA_MAX.descripcion}
+                  showCount
+                  placeholder="Ej. Moto Honda 150 · anillo oro 18k"
+                  onChange={(e) => {
+                    const desc = e.target.value
+                    setPrendasEditor((prev) => {
+                      const next = prev.length > 0 ? [...prev] : [prendaVacia()]
+                      next[0] = { ...next[0], descripcion: desc }
+                      return next
+                    })
+                  }}
+                />
+              </Form.Item>
+            ) : null}
           </div>
-          {esPrendario ? (
+          {esPrendario && (!puedeOriginacionPrendaria || bienesBloqueados) ? (
             <div style={{ marginTop: 16 }}>
               {!puedeOriginacionPrendaria ? (
                 <Alert
@@ -1312,27 +1355,7 @@ export function SimuladorCreditoPage() {
                       : `Tasación total ${formatMoney(tasacionEfectiva)}. Los bienes ya están registrados y no se editan aquí.`
                   }
                 />
-              ) : (
-                <>
-                  <Text strong style={{ display: 'block', marginBottom: 8 }}>
-                    Bienes en custodia (prenda)
-                  </Text>
-                  <Paragraph type="secondary" style={{ marginBottom: 12 }}>
-                    Registre descripción y tasación de cada bien. El monto del crédito no puede
-                    superar la tasación total. Al crear la solicitud se guardan en la ficha
-                    prendaria (igual que Credi Prendario → Nuevo).
-                  </Paragraph>
-                  <PrendasEditor
-                    value={prendasEditor}
-                    onChange={(next) => {
-                      setPrendasEditor(next)
-                      setErroresPrendas([])
-                      void form.validateFields(['monto']).catch(() => undefined)
-                    }}
-                    errores={erroresPrendas}
-                  />
-                </>
-              )}
+              ) : null}
             </div>
           ) : null}
           <Form.Item className="simulador-acciones" style={{ marginBottom: 0, marginTop: 20 }}>
@@ -1419,6 +1442,22 @@ export function SimuladorCreditoPage() {
                 { key: 'producto', label: 'Producto', children: productoSeleccionado?.denominacion ?? '—' },
                 { key: 'cliente', label: 'Cliente/prospecto', children: clienteParaReporte },
                 { key: 'saldo', label: 'Saldo final', children: formatMoney(cuotas.at(-1)?.saldo ?? 0) },
+                ...(esPrendario
+                  ? [
+                      {
+                        key: 'garantia',
+                        label: 'Garantía',
+                        children:
+                          prendaPrecarga?.descripcion ||
+                          (garantiaActual ?? '').trim() ||
+                          prendasEditor
+                            .map((p) => p.descripcion.trim())
+                            .filter(Boolean)
+                            .join(' / ') ||
+                          '—',
+                      },
+                    ]
+                  : []),
               ]}
             />
             <InformeExportBar
@@ -1454,8 +1493,8 @@ export function SimuladorCreditoPage() {
             description={
               <Space direction="vertical" size="small" style={{ width: '100%' }}>
                 <span>
-                  Puede imprimir o exportar el plan. Para generar crédito debe registrar o
-                  seleccionar el cliente.
+                  Puede imprimir el plan. Para generar crédito registre o seleccione al
+                  cliente; ahí se completa la ficha de bienes (tasación, marca, serie).
                 </span>
                 <Space wrap>
                   <Button
@@ -1495,6 +1534,31 @@ export function SimuladorCreditoPage() {
           <>
             {bloqueoOriginacion ? (
               <Alert type="error" showIcon style={{ marginBottom: 12 }} message={bloqueoOriginacion} />
+            ) : null}
+            {personaId && cotizaPrendario ? (
+              <div style={{ marginBottom: 16 }}>
+                <Text strong style={{ display: 'block', marginBottom: 8 }}>
+                  Bienes en custodia
+                </Text>
+                <Paragraph type="secondary" style={{ marginBottom: 12 }}>
+                  Aquí sí se guarda la ficha (descripción y tasación). El monto no puede
+                  superar la tasación total.
+                </Paragraph>
+                <PrendasEditor
+                  value={prendasEditor}
+                  onChange={(next) => {
+                    setPrendasEditor(next)
+                    setErroresPrendas([])
+                    const desc = next
+                      .map((p) => p.descripcion.trim())
+                      .filter(Boolean)
+                      .join(' / ')
+                    form.setFieldValue('prendaDescripcion', desc)
+                    void form.validateFields(['monto']).catch(() => undefined)
+                  }}
+                  errores={erroresPrendas}
+                />
+              </div>
             ) : null}
             <Button
               type="primary"
