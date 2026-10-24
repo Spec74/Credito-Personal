@@ -28,7 +28,7 @@ import { crearSolicitudPrendaria, guardarBienesPrendario } from '../../api/prend
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import type { PrendaItem } from '../../api/creditoGestion'
-import { CredixPage, CredixPanel, CredixWorkCanvas, type CredixStatItem } from '../../components/credix'
+import { CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
 import { ClienteBuscarAutoComplete } from '../../components/caja/ClienteBuscarAutoComplete'
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import {
@@ -406,8 +406,7 @@ export function CreditoPrendarioNuevoPage() {
         ]}
       />
 
-      <CredixWorkCanvas
-        context={(
+      <div className="prendario-nuevo-layout">
           <div className="prendario-nuevo-cliente">
           <CredixPanel title="Cliente existente">
             <ClienteBuscarAutoComplete
@@ -424,9 +423,6 @@ export function CreditoPrendarioNuevoPage() {
                 setSearchParams(next, { replace: true })
               }}
               onSelectPersona={elegirCliente}
-              fullWidth
-              showSearchButton
-              searchButtonLabel="Buscar"
               debounceMs={280}
               minChars={2}
               placeholder="DNI, apellido o nombre"
@@ -509,9 +505,7 @@ export function CreditoPrendarioNuevoPage() {
             </Space>
           </CredixPanel>
           </div>
-        )}
-        work={(
-      <CredixPanel title="Bienes y crédito">
+      <CredixPanel title="Bienes y crédito" className="prendario-nuevo-trabajo">
         {personaId ? (
           <Alert
             type="success"
@@ -708,25 +702,20 @@ export function CreditoPrendarioNuevoPage() {
           />
         ) : null}
       </CredixPanel>
-        )}
-        result={(
-          <CredixPanel title="Resultado">
+          <aside className="prendario-nuevo-accion" aria-label="Continuar">
+            <div className="prendario-nuevo-accion__copy">
             {montoDesembolsar != null && !errorMontoVsTasacion ? (
-              <Text strong style={{ display: 'block', marginBottom: 12, fontSize: 20 }}>
+              <Text strong className="prendario-nuevo-accion__monto">
                 Desembolso {formatMoney(montoDesembolsar)}
               </Text>
             ) : (
-              <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
+              <Text type="secondary">
                 Complete cliente, bienes y monto.
               </Text>
             )}
             {!puedeContinuar && personaId ? (
-              <Alert
-                type="warning"
-                showIcon
-                style={{ marginBottom: 12 }}
-                message={
-                  !bienesListos
+              <Text type="warning" className="prendario-nuevo-accion__aviso">
+                  {!bienesListos
                     ? 'Falta un bien con tasación.'
                     : errorMontoVsTasacion
                       ? 'El monto supera la tasación.'
@@ -734,23 +723,21 @@ export function CreditoPrendarioNuevoPage() {
                         ? errorInteres
                         : !fechaPrimerPago?.trim()
                           ? 'Indique el primer pago.'
-                          : 'Revise monto e interés.'
-                }
-              />
+                          : 'Revise monto e interés.'}
+              </Text>
             ) : null}
+            </div>
             <Button
               type="primary"
               icon={<FileAddOutlined />}
               disabled={!puedeContinuar}
               loading={crear.isPending}
               onClick={() => crear.mutate()}
-              block
             >
               Simular y solicitar
             </Button>
-          </CredixPanel>
-        )}
-      />
+          </aside>
+      </div>
     </CredixPage>
   )
 }

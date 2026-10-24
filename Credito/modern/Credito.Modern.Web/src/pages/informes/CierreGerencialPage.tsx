@@ -646,8 +646,8 @@ export function CierreGerencialPage() {
       </div>
 
       <div className="cierre-gerencial-work">
-        <div className="cierre-gerencial-table-tools">
-          <Form layout="inline" className="credix-informe-filter-row">
+        <div className="cierre-gerencial-table-tools credix-informe-filter-row">
+          <Form layout="inline">
             <Form.Item label="Periodo">
               <CredixDatePicker
                 picker="month"

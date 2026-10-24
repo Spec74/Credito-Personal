@@ -4,6 +4,22 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Prendario nuevo: sin 3 columnas ni botón Buscar
+
+**Qué hay:** la lista de clientes sale al escribir. Cliente arriba en
+dos tarjetas; bienes a todo el ancho; «Simular y solicitar» fijo abajo.
+Móvil apila. No se usa el canvas de tres columnas.
+
+**Qué no hay:** no se cambia el USP ni el tope de tasación.
+
+### 2026-10-23 — Formularios compactos y labels alineados
+
+**Qué hay:** simulador en 2–3 columnas (no de canto a canto). Filtros
+inline con label a la misma altura que el campo (cierre e informes).
+En móvil el label queda a la izquierda, no encima.
+
+**Qué no hay:** no se cambian reglas de simulación ni USP.
+
 ### 2026-10-23 — Orden de página: cards arriba, filtros en la tabla
 
 **Qué hay:** indicadores arriba; periodo, cartera y buscador pegados a

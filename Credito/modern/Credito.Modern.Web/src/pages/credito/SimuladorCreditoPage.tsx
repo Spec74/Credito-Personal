@@ -78,6 +78,7 @@ import {
   validarPrendasForm,
   type PrendaCampoError,
 } from '../../utils/prendas'
+import '../../styles/credito-consulta.css'
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : 'Error desconocido'
@@ -982,6 +983,7 @@ export function SimuladorCreditoPage() {
 
   return (
     <CredixPage
+      className="simulador-page"
       title="Simulador"
       subtitle={undefined}
       breadcrumb={[
@@ -1017,7 +1019,7 @@ export function SimuladorCreditoPage() {
         work={(
           <>
       <CredixPanel title="1. Cliente">
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
+        <Space direction="vertical" style={{ width: '100%' }} size={20}>
           <Card size="small" title="Cliente existente">
             <ClienteBuscarAutoComplete
               variant="credito"
@@ -1032,9 +1034,6 @@ export function SimuladorCreditoPage() {
                 setErroresPrendas([])
                 setTerminoCliente(label)
               }}
-              fullWidth
-              showSearchButton
-              searchButtonLabel="Buscar"
               debounceMs={280}
               minChars={2}
               placeholder="DNI, apellido o nombre"
@@ -1153,10 +1152,18 @@ export function SimuladorCreditoPage() {
                       </Form.Item>
                     </>
                   ) : null}
-                  <Form.Item name="direccionCliente" label="Dirección domicilio">
+                  <Form.Item
+                    className="simulador-field--wide"
+                    name="direccionCliente"
+                    label="Dirección domicilio"
+                  >
                     <Input />
                   </Form.Item>
-                  <Form.Item name="direccionNegocio" label="Dirección negocio / empresa">
+                  <Form.Item
+                    className="simulador-field--wide"
+                    name="direccionNegocio"
+                    label="Dirección negocio / empresa"
+                  >
                     <Input />
                   </Form.Item>
                 </div>

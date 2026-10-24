@@ -329,10 +329,6 @@ export function ClienteBuscarAutoComplete({
       suffix={
         busy ? (
           <LoadingOutlined className="caja-cliente-buscar__icon-muted" spin />
-        ) : options.length > 0 && value.trim().length >= minChars ? (
-          <span className="credito-buscar-cliente__hits" aria-live="polite">
-            {options.length}
-          </span>
         ) : value.trim().length > 0 ? (
           <UserOutlined className="caja-cliente-buscar__icon-muted" />
         ) : null

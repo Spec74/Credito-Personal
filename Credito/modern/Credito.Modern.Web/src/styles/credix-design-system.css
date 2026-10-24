@@ -2298,6 +2298,76 @@ ul.credix-stats--module li span.red {
   min-width: 0;
 }
 
+.credix-informe-filter-row.ant-form,
+.credix-informe-filter-row > .ant-form,
+.credix-informe-filter-row .ant-form {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 20px;
+  width: 100%;
+}
+
+.credix-informe-filter-row .ant-form-item {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  margin-bottom: 0 !important;
+  margin-inline-end: 0 !important;
+  max-width: 100%;
+}
+
+.credix-informe-filter-row .ant-form-item-row {
+  display: flex !important;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+}
+
+.credix-informe-filter-row .ant-form-item-label {
+  padding: 0 !important;
+  height: auto !important;
+  line-height: 32px;
+}
+
+.credix-informe-filter-row .ant-form-item-label > label {
+  height: auto !important;
+  line-height: 32px;
+  margin-inline-end: 0;
+}
+
+.credix-informe-filter-row .ant-form-item-control {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.credix-informe-filter-row .ant-form-item-control-input {
+  min-height: 32px;
+}
+
+.credix-informe-filter-row .ant-picker {
+  width: 180px;
+}
+
+.credix-informe-filter-row .ant-select {
+  width: 150px;
+  min-width: 150px;
+}
+
+.credix-informe-filter-row .ant-input,
+.credix-informe-filter-row .ant-input-affix-wrapper {
+  width: 260px;
+  max-width: 100%;
+}
+
+.credix-informe-filter-row .ant-input-number {
+  width: 140px;
+}
+
+.credix-form-canvas {
+  max-width: 800px;
+}
+
 .credix-informe-filter-row .ant-btn-primary {
   background: var(--credix-brand);
   border-color: var(--credix-brand);

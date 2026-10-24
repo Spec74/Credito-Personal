@@ -1266,18 +1266,33 @@
 }
 
 /* —— Simulador de crédito —— */
+.simulador-page .credito-buscar-cliente-wrap {
+  width: min(520px, 100%);
+  max-width: 100%;
+}
+
 .simulador-prospecto-grid,
 .simulador-parametros-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px 16px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 24px;
   align-items: start;
+  max-width: 760px;
+}
+
+.simulador-parametros-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  max-width: 800px;
 }
 
 .simulador-prospecto-grid .ant-form-item,
 .simulador-parametros-grid .ant-form-item {
   margin-bottom: 0;
   min-width: 0;
+}
+
+.simulador-field--wide {
+  grid-column: 1 / -1;
 }
 
 .simulador-prospecto-grid .ant-input,
@@ -1288,6 +1303,7 @@
 .simulador-parametros-grid .ant-select,
 .simulador-field-fluid {
   width: 100% !important;
+  max-width: 100%;
 }
 
 .simulador-acciones {
@@ -1295,10 +1311,22 @@
   padding-top: 4px;
 }
 
+@media (max-width: 900px) {
+  .simulador-parametros-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 640px) {
   .simulador-prospecto-grid,
   .simulador-parametros-grid {
     grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .simulador-page .credito-buscar-cliente-wrap {
+    width: 100%;
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 }
 

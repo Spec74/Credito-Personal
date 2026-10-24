@@ -35,10 +35,6 @@
   padding: 0.75rem 1rem;
 }
 
-.cierre-gerencial-table-tools .ant-form-item {
-  margin-bottom: 0;
-}
-
 .cierre-gerencial-status {
   display: flex;
   flex-wrap: wrap;

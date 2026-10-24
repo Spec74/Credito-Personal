@@ -140,6 +140,19 @@ body {
   color: var(--credix-text);
 }
 
+.credix-page .ant-form-inline .ant-form-item-row {
+  align-items: center;
+}
+
+.credix-page .ant-form-inline .ant-form-item-label {
+  padding: 0 !important;
+}
+
+.credix-page .ant-form-inline .ant-form-item-label > label {
+  height: auto;
+  line-height: 32px;
+}
+
 .credix-content .ant-form-item-explain-error,
 .credix-page .ant-form-item-explain-error {
   font-size: 12px;

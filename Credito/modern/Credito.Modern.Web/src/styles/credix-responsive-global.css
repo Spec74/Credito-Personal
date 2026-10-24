@@ -330,19 +330,20 @@
   min-width: 0;
 }
 
+.credix-informe-filter-row.ant-form,
 .credix-informe-filter-row > .ant-form,
 .credix-informe-filter-row .ant-form {
-  display: flex;
+  display: flex !important;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 12px 16px;
+  align-items: center;
+  gap: 10px 20px;
   width: 100%;
 }
 
 .credix-informe-filter-row .ant-form-item {
   margin-bottom: 0 !important;
   margin-inline-end: 0 !important;
-  flex: 0 1 auto;
+  flex: 0 0 auto !important;
   min-width: 0;
   max-width: 100%;
 }
@@ -350,7 +351,7 @@
 .credix-informe-filter-row .ant-form-item:has(.ant-select),
 .credix-informe-filter-row .ant-form-item:has(.ant-picker),
 .credix-informe-filter-row .ant-form-item:has(.ant-input-number) {
-  flex: 1 1 160px;
+  flex: 0 0 auto;
 }
 
 .credix-informe-filter-row .ant-form-item:has(.ant-segmented) {
@@ -490,6 +491,7 @@
     padding: 12px;
   }
 
+  .credix-informe-filter-row.ant-form,
   .credix-informe-filter-row > .ant-form,
   .credix-informe-filter-row .ant-form {
     flex-direction: column;
@@ -498,12 +500,29 @@
   }
 
   .credix-informe-filter-row .ant-form-item,
-  .credix-informe-filter-row .ant-form-item:has(.ant-btn),
+  .credix-informe-filter-row .ant-form-item:has(.ant-btn) {
+    width: 100%;
+  }
+
+  .credix-informe-filter-row .ant-form-item-row {
+    width: 100%;
+    align-items: center;
+  }
+
+  .credix-informe-filter-row .ant-form-item-label {
+    flex: 0 0 5.5rem;
+    max-width: 5.5rem;
+    text-align: left !important;
+  }
+
+  .credix-informe-filter-row .ant-form-item-control {
+    flex: 1 1 auto;
+  }
+
   .credix-informe-filter-row .ant-picker,
   .credix-informe-filter-row .ant-select,
   .credix-informe-filter-row .ant-input,
-  .credix-informe-filter-row .ant-input-number,
-  .credix-informe-filter-row .ant-btn {
+  .credix-informe-filter-row .ant-input-number {
     width: 100%;
   }
 
