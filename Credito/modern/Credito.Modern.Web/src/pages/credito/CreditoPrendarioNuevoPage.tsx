@@ -619,12 +619,13 @@ export function CreditoPrendarioNuevoPage() {
               style={{ width: '100%', marginTop: 4 }}
               min={0}
               step={1}
-              disabled
+              disabled={!personaId}
               value={gastosAdm}
+              onChange={(v) => setGastosAdm(v)}
               prefix="S/"
             />
             <Text type="secondary" style={{ display: 'block', marginTop: 4, fontSize: 12 }}>
-              Calculado según monto y central de riesgo (tabla GastosAdm).
+              Se propone según monto y central de riesgo; se puede ajustar.
             </Text>
           </Col>
           <Col xs={24} sm={12} md={8}>

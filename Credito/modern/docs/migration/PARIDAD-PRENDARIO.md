@@ -66,7 +66,7 @@ cuotas, gastos administrativos, fecha de primer pago, central de riesgo) lo capt
 2. **Guardar prendas**: rechazo si el crédito ya tiene filas en `CREDITO.Prenda` (no hay edición posterior).
 3. **Gestión**: solo lectura de bienes; sin agregar/editar/borrar.
 4. **Vencimiento**: lo fija el plan (1.er pago + n.º cuotas; prendario modalidad `M`).
-   El alta CRE usa 1 cuota por defecto; el analista puede editar N en simulador / nuevo.
+   El alta CRE usa 1 cuota por defecto; el analista puede ampliar N.
    Al **desembolsar**, se realinea desde `FechaDesembolso`: cuota *n* = desembolso + *n* periodos;
    `FechaPrimerPago` = 1.ª cuota; `FechaVencimiento` = última; `FechaRemate` = vencimiento + 30 días.
 5. **Remate**: `FechaVencimiento + 30 días` (sin captura manual en la UI).

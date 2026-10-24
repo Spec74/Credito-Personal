@@ -1285,12 +1285,8 @@ export function SimuladorCreditoPage() {
             >
               <Input type="date" style={{ width: 160 }} />
             </Form.Item>
-            <Form.Item
-              name="gastosAdm"
-              label="Trámite adm."
-              extra="Tabla GastosAdm: varía con el monto y la central de riesgo."
-            >
-              <InputNumber min={0} step={1} style={{ width: 120 }} disabled />
+            <Form.Item name="gastosAdm" label="Trámite adm.">
+              <InputNumber min={0} step={1} style={{ width: 120 }} />
             </Form.Item>
           </div>
           {esPrendario ? (

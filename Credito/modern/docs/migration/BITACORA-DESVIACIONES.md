@@ -7,12 +7,11 @@ una respuesta documentada en lugar de una discusión.
 ### 2026-10-23 — Prendario: cuotas editables (default 1)
 
 **Qué hay:** en simulador y prendario nuevo las cuotas ya no están
-bloqueadas. Al elegir prendario quedan en 1 (como el alta CRE) y se
-pueden ampliar. Modalidad sigue fija en mensual. El trámite adm. es
-solo lectura: tabla `GastosAdm` según monto y central de riesgo
-(paridad `Creditos.cshtml`, no el 1 % del diálogo viejo).
+bloqueadas. Al elegir prendario quedan en 1 y se pueden ampliar.
+Modalidad sigue fija en mensual. El trámite adm. se propone solo
+(monto / central de riesgo) y el analista puede ajustarlo.
 
-**Qué no hay:** no se inventa TEA ni se toca el USP de alta.
+**Qué no hay:** no se copia el trámite de solo lectura del MVC.
 
 ### 2026-10-23 — Bóveda: buscador de historial
 
