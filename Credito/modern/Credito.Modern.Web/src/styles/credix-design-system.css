@@ -604,33 +604,47 @@ body.credix-app-body {
   min-height: 40px !important;
   height: 40px !important;
   padding: 0 12px !important;
-  line-height: 1.2 !important;
+  line-height: 40px !important;
   border-radius: 8px !important;
   font-size: 13px;
 }
 
 .ant-menu-submenu-popup .ant-menu-item-icon,
-.ant-menu-submenu-popup .ant-menu-submenu-title .ant-menu-item-icon {
+.ant-menu-submenu-popup .ant-menu-item > .anticon,
+.ant-menu-submenu-popup .ant-menu-submenu-title .ant-menu-item-icon,
+.ant-menu-submenu-popup .ant-menu-submenu-title > .anticon {
   display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 20px;
-  width: 20px;
-  height: 20px;
-  margin-inline: 0 10px !important;
-  font-size: 16px;
-  line-height: 1;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 22px !important;
+  width: 22px !important;
+  height: 22px !important;
+  margin: 0 10px 0 0 !important;
+  font-size: 16px !important;
+  line-height: 1 !important;
+  vertical-align: middle;
 }
 
-.ant-menu-submenu-popup .ant-menu-title-content {
+.ant-menu-submenu-popup .ant-menu-item-icon .anticon,
+.ant-menu-submenu-popup .ant-menu-item-icon svg,
+.ant-menu-submenu-popup .anticon svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+
+.ant-menu-submenu-popup .ant-menu-item-icon + span,
+.ant-menu-submenu-popup .ant-menu-title-content,
+.ant-menu-submenu-popup .ant-menu-title-content-with-extra {
   display: block !important;
   flex: 1 1 auto;
   width: auto !important;
   min-width: 0;
+  margin-inline-start: 0 !important;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.25;
+  line-height: 40px !important;
 }
 
 .ant-menu-submenu-popup .credix-menu-label {
@@ -638,6 +652,7 @@ body.credix-app-body {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  line-height: 40px;
 }
 
 .ant-menu-submenu-popup .ant-menu-item:hover,

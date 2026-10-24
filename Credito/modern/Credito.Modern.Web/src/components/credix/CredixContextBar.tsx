@@ -29,7 +29,7 @@ export function CredixContextBar({
         : 'Sin caja abierta'
 
   return (
-    <div className="credix-context-bar" role="status">
+    <div className="credix-context-bar" role="status" translate="no">
       <div className="credix-context-bar__facts">
         <span className="credix-context-bar__office">
           {oficinaNombre ?? (oficinaId > 0 ? `Oficina ${oficinaId}` : 'Sin oficina')}

@@ -393,7 +393,7 @@ export function AppShell() {
       <a href="#main-content" className="credix-skip-link">
         Saltar al contenido
       </a>
-      <header className="credix-header">
+      <header className="credix-header" translate="no">
         <div className="credix-header-start">
           <Button
             type="text"
@@ -543,7 +543,7 @@ function NavPanel({
   }
 
   return (
-    <div className="app-shell-sider-inner">
+    <div className="app-shell-sider-inner" translate="no">
       <div className="app-shell-sider-brand">
         {menuExpanded ? (
           <BrandLogo compact showTagline={false} />
@@ -585,6 +585,7 @@ function NavPanel({
                   triggerSubMenuAction: 'click' as const,
                 })}
             onClick={onMenuClick}
+            classNames={{ popup: { root: 'credix-menu-collapsed-popup' } }}
             getPopupContainer={() => document.body}
             style={{ borderInlineEnd: 0 }}
           />
