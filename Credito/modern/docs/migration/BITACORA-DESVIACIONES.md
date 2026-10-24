@@ -4,6 +4,14 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Tareas: toolbar y KPI proporcionales
+
+**Qué hay:** tres KPI al mismo ancho. Búsqueda acotada, filtros en una
+franja, acciones en otra con «Nueva tarea» a la derecha. Aire en
+toolbars CRUD compartidas. La CSS de tareas se carga en la página.
+
+**Qué no hay:** no se cambia el USP de completar/eliminar.
+
 ### 2026-10-23 — Flechas de tabla ancladas al tramo visible
 
 **Qué hay:** las flechas izquierda/derecha de tablas anchas suben y

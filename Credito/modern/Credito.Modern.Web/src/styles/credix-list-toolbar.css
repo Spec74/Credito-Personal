@@ -14,19 +14,18 @@
     'buscar actions'
     'hint hint';
   align-items: center;
-  gap: 14px 14px;
+  gap: 16px 20px;
   margin-bottom: 0;
-  padding: 14px 16px;
-  border-radius: 10px;
-  border: 1px solid var(--credix-border, #e5e7eb);
-  border-left: 3px solid var(--credix-brand, #114885);
-  background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+  padding: 4px 0 0;
+  border: none;
+  background: none;
 }
 
 .credix-list-toolbar__buscar {
   grid-area: buscar;
   min-width: 0;
   width: 100%;
+  max-width: 440px;
 }
 
 /* Input solo (sin botón) */
@@ -145,8 +144,12 @@
       'buscar'
       'actions'
       'hint';
-    padding: 12px;
-    gap: 8px;
+    padding: 0;
+    gap: 12px;
+  }
+
+  .credix-list-toolbar__buscar {
+    max-width: none;
   }
 
   .credix-list-toolbar__buscar .ant-input-affix-wrapper > input.ant-input {

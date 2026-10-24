@@ -4,63 +4,67 @@
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
-  grid-template-areas:
-    'buscar buscar'
-    'analista filtros'
-    'actions actions';
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 4px 0 4px;
+  background: none;
+  border: none;
+}
+
+.credito-tareas-toolbar__filters {
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 14px 14px;
-  padding: 14px 16px;
-  border-radius: 10px;
-  border: 1px solid var(--credix-border, #e5e7eb);
-  border-left: 3px solid var(--credix-brand, #114885);
-  background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+  gap: 12px 16px;
+  min-width: 0;
 }
 
 .credito-tareas-toolbar__buscar {
-  grid-area: buscar;
+  flex: 1 1 260px;
+  max-width: 420px;
   min-width: 0;
 }
 
 .credito-tareas-toolbar__buscar .ant-input-affix-wrapper {
-  height: 44px;
-  max-height: 44px;
-  border-radius: 10px;
+  height: 40px;
+  max-height: 40px;
+  border-radius: 8px;
 }
 
 .credito-tareas-toolbar__buscar .ant-input-affix-wrapper > input.ant-input {
-  height: 42px;
-  line-height: 42px;
+  height: 38px;
+  line-height: 38px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .credito-tareas-toolbar__analista {
-  grid-area: analista;
-  min-width: 0;
-  width: 100%;
+  width: 220px;
+  max-width: 100%;
 }
 
 .credito-tareas-toolbar__filtros {
-  grid-area: filtros;
-  min-width: 0;
-  justify-self: start;
+  flex: 0 1 auto;
 }
 
 .credito-tareas-toolbar__actions {
-  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--credix-border, #e5e7eb);
+}
+
+.credito-tareas-toolbar__actions-secondary {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   align-items: center;
-  justify-content: flex-start;
-  min-width: 0;
-  margin-top: 2px;
-  padding-top: 14px;
-  border-top: 1px solid var(--credix-border, #e5e7eb);
 }
 
 .credito-tareas-toolbar__actions a {
@@ -68,8 +72,8 @@
 }
 
 .credito-tareas-toolbar__actions .ant-btn-primary {
-  background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand, #1e4d7b) 100%);
-  border: none;
+  min-height: 40px;
+  padding-inline: 16px;
   font-weight: 600;
 }
 
@@ -228,23 +232,23 @@
 
 @media (max-width: 767px) {
   .credito-tareas-toolbar {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      'buscar'
-      'analista'
-      'filtros'
-      'actions';
-    padding: 14px 12px;
-    gap: 12px;
+    gap: 14px;
+  }
+
+  .credito-tareas-toolbar__filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credito-tareas-toolbar__buscar,
+  .credito-tareas-toolbar__analista,
+  .credito-tareas-toolbar__filtros {
+    width: 100%;
+    max-width: none;
   }
 
   .credito-tareas-toolbar__buscar .ant-input-affix-wrapper > input.ant-input {
     font-size: 16px;
-  }
-
-  .credito-tareas-toolbar__filtros {
-    width: 100%;
-    justify-self: stretch;
   }
 
   .credito-tareas-toolbar__filtros .ant-segmented {
@@ -252,38 +256,26 @@
   }
 
   .credito-tareas-toolbar__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credito-tareas-toolbar__actions-secondary {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 10px;
-    width: 100%;
-    justify-content: stretch;
   }
 
-  .credito-tareas-toolbar__actions a {
+  .credito-tareas-toolbar__actions-secondary a {
     display: block;
     width: 100%;
-    min-width: 0;
     grid-column: 1 / -1;
   }
 
   .credito-tareas-toolbar__actions .ant-btn {
     width: 100% !important;
-    min-height: 44px;
+    min-height: 40px;
     justify-content: center;
-    gap: 8px;
-    overflow: visible;
-  }
-
-  .credito-tareas-toolbar__actions .ant-btn-primary {
-    grid-column: 1 / -1;
-  }
-
-  .credito-tareas-toolbar__actions .ant-btn > span,
-  .credito-tareas-toolbar__actions .ant-btn .ant-btn-icon,
-  .credito-tareas-toolbar__actions .ant-btn .anticon {
-    display: inline-flex !important;
-    visibility: visible !important;
-    opacity: 1 !important;
   }
 
   .credito-tareas-buscar__row {
@@ -296,11 +288,11 @@
 }
 
 @media (max-width: 480px) {
-  .credito-tareas-toolbar__actions {
+  .credito-tareas-toolbar__actions-secondary {
     grid-template-columns: 1fr;
   }
 
-  .credito-tareas-toolbar__actions a {
+  .credito-tareas-toolbar__actions-secondary a {
     grid-column: auto;
   }
 }

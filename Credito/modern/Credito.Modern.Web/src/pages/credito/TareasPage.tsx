@@ -41,6 +41,7 @@ import { CredixCrudPage, CredixDataTable, type CredixStatItem } from '../../comp
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
 import { formatMoney } from '../../utils/formatMoney'
 import { filtraTareasPorBusqueda } from '../../utils/tareaListSearch'
+import '../../styles/credito-tareas.css'
 
 const { Text } = Typography
 
@@ -108,10 +109,9 @@ export function TareasPage() {
     const pen = rows.filter((r) => r.estado === 'PEN').length
     const com = rows.filter((r) => r.estado === 'COM').length
     return [
-      { value: filasFiltradas.length, label: 'Tareas visibles' },
       { value: pen, label: 'Pendientes', tone: pen > 0 ? 'red' : undefined },
       { value: com, label: 'Completadas', tone: 'green' },
-      { value: rows.length, label: 'Total en filtro' },
+      { value: filasFiltradas.length, label: 'En listado' },
     ]
   }, [rows, filasFiltradas.length])
 
@@ -269,7 +269,7 @@ export function TareasPage() {
 
   return (
     <CredixCrudPage
-      className="credito-tareas-page credix-page--stats-3"
+      className="credito-tareas-page"
       title="Mis tareas"
       subtitle={undefined}
       panelTitle="Listado de tareas"
@@ -281,48 +281,50 @@ export function TareasPage() {
       ]}
       toolbar={
         <div className="credito-tareas-toolbar">
-          <div className="credito-tareas-toolbar__buscar">
-            <Input
-              allowClear
+          <div className="credito-tareas-toolbar__filters">
+            <div className="credito-tareas-toolbar__buscar">
+              <Input
+                allowClear
+                size="large"
+                prefix={<SearchOutlined style={{ color: 'var(--credix-brand)' }} />}
+                placeholder="Cliente, DNI, Nº crédito, analista"
+                value={buscarTarea}
+                onChange={(e) => setBuscarTarea(e.target.value)}
+              />
+            </div>
+            <Select
+              className="credito-tareas-toolbar__analista"
               size="large"
-              prefix={<SearchOutlined style={{ color: 'var(--credix-brand)' }} />}
-              placeholder="Cliente, DNI, Nº crédito, analista"
-              value={buscarTarea}
-              onChange={(e) => setBuscarTarea(e.target.value)}
+              allowClear
+              placeholder="Analista: todos"
+              value={analista || undefined}
+              onChange={(v) => setAnalista(v ?? '')}
+              options={analistas.map((a) => ({ value: a, label: a }))}
+            />
+            <Segmented<FiltroEstado>
+              className="credito-tareas-toolbar__filtros"
+              value={filtro}
+              onChange={setFiltro}
+              options={[
+                { label: 'Pendientes', value: 'PEN' },
+                { label: 'Completadas', value: 'COM' },
+                { label: 'Todas', value: 'TODAS' },
+              ]}
             />
           </div>
-          <Select
-            className="credito-tareas-toolbar__analista"
-            size="large"
-            allowClear
-            placeholder="Analista: todos"
-            value={analista || undefined}
-            onChange={(v) => setAnalista(v ?? '')}
-            options={analistas.map((a) => ({ value: a, label: a }))}
-          />
-          <Segmented<FiltroEstado>
-            className="credito-tareas-toolbar__filtros"
-            value={filtro}
-            onChange={setFiltro}
-            options={[
-              { label: 'Pendientes', value: 'PEN' },
-              { label: 'Completadas', value: 'COM' },
-              { label: 'Todas', value: 'TODAS' },
-            ]}
-          />
           <div className="credito-tareas-toolbar__actions">
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={refrescar}
-              loading={listQuery.isFetching}
-            >
-              Actualizar
-            </Button>
-            <Link to={`/informes/credito-tarea?estado=${filtro === 'TODAS' ? 'PEN' : filtro}`}>
-              <Button icon={<UnorderedListOutlined />}>Informe detallado</Button>
-            </Link>
-            {puedeEditar ? (
-              <>
+            <div className="credito-tareas-toolbar__actions-secondary">
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={refrescar}
+                loading={listQuery.isFetching}
+              >
+                Actualizar
+              </Button>
+              <Link to={`/informes/credito-tarea?estado=${filtro === 'TODAS' ? 'PEN' : filtro}`}>
+                <Button icon={<UnorderedListOutlined />}>Informe detallado</Button>
+              </Link>
+              {puedeEditar ? (
                 <Button
                   icon={<FilePdfOutlined />}
                   loading={exportPdf.isPending}
@@ -330,17 +332,19 @@ export function TareasPage() {
                 >
                   Exportar PDF
                 </Button>
-                <Button
-                  type="primary"
-                  icon={<PlusOutlined />}
-                  onClick={() => {
-                    setEditId(0)
-                    setEditorOpen(true)
-                  }}
-                >
-                  Nueva tarea
-                </Button>
-              </>
+              ) : null}
+            </div>
+            {puedeEditar ? (
+              <Button
+                type="primary"
+                icon={<PlusOutlined />}
+                onClick={() => {
+                  setEditId(0)
+                  setEditorOpen(true)
+                }}
+              >
+                Nueva tarea
+              </Button>
             ) : (
               <Text type="secondary">Creación: Administrador o Aprobador</Text>
             )}

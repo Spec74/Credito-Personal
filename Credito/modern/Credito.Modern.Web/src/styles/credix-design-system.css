@@ -732,8 +732,8 @@ body.credix-app-body {
 /* —— Stats (KPI) —— */
 ul.credix-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
   margin: 0 0 0;
   padding: 0;
   list-style: none;
@@ -744,7 +744,7 @@ ul.credix-stats li {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 14px 16px;
+  padding: 16px 18px;
   background: var(--credix-surface);
   border: 1px solid var(--credix-border);
   border-radius: var(--credix-radius);
@@ -2392,8 +2392,8 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-crud-panel-toolbar {
-  margin: -4px 0 14px;
-  padding: 0 0 14px;
+  margin: 0 0 16px;
+  padding: 0 0 16px;
   border-bottom: 1px solid color-mix(in srgb, var(--credix-border) 70%, #fff);
 }
 
