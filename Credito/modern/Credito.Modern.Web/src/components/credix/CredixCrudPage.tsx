@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react'
 import type { BreadcrumbProps } from 'antd'
-import { CredixFilterBar } from './CredixFilterBar'
 import { CredixPage } from './CredixPage'
 import type { CredixStatItem } from './CredixStatsBar'
 import { CredixPanel } from './CredixPanel'
@@ -39,8 +38,10 @@ export function CredixCrudPage({
       actions={actions}
       stats={stats}
     >
-      {toolbar != null ? <CredixFilterBar>{toolbar}</CredixFilterBar> : null}
-      <CredixPanel title={panelTitle}>{children}</CredixPanel>
+      <CredixPanel title={panelTitle} className="credix-crud-results-panel">
+        {toolbar != null ? <div className="credix-crud-panel-toolbar">{toolbar}</div> : null}
+        {children}
+      </CredixPanel>
       {extra}
     </CredixPage>
   )

@@ -21,11 +21,22 @@
   max-width: 52rem;
 }
 
-.cierre-gerencial-toolbar {
+.cierre-gerencial-work {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  min-width: 0;
+}
+
+.cierre-gerencial-table-tools {
+  background: var(--cg-surface);
+  border: 1px solid var(--cg-line);
+  border-radius: 12px;
+  padding: 0.75rem 1rem;
+}
+
+.cierre-gerencial-table-tools .ant-form-item {
+  margin-bottom: 0;
 }
 
 .cierre-gerencial-status {
@@ -94,7 +105,6 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.75rem;
-  margin-bottom: 1rem;
 }
 
 .cierre-gerencial-kpi {

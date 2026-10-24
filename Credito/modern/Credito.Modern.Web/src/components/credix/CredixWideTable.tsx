@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
+import { LeftOutlined, RightOutlined } from '@ant-design/icons'
 import {
   readTableHorizontalOverflow,
+  scrollTableHorizontally,
+  tableScrollBody,
   useTableHorizontalWheel,
 } from '../../hooks/useTableHorizontalWheel'
 
@@ -10,9 +13,8 @@ type Props = {
 }
 
 /**
- * Contenedor para tablas anchas de consulta: la rueda del mouse desplaza las columnas y un
- * degradado avisa que hay más contenido a los lados. La tabla no es interactiva, así que no
- * se pierde ningún gesto de fila.
+ * Tablas anchas: rueda = página; Mayús+rueda o trackpad = columnas;
+ * flechas y sombra si hay más a los lados. Analista/caja no se quedan atrapados.
  */
 export function CredixWideTable({ children, className }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
@@ -35,9 +37,7 @@ export function CredixWideTable({ children, className }: Props) {
     }
 
     syncEdges()
-    const body =
-      root.querySelector<HTMLElement>('.ant-table-body') ??
-      root.querySelector<HTMLElement>('.ant-table-content')
+    const body = tableScrollBody(root)
     body?.addEventListener('scroll', syncEdges, { passive: true })
     const resize = new ResizeObserver(syncEdges)
     resize.observe(root)
@@ -51,6 +51,17 @@ export function CredixWideTable({ children, className }: Props) {
     }
   }, [syncEdges])
 
+  const nudge = (direction: -1 | 1) => {
+    const root = rootRef.current
+    if (!root) {
+      return
+    }
+    const body = tableScrollBody(root)
+    const step = body ? Math.min(280, Math.max(160, body.clientWidth * 0.4)) : 240
+    scrollTableHorizontally(root, direction * step)
+    syncEdges()
+  }
+
   const classes = [
     'credix-wide-table',
     edges.canScrollLeft ? 'credix-wide-table--start' : '',
@@ -63,6 +74,26 @@ export function CredixWideTable({ children, className }: Props) {
   return (
     <div ref={rootRef} className={classes}>
       {children}
+      {edges.canScrollLeft ? (
+        <button
+          type="button"
+          className="credix-wide-table__nudge credix-wide-table__nudge--start"
+          aria-label="Ver columnas anteriores"
+          onClick={() => nudge(-1)}
+        >
+          <LeftOutlined />
+        </button>
+      ) : null}
+      {edges.canScrollRight ? (
+        <button
+          type="button"
+          className="credix-wide-table__nudge credix-wide-table__nudge--end"
+          aria-label="Ver más columnas"
+          onClick={() => nudge(1)}
+        >
+          <RightOutlined />
+        </button>
+      ) : null}
     </div>
   )
 }

@@ -4,6 +4,23 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Orden de página: cards arriba, filtros en la tabla
+
+**Qué hay:** indicadores arriba; periodo, cartera y buscador pegados a
+la tabla. Cierre gerencial y todos los `CredixInformePage` /
+`CredixCrudPage` (informes, maestros, aprobar, caja).
+
+**Qué no hay:** no se cambian fórmulas ni USP. Solo el orden visual.
+
+### 2026-10-23 — Tablas anchas: rueda vertical libre
+
+**Qué hay:** la rueda ya no convierte el scroll de página en columnas.
+Mayús+rueda o trackpad horizontal mueven columnas. Sombra + flechas si
+hay más a los lados. Barra inferior visible. Vale para todos los
+`CredixDataTable` / `CredixWideTable` (cierre, saldos, informes).
+
+**Qué no hay:** no se obliga a salir de la tabla para bajar la página.
+
 ### 2026-10-23 — Densidad automática (sin Compacto / Holgado)
 
 **Qué hay:** se quitó el selector de la barra de sede. Escritorio/ratón

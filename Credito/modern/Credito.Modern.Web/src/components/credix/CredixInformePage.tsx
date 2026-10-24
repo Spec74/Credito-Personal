@@ -3,12 +3,11 @@ import { Input, Space } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import type { BreadcrumbProps } from 'antd'
 import { InformeTableContext } from '../informes/InformeTableContext'
-import { CredixFilterBar } from './CredixFilterBar'
 import { CredixPage } from './CredixPage'
 import { CredixPanel } from './CredixPanel'
 import type { CredixStatItem } from './CredixStatsBar'
 
-/** Layout estándar para pantallas «Ver pantalla» (filtros, export, búsqueda, tabla). */
+/** Layout estándar: cards arriba; filtros, export y búsqueda pegados a la tabla. */
 export function CredixInformePage({
   title,
   subtitle,
@@ -146,14 +145,6 @@ export function CredixInformePage({
       stats={stats}
       className={['credix-informe-page', className].filter(Boolean).join(' ')}
     >
-      {(filters != null || exportBar != null) && (
-        <CredixFilterBar className="credix-informe-filter-bar">
-          <div className="credix-informe-filter-row">{filters}</div>
-          {exportBar != null ? (
-            <div className="credix-informe-export-row">{exportBar}</div>
-          ) : null}
-        </CredixFilterBar>
-      )}
       {toolbar}
       {error}
       <CredixPanel
@@ -161,6 +152,14 @@ export function CredixInformePage({
         extra={panelExtra}
         className="credix-informe-results-panel"
       >
+        {(filters != null || exportBar != null) && (
+          <div className="credix-informe-panel-filters">
+            <div className="credix-informe-filter-row">{filters}</div>
+            {exportBar != null ? (
+              <div className="credix-informe-export-row">{exportBar}</div>
+            ) : null}
+          </div>
+        )}
         {prominentToolbar}
         {body}
       </CredixPanel>

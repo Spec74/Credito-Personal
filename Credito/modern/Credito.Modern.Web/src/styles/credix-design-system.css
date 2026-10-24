@@ -2321,6 +2321,22 @@ ul.credix-stats--module li span.red {
   min-width: 96px;
 }
 
+.credix-crud-panel-toolbar {
+  margin: -4px 0 14px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--credix-border) 70%, #fff);
+}
+
+.credix-informe-panel-filters {
+  margin: -4px 0 14px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--credix-border) 70%, #fff);
+}
+
+.credix-informe-panel-filters .credix-informe-filter-row {
+  width: 100%;
+}
+
 .credix-informe-results-panel.credix-box {
   border-radius: var(--credix-radius);
   overflow: hidden;

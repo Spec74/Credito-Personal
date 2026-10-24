@@ -2,11 +2,12 @@
  * Bandeja Aprobar créditos — Credix (#114885), paridad CreditoAprobar/Index.
  */
 
-.credito-aprobacion-page > .credix-filter-bar {
+.credito-aprobacion-page .credix-crud-panel-toolbar {
   padding: 0;
-  margin-bottom: 14px;
+  margin: 0 0 14px;
   background: transparent;
   border: none;
+  border-bottom: none;
   box-shadow: none;
 }
 

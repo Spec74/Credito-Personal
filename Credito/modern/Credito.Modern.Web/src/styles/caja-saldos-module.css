@@ -46,34 +46,6 @@
   position: relative;
 }
 
-.caja-saldos-page .credix-wide-table::before,
-.caja-saldos-page .credix-wide-table::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 48px;
-  width: 28px;
-  pointer-events: none;
-  z-index: 3;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.caja-saldos-page .credix-wide-table::before {
-  left: 0;
-  background: linear-gradient(90deg, rgb(17 72 133 / 14%), transparent);
-}
-
-.caja-saldos-page .credix-wide-table::after {
-  right: 0;
-  background: linear-gradient(270deg, rgb(17 72 133 / 16%), transparent);
-}
-
-.caja-saldos-page .credix-wide-table--start::before,
-.caja-saldos-page .credix-wide-table--end::after {
-  opacity: 1;
-}
-
 .caja-saldos-page .caja-saldos-table .ant-table-cell-fix-right {
   background: #fff;
   box-shadow: -8px 0 12px rgb(15 23 42 / 6%);

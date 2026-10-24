@@ -234,8 +234,92 @@
 }
 
 .credix-wide-table .ant-table-container,
-.credix-wide-table .ant-table-content {
+.credix-wide-table .ant-table-content,
+.credix-wide-table .ant-table-body {
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  scrollbar-width: auto;
+  scrollbar-color: #8aa4c2 #f1f5f9;
+}
+
+.credix-wide-table .ant-table-body::-webkit-scrollbar,
+.credix-wide-table .ant-table-content::-webkit-scrollbar {
+  height: 12px;
+  width: 12px;
+}
+
+.credix-wide-table .ant-table-body::-webkit-scrollbar-thumb,
+.credix-wide-table .ant-table-content::-webkit-scrollbar-thumb {
+  background: #8aa4c2;
+  border-radius: 8px;
+  border: 2px solid #f1f5f9;
+}
+
+.credix-wide-table .ant-table-body::-webkit-scrollbar-thumb:hover,
+.credix-wide-table .ant-table-content::-webkit-scrollbar-thumb:hover {
+  background: var(--credix-brand, #114885);
+}
+
+.credix-wide-table::before,
+.credix-wide-table::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 14px;
+  width: 28px;
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.credix-wide-table::before {
+  left: 0;
+  background: linear-gradient(90deg, rgb(17 72 133 / 16%), transparent);
+}
+
+.credix-wide-table::after {
+  right: 0;
+  background: linear-gradient(270deg, rgb(17 72 133 / 16%), transparent);
+}
+
+.credix-wide-table--start::before,
+.credix-wide-table--end::after {
+  opacity: 1;
+}
+
+.credix-wide-table__nudge {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  width: 40px;
+  height: 40px;
+  margin-top: -20px;
+  border: 1px solid var(--credix-border, #d9e4f2);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--credix-brand, #114885);
+  box-shadow: 0 4px 12px rgb(15 23 42 / 10%);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.credix-wide-table__nudge:hover,
+.credix-wide-table__nudge:focus-visible {
+  outline: none;
+  border-color: var(--credix-brand, #114885);
+  color: var(--credix-brand, #114885);
+}
+
+.credix-wide-table__nudge--start {
+  left: 8px;
+}
+
+.credix-wide-table__nudge--end {
+  right: 8px;
 }
 
 

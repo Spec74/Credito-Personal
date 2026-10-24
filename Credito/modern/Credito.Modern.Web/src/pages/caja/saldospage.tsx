@@ -457,8 +457,8 @@ export function SaldosPage() {
       value={filtro}
       onChange={setFiltro}
       placeholder={placeholder}
-      hint="La rueda del mouse desplaza las columnas. El saldo final queda fijo a la derecha."
-      hintShort="Rueda: desplazar columnas."
+      hint="El saldo final queda fijo a la derecha. Mayús + rueda o las flechas mueven columnas."
+      hintShort="Mayús + rueda: columnas."
       filteredCount={filtered}
       totalCount={total}
       loading={tabLoading}
@@ -472,8 +472,8 @@ export function SaldosPage() {
       value={filtro}
       onChange={setFiltro}
       placeholder={placeholder}
-      hint="Busca en el historial del servidor. La rueda del mouse desplaza las columnas."
-      hintShort="Rueda: desplazar columnas."
+      hint="Busca en el historial del servidor. Mayús + rueda o las flechas mueven columnas."
+      hintShort="Mayús + rueda: columnas."
       loading={tabLoading}
       onRefresh={refrescarTab}
     />

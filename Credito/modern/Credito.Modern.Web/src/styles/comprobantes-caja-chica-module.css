@@ -2,9 +2,9 @@
  * Informe comprobantes caja chica — estilos específicos de tabla.
  */
 
-.comprobantes-caja-chica-page.credix-informe-page .credix-informe-filter-bar {
-  border-radius: 10px;
+.comprobantes-caja-chica-page.credix-informe-page .credix-informe-panel-filters {
   border-left: 3px solid var(--credix-brand, #114885);
+  padding-left: 12px;
 }
 
 .comprobantes-caja-chica-table .comprobantes-caja-chica-table__importe {

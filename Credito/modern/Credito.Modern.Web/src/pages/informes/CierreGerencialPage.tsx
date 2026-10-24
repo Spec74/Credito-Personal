@@ -39,7 +39,6 @@ import { ApiError } from '../../api/errors'
 import {
   CredixDataTable,
   CredixDatePicker,
-  CredixFilterBar,
   CredixPage,
   CredixPanel,
 } from '../../components/credix'
@@ -582,8 +581,72 @@ export function CierreGerencialPage() {
         </Space>
       }
     >
-      <div className="cierre-gerencial-toolbar">
-        <CredixFilterBar className="credix-informe-filter-bar">
+      {avance.data ? (
+        <div
+          className={`cierre-gerencial-status ${
+            oficial ? 'cierre-gerencial-status--oficial' : 'cierre-gerencial-status--no-oficial'
+          }`}
+          role="status"
+        >
+          <span className="cierre-gerencial-status-badge">
+            {oficial ? (
+              <>
+                <CheckCircleOutlined aria-hidden /> Cierre oficial
+              </>
+            ) : (
+              <>
+                <WarningOutlined aria-hidden /> Avance no oficial
+              </>
+            )}
+          </span>
+          <div className="cierre-gerencial-status-copy">
+            <strong>
+              {periodo.format('MMMM YYYY')}
+              {avance.data.fechaCalculo ? ` · calculado ${avance.data.fechaCalculo}` : ''}
+            </strong>
+            <span>
+              {oficial
+                ? 'Las cifras corresponden al cierre mensual consolidado.'
+                : 'Las cifras pueden variar hasta que se genere el cierre mensual (post-cierre de bóveda).'}
+              {filtroActivo ? ' · Filtro activo sobre los indicadores y tablas.' : ''}
+            </span>
+          </div>
+        </div>
+      ) : null}
+
+      <div className="cierre-gerencial-kpis" aria-live="polite">
+        <div className="cierre-gerencial-kpi">
+          <div className="cierre-gerencial-kpi-label">Saldo total</div>
+          <div className="cierre-gerencial-kpi-value">S/ {formatMoney(kpis.capital)}</div>
+          <div className="cierre-gerencial-kpi-note">
+            {kpis.productivas} productiva{kpis.productivas === 1 ? '' : 's'} · {kpis.especiales}{' '}
+            especial{kpis.especiales === 1 ? '' : 'es'}
+          </div>
+        </div>
+        <div className="cierre-gerencial-kpi">
+          <div className="cierre-gerencial-kpi-label">Clientes activos</div>
+          <div className="cierre-gerencial-kpi-value">{kpis.clientes.toLocaleString('es-PE')}</div>
+          <div className="cierre-gerencial-kpi-note">Personas distintas en cartera visible</div>
+        </div>
+        <div className="cierre-gerencial-kpi">
+          <div className="cierre-gerencial-kpi-label">Vencidos actuales</div>
+          <div className="cierre-gerencial-kpi-value">S/ {formatMoney(kpis.vencidos)}</div>
+          <div className="cierre-gerencial-kpi-note">Saldo residual de cuotas vencidas</div>
+        </div>
+        <div className="cierre-gerencial-kpi">
+          <div className="cierre-gerencial-kpi-label">Metas configuradas</div>
+          <div className="cierre-gerencial-kpi-value">
+            {kpis.metasOk}
+            {kpis.total > 0 ? ` / ${kpis.total}` : ''}
+          </div>
+          <div className="cierre-gerencial-kpi-note">
+            {kpis.total > 0 ? `${kpis.metasPct}% del universo filtrado` : 'Sin carteras en el periodo'}
+          </div>
+        </div>
+      </div>
+
+      <div className="cierre-gerencial-work">
+        <div className="cierre-gerencial-table-tools">
           <Form layout="inline" className="credix-informe-filter-row">
             <Form.Item label="Periodo">
               <CredixDatePicker
@@ -613,79 +676,14 @@ export function CierreGerencialPage() {
                 allowClear
                 prefix={<SearchOutlined />}
                 placeholder="Analista, mercado, supervisor…"
-                style={{ width: 220 }}
+                style={{ width: 260 }}
                 value={buscar}
                 onChange={(e) => setBuscar(e.target.value)}
                 aria-label="Filtrar analistas"
               />
             </Form.Item>
           </Form>
-        </CredixFilterBar>
-
-        {avance.data ? (
-          <div
-            className={`cierre-gerencial-status ${
-              oficial ? 'cierre-gerencial-status--oficial' : 'cierre-gerencial-status--no-oficial'
-            }`}
-            role="status"
-          >
-            <span className="cierre-gerencial-status-badge">
-              {oficial ? (
-                <>
-                  <CheckCircleOutlined aria-hidden /> Cierre oficial
-                </>
-              ) : (
-                <>
-                  <WarningOutlined aria-hidden /> Avance no oficial
-                </>
-              )}
-            </span>
-            <div className="cierre-gerencial-status-copy">
-              <strong>
-                {periodo.format('MMMM YYYY')}
-                {avance.data.fechaCalculo ? ` · calculado ${avance.data.fechaCalculo}` : ''}
-              </strong>
-              <span>
-                {oficial
-                  ? 'Las cifras corresponden al cierre mensual consolidado.'
-                  : 'Las cifras pueden variar hasta que se genere el cierre mensual (post-cierre de bóveda).'}
-                {filtroActivo ? ' · Filtro activo sobre los indicadores y tablas.' : ''}
-              </span>
-            </div>
-          </div>
-        ) : null}
-
-        <div className="cierre-gerencial-kpis" aria-live="polite">
-          <div className="cierre-gerencial-kpi">
-            <div className="cierre-gerencial-kpi-label">Saldo total</div>
-            <div className="cierre-gerencial-kpi-value">S/ {formatMoney(kpis.capital)}</div>
-            <div className="cierre-gerencial-kpi-note">
-              {kpis.productivas} productiva{kpis.productivas === 1 ? '' : 's'} · {kpis.especiales}{' '}
-              especial{kpis.especiales === 1 ? '' : 'es'}
-            </div>
-          </div>
-          <div className="cierre-gerencial-kpi">
-            <div className="cierre-gerencial-kpi-label">Clientes activos</div>
-            <div className="cierre-gerencial-kpi-value">{kpis.clientes.toLocaleString('es-PE')}</div>
-            <div className="cierre-gerencial-kpi-note">Personas distintas en cartera visible</div>
-          </div>
-          <div className="cierre-gerencial-kpi">
-            <div className="cierre-gerencial-kpi-label">Vencidos actuales</div>
-            <div className="cierre-gerencial-kpi-value">S/ {formatMoney(kpis.vencidos)}</div>
-            <div className="cierre-gerencial-kpi-note">Saldo residual de cuotas vencidas</div>
-          </div>
-          <div className="cierre-gerencial-kpi">
-            <div className="cierre-gerencial-kpi-label">Metas configuradas</div>
-            <div className="cierre-gerencial-kpi-value">
-              {kpis.metasOk}
-              {kpis.total > 0 ? ` / ${kpis.total}` : ''}
-            </div>
-            <div className="cierre-gerencial-kpi-note">
-              {kpis.total > 0 ? `${kpis.metasPct}% del universo filtrado` : 'Sin carteras en el periodo'}
-            </div>
-          </div>
         </div>
-      </div>
 
       <Tabs
         className="cierre-gerencial-tabs"
@@ -809,6 +807,7 @@ export function CierreGerencialPage() {
           },
         ]}
       />
+      </div>
     </CredixPage>
   )
 }
