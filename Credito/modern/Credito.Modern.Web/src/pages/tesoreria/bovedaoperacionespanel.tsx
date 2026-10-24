@@ -512,7 +512,6 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             >
               <Select
                 loading={tiposPagoQuery.isLoading}
-                showSearch
                 placeholder="Medio de pago origen"
                 options={tipoPagoOptions}
                 {...tipoPagoSelectProps}
@@ -540,7 +539,6 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             >
               <Select
                 loading={tiposPagoQuery.isLoading}
-                showSearch
                 placeholder="Medio de pago destino"
                 options={tipoPagoOptions}
                 {...tipoPagoSelectProps}
