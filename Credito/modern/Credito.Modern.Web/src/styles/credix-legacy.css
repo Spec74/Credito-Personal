@@ -311,7 +311,9 @@ ul.credix-stats li small {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--credix-border, #e3e6ea);
 }
 
 .credix-page-subtitle {
@@ -320,12 +322,13 @@ ul.credix-stats li small {
 }
 
 .credix-page-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: #114885;
+  font-size: clamp(1.25rem, 2vw, 22px);
+  font-weight: 500;
+  color: #202124;
   margin: 0 0 4px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #d0d0d0;
+  padding-bottom: 0;
+  border-bottom: none;
+  letter-spacing: -0.02em;
 }
 
 .credix-page-body {

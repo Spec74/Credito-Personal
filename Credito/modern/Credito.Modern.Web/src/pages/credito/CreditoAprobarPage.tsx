@@ -122,7 +122,10 @@ export function CreditoAprobarPage() {
       invalidar()
     },
     onError: (e) =>
-      message.error(e instanceof ApiError ? e.message : 'No se pudo rechazar'),
+      message.error({
+        content: e instanceof ApiError ? e.message : 'No se pudo rechazar el crédito.',
+        duration: 8,
+      }),
   })
 
   const confirmarAprobar = useCallback((row: CreditoPorAprobarRow) => {
@@ -148,7 +151,13 @@ export function CreditoAprobarPage() {
 
   const columns: ColumnsType<CreditoPorAprobarRow> = useMemo(
     () => [
-      { title: 'Crédito', dataIndex: 'creditoId', width: 96, sorter: true },
+      {
+        title: 'Crédito',
+        dataIndex: 'creditoId',
+        width: 96,
+        sorter: true,
+        render: (id: number) => <span className="credix-id">{id}</span>,
+      },
       { title: 'Código', dataIndex: 'codigo', width: 110, sorter: true },
       {
         title: 'Cliente',

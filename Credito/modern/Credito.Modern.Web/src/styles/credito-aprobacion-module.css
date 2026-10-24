@@ -11,7 +11,7 @@
 }
 
 .credito-aprobacion-page .credix-panel {
-  border-radius: 12px;
+  border-radius: var(--credix-radius, 8px);
 }
 
 /* —— Tarjeta de búsqueda —— */
@@ -19,12 +19,11 @@
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
-  padding: 18px 20px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--credix-border, #e5e7eb);
-  border-left: 4px solid var(--credix-brand, #114885);
-  background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
-  box-shadow: var(--credix-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.06));
+  padding: 16px 18px 14px;
+  border-radius: var(--credix-radius, 8px);
+  border: 1px solid var(--credix-border, #e3e6ea);
+  background: var(--credix-surface, #fff);
+  box-shadow: none;
 }
 
 .credito-aprobacion-search-card__header {
@@ -64,7 +63,7 @@
 .credito-aprobacion-search-card__heading {
   margin: 0 0 2px;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.3;
   color: var(--credix-text, #1f2937);
 }
@@ -157,16 +156,14 @@
   font-weight: 600;
   white-space: nowrap;
   border: none !important;
-  border-radius: 10px !important;
-  background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand, #114885) 100%) !important;
-  box-shadow:
-    0 1px 2px rgba(17, 72, 133, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  border-radius: 8px !important;
+  background: var(--credix-brand, #114885) !important;
+  box-shadow: none;
 }
 
 .credito-aprobacion-search-card__submit.ant-btn-primary:not(:disabled):hover {
-  background: linear-gradient(180deg, #2a7dc4 0%, #0d3a6d 100%) !important;
-  box-shadow: 0 4px 12px rgba(17, 72, 133, 0.28);
+  background: var(--credix-brand-hover, #1a5a9e) !important;
+  box-shadow: none;
 }
 
 .credito-aprobacion-search-card__chips {
@@ -323,7 +320,7 @@
 }
 
 .credito-aprobacion-actions__btn--aprobar.ant-btn-primary {
-  background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand, #114885) 100%);
+  background: var(--credix-brand, #114885);
   border: none;
   font-weight: 600;
   min-width: 44px;

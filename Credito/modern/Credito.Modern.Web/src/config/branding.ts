@@ -14,6 +14,6 @@ export const branding = {
     /** Alineado a `--credix-brand` y Ant Design `colorPrimary`. */
     primary: '#114885',
     accent: '#2e69ae',
-    background: '#f0f2f5',
+    background: '#f8f9fb',
   },
 } as const

@@ -291,6 +291,13 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
 
         try
         {
+            await QuitarDependenciasDeSolicitudAsync(
+                    connection,
+                    transaction,
+                    creditoId,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
             if (ordenVentaId is > 0)
             {
                 await connection.ExecuteAsync(
@@ -300,6 +307,18 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
                         transaction: transaction,
                         commandType: CommandType.StoredProcedure,
                         cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+                var sigue = await connection.ExecuteScalarAsync<int>(
+                    new CommandDefinition(
+                        "SELECT COUNT(1) FROM CREDITO.Credito WHERE CreditoId = @CreditoId;",
+                        new { CreditoId = creditoId },
+                        transaction: transaction,
+                        cancellationToken: cancellationToken)).ConfigureAwait(false);
+                if (sigue > 0)
+                {
+                    throw new InvalidOperationException(
+                        "No se pudo rechazar: la orden de venta asociada ya está entregada. Use anular.");
+                }
             }
             else
             {
@@ -320,6 +339,70 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
+    }
+
+    /// <summary>
+    /// Quita hijos de solicitud PEN que bloquean DELETE Credito
+    /// (Aprobacion, prenda, imagen, tarea, cargo, central). No toca caja/CxC.
+    /// </summary>
+    private static async Task QuitarDependenciasDeSolicitudAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        int creditoId,
+        CancellationToken cancellationToken)
+    {
+        var estado = await connection.ExecuteScalarAsync<string>(
+            new CommandDefinition(
+                """
+                SELECT Estado
+                FROM CREDITO.Credito WITH (UPDLOCK, HOLDLOCK)
+                WHERE CreditoId = @CreditoId;
+                """,
+                new { CreditoId = creditoId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        var financieros = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT
+                    (SELECT COUNT(1) FROM CREDITO.MovimientoCaja WHERE CreditoId = @CreditoId)
+                  + (SELECT COUNT(1) FROM CREDITO.CuentaxCobrar WHERE CreditoId = @CreditoId)
+                  + (SELECT COUNT(1) FROM CREDITO.CreditoMora WHERE CreditoId = @CreditoId)
+                  + (SELECT COUNT(1) FROM CREDITO.CreditoCondonacion WHERE CreditoId = @CreditoId);
+                """,
+                new { CreditoId = creditoId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        var conflicto = CreditoRechazoReglas.MensajeSiNoRechazable(estado, financieros > 0);
+        if (conflicto is not null)
+        {
+            throw new InvalidOperationException(conflicto);
+        }
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                IF OBJECT_ID(N'CREDITO.PlaInusual', N'U') IS NOT NULL
+                    UPDATE CREDITO.PlaInusual SET CreditoId = NULL WHERE CreditoId = @CreditoId;
+
+                DELETE FROM CREDITO.Aprobacion WHERE CreditoId = @CreditoId;
+                DELETE FROM CREDITO.CreditoImagen WHERE CreditoId = @CreditoId;
+                DELETE FROM CREDITO.CentralRiesgo WHERE CreditoId = @CreditoId;
+                DELETE FROM CREDITO.Cargo WHERE CreditoId = @CreditoId;
+
+                DELETE st
+                FROM CREDITO.Subtarea st
+                INNER JOIN CREDITO.Tarea t ON t.TareaId = st.TareaId
+                WHERE t.CreditoId = @CreditoId;
+
+                DELETE FROM CREDITO.Tarea WHERE CreditoId = @CreditoId;
+                DELETE FROM CREDITO.Prenda WHERE CreditoId = @CreditoId;
+                """,
+                new { CreditoId = creditoId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
     private async Task<CreditoCicloOperacionResponse> ExecuteProcAsync(

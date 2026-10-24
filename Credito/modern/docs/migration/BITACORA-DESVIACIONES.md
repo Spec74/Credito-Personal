@@ -4,6 +4,19 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Rechazar solicitud PEN (hijos que el USP no borraba)
+
+**Qué hay:** el rechazo de bandeja quita, en C# y en
+`usp_SolicitudCredito_Del`, filas de solicitud que bloquean
+`DELETE CREDITO.Credito`: Aprobacion, Prenda, CreditoImagen, Tarea/Subtarea,
+Cargo, CentralRiesgo; desvincula PlaInusual. Si hay CxC, caja, mora o
+condonación, o el estado no es PEN, responde 409 y pide **anular**.
+`usp_Credito_Del` (ANULAR del legacy) no se toca.
+
+**Qué no hay:** no se reemplaza `VENTAS.usp_OrdenVenta_Del` en producción
+(el MVC lo usa para borrar OV). No se inventa USP ni % / cuotas. Script
+`deploy/sql/2026-10-23-rechazar-solicitud-hijos.sql` (solo solicitud).
+
 ### 2026-10-23 — Superficies intranet (campana, bandeja, calendario)
 
 **Qué hay:** campana tipo cajón (marcar todo); avisos lista+lectura; agenda

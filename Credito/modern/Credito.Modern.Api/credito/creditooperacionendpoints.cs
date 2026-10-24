@@ -9141,6 +9141,14 @@ internal static class CreditoOperacionEndpoints
                             detail: "El cr?dito no pertenece a la oficina del token JWT.");
                     }
 
+                    if (!CreditoRechazoReglas.EsPendiente(scope.Estado))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status409Conflict,
+                            title: "No se puede rechazar",
+                            detail: CreditoRechazoReglas.MensajeSiNoRechazable(scope.Estado, false));
+                    }
+
                     var log = loggerFactory.CreateLogger("RechazarCredito");
                     try
                     {
@@ -9151,11 +9159,22 @@ internal static class CreditoOperacionEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
+                        if (ex.Message.Contains("Configure CreditoDatabase", StringComparison.Ordinal))
+                        {
+                            log.LogWarning(ex, "Cadena de conexi?n no configurada");
+                            return TypedResults.Problem(
+                                detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
+                                statusCode: StatusCodes.Status503ServiceUnavailable,
+                                title: "Configuraci?n incompleta");
+                        }
+
+                        log.LogWarning(ex, "Rechazo no aplicable");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuraci?n incompleta");
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "No se pudo rechazar el crédito."
+                                : ex.Message,
+                            statusCode: StatusCodes.Status409Conflict,
+                            title: "No se puede rechazar");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
@@ -9168,18 +9187,18 @@ internal static class CreditoOperacionEndpoints
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al rechazar cr?dito");
-                        var detail = "No se pudo rechazar el cr?dito.";
+                        var detail = CreditoRechazoReglas.MensajeDesdeDb(ex);
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
                             detail: detail,
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Error de base de datos");
+                            statusCode: StatusCodes.Status409Conflict,
+                            title: "No se pudo rechazar");
                     }
                 })
             .WithName("CreditoRechazarCredito")
             .WithSummary(
-                "Escritura: usp_OrdenVenta_Del o usp_SolicitudCredito_Del. Paridad CreditoBL.RechazarCredito.")
+                "Escritura: usp_OrdenVenta_Del o usp_SolicitudCredito_Del. Limpia hijos PEN (Aprobacion/Prenda/...). Paridad CreditoBL.RechazarCredito.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAprobador1OAdministrador)
             .Produces<CreditoCicloOperacionResponse>(StatusCodes.Status200OK, "application/json")
@@ -9187,6 +9206,7 @@ internal static class CreditoOperacionEndpoints
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 

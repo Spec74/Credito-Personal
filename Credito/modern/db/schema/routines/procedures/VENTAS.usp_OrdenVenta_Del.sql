@@ -38,10 +38,24 @@ BEGIN
 		--END
 		IF EXISTS(SELECT 1 FROM VENTAS.OrdenVenta WHERE OrdenVentaId=@OrdenVentaId AND TipoVenta='CRE')
 		BEGIN
-			SELECT @IdRef=CreditoId FROM CREDITO.Credito WHERE OrdenVentaId=@OrdenVentaId 
-			--UPDATE VENTAS.OrdenVenta SET CreditoId=NULL WHERE OrdenVentaId=@OrdenVentaId
-			DELETE FROM CREDITO.PlanPago WHERE CreditoId=@IdRef
-			DELETE FROM CREDITO.Credito WHERE CreditoId=@IdRef
+			SELECT @IdRef=CreditoId FROM CREDITO.Credito WHERE OrdenVentaId=@OrdenVentaId
+			-- Hijos de solicitud (Aprobacion/Prenda/...) antes de DELETE Credito.
+			IF @IdRef IS NOT NULL
+			BEGIN
+				IF OBJECT_ID(N'CREDITO.PlaInusual', N'U') IS NOT NULL
+					UPDATE CREDITO.PlaInusual SET CreditoId = NULL WHERE CreditoId=@IdRef;
+				DELETE FROM CREDITO.Aprobacion WHERE CreditoId=@IdRef
+				DELETE FROM CREDITO.CreditoImagen WHERE CreditoId=@IdRef
+				DELETE FROM CREDITO.CentralRiesgo WHERE CreditoId=@IdRef
+				DELETE FROM CREDITO.Cargo WHERE CreditoId=@IdRef
+				DELETE st FROM CREDITO.Subtarea st
+					INNER JOIN CREDITO.Tarea t ON t.TareaId = st.TareaId
+					WHERE t.CreditoId=@IdRef
+				DELETE FROM CREDITO.Tarea WHERE CreditoId=@IdRef
+				DELETE FROM CREDITO.Prenda WHERE CreditoId=@IdRef
+				DELETE FROM CREDITO.PlanPago WHERE CreditoId=@IdRef
+				DELETE FROM CREDITO.Credito WHERE CreditoId=@IdRef
+			END
 		END
 		
 		UPDATE SA

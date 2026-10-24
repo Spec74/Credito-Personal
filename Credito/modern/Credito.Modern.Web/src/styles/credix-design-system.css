@@ -1,6 +1,11 @@
 /**
  * CREDIX — sistema de diseño moderno (React + Ant Design).
  * Familiaridad: azul #114885, mismos nombres de módulo; sin copiar gradientes legacy.
+ *
+ * De consolas tipo Google Cloud / Material (lo que sí se toma):
+ * escala title/body/label, canvas frío, cards de 1px, números tabulares,
+ * cabecera de página = título + acciones. No se clona la marca Google
+ * ni se reescribe a Angular / MUI / microfrontends / gRPC.
  */
 
 :root {
@@ -8,11 +13,11 @@
   --credix-brand-hover: #1a5a9e;
   --credix-brand-active: #0d3a6b;
   --credix-brand-light: #e8f2fc;
-  --credix-bg: #f0f2f5;
+  --credix-bg: #f8f9fb;
   --credix-surface: #ffffff;
-  --credix-border: #e5e7eb;
-  --credix-text: #1f2937;
-  /* ≥4.5:1 sobre --credix-bg (#f0f2f5) — WCAG AA (Lighthouse color-contrast) */
+  --credix-border: #e3e6ea;
+  --credix-text: #202124;
+  /* ≥4.5:1 sobre --credix-bg (#f8f9fb) — WCAG AA (Lighthouse color-contrast) */
   --credix-text-muted: #595f6b;
   --credix-success: #15803d;
   --credix-success-bg: #f0fdf4;
@@ -26,8 +31,8 @@
   --credix-sidebar-w: 240px;
   --credix-sidebar-collapsed: 72px;
   --credix-radius: 8px;
-  --credix-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --credix-shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --credix-shadow-sm: 0 1px 2px rgba(32, 33, 36, 0.04);
+  --credix-shadow-md: 0 1px 3px rgba(32, 33, 36, 0.06);
   --credix-focus-ring: 0 0 0 2px rgba(17, 72, 133, 0.18);
   --credix-space-1: 4px;
   --credix-space-2: 8px;
@@ -37,8 +42,16 @@
   --credix-space-6: 24px;
   --credix-touch-min: 40px;
   --credix-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --credix-font: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial,
-    sans-serif;
+  --credix-font: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue',
+    Arial, sans-serif;
+  --credix-font-mono: 'Roboto Mono', ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Consolas,
+    monospace;
+  --credix-title-size: 22px;
+  --credix-title-weight: 500;
+  --credix-type-subtitle: 13px;
+  --credix-type-body: 14px;
+  --credix-type-label: 12px;
+  --credix-type-caption: 11px;
 }
 
 body.credix-app-body {
@@ -46,6 +59,7 @@ body.credix-app-body {
   line-height: 1.5;
   color: var(--credix-text);
   background: var(--credix-bg);
+  font-feature-settings: 'kern' 1;
 }
 
 /* —— App shell —— */
@@ -71,7 +85,8 @@ body.credix-app-body {
     0 max(clamp(12px, 2vw, 20px), env(safe-area-inset-left));
   background: var(--credix-brand);
   color: #fff;
-  box-shadow: var(--credix-shadow-md);
+  box-shadow: none;
+  border-bottom: 1px solid var(--credix-brand-active);
 }
 
 .credix-header-start,
@@ -175,7 +190,7 @@ body.credix-app-body {
   flex: 1;
   width: 100%;
   min-width: 0;
-  padding: clamp(12px, 2vw, 20px);
+  padding: clamp(16px, 2.4vw, 24px);
   overflow: auto;
   scroll-behavior: smooth;
 }
@@ -205,9 +220,7 @@ body.credix-app-body {
   place-items: center;
   padding: 12px;
   border-bottom: 1px solid var(--credix-border);
-  background:
-    radial-gradient(circle at top left, rgba(46, 105, 174, 0.12), transparent 36%),
-    #fff;
+  background: var(--credix-surface);
   flex-shrink: 0;
 }
 
@@ -437,7 +450,7 @@ body.credix-app-body {
 .credix-menu.ant-menu-light .ant-menu-submenu-title {
   margin: 3px 10px !important;
   width: calc(100% - 16px) !important;
-  border-radius: 12px !important;
+  border-radius: 8px !important;
   height: 38px !important;
   line-height: 38px !important;
   transition:
@@ -453,10 +466,10 @@ body.credix-app-body {
 }
 
 .credix-menu.ant-menu-light .ant-menu-item-selected {
-  background: linear-gradient(90deg, var(--credix-brand-light), #f7fbff) !important;
+  background: var(--credix-brand-light) !important;
   color: var(--credix-brand) !important;
   font-weight: 600;
-  box-shadow: inset 3px 0 0 var(--credix-brand), 0 6px 16px rgba(17, 72, 133, 0.08);
+  box-shadow: inset 3px 0 0 var(--credix-brand);
 }
 
 .credix-menu.ant-menu-light .ant-menu-submenu-selected > .ant-menu-submenu-title {
@@ -613,7 +626,8 @@ body.credix-app-body {
 }
 
 .credix-page-breadcrumb {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  font-size: var(--credix-type-label, 12px);
 }
 
 .credix-page-head {
@@ -623,28 +637,39 @@ body.credix-app-body {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--credix-border);
 }
 
 .credix-page-title {
   margin: 0;
-  font-size: clamp(1.25rem, 2.5vw, 1.5rem);
-  font-weight: 700;
-  color: var(--credix-brand);
-  line-height: 1.3;
+  font-size: clamp(1.25rem, 2vw, var(--credix-title-size, 22px));
+  font-weight: var(--credix-title-weight, 500);
+  color: var(--credix-text);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
   border: none;
   padding: 0;
 }
 
 .credix-page-subtitle {
   margin: 4px 0 0;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: var(--credix-type-subtitle, 13px);
+  line-height: 1.45;
+  font-weight: 400;
   color: var(--credix-text-muted);
-  max-width: 72ch;
+  max-width: 64ch;
 }
 
 .credix-page-body {
   min-width: 0;
+}
+
+.credix-id,
+.credix-mono {
+  font-family: var(--credix-font-mono, ui-monospace, monospace);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
 /* —— Stats (KPI) —— */
@@ -666,15 +691,17 @@ ul.credix-stats li {
   background: var(--credix-surface);
   border: 1px solid var(--credix-border);
   border-radius: var(--credix-radius);
-  box-shadow: var(--credix-shadow-sm);
+  box-shadow: none;
   color: var(--credix-text);
 }
 
 ul.credix-stats li strong {
   font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--credix-brand);
+  font-weight: 600;
+  color: var(--credix-text);
   line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
 }
 
 ul.credix-stats li small {
@@ -2397,15 +2424,16 @@ ul.credix-stats--module li span.red {
 .credix-page .ant-card {
   border-radius: var(--credix-radius);
   border-color: var(--credix-border);
-  box-shadow: var(--credix-shadow-sm);
+  box-shadow: none;
 }
 
 .credix-section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--credix-brand);
+  font-size: var(--credix-type-body, 14px);
+  font-weight: 500;
+  color: var(--credix-text);
   margin: 16px 0 8px;
   text-transform: none;
+  letter-spacing: -0.01em;
 }
 
 .credix-login-wrap {

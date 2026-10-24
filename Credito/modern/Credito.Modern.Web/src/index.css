@@ -19,6 +19,7 @@ html {
 body {
   font-family: var(
     --credix-font,
+    'Inter',
     'Segoe UI',
     system-ui,
     -apple-system,
@@ -29,8 +30,8 @@ body {
   );
   font-size: 14px;
   line-height: 1.5;
-  color: var(--credix-text, #1f2937);
-  background: var(--credix-bg, #f0f2f5);
+  color: var(--credix-text, #202124);
+  background: var(--credix-bg, #f8f9fb);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
