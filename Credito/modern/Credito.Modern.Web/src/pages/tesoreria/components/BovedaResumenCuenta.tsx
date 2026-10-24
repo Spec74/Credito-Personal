@@ -12,9 +12,17 @@ type Props = {
   loading: boolean
   isError: boolean
   error?: unknown
+  /** El panel de página ya trae título. */
+  hideHeader?: boolean
 }
 
-export function BovedaResumenCuenta({ texto, loading, isError, error }: Props) {
+export function BovedaResumenCuenta({
+  texto,
+  loading,
+  isError,
+  error,
+  hideHeader = false,
+}: Props) {
   if (loading) {
     return (
       <div className="boveda-resumen-cuenta boveda-resumen-cuenta--loading">
@@ -44,12 +52,14 @@ export function BovedaResumenCuenta({ texto, loading, isError, error }: Props) {
 
   return (
     <div className="boveda-resumen-cuenta" role="region" aria-label="Medios de pago">
+      {hideHeader ? null : (
       <div className="boveda-resumen-cuenta__header">
         <WalletOutlined className="boveda-resumen-cuenta__icon" aria-hidden />
         <span className="boveda-resumen-cuenta__title">
           {parsed.titulo ?? 'Saldos por entidad'}
         </span>
       </div>
+      )}
       <div className="boveda-resumen-cuenta__body">
         {parsed.items.length > 0 ? (
           <div className="boveda-resumen-cuenta__grid">

@@ -4,6 +4,16 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-24 — Bóveda: un número, un sitio
+
+**Qué hay:** stats = saldo / entradas / salidas / total fondo. La sesión
+es una línea (tipo, estado, fecha, id). «Fuera de esta bóveda» son 4
+baldosas: caja chica, cajas, por cobrar y cartera vencida (atajo
+visible). Se quitaron ID, estado y saldo repetidos, los 3 tramos de
+mora y el PDF duplicado del encabezado.
+
+**Qué no hay:** no se cambia USP ni montos.
+
 ### 2026-10-23 — Bóveda: medios a todo el ancho
 
 **Qué hay:** los medios de pago salen debajo de operaciones (no en la

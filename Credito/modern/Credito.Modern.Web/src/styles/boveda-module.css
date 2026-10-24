@@ -19,25 +19,35 @@
   gap: 16px;
 }
 
-.boveda-sesion-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 8px 16px;
-  margin-bottom: 4px;
+.boveda-contexto {
+  align-items: center;
 }
 
-/* —— Posición de liquidez —— */
+/* —— Fuera de esta bóveda (4 baldosas, sin repetir saldo/total) —— */
 .boveda-estado-dinero {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+}
+
+@media (max-width: 1099px) {
+  .boveda-estado-dinero {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.boveda-estado-dinero--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 72px;
 }
 
 .boveda-estado-dinero__card {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  min-width: 0;
   padding: 14px 16px;
   background: var(--credix-surface, #fff);
   border: 1px solid var(--credix-border, #e5e7eb);
@@ -45,22 +55,15 @@
   box-shadow: var(--credix-shadow-sm);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.boveda-estado-dinero__card:hover {
+.boveda-estado-dinero__card--link {
+  cursor: pointer;
+}
+
+.boveda-estado-dinero__card--link:hover {
   border-color: #c5daf0;
   box-shadow: var(--credix-shadow-md);
-}
-
-.boveda-estado-dinero__card--total {
-  background: linear-gradient(180deg, #2d3a4f 0%, #3a4454 100%);
-  border-color: #1e293b;
-  color: #fff;
-}
-
-.boveda-estado-dinero__card--total:hover {
-  border-color: #475569;
 }
 
 .boveda-estado-dinero__value {
@@ -71,18 +74,17 @@
   font-variant-numeric: tabular-nums;
 }
 
-.boveda-estado-dinero__card--total .boveda-estado-dinero__value {
-  color: #fff;
-}
-
 .boveda-estado-dinero__label {
   font-size: 12px;
   color: var(--credix-text-muted, #6b7280);
   margin-top: 4px;
 }
 
-.boveda-estado-dinero__card--total .boveda-estado-dinero__label {
-  color: rgba(255, 255, 255, 0.85);
+.boveda-estado-dinero__hint {
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--credix-brand, #114885);
 }
 
 /* —— Saldos de sesión —— */

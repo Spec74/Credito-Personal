@@ -284,7 +284,7 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
             to={`/tesoreria/movimiento-boveda?bovedaId=${bovedaId}`}
             className="boveda-historial-informe"
           >
-            Informe #{bovedaId}
+            Informe de esta bóveda
           </Link>
         ) : null}
       </div>

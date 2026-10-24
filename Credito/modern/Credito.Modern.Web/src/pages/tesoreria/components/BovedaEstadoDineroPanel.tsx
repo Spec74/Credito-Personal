@@ -8,22 +8,25 @@ type Props = {
   loading: boolean
 }
 
-type KpiProps = {
+type Tile = {
   value: number
   label: string
   to?: string
-  total?: boolean
+  hint?: string
 }
 
-function KpiCard({ value, label, to, total }: KpiProps) {
+function KpiCard({ value, label, to, hint }: Tile) {
   const inner = (
     <>
-      <span className="boveda-estado-dinero__value">{formatMoney(value)}</span>
+      <span className="boveda-estado-dinero__value" translate="no">
+        {formatMoney(value)}
+      </span>
       <span className="boveda-estado-dinero__label">{label}</span>
+      {hint ? <span className="boveda-estado-dinero__hint">{hint}</span> : null}
     </>
   )
-  const className = total
-    ? 'boveda-estado-dinero__card boveda-estado-dinero__card--total'
+  const className = to
+    ? 'boveda-estado-dinero__card boveda-estado-dinero__card--link'
     : 'boveda-estado-dinero__card'
   if (to) {
     return (
@@ -35,11 +38,12 @@ function KpiCard({ value, label, to, total }: KpiProps) {
   return <div className={className}>{inner}</div>
 }
 
+/** Dinero fuera de esta bóveda. El saldo y el total van en las stats de página. */
 export function BovedaEstadoDineroPanel({ data, loading }: Props) {
   if (loading) {
     return (
-      <div style={{ textAlign: 'center', padding: 24 }}>
-        <Spin />
+      <div className="boveda-estado-dinero boveda-estado-dinero--loading">
+        <Spin size="small" />
       </div>
     )
   }
@@ -47,33 +51,36 @@ export function BovedaEstadoDineroPanel({ data, loading }: Props) {
     return null
   }
 
+  const tiles: Tile[] = [
+    {
+      value: data.montoCajaChica,
+      label: 'Caja chica',
+      to: '/caja/caja-chica',
+      hint: 'Abrir caja chica',
+    },
+    {
+      value: data.montoCajas,
+      label: 'Cajas diarias',
+      to: '/caja/saldos',
+      hint: 'Ver saldos de caja',
+    },
+    {
+      value: data.montoPlanPagoPendiente,
+      label: 'Por cobrar (plan)',
+    },
+    {
+      value: data.creditoVencido,
+      label: 'Cartera vencida',
+      to: '/informes/credito-vencido',
+      hint: 'Ver informe',
+    },
+  ]
+
   return (
     <div className="boveda-estado-dinero">
-      <KpiCard value={data.saldoBoveda} label="Bóveda" />
-      <KpiCard value={data.montoCajaChica} label="Caja chica" to="/caja/caja-chica" />
-      <KpiCard value={data.montoCajas} label="Cajas diarias" to="/caja/saldos" />
-      <KpiCard value={data.montoPlanPagoPendiente} label="Créditos (plan pago)" />
-      <KpiCard
-        value={data.creditoVencido}
-        label="Créditos vencidos"
-        to="/informes/credito-vencido"
-      />
-      <KpiCard
-        value={data.vencidoMenor60}
-        label="Vencido sin mora (&lt;60)"
-        to="/informes/credito-vencido"
-      />
-      <KpiCard
-        value={data.vencidoMayor60}
-        label="Vencido con mora (&gt;60)"
-        to="/informes/credito-vencido"
-      />
-      <KpiCard
-        value={data.vencidoIrrecuperable}
-        label="Irrecuperable"
-        to="/informes/credito-vencido"
-      />
-      <KpiCard value={data.totalFondo} label="Total fondo S/." total />
+      {tiles.map((tile) => (
+        <KpiCard key={tile.label} {...tile} />
+      ))}
     </div>
   )
 }
