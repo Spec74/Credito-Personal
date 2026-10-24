@@ -4,6 +4,14 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Encabezado sin franja duplicada
+
+**Qué hay:** se quitó la franja blanca de oficina + «Cambiar sede».
+La oficina queda solo en la barra azul; Salir es el único cierre
+(re-login para cambiar sede). El estado de caja sube al encabezado.
+
+**Qué no hay:** no hay selector de oficina en sesión.
+
 ### 2026-10-23 — Flechas fijas al viewport (scroll de página)
 
 **Qué hay:** las flechas se anclan a la ventana y siguen el scroll del

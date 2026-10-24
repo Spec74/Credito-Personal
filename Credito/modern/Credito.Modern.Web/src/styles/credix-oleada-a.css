@@ -26,97 +26,47 @@ body.credix-density-comfortable .credix-page {
   --credix-stack-gap: 20px;
 }
 
-.credix-context-bar {
-  display: flex;
+.credix-header-caja {
+  display: inline-flex;
   align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-  min-height: 36px;
-  padding: 4px clamp(12px, 2vw, 20px);
-  background: var(--credix-surface);
-  border-bottom: 1px solid var(--credix-border);
-  font-size: 13px;
-  color: var(--credix-text);
-}
-
-.credix-context-bar__facts {
-  display: flex;
-  align-items: center;
-  gap: 8px 14px;
-  min-width: 0;
-  flex: 1;
-  flex-wrap: wrap;
-}
-
-.credix-context-bar__office,
-.credix-context-bar__caja {
+  max-width: min(28vw, 220px);
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 12px;
+  line-height: 1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: min(42vw, 280px);
+  text-decoration: none;
 }
 
-.credix-context-bar__caja.is-open {
-  color: var(--credix-success);
+.credix-header-caja:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
-.credix-context-bar__caja.is-closed {
-  color: var(--credix-text-muted);
+.credix-header-caja:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
 
-.credix-context-bar__cambiar {
-  border: 0;
-  background: none;
-  padding: 0 8px;
-  min-height: 32px;
-  color: var(--credix-primary, #114885);
-  cursor: pointer;
-  font: inherit;
-  text-decoration: underline;
-  white-space: nowrap;
+.credix-header-caja.is-open {
+  color: #b8ebc8;
+  border-color: rgba(184, 235, 200, 0.45);
+}
+
+.credix-header-caja.is-closed {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 @media (max-width: 991px) {
-  .credix-context-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-    padding: 8px max(12px, env(safe-area-inset-left)) 8px max(12px, env(safe-area-inset-right));
-  }
-
-  .credix-context-bar__facts {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas:
-      'office cambiar'
-      'caja caja';
-    gap: 6px 8px;
-    width: 100%;
-  }
-
-  .credix-context-bar__office {
-    grid-area: office;
-    max-width: none;
-    font-weight: 600;
-  }
-
-  .credix-context-bar__cambiar {
-    grid-area: cambiar;
-    min-height: var(--credix-touch-min);
+  .credix-header-caja {
+    max-width: min(34vw, 160px);
+    min-height: var(--credix-touch-min, 40px);
     padding: 0 12px;
-    border: 1px solid var(--credix-border);
-    border-radius: var(--credix-radius);
-    background: var(--credix-bg);
-    text-decoration: none;
-    font-weight: 600;
-  }
-
-  .credix-context-bar__caja {
-    grid-area: caja;
-    max-width: none;
-    min-height: 32px;
-    display: inline-flex;
-    align-items: center;
   }
 }
 

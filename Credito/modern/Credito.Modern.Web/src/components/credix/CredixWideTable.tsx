@@ -25,12 +25,7 @@ function tableVisualBand(root: HTMLElement): HTMLElement {
 
 function readSafeViewport(): { top: number; bottom: number } {
   const header = document.querySelector('.credix-header')
-  const context = document.querySelector('.credix-context-bar')
-  const top = Math.max(
-    header?.getBoundingClientRect().bottom ?? 0,
-    context?.getBoundingClientRect().bottom ?? 0,
-    0,
-  )
+  const top = header?.getBoundingClientRect().bottom ?? 0
   return { top: top + 8, bottom: window.innerHeight - 16 }
 }
 

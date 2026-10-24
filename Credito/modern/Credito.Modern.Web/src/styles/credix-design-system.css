@@ -132,7 +132,11 @@ body.credix-app-body {
 }
 
 .credix-header-user__name {
-  max-width: min(36vw, 220px);
+  max-width: min(28vw, 200px);
+}
+
+.credix-header-user__office {
+  max-width: min(28vw, 200px);
 }
 
 .credix-header .ant-btn-text {
@@ -2604,11 +2608,11 @@ ul.credix-stats--module li span.red {
   }
 
   .credix-header-user__office {
-    display: none;
+    max-width: min(30vw, 140px);
   }
 
   .credix-header-user__name {
-    max-width: min(46vw, 200px);
+    max-width: min(28vw, 140px);
   }
 
   .credix-header {

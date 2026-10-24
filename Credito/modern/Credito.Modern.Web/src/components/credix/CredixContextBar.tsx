@@ -2,15 +2,8 @@ import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { fetchCajaDiarioSesion } from '../../api/cajaDiario'
 
-export function CredixContextBar({
-  oficinaId,
-  oficinaNombre,
-  onCambiarSede,
-}: {
-  oficinaId: number
-  oficinaNombre: string | null
-  onCambiarSede?: () => void
-}) {
+/** Chip de caja en el encabezado. La oficina y Salir ya viven arriba; no se duplican. */
+export function CredixContextBar({ oficinaId }: { oficinaId: number }) {
   const cajaQuery = useQuery({
     queryKey: ['caja-diario-sesion', oficinaId],
     queryFn: () => fetchCajaDiarioSesion(oficinaId),
@@ -20,36 +13,22 @@ export function CredixContextBar({
   })
 
   const caja = cajaQuery.data
-  const cajaLabel = cajaQuery.isLoading
+  const label = cajaQuery.isLoading
     ? 'Caja…'
     : caja
-      ? `Caja abierta · ${caja.cajaDenominacion}`
+      ? `Caja · ${caja.cajaDenominacion}`
       : cajaQuery.isError
-        ? 'Caja no consultada'
-        : 'Sin caja abierta'
+        ? 'Caja —'
+        : 'Sin caja'
 
   return (
-    <div className="credix-context-bar" role="status" translate="no">
-      <div className="credix-context-bar__facts">
-        <span className="credix-context-bar__office">
-          {oficinaNombre ?? (oficinaId > 0 ? `Oficina ${oficinaId}` : 'Sin oficina')}
-        </span>
-        {onCambiarSede ? (
-          <button
-            type="button"
-            className="credix-context-bar__cambiar"
-            onClick={onCambiarSede}
-          >
-            Cambiar sede
-          </button>
-        ) : null}
-        <Link
-          to="/caja/diario"
-          className={`credix-context-bar__caja ${caja ? 'is-open' : 'is-closed'}`}
-        >
-          {cajaLabel}
-        </Link>
-      </div>
-    </div>
+    <Link
+      to="/caja/diario"
+      className={`credix-header-caja ${caja ? 'is-open' : 'is-closed'}`}
+      title={caja ? `Caja abierta · ${caja.cajaDenominacion}` : 'Ir a caja diario'}
+      translate="no"
+    >
+      {label}
+    </Link>
   )
 }

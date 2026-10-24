@@ -420,6 +420,7 @@ export function AppShell() {
           </span>
         </div>
         <div className="credix-header-end">
+          <CredixContextBar oficinaId={session?.oficinaId ?? 0} />
           <CredixNotifyBell />
           {screens.lg &&
             roleTags.slice(0, 3).map((rol) => (
@@ -432,6 +433,7 @@ export function AppShell() {
             type="text"
             icon={<LogoutOutlined />}
             aria-label="Salir"
+            title="Cerrar sesión para cambiar de oficina"
             onClick={() => {
               logout()
               navigate('/login')
@@ -441,14 +443,6 @@ export function AppShell() {
           </Button>
         </div>
       </header>
-      <CredixContextBar
-        oficinaId={session?.oficinaId ?? 0}
-        oficinaNombre={oficinaNombre}
-        onCambiarSede={() => {
-          logout()
-          navigate('/login')
-        }}
-      />
 
       <div className="credix-layout">
         {!isMobile && (
