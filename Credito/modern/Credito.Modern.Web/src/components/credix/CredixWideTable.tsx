@@ -5,6 +5,7 @@ import {
   scrollTableHorizontally,
   tableScrollBody,
   useTableHorizontalWheel,
+  visibleBandMidOffset,
 } from '../../hooks/useTableHorizontalWheel'
 
 type Props = {
@@ -12,13 +13,35 @@ type Props = {
   className?: string
 }
 
+const NUDGE_SIZE = 40
+
+function tableVisualBand(root: HTMLElement): HTMLElement {
+  return (
+    root.querySelector<HTMLElement>('.ant-table-container') ??
+    root.querySelector<HTMLElement>('.ant-table') ??
+    root
+  )
+}
+
+function readSafeViewport(): { top: number; bottom: number } {
+  const header = document.querySelector('.credix-header')
+  const context = document.querySelector('.credix-context-bar')
+  const top = Math.max(
+    header?.getBoundingClientRect().bottom ?? 0,
+    context?.getBoundingClientRect().bottom ?? 0,
+    0,
+  )
+  return { top: top + 8, bottom: window.innerHeight - 16 }
+}
+
 /**
  * Tablas anchas: rueda = página; Mayús+rueda o trackpad = columnas;
- * flechas y sombra si hay más a los lados. Analista/caja no se quedan atrapados.
+ * flechas en el tramo visible (suben y bajan con el scroll) y sombra si hay más.
  */
 export function CredixWideTable({ children, className }: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [edges, setEdges] = useState({ canScrollLeft: false, canScrollRight: false })
+  const [nudgeTop, setNudgeTop] = useState<number | null>(null)
 
   useTableHorizontalWheel(rootRef)
 
@@ -30,6 +53,24 @@ export function CredixWideTable({ children, className }: Props) {
     setEdges(readTableHorizontalOverflow(root))
   }, [])
 
+  const syncNudgeTop = useCallback(() => {
+    const root = rootRef.current
+    if (!root) {
+      return
+    }
+    const band = tableVisualBand(root).getBoundingClientRect()
+    const wrap = root.getBoundingClientRect()
+    const view = readSafeViewport()
+    const inBand = visibleBandMidOffset({
+      bandTop: band.top,
+      bandHeight: band.height,
+      viewTop: view.top,
+      viewBottom: view.bottom,
+      buttonSize: NUDGE_SIZE,
+    })
+    setNudgeTop(inBand == null ? null : inBand + (band.top - wrap.top))
+  }, [])
+
   useEffect(() => {
     const root = rootRef.current
     if (!root) {
@@ -37,19 +78,28 @@ export function CredixWideTable({ children, className }: Props) {
     }
 
     syncEdges()
+    syncNudgeTop()
     const body = tableScrollBody(root)
-    body?.addEventListener('scroll', syncEdges, { passive: true })
-    const resize = new ResizeObserver(syncEdges)
+    const onScroll = () => {
+      syncEdges()
+      syncNudgeTop()
+    }
+    body?.addEventListener('scroll', onScroll, { passive: true })
+    document.addEventListener('scroll', onScroll, { passive: true, capture: true })
+    window.addEventListener('resize', onScroll)
+    const resize = new ResizeObserver(onScroll)
     resize.observe(root)
     if (body) {
       resize.observe(body)
     }
 
     return () => {
-      body?.removeEventListener('scroll', syncEdges)
+      body?.removeEventListener('scroll', onScroll)
+      document.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', onScroll)
       resize.disconnect()
     }
-  }, [syncEdges])
+  }, [syncEdges, syncNudgeTop])
 
   const nudge = (direction: -1 | 1) => {
     const root = rootRef.current
@@ -71,23 +121,27 @@ export function CredixWideTable({ children, className }: Props) {
     .filter(Boolean)
     .join(' ')
 
+  const showNudges = nudgeTop != null
+
   return (
     <div ref={rootRef} className={classes}>
       {children}
-      {edges.canScrollLeft ? (
+      {showNudges && edges.canScrollLeft ? (
         <button
           type="button"
           className="credix-wide-table__nudge credix-wide-table__nudge--start"
+          style={{ top: nudgeTop }}
           aria-label="Ver columnas anteriores"
           onClick={() => nudge(-1)}
         >
           <LeftOutlined />
         </button>
       ) : null}
-      {edges.canScrollRight ? (
+      {showNudges && edges.canScrollRight ? (
         <button
           type="button"
           className="credix-wide-table__nudge credix-wide-table__nudge--end"
+          style={{ top: nudgeTop }}
           aria-label="Ver más columnas"
           onClick={() => nudge(1)}
         >

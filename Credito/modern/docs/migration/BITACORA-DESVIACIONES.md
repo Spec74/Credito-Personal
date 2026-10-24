@@ -4,6 +4,14 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Flechas de tabla ancladas al tramo visible
+
+**Qué hay:** las flechas izquierda/derecha de tablas anchas suben y
+bajan con el scroll, en el centro de lo que se ve (no a media tabla).
+Vale para todos los `CredixWideTable`.
+
+**Qué no hay:** no se vuelve a robar la rueda vertical.
+
 ### 2026-10-23 — Prendario nuevo: sin 3 columnas ni botón Buscar
 
 **Qué hay:** la lista de clientes sale al escribir. Cliente arriba en

@@ -3,6 +3,7 @@ import {
   horizontalOverflowState,
   resolveHorizontalWheelDelta,
   shouldForwardVerticalWheel,
+  visibleBandMidOffset,
 } from './useTableHorizontalWheel'
 
 describe('horizontalOverflowState', () => {
@@ -56,5 +57,43 @@ describe('shouldForwardVerticalWheel', () => {
 
   it('si la tabla sí tiene scroll vertical, no se reenvía', () => {
     expect(shouldForwardVerticalWheel(900, 400)).toBe(false)
+  })
+})
+
+describe('visibleBandMidOffset', () => {
+  it('con la tabla entera a la vista usa el centro visible', () => {
+    expect(
+      visibleBandMidOffset({
+        bandTop: 100,
+        bandHeight: 400,
+        viewTop: 0,
+        viewBottom: 800,
+        buttonSize: 40,
+      }),
+    ).toBe(180)
+  })
+
+  it('si la tabla es más alta que la pantalla, sigue el tramo visible', () => {
+    expect(
+      visibleBandMidOffset({
+        bandTop: -600,
+        bandHeight: 2000,
+        viewTop: 80,
+        viewBottom: 800,
+        buttonSize: 40,
+      }),
+    ).toBe(1020)
+  })
+
+  it('si casi no se ve la tabla, no dibuja flechas', () => {
+    expect(
+      visibleBandMidOffset({
+        bandTop: 780,
+        bandHeight: 400,
+        viewTop: 0,
+        viewBottom: 800,
+        buttonSize: 40,
+      }),
+    ).toBeNull()
   })
 })

@@ -111,6 +111,34 @@ export function useTableHorizontalWheel(rootRef: RefObject<HTMLElement | null>):
   }, [rootRef])
 }
 
+/**
+ * Centro vertical de las flechas: el tramo de la tabla que se ve en pantalla,
+ * no el 50 % de toda la grilla. Así suben y bajan al hacer scroll.
+ */
+export function visibleBandMidOffset(args: {
+  bandTop: number
+  bandHeight: number
+  viewTop: number
+  viewBottom: number
+  buttonSize: number
+  padding?: number
+}): number | null {
+  const { bandTop, bandHeight, viewTop, viewBottom, buttonSize, padding = 8 } = args
+  if (bandHeight <= 0) {
+    return null
+  }
+  const sliceTop = Math.max(bandTop, viewTop)
+  const sliceBottom = Math.min(bandTop + bandHeight, viewBottom)
+  if (sliceBottom - sliceTop < buttonSize + padding * 2) {
+    return null
+  }
+  const mid = (sliceTop + sliceBottom) / 2
+  const raw = mid - bandTop - buttonSize / 2
+  const min = padding
+  const max = Math.max(padding, bandHeight - buttonSize - padding)
+  return Math.max(min, Math.min(max, raw))
+}
+
 export function horizontalOverflowState(
   scrollLeft: number,
   scrollWidth: number,
