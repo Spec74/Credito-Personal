@@ -1,4 +1,5 @@
 import type { ColumnsType } from 'antd/es/table'
+import { matchesSearchText } from './normalizeSearch'
 
 function cellText(value: unknown): string {
   if (value == null) return ''
@@ -35,6 +36,6 @@ export function filterInformeTableRows<T extends object>(
     for (const v of Object.values(record)) {
       parts.push(cellText(v))
     }
-    return parts.join(' ').toLowerCase().includes(q)
+    return matchesSearchText(parts.join(' '), query)
   })
 }

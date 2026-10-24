@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { Button, Space } from 'antd'
+import { Button, Input } from 'antd'
+import { SearchOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import {
   downloadMovimientoBovedaTicketPdf,
@@ -9,13 +10,14 @@ import {
   fetchRptMovimientoBoveda,
   listarBovedasHistorial,
   type BovedaListadoRow,
+  type RptMovimientoBovedaRow,
 } from '../../../api/boveda'
 import { fetchSaldosCajaDiarioBoveda, type SaldoCajaSesionRow } from '../../../api/saldosCaja'
 import { CredixDataTable } from '../../../components/credix'
 import { useSecondaryDataReady } from '../../../hooks/useSecondaryDataReady'
 import { formatFecha } from '../../../utils/formatFecha'
 import { formatMoney } from '../../../utils/formatMoney'
-import type { RptMovimientoBovedaRow } from '../../../api/boveda'
+import { matchesSearchText } from '../../../utils/normalizeSearch'
 import { TipoPagoCell } from './TipoPagoBrand'
 
 type Props = {
@@ -23,17 +25,73 @@ type Props = {
   bovedaAbiertaId?: number
 }
 
-const CAJAS_PAGE_SIZE = 10
+type HistorialSection = 'movimientos' | 'cierres' | 'cajas'
+
+const CAJAS_PAGE_SIZE = 20
+const CIERRES_PAGE_SIZE = 20
+
+const SECTIONS: { key: HistorialSection; label: string }[] = [
+  { key: 'movimientos', label: 'Movimientos' },
+  { key: 'cierres', label: 'Cierres' },
+  { key: 'cajas', label: 'Cajas' },
+]
+
+function haystackMov(row: RptMovimientoBovedaRow): string {
+  return [
+    row.movimientoBovedaId,
+    formatFecha(row.fechaReg),
+    row.codOperacion,
+    row.glosa,
+    row.tipoPago,
+    row.agente,
+    row.entrada,
+    row.salida,
+  ]
+    .filter((v) => v != null && v !== '')
+    .join(' ')
+}
+
+function haystackCierre(row: BovedaListadoRow): string {
+  return [
+    row.bovedaId,
+    row.tipo,
+    formatFecha(row.fechaIniOperacion),
+    row.fechaFinOperacion ? formatFecha(row.fechaFinOperacion) : '',
+    row.indCierre ? 'cerrada si' : 'abierta no',
+    row.saldoInicial,
+    row.saldoFinal,
+  ]
+    .filter((v) => v != null && v !== '')
+    .join(' ')
+}
+
+function haystackCaja(row: SaldoCajaSesionRow): string {
+  return [
+    row.id,
+    row.caja,
+    row.usuario,
+    row.indCierre ? 'cerrado si' : 'abierto no',
+    row.transBoveda ? 'boveda si' : '',
+    formatFecha(row.fechaIniOperacion),
+    row.fechaFinOperacion ? formatFecha(row.fechaFinOperacion) : '',
+    row.saldoInicial,
+    row.saldoFinal,
+  ]
+    .filter((v) => v != null && v !== '')
+    .join(' ')
+}
 
 export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
+  const [section, setSection] = useState<HistorialSection>('movimientos')
+  const [query, setQuery] = useState('')
   const [page, setPage] = useState(1)
   const [cajasPage, setCajasPage] = useState(1)
   const [selectedId, setSelectedId] = useState<number | undefined>(bovedaAbiertaId)
   const secondaryReady = useSecondaryDataReady(oficinaId > 0)
 
   const historial = useQuery({
-    queryKey: ['boveda-listar', oficinaId, page],
-    queryFn: () => listarBovedasHistorial(oficinaId, page, 5),
+    queryKey: ['boveda-listar', oficinaId, page, CIERRES_PAGE_SIZE],
+    queryFn: () => listarBovedasHistorial(oficinaId, page, CIERRES_PAGE_SIZE),
     enabled: oficinaId > 0 && secondaryReady,
   })
 
@@ -56,9 +114,24 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
     placeholderData: keepPreviousData,
   })
 
+  const cierres = useMemo(() => {
+    const rows = historial.data?.rows ?? []
+    return rows.filter((row) => matchesSearchText(haystackCierre(row), query))
+  }, [historial.data?.rows, query])
+
+  const movs = useMemo(() => {
+    const rows = movimientos.data ?? []
+    return rows.filter((row) => matchesSearchText(haystackMov(row), query))
+  }, [movimientos.data, query])
+
+  const cajasFiltradas = useMemo(() => {
+    const rows = cajas.data?.rows ?? []
+    return rows.filter((row) => matchesSearchText(haystackCaja(row), query))
+  }, [cajas.data?.rows, query])
+
   const colsBoveda: ColumnsType<BovedaListadoRow> = [
     { title: 'Id', dataIndex: 'bovedaId', width: 70 },
-    { title: 'Tipo', dataIndex: 'tipo', width: 60 },
+    { title: 'Tipo', dataIndex: 'tipo', width: 72 },
     { title: 'Saldo ini.', dataIndex: 'saldoInicial', render: formatMoney, align: 'right' },
     { title: 'Entradas', dataIndex: 'entradas', render: formatMoney, align: 'right' },
     { title: 'Salidas', dataIndex: 'salidas', render: formatMoney, align: 'right' },
@@ -152,74 +225,126 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
     },
   ]
 
+  const placeholder =
+    section === 'movimientos'
+      ? 'Glosa, operación, medio o agente…'
+      : section === 'cierres'
+        ? 'Nº de bóveda, tipo o fecha…'
+        : 'Caja o responsable…'
+
+  const filteredCount =
+    section === 'movimientos'
+      ? movs.length
+      : section === 'cierres'
+        ? cierres.length
+        : cajasFiltradas.length
+  const totalCount =
+    section === 'movimientos'
+      ? (movimientos.data?.length ?? 0)
+      : section === 'cierres'
+        ? (historial.data?.rows.length ?? 0)
+        : (cajas.data?.rows.length ?? 0)
+
   return (
     <div className="boveda-historial">
-      <p className="boveda-historial__section-title">Cierres de bóveda</p>
-      <CredixDataTable<BovedaListadoRow>
-        mode="operacion"
-        rowKey="bovedaId"
-        size="small"
-        columns={colsBoveda}
-        dataSource={historial.data?.rows ?? []}
-        loading={historial.isLoading}
-        rowSelection={{
-          type: 'radio',
-          selectedRowKeys: bovedaId ? [bovedaId] : [],
-          onChange: (keys) => setSelectedId(keys[0] as number),
-        }}
-        onRow={(row) => ({
-          onClick: () => setSelectedId(row.bovedaId),
-        })}
-        pagination={{
-          current: page,
-          pageSize: 5,
-          total: historial.data?.total ?? 0,
-          showSizeChanger: false,
-          onChange: setPage,
-        }}
-      />
+      <div className="boveda-historial-toolbar">
+        <nav className="boveda-historial-tabs" aria-label="Historial de bóveda" translate="no">
+          {SECTIONS.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              className={
+                item.key === section
+                  ? 'boveda-historial-tabs__btn is-active'
+                  : 'boveda-historial-tabs__btn'
+              }
+              aria-current={item.key === section ? 'true' : undefined}
+              onClick={() => setSection(item.key)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
+        <Input
+          allowClear
+          prefix={<SearchOutlined aria-hidden />}
+          placeholder={placeholder}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="boveda-historial-search"
+          aria-label="Buscar en el historial"
+        />
+        {query.trim() ? (
+          <span className="boveda-historial-count">
+            {filteredCount} de {totalCount}
+          </span>
+        ) : null}
+        {bovedaId ? (
+          <Link
+            to={`/tesoreria/movimiento-boveda?bovedaId=${bovedaId}`}
+            className="boveda-historial-informe"
+          >
+            Informe #{bovedaId}
+          </Link>
+        ) : null}
+      </div>
 
-      {bovedaId ? (
-        <>
-          <p className="boveda-historial__section-title">
-            Movimientos bóveda #{bovedaId}
-            <Space style={{ marginLeft: 12 }}>
-              <Link to={`/tesoreria/movimiento-boveda?bovedaId=${bovedaId}`}>
-                <Button size="small" type="link">
-                  Informe completo
-                </Button>
-              </Link>
-            </Space>
-          </p>
-          <CredixDataTable
-            mode="operacion"
-            rowKey="movimientoBovedaId"
-            size="small"
-            columns={colsMov}
-            dataSource={movimientos.data ?? []}
-            loading={movimientos.isLoading}
-            pagination={{ pageSize: 5, showSizeChanger: true }}
-            locale={{ emptyText: 'Sin movimientos' }}
-          />
+      {section === 'cierres' ? (
+        <CredixDataTable<BovedaListadoRow>
+          mode="operacion"
+          rowKey="bovedaId"
+          size="small"
+          columns={colsBoveda}
+          dataSource={cierres}
+          loading={historial.isLoading}
+          rowSelection={{
+            type: 'radio',
+            selectedRowKeys: bovedaId ? [bovedaId] : [],
+            onChange: (keys) => setSelectedId(keys[0] as number),
+          }}
+          onRow={(row) => ({
+            onClick: () => setSelectedId(row.bovedaId),
+          })}
+          pagination={{
+            current: page,
+            pageSize: CIERRES_PAGE_SIZE,
+            total: historial.data?.total ?? 0,
+            showSizeChanger: false,
+            onChange: setPage,
+          }}
+        />
+      ) : null}
 
-          <p className="boveda-historial__section-title">Saldos caja diario (sesión bóveda)</p>
-          <CredixDataTable
-            mode="operacion"
-            rowKey="id"
-            size="small"
-            columns={colsCaja}
-            dataSource={cajas.data?.rows ?? []}
-            loading={cajas.isFetching}
-            pagination={{
-              current: cajasPage,
-              pageSize: CAJAS_PAGE_SIZE,
-              total: cajas.data?.totalRecords ?? 0,
-              showSizeChanger: false,
-              onChange: setCajasPage,
-            }}
-            locale={{ emptyText: 'Sin cajas vinculadas' }}
-          />
-        </>
+      {section === 'movimientos' ? (
+        <CredixDataTable
+          mode="operacion"
+          rowKey="movimientoBovedaId"
+          size="small"
+          columns={colsMov}
+          dataSource={movs}
+          loading={movimientos.isLoading}
+          pagination={{ pageSize: 10, showSizeChanger: true }}
+          locale={{ emptyText: bovedaId ? 'Sin movimientos' : 'Elija una bóveda en Cierres' }}
+        />
+      ) : null}
+
+      {section === 'cajas' ? (
+        <CredixDataTable
+          mode="operacion"
+          rowKey="id"
+          size="small"
+          columns={colsCaja}
+          dataSource={cajasFiltradas}
+          loading={cajas.isFetching}
+          pagination={{
+            current: cajasPage,
+            pageSize: CAJAS_PAGE_SIZE,
+            total: cajas.data?.totalRecords ?? 0,
+            showSizeChanger: false,
+            onChange: setCajasPage,
+          }}
+          locale={{ emptyText: 'Sin cajas vinculadas' }}
+        />
       ) : null}
     </div>
   )

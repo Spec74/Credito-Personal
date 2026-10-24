@@ -4,6 +4,14 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Bóveda: buscador de historial
+
+**Qué hay:** historial en una sola grilla (Movimientos / Cierres /
+Cajas) con filtro al escribir (glosa, medio, agente, caja). El
+informe de movimientos usa el mismo criterio. Sin botón Buscar.
+
+**Qué no hay:** no hay USP nuevo de búsqueda en servidor.
+
 ### 2026-10-23 — Bóveda: una operación a la vez
 
 **Qué hay:** las pestañas ya no montan los 9 formularios juntos

@@ -323,14 +323,20 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   )
 
 
+  const importeField = (
+    <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
+      <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
+    </Form.Item>
+  )
+  const descripcionField = (
+    <Form.Item name="descripcion" label="Descripción / glosa" rules={glosaRules}>
+      <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
+    </Form.Item>
+  )
   const importeDescripcionFields = (
     <>
-      <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
-        <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
-      </Form.Item>
-      <Form.Item name="descripcion" label="Descripción / glosa" rules={glosaRules}>
-        <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
-      </Form.Item>
+      {importeField}
+      {descripcionField}
     </>
   )
 
@@ -365,15 +371,18 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               }))}
             />
           </Form.Item>
-          {importeDescripcionFields}
-          <Form.Item name="tipoPagoId" label="Tipo de pago" rules={[{ required: true }]}>
-            <Select
-              loading={tiposPagoQuery.isLoading}
-              placeholder="Efectivo, Yape, banco…"
-              options={tipoPagoOptions}
-              {...tipoPagoSelectProps}
-            />
-          </Form.Item>
+          <div className="boveda-operaciones-form__row">
+            {importeField}
+            <Form.Item name="tipoPagoId" label="Tipo de pago" rules={[{ required: true }]}>
+              <Select
+                loading={tiposPagoQuery.isLoading}
+                placeholder="Efectivo, Yape, banco…"
+                options={tipoPagoOptions}
+                {...tipoPagoSelectProps}
+              />
+            </Form.Item>
+          </div>
+          {descripcionField}
           {formActions('Registrar movimiento', ingresoEgreso.isPending)}
         </Form>
     ),
@@ -495,6 +504,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               })
             }
           >
+            <div className="boveda-operaciones-form__row">
             <Form.Item
               name="tipoPagoOrigenId"
               label="Origen"
@@ -502,6 +512,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             >
               <Select
                 loading={tiposPagoQuery.isLoading}
+                showSearch
                 placeholder="Medio de pago origen"
                 options={tipoPagoOptions}
                 {...tipoPagoSelectProps}
@@ -529,11 +540,13 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             >
               <Select
                 loading={tiposPagoQuery.isLoading}
+                showSearch
                 placeholder="Medio de pago destino"
                 options={tipoPagoOptions}
                 {...tipoPagoSelectProps}
               />
             </Form.Item>
+            </div>
             <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
               <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
             </Form.Item>

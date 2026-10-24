@@ -128,6 +128,9 @@ export function MovimientoBovedaPage() {
         { title: 'Movimientos' },
       ]}
       stats={stats}
+      searchPlaceholder="Glosa, operación, medio o agente…"
+      tableResultCount={consulta.data?.length}
+      resultCountLabel="movimiento"
       filters={
         <Form form={form} layout="inline" onFinish={(v) => consulta.mutate(v)}>
           <Form.Item

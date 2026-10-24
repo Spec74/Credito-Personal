@@ -4,7 +4,7 @@
 
 /* Reserva altura del KPI (4 celdas en móvil) para no desplazar el body al hidratar datos. */
 .boveda-page ul.credix-stats {
-  min-height: 320px;
+  min-height: 200px;
 }
 
 @media (min-width: 640px) {
@@ -396,7 +396,19 @@
 }
 
 .boveda-operaciones-form {
-  max-width: 480px;
+  max-width: 560px;
+}
+
+.boveda-operaciones-form__row {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .boveda-operaciones-form__row {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 16px;
+  }
 }
 
 @media (min-width: 1100px) {
@@ -502,11 +514,65 @@
 }
 
 /* —— Historial —— */
-.boveda-historial__section-title {
-  margin: 16px 0 8px;
-  font-size: 14px;
+.boveda-historial-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.boveda-historial-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.boveda-historial-tabs__btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: var(--credix-surface-muted, #f8fafc);
+  color: var(--credix-text, #1f2937);
+  font: inherit;
+  font-size: 13px;
   font-weight: 600;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.boveda-historial-tabs__btn:hover {
+  border-color: var(--credix-border, #e5e7eb);
+  background: #fff;
+}
+
+.boveda-historial-tabs__btn:focus-visible {
+  outline: 2px solid var(--credix-brand, #114885);
+  outline-offset: 2px;
+}
+
+.boveda-historial-tabs__btn.is-active {
+  background: #fff;
   color: var(--credix-brand, #114885);
+  border-color: #c5daf0;
+}
+
+.boveda-historial-search {
+  flex: 1 1 220px;
+  max-width: 420px;
+}
+
+.boveda-historial-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--credix-text-muted, #6b7280);
+}
+
+.boveda-historial-informe {
+  margin-left: auto;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .boveda-historial .ant-table-tbody > tr {
