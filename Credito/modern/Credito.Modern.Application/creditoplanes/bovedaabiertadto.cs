@@ -21,7 +21,7 @@ public sealed record BovedaDestinoTransferenciaDto(
     decimal SaldoFinal,
     DateTime FechaIniOperacion);
 
-/// <summary>Transferencia interoficina pendiente de aceptar/rechazar (paridad <c>BovedaMovBL.ListarTransferencias</c>).</summary>
+/// <summary>Fila leftover en <c>BovedaMovTemp</c> hacia la bóveda destino. El USP no acepta: solo anula (flag 2).</summary>
 public sealed record BovedaTransferenciaPendienteDto(
     int BovedaMovTempId,
     decimal Monto,

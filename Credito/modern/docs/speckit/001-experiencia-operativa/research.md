@@ -102,7 +102,7 @@ Originación personal   ──► simular / generar / aprobar / caja
 Originación prendaria  ──► 2–3 superficies
 Aprobación (02)        ──► pierde ficha
 Cobro (03)             ──► diario / campo / verificar
-Tesorería (04)         ──► ID bóveda; Pendientes incompleto
+Tesorería (04)         ──► ID bóveda; Pendientes = leftovers + Anular
 Alta sede (08)         ──► 8 pasos sueltos
 Informes (07)          ──► ~30 tiles
 Ventas/almacén (10/11) ──► mismo Credix pero fuera del “Hoy”

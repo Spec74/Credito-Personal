@@ -5908,6 +5908,36 @@ internal static class CreditoOperacionEndpoints
                     }
 
                     var aceptacionTemporal = body.BovedaMovTempId > 0;
+                    if (aceptacionTemporal && body.FlagAceptar != 2)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inv?lida",
+                            detail: "usp_TransferirBoveda solo anula pendientes con flag 2. El fondeo es inmediato (flag 0).");
+                    }
+
+                    if (aceptacionTemporal)
+                    {
+                        var oficinaDestinoTemp = await bovedaOficina
+                            .GetOficinaIdByBovedaMovTempDestinoAsync(body.BovedaMovTempId, ct)
+                            .ConfigureAwait(false);
+                        if (oficinaDestinoTemp is null)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status404NotFound,
+                                title: "No encontrado",
+                                detail: "No existe la transferencia pendiente indicada.");
+                        }
+
+                        if (oficinaDestinoTemp.Value != body.OficinaId)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status403Forbidden,
+                                title: "Prohibido",
+                                detail: "La pendiente no pertenece a la oficina del token.");
+                        }
+                    }
+
                     if (!aceptacionTemporal)
                     {
                         var edgeError = ProblemResults.IfInvalid(
@@ -6000,7 +6030,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoTransferirBoveda")
             .WithSummary(
-                "Escritura: CREDITO.usp_TransferirBoveda. Transferencia entre b?vedas (origen en oficina JWT) o aceptaci?n temporal (bovedaMovTempId > 0).")
+                "Escritura: CREDITO.usp_TransferirBoveda. Fondeo inmediato (flag 0) o anulación de BovedaMovTemp (flag 2). El USP no implementa aceptación.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<CajaDiarioOperacionResponse>(StatusCodes.Status200OK, "application/json")

@@ -395,6 +395,47 @@
   max-width: 520px;
 }
 
+.boveda-pendientes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.boveda-pendientes__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--credix-border, #e5e7eb);
+  border-radius: 8px;
+  background: var(--credix-surface, #fff);
+}
+
+.boveda-pendientes__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--credix-text-muted, #6b7280);
+}
+
+.boveda-pendientes__meta strong {
+  color: var(--credix-text, #1f2937);
+}
+
+.boveda-pendientes__monto {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--credix-brand, #114885);
+}
+
 .boveda-operaciones-form {
   max-width: 560px;
 }

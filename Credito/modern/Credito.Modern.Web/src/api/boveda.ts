@@ -301,11 +301,10 @@ export function transferirBoveda(body: {
   })
 }
 
-/** Aceptación/rechazo de transferencia inter-oficina (bovedaMovTempId > 0). */
-export function aceptarTransferenciaBoveda(body: {
+/** Anula leftover BovedaMovTemp. El USP solo entiende flag 2; no hay aceptación. */
+export function anularTransferenciaPendienteBoveda(body: {
   oficinaId: number
   bovedaMovTempId: number
-  flagAceptar: number
 }): Promise<CajaDiarioOperacionResponse> {
   return postJson('/credito/transferir-boveda', {
     oficinaId: body.oficinaId,
@@ -314,7 +313,7 @@ export function aceptarTransferenciaBoveda(body: {
     glosa: '',
     monto: 0,
     bovedaMovTempId: body.bovedaMovTempId,
-    flagAceptar: body.flagAceptar,
+    flagAceptar: 2,
   })
 }
 

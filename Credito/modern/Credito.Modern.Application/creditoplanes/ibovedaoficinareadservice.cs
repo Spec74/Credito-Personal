@@ -23,4 +23,9 @@ public interface IBovedaOficinaReadService
     Task<IReadOnlyList<BovedaTransferenciaPendienteDto>> ListarTransferenciasPendientesAsync(
         int bovedaDestinoId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>Oficina de la bóveda destino de una fila <c>BovedaMovTemp</c>, o null.</summary>
+    Task<int?> GetOficinaIdByBovedaMovTempDestinoAsync(
+        int bovedaMovTempId,
+        CancellationToken cancellationToken = default);
 }

@@ -80,7 +80,7 @@ Paridad con `Web/Controllers/BovedaController.cs` y `Views/Boveda/Index.cshtml`.
 ## Diferencias conocidas
 
 - Transferencia inter-oficina: legacy combo de oficina destino; moderno usa **ID bóveda destino** (`transferir-boveda`).
-- Aceptación de transferencias pendientes: `aceptarTransferenciaBoveda` con `bovedaMovTempId`.
+- Pendientes leftover: `anularTransferenciaPendienteBoveda` (`flagAceptar = 2`). El USP no acepta (no hay flag 1 ni INSERT a `BovedaMovTemp`).
 - Transferencia entre bancos: el MVC hardcodea IDs 1–8 de Huanta; el moderno lista `MAESTRO.ValorTabla` tabla 13. Tras el SP se llama `usp_ActualizarSaldosBoveda` (el BL legado no lo hacía).
 - `POST /api/v1/credito/transferir-boveda-bancos` — paridad `Boveda/RegistrarTransferenciaBancos`.
 

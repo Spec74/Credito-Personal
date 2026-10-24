@@ -96,7 +96,7 @@ Como encargado o central, muevo efectivo **eligiendo sede**, no un ID.
 **Aceptación**
 
 - Transferencia: oficina destino + importe grande.
-- B-05 fondeo consolidado. Pendientes incompletas no se venden como flujo.
+- B-05 fondeo consolidado. Pendientes = leftovers + Anular; no se vende aceptación.
 - Cierre oficina ≠ 1: smoke B-02.
 
 ### US-8 — Informes de decisión, no un mall (P1 · SSD-07)

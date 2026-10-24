@@ -209,4 +209,36 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             .ConfigureAwait(false);
         return rows.ToList();
     }
+
+    public async Task<int?> GetOficinaIdByBovedaMovTempDestinoAsync(
+        int bovedaMovTempId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(_connectionString))
+        {
+            throw new InvalidOperationException(
+                "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
+        }
+
+        if (bovedaMovTempId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(bovedaMovTempId), "bovedaMovTempId debe ser >= 1.");
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        const string sql = """
+            SELECT d.OficinaId
+            FROM CREDITO.BovedaMovTemp AS t
+            INNER JOIN CREDITO.Boveda AS d ON d.BovedaId = t.BovedaDestinoId
+            WHERE t.BovedaMovTempId = @BovedaMovTempId;
+            """;
+        return await connection
+            .QueryFirstOrDefaultAsync<int?>(
+                new CommandDefinition(
+                    sql,
+                    new { BovedaMovTempId = bovedaMovTempId },
+                    cancellationToken: cancellationToken))
+            .ConfigureAwait(false);
+    }
 }

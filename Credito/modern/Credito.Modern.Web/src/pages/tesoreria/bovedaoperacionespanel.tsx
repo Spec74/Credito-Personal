@@ -14,7 +14,7 @@ import {
   message,
 } from 'antd'
 import {
-  aceptarTransferenciaBoveda,
+  anularTransferenciaPendienteBoveda,
   asignarBovedaTemporal,
   buscarUsuariosBoveda,
   cerrarBoveda,
@@ -30,7 +30,11 @@ import {
   transferirBovedaCajaChica,
   transferirBovedaAnalista,
   type BovedaAbiertaDto,
+  type BovedaTransferenciaPendiente,
 } from '../../api/boveda'
+import { confirmMoney } from '../../components/credix'
+import { formatFechaHora } from '../../utils/formatFecha'
+import { formatMoney } from '../../utils/formatMoney'
 import { fetchTipoOperaciones } from '../../api/cajaDiario'
 import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
@@ -144,7 +148,6 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   const needsCajas =
     activeTab === 'caja' || activeTab === 'analista' || activeTab === 'chica'
   const needsDestinos = activeTab === 'interoficina'
-  const needsPendientes = activeTab === 'aceptar'
   const needsCierre = activeTab === 'cierre'
 
   const cajasQuery = useQuery({
@@ -162,9 +165,11 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   const transferenciasPendientesQuery = useQuery({
     queryKey: ['boveda-transferencias-pendientes', bovedaId],
     queryFn: () => fetchBovedaTransferenciasPendientes(bovedaId),
-    enabled: oficinaOk && bovedaId > 0 && needsPendientes,
+    enabled: oficinaOk && bovedaId > 0 && secondaryReady,
     staleTime: 15_000,
   })
+  const pendientes = transferenciasPendientesQuery.data ?? []
+  const pendientesCount = pendientes.length
 
   const usuariosQuery = useQuery({
     queryKey: ['buscar-usuarios-boveda-temporal', usuarioTermDebounced],
@@ -241,16 +246,45 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     onError: (e) => message.error(errMsg(e)),
   })
 
-  const aceptar = useMutation({
-    mutationFn: (v: { bovedaMovTempId: number; flagAceptar: number }) =>
-      aceptarTransferenciaBoveda({
-        oficinaId,
-        bovedaMovTempId: v.bovedaMovTempId,
-        flagAceptar: v.flagAceptar,
-      }),
-    onSuccess: (r) => onOk(`Aceptación/rechazo (código ${r.resultCode})`),
+  const anularPendiente = useMutation({
+    mutationFn: (bovedaMovTempId: number) =>
+      anularTransferenciaPendienteBoveda({ oficinaId, bovedaMovTempId }),
+    onSuccess: (r) => onOk(`Pendiente anulada (código ${r.resultCode})`),
     onError: (e) => message.error(errMsg(e)),
   })
+
+  const pedirFondeo = (v: { bovedaDestinoId: number; monto: number; glosa: string }) => {
+    const dest = bovedasDestinoQuery.data?.find((d) => d.bovedaId === v.bovedaDestinoId)
+    confirmMoney({
+      title: dest ? `Fondear ${dest.oficina}` : 'Fondear / transferir ahora',
+      amount: v.monto,
+      officeLabel: dest
+        ? `Bóveda #${bovedaId} → ${dest.oficina} · #${dest.bovedaId}`
+        : `Bóveda #${bovedaId}`,
+      consequence: 'El saldo se acredita de inmediato en origen y destino. No espera aceptación.',
+      okText: 'Transferir',
+      onOk: () =>
+        transferir.mutateAsync({
+          oficinaId,
+          bovedaInicioId: bovedaId,
+          bovedaDestinoId: v.bovedaDestinoId,
+          glosa: v.glosa,
+          monto: v.monto,
+        }),
+    })
+  }
+
+  const pedirAnularPendiente = (t: BovedaTransferenciaPendiente) => {
+    confirmMoney({
+      title: 'Anular pendiente',
+      amount: t.monto,
+      officeLabel: t.oficinaOrigen,
+      consequence:
+        'Borra la fila temporal y el movimiento de origen. No acredita en esta bóveda.',
+      okText: 'Anular',
+      onOk: () => anularPendiente.mutateAsync(t.bovedaMovTempId),
+    })
+  }
 
   const cerrar = useMutation({
     mutationFn: () => cerrarBoveda(oficinaId),
@@ -633,15 +667,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           <Form
             className="boveda-operaciones-form"
             layout="vertical"
-            onFinish={(v) =>
-              transferir.mutate({
-                oficinaId,
-                bovedaInicioId: bovedaId,
-                bovedaDestinoId: v.bovedaDestinoId,
-                glosa: v.glosa,
-                monto: v.monto,
-              })
-            }
+            onFinish={pedirFondeo}
           >
             <Form.Item
               name="bovedaDestinoId"
@@ -671,69 +697,44 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     ),
     aceptar: (
         <>
-          <Alert
-            type="warning"
-            showIcon
-            style={{ marginBottom: 12 }}
-            message="Flujo de aceptación incompleto en BD"
-            description="El fondeo a sucursales use la pestaña Fondear / interoficina (inmediato). Esta pestaña es legado parcial: el USP no completa aceptación (flag 1)."
-          />
           <Paragraph type="secondary">
-            Transferencias temporales hacia esta bóveda (si existen). Elija la
-            pendiente y acepte o rechace.
+            El fondeo se acredita al instante (menú Fondeo). Aquí solo aparecen
+            filas antiguas en espera. El procedimiento no tiene aceptación: solo
+            se pueden anular.
           </Paragraph>
-          {(transferenciasPendientesQuery.data?.length ?? 0) === 0 &&
-          !transferenciasPendientesQuery.isLoading ? (
+          {transferenciasPendientesQuery.isLoading ? (
+            <Alert type="info" showIcon message="Buscando filas en espera…" />
+          ) : pendientesCount === 0 ? (
             <Alert
-              type="info"
+              type="success"
               showIcon
-              style={{ marginBottom: 12 }}
-              message="No hay transferencias pendientes hacia esta bóveda."
+              message="Nada en espera hacia esta bóveda."
+              description="Para enviar saldo a otra sede use Fondeo. Queda acreditado de inmediato."
             />
-          ) : null}
-          <Form
-            className="boveda-operaciones-form"
-            layout="vertical"
-            onFinish={(v) =>
-              aceptar.mutate({
-                bovedaMovTempId: v.bovedaMovTempId,
-                flagAceptar: v.flagAceptar,
-              })
-            }
-          >
-            <Form.Item
-              name="bovedaMovTempId"
-              label="Transferencia pendiente"
-              rules={[{ required: true, message: 'Seleccione una transferencia' }]}
-            >
-              <Select
-                loading={transferenciasPendientesQuery.isLoading}
-                showSearch
-                optionFilterProp="label"
-                placeholder="Oficina origen · monto · glosa"
-                options={(transferenciasPendientesQuery.data ?? []).map((t) => ({
-                  value: t.bovedaMovTempId,
-                  label: `${t.oficinaOrigen} · S/ ${Number(t.monto).toFixed(2)} · ${
-                    t.descripcion?.trim() || 'Sin glosa'
-                  } · ${t.usuarioReg}`,
-                }))}
-              />
-            </Form.Item>
-            <Form.Item
-              name="flagAceptar"
-              label="Acción"
-              rules={[{ required: true }]}
-              initialValue={1}
-            >
-              <Select
-                options={[
-                  { value: 1, label: 'Aceptar' },
-                  { value: 0, label: 'Rechazar' },
-                ]}
-              />
-            </Form.Item>
-            {formActions('Confirmar', aceptar.isPending)}
-          </Form>
+          ) : (
+            <ul className="boveda-pendientes">
+              {pendientes.map((t) => (
+                <li key={t.bovedaMovTempId} className="boveda-pendientes__item">
+                  <div className="boveda-pendientes__meta">
+                    <strong>{t.oficinaOrigen}</strong>
+                    <span className="boveda-pendientes__monto">S/ {formatMoney(t.monto)}</span>
+                    <span>
+                      {t.descripcion?.trim() || 'Sin glosa'} · {t.usuarioReg} ·{' '}
+                      {formatFechaHora(t.fechaReg)}
+                    </span>
+                  </div>
+                  <Button
+                    danger
+                    disabled={operacionesDeshabilitadas}
+                    loading={anularPendiente.isPending}
+                    onClick={() => pedirAnularPendiente(t)}
+                  >
+                    Anular
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          )}
         </>
     ),
     cierre: (
@@ -803,7 +804,12 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           {OPS_GROUPS.map((group) => (
             <div key={group.title} className="boveda-ops-nav__group">
               <p className="boveda-ops-nav__title">{group.title}</p>
-              {group.items.map((item) => (
+              {group.items.map((item) => {
+                const label =
+                  item.key === 'aceptar' && pendientesCount > 0
+                    ? `${item.label} (${pendientesCount})`
+                    : item.label
+                return (
                 <button
                   key={item.key}
                   type="button"
@@ -815,9 +821,10 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                   aria-current={item.key === activeTab ? 'true' : undefined}
                   onClick={() => setActiveTab(item.key)}
                 >
-                  {item.label}
+                  {label}
                 </button>
-              ))}
+                )
+              })}
             </div>
           ))}
         </nav>

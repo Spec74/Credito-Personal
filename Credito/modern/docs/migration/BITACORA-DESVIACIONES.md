@@ -4,6 +4,16 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Bóveda: pendientes = leftovers, no aceptación
+
+**Qué hay:** Fondeo pide confirmación de importe y acredita al instante
+(flag 0). Pendientes lista filas antiguas de `BovedaMovTemp` y solo
+permite Anular (flag 2). La API rechaza cualquier otro flag si hay
+tempId y exige que el destino sea la oficina del token.
+
+**Qué no hay:** no se inventa aceptación (flag 1) ni INSERT a
+`BovedaMovTemp`. El USP no tiene ese camino.
+
 ### 2026-10-23 — Prendario: cuotas editables (default 1)
 
 **Qué hay:** en simulador y prendario nuevo las cuotas ya no están
@@ -305,8 +315,8 @@ Plan: [PLAN-MULTISUCURSAL-PRENDARIO.md](PLAN-MULTISUCURSAL-PRENDARIO.md).
 **Regla de negocio deliberada (gerencia):** la autonomía de sucursales se
 fondea con transferencia bóveda↔bóveda **inmediata** (`flagAceptar = 0` en
 `usp_TransferirBoveda`: TRS origen + TRE destino). No se exige aceptación en
-destino para operar Pichari / Andahuaylas. La UI de “Pendientes” queda
-documentada como incompleta respecto al USP hasta una fase 2.
+destino para operar Pichari / Andahuaylas. La UI de “Pendientes” solo
+anula leftovers (`flagAceptar = 2`); no se vende como aceptación.
 
 ---
 

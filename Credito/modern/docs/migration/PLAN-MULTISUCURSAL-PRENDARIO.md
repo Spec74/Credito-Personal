@@ -35,7 +35,7 @@ Cierre bóveda → nuevo período con SaldoFinal arrastrado
 Central ↔ Sucursal (ida y vuelta cuando lo pidan)
 ```
 
-**Regla de fondeo (decisión 2026-10-16):** la transferencia inter-oficina vía `usp_TransferirBoveda` con `flagAceptar = 0` **acredita de inmediato** en origen y destino. Eso es lo que necesita gerencia para “asignar saldo a la bóveda sucursal”. La pestaña “Pendientes / aceptación” queda documentada como **incompleta** (el USP no implementa `flagAceptar = 1` ni inserta `BovedaMovTemp` en el envío); no bloquear el fondeo por ese flujo hasta una fase 2.
+**Regla de fondeo (decisión 2026-10-16):** la transferencia inter-oficina vía `usp_TransferirBoveda` con `flagAceptar = 0` **acredita de inmediato** en origen y destino. Eso es lo que necesita gerencia para “asignar saldo a la bóveda sucursal”. `BovedaMovTemp` no se inserta en el envío; Pendientes solo anula leftovers (`flagAceptar = 2`). No inventar aceptación.
 
 ---
 
@@ -46,7 +46,7 @@ Central ↔ Sucursal (ida y vuelta cuando lo pidan)
 | B-01 | P1 | Fix destino bóveda: prod forzaba OficinaId=1; ahora `@OficinaId` + conservar MOVS_BASE (saldo inicial + movs) | **Hecho** (schema + deploy alineado a prod) |
 | B-02 | P1 | Smoke cierre cajas en oficina ≠ 1 (Pichari / Huanta) | Pendiente operación |
 | B-03 | P2 | UI Interoficina: texto “fondeo inmediato” + etiqueta clara | **Hecho** |
-| B-04 | P2 | Documentar / ocultar o advertir pestaña Pendientes hasta completar USP | **Hecho** (aviso) |
+| B-04 | P2 | Pendientes = leftovers + Anular (flag 2); API bloquea flag ≠ 2 | **Hecho** |
 | B-05 | P3 | Vista consolidada “Fondear sucursales” (central) + rol | Pendiente |
 | B-06 | P3 | Índice UNIQUE: una bóveda principal abierta por `OficinaId` | Pendiente |
 | B-07 | P4 | Capacitación ciclo autonomía Pichari → Andahuaylas | Pendiente negocio |

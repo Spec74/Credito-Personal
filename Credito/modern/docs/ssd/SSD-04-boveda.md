@@ -89,7 +89,8 @@ La puerta de negocio es el menú BOVEDA en la SPA. La API replica al MVC: autent
 - 2026-09-10 — informe movimientos no exige ítem de menú extra
 - 2026-09-09 — comprobante de movimiento (tabla incorrecta, corregida)
 - **2026-10-16 — multisucursal:** en prod el destino del cierre iba a bóveda de `OficinaId=1`; ahora acredita en la bóveda de `@OficinaId`, conservando CTE `MOVS_BASE` (saldo inicial + movimientos). Deploy: `2026-10-16-usp-cerrar-cajas-diarios-oficina.sql`.
-- **2026-10-16 — fondeo central:** transferencia inter-oficina (`flagAceptar = 0`) es **inmediata** (TRS origen + TRE destino). La pestaña Pendientes (aceptación) no está completa en el USP; no es el camino de fondeo a sucursales.
+- **2026-10-16 — fondeo central:** transferencia inter-oficina (`flagAceptar = 0`) es **inmediata** (TRS origen + TRE destino). Pendientes no es el camino de fondeo: solo anula leftovers (`flag 2`).
+- **2026-10-23 — Pendientes:** sin aceptación inventada. API 400 si tempId > 0 y flag ≠ 2; destino debe ser la oficina del token.
 
 Producto: destino inter-oficina por ID de bóveda, no combo de oficina.
 
