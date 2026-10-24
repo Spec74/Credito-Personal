@@ -47,7 +47,7 @@ public sealed class BovedaAbiertaReadService(IOptions<SqlDatabaseOptions> option
             """;
 
         var row = await connection
-            .QueryFirstOrDefaultAsync<BovedaAbiertaDto>(
+            .QueryFirstOrDefaultAsync<BovedaAbiertaRow>(
                 new CommandDefinition(sql, new { OficinaId = oficinaId }, cancellationToken: cancellationToken))
             .ConfigureAwait(false);
         if (row is null)
@@ -61,6 +61,32 @@ public sealed class BovedaAbiertaReadService(IOptions<SqlDatabaseOptions> option
                 new { BovedaId = row.BovedaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
         var delta = decimal.Round(sumaMedios - row.SaldoFinal, 2);
-        return row with { SumaMedios = sumaMedios, DeltaMedios = delta };
+        return new BovedaAbiertaDto(
+            row.BovedaId,
+            row.OficinaId,
+            row.SaldoInicial,
+            row.Entradas,
+            row.Salidas,
+            row.SaldoFinal,
+            row.FechaIniOperacion,
+            row.FechaFinOperacion,
+            row.IndCierre,
+            row.IndTemporal,
+            sumaMedios,
+            delta);
+    }
+
+    private sealed class BovedaAbiertaRow
+    {
+        public int BovedaId { get; init; }
+        public int OficinaId { get; init; }
+        public decimal SaldoInicial { get; init; }
+        public decimal Entradas { get; init; }
+        public decimal Salidas { get; init; }
+        public decimal SaldoFinal { get; init; }
+        public DateTime FechaIniOperacion { get; init; }
+        public DateTime? FechaFinOperacion { get; init; }
+        public bool IndCierre { get; init; }
+        public bool IndTemporal { get; init; }
     }
 }

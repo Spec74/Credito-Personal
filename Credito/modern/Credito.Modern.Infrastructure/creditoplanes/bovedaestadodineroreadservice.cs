@@ -7,8 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Credito.Modern.Infrastructure.CreditoPlanes;
 
 public sealed class BovedaEstadoDineroReadService(
-    IOptions<SqlDatabaseOptions> options,
-    ICreditoVencidoMetricasReadService creditoVencido) : IBovedaEstadoDineroReadService
+    IOptions<SqlDatabaseOptions> options) : IBovedaEstadoDineroReadService
 {
     private readonly string _connectionString = options.Value.ConnectionString;
 
@@ -52,21 +51,25 @@ public sealed class BovedaEstadoDineroReadService(
                 new { OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false) ?? 0m;
 
-        var montoPlan = await connection.ExecuteScalarAsync<decimal?>(
-            new CommandDefinition(
-                "CREDITO.usp_ObtenerMontoPendientePlanPago",
-                new { OficinaId = oficinaId },
-                commandType: CommandType.StoredProcedure,
-                cancellationToken: cancellationToken)).ConfigureAwait(false) ?? 0m;
+        decimal montoPlan = 0m;
+        try
+        {
+            montoPlan = await connection.ExecuteScalarAsync<decimal?>(
+                new CommandDefinition(
+                    "CREDITO.usp_ObtenerMontoPendientePlanPago",
+                    new { OficinaId = oficinaId },
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: 8,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false) ?? 0m;
+        }
+        catch (SqlException)
+        {
+            montoPlan = 0m;
+        }
 
-        var vencido = await creditoVencido
-            .ObtenerCarteraAsync(cancellationToken)
-            .ConfigureAwait(false);
-
-        var cv = vencido?.CreditoVencido ?? 0m;
-        var menor = vencido?.VencidoMenor60 ?? 0m;
-        var mayor = vencido?.VencidoMayor60 ?? 0m;
-        var irrec = vencido?.VencidoIrrecuperable ?? 0m;
+        // Cartera vencida no es efectivo: no se consulta aquí (tabla grande).
+        // La baldosa de la página es atajo al informe, no un KPI de tesorería.
+        const decimal cv = 0m, menor = 0m, mayor = 0m, irrec = 0m;
         var efectivoOficina = montoCajaChica + montoCajas + saldoBovedaAbierta;
 
         return new BovedaEstadoDineroDto(

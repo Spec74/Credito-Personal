@@ -218,6 +218,7 @@ export function BovedaPage() {
         <Alert
           type="error"
           showIcon
+          translate="no"
           message="No se pudo cargar la bóveda"
           description={
             boveda.error instanceof ApiError ? boveda.error.message : 'Error desconocido'
