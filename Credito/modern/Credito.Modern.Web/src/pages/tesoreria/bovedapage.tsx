@@ -202,7 +202,7 @@ export function BovedaPage() {
         <>
           {!boveda.data.indCierre ? (
             <CredixPanel
-              title="Operaciones"
+              title={<span translate="no">Operaciones</span>}
               className="boveda-panel-ops"
               extra={sesionExtra}
             >

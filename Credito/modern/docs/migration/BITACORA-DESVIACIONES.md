@@ -4,6 +4,15 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-24 — Bóveda: operaciones como escritorio
+
+**Qué hay:** cada operación tiene título y una línea de para qué.
+El formulario usa el ancho (2 columnas donde corresponde). Se quitó
+el alto forzado de 420px que dejaba un hueco blanco. El recuadro no
+lo traduce Google.
+
+**Qué no hay:** no se cambia USP.
+
 ### 2026-10-24 — Bóveda: un número, un sitio
 
 **Qué hay:** stats = saldo / entradas / salidas / total fondo. La sesión

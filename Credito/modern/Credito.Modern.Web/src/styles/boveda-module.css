@@ -386,12 +386,37 @@
 }
 
 .boveda-ops-stage {
-  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 24px 24px;
   min-width: 0;
+  background: #fff;
+}
+
+.boveda-ops-stage__head {
+  margin: 0 0 18px;
+  padding: 0 0 14px;
+  border-bottom: 1px solid var(--credix-border, #e5e7eb);
+}
+
+.boveda-ops-stage__head h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--credix-brand, #114885);
+}
+
+.boveda-ops-stage__head p {
+  margin: 6px 0 0;
+  max-width: 42rem;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--credix-text-muted, #6b7280);
 }
 
 .boveda-ops-stage .ant-typography {
-  max-width: 520px;
+  max-width: 42rem;
   margin-bottom: 12px;
 }
 
@@ -400,14 +425,14 @@
 }
 
 .boveda-ops-stage .ant-alert {
-  max-width: 520px;
+  max-width: 42rem;
 }
 
 .boveda-pendientes {
   list-style: none;
   margin: 0;
   padding: 0;
-  max-width: 560px;
+  max-width: 42rem;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -445,7 +470,8 @@
 }
 
 .boveda-operaciones-form {
-  max-width: 560px;
+  width: 100%;
+  max-width: 44rem;
 }
 
 .boveda-operaciones-form__row {
@@ -466,8 +492,8 @@
   }
 
   .boveda-ops {
-    grid-template-columns: 188px minmax(0, 1fr);
-    min-height: 420px;
+    grid-template-columns: 200px minmax(0, 1fr);
+    align-items: stretch;
   }
 
   .boveda-ops-nav {
@@ -475,9 +501,13 @@
     flex-direction: column;
     flex-wrap: nowrap;
     gap: 2px;
-    padding: 12px 10px;
+    padding: 16px 12px;
     border-bottom: none;
     border-right: 1px solid var(--credix-border, #e5e7eb);
+  }
+
+  .boveda-ops-nav__btn.is-active {
+    box-shadow: inset 3px 0 0 var(--credix-brand, #114885);
   }
 
   .boveda-ops-nav__group {
@@ -515,18 +545,19 @@
 
 .boveda-operaciones-form__actions {
   margin-top: 8px;
-  padding-top: 12px;
+  padding-top: 16px;
   border-top: 1px solid var(--credix-border, #e5e7eb);
 }
 
 .boveda-operaciones-form__actions .ant-btn-primary {
+  min-width: 200px;
   background: linear-gradient(180deg, #2270b8 0%, var(--credix-brand, #114885) 100%);
   border: none;
   font-weight: 600;
 }
 
 .boveda-operaciones-form--cierre {
-  max-width: 560px;
+  max-width: 44rem;
 }
 
 /* Select / celda tipo pago con marca */

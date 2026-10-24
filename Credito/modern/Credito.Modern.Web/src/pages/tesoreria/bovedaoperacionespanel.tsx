@@ -71,6 +71,45 @@ const OPS_GROUPS: { title: string; items: { key: string; label: string }[] }[] =
   { title: 'Cierre', items: [{ key: 'cierre', label: 'Cerrar bóveda' }] },
 ]
 
+const OPS_COPY: Record<string, { title: string; blurb: string }> = {
+  ingreso: {
+    title: 'Registrar movimiento',
+    blurb: 'Ingreso o egreso de esta bóveda, con el medio de pago.',
+  },
+  caja: {
+    title: 'Transferir a caja',
+    blurb: 'Pasa saldo a una caja diaria abierta de esta oficina.',
+  },
+  analista: {
+    title: 'Transferir a analista',
+    blurb: 'Descuenta el medio de origen y abona efectivo en la caja del analista.',
+  },
+  chica: {
+    title: 'Caja chica',
+    blurb: 'Pasa saldo a la caja chica abierta.',
+  },
+  bancos: {
+    title: 'Entre medios',
+    blurb: 'Mueve saldo entre efectivo, Yape o bancos de esta misma bóveda.',
+  },
+  temporal: {
+    title: 'Bóveda temporal',
+    blurb: 'Asigna un encargado o transfiere saldo a la temporal ya abierta.',
+  },
+  interoficina: {
+    title: 'Fondeo entre oficinas',
+    blurb: 'El saldo se acredita al instante en origen y destino. No espera aceptación.',
+  },
+  aceptar: {
+    title: 'Pendientes',
+    blurb: 'Solo filas antiguas. El fondeo no espera; aquí únicamente se anulan leftovers.',
+  },
+  cierre: {
+    title: 'Cerrar bóveda',
+    blurb: 'La principal, cuando las cajas estén cerradas. La temporal, si aplica.',
+  },
+}
+
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : 'Error desconocido'
 }
@@ -351,6 +390,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       <Button
         type="primary"
         htmlType="submit"
+        size="large"
         loading={loading}
         disabled={operacionesDeshabilitadas}
       >
@@ -436,6 +476,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             })
           }
         >
+          <div className="boveda-operaciones-form__row">
           <Form.Item name="cajaId" label="Caja abierta" rules={[{ required: true }]}>
             <Select
               loading={cajasQuery.isLoading}
@@ -448,17 +489,14 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               }))}
             />
           </Form.Item>
-          {importeDescripcionFields}
+          {importeField}
+          </div>
+          {descripcionField}
           {formActions('Transferir a caja', aCaja.isPending)}
         </Form>
     ),
     analista: (
-        <>
-          <Paragraph type="secondary">
-            Embudo producción: descuenta el banco/medio de origen y abona{' '}
-            <strong>efectivo</strong> en la caja abierta del analista.
-          </Paragraph>
-          <Form
+        <Form
             className="boveda-operaciones-form"
             layout="vertical"
             initialValues={{ tipoPagoOrigenId: 2 }}
@@ -472,6 +510,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               })
             }
           >
+            <div className="boveda-operaciones-form__row">
             <Form.Item
               name="tipoPagoOrigenId"
               label="Banco / medio de origen"
@@ -501,10 +540,11 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                   }))}
               />
             </Form.Item>
-            {importeDescripcionFields}
+            </div>
+            {importeField}
+            {descripcionField}
             {formActions('Transferir a analista', aAnalista.isPending)}
           </Form>
-        </>
     ),
     chica: (
         <Form
@@ -523,12 +563,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
         </Form>
     ),
     bancos: (
-        <>
-          <Paragraph type="secondary">
-            Mueve saldo entre medios de pago de esta bóveda (efectivo, Yape, bancos,
-            etc.). Origen y destino deben ser distintos.
-          </Paragraph>
-          <Form
+        <Form
             className="boveda-operaciones-form"
             layout="vertical"
             onFinish={(v) =>
@@ -590,14 +625,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             </Form.Item>
             {formActions('Transferir entre bancos', entreBancos.isPending)}
           </Form>
-        </>
     ),
     temporal: (
-        <>
-          <Paragraph type="secondary">
-            <strong>Asignar encargado:</strong> cree la bóveda temporal si aún no existe.{' '}
-            <strong>Transferir:</strong> mueva saldo a la temporal ya abierta.
-          </Paragraph>
           <Form
             className="boveda-operaciones-form"
             layout="vertical"
@@ -649,16 +678,9 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               temporal.isPending,
             )}
           </Form>
-        </>
     ),
     interoficina: (
         <>
-          <Paragraph type="secondary">
-            Fondeo a sucursales (Pichari, Huanta, Andahuaylas…) o devolución a
-            central. Origen: bóveda #{bovedaId}. Elija destino con bóveda principal
-            abierta: el saldo se acredita de inmediato en ambas bóvedas (no espera
-            aceptación).
-          </Paragraph>
           {bovedasDestinoQuery.data?.length === 0 ? (
             <Alert
               type="warning"
@@ -672,6 +694,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             layout="vertical"
             onFinish={pedirFondeo}
           >
+            <div className="boveda-operaciones-form__row">
             <Form.Item
               name="bovedaDestinoId"
               label="Oficina / bóveda destino"
@@ -691,6 +714,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             <Form.Item name="monto" label="Monto" rules={moneyRequired('Monto mayor a cero')}>
               <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
             </Form.Item>
+            </div>
             <Form.Item name="glosa" label="Glosa" rules={glosaRules}>
               <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
             </Form.Item>
@@ -700,11 +724,6 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     ),
     aceptar: (
         <>
-          <Paragraph type="secondary">
-            El fondeo se acredita al instante (menú Fondeo). Aquí solo aparecen
-            filas antiguas en espera. El procedimiento no tiene aceptación: solo
-            se pueden anular.
-          </Paragraph>
           {transferenciasPendientesQuery.isLoading ? (
             <Alert type="info" showIcon message="Buscando filas en espera…" />
           ) : pendientesCount === 0 ? (
@@ -758,13 +777,10 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               message="No se pudo validar el cierre. Actualice la página antes de cerrar."
             />
           ) : null}
-          <Paragraph type="secondary">
-            Antes de cerrar la bóveda principal, todas las cajas diarias de la oficina
-            deben estar cerradas y sin pendientes de verificación.
-          </Paragraph>
           <Space wrap>
             <Button
               danger
+              size="large"
               loading={cerrar.isPending}
               disabled={cierrePrincipalBloqueado}
               onClick={() => confirmarCierre(false)}
@@ -772,6 +788,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               Cerrar bóveda principal
             </Button>
             <Button
+              size="large"
               loading={cerrarTemp.isPending}
               disabled={!boveda.indTemporal && !existeTemporal}
               onClick={() => confirmarCierre(true)}
@@ -802,8 +819,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           message="No hay tipos de operación de bóveda activos. Revise el catálogo de operaciones."
         />
       ) : null}
-      <div className="boveda-ops">
-        <nav className="boveda-ops-nav" aria-label="Operaciones de bóveda" translate="no">
+      <div className="boveda-ops" translate="no">
+        <nav className="boveda-ops-nav" aria-label="Operaciones de bóveda">
           {OPS_GROUPS.map((group) => (
             <div key={group.title} className="boveda-ops-nav__group">
               <p className="boveda-ops-nav__title">{group.title}</p>
@@ -831,7 +848,15 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             </div>
           ))}
         </nav>
-        <div className="boveda-ops-stage">{panes[activeTab]}</div>
+        <div className="boveda-ops-stage">
+          {OPS_COPY[activeTab] ? (
+            <header className="boveda-ops-stage__head">
+              <h3>{OPS_COPY[activeTab].title}</h3>
+              <p>{OPS_COPY[activeTab].blurb}</p>
+            </header>
+          ) : null}
+          {panes[activeTab]}
+        </div>
       </div>
     </>
   )
