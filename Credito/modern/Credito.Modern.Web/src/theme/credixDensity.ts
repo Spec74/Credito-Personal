@@ -1,39 +1,33 @@
-export const CREDIX_DENSITY_KEY = 'credix.density'
-
 export type CredixDensity = 'compact' | 'standard' | 'comfortable'
 
-const VALUES: CredixDensity[] = ['compact', 'standard', 'comfortable']
+const CLASSES = [
+  'credix-density-compact',
+  'credix-density-standard',
+  'credix-density-comfortable',
+] as const
 
-export function isCredixDensity(value: string | null | undefined): value is CredixDensity {
-  return VALUES.includes(value as CredixDensity)
-}
-
-export function readCredixDensity(): CredixDensity {
-  try {
-    const raw = localStorage.getItem(CREDIX_DENSITY_KEY)
-    if (isCredixDensity(raw)) return raw
-  } catch {
-    /* private mode */
-  }
-  return 'standard'
+/** Mostrador (ratón, ≥768): compacto. Teléfono / táctil: holgado. Sin selector. */
+export function resolveCredixDensity(input?: {
+  coarse?: boolean
+  width?: number
+}): CredixDensity {
+  const coarse =
+    input?.coarse ??
+    (typeof window !== 'undefined' ? window.matchMedia('(pointer: coarse)').matches : false)
+  const width = input?.width ?? (typeof window !== 'undefined' ? window.innerWidth : 1280)
+  if (coarse || width < 768) return 'comfortable'
+  return 'compact'
 }
 
 export function applyCredixDensity(density: CredixDensity): void {
   if (typeof document === 'undefined') return
   const body = document.body
-  body.classList.remove(
-    'credix-density-compact',
-    'credix-density-standard',
-    'credix-density-comfortable',
-  )
+  body.classList.remove(...CLASSES)
   body.classList.add(`credix-density-${density}`)
 }
 
-export function persistCredixDensity(density: CredixDensity): void {
-  try {
-    localStorage.setItem(CREDIX_DENSITY_KEY, density)
-  } catch {
-    /* ignore */
-  }
+export function syncCredixDensityFromViewport(): CredixDensity {
+  const density = resolveCredixDensity()
   applyCredixDensity(density)
+  return density
 }

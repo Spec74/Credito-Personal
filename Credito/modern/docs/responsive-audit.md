@@ -58,6 +58,19 @@ import './styles/credix-responsive-global.css'
 
 ---
 
+## Checklist piloto un día (DevTools ~375px)
+
+Guion: `deploy/scripts/piloto-un-dia.ps1`. Código ya aplica 24/40 px; esto es firma.
+
+| Ruta | Criterio | OK | Fecha / quien |
+|------|----------|----|----------------|
+| `/app/login` | Formulario usable, teclado no tapa Enviar | [ ] | |
+| `/app/inicio` | Hoy 1 columna, colas del rol | [ ] | |
+| `/app/credito/aprobar` | Bandeja + ficha; Rechazar táctil | [ ] | |
+| `/app/caja/diario` | Sesión + cobro sin scroll horizontal bloqueante | [ ] | |
+| `/app/credito/consulta` | Buscar crédito usable | [ ] | |
+| `/app/avisos` (campana) | Lista + lectura | [ ] | |
+
 ## Checklist manual (DevTools ~375px)
 
 > **Firma operativa (preprod):** completar y fechar antes del cutover. El código ya aplica breakpoints globales; las casillas son evidencia de ejecución, no huecos de implementación.

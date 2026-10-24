@@ -1,24 +1,28 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
-  applyCredixDensity,
-  persistCredixDensity,
-  readCredixDensity,
+  resolveCredixDensity,
+  syncCredixDensityFromViewport,
   type CredixDensity,
 } from '../theme/credixDensity'
 
-export function useCredixDensity(): [CredixDensity, (next: CredixDensity) => void] {
+/** Aplica densidad según viewport / puntero. No hay control en la UI. */
+export function useCredixDensity(): CredixDensity {
   const [density, setDensity] = useState<CredixDensity>(() =>
-    typeof document === 'undefined' ? 'standard' : readCredixDensity(),
+    typeof window === 'undefined' ? 'compact' : resolveCredixDensity(),
   )
 
   useEffect(() => {
-    applyCredixDensity(density)
-  }, [density])
-
-  const update = useCallback((next: CredixDensity) => {
-    persistCredixDensity(next)
-    setDensity(next)
+    const sync = () => setDensity(syncCredixDensityFromViewport())
+    sync()
+    const mqCoarse = window.matchMedia('(pointer: coarse)')
+    const mqNarrow = window.matchMedia('(max-width: 767px)')
+    mqCoarse.addEventListener('change', sync)
+    mqNarrow.addEventListener('change', sync)
+    return () => {
+      mqCoarse.removeEventListener('change', sync)
+      mqNarrow.removeEventListener('change', sync)
+    }
   }, [])
 
-  return [density, update]
+  return density
 }

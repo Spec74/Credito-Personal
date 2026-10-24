@@ -21,7 +21,7 @@ CORS y `Jwt__SigningKey` no van en Git. Se definen en `deploy/.env.production` (
 
 ## Corte A — API y proxy
 
-1. SQL accesible desde el host de la API. Aplicar `deploy/sql/` pendientes (`ClaveUsuario` nvarchar(256), condonación, TRF bancos) **antes** de la migración perezosa de claves.
+1. SQL accesible desde el host de la API. Aplicar `deploy/sql/` pendientes (`ClaveUsuario` nvarchar(256), condonación, TRF bancos, `2026-10-21-pla-uif.sql`, `2026-10-23-rechazar-solicitud-hijos.sql`, índices calientes) **antes** de la migración perezosa de claves. Evidencia: `2026-10-23-smoke-cierre.sql` (Azure 23-oct: 11/11). Backup: `2026-10-23-azure-backup-pitr.sql` + portal.
 2. Copiar `deploy/.env.production.example` → `.env` del servidor (fuera de Git).
 3. `Jwt__SigningKey` ≥ 32 caracteres. `Hosting__AllowDevToken=false`.
 4. Publicar API. Fachada: `deploy/nginx/production.conf.example` o `deploy/iis-arr-web.config.example`.
@@ -37,7 +37,7 @@ CORS y `Jwt__SigningKey` no van en Git. Se definen en `deploy/.env.production` (
 2. Copiar `dist/` a la `location /app/` del proxy (`production.conf.example`).
 3. `BrowserCors:AllowedOrigins` = origen real de la SPA.
 4. Login SPA + menú `usp_MenuLst` (SSD-01).
-5. Piloto de una oficina: caja, consulta, aprobar (SSD-02 / SSD-03). Ventas y almacén (SSD-10 / SSD-11) solo si esa oficina las tiene en menú.
+5. Piloto de una oficina: `deploy/scripts/piloto-un-dia.ps1` (caja, consulta, aprobar/rechazar, PLA, 375 px). Ventas y almacén (SSD-10 / SSD-11) solo si esa oficina las tiene en menú.
 
 ## Corte C — retiro gradual del MVC
 
@@ -62,6 +62,9 @@ Reenrutar la rebanada afectada al MVC. No borrar API ni SPA. Conservar `X-Correl
 | `smoke-strangler-proxy.ps1` | Fachada `/api/v1` |
 | `verify-preprod-cutover.ps1 -BaseUrl <URL>` | Paquete preprod (config + ui-config + proxy) |
 | `preprod-cutover-checklist.ps1 -SkipInteractive` | Lista A/B/C |
+| `piloto-un-dia.ps1` | Guion de oficina (aprobador / cajero / admin) |
+| `2026-10-23-smoke-cierre.sql` | Evidencia Azure = local (11/11 + PLA) |
+| `2026-10-23-azure-backup-pitr.sql` | Lectura de backups / edición Azure |
 
 ## Qué no hacer
 

@@ -4,6 +4,63 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Densidad automática (sin Compacto / Holgado)
+
+**Qué hay:** se quitó el selector de la barra de sede. Escritorio/ratón
+usa compacto; teléfono o puntero grueso usa holgado. WCAG 24/40 px se
+mantiene. No hay preferencia en localStorage.
+
+**Qué no hay:** no se ofrece un tercer modo “estándar” a mano.
+
+### 2026-10-23 — PLA: TC del oficial + índice de desembolso
+
+**Qué hay:** `/informes/pla-uif` prellena periodo del mes anterior,
+avisa si falta TC SBS y guarda con toast. Índice
+`IX_Credito_Oficina_FechaDesembolso` para candidatos RO (desembolsos).
+Script `2026-10-23-indices-pla-desembolso.sql`.
+
+**Qué no hay:** no se indexa cobranzas CUO (894 k) en este paso. No se
+inventa el tipo de cambio.
+
+### 2026-10-23 — Índices cobro / anulación / sesión caja
+
+**Qué hay:** CxC por movimiento, anulaciones por movimiento, CajaDiario
+por cajero asignado. Script `2026-10-23-indices-cobro-anulacion.sql`. Azure 23-oct: `IxCobro=3`.
+
+**Qué no hay:** no se indexan las tablas de 1,6 M (MovimientoCaja /
+PlanPago) en este paso.
+
+### 2026-10-23 — Azure backups automáticos (PITR)
+
+**Qué hay:** `2026-10-23-azure-backup-pitr.sql` en Query Editor: 1 fila
+de SKU + 20 filas de `sys.dm_database_backups`. Azure está copiando la
+base actualizada. Solo lectura; no se restauró sobre CREDITO.
+
+**Qué no hay:** no sustituye mirar en Portal que la retención PITR sea
+≥ 7 días. Hyperscale no aplica (hubo filas).
+
+### 2026-10-23 — Índices consulta / login / condonación
+
+**Qué hay:** `PersonaId` en crédito y cliente; condonación por crédito;
+bóveda por oficina; cuenta de bóveda; subtarea por tarea; login
+`UsuarioOficina` / `UsuarioRol` (usuario + oficina). Script
+`2026-10-23-indices-consulta-login.sql`. Azure 23-oct: `IxConsulta=8`.
+
+**Qué no hay:** no se indexan MovimientoCaja.PersonaId ni
+PlanPago.MovimientoCajaId (1,6 M cada una) en este paso.
+
+### 2026-10-23 — Azure SQL alineado (PLA + índices + rechazo)
+
+**Qué hay:** smoke `2026-10-23-smoke-cierre.sql` en Azure = local: USP
+solicitud, prenda, mora, clave 256, `PlaInusual`, 11 índices calientes,
+FK Pla trusted. Aplicados `2026-10-21-pla-uif.sql` (tablas + USP, no
+créditos) y reaplicado `2026-10-23-indices-caminos-calientes.sql` (solo
+añadió IX/FK de PLA). `/informes/pla-uif` ya no debe responder 503.
+
+**Qué no hay:** Corte A no firmado. Backup/PITR se confirma en portal +
+`2026-10-23-azure-backup-pitr.sql`. TC SBS mensual lo carga el oficial
+(no se inventa). `usp_Credito_Del` / `usp_OrdenVenta_Del` no se tocan.
+
 ### 2026-10-23 — Índices de caminos calientes
 
 **Qué hay:** índices en hijos de `CreditoId` (cargo, tarea, imagen, mora, CxC,

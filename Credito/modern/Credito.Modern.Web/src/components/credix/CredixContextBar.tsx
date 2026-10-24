@@ -1,9 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Segmented } from 'antd'
 import { fetchCajaDiarioSesion } from '../../api/cajaDiario'
-import { useCredixDensity } from '../../hooks/useCredixDensity'
-import type { CredixDensity } from '../../theme/credixDensity'
 
 export function CredixContextBar({
   oficinaId,
@@ -14,7 +11,6 @@ export function CredixContextBar({
   oficinaNombre: string | null
   onCambiarSede?: () => void
 }) {
-  const [density, setDensity] = useCredixDensity()
   const cajaQuery = useQuery({
     queryKey: ['caja-diario-sesion', oficinaId],
     queryFn: () => fetchCajaDiarioSesion(oficinaId),
@@ -54,18 +50,6 @@ export function CredixContextBar({
           {cajaLabel}
         </Link>
       </div>
-      <Segmented
-        className="credix-context-bar__density"
-        size="small"
-        value={density}
-        aria-label="Densidad de pantalla"
-        onChange={(v) => setDensity(v as CredixDensity)}
-        options={[
-          { label: 'Compacto', value: 'compact' },
-          { label: 'Estándar', value: 'standard' },
-          { label: 'Holgado', value: 'comfortable' },
-        ]}
-      />
     </div>
   )
 }

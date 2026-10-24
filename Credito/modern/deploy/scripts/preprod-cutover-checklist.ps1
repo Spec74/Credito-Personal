@@ -29,8 +29,9 @@ $sections = @(
             "verify-production-config.ps1 -RequireForwardedHeaders OK (en el servidor, no contra la plantilla del repo)"
             "smoke-strangler-proxy.ps1 contra URL preprod"
             "test-auth-login.ps1 contra preprod (usuario real, no dev/token)"
-            "Scripts deploy/sql pendientes aplicados (ClaveUsuario 256, condonacion, TRF bancos, 2026-10-23 rechazo + indices calientes)"
-            "2026-10-23-smoke-cierre.sql en Azure Query Editor: bits=1 e IxCalientes>=10"
+            "Scripts deploy/sql pendientes aplicados (ClaveUsuario 256, condonacion, TRF bancos, 2026-10-21 PLA, 2026-10-23 rechazo + indices)"
+            "2026-10-23-smoke-cierre.sql en Azure: bits=1, PlaInusual=1, IxCalientes=11, FkPlaTrusted=1 (hecho 23-oct)"
+            "2026-10-23-azure-backup-pitr.sql + portal: PITR activo, retencion >= 7 dias"
         )
     },
     @{
@@ -42,6 +43,7 @@ $sections = @(
             "CORS: origen real en BrowserCors:AllowedOrigins"
             "Login SPA + menu usp_MenuLst"
             "Piloto: 1 oficina (caja, aprobar/rechazar credito, consulta). Ventas/almacen solo si el menu las tiene"
+            "piloto-un-dia.ps1: aprobador + cajero + admin; 375 px login/hoy/aprobar/caja/consulta/avisos"
         )
     },
     @{

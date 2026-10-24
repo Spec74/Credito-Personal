@@ -26,7 +26,7 @@ import { getLoginProfile } from '../../auth/sessionProfile'
 import { BrandLogo } from '../brand/BrandLogo'
 import { CredixContextBar } from '../credix/CredixContextBar'
 import { CredixNotifyBell } from './CredixNotifyBell'
-import { applyCredixDensity, readCredixDensity } from '../../theme/credixDensity'
+import { useCredixDensity } from '../../hooks/useCredixDensity'
 import { rememberInforme } from '../../utils/informesRecientes'
 import { RouteFallback } from './RouteFallback'
 import { branding } from '../../config/branding'
@@ -104,9 +104,10 @@ export function AppShell() {
     }
   }
 
+  useCredixDensity()
+
   useEffect(() => {
     document.body.classList.add('credix-app-body')
-    applyCredixDensity(readCredixDensity())
     return () => document.body.classList.remove('credix-app-body')
   }, [])
 
@@ -584,6 +585,7 @@ function NavPanel({
                   triggerSubMenuAction: 'click' as const,
                 })}
             onClick={onMenuClick}
+            popupClassName="credix-menu-collapsed-popup"
             getPopupContainer={() => document.body}
             style={{ borderInlineEnd: 0 }}
           />

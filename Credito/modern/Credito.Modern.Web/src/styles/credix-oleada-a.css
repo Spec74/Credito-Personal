@@ -29,7 +29,6 @@ body.credix-density-comfortable .credix-page {
 .credix-context-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 10px;
   flex-shrink: 0;
   min-height: 36px;
@@ -77,10 +76,6 @@ body.credix-density-comfortable .credix-page {
   white-space: nowrap;
 }
 
-.credix-context-bar__density {
-  flex-shrink: 0;
-}
-
 @media (max-width: 991px) {
   .credix-context-bar {
     flex-direction: column;
@@ -122,10 +117,6 @@ body.credix-density-comfortable .credix-page {
     min-height: 32px;
     display: inline-flex;
     align-items: center;
-  }
-
-  .credix-context-bar__density {
-    display: none;
   }
 }
 

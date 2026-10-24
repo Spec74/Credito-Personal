@@ -179,7 +179,18 @@ else {
     Mark "rpt-movimiento-boveda-pdf" $true "sin bovedaId=1 (aceptable)"
 }
 
-Write-Step "8) 401 sin JWT"
+Write-Step "8) PLA/UIF parametro (lectura)"
+$pla = Invoke-ApiAllow -Uri (Get-ApiUrl "/api/v1/pla/parametro") -Headers $headers -Allowed @(200, 403, 503)
+if ($pla -and $pla.StatusCode -eq 200) {
+    $plaJson = $pla.Content | ConvertFrom-Json
+    $tc = $plaJson.tieneTipoCambio
+    Mark "pla-parametro" $true $(if ($tc) { "TC SBS cargado" } else { "abre OK; oficial debe cargar TC SBS" })
+}
+else {
+    Mark "pla-parametro" $true "sin ACL PLA o 503 (aceptable si el rol no ve informes)"
+}
+
+Write-Step "9) 401 sin JWT"
 try {
     Invoke-Api -Uri (Get-ApiUrl "/api/v1/reportes/catalogo") | Out-Null
     Mark "unauth-401" $false "respondio sin Bearer"

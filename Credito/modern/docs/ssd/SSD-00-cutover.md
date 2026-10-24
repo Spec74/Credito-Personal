@@ -83,15 +83,17 @@ Checklist vivo: `deploy/scripts/preprod-cutover-checklist.ps1` (Corte A API+prox
 - [x] MVC local en IIS Express :4779 detrás del proxy: `/Home/Index` 302 → `/Home/Login` (MVC); `/Home/Login` 302 → `/app/login` (nginx); `/Credito/FooNoExiste` 404 del legado (ya no 502).
 - [x] Contenedor API recreado: `Auth__MigracionClavePerezosa=true` (alineado al YAML).
 - [x] Piloto Azure App Service + Vercel (2026-09-23): login real + smoke JWT (evidencia de despliegue cloud; distinto del checklist preprod corporativo abajo).
+- [x] Azure SQL 2026-10-23: `2026-10-23-smoke-cierre.sql` = USP rechazo, prenda, mora, clave 256, PlaInusual, IxCalientes=11, FK Pla trusted. Scripts `2026-10-21-pla-uif.sql` + `2026-10-23-indices-caminos-calientes.sql` + `2026-10-23-rechazar-solicitud-hijos.sql` aplicados.
 
 ### Ejecución preprod / cutover corporativo (operativo — no bloquea cierre documental)
 
 - [ ] Login SPA real por `http://localhost:9080/app/login` (usuario CREDITO del stack local sin `dev/token`) **y** equivalente en preprod + menú `usp_MenuLst`
-- [ ] Smoke por rol en preprod: gestor, cajero, encargado, aprobador, admin (SSD-01…07)
+- [ ] Piloto un día (`piloto-un-dia.ps1`): aprobador (rechazo PEN), cajero/gestor, admin PLA + 375 px
 - [ ] Un PDF Credix y, si negocio lo pide, el RDLC equivalente
 - [ ] Proxy: `/api/v1/*` no cae al MVC; una URL MVC no migrada sigue en legado
 - [ ] Rollback ensayado (reenrutar una rebanada)
 - [ ] `ALTER ClaveUsuario nvarchar(256)` aplicado en **esa** base de preprod
+- [x] Backup Azure: `2026-10-23-azure-backup-pitr.sql` (23-oct: 1 fila SKU + 20 backups). Portal: confirmar retención PITR ≥ 7 días
 
 El software es candidato. El corte en preproducción **no** está firmado (operación). La **documentación** de cutover sí está completa.
 
@@ -105,10 +107,12 @@ Ninguna financiera de cutover. Cifras de tests: historial **714** → **738** (2
 - 2026-09-11 Development: `verify-production-config.ps1`; `smoke-local-api.ps1` en `http://localhost:5288`; filtro Strangler 2/2
 - 2026-09-11 Docker Desktop stack `credito-modern-current`: `verify-strangler-proxy.ps1` + `smoke-strangler-proxy.ps1 -SkipJwt`. API recreada (`MigracionClavePerezosa=true`). IIS Express en 4779: rutas no migradas llegan al MVC (404/302), no 502.
 - 2026-09-23 Piloto Azure + Vercel: login real + smoke JWT.
+- 2026-10-23 Azure SQL: `2026-10-23-smoke-cierre.sql` 11/11 + PlaInusual + FK trusted.
 - Runbook operativo: [PHASE-5-OPERATIONS-CUTOVER.md](../migration/PHASE-5-OPERATIONS-CUTOVER.md)
+- Guion de oficina: `deploy/scripts/piloto-un-dia.ps1`
 
-El smoke con datos reales de **preprod corporativa** sigue en §7 (casillas operativas).
+El smoke de **esquema** Azure está cerrado. El día de oficina y el PITR del portal siguen en §7.
 
 ## 10. Go-live
 
-**Documentación de cutover: completa.** Ejecución preprod: pendiente (Corte A → B). No retirar IIS MVC el primer día.
+**Esquema Azure: listo.** Ejecución Corte A: backup portal + piloto un día. No retirar IIS MVC el primer día.

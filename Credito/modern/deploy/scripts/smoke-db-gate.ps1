@@ -29,8 +29,12 @@ SELECT
    WHERE object_id = OBJECT_ID(N'CREDITO.usp_Credito_Ins')) AS CreditoInsQuotedOn,
   (SELECT CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS
    WHERE TABLE_SCHEMA=N'MAESTRO' AND TABLE_NAME=N'Usuario' AND COLUMN_NAME=N'ClaveUsuario') AS ClaveUsuarioLen,
+  OBJECT_ID(N'CREDITO.PlaInusual', N'U') AS PlaInusual,
   (SELECT COUNT(*) FROM sys.indexes WHERE name IN (
-      N'IX_CuentaxCobrar_CreditoId', N'IX_CajaDiario_Caja_IndCierre', N'IX_Caja_OficinaId'
+      N'IX_Cargo_CreditoId', N'IX_Tarea_CreditoId', N'IX_CreditoImagen_CreditoId',
+      N'IX_CentralRiesgo_CreditoId', N'IX_CreditoMora_CreditoId', N'IX_CuentaxCobrar_CreditoId',
+      N'IX_PlaInusual_CreditoId', N'IX_CajaDiario_Caja_IndCierre', N'IX_Caja_OficinaId',
+      N'IX_BovedaMov_BovedaId', N'IX_BovedaMov_CajaDiarioId'
   )) AS IxCalientes;
 '@
     exit 2
@@ -60,7 +64,14 @@ $checks = @(
     @{ Name = 'CreditoInsQuotedOn'; Sql = "SELECT CAST(uses_quoted_identifier AS int) FROM sys.sql_modules WHERE object_id = OBJECT_ID(N'CREDITO.usp_Credito_Ins')" },
     @{ Name = 'ClaveUsuarioLen'; Sql = "SELECT CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA=N'MAESTRO' AND TABLE_NAME=N'Usuario' AND COLUMN_NAME=N'ClaveUsuario'" },
     @{ Name = 'usp_SolicitudCredito_Del'; Sql = "SELECT OBJECT_ID(N'CREDITO.usp_SolicitudCredito_Del', N'P')" },
-    @{ Name = 'IxCalientes'; Sql = "SELECT COUNT(*) FROM sys.indexes WHERE name IN (N'IX_CuentaxCobrar_CreditoId', N'IX_CajaDiario_Caja_IndCierre', N'IX_Caja_OficinaId')" }
+    @{ Name = 'PlaInusual'; Sql = "SELECT OBJECT_ID(N'CREDITO.PlaInusual', N'U')" },
+    @{ Name = 'IxCalientes'; Sql = @"
+SELECT COUNT(*) FROM sys.indexes WHERE name IN (
+    N'IX_Cargo_CreditoId', N'IX_Tarea_CreditoId', N'IX_CreditoImagen_CreditoId',
+    N'IX_CentralRiesgo_CreditoId', N'IX_CreditoMora_CreditoId', N'IX_CuentaxCobrar_CreditoId',
+    N'IX_PlaInusual_CreditoId', N'IX_CajaDiario_Caja_IndCierre', N'IX_Caja_OficinaId',
+    N'IX_BovedaMov_BovedaId', N'IX_BovedaMov_CajaDiarioId')
+"@ }
 )
 
 $failed = 0
@@ -69,7 +80,7 @@ foreach ($c in $checks) {
     $ok = $null -ne $v -and [string]$v -ne '' -and [string]$v -ne '0'
     if ($c.Name -eq 'CreditoInsQuotedOn') { $ok = [int]$v -eq 1 }
     if ($c.Name -eq 'ClaveUsuarioLen') { $ok = [int]$v -ge 256 }
-    if ($c.Name -eq 'IxCalientes') { $ok = [int]$v -ge 3 }
+    if ($c.Name -eq 'IxCalientes') { $ok = [int]$v -ge 11 }
     $status = if ($ok) { 'OK' } else { 'FAIL'; $script:failed++ }
     Write-Host ("{0,-28} {1}  ({2})" -f $c.Name, $status, $v)
 }

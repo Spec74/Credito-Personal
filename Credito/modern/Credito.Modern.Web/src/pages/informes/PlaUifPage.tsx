@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Button, Form, Input, InputNumber, Select } from 'antd'
+import { Alert, Button, Form, Input, InputNumber, Select, message } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import {
@@ -110,20 +110,22 @@ export function PlaUifPage() {
     staleTime: 60_000,
   })
 
+  const mesAnterior = useMemo(() => dayjs().subtract(1, 'month'), [])
+  const tcPeriodoDefault = mesAnterior.format('YYYY-MM')
+
   useEffect(() => {
-    const prev = dayjs().subtract(1, 'month')
-    periodo.setFieldsValue({ anio: prev.year(), mes: prev.month() + 1 })
-  }, [periodo])
+    periodo.setFieldsValue({ anio: mesAnterior.year(), mes: mesAnterior.month() + 1 })
+  }, [mesAnterior, periodo])
 
   useEffect(() => {
     if (!parametro.data) return
     parametroForm.setFieldsValue({
       tcVentaMesAnterior: parametro.data.tcVentaMesAnterior,
-      tcPeriodo: parametro.data.tcPeriodo,
+      tcPeriodo: parametro.data.tcPeriodo || tcPeriodoDefault,
       umbralIndividualMenorUsd: parametro.data.umbralIndividualMenorUsd,
       umbralMultipleMenorUsd: parametro.data.umbralMultipleMenorUsd,
     })
-  }, [parametro.data, parametroForm])
+  }, [parametro.data, parametroForm, tcPeriodoDefault])
 
   const consulta = useMutation({
     mutationFn: async (v: Periodo) => {
@@ -144,7 +146,10 @@ export function PlaUifPage() {
         umbralIndividualMenorUsd: v.umbralIndividualMenorUsd ?? null,
         umbralMultipleMenorUsd: v.umbralMultipleMenorUsd ?? null,
       }),
-    onSuccess: () => parametro.refetch(),
+    onSuccess: () => {
+      message.success('TC SBS guardado. Ya se puede marcar quién supera el piso RO.')
+      void parametro.refetch()
+    },
   })
 
   const registrar = useMutation({
@@ -159,6 +164,7 @@ export function PlaUifPage() {
       })
     },
     onSuccess: () => {
+      message.success('Anotado en bitácora. El ROS lo envía el oficial por ROSEL.')
       inusualForm.resetFields()
       const v = periodo.getFieldsValue()
       if (v.anio && v.mes) consulta.mutate(v)
@@ -166,7 +172,7 @@ export function PlaUifPage() {
   })
 
   const p = parametro.data
-  const error =
+  const apiError =
     consulta.error instanceof ApiError
       ? consulta.error.message
       : guardarParametro.error instanceof ApiError
@@ -176,6 +182,22 @@ export function PlaUifPage() {
           : parametro.error instanceof ApiError
             ? parametro.error.message
             : undefined
+  const error = (
+    <>
+      {apiError ? (
+        <Alert type="error" showIcon style={{ marginBottom: 12 }} message={apiError} />
+      ) : null}
+      {p && !p.tieneTipoCambio ? (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message="Sin tipo de cambio SBS no se marca quién supera el piso RO."
+          description="Cargue el promedio venta del mes anterior (SBS) y pulse Guardar TC. No se inventa un tipo de cambio."
+        />
+      ) : null}
+    </>
+  )
 
   return (
     <CredixInformePage
@@ -188,6 +210,12 @@ export function PlaUifPage() {
       }
       error={error}
       stats={[
+        {
+          label: 'TC SBS',
+          value: p?.tieneTipoCambio
+            ? `${p.tcVentaMesAnterior} (${p.tcPeriodo ?? '—'})`
+            : 'Falta',
+        },
         {
           label: 'Sobre umbral RO',
           value: consulta.data?.candidatos.filter((r) => r.superaUmbral).length ?? '—',
@@ -231,8 +259,12 @@ export function PlaUifPage() {
         <Form.Item name="tcVentaMesAnterior" label="TC SBS venta (mes ant.)">
           <InputNumber min={0.0001} step={0.0001} />
         </Form.Item>
-        <Form.Item name="tcPeriodo" label="Periodo TC">
-          <Input placeholder="2026-09" maxLength={7} style={{ width: 100 }} />
+        <Form.Item
+          name="tcPeriodo"
+          label="Periodo TC"
+          rules={[{ pattern: /^\d{4}-\d{2}$/, message: 'AAAA-MM' }]}
+        >
+          <Input placeholder={tcPeriodoDefault} maxLength={7} style={{ width: 100 }} />
         </Form.Item>
         <Form.Item name="umbralIndividualMenorUsd" label="Piso menor US$">
           <InputNumber min={0.01} />
@@ -240,7 +272,11 @@ export function PlaUifPage() {
         <Form.Item name="umbralMultipleMenorUsd" label="Múltiple menor US$">
           <InputNumber min={0.01} />
         </Form.Item>
-        <Button htmlType="submit" loading={guardarParametro.isPending}>
+        <Button
+          type={p && !p.tieneTipoCambio ? 'primary' : 'default'}
+          htmlType="submit"
+          loading={guardarParametro.isPending}
+        >
           Guardar TC
         </Button>
       </Form>
