@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -403,6 +403,7 @@ export function SimuladorCreditoPage() {
       productoSeleccionado?.denominacion?.toLowerCase().includes('prendario') ||
       esConsultaPrendario,
   )
+  const prevEsPrendarioRef = useRef(false)
   const clienteParaReporte =
     personaId != null && clienteDetalleQuery.data
       ? nombreDesdeCliente(clienteDetalleQuery.data)
@@ -532,11 +533,15 @@ export function SimuladorCreditoPage() {
     }
     if (esPrendario) {
       form.setFieldValue('formaPago', 'M')
-      form.setFieldValue('nroCuotas', 1)
+      const acabaDePasarAPrendario = !prevEsPrendarioRef.current
+      if (acabaDePasarAPrendario && !(prefillDesdeNuevo && searchParams.has('nroCuotas'))) {
+        form.setFieldValue('nroCuotas', 1)
+      }
     }
     if (!(prefillDesdeNuevo && searchParams.has('fechaPrimerPago'))) {
       form.setFieldValue('fechaPrimerPago', fechaPorModalidad(formaPagoActual, esPrendario))
     }
+    prevEsPrendarioRef.current = esPrendario
   }, [
     esPrendario,
     form,
@@ -633,8 +638,11 @@ export function SimuladorCreditoPage() {
         }
         const montoErr = validarMontoVsTasacion(v.monto, tasacionEfectiva)
         if (montoErr) throw new Error(montoErr)
-        if ((v.formaPago ?? '').toUpperCase() !== 'M' || v.nroCuotas !== 1) {
-          throw new Error('El crédito prendario solo admite modalidad mensual y 1 cuota')
+        if ((v.formaPago ?? '').toUpperCase() !== 'M') {
+          throw new Error('El crédito prendario solo admite modalidad mensual (M)')
+        }
+        if (!(v.nroCuotas >= 1)) {
+          throw new Error('Indique el número de cuotas')
         }
       }
       const pre = prendaPrecarga
@@ -649,7 +657,7 @@ export function SimuladorCreditoPage() {
         indGastosAdm: IND_GASTOS_ADM,
         montoCredito: v.monto,
         modalidad: esPrendario ? 'M' : v.formaPago,
-        numeroCuotas: esPrendario ? 1 : v.nroCuotas,
+        numeroCuotas: v.nroCuotas,
         interesMensual: v.interesMensual,
         fechaPrimerPago: `${v.fechaPrimerPago}T00:00:00`,
         observacion: observacion.trim() || null,
@@ -728,8 +736,8 @@ export function SimuladorCreditoPage() {
         if ((values.formaPago ?? '').toUpperCase() !== 'M') {
           throw new Error('El crédito prendario solo admite modalidad mensual (M)')
         }
-        if (values.nroCuotas !== 1) {
-          throw new Error('El crédito prendario solo admite 1 cuota')
+        if (!(values.nroCuotas >= 1)) {
+          throw new Error('Indique el número de cuotas')
         }
         if (!bienesBloqueados) {
           const validacion = validarPrendasForm(prendasEditor)
@@ -746,7 +754,7 @@ export function SimuladorCreditoPage() {
       const rows = await simularCredito({
         monto: values.monto,
         formaPago: esPrendario ? 'M' : values.formaPago,
-        nroCuotas: esPrendario ? 1 : values.nroCuotas,
+        nroCuotas: values.nroCuotas,
         interesMensual: values.interesMensual,
         fechaPrimerPago: `${values.fechaPrimerPago}T00:00:00`,
         gastosAdm: gastosSp,
@@ -954,7 +962,7 @@ export function SimuladorCreditoPage() {
     return {
       productoId: esPrendario ? 2 : productoId,
       monto,
-      nroCuotas: esPrendario ? 1 : Number(v.nroCuotas) || 1,
+      nroCuotas: Number(v.nroCuotas) || 1,
       interesMensual: Number(v.interesMensual) || 0,
       fechaPrimerPago: fechaNorm,
       formaPago: esPrendario ? 'M' : (v.formaPago ?? 'M'),
@@ -1250,9 +1258,13 @@ export function SimuladorCreditoPage() {
               name="nroCuotas"
               label="Cuotas"
               rules={[{ required: true, type: 'number', min: 1 }]}
-              extra={esPrendario ? 'Fijo en 1 para crédito prendario' : undefined}
+              extra={
+                esPrendario
+                  ? 'Por defecto 1; el plazo mensual se puede ampliar.'
+                  : undefined
+              }
             >
-              <InputNumber min={1} className="simulador-field-fluid" disabled={esPrendario} />
+              <InputNumber min={1} className="simulador-field-fluid" />
             </Form.Item>
             <Form.Item
               name="interesMensual"
@@ -1273,8 +1285,12 @@ export function SimuladorCreditoPage() {
             >
               <Input type="date" style={{ width: 160 }} />
             </Form.Item>
-            <Form.Item name="gastosAdm" label="Trámite adm.">
-              <InputNumber min={0} step={1} style={{ width: 120 }} />
+            <Form.Item
+              name="gastosAdm"
+              label="Trámite adm."
+              extra="Tabla GastosAdm: varía con el monto y la central de riesgo."
+            >
+              <InputNumber min={0} step={1} style={{ width: 120 }} disabled />
             </Form.Item>
           </div>
           {esPrendario ? (

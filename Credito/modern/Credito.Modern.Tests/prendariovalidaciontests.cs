@@ -35,7 +35,7 @@ public sealed class PrendarioValidacionTests
     }
 
     [Fact]
-    public void ValidarGeneracionPrendaria_ExigeMensualYUnaCuota()
+    public void ValidarGeneracionPrendaria_ExigeMensualYAlMenosUnaCuota()
     {
         var error = PrendarioValidacion.ValidarGeneracionPrendaria(
             "Q",
@@ -48,12 +48,20 @@ public sealed class PrendarioValidacionTests
 
         error = PrendarioValidacion.ValidarGeneracionPrendaria(
             "M",
-            3,
+            0,
             1000m,
             2000m,
             DateTime.Today.AddDays(30));
         Assert.NotNull(error);
-        Assert.Contains("1 cuota", error, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("cuotas", error, StringComparison.OrdinalIgnoreCase);
+
+        error = PrendarioValidacion.ValidarGeneracionPrendaria(
+            "M",
+            3,
+            1000m,
+            2000m,
+            DateTime.Today.AddDays(30));
+        Assert.Null(error);
     }
 
     [Fact]

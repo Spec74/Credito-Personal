@@ -94,7 +94,7 @@ export function CreditoPrendarioNuevoPage() {
   /** Campos de crédito (paridad Gestionar legacy / simulador); se llevan al simulador. */
   const [montoCredito, setMontoCredito] = useState<number | null>(500)
   const [interesMensual, setInteresMensual] = useState<number | null>(8)
-  const [nroCuotas] = useState(1)
+  const [nroCuotas, setNroCuotas] = useState(1)
   const [formaPago] = useState('M')
   const [gastosAdm, setGastosAdm] = useState<number | null>(5)
   const [fechaPrimerPago, setFechaPrimerPago] = useState(defaultFechaPrimerPagoPrendario)
@@ -605,9 +605,13 @@ export function CreditoPrendarioNuevoPage() {
             <InputNumber
               style={{ width: '100%', marginTop: 4 }}
               min={1}
-              disabled
+              disabled={!personaId}
               value={nroCuotas}
+              onChange={(v) => setNroCuotas(typeof v === 'number' && v >= 1 ? v : 1)}
             />
+            <Text type="secondary" style={{ display: 'block', marginTop: 4, fontSize: 12 }}>
+              Por defecto 1; se puede ampliar (modalidad mensual).
+            </Text>
           </Col>
           <Col xs={24} sm={12} md={8}>
             <Text type="secondary">Trámite adm. (S/)</Text>

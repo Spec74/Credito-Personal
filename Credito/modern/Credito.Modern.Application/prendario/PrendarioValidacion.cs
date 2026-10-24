@@ -119,7 +119,8 @@ public static partial class PrendarioValidacion
     }
 
     /// <summary>
-    /// Reglas al generar/simular crédito prendario: mensual, 1 cuota, monto ≤ tasación, fechas.
+    /// Reglas al generar/simular crédito prendario: mensual, N cuotas (≥ 1),
+    /// monto ≤ tasación, fechas. El alta CRE arranca en 1 cuota; el analista puede ampliar.
     /// </summary>
     public static string? ValidarGeneracionPrendaria(
         string formaPago,
@@ -135,9 +136,9 @@ public static partial class PrendarioValidacion
             return "El crédito prendario solo admite modalidad mensual (M).";
         }
 
-        if (numeroCuotas != 1)
+        if (numeroCuotas < 1)
         {
-            return "El crédito prendario solo admite 1 cuota.";
+            return "Indique el número de cuotas (mínimo 1).";
         }
 
         if (montoCredito <= 0)
