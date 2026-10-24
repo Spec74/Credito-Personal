@@ -117,8 +117,11 @@ export function CreditoAprobarPage() {
 
   const rechazar = useMutation({
     mutationFn: (creditoId: number) => rechazarCredito(oficinaId, creditoId),
-    onSuccess: () => {
-      message.success('Crédito rechazado')
+    onSuccess: (_data, creditoId) => {
+      if (selectedId === creditoId) {
+        setSelectedId(null)
+      }
+      message.success('Crédito rechazado. Ya no aparece en la bandeja.')
       invalidar()
     },
     onError: (e) =>
