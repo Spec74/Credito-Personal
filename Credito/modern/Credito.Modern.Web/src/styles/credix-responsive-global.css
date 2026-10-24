@@ -289,10 +289,11 @@
 }
 
 .credix-wide-table__nudge {
-  position: absolute;
-  z-index: 4;
+  position: fixed;
+  z-index: 20;
   width: 40px;
   height: 40px;
+  visibility: hidden;
   border: 1px solid var(--credix-border, #d9e4f2);
   border-radius: 999px;
   background: #fff;
@@ -312,12 +313,10 @@
   color: var(--credix-brand, #114885);
 }
 
-.credix-wide-table__nudge--start {
-  left: 8px;
-}
-
+.credix-wide-table__nudge--start,
 .credix-wide-table__nudge--end {
-  right: 8px;
+  left: auto;
+  right: auto;
 }
 
 

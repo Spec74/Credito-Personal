@@ -192,7 +192,6 @@ body.credix-app-body {
   min-width: 0;
   padding: clamp(16px, 2.4vw, 24px);
   overflow: auto;
-  scroll-behavior: smooth;
 }
 
 .credix-footer {

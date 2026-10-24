@@ -54,33 +54,45 @@ export function tableHasVerticalOverflow(root: HTMLElement): boolean {
   return !shouldForwardVerticalWheel(body.scrollHeight, body.clientHeight)
 }
 
-export function forwardVerticalWheel(start: HTMLElement, deltaY: number): boolean {
-  if (deltaY === 0) {
-    return false
-  }
+export function findVerticalScrollParent(start: HTMLElement): HTMLElement | Window {
   let el: HTMLElement | null = start.parentElement
   while (el) {
-    const style = getComputedStyle(el)
-    const overflowY = style.overflowY
-    const canScroll =
-      (overflowY === 'auto' || overflowY === 'scroll') && el.scrollHeight > el.clientHeight + 1
-    if (canScroll) {
-      const max = el.scrollHeight - el.clientHeight
-      const next = Math.max(0, Math.min(max, el.scrollTop + deltaY))
-      if (next === el.scrollTop) {
-        return false
-      }
-      el.scrollTop = next
-      return true
+    const overflowY = getComputedStyle(el).overflowY
+    if (
+      (overflowY === 'auto' || overflowY === 'scroll') &&
+      el.scrollHeight > el.clientHeight + 1
+    ) {
+      return el
     }
     el = el.parentElement
   }
-  const max = document.documentElement.scrollHeight - window.innerHeight
-  if (max <= 1) {
+  return window
+}
+
+export function applyVerticalWheel(target: HTMLElement | Window, deltaY: number): boolean {
+  if (deltaY === 0) {
     return false
   }
-  window.scrollBy(0, deltaY)
+  if (target === window) {
+    const max = document.documentElement.scrollHeight - window.innerHeight
+    if (max <= 1) {
+      return false
+    }
+    window.scrollBy(0, deltaY)
+    return true
+  }
+  const node = target as HTMLElement
+  const max = node.scrollHeight - node.clientHeight
+  const next = Math.max(0, Math.min(max, node.scrollTop + deltaY))
+  if (next === node.scrollTop) {
+    return false
+  }
+  node.scrollTop = next
   return true
+}
+
+export function forwardVerticalWheel(start: HTMLElement, deltaY: number): boolean {
+  return applyVerticalWheel(findVerticalScrollParent(start), deltaY)
 }
 
 export function useTableHorizontalWheel(rootRef: RefObject<HTMLElement | null>): void {
@@ -89,6 +101,8 @@ export function useTableHorizontalWheel(rootRef: RefObject<HTMLElement | null>):
     if (!root) {
       return
     }
+
+    const verticalTarget = findVerticalScrollParent(root)
 
     const onWheel = (event: WheelEvent) => {
       const horizontal = resolveHorizontalWheelDelta(event)
@@ -101,7 +115,7 @@ export function useTableHorizontalWheel(rootRef: RefObject<HTMLElement | null>):
       if (event.deltaY === 0 || tableHasVerticalOverflow(root)) {
         return
       }
-      if (forwardVerticalWheel(root, event.deltaY)) {
+      if (applyVerticalWheel(verticalTarget, event.deltaY)) {
         event.preventDefault()
       }
     }

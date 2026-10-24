@@ -4,6 +4,15 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Flechas fijas al viewport (scroll de página)
+
+**Qué hay:** las flechas se anclan a la ventana y siguen el scroll del
+panel (`.credix-content`), no solo el scroll interno de la tabla. Sin
+re-render por rueda. Se quitó `scroll-behavior: smooth` del contenido
+(hacía lento Caja diario / Cobro).
+
+**Qué no hay:** no se cambia la lógica de cobro.
+
 ### 2026-10-23 — Tareas: toolbar y KPI proporcionales
 
 **Qué hay:** tres KPI al mismo ancho. Búsqueda acotada, filtros en una
