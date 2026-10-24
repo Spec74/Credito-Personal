@@ -10,7 +10,6 @@ import {
   Modal,
   Select,
   Space,
-  Tabs,
   Typography,
   message,
 } from 'antd'
@@ -45,6 +44,28 @@ import {
 } from './components/TipoPagoBrand'
 
 const { Paragraph } = Typography
+
+const OPS_GROUPS: { title: string; items: { key: string; label: string }[] }[] = [
+  { title: 'Registrar', items: [{ key: 'ingreso', label: 'Movimiento' }] },
+  {
+    title: 'Transferir',
+    items: [
+      { key: 'caja', label: 'A caja' },
+      { key: 'analista', label: 'A analista' },
+      { key: 'chica', label: 'Caja chica' },
+      { key: 'bancos', label: 'Entre medios' },
+      { key: 'temporal', label: 'Temporal' },
+    ],
+  },
+  {
+    title: 'Red',
+    items: [
+      { key: 'interoficina', label: 'Fondeo' },
+      { key: 'aceptar', label: 'Pendientes' },
+    ],
+  },
+  { title: 'Cierre', items: [{ key: 'cierre', label: 'Cerrar bóveda' }] },
+]
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : 'Error desconocido'
@@ -313,11 +334,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     </>
   )
 
-  const tabItems = [
-    {
-      key: 'ingreso',
-      label: 'Movimiento',
-      children: (
+  const panes: Record<string, ReactNode> = {
+    ingreso: (
         <Form
           className="boveda-operaciones-form"
           layout="vertical"
@@ -358,12 +376,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           </Form.Item>
           {formActions('Registrar movimiento', ingresoEgreso.isPending)}
         </Form>
-      ),
-    },
-    {
-      key: 'caja',
-      label: 'A caja',
-      children: (
+    ),
+    caja: (
         <Form
           className="boveda-operaciones-form"
           layout="vertical"
@@ -391,12 +405,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           {importeDescripcionFields}
           {formActions('Transferir a caja', aCaja.isPending)}
         </Form>
-      ),
-    },
-    {
-      key: 'analista',
-      label: 'A analista',
-      children: (
+    ),
+    analista: (
         <>
           <Paragraph type="secondary">
             Embudo producción: descuenta el banco/medio de origen y abona{' '}
@@ -449,12 +459,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             {formActions('Transferir a analista', aAnalista.isPending)}
           </Form>
         </>
-      ),
-    },
-    {
-      key: 'chica',
-      label: 'Caja chica',
-      children: (
+    ),
+    chica: (
         <Form
           className="boveda-operaciones-form"
           layout="vertical"
@@ -469,12 +475,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           {importeDescripcionFields}
           {formActions('Transferir a caja chica', aCajaChica.isPending)}
         </Form>
-      ),
-    },
-    {
-      key: 'bancos',
-      label: 'Entre medios',
-      children: (
+    ),
+    bancos: (
         <>
           <Paragraph type="secondary">
             Mueve saldo entre medios de pago de esta bóveda (efectivo, Yape, bancos,
@@ -541,12 +543,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             {formActions('Transferir entre bancos', entreBancos.isPending)}
           </Form>
         </>
-      ),
-    },
-    {
-      key: 'temporal',
-      label: 'Temporal',
-      children: (
+    ),
+    temporal: (
         <>
           <Paragraph type="secondary">
             <strong>Asignar encargado:</strong> cree la bóveda temporal si aún no existe.{' '}
@@ -604,12 +602,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             )}
           </Form>
         </>
-      ),
-    },
-    {
-      key: 'interoficina',
-      label: 'Fondear / interoficina',
-      children: (
+    ),
+    interoficina: (
         <>
           <Paragraph type="secondary">
             Fondeo a sucursales (Pichari, Huanta, Andahuaylas…) o devolución a
@@ -663,12 +657,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             {formActions('Transferir ahora', transferir.isPending)}
           </Form>
         </>
-      ),
-    },
-    {
-      key: 'aceptar',
-      label: 'Pendientes',
-      children: (
+    ),
+    aceptar: (
         <>
           <Alert
             type="warning"
@@ -734,12 +724,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             {formActions('Confirmar', aceptar.isPending)}
           </Form>
         </>
-      ),
-    },
-    {
-      key: 'cierre',
-      label: 'Cierre',
-      children: (
+    ),
+    cierre: (
         <div className="boveda-operaciones-form boveda-operaciones-form--cierre">
         <Space direction="vertical" style={{ width: '100%' }}>
           {validacionCierre.data && !validacionCierre.data.puedeCerrar ? (
@@ -780,9 +766,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           </Space>
         </Space>
         </div>
-      ),
-    },
-  ]
+    ),
+  }
 
   return (
     <>
@@ -802,14 +787,31 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           message="No hay tipos de operación de bóveda activos. Revise el catálogo de operaciones."
         />
       ) : null}
-      <Tabs
-        className="boveda-operaciones-tabs credix-tabs"
-        type="card"
-        activeKey={activeTab}
-        onChange={setActiveTab}
-        destroyInactiveTabPane={false}
-        items={tabItems}
-      />
+      <div className="boveda-ops">
+        <nav className="boveda-ops-nav" aria-label="Operaciones de bóveda" translate="no">
+          {OPS_GROUPS.map((group) => (
+            <div key={group.title} className="boveda-ops-nav__group">
+              <p className="boveda-ops-nav__title">{group.title}</p>
+              {group.items.map((item) => (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={
+                    item.key === activeTab
+                      ? 'boveda-ops-nav__btn is-active'
+                      : 'boveda-ops-nav__btn'
+                  }
+                  aria-current={item.key === activeTab ? 'true' : undefined}
+                  onClick={() => setActiveTab(item.key)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          ))}
+        </nav>
+        <div className="boveda-ops-stage">{panes[activeTab]}</div>
+      </div>
     </>
   )
 }

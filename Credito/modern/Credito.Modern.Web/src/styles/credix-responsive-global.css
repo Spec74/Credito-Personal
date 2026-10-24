@@ -603,8 +603,8 @@
     padding-inline: 12px;
   }
 
-  .boveda-operaciones-tabs .ant-tabs-content-holder {
-    padding: 12px;
+  .boveda-ops-stage {
+    padding: 14px 14px 16px;
   }
 
   .boveda-operaciones-form__actions .ant-btn {

@@ -301,36 +301,155 @@
   border-left: 3px solid #114885;
 }
 
-/* —— Operaciones —— */
-.boveda-operaciones-tabs.ant-tabs-card > .ant-tabs-nav {
-  margin-bottom: 0;
+/* —— Trabajo: operaciones + contexto —— */
+.boveda-work {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
 }
 
-.boveda-operaciones-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
-  border-radius: var(--credix-radius, 8px) var(--credix-radius, 8px) 0 0;
+.boveda-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.boveda-panel-ops .credix-box-content,
+.boveda-panel-ops .credix-panel-body {
+  padding: 0;
+}
+
+.boveda-ops {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+}
+
+.boveda-ops-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--credix-border, #e5e7eb);
+  background: var(--credix-surface-muted, #f8fafc);
+}
+
+.boveda-ops-nav__group {
+  display: contents;
+}
+
+.boveda-ops-nav__title {
+  display: none;
+}
+
+.boveda-ops-nav__btn {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--credix-text, #1f2937);
+  font: inherit;
+  font-size: 13px;
   font-weight: 600;
-  padding: 8px 14px;
+  line-height: 1.2;
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
-.boveda-operaciones-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
-  background: var(--credix-brand-light, #e8f2fc);
-  border-bottom-color: var(--credix-surface, #fff);
+.boveda-ops-nav__btn:hover {
+  background: #fff;
+  border-color: var(--credix-border, #e5e7eb);
 }
 
-.boveda-operaciones-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
+.boveda-ops-nav__btn:focus-visible {
+  outline: 2px solid var(--credix-brand, #114885);
+  outline-offset: 2px;
+}
+
+.boveda-ops-nav__btn.is-active {
+  background: #fff;
   color: var(--credix-brand, #114885);
+  border-color: #c5daf0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
-.boveda-operaciones-tabs .ant-tabs-content-holder {
-  background: var(--credix-surface, #fff);
-  border: 1px solid var(--credix-border, #e5e7eb);
-  border-top: none;
-  border-radius: 0 0 var(--credix-radius, 8px) var(--credix-radius, 8px);
-  padding: 16px;
+.boveda-ops-stage {
+  padding: 18px 20px 20px;
+  min-width: 0;
+}
+
+.boveda-ops-stage .ant-typography {
+  max-width: 520px;
+  margin-bottom: 12px;
+}
+
+.boveda-ops-stage .ant-form-item {
+  margin-bottom: 14px;
+}
+
+.boveda-ops-stage .ant-alert {
+  max-width: 520px;
 }
 
 .boveda-operaciones-form {
-  max-width: 520px;
+  max-width: 480px;
+}
+
+@media (min-width: 1100px) {
+  .boveda-work {
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 0.75fr);
+  }
+
+  .boveda-ops {
+    grid-template-columns: 188px minmax(0, 1fr);
+    min-height: 420px;
+  }
+
+  .boveda-ops-nav {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 2px;
+    padding: 12px 10px;
+    border-bottom: none;
+    border-right: 1px solid var(--credix-border, #e5e7eb);
+  }
+
+  .boveda-ops-nav__group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .boveda-ops-nav__group + .boveda-ops-nav__group {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--credix-border, #e5e7eb);
+  }
+
+  .boveda-ops-nav__title {
+    display: block;
+    margin: 0 8px 4px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--credix-text-muted, #6b7280);
+  }
+
+  .boveda-ops-nav__btn {
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .boveda-saldos-grid {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .boveda-operaciones-form__actions {

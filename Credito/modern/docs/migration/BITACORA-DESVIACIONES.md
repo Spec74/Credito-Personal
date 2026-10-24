@@ -4,6 +4,14 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-23 — Bóveda: una operación a la vez
+
+**Qué hay:** las pestañas ya no montan los 9 formularios juntos
+(un CSS global de `.credix-tabs` los dejaba visibles). Hay un menú
+y un solo formulario. Operaciones al centro; sesión y medios al lado.
+
+**Qué no hay:** no se cambia USP ni montos.
+
 ### 2026-10-23 — Encabezado sin franja duplicada
 
 **Qué hay:** se quitó la franja blanca de oficina + «Cambiar sede».

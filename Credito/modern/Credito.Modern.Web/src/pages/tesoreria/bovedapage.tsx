@@ -218,46 +218,9 @@ export function BovedaPage() {
         />
       ) : boveda.data ? (
         <>
-          <CredixPanel
-            title={`Sesión · ${oficinaLabel}`}
-            className="boveda-panel-sesion"
-            extra={
-              <Space wrap size={6}>
-                <Tag color={boveda.data.indTemporal ? 'orange' : 'blue'}>
-                  {boveda.data.indTemporal ? 'Temporal' : 'Principal'}
-                </Tag>
-                <Tag color={boveda.data.indCierre ? 'default' : 'green'}>
-                  {boveda.data.indCierre ? 'Cerrada' : 'Abierta'}
-                </Tag>
-              </Space>
-            }
-          >
-            <div className="boveda-sesion-meta">
-              <Text strong>Bóveda #{boveda.data.bovedaId}</Text>
-              <Text type="secondary">
-                Operación desde {formatFecha(boveda.data.fechaIniOperacion)}
-              </Text>
-            </div>
-            <BovedaSaldosGrid
-              saldoInicial={boveda.data.saldoInicial}
-              entradas={boveda.data.entradas}
-              salidas={boveda.data.salidas}
-              saldoFinal={boveda.data.saldoFinal}
-            />
-          </CredixPanel>
-
-          <CredixPanel title="Medios de pago" className="boveda-panel-medios">
-            <BovedaResumenCuenta
-              texto={resumen.data?.texto}
-              loading={resumen.isLoading}
-              isError={resumen.isError}
-              error={resumen.error}
-            />
-          </CredixPanel>
-
-          {!boveda.data.indCierre ? (
-            <CredixPanel title="Operaciones" className="boveda-panel-ops">
-              <div className="boveda-operaciones-panel">
+          <div className="boveda-work">
+            {!boveda.data.indCierre ? (
+              <CredixPanel title="Operaciones" className="boveda-panel-ops">
                 <Suspense fallback={<Spin />}>
                   <BovedaOperacionesPanel
                     oficinaId={oficinaId}
@@ -265,16 +228,55 @@ export function BovedaPage() {
                     existeTemporal={temporal.data?.existe ?? false}
                   />
                 </Suspense>
-              </div>
-            </CredixPanel>
-          ) : (
-            <Alert
-              type="info"
-              showIcon
-              message="Bóveda cerrada"
-              description="No hay operaciones sobre una bóveda cerrada."
-            />
-          )}
+              </CredixPanel>
+            ) : (
+              <Alert
+                type="info"
+                showIcon
+                message="Bóveda cerrada"
+                description="No hay operaciones sobre una bóveda cerrada."
+              />
+            )}
+
+            <div className="boveda-side">
+              <CredixPanel
+                title={`Sesión · ${oficinaLabel}`}
+                className="boveda-panel-sesion"
+                extra={
+                  <Space wrap size={6}>
+                    <Tag color={boveda.data.indTemporal ? 'orange' : 'blue'}>
+                      {boveda.data.indTemporal ? 'Temporal' : 'Principal'}
+                    </Tag>
+                    <Tag color={boveda.data.indCierre ? 'default' : 'green'}>
+                      {boveda.data.indCierre ? 'Cerrada' : 'Abierta'}
+                    </Tag>
+                  </Space>
+                }
+              >
+                <div className="boveda-sesion-meta">
+                  <Text strong>Bóveda #{boveda.data.bovedaId}</Text>
+                  <Text type="secondary">
+                    Operación desde {formatFecha(boveda.data.fechaIniOperacion)}
+                  </Text>
+                </div>
+                <BovedaSaldosGrid
+                  saldoInicial={boveda.data.saldoInicial}
+                  entradas={boveda.data.entradas}
+                  salidas={boveda.data.salidas}
+                  saldoFinal={boveda.data.saldoFinal}
+                />
+              </CredixPanel>
+
+              <CredixPanel title="Medios de pago" className="boveda-panel-medios">
+                <BovedaResumenCuenta
+                  texto={resumen.data?.texto}
+                  loading={resumen.isLoading}
+                  isError={resumen.isError}
+                  error={resumen.error}
+                />
+              </CredixPanel>
+            </div>
+          </div>
 
           <CredixPanel title="Historial y movimientos" className="boveda-panel-historial">
             <Suspense fallback={<Spin />}>

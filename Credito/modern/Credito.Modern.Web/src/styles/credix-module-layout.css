@@ -46,11 +46,16 @@
   padding-top: 4px;
 }
 
-.credix-tabs > .ant-tabs-content-holder > .ant-tabs-content > .ant-tabs-tabpane {
+.credix-tabs > .ant-tabs-content-holder > .ant-tabs-content > .ant-tabs-tabpane:not(.ant-tabs-tabpane-hidden):not([hidden]) {
   display: flex;
   flex-direction: column;
   gap: var(--credix-stack-gap);
   min-width: 0;
+}
+
+.credix-tabs .ant-tabs-tabpane-hidden,
+.credix-tabs .ant-tabs-tabpane[hidden] {
+  display: none !important;
 }
 
 .credix-panel {
