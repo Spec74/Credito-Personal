@@ -389,7 +389,7 @@ export function AppShell() {
   )
 
   return (
-    <div className="credix-app">
+    <div className="credix-app" translate="no">
       <a href="#main-content" className="credix-skip-link">
         Saltar al contenido
       </a>

@@ -4,6 +4,15 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-24 — Shell móvil: cuerpo pegado al título
+
+**Qué hay:** Spec Kit `003-movil-shell` + SSD-15. `html`/`CredixPage`/
+`.credix-app` con `translate="no"`. CSS de shell: pila `flex-start`,
+`100dvh`, KPI en fila compacta, sin margen doble de
+`app-shell-content`, pie oculto en ≤640 px.
+
+**Qué no hay:** no se toca USP ni se reescriben 95 páginas.
+
 ### 2026-10-24 — Una sola base para la red
 
 **Qué hay:** arquitectura física = un SQL `CREDITO`. Sucursal = `OficinaId`,

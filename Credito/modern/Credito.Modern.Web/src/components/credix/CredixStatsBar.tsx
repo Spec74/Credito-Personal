@@ -21,7 +21,7 @@ export function CredixStatsBar({
   const cls =
     variant === 'module' ? 'credix-stats credix-stats--module' : 'credix-stats'
   return (
-    <ul className={cls}>
+    <ul className={cls} translate="no">
       {items.map((item, i) => (
         <li key={i}>
           <strong>{item.value}</strong>

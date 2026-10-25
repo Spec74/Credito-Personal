@@ -20,6 +20,7 @@ Fecha: 2026-10-20 · Spec Kit: `/speckit.constitution` equivalente.
 10. **Multisucursal = misma plantilla.** Huamanga, Pichari, Huanta, Andahuaylas: mismo flujo. Central ve consolidado; sucursal ve solo lo suyo. Alta de sede = wizard (oficina + bóveda + usuarios + cajas + fondeo), no un checklist oral.
 11. **Irreversible se confirma; reversible se deshace.** Desembolso, remate, condonar, transferir bóveda: confirmación con importes. Editar tasación de un renglón: inline.
 12. **Medible.** Cada flujo nuevo declara tiempo-a-tarea y errores de validación. Si no baja el tiempo ni el retrabajo, no es “siguiente nivel”.
+13. **Español operativo, sin traductor.** La UI es es-PE. `translate="no"` en html/shell/página. Chrome Translate no debe doblar letras ni partir el flex. Shell móvil: el cuerpo pega al título (SSD-15).
 
 ## Anti-patrones (rechazar en review)
 

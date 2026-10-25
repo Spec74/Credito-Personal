@@ -67,6 +67,7 @@ El menú vivo de **oficina 1 (CREDITO)** cubre SSD-01 … SSD-09 y SSD-00. Venta
 | SSD-12 | Validación FE/BE transversal | Hecho | `Application/Validation`, `formRules.ts` | [SSD-12-validacion.md](SSD-12-validacion.md) |
 | SSD-13 | Experiencia operativa + red de sedes | Spec de cambio (no código aún) | Spec Kit `001-experiencia-operativa` | [SSD-13-experiencia-operativa.md](SSD-13-experiencia-operativa.md) |
 | SSD-14 | Comunicados y agenda | As-built | Spec Kit `002-comunicados-agenda` | [SSD-14-comunicados-agenda.md](SSD-14-comunicados-agenda.md) |
+| SSD-15 | Shell móvil (todas las pantallas) | As-built | Spec Kit `003-movil-shell` | [SSD-15-movil-shell.md](SSD-15-movil-shell.md) |
 | SSD-00 | Cutover y strangler | Parcial (corte no ejecutado) | `STRANGLER-MIGRATION`, `DEPLOY-AL-SUBIR`, `MIGRATION-CLOSURE` | [SSD-00-cutover.md](SSD-00-cutover.md) |
 
 ## Qué no hacer

@@ -17,6 +17,7 @@ import './styles/credix-module-layout.css'
 import './styles/credix-list-toolbar.css'
 import './styles/credix-crud-toolbar.css'
 import './styles/credix-responsive-global.css'
+import './styles/credix-mobile-shell.css'
 import './styles/credix-oleada-a.css'
 import './styles/credix-intranet.css'
 // CSS de módulos se importa en la página lazy correspondiente (menos CSS en /inicio).

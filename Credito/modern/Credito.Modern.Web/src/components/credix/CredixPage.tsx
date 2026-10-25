@@ -11,7 +11,7 @@ export function CredixPage({
   stats,
   statsVariant = 'default',
   className,
-  translate,
+  translate = 'no',
   children,
 }: {
   title: string
