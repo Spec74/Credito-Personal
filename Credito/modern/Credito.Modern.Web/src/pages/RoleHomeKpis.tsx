@@ -13,7 +13,7 @@ export function RoleHomeKpis() {
 
   const q = useQuery({
     queryKey: ['dashboard-admin-shell', session?.oficinaId],
-    queryFn: fetchDashboardAdminShell,
+    queryFn: () => fetchDashboardAdminShell(),
     enabled,
     retry: false,
     staleTime: 60_000,
