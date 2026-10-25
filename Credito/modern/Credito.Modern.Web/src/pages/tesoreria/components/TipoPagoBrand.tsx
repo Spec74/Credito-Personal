@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { esMarcaTipoPago, medioEtiquetaUi, medioNombreMarca } from './bovedaResumenCuentaParse'
 import { ResumenCuentaBrandLogo } from './resumenCuentaBrandIcons'
 
@@ -31,7 +31,7 @@ export function TipoPagoOptionLabel({ denominacion }: { denominacion: string }) 
 }
 
 /** El dropdown de Ant Design vive en portal: no hereda translate="no" de la página. */
-export function tipoPagoPopupRender(menu: ReactNode): ReactNode {
+export function tipoPagoPopupRender(menu: ReactElement): ReactElement {
   return (
     <div className="medio-marca-dropdown" translate="no">
       {menu}
@@ -39,14 +39,16 @@ export function tipoPagoPopupRender(menu: ReactNode): ReactNode {
   )
 }
 
+/** Firma ancha: Ant Select no siempre tipa `data` como TipoPagoOption. */
 export function tipoPagoOptionRender(option: {
   label?: ReactNode
-  data?: TipoPagoOption
+  data?: { label?: ReactNode; searchText?: string } | null
 }): ReactNode {
-  const denominacion =
-    typeof option.label === 'string'
-      ? option.label
-      : (option.data?.label ?? option.data?.searchText ?? '')
+  const fromData =
+    typeof option.data?.label === 'string'
+      ? option.data.label
+      : (option.data?.searchText ?? '')
+  const denominacion = typeof option.label === 'string' ? option.label : fromData
   if (!denominacion) return option.label
   return <TipoPagoOptionLabel denominacion={denominacion} />
 }

@@ -217,15 +217,16 @@ export function BovedaPage() {
           </CredixPanel>
         </>
       ) : boveda.isError ? (
-        <Alert
-          type="error"
-          showIcon
-          translate="no"
-          message="No se pudo cargar la bóveda"
-          description={
-            boveda.error instanceof ApiError ? boveda.error.message : 'Error desconocido'
-          }
-        />
+        <div translate="no">
+          <Alert
+            type="error"
+            showIcon
+            message="No se pudo cargar la bóveda"
+            description={
+              boveda.error instanceof ApiError ? boveda.error.message : 'Error desconocido'
+            }
+          />
+        </div>
       ) : boveda.data ? (
         <>
           <CredixPanel title="Medios de pago" className="boveda-panel-medios">
