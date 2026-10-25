@@ -1,6 +1,7 @@
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Application.Dashboard;
+using Credito.Modern.Application.Oficinas;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Credito.Modern.Api.Dashboard;
@@ -13,18 +14,22 @@ internal static class DashboardAdminEndpoints
                 "/api/v1/dashboard/admin",
                 async Task<Results<Ok<DashboardAdminDto>, ProblemHttpResult>> (
                     HttpContext httpContext,
+                    int? sedeId,
                     IDashboardAdminReadService dashboard,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oficinaId))
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, sedeId, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token debe incluir vendix:oficina_id.");
+                        return oficinaProblem;
                     }
+
+                    var oficinaId = SesionOficina.OficinaLectura(info!, sedeId, allowRed: false) ?? info!.OficinaId;
 
                     var log = loggerFactory.CreateLogger("DashboardAdmin");
                     try
@@ -52,18 +57,22 @@ internal static class DashboardAdminEndpoints
                 "/api/v1/dashboard/admin/shell",
                 async Task<Results<Ok<DashboardAdminShellDto>, ProblemHttpResult>> (
                     HttpContext httpContext,
+                    int? sedeId,
                     IDashboardAdminReadService dashboard,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oficinaId))
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, sedeId, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token debe incluir vendix:oficina_id.");
+                        return oficinaProblem;
                     }
+
+                    var oficinaId = SesionOficina.OficinaLectura(info!, sedeId, allowRed: false) ?? info!.OficinaId;
 
                     var log = loggerFactory.CreateLogger("DashboardAdmin");
                     try
@@ -91,18 +100,22 @@ internal static class DashboardAdminEndpoints
                 "/api/v1/dashboard/admin/detalle",
                 async Task<Results<Ok<DashboardAdminDetalleDto>, ProblemHttpResult>> (
                     HttpContext httpContext,
+                    int? sedeId,
                     IDashboardAdminReadService dashboard,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oficinaId))
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, sedeId, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token debe incluir vendix:oficina_id.");
+                        return oficinaProblem;
                     }
+
+                    var oficinaId = SesionOficina.OficinaLectura(info!, sedeId, allowRed: false) ?? info!.OficinaId;
 
                     var log = loggerFactory.CreateLogger("DashboardAdmin");
                     try

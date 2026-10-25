@@ -654,7 +654,7 @@
   }
 
   .clientes-page ul.credix-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
   }
 }
 

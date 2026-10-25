@@ -55,4 +55,22 @@ internal static class SesionOficina
 
         return (new SesionOficinaInfo(oficinaId, esCentral, nombre, destinos), null);
     }
+
+    /// <summary>
+    /// Lectura: sucursal = JWT. Central = <paramref name="sedeId"/> o, si <paramref name="allowRed"/>, null (toda la red).
+    /// </summary>
+    public static int? OficinaLectura(SesionOficinaInfo info, int? sedeId, bool allowRed)
+    {
+        if (!info.EsCentral)
+        {
+            return info.OficinaId;
+        }
+
+        if (sedeId is >= 1)
+        {
+            return sedeId;
+        }
+
+        return allowRed ? null : info.OficinaId;
+    }
 }

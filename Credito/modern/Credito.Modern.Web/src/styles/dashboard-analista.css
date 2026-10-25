@@ -16,6 +16,19 @@
   min-height: 9.5rem;
 }
 
+/* SSD-15: en teléfono la reserva se lee como hueco título → cuerpo. */
+@media (max-width: 991px) {
+  .dash-analista,
+  .dash-analista.dash-admin {
+    min-height: 0;
+  }
+
+  .dash-head {
+    min-height: 0;
+    gap: 10px;
+  }
+}
+
 .dash-kicker {
   margin: 0 0 4px;
   font-size: 12px;

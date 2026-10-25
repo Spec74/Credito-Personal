@@ -9,7 +9,7 @@ import {
   WalletOutlined,
   WarningOutlined,
 } from '@ant-design/icons'
-import { Alert, Button, Input, Skeleton, Tag, Typography } from 'antd'
+import { Alert, Button, Input, Select, Skeleton, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   fetchDashboardAdminDetalle,
@@ -22,6 +22,7 @@ import { DualMetricChart } from '../../components/dashboard/DualMetricChart'
 import { CarteraMixChart } from '../../components/dashboard/CarteraMixChart'
 import { CredixDataTable, CredixPage } from '../../components/credix'
 import { useAuth } from '../../auth/useAuth'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { formatMoney } from '../../utils/formatMoney'
 import '../../styles/dashboard-analista.css'
 
@@ -35,13 +36,16 @@ const queryOpts = {
 
 export function AdminDashboardPage() {
   const { session } = useAuth()
+  const { esCentral, oficinas } = useEsCentral()
   const [buscar, setBuscar] = useState('')
+  const [sedeId, setSedeId] = useState<number | undefined>(undefined)
   const oficinaKey = session?.oficinaId
+  const sedeQuery = esCentral ? sedeId : undefined
   const enabled = (oficinaKey ?? 0) > 0
 
   const shellQuery = useQuery({
-    queryKey: ['dashboard-admin-shell', oficinaKey],
-    queryFn: fetchDashboardAdminShell,
+    queryKey: ['dashboard-admin-shell', oficinaKey, sedeQuery],
+    queryFn: () => fetchDashboardAdminShell(sedeQuery),
     ...queryOpts,
     enabled,
     retry: 1,
@@ -50,8 +54,8 @@ export function AdminDashboardPage() {
   // Detalle (gráficos/cartera) después del shell: el LCP es copy estático del header
   // y no debe competir con 20 KiB de JSON + charts en el primer paint.
   const detalleQuery = useQuery({
-    queryKey: ['dashboard-admin-detalle', oficinaKey],
-    queryFn: fetchDashboardAdminDetalle,
+    queryKey: ['dashboard-admin-detalle', oficinaKey, sedeQuery],
+    queryFn: () => fetchDashboardAdminDetalle(sedeQuery),
     ...queryOpts,
     enabled: enabled && !!shellQuery.data,
     retry: 1,
@@ -338,9 +342,24 @@ export function AdminDashboardPage() {
       title="Inicio"
       subtitle={`Indicadores de cobranza, colocación y cartera · ${shell.nombreOficina}`}
       actions={
-        <Button icon={<ReloadOutlined />} onClick={refetchAll} loading={isFetching}>
-          Actualizar
-        </Button>
+        <>
+          {esCentral ? (
+            <Select
+              allowClear
+              placeholder="Sede (esta sesión)"
+              style={{ minWidth: 200 }}
+              value={sedeId}
+              onChange={(v) => setSedeId(v)}
+              options={oficinas.map((o) => ({
+                value: o.oficinaId,
+                label: o.denominacion || `Sede ${o.oficinaId}`,
+              }))}
+            />
+          ) : null}
+          <Button icon={<ReloadOutlined />} onClick={refetchAll} loading={isFetching}>
+            Actualizar
+          </Button>
+        </>
       }
     >
       <div className="dash-analista dash-admin">

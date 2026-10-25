@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Oficinas;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Credito.Modern.Api.Credito;
@@ -45,11 +46,50 @@ internal static class CobroDiarioReportAccess
         return false;
     }
 
-    /// <summary>Paridad <c>Reporte/ObtenerCobranzaPagos</c>: gestor y oficina opcionales (null = TODOS).</summary>
+    internal static async Task<(int? UsuarioId, int? OficinaId, ProblemHttpResult? Error)> ResolveCobranzaFiltrosAsync(
+        HttpContext httpContext,
+        IOficinaReadService oficinas,
+        int? usuarioId,
+        int? oficinaId,
+        CancellationToken ct)
+    {
+        var (info, err) = await SesionOficina.ResolverAsync(httpContext, oficinas, oficinaId, ct)
+            .ConfigureAwait(false);
+        if (err is not null)
+        {
+            return (null, null, err);
+        }
+
+        return ResolveCobranzaFiltros(httpContext, usuarioId, oficinaId, info!.EsCentral);
+    }
+
+    internal static async Task<(int? UsuarioId, int? OficinaId, ProblemHttpResult? Error)> ResolveFiltrosAsync(
+        HttpContext httpContext,
+        IOficinaReadService oficinas,
+        int? usuarioId,
+        int? oficinaId,
+        bool requiereGestor,
+        CancellationToken ct)
+    {
+        var (info, err) = await SesionOficina.ResolverAsync(httpContext, oficinas, oficinaId, ct)
+            .ConfigureAwait(false);
+        if (err is not null)
+        {
+            return (null, null, err);
+        }
+
+        return ResolveFiltros(httpContext, usuarioId, oficinaId, requiereGestor, info!.EsCentral);
+    }
+
+    /// <summary>
+    /// Paridad <c>Reporte/ObtenerCobranzaPagos</c>: gestor y oficina opcionales (null = TODOS)
+    /// <strong>solo en Central</strong>. Sucursal: siempre <c>vendix:oficina_id</c>.
+    /// </summary>
     internal static (int? UsuarioId, int? OficinaId, ProblemHttpResult? Error) ResolveCobranzaFiltros(
         HttpContext httpContext,
         int? usuarioId,
-        int? oficinaId)
+        int? oficinaId,
+        bool esCentral = false)
     {
         if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
         {
@@ -75,7 +115,11 @@ internal static class CobroDiarioReportAccess
             }
 
             var uid = usuarioId is null or < 1 ? null : usuarioId;
-            var oid = oficinaId is null or < 1 ? null : oficinaId;
+            var oid = esCentral && oficinaId is null or < 1
+                ? null
+                : esCentral
+                    ? oficinaId
+                    : jwtOficinaId;
             return (uid, oid, null);
         }
 
@@ -96,7 +140,8 @@ internal static class CobroDiarioReportAccess
         HttpContext httpContext,
         int? usuarioId,
         int? oficinaId,
-        bool requiereGestor = true)
+        bool requiereGestor = true,
+        bool esCentral = false)
     {
         if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
         {
@@ -129,7 +174,11 @@ internal static class CobroDiarioReportAccess
             }
 
             var uidElevated = usuarioId is null or < 1 ? null : usuarioId;
-            var oidElevated = oficinaId is null or < 1 ? null : oficinaId;
+            var oidElevated = esCentral && oficinaId is null or < 1
+                ? null
+                : esCentral
+                    ? oficinaId
+                    : jwtOficinaId;
             return (uidElevated, oidElevated, null);
         }
 

@@ -2583,7 +2583,7 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-login-wrap {
-  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2628,7 +2628,7 @@ ul.credix-stats--module li span.red {
 
 @media (max-width: 480px) {
   ul.credix-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
   }
 
   .credix-hub-grid {

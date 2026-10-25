@@ -17,6 +17,7 @@ import {
 import { EditOutlined, PlusOutlined } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { fetchOficinas } from '../../api/oficinas'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import {
   activarCaja,
   fetchCajaGestores,
@@ -47,8 +48,10 @@ export function CajaMaestroPage() {
   const [form] = Form.useForm()
   const queryClient = useQueryClient()
 
+  const { esCentral, oficinaSesionId, oficinas } = useEsCentral()
   const oficinasQuery = useQuery({ queryKey: ['oficinas'], queryFn: fetchOficinas })
   const gestoresQuery = useQuery({ queryKey: ['caja-gestores'], queryFn: fetchCajaGestores })
+  const oficinasOpciones = esCentral ? oficinas : oficinas.filter((o) => o.oficinaId === oficinaSesionId)
 
   const cajasQuery = useQuery({
     queryKey: ['cajas-gestion', buscarDebounced, page, pageSize, incluirInactivos],
@@ -94,7 +97,9 @@ export function CajaMaestroPage() {
   const openCreate = () => {
     setEditing(null)
     form.setFieldsValue({
-      oficinaId: oficinasQuery.data?.[0]?.oficinaId,
+      oficinaId: esCentral
+        ? (oficinasQuery.data?.[0]?.oficinaId ?? oficinaSesionId)
+        : oficinaSesionId,
       denominacion: '',
       cajeroId: undefined,
       estado: true,
@@ -268,7 +273,8 @@ export function CajaMaestroPage() {
               <Select
                 showSearch
                 optionFilterProp="label"
-                options={(oficinasQuery.data ?? []).map((o) => ({
+                disabled={!esCentral}
+                options={oficinasOpciones.map((o) => ({
                   value: o.oficinaId,
                   label: o.denominacion ?? `Oficina ${o.oficinaId}`,
                 }))}

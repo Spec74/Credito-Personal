@@ -19,6 +19,7 @@ import {
   GestorSelect,
   OficinaSelect,
 } from '../../components/reportes/ReporteFiltrosMaestros'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
@@ -47,6 +48,8 @@ function toApiFiltros(values: CobranzaFiltrosForm) {
 export function CobranzaPagosPage() {
   const { session } = useAuth()
   const puedeElegirGestor = usePuedeElegirGestorInforme()
+  const { esCentral } = useEsCentral()
+  const puedeElegirSede = puedeElegirGestor && esCentral
   const [form] = Form.useForm<CobranzaFiltrosForm>()
   const [expandedKeys, setExpandedKeys] = useState<string[]>([])
 
@@ -253,7 +256,7 @@ export function CobranzaPagosPage() {
             }}
           >
             <div className="credix-cobranza-filtros-fields">
-              {puedeElegirGestor ? (
+              {puedeElegirSede ? (
                 <Form.Item label="Oficina" name="oficinaId" className="credix-cobranza-field">
                   <OficinaSelect allowAll size="middle" />
                 </Form.Item>

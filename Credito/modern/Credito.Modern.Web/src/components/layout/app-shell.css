@@ -1,7 +1,7 @@
 /* Shell responsivo: zoom del navegador y ventanas estrechas */
 
 .app-shell-root {
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
 }
 

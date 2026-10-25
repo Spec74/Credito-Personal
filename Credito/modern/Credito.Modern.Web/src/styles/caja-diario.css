@@ -96,6 +96,16 @@
   }
 }
 
+@media (max-width: 640px) {
+  .caja-diario-page ul.credix-stats {
+    grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  }
+
+  .caja-diario-page ul.credix-stats li:last-child {
+    grid-column: auto;
+  }
+}
+
 .caja-diario-shell {
   display: flex;
   flex-direction: column;

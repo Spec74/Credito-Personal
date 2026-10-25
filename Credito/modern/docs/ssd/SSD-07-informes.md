@@ -93,6 +93,7 @@ Política de export (catálogo): fase `pdf-tabular-completo` (cada `-csv` tiene 
 - Hub `/reportes/credito` habilita `/informes/*` (`HUB_CHILDREN`), **excepto** rutas exactas con ACL extra.
 - `/informes/morosos` y `/informes/cierre-gerencial` están en `EXACT_MENU_ROUTES`: el hub de reportes **no** las abre; hace falta `extraAllowedPaths` tras los `GET .../permisos`.
 - Alcance de datos (2026-10-24): `IndPrincipal` = Central. Sucursal ignora `oficinaId`/`sedeId` del query y usa el JWT. Central honra el filtro o ve la red. No se ensancha RoleHome ni las listas ACL.
+- Cobranza / cobro diario / morosidad gestor (004): el rol ADMIN/APROBADOR/REPORTEPARCIAL **en sucursal** ya no abre otra oficina ni “todas”. Solo Central conserva el combo. Spec Kit [004-alcance-red](../speckit/004-alcance-red/spec.md).
 - Índice crédito además filtra roles (`reporteCreditoAccess.ts`).
 - Padre REPORTES no concede el hub.
 - PDF sin Bearer → 401 (`reportpdfendpointsunauthorizedtests`).
@@ -117,6 +118,7 @@ Política de export (catálogo): fase `pdf-tabular-completo` (cada `-csv` tiene 
 - 2026-09-10 — PDFs tabulares: catálogo por título (tildes) y layout usable ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
 - 2026-10-07 — Morosos empresariales: módulo ACL + SP (ver [PARIDAD-MOROSIDAD](../migration/PARIDAD-MOROSIDAD.md))
 - **2026-10-24 — alcance por sede:** Morosos y Cierre gerencial dejan de pedir toda la red desde sucursal. No se inventa USP ni se toca el cierre mensual oficial ([BITACORA](../migration/BITACORA-DESVIACIONES.md)).
+- **2026-10-24 — 004 cobranza:** sucursal con rol de reporte ya no consulta la red. Los ~28 informes con oficina oculta siguen siendo JWT (Central entra a la sede).
 
 Producto: PDF Credix ≠ píxel RDLC. `VITE_LEGACY_ORIGIN` solo si negocio lo pide.
 

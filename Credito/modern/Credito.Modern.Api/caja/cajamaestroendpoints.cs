@@ -3,6 +3,7 @@ using Credito.Modern.Api.Auth;
 using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.CajaMaestro;
 using Credito.Modern.Application.Maestros;
+using Credito.Modern.Application.Oficinas;
 using Credito.Modern.Application.Time;
 using Credito.Modern.Application.Validation;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -44,7 +45,10 @@ internal static class CajaMaestroEndpoints
                     int? page,
                     int? pageSize,
                     bool? incluirInactivos,
+                    int? sedeId,
+                    HttpContext httpContext,
                     ICajaMaestroReadService cajas,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -52,12 +56,22 @@ internal static class CajaMaestroEndpoints
                     var log = loggerFactory.CreateLogger("CajasGestion");
                     try
                     {
+                        var (info, oficinaProblem) = await SesionOficina
+                            .ResolverAsync(httpContext, oficinas, sedeId, ct)
+                            .ConfigureAwait(false);
+                        if (oficinaProblem is not null)
+                        {
+                            return oficinaProblem;
+                        }
+
+                        var oficinaFiltro = SesionOficina.OficinaLectura(info!, sedeId, allowRed: true);
                         var result = await cajas
                             .ListGestionAsync(
                                 buscar,
                                 page ?? 1,
                                 pageSize ?? 25,
                                 incluirInactivos == true,
+                                oficinaFiltro,
                                 ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(result);
@@ -76,7 +90,9 @@ internal static class CajaMaestroEndpoints
         app.MapGet(
                 "/api/v1/cajas/gestores-activos",
                 async Task<Results<Ok<List<CajaGestorItemDto>>, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     ICajaMaestroReadService cajas,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -84,7 +100,16 @@ internal static class CajaMaestroEndpoints
                     var log = loggerFactory.CreateLogger("CajasGestores");
                     try
                     {
-                        var items = await cajas.ListGestoresActivosAsync(ct).ConfigureAwait(false);
+                        var (info, oficinaProblem) = await SesionOficina
+                            .ResolverAsync(httpContext, oficinas, sedeId: null, ct)
+                            .ConfigureAwait(false);
+                        if (oficinaProblem is not null)
+                        {
+                            return oficinaProblem;
+                        }
+
+                        var oficinaFiltro = SesionOficina.OficinaLectura(info!, sedeId: null, allowRed: true);
+                        var items = await cajas.ListGestoresActivosAsync(oficinaFiltro, ct).ConfigureAwait(false);
                         return TypedResults.Ok(items);
                     }
                     catch (Exception ex) when (ex is InvalidOperationException or DbException)
@@ -101,7 +126,9 @@ internal static class CajaMaestroEndpoints
         app.MapGet(
                 "/api/v1/cajas/combo-activas",
                 async Task<Results<Ok<List<CajaComboItemDto>>, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     ICajaMaestroReadService cajas,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -109,7 +136,16 @@ internal static class CajaMaestroEndpoints
                     var log = loggerFactory.CreateLogger("CajasComboActivas");
                     try
                     {
-                        var items = await cajas.ListCajasActivasAsync(ct).ConfigureAwait(false);
+                        var (info, oficinaProblem) = await SesionOficina
+                            .ResolverAsync(httpContext, oficinas, sedeId: null, ct)
+                            .ConfigureAwait(false);
+                        if (oficinaProblem is not null)
+                        {
+                            return oficinaProblem;
+                        }
+
+                        var oficinaFiltro = SesionOficina.OficinaLectura(info!, sedeId: null, allowRed: true);
+                        var items = await cajas.ListCajasActivasAsync(oficinaFiltro, ct).ConfigureAwait(false);
                         return TypedResults.Ok(items);
                     }
                     catch (Exception ex) when (ex is InvalidOperationException or DbException)
@@ -129,6 +165,7 @@ internal static class CajaMaestroEndpoints
                     HttpContext httpContext,
                     GuardarCajaRequest body,
                     ICajaMaestroWriteService write,
+                    IOficinaReadService oficinas,
                     IDatabaseTimeProvider databaseTime,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -145,6 +182,14 @@ internal static class CajaMaestroEndpoints
                         return usuarioError;
                     }
 
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, body.OficinaId, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
+                    {
+                        return oficinaProblem;
+                    }
+
                     var serverTime = await databaseTime.GetServerTimeAsync(ct).ConfigureAwait(false);
                     if (serverTime is null)
                     {
@@ -159,7 +204,13 @@ internal static class CajaMaestroEndpoints
                         env,
                         "GuardarCaja",
                         ct,
-                        token => write.GuardarAsync(body, usuarioId, serverTime.Value, token)).ConfigureAwait(false);
+                        token => write.GuardarAsync(
+                            body,
+                            usuarioId,
+                            serverTime.Value,
+                            info!.OficinaId,
+                            info.EsCentral,
+                            token)).ConfigureAwait(false);
                 })
             .WithName("GuardarCaja")
             .WithSummary("Paridad CajaController.GuardarCaja (alta: IndAbierto=0, UsuarioReg/FechaReg).")
@@ -173,6 +224,7 @@ internal static class CajaMaestroEndpoints
                     HttpContext httpContext,
                     int cajaId,
                     ICajaMaestroWriteService write,
+                    IOficinaReadService oficinas,
                     IDatabaseTimeProvider databaseTime,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -201,12 +253,26 @@ internal static class CajaMaestroEndpoints
                             detail: "No se pudo obtener la fecha del servidor.");
                     }
 
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, sedeId: null, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
+                    {
+                        return oficinaProblem;
+                    }
+
                     return await WriteAsync(
                         loggerFactory,
                         env,
                         "ActivarCaja",
                         ct,
-                        token => write.ActivarAsync(cajaId, usuarioId, serverTime.Value, token)).ConfigureAwait(false);
+                        token => write.ActivarAsync(
+                            cajaId,
+                            usuarioId,
+                            serverTime.Value,
+                            info!.OficinaId,
+                            info.EsCentral,
+                            token)).ConfigureAwait(false);
                 })
             .WithName("ActivarCaja")
             .WithSummary("Paridad CajaController.Activar (toggle Estado).")

@@ -921,16 +921,19 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCobroDiarioReadService rptCobroDiario,
                     IUsuarioAdminReadService usuarios,
                     ICajaMaestroReadService cajas,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
                     var filtrarSoloMora = soloMora ?? false;
-                    var (uid, oid, err) = CobroDiarioReportAccess.ResolveFiltros(
+                    var (uid, oid, err) = await CobroDiarioReportAccess.ResolveFiltrosAsync(
                         httpContext,
+                        oficinas,
                         usuarioId,
                         oficinaId,
-                        requiereGestor: !filtrarSoloMora);
+                        requiereGestor: !filtrarSoloMora,
+                        ct).ConfigureAwait(false);
                     if (err is not null)
                     {
                         return err;
@@ -995,16 +998,19 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCobroDiarioReadService rptCobroDiario,
                     IUsuarioAdminReadService usuarios,
                     ICajaMaestroReadService cajas,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
                     var filtrarSoloMora = soloMora ?? false;
-                    var (uid, oid, err) = CobroDiarioReportAccess.ResolveFiltros(
+                    var (uid, oid, err) = await CobroDiarioReportAccess.ResolveFiltrosAsync(
                         httpContext,
+                        oficinas,
                         usuarioId,
                         oficinaId,
-                        requiereGestor: !filtrarSoloMora);
+                        requiereGestor: !filtrarSoloMora,
+                        ct).ConfigureAwait(false);
                     if (err is not null)
                     {
                         return err;
@@ -1077,11 +1083,13 @@ internal static class CreditoReportesRestantesEndpoints
                     CancellationToken ct) =>
                 {
                     var filtrarSoloMora = soloMora ?? false;
-                    var (uid, oid, err) = CobroDiarioReportAccess.ResolveFiltros(
+                    var (uid, oid, err) = await CobroDiarioReportAccess.ResolveFiltrosAsync(
                         httpContext,
+                        oficinas,
                         usuarioId,
                         oficinaId,
-                        requiereGestor: !filtrarSoloMora);
+                        requiereGestor: !filtrarSoloMora,
+                        ct).ConfigureAwait(false);
                     if (err is not null)
                     {
                         return err;

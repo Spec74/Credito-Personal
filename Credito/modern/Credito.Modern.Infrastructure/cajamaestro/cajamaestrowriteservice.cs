@@ -14,9 +14,16 @@ public sealed class CajaMaestroWriteService(IOptions<SqlDatabaseOptions> options
         GuardarCajaRequest request,
         int usuarioId,
         DateTime fechaServidor,
+        int oficinaSesion,
+        bool esCentral,
         CancellationToken ct = default)
     {
         Ensure();
+        if (!esCentral && request.OficinaId != oficinaSesion)
+        {
+            return new MaestroOperacionResponse(false, null, "La caja debe quedar en la oficina de la sesión.");
+        }
+
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
 
@@ -54,17 +61,20 @@ public sealed class CajaMaestroWriteService(IOptions<SqlDatabaseOptions> options
                     Estado = @Estado,
                     FechaMod = @FechaMod,
                     UsuarioModId = @UsuarioModId
-                WHERE CajaId = @CajaId;
+                WHERE CajaId = @CajaId
+                  AND (@EsCentral = 1 OR OficinaId = @OficinaSesion);
                 """,
                 new
                 {
                     request.CajaId,
                     request.OficinaId,
-                    request.Denominacion,
                     request.CajeroId,
                     request.Estado,
+                    request.Denominacion,
                     FechaMod = fechaServidor,
                     UsuarioModId = usuarioId,
+                    EsCentral = esCentral ? 1 : 0,
+                    OficinaSesion = oficinaSesion,
                 },
                 cancellationToken: ct)).ConfigureAwait(false);
 
@@ -77,6 +87,8 @@ public sealed class CajaMaestroWriteService(IOptions<SqlDatabaseOptions> options
         int cajaId,
         int usuarioId,
         DateTime fechaServidor,
+        int oficinaSesion,
+        bool esCentral,
         CancellationToken ct = default)
     {
         Ensure();
@@ -89,9 +101,17 @@ public sealed class CajaMaestroWriteService(IOptions<SqlDatabaseOptions> options
                 SET Estado = CASE WHEN Estado = CAST(1 AS bit) THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END,
                     FechaMod = @FechaMod,
                     UsuarioModId = @UsuarioModId
-                WHERE CajaId = @CajaId;
+                WHERE CajaId = @CajaId
+                  AND (@EsCentral = 1 OR OficinaId = @OficinaSesion);
                 """,
-                new { CajaId = cajaId, FechaMod = fechaServidor, UsuarioModId = usuarioId },
+                new
+                {
+                    CajaId = cajaId,
+                    FechaMod = fechaServidor,
+                    UsuarioModId = usuarioId,
+                    EsCentral = esCentral ? 1 : 0,
+                    OficinaSesion = oficinaSesion,
+                },
                 cancellationToken: ct)).ConfigureAwait(false);
         return n > 0
             ? new MaestroOperacionResponse(true, cajaId, null)

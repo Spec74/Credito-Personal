@@ -241,7 +241,7 @@
   }
 
   .credix-page--stats-3 ul.credix-stats {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
   }
 
   .credix-informe-filter-row.ant-form,

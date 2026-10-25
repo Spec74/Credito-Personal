@@ -11,8 +11,8 @@ Quien opera en celular (cajero, analista, encargado, gerencia) debe ver el traba
 
 ## 2. Alcance
 
-**Entra:** layout del shell, traductor, KPI compactos, padding/pie móvil.  
-**No entra:** app nativa, i18n, reescritura por módulo, reglas de crédito/caja.
+**Entra:** layout del shell, traductor, KPI compactos, padding/pie móvil, leftovers de CSS lazy (inicio, bóveda, caja, login).  
+**No entra:** app nativa, i18n, reescritura de 95 TSX, reglas de crédito/caja.
 
 ## 3. Paridad MVC
 
@@ -24,7 +24,7 @@ Ninguno. Solo CSS + `translate` + `lang="es"`.
 
 ## 5. API y SPA
 
-No hay API. Superficie: cualquier ruta que use `CredixPage` / Crud / Informe / WorkCanvas.
+No hay API. Superficie: `CredixPage` / Crud / Informe / WorkCanvas + Login + `body` (portales Ant). El CSS de módulo que se importa en la página **pisa** el shell: se parchea ahí. Matriz: [audit-modulos.md](../speckit/003-movil-shell/audit-modulos.md).
 
 ## 6. Seguridad
 
@@ -33,12 +33,14 @@ Sin cambio de JWT ni menú. `translate="no"` no relaja CSP.
 ## 7. Criterios de aceptación
 
 - [x] Código: pila `flex-start`, `100dvh`, stats en fila compacta, sin margen doble, pie oculto ≤640 px.
-- [x] Código: `html` / app / page sin traductor automático.
-- [ ] Smoke 375 px en simulador y tareas (firma operativa).
+- [x] Código: `html` / `body` / app / page / login sin traductor automático.
+- [x] Código: Inicio sin reserva 28rem/9.5rem en móvil; bóveda sin KPI de 200 px; chica/verificar/diario/clientes/stats-3 en `auto-fit`.
+- [ ] Smoke 375 px en simulador, tareas, inicio, diario, bóveda, login (firma operativa).
 
 ## 8. Desviaciones
 
 - **2026-10-24 — notranslate:** la UI ya está en es-PE; Chrome Translate doblaba grafías y partía el flex ([BITACORA](../migration/BITACORA-DESVIACIONES.md)).
+- **2026-10-24 — leftovers de módulo:** el CSS lazy gana al shell (misma especificidad, llega después). Se parchea el archivo del módulo, no se usa `!important` global.
 
 ## 9. Pruebas
 

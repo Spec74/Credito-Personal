@@ -21,15 +21,18 @@ internal static class CobroDiarioMorosidadGestorEndpoints
                     int? usuarioId,
                     int? oficinaId,
                     IRptCobroDiarioReadService rptCobroDiario,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    var (uid, oid, err) = CobroDiarioReportAccess.ResolveFiltros(
+                    var (uid, oid, err) = await CobroDiarioReportAccess.ResolveFiltrosAsync(
                         httpContext,
+                        oficinas,
                         usuarioId,
                         oficinaId,
-                        requiereGestor: false);
+                        requiereGestor: false,
+                        ct).ConfigureAwait(false);
                     if (err is not null)
                     {
                         return err;
@@ -68,11 +71,13 @@ internal static class CobroDiarioMorosidadGestorEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    var (uid, oid, err) = CobroDiarioReportAccess.ResolveFiltros(
+                    var (uid, oid, err) = await CobroDiarioReportAccess.ResolveFiltrosAsync(
                         httpContext,
+                        oficinas,
                         usuarioId,
                         oficinaId,
-                        requiereGestor: false);
+                        requiereGestor: false,
+                        ct).ConfigureAwait(false);
                     if (err is not null)
                     {
                         return err;

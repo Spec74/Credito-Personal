@@ -56,6 +56,18 @@ Como analista, los 3 stats del simulador/tareas caben en **una fila** compacta. 
 - Sin overflow-x en `CredixPage` / tablas operativas (scroll interno de tabla OK).
 - Breadcrumb en una línea (ellipsis). Footer de app no tapa el último campo.
 
+### US-5 — Módulos que cargan CSS *después* del shell (P0)
+
+Como cajero o gestor, Inicio / Diario / Bóveda / Chica / Verificar / Login tampoco tienen hueco ni KPI de una columna.
+
+**Aceptación**
+
+- `/inicio` (admin y analista): `dash-analista` y `dash-head` sin `min-height` reservado en ≤991 px.
+- `/tesoreria/boveda`: KPI sin reserva de 200 px en móvil.
+- Caja chica, verificar, diario, clientes, `credix-page--stats-3`, informes: stats `auto-fit` ≥88 px en ≤640 px (no `1fr`).
+- `/login` y `body`: `translate="no"` + alto `100dvh`. Portales Ant heredan de `body`.
+- Evidencia: [audit-modulos.md](audit-modulos.md) (SSD-01…14). No se reescriben 95 TSX.
+
 ## Fuera de alcance
 
 - App nativa / PWA store.

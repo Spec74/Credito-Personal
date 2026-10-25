@@ -136,6 +136,7 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 - 2026-09-14 — cierre auditoría: Extension en cuotas digitales; mora última cuota server-side; arqueo anulados; detalle OV; fecha transferencia legacy ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
 - 2026-09-14 — anular INI+PAG: bloqueo real (no “confirmación”); observación obligatoria; E/S usa ValorTabla 13; cierre valida antes de confirmar ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
 - 2026-09-10 — condonación: listado/alta por oficina JWT; bloqueo de cierre como `ValidarCierreCajaDiario` ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
+- **2026-10-24 — maestro de cajas por sede:** sucursal no lista ni crea cajas ajenas ([004-alcance-red](../speckit/004-alcance-red/spec.md)).
 - 2026-09-09 — mora postergada y `SCOPE_IDENTITY` en liquidación
 
 Aceptadas de producto: grilla de desembolsos APR (el MVC era un formulario); modal de movimientos de toda la caja; tickets auto cuando el SP devuelve id; rendiciones de caja chica en línea (no pixel-perfect de modales legacy); Saldos Anular aplica bloqueo INI+PAG aunque el MVC lo tenía comentado; cobro de cuota admite tipo pago digital (legacy solo efectivo) **con** Extension/Verificar.

@@ -89,7 +89,7 @@ export function LoginPage() {
 
   if (isLoading) {
     return (
-      <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
+      <div className="credix-login-wrap" translate="no" style={{ display: 'grid', placeItems: 'center' }}>
         <Spin size="large" />
       </div>
     )
@@ -140,7 +140,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="credix-login-wrap">
+    <div className="credix-login-wrap" translate="no">
       <Card className="credix-login-card" styles={{ body: { paddingTop: 20 } }}>
         <BrandLogo showTagline />
 

@@ -14,6 +14,7 @@ public sealed class CajaMaestroReadService(IOptions<SqlDatabaseOptions> options)
         int page,
         int pageSize,
         bool incluirInactivos,
+        int? oficinaId = null,
         CancellationToken ct = default)
     {
         Ensure();
@@ -23,6 +24,7 @@ public sealed class CajaMaestroReadService(IOptions<SqlDatabaseOptions> options)
         var term = string.IsNullOrWhiteSpace(buscar) ? null : buscar.Trim();
 
         var estadoFilter = incluirInactivos ? "" : "AND c.Estado = CAST(1 AS bit)";
+        var sedeFilter = oficinaId is >= 1 ? "AND c.OficinaId = @OficinaId" : "";
         var buscarFilter = term is null
             ? ""
             : """
@@ -41,6 +43,7 @@ public sealed class CajaMaestroReadService(IOptions<SqlDatabaseOptions> options)
             LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
             WHERE 1 = 1
               {estadoFilter}
+              {sedeFilter}
               {buscarFilter};
             """;
 
@@ -59,6 +62,7 @@ public sealed class CajaMaestroReadService(IOptions<SqlDatabaseOptions> options)
             LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
             WHERE 1 = 1
               {estadoFilter}
+              {sedeFilter}
               {buscarFilter}
             ORDER BY c.Denominacion
             OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;
@@ -67,49 +71,66 @@ public sealed class CajaMaestroReadService(IOptions<SqlDatabaseOptions> options)
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
         var total = await c.ExecuteScalarAsync<int>(
-            new CommandDefinition(countSql, new { Buscar = term }, cancellationToken: ct)).ConfigureAwait(false);
+            new CommandDefinition(countSql, new { Buscar = term, OficinaId = oficinaId }, cancellationToken: ct)).ConfigureAwait(false);
         var rows = (await c.QueryAsync<CajaGestionListItemDto>(
-            new CommandDefinition(sql, new { Buscar = term, Skip = skip, Take = ps }, cancellationToken: ct))
+            new CommandDefinition(sql, new { Buscar = term, OficinaId = oficinaId, Skip = skip, Take = ps }, cancellationToken: ct))
             .ConfigureAwait(false)).ToList();
 
         var totalPages = total == 0 ? 0 : (int)Math.Ceiling(total / (double)ps);
         return new CajaGestionPageDto(p, ps, total, totalPages, rows);
     }
 
-    public async Task<List<CajaGestorItemDto>> ListGestoresActivosAsync(CancellationToken ct = default)
+    public async Task<List<CajaGestorItemDto>> ListGestoresActivosAsync(
+        int? oficinaId = null,
+        CancellationToken ct = default)
     {
         Ensure();
-        const string sql = """
+        var sedeFilter = oficinaId is >= 1
+            ? """
+              AND EXISTS (
+                  SELECT 1
+                  FROM MAESTRO.UsuarioOficina AS uo
+                  WHERE uo.UsuarioId = u.UsuarioId
+                    AND uo.OficinaId = @OficinaId
+                    AND uo.Estado = CAST(1 AS bit))
+              """
+            : "";
+        var sql = $"""
             SELECT u.UsuarioId,
                    p.NombreCompleto
             FROM MAESTRO.Usuario AS u
             INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
             WHERE u.Estado = CAST(1 AS bit)
+              {sedeFilter}
             ORDER BY p.NombreCompleto;
             """;
 
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
         var rows = await c.QueryAsync<CajaGestorItemDto>(
-            new CommandDefinition(sql, cancellationToken: ct)).ConfigureAwait(false);
+            new CommandDefinition(sql, new { OficinaId = oficinaId }, cancellationToken: ct)).ConfigureAwait(false);
         return rows.ToList();
     }
 
-    public async Task<List<CajaComboItemDto>> ListCajasActivasAsync(CancellationToken ct = default)
+    public async Task<List<CajaComboItemDto>> ListCajasActivasAsync(
+        int? oficinaId = null,
+        CancellationToken ct = default)
     {
         Ensure();
-        const string sql = """
+        var sedeFilter = oficinaId is >= 1 ? "AND c.OficinaId = @OficinaId" : "";
+        var sql = $"""
             SELECT c.CajaId,
                    c.Denominacion
             FROM CREDITO.Caja AS c
             WHERE c.Estado = CAST(1 AS bit)
+              {sedeFilter}
             ORDER BY c.Denominacion;
             """;
 
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
         var rows = await c.QueryAsync<CajaComboItemDto>(
-            new CommandDefinition(sql, cancellationToken: ct)).ConfigureAwait(false);
+            new CommandDefinition(sql, new { OficinaId = oficinaId }, cancellationToken: ct)).ConfigureAwait(false);
         return rows.ToList();
     }
 

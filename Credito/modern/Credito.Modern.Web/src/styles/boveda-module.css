@@ -2,12 +2,12 @@
  * Bóveda — layout Credix corporativo (tesorería).
  */
 
-/* Reserva altura del KPI (4 celdas en móvil) para no desplazar el body al hidratar datos. */
+/* Reserva KPI solo en escritorio: en móvil 200px se lee como hueco (SSD-15). */
 .boveda-page ul.credix-stats {
-  min-height: 200px;
+  min-height: 0;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 992px) {
   .boveda-page ul.credix-stats {
     min-height: 96px;
   }

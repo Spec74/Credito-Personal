@@ -234,14 +234,18 @@ export interface DashboardAdminCartera {
   clientesMora: number
 }
 
-export function fetchDashboardAdmin(): Promise<DashboardAdmin> {
-  return apiFetch<DashboardAdmin>('/dashboard/admin')
+function dashboardSedeQuery(sedeId?: number) {
+  return sedeId != null && sedeId > 0 ? `?sedeId=${sedeId}` : ''
 }
 
-export function fetchDashboardAdminShell(): Promise<DashboardAdminShell> {
-  return apiFetch<DashboardAdminShell>('/dashboard/admin/shell')
+export function fetchDashboardAdmin(sedeId?: number): Promise<DashboardAdmin> {
+  return apiFetch<DashboardAdmin>(`/dashboard/admin${dashboardSedeQuery(sedeId)}`)
 }
 
-export function fetchDashboardAdminDetalle(): Promise<DashboardAdminDetalle> {
-  return apiFetch<DashboardAdminDetalle>('/dashboard/admin/detalle')
+export function fetchDashboardAdminShell(sedeId?: number): Promise<DashboardAdminShell> {
+  return apiFetch<DashboardAdminShell>(`/dashboard/admin/shell${dashboardSedeQuery(sedeId)}`)
+}
+
+export function fetchDashboardAdminDetalle(sedeId?: number): Promise<DashboardAdminDetalle> {
+  return apiFetch<DashboardAdminDetalle>(`/dashboard/admin/detalle${dashboardSedeQuery(sedeId)}`)
 }

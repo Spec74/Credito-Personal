@@ -4,14 +4,27 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-24 — Alcance red: sucursal ≠ rol de reporte
+
+**Qué hay:** Spec Kit `004-alcance-red`. Un ADMIN de sucursal ya no consulta
+otra oficina ni “toda la red” en cobranza/cobro diario. Maestro de cajas
+acotado a la sede. Central elige sede en `/inicio` (`sedeId`) sin re-login.
+
+**Qué no hay:** no se reescriben los ~28 informes con oficina oculta (Central
+entra a la sede o usa cierre/morosos). No se relajan escrituras JWT de
+crédito/caja diario. Sin USP nuevo.
+
 ### 2026-10-24 — Shell móvil: cuerpo pegado al título
 
-**Qué hay:** Spec Kit `003-movil-shell` + SSD-15. `html`/`CredixPage`/
-`.credix-app` con `translate="no"`. CSS de shell: pila `flex-start`,
+**Qué hay:** Spec Kit `003-movil-shell` + SSD-15. `html`/`body`/`CredixPage`/
+`.credix-app`/login con `translate="no"`. CSS de shell: pila `flex-start`,
 `100dvh`, KPI en fila compacta, sin margen doble de
-`app-shell-content`, pie oculto en ≤640 px.
+`app-shell-content`, pie oculto en ≤640 px. Segunda pasada: el CSS lazy
+(inicio 28rem, bóveda 200px, stats 1-col de chica/verificar/diario)
+se parchea en su archivo porque llega *después* del shell.
 
-**Qué no hay:** no se toca USP ni se reescriben 95 páginas.
+**Qué no hay:** no se toca USP ni se reescriben 95 páginas. Guía:
+`docs/speckit/COMO-APRENDER.md`.
 
 ### 2026-10-24 — Una sola base para la red
 

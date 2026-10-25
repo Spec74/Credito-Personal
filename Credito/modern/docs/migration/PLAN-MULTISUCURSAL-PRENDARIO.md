@@ -15,6 +15,7 @@ Relacionado: [SSD-04](../ssd/SSD-04-boveda.md) · [SSD-06](../ssd/SSD-06-prendar
 | Multisucursal / bóveda | **No** | Modelo `Oficina → Boveda → Caja` ya existe. Corregir USP, proceso/UI y permisos. |
 | Física de datos | **No** | Una sola base `CREDITO`. Sucursal = `OficinaId`, no un SQL por local ni mallado. Ver [ARCHITECTURE §3.1](../ARCHITECTURE.md). |
 | Usuarios / cierre / morosos | **No** | Mismos USP. Alcance sucursal vs Central en API + SPA (2026-10-24). |
+| Cobranza / maestro cajas / tablero | **No** | Spec Kit `004-alcance-red`: sucursal = JWT; Central = red o sede. |
 | Prendario unificado | **No** | `Credito` + `Prenda` + PDFs ya existen. Orquestar UX en una pantalla. |
 
 ---

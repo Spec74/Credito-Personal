@@ -22,14 +22,17 @@ internal static class CobranzaPagosEndpoints
                     [FromQuery] int? oficinaId,
                     [FromQuery(Name = "pOficinaid")] int? pOficinaid,
                     IRptCobroDiarioDetalleReadService rptDetalle,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    var (uid, oid, err) = ResolveCobranzaQuery(
+                    var (uid, oid, err) = await ResolveCobranzaQueryAsync(
                         httpContext,
                         usuarioId ?? gestorId,
-                        oficinaId ?? pOficinaid);
+                        oficinaId ?? pOficinaid,
+                        oficinas,
+                        ct).ConfigureAwait(false);
                     if (err is not null)
                     {
                         return err;
@@ -60,14 +63,17 @@ internal static class CobranzaPagosEndpoints
                     [FromQuery] int? oficinaId,
                     [FromQuery(Name = "pOficinaid")] int? pOficinaid,
                     IRptCobroDiarioDetalleReadService rptDetalle,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    var (uid, oid, err) = ResolveCobranzaQuery(
+                    var (uid, oid, err) = await ResolveCobranzaQueryAsync(
                         httpContext,
                         usuarioId ?? gestorId,
-                        oficinaId ?? pOficinaid);
+                        oficinaId ?? pOficinaid,
+                        oficinas,
+                        ct).ConfigureAwait(false);
                     if (err is not null)
                     {
                         return err;
@@ -105,10 +111,12 @@ internal static class CobranzaPagosEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    var (uid, oid, err) = ResolveCobranzaQuery(
+                    var (uid, oid, err) = await ResolveCobranzaQueryAsync(
                         httpContext,
                         usuarioId ?? gestorId,
-                        oficinaId ?? pOficinaid);
+                        oficinaId ?? pOficinaid,
+                        oficinas,
+                        ct).ConfigureAwait(false);
                     if (err is not null)
                     {
                         return err;
@@ -148,11 +156,13 @@ internal static class CobranzaPagosEndpoints
             .Produces(StatusCodes.Status200OK, contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
     }
 
-    private static (int? UsuarioId, int? OficinaId, ProblemHttpResult? Error) ResolveCobranzaQuery(
+    private static Task<(int? UsuarioId, int? OficinaId, ProblemHttpResult? Error)> ResolveCobranzaQueryAsync(
         HttpContext httpContext,
         int? usuarioId,
-        int? oficinaId) =>
-        CobroDiarioReportAccess.ResolveCobranzaFiltros(httpContext, usuarioId, oficinaId);
+        int? oficinaId,
+        IOficinaReadService oficinas,
+        CancellationToken ct) =>
+        CobroDiarioReportAccess.ResolveCobranzaFiltrosAsync(httpContext, oficinas, usuarioId, oficinaId, ct);
 
     private static ProblemHttpResult ReadError(ILogger log, IHostEnvironment env, Exception ex)
     {

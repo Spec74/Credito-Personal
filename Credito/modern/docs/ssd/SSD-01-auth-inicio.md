@@ -12,7 +12,7 @@ Entrar al sistema, obtener menú por oficina/usuario y aterrizar en el tablero o
 | Rol | Inicio |
 |-----|--------|
 | Analista (sin admin) | Tablero personal `/inicio` |
-| Administrador | Tablero gerencial de **su oficina**; `?vista=modulos` mapa; `?vista=analista` si también es ANALISTA |
+| Administrador | Tablero gerencial de **su oficina**; Central puede elegir `sedeId` sin re-login; `?vista=modulos` mapa; `?vista=analista` si también es ANALISTA |
 | Gestor / cajero / encargado / aprobador | Mapa de módulos (hub), filtrado en enlaces de crédito |
 | Todos | Menú lateral desde `usp_MenuLst` traducido a SPA |
 
@@ -22,7 +22,7 @@ Entrar al sistema, obtener menú por oficina/usuario y aterrizar en el tablero o
 
 - Login SPA, refresh JWT, `/auth/me`, hora SQL
 - Resolución de menú MVC → SPA (`legacyRoutes`, `resolveSpaPathFromMenuItem`)
-- Tableros analista y admin (oficina JWT)
+- Tableros analista y admin (oficina JWT; Central: `?sedeId=` en `/dashboard/admin/*`)
 - Almacenamiento de clave (claro legado o `$pbk2$`) y migración perezosa
 
 **No entra**
@@ -95,6 +95,7 @@ La verificación de clave es en C# (`UsuarioPasswordHasher` / `UsuarioPasswordHa
 
 - 2026-10-17 — `/auth/me` roles JWT obsoletos + nombre tipado vs `NombreUsuario` ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
 - 2026-09-10 — tableros Inicio acotados a oficina JWT ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
+- **2026-10-24 — Central `sedeId`:** el tablero gerencial puede mostrar otra sede sin re-login ([004-alcance-red](../speckit/004-alcance-red/spec.md)).
 - 2026-09-09 — `menutree` duplicado / iconos
 
 Password: roadmap (columna 256, flag perezoso). No es desviación financiera.

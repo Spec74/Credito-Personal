@@ -14,7 +14,7 @@ Un solo patrón de **toolbar de listado**:
 
 **Breakpoints únicos:** `991px` · `640px` · `480px` (no inventar otros por módulo).
 
-**Shell móvil (2026-10-24):** [SSD-15](ssd/SSD-15-movil-shell.md) · Spec Kit `003-movil-shell`. Cuerpo pegado al título, `translate="no"`, KPI en fila, `100dvh`. CSS: `credix-mobile-shell.css`.
+**Shell móvil (2026-10-24):** [SSD-15](ssd/SSD-15-movil-shell.md) · Spec Kit `003-movil-shell`. Cuerpo pegado al título, `translate="no"`, KPI en fila, `100dvh`. CSS: `credix-mobile-shell.css`. Segunda pasada: leftovers de CSS lazy (inicio, bóveda, caja) en [audit-modulos.md](speckit/003-movil-shell/audit-modulos.md).
 
 **Reglas de toolbar móvil (640px):** grid 1 columna → buscar · acciones · hint; input **44px**; botones icono-only cuando aplique.
 

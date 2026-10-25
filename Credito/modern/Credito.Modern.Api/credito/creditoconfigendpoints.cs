@@ -3,6 +3,7 @@ using System.Data.Common;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Oficinas;
 using Credito.Modern.Application.Validation;
 using Credito.Modern.Application.ValorTablas;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -88,6 +89,7 @@ internal static class CreditoConfigEndpoints
                     HttpContext httpContext,
                     GenerarRutaCobrosRequest body,
                     IRutaCobrosService rutaCobros,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -99,11 +101,13 @@ internal static class CreditoConfigEndpoints
 
                     // Misma resolución que rpt-cobro-diario: cartera del gestor de la caja,
                     // no solo el usuario del JWT (CAJA CENTRAL / admin operando otra caja).
-                    var (uid, oid, accessErr) = CobroDiarioReportAccess.ResolveFiltros(
+                    var (uid, oid, accessErr) = await CobroDiarioReportAccess.ResolveFiltrosAsync(
                         httpContext,
+                        oficinas,
                         body.UsuarioId,
                         body.OficinaId,
-                        requiereGestor: true);
+                        requiereGestor: true,
+                        ct).ConfigureAwait(false);
                     if (accessErr is not null)
                         return accessErr;
 
