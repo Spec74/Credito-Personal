@@ -4,6 +4,15 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Login: columnas 50/50 y formulario de sistema
+
+**Qué hay:** Mitades iguales; marca y formulario se centran al mismo
+ancho (400 px). Campos con prefijo, foco de marca, CTA 44 px y tokens
+de título/etiqueta. El split anterior dejaba la marca en 70 % y el
+formulario topeado a 480 px.
+
+**Qué no hay:** no se cambia el hasher ni el combo de oficina.
+
 ### 2026-10-27 — Login: lockup oficial + calor
 
 **Qué hay:** El PNG original de Inversiones CrediConfiable (no un SVG

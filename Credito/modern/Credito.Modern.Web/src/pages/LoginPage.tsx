@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
+import { BankOutlined, LockOutlined, UserOutlined } from '@ant-design/icons'
 import { Alert, Button, Checkbox, Form, Input, Select, Spin, Typography } from 'antd'
 import { fetchOficinas } from '../api/oficinas'
 import { ApiError } from '../api/errors'
@@ -145,36 +146,40 @@ export function LoginPage() {
   return (
     <main className="credix-login" translate="no">
       <aside className="credix-login-stage">
-        <div className="credix-login-stage__brand">
-          <BrandLogo onDark priority />
+        <div className="credix-login-stage__inner">
+          <div className="credix-login-stage__brand">
+            <BrandLogo onDark priority />
+          </div>
+          <p className="credix-login-stage__eyebrow">Acceso del personal</p>
+          <blockquote className="credix-login-quote" key={frase.texto}>
+            <p>{frase.texto}</p>
+            {frase.fuente ? <cite>{frase.fuente}</cite> : <cite>CrediConfiable</cite>}
+          </blockquote>
+          <p className="credix-login-stage__lead">
+            Sistema de trabajo de las sucursales. No es un portal de clientes.
+          </p>
         </div>
-        <p className="credix-login-stage__eyebrow">Acceso del personal</p>
-        <blockquote className="credix-login-quote" key={frase.texto}>
-          <p>{frase.texto}</p>
-          {frase.fuente ? <cite>{frase.fuente}</cite> : <cite>CrediConfiable</cite>}
-        </blockquote>
-        <p className="credix-login-stage__lead">
-          Sistema de trabajo de las sucursales. No es un portal de clientes.
-        </p>
       </aside>
 
       <section className="credix-login-panel">
         <div className="credix-login-theme">
-          <CredixColorSchemeToggle />
+          <CredixColorSchemeToggle compact />
         </div>
         <div className="credix-login-form">
-          <p className="credix-login-form__hello">{saludo}</p>
-          <h2 className="credix-login-form__title">Iniciar sesión</h2>
-          <Text className="credix-login-form__hint">
-            Solo personal autorizado. No hay alta pública.
-          </Text>
+          <header className="credix-login-form__header">
+            <p className="credix-login-form__hello">{saludo}</p>
+            <h1 className="credix-login-form__title">Iniciar sesión</h1>
+            <Text className="credix-login-form__hint">
+              Solo personal autorizado. No hay alta pública.
+            </Text>
+          </header>
 
           {oficinasError ? (
             <Alert
               type="warning"
               showIcon
-              style={{ marginBottom: 16 }}
-              message="Oficinas no disponibles"
+              className="credix-login-form__alert"
+              title="Oficinas no disponibles"
               description={oficinasError}
               action={
                 <Button size="small" onClick={() => void oficinasQuery.refetch()}>
@@ -185,12 +190,14 @@ export function LoginPage() {
           ) : null}
 
           {error ? (
-            <Alert type="error" message={error} showIcon style={{ marginBottom: 16 }} />
+            <Alert type="error" title={error} showIcon className="credix-login-form__alert" />
           ) : null}
 
           <Form<LoginFormValues>
             form={form}
             layout="vertical"
+            size="large"
+            className="credix-login-form__fields"
             onFinish={onFinish}
             requiredMark={false}
             initialValues={{ recordar: true }}
@@ -200,14 +207,24 @@ export function LoginPage() {
               label="Usuario"
               rules={[{ required: true, message: 'Ingrese su usuario' }]}
             >
-              <Input autoComplete="username" size="large" />
+              <Input
+                autoComplete="username"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                autoFocus
+                prefix={<UserOutlined aria-hidden />}
+              />
             </Form.Item>
             <Form.Item
               name="clave"
               label="Contraseña"
               rules={[{ required: true, message: 'Ingrese su contraseña' }]}
             >
-              <Input.Password autoComplete="current-password" size="large" />
+              <Input.Password
+                autoComplete="current-password"
+                prefix={<LockOutlined aria-hidden />}
+              />
             </Form.Item>
             <Form.Item
               name="oficinaId"
@@ -215,9 +232,9 @@ export function LoginPage() {
               rules={[{ required: true, message: 'Seleccione oficina' }]}
             >
               <Select
-                size="large"
                 showSearch
                 optionFilterProp="label"
+                prefix={<BankOutlined aria-hidden />}
                 loading={oficinasQuery.isLoading}
                 placeholder={
                   oficinasQuery.isLoading
@@ -237,7 +254,7 @@ export function LoginPage() {
               />
             </Form.Item>
 
-            <Form.Item name="recordar" valuePropName="checked" style={{ marginBottom: 8 }}>
+            <Form.Item name="recordar" valuePropName="checked" className="credix-login-form__remember">
               <Checkbox>Recordar sesión en este equipo</Checkbox>
             </Form.Item>
 
@@ -245,9 +262,8 @@ export function LoginPage() {
               type="primary"
               htmlType="submit"
               block
-              size="large"
+              className="credix-login-form__submit"
               loading={submitting}
-              style={{ marginTop: 8 }}
               disabled={oficinaOptions.length === 0 && !oficinasQuery.isLoading}
             >
               Iniciar sesión
