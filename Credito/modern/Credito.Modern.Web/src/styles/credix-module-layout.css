@@ -286,6 +286,17 @@
     text-align: left !important;
   }
 
+  .credix-informe-filter-row .ant-form-vertical .ant-form-item-label {
+    flex: none !important;
+    max-width: none !important;
+    width: 100%;
+  }
+
+  .credix-informe-filter-row .ant-form-vertical .ant-form-item-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
   .credix-informe-filter-row .ant-form-item-control {
     flex: 1 1 auto;
   }

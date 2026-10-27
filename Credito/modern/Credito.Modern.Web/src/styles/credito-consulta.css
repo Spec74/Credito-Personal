@@ -707,7 +707,7 @@
 
 .credito-consulta-resumen__desc .ant-descriptions-item-label {
   font-weight: 600;
-  color: #475569 !important;
+  color: var(--credix-text-muted) !important;
   background: var(--credix-surface-muted);
 }
 
@@ -937,12 +937,12 @@
   width: 150px;
   font-weight: 700;
   color: var(--credix-ink-brand);
-  background: #f0f7ff !important;
+  background: var(--credix-info-bg) !important;
 }
 
 .credito-ajustes-card {
   overflow: visible;
-  border-color: #dfe8f2 !important;
+  border-color: var(--credix-border) !important;
   box-shadow: 0 6px 18px rgb(15 23 42 / 5%);
 }
 
@@ -958,7 +958,7 @@
 .credito-ajustes-grid--secondary {
   margin-top: 14px;
   padding-top: 14px;
-  border-top: 1px solid #e4eef8;
+  border-top: 1px solid var(--credix-border);
 }
 
 .credito-ajustes-item {
@@ -1001,7 +1001,7 @@
 .credito-ajustes-item .ant-select-selector {
   min-height: 38px;
   border-radius: 11px !important;
-  border-color: #bfd7ee !important;
+  border-color: var(--credix-brand-line) !important;
 }
 
 .credito-ajustes-item .ant-select-focused .ant-select-selector,

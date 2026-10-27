@@ -223,4 +223,15 @@ describe('menuRouteAccess', () => {
   it('extraAllowedPaths habilita morosos (Morosidad.UsuarioConsultaIds)', () => {
     expect(hasMenuRouteAccess('/informes/morosos', [], ['/informes/morosos'])).toBe(true)
   })
+
+  it('menú Artículos habilita marcas, modelos y tipos', () => {
+    const articulos: MenuItemDto[] = [
+      { ...menu('/articulo', 'ARTICULOS'), modulo: 'MAESTRO' },
+    ]
+    expect(hasMenuRouteAccess('/maestros/articulos', articulos)).toBe(true)
+    expect(hasMenuRouteAccess('/maestros/marcas', articulos)).toBe(true)
+    expect(hasMenuRouteAccess('/maestros/modelos', articulos)).toBe(true)
+    expect(hasMenuRouteAccess('/maestros/tipos-articulo', articulos)).toBe(true)
+    expect(hasMenuRouteAccess('/maestros/marcas', [menu('/clientes')])).toBe(false)
+  })
 })

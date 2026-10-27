@@ -2555,10 +2555,56 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-informe-export-row {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 14px;
   padding-top: 14px;
   border-top: 1px solid color-mix(in srgb, var(--credix-border) 65%, var(--credix-bg));
   width: 100%;
+  clear: both;
+}
+
+.credix-informe-filter-row .ant-form-vertical {
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 12px;
+}
+
+.credix-informe-filter-row .ant-form-vertical .ant-form-item {
+  width: 100% !important;
+  flex: 1 1 100% !important;
+  margin-bottom: 0 !important;
+}
+
+.credix-informe-filter-row .ant-form-vertical .ant-form-item-row {
+  flex-direction: column !important;
+  flex-wrap: wrap !important;
+  align-items: stretch !important;
+  width: 100%;
+}
+
+.credix-informe-filter-row .ant-form-vertical .ant-form-item-label {
+  flex: none !important;
+  max-width: none !important;
+  width: 100%;
+  line-height: 1.3 !important;
+  height: auto !important;
+}
+
+.credix-informe-filter-row .ant-form-vertical .ant-form-item-control,
+.credix-informe-filter-row .ant-form-vertical .ant-select,
+.credix-informe-filter-row .ant-form-vertical .ant-input {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.credix-informe-filter-row .ant-form-item-extra {
+  position: static;
+  white-space: normal;
 }
 
 .credix-informe-export-bar .credix-report-btn {
@@ -2584,7 +2630,7 @@ ul.credix-stats--module li span.red {
 
 .credix-informe-results-panel.credix-box {
   border-radius: var(--credix-radius);
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid var(--credix-border);
   box-shadow: var(--credix-shadow-sm);
 }

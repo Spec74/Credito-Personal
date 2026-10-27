@@ -139,6 +139,7 @@ export function KardexPage() {
         <Form
           form={form}
           layout="vertical"
+          className="kardex-filtros"
           onFinish={(v) => consulta.mutate({ ...v, oficinaId })}
         >
           <Form.Item name="oficinaId" hidden>

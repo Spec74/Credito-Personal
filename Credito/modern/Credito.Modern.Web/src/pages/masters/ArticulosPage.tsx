@@ -274,11 +274,19 @@ export function ArticulosPage() {
     void queryClient.invalidateQueries({ queryKey: ['articulo-imagenes', id] })
   }
 
-  const abrirNuevo = () => {
+  const abrirNuevo = async () => {
+    let tipo = tipoArticuloId ?? tiposQuery.data?.[0]?.tipoArticuloId
+    let modelo = modeloId ?? modelosQuery.data?.[0]?.modeloId
+    try {
+      if (!tipo) tipo = await crearTipoRapido.mutateAsync('GENERAL')
+      if (!modelo) modelo = await crearModeloRapido.mutateAsync('GENERAL')
+    } catch {
+      return
+    }
     setArticuloId(0)
     form.setFieldsValue({
-      modeloId: modeloId ?? modelosQuery.data?.[0]?.modeloId,
-      tipoArticuloId: tipoArticuloId ?? tiposQuery.data?.[0]?.tipoArticuloId,
+      modeloId: modelo,
+      tipoArticuloId: tipo,
       codArticulo: '',
       denominacion: '',
       descripcion: '',
@@ -334,6 +342,38 @@ export function ArticulosPage() {
         </Space>
       }
       toolbar={
+        <div className="articulos-toolbar">
+          {articulosQuery.isError ? (
+            <Alert
+              type="error"
+              showIcon
+              style={{ marginBottom: 12 }}
+              message={
+                articulosQuery.error instanceof ApiError
+                  ? articulosQuery.error.message
+                  : 'No se pudieron cargar los artículos'
+              }
+            />
+          ) : null}
+          {catalogoVacio ? (
+            <Alert
+              type="info"
+              showIcon
+              style={{ marginBottom: 12 }}
+              message="Primero cree tipo y modelo"
+              description="Marcas, modelos y tipos se gestionan en los enlaces de arriba o aquí: cree GENERAL y luego el artículo."
+              action={
+                <Space wrap>
+                  <Button size="small" loading={creandoCatalogo} onClick={() => crearTipoRapido.mutate('GENERAL')}>
+                    Crear tipo GENERAL
+                  </Button>
+                  <Button size="small" loading={creandoCatalogo} onClick={() => crearModeloRapido.mutate('GENERAL')}>
+                    Crear modelo GENERAL
+                  </Button>
+                </Space>
+              }
+            />
+          ) : null}
         <Space wrap>
           <CredixSelect
             allowClear
@@ -366,7 +406,7 @@ export function ArticulosPage() {
           >
             Incluir inactivos
           </Checkbox>
-          <Button type="primary" icon={<PlusOutlined />} onClick={abrirNuevo}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => void abrirNuevo()}>
             Nuevo artículo
           </Button>
           <Button
@@ -377,6 +417,7 @@ export function ArticulosPage() {
             Actualizar
           </Button>
         </Space>
+        </div>
       }
       extra={
         <Drawer

@@ -326,7 +326,9 @@
 :root[data-theme='dark'] .ant-tabs-tab-btn,
 :root[data-theme='dark'] .ant-typography,
 :root[data-theme='dark'] .ant-descriptions-item-label,
+:root[data-theme='dark'] .ant-descriptions-bordered .ant-descriptions-item-label,
 :root[data-theme='dark'] .ant-descriptions-item-content,
+:root[data-theme='dark'] .ant-descriptions-bordered .ant-descriptions-item-content,
 :root[data-theme='dark'] .ant-statistic-content,
 :root[data-theme='dark'] .ant-collapse-header,
 :root[data-theme='dark'] .ant-list-item,
@@ -338,6 +340,26 @@
 :root[data-theme='dark'] .ant-alert-message,
 :root[data-theme='dark'] .ant-alert-description {
   color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .ant-descriptions-item-label,
+:root[data-theme='dark'] .ant-descriptions-bordered .ant-descriptions-item-label,
+:root[data-theme='dark'] .credito-gestion-cliente-card__desc .ant-descriptions-item-label,
+:root[data-theme='dark'] .credito-consulta-resumen__desc .ant-descriptions-item-label {
+  background: var(--credix-surface-muted) !important;
+  color: var(--credix-text) !important;
+}
+
+:root[data-theme='dark'] .ant-descriptions-item-content,
+:root[data-theme='dark'] .ant-descriptions-bordered .ant-descriptions-item-content {
+  background: var(--credix-surface) !important;
+  color: var(--credix-text) !important;
+}
+
+:root[data-theme='dark'] .ant-descriptions-bordered .ant-descriptions-view,
+:root[data-theme='dark'] .ant-descriptions-bordered .ant-descriptions-row > th,
+:root[data-theme='dark'] .ant-descriptions-bordered .ant-descriptions-row > td {
+  border-color: var(--credix-border) !important;
 }
 
 :root[data-theme='dark'] .ant-typography-secondary,

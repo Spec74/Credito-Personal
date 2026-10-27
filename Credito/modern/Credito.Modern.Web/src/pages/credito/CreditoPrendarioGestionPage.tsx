@@ -681,6 +681,13 @@ export function CreditoPrendarioGestionPage() {
           />
           {(bienes.data ?? []).length > 0 ? (
             <div className="credito-prendario-fichas">
+              <Alert
+                type="info"
+                showIcon
+                className="credito-prendario-alert"
+                message="Ficha del bien"
+                description="La foto y «cómo llegó» se cargan aquí, después de solicitar: el bien ya tiene código. No se devuelve la prenda mientras el crédito está desembolsado; para eso use Liberar (paga el saldo)."
+              />
               {(bienes.data ?? []).map((b) => {
                 const estado = (b.estado ?? 'EN CUSTODIA').trim().toUpperCase()
                 const enCustodia = estado === 'EN CUSTODIA'
@@ -754,17 +761,16 @@ export function CreditoPrendarioGestionPage() {
                             Rematar
                           </Button>
                         ) : null}
-                        {enCustodia ? (
+                        {enCustodia && puedePedirDevolucion ? (
                           <Button
-                            disabled={!puedePedirDevolucion || devolverBien.isPending}
+                            loading={devolverBien.isPending}
                             onClick={() =>
                               confirmMoney({
                                 title: `Devolver ${b.descripcion || 'bien'}`,
                                 amount: b.valorTasacion,
                                 officeLabel: `Crédito #${creditoId}`,
-                                consequence: creditoDesembolsado
-                                  ? 'Cierre el crédito antes de devolver.'
-                                  : 'El bien sale de custodia. Esta acción no se deshace.',
+                                consequence:
+                                  'Solo si el crédito no está desembolsado (solicitud anulada o no desembolsada). El bien sale de custodia. Esta acción no se deshace.',
                                 okText: 'Devolver',
                                 onOk: async () => {
                                   await devolverBien.mutateAsync(b.prendaId)
@@ -791,7 +797,8 @@ export function CreditoPrendarioGestionPage() {
               })}
               {creditoDesembolsado ? (
                 <Text type="secondary" className="credito-prendario-ficha__hint">
-                  La devolución se habilita cuando el crédito ya no está desembolsado.
+                  Con deuda desembolsada no se usa Devolver. El cliente retira el bien con Liberar
+                  (paga capital + interés) o, si no paga, Rematar lo pasa a venta.
                 </Text>
               ) : null}
             </div>

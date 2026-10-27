@@ -158,6 +158,14 @@ export function hasMenuRouteAccess(
     allowedPaths.add('/caja/cobro-bloque')
   }
 
+  // Artículos implica el catálogo que lo alimenta (marcas / modelos / tipos).
+  if (allowedPaths.has('/maestros/articulos') || allowedPaths.has('/maestros')) {
+    allowedPaths.add('/maestros/marcas')
+    allowedPaths.add('/maestros/modelos')
+    allowedPaths.add('/maestros/tipos-articulo')
+    allowedPaths.add('/maestros/articulos')
+  }
+
   const adminHub = adminHubIndexAccess(path, allowedPaths)
   if (adminHub !== null) {
     return adminHub

@@ -66,6 +66,46 @@ BEGIN
         RETURN;
     END;
 
+    DECLARE @TipoId INT;
+    DECLARE @ModeloId INT;
+    DECLARE @MarcaId INT;
+
+    SELECT TOP (1) @TipoId = TipoArticuloId
+    FROM ALMACEN.TipoArticulo
+    WHERE Estado = CAST(1 AS bit)
+    ORDER BY CASE WHEN UPPER(LTRIM(RTRIM(Denominacion))) = N'GENERAL' THEN 0 ELSE 1 END, TipoArticuloId;
+
+    IF @TipoId IS NULL
+    BEGIN
+        INSERT INTO ALMACEN.TipoArticulo (Denominacion, Descripcion, Estado)
+        VALUES (N'GENERAL', N'Remate / catálogo automático', 1);
+        SET @TipoId = CONVERT(INT, SCOPE_IDENTITY());
+    END;
+
+    SELECT TOP (1) @MarcaId = MarcaId
+    FROM ALMACEN.Marca
+    WHERE Estado = CAST(1 AS bit)
+    ORDER BY CASE WHEN UPPER(LTRIM(RTRIM(Denominacion))) = N'GENERAL' THEN 0 ELSE 1 END, MarcaId;
+
+    IF @MarcaId IS NULL
+    BEGIN
+        INSERT INTO ALMACEN.Marca (Denominacion, Estado)
+        VALUES (N'GENERAL', 1);
+        SET @MarcaId = CONVERT(INT, SCOPE_IDENTITY());
+    END;
+
+    SELECT TOP (1) @ModeloId = ModeloId
+    FROM ALMACEN.Modelo
+    WHERE Estado = CAST(1 AS bit)
+    ORDER BY CASE WHEN UPPER(LTRIM(RTRIM(Denominacion))) = N'GENERAL' THEN 0 ELSE 1 END, ModeloId;
+
+    IF @ModeloId IS NULL
+    BEGIN
+        INSERT INTO ALMACEN.Modelo (Denominacion, MarcaId, Estado)
+        VALUES (N'GENERAL', @MarcaId, 1);
+        SET @ModeloId = CONVERT(INT, SCOPE_IDENTITY());
+    END;
+
     DECLARE @CurPrendaId BIGINT;
     DECLARE @Descripcion NVARCHAR(500);
     DECLARE @Serie NVARCHAR(100);
@@ -97,7 +137,7 @@ BEGIN
             ModeloId, TipoArticuloId, CodArticulo, Denominacion, Descripcion,
             Imagen, IndPerecible, IndImportado, Estado)
         VALUES (
-            NULL, NULL, @CodArticulo,
+            @ModeloId, @TipoId, @CodArticulo,
             LEFT(@Descripcion, 200),
             LEFT(CONCAT(N'Remate crédito ', @CreditoId, N' prenda ', @CurPrendaId), 250),
             @FotoPath, 0, 0, 1);

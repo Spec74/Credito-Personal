@@ -4,6 +4,15 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Remate: catálogo GENERAL si no hay tipo/modelo
+
+**Qué hay:** `usp_RematarPrenda` usa (o crea) marca/tipo/modelo GENERAL
+para que el bien rematado salga vendible sin armar catálogo a mano.
+Nuevo artículo en maestros hace lo mismo si el catálogo está vacío.
+
+**Qué no hay:** no se aprueba crédito ni se cobra/libera/remata sin
+confirmación del operador.
+
 ### 2026-10-27 — Remate: vender ahora en el ticket
 
 **Qué hay:** Tras `usp_RematarPrenda` el bien ya es artículo + precio + serie
