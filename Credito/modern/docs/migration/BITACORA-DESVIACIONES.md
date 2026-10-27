@@ -4,6 +4,14 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Login: sin marcos, ritmo de página
+
+**Qué hay:** Frase y formulario sueltos (sin tarjeta). Cada columna es
+cabecera / contenido / pie, mismo ancho 380 px. Malla y aros se
+quedan. Tipografía: frase display, pie en una línea.
+
+**Qué no hay:** no se vuelve al card-in-card de 2016.
+
 ### 2026-10-27 — Login: espacio de sucursal, no panel vacío
 
 **Qué hay:** Columna de marca con malla, retícula y aros cian (el C

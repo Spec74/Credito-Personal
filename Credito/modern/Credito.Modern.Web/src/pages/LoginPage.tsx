@@ -152,7 +152,7 @@ export function LoginPage() {
         <div className="credix-login-stage__rings" aria-hidden />
         <div className="credix-login-stage__inner">
           <p className="credix-login-stage__date">{fecha}</p>
-          <div className="credix-login-stage__card">
+          <div className="credix-login-stage__body">
             <div className="credix-login-stage__brand">
               <BrandLogo onDark priority />
             </div>
@@ -165,20 +165,19 @@ export function LoginPage() {
               Sistema de trabajo de las sucursales. No es un portal de clientes.
             </p>
           </div>
-          <ul className="credix-login-stage__points">
-            <li>Entras a tu oficina</li>
-            <li>Sin alta pública</li>
-            <li>Listo para el mostrador</li>
-          </ul>
+          <p className="credix-login-stage__points">
+            Entras a tu oficina · Sin alta pública · Listo para el mostrador
+          </p>
         </div>
       </aside>
 
       <section className="credix-login-panel">
         <div className="credix-login-form">
-          <div className="credix-login-form__toolbar">
+          <div className="credix-login-form__head">
             <p className="credix-login-form__context">Sesión de sucursal</p>
             <CredixColorSchemeToggle compact />
           </div>
+          <div className="credix-login-form__main">
           <header className="credix-login-form__header">
             <p className="credix-login-form__hello">{saludo}</p>
             <h1 className="credix-login-form__title">Iniciar sesión</h1>
@@ -283,17 +282,19 @@ export function LoginPage() {
               Iniciar sesión
             </Button>
           </Form>
+          </div>
 
-          <p className="credix-login-form__legal">
-            ¿No es colaborador? Acérquese a una agencia.{' '}
-            <a href={soporte.href}>{soporte.label}</a>
-          </p>
-
-          {import.meta.env.DEV ? (
-            <Text type="secondary" style={{ display: 'block', marginTop: 12, fontSize: 11 }}>
-              Entorno desarrollo · API vía proxy local
-            </Text>
-          ) : null}
+          <div className="credix-login-form__foot">
+            <p className="credix-login-form__legal">
+              ¿No es colaborador? Acérquese a una agencia.{' '}
+              <a href={soporte.href}>{soporte.label}</a>
+            </p>
+            {import.meta.env.DEV ? (
+              <Text type="secondary" style={{ display: 'block', marginTop: 8, fontSize: 11 }}>
+                Entorno desarrollo · API vía proxy local
+              </Text>
+            ) : null}
+          </div>
         </div>
       </section>
     </main>
