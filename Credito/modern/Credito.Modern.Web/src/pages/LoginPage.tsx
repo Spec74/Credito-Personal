@@ -150,12 +150,9 @@ export function LoginPage() {
         <div className="credix-login-stage__mesh" aria-hidden />
         <div className="credix-login-stage__grid" aria-hidden />
         <div className="credix-login-stage__rings" aria-hidden />
-        <div className="credix-login-stage__hello">
-          <p className="credix-login-stage__greet">
-            {saludoDia.saludo}, <em>{capitalizarApodo(saludoDia.apodo)}</em>.
-          </p>
-          <p className="credix-login-stage__aside">{saludoDia.linea}</p>
-        </div>
+        <p className="credix-login-stage__greet">
+          {saludoDia.saludo}, <em>{capitalizarApodo(saludoDia.apodo)}</em>.
+        </p>
         <div className="credix-login-stage__body">
           <div className="credix-login-stage__brand">
             <BrandLogo onDark priority />
@@ -163,18 +160,13 @@ export function LoginPage() {
           <p className="credix-login-stage__eyebrow">Acceso del personal</p>
           <blockquote className="credix-login-quote" key={frase.texto}>
             <p>{frase.texto}</p>
-            {frase.fuente ? <cite>{frase.fuente}</cite> : <cite>CrediConfiable</cite>}
+            {frase.fuente ? <cite>{frase.fuente}</cite> : null}
           </blockquote>
-          <p className="credix-login-stage__lead">
-            Sistema de trabajo de las sucursales. No es un portal de clientes.
-          </p>
         </div>
-        <p className="credix-login-stage__points">
-          Entras a tu oficina · Sin alta pública · Listo para el mostrador
-        </p>
       </aside>
 
       <section className="credix-login-panel">
+        <div className="credix-login-panel__glow" aria-hidden />
         <div className="credix-login-form__head">
           <p className="credix-login-form__context">Sesión de sucursal</p>
           <CredixColorSchemeToggle variant="segmented" />

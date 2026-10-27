@@ -4,6 +4,14 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Login: menos copy, saludo mayor, esquinas en el form
+
+**Qué hay:** Se quitan cite de marca, lead, pie de puntos y la línea
+al lado del saludo. El saludo pasa a 22–28 px. El formulario lleva
+solo halos y un aro en las esquinas (no malla sobre los campos).
+
+**Qué no hay:** no se publica el manual interno en el login.
+
 ### 2026-10-27 — Login: saludo diario, sin fecha
 
 **Qué hay:** Se quita la fecha (el reloj del equipo ya la da). En su

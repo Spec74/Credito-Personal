@@ -23,6 +23,7 @@
 }
 
 .credix-login-stage {
+  grid-template-rows: auto 1fr;
   overflow: hidden;
   background: linear-gradient(165deg, #1a649c 0%, #114885 48%, #0d3a6b 100%);
   color: #f4f7fb;
@@ -83,9 +84,8 @@
   }
 }
 
-.credix-login-stage__hello,
+.credix-login-stage__greet,
 .credix-login-stage__body,
-.credix-login-stage__points,
 .credix-login-form__head,
 .credix-login-form__main,
 .credix-login-form__foot {
@@ -94,35 +94,18 @@
   width: 100%;
 }
 
-.credix-login-stage__hello {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 16px;
-  row-gap: 6px;
-}
-
 .credix-login-stage__greet {
   margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.35;
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
   color: #fff;
 }
 
 .credix-login-stage__greet em {
   font-style: normal;
-  font-weight: 650;
   color: #b7e3f6;
-}
-
-.credix-login-stage__aside {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.4;
-  color: rgba(244, 247, 251, 0.72);
 }
 
 .credix-login-form__context {
@@ -216,23 +199,35 @@
   }
 }
 
-.credix-login-stage__lead {
-  margin: 20px 0 0;
-  max-width: 38em;
-  font-size: 15px;
-  line-height: 1.55;
-  color: rgba(244, 247, 251, 0.76);
-}
-
-.credix-login-stage__points {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: rgba(244, 247, 251, 0.62);
-}
-
 .credix-login-panel {
+  overflow: hidden;
   background: var(--credix-surface);
+}
+
+.credix-login-panel__glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(280px 180px at 100% 0%, rgba(17, 72, 133, 0.09), transparent 70%),
+    radial-gradient(240px 160px at 0% 100%, rgba(61, 181, 234, 0.08), transparent 68%);
+}
+
+.credix-login-panel__glow::after {
+  content: '';
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  right: -88px;
+  bottom: -88px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--credix-brand, #114885) 16%, transparent);
+}
+
+:root[data-theme='dark'] .credix-login-panel__glow {
+  background:
+    radial-gradient(280px 180px at 100% 0%, rgba(61, 181, 234, 0.12), transparent 70%),
+    radial-gradient(240px 160px at 0% 100%, rgba(17, 72, 133, 0.28), transparent 68%);
 }
 
 .credix-login-form__head {
