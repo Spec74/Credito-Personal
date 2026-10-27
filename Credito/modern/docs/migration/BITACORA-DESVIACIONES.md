@@ -4,6 +4,15 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Login: logo sin placa blanca
+
+**Qué hay:** El PNG oficial ya es RGBA. En la columna de marca se
+quita la placa blanca; el lockup va directo sobre el azul. El sider
+oscuro conserva placa: el wordmark navy no se invierte.
+
+**Qué no hay:** no se usa el JPEG con ajedrez pintado ni se invierte
+el wordmark.
+
 ### 2026-10-27 — Login: menos copy, saludo mayor, esquinas en el form
 
 **Qué hay:** Se quitan cite de marca, lead, pie de puntos y la línea

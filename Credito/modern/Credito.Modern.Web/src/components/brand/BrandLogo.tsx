@@ -4,7 +4,7 @@ interface BrandLogoProps {
   compact?: boolean
   showTagline?: boolean
   className?: string
-  /** Placa blanca: el lockup oficial es navy y no se invierte. */
+  /** Sobre fondo de marca: el PNG ya trae alpha; no se invierte. */
   onDark?: boolean
   priority?: boolean
 }
