@@ -185,6 +185,9 @@ describe('menuRouteAccess', () => {
   it('menu Creditos (consulta) habilita ficha por persona', () => {
     expect(hasMenuRouteAccess('/credito/consulta', [menu('/credito/consulta')])).toBe(true)
     expect(hasMenuRouteAccess('/credito/persona/7942', [menu('/credito/consulta')])).toBe(true)
+    expect(hasMenuRouteAccess('/credito/consulta/persona/535707', [menu('/credito/consulta')])).toBe(
+      true,
+    )
     expect(hasMenuRouteAccess('/credito/persona/7942', [menu('/clientes')])).toBe(false)
   })
 

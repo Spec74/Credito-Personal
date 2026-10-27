@@ -198,12 +198,12 @@ export function ClienteBuscarAutoComplete({
           }
           return
         }
-        // DNI/código único → cargar sin tocar la lista (caja / cobro rápido).
-        const digitsOnly = /^\d{6,12}$/.test(debounced.trim())
+        // Solo DNI/código numérico: un nombre al borrar no debe reelegir al cliente anterior.
+        const digitsOnly = /^\d{4,12}$/.test(debounced.trim())
         if (
           autoSelectSingle &&
           opts.length === 1 &&
-          (digitsOnly || debounced.trim().length >= 4) &&
+          digitsOnly &&
           norm(debounced) !== norm(selectedRef.current?.label ?? '')
         ) {
           const only = opts[0]

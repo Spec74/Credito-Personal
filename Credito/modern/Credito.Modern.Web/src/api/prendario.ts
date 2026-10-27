@@ -1,4 +1,4 @@
-import { apiDownload, apiFetch } from './client'
+import { apiDownload, apiFetch, apiFetchBlob } from './client'
 import { guardarPrendas, type PrendaItem } from './creditoGestion'
 
 export type PrendarioCategoria =
@@ -215,6 +215,11 @@ export function subirFotoPrenda(oficinaId: number, prendaId: number, file: File)
   form.append('prendaId', String(prendaId))
   form.append('archivo', file)
   return apiFetch('/prendario/prenda-foto', { method: 'POST', body: form })
+}
+
+export function fetchPrendaFotoBlob(prendaId: number, oficinaId: number) {
+  const q = new URLSearchParams({ oficinaId: String(oficinaId) })
+  return apiFetchBlob(`/prendario/prenda-foto/${prendaId}?${q}`, 'image/*')
 }
 
 export function renovarPrendario(body: {

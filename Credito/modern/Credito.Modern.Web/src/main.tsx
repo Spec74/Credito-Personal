@@ -20,6 +20,7 @@ import './styles/credix-responsive-global.css'
 import './styles/credix-mobile-shell.css'
 import './styles/credix-oleada-a.css'
 import './styles/credix-intranet.css'
+import './styles/credix-structure-lock.css'
 // CSS de módulos se importa en la página lazy correspondiente (menos CSS en /inicio).
 
 dayjs.locale('es')

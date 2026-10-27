@@ -186,8 +186,8 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  min-height: 320px;
-  padding: 48px 24px;
+  min-height: 0;
+  padding: 24px 16px;
 }
 
 .cliente-mantener__loading-text {

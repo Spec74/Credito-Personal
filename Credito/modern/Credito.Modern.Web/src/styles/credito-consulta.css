@@ -201,6 +201,105 @@
   font-weight: 750;
 }
 
+.credito-consulta-inicio {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.credito-consulta-inicio__lead {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--credito-muted);
+}
+
+.credito-consulta-inicio__block h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--credix-text, #111827);
+}
+
+.credito-consulta-inicio__recientes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.credito-consulta-inicio__recientes li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.credito-consulta-inicio__reciente {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--credito-card-border);
+  border-radius: 10px;
+  background: var(--credito-surface);
+  text-align: left;
+  cursor: pointer;
+}
+
+.credito-consulta-inicio__reciente:hover,
+.credito-consulta-inicio__reciente:focus-visible {
+  border-color: var(--credito-brand);
+}
+
+.credito-consulta-inicio__reciente-name {
+  font-weight: 650;
+  font-size: 14px;
+  color: var(--credix-text, #111827);
+}
+
+.credito-consulta-inicio__reciente-meta {
+  font-size: 12px;
+  color: var(--credito-muted);
+}
+
+.credito-consulta-inicio__quitar {
+  flex: 0 0 auto;
+  padding-inline: 0;
+}
+
+.credito-consulta-inicio__atajos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.credito-consulta-inicio__atajo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--credito-card-border);
+  border-radius: 10px;
+  background: var(--credito-surface);
+  color: var(--credix-text, #111827);
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.credito-consulta-inicio__atajo:hover,
+.credito-consulta-inicio__atajo:focus-visible {
+  border-color: var(--credito-brand);
+  color: var(--credito-brand);
+}
+
 .credito-consulta-cliente__creditos {
   padding: 14px;
   background: #fff;
@@ -807,7 +906,7 @@
 }
 
 .credito-gestion-evidencias-card .ant-card-body {
-  min-height: 126px;
+  min-height: 0;
 }
 
 .credito-consulta-panel-credito .ant-card {

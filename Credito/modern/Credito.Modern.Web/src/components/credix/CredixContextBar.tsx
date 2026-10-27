@@ -13,22 +13,25 @@ export function CredixContextBar({ oficinaId }: { oficinaId: number }) {
   })
 
   const caja = cajaQuery.data
+  const nombre = caja?.cajaDenominacion?.trim()
   const label = cajaQuery.isLoading
     ? 'Caja…'
     : caja
-      ? `Caja · ${caja.cajaDenominacion}`
+      ? nombre || 'Caja'
       : cajaQuery.isError
         ? 'Caja —'
         : 'Sin caja'
+  const labelMovil = cajaQuery.isLoading ? 'Caja…' : caja ? 'Caja' : 'Sin caja'
 
   return (
     <Link
       to="/caja/diario"
       className={`credix-header-caja ${caja ? 'is-open' : 'is-closed'}`}
-      title={caja ? `Caja abierta · ${caja.cajaDenominacion}` : 'Ir a caja diario'}
+      title={caja ? `Caja abierta · ${nombre || 'sesión'}` : 'Ir a caja diario'}
       translate="no"
     >
-      {label}
+      <span className="credix-header-caja__full">{label}</span>
+      <span className="credix-header-caja__short">{labelMovil}</span>
     </Link>
   )
 }

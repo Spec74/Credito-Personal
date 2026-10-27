@@ -140,7 +140,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="credix-login-wrap" translate="no">
+    <main className="credix-login-wrap" translate="no">
       <Card className="credix-login-card" styles={{ body: { paddingTop: 20 } }}>
         <BrandLogo showTagline />
 
@@ -251,6 +251,6 @@ export function LoginPage() {
           </Text>
         )}
       </Card>
-    </div>
+    </main>
   )
 }

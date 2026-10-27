@@ -1,7 +1,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button, Drawer, Grid, Menu, Result, Spin, Tag, Typography, message } from 'antd'
+import { Button, Drawer, Grid, Menu, Result, Spin, Typography, message } from 'antd'
 import './app-shell.css'
 import {
   LogoutOutlined,
@@ -9,7 +9,6 @@ import {
   MenuUnfoldOutlined,
   FundProjectionScreenOutlined,
   WarningOutlined,
-  UserOutlined,
   DoubleRightOutlined,
   PercentageOutlined,
   CalculatorOutlined,
@@ -25,7 +24,9 @@ import { useAuth } from '../../auth/useAuth'
 import { getLoginProfile } from '../../auth/sessionProfile'
 import { BrandLogo } from '../brand/BrandLogo'
 import { CredixContextBar } from '../credix/CredixContextBar'
+import { CredixPage } from '../credix/CredixPage'
 import { CredixNotifyBell } from './CredixNotifyBell'
+import { CredixSessionControl } from './CredixSessionControl'
 import { useCredixDensity } from '../../hooks/useCredixDensity'
 import { rememberInforme } from '../../utils/informesRecientes'
 import { RouteFallback } from './RouteFallback'
@@ -338,8 +339,6 @@ export function AppShell() {
     }
   }
 
-  const roleTags = session?.roles ?? []
-
   const onQuickAction = useCallback(
     (qa: QuickAction) => {
       const oficinaId = session?.oficinaId
@@ -401,34 +400,20 @@ export function AppShell() {
             onClick={toggleNav}
             aria-label={isMobile && mobileNavOpen ? 'Cerrar menú' : 'Abrir menú'}
             aria-expanded={isMobile ? mobileNavOpen : !collapsed}
-            aria-controls={isMobile ? undefined : 'credix-sidebar-nav'}
+            aria-controls={isMobile ? 'credix-mobile-nav' : 'credix-sidebar-nav'}
           />
           <span className="credix-header-brand">
             <strong>CREDICONFIABLE</strong>
           </span>
-          <span className="credix-header-user">
-            <UserOutlined />
-            <Text strong className="credix-header-user__name" style={{ color: '#fff' }}>
-              {usuarioNombre}
-            </Text>
-            {oficinaNombre ? (
-              <Text className="credix-header-user__office" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                {' '}
-                · {oficinaNombre}
-              </Text>
-            ) : null}
-          </span>
+          <CredixSessionControl
+            usuarioNombre={usuarioNombre}
+            oficinaNombre={oficinaNombre}
+            roles={session?.roles ?? []}
+          />
         </div>
-        <div className="credix-header-end">
+        <div className="credix-header-end" role="navigation" aria-label="Contexto de sede">
           <CredixContextBar oficinaId={session?.oficinaId ?? 0} />
           <CredixNotifyBell />
-          {screens.lg &&
-            roleTags.slice(0, 3).map((rol) => (
-              <Tag key={rol}>{rol}</Tag>
-            ))}
-          {screens.lg && roleTags.length > 3 ? (
-            <Tag>+{roleTags.length - 3}</Tag>
-          ) : null}
           <Button
             type="text"
             icon={<LogoutOutlined />}
@@ -447,12 +432,13 @@ export function AppShell() {
       <div className="credix-layout">
         {!isMobile && (
           <aside
-            id="credix-sidebar-nav"
             className={
               collapsed ? 'credix-sidebar credix-sidebar--collapsed' : 'credix-sidebar'
             }
           >
-            {navPanel}
+            <nav id="credix-sidebar-nav" aria-label="Módulos">
+              {navPanel}
+            </nav>
           </aside>
         )}
 
@@ -463,10 +449,13 @@ export function AppShell() {
           onClose={() => setMobileNavOpen(false)}
           width={Math.min(300, typeof window !== 'undefined' ? window.innerWidth * 0.88 : 300)}
           className="app-shell-drawer"
+          rootClassName="app-shell-drawer-root"
           styles={{ body: { padding: 0 } }}
           destroyOnClose={false}
         >
-          {navPanel}
+          <nav id="credix-mobile-nav" aria-label="Módulos">
+            {navPanel}
+          </nav>
         </Drawer>
 
         <div className="credix-main">
@@ -477,22 +466,24 @@ export function AppShell() {
               ) : hasCurrentRouteAccess ? (
                 <Outlet />
               ) : (
-                <Result
-                  status="403"
+                <CredixPage
                   title="Sin permiso"
-                  subTitle="Esta ruta no está habilitada en el menú asignado a su rol/oficina."
-                  extra={
-                    <Button type="primary" onClick={() => navigate('/inicio')}>
-                      Ir al inicio
-                    </Button>
-                  }
-                />
+                  subtitle="Esta ruta no está habilitada en el menú asignado a su rol/oficina."
+                >
+                  <Result
+                    status="403"
+                    title={null}
+                    subTitle={null}
+                    extra={
+                      <Button type="primary" onClick={() => navigate('/inicio')}>
+                        Ir al inicio
+                      </Button>
+                    }
+                  />
+                </CredixPage>
               )}
             </Suspense>
           </main>
-          <footer className="credix-footer app-shell-footer">
-            Soporte: 966900599 · © {new Date().getFullYear()} {branding.companyName}
-          </footer>
         </div>
       </div>
     </div>

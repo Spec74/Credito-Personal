@@ -69,6 +69,7 @@ El menú vivo de **oficina 1 (CREDITO)** cubre SSD-01 … SSD-09 y SSD-00. Venta
 | SSD-14 | Comunicados y agenda | As-built | Spec Kit `002-comunicados-agenda` | [SSD-14-comunicados-agenda.md](SSD-14-comunicados-agenda.md) |
 | SSD-15 | Shell móvil (todas las pantallas) | As-built | Spec Kit `003-movil-shell` | [SSD-15-movil-shell.md](SSD-15-movil-shell.md) |
 | SSD-16 | Lecciones Facturador Smart | Spec de cambio (sin código) | Spec Kit `005-facturador-smart` | [SSD-16-facturador-smart.md](SSD-16-facturador-smart.md) |
+| SSD-17 | Estructura contemporánea (HTML + chrome) | Change | Spec Kit `006-estructura-contemporanea` | [SSD-17-estructura-contemporanea.md](SSD-17-estructura-contemporanea.md) |
 | SSD-00 | Cutover y strangler | Parcial (corte no ejecutado) | `STRANGLER-MIGRATION`, `DEPLOY-AL-SUBIR`, `MIGRATION-CLOSURE` | [SSD-00-cutover.md](SSD-00-cutover.md) |
 
 ## Qué no hacer

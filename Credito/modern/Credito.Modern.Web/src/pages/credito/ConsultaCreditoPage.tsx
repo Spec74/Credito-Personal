@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PrinterOutlined } from '@ant-design/icons'
 import {
@@ -131,6 +131,8 @@ export function ConsultaCreditoPage() {
   const roles = useMemo(() => session?.roles ?? [], [session?.roles])
   const soloLectura = tieneCreditoModoLectura(roles)
   const [searchParams, setSearchParams] = useSearchParams()
+  const { personaId: personaIdPath } = useParams()
+  const navigate = useNavigate()
   const [modalAnular, setModalAnular] = useState(false)
   const [modalProrrogar, setModalProrrogar] = useState(false)
   const [modalReprogramar, setModalReprogramar] = useState(false)
@@ -143,7 +145,9 @@ export function ConsultaCreditoPage() {
   const personaIdParam =
     searchParams.get('personaId') ??
     searchParams.get('pPersonaId') ??
-    searchParams.get('personalId')
+    searchParams.get('personalId') ??
+    personaIdPath ??
+    null
   const personaIdFromUrl = useMemo(() => {
     if (!personaIdParam) return null
     const id = Number(personaIdParam)
@@ -233,8 +237,12 @@ export function ConsultaCreditoPage() {
   const limpiarConsulta = useCallback(() => {
     setActiveId(null)
     setTabActiva('plan')
-    setSearchParams(new URLSearchParams())
-  }, [setSearchParams])
+    if (personaIdPath) {
+      navigate('/credito/consulta', { replace: true })
+      return
+    }
+    setSearchParams(new URLSearchParams(), { replace: true })
+  }, [navigate, personaIdPath, setSearchParams])
 
   const invalidarConsulta = () => {
     void queryClient.invalidateQueries({ queryKey: ['estado-plan-pago', activeId] })
@@ -534,7 +542,7 @@ export function ConsultaCreditoPage() {
     <CredixPage
       className="credito-consulta-page"
       title="Créditos"
-      subtitle={undefined}
+      subtitle="DNI o nro. de crédito cargan solos. El nombre se elige. Borrar limpia la ficha."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },

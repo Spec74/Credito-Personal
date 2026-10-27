@@ -26,7 +26,7 @@ const HUB_CHILDREN: Record<string, string[]> = {
   '/reportes/cobranza': ['/reportes/cobranza'],
   '/reportes/venta': ['/reportes/venta', '/informes/rentabilidad-venta'],
   '/credito': ['/credito/'],
-  '/credito/consulta': ['/credito/persona/'],
+  '/credito/consulta': ['/credito/persona/', '/credito/consulta/persona/'],
   '/clientes': ['/clientes/'],
   '/caja': ['/caja/'],
   // Operación diaria: Cobro campo es atajo de Caja diario (no ítem de menú propio).

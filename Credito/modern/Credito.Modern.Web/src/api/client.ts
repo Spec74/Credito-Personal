@@ -101,6 +101,15 @@ export async function refreshSessionTokens(): Promise<boolean> {
   return ensureRefreshed()
 }
 
+/** GET autenticado que devuelve blob (fotos, adjuntos). El caller revoca el object URL. */
+export async function apiFetchBlob(path: string, accept = '*/*'): Promise<Blob> {
+  const res = await authorizedFetch(path, {
+    method: 'GET',
+    headers: { Accept: accept },
+  })
+  return res.blob()
+}
+
 async function authorizedFetch(
   path: string,
   init?: RequestInit,

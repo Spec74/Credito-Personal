@@ -8,6 +8,7 @@ export const branding = {
   companyName: 'CrediConfiable',
   tagline: 'Tramitamos tu préstamo hoy mismo...',
   systemDescription: 'Sistema comercial de ventas y crédito',
+  supportPhone: '966900599',
   logoSrc: `${publicBase}brand/credix.png`,
   logoWidth: 280,
   colors: {

@@ -816,7 +816,6 @@ internal static class PrendarioEndpoints
                 async Task<Results<Ok<PrendarioFichaResponse>, ProblemHttpResult>> (
                     HttpContext httpContext,
                     PrendarioFichaRequest body,
-                    IPrendarioWriteService prendarioWrite,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -824,8 +823,7 @@ internal static class PrendarioEndpoints
                     var r = await EjecutarEscrituraPrendarioAsync(
                         httpContext,
                         body.OficinaId,
-                        () => prendarioWrite.ActualizarFichaAsync(body, 0, ct),
-                        (svc, usuarioId) => prendarioWrite.ActualizarFichaAsync(body, usuarioId, ct),
+                        (svc, usuarioId) => svc.ActualizarFichaAsync(body, usuarioId, ct),
                         loggerFactory,
                         env,
                         "PrendarioFicha",
@@ -1026,15 +1024,13 @@ internal static class PrendarioEndpoints
                 async Task<Results<Ok<PrendarioRenovarResponse>, ProblemHttpResult>> (
                     HttpContext httpContext,
                     PrendarioRenovarRequest body,
-                    IPrendarioWriteService prendarioWrite,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                     await EjecutarEscrituraPrendarioAsync(
                         httpContext,
                         body.OficinaId,
-                        () => prendarioWrite.RenovarAsync(body, 0, ct),
-                        (svc, usuarioId) => prendarioWrite.RenovarAsync(body, usuarioId, ct),
+                        (svc, usuarioId) => svc.RenovarAsync(body, usuarioId, ct),
                         loggerFactory,
                         env,
                         "PrendarioRenovar",
@@ -1142,15 +1138,13 @@ internal static class PrendarioEndpoints
                 async Task<Results<Ok<PrendarioLiberarResponse>, ProblemHttpResult>> (
                     HttpContext httpContext,
                     PrendarioLiberarRequest body,
-                    IPrendarioWriteService prendarioWrite,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                     await EjecutarEscrituraPrendarioAsync(
                         httpContext,
                         body.OficinaId,
-                        () => prendarioWrite.LiberarAsync(body, 0, ct),
-                        (svc, usuarioId) => prendarioWrite.LiberarAsync(body, usuarioId, ct),
+                        (svc, usuarioId) => svc.LiberarAsync(body, usuarioId, ct),
                         loggerFactory,
                         env,
                         "PrendarioLiberar",
@@ -1166,15 +1160,13 @@ internal static class PrendarioEndpoints
                 async Task<Results<Ok<RematarPrendaResponse>, ProblemHttpResult>> (
                     HttpContext httpContext,
                     RematarPrendaRequest body,
-                    IPrendarioWriteService prendarioWrite,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                     await EjecutarEscrituraPrendarioAsync(
                         httpContext,
                         body.OficinaId,
-                        () => prendarioWrite.RematarAsync(body, 0, ct),
-                        (svc, usuarioId) => prendarioWrite.RematarAsync(body, usuarioId, ct),
+                        (svc, usuarioId) => svc.RematarAsync(body, usuarioId, ct),
                         loggerFactory,
                         env,
                         "PrendarioRematar",
@@ -1188,7 +1180,6 @@ internal static class PrendarioEndpoints
     static async Task<Results<Ok<T>, ProblemHttpResult>> EjecutarEscrituraPrendarioAsync<T>(
         HttpContext httpContext,
         int oficinaId,
-        Func<Task<T>> unused,
         Func<IPrendarioWriteService, int, Task<T>> exec,
         ILoggerFactory loggerFactory,
         IHostEnvironment env,
@@ -1196,7 +1187,6 @@ internal static class PrendarioEndpoints
         string failDetail,
         CancellationToken ct)
     {
-        _ = unused;
         _ = ct;
         if (oficinaId < 1)
         {

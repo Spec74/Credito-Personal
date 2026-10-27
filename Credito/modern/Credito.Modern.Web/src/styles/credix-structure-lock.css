@@ -1,0 +1,68 @@
+/**
+ * 006 / SSD-17 — candado de estructura.
+ * Se importa al final de main.tsx para que el CSS lazy no reabra
+ * huecos título→cuerpo (margen doble, flex 200 px, 100vh).
+ */
+
+.credix-app {
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+}
+
+.credix-page.credix-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 0;
+  height: auto;
+}
+
+.credix-page.credix-page > .credix-page-head {
+  flex: 0 0 auto;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding-bottom: 10px;
+}
+
+.credix-page.credix-page > .credix-page-head .credix-page-head-text {
+  flex: 0 1 auto;
+}
+
+.credix-page > .credix-page-body {
+  flex: 0 0 auto;
+  min-height: 0;
+}
+
+.credix-login-wrap,
+.credix-boot {
+  min-height: 100dvh;
+}
+
+.ant-result {
+  padding: 12px 0;
+  min-height: 0;
+}
+
+.ant-result-icon {
+  margin-bottom: 12px;
+}
+
+@media (max-width: 991px) {
+  .credix-content.app-shell-content,
+  main.credix-content {
+    margin: 0;
+    padding: 10px 12px calc(16px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .credix-page.credix-page > .credix-page-head {
+    justify-content: flex-start;
+  }
+
+  .credix-page ul.credix-stats,
+  .credix-informe-page ul.credix-stats,
+  .credix-crud-page ul.credix-stats {
+    grid-template-columns: repeat(auto-fit, minmax(88px, 1fr));
+  }
+}

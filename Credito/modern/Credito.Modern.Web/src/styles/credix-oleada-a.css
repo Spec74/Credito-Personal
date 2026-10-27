@@ -43,6 +43,10 @@ body.credix-density-comfortable .credix-page {
   text-decoration: none;
 }
 
+.credix-header-caja__short {
+  display: none;
+}
+
 .credix-header-caja:hover {
   color: #fff;
   border-color: rgba(255, 255, 255, 0.5);
@@ -64,9 +68,17 @@ body.credix-density-comfortable .credix-page {
 
 @media (max-width: 991px) {
   .credix-header-caja {
-    max-width: min(34vw, 160px);
+    max-width: none;
     min-height: var(--credix-touch-min, 40px);
     padding: 0 12px;
+  }
+
+  .credix-header-caja__full {
+    display: none;
+  }
+
+  .credix-header-caja__short {
+    display: inline;
   }
 }
 

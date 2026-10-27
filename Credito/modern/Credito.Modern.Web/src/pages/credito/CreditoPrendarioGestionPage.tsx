@@ -14,8 +14,6 @@ import {
 import { prorrogarCredito } from '../../api/creditoPlanes'
 import { fetchCajaDiarioSesion } from '../../api/cajaDiario'
 import { fetchValoresTabla } from '../../api/maestros'
-import { getAccessToken } from '../../auth/tokenStorage'
-import { getApiBaseUrl } from '../../api/client'
 import { TipoPagoChips } from '../../components/caja/TipoPagoChips'
 import { FechaHoraDigitalField, nowDatetimeLocal } from '../caja/components/FechaHoraDigitalField'
 import {
@@ -34,6 +32,7 @@ import {
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { confirmMoney, CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
+import { PrendaFotoThumb } from '../../components/credito/PrendaFotoThumb'
 import { PrendasEditor } from '../../components/credito/PrendasEditor'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
@@ -261,6 +260,7 @@ export function CreditoPrendarioGestionPage() {
     void queryClient.invalidateQueries({ queryKey: ['prendario-creditos'] })
     void queryClient.invalidateQueries({ queryKey: ['prendario-resumen'] })
     void queryClient.invalidateQueries({ queryKey: ['prendario-cobro-preview', oficinaId, creditoId] })
+    void queryClient.invalidateQueries({ queryKey: ['prenda-foto'] })
   }
 
   const guardarFicha = useMutation({
@@ -414,6 +414,7 @@ export function CreditoPrendarioGestionPage() {
 
   return (
     <CredixPage
+      className="credito-prendario-gestion-page"
       title="Gestión prendaria"
       subtitle={undefined}
       breadcrumb={[
@@ -453,11 +454,11 @@ export function CreditoPrendarioGestionPage() {
         <Alert
           type="info"
           showIcon
-          style={{ marginBottom: 16 }}
+          className="credito-prendario-alert"
           message="Seleccione el crédito prendario a gestionar"
           description={
             <Select
-              style={{ width: '100%', maxWidth: 420, marginTop: 8 }}
+              className="credito-prendario-select"
               placeholder="Crédito activo"
               options={creditosOpciones.map((c) => ({
                 value: c.creditoId,
@@ -560,7 +561,7 @@ export function CreditoPrendarioGestionPage() {
         >
           {creditosOpciones.length > 1 ? (
             <Select
-              style={{ width: '100%', maxWidth: 420, marginBottom: 12 }}
+              className="credito-prendario-select credito-prendario-alert"
               value={creditoId}
               options={creditosOpciones.map((c) => ({
                 value: c.creditoId,
@@ -572,7 +573,7 @@ export function CreditoPrendarioGestionPage() {
             />
           ) : null}
 
-          <Paragraph type="secondary" style={{ marginBottom: 8 }}>
+          <Paragraph type="secondary" className="credito-prendario-estado">
             Estado{' '}
             {contexto.isLoading
               ? '…'
@@ -612,7 +613,7 @@ export function CreditoPrendarioGestionPage() {
             <Alert
               type="warning"
               showIcon
-              style={{ marginBottom: 12 }}
+              className="credito-prendario-alert"
               message="Sin bienes registrados"
               description={
                 puedeEditarBienes
@@ -624,14 +625,14 @@ export function CreditoPrendarioGestionPage() {
             <Alert
               type="info"
               showIcon
-              style={{ marginBottom: 12 }}
+              className="credito-prendario-alert"
               message="Complete el simulador para asignar contrato e imprimir documentos."
             />
           ) : null}
 
           {puedeEditarBienes ? (
-            <div style={{ marginBottom: 12, maxWidth: 280 }}>
-              <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
+            <div className="credito-prendario-fecha-remate">
+              <Text type="secondary" className="credito-prendario-fecha-remate__label">
                 Fecha remate (opcional)
               </Text>
               <Input
@@ -639,7 +640,7 @@ export function CreditoPrendarioGestionPage() {
                 value={fechaRematePrenda}
                 onChange={(e) => setFechaRematePrenda(e.target.value)}
               />
-              <Text type="secondary" style={{ fontSize: 12 }}>
+              <Text type="secondary" className="credito-prendario-fecha-remate__hint">
                 Si se deja vacía, vencimiento + 30 días.
               </Text>
             </div>
@@ -656,27 +657,26 @@ export function CreditoPrendarioGestionPage() {
             errores={erroresPrendas}
           />
           {(bienes.data ?? []).length > 0 ? (
-            <div style={{ marginTop: 12 }}>
+            <div className="credito-prendario-fichas">
               {(bienes.data ?? []).map((b) => {
                 const estado = (b.estado ?? 'EN CUSTODIA').trim().toUpperCase()
                 const enCustodia = estado === 'EN CUSTODIA'
                 return (
-                  <div
-                    key={b.prendaId}
-                    style={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                      gap: 8,
-                      alignItems: 'center',
-                      marginBottom: 8,
-                    }}
-                  >
-                    <Text>
-                      {b.descripcion || 'Bien'} · {estado}
-                    </Text>
-                    {b.prendaId > 0 ? <PrendaFotoThumb prendaId={b.prendaId} oficinaId={oficinaId} hasFoto={Boolean(b.fotoPath)} /> : null}
+                  <article key={b.prendaId} className="credito-prendario-ficha">
+                    <div className="credito-prendario-ficha__meta">
+                      <Text>
+                        {b.descripcion || 'Bien'} · {estado}
+                      </Text>
+                    </div>
                     {b.prendaId > 0 ? (
-                      <Space wrap size={8} style={{ width: '100%' }}>
+                      <PrendaFotoThumb
+                        prendaId={b.prendaId}
+                        oficinaId={oficinaId}
+                        hasFoto={Boolean(b.fotoPath)}
+                      />
+                    ) : null}
+                    <div className="credito-prendario-ficha__cuerpo">
+                      {b.prendaId > 0 ? (
                         <Input.TextArea
                           rows={2}
                           maxLength={500}
@@ -685,88 +685,89 @@ export function CreditoPrendarioGestionPage() {
                           onChange={(e) =>
                             setObsFicha((prev) => ({ ...prev, [b.prendaId]: e.target.value }))
                           }
-                          style={{ minWidth: 240, flex: 1 }}
                         />
-                        <Button
-                          size="small"
-                          loading={guardarFicha.isPending}
-                          onClick={() => guardarFicha.mutate(b.prendaId)}
-                        >
-                          Guardar ficha
-                        </Button>
-                        <Upload
-                          accept="image/jpeg,image/png,image/webp"
-                          showUploadList={false}
-                          beforeUpload={(file) => {
-                            void subirFoto.mutateAsync({ prendaId: b.prendaId, file })
-                            return false
-                          }}
-                        >
-                          <Button size="small" icon={<UploadOutlined />} loading={subirFoto.isPending}>
-                            Foto
+                      ) : null}
+                      <div className="credito-prendario-ficha__acciones">
+                        {b.prendaId > 0 ? (
+                          <>
+                            <Button
+                              loading={guardarFicha.isPending}
+                              onClick={() => guardarFicha.mutate(b.prendaId)}
+                            >
+                              Guardar ficha
+                            </Button>
+                            <Upload
+                              accept="image/jpeg,image/png,image/webp"
+                              showUploadList={false}
+                              beforeUpload={(file) => {
+                                void subirFoto.mutateAsync({ prendaId: b.prendaId, file })
+                                return false
+                              }}
+                            >
+                              <Button icon={<UploadOutlined />} loading={subirFoto.isPending}>
+                                Foto
+                              </Button>
+                            </Upload>
+                          </>
+                        ) : null}
+                        {enCustodia && preview.data?.puedeRematar ? (
+                          <Button
+                            danger
+                            loading={rematarMut.isPending}
+                            onClick={() =>
+                              confirmMoney({
+                                title: `Rematar ${b.descripcion || 'bien'}`,
+                                amount: b.valorTasacion,
+                                officeLabel: `Crédito #${creditoId}`,
+                                consequence:
+                                  'La prenda pasa a stock a su tasación para venderla en el punto de venta. El préstamo queda cerrado como rematado.',
+                                okText: 'Rematar',
+                                onOk: async () => {
+                                  await rematarMut.mutateAsync(b.prendaId)
+                                },
+                              })
+                            }
+                          >
+                            Rematar
                           </Button>
-                        </Upload>
-                      </Space>
-                    ) : null}
-                    {enCustodia && preview.data?.puedeRematar ? (
-                      <Button
-                        size="small"
-                        danger
-                        loading={rematarMut.isPending}
-                        onClick={() =>
-                          confirmMoney({
-                            title: `Rematar ${b.descripcion || 'bien'}`,
-                            amount: b.valorTasacion,
-                            officeLabel: `Crédito #${creditoId}`,
-                            consequence:
-                              'La prenda pasa a stock a su tasación para venderla en el punto de venta. El préstamo queda cerrado como rematado.',
-                            okText: 'Rematar',
-                            onOk: async () => {
-                              await rematarMut.mutateAsync(b.prendaId)
-                            },
-                          })
-                        }
-                      >
-                        Rematar
-                      </Button>
-                    ) : null}
-                    {enCustodia ? (
-                      <Button
-                        size="small"
-                        disabled={!puedePedirDevolucion || devolverBien.isPending}
-                        onClick={() =>
-                          confirmMoney({
-                            title: `Devolver ${b.descripcion || 'bien'}`,
-                            amount: b.valorTasacion,
-                            officeLabel: `Crédito #${creditoId}`,
-                            consequence: creditoDesembolsado
-                              ? 'Cierre el crédito antes de devolver.'
-                              : 'El bien sale de custodia. Esta acción no se deshace.',
-                            okText: 'Devolver',
-                            onOk: async () => {
-                              await devolverBien.mutateAsync(b.prendaId)
-                            },
-                          })
-                        }
-                      >
-                        Devolver
-                      </Button>
-                    ) : null}
-                    {estado === 'DEVUELTO' ? (
-                      <Button
-                        size="small"
-                        icon={<FilePdfOutlined />}
-                        loading={imprimirDevolucion.isPending}
-                        onClick={() => imprimirDevolucion.mutate(b.prendaId)}
-                      >
-                        Comprobante
-                      </Button>
-                    ) : null}
-                  </div>
+                        ) : null}
+                        {enCustodia ? (
+                          <Button
+                            disabled={!puedePedirDevolucion || devolverBien.isPending}
+                            onClick={() =>
+                              confirmMoney({
+                                title: `Devolver ${b.descripcion || 'bien'}`,
+                                amount: b.valorTasacion,
+                                officeLabel: `Crédito #${creditoId}`,
+                                consequence: creditoDesembolsado
+                                  ? 'Cierre el crédito antes de devolver.'
+                                  : 'El bien sale de custodia. Esta acción no se deshace.',
+                                okText: 'Devolver',
+                                onOk: async () => {
+                                  await devolverBien.mutateAsync(b.prendaId)
+                                },
+                              })
+                            }
+                          >
+                            Devolver
+                          </Button>
+                        ) : null}
+                        {estado === 'DEVUELTO' ? (
+                          <Button
+                            icon={<FilePdfOutlined />}
+                            loading={imprimirDevolucion.isPending}
+                            onClick={() => imprimirDevolucion.mutate(b.prendaId)}
+                          >
+                            Comprobante
+                          </Button>
+                        ) : null}
+                      </div>
+                    </div>
+                  </article>
                 )
               })}
               {creditoDesembolsado ? (
-                <Text type="secondary" style={{ fontSize: 12 }}>
+                <Text type="secondary" className="credito-prendario-ficha__hint">
                   La devolución se habilita cuando el crédito ya no está desembolsado.
                 </Text>
               ) : null}
@@ -776,7 +777,7 @@ export function CreditoPrendarioGestionPage() {
           {puedeEditarBienes ? (
             <Button
               type="primary"
-              style={{ marginTop: 12 }}
+              className="credito-prendario-guardar"
               loading={guardarBienes.isPending}
               onClick={() => guardarBienes.mutate()}
             >
@@ -790,6 +791,8 @@ export function CreditoPrendarioGestionPage() {
         title={`Prorrogar crédito ${creditoId || ''}`}
         open={modalProrrogar}
         onCancel={() => setModalProrrogar(false)}
+        wrapClassName="credix-modal-operativo"
+        width="min(480px, 96vw)"
         onOk={() => {
           if (diasProrroga < 1) {
             message.warning('Indique al menos 1 día')
@@ -803,10 +806,10 @@ export function CreditoPrendarioGestionPage() {
         <label htmlFor="dias-prorroga-gestion">Días</label>
         <InputNumber
           id="dias-prorroga-gestion"
+          className="credito-prendario-campo"
           min={1}
           value={diasProrroga}
           onChange={(v) => setDiasProrroga(v ?? 7)}
-          style={{ width: '100%', marginTop: 8 }}
         />
       </Modal>
 
@@ -820,6 +823,8 @@ export function CreditoPrendarioGestionPage() {
         }
         open={modalCobro != null}
         onCancel={() => setModalCobro(null)}
+        wrapClassName="credix-modal-operativo"
+        width="min(520px, 96vw)"
         confirmLoading={renovarMut.isPending || abonarMut.isPending || liberarMut.isPending}
         okButtonProps={{
           disabled:
@@ -860,7 +865,12 @@ export function CreditoPrendarioGestionPage() {
         }}
       >
         {!caja.data?.cajaDiarioId ? (
-          <Alert type="warning" showIcon message="No hay caja abierto en esta sede." style={{ marginBottom: 12 }} />
+          <Alert
+            type="warning"
+            showIcon
+            className="credito-prendario-alert"
+            message="No hay caja abierto en esta sede."
+          />
         ) : null}
         {modalCobro === 'renovar' ? (
           <Paragraph>
@@ -883,11 +893,11 @@ export function CreditoPrendarioGestionPage() {
             <label htmlFor="monto-abono-prendario">Monto a abonar (S/)</label>
             <InputNumber
               id="monto-abono-prendario"
+              className="credito-prendario-campo"
               min={0}
               max={preview.data?.capitalPendiente ?? undefined}
               value={montoAbono}
               onChange={(v) => setMontoAbono(Number(v ?? 0))}
-              style={{ width: '100%', marginTop: 8 }}
             />
           </>
         ) : null}
@@ -900,13 +910,13 @@ export function CreditoPrendarioGestionPage() {
             Al confirmar, el préstamo queda liberado y la prenda vuelve a su dueño.
           </Paragraph>
         ) : null}
-        <div style={{ marginTop: 12 }}>
-          <Text type="secondary" style={{ display: 'block', marginBottom: 6 }}>
+        <div className="credito-prendario-cobro__medio">
+          <Text type="secondary" className="credito-prendario-cobro__label">
             Medio de pago
           </Text>
           <TipoPagoChips value={tipoPagoId} options={tipoPagoOptions} onChange={setTipoPagoId} wrap />
           {tipoPagoId > 1 ? (
-            <div style={{ marginTop: 8 }}>
+            <div className="credito-prendario-cobro__fecha">
               <FechaHoraDigitalField value={fechaTransferencia} onChange={setFechaTransferencia} />
             </div>
           ) : null}
@@ -914,44 +924,4 @@ export function CreditoPrendarioGestionPage() {
       </Modal>
     </CredixPage>
   )
-}
-
-function PrendaFotoThumb({
-  prendaId,
-  oficinaId,
-  hasFoto,
-}: {
-  prendaId: number
-  oficinaId: number
-  hasFoto: boolean
-}) {
-  const [src, setSrc] = useState<string | null>(null)
-
-  useEffect(() => {
-    if (!hasFoto || oficinaId < 1 || prendaId < 1) {
-      setSrc(null)
-      return
-    }
-    let objectUrl: string | null = null
-    const token = getAccessToken()
-    if (!token) return
-    void fetch(`${getApiBaseUrl()}/prendario/prenda-foto/${prendaId}?oficinaId=${oficinaId}`, {
-      headers: { Authorization: `Bearer ${token}`, Accept: 'image/*' },
-    })
-      .then((r) => (r.ok ? r.blob() : null))
-      .then((blob) => {
-        if (blob) {
-          objectUrl = URL.createObjectURL(blob)
-          setSrc(objectUrl)
-        }
-      })
-      .catch(() => undefined)
-    return () => {
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
-    }
-  }, [hasFoto, oficinaId, prendaId])
-
-  if (!hasFoto) return null
-  if (!src) return <Text type="secondary">Foto…</Text>
-  return <img src={src} alt="Prenda" style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 6 }} />
 }

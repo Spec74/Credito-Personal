@@ -64,8 +64,9 @@ body.credix-app-body {
 
 /* —— App shell —— */
 .credix-app {
-  height: 100vh;
-  min-height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--credix-bg);
@@ -114,29 +115,59 @@ body.credix-app-body {
   white-space: nowrap;
 }
 
-.credix-header-user {
+.credix-session.ant-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
-  font-size: 13px;
-  opacity: 0.95;
-  overflow: hidden;
+  max-width: min(42vw, 280px);
+  height: 36px;
+  padding: 0 10px;
+  color: #fff !important;
+  font-weight: 650;
 }
 
-.credix-header-user__name,
-.credix-header-user__office {
+.credix-session__office {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
-.credix-header-user__name {
-  max-width: min(28vw, 200px);
+.credix-session__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: min(72vw, 260px);
+  max-width: 320px;
 }
 
-.credix-header-user__office {
-  max-width: min(28vw, 200px);
+.credix-session__row {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+}
+
+.credix-session__k {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--credix-text-muted, #64748b);
+}
+
+.credix-session__hint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--credix-text-muted, #64748b);
+}
+
+.credix-session__hint a {
+  color: inherit;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .credix-header .ant-btn-text {
@@ -199,12 +230,7 @@ body.credix-app-body {
 }
 
 .credix-footer {
-  padding: 10px 16px;
-  text-align: center;
-  font-size: 12px;
-  color: var(--credix-text-muted);
-  border-top: 1px solid var(--credix-border);
-  background: var(--credix-surface);
+  display: none;
 }
 
 /* —— Sidebar nav —— */
@@ -696,8 +722,8 @@ body.credix-app-body {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
+  margin-bottom: 0;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--credix-border);
 }
 
@@ -2183,9 +2209,9 @@ ul.credix-stats--module li span.red {
 .credix-module-card {
   display: flex;
   flex-direction: column;
-  min-height: 148px;
-  background: #fafafa;
-  border: 1px solid #c0c8d0;
+  min-height: 0;
+  background: var(--credix-surface);
+  border: 1px solid var(--credix-border);
   border-radius: var(--credix-radius);
   overflow: hidden;
   box-shadow: var(--credix-shadow-sm);
@@ -2202,9 +2228,8 @@ ul.credix-stats--module li span.red {
   align-items: center;
   gap: 10px;
   padding: 12px 14px;
-  background: linear-gradient(180deg, #f5f6f8 0%, #e9ecf1 100%);
-  border-bottom: 1px solid #c0c8d0;
-  box-shadow: inset 0 1px 0 #fff;
+  background: var(--credix-surface-muted, #f8fafc);
+  border-bottom: 1px solid var(--credix-border);
 }
 
 .credix-module-card-icon {
@@ -2242,8 +2267,8 @@ ul.credix-stats--module li span.red {
 
 .credix-module-card-actions {
   padding: 10px 14px;
-  border-top: 1px solid #c1c1c1;
-  background: linear-gradient(180deg, #f0f1f4 0%, #e8eaef 100%);
+  border-top: 1px solid var(--credix-border);
+  background: var(--credix-surface);
 }
 
 /* —— Panel / filtros / tablas —— */
@@ -2439,6 +2464,15 @@ ul.credix-stats--module li span.red {
   gap: 10px;
 }
 
+.credix-box-header-extra {
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
 .credix-informe-panel-search {
   width: min(280px, 100%);
 }
@@ -2603,16 +2637,9 @@ ul.credix-stats--module li span.red {
     display: none;
   }
 
-  .credix-header-user {
-    font-size: 12px;
-  }
-
-  .credix-header-user__office {
-    max-width: min(30vw, 140px);
-  }
-
-  .credix-header-user__name {
-    max-width: min(28vw, 140px);
+  .credix-session.ant-btn {
+    max-width: min(56vw, 240px);
+    min-height: var(--credix-touch-min, 40px);
   }
 
   .credix-header {

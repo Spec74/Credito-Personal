@@ -9,8 +9,15 @@ import {
   type CreditoGrillaPersonaRow,
 } from '../../api/creditoGestion'
 import { CreditoBuscarCliente } from './creditobuscarcliente'
+import { CreditoConsultaInicio } from './CreditoConsultaInicio'
 import { CreditoPersonaCabecera } from './CreditoPersonaCabecera'
 import { CreditoPersonaAvalesPanel } from './CreditoPersonaAvalesPanel'
+import {
+  leerCreditoConsultaRecientes,
+  quitarCreditoConsultaReciente,
+  recordarCreditoConsulta,
+  type CreditoConsultaReciente,
+} from '../../utils/creditoConsultaRecientes'
 import { CredixDataTable } from '../credix'
 import { formatMoney } from '../../utils/formatMoney'
 import { formatFecha } from '../../utils/formatFecha'
@@ -41,14 +48,31 @@ export function CreditoConsultaClienteBar({
   const [personaId, setPersonaId] = useState<number | null>(personaIdInicial ?? null)
   const [grupoActivo, setGrupoActivo] = useState(true)
   const [creditosPage, setCreditosPage] = useState(1)
+  const [recientes, setRecientes] = useState<CreditoConsultaReciente[]>(() =>
+    leerCreditoConsultaRecientes(),
+  )
   const creditosPageSize = 25
   const autoCargadoPersonaRef = useRef<number | null>(null)
+  const usuarioLimpioRef = useRef(false)
 
   useEffect(() => {
+    if (usuarioLimpioRef.current) {
+      if (personaIdInicial == null) {
+        usuarioLimpioRef.current = false
+      }
+      return
+    }
     if (personaIdInicial != null && personaIdInicial > 0) {
       setPersonaId(personaIdInicial)
       autoCargadoPersonaRef.current = null
+      const reciente = leerCreditoConsultaRecientes().find((row) => row.personaId === personaIdInicial)
+      if (reciente) {
+        setClienteLabel(reciente.label)
+      }
+      return
     }
+    setPersonaId(null)
+    setClienteLabel('')
   }, [personaIdInicial])
 
   useEffect(() => {
@@ -77,9 +101,11 @@ export function CreditoConsultaClienteBar({
 
   const cargarPersona = useCallback(
     (pid: number, label: string) => {
+      usuarioLimpioRef.current = false
       autoCargadoPersonaRef.current = null
       setPersonaId(pid)
       setClienteLabel(label)
+      setRecientes(recordarCreditoConsulta({ personaId: pid, label }))
       onPersonaSeleccionada?.(pid, label)
     },
     [onPersonaSeleccionada],
@@ -96,9 +122,13 @@ export function CreditoConsultaClienteBar({
         const info = await fetchCreditoContexto(id)
         const nombre = (info.personaNombre ?? '').trim()
         const label = nombre ? `${nombre} · Crédito ${id}` : `Crédito ${id}`
+        usuarioLimpioRef.current = false
         autoCargadoPersonaRef.current = info.personaId
         setPersonaId(info.personaId)
         setClienteLabel(label)
+        setRecientes(
+          recordarCreditoConsulta({ personaId: info.personaId, label, creditoId: id }),
+        )
         onSeleccionarCredito(id, info.personaId, label)
         return true
       } catch {
@@ -133,19 +163,27 @@ export function CreditoConsultaClienteBar({
   const seleccionarCredito = useCallback(
     (row: CreditoGrillaPersonaRow) => {
       if (personaId == null) return
+      setRecientes(
+        recordarCreditoConsulta({
+          personaId,
+          label: clienteLabel,
+          creditoId: row.creditoId,
+        }),
+      )
       onSeleccionarCredito(row.creditoId, personaId, clienteLabel)
     },
     [personaId, clienteLabel, onSeleccionarCredito],
   )
 
-  const limpiar = () => {
+  const limpiar = useCallback(() => {
+    usuarioLimpioRef.current = true
     setClienteLabel('')
     setPersonaId(null)
     setGrupoActivo(true)
     setCreditosPage(1)
     autoCargadoPersonaRef.current = null
     onLimpiarConsulta?.()
-  }
+  }, [onLimpiarConsulta])
 
   const columns: ColumnsType<CreditoGrillaPersonaRow> = [
     {
@@ -218,9 +256,8 @@ export function CreditoConsultaClienteBar({
             value={clienteLabel}
             onChange={(label) => {
               setClienteLabel(label)
-              if (!label.trim()) {
-                setPersonaId(null)
-                autoCargadoPersonaRef.current = null
+              if (!label.trim() && (personaId != null || creditoActivoId != null)) {
+                limpiar()
               }
             }}
             onSelectPersona={cargarPersona}
@@ -365,7 +402,19 @@ export function CreditoConsultaClienteBar({
             ) : null}
           </div>
         </>
-      ) : null}
+      ) : (
+        <CreditoConsultaInicio
+          recientes={recientes}
+          onAbrir={(item) => {
+            if (item.creditoId) {
+              void cargarPorCreditoId(String(item.creditoId))
+              return
+            }
+            cargarPersona(item.personaId, item.label)
+          }}
+          onQuitar={(pid) => setRecientes(quitarCreditoConsultaReciente(pid))}
+        />
+      )}
     </section>
   )
 }

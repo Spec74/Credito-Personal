@@ -23,6 +23,7 @@ import { CredixDataTable, CredixPage, type CredixStatItem } from '../../componen
 import { formatFecha, formatFechaHora } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { celularPrendarioEsValido } from '../../utils/prendarioWhatsapp'
+import '../../styles/credito-prendario-gestion.css'
 import { situacionPrendario } from '../../utils/prendarioSituacion'
 import { ltvObservado } from '../../utils/prendas'
 
@@ -295,6 +296,7 @@ export function CreditoPrendarioPage() {
 
   return (
     <CredixPage
+      className="credito-prendario-page"
       title="Crédito prendario"
       subtitle={undefined}
       breadcrumb={[
@@ -314,41 +316,42 @@ export function CreditoPrendarioPage() {
         </Space>
       }
     >
-      <Segmented
-        style={{ marginBottom: 12 }}
-        value={categoria ?? 'todas'}
-        onChange={(v) => {
-          setPage(1)
-          setCategoria(v === 'todas' ? undefined : (v as PrendarioCategoria))
-        }}
-        options={[
-          { label: 'Todas', value: 'todas' },
-          { label: 'Por vencer', value: 'PorVencer' },
-          { label: 'Vencidos', value: 'Vencido' },
-          { label: 'Remate', value: 'Rematado' },
-        ]}
-      />
-      <Space.Compact style={{ width: 'min(480px, 100%)', marginBottom: 16 }}>
-        <Input
-          placeholder="Cliente, DNI o contrato"
-          value={buscar}
-          onChange={(e) => setBuscar(e.target.value)}
-          onPressEnter={() => {
+      <div className="credito-prendario-toolbar">
+        <Segmented
+          value={categoria ?? 'todas'}
+          onChange={(v) => {
             setPage(1)
-            setTermino(buscar.trim())
+            setCategoria(v === 'todas' ? undefined : (v as PrendarioCategoria))
           }}
+          options={[
+            { label: 'Todas', value: 'todas' },
+            { label: 'Por vencer', value: 'PorVencer' },
+            { label: 'Vencidos', value: 'Vencido' },
+            { label: 'Remate', value: 'Rematado' },
+          ]}
         />
-        <Button
-          icon={<SearchOutlined />}
-          loading={listado.isFetching}
-          onClick={() => {
-            setPage(1)
-            setTermino(buscar.trim())
-          }}
-        >
-          Buscar
-        </Button>
-      </Space.Compact>
+        <Space.Compact className="credito-prendario-toolbar__buscar">
+          <Input
+            placeholder="Cliente, DNI o contrato"
+            value={buscar}
+            onChange={(e) => setBuscar(e.target.value)}
+            onPressEnter={() => {
+              setPage(1)
+              setTermino(buscar.trim())
+            }}
+          />
+          <Button
+            icon={<SearchOutlined />}
+            loading={listado.isFetching}
+            onClick={() => {
+              setPage(1)
+              setTermino(buscar.trim())
+            }}
+          >
+            Buscar
+          </Button>
+        </Space.Compact>
+      </div>
       {listado.error ? (
         <Text type="danger">{errMsg(listado.error)}</Text>
       ) : null}
@@ -374,6 +377,7 @@ export function CreditoPrendarioPage() {
           setAvisosOpen(false)
           setUltimoEnvio(null)
         }}
+        wrapClassName="credix-modal-operativo"
         width="min(800px, 96vw)"
         footer={
           <Button

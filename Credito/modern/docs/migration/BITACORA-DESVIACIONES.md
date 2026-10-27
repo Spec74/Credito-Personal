@@ -4,6 +4,26 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-26 — Consulta crédito: mesa, no lookup WinForms
+
+**Qué hay:** El buscador se queda (DNI / nro. de crédito cargan solos). Borrar
+el campo o «Nueva consulta» limpia URL y ficha: un nombre ya no se reelige
+solo. El vacío es una mesa (recientes de sesión + atajos). El pie
+`Soporte: 966…` sale del chrome; el teléfono vive en el panel de sesión.
+
+**Qué no hay:** no se inventa motor financiero ni bandeja de mora nueva.
+
+### 2026-10-26 — Chrome: sesión no es el toolbar MVC
+
+**Qué hay:** Spec Kit `006-estructura-contemporanea` / SSD-17. El header deja
+de pintar `Usuario · Oficina` en una línea (ellipsis `JVL… · OFL…`). La oficina
+es un control; usuario, sede y roles salen en un panel. El chip de caja en
+móvil dice `Caja` / `Sin caja` (nombre en tooltip). `index.html` usa
+`viewport-fit=cover` y `color-scheme: light`. Landmarks: banner, nav módulos,
+main, contentinfo.
+
+**Qué no hay:** no se reescriben 95 páginas, no hay PWA/i18n, no se toca `usp_*`.
+
 ### 2026-10-26 — Ciclo empeño (ficha, remate, cobros)
 
 **Qué hay:** Spec Kit `005-facturador-smart`. En gestión prendaria: observaciones

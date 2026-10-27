@@ -142,6 +142,8 @@ function columnsHaveFixed<T extends object>(columns: ColumnsType<T> | undefined)
   return flattenColumns(columns).some((c) => c.fixed === 'left' || c.fixed === 'right' || c.fixed === true)
 }
 
+const MOBILE_CARD_VISIBLE_FIELDS = 5
+
 /** Tabla Ant Design con defaults Credix; en móvil ≤767px muestra tarjetas legibles. */
 export function CredixDataTable<T extends object>(props: CredixDataTableProps<T>) {
   const {
@@ -247,18 +249,14 @@ export function CredixDataTable<T extends object>(props: CredixDataTableProps<T>
         onRow={rest.onRow}
         loading={rest.loading}
         locale={rest.locale}
-        pagination={
-          defaultPagination === false
-            ? false
-            : {
-                total,
-                pageSize,
-                showTotal:
-                  typeof defaultPagination === 'object'
-                    ? defaultPagination.showTotal
-                    : (t: number) => `${t} registro(s)`,
-              }
-        }
+        pagination={{
+          total,
+          pageSize: Math.min(defaultPagination === false ? 8 : pageSize, 8),
+          showTotal:
+            typeof defaultPagination === 'object'
+              ? defaultPagination.showTotal
+              : (t: number) => `${t} registro(s)`,
+        }}
       />
     )
   }
@@ -416,6 +414,34 @@ function CredixMobileCardList<T extends object>({
                         <div className="credix-mobile-card__title-value">{content}</div>
                       </div>
                     )
+                  }
+                  if (colIdx === MOBILE_CARD_VISIBLE_FIELDS) {
+                    const extra = dataColumns.slice(MOBILE_CARD_VISIBLE_FIELDS)
+                    return (
+                      <details key={`${String(key)}-extra`} className="credix-mobile-card__more">
+                        <summary>
+                          {extra.length} dato{extra.length === 1 ? '' : 's'} más
+                        </summary>
+                        {extra.map((extraCol, extraIdx) => {
+                          const extraLabel =
+                            columnLabel(extraCol) || `Campo ${MOBILE_CARD_VISIBLE_FIELDS + extraIdx + 1}`
+                          return (
+                            <div
+                              key={`${String(key)}-${extraLabel}-${extraIdx}`}
+                              className="credix-mobile-card__row"
+                            >
+                              <span className="credix-mobile-card__label">{extraLabel}</span>
+                              <div className="credix-mobile-card__value">
+                                {renderColumnCell(extraCol, record, absoluteIndex)}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </details>
+                    )
+                  }
+                  if (colIdx > MOBILE_CARD_VISIBLE_FIELDS) {
+                    return null
                   }
                   return (
                     <div key={`${String(key)}-${label}-${colIdx}`} className="credix-mobile-card__row">

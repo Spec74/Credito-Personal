@@ -221,6 +221,25 @@
   opacity: 1 !important;
 }
 
+.credix-mobile-card__more {
+  margin-top: 4px;
+}
+
+.credix-mobile-card__more > summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--credix-brand, #114885);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.credix-mobile-card__more > summary::-webkit-details-marker {
+  display: none;
+}
+
 .credix-mobile-cards__pager {
   display: flex;
   justify-content: center;
@@ -701,6 +720,39 @@
   .ant-modal-body {
     padding: 16px !important;
   }
+
+  .ant-modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .ant-modal-footer .ant-btn {
+    min-height: var(--credix-touch-min, 40px);
+    flex: 1 1 calc(50% - 8px);
+  }
+
+  .credix-box-header--split {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credix-box-header-extra {
+    width: 100%;
+  }
+
+  .ant-segmented {
+    max-width: 100%;
+  }
+
+  .ant-segmented .ant-segmented-group {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .ant-space-compact {
+    max-width: 100%;
+  }
 }
 
 /* Drawers admin (usuarios/roles): nunca pegados al borde */
@@ -936,6 +988,11 @@
   .credix-page-head {
     flex-direction: column;
     align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .credix-page-head-text {
+    flex: 0 1 auto;
   }
 
   .credix-page-actions {

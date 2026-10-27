@@ -1,4 +1,5 @@
 import { ResumenCuentaBrandLogo } from '../../pages/tesoreria/components/resumenCuentaBrandIcons'
+import '../../styles/caja-tipo-pago-chips.css'
 import {
   medioEtiquetaUi,
   medioNombreMarca,

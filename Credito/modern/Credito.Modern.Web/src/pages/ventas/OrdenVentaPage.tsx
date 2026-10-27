@@ -36,7 +36,13 @@ import {
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import type { ClienteBuscarItem } from '../../types/api'
-import { CredixDataTable, CredixPage, CredixPanel, type CredixStatItem } from '../../components/credix'
+import {
+  CredixDataTable,
+  CredixListToolbar,
+  CredixPage,
+  CredixPanel,
+  type CredixStatItem,
+} from '../../components/credix'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 
@@ -72,6 +78,7 @@ export function OrdenVentaPage() {
 
   const [entregado, setEntregado] = useState(false)
   const [buscar, setBuscar] = useState('')
+  const [buscarInput, setBuscarInput] = useState('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
   const [nuevaOpen, setNuevaOpen] = useState(false)
@@ -326,6 +333,7 @@ export function OrdenVentaPage() {
 
   return (
     <CredixPage
+      className="orden-venta-page"
       title="Orden de venta"
       subtitle={undefined}
       stats={stats}
@@ -334,46 +342,56 @@ export function OrdenVentaPage() {
         { title: <Link to="/ventas">Ventas</Link> },
         { title: 'Orden de venta' },
       ]}
+      actions={
+        oficinaId > 0 && ordenVentaId < 1 ? (
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setNuevaOpen(true)}>
+            Nueva orden
+          </Button>
+        ) : ordenVentaId > 0 ? (
+          <>
+            <Button onClick={() => setSearchParams({})}>Volver al listado</Button>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={() => void detalle.refetch()}
+              loading={detalle.isFetching}
+            >
+              Actualizar
+            </Button>
+          </>
+        ) : null
+      }
+      toolbar={
+        oficinaId > 0 && ordenVentaId < 1 ? (
+          <CredixListToolbar
+            value={buscarInput}
+            onChange={setBuscarInput}
+            onSubmit={() => {
+              setBuscar(buscarInput.trim())
+              setPage(1)
+            }}
+            placeholder="Buscar id, cliente o fecha"
+            loading={listado.isFetching}
+            onRefresh={() => void listado.refetch()}
+            extra={
+              <label className="credix-toolbar-switch">
+                Entregados
+                <Switch
+                  checked={entregado}
+                  onChange={(v) => {
+                    setEntregado(v)
+                    setPage(1)
+                  }}
+                />
+              </label>
+            }
+          />
+        ) : undefined
+      }
     >
       {oficinaId < 1 ? (
         <Alert type="warning" showIcon message="Sesión sin oficina válida." />
       ) : ordenVentaId < 1 ? (
         <>
-          <CredixPanel>
-            <Space wrap style={{ width: '100%', justifyContent: 'space-between' }}>
-              <Space wrap>
-                <Input.Search
-                  placeholder="Buscar id, cliente o fecha"
-                  allowClear
-                  style={{ width: 260 }}
-                  onSearch={(v) => {
-                    setBuscar(v)
-                    setPage(1)
-                  }}
-                />
-                <Space>
-                  <Text type="secondary">Entregados</Text>
-                  <Switch
-                    checked={entregado}
-                    onChange={(v) => {
-                      setEntregado(v)
-                      setPage(1)
-                    }}
-                  />
-                </Space>
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={() => void listado.refetch()}
-                  loading={listado.isFetching}
-                >
-                  Actualizar
-                </Button>
-              </Space>
-              <Button type="primary" icon={<PlusOutlined />} onClick={() => setNuevaOpen(true)}>
-                Nueva orden
-              </Button>
-            </Space>
-          </CredixPanel>
 
           {listado.isError ? (
             <Alert type="error" showIcon message={errMsg(listado.error)} />
@@ -399,19 +417,6 @@ export function OrdenVentaPage() {
         </>
       ) : (
         <>
-          <CredixPanel>
-            <Space wrap>
-              <Button onClick={() => setSearchParams({})}>← Volver al listado</Button>
-              <Button
-                icon={<ReloadOutlined />}
-                onClick={() => void detalle.refetch()}
-                loading={detalle.isFetching}
-              >
-                Actualizar
-              </Button>
-            </Space>
-          </CredixPanel>
-
           {detalle.isError ? (
             <Alert type="error" showIcon message={errMsg(detalle.error)} />
           ) : detalle.data ? (
