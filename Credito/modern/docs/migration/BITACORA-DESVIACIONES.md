@@ -4,6 +4,35 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Login público: personal, no portal de clientes
+
+**Qué hay:** Quien abre la URL ve marca + “acceso del personal” + que no hay
+registro ni consulta de créditos. `robots`/`noindex` para no indexar el
+sistema de trabajo. El combo de oficinas sigue (nombres de sede, como el
+legado) porque el JWT nace con oficina.
+
+**Qué no hay:** no se publica el manual interno (caja, mora, liberar). No se
+esconde el login detrás de otra web: la URL es pública y el candado es el
+usuario.
+
+### 2026-10-27 — Login a dos columnas + logo sin placa + dashboard oscuro
+
+**Qué hay:** Login partido: escenario institucional y formulario. PNG de
+marca con alpha; en oscuro el wordmark se aclara. Textos de marca en
+dashboard y shell usan `--credix-ink-brand`.
+
+**Qué no hay:** no se inventan KPIs en el login ni se cambia el hasher.
+
+### 2026-10-27 — Venta de prenda: comprador que no está en el padrón
+
+**Qué hay:** En venta rápida y orden de venta, si el comprador no es
+cliente de crédito se registra con DNI (ApiPerú o a mano) y queda en el
+ticket. Si el DNI ya existía, se reutiliza. Misma alta rápida del
+simulador; no se usa un “consumidor final” anónimo.
+
+**Qué no hay:** no se origina ni se aprueba crédito. Caja/cobranzas sigue
+exigiendo un cliente ya existente.
+
 ### 2026-10-27 — Remate: catálogo GENERAL si no hay tipo/modelo
 
 **Qué hay:** `usp_RematarPrenda` usa (o crea) marca/tipo/modelo GENERAL

@@ -11,6 +11,11 @@
   filter: none;
 }
 
+/* Wordmark navy del PNG: en oscuro se aclara; no se tocan fotos. */
+:root[data-theme='dark'] .credix-brand-logo__img {
+  filter: brightness(0) invert(1);
+}
+
 :root[data-theme='dark'] ::selection {
   background: rgba(140, 182, 232, 0.35);
   color: #e6e8ec;

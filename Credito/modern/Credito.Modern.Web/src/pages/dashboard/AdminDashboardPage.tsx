@@ -382,7 +382,7 @@ export function AdminDashboardPage() {
         <p className="dash-section-hint">Hoy, ayer y anteayer · variación entre los dos últimos días cerrados</p>
         <section className="dash-kpis dash-kpis-4" aria-label="Estado del día">
           <KpiCard
-            accent="#059669"
+            accent="var(--credix-success)"
             icon={<WalletOutlined />}
             label="Cobrado hoy"
             value={`S/ ${formatMoney(r.cobradoHoy)}`}
@@ -396,7 +396,7 @@ export function AdminDashboardPage() {
             }
           />
           <KpiCard
-            accent="#2563eb"
+            accent="var(--credix-info)"
             icon={<RiseOutlined />}
             label="Desembolsado hoy"
             value={`S/ ${formatMoney(r.desembolsoHoy)}`}
@@ -410,7 +410,7 @@ export function AdminDashboardPage() {
             }
           />
           <KpiCard
-            accent="#7c3aed"
+            accent="var(--credix-info)"
             icon={<CalendarOutlined />}
             label="Colocaciones hoy"
             value={formatEntero(r.creditosHoy)}
@@ -424,7 +424,7 @@ export function AdminDashboardPage() {
             }
           />
           <KpiCard
-            accent="#0f766e"
+            accent="var(--credix-success)"
             icon={<SwapOutlined />}
             label="Flujo neto hoy"
             value={`S/ ${formatMoney(r.flujoNetoHoy)}`}
@@ -443,7 +443,7 @@ export function AdminDashboardPage() {
         <p className="dash-section-hint">Comparación contra el mismo número de días del mes anterior</p>
         <section className="dash-kpis dash-kpis-4" aria-label="Acumulado mensual">
           <KpiCard
-            accent="#059669"
+            accent="var(--credix-success)"
             icon={<WalletOutlined />}
             label="Cobranza acumulada"
             value={`S/ ${formatMoney(r.cobradoMesActual)}`}
@@ -455,7 +455,7 @@ export function AdminDashboardPage() {
             }
           />
           <KpiCard
-            accent="#2563eb"
+            accent="var(--credix-info)"
             icon={<RiseOutlined />}
             label="Desembolsado acumulado"
             value={`S/ ${formatMoney(r.desembolsoMesActual)}`}
@@ -467,7 +467,7 @@ export function AdminDashboardPage() {
             }
           />
           <KpiCard
-            accent="#7c3aed"
+            accent="var(--credix-info)"
             icon={<CalendarOutlined />}
             label="Colocaciones acumuladas"
             value={formatEntero(r.creditosMesActual)}
@@ -479,7 +479,7 @@ export function AdminDashboardPage() {
             }
           />
           <KpiCard
-            accent="#0f766e"
+            accent="var(--credix-success)"
             icon={<SwapOutlined />}
             label="Flujo neto acumulado"
             value={`S/ ${formatMoney(r.flujoNetoMesActual)}`}
@@ -580,7 +580,7 @@ export function AdminDashboardPage() {
           <>
             <section className="dash-kpis dash-kpis-4" aria-label="Riesgo de cartera">
               <KpiCard
-                accent="#b91c1c"
+                accent="var(--credix-danger)"
                 icon={<WarningOutlined />}
                 label="% cartera en mora"
                 value={`${pctMoraCartera.toFixed(1)} %`}
@@ -592,14 +592,14 @@ export function AdminDashboardPage() {
                 }
               />
               <KpiCard
-                accent="#114885"
+                accent="var(--credix-ink-brand)"
                 icon={<CalendarOutlined />}
                 label="Vencen esta semana"
                 value={formatEntero(r.creditosPorVencerSemana)}
                 meta={<span>Créditos con vencimiento en los próximos 7 días</span>}
               />
               <KpiCard
-                accent="#15803d"
+                accent="var(--credix-success)"
                 icon={<WalletOutlined />}
                 label="Cobertura del mes"
                 value={`${coberturaMes == null ? '—' : `${coberturaMes.toFixed(0)} %`}`}
@@ -611,7 +611,7 @@ export function AdminDashboardPage() {
                 }
               />
               <KpiCard
-                accent="#2e69ae"
+                accent="var(--credix-info)"
                 icon={<TeamOutlined />}
                 label="Analistas activos"
                 value={formatEntero(r.totalAnalistas)}

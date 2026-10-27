@@ -10,7 +10,7 @@ export const branding = {
   systemDescription: 'Sistema comercial de ventas y crédito',
   supportPhone: '966900599',
   logoSrc: `${publicBase}brand/credix.png`,
-  logoWidth: 280,
+  logoWidth: 220,
   colors: {
     /** Alineado a `--credix-brand` y Ant Design `colorPrimary`. */
     primary: '#114885',

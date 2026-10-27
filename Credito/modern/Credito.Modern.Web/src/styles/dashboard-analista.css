@@ -100,7 +100,7 @@
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--credix-primary, #1d4ed8);
+  color: var(--credix-ink-brand);
 }
 
 .dash-kpi.is-action {
@@ -125,7 +125,7 @@
   margin-top: 8px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--dash-accent, #2563eb);
+  color: var(--credix-ink-brand);
 }
 
 .dash-daily-summary {
@@ -159,7 +159,7 @@
 }
 
 .dash-daily-goal.is-down {
-  color: #dc2626;
+  color: var(--credix-danger);
 }
 
 .dash-daily-goal.is-muted {
@@ -174,7 +174,7 @@
   background: none;
   font-size: 12px;
   font-weight: 600;
-  color: var(--credix-brand, #1d4ed8);
+  color: var(--credix-ink-brand);
   cursor: pointer;
 }
 
@@ -206,9 +206,9 @@
 .dash-mora-filter-chip {
   appearance: none;
   margin: 0;
-  border: 1px solid #d7e3f0;
+  border: 1px solid var(--credix-brand-line);
   background: var(--credix-info-bg);
-  color: var(--credix-text, #1f2937);
+  color: var(--credix-text);
   border-radius: 999px;
   padding: 6px 12px;
   font: inherit;
@@ -224,21 +224,21 @@
 }
 
 .dash-mora-filter-chip:hover {
-  border-color: var(--credix-brand, #114885);
-  color: var(--credix-brand, #114885);
+  border-color: var(--credix-ink-brand);
+  color: var(--credix-ink-brand);
   background: var(--credix-info-bg);
 }
 
 .dash-mora-filter-chip:focus-visible {
-  outline: 2px solid var(--credix-brand, #114885);
+  outline: 2px solid var(--credix-ink-brand);
   outline-offset: 2px;
 }
 
 .dash-mora-filter-chip.is-active {
-  border-color: var(--credix-brand, #114885);
-  background: var(--credix-brand, #114885);
-  color: #fff;
-  box-shadow: 0 4px 10px rgba(17, 72, 133, 0.18);
+  border-color: var(--credix-brand);
+  background: var(--credix-brand);
+  color: var(--credix-on-brand);
+  box-shadow: none;
 }
 
 .dash-mora-tools {
@@ -293,22 +293,22 @@
 }
 
 .dash-mora-status.is-never {
-  background: #fef2f2;
-  color: #991b1b;
+  background: var(--credix-chip-danger-bg);
+  color: var(--credix-chip-danger-fg);
 }
 
 .dash-mora-status.is-stopped {
-  background: var(--credix-warning-bg);
-  color: #9a3412;
+  background: var(--credix-chip-warn-bg);
+  color: var(--credix-chip-warn-fg);
 }
 
 .dash-mora-status.is-paying {
-  background: #eff6ff;
-  color: var(--credix-ink-brand);
+  background: var(--credix-chip-info-bg);
+  color: var(--credix-chip-info-fg);
 }
 
 .dash-mora-status.is-neutral {
-  background: #f3f4f6;
+  background: var(--credix-surface-muted);
   color: var(--credix-text-muted);
 }
 
@@ -433,18 +433,18 @@
 }
 
 .dash-var.is-up {
-  color: var(--credix-success);
-  background: #ecfdf5;
+  color: var(--credix-chip-ok-fg);
+  background: var(--credix-chip-ok-bg);
 }
 
 .dash-var.is-down {
-  color: #b91c1c;
-  background: #fef2f2;
+  color: var(--credix-chip-danger-fg);
+  background: var(--credix-chip-danger-bg);
 }
 
 .dash-var.is-new {
-  color: var(--credix-ink-brand);
-  background: #eff6ff;
+  color: var(--credix-chip-info-fg);
+  background: var(--credix-chip-info-bg);
 }
 
 .dash-grid {
@@ -501,20 +501,20 @@
 }
 
 .dash-chart-grid {
-  stroke: #eef2f7;
+  stroke: var(--credix-border);
   stroke-width: 1;
 }
 
 .dash-chart-line {
   fill: none;
-  stroke: #114885;
+  stroke: var(--credix-ink-brand);
   stroke-width: 2.5;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
 .dash-chart-line.is-desembolso {
-  stroke: #2563eb;
+  stroke: var(--credix-info);
 }
 
 .dash-chart-legend {
@@ -534,25 +534,25 @@
   margin-right: 6px;
   vertical-align: middle;
   border-radius: 2px;
-  background: #114885;
+  background: var(--credix-ink-brand);
 }
 
 .dash-chart-legend .is-desembolso::before {
-  background: #2563eb;
+  background: var(--credix-info);
 }
 
 .dash-chart-dot {
-  fill: #fff;
-  stroke: #114885;
+  fill: var(--credix-surface);
+  stroke: var(--credix-ink-brand);
   stroke-width: 2;
 }
 
 .dash-chart-dot.is-active {
-  fill: #114885;
+  fill: var(--credix-ink-brand);
 }
 
 .dash-chart-axis {
-  fill: #94a3b8;
+  fill: var(--credix-text-muted);
   font-size: 11px;
 }
 
@@ -607,7 +607,7 @@
 
 .dash-rank-table td {
   padding: 9px 6px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--credix-border);
   font-size: 13px;
 }
 
@@ -645,7 +645,7 @@
 
 .dash-podium-item.is-1 {
   background: var(--credix-warning-bg);
-  border-color: #f3d27a;
+  border-color: color-mix(in srgb, var(--credix-warning) 45%, var(--credix-border));
   padding-top: 22px;
   padding-bottom: 22px;
 }
@@ -674,7 +674,7 @@
 
 .dash-podium-amt {
   font-weight: 700;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 .dash-insights {
@@ -693,23 +693,23 @@
 }
 
 .dash-insight.is-success {
-  border-color: #a7f3d0;
-  background: #ecfdf5;
+  border-color: color-mix(in srgb, var(--credix-success) 40%, var(--credix-border));
+  background: var(--credix-success-bg);
 }
 
 .dash-insight.is-warning {
-  border-color: #fecdd3;
-  background: var(--credix-danger-bg);
+  border-color: color-mix(in srgb, var(--credix-warning) 40%, var(--credix-border));
+  background: var(--credix-warning-bg);
 }
 
 .dash-insight.is-danger {
-  border-color: #fecaca;
-  background: #fef2f2;
+  border-color: color-mix(in srgb, var(--credix-danger) 40%, var(--credix-border));
+  background: var(--credix-danger-bg);
 }
 
 .dash-insight.is-info {
-  border-color: #bfdbfe;
-  background: #eff6ff;
+  border-color: color-mix(in srgb, var(--credix-info) 40%, var(--credix-border));
+  background: var(--credix-info-bg);
 }
 
 .dash-priorities-badge {
@@ -718,8 +718,8 @@
   gap: 6px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--credix-brand-light, #e8f2fc);
-  color: var(--credix-brand, #114885);
+  background: var(--credix-chip-info-bg);
+  color: var(--credix-chip-info-fg);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -768,7 +768,7 @@
   gap: 8px;
   padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid #dbe7f5;
+  border: 1px solid var(--credix-brand-line);
   background: var(--credix-info-bg);
   color: var(--credix-text);
   font: inherit;
@@ -781,14 +781,14 @@
 
 .dash-mora-chip:hover,
 .dash-mora-chip:focus-visible {
-  background: var(--credix-brand-light, #e8f2fc);
-  border-color: var(--credix-brand, #114885);
+  background: var(--credix-brand-light);
+  border-color: var(--credix-ink-brand);
   outline: none;
 }
 
 .dash-mora-chip strong {
   font-variant-numeric: tabular-nums;
-  color: var(--credix-brand, #114885);
+  color: var(--credix-ink-brand);
 }
 
 .dash-prod-progress {
@@ -805,7 +805,7 @@
 }
 
 .dash-prod-progress__label strong {
-  color: var(--credix-brand, #114885);
+  color: var(--credix-ink-brand);
   font-variant-numeric: tabular-nums;
 }
 
@@ -864,6 +864,7 @@
 .dash-insight h3 {
   margin: 0 0 4px;
   font-size: 13px;
+  color: var(--credix-text);
 }
 
 .dash-insight p {
@@ -877,6 +878,7 @@
   margin-top: 6px;
   font-size: 12px;
   font-weight: 600;
+  color: var(--credix-ink-brand);
 }
 
 .dash-actions {
@@ -921,7 +923,7 @@
   gap: 12px;
   font-size: 13px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--credix-border);
 }
 
 .dash-flujo-list li:last-child {
@@ -951,6 +953,10 @@
 
 .dash-chart-mix__visual {
   min-width: 0;
+}
+
+.dash-chart-mix__arc {
+  stroke: var(--credix-surface);
 }
 
 .dash-chart-mix__center-label {

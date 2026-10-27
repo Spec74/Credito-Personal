@@ -253,7 +253,7 @@ body {
 
 .ant-modal .ant-modal-title {
   font-weight: 700;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 .ant-modal .ant-modal-close {
@@ -313,7 +313,7 @@ body {
 /* —— Drawers —— */
 .ant-drawer .ant-drawer-title {
   font-weight: 700;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 @media (max-width: 640px) {
@@ -347,7 +347,7 @@ body {
 }
 
 .ant-picker-dropdown .ant-picker-today-btn {
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 @media (max-width: 767px) {
@@ -368,7 +368,7 @@ body {
 .credix-content .ant-card-head-title,
 .credix-page .ant-card-head-title {
   font-weight: 700;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 .credix-box-header h2 {
@@ -382,7 +382,7 @@ body {
 }
 
 .credix-content .ant-spin-text {
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 /* —— Segmented / Tabs —— */

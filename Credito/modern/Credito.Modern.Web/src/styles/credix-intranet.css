@@ -125,7 +125,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
   font-weight: 600;
   text-decoration: none;
 }
@@ -264,7 +264,7 @@
 
 .credix-chip--brand {
   background: var(--credix-brand-light);
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 .credix-chip--warn {
@@ -295,7 +295,7 @@
   margin: 0 0 8px;
   font-size: 1.35rem;
   line-height: 1.25;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 .credix-aviso-lectura__meta {
@@ -466,7 +466,7 @@
 .credix-agenda__dayhead h2 {
   margin: 0;
   font-size: 1.15rem;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
   text-transform: capitalize;
 }
 
@@ -552,7 +552,7 @@
 .credix-agenda-card__time {
   flex: 0 0 64px;
   font-weight: 700;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
   font-size: 13px;
 }
 

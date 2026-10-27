@@ -1,4 +1,4 @@
-import { Image, Typography } from 'antd'
+import { Typography } from 'antd'
 import { branding } from '../../config/branding'
 
 const { Text } = Typography
@@ -6,34 +6,39 @@ const { Text } = Typography
 interface BrandLogoProps {
   compact?: boolean
   showTagline?: boolean
+  className?: string
 }
 
-/** Native asset is 312×110 — lock aspect ratio to avoid CLS (Lighthouse unsized-images). */
-const LOGO_NATIVE_W = 312
-const LOGO_NATIVE_H = 110
+/** Recorte del PNG con alpha: 299×102. */
+const LOGO_NATIVE_W = 299
+const LOGO_NATIVE_H = 102
 
-export function BrandLogo({ compact = false, showTagline = false }: BrandLogoProps) {
-  const width = compact ? 120 : branding.logoWidth
+export function BrandLogo({
+  compact = false,
+  showTagline = false,
+  className,
+}: BrandLogoProps) {
+  const width = compact ? 148 : branding.logoWidth
   const height = Math.round((width * LOGO_NATIVE_H) / LOGO_NATIVE_W)
+  const rootClass = ['credix-brand-logo', compact ? 'is-compact' : '', className]
+    .filter(Boolean)
+    .join(' ')
 
   return (
-    <div style={{ textAlign: 'center', width: '100%' }}>
-      <Image
+    <div className={rootClass}>
+      <img
+        className="credix-brand-logo__img"
         src={branding.logoSrc}
         alt={`${branding.companyLine1} ${branding.companyName}`}
-        preview={false}
         width={width}
         height={height}
-        style={{ maxWidth: '100%', height: 'auto' }}
+        decoding="async"
       />
-      {showTagline && !compact && (
-        <Text
-          type="secondary"
-          style={{ display: 'block', marginTop: 8, fontSize: 13 }}
-        >
+      {showTagline && !compact ? (
+        <Text type="secondary" className="credix-brand-logo__tagline">
           {branding.tagline}
         </Text>
-      )}
+      ) : null}
     </div>
   )
 }

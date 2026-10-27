@@ -1,14 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Button, Input, Space, message } from 'antd'
+import { Button, Input, Space, Typography, message } from 'antd'
 import { FileSearchOutlined } from '@ant-design/icons'
 import { consultarDniApiPeru } from '../../../api/apiperu'
-import { crearPersonaRapida } from '../../../api/clientes'
+import { crearPersonaRapida, obtenerPersonaPorDocumento } from '../../../api/clientes'
 import { ApiError } from '../../../api/errors'
+import {
+  etiquetaPersonaDocumento,
+} from '../../../components/caja/clienteBuscarResolve'
 import { FIELD_MAX } from '../../../validation/formRules'
 
+const { Text } = Typography
+
 function errMsg(e: unknown): string {
-  return e instanceof ApiError ? e.message : 'Error desconocido'
+  return e instanceof ApiError
+    ? e.message
+    : e instanceof Error
+      ? e.message
+      : 'Error desconocido'
 }
 
 function onlyDigits(value: string): string {
@@ -36,9 +45,16 @@ type Props = {
   onCreated: (personaId: number, label: string) => void
   /** Prefill DNI (p. ej. desde simulador prospecto). */
   initialDni?: string
+  submitLabel?: string
+  hint?: ReactNode
 }
 
-export function CrearPersonaRapidaModal({ onCreated, initialDni }: Props) {
+export function CrearPersonaRapidaModal({
+  onCreated,
+  initialDni,
+  submitLabel = 'Guardar persona',
+  hint,
+}: Props) {
   const [dni, setDni] = useState(() => onlyDigits(initialDni ?? '').slice(0, 8))
   const [nombre, setNombre] = useState('')
   const [paterno, setPaterno] = useState('')
@@ -51,7 +67,7 @@ export function CrearPersonaRapidaModal({ onCreated, initialDni }: Props) {
   }, [initialDni])
 
   const crear = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       const payload = {
         dni: onlyDigits(dni),
         nombre: nombre.trim(),
@@ -59,15 +75,30 @@ export function CrearPersonaRapidaModal({ onCreated, initialDni }: Props) {
         materno: materno.trim(),
         celular: onlyDigits(celular),
       }
+      if (payload.dni.length !== 8) {
+        throw new Error('Ingrese un DNI de 8 dígitos')
+      }
+
+      const existente = await obtenerPersonaPorDocumento(payload.dni)
+      if (existente?.personaId) {
+        return {
+          success: true,
+          personaId: existente.personaId,
+          label: etiquetaPersonaDocumento(existente),
+          existed: true,
+        }
+      }
+
       const error = validarFormulario(payload)
       if (error) throw new Error(error)
-      return crearPersonaRapida({
+      const created = await crearPersonaRapida({
         dni: payload.dni,
         nombre: payload.nombre,
         apePaterno: payload.paterno,
         apeMaterno: payload.materno,
         celular: payload.celular || null,
       })
+      return { ...created, existed: false }
     },
     onSuccess: (r) => {
       if (!r.success) {
@@ -75,13 +106,14 @@ export function CrearPersonaRapidaModal({ onCreated, initialDni }: Props) {
         return
       }
       onCreated(r.personaId, r.label)
-      message.success('Persona creada')
+      message.success(r.existed ? 'Ya estaba en el padrón' : 'Persona creada')
     },
     onError: (e) => message.error(errMsg(e)),
   })
 
   return (
     <Space direction="vertical" style={{ width: '100%' }} size="middle">
+      {hint ? <Text type="secondary">{hint}</Text> : null}
       <Input
         placeholder="DNI 8 dígitos"
         value={dni}
@@ -143,7 +175,7 @@ export function CrearPersonaRapidaModal({ onCreated, initialDni }: Props) {
         status={celular.length > 0 && !/^9\d{8}$/.test(celular) ? 'error' : undefined}
       />
       <Button type="primary" loading={crear.isPending} onClick={() => crear.mutate()}>
-        Guardar persona
+        {submitLabel}
       </Button>
     </Space>
   )

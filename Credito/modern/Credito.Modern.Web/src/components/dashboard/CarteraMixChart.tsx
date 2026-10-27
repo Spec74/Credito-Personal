@@ -97,7 +97,7 @@ export function CarteraMixChart({
               key={a.key}
               d={a.d}
               fill={a.color}
-              stroke="#fff"
+              className="dash-chart-mix__arc"
               strokeWidth={2}
             />
           ))}

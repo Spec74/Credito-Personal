@@ -81,6 +81,27 @@ export function primaryCatalogSearchTerm(term: string): string {
   return terms[0]
 }
 
+/** DNI peruano de 8 dígitos al inicio del término (p. ej. "44684156 JUAN"). */
+export function dniFromSearchTerm(term: string): string | undefined {
+  const lead = term.trim().match(/^(\d{8})\b/)
+  return lead ? lead[1] : undefined
+}
+
+export function etiquetaPersonaDocumento(p: {
+  numeroDocumento: string
+  nombre: string
+  apePaterno?: string | null
+  apeMaterno?: string | null
+}): string {
+  const apellidos = [p.apePaterno, p.apeMaterno]
+    .map((x) => x?.trim())
+    .filter(Boolean)
+    .join(' ')
+  const nombre = p.nombre.trim()
+  const cuerpo = apellidos && nombre ? `${apellidos}, ${nombre}` : apellidos || nombre
+  return `${p.numeroDocumento} ${cuerpo}`.trim()
+}
+
 export function findHitInList(
   term: string,
   hits: ClienteHit[],

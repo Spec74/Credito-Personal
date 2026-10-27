@@ -130,7 +130,7 @@ export function AnalystDashboardPage() {
         <h3 className="dash-section-title">Operación del mes</h3>
         <section className="dash-kpis dash-kpis-4" aria-label="Operación del mes">
           <KpiCard
-            accent="#2e69ae"
+            accent="var(--credix-info)"
             icon={<TeamOutlined />}
             label="Total clientes"
             value={formatEntero(kpis.totalClientes)}
@@ -142,7 +142,7 @@ export function AnalystDashboardPage() {
             }
           />
           <KpiCard
-            accent="#114885"
+            accent="var(--credix-ink-brand)"
             icon={<RiseOutlined />}
             label="Créditos colocados"
             value={formatEntero(kpis.creditosActual)}
@@ -154,7 +154,7 @@ export function AnalystDashboardPage() {
             }
           />
           <KpiCard
-            accent="#15803d"
+            accent="var(--credix-success)"
             icon={<WalletOutlined />}
             label="Cobrado del mes"
             value={`S/ ${formatMoney(kpis.cobradoActual)}`}
@@ -166,7 +166,7 @@ export function AnalystDashboardPage() {
             }
           />
           <KpiCard
-            accent="#0f4c81"
+            accent="var(--credix-ink-brand)"
             icon={<PercentageOutlined />}
             label="Cartera vigente"
             value={`S/ ${formatMoney(kpis.saldoActual)}`}
@@ -177,7 +177,7 @@ export function AnalystDashboardPage() {
         <h3 className="dash-section-title">Riesgo de cartera</h3>
         <section className="dash-kpis dash-kpis-4" aria-label="Riesgo de cartera">
           <KpiCard
-            accent="#b91c1c"
+            accent="var(--credix-danger)"
             icon={<WarningOutlined />}
             label="Saldo en mora"
             value={`S/ ${formatMoney(kpis.montoMora)}`}
@@ -186,7 +186,7 @@ export function AnalystDashboardPage() {
             actionHint="Ver clientes morosos"
           />
           <KpiCard
-            accent="#9f1239"
+            accent="var(--credix-danger)"
             icon={<TeamOutlined />}
             label="Clientes en mora"
             value={formatEntero(kpis.clientesMora)}
@@ -202,7 +202,7 @@ export function AnalystDashboardPage() {
             actionHint="Ver clientes morosos"
           />
           <KpiCard
-            accent="#7f1d1d"
+            accent="var(--credix-danger)"
             icon={<StopOutlined />}
             label="Morosos sin pagar"
             value={formatEntero(kpis.clientesMoraSinPago)}
@@ -216,7 +216,7 @@ export function AnalystDashboardPage() {
             actionHint="Ver clientes sin pago"
           />
           <KpiCard
-            accent="#114885"
+            accent="var(--credix-ink-brand)"
             icon={<CalendarOutlined />}
             label="Vencen esta semana"
             value={formatEntero(kpis.porVencerSemana)}
@@ -284,8 +284,8 @@ export function AnalystDashboardPage() {
               <Progress
                 percent={progresoHoy}
                 showInfo={false}
-                strokeColor="#114885"
-                trailColor="#e8f2fc"
+                strokeColor="var(--credix-ink-brand)"
+                trailColor="var(--credix-brand-light)"
                 size="small"
                 aria-label={`Avance vs cobranza de ayer: ${progresoHoy}%`}
               />

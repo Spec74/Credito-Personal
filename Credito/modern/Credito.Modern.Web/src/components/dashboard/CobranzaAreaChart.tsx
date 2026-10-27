@@ -50,8 +50,8 @@ export function CobranzaAreaChart({
       >
         <defs>
           <linearGradient id="dashCobranzaFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#114885" stopOpacity="0.28" />
-            <stop offset="100%" stopColor="#114885" stopOpacity="0.02" />
+            <stop offset="0%" stopColor="var(--credix-ink-brand)" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="var(--credix-ink-brand)" stopOpacity="0.02" />
           </linearGradient>
         </defs>
         {geometry.yTicks.map((tick) => (

@@ -148,7 +148,7 @@ body.credix-density-comfortable .credix-page {
 .credix-comunicado-detalle h2 {
   margin: 0 0 8px;
   font-size: 1.15rem;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 .credix-comunicado-detalle p {
@@ -229,7 +229,7 @@ body.credix-density-comfortable .credix-page {
 .credix-agenda-mobile__day {
   margin: 0 0 8px;
   font-weight: 600;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 .credix-notify-dropdown {
@@ -426,7 +426,7 @@ body.credix-density-comfortable .credix-page {
 
 .credix-role-home__action:hover {
   border-color: var(--credix-brand);
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 .credix-role-home__action.is-primary {

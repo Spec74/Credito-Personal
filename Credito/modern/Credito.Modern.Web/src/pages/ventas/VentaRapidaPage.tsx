@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
-import { Alert, Button, Input, InputNumber, Space, Spin, Typography, message } from 'antd'
+import { Alert, Button, Input, InputNumber, Spin, Typography, message } from 'antd'
 import {
   fetchArticuloVentaRapida,
   fetchCajaDiarioVentaRapida,
@@ -13,7 +13,7 @@ import {
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CajaSinSesionAlert } from '../caja/components/CajaSinSesionAlert'
-import { ClienteBuscarAutoComplete } from '../../components/caja/ClienteBuscarAutoComplete'
+import { CompradorVentaField } from '../../components/ventas/CompradorVentaField'
 import {
   CredixArticuloSelect,
   CredixPage,
@@ -326,34 +326,21 @@ export function VentaRapidaPage() {
 
             <aside className="venta-rapida__cobro">
               <CredixPanel title="Cliente">
-                {personaId ? (
-                  <Space direction="vertical" style={{ width: '100%' }}>
-                    <Text>{clienteLabel}</Text>
-                    <Button
-                      type="link"
-                      style={{ paddingInline: 0 }}
-                      onClick={() => {
-                        setPersonaId(null)
-                        setClienteLabel('')
-                        setTerminoCliente('')
-                      }}
-                    >
-                      Cambiar cliente
-                    </Button>
-                  </Space>
-                ) : (
-                  <ClienteBuscarAutoComplete
-                    value={terminoCliente}
-                    onChange={setTerminoCliente}
-                    onSelectPersona={(id, label) => {
-                      setPersonaId(id)
-                      setClienteLabel(label)
-                      setTerminoCliente('')
-                    }}
-                    placeholder="Documento o nombre"
-                    fullWidth
-                  />
-                )}
+                <CompradorVentaField
+                  personaId={personaId}
+                  clienteLabel={clienteLabel}
+                  termino={terminoCliente}
+                  onTerminoChange={setTerminoCliente}
+                  onSelect={(id, label) => {
+                    setPersonaId(id)
+                    setClienteLabel(label)
+                  }}
+                  onClear={() => {
+                    setPersonaId(null)
+                    setClienteLabel('')
+                    setTerminoCliente('')
+                  }}
+                />
               </CredixPanel>
 
               <CredixPanel title="Cobrar">

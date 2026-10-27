@@ -18,7 +18,7 @@ import {
   message,
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { ClienteBuscarAutoComplete } from '../../components/caja/ClienteBuscarAutoComplete'
+import { CompradorVentaField } from '../../components/ventas/CompradorVentaField'
 import {
   actualizarOrdenVentaDetalle,
   agregarOrdenVentaDetalle,
@@ -634,33 +634,21 @@ export function OrdenVentaPage() {
             />
           </Form.Item>
           <Form.Item label="Cliente" required>
-            {personaId ? (
-              <Space>
-                <Text>{clienteLabel}</Text>
-                <Button
-                  type="link"
-                  onClick={() => {
-                    setPersonaId(null)
-                    setClienteLabel('')
-                    setTerminoCliente('')
-                  }}
-                >
-                  Cambiar
-                </Button>
-              </Space>
-            ) : (
-              <ClienteBuscarAutoComplete
-                value={terminoCliente}
-                onChange={setTerminoCliente}
-                onSelectPersona={(id, label) => {
-                  setPersonaId(id)
-                  setClienteLabel(label)
-                  setTerminoCliente('')
-                }}
-                placeholder="Documento o nombre"
-                fullWidth
-              />
-            )}
+            <CompradorVentaField
+              personaId={personaId}
+              clienteLabel={clienteLabel}
+              termino={terminoCliente}
+              onTerminoChange={setTerminoCliente}
+              onSelect={(id, label) => {
+                setPersonaId(id)
+                setClienteLabel(label)
+              }}
+              onClear={() => {
+                setPersonaId(null)
+                setClienteLabel('')
+                setTerminoCliente('')
+              }}
+            />
           </Form.Item>
         </Form>
       </Modal>

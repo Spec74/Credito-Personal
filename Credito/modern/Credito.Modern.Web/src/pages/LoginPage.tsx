@@ -1,17 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import {
-  Alert,
-  Button,
-  Card,
-  Checkbox,
-  Form,
-  Input,
-  Select,
-  Spin,
-  Typography,
-} from 'antd'
+import { Alert, Button, Checkbox, Form, Input, Select, Spin, Typography } from 'antd'
 import { fetchOficinas } from '../api/oficinas'
 import { ApiError } from '../api/errors'
 import { getAuthLoginErrorMessage } from '../auth/authLoginError'
@@ -22,6 +12,7 @@ import { branding } from '../config/branding'
 import { fetchClientPublicIp } from '../utils/clientIp'
 import { parseLoginOficinaId } from '../utils/sucursalRed'
 import { CredixColorSchemeToggle } from '../components/layout/CredixColorSchemeToggle'
+import '../styles/credix-login.css'
 
 const { Text } = Typography
 
@@ -31,6 +22,28 @@ interface LoginFormValues {
   oficinaId: number
   recordar?: boolean
 }
+
+function telefonoSoporte(raw: string): { href: string; label: string } {
+  const digits = raw.replace(/\D/g, '')
+  const label =
+    digits.length === 9 ? `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}` : raw
+  return { href: `tel:+51${digits}`, label }
+}
+
+const PUBLIC_FACTS = [
+  {
+    title: 'Personal autorizado',
+    body: 'Solo colaboradores con usuario de la empresa. No hay registro abierto.',
+  },
+  {
+    title: 'Si busca un crédito',
+    body: 'Esta no es banca por internet. Atención en agencia CrediConfiable.',
+  },
+  {
+    title: 'Soporte del sistema',
+    body: `Mesa de ayuda ${telefonoSoporte(branding.supportPhone).label}.`,
+  },
+] as const
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -48,8 +61,7 @@ export function LoginPage() {
     retry: 2,
   })
 
-  const from =
-    (location.state as { from?: string } | null)?.from ?? '/inicio'
+  const from = (location.state as { from?: string } | null)?.from ?? '/inicio'
 
   useEffect(() => {
     let cancelled = false
@@ -90,7 +102,7 @@ export function LoginPage() {
 
   if (isLoading) {
     return (
-      <div className="credix-login-wrap" translate="no" style={{ display: 'grid', placeItems: 'center' }}>
+      <div className="credix-login is-boot" translate="no">
         <Spin size="large" />
       </div>
     )
@@ -99,6 +111,8 @@ export function LoginPage() {
   if (isAuthenticated) {
     return <Navigate to={from} replace />
   }
+
+  const soporte = telefonoSoporte(branding.supportPhone)
 
   const oficinaOptions = (oficinasQuery.data ?? []).map((o) => ({
     value: o.oficinaId,
@@ -141,120 +155,141 @@ export function LoginPage() {
   }
 
   return (
-    <main className="credix-login-wrap" translate="no">
-      <div className="credix-login-theme">
-        <CredixColorSchemeToggle />
-      </div>
-      <Card className="credix-login-card" styles={{ body: { paddingTop: 20 } }}>
-        <BrandLogo showTagline />
+    <main className="credix-login" translate="no">
+      <aside className="credix-login-stage">
+        <div>
+          <p className="credix-login-stage__kicker">
+            {branding.companyLine1} {branding.companyName}
+          </p>
+          <h1>Acceso del personal</h1>
+          <p className="credix-login-stage__lead">
+            Esta dirección es el sistema de trabajo de las sucursales. No es un portal de
+            clientes: no se solicitan créditos ni se consultan saldos desde aquí.
+          </p>
+        </div>
+        <ul className="credix-login-facts">
+          {PUBLIC_FACTS.map((item, i) => (
+            <li key={item.title}>
+              <span className="credix-login-facts__n" aria-hidden>
+                {i + 1}
+              </span>
+              <div>
+                <strong>{item.title}</strong>
+                <span>{item.body}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </aside>
 
-        <Text
-          type="secondary"
-          style={{ display: 'block', textAlign: 'center', marginTop: 8 }}
-        >
-          {branding.systemDescription}
-        </Text>
+      <section className="credix-login-panel">
+        <div className="credix-login-theme">
+          <CredixColorSchemeToggle />
+        </div>
+        <div className="credix-login-form">
+          <BrandLogo />
+          <h2 className="credix-login-form__title">Iniciar sesión</h2>
+          <Text className="credix-login-form__hint">
+            Solo personal autorizado. No hay alta pública.
+          </Text>
 
-        {oficinasError && (
-          <Alert
-            type="warning"
-            showIcon
-            style={{ marginTop: 16 }}
-            message="Oficinas no disponibles"
-            description={oficinasError}
-            action={
-              <Button size="small" onClick={() => void oficinasQuery.refetch()}>
-                Reintentar
-              </Button>
-            }
-          />
-        )}
-
-        {error && (
-          <Alert
-            type="error"
-            message={error}
-            showIcon
-            style={{ marginTop: 16 }}
-          />
-        )}
-
-        <Form<LoginFormValues>
-          form={form}
-          layout="vertical"
-          style={{ marginTop: 20 }}
-          onFinish={onFinish}
-          requiredMark={false}
-          initialValues={{ recordar: true }}
-        >
-          <Form.Item
-            name="nombreUsuario"
-            label="Usuario"
-            rules={[{ required: true, message: 'Ingrese su usuario' }]}
-          >
-            <Input autoComplete="username" size="large" />
-          </Form.Item>
-          <Form.Item
-            name="clave"
-            label="Contraseña"
-            rules={[{ required: true, message: 'Ingrese su contraseña' }]}
-          >
-            <Input.Password autoComplete="current-password" size="large" />
-          </Form.Item>
-          <Form.Item
-            name="oficinaId"
-            label="Oficina"
-            rules={[{ required: true, message: 'Seleccione oficina' }]}
-          >
-            <Select
-              size="large"
-              showSearch
-              optionFilterProp="label"
-              loading={oficinasQuery.isLoading}
-              placeholder={
-                oficinasQuery.isLoading
-                  ? 'Cargando oficinas…'
-                  : oficinaOptions.length
-                    ? 'Seleccione oficina'
-                    : 'Sin oficinas'
-              }
-              options={oficinaOptions}
-              notFoundContent={
-                oficinasQuery.isLoading ? (
-                  <Spin size="small" />
-                ) : (
-                  (oficinasError ?? 'No hay datos')
-                )
+          {oficinasError ? (
+            <Alert
+              type="warning"
+              showIcon
+              style={{ marginBottom: 16 }}
+              message="Oficinas no disponibles"
+              description={oficinasError}
+              action={
+                <Button size="small" onClick={() => void oficinasQuery.refetch()}>
+                  Reintentar
+                </Button>
               }
             />
-          </Form.Item>
+          ) : null}
 
-          <Form.Item name="recordar" valuePropName="checked" style={{ marginBottom: 8 }}>
-            <Checkbox>Recordar sesión en este equipo</Checkbox>
-          </Form.Item>
+          {error ? (
+            <Alert type="error" message={error} showIcon style={{ marginBottom: 16 }} />
+          ) : null}
 
-          <Button
-            type="primary"
-            htmlType="submit"
-            block
-            size="large"
-            loading={submitting}
-            style={{ marginTop: 8 }}
-            disabled={oficinaOptions.length === 0 && !oficinasQuery.isLoading}
+          <Form<LoginFormValues>
+            form={form}
+            layout="vertical"
+            onFinish={onFinish}
+            requiredMark={false}
+            initialValues={{ recordar: true }}
           >
-            Iniciar sesión
-          </Button>
-        </Form>
+            <Form.Item
+              name="nombreUsuario"
+              label="Usuario"
+              rules={[{ required: true, message: 'Ingrese su usuario' }]}
+            >
+              <Input autoComplete="username" size="large" />
+            </Form.Item>
+            <Form.Item
+              name="clave"
+              label="Contraseña"
+              rules={[{ required: true, message: 'Ingrese su contraseña' }]}
+            >
+              <Input.Password autoComplete="current-password" size="large" />
+            </Form.Item>
+            <Form.Item
+              name="oficinaId"
+              label="Oficina"
+              rules={[{ required: true, message: 'Seleccione oficina' }]}
+            >
+              <Select
+                size="large"
+                showSearch
+                optionFilterProp="label"
+                loading={oficinasQuery.isLoading}
+                placeholder={
+                  oficinasQuery.isLoading
+                    ? 'Cargando oficinas…'
+                    : oficinaOptions.length
+                      ? 'Seleccione oficina'
+                      : 'Sin oficinas'
+                }
+                options={oficinaOptions}
+                notFoundContent={
+                  oficinasQuery.isLoading ? (
+                    <Spin size="small" />
+                  ) : (
+                    (oficinasError ?? 'No hay datos')
+                  )
+                }
+              />
+            </Form.Item>
 
-        {import.meta.env.DEV && (
-          <Text
-            type="secondary"
-            style={{ display: 'block', marginTop: 12, fontSize: 11 }}
-          >
-            Entorno desarrollo · API vía proxy local
-          </Text>
-        )}
-      </Card>
+            <Form.Item name="recordar" valuePropName="checked" style={{ marginBottom: 8 }}>
+              <Checkbox>Recordar sesión en este equipo</Checkbox>
+            </Form.Item>
+
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
+              size="large"
+              loading={submitting}
+              style={{ marginTop: 8 }}
+              disabled={oficinaOptions.length === 0 && !oficinasQuery.isLoading}
+            >
+              Iniciar sesión
+            </Button>
+          </Form>
+
+          <p className="credix-login-form__legal">
+            ¿No es colaborador? Acérquese a una agencia.{' '}
+            <a href={soporte.href}>{soporte.label}</a>
+          </p>
+
+          {import.meta.env.DEV ? (
+            <Text type="secondary" style={{ display: 'block', marginTop: 12, fontSize: 11 }}>
+              Entorno desarrollo · API vía proxy local
+            </Text>
+          ) : null}
+        </div>
+      </section>
     </main>
   )
 }

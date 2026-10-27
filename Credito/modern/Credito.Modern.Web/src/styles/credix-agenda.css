@@ -160,7 +160,7 @@
 
 .credix-gcal-mini__grid button.is-today {
   font-weight: 700;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 .credix-gcal-mini__grid button.is-active {
@@ -474,7 +474,7 @@
 
 .credix-gcal-sgroup header strong {
   text-transform: capitalize;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 .credix-gcal-sgroup header span {
@@ -493,7 +493,7 @@
 .credix-gcal-link {
   border: 0;
   background: none;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
   cursor: pointer;
   font: inherit;
   font-weight: 600;
@@ -601,7 +601,7 @@
 .credix-agenda-card__time {
   flex: 0 0 92px;
   font-weight: 700;
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
   font-size: 13px;
 }
 
