@@ -150,34 +150,31 @@ export function LoginPage() {
         <div className="credix-login-stage__mesh" aria-hidden />
         <div className="credix-login-stage__grid" aria-hidden />
         <div className="credix-login-stage__rings" aria-hidden />
-        <div className="credix-login-stage__inner">
-          <p className="credix-login-stage__date">{fecha}</p>
-          <div className="credix-login-stage__body">
-            <div className="credix-login-stage__brand">
-              <BrandLogo onDark priority />
-            </div>
-            <p className="credix-login-stage__eyebrow">Acceso del personal</p>
-            <blockquote className="credix-login-quote" key={frase.texto}>
-              <p>{frase.texto}</p>
-              {frase.fuente ? <cite>{frase.fuente}</cite> : <cite>CrediConfiable</cite>}
-            </blockquote>
-            <p className="credix-login-stage__lead">
-              Sistema de trabajo de las sucursales. No es un portal de clientes.
-            </p>
+        <p className="credix-login-stage__date">{fecha}</p>
+        <div className="credix-login-stage__body">
+          <div className="credix-login-stage__brand">
+            <BrandLogo onDark priority />
           </div>
-          <p className="credix-login-stage__points">
-            Entras a tu oficina · Sin alta pública · Listo para el mostrador
+          <p className="credix-login-stage__eyebrow">Acceso del personal</p>
+          <blockquote className="credix-login-quote" key={frase.texto}>
+            <p>{frase.texto}</p>
+            {frase.fuente ? <cite>{frase.fuente}</cite> : <cite>CrediConfiable</cite>}
+          </blockquote>
+          <p className="credix-login-stage__lead">
+            Sistema de trabajo de las sucursales. No es un portal de clientes.
           </p>
         </div>
+        <p className="credix-login-stage__points">
+          Entras a tu oficina · Sin alta pública · Listo para el mostrador
+        </p>
       </aside>
 
       <section className="credix-login-panel">
-        <div className="credix-login-form">
-          <div className="credix-login-form__head">
-            <p className="credix-login-form__context">Sesión de sucursal</p>
-            <CredixColorSchemeToggle compact />
-          </div>
-          <div className="credix-login-form__main">
+        <div className="credix-login-form__head">
+          <p className="credix-login-form__context">Sesión de sucursal</p>
+          <CredixColorSchemeToggle variant="segmented" />
+        </div>
+        <div className="credix-login-form__main">
           <header className="credix-login-form__header">
             <p className="credix-login-form__hello">{saludo}</p>
             <h1 className="credix-login-form__title">Iniciar sesión</h1>
@@ -282,19 +279,17 @@ export function LoginPage() {
               Iniciar sesión
             </Button>
           </Form>
-          </div>
-
-          <div className="credix-login-form__foot">
-            <p className="credix-login-form__legal">
-              ¿No es colaborador? Acérquese a una agencia.{' '}
-              <a href={soporte.href}>{soporte.label}</a>
-            </p>
-            {import.meta.env.DEV ? (
-              <Text type="secondary" style={{ display: 'block', marginTop: 8, fontSize: 11 }}>
-                Entorno desarrollo · API vía proxy local
-              </Text>
-            ) : null}
-          </div>
+        </div>
+        <div className="credix-login-form__foot">
+          <p className="credix-login-form__legal">
+            ¿No es colaborador? Acérquese a una agencia.{' '}
+            <a href={soporte.href}>{soporte.label}</a>
+          </p>
+          {import.meta.env.DEV ? (
+            <Text type="secondary" style={{ display: 'block', marginTop: 8, fontSize: 11 }}>
+              Entorno desarrollo · API vía proxy local
+            </Text>
+          ) : null}
         </div>
       </section>
     </main>

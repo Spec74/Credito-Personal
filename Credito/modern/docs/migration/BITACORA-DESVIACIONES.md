@@ -4,6 +4,16 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Login: página completa, no pozo de 380 px
+
+**Qué hay:** Cada mitad es una grilla de página (cabecera / cuerpo /
+pie) a todo el ancho útil. La frase usa el ancho de columna. El
+formulario se alinea al mismo inset; campos tope 32 rem. Apariencia
+con Segmented Claro/Oscuro (no icono de teléfono). En móvil se apila
+sin `1fr` vacío.
+
+**Qué no hay:** no se vuelve al max-width 380 px centrado.
+
 ### 2026-10-27 — Login: sin marcos, ritmo de página
 
 **Qué hay:** Frase y formulario sueltos (sin tarjeta). Cada columna es
