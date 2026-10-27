@@ -13,7 +13,7 @@ import { branding } from '../config/branding'
 import { fetchClientPublicIp } from '../utils/clientIp'
 import { parseLoginOficinaId } from '../utils/sucursalRed'
 import { CredixColorSchemeToggle } from '../components/layout/CredixColorSchemeToggle'
-import { pickLoginFrase, saludoSegunHora } from '../utils/loginFrase'
+import { fechaLargaEsPe, pickLoginFrase, saludoSegunHora } from '../utils/loginFrase'
 import '../styles/credix-login.css'
 
 const { Text } = Typography
@@ -43,6 +43,7 @@ export function LoginPage() {
   const [form] = Form.useForm<LoginFormValues>()
   const [frase] = useState(() => pickLoginFrase())
   const [saludo] = useState(() => saludoSegunHora())
+  const [fecha] = useState(() => fechaLargaEsPe())
 
   const oficinasQuery = useQuery({
     queryKey: ['oficinas'],
@@ -146,31 +147,43 @@ export function LoginPage() {
   return (
     <main className="credix-login" translate="no">
       <aside className="credix-login-stage">
+        <div className="credix-login-stage__mesh" aria-hidden />
+        <div className="credix-login-stage__grid" aria-hidden />
+        <div className="credix-login-stage__rings" aria-hidden />
         <div className="credix-login-stage__inner">
-          <div className="credix-login-stage__brand">
-            <BrandLogo onDark priority />
+          <p className="credix-login-stage__date">{fecha}</p>
+          <div className="credix-login-stage__card">
+            <div className="credix-login-stage__brand">
+              <BrandLogo onDark priority />
+            </div>
+            <p className="credix-login-stage__eyebrow">Acceso del personal</p>
+            <blockquote className="credix-login-quote" key={frase.texto}>
+              <p>{frase.texto}</p>
+              {frase.fuente ? <cite>{frase.fuente}</cite> : <cite>CrediConfiable</cite>}
+            </blockquote>
+            <p className="credix-login-stage__lead">
+              Sistema de trabajo de las sucursales. No es un portal de clientes.
+            </p>
           </div>
-          <p className="credix-login-stage__eyebrow">Acceso del personal</p>
-          <blockquote className="credix-login-quote" key={frase.texto}>
-            <p>{frase.texto}</p>
-            {frase.fuente ? <cite>{frase.fuente}</cite> : <cite>CrediConfiable</cite>}
-          </blockquote>
-          <p className="credix-login-stage__lead">
-            Sistema de trabajo de las sucursales. No es un portal de clientes.
-          </p>
+          <ul className="credix-login-stage__points">
+            <li>Entras a tu oficina</li>
+            <li>Sin alta pública</li>
+            <li>Listo para el mostrador</li>
+          </ul>
         </div>
       </aside>
 
       <section className="credix-login-panel">
-        <div className="credix-login-theme">
-          <CredixColorSchemeToggle compact />
-        </div>
         <div className="credix-login-form">
+          <div className="credix-login-form__toolbar">
+            <p className="credix-login-form__context">Sesión de sucursal</p>
+            <CredixColorSchemeToggle compact />
+          </div>
           <header className="credix-login-form__header">
             <p className="credix-login-form__hello">{saludo}</p>
             <h1 className="credix-login-form__title">Iniciar sesión</h1>
             <Text className="credix-login-form__hint">
-              Solo personal autorizado. No hay alta pública.
+              Usa tu usuario de trabajo. La sesión queda en la oficina que elijas.
             </Text>
           </header>
 
@@ -229,6 +242,7 @@ export function LoginPage() {
             <Form.Item
               name="oficinaId"
               label="Oficina"
+              extra="La sesión queda ligada a esta sede."
               rules={[{ required: true, message: 'Seleccione oficina' }]}
             >
               <Select

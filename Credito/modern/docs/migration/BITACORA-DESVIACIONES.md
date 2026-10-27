@@ -4,6 +4,16 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Login: espacio de sucursal, no panel vacío
+
+**Qué hay:** Columna de marca con malla, retícula y aros cian (el C
+de la marca, no un isotipo nuevo). Fecha del día + tarjeta de cristal
+con lockup y frase. Tres anclas públicas (oficina, sin alta, mostrador).
+Formulario en tarjeta sobre canvas, barra “sesión de sucursal” y aviso
+de que la sesión queda en la sede.
+
+**Qué no hay:** no hay mascota inventada ni KPIs de caja/mora.
+
 ### 2026-10-27 — Login: columnas 50/50 y formulario de sistema
 
 **Qué hay:** Mitades iguales; marca y formulario se centran al mismo
