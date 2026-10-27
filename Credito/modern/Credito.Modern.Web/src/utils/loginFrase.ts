@@ -45,3 +45,14 @@ export function pickLoginFrase(random: () => number = Math.random): LoginFrase {
   const i = Math.floor(random() * LOGIN_FRASES.length) % LOGIN_FRASES.length
   return LOGIN_FRASES[i]!
 }
+
+export function saludoSegunHora(now: Date = new Date()): string {
+  const h = now.getHours()
+  if (h >= 5 && h < 12) {
+    return 'Buenos días'
+  }
+  if (h >= 12 && h < 19) {
+    return 'Buenas tardes'
+  }
+  return 'Buenas noches'
+}

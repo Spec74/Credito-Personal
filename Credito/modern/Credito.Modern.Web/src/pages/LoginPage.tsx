@@ -12,7 +12,7 @@ import { branding } from '../config/branding'
 import { fetchClientPublicIp } from '../utils/clientIp'
 import { parseLoginOficinaId } from '../utils/sucursalRed'
 import { CredixColorSchemeToggle } from '../components/layout/CredixColorSchemeToggle'
-import { pickLoginFrase } from '../utils/loginFrase'
+import { pickLoginFrase, saludoSegunHora } from '../utils/loginFrase'
 import '../styles/credix-login.css'
 
 const { Text } = Typography
@@ -41,6 +41,7 @@ export function LoginPage() {
   const [ipResolved, setIpResolved] = useState(false)
   const [form] = Form.useForm<LoginFormValues>()
   const [frase] = useState(() => pickLoginFrase())
+  const [saludo] = useState(() => saludoSegunHora())
 
   const oficinasQuery = useQuery({
     queryKey: ['oficinas'],
@@ -144,9 +145,9 @@ export function LoginPage() {
   return (
     <main className="credix-login" translate="no">
       <aside className="credix-login-stage">
-        <p className="credix-login-stage__kicker">
-          {branding.companyLine1} {branding.companyName}
-        </p>
+        <div className="credix-login-stage__brand">
+          <BrandLogo onDark priority />
+        </div>
         <p className="credix-login-stage__eyebrow">Acceso del personal</p>
         <blockquote className="credix-login-quote" key={frase.texto}>
           <p>{frase.texto}</p>
@@ -162,7 +163,7 @@ export function LoginPage() {
           <CredixColorSchemeToggle />
         </div>
         <div className="credix-login-form">
-          <BrandLogo />
+          <p className="credix-login-form__hello">{saludo}</p>
           <h2 className="credix-login-form__title">Iniciar sesión</h2>
           <Text className="credix-login-form__hint">
             Solo personal autorizado. No hay alta pública.

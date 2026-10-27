@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { LOGIN_FRASES, pickLoginFrase } from './loginFrase'
+import { LOGIN_FRASES, pickLoginFrase, saludoSegunHora } from './loginFrase'
 
 describe('pickLoginFrase', () => {
   it('elige al azar dentro del banco', () => {
@@ -15,5 +15,13 @@ describe('pickLoginFrase', () => {
         expect(f.fuente.trim().length).toBeGreaterThan(2)
       }
     }
+  })
+})
+
+describe('saludoSegunHora', () => {
+  it('cambia con la hora del día', () => {
+    expect(saludoSegunHora(new Date(2026, 9, 27, 8))).toBe('Buenos días')
+    expect(saludoSegunHora(new Date(2026, 9, 27, 15))).toBe('Buenas tardes')
+    expect(saludoSegunHora(new Date(2026, 9, 27, 21))).toBe('Buenas noches')
   })
 })

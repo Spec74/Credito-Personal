@@ -4,13 +4,13 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
-### 2026-10-27 — Login: frase de arranque + marca en SVG
+### 2026-10-27 — Login: lockup oficial + calor
 
-**Qué hay:** Una frase por visita (propias + pocas citas conocidas). Motiva
-oficio y confianza, no el manual interno. Logo en SVG para no pixelar;
-en oscuro solo se aclara el wordmark.
+**Qué hay:** El PNG original de Inversiones CrediConfiable (no un SVG
+inventado). En navy/oscuro va sobre placa blanca. Frase en tarjeta
+esmerilada, saludo según hora, colores `#114885` / `#3DB5EA`.
 
-**Qué no hay:** no se indexa el sistema ni se copian procesos de caja.
+**Qué no hay:** no se redibuja el isotipo ni se indexa el sistema.
 
 ### 2026-10-27 — Login público: personal, no portal de clientes
 

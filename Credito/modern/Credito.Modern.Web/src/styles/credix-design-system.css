@@ -342,44 +342,48 @@ body.credix-app-body {
   width: 100%;
 }
 
-.credix-brand-logo__svg {
-  display: block;
+.credix-brand-logo__plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   margin-inline: auto;
+  padding: 0;
+  border-radius: 12px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.credix-brand-logo__img {
+  display: block;
   max-width: 100%;
   height: auto;
-  overflow: visible;
+  background: transparent;
 }
 
-.credix-brand-logo__line {
-  fill: var(--credix-info, #2e69ae);
-  font-family: var(--credix-font);
+.credix-brand-logo__tagline {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--credix-text-muted);
 }
 
-.credix-brand-logo__word {
-  fill: var(--credix-brand, #114885);
-  font-family: var(--credix-font);
-  letter-spacing: -0.03em;
+:root[data-theme='dark'] .credix-brand-logo__plate,
+.credix-brand-logo--on-dark .credix-brand-logo__plate {
+  padding: 10px 14px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(8, 32, 64, 0.18);
 }
 
-.credix-brand-logo__tag {
-  fill: #7a8794;
-  font-family: var(--credix-font);
+.credix-brand-logo.is-compact .credix-brand-logo__plate {
+  padding: 8px 10px;
 }
 
-:root[data-theme='dark'] .credix-brand-logo__line,
-:root[data-theme='dark'] .credix-brand-logo__tag {
-  fill: #b4bcc8;
+:root[data-theme='light'] .credix-brand-logo.is-compact .credix-brand-logo__plate {
+  padding: 0;
 }
 
-:root[data-theme='dark'] .credix-brand-logo__word {
-  fill: #f4f7fb;
-}
-
-.credix-brand-logo.is-compact .credix-brand-logo__svg {
-  max-width: 168px;
-}
-
-.app-shell-sider-brand .credix-brand-logo__svg {
+.app-shell-sider-brand .credix-brand-logo__img {
   max-width: 168px;
 }
 
