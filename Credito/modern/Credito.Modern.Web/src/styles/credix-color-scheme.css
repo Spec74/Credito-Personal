@@ -11,10 +11,7 @@
   filter: none;
 }
 
-/* Wordmark navy del PNG: en oscuro se aclara; no se tocan fotos. */
-:root[data-theme='dark'] .credix-brand-logo__img {
-  filter: brightness(0) invert(1);
-}
+/* Wordmark del SVG: en oscuro se aclara. El isotipo cian se queda. */
 
 :root[data-theme='dark'] ::selection {
   background: rgba(140, 182, 232, 0.35);

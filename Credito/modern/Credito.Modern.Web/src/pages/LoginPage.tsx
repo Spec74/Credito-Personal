@@ -12,6 +12,7 @@ import { branding } from '../config/branding'
 import { fetchClientPublicIp } from '../utils/clientIp'
 import { parseLoginOficinaId } from '../utils/sucursalRed'
 import { CredixColorSchemeToggle } from '../components/layout/CredixColorSchemeToggle'
+import { pickLoginFrase } from '../utils/loginFrase'
 import '../styles/credix-login.css'
 
 const { Text } = Typography
@@ -30,21 +31,6 @@ function telefonoSoporte(raw: string): { href: string; label: string } {
   return { href: `tel:+51${digits}`, label }
 }
 
-const PUBLIC_FACTS = [
-  {
-    title: 'Personal autorizado',
-    body: 'Solo colaboradores con usuario de la empresa. No hay registro abierto.',
-  },
-  {
-    title: 'Si busca un crédito',
-    body: 'Esta no es banca por internet. Atención en agencia CrediConfiable.',
-  },
-  {
-    title: 'Soporte del sistema',
-    body: `Mesa de ayuda ${telefonoSoporte(branding.supportPhone).label}.`,
-  },
-] as const
-
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -54,6 +40,7 @@ export function LoginPage() {
   const [clientIp, setClientIp] = useState<string | null>(null)
   const [ipResolved, setIpResolved] = useState(false)
   const [form] = Form.useForm<LoginFormValues>()
+  const [frase] = useState(() => pickLoginFrase())
 
   const oficinasQuery = useQuery({
     queryKey: ['oficinas'],
@@ -157,29 +144,17 @@ export function LoginPage() {
   return (
     <main className="credix-login" translate="no">
       <aside className="credix-login-stage">
-        <div>
-          <p className="credix-login-stage__kicker">
-            {branding.companyLine1} {branding.companyName}
-          </p>
-          <h1>Acceso del personal</h1>
-          <p className="credix-login-stage__lead">
-            Esta dirección es el sistema de trabajo de las sucursales. No es un portal de
-            clientes: no se solicitan créditos ni se consultan saldos desde aquí.
-          </p>
-        </div>
-        <ul className="credix-login-facts">
-          {PUBLIC_FACTS.map((item, i) => (
-            <li key={item.title}>
-              <span className="credix-login-facts__n" aria-hidden>
-                {i + 1}
-              </span>
-              <div>
-                <strong>{item.title}</strong>
-                <span>{item.body}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <p className="credix-login-stage__kicker">
+          {branding.companyLine1} {branding.companyName}
+        </p>
+        <p className="credix-login-stage__eyebrow">Acceso del personal</p>
+        <blockquote className="credix-login-quote" key={frase.texto}>
+          <p>{frase.texto}</p>
+          {frase.fuente ? <cite>{frase.fuente}</cite> : <cite>CrediConfiable</cite>}
+        </blockquote>
+        <p className="credix-login-stage__lead">
+          Sistema de trabajo de las sucursales. No es un portal de clientes.
+        </p>
       </aside>
 
       <section className="credix-login-panel">
