@@ -13,7 +13,8 @@ import { branding } from '../config/branding'
 import { fetchClientPublicIp } from '../utils/clientIp'
 import { parseLoginOficinaId } from '../utils/sucursalRed'
 import { CredixColorSchemeToggle } from '../components/layout/CredixColorSchemeToggle'
-import { fechaLargaEsPe, pickLoginFrase, saludoSegunHora } from '../utils/loginFrase'
+import { pickLoginFrase } from '../utils/loginFrase'
+import { capitalizarApodo, pickLoginSaludoDia } from '../utils/loginSaludo'
 import '../styles/credix-login.css'
 
 const { Text } = Typography
@@ -42,8 +43,7 @@ export function LoginPage() {
   const [ipResolved, setIpResolved] = useState(false)
   const [form] = Form.useForm<LoginFormValues>()
   const [frase] = useState(() => pickLoginFrase())
-  const [saludo] = useState(() => saludoSegunHora())
-  const [fecha] = useState(() => fechaLargaEsPe())
+  const [saludoDia] = useState(() => pickLoginSaludoDia())
 
   const oficinasQuery = useQuery({
     queryKey: ['oficinas'],
@@ -150,7 +150,12 @@ export function LoginPage() {
         <div className="credix-login-stage__mesh" aria-hidden />
         <div className="credix-login-stage__grid" aria-hidden />
         <div className="credix-login-stage__rings" aria-hidden />
-        <p className="credix-login-stage__date">{fecha}</p>
+        <div className="credix-login-stage__hello">
+          <p className="credix-login-stage__greet">
+            {saludoDia.saludo}, <em>{capitalizarApodo(saludoDia.apodo)}</em>.
+          </p>
+          <p className="credix-login-stage__aside">{saludoDia.linea}</p>
+        </div>
         <div className="credix-login-stage__body">
           <div className="credix-login-stage__brand">
             <BrandLogo onDark priority />
@@ -176,7 +181,6 @@ export function LoginPage() {
         </div>
         <div className="credix-login-form__main">
           <header className="credix-login-form__header">
-            <p className="credix-login-form__hello">{saludo}</p>
             <h1 className="credix-login-form__title">Iniciar sesión</h1>
             <Text className="credix-login-form__hint">
               Usa tu usuario de trabajo. La sesión queda en la oficina que elijas.

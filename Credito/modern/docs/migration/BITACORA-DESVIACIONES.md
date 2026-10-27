@@ -4,6 +4,16 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Login: saludo diario, sin fecha
+
+**Qué hay:** Se quita la fecha (el reloj del equipo ya la da). En su
+lugar: Buenos días/tardes/noches + apodo de oficio (banco SDT, un
+apodo por día) y una línea corta al lado. El “Buenos días” del
+formulario se elimina. El cuerpo de marca deja de centrarse, para no
+dejar un hueco bajo el saludo.
+
+**Qué no hay:** no hay apodos de “hustle” ni datos de caja.
+
 ### 2026-10-27 — Login: página completa, no pozo de 380 px
 
 **Qué hay:** Cada mitad es una grilla de página (cabecera / cuerpo /

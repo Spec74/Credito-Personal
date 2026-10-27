@@ -83,7 +83,7 @@
   }
 }
 
-.credix-login-stage__date,
+.credix-login-stage__hello,
 .credix-login-stage__body,
 .credix-login-stage__points,
 .credix-login-form__head,
@@ -94,25 +94,52 @@
   width: 100%;
 }
 
-.credix-login-stage__date,
+.credix-login-stage__hello {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 16px;
+  row-gap: 6px;
+}
+
+.credix-login-stage__greet {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.35;
+  color: #fff;
+}
+
+.credix-login-stage__greet em {
+  font-style: normal;
+  font-weight: 650;
+  color: #b7e3f6;
+}
+
+.credix-login-stage__aside {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.4;
+  color: rgba(244, 247, 251, 0.72);
+}
+
 .credix-login-form__context {
   margin: 0;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(244, 247, 251, 0.72);
-}
-
-.credix-login-form__context {
   color: var(--credix-text-muted);
 }
 
 .credix-login-stage__body {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   min-height: 0;
+  padding-top: 4px;
 }
 
 .credix-login-stage__brand {
@@ -234,14 +261,6 @@
 
 .credix-login-form__header {
   margin-bottom: 28px;
-}
-
-.credix-login-form__hello {
-  margin: 0 0 8px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--credix-ink-brand, var(--credix-brand, #114885));
 }
 
 .credix-login-form__title {

@@ -56,13 +56,3 @@ export function saludoSegunHora(now: Date = new Date()): string {
   }
   return 'Buenas noches'
 }
-
-/** Fecha larga en es-PE para anclar el día de trabajo (no es un KPI). */
-export function fechaLargaEsPe(now: Date = new Date()): string {
-  const raw = new Intl.DateTimeFormat('es-PE', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-  }).format(now)
-  return raw.charAt(0).toUpperCase() + raw.slice(1)
-}
