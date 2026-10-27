@@ -219,7 +219,7 @@ public class CreditoRolAuthorizationEndpointTests : IClassFixture<CreditoModernW
     }
 
     [Fact]
-    public async Task Guardar_marca_analista_devuelve_403()
+    public async Task Guardar_marca_analista_no_devuelve_403_por_rol()
     {
         var token = await DevTokenAsync(["ANALISTA"]);
         using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/marcas/guardar")
@@ -235,11 +235,11 @@ public class CreditoRolAuthorizationEndpointTests : IClassFixture<CreditoModernW
 
         var res = await _client.SendAsync(req);
 
-        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+        Assert.NotEqual(HttpStatusCode.Forbidden, res.StatusCode);
     }
 
     [Fact]
-    public async Task Guardar_articulo_analista_devuelve_403()
+    public async Task Guardar_articulo_analista_no_devuelve_403_por_rol()
     {
         var token = await DevTokenAsync(["ANALISTA"]);
         using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/articulos/guardar")
@@ -264,7 +264,7 @@ public class CreditoRolAuthorizationEndpointTests : IClassFixture<CreditoModernW
 
         var res = await _client.SendAsync(req);
 
-        Assert.Equal(HttpStatusCode.Forbidden, res.StatusCode);
+        Assert.NotEqual(HttpStatusCode.Forbidden, res.StatusCode);
     }
 
     [Fact]

@@ -19,6 +19,8 @@ Términos usados en SSD, arquitectura y runbooks. Índice: [DOCUMENTACION.md](DO
 | **`$pbk2$`** | Prefijo de clave hasheada PBKDF2; el legado podía guardar clave en claro |
 | **MigracionClavePerezosa** | Al login exitoso en claro, reescribe hash `$pbk2$` (Staging/piloto) |
 | **Credix / CrediConfiable** | Marca UI y PDFs tabulares modernos (no ReportViewer) |
+| **`data-theme`** | `light` / `dark` en `html`. Tokens `--credix-*`. No es `filter: invert` (SSD-19) |
+| **WCAG 2.2 AA** | Contraste texto 4.5:1, UI 3:1, foco visible, target ≥24 px |
 | **RDLC** | Informes ReportViewer del MVC; puente opcional vía `VITE_LEGACY_ORIGIN` |
 | **ProblemDetails** | Respuesta de error RFC 7807 (`title`, `detail`, status) |
 | **formRules** | Reglas Ant Design FE (`Web/src/validation/formRules.ts`) |

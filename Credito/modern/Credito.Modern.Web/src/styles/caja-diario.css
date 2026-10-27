@@ -12,7 +12,7 @@
   --caja-cuota-mora-border: #ef4444;
   --caja-cuota-creada-bg: #fefce8;
   --caja-cuota-creada-border: #eab308;
-  --caja-cuota-resumen-bg: #f1f5f9;
+  --caja-cuota-resumen-bg: var(--credix-surface-muted);
 }
 
 .caja-diario-page.credix-page .credix-page-body {
@@ -34,7 +34,7 @@
 }
 
 .caja-diario-page ul.credix-stats li {
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border, #e5e7eb);
   border-radius: var(--credix-radius, 12px);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -59,7 +59,7 @@
 }
 
 .caja-diario-page ul.credix-stats li span.green {
-  color: #15803d;
+  color: var(--credix-success);
 }
 
 .caja-diario-page ul.credix-stats li span.red {
@@ -210,7 +210,7 @@
   width: 100%;
   min-width: 0;
   padding: 12px 14px;
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border, #e5e7eb);
   border-radius: var(--credix-radius, 12px);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
@@ -316,7 +316,7 @@
   width: 100%;
   min-width: 0;
   padding: 10px 14px;
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border, #e5e7eb);
   border-left: 3px solid var(--caja-brand, #114885);
   border-radius: var(--credix-radius, 12px);
@@ -421,7 +421,7 @@
   padding: 12px;
   border: 1px solid var(--credix-border, #e5e7eb);
   border-radius: var(--credix-radius, 12px);
-  background: #fff;
+  background: var(--credix-surface);
 }
 
 .caja-diario-ops-bar {
@@ -433,7 +433,7 @@
   padding: 12px 14px;
   border: 1px solid var(--credix-border, #e5e7eb);
   border-radius: var(--credix-radius, 12px);
-  background: #fff;
+  background: var(--credix-surface);
   min-width: 0;
 }
 
@@ -470,7 +470,7 @@
 
 .caja-diario-ops-report.ant-btn {
   border-color: var(--credix-border, #e5e7eb);
-  background: #fff;
+  background: var(--credix-surface);
   color: var(--caja-brand);
 }
 
@@ -515,7 +515,7 @@
 .caja-section {
   border: 1px solid var(--credix-border);
   border-radius: var(--credix-radius);
-  background: #fff;
+  background: var(--credix-surface);
   overflow: hidden;
   box-shadow: var(--credix-shadow-sm);
 }
@@ -549,7 +549,7 @@
 }
 
 .caja-section--credito .caja-section__head {
-  background: #f8fafc;
+  background: var(--credix-surface-muted);
 }
 
 .caja-section--credito .caja-section__icon {
@@ -558,7 +558,7 @@
 }
 
 .caja-section--cxc .caja-section__head {
-  background: #fff7ed;
+  background: var(--credix-warning-bg);
 }
 
 .caja-section--cxc .caja-section__icon {
@@ -710,7 +710,7 @@
   padding: 10px 12px;
   border: 1px solid var(--credix-border, #e5e7eb);
   border-radius: var(--credix-radius, 8px);
-  background: #f8fafc;
+  background: var(--credix-surface-muted);
   cursor: pointer;
   transition:
     border-color 0.15s,
@@ -720,7 +720,7 @@
 
 .caja-diario-credito-chip:hover {
   border-color: #bfd4ec;
-  background: #fff;
+  background: var(--credix-surface);
 }
 
 .caja-diario-credito-chip.is-active {
@@ -780,14 +780,14 @@
 
 .caja-btn-pago-libre.ant-btn-primary {
   background: #0f766e;
-  border-color: #0f766e;
+  border-color: var(--credix-success);
   box-shadow: none;
   font-weight: 650;
 }
 
 .caja-btn-pago-libre.ant-btn-primary:not(:disabled):hover {
   background: #0d9488;
-  border-color: #0d9488;
+  border-color: var(--credix-success);
 }
 
 .caja-btn-pagar-cuota.ant-btn-primary {
@@ -881,7 +881,7 @@
   flex: 0 0 auto;
   padding: 16px 20px 12px;
   border-bottom: 1px solid #e8eef6;
-  background: #fff;
+  background: var(--credix-surface);
 }
 
 .caja-creditos-pendientes-modal__intro {
@@ -892,7 +892,7 @@
   gap: 10px 14px;
   margin-bottom: 12px;
   padding: 10px 14px;
-  background: #f8fafc;
+  background: var(--credix-surface-muted);
   border: 1px solid var(--credix-border, #e2e8f0);
   border-radius: 8px;
   font-size: 13px;
@@ -911,7 +911,7 @@
   min-height: 280px;
   padding: 12px 20px 16px;
   overflow: hidden;
-  background: #fbfcfe;
+  background: var(--credix-surface-muted);
 }
 
 .caja-creditos-pendientes-table .ant-table {
@@ -919,7 +919,7 @@
 }
 
 .caja-creditos-pendientes-table .ant-table-thead > tr > th {
-  background: #f8fafc !important;
+  background: var(--credix-surface-muted);
   font-weight: 650;
   font-size: 12px;
   color: var(--credix-text-muted, #64748b);
@@ -977,7 +977,7 @@
   margin: 0;
   padding: 8px 12px;
   list-style: none;
-  background: #f8fafc;
+  background: var(--credix-surface-muted);
   border: 1px solid var(--credix-border);
   border-radius: 6px;
   font-size: 12px;
@@ -1146,11 +1146,11 @@
 }
 
 .caja-cuotas-table .ant-table-tbody > tr.caja-cuota-row.ant-table-row-selected > td {
-  background: #dbeafe !important;
+  background: var(--credix-brand-light) !important;
 }
 
 .caja-cuota-mora-cell {
-  color: #b91c1c;
+  color: var(--credix-danger);
   font-weight: 600;
 }
 
@@ -1212,7 +1212,7 @@
   bottom: 0;
   z-index: 10;
   padding: 14px 16px;
-  background: #fff;
+  background: var(--credix-surface);
   border: 2px solid var(--caja-brand);
   border-radius: 10px;
   box-shadow: var(--credix-shadow-md);
@@ -1293,7 +1293,7 @@
 
 .caja-diario-arqueo-pane {
   min-width: 0;
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border, #e5e7eb);
   border-radius: var(--credix-radius, 12px);
   padding: 12px;
@@ -1334,7 +1334,7 @@
   gap: 12px;
   margin-top: 4px;
   padding: 14px;
-  background: #f8fafc;
+  background: var(--credix-surface-muted);
   border: 1px solid var(--credix-border);
   border-radius: 8px;
 }
@@ -1355,7 +1355,7 @@
 }
 
 .caja-monto-entrada {
-  color: #15803d;
+  color: var(--credix-success);
   font-weight: 600;
 }
 
@@ -1383,12 +1383,12 @@
 .caja-diario-entrada-salida-hint {
   padding: 10px 14px;
   border-radius: 8px;
-  background: #f8fafc;
+  background: var(--credix-surface-muted);
   border: 1px solid #e2e8f0;
 }
 
 .caja-diario-entrada-salida-hint.is-warning {
-  background: #fffbeb;
+  background: var(--credix-warning-bg);
   border-color: #fcd34d;
 }
 
@@ -1481,7 +1481,7 @@
   border: 1px solid var(--credix-border, #e5e7eb);
   border-left: 3px solid var(--caja-brand, #114885);
   border-radius: var(--credix-radius, 12px);
-  background: #fff;
+  background: var(--credix-surface);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
@@ -1559,7 +1559,7 @@
 }
 
 .caja-diario-pago-modos__btn.is-on {
-  background: #fff;
+  background: var(--credix-surface);
   color: var(--caja-brand, #114885);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
 }
@@ -1643,8 +1643,8 @@
   padding: 6px 12px;
   border-radius: 8px;
   border: 1px solid #dbe3ee;
-  background: #fff;
-  color: #334155;
+  background: var(--credix-surface);
+  color: var(--credix-text);
   font-size: 12px;
   font-weight: 650;
   cursor: pointer;
@@ -1659,7 +1659,7 @@
 .caja-tipo-pago-chips__btn--on {
   border-color: var(--caja-brand, #114885);
   background: #e8f2ff;
-  color: #0f3d6e;
+  color: var(--credix-ink-brand);
   box-shadow: inset 0 0 0 1px var(--caja-brand, #114885);
 }
 
@@ -1667,7 +1667,7 @@
   margin-top: 16px;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  background: #fafafa;
+  background: var(--credix-surface-muted);
   padding: 0 12px;
 }
 
@@ -1698,7 +1698,7 @@
   margin-bottom: 10px;
   border: 1px solid #e8eef5;
   border-radius: 12px;
-  background: #fff;
+  background: var(--credix-surface);
   padding: 0 12px;
 }
 
@@ -1739,7 +1739,7 @@
 }
 
 .caja-cxc-table .ant-table-tbody > tr:hover > td {
-  background: #fff7ed !important;
+  background: var(--credix-warning-bg) !important;
 }
 
 @media (max-width: 767px) {
@@ -1880,7 +1880,7 @@
 .caja-drawer-root .ant-drawer-footer {
   border-top: 1px solid var(--credix-border, #e5e7eb);
   padding: 12px 20px 16px;
-  background: #f8fafc;
+  background: var(--credix-surface-muted);
 }
 
 .caja-modal-root--confirm .ant-modal-confirm-title {

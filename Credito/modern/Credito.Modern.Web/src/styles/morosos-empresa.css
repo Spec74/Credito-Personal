@@ -3,7 +3,7 @@
   --me-ink: #0f1c24;
   --me-muted: #5b6b75;
   --me-line: #d7e0e6;
-  --me-surface: #ffffff;
+  --me-surface: var(--credix-surface);
   --me-soft: #f4f7f9;
   --me-brand: #056aa0;
   --me-brand-deep: #17324d;
@@ -112,19 +112,19 @@
 
 .morosos-status-card--red {
   color: var(--me-red);
-  border-color: #f0c4c6;
+  border-color: color-mix(in srgb, var(--me-red) 32%, var(--me-line));
   background: var(--me-red-soft);
 }
 
 .morosos-status-card--amber {
   color: var(--me-amber);
-  border-color: #f5d4a8;
+  border-color: color-mix(in srgb, var(--me-amber) 32%, var(--me-line));
   background: var(--me-amber-soft);
 }
 
 .morosos-status-card--green {
   color: var(--me-green);
-  border-color: #b7dfc3;
+  border-color: color-mix(in srgb, var(--me-green) 32%, var(--me-line));
   background: var(--me-green-soft);
 }
 
@@ -233,6 +233,12 @@
 .morosos-badge--green {
   background: var(--me-green);
   color: #fff;
+}
+
+.morosos-badge--red,
+.morosos-badge--amber,
+.morosos-badge--green {
+  box-shadow: none;
 }
 
 .morosos-profile {

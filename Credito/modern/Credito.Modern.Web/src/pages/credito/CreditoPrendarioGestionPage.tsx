@@ -504,7 +504,7 @@ export function CreditoPrendarioGestionPage() {
               >
                 Acta de entrega
               </Button>
-              {puedeProrrogar && creditoDesembolsado ? (
+              {puedeProrrogar && creditoDesembolsado && !preview.data?.fechaRemateEjecutado ? (
                 <Button onClick={() => setModalProrrogar(true)}>Prorrogar</Button>
               ) : null}
               {creditoDesembolsado && !preview.data?.fechaRemateEjecutado ? (
@@ -626,7 +626,20 @@ export function CreditoPrendarioGestionPage() {
               type="info"
               showIcon
               className="credito-prendario-alert"
-              message="Complete el simulador para asignar contrato e imprimir documentos."
+              message="Genere el crédito en Nueva solicitud para asignar contrato e imprimir."
+              action={
+                <Button
+                  size="small"
+                  type="primary"
+                  onClick={() =>
+                    navigate(
+                      `/credito/nuevo?personaId=${personaId}&solicitudCreditoId=${creditoId}&productoId=2`,
+                    )
+                  }
+                >
+                  Completar solicitud
+                </Button>
+              }
             />
           ) : null}
 
@@ -716,11 +729,11 @@ export function CreditoPrendarioGestionPage() {
                             loading={rematarMut.isPending}
                             onClick={() =>
                               confirmMoney({
-                                title: `Rematar ${b.descripcion || 'bien'}`,
+                                title: `Rematar crédito #${creditoId}`,
                                 amount: b.valorTasacion,
-                                officeLabel: `Crédito #${creditoId}`,
+                                officeLabel: b.descripcion || 'Bien en custodia',
                                 consequence:
-                                  'La prenda pasa a stock a su tasación para venderla en el punto de venta. El préstamo queda cerrado como rematado.',
+                                  'Todos los bienes en custodia pasan a stock a su tasación para venderlos en el punto de venta. El préstamo queda cerrado como rematado.',
                                 okText: 'Rematar',
                                 onOk: async () => {
                                   await rematarMut.mutateAsync(b.prendaId)

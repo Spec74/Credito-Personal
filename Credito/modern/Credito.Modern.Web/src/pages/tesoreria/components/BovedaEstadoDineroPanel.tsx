@@ -61,13 +61,7 @@ export function BovedaEstadoDineroPanel({ data, loading }: Props) {
     {
       value: data.efectivoOficina ?? data.totalFondo,
       label: 'Efectivo de oficina',
-      hint: 'Bóveda + cajas + chica',
-    },
-    {
-      value: data.montoCajaChica,
-      label: 'Caja chica',
-      to: '/caja/caja-chica',
-      hint: 'Abrir caja chica',
+      hint: 'Bóveda + cajas',
     },
     {
       value: data.montoCajas,

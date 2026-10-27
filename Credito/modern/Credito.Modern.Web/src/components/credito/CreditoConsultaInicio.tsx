@@ -55,7 +55,7 @@ export function CreditoConsultaInicio({ recientes, onAbrir, onQuitar }: Props) {
       ) : null}
 
       <nav className="credito-consulta-inicio__atajos" aria-label="Atajos de crédito">
-        <Link className="credito-consulta-inicio__atajo" to="/credito/simulador">
+        <Link className="credito-consulta-inicio__atajo" to="/credito/nuevo">
           <AuditOutlined aria-hidden />
           <span>Nueva solicitud</span>
         </Link>

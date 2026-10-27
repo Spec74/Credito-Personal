@@ -116,7 +116,7 @@
   font-size: 15px;
   border-radius: 10px;
   border-color: #d1d5db;
-  background: #fff;
+  background: var(--credix-surface);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
@@ -311,7 +311,7 @@
 .credito-aprobacion-actions__btn--consulta {
   color: var(--credix-brand, #114885);
   border-color: #a8c4e8;
-  background: #f8fbff;
+  background: var(--credix-info-bg);
 }
 
 .credito-aprobacion-actions__btn--consulta:hover {

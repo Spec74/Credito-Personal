@@ -9,14 +9,19 @@
  */
 
 :root {
+  color-scheme: light;
   --credix-brand: #114885;
   --credix-brand-hover: #1a5a9e;
   --credix-brand-active: #0d3a6b;
+  --credix-action: #114885;
   --credix-brand-light: #e8f2fc;
   --credix-bg: #f8f9fb;
   --credix-surface: #ffffff;
+  --credix-surface-muted: #f1f5f9;
+  --credix-surface-elevated: #ffffff;
   --credix-border: #e3e6ea;
   --credix-text: #202124;
+  --credix-on-brand: #ffffff;
   /* ≥4.5:1 sobre --credix-bg (#f8f9fb) — WCAG AA (Lighthouse color-contrast) */
   --credix-text-muted: #595f6b;
   --credix-success: #15803d;
@@ -27,6 +32,27 @@
   --credix-danger-bg: #fef2f2;
   --credix-info: #2e69ae;
   --credix-info-bg: #eff6ff;
+  --credix-ink-brand: #114885;
+  --credix-brand-line: #c5daf0;
+  --credix-table-head: #e8f0f8;
+  --credix-row-hover: #eff6ff;
+  /* Chips de estado: relleno profundo + texto claro en light; tinte + cromático en dark (no neón). */
+  --credix-chip-ok-bg: #e7f6ec;
+  --credix-chip-ok-fg: #15803d;
+  --credix-chip-warn-bg: #fff4e5;
+  --credix-chip-warn-fg: #c47a00;
+  --credix-chip-danger-bg: #fdeceb;
+  --credix-chip-danger-fg: #b91c1c;
+  --credix-chip-info-bg: #e8f1fb;
+  --credix-chip-info-fg: #114885;
+  --credix-scroll-thumb: #8aa4c2;
+  --credix-scroll-track: #f1f5f9;
+  --credix-menu-hover: rgba(17, 72, 133, 0.08);
+  --credix-menu-open: rgba(17, 72, 133, 0.06);
+  --credix-menu-sub: linear-gradient(180deg, rgba(232, 242, 252, 0.55), rgba(255, 255, 255, 0));
+  --credix-menu-sub-line: rgba(17, 72, 133, 0.12);
+  --credix-pdf: #a31830;
+  --credix-xls: #1a5c38;
   --credix-header-h: 52px;
   --credix-sidebar-w: 240px;
   --credix-sidebar-collapsed: 72px;
@@ -52,6 +78,55 @@
   --credix-type-body: 14px;
   --credix-type-label: 12px;
   --credix-type-caption: 11px;
+}
+
+/* Oscuro: tokens en :root para ganar a las variables de :root (no invertir la pantalla). */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --credix-brand: #114885;
+  --credix-brand-hover: #2e69ae;
+  --credix-brand-active: #0d3a6b;
+  --credix-action: #2e69ae;
+  --credix-brand-light: #1a3048;
+  --credix-bg: #12151a;
+  --credix-surface: #1b2028;
+  --credix-surface-muted: #151a21;
+  --credix-surface-elevated: #232a34;
+  --credix-border: #3a4452;
+  --credix-text: #e6e8ec;
+  --credix-on-brand: #ffffff;
+  --credix-text-muted: #b4bcc8;
+  --credix-success: #4ade80;
+  --credix-success-bg: #16351f;
+  --credix-warning: #fbbf24;
+  --credix-warning-bg: #3a2a0a;
+  --credix-danger: #f87171;
+  --credix-danger-bg: #3b1616;
+  --credix-info: #8cb6e8;
+  --credix-info-bg: #152a40;
+  --credix-ink-brand: #8cb6e8;
+  --credix-brand-line: #2a4a66;
+  --credix-table-head: #1a2838;
+  --credix-row-hover: #243044;
+  --credix-chip-ok-bg: #16351f;
+  --credix-chip-ok-fg: #4ade80;
+  --credix-chip-warn-bg: #3a2a0a;
+  --credix-chip-warn-fg: #fbbf24;
+  --credix-chip-danger-bg: #3b1616;
+  --credix-chip-danger-fg: #f87171;
+  --credix-chip-info-bg: #152a40;
+  --credix-chip-info-fg: #8cb6e8;
+  --credix-scroll-thumb: #3a4452;
+  --credix-scroll-track: #151a21;
+  --credix-menu-hover: rgba(140, 182, 232, 0.14);
+  --credix-menu-open: rgba(140, 182, 232, 0.1);
+  --credix-menu-sub: #151a21;
+  --credix-menu-sub-line: #3a4452;
+  --credix-pdf: #f87171;
+  --credix-xls: #4ade80;
+  --credix-shadow-sm: none;
+  --credix-shadow-md: none;
+  --credix-focus-ring: 0 0 0 2px rgba(140, 182, 232, 0.28);
 }
 
 body.credix-app-body {
@@ -182,10 +257,9 @@ body.credix-app-body {
 }
 
 .credix-layout {
-  flex: 1;
+  flex: 1 1 0;
   display: flex;
   min-height: 0;
-  height: auto;
   overflow: hidden;
   width: 100%;
 }
@@ -193,7 +267,8 @@ body.credix-app-body {
 .credix-sidebar {
   flex: 0 0 var(--credix-sidebar-w);
   width: var(--credix-sidebar-w);
-  height: 100%;
+  align-self: stretch;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   background: var(--credix-surface);
@@ -202,13 +277,21 @@ body.credix-app-body {
   box-shadow: 6px 0 18px rgba(15, 23, 42, 0.04);
 }
 
+.credix-sidebar > nav {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
+}
+
 .credix-sidebar--collapsed {
   flex: 0 0 var(--credix-sidebar-collapsed);
   width: var(--credix-sidebar-collapsed);
 }
 
 .credix-sidebar--collapsed .app-shell-sider-menu {
-  overflow-x: visible;
+  overflow-x: hidden;
   padding-inline: 0;
 }
 
@@ -238,6 +321,7 @@ body.credix-app-body {
   display: flex;
   flex-direction: column;
   width: 100%;
+  flex: 1 1 0;
   height: 100%;
   min-height: 0;
   background: var(--credix-surface);
@@ -254,14 +338,22 @@ body.credix-app-body {
 }
 
 .app-shell-sider-menu {
-  flex: 1 1 auto;
-  overflow: auto;
+  flex: 1 1 0;
   min-height: 0;
-  padding: 10px 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px 0 8px;
   background: var(--credix-surface);
   scrollbar-width: thin;
   scrollbar-gutter: stable;
   scrollbar-color: rgba(17, 72, 133, 0.35) transparent;
+}
+
+.app-shell-sider-menu .credix-menu.ant-menu {
+  background: transparent !important;
+  overflow: visible !important;
+  height: auto !important;
 }
 
 .app-shell-sider-menu::-webkit-scrollbar {
@@ -278,14 +370,16 @@ body.credix-app-body {
 }
 
 .app-shell-sider-quick {
-  margin-top: auto;
-  flex-shrink: 0;
+  margin-top: 0;
+  flex: 0 0 auto;
+  max-height: min(38vh, 280px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   border-top: 1px solid var(--credix-border);
-  background: #f8fafc;
+  background: var(--credix-surface-muted);
   padding: 0;
-  /* Evita repaints/parpadeo al hacer hover o scroll cerca del bloque */
   isolation: isolate;
-  contain: layout paint;
 }
 
 .app-shell-sider-quick-toggle {
@@ -350,11 +444,15 @@ body.credix-app-body {
 .app-shell-sider-quick-panel {
   display: grid;
   grid-template-rows: 0fr;
+  min-height: 0;
   transition: grid-template-rows 0.18s ease;
 }
 
 .app-shell-sider-quick.is-open .app-shell-sider-quick-panel {
   grid-template-rows: 1fr;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
 .app-shell-sider-quick-panel__inner {
@@ -400,7 +498,7 @@ body.credix-app-body {
   align-items: center;
   justify-content: center;
   width: 18px;
-  color: #64748b;
+  color: var(--credix-text-muted);
   font-size: 13px;
   line-height: 1;
 }
@@ -415,12 +513,12 @@ body.credix-app-body {
 
 @media (hover: hover) and (pointer: fine) {
   .app-shell-quick-action:hover {
-    background: rgba(17, 72, 133, 0.06);
-    color: var(--credix-brand);
+    background: var(--credix-menu-hover);
+    color: var(--credix-ink-brand);
   }
 
   .app-shell-quick-action:hover .app-shell-quick-action__icon {
-    color: var(--credix-brand);
+    color: var(--credix-ink-brand);
   }
 }
 
@@ -450,7 +548,7 @@ body.credix-app-body {
 }
 
 .credix-quick-actions .ant-btn .anticon {
-  color: #64748b;
+  color: var(--credix-text-muted);
   font-size: 13px;
 }
 
@@ -461,22 +559,25 @@ body.credix-app-body {
 
 @media (hover: hover) and (pointer: fine) {
   .credix-quick-actions .ant-btn:hover {
-    background: rgba(17, 72, 133, 0.06) !important;
-    color: var(--credix-brand) !important;
+    background: var(--credix-menu-hover) !important;
+    color: var(--credix-ink-brand) !important;
   }
 
   .credix-quick-actions .ant-btn:hover .anticon {
-    color: var(--credix-brand);
+    color: var(--credix-ink-brand);
   }
 }
 
-.credix-menu.ant-menu-light {
+.credix-menu.ant-menu-light,
+.credix-menu.ant-menu-dark {
   background: transparent !important;
   border-inline-end: none !important;
 }
 
 .credix-menu.ant-menu-light .ant-menu-item,
-.credix-menu.ant-menu-light .ant-menu-submenu-title {
+.credix-menu.ant-menu-light .ant-menu-submenu-title,
+.credix-menu.ant-menu-dark .ant-menu-item,
+.credix-menu.ant-menu-dark .ant-menu-submenu-title {
   margin: 3px 10px !important;
   width: calc(100% - 16px) !important;
   border-radius: 8px !important;
@@ -489,37 +590,44 @@ body.credix-app-body {
 }
 
 .credix-menu.ant-menu-light .ant-menu-item:hover,
-.credix-menu.ant-menu-light .ant-menu-submenu-title:hover {
-  background: rgba(17, 72, 133, 0.08) !important;
-  color: var(--credix-brand) !important;
+.credix-menu.ant-menu-light .ant-menu-submenu-title:hover,
+.credix-menu.ant-menu-dark .ant-menu-item:hover,
+.credix-menu.ant-menu-dark .ant-menu-submenu-title:hover {
+  background: var(--credix-menu-hover) !important;
+  color: var(--credix-ink-brand) !important;
 }
 
-.credix-menu.ant-menu-light .ant-menu-item-selected {
+.credix-menu.ant-menu-light .ant-menu-item-selected,
+.credix-menu.ant-menu-dark .ant-menu-item-selected {
   background: var(--credix-brand-light) !important;
-  color: var(--credix-brand) !important;
+  color: var(--credix-ink-brand) !important;
   font-weight: 600;
-  box-shadow: inset 3px 0 0 var(--credix-brand);
+  box-shadow: inset 3px 0 0 var(--credix-ink-brand);
 }
 
-.credix-menu.ant-menu-light .ant-menu-submenu-selected > .ant-menu-submenu-title {
-  color: var(--credix-brand) !important;
+.credix-menu.ant-menu-light .ant-menu-submenu-selected > .ant-menu-submenu-title,
+.credix-menu.ant-menu-dark .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: var(--credix-ink-brand) !important;
   font-weight: 600;
 }
 
-.credix-menu.ant-menu-light .ant-menu-submenu-open > .ant-menu-submenu-title {
-  background: rgba(17, 72, 133, 0.06) !important;
-  color: var(--credix-brand) !important;
+.credix-menu.ant-menu-light .ant-menu-submenu-open > .ant-menu-submenu-title,
+.credix-menu.ant-menu-dark .ant-menu-submenu-open > .ant-menu-submenu-title {
+  background: var(--credix-menu-open) !important;
+  color: var(--credix-ink-brand) !important;
 }
 
-.credix-menu.ant-menu-light .ant-menu-sub {
+.credix-menu.ant-menu-light .ant-menu-sub,
+.credix-menu.ant-menu-dark .ant-menu-sub {
   margin: 0 8px 4px !important;
   padding: 4px 0 !important;
-  border-left: 1px solid rgba(17, 72, 133, 0.12);
-  background: linear-gradient(180deg, rgba(232, 242, 252, 0.55), rgba(255, 255, 255, 0)) !important;
+  border-left: 1px solid var(--credix-menu-sub-line);
+  background: var(--credix-menu-sub) !important;
   border-radius: 12px;
 }
 
-.credix-menu.ant-menu-light .ant-menu-sub .ant-menu-item {
+.credix-menu.ant-menu-light .ant-menu-sub .ant-menu-item,
+.credix-menu.ant-menu-dark .ant-menu-sub .ant-menu-item {
   margin-left: 8px !important;
   width: calc(100% - 20px) !important;
   font-size: 12.5px;
@@ -572,7 +680,7 @@ body.credix-app-body {
 .credix-menu.ant-menu-inline-collapsed .ant-menu-submenu-selected > .ant-menu-submenu-title,
 .credix-menu.ant-menu-inline-collapsed .ant-menu-submenu-open > .ant-menu-submenu-title {
   background: var(--credix-brand-light) !important;
-  color: var(--credix-brand) !important;
+  color: var(--credix-ink-brand) !important;
 }
 
 .credix-menu-label {
@@ -592,12 +700,12 @@ body.credix-app-body {
 
 .credix-menu.ant-menu .ant-menu-item:hover .ant-menu-item-icon,
 .credix-menu.ant-menu .ant-menu-submenu-title:hover .ant-menu-item-icon {
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 .credix-menu.ant-menu .ant-menu-item-selected .ant-menu-item-icon,
 .credix-menu.ant-menu .ant-menu-submenu-selected > .ant-menu-submenu-title .ant-menu-item-icon {
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
 }
 
 /* Flyout de submódulos (sidebar colapsado): icono y texto en la misma fila */
@@ -613,11 +721,9 @@ body.credix-app-body {
   overflow: auto;
   padding: 6px;
   border-radius: 12px !important;
-  border: 1px solid #d9e4f2 !important;
-  box-shadow:
-    0 16px 40px rgba(15, 23, 42, 0.14),
-    0 4px 12px rgba(17, 72, 133, 0.08) !important;
-  background: #fff !important;
+  border: 1px solid var(--credix-border) !important;
+  box-shadow: var(--credix-shadow-md) !important;
+  background: var(--credix-surface-elevated) !important;
 }
 
 .ant-menu-submenu-popup .ant-menu-item,
@@ -686,23 +792,36 @@ body.credix-app-body {
 
 .ant-menu-submenu-popup .ant-menu-item:hover,
 .ant-menu-submenu-popup .ant-menu-submenu-title:hover {
-  background: rgba(17, 72, 133, 0.08) !important;
-  color: var(--credix-brand, #114885) !important;
+  background: var(--credix-menu-hover) !important;
+  color: var(--credix-ink-brand) !important;
 }
 
 .ant-menu-submenu-popup .ant-menu-item-selected {
-  background: var(--credix-brand-light, #e8f2fc) !important;
-  color: var(--credix-brand, #114885) !important;
+  background: var(--credix-brand-light) !important;
+  color: var(--credix-ink-brand) !important;
   font-weight: 600;
 }
 
 /* Drawer móvil */
 .app-shell-drawer .ant-drawer-body {
   padding: 0 !important;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell-drawer nav[aria-label='Módulos'] {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+  height: 100%;
 }
 
 .app-shell-drawer .app-shell-sider-inner {
-  min-height: 100%;
+  height: 100%;
+  min-height: 0;
 }
 
 /* —— Página —— */
@@ -803,11 +922,39 @@ ul.credix-stats li span {
 }
 
 ul.credix-stats li span.green {
-  color: #15803d;
+  color: var(--credix-success);
 }
 
 ul.credix-stats li span.red {
-  color: #b91c1c;
+  color: var(--credix-danger);
+}
+
+ul.credix-stats li.credix-stats-action {
+  padding: 0;
+}
+
+ul.credix-stats li.credix-stats-action button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  margin: 0;
+  padding: 16px 18px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+ul.credix-stats li.credix-stats-action button:hover {
+  background: var(--credix-surface-muted, #f8fafc);
+}
+
+ul.credix-stats li.credix-stats-action--on {
+  border-color: var(--credix-brand, #1d4ed8);
+  box-shadow: inset 0 0 0 1px var(--credix-brand, #1d4ed8);
 }
 
 /* Franja KPI en índice de módulo (paridad MVC ul.stats oscuro) */
@@ -999,7 +1146,7 @@ ul.credix-stats--module li span.red {
   gap: 12px 16px;
   align-items: end;
   padding: 14px 16px;
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border);
   border-radius: var(--credix-radius);
   box-shadow: 0 1px 4px rgba(30, 77, 123, 0.04);
@@ -1041,7 +1188,7 @@ ul.credix-stats--module li span.red {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border, #d9d9d9);
   border-radius: 10px;
   overflow: hidden;
@@ -1096,7 +1243,7 @@ ul.credix-stats--module li span.red {
 
 .credix-report-card__body .ant-form-item-label > label {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.55);
+  color: var(--credix-text-muted);
   height: auto;
 }
 
@@ -1109,8 +1256,8 @@ ul.credix-stats--module li span.red {
 
 .credix-report-card__footer {
   padding: 10px 12px;
-  background: #f8fafc;
-  border-top: 1px solid var(--credix-border, #e8e8e8);
+  background: var(--credix-surface-muted);
+  border-top: 1px solid var(--credix-border);
 }
 
 .credix-report-actions {
@@ -1135,7 +1282,7 @@ ul.credix-stats--module li span.red {
   align-self: flex-end;
   font-size: 12px;
   font-weight: 500;
-  color: var(--credix-brand, #1e4d7b);
+  color: var(--credix-ink-brand);
 }
 
 .credix-report-actions__screen:hover {
@@ -1151,7 +1298,7 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-report-screen-links a {
-  color: var(--credix-brand);
+  color: var(--credix-ink-brand);
   font-weight: 600;
 }
 
@@ -1161,23 +1308,23 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-report-btn--pdf {
-  border-color: #c41e3a;
-  color: #a31830;
+  border-color: var(--credix-pdf);
+  color: var(--credix-pdf);
 }
 
 .credix-report-btn--pdf:hover {
-  border-color: #c41e3a !important;
-  color: #c41e3a !important;
+  border-color: var(--credix-pdf) !important;
+  color: var(--credix-pdf) !important;
 }
 
 .credix-report-btn--xls {
-  border-color: #217346;
-  color: #1a5c38;
+  border-color: var(--credix-xls);
+  color: var(--credix-xls);
 }
 
 .credix-report-btn--xls:hover {
-  border-color: #217346 !important;
-  color: #217346 !important;
+  border-color: var(--credix-xls) !important;
+  color: var(--credix-xls) !important;
 }
 
 /* Compatibilidad nombre anterior */
@@ -1404,7 +1551,7 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-pagado {
-  color: #0d9488;
+  color: var(--credix-success);
   font-weight: 600;
 }
 
@@ -1447,7 +1594,7 @@ ul.credix-stats--module li span.red {
 
 .credix-cobranza-tag--warn {
   color: #b45309 !important;
-  background: #fffbeb !important;
+  background: var(--credix-warning-bg) !important;
 }
 
 .credix-cobranza-tag--mora {
@@ -1519,7 +1666,7 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-detalle__meta-value--ok {
-  color: #0d9488;
+  color: var(--credix-success);
 }
 
 .credix-cobranza-detalle__meta-value--fail {
@@ -1619,7 +1766,7 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-cuota-chip--ok .credix-cobranza-cuota-chip__monto {
-  color: #0f766e;
+  color: var(--credix-success);
 }
 
 .credix-cobranza-cuota-chip--fail .credix-cobranza-cuota-chip__monto {
@@ -1886,7 +2033,7 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-pagado {
-  color: #0d9488;
+  color: var(--credix-success);
   font-weight: 600;
 }
 
@@ -1929,7 +2076,7 @@ ul.credix-stats--module li span.red {
 
 .credix-cobranza-tag--warn {
   color: #b45309 !important;
-  background: #fffbeb !important;
+  background: var(--credix-warning-bg) !important;
 }
 
 .credix-cobranza-tag--mora {
@@ -2001,7 +2148,7 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-detalle__meta-value--ok {
-  color: #0d9488;
+  color: var(--credix-success);
 }
 
 .credix-cobranza-detalle__meta-value--fail {
@@ -2101,7 +2248,7 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-cuota-chip--ok .credix-cobranza-cuota-chip__monto {
-  color: #0f766e;
+  color: var(--credix-success);
 }
 
 .credix-cobranza-cuota-chip--fail .credix-cobranza-cuota-chip__monto {
@@ -2142,7 +2289,7 @@ ul.credix-stats--module li span.red {
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--credix-text);
-  background: #f9fafb;
+  background: var(--credix-surface-muted);
   border-bottom: 1px solid var(--credix-border);
 }
 
@@ -2284,7 +2431,7 @@ ul.credix-stats--module li span.red {
 .credix-box-header {
   padding: 12px 16px;
   border-bottom: 1px solid var(--credix-border);
-  background: #f9fafb;
+  background: var(--credix-surface-muted);
 }
 
 .credix-box-header h2 {
@@ -2422,13 +2569,13 @@ ul.credix-stats--module li span.red {
 .credix-crud-panel-toolbar {
   margin: 0 0 16px;
   padding: 0 0 16px;
-  border-bottom: 1px solid color-mix(in srgb, var(--credix-border) 70%, #fff);
+  border-bottom: 1px solid var(--credix-border);
 }
 
 .credix-informe-panel-filters {
   margin: -4px 0 14px;
   padding: 0 0 14px;
-  border-bottom: 1px solid color-mix(in srgb, var(--credix-border) 70%, #fff);
+  border-bottom: 1px solid var(--credix-border);
 }
 
 .credix-informe-panel-filters .credix-informe-filter-row {
@@ -2501,7 +2648,7 @@ ul.credix-stats--module li span.red {
 
 .credix-informe-results-panel .credix-informe-panel-search--wide .ant-input {
   border-radius: 6px;
-  background: #fff;
+  background: var(--credix-surface);
 }
 
 .credix-informe-panel-search .ant-input {
@@ -2509,16 +2656,16 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-informe-table.ant-table .ant-table-thead > tr > th {
-  background: #b0c4de !important;
-  color: var(--credix-brand) !important;
+  background: var(--credix-table-head) !important;
+  color: var(--credix-ink-brand) !important;
   font-weight: 600;
   font-size: 12px;
-  border-color: #94a8c4 !important;
+  border-color: var(--credix-brand-line) !important;
   white-space: nowrap;
 }
 
 .credix-informe-table.ant-table .ant-table-tbody > tr:nth-child(even) > td {
-  background: #f8fafc;
+  background: var(--credix-surface-muted);
 }
 
 .credix-informe-table.ant-table .ant-table-cell {
@@ -2570,7 +2717,7 @@ ul.credix-stats--module li span.red {
 .credix-alert-note {
   padding: 12px 16px;
   margin-bottom: 16px;
-  background: #fffbeb;
+  background: var(--credix-warning-bg);
   border: 1px solid #fcd34d;
   border-radius: var(--credix-radius);
   font-size: 13px;
@@ -2579,7 +2726,7 @@ ul.credix-stats--module li span.red {
 .credix-tabs > .ant-tabs-nav {
   margin-bottom: 0 !important;
   padding: 0 8px;
-  background: #f9fafb;
+  background: var(--credix-surface-muted);
   border-bottom: 1px solid var(--credix-border);
 }
 
@@ -2681,7 +2828,7 @@ ul.credix-stats--module li span.red {
   width: 100%;
   height: 100%;
   border: none;
-  background: #fff;
+  background: var(--credix-surface);
 }
 
 .report-viewer--desktop .report-viewer__frame {
@@ -2743,7 +2890,7 @@ ul.credix-stats--module li span.red {
   padding: 1.25rem 1.5rem;
   border-radius: var(--credix-radius, 8px);
   border: 1px dashed var(--credix-border, #e5e7eb);
-  background: linear-gradient(135deg, var(--credix-brand-light, #e8f2fc) 0%, #fff 55%);
+  background: var(--credix-brand-light);
 }
 
 .credix-module-reserved__icon {

@@ -68,7 +68,6 @@ export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
       { to: '/informes/cajas-asignadas', label: 'Cajas asignadas', description: 'Asignación por agente' },
       { to: '/informes/caja-diario', label: 'Informe caja diario', description: 'Sesiones con hora inicio/fin' },
       { to: '/informes/movimientos-caja-anulados', label: 'Mov. caja anulados', description: 'Anulaciones con fecha/hora' },
-      { to: '/informes/comprobantes-caja-chica', label: 'Comprobantes caja chica', description: 'Comprobantes del periodo' },
       { to: '/informes/reporte-stock', label: 'Stock almacén', description: 'Existencias' },
       { to: '/informes/stock-anulados', label: 'Stock anulados', description: 'Movimientos anulados' },
       { to: '/almacen/kardex', label: 'Kardex', description: 'Kardex por artículo' },

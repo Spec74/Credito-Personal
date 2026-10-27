@@ -100,8 +100,8 @@ export function CreditoPersonaPage() {
         { title: `Persona #${personaId}` },
       ]}
       actions={
-        <Link to={`/credito/simulador?personaId=${personaId}`}>
-          <Button type="primary">Nuevo crédito (simulador)</Button>
+        <Link to={`/credito/nuevo?personaId=${personaId}`}>
+          <Button type="primary">Nueva solicitud</Button>
         </Link>
       }
     >

@@ -40,8 +40,14 @@ public sealed class VentaRapidaReadService(IOptions<SqlDatabaseOptions> options)
                 FROM ALMACEN.Articulo AS a
                 INNER JOIN VENTAS.ListaPrecio AS lp
                     ON lp.ArticuloId = a.ArticuloId AND lp.Estado = CAST(1 AS bit)
-                WHERE a.CodArticulo = @CodArticulo
-                  AND a.Estado = CAST(1 AS bit)
+                WHERE a.Estado = CAST(1 AS bit)
+                  AND (
+                    a.CodArticulo = @CodArticulo
+                    OR (
+                      TRY_CONVERT(int, @CodArticulo) IS NOT NULL
+                      AND a.ArticuloId = TRY_CONVERT(int, @CodArticulo)
+                    )
+                  )
                 ORDER BY lp.ListaPrecioId;
                 """,
                 new { CodArticulo = codArticulo.Trim() },

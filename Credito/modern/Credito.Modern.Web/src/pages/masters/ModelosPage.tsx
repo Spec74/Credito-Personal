@@ -7,7 +7,6 @@ import {
   Form,
   Input,
   Modal,
-  Select,
   Space,
   Switch,
   Tag,
@@ -24,7 +23,7 @@ import {
   type ModeloGestionRow,
 } from '../../api/maestrosCrud'
 import { ApiError } from '../../api/errors'
-import { CredixCrudPage, CredixDataTable } from '../../components/credix'
+import { CredixCrudPage, CredixDataTable, CredixSelect } from '../../components/credix'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
 
 export function ModelosPage() {
@@ -169,7 +168,7 @@ export function ModelosPage() {
       }
       toolbar={
         <Space wrap>
-          <Select
+          <CredixSelect
             allowClear
             placeholder="Filtrar por marca"
             style={{ minWidth: 220 }}
@@ -228,11 +227,14 @@ export function ModelosPage() {
             }
           >
             <Form.Item name="marcaId" label="Marca" rules={[{ required: true }]}>
-              <Select
+              <CredixSelect
+                placeholder="Buscar marca"
                 options={(marcasQuery.data ?? []).map((m) => ({
                   value: m.marcaId,
                   label: m.denominacion,
                 }))}
+                loading={marcasQuery.isLoading}
+                notFoundContent="No hay marcas. Cree una en Maestros → Marcas."
               />
             </Form.Item>
             <Form.Item name="denominacion" label="Denominación" rules={denominacionRules}>

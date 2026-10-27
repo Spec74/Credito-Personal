@@ -50,6 +50,7 @@ export interface BandejaItem {
   id: number
   titulo: string
   fecha: string
+  permanenteNo?: boolean
 }
 
 export function fetchComunicados(vencidos = false, gestion = false) {

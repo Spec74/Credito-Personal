@@ -1009,7 +1009,7 @@ export function SimuladorCreditoPage() {
     <CredixPage
       className="simulador-page"
       title="Simulador"
-      subtitle={undefined}
+      subtitle="Cotice un plan de pagos. Para originar un crédito real use Nueva solicitud."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -1024,8 +1024,8 @@ export function SimuladorCreditoPage() {
         items={[
           { title: 'Cliente' },
           { title: 'Simular' },
-          { title: 'Solicitud' },
-          { title: 'Generar crédito' },
+          { title: 'Cotizar' },
+          { title: 'Opcional: generar' },
         ]}
       />
 

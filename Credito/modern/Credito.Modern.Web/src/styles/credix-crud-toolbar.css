@@ -21,7 +21,7 @@
   border-radius: 10px;
   border: 1px solid var(--credix-border, #e5e7eb);
   border-left: 3px solid var(--credix-brand, #114885);
-  background: #fff;
+  background: var(--credix-surface);
 }
 
 .credix-crud-toolbar__filters .ant-select,

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
+  celularPrendarioClienteOk,
   motivoBloqueoOriginacion,
+  motivoBloqueoPrendario,
   montoSobreTope,
   topeCreditoVisible,
 } from './clienteOriginacion'
@@ -17,6 +19,13 @@ describe('clienteOriginacion', () => {
     expect(motivoBloqueoOriginacion({ ...base, bloqueado: true })).toBe('Cliente bloqueado')
     expect(motivoBloqueoOriginacion({ ...base, clienteEstado: false })).toBe('Cliente inactivo')
     expect(motivoBloqueoOriginacion(base)).toBeNull()
+  })
+
+  it('bloquea prendario si falta celular peruano válido', () => {
+    expect(celularPrendarioClienteOk('987654321')).toBe(true)
+    expect(celularPrendarioClienteOk('187654321')).toBe(false)
+    expect(motivoBloqueoPrendario({ ...base, celular1: '987654321' })).toBeNull()
+    expect(motivoBloqueoPrendario({ ...base, celular1: '123' })).toMatch(/celular/i)
   })
 
   it('muestra tope existente y avisa si el monto lo supera, sin inventar un tope', () => {

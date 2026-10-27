@@ -6,9 +6,9 @@ import type { CredixHubLink, CredixHubSection } from '../components/credix/Credi
  */
 export const CREDITO_HUB_QUICK_ACCESS: CredixHubLink[] = [
   {
-    to: '/credito/simulador',
-    label: 'Simulador de crédito',
-    description: 'Igual que el acceso rápido del menú lateral',
+    to: '/credito/nuevo',
+    label: 'Nueva solicitud',
+    description: 'Originar crédito personal en una sola pantalla',
   },
   {
     to: '/credito/prendario',
@@ -52,9 +52,14 @@ export const CREDITO_HUB_SECTIONS: CredixHubSection[] = [
         description: 'Bandeja de solicitudes pendientes',
       },
       {
+        to: '/credito/nuevo',
+        label: 'Nueva solicitud',
+        description: 'Originar crédito personal sin pasar por el simulador',
+      },
+      {
         to: '/credito/simulador',
         label: 'Simulador',
-        description: 'Plan de pagos y alta de solicitud',
+        description: 'Cotizar un plan de pagos sin originar',
       },
       {
         to: '/credito/tareas',

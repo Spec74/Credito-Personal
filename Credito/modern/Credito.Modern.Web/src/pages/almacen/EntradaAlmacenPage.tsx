@@ -5,11 +5,11 @@ import { PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import {
   Alert,
   Button,
+  Collapse,
   Form,
   Input,
   InputNumber,
   Modal,
-  Select,
   Space,
   Spin,
   Steps,
@@ -44,7 +44,16 @@ import {
 import { ApiError } from '../../api/errors'
 import { fetchValoresTabla } from '../../api/maestros'
 import { useAuth } from '../../auth/useAuth'
-import { CredixDataTable, CredixDatePicker, CredixPage, CredixPanel, CredixWorkCanvas, type CredixStatItem } from '../../components/credix'
+import {
+  CredixArticuloSelect,
+  CredixDataTable,
+  CredixDatePicker,
+  CredixPage,
+  CredixPanel,
+  CredixSelect,
+  CredixWorkCanvas,
+  type CredixStatItem,
+} from '../../components/credix'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 
@@ -346,11 +355,13 @@ export function EntradaAlmacenPage() {
           }
         >
           <Form.Item name="tipoMovimientoId" label="Tipo movimiento" rules={[{ required: true }]}>
-            <Select
+            <CredixSelect
+              placeholder="Tipo de entrada"
               options={(tiposEntrada.data ?? []).map((t) => ({
                 value: t.tipoMovimientoId,
                 label: t.denominacion,
               }))}
+              loading={tiposEntrada.isLoading}
             />
           </Form.Item>
           <Form.Item name="fecha" label="Fecha" rules={[{ required: true }]}>
@@ -401,13 +412,14 @@ export function EntradaAlmacenPage() {
               }
             >
               <Form.Item name="tipoDocumentoId" rules={[{ required: true }]}>
-                <Select
+                <CredixSelect
                   placeholder="Tipo doc."
-                  style={{ width: 160 }}
+                  style={{ width: 180 }}
                   options={(tiposDoc.data ?? []).map((t) => ({
                     value: t.tipoDocumentoId,
                     label: t.denominacion,
                   }))}
+                  loading={tiposDoc.isLoading}
                 />
               </Form.Item>
               <Form.Item name="serieDocumento" rules={[{ required: true }]}>
@@ -432,7 +444,7 @@ export function EntradaAlmacenPage() {
       ),
     },
     {
-      title: 'Detalle',
+      title: 'Artículos',
       content: (
         <>
           <CredixDataTable<MovimientoEntradaDetLinea>
@@ -490,18 +502,34 @@ export function EntradaAlmacenPage() {
                 })
               }}
             >
-              <Form.Item name="articuloId" label="Artículo ID" rules={numRule(1)}>
-                <InputNumber style={{ width: '100%' }} min={1} />
+              <Form.Item
+                name="articuloId"
+                label="Artículo"
+                extra={<Link to="/maestros/articulos">Crear o editar artículos</Link>}
+                rules={[{ required: true, type: 'number', min: 1, message: 'Elija un artículo' }]}
+              >
+                <CredixArticuloSelect
+                  onArticulo={(item) => {
+                    if (!item) return
+                    if (item.monto != null && item.monto > 0) {
+                      detForm.setFieldValue('precioUnitario', item.monto)
+                    }
+                    if (item.descuento != null && item.descuento > 0) {
+                      detForm.setFieldValue('descuento', item.descuento)
+                    }
+                  }}
+                />
               </Form.Item>
               <Form.Item name="cantidad" label="Cantidad" rules={numRule(1)}>
                 <InputNumber style={{ width: '100%' }} min={1} />
               </Form.Item>
-              <Form.Item name="medida" label="Unidad medida">
-                <Select
+              <Form.Item name="medida" label="Unidad">
+                <CredixSelect
                   options={(medidas.data ?? []).map((m) => ({
                     value: m.itemId,
                     label: m.desCorta ?? m.denominacion,
                   }))}
+                  loading={medidas.isLoading}
                 />
               </Form.Item>
               <Form.Item name="precioUnitario" label="Precio unitario">
@@ -510,15 +538,28 @@ export function EntradaAlmacenPage() {
               <Form.Item name="descuento" label="Descuento">
                 <InputNumber style={{ width: '100%' }} min={0} step={0.01} />
               </Form.Item>
-              <Form.Item name="listaSerie" label="Series (coma o salto de línea)">
-                <Input.TextArea rows={2} />
-              </Form.Item>
-              <Form.Item name="indAutogenerar" label="Autogenerar series" valuePropName="checked">
-                <Switch />
-              </Form.Item>
-              <Form.Item name="indCorrelativo" label="Series correlativas" valuePropName="checked">
-                <Switch />
-              </Form.Item>
+              <Collapse
+                ghost
+                items={[
+                  {
+                    key: 'series',
+                    label: 'Series (opcional)',
+                    children: (
+                      <>
+                        <Form.Item name="listaSerie" label="Series (coma o salto de línea)">
+                          <Input.TextArea rows={2} placeholder="Si el artículo lleva serie, péguelas aquí" />
+                        </Form.Item>
+                        <Form.Item name="indAutogenerar" label="Autogenerar series" valuePropName="checked">
+                          <Switch />
+                        </Form.Item>
+                        <Form.Item name="indCorrelativo" label="Series correlativas" valuePropName="checked">
+                          <Switch />
+                        </Form.Item>
+                      </>
+                    ),
+                  },
+                ]}
+              />
               <Button type="primary" htmlType="submit" loading={crearDet.isPending}>
                 Agregar línea
               </Button>
@@ -603,7 +644,7 @@ export function EntradaAlmacenPage() {
   return (
     <CredixPage
       title="Entrada de almacén"
-      subtitle={undefined}
+      subtitle="Elija el artículo por nombre. Si no existe, créelo en Maestros."
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -618,16 +659,26 @@ export function EntradaAlmacenPage() {
           work={(
         <>
           <CredixPanel>
+            {(almacenes.data?.length ?? 0) === 0 && !almacenes.isLoading ? (
+              <Alert
+                type="info"
+                showIcon
+                style={{ marginBottom: 12 }}
+                message="No hay almacén en esta oficina"
+                description={<Link to="/maestros/almacenes">Crear almacén</Link>}
+              />
+            ) : null}
             <Space wrap>
-              <Select
+              <CredixSelect
                 placeholder="Almacén"
-                style={{ width: 200 }}
+                style={{ minWidth: 220 }}
                 value={almacenId ?? undefined}
                 onChange={setAlmacenId}
                 options={(almacenes.data ?? []).map((a) => ({
                   value: a.almacenId,
                   label: a.denominacion,
                 }))}
+                loading={almacenes.isLoading}
               />
               <Input.Search
                 placeholder="Buscar id, documento o fecha"
@@ -638,10 +689,10 @@ export function EntradaAlmacenPage() {
                   setPage(1)
                 }}
               />
-              <InputNumber
-                placeholder="Filtrar artículo ID"
-                min={0}
-                style={{ width: 140 }}
+              <CredixArticuloSelect
+                allowClear
+                placeholder="Filtrar por artículo"
+                style={{ minWidth: 240 }}
                 value={articuloFiltro ?? undefined}
                 onChange={(v) => {
                   setArticuloFiltro(v ?? null)
@@ -745,24 +796,28 @@ export function EntradaAlmacenPage() {
       >
         <Form layout="vertical">
           <Form.Item label="Almacén">
-            <Select
+            <CredixSelect
+              placeholder="Almacén"
               value={almacenId ?? undefined}
               onChange={setAlmacenId}
               options={(almacenes.data ?? []).map((a) => ({
                 value: a.almacenId,
                 label: a.denominacion,
               }))}
+              loading={almacenes.isLoading}
+              notFoundContent="No hay almacén. Créelo en Maestros → Almacenes."
             />
           </Form.Item>
           <Form.Item label="Tipo de entrada" required>
-            <Select
-              placeholder="Tipo movimiento"
+            <CredixSelect
+              placeholder="Tipo de movimiento"
               value={tipoNuevo ?? undefined}
               onChange={setTipoNuevo}
               options={(tiposEntrada.data ?? []).map((t) => ({
                 value: t.tipoMovimientoId,
                 label: t.denominacion,
               }))}
+              loading={tiposEntrada.isLoading}
             />
           </Form.Item>
         </Form>

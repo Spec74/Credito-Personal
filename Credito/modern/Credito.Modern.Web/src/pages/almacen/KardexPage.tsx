@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, Form, InputNumber, Select } from 'antd'
+import { Alert, Button, Form } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   downloadGenerarKardexCsv,
@@ -13,7 +13,7 @@ import { fetchAlmacenes } from '../../api/almacenes'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
-import { CredixDataTable, CredixInformePage } from '../../components/credix'
+import { CredixArticuloSelect, CredixDataTable, CredixInformePage, CredixSelect } from '../../components/credix'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import type { GenerarKardexParams, GenerarKardexRow } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
@@ -128,7 +128,7 @@ export function KardexPage() {
   return (
     <CredixInformePage
       title="Kardex de artículo"
-      subtitle={undefined}
+      subtitle="Elija almacén y artículo por nombre. No hace falta el id."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/almacen">Almacén</Link> },
@@ -139,30 +139,35 @@ export function KardexPage() {
         <Form
           form={form}
           layout="vertical"
-          onFinish={(v) => consulta.mutate(v)}
+          onFinish={(v) => consulta.mutate({ ...v, oficinaId })}
         >
-          <Form.Item name="oficinaId" label="Oficina" rules={[{ required: true }]}>
-            <InputNumber disabled style={{ width: 120 }} />
+          <Form.Item name="oficinaId" hidden>
+            <span />
           </Form.Item>
           <Form.Item
             name="almacenId"
             label="Almacén"
+            extra={
+              almacenOptions.length === 0 && !almacenes.isLoading ? (
+                <Link to="/maestros/almacenes">Crear almacén</Link>
+              ) : null
+            }
             rules={[{ required: true, message: 'Seleccione almacén' }]}
           >
-            <Select
-              showSearch
+            <CredixSelect
               placeholder="Almacén"
               options={almacenOptions}
-              optionFilterProp="label"
+              loading={almacenes.isLoading}
               style={{ maxWidth: 360 }}
             />
           </Form.Item>
           <Form.Item
             name="articuloId"
-            label="Artículo id"
-            rules={[{ required: true, message: 'Indique artículo' }]}
+            label="Artículo"
+            extra={<Link to="/maestros/articulos">Ver artículos</Link>}
+            rules={[{ required: true, message: 'Elija un artículo' }]}
           >
-            <InputNumber min={1} style={{ width: 140 }} />
+            <CredixArticuloSelect style={{ maxWidth: 360 }} />
           </Form.Item>
           <Form.Item>
             <Button

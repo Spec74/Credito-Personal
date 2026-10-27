@@ -4,6 +4,33 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Cierre gerencial: chips oscuros + replicar mes
+
+**Qué hay:** Pastillas `SIN CONFIGURAR`, PRODUCTIVA y la barra de cierre
+oficial usan tokens/chips (SSD-19). Gerencia puede «Replicar mes anterior»
+(prellena la grilla; el motor sigue siendo `usp_GuardarMetaGerencialDefinitiva`).
+
+**Qué no hay:** no se inventa TEA/LTV ni se guarda sin confirmar.
+
+### 2026-10-27 — Usuarios: un solo guardado
+
+**Qué hay:** Alta/edición en un formulario (identidad, acceso, oficina y rol).
+`POST /usuarios/guardar` acepta `oficinaIds` + `rolIds` y los aplica en la misma
+transacción. Clave generada al crear; copiar; restablecer temporal en edición.
+
+**Qué no hay:** no se reescribe el hasher ni el login; sucursal sigue sin asignar
+otras sedes.
+
+### 2026-10-27 — Esquema de color (claro / oscuro)
+
+**Qué hay:** SSD-19. Toggle en cabecera y login. Oscuro por tokens WCAG 2.2 AA
+(`data-theme`, no `filter: invert`). El SO manda hasta que el operador elija.
+Menú, informes, pickers y restos de módulo (`#f8fafc`, degradés a `#fff`,
+thead/summary Ant, scroll de tabla) usan `--credix-surface*` / `--credix-table-head`.
+
+**Qué no hay:** no se invierten fotos ni el logo; no hay columna de tema en BD;
+el MVC sigue solo claro.
+
 ### 2026-10-26 — Consulta crédito: mesa, no lookup WinForms
 
 **Qué hay:** El buscador se queda (DNI / nro. de crédito cargan solos). Borrar

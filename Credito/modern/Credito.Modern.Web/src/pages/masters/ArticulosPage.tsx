@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  Alert,
   Button,
   Checkbox,
   Col,
@@ -11,7 +12,6 @@ import {
   Input,
   InputNumber,
   Row,
-  Select,
   Space,
   Switch,
   Tag,
@@ -21,8 +21,10 @@ import {
 } from 'antd'
 import { EditOutlined, PlusOutlined, ReloadOutlined, UploadOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
+import { fetchMarcas } from '../../api/marcas'
 import { fetchModelos } from '../../api/modelos'
 import { fetchTiposArticulo } from '../../api/tiposArticulo'
+import { guardarMarca, guardarModelo, guardarTipoArticulo } from '../../api/maestrosCrud'
 import {
   eliminarImagenArticulo,
   fetchArticuloDetalle,
@@ -34,7 +36,7 @@ import {
   type ArticuloGestionRow,
 } from '../../api/articulosCrud'
 import { ApiError } from '../../api/errors'
-import { CredixCrudPage, CredixDataTable } from '../../components/credix'
+import { CredixCrudPage, CredixDataTable, CredixSelect } from '../../components/credix'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
 import {
   FIELD_MAX,
@@ -109,6 +111,25 @@ export function ArticulosPage() {
 
   const modelosQuery = useQuery({ queryKey: ['modelos'], queryFn: () => fetchModelos() })
   const tiposQuery = useQuery({ queryKey: ['tipos-articulo'], queryFn: fetchTiposArticulo })
+  const marcasQuery = useQuery({ queryKey: ['marcas'], queryFn: fetchMarcas })
+
+  const tiposOpciones = useMemo(
+    () =>
+      (tiposQuery.data ?? [])
+        .filter((t) => t.tipoArticuloId > 0 && t.denominacion?.trim())
+        .map((t) => ({ value: t.tipoArticuloId, label: t.denominacion.trim() })),
+    [tiposQuery.data],
+  )
+  const modelosOpciones = useMemo(
+    () =>
+      (modelosQuery.data ?? [])
+        .filter((m) => m.modeloId > 0 && m.denominacion?.trim())
+        .map((m) => ({
+          value: m.modeloId,
+          label: m.denominacion.trim(),
+        })),
+    [modelosQuery.data],
+  )
 
   const articulosQuery = useQuery({
     queryKey: ['articulos-gestion', modeloId, tipoArticuloId, incluirInactivos],
@@ -138,6 +159,74 @@ export function ArticulosPage() {
     onError: (e: unknown) =>
       message.error(e instanceof ApiError ? e.message : 'Error al guardar'),
   })
+
+  const recargarCatalogos = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['tipos-articulo'] }),
+      queryClient.invalidateQueries({ queryKey: ['modelos'] }),
+      queryClient.invalidateQueries({ queryKey: ['marcas'] }),
+    ])
+  }
+
+  const crearTipoRapido = useMutation({
+    mutationFn: async (denominacion: string) => {
+      const res = await guardarTipoArticulo({
+        tipoArticuloId: 0,
+        denominacion,
+        descripcion: null,
+        estado: true,
+      })
+      if (!res.success || !res.id) {
+        throw new Error(res.mensaje ?? 'No se pudo crear el tipo')
+      }
+      return res.id
+    },
+    onSuccess: async (id) => {
+      message.success('Tipo creado')
+      await recargarCatalogos()
+      form.setFieldValue('tipoArticuloId', id)
+    },
+    onError: (e: unknown) =>
+      message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error al crear tipo'),
+  })
+
+  const crearModeloRapido = useMutation({
+    mutationFn: async (denominacion: string) => {
+      let marcaId = marcasQuery.data?.[0]?.marcaId ?? 0
+      if (marcaId < 1) {
+        const marca = await guardarMarca({
+          marcaId: 0,
+          denominacion: 'GENERAL',
+          estado: true,
+        })
+        if (!marca.success || !marca.id) {
+          throw new Error(marca.mensaje ?? 'No se pudo crear la marca')
+        }
+        marcaId = marca.id
+      }
+      const res = await guardarModelo({
+        modeloId: 0,
+        marcaId,
+        denominacion,
+        estado: true,
+      })
+      if (!res.success || !res.id) {
+        throw new Error(res.mensaje ?? 'No se pudo crear el modelo')
+      }
+      return res.id
+    },
+    onSuccess: async (id) => {
+      message.success('Modelo creado')
+      await recargarCatalogos()
+      form.setFieldValue('modeloId', id)
+    },
+    onError: (e: unknown) =>
+      message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error al crear modelo'),
+  })
+
+  const catalogoCargando = tiposQuery.isLoading || modelosQuery.isLoading
+  const catalogoVacio = !catalogoCargando && tiposOpciones.length === 0 && modelosOpciones.length === 0
+  const creandoCatalogo = crearTipoRapido.isPending || crearModeloRapido.isPending
 
   const subirImg = useMutation({
     mutationFn: (file: File) => subirImagenArticulo(articuloId, file),
@@ -230,7 +319,7 @@ export function ArticulosPage() {
   return (
     <CredixCrudPage
       title="Artículos"
-      subtitle={undefined}
+      subtitle="Tipo y modelo se eligen o se crean aquí. El código puede quedar vacío."
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -246,27 +335,23 @@ export function ArticulosPage() {
       }
       toolbar={
         <Space wrap>
-          <Select
+          <CredixSelect
             allowClear
             placeholder="Modelo"
             style={{ minWidth: 180 }}
             value={modeloId}
             onChange={setModeloId}
-            options={(modelosQuery.data ?? []).map((m) => ({
-              value: m.modeloId,
-              label: m.denominacion ?? `Modelo ${m.modeloId}`,
-            }))}
+            options={modelosOpciones}
+            loading={modelosQuery.isLoading}
           />
-          <Select
+          <CredixSelect
             allowClear
             placeholder="Tipo"
             style={{ minWidth: 180 }}
             value={tipoArticuloId}
             onChange={setTipoArticuloId}
-            options={(tiposQuery.data ?? []).map((t) => ({
-              value: t.tipoArticuloId,
-              label: t.denominacion,
-            }))}
+            options={tiposOpciones}
+            loading={tiposQuery.isLoading}
           />
           <Input.Search
             allowClear
@@ -329,20 +414,88 @@ export function ArticulosPage() {
               })
             }
           >
-            <Form.Item name="tipoArticuloId" label="Tipo artículo" rules={[{ required: true }]}>
-              <Select
-                options={(tiposQuery.data ?? []).map((t) => ({
-                  value: t.tipoArticuloId,
-                  label: t.denominacion,
-                }))}
+            {catalogoVacio ? (
+              <Alert
+                type="info"
+                showIcon
+                style={{ marginBottom: 16 }}
+                message="Aún no hay tipos ni modelos"
+                description="En esta base el catálogo está vacío. Créelos aquí y siga con el artículo; no hace falta ir a otra pantalla."
+                action={
+                  <Space wrap>
+                    <Button
+                      size="small"
+                      loading={creandoCatalogo}
+                      onClick={() => crearTipoRapido.mutate('GENERAL')}
+                    >
+                      Crear tipo GENERAL
+                    </Button>
+                    <Button
+                      size="small"
+                      loading={creandoCatalogo}
+                      onClick={() => crearModeloRapido.mutate('GENERAL')}
+                    >
+                      Crear modelo GENERAL
+                    </Button>
+                  </Space>
+                }
+              />
+            ) : null}
+            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+              Clasificación
+            </Text>
+            <Form.Item
+              name="tipoArticuloId"
+              label="Tipo artículo"
+              extra={
+                tiposOpciones.length === 0 ? (
+                  <Button
+                    type="link"
+                    size="small"
+                    style={{ paddingInline: 0 }}
+                    loading={crearTipoRapido.isPending}
+                    onClick={() => crearTipoRapido.mutate('GENERAL')}
+                  >
+                    Crear tipo GENERAL
+                  </Button>
+                ) : (
+                  <Link to="/maestros/tipos-articulo">Ver tipos</Link>
+                )
+              }
+              rules={[{ required: true, message: 'Elija o cree un tipo' }]}
+            >
+              <CredixSelect
+                placeholder="Buscar tipo"
+                options={tiposOpciones}
+                loading={tiposQuery.isLoading}
+                notFoundContent="No hay tipos. Use «Crear tipo GENERAL»."
               />
             </Form.Item>
-            <Form.Item name="modeloId" label="Modelo" rules={[{ required: true }]}>
-              <Select
-                options={(modelosQuery.data ?? []).map((m) => ({
-                  value: m.modeloId,
-                  label: m.denominacion,
-                }))}
+            <Form.Item
+              name="modeloId"
+              label="Modelo"
+              extra={
+                modelosOpciones.length === 0 ? (
+                  <Button
+                    type="link"
+                    size="small"
+                    style={{ paddingInline: 0 }}
+                    loading={crearModeloRapido.isPending}
+                    onClick={() => crearModeloRapido.mutate('GENERAL')}
+                  >
+                    Crear modelo GENERAL
+                  </Button>
+                ) : (
+                  <Link to="/maestros/modelos">Ver modelos</Link>
+                )
+              }
+              rules={[{ required: true, message: 'Elija o cree un modelo' }]}
+            >
+              <CredixSelect
+                placeholder="Buscar modelo"
+                options={modelosOpciones}
+                loading={modelosQuery.isLoading}
+                notFoundContent="No hay modelos. Use «Crear modelo GENERAL»."
                 onChange={(mid) => {
                   const label = modelosQuery.data?.find((m) => m.modeloId === mid)?.denominacion
                   if (label && articuloId < 1) {
@@ -352,6 +505,9 @@ export function ArticulosPage() {
                 }}
               />
             </Form.Item>
+            <Text type="secondary" style={{ display: 'block', margin: '8px 0' }}>
+              Identidad
+            </Text>
             <Form.Item name="codArticulo" label="Código artículo">
               <Input maxLength={20} />
             </Form.Item>

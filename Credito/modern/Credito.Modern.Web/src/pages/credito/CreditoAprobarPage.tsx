@@ -245,7 +245,7 @@ export function CreditoAprobarPage() {
               </Button>
             </Tooltip>
             {row.estado === 'CRE' ? (
-              <Tooltip title="Continuar simulación y generar para aprobación">
+              <Tooltip title="Completar solicitud y generar para aprobación">
                 <Button
                   size="small"
                   type="primary"
@@ -254,7 +254,7 @@ export function CreditoAprobarPage() {
                   onClick={(e) => {
                     e.stopPropagation()
                     navigate(
-                      `/credito/simulador?personaId=${row.personaId}&solicitudCreditoId=${row.creditoId}`,
+                      `/credito/nuevo?personaId=${row.personaId}&solicitudCreditoId=${row.creditoId}`,
                     )
                   }}
                 >

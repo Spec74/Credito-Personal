@@ -58,7 +58,7 @@
   white-space: nowrap;
   font-size: 13px;
   font-weight: 600;
-  color: #111827;
+  color: var(--credix-text);
   letter-spacing: 0.01em;
 }
 

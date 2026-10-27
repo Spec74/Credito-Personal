@@ -18,6 +18,7 @@ import {
 } from 'antd'
 import {
   CheckCircleOutlined,
+  CopyOutlined,
   DownloadOutlined,
   ReloadOutlined,
   SaveOutlined,
@@ -231,6 +232,48 @@ export function CierreGerencialPage() {
       await queryClient.invalidateQueries({ queryKey: ['cierre-gerencial-avance'] })
     },
     onError: (e) => message.error(e instanceof ApiError ? e.message : 'No se pudo guardar'),
+  })
+
+  const replicarMesAnterior = useMutation({
+    mutationFn: () =>
+      fetchCierreGerencialMetas(periodo.subtract(1, 'month').format('YYYY-MM-DD'), sedeQuery),
+    onSuccess: (prev) => {
+      const byKey = new Map(
+        prev.metas.map((m) => [`${m.usuarioId}|${m.tipoCartera.toUpperCase()}`, m] as const),
+      )
+      let copiadas = 0
+      const next = metasEdit.map((row) => {
+        const src = byKey.get(`${row.usuarioId}|${row.tipoCartera.toUpperCase()}`)
+        if (!src) return row
+        const especial = esEspecial(row.tipoCartera)
+        const capital = especial ? null : src.metaCapitalCierre
+        const clientes = especial ? null : src.metaClientesActivosCierre
+        const vencidos = src.metaVencidosMaximoCierre
+        const recuperacion = src.metaRecuperacionVencidosMes
+        const hayValor =
+          capital != null || clientes != null || vencidos != null || recuperacion != null
+        if (!hayValor) return row
+        copiadas += 1
+        return {
+          ...row,
+          metaCapitalCierre: capital,
+          metaClientesActivosCierre: clientes,
+          metaVencidosMaximoCierre: vencidos,
+          metaRecuperacionVencidosMes: recuperacion,
+        }
+      })
+      setMetasEdit(next)
+      setTab('metas')
+      if (copiadas === 0) {
+        message.warning('El mes anterior no tiene metas configuradas para copiar.')
+        return
+      }
+      message.success(
+        `Se copiaron ${copiadas} meta${copiadas === 1 ? '' : 's'} del mes anterior. Revise y pulse Guardar metas.`,
+      )
+    },
+    onError: (e) =>
+      message.error(e instanceof ApiError ? e.message : 'No se pudo leer el mes anterior'),
   })
 
   const avanceFiltrado = useMemo(
@@ -608,18 +651,29 @@ export function CierreGerencialPage() {
             Exportar Excel
           </Button>
           {puedeEditarMetas ? (
-            <Tooltip title="Guarda las metas definitivas del periodo visible">
-              <Button
-                icon={<SaveOutlined />}
-                loading={guardar.isPending}
-                onClick={() => {
-                  setTab('metas')
-                  void guardar.mutateAsync()
-                }}
-              >
-                Guardar metas
-              </Button>
-            </Tooltip>
+            <>
+              <Tooltip title="Copia las cifras del mes anterior a esta grilla. No guarda hasta que confirme.">
+                <Button
+                  icon={<CopyOutlined />}
+                  loading={replicarMesAnterior.isPending}
+                  onClick={() => void replicarMesAnterior.mutateAsync()}
+                >
+                  Replicar mes anterior
+                </Button>
+              </Tooltip>
+              <Tooltip title="Guarda las metas definitivas del periodo visible">
+                <Button
+                  icon={<SaveOutlined />}
+                  loading={guardar.isPending}
+                  onClick={() => {
+                    setTab('metas')
+                    void guardar.mutateAsync()
+                  }}
+                >
+                  Guardar metas
+                </Button>
+              </Tooltip>
+            </>
           ) : null}
         </Space>
       }
@@ -822,7 +876,8 @@ export function CierreGerencialPage() {
               >
                 <p className="cierre-gerencial-panel-hint">
                   En cartera especial, capital y clientes no aplican. Vencidos y recuperación sí se
-                  configuran.
+                  configuran. Si el mes ya se usó, «Replicar mes anterior» trae esas cifras; usted
+                  revisa y guarda.
                 </p>
                 {metas.isError ? (
                   <Alert

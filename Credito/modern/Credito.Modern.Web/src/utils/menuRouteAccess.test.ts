@@ -150,6 +150,7 @@ describe('menuRouteAccess', () => {
     }
     expect(hasMenuRouteAccess('/credito/consulta', [padre])).toBe(false)
     expect(hasMenuRouteAccess('/credito/simulador', [padre])).toBe(true)
+    expect(hasMenuRouteAccess('/credito/nuevo', [padre])).toBe(true)
   })
 
   it('hub /admin se habilita si el menú tiene usuarios/roles/oficinas (sin ítem Administración)', () => {
@@ -176,6 +177,7 @@ describe('menuRouteAccess', () => {
     expect(hasMenuRouteAccess('/comunicados', [])).toBe(true)
     expect(hasMenuRouteAccess('/agenda', [])).toBe(true)
     expect(hasMenuRouteAccess('/credito/simulador', [])).toBe(true)
+    expect(hasMenuRouteAccess('/credito/nuevo', [])).toBe(true)
     expect(hasMenuRouteAccess('/informes/cobro-diario', [])).toBe(true)
     expect(hasMenuRouteAccess('/informes/morosidad-gestor', [])).toBe(true)
     expect(hasMenuRouteAccess('/informes/creditos-observados', [])).toBe(true)

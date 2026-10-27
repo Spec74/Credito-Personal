@@ -52,7 +52,7 @@
 .dash-date {
   font-size: 13px;
   color: var(--credix-text-muted);
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border);
   border-radius: 999px;
   padding: 6px 12px;
@@ -155,7 +155,7 @@
 }
 
 .dash-daily-goal.is-up {
-  color: #059669;
+  color: var(--credix-success);
 }
 
 .dash-daily-goal.is-down {
@@ -207,7 +207,7 @@
   appearance: none;
   margin: 0;
   border: 1px solid #d7e3f0;
-  background: #f8fbff;
+  background: var(--credix-info-bg);
   color: var(--credix-text, #1f2937);
   border-radius: 999px;
   padding: 6px 12px;
@@ -226,7 +226,7 @@
 .dash-mora-filter-chip:hover {
   border-color: var(--credix-brand, #114885);
   color: var(--credix-brand, #114885);
-  background: #eef6ff;
+  background: var(--credix-info-bg);
 }
 
 .dash-mora-filter-chip:focus-visible {
@@ -298,18 +298,18 @@
 }
 
 .dash-mora-status.is-stopped {
-  background: #fff7ed;
+  background: var(--credix-warning-bg);
   color: #9a3412;
 }
 
 .dash-mora-status.is-paying {
   background: #eff6ff;
-  color: #1d4ed8;
+  color: var(--credix-ink-brand);
 }
 
 .dash-mora-status.is-neutral {
   background: #f3f4f6;
-  color: #374151;
+  color: var(--credix-text-muted);
 }
 
 .dash-mora-profile-link {
@@ -375,7 +375,7 @@
 }
 
 .dash-kpi {
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border);
   border-radius: 12px;
   padding: 14px 16px 16px;
@@ -433,7 +433,7 @@
 }
 
 .dash-var.is-up {
-  color: #047857;
+  color: var(--credix-success);
   background: #ecfdf5;
 }
 
@@ -443,7 +443,7 @@
 }
 
 .dash-var.is-new {
-  color: #1d4ed8;
+  color: var(--credix-ink-brand);
   background: #eff6ff;
 }
 
@@ -454,7 +454,7 @@
 }
 
 .dash-panel {
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border);
   border-radius: 12px;
   box-shadow: var(--credix-shadow-sm);
@@ -617,7 +617,7 @@
 }
 
 .dash-rank-table tr.is-me {
-  background: #eef6ff;
+  background: var(--credix-info-bg);
   font-weight: 600;
 }
 
@@ -640,22 +640,22 @@
   border-radius: 12px;
   padding: 14px 12px;
   text-align: center;
-  background: #f8fafc;
+  background: var(--credix-surface-muted);
 }
 
 .dash-podium-item.is-1 {
-  background: linear-gradient(180deg, #fff7d6 0%, #fff 70%);
+  background: var(--credix-warning-bg);
   border-color: #f3d27a;
   padding-top: 22px;
   padding-bottom: 22px;
 }
 
 .dash-podium-item.is-2 {
-  background: linear-gradient(180deg, #eef2f7 0%, #fff 70%);
+  background: var(--credix-surface-muted);
 }
 
 .dash-podium-item.is-3 {
-  background: linear-gradient(180deg, #f8efe4 0%, #fff 70%);
+  background: var(--credix-warning-bg);
 }
 
 .dash-podium-place {
@@ -689,7 +689,7 @@
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--credix-border);
-  background: #fafbfc;
+  background: var(--credix-surface-muted);
 }
 
 .dash-insight.is-success {
@@ -699,7 +699,7 @@
 
 .dash-insight.is-warning {
   border-color: #fecdd3;
-  background: #fff1f2;
+  background: var(--credix-danger-bg);
 }
 
 .dash-insight.is-danger {
@@ -733,7 +733,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border);
   border-radius: 12px;
   box-shadow: var(--credix-shadow-sm);
@@ -769,7 +769,7 @@
   padding: 6px 12px;
   border-radius: 999px;
   border: 1px solid #dbe7f5;
-  background: #f8fbff;
+  background: var(--credix-info-bg);
   color: var(--credix-text);
   font: inherit;
   font-size: 12px;
@@ -869,7 +869,7 @@
 .dash-insight p {
   margin: 0;
   font-size: 13px;
-  color: #374151;
+  color: var(--credix-text-muted);
 }
 
 .dash-insight a {

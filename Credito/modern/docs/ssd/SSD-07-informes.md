@@ -24,7 +24,7 @@ Consultar cartera, cobranza, caja, stock y ventas con la misma data que el MVC, 
 **Entra**
 
 - Hub `/informes` y matriz `/informes/cobertura`
-- Índices `/reportes/credito`, `/reportes/cobranza`, `/reportes/almacen`, `/reportes/venta`
+- Índices `/reportes/credito`, `/reportes/cobranza`, `/reportes/almacen`, `/reportes/venta` (tarjetas siguen tokens SSD-19: pie y PDF/XLS no quedan blancos en oscuro)
 - Pantallas `/informes/*` con JSON + CSV + PDF (mismos `usp_*` que el RDLC)
 - Visor JWT `/reportes/visor?path=` (blob de la API, no ReportViewer)
 - Central de riesgo (CSV/PDF/TXT)

@@ -63,7 +63,7 @@
   padding: 24px 16px;
   text-align: center;
   color: var(--credix-text-muted, #64748b);
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px dashed var(--credix-border, #dbe7f3);
   border-radius: 14px;
 }
@@ -72,7 +72,7 @@
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border, #dbe7f3);
   border-radius: 14px;
   box-shadow: 0 6px 18px rgb(15 23 42 / 5%);
@@ -140,7 +140,7 @@
   min-width: 0;
   font-size: 15px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--credix-text);
   word-break: break-word;
 }
 
@@ -169,7 +169,7 @@
 .credix-mobile-card__value {
   min-width: 0;
   font-size: 13px;
-  color: #0f172a;
+  color: var(--credix-text);
   word-break: break-word;
 }
 
@@ -258,7 +258,7 @@
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
   scrollbar-width: auto;
-  scrollbar-color: #8aa4c2 #f1f5f9;
+  scrollbar-color: var(--credix-scroll-thumb) var(--credix-scroll-track);
 }
 
 .credix-wide-table .ant-table-body::-webkit-scrollbar,
@@ -269,9 +269,9 @@
 
 .credix-wide-table .ant-table-body::-webkit-scrollbar-thumb,
 .credix-wide-table .ant-table-content::-webkit-scrollbar-thumb {
-  background: #8aa4c2;
+  background: var(--credix-scroll-thumb);
   border-radius: 8px;
-  border: 2px solid #f1f5f9;
+  border: 2px solid var(--credix-scroll-track);
 }
 
 .credix-wide-table .ant-table-body::-webkit-scrollbar-thumb:hover,
@@ -315,7 +315,7 @@
   visibility: hidden;
   border: 1px solid var(--credix-border, #d9e4f2);
   border-radius: 999px;
-  background: #fff;
+  background: var(--credix-surface);
   color: var(--credix-brand, #114885);
   box-shadow: 0 4px 12px rgb(15 23 42 / 10%);
   cursor: pointer;

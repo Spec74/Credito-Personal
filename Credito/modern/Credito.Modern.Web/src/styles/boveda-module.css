@@ -38,8 +38,8 @@
 }
 
 .boveda-cuadre--roto {
-  border-color: #f19999;
-  background: #fff7f7;
+  border-color: var(--credix-danger);
+  background: var(--credix-danger-bg);
   color: #9b1c1c;
 }
 
@@ -82,7 +82,7 @@
 }
 
 .boveda-estado-dinero__card--link:hover {
-  border-color: #c5daf0;
+  border-color: var(--credix-brand-line);
   box-shadow: var(--credix-shadow-md);
 }
 
@@ -127,7 +127,7 @@
 }
 
 .boveda-saldos-grid__card--final {
-  background: linear-gradient(180deg, #e8f2fc 0%, #f8fbff 100%);
+  background: var(--credix-brand-light);
   border-color: #b8d4ef;
 }
 
@@ -160,7 +160,7 @@
 .boveda-resumen-cuenta {
   border-radius: 12px;
   border: 1px solid var(--credix-border, #e5e7eb);
-  background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+  background: var(--credix-surface);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
   overflow: hidden;
 }
@@ -181,8 +181,9 @@
   align-items: center;
   gap: 10px;
   padding: 12px 18px;
-  background: linear-gradient(90deg, #e8f2fc 0%, #f8fbff 100%);
+  background: var(--credix-brand-light);
   border-bottom: 1px solid var(--credix-border, #e5e7eb);
+  color: var(--credix-ink-brand);
 }
 
 .boveda-resumen-cuenta__title {
@@ -190,12 +191,12 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--credix-brand, #114885);
+  color: var(--credix-ink-brand, var(--credix-brand, #114885));
 }
 
 .boveda-resumen-cuenta__icon {
   font-size: 18px;
-  color: var(--credix-brand, #114885);
+  color: var(--credix-ink-brand, var(--credix-brand, #114885));
   opacity: 0.85;
 }
 
@@ -239,7 +240,7 @@
   min-width: 0;
   min-height: 96px;
   padding: 12px 14px;
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border, #e5e7eb);
   border-radius: 10px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -247,7 +248,7 @@
 }
 
 .boveda-resumen-cuenta__item:hover {
-  border-color: #c5daf0;
+  border-color: var(--credix-brand-line);
   box-shadow: var(--credix-shadow-sm);
 }
 
@@ -279,12 +280,12 @@
   font-size: 1.05rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  color: var(--credix-brand, #114885);
+  color: var(--credix-ink-brand, var(--credix-brand, #114885));
   line-height: 1.2;
 }
 
 .boveda-resumen-cuenta__item-monto--neg {
-  color: #b91c1c;
+  color: var(--credix-danger);
 }
 
 .boveda-resumen-cuenta__item--efectivo {
@@ -467,7 +468,7 @@
 }
 
 .boveda-ops-nav__btn:hover {
-  background: #fff;
+  background: var(--credix-surface);
   border-color: var(--credix-border, #e5e7eb);
 }
 
@@ -477,9 +478,9 @@
 }
 
 .boveda-ops-nav__btn.is-active {
-  background: #fff;
+  background: var(--credix-surface);
   color: var(--credix-brand, #114885);
-  border-color: #c5daf0;
+  border-color: var(--credix-brand-line);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
@@ -488,7 +489,7 @@
   flex-direction: column;
   padding: 20px 24px 24px;
   min-width: 0;
-  background: #fff;
+  background: var(--credix-surface);
 }
 
 .boveda-ops-stage__head {
@@ -601,9 +602,9 @@
   gap: 4px;
   min-height: 40px;
   padding: 8px 12px;
-  border: 1px dashed #c5daf0;
+  border: 1px dashed var(--credix-brand-line);
   border-radius: 8px;
-  background: #f8fbff;
+  background: var(--credix-info-bg);
 }
 
 .boveda-medio-fijo__hint {
@@ -751,7 +752,7 @@
 
 .boveda-historial-tabs__btn:hover {
   border-color: var(--credix-border, #e5e7eb);
-  background: #fff;
+  background: var(--credix-surface);
 }
 
 .boveda-historial-tabs__btn:focus-visible {
@@ -760,9 +761,9 @@
 }
 
 .boveda-historial-tabs__btn.is-active {
-  background: #fff;
+  background: var(--credix-surface);
   color: var(--credix-brand, #114885);
-  border-color: #c5daf0;
+  border-color: var(--credix-brand-line);
 }
 
 .boveda-historial-search {

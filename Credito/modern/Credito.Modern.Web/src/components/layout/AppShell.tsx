@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Button, Drawer, Grid, Menu, Result, Spin, Typography, message } from 'antd'
@@ -26,6 +26,8 @@ import { BrandLogo } from '../brand/BrandLogo'
 import { CredixContextBar } from '../credix/CredixContextBar'
 import { CredixPage } from '../credix/CredixPage'
 import { CredixNotifyBell } from './CredixNotifyBell'
+import { CredixColorSchemeToggle } from './CredixColorSchemeToggle'
+import { useCredixColorScheme } from '../../theme/CredixColorSchemeProvider'
 import { CredixSessionControl } from './CredixSessionControl'
 import { useCredixDensity } from '../../hooks/useCredixDensity'
 import { rememberInforme } from '../../utils/informesRecientes'
@@ -413,6 +415,7 @@ export function AppShell() {
         </div>
         <div className="credix-header-end" role="navigation" aria-label="Contexto de sede">
           <CredixContextBar oficinaId={session?.oficinaId ?? 0} />
+          <CredixColorSchemeToggle compact />
           <CredixNotifyBell />
           <Button
             type="text"
@@ -513,7 +516,27 @@ function NavPanel({
   quickActionsVisible: typeof quickActions
   onQuickAction: (qa: QuickAction) => void
 }) {
+  const menuScrollRef = useRef<HTMLDivElement>(null)
   const [quickOpen, setQuickOpen] = useState(readQuickAccessOpen)
+  const { resolved: colorScheme } = useCredixColorScheme()
+
+  const onOpenChange = (keys: string[]) => {
+    const opened = keys.find((key) => !openKeys.includes(key))
+    setOpenKeys(keys)
+    if (!opened) {
+      return
+    }
+    window.requestAnimationFrame(() => {
+      const root = menuScrollRef.current
+      if (!root) {
+        return
+      }
+      const row =
+        root.querySelector<HTMLElement>(`.ant-menu-submenu-open > .ant-menu-submenu-title`) ??
+        root.querySelector<HTMLElement>('.ant-menu-submenu-open')
+      row?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    })
+  }
 
   const toggleQuickAccess = () => {
     setQuickOpen((prev) => {
@@ -539,7 +562,7 @@ function NavPanel({
         )}
       </div>
 
-      <div className="app-shell-sider-menu">
+      <div className="app-shell-sider-menu" ref={menuScrollRef}>
         {menuQuery.isLoading ? (
           <div style={{ padding: 24, textAlign: 'center' }}>
             <Spin />
@@ -556,6 +579,7 @@ function NavPanel({
         ) : (
           <Menu
             className="credix-menu"
+            theme={colorScheme === 'dark' ? 'dark' : 'light'}
             mode="inline"
             inlineCollapsed={!menuExpanded}
             items={menuItems}
@@ -564,7 +588,7 @@ function NavPanel({
             {...(menuExpanded
               ? {
                   openKeys,
-                  onOpenChange: (keys: string[]) => setOpenKeys(keys),
+                  onOpenChange,
                 }
               : {
                   triggerSubMenuAction: 'click' as const,

@@ -10,6 +10,7 @@ const ALWAYS_ALLOWED = [
   // Accesos rápidos (siempre disponibles con sesión).
   '/admin/comisiones',
   '/credito/simulador',
+  '/credito/nuevo',
   // Atajos de cartera del dashboard gestor/admin.
   '/informes/cobro-diario',
   '/informes/morosidad-gestor',

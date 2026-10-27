@@ -63,7 +63,7 @@ Como cajero, el chip dice si hay caja y lleva a diario.
 **Aceptación**
 
 - `viewport` con `viewport-fit=cover`.
-- `color-scheme: light` (tokens `--credix-*`; sin dark fashion).
+- `color-scheme` dinámico (`light` / `dark`) según `data-theme` (SSD-19; tokens `--credix-*`, no inversión).
 - `lang="es"` + `translate="no"` se mantienen (SSD-15).
 
 ## Fuera de alcance

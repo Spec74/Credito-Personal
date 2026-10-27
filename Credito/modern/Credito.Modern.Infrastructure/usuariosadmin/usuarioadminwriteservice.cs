@@ -177,8 +177,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                         },
                         transaction: tx,
                         cancellationToken: ct)).ConfigureAwait(false);
-                await AsegurarSedeAsync(c, tx, usuarioId, scope.OficinaId, activo: true, ct)
-                    .ConfigureAwait(false);
+                await AplicarAsignacionAsync(c, tx, scope, usuarioId, request, ct).ConfigureAwait(false);
                 await tx.CommitAsync(ct).ConfigureAwait(false);
                 return new MaestroOperacionResponse(true, usuarioId, null);
             }
@@ -228,6 +227,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                 return new MaestroOperacionResponse(false, null, "Usuario no encontrado.");
             }
 
+            await AplicarAsignacionAsync(c, tx, scope, request.UsuarioId, request, ct).ConfigureAwait(false);
             await tx.CommitAsync(ct).ConfigureAwait(false);
             return new MaestroOperacionResponse(true, request.UsuarioId, null);
         }
@@ -596,6 +596,123 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                 },
                 transaction: tx,
                 cancellationToken: ct)).ConfigureAwait(false);
+    }
+
+    private static async Task AplicarAsignacionAsync(
+        SqlConnection c,
+        SqlTransaction tx,
+        UsuarioAdminScope scope,
+        int usuarioId,
+        GuardarUsuarioRequest request,
+        CancellationToken ct)
+    {
+        var rolIds = (request.RolIds ?? []).Where(id => id >= 1).Distinct().ToArray();
+        var oficinasEnviadas = (request.OficinaIds ?? []).Where(id => id >= 1).Distinct().ToArray();
+        var hayAsignacion = rolIds.Length > 0 || oficinasEnviadas.Length > 0 || request.UsuarioId < 1;
+        if (!hayAsignacion)
+        {
+            return;
+        }
+
+        int[] oficinas;
+        if (scope.EsCentral)
+        {
+            oficinas = oficinasEnviadas.Length > 0 ? oficinasEnviadas : [scope.OficinaId];
+            await ReemplazarOficinasCentralAsync(c, tx, usuarioId, oficinas, ct).ConfigureAwait(false);
+        }
+        else
+        {
+            oficinas = [scope.OficinaId];
+            await AsegurarSedeAsync(c, tx, usuarioId, scope.OficinaId, activo: true, ct)
+                .ConfigureAwait(false);
+        }
+
+        if (rolIds.Length < 1)
+        {
+            return;
+        }
+
+        foreach (var oficinaId in oficinas)
+        {
+            await ReemplazarRolesSedeAsync(c, tx, usuarioId, oficinaId, rolIds, ct).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task ReemplazarOficinasCentralAsync(
+        SqlConnection c,
+        SqlTransaction tx,
+        int usuarioId,
+        int[] oficinaIds,
+        CancellationToken ct)
+    {
+        await c.ExecuteAsync(
+            new CommandDefinition(
+                "DELETE FROM MAESTRO.UsuarioOficina WHERE UsuarioId = @UsuarioId;",
+                new { UsuarioId = usuarioId },
+                transaction: tx,
+                cancellationToken: ct)).ConfigureAwait(false);
+
+        foreach (var oficinaId in oficinaIds)
+        {
+            await c.ExecuteAsync(
+                new CommandDefinition(
+                    """
+                    INSERT INTO MAESTRO.UsuarioOficina (UsuarioId, OficinaId, Estado)
+                    VALUES (@UsuarioId, @OficinaId, CAST(1 AS bit));
+                    """,
+                    new { UsuarioId = usuarioId, OficinaId = oficinaId },
+                    transaction: tx,
+                    cancellationToken: ct)).ConfigureAwait(false);
+        }
+
+        await c.ExecuteAsync(
+            new CommandDefinition(
+                """
+                DELETE ur
+                FROM MAESTRO.UsuarioRol AS ur
+                WHERE ur.UsuarioId = @UsuarioId
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM MAESTRO.UsuarioOficina AS uo
+                      WHERE uo.UsuarioId = ur.UsuarioId
+                        AND uo.OficinaId = ur.OficinaId
+                        AND uo.Estado = CAST(1 AS bit));
+                """,
+                new { UsuarioId = usuarioId },
+                transaction: tx,
+                cancellationToken: ct)).ConfigureAwait(false);
+    }
+
+    private static async Task ReemplazarRolesSedeAsync(
+        SqlConnection c,
+        SqlTransaction tx,
+        int usuarioId,
+        int oficinaId,
+        int[] rolIds,
+        CancellationToken ct)
+    {
+        await c.ExecuteAsync(
+            new CommandDefinition(
+                """
+                DELETE FROM MAESTRO.UsuarioRol
+                WHERE UsuarioId = @UsuarioId AND OficinaId = @OficinaId;
+                """,
+                new { UsuarioId = usuarioId, OficinaId = oficinaId },
+                transaction: tx,
+                cancellationToken: ct)).ConfigureAwait(false);
+
+        foreach (var rolId in rolIds)
+        {
+            await c.ExecuteAsync(
+                new CommandDefinition(
+                    """
+                    INSERT INTO MAESTRO.UsuarioRol (UsuarioId, OficinaId, RolId)
+                    VALUES (@UsuarioId, @OficinaId, @RolId);
+                    """,
+                    new { UsuarioId = usuarioId, OficinaId = oficinaId, RolId = rolId },
+                    transaction: tx,
+                    cancellationToken: ct)).ConfigureAwait(false);
+        }
     }
 
     private static Task QuitarRolesSedeAsync(

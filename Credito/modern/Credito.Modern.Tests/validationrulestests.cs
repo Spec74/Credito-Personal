@@ -1,4 +1,5 @@
 using Credito.Modern.Application.Clientes;
+using Credito.Modern.Application.UsuariosAdmin;
 using Credito.Modern.Application.Validation;
 
 namespace Credito.Modern.Tests;
@@ -130,5 +131,17 @@ public sealed class ValidationRulesTests
     {
         Assert.Equal("a", ValidationGate.First(null, "a", "b"));
         Assert.Null(ValidationGate.First(null, null));
+    }
+
+    [Fact]
+    public void UsuarioValidacion_NuevoRequiereRolYClave()
+    {
+        var sinRol = new GuardarUsuarioRequest(
+            0, "PEREZ", "LOPEZ", "JUAN", "12345678", "M",
+            null, "987654321", null, null, "JPEREZ", "Clave1234", true);
+        Assert.Contains("rol", UsuarioValidacion.ValidarGuardar(sinRol) ?? "", StringComparison.OrdinalIgnoreCase);
+
+        var ok = sinRol with { RolIds = [1] };
+        Assert.Null(UsuarioValidacion.ValidarGuardar(ok));
     }
 }

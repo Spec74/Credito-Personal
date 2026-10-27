@@ -26,9 +26,14 @@ export const CREDITO_OPERACIONES_SECTIONS: CredixHubSection[] = [
         description: 'Mora pedida en caja, pendiente de aprobación',
       },
       {
+        to: '/credito/nuevo',
+        label: 'Nueva solicitud',
+        description: 'Originar crédito personal en una sola pantalla',
+      },
+      {
         to: '/credito/simulador',
         label: 'Simulador',
-        description: 'Plan de pagos y alta de solicitud',
+        description: 'Cotizar un plan de pagos sin originar',
       },
       {
         to: '/credito/tareas',

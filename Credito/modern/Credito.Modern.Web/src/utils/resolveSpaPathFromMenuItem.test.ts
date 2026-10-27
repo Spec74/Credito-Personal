@@ -38,6 +38,12 @@ describe('resolveSpaPathFromMenuItem', () => {
     )
   })
 
+  it('resuelve Nueva solicitud de crédito al originador directo', () => {
+    expect(resolveSpaPathFromMenuItem(null, 'Nueva solicitud', 'CREDITO')).toBe(
+      '/credito/nuevo',
+    )
+  })
+
   it('resuelve Simular por etiqueta alternativa legacy', () => {
     expect(resolveSpaPathFromMenuItem('/Credito/Index', 'Simular crédito', null)).toBe(
       '/credito/simulador',
@@ -133,12 +139,16 @@ describe('resolveSpaPathFromMenuItem', () => {
     expect(resolveSpaPathFromMenuItem(null, 'VENTA', 'REPORTES')).toBe('/reportes/venta')
   })
 
+  it('no resuelve caja chica: gerencia la retiró', () => {
+    expect(resolveSpaPathFromMenuItem('CajaChica', 'CAJACHICA', 'CREDITO')).toBeNull()
+    expect(resolveSpaPathFromMenuItem(null, 'Caja chica', 'CREDITO')).toBeNull()
+  })
+
   it('cubre los hijos del menú vivo CREDITO (oficina 1) sin null', () => {
     const hijos: Array<[string, string, string, string]> = [
       ['CreditoAprobar', 'APROBACION', 'CREDITO', '/credito/aprobar'],
       ['Boveda', 'BOVEDA', 'CREDITO', '/tesoreria/boveda'],
       ['Credito/CajaDiario', 'CAJA DIARIO', 'CREDITO', '/caja/diario'],
-      ['CajaChica', 'CAJACHICA', 'CREDITO', '/caja/chica'],
       ['Cliente', 'CLIENTE', 'CREDITO', '/clientes'],
       ['Condonacion', 'CONDONACION', 'CREDITO', '/credito/condonaciones'],
       ['Credito/Creditos', 'CREDITOS', 'CREDITO', '/credito/consulta'],

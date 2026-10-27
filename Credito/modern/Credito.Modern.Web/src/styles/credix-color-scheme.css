@@ -1,0 +1,515 @@
+/**
+ * Ajustes de modo oscuro (tokens viven en :root[data-theme='dark'] del design system).
+ * No usar filter: invert() — malogra fotos, estados y marca.
+ */
+
+:root[data-theme='dark'] img,
+:root[data-theme='dark'] video,
+:root[data-theme='dark'] canvas,
+:root[data-theme='dark'] .credix-prenda-foto,
+:root[data-theme='dark'] .ant-image-img {
+  filter: none;
+}
+
+:root[data-theme='dark'] ::selection {
+  background: rgba(140, 182, 232, 0.35);
+  color: #e6e8ec;
+}
+
+:root[data-theme='dark'] {
+  scrollbar-color: var(--credix-scroll-thumb) var(--credix-scroll-track);
+}
+
+:root[data-theme='dark'] *::-webkit-scrollbar-track {
+  background: var(--credix-scroll-track);
+}
+
+:root[data-theme='dark'] *::-webkit-scrollbar-thumb {
+  background: var(--credix-scroll-thumb);
+}
+
+.credix-login-theme {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
+.credix-login-wrap {
+  position: relative;
+}
+
+:root[data-theme='dark'] .credix-header .ant-btn-text,
+:root[data-theme='dark'] .credix-header .credix-theme-toggle {
+  color: #fff !important;
+}
+
+:root[data-theme='dark'] .ant-menu-submenu-popup .ant-menu {
+  background: var(--credix-surface-elevated) !important;
+  border-color: var(--credix-border) !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme='dark'] .credix-report-card {
+  box-shadow: none;
+}
+
+:root[data-theme='dark'] .credix-report-card:hover {
+  box-shadow: none;
+}
+
+:root[data-theme='dark'] .credix-informe-results-panel.credix-box .credix-box-header h2,
+:root[data-theme='dark'] .credix-header,
+:root[data-theme='dark'] .credix-header-brand {
+  color: var(--credix-on-brand);
+}
+
+:root[data-theme='dark'] .credix-sidebar {
+  box-shadow: none;
+}
+
+:root[data-theme='dark'] .credito-consulta-page {
+  --credito-brand: var(--credix-action);
+  --credito-brand-strong: #3d7ec4;
+  --credito-brand-soft: #1a3048;
+  --credito-accent: var(--credix-ink-brand);
+  --credito-accent-soft: #1a3048;
+  --credito-success: var(--credix-success);
+  --credito-danger: var(--credix-danger);
+  --credito-card-border: var(--credix-border);
+  --credito-card-shadow: none;
+  --credito-table-head: #1a2838;
+  --credito-table-line: var(--credix-border);
+  --credito-row-hover: #243044;
+}
+
+/* Semáforo SBS: en oscuro tinte + texto cromático (no pastilla neón). */
+:root[data-theme='dark'] .credito-sbs-riesgo--0 {
+  background: var(--credix-chip-ok-bg);
+  color: var(--credix-chip-ok-fg);
+}
+
+:root[data-theme='dark'] .credito-sbs-riesgo--1 {
+  background: var(--credix-chip-warn-bg);
+  color: var(--credix-chip-warn-fg);
+}
+
+:root[data-theme='dark'] .credito-sbs-riesgo--2 {
+  background: var(--credix-chip-warn-bg);
+  color: var(--credix-chip-warn-fg);
+}
+
+:root[data-theme='dark'] .credito-sbs-riesgo--3 {
+  background: var(--credix-chip-danger-bg);
+  color: var(--credix-chip-danger-fg);
+}
+
+:root[data-theme='dark'] .credito-sbs-riesgo--4 {
+  background: var(--credix-surface-muted);
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .cierre-gerencial-page {
+  --cg-ink: var(--credix-text);
+  --cg-muted: var(--credix-text-muted);
+  --cg-line: var(--credix-border);
+  --cg-surface: var(--credix-surface);
+  --cg-soft: var(--credix-surface-muted);
+  --cg-brand: #8cb6e8;
+  --cg-brand-soft: #1a3048;
+  --cg-ok: var(--credix-success);
+  --cg-ok-soft: var(--credix-success-bg);
+  --cg-warn: var(--credix-warning);
+  --cg-warn-soft: var(--credix-warning-bg);
+  --cg-danger: var(--credix-danger);
+  --cg-danger-soft: var(--credix-danger-bg);
+  --cg-productiva: var(--credix-ink-brand);
+  --cg-especial: #f0b27a;
+  --cg-estado-default-bg: var(--credix-surface-muted);
+}
+
+:root[data-theme='dark'] .cierre-gerencial-status--oficial {
+  background: var(--credix-success-bg);
+  border-color: color-mix(in srgb, var(--credix-success) 32%, var(--credix-border));
+}
+
+:root[data-theme='dark'] .cierre-gerencial-status--no-oficial {
+  background: var(--credix-warning-bg);
+  border-color: color-mix(in srgb, var(--credix-warning) 32%, var(--credix-border));
+}
+
+:root[data-theme='dark'] .cierre-gerencial-status--oficial .cierre-gerencial-status-badge {
+  background: var(--credix-chip-ok-bg);
+  color: var(--credix-chip-ok-fg);
+}
+
+:root[data-theme='dark'] .cierre-gerencial-status--no-oficial .cierre-gerencial-status-badge {
+  background: var(--credix-chip-warn-bg);
+  color: var(--credix-chip-warn-fg);
+}
+
+:root[data-theme='dark'] .cierre-gerencial-estado--default {
+  background: var(--credix-surface-muted) !important;
+  color: var(--credix-text-muted) !important;
+}
+
+:root[data-theme='dark'] .cierre-gerencial-tipo--productiva {
+  background: var(--credix-chip-info-bg);
+  color: var(--credix-chip-info-fg);
+}
+
+:root[data-theme='dark'] .cierre-gerencial-tipo--especial {
+  background: var(--credix-chip-warn-bg);
+  color: var(--credix-chip-warn-fg);
+}
+
+:root[data-theme='dark'] .ant-tag-success,
+:root[data-theme='dark'] .ant-tag-green {
+  background: var(--credix-chip-ok-bg) !important;
+  color: var(--credix-chip-ok-fg) !important;
+  border-color: transparent !important;
+}
+
+:root[data-theme='dark'] .ant-tag-warning,
+:root[data-theme='dark'] .ant-tag-gold,
+:root[data-theme='dark'] .ant-tag-orange {
+  background: var(--credix-chip-warn-bg) !important;
+  color: var(--credix-chip-warn-fg) !important;
+  border-color: transparent !important;
+}
+
+:root[data-theme='dark'] .ant-tag-error,
+:root[data-theme='dark'] .ant-tag-red,
+:root[data-theme='dark'] .ant-tag-magenta {
+  background: var(--credix-chip-danger-bg) !important;
+  color: var(--credix-chip-danger-fg) !important;
+  border-color: transparent !important;
+}
+
+:root[data-theme='dark'] .ant-tag-processing,
+:root[data-theme='dark'] .ant-tag-blue,
+:root[data-theme='dark'] .ant-tag-cyan {
+  background: var(--credix-chip-info-bg) !important;
+  color: var(--credix-chip-info-fg) !important;
+  border-color: transparent !important;
+}
+
+:root[data-theme='dark'] .ant-tag-default,
+:root[data-theme='dark'] .ant-tag:not([class*='ant-tag-']):not(.ant-tag-has-color) {
+  background: var(--credix-surface-muted) !important;
+  color: var(--credix-text) !important;
+  border-color: var(--credix-border) !important;
+}
+
+:root[data-theme='dark'] .morosos-empresa-page {
+  --me-ink: var(--credix-text);
+  --me-muted: var(--credix-text-muted);
+  --me-line: var(--credix-border);
+  --me-soft: var(--credix-surface-muted);
+  --me-brand: #8cb6e8;
+  --me-brand-deep: var(--credix-ink-brand);
+  --me-red: var(--credix-danger);
+  --me-red-soft: var(--credix-danger-bg);
+  --me-amber: var(--credix-warning);
+  --me-amber-soft: var(--credix-warning-bg);
+  --me-green: var(--credix-success);
+  --me-green-soft: var(--credix-success-bg);
+}
+
+/* Pastillas de situación: no usar el cromático como relleno (halo / falla AA en ámbar). */
+:root[data-theme='dark'] .morosos-badge--red {
+  background: var(--credix-chip-danger-bg);
+  color: var(--credix-chip-danger-fg);
+}
+
+:root[data-theme='dark'] .morosos-badge--amber {
+  background: var(--credix-chip-warn-bg);
+  color: var(--credix-chip-warn-fg);
+}
+
+:root[data-theme='dark'] .morosos-badge--green {
+  background: var(--credix-chip-ok-bg);
+  color: var(--credix-chip-ok-fg);
+}
+
+:root[data-theme='dark'] .morosos-status-card--red,
+:root[data-theme='dark'] .morosos-status-card--amber,
+:root[data-theme='dark'] .morosos-status-card--green {
+  border-color: var(--me-line);
+}
+
+:root[data-theme='dark'] .morosos-total-card,
+:root[data-theme='dark'] .morosos-status-card:hover {
+  box-shadow: none;
+}
+
+.credix-theme-toggle.ant-btn {
+  min-width: var(--credix-touch-min, 40px);
+  min-height: var(--credix-touch-min, 40px);
+}
+
+:root[data-theme='dark'] .credix-login-theme .ant-btn-text {
+  color: var(--credix-text) !important;
+}
+
+:root[data-theme='dark'] .credix-menu.ant-menu-dark,
+:root[data-theme='dark'] .credix-menu.ant-menu-dark .ant-menu-item,
+:root[data-theme='dark'] .credix-menu.ant-menu-dark .ant-menu-submenu-title {
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .credix-menu .ant-menu-sub,
+:root[data-theme='dark'] .credix-menu.ant-menu-dark .ant-menu-sub {
+  box-shadow: none !important;
+  border: 0 !important;
+  border-left: 1px solid var(--credix-menu-sub-line) !important;
+}
+
+:root[data-theme='dark'] .credix-menu .ant-menu-sub .ant-menu-item {
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+:root[data-theme='dark'] .ant-select-selector,
+:root[data-theme='dark'] .ant-picker,
+:root[data-theme='dark'] .ant-input,
+:root[data-theme='dark'] .ant-input-affix-wrapper,
+:root[data-theme='dark'] .ant-input-number,
+:root[data-theme='dark'] .ant-input-number-input {
+  background: var(--credix-surface-muted) !important;
+  border-color: var(--credix-border) !important;
+  color: var(--credix-text) !important;
+}
+
+:root[data-theme='dark'] .ant-select-arrow,
+:root[data-theme='dark'] .ant-picker-suffix {
+  color: var(--credix-text-muted);
+}
+
+:root[data-theme='dark'] .ant-select-dropdown,
+:root[data-theme='dark'] .ant-picker-dropdown .ant-picker-panel-container,
+:root[data-theme='dark'] .ant-dropdown .ant-dropdown-menu {
+  background: var(--credix-surface-elevated) !important;
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .ant-btn-default:not(:disabled):not(.ant-btn-dangerous),
+:root[data-theme='dark'] .ant-btn-default:not(:disabled):not(.ant-btn-dangerous) > span,
+:root[data-theme='dark'] .credix-report-btn {
+  background: var(--credix-surface) !important;
+  border-color: var(--credix-border);
+  color: var(--credix-text) !important;
+}
+
+:root[data-theme='dark'] .ant-btn-primary:not(:disabled),
+:root[data-theme='dark'] .ant-btn-primary:not(:disabled) > span {
+  color: var(--credix-on-brand) !important;
+}
+
+:root[data-theme='dark'] .ant-btn-link,
+:root[data-theme='dark'] .ant-btn-link > span,
+:root[data-theme='dark'] .ant-btn-text:not(.credix-header .ant-btn-text),
+:root[data-theme='dark'] .ant-typography a,
+:root[data-theme='dark'] .ant-breadcrumb a,
+:root[data-theme='dark'] a:not(.ant-btn):not(.ant-menu-item):not(.ant-menu-submenu-title) {
+  color: var(--credix-ink-brand) !important;
+}
+
+:root[data-theme='dark'] .ant-form-item-label > label,
+:root[data-theme='dark'] .ant-checkbox-wrapper,
+:root[data-theme='dark'] .ant-radio-wrapper,
+:root[data-theme='dark'] .ant-drawer-title,
+:root[data-theme='dark'] .ant-drawer-close,
+:root[data-theme='dark'] .ant-modal-title,
+:root[data-theme='dark'] .ant-modal-close,
+:root[data-theme='dark'] .ant-tabs-tab,
+:root[data-theme='dark'] .ant-tabs-tab-btn,
+:root[data-theme='dark'] .ant-typography,
+:root[data-theme='dark'] .ant-descriptions-item-label,
+:root[data-theme='dark'] .ant-descriptions-item-content,
+:root[data-theme='dark'] .ant-statistic-content,
+:root[data-theme='dark'] .ant-collapse-header,
+:root[data-theme='dark'] .ant-list-item,
+:root[data-theme='dark'] .ant-picker-input > input,
+:root[data-theme='dark'] .credix-page,
+:root[data-theme='dark'] .credix-page-head h1,
+:root[data-theme='dark'] .credix-page-head p,
+:root[data-theme='dark'] .credix-crud-toolbar,
+:root[data-theme='dark'] .ant-alert-message,
+:root[data-theme='dark'] .ant-alert-description {
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .ant-typography-secondary,
+:root[data-theme='dark'] .ant-form-item-extra,
+:root[data-theme='dark'] .ant-form-item-explain,
+:root[data-theme='dark'] .ant-statistic-title,
+:root[data-theme='dark'] .ant-select-selection-placeholder,
+:root[data-theme='dark'] .ant-input::placeholder,
+:root[data-theme='dark'] .ant-input-password input::placeholder {
+  color: var(--credix-text-muted) !important;
+}
+
+:root[data-theme='dark'] .ant-alert-info {
+  background: var(--credix-info-bg);
+  border-color: var(--credix-brand-line);
+}
+
+:root[data-theme='dark'] .ant-alert-warning {
+  background: var(--credix-warning-bg);
+  border-color: var(--credix-warning);
+}
+
+:root[data-theme='dark'] .ant-tag:not(.ant-tag-has-color) {
+  background: var(--credix-surface-muted);
+  border-color: var(--credix-border);
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .credix-report-btn--pdf {
+  color: var(--credix-pdf) !important;
+  border-color: var(--credix-pdf) !important;
+}
+
+:root[data-theme='dark'] .credix-report-btn--xls {
+  color: var(--credix-xls) !important;
+  border-color: var(--credix-xls) !important;
+}
+
+:root[data-theme='dark'] .app-shell-drawer .ant-drawer-content,
+:root[data-theme='dark'] .app-shell-drawer .ant-drawer-header,
+:root[data-theme='dark'] .app-shell-drawer .ant-drawer-body {
+  background: var(--credix-surface);
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .ant-modal-content,
+:root[data-theme='dark'] .ant-modal-header,
+:root[data-theme='dark'] .ant-modal-footer {
+  background: var(--credix-surface-elevated);
+}
+
+:root[data-theme='dark'] :focus-visible {
+  outline: 2px solid var(--credix-ink-brand);
+  outline-offset: 2px;
+}
+
+/* Tablas: cabecera, celdas y totales usan tokens (no blancos de Ant). */
+:root[data-theme='dark'] .ant-table,
+:root[data-theme='dark'] .ant-table-container,
+:root[data-theme='dark'] .ant-table-content,
+:root[data-theme='dark'] .ant-table-header,
+:root[data-theme='dark'] .ant-table-body,
+:root[data-theme='dark'] .ant-table-wrapper,
+:root[data-theme='dark'] .ant-table-empty .ant-table-tbody > tr.ant-table-placeholder > td {
+  background: var(--credix-surface) !important;
+}
+
+:root[data-theme='dark'] .ant-table-thead > tr > th,
+:root[data-theme='dark'] .ant-table-thead > tr > td {
+  background: var(--credix-table-head) !important;
+  color: var(--credix-text) !important;
+  border-bottom-color: var(--credix-border) !important;
+}
+
+:root[data-theme='dark'] .ant-table-tbody > tr > td {
+  background: var(--credix-surface) !important;
+  color: var(--credix-text);
+  border-color: var(--credix-border) !important;
+}
+
+:root[data-theme='dark'] .ant-table-tbody > tr.ant-table-row:hover > td,
+:root[data-theme='dark'] .ant-table-tbody > tr:hover > td {
+  background: var(--credix-row-hover) !important;
+}
+
+:root[data-theme='dark'] .ant-table-summary,
+:root[data-theme='dark'] .ant-table-summary > tr > td,
+:root[data-theme='dark'] .ant-table-summary .ant-table-cell {
+  background: var(--credix-table-head) !important;
+  color: var(--credix-text) !important;
+  border-color: var(--credix-border) !important;
+}
+
+:root[data-theme='dark'] .ant-table-cell-fix-right,
+:root[data-theme='dark'] .ant-table-cell-fix-left {
+  background: var(--credix-surface) !important;
+}
+
+:root[data-theme='dark'] .ant-table-thead .ant-table-cell-fix-right,
+:root[data-theme='dark'] .ant-table-thead .ant-table-cell-fix-left,
+:root[data-theme='dark'] .ant-table-summary .ant-table-cell-fix-right,
+:root[data-theme='dark'] .ant-table-summary .ant-table-cell-fix-left {
+  background: var(--credix-table-head) !important;
+}
+
+:root[data-theme='dark'] .ant-card,
+:root[data-theme='dark'] .ant-card-head,
+:root[data-theme='dark'] .ant-card-body,
+:root[data-theme='dark'] .ant-empty-description {
+  background: transparent;
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .ant-empty-description {
+  color: var(--credix-text-muted);
+}
+
+:root[data-theme='dark'] .ant-pagination .ant-pagination-item,
+:root[data-theme='dark'] .ant-pagination .ant-pagination-prev .ant-pagination-item-link,
+:root[data-theme='dark'] .ant-pagination .ant-pagination-next .ant-pagination-item-link {
+  background: var(--credix-surface);
+  border-color: var(--credix-border);
+}
+
+:root[data-theme='dark'] .ant-tag:not([class*='ant-tag-']) {
+  background: var(--credix-surface-muted);
+  border-color: var(--credix-border);
+  color: var(--credix-text);
+}
+
+/* Caja diario: pasteles de cuota leíbles sobre canvas oscuro. */
+:root[data-theme='dark'] .caja-diario-page {
+  --caja-cuota-pendiente-bg: var(--credix-warning-bg);
+  --caja-cuota-pendiente-border: var(--credix-warning);
+  --caja-cuota-pagada-bg: var(--credix-success-bg);
+  --caja-cuota-pagada-border: var(--credix-success);
+  --caja-cuota-mora-bg: var(--credix-danger-bg);
+  --caja-cuota-mora-border: var(--credix-danger);
+  --caja-cuota-creada-bg: #3a3510;
+  --caja-cuota-creada-border: #eab308;
+  --caja-cuota-resumen-bg: var(--credix-surface-muted);
+}
+
+:root[data-theme='dark'] .caja-cuotas-legend__swatch {
+  border-color: var(--credix-border);
+}
+
+:root[data-theme='dark'] .caja-cuotas-table .caja-cuota-row--pendiente > td {
+  background: var(--caja-cuota-pendiente-bg) !important;
+}
+
+:root[data-theme='dark'] .caja-cuotas-table .caja-cuota-row--pagada > td {
+  background: var(--caja-cuota-pagada-bg) !important;
+}
+
+:root[data-theme='dark'] .caja-cuotas-table .caja-cuota-row--mora > td {
+  background: var(--caja-cuota-mora-bg) !important;
+}
+
+:root[data-theme='dark'] .caja-cuotas-table .caja-cuota-row--creada > td {
+  background: var(--caja-cuota-creada-bg) !important;
+}
+
+:root[data-theme='dark'] .caja-cuotas-table .ant-table-tbody > tr.caja-cuota-row.ant-table-row-selected > td {
+  background: var(--credix-brand-light) !important;
+}
+
+:root[data-theme='dark'] .boveda-resumen-cuenta__header,
+:root[data-theme='dark'] .boveda-resumen-cuenta__header strong,
+:root[data-theme='dark'] .boveda-resumen-cuenta__icon,
+:root[data-theme='dark'] .caja-saldos-resumen__lista strong,
+:root[data-theme='dark'] .caja-saldos-boveda-banner strong,
+:root[data-theme='dark'] .caja-saldos-table .ant-table-summary .ant-table-cell {
+  color: var(--credix-ink-brand);
+}

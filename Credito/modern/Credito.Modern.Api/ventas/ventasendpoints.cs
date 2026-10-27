@@ -1978,7 +1978,7 @@ internal static class VentasEndpoints
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status404NotFound,
                                 title: "No encontrado",
-                                detail: "No existe un artículo activo con ese código y lista de precios.");
+                                detail: "No hay artículo activo con ese código, o no tiene precio en lista. Créelo en Maestros y asigne precio.");
                         }
 
                         return TypedResults.Ok(articulo);

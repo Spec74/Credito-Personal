@@ -373,7 +373,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
     ocupacionId: ocupacionOtrosVisible ? null : values.ocupacionId ?? null,
     ocupacionOtros: ocupacionOtrosVisible ? values.ocupacionOtros?.trim() : null,
     calificacion: values.calificacion,
-    activo: values.activo,
+    activo: esEdicion ? values.activo !== false : true,
     topeCredito: values.topeCredito ?? null,
     estadoCivilId: values.estadoCivilId ?? null,
     tipoViviendaId: values.tipoViviendaId ?? null,
@@ -405,7 +405,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
         return
       }
       if (destino === 'credito') {
-        navigate(`/credito/simulador?personaId=${r.personaId}`, { replace: true })
+        navigate(`/credito/nuevo?personaId=${r.personaId}`, { replace: true })
         return
       }
       // Tras alta o actualización: quedar en consulta (no re-guardar como nuevo).
@@ -1000,6 +1000,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
             },
             {
               key: 'calificacion',
+              forceRender: true,
               label: (
                 <span>
                   Calificación
@@ -1129,7 +1130,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                   </Form.Item>
                   <Space wrap>
                     <Form.Item name="activo" valuePropName="checked" style={{ marginBottom: 0 }}>
-                      <Checkbox>Activo</Checkbox>
+                      <Checkbox disabled={!esEdicion}>Activo</Checkbox>
                     </Form.Item>
                     {bloqueado ? (
                       <Text type="danger">
@@ -1159,7 +1160,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                   <Button
                     disabled={false}
                     onClick={() =>
-                      navigate(`/credito/simulador?personaId=${personaId}`, { replace: false })
+                      navigate(`/credito/nuevo?personaId=${personaId}`, { replace: false })
                     }
                   >
                     Solicitar crédito

@@ -267,6 +267,104 @@ body.credix-density-comfortable .credix-page {
   min-width: 0;
 }
 
+/* Venta rápida: pedido + ticket de cobro. No tres columnas ni tabla ancha. */
+.venta-rapida {
+  display: grid;
+  gap: var(--credix-density-gap);
+  align-items: start;
+}
+
+@media (min-width: 992px) {
+  .venta-rapida {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 360px);
+  }
+
+  .venta-rapida__cobro {
+    position: sticky;
+    top: 8px;
+  }
+}
+
+.venta-rapida__pedido,
+.venta-rapida__cobro {
+  display: grid;
+  gap: var(--credix-density-gap);
+  min-width: 0;
+}
+
+.venta-rapida-agregar {
+  display: grid;
+  gap: 10px;
+}
+
+.venta-rapida-agregar__fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.venta-rapida-agregar__fila .ant-input-number {
+  width: 140px;
+}
+
+.venta-rapida-ticket {
+  display: grid;
+  gap: 0;
+}
+
+.venta-rapida-ticket__vacio {
+  margin: 8px 0 0;
+  color: var(--credix-text-muted);
+  font-size: var(--credix-type-body);
+}
+
+.venta-rapida-linea {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px 12px;
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--credix-border);
+}
+
+.venta-rapida-linea:last-child {
+  border-bottom: 0;
+}
+
+.venta-rapida-linea__nombre {
+  font-weight: 500;
+  color: var(--credix-text);
+  line-height: 1.35;
+}
+
+.venta-rapida-linea__meta {
+  display: block;
+  margin-top: 2px;
+  color: var(--credix-text-muted);
+  font-size: var(--credix-type-label);
+}
+
+.venta-rapida-linea__importe {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+  padding-top: 2px;
+}
+
+.venta-rapida-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.venta-rapida-total strong {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+
 .credix-queue {
   display: grid;
   gap: var(--credix-density-gap);

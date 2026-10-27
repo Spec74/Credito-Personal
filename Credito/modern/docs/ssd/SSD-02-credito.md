@@ -7,7 +7,7 @@
 
 ## 1. Propósito y actores
 
-Ciclo de vida del crédito personal (no prendario): consultar cartera, simular y solicitar, aprobar, gestionar el expediente e impresos.
+Ciclo de vida del crédito personal (no prendario): consultar cartera, **originar en `/credito/nuevo`**, cotizar en el simulador, aprobar, gestionar el expediente e impresos.
 
 | Rol | Uso |
 |-----|-----|
@@ -38,7 +38,8 @@ Ciclo de vida del crédito personal (no prendario): consultar cartera, simular y
 | Legacy | SPA | Observación |
 |--------|-----|-------------|
 | `/Credito/Creditos` | `/credito/consulta` | Query `personaId` / `creditoId` |
-| `/Credito/Simulador` | `/credito/simulador` | Alta solicitud + generar crédito |
+| `/Credito/Simulador` | `/credito/nuevo` | Originación real (solicitud + `usp_Credito_Ins`) |
+| `/Credito/Simulador` | `/credito/simulador` | Solo cotización; generar es opcional |
 | `/Credito/ParametrosSimulador` | `/credito/parametros-simulador` | Exact menu |
 | `/CreditoAprobar` | `/credito/aprobar` | Exact menu; 1.ª/2.ª y rechazo en bandeja |
 | `/Tareas/Index` | `/credito/tareas` | Ítem de menú directo, no hub |
@@ -71,7 +72,7 @@ Prefijo `/api/v1/credito`. JWT con `vendix:oficina_id` / `vendix:usuario_id`.
 | `GET creditos-grilla-persona`, `GET persona-credito-ficha`, `GET credito-contexto` | `CreditoUser` | `/credito/consulta` |
 | `GET estado-plan-pago`, `GET rpt-movimiento-credito*` | `CreditoUser` | Consulta + impresos |
 | `GET/POST rpt-plan-pagos-pdf`, `rpt-estado-credito-pdf`, `rpt-cliente-pdf` | `CreditoUser` | Impresos (pestaña nueva) |
-| `POST simulador-credito`, `POST crear-solicitud-credito`, `POST crear-credito` | `CreditoUser` | `/credito/simulador` |
+| `POST simulador-credito`, `POST crear-solicitud-credito`, `POST crear-credito` | `CreditoUser` | `/credito/nuevo` (originar) · `/credito/simulador` (cotizar) |
 | `GET/POST parametros-simulador` | User / `CreditoRolAdministrador` | `/credito/parametros-simulador` |
 | `GET creditos-por-aprobar`, `POST aprobar-credito`, `POST rechazar-credito` | Aprobador1 o admin | `/credito/aprobar` |
 | `GET/POST tareas/*` | `CreditoUser` (alta restringida) | `/credito/tareas` |

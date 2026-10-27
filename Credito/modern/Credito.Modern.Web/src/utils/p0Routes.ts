@@ -4,6 +4,7 @@ export const P0_ROUTES = [
   '/inicio',
   '/clientes',
   '/credito/consulta',
+  '/credito/nuevo',
   '/credito/simulador',
   '/credito/aprobar',
   '/caja/diario',
@@ -16,7 +17,7 @@ export const P0_ROUTES = [
 
 export const P0_ROLE_HOMES = {
   cajero: ['/caja/diario', '/caja/cobro'],
-  analista: ['/credito/simulador', '/credito/consulta', '/clientes'],
+  analista: ['/credito/nuevo', '/credito/consulta', '/clientes'],
   aprobador: ['/credito/aprobar'],
   encargado: ['/caja/saldos'],
   admin: ['/credito/aprobar', '/tesoreria/red'],

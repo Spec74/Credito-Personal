@@ -33,6 +33,10 @@ export async function parseApiError(response: Response): Promise<ApiError> {
   } catch {
     /* body vacío o no JSON */
   }
+  if (!message && response.status === 403) {
+    message =
+      'No tiene permiso para esta acción. El dato no se guardó; pida el rol o vuelva a iniciar sesión.'
+  }
   return new ApiError(
     message || `Error HTTP ${response.status}`,
     response.status,

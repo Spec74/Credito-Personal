@@ -79,7 +79,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("GuardarMarca")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -165,7 +165,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("GuardarModelo")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -247,7 +247,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("GuardarTipoArticulo")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -370,9 +370,11 @@ internal static class MaestroEndpoints
         app.MapGet(
                 "/api/v1/almacenes/gestion",
                 async Task<Results<Ok<List<AlmacenAdminListItemDto>>, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     int? oficinaId,
                     bool? incluirInactivos,
                     IAlmacenReadService almacenes,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -380,8 +382,17 @@ internal static class MaestroEndpoints
                     var log = loggerFactory.CreateLogger("AlmacenesGestion");
                     try
                     {
+                        var (info, oficinaProblem) = await SesionOficina
+                            .ResolverAsync(httpContext, oficinas, oficinaId, ct)
+                            .ConfigureAwait(false);
+                        if (oficinaProblem is not null)
+                        {
+                            return oficinaProblem;
+                        }
+
+                        var filtro = SesionOficina.OficinaLectura(info!, oficinaId, allowRed: true);
                         var items = await almacenes
-                            .ListGestionAsync(oficinaId, incluirInactivos == true, ct)
+                            .ListGestionAsync(filtro, incluirInactivos == true, ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(items);
                     }
@@ -398,8 +409,11 @@ internal static class MaestroEndpoints
         app.MapPost(
                 "/api/v1/almacenes/guardar",
                 async Task<Results<Ok<MaestroOperacionResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     GuardarAlmacenRequest body,
                     IAlmacenWriteService write,
+                    IAlmacenReadService almacenes,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -408,6 +422,34 @@ internal static class MaestroEndpoints
                         MaestroValidacion.ValidarDenominacionYPadre(body.Denominacion, body.OficinaId, "oficinaId"));
                     if (almacenError is not null)
                         return almacenError;
+
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, body.OficinaId, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
+                    {
+                        return oficinaProblem;
+                    }
+
+                    var ajena = SesionOficina.RechazarSiSucursalAjena(info!, body.OficinaId);
+                    if (ajena is not null)
+                    {
+                        return ajena;
+                    }
+
+                    if (!info!.EsCentral && body.AlmacenId >= 1)
+                    {
+                        var propios = await almacenes
+                            .ListGestionAsync(info.OficinaId, incluirInactivos: true, ct)
+                            .ConfigureAwait(false);
+                        if (propios.TrueForAll(a => a.AlmacenId != body.AlmacenId))
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status403Forbidden,
+                                title: "Prohibido",
+                                detail: "No puede editar el almacén de otra sede.");
+                        }
+                    }
 
                     return await MaestroWriteAsync(
                         loggerFactory,
@@ -424,8 +466,11 @@ internal static class MaestroEndpoints
         app.MapPost(
                 "/api/v1/almacenes/{almacenId:int}/activar",
                 async Task<Results<Ok<MaestroOperacionResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     int almacenId,
                     IAlmacenWriteService write,
+                    IAlmacenReadService almacenes,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -436,6 +481,28 @@ internal static class MaestroEndpoints
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
                             detail: "almacenId debe ser >= 1.");
+                    }
+
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, sedeId: null, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
+                    {
+                        return oficinaProblem;
+                    }
+
+                    if (!info!.EsCentral)
+                    {
+                        var propios = await almacenes
+                            .ListGestionAsync(info.OficinaId, incluirInactivos: true, ct)
+                            .ConfigureAwait(false);
+                        if (propios.TrueForAll(a => a.AlmacenId != almacenId))
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status403Forbidden,
+                                title: "Prohibido",
+                                detail: "No puede activar el almacén de otra sede.");
+                        }
                     }
 
                     return await MaestroWriteAsync(
@@ -505,7 +572,7 @@ internal static class MaestroEndpoints
                 })
             .WithName("GuardarListaPrecio")
             .WithTags("maestros")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(

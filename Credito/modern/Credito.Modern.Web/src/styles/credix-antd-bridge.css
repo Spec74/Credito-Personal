@@ -94,8 +94,8 @@ body {
 .credix-page .ant-btn-primary:not(.ant-btn-dangerous):not(:disabled),
 .ant-modal .ant-btn-primary:not(.ant-btn-dangerous):not(:disabled),
 .ant-drawer .ant-btn-primary:not(.ant-btn-dangerous):not(:disabled) {
-  background: var(--credix-brand);
-  border-color: var(--credix-brand);
+  background: var(--credix-action, var(--credix-brand));
+  border-color: var(--credix-action, var(--credix-brand));
   font-weight: 600;
 }
 

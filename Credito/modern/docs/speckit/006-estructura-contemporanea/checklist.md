@@ -10,3 +10,4 @@ DevTools ~375×812 y escritorio ≥992. Casillas = evidencia de ejecución.
 | `/caja/diario` | Chip caja lleva a diario; toque ≥40 px | [ ] |
 | Escritorio | Header puede mostrar denominación de caja; popover de sesión | [ ] |
 | Landmarks | `header`, `nav` (módulos), `main#main-content`, `footer` | [x] |
+| Oscuro `/reportes/credito` | Submenús y pies de tarjeta no blancos; PDF/XLS legibles (SSD-19) | [x] |

@@ -17,7 +17,7 @@
   margin: 0 0 12px;
   padding-bottom: 8px;
   border-bottom: 2px solid #e8f2fc;
-  color: #114885;
+  color: var(--credix-ink-brand);
   font-size: 15px;
   font-weight: 600;
 }
@@ -27,7 +27,7 @@
   padding: 12px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  background: linear-gradient(180deg, #fafcff 0%, #fff 100%);
+  background: var(--credix-surface);
 }
 
 .cliente-mantener__map-actions {

@@ -37,7 +37,7 @@ export function buildRoleHomeActions(roles: string[]): RoleHomeAction[] {
   } else if (esAnalista && puedeCompletarBienesPrendarioUi(roles)) {
     push({ to: '/credito/prendario/nuevo', label: 'Nuevo prendario', primary: true })
   } else if (esAnalista) {
-    push({ to: '/credito/simulador', label: 'Simular crédito', primary: true })
+    push({ to: '/credito/nuevo', label: 'Nueva solicitud', primary: true })
   } else if (esAprobador) {
     push({ to: '/credito/aprobar', label: 'Aprobar', primary: true })
   }
@@ -67,7 +67,8 @@ export function buildRoleHomeActions(roles: string[]): RoleHomeAction[] {
         primary: !actions.some((a) => a.primary),
       })
     }
-    push({ to: '/credito/simulador', label: 'Simular crédito', primary: !actions.some((a) => a.primary) })
+    push({ to: '/credito/nuevo', label: 'Nueva solicitud', primary: !actions.some((a) => a.primary) })
+    push({ to: '/credito/simulador', label: 'Simulador' })
     push({ to: '/credito/consulta', label: 'Consulta' })
     push({ to: '/clientes', label: 'Clientes' })
     push({ to: '/credito/tareas', label: 'Tareas' })

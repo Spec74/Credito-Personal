@@ -23,6 +23,13 @@ function resolveCreditoOperacionFromLabel(denominacion: string | null | undefine
     return '/credito/prendario'
   }
   if (
+    (label.includes('solicitud') && (label.includes('nueva') || label.includes('crear'))) &&
+    !label.includes('prendario') &&
+    !label.includes('condonacion')
+  ) {
+    return '/credito/nuevo'
+  }
+  if (
     (label.includes('simulador') ||
       label.includes('simular') ||
       label.includes('simulacion')) &&
@@ -52,7 +59,7 @@ function resolveCreditoOperacionFromLabel(denominacion: string | null | undefine
     return '/caja/saldos'
   }
   if (label.includes('cajachica') || label.includes('caja chica')) {
-    return '/caja/chica'
+    return null
   }
   if (label.includes('parametro') && label.includes('simulador')) {
     return '/credito/parametros-simulador'
@@ -109,11 +116,29 @@ function normalizeLabel(value: string): string {
 /**
  * Resuelve ruta SPA desde ítem de menú (URL legacy o etiqueta del menú Reportes).
  */
+function isCajaChicaRetirada(
+  url: string | null | undefined,
+  denominacion: string | null | undefined,
+): boolean {
+  const label = normalizeLabel(denominacion ?? '')
+  const path = normalizeLabel(url ?? '')
+  return (
+    label.includes('caja chica') ||
+    label.includes('cajachica') ||
+    path.includes('cajachica') ||
+    path.includes('caja/chica')
+  )
+}
+
 export function resolveSpaPathFromMenuItem(
   url: string | null | undefined,
   denominacion: string | null | undefined,
   modulo: string | null | undefined,
 ): string | null {
+  if (isCajaChicaRetirada(url, denominacion)) {
+    return null
+  }
+
   const label = normalizeLabel(denominacion ?? '')
   const mod = (modulo ?? '')
     .trim()
@@ -280,6 +305,7 @@ function isCreditoOperacionLabel(label: string): boolean {
     label.includes('consulta de credito') ||
     label.includes('prendario') ||
     label.includes('predario') ||
+    label.includes('solicitud') ||
     label.includes('simulador') ||
     label.includes('simular') ||
     label.includes('simulacion') ||

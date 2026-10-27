@@ -25,7 +25,7 @@ Credix = puesto de trabajo de la empresa (crédito personal, prendario, caja, te
 
 **Entra (todo el sistema)**
 
-- Estándar visual único (anatomía, densidad, cero ruido) en **cualquier** ruta
+- Estándar visual único (anatomía, densidad, cero ruido, esquema de color SSD-19) en **cualquier** ruta
 - RoleHome + chrome de sucursal/caja
 - Patrones: Page, WorkCanvas, Queue, Record, MoneyConfirm
 - Hilos: originación personal, originación prendaria, cobro, tesorería, cliente

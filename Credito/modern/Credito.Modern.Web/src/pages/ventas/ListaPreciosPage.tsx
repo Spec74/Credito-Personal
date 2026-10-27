@@ -52,7 +52,7 @@ import { moneyRequired, nonNegativeNumber, positiveInt } from '../../validation/
 
 import { ApiError } from '../../api/errors'
 
-import { CredixCrudPage, CredixDataTable } from '../../components/credix'
+import { CredixArticuloSelect, CredixCrudPage, CredixDataTable } from '../../components/credix'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
 
 
@@ -385,17 +385,17 @@ export function ListaPreciosPage() {
 
         <Space wrap>
 
-          <InputNumber
+          <CredixArticuloSelect
 
-            min={1}
+            allowClear
 
-            placeholder="Artículo id"
+            placeholder="Filtrar por artículo"
 
             value={articuloId}
 
             onChange={(v) => setArticuloId(v ?? undefined)}
 
-            style={{ width: 120 }}
+            style={{ minWidth: 240 }}
 
           />
 
@@ -545,9 +545,9 @@ export function ListaPreciosPage() {
 
           >
 
-            <Form.Item name="articuloId" label="Artículo id" rules={[{ required: true }, positiveInt()]}>
+            <Form.Item name="articuloId" label="Artículo" rules={[{ required: true }, positiveInt()]}>
 
-              <InputNumber min={1} precision={0} style={{ width: '100%' }} />
+              <CredixArticuloSelect />
 
             </Form.Item>
 

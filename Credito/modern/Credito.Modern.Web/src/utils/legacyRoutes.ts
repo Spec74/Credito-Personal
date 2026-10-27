@@ -64,7 +64,6 @@ const LEGACY_TO_SPA: Array<{ match: RegExp; spaPath: string }> = [
   { match: /\/cajadiario(\/index)?$/i, spaPath: '/caja/diario' },
   { match: /\/verificarpagos(\/index)?$/i, spaPath: '/caja/verificar-pagos' },
   { match: /\/saldos(\/index)?$/i, spaPath: '/caja/saldos' },
-  { match: /\/cajachica(\/index)?$/i, spaPath: '/caja/chica' },
   { match: /\/boveda(\/index)?$/i, spaPath: '/tesoreria/boveda' },
   { match: /\/cliente\/boveda/i, spaPath: '/tesoreria/boveda' },
   {

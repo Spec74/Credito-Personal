@@ -2,14 +2,12 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { App as AntApp, ConfigProvider, message, notification } from 'antd'
-import esES from 'antd/locale/es_ES'
+import { App as AntApp, message, notification } from 'antd'
 import dayjs from 'dayjs'
 import 'dayjs/locale/es'
 import { AuthProvider } from './auth/AuthContext'
 import App from './App'
-import { credixLegacyTheme } from './theme/credixLegacyTheme'
-import { credixFormValidateMessages } from './theme/credixFormValidateMessages'
+import { CredixColorSchemeProvider } from './theme/CredixColorSchemeProvider'
 import './index.css'
 import './styles/credix-design-system.css'
 import './styles/credix-antd-bridge.css'
@@ -21,6 +19,7 @@ import './styles/credix-mobile-shell.css'
 import './styles/credix-oleada-a.css'
 import './styles/credix-intranet.css'
 import './styles/credix-structure-lock.css'
+import './styles/credix-color-scheme.css'
 // CSS de módulos se importa en la página lazy correspondiente (menos CSS en /inicio).
 
 dayjs.locale('es')
@@ -62,18 +61,7 @@ if (typeof window !== 'undefined') {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ConfigProvider
-        locale={esES}
-        theme={credixLegacyTheme}
-        form={{
-          validateMessages: credixFormValidateMessages,
-          requiredMark: true,
-        }}
-        input={{ autoComplete: 'off' }}
-        modal={{
-          centered: true,
-        }}
-      >
+      <CredixColorSchemeProvider>
         <AntApp>
           <BrowserRouter
             basename={
@@ -85,7 +73,7 @@ createRoot(document.getElementById('root')!).render(
             </AuthProvider>
           </BrowserRouter>
         </AntApp>
-      </ConfigProvider>
+      </CredixColorSchemeProvider>
     </QueryClientProvider>
   </StrictMode>,
 )

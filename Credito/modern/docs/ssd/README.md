@@ -54,7 +54,7 @@ El menú vivo de **oficina 1 (CREDITO)** cubre SSD-01 … SSD-09 y SSD-00. Venta
 | Id | Módulo | Código | Doc actual | Spec SSD |
 |----|--------|--------|------------|----------|
 | SSD-01 | Autenticación, menú, inicio | Hecho | `PASSWORD-STORAGE-ROADMAP`, `MODERN-E2E-LOGIN-MENU` | [SSD-01-auth-inicio.md](SSD-01-auth-inicio.md) |
-| SSD-02 | Crédito (consulta, simulador, aprobar, tareas) | Hecho | `credito_migracion.md` | [SSD-02-credito.md](SSD-02-credito.md) |
+| SSD-02 | Crédito (consulta, nueva solicitud, simulador, aprobar, tareas) | Hecho | `credito_migracion.md` | [SSD-02-credito.md](SSD-02-credito.md) |
 | SSD-03 | Caja diario / chica / saldos / verificar | Hecho | `caja_*_migracion.md` | [SSD-03-caja.md](SSD-03-caja.md) |
 | SSD-04 | Tesorería / bóveda | Hecho | `boveda_migracion.md` | [SSD-04-boveda.md](SSD-04-boveda.md) |
 | SSD-05 | Clientes | Hecho | `clientes_migracion.md` | [SSD-05-clientes.md](SSD-05-clientes.md) |
@@ -70,6 +70,8 @@ El menú vivo de **oficina 1 (CREDITO)** cubre SSD-01 … SSD-09 y SSD-00. Venta
 | SSD-15 | Shell móvil (todas las pantallas) | As-built | Spec Kit `003-movil-shell` | [SSD-15-movil-shell.md](SSD-15-movil-shell.md) |
 | SSD-16 | Lecciones Facturador Smart | Spec de cambio (sin código) | Spec Kit `005-facturador-smart` | [SSD-16-facturador-smart.md](SSD-16-facturador-smart.md) |
 | SSD-17 | Estructura contemporánea (HTML + chrome) | Change | Spec Kit `006-estructura-contemporanea` | [SSD-17-estructura-contemporanea.md](SSD-17-estructura-contemporanea.md) |
+| SSD-18 | Flujos de cada módulo + alcance red | As-built | Diagramas mermaid | [SSD-18-flujos-modulos.md](SSD-18-flujos-modulos.md) |
+| SSD-19 | Esquema de color (claro / oscuro) | As-built | Tokens `--credix-*` + Ant dark | [SSD-19-color-scheme.md](SSD-19-color-scheme.md) |
 | SSD-00 | Cutover y strangler | Parcial (corte no ejecutado) | `STRANGLER-MIGRATION`, `DEPLOY-AL-SUBIR`, `MIGRATION-CLOSURE` | [SSD-00-cutover.md](SSD-00-cutover.md) |
 
 ## Qué no hacer

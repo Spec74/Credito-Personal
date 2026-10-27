@@ -299,6 +299,10 @@ export const SimuladorCreditoPage = lazyNamed(
   () => import('../pages/credito/SimuladorCreditoPage'),
   'SimuladorCreditoPage',
 )
+export const CreditoNuevoPage = lazyNamed(
+  () => import('../pages/credito/CreditoNuevoPage'),
+  'CreditoNuevoPage',
+)
 export const ParametrosSimuladorPage = lazyNamed(
   () => import('../pages/credito/ParametrosSimuladorPage'),
   'ParametrosSimuladorPage',

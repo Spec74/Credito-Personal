@@ -6,6 +6,7 @@ import {
   CheckCircleOutlined,
   CreditCardOutlined,
   DollarOutlined,
+  FileAddOutlined,
   FileTextOutlined,
   GoldOutlined,
   InboxOutlined,
@@ -113,6 +114,7 @@ export function hubLinkIcon(to: string, label?: string): ReactNode {
   if (path.includes('/caja/asignar')) return <CheckCircleOutlined />
   if (path.includes('/caja/verificar')) return <AuditOutlined />
   if (path.includes('/caja/maestro')) return <SettingOutlined />
+  if (path.includes('/credito/nuevo')) return <FileAddOutlined />
   if (path.includes('/credito/simulador')) return <CalculatorOutlined />
   if (path.includes('/credito/prendario') || text.includes('prendario')) return <GoldOutlined />
   if (path.includes('/credito/consulta')) return <SearchOutlined />

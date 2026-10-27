@@ -24,7 +24,7 @@
   border-radius: 10px;
   border: 1px solid var(--credix-border, #e5e7eb);
   border-left: 3px solid var(--credix-brand, #114885);
-  background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+  background: var(--credix-surface);
 }
 
 .caja-list-toolbar__buscar,
@@ -51,7 +51,7 @@
   font-size: 15px;
   border-radius: 10px;
   border-color: #d1d5db;
-  background: #fff;
+  background: var(--credix-surface);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;

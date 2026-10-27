@@ -88,10 +88,20 @@ BEGIN
         EXEC CREDITO.usp_RecalcularCajaDiario @CajaDiarioId = @CajaDiarioId;
     END;
 
+    -- Calcular remate con el vencimiento actual. Si se prorroga antes, un FechaRemate
+    -- nulo usa el vencimiento nuevo y suma @Dias otra vez (vence+30+@Dias).
+    DECLARE @NuevaRemate DATE;
+    SELECT @NuevaRemate = DATEADD(
+        DAY,
+        @Dias,
+        COALESCE(c.FechaRemate, DATEADD(DAY, 30, c.FechaVencimiento)))
+    FROM CREDITO.Credito AS c
+    WHERE c.CreditoId = @CreditoId;
+
     EXEC CREDITO.usp_ProrrogarCredito @CreditoId = @CreditoId, @Dias = @Dias;
 
     UPDATE CREDITO.Credito
-    SET FechaRemate = DATEADD(DAY, @Dias, COALESCE(FechaRemate, DATEADD(DAY, 30, FechaVencimiento))),
+    SET FechaRemate = @NuevaRemate,
         UsuarioModId = @UsuarioId,
         FechaMod = @Fecha
     WHERE CreditoId = @CreditoId

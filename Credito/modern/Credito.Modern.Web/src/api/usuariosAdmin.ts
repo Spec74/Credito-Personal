@@ -128,8 +128,28 @@ export function guardarUsuario(body: {
   nombreUsuario: string
   claveUsuario: string
   estado: boolean
+  oficinaIds?: number[]
+  rolIds?: number[]
 }): Promise<MaestroOperacionResponse> {
   return postJson('/usuarios/guardar', body)
+}
+
+/** Clave temporal legible (sin 0/O/1/l), alineada al hasher del API. */
+export function generarClaveTemporal(length = 10): string {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
+  const bytes = new Uint8Array(length)
+  crypto.getRandomValues(bytes)
+  const chars = Array.from(bytes, (b) => alphabet[b % alphabet.length])
+  chars[0] = 'A'
+  chars[1] = '7'
+  return chars.join('')
+}
+
+export function sugerirNombreUsuario(nombre: string, apePaterno: string): string {
+  const n = nombre.trim().split(/\s+/)[0] ?? ''
+  const a = apePaterno.trim().replace(/\s+/g, '')
+  if (!n || !a) return ''
+  return `${n[0] ?? ''}${a}`.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 20)
 }
 
 export function activarUsuario(usuarioId: number): Promise<MaestroOperacionResponse> {

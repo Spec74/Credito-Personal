@@ -1,144 +1,66 @@
 import { useMemo, useState } from 'react'
-
 import { Link } from 'react-router-dom'
-
 import { useMutation, useQuery } from '@tanstack/react-query'
-
-import { DeleteOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons'
-
+import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
+import { Alert, Button, Input, InputNumber, Space, Spin, Typography, message } from 'antd'
 import {
-
-  Alert,
-
-  Button,
-
-  Form,
-
-  Input,
-
-  InputNumber,
-
-  Space,
-
-  Spin,
-
-  message,
-
-} from 'antd'
-
-import type { ColumnsType } from 'antd/es/table'
-
-import { buscarClientes } from '../../api/clientes'
-
-import {
-
   fetchArticuloVentaRapida,
-
   fetchCajaDiarioVentaRapida,
-
   realizarPedido,
-
   type ArticuloVentaRapida,
-
   type PedidoLinea,
-
 } from '../../api/ventas'
-
 import { ApiError } from '../../api/errors'
-
 import { useAuth } from '../../auth/useAuth'
 import { CajaSinSesionAlert } from '../caja/components/CajaSinSesionAlert'
-
-import { CredixDataTable, CredixPage, CredixPanel, CredixWorkCanvas, type CredixStatItem } from '../../components/credix'
-
-import type { ClienteBuscarItem } from '../../types/api'
-
+import { ClienteBuscarAutoComplete } from '../../components/caja/ClienteBuscarAutoComplete'
+import {
+  CredixArticuloSelect,
+  CredixPage,
+  CredixPanel,
+  type CredixStatItem,
+} from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
 
-
+const { Text } = Typography
 
 type LineaCarrito = PedidoLinea & {
-
   key: string
-
   codArticulo: string
-
   denominacion: string
-
   precioUnit: number
-
 }
-
-
 
 function errMsg(e: unknown): string {
-
-  return e instanceof ApiError ? e.message : 'Error desconocido'
-
+  return e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error desconocido'
 }
 
-
-
 export function VentaRapidaPage() {
-
   const { session } = useAuth()
-
   const oficinaId = session?.oficinaId ?? 0
-
   const [codigo, setCodigo] = useState('')
-
+  const [articuloId, setArticuloId] = useState<number | undefined>()
+  const [articuloCodigo, setArticuloCodigo] = useState('')
   const [cantidad, setCantidad] = useState(1)
-
-  const [descuento, setDescuento] = useState(0)
-
   const [carrito, setCarrito] = useState<LineaCarrito[]>([])
-
   const [personaId, setPersonaId] = useState<number | null>(null)
-
   const [clienteLabel, setClienteLabel] = useState('')
-
   const [terminoCliente, setTerminoCliente] = useState('')
 
-
-
   const caja = useQuery({
-
     queryKey: ['caja-diario-venta-rapida', oficinaId],
-
     queryFn: () => fetchCajaDiarioVentaRapida(oficinaId),
-
     enabled: oficinaId > 0,
-
     retry: false,
-
   })
 
-
-
-  const sinCaja =
-
-    caja.isError && caja.error instanceof ApiError && caja.error.status === 404
-
-
+  const sinCaja = caja.isError && caja.error instanceof ApiError && caja.error.status === 404
 
   const buscarArticulo = useMutation({
-
     mutationFn: (c: string) => fetchArticuloVentaRapida(oficinaId, c),
-
   })
-
-
-
-  const busquedaCliente = useMutation({
-
-    mutationFn: (t: string) => buscarClientes(t),
-
-  })
-
-
 
   const cobrar = useMutation({
-
     mutationFn: () => {
       if (!personaId || personaId < 1) {
         throw new Error('Seleccione un cliente')
@@ -156,504 +78,258 @@ export function VentaRapidaPage() {
         oficinaId,
         cajaDiarioId: caja.data.cajaDiarioId,
         personaId,
-        pedidos: carrito.map(({ articuloId, cantidad: c, descuento: d }) => ({
-          articuloId,
+        pedidos: carrito.map(({ articuloId: id, cantidad: c, descuento: d }) => ({
+          articuloId: id,
           cantidad: c,
           descuento: d,
         })),
       })
     },
-
     onSuccess: (r) => {
-
       message.success(`Venta registrada — orden #${r.ordenVentaId}`)
-
       setCarrito([])
-
       setPersonaId(null)
-
       setClienteLabel('')
-
+      setTerminoCliente('')
+      setCodigo('')
+      setArticuloId(undefined)
+      setArticuloCodigo('')
     },
-
     onError: (e) => message.error(errMsg(e)),
-
   })
 
+  const claveBusqueda = articuloCodigo.trim() || codigo.trim() || (articuloId ? String(articuloId) : '')
 
-
-  const agregarAlCarrito = async () => {
-
-    const c = codigo.trim()
-
+  const agregarAlCarrito = async (clave?: string) => {
+    const c = (clave ?? claveBusqueda).trim()
     if (!c) {
-
-      message.warning('Indique código de artículo')
-
+      message.warning('Elija un artículo o escriba su código')
       return
-
     }
-
     if (cantidad < 1) {
-
       message.warning('Cantidad mínima 1')
-
       return
-
     }
-
     try {
-
       const art: ArticuloVentaRapida = await buscarArticulo.mutateAsync(c)
-
-      if (art.stock < cantidad) {
-
+      const ya = carrito.find((l) => l.articuloId === art.articuloId)
+      const cantidadNueva = (ya?.cantidad ?? 0) + cantidad
+      if (art.stock < cantidadNueva) {
         message.error(`Stock insuficiente (${art.stock} disponible)`)
-
         return
-
       }
-
       const precio = art.precioVenta ?? 0
-
-      setCarrito((prev) => [
-
-        ...prev,
-
-        {
-
-          key: `${art.articuloId}-${Date.now()}`,
-
-          articuloId: art.articuloId,
-
-          codArticulo: art.codArticulo,
-
-          denominacion: art.denominacion,
-
-          cantidad,
-
-          descuento,
-
-          precioUnit: precio,
-
-        },
-
-      ])
-
+      setCarrito((prev) => {
+        const i = prev.findIndex((x) => x.articuloId === art.articuloId)
+        if (i >= 0) {
+          const next = [...prev]
+          next[i] = { ...next[i], cantidad: next[i].cantidad + cantidad }
+          return next
+        }
+        return [
+          ...prev,
+          {
+            key: `${art.articuloId}-${Date.now()}`,
+            articuloId: art.articuloId,
+            codArticulo: art.codArticulo,
+            denominacion: art.denominacion,
+            cantidad,
+            descuento: 0,
+            precioUnit: precio,
+          },
+        ]
+      })
       setCodigo('')
-
+      setArticuloId(undefined)
+      setArticuloCodigo('')
       setCantidad(1)
-
-      setDescuento(0)
-
     } catch (e) {
-
       message.error(errMsg(e))
-
     }
-
   }
 
-
-
-  const columns: ColumnsType<LineaCarrito> = [
-
-    { title: 'Código', dataIndex: 'codArticulo', width: 90 },
-
-    { title: 'Artículo', dataIndex: 'denominacion', ellipsis: true },
-
-    { title: 'Cant.', dataIndex: 'cantidad', width: 60 },
-
-    {
-
-      title: 'P. unit.',
-
-      dataIndex: 'precioUnit',
-
-      width: 90,
-
-      align: 'right',
-
-      render: formatMoney,
-
-    },
-
-    {
-
-      title: 'Desc.',
-
-      dataIndex: 'descuento',
-
-      width: 80,
-
-      align: 'right',
-
-      render: formatMoney,
-
-    },
-
-    {
-
-      title: '',
-
-      key: 'act',
-
-      width: 48,
-
-      render: (_, row) => (
-
-        <Button
-
-          type="text"
-
-          danger
-
-          icon={<DeleteOutlined />}
-
-          onClick={() => setCarrito((p) => p.filter((x) => x.key !== row.key))}
-
-        />
-
-      ),
-
-    },
-
-  ]
-
-
-
-  const total = carrito.reduce(
-
-    (s, l) => s + l.precioUnit * l.cantidad - l.descuento,
-
-    0,
-
+  const total = carrito.reduce((s, l) => s + l.precioUnit * l.cantidad - l.descuento, 0)
+  const stats = useMemo(
+    (): CredixStatItem[] => [
+      { value: carrito.length, label: 'Líneas' },
+      { value: formatMoney(total), label: 'Total' },
+      {
+        value: personaId ? clienteLabel || `#${personaId}` : 'Sin cliente',
+        label: 'Cliente',
+        tone: personaId ? 'green' : 'default',
+      },
+    ],
+    [carrito.length, total, personaId, clienteLabel],
   )
-
-  const stats = useMemo((): CredixStatItem[] => [
-    { value: carrito.length, label: 'Líneas carrito' },
-    { value: formatMoney(total), label: 'Total carrito' },
-    {
-      value: personaId ? (clienteLabel || `#${personaId}`) : 'Sin cliente',
-      label: 'Cliente',
-      tone: personaId ? 'green' : 'default',
-    },
-  ], [carrito.length, total, personaId, clienteLabel])
-
-
 
   return (
-
     <CredixPage
-
       title="Venta rápida"
-
-      subtitle={undefined}
-
+      subtitle="Busque el artículo, revise el ticket y cobre. No hace falta el id interno."
       stats={stats}
-
       breadcrumb={[
-
         { title: <Link to="/inicio">Inicio</Link> },
-
         { title: <Link to="/ventas">Ventas</Link> },
-
         { title: 'Venta rápida' },
-
       ]}
-
     >
-
       {oficinaId < 1 ? (
-
         <Alert type="warning" showIcon message="Sesión sin oficina válida." />
-
       ) : caja.isLoading ? (
-
         <CredixPanel>
-
           <Spin />
-
         </CredixPanel>
-
       ) : sinCaja ? (
-
         <CajaSinSesionAlert
-
           variant="diario"
-
           refreshing={caja.isFetching}
-
           onRefresh={() => void caja.refetch()}
-
           onAssigned={() => void caja.refetch()}
-
         />
-
       ) : caja.isError ? (
-
         <Alert type="error" showIcon message={errMsg(caja.error)} />
-
       ) : caja.data ? (
-
         <>
-
-          <CredixPanel>
-
-            <p style={{ marginBottom: 0 }}>
-
-              Caja: <strong>{caja.data.cajaDenominacion}</strong> · Diario #
-
-              {caja.data.cajaDiarioId}
-
-            </p>
-
-          </CredixPanel>
-
-
-
-          <CredixWorkCanvas
-            context={(
-          <CredixPanel title="Cliente">
-
-            <Space direction="vertical" style={{ width: '100%' }}>
-
-              <Space wrap>
-
-                <Input
-
-                  placeholder="Buscar cliente (mín. 2 caracteres)"
-
-                  value={terminoCliente}
-
-                  onChange={(e) => setTerminoCliente(e.target.value)}
-
-                  style={{ width: 280 }}
-
-                />
-
-                <Button
-
-                  icon={<SearchOutlined />}
-
-                  onClick={() => {
-
-                    const t = terminoCliente.trim()
-
-                    if (t.length >= 2) busquedaCliente.mutate(t)
-
-                  }}
-
-                  loading={busquedaCliente.isPending}
-
-                >
-
-                  Buscar
-
-                </Button>
-
-              </Space>
-
-              {personaId ? (
-
-                <Alert
-
-                  type="success"
-
-                  showIcon
-
-                  message={`Cliente: ${clienteLabel} (persona #${personaId})`}
-
-                />
-
-              ) : null}
-
-              {busquedaCliente.data?.length ? (
-
-                <CredixDataTable<ClienteBuscarItem>
-
-                  rowKey="personaId"
-
-                  pagination={false}
-
-                  dataSource={busquedaCliente.data}
-
-                  columns={[
-
-                    { title: 'Cliente', dataIndex: 'label' },
-
-                    {
-
-                      title: '',
-
-                      width: 90,
-
-                      render: (_, row) => (
-
-                        <Button
-
-                          size="small"
-
-                          type="link"
-
-                          onClick={() => {
-
-                            setPersonaId(row.personaId)
-
-                            setClienteLabel(row.label)
-
-                            busquedaCliente.reset()
-
-                          }}
-
-                        >
-
-                          Elegir
-
-                        </Button>
-
-                      ),
-
-                    },
-
-                  ]}
-
-                />
-
-              ) : null}
-
-            </Space>
-
-          </CredixPanel>
-            )}
-            work={(
-          <CredixPanel title="Artículos">
-
-            <Space wrap align="end">
-
-              <Form layout="inline">
-
-                <Form.Item label="Código">
-
+          <Text type="secondary" style={{ display: 'block', marginBottom: 4 }}>
+            Caja {caja.data.cajaDenominacion} · Diario #{caja.data.cajaDiarioId}
+          </Text>
+
+          <div className="venta-rapida">
+            <div className="venta-rapida__pedido">
+              <CredixPanel title="Agregar artículo">
+                <div className="venta-rapida-agregar">
+                  <CredixArticuloSelect
+                    value={articuloId}
+                    placeholder="Buscar por nombre"
+                    onChange={(id) => setArticuloId(id)}
+                    onArticulo={(item) => {
+                      setArticuloId(item?.articuloId)
+                      setArticuloCodigo(item?.codArticulo?.trim() ?? '')
+                    }}
+                  />
                   <Input
-
                     value={codigo}
-
+                    placeholder="O escriba / escanee el código"
                     onChange={(e) => setCodigo(e.target.value)}
-
-                    onPressEnter={() => void agregarAlCarrito()}
-
-                    style={{ width: 140 }}
-
+                    onPressEnter={() => void agregarAlCarrito(codigo)}
+                    allowClear
                   />
+                  <div className="venta-rapida-agregar__fila">
+                    <InputNumber
+                      min={1}
+                      value={cantidad}
+                      onChange={(v) => setCantidad(v ?? 1)}
+                      addonBefore="Cant."
+                      style={{ width: '100%' }}
+                    />
+                    <Button
+                      type="primary"
+                      icon={<PlusOutlined />}
+                      loading={buscarArticulo.isPending}
+                      onClick={() => void agregarAlCarrito()}
+                    >
+                      Agregar
+                    </Button>
+                  </div>
+                  <Text type="secondary">
+                    Si no aparece, créelo en <Link to="/maestros/articulos">Artículos</Link> y asigne
+                    precio en <Link to="/ventas/lista-precios">Lista de precios</Link>.
+                  </Text>
+                </div>
+              </CredixPanel>
 
-                </Form.Item>
+              <CredixPanel title="Pedido">
+                {carrito.length === 0 ? (
+                  <p className="venta-rapida-ticket__vacio">
+                    Aún no hay líneas. Busque un artículo y pulse Agregar.
+                  </p>
+                ) : (
+                  <div className="venta-rapida-ticket">
+                    {carrito.map((l) => (
+                      <div key={l.key} className="venta-rapida-linea">
+                        <div>
+                          <span className="venta-rapida-linea__nombre">{l.denominacion}</span>
+                          <span className="venta-rapida-linea__meta">
+                            {l.cantidad} × {formatMoney(l.precioUnit)}
+                            {l.codArticulo ? ` · ${l.codArticulo}` : ''}
+                            {l.descuento > 0 ? ` · desc. ${formatMoney(l.descuento)}` : ''}
+                          </span>
+                        </div>
+                        <span className="venta-rapida-linea__importe">
+                          {formatMoney(l.precioUnit * l.cantidad - l.descuento)}
+                        </span>
+                        <Button
+                          type="text"
+                          danger
+                          aria-label={`Quitar ${l.denominacion}`}
+                          icon={<DeleteOutlined />}
+                          onClick={() => setCarrito((p) => p.filter((x) => x.key !== l.key))}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CredixPanel>
+            </div>
 
-                <Form.Item label="Cant.">
-
-                  <InputNumber
-
-                    min={1}
-
-                    value={cantidad}
-
-                    onChange={(v) => setCantidad(v ?? 1)}
-
+            <aside className="venta-rapida__cobro">
+              <CredixPanel title="Cliente">
+                {personaId ? (
+                  <Space direction="vertical" style={{ width: '100%' }}>
+                    <Text>{clienteLabel}</Text>
+                    <Button
+                      type="link"
+                      style={{ paddingInline: 0 }}
+                      onClick={() => {
+                        setPersonaId(null)
+                        setClienteLabel('')
+                        setTerminoCliente('')
+                      }}
+                    >
+                      Cambiar cliente
+                    </Button>
+                  </Space>
+                ) : (
+                  <ClienteBuscarAutoComplete
+                    value={terminoCliente}
+                    onChange={setTerminoCliente}
+                    onSelectPersona={(id, label) => {
+                      setPersonaId(id)
+                      setClienteLabel(label)
+                      setTerminoCliente('')
+                    }}
+                    placeholder="Documento o nombre"
+                    fullWidth
                   />
+                )}
+              </CredixPanel>
 
-                </Form.Item>
-
-                <Form.Item label="Desc.">
-
-                  <InputNumber
-
-                    min={0}
-
-                    step={0.01}
-
-                    value={descuento}
-
-                    onChange={(v) => setDescuento(v ?? 0)}
-
-                  />
-
-                </Form.Item>
-
-              </Form>
-
-              <Button
-
-                type="primary"
-
-                icon={<PlusOutlined />}
-
-                loading={buscarArticulo.isPending}
-
-                onClick={() => void agregarAlCarrito()}
-
-              >
-
-                Agregar
-
-              </Button>
-
-            </Space>
-
-            <CredixDataTable<LineaCarrito>
-
-              style={{ marginTop: 16 }}
-
-              rowKey="key"
-
-              dataSource={carrito}
-
-              columns={columns}
-
-              pagination={false}
-
-              locale={{ emptyText: 'Carrito vacío' }}
-
-            />
-
-            <p style={{ marginTop: 12, marginBottom: 0 }}>
-
-              Total estimado: <strong>{formatMoney(total)}</strong>
-
-            </p>
-
-          </CredixPanel>
-            )}
-            result={(
-          <Button
-
-            type="primary"
-
-            size="large"
-
-            disabled={!personaId || carrito.length === 0}
-
-            loading={cobrar.isPending}
-
-            onClick={() => cobrar.mutate()}
-
-            block
-
-          >
-
-            Realizar pedido y cobrar
-
-          </Button>
-            )}
-          />
-
+              <CredixPanel title="Cobrar">
+                <div className="venta-rapida-total">
+                  <Text type="secondary">Total</Text>
+                  <strong>{formatMoney(total)}</strong>
+                </div>
+                <Button
+                  type="primary"
+                  size="large"
+                  disabled={!personaId || carrito.length === 0}
+                  loading={cobrar.isPending}
+                  onClick={() => cobrar.mutate()}
+                  block
+                >
+                  Cobrar
+                </Button>
+                {!personaId || carrito.length === 0 ? (
+                  <Text type="secondary" style={{ display: 'block', marginTop: 8 }}>
+                    {!personaId ? 'Falta el cliente. ' : null}
+                    {carrito.length === 0 ? 'Falta al menos un artículo.' : null}
+                  </Text>
+                ) : null}
+              </CredixPanel>
+            </aside>
+          </div>
         </>
-
       ) : null}
-
     </CredixPage>
-
   )
-
 }
-
-

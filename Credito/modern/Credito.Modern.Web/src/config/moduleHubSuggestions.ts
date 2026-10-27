@@ -14,15 +14,19 @@ const SUGGESTIONS: Record<string, CredixHubLink[]> = {
       description: 'Bandeja de aprobación',
     },
     {
+      to: '/credito/nuevo',
+      label: 'Nueva solicitud',
+      description: 'Originar crédito en una sola pantalla',
+    },
+    {
       to: '/credito/simulador',
       label: 'Simulador',
-      description: 'Plan de pagos y solicitud',
+      description: 'Cotizar un plan de pagos',
     },
   ],
   CAJA: [
     { to: '/caja/diario', label: 'Caja diario', description: 'Cobros y arqueo' },
     { to: '/caja/saldos', label: 'Saldos y cierres', description: 'Cajas asignadas' },
-    { to: '/caja/chica', label: 'Caja chica', description: 'Gastos y rendiciones' },
   ],
   REPORTES: [
     { to: '/informes', label: 'Informes', description: 'Catálogo completo' },

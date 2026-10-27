@@ -89,7 +89,6 @@ const OPS_GROUPS: { title: string; items: { key: string; label: string }[] }[] =
     items: [
       { key: 'caja', label: 'A caja' },
       { key: 'analista', label: 'A analista' },
-      { key: 'chica', label: 'Caja chica' },
       { key: 'bancos', label: 'Entre medios' },
       { key: 'temporal', label: 'Temporal' },
     ],

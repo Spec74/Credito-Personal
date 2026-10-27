@@ -9,7 +9,6 @@ const SECTIONS = [
       { to: '/caja/diario', label: 'Caja diario', description: 'Cobranzas y arqueo' },
       { to: '/caja/asignar', label: 'Asignar caja' },
       { to: '/caja/verificar-pagos', label: 'Verificar pagos' },
-      { to: '/caja/chica', label: 'Caja chica' },
       { to: '/caja/saldos', label: 'Saldos y cierres' },
     ],
   },

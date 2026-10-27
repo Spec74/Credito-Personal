@@ -14,7 +14,7 @@ Equivalente a [GitHub Spec Kit](https://github.com/github/spec-kit) **sin instal
 | Feature 005 — lecciones Facturador Smart | [005-facturador-smart/spec.md](005-facturador-smart/spec.md) · [auditoría](005-facturador-smart/audit-modulos.md) · [research](005-facturador-smart/research.md) · [SSD-16](../ssd/SSD-16-facturador-smart.md) |
 | Feature 006 — estructura contemporánea (HTML + chrome) | [006-estructura-contemporanea/spec.md](006-estructura-contemporanea/spec.md) · [SSD-17](../ssd/SSD-17-estructura-contemporanea.md) |
 | Cómo aprendes el loop | [COMO-APRENDER.md](COMO-APRENDER.md) |
-| SSD catálogo | [../ssd/SSD-13-experiencia-operativa.md](../ssd/SSD-13-experiencia-operativa.md) · [SSD-14](../ssd/SSD-14-comunicados-agenda.md) · [SSD-15](../ssd/SSD-15-movil-shell.md) · [SSD-16](../ssd/SSD-16-facturador-smart.md) |
+| SSD catálogo | [../ssd/SSD-13-experiencia-operativa.md](../ssd/SSD-13-experiencia-operativa.md) · [SSD-14](../ssd/SSD-14-comunicados-agenda.md) · [SSD-15](../ssd/SSD-15-movil-shell.md) · [SSD-16](../ssd/SSD-16-facturador-smart.md) · [SSD-19 color](../ssd/SSD-19-color-scheme.md) |
 
 As-built (no es change): [../ssd/README.md](../ssd/README.md).
 

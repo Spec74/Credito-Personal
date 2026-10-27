@@ -25,7 +25,6 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import { Link, useNavigate } from 'react-router-dom'
-import { crearSolicitudCredito } from '../../api/creditoPlanes'
 import { toggleClienteBloqueado } from '../../api/clientes'
 import { depurarPersonaCredito, fetchPersonaCreditoFicha } from '../../api/creditoGestion'
 import { ApiError } from '../../api/errors'
@@ -60,7 +59,7 @@ export function CreditoPersonaCabecera({
   oficinaId,
   personaId,
   clienteLabel,
-  onSolicitudCreada,
+  onSolicitudCreada: _onSolicitudCreada,
   onDepurado,
 }: Props) {
   const navigate = useNavigate()
@@ -75,28 +74,6 @@ export function CreditoPersonaCabecera({
     queryFn: () => fetchPersonaCreditoFicha(oficinaId, personaId),
     enabled: oficinaId > 0 && personaId > 0,
     staleTime: creditoStaleTime.ficha,
-  })
-
-  const crearSolicitud = useMutation({
-    mutationFn: () =>
-      crearSolicitudCredito({
-        oficinaId,
-        personaId,
-      }),
-    onSuccess: (r) => {
-      message.success(`Solicitud #${r.solicitudCreditoId} creada (estado CRE)`)
-      void queryClient.invalidateQueries({
-        queryKey: ['persona-credito-ficha', oficinaId, personaId],
-      })
-      void queryClient.invalidateQueries({
-        queryKey: ['creditos-grilla-persona', oficinaId, personaId],
-      })
-      onSolicitudCreada?.(r.solicitudCreditoId)
-      navigate(
-        `/credito/simulador?personaId=${personaId}&solicitudCreditoId=${r.solicitudCreditoId}`,
-      )
-    },
-    onError: (e) => message.error(errMsg(e)),
   })
 
   const depurar = useMutation({
@@ -172,15 +149,11 @@ export function CreditoPersonaCabecera({
     if (solicitudId != null && solicitudId > 0) {
       q.set('solicitudCreditoId', String(solicitudId))
     }
-    navigate(`/credito/simulador?${q}`)
+    navigate(`/credito/nuevo?${q}`)
   }
 
   const solicitarCrearSolicitud = () => {
-    cajaConfirm({
-      title: 'Crear solicitud de crédito',
-      content: '¿Desea crear la solicitud de crédito para este cliente? (estado CRE).',
-      onOk: () => crearSolicitud.mutateAsync(),
-    })
+    navigate(`/credito/nuevo?personaId=${personaId}`)
   }
 
   return (
@@ -229,10 +202,9 @@ export function CreditoPersonaCabecera({
             <Button
               type="primary"
               icon={<FileAddOutlined />}
-              loading={crearSolicitud.isPending}
               onClick={solicitarCrearSolicitud}
             >
-              Crear solicitud
+              Nueva solicitud
             </Button>
           ) : null}
           <Link to={`/credito/simulador?personaId=${personaId}`}>

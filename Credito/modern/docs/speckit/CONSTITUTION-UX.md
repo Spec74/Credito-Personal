@@ -21,6 +21,7 @@ Fecha: 2026-10-20 · Spec Kit: `/speckit.constitution` equivalente.
 11. **Irreversible se confirma; reversible se deshace.** Desembolso, remate, condonar, transferir bóveda: confirmación con importes. Editar tasación de un renglón: inline.
 12. **Medible.** Cada flujo nuevo declara tiempo-a-tarea y errores de validación. Si no baja el tiempo ni el retrabajo, no es “siguiente nivel”.
 13. **Español operativo, sin traductor.** La UI es es-PE. `translate="no"` en html/shell/página. Chrome Translate no debe doblar letras ni partir el flex. Shell móvil: el cuerpo pega al título (SSD-15).
+14. **Oscuro por tokens, no por inversión.** Si hay modo oscuro, es WCAG 2.2 AA: lienzo ≠ `#000`, texto de cuerpo ≠ `#fff` puro, contraste 4.5:1 / UI 3:1, fotos sin `filter: invert`. El navy `#114885` no se usa como texto sobre fondo oscuro (SSD-19).
 
 ## Anti-patrones (rechazar en review)
 

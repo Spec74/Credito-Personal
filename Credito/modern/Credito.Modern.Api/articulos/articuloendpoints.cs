@@ -135,7 +135,7 @@ internal static class ArticuloEndpoints
                 })
             .WithName("GuardarArticulo")
             .WithTags("articulos")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<MaestroOperacionResponse>();
 
         app.MapGet(
@@ -292,7 +292,7 @@ internal static class ArticuloEndpoints
                 })
             .WithName("SubirImagenArticulo")
             .WithTags("articulos")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -322,7 +322,7 @@ internal static class ArticuloEndpoints
                 })
             .WithName("EliminarImagenArticulo")
             .WithTags("articulos")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<MaestroOperacionResponse>();
     }
 

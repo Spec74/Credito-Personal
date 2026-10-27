@@ -9,7 +9,6 @@ import {
   Input,
   InputNumber,
   Modal,
-  Select,
   Space,
   Spin,
   Switch,
@@ -19,7 +18,7 @@ import {
   message,
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { buscarClientes } from '../../api/clientes'
+import { ClienteBuscarAutoComplete } from '../../components/caja/ClienteBuscarAutoComplete'
 import {
   actualizarOrdenVentaDetalle,
   agregarOrdenVentaDetalle,
@@ -35,12 +34,12 @@ import {
 } from '../../api/ventas'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
-import type { ClienteBuscarItem } from '../../types/api'
 import {
   CredixDataTable,
   CredixListToolbar,
   CredixPage,
   CredixPanel,
+  CredixSelect,
   type CredixStatItem,
 } from '../../components/credix'
 import { formatFecha } from '../../utils/formatFecha'
@@ -89,7 +88,6 @@ export function OrdenVentaPage() {
 
   const [serieForm] = Form.useForm()
   const [descForm] = Form.useForm()
-  const [delDetForm] = Form.useForm()
 
   const listado = useQuery({
     queryKey: ['ordenes-venta', oficinaId, entregado, buscar, page, pageSize],
@@ -102,10 +100,6 @@ export function OrdenVentaPage() {
     queryKey: ['orden-venta-detalle', oficinaId, ordenVentaId],
     queryFn: () => fetchOrdenVentaDetalle(oficinaId, ordenVentaId),
     enabled: oficinaId > 0 && ordenVentaId > 0,
-  })
-
-  const busquedaCliente = useMutation({
-    mutationFn: (t: string) => buscarClientes(t),
   })
 
   useEffect(() => {
@@ -313,11 +307,7 @@ export function OrdenVentaPage() {
     },
   ]
 
-  const seleccionarCliente = (row: ClienteBuscarItem) => {
-    setPersonaId(row.personaId)
-    setClienteLabel(row.label)
-    setTerminoCliente('')
-  }
+  const lineasActivas = (detalle.data?.detalle ?? []).filter((d) => d.estado)
 
   const stats = useMemo((): CredixStatItem[] => {
     if (ordenVentaId > 0) {
@@ -335,7 +325,7 @@ export function OrdenVentaPage() {
     <CredixPage
       className="orden-venta-page"
       title="Orden de venta"
-      subtitle={undefined}
+      subtitle="Primero el cliente. Luego agregue series que ya estén en almacén."
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -357,6 +347,21 @@ export function OrdenVentaPage() {
             >
               Actualizar
             </Button>
+            {detalle.data?.cabecera.puedeEliminar ? (
+              <Button
+                danger
+                loading={eliminarOv.isPending}
+                onClick={() =>
+                  confirmar(
+                    'Eliminar orden',
+                    `¿Eliminar la orden #${ordenVentaId} completa?`,
+                    () => eliminarOv.mutateAsync({ oficinaId, ordenVentaId }),
+                  )
+                }
+              >
+                Eliminar orden
+              </Button>
+            ) : null}
           </>
         ) : null
       }
@@ -453,11 +458,29 @@ export function OrdenVentaPage() {
                 size="small"
                 style={{ marginBottom: 16 }}
                 loading={detalle.isLoading}
-                dataSource={detalle.data.detalle.filter((d) => d.estado)}
+                dataSource={lineasActivas}
                 columns={detColumns}
                 pagination={false}
-                locale={{ emptyText: 'Sin líneas — agregue series' }}
+                locale={{
+                  emptyText:
+                    'Sin líneas. Agregue una serie que ya esté en stock.',
+                }}
               />
+
+              {lineasActivas.length === 0 ? (
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 16 }}
+                  message="La orden se arma con series del almacén"
+                  description={
+                    <Space wrap>
+                      <Link to="/almacen/entrada">Dar entrada</Link>
+                      <Link to="/maestros/articulos">Ver artículos</Link>
+                    </Space>
+                  }
+                />
+              ) : null}
 
               <Tabs
                 className="credix-tabs"
@@ -482,9 +505,10 @@ export function OrdenVentaPage() {
                         <Form.Item
                           name="numeroSerie"
                           label="Número de serie"
-                          rules={[{ required: true, message: 'Obligatorio' }]}
+                          extra="Es la serie registrada al dar entrada, no el id del artículo."
+                          rules={[{ required: true, message: 'Ingrese la serie' }]}
                         >
-                          <Input placeholder="Serie del artículo en almacén" />
+                          <Input placeholder="Serie del artículo en almacén" autoComplete="off" />
                         </Form.Item>
                         <Button type="primary" htmlType="submit" loading={agregar.isPending}>
                           Agregar a la orden
@@ -494,7 +518,7 @@ export function OrdenVentaPage() {
                   },
                   {
                     key: 'desc',
-                    label: 'Descuento línea',
+                    label: 'Descuento',
                     children: (
                       <Form
                         form={descForm}
@@ -510,44 +534,23 @@ export function OrdenVentaPage() {
                       >
                         <Form.Item
                           name="ordenVentaDetId"
-                          label="OrdenVentaDet ID"
-                          rules={numRule(1)}
+                          label="Línea"
+                          rules={[{ required: true, message: 'Elija la línea' }]}
                         >
-                          <InputNumber style={{ width: '100%' }} min={1} />
+                          <CredixSelect
+                            placeholder="Artículo de la orden"
+                            options={lineasActivas.map((d) => ({
+                              value: d.ordenVentaDetId,
+                              label: d.descripcion,
+                            }))}
+                            notFoundContent="Primero agregue una serie."
+                          />
                         </Form.Item>
                         <Form.Item name="descuento" label="Descuento" rules={numRule(0)}>
                           <InputNumber style={{ width: '100%' }} min={0} step={0.01} />
                         </Form.Item>
                         <Button type="primary" htmlType="submit" loading={actualizar.isPending}>
-                          Actualizar descuento
-                        </Button>
-                      </Form>
-                    ),
-                  },
-                  {
-                    key: 'del',
-                    label: 'Eliminar línea (ID)',
-                    children: (
-                      <Form
-                        form={delDetForm}
-                        layout="vertical"
-                        style={{ maxWidth: 360 }}
-                        onFinish={(v) =>
-                          eliminarDet.mutate({
-                            oficinaId,
-                            ordenVentaDetId: v.ordenVentaDetId,
-                          })
-                        }
-                      >
-                        <Form.Item
-                          name="ordenVentaDetId"
-                          label="OrdenVentaDet ID"
-                          rules={numRule(1)}
-                        >
-                          <InputNumber style={{ width: '100%' }} min={1} />
-                        </Form.Item>
-                        <Button danger htmlType="submit" loading={eliminarDet.isPending}>
-                          Eliminar detalle
+                          Aplicar descuento
                         </Button>
                       </Form>
                     ),
@@ -557,10 +560,14 @@ export function OrdenVentaPage() {
                     label: 'Enviar',
                     children: (
                       <Space direction="vertical">
+                        <Text type="secondary">
+                          Envíe cuando las líneas estén listas. Contado cobra; crédito pasa a evaluación.
+                        </Text>
                         <Space wrap>
                           <Button
                             type="primary"
                             loading={enviarContado.isPending}
+                            disabled={lineasActivas.length === 0}
                             onClick={() =>
                               confirmar(
                                 'Enviar al contado',
@@ -574,6 +581,7 @@ export function OrdenVentaPage() {
                           </Button>
                           <Button
                             loading={enviarCredito.isPending}
+                            disabled={lineasActivas.length === 0}
                             onClick={() =>
                               confirmar(
                                 'Enviar a crédito',
@@ -589,29 +597,6 @@ export function OrdenVentaPage() {
                       </Space>
                     ),
                   },
-                  ...(detalle.data.cabecera.puedeEliminar
-                    ? [
-                        {
-                          key: 'ov',
-                          label: 'Eliminar orden',
-                          children: (
-                            <Button
-                              danger
-                              loading={eliminarOv.isPending}
-                              onClick={() =>
-                                confirmar(
-                                  'Eliminar orden',
-                                  `¿Eliminar la orden #${ordenVentaId} completa?`,
-                                  () => eliminarOv.mutateAsync({ oficinaId, ordenVentaId }),
-                                )
-                              }
-                            >
-                              Eliminar orden de venta
-                            </Button>
-                          ),
-                        },
-                      ]
-                    : []),
                 ]}
               />
             </>
@@ -638,8 +623,8 @@ export function OrdenVentaPage() {
         okText="Crear orden"
       >
         <Form layout="vertical">
-          <Form.Item label="Tipo venta">
-            <Select
+          <Form.Item label="Tipo de venta">
+            <CredixSelect
               value={tipoVentaNueva}
               onChange={setTipoVentaNueva}
               options={[
@@ -648,46 +633,33 @@ export function OrdenVentaPage() {
               ]}
             />
           </Form.Item>
-          <Form.Item label="Cliente">
+          <Form.Item label="Cliente" required>
             {personaId ? (
               <Space>
                 <Text>{clienteLabel}</Text>
-                <Button type="link" onClick={() => setPersonaId(null)}>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    setPersonaId(null)
+                    setClienteLabel('')
+                    setTerminoCliente('')
+                  }}
+                >
                   Cambiar
                 </Button>
               </Space>
             ) : (
-              <>
-                <Input.Search
-                  placeholder="Documento o nombre"
-                  value={terminoCliente}
-                  onChange={(e) => setTerminoCliente(e.target.value)}
-                  onSearch={(v) => busquedaCliente.mutate(v)}
-                  loading={busquedaCliente.isPending}
-                />
-                {busquedaCliente.data?.length ? (
-                  <CredixDataTable<ClienteBuscarItem>
-                    size="small"
-                    style={{ marginTop: 8 }}
-                    rowKey="personaId"
-                    pagination={false}
-                    dataSource={busquedaCliente.data}
-                    columns={[
-                      { title: 'Cliente', dataIndex: 'label', ellipsis: true },
-                      {
-                        title: '',
-                        key: 'sel',
-                        width: 80,
-                        render: (_, row) => (
-                          <Button type="link" size="small" onClick={() => seleccionarCliente(row)}>
-                            Elegir
-                          </Button>
-                        ),
-                      },
-                    ]}
-                  />
-                ) : null}
-              </>
+              <ClienteBuscarAutoComplete
+                value={terminoCliente}
+                onChange={setTerminoCliente}
+                onSelectPersona={(id, label) => {
+                  setPersonaId(id)
+                  setClienteLabel(label)
+                  setTerminoCliente('')
+                }}
+                placeholder="Documento o nombre"
+                fullWidth
+              />
             )}
           </Form.Item>
         </Form>

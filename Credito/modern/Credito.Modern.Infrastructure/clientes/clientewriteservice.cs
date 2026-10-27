@@ -48,6 +48,9 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
             var (tipoDocumento, nombreCompleto, apePat, apeMat, nombre) =
                 BuildPersonaNombres(request);
             var sexo = request.SexoMasculino ? "M" : "F";
+            // Alta (ClienteId < 1): siempre activo. El checkbox vive en otra pestaña y a
+            // menudo no viaja en el JSON; bool Activo default false dejaba al cliente inactivo.
+            var esAlta = request.ClienteId < 1;
             var personaParams = new
             {
                 Nombre = nombre,
@@ -67,7 +70,7 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
                 EstadoCivilId = request.EstadoCivilId,
                 TipoViviendaId = request.TipoViviendaId,
                 ConyuguePersonaId = conyugueId,
-                Estado = request.Activo,
+                Estado = esAlta || request.Activo,
             };
 
             if (personaId is null or < 1)
@@ -112,7 +115,7 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
                             EstadoCivilId = @EstadoCivilId,
                             TipoViviendaId = @TipoViviendaId,
                             ConyuguePersonaId = @ConyuguePersonaId,
-                            Estado = @Estado
+                            Estado = @EstadoUpdate
                         WHERE PersonaId = @PersonaId;
                         """,
                         new
@@ -135,7 +138,7 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
                             personaParams.EstadoCivilId,
                             personaParams.TipoViviendaId,
                             personaParams.ConyuguePersonaId,
-                            personaParams.Estado,
+                            EstadoUpdate = esAlta || request.Activo,
                         },
                         transaction: transaction,
                         cancellationToken: cancellationToken)).ConfigureAwait(false);
@@ -161,7 +164,7 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
                     ? "A"
                     : request.Calificacion.Trim(),
                 FechaRegistro = fechaRegistro.Date,
-                Estado = request.Activo,
+                Estado = esAlta || !clienteExiste || request.Activo,
                 Nota = request.Nota?.Trim(),
                 UsuarioRegId = usuarioRegId,
                 DireccionNegocio = request.DireccionNegocio?.Trim(),
@@ -439,16 +442,48 @@ public sealed class ClienteWriteService(IOptions<SqlDatabaseOptions> options) : 
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        return await connection.ExecuteScalarAsync<bool>(
-            new CommandDefinition(
-                """
-                UPDATE MAESTRO.Cliente
-                SET Estado = CASE WHEN Estado = CAST(1 AS bit) THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END
-                OUTPUT INSERTED.Estado
-                WHERE PersonaId = @PersonaId;
-                """,
-                new { PersonaId = personaId },
-                cancellationToken: cancellationToken)).ConfigureAwait(false);
+        await using var transaction = (SqlTransaction)await connection
+            .BeginTransactionAsync(cancellationToken)
+            .ConfigureAwait(false);
+        try
+        {
+            var nuevo = await connection.ExecuteScalarAsync<bool?>(
+                new CommandDefinition(
+                    """
+                    UPDATE MAESTRO.Cliente
+                    SET Estado = CASE WHEN Estado = CAST(1 AS bit) THEN CAST(0 AS bit) ELSE CAST(1 AS bit) END
+                    OUTPUT INSERTED.Estado
+                    WHERE PersonaId = @PersonaId;
+                    """,
+                    new { PersonaId = personaId },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+            if (nuevo is null)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return false;
+            }
+
+            await connection.ExecuteAsync(
+                new CommandDefinition(
+                    """
+                    UPDATE MAESTRO.Persona
+                    SET Estado = @Estado
+                    WHERE PersonaId = @PersonaId;
+                    """,
+                    new { PersonaId = personaId, Estado = nuevo.Value },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return nuevo.Value;
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
     }
 
     public async Task<bool> ToggleBloqueadoAsync(int personaId, CancellationToken cancellationToken = default)

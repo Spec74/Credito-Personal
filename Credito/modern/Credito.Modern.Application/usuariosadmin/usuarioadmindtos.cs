@@ -15,7 +15,9 @@ public sealed record GuardarUsuarioRequest(
     string? Direccion,
     string NombreUsuario,
     string ClaveUsuario,
-    bool Estado);
+    bool Estado,
+    int[]? OficinaIds = null,
+    int[]? RolIds = null);
 
 public sealed record UsuarioGestionListItemDto(
     int UsuarioId,

@@ -105,7 +105,7 @@ Orden profesional para que la sucursal opere con autonomía:
 |---|------|-------|----------------|
 | 1 | Crear oficina (no principal) + ubicación | `/mantenimiento/oficinas` | Debe crear también `CREDITO.Boveda` abierta (IndCierre=0, IndTemporal=0). **Bug 2026-10-17:** el moderno insertaba `TESORERIA.Boveda` (esquema inexistente) → “No se pudo completar la operación”. Corregido a `CREDITO.Boveda`. |
 | 2 | Verificar bóveda de la oficina | `/tesoreria/boveda` (logueado en esa oficina) o SQL | `SELECT * FROM CREDITO.Boveda WHERE OficinaId=@id AND IndCierre=0` |
-| 3 | Asignar usuarios a la oficina **y roles en esa sede** | Usuarios → Oficinas + Roles | `UsuarioOficina` + `UsuarioRol` **por oficina**. ADMIN en Huamanga ≠ ADMIN en Pichari; hay que marcar roles en cada sede. |
+| 3 | Asignar usuarios a la oficina **y roles en esa sede** | Usuarios → un solo **Guardar** (identidad + oficinas + roles) | `UsuarioOficina` + `UsuarioRol` **por oficina**. ADMIN en Huamanga ≠ ADMIN en Pichari; hay que marcar roles en cada sede. |
 | 4 | Crear cajas de la sucursal | Maestro de cajas | Al menos una caja operativa por cajero / turno |
 | 5 | Fondear desde central | Bóveda Huamanga → **Fondear / interoficina** | Transferencia inmediata a bóveda Pichari |
 | 6 | Asignar / transferir a cajeros | Saldos / bóveda→caja | Ciclo diario autónomo |

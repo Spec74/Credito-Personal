@@ -25,30 +25,41 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        // Las tarjetas miden cartera desembolsada, por eso se limitan a Estado = 'DES'.
+        // Cartera DES en las 4 primeras tarjetas; Solicitudes = CRE/PEN/AP1/APR.
         var resumen = await connection.QueryFirstAsync<PrendarioResumenDto>(
             new CommandDefinition(
                 """
                 DECLARE @Hoy date = dbo.ufnFecha();
                 DECLARE @Limite date = DATEADD(DAY, @DiasAviso, @Hoy);
 
-                -- COUNT sobre el CASE en vez de SUM: sin filas, SUM devuelve NULL.
+                -- Remate/Vencido/Cartera alineados con el listado: sin filas en Prenda
+                -- la categoría es SinBienes, no Rematado. COUNT sobre CASE: sin filas → 0.
                 SELECT
-                    COUNT(CASE WHEN c.FechaRemateEjecutado IS NULL THEN 1 END) AS Total,
-                    COUNT(CASE WHEN c.FechaRemateEjecutado IS NULL
+                    COUNT(CASE WHEN c.Estado = 'DES' AND c.FechaRemateEjecutado IS NULL THEN 1 END) AS Total,
+                    COUNT(CASE WHEN c.Estado = 'DES' AND c.FechaRemateEjecutado IS NULL
                                 AND c.FechaVencimiento >= @Hoy AND c.FechaVencimiento <= @Limite
                                THEN 1 END) AS PorVencer,
-                    COUNT(CASE WHEN c.FechaRemateEjecutado IS NULL
+                    COUNT(CASE WHEN c.Estado = 'DES' AND c.FechaRemateEjecutado IS NULL
                                 AND c.FechaVencimiento < @Hoy
                                 AND (c.FechaRemate IS NULL OR c.FechaRemate >= @Hoy)
                                THEN 1 END) AS Vencidos,
-                    COUNT(CASE WHEN c.FechaRemateEjecutado IS NOT NULL
-                                 OR (c.FechaRemate IS NOT NULL AND c.FechaRemate < @Hoy)
-                               THEN 1 END) AS Rematados
+                    COUNT(CASE WHEN c.Estado = 'DES'
+                                AND ISNULL(pr.Bienes, 0) > 0
+                                AND (c.FechaRemateEjecutado IS NOT NULL
+                                     OR COALESCE(c.FechaRemate, DATEADD(DAY, 30, c.FechaVencimiento)) < @Hoy)
+                               THEN 1 END) AS Rematados,
+                    COUNT(CASE WHEN c.Estado IN ('CRE', 'PEN', 'AP1', 'APR') THEN 1 END) AS Solicitudes,
+                    ISNULL(SUM(CASE WHEN c.Estado = 'DES' AND c.FechaRemateEjecutado IS NULL
+                                    THEN c.MontoCredito ELSE 0 END), 0) AS MontoCartera
                 FROM CREDITO.Credito AS c
+                LEFT JOIN (
+                    SELECT CreditoId, COUNT(*) AS Bienes
+                    FROM CREDITO.Prenda
+                    GROUP BY CreditoId
+                ) AS pr ON pr.CreditoId = c.CreditoId
                 WHERE c.OficinaId = @OficinaId
                   AND (c.EsPrendario = CAST(1 AS bit) OR c.ProductoId = 2)
-                  AND c.Estado = 'DES';
+                  AND c.Estado <> 'ANU';
                 """,
                 new { OficinaId = oficinaId, DiasAviso = DiasAvisoVencimiento },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
@@ -97,7 +108,7 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                            WHEN ISNULL(pr.Bienes, 0) = 0 THEN 0
                            WHEN c.FechaRemateEjecutado IS NOT NULL THEN 2
                            WHEN c.Estado <> 'DES' THEN 1
-                           WHEN c.FechaRemate IS NOT NULL AND c.FechaRemate < @Hoy THEN 2
+                           WHEN COALESCE(c.FechaRemate, DATEADD(DAY, 30, c.FechaVencimiento)) < @Hoy THEN 2
                            WHEN c.FechaVencimiento < @Hoy THEN 3
                            WHEN c.FechaVencimiento <= @Limite THEN 4
                            ELSE 5
@@ -113,10 +124,12 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                 ) AS pr ON pr.CreditoId = c.CreditoId
                 WHERE c.OficinaId = @OficinaId
                   AND (c.EsPrendario = CAST(1 AS bit) OR c.ProductoId = 2)
+                  AND c.Estado <> 'ANU'
                   AND (@Buscar IS NULL
                        OR p.NombreCompleto LIKE '%' + @Buscar + '%'
                        OR p.NumeroDocumento LIKE '%' + @Buscar + '%'
-                       OR c.NumeroContratoPrendario LIKE '%' + @Buscar + '%');
+                       OR c.NumeroContratoPrendario LIKE '%' + @Buscar + '%'
+                       OR (@BuscarId IS NOT NULL AND c.CreditoId = @BuscarId));
 
                 SELECT COUNT(*) FROM #PrendarioListado
                 WHERE (@Categoria IS NULL OR Categoria = @Categoria);
@@ -145,6 +158,7 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                 {
                     OficinaId = oficinaId,
                     Buscar = termino,
+                    BuscarId = int.TryParse(termino, out var creditoBuscado) ? creditoBuscado : (int?)null,
                     Categoria = categoria is { } cat ? (int)cat : (int?)null,
                     DiasAviso = DiasAvisoVencimiento,
                     Offset = (pagina - 1) * tamano,

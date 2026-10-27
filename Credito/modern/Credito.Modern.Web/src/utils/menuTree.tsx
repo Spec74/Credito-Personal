@@ -33,6 +33,22 @@ function isPadre(item: MenuItemDto): boolean {
   return readMenuIndPadre(item.indPadre)
 }
 
+/** Gerencia: caja chica retirada. No se pinta aunque el menú aún exista en SQL. */
+function isMenuRetirado(item: MenuItemDto): boolean {
+  const label = (item.denominacion ?? '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+  const url = (item.url ?? '').trim().toLowerCase()
+  return (
+    label.includes('caja chica') ||
+    label.includes('cajachica') ||
+    url.includes('cajachica') ||
+    url.includes('caja/chica')
+  )
+}
+
 /**
  * Misma regla que Web/Views/Shared/_Layout.cshtml:
  * - Padres: IndPadre = true (REPORTES, CREDITO, …)
@@ -40,7 +56,7 @@ function isPadre(item: MenuItemDto): boolean {
  * - Sin ítems huérfanos sueltos (el MVC no los pinta).
  */
 export function buildAntMenuItems(items: MenuItemDto[]): AntMenuItem[] {
-  const sorted = sortItems(items)
+  const sorted = sortItems(items.filter((i) => !isMenuRetirado(i)))
   const parents = sorted.filter((i) => isPadre(i))
 
   if (parents.length === 0) {

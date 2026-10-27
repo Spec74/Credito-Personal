@@ -6,7 +6,6 @@ import {
   Checkbox,
   Form,
   Input,
-  InputNumber,
   Modal,
   Select,
   Space,
@@ -17,21 +16,21 @@ import {
 import { EditOutlined, PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { denominacionRules, FIELD_MAX } from '../../validation/formRules'
-import { fetchOficinas } from '../../api/oficinas'
 import {
   activarAlmacen,
   fetchAlmacenesGestion,
   guardarAlmacen,
   type AlmacenGestionRow,
 } from '../../api/maestrosCrud'
-import { useAuth } from '../../auth/useAuth'
 import { ApiError } from '../../api/errors'
 import { CredixCrudPage, CredixDataTable } from '../../components/credix'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
+import { useEsCentral } from '../../hooks/useEsCentral'
 
 export function AlmacenesPage() {
-  const { session } = useAuth()
-  const [oficinaId, setOficinaId] = useState<number | undefined>(session?.oficinaId)
+  const { esCentral, oficinaSesionId, oficinas } = useEsCentral()
+  const [sedeId, setSedeId] = useState<number | undefined>(undefined)
+  const oficinaFiltro = esCentral ? sedeId : oficinaSesionId || undefined
   const [filtro, setFiltro] = useState('')
   const [incluirInactivos, setIncluirInactivos] = useState(true)
   const [modalOpen, setModalOpen] = useState(false)
@@ -44,14 +43,13 @@ export function AlmacenesPage() {
   }>()
   const queryClient = useQueryClient()
 
-  const oficinasQuery = useQuery({
-    queryKey: ['oficinas'],
-    queryFn: fetchOficinas,
-  })
+  const oficinasOpciones = esCentral
+    ? oficinas
+    : oficinas.filter((o) => o.oficinaId === oficinaSesionId)
 
   const almacenesQuery = useQuery({
-    queryKey: ['almacenes-gestion', oficinaId, incluirInactivos],
-    queryFn: () => fetchAlmacenesGestion(incluirInactivos, oficinaId),
+    queryKey: ['almacenes-gestion', oficinaFiltro, incluirInactivos, esCentral],
+    queryFn: () => fetchAlmacenesGestion(incluirInactivos, oficinaFiltro),
   })
 
   const guardar = useMutation({
@@ -103,7 +101,7 @@ export function AlmacenesPage() {
     form.setFieldsValue({
       denominacion: '',
       descripcion: '',
-      oficinaId: oficinaId ?? oficinasQuery.data?.[0]?.oficinaId ?? 0,
+      oficinaId: oficinaFiltro ?? oficinaSesionId ?? oficinasOpciones[0]?.oficinaId ?? 0,
       estado: true,
     })
     setModalOpen(true)
@@ -175,16 +173,21 @@ export function AlmacenesPage() {
       }
       toolbar={
         <Space wrap>
-          <InputNumber
-            min={1}
-            placeholder="Oficina"
-            value={oficinaId}
-            onChange={(v) => setOficinaId(v ?? undefined)}
-            style={{ width: 120 }}
-          />
-          <Button type="link" onClick={() => setOficinaId(undefined)}>
-            Todas
-          </Button>
+          {esCentral ? (
+            <>
+              <Select
+                allowClear
+                placeholder="Todas las sedes"
+                style={{ minWidth: 220 }}
+                value={sedeId}
+                onChange={(v) => setSedeId(v)}
+                options={oficinasOpciones.map((o) => ({
+                  value: o.oficinaId,
+                  label: o.denominacion ?? `Oficina ${o.oficinaId}`,
+                }))}
+              />
+            </>
+          ) : null}
           <Input.Search
             allowClear
             placeholder="Buscar almacén"
@@ -234,7 +237,8 @@ export function AlmacenesPage() {
           >
             <Form.Item name="oficinaId" label="Oficina" rules={[{ required: true }]}>
               <Select
-                options={(oficinasQuery.data ?? []).map((o) => ({
+                disabled={!esCentral}
+                options={oficinasOpciones.map((o) => ({
                   value: o.oficinaId,
                   label: o.denominacion ?? `Oficina ${o.oficinaId}`,
                 }))}

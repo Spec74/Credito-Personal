@@ -11,10 +11,79 @@
   min-width: 0;
 }
 
-.prendario-nuevo-cliente {
-  display: grid;
-  gap: 16px;
+.prendario-nuevo-buscar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   min-width: 0;
+}
+
+.prendario-nuevo-alta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.prendario-nuevo-cliente-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px 16px;
+  padding: 12px 16px;
+  background: var(--credix-surface);
+  border: 1px solid var(--credix-border, #d7e0e6);
+  border-radius: 12px;
+}
+
+.prendario-nuevo-cliente-bar__id {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-width: 0;
+}
+
+.prendario-nuevo-cliente-bar__dni {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--credix-text-muted, #64748b);
+}
+
+.prendario-nuevo-cliente-bar__id strong {
+  font-size: 15px;
+}
+
+.prendario-nuevo-cliente-bar__alert {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.prendario-nuevo-cliente-card__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 16px;
+}
+
+.prendario-nuevo-cliente-card__id {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.prendario-nuevo-cliente-card__alert {
+  margin-top: 12px;
+}
+
+.prendario-nuevo-cliente-card__hint {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
 }
 
 .prendario-nuevo-page .credix-panel,
@@ -43,7 +112,7 @@
   justify-content: space-between;
   gap: 12px 20px;
   padding: 12px 16px;
-  background: #fff;
+  background: var(--credix-surface);
   border: 1px solid var(--credix-border, #d7e0e6);
   border-radius: 12px;
   position: sticky;
@@ -73,10 +142,52 @@
   padding-inline: 18px;
 }
 
+.credito-plan-preview {
+  margin-top: 16px;
+}
+
+.credito-plan-preview__lead {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 12px;
+}
+
+.prendario-nuevo-hint,
+.prendario-nuevo-ayuda {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.prendario-nuevo-ayuda {
+  margin-top: 4px;
+}
+
+.prendario-nuevo-dni {
+  flex: 1 1 220px;
+  max-width: 360px;
+}
+
+.prendario-nuevo-consulta {
+  margin-bottom: 12px;
+  margin-top: 12px;
+}
+
+.prendario-nuevo-campos {
+  margin-top: 16px;
+}
+
+.prendario-nuevo-campo,
+.prendario-nuevo-campo.ant-input-number,
+.prendario-nuevo-campo.ant-picker,
+.prendario-nuevo-campo.ant-select {
+  width: 100%;
+  margin-top: 4px;
+}
+
 @media (min-width: 880px) {
-  .prendario-nuevo-cliente {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: start;
+  .prendario-nuevo-page .credito-buscar-cliente-input {
+    max-width: 480px;
   }
 }
 

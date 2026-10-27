@@ -73,4 +73,17 @@ internal static class SesionOficina
 
         return allowRed ? null : info.OficinaId;
     }
+
+    public static ProblemHttpResult? RechazarSiSucursalAjena(SesionOficinaInfo info, int oficinaDestino)
+    {
+        if (!info.EsCentral && oficinaDestino != info.OficinaId)
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status403Forbidden,
+                title: "Prohibido",
+                detail: "No puede operar la sede ajena. Entre a esa oficina para continuar.");
+        }
+
+        return null;
+    }
 }

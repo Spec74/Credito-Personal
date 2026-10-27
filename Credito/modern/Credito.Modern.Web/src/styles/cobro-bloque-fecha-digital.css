@@ -39,7 +39,7 @@
   margin: 0;
   border: 1px solid #d9d9d9;
   border-radius: 8px;
-  background: #fff;
+  background: var(--credix-surface);
   color: var(--credix-text, #1f2937);
   font-size: 14px;
   line-height: 1.25;

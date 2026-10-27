@@ -33,7 +33,7 @@ Sin cambio de JWT ni menú. El panel de sesión no relaja CSP.
 ## 7. Criterios de aceptación
 
 - [x] Código: landmarks + sesión control + caja corta en móvil.
-- [x] Código: `viewport-fit=cover` + `color-scheme: light`.
+- [x] Código: `viewport-fit=cover` + `color-scheme` dinámico (claro/oscuro, SSD-19).
 - [x] Smoke 375 px: chrome en `/inicio` (oficina + Sin caja; panel con nombres). `/ventas/ordenes` pendiente con usuario que tenga menú.
 
 ## 8. Desviaciones

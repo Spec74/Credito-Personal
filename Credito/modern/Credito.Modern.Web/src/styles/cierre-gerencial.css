@@ -3,7 +3,7 @@
   --cg-ink: #0f1c24;
   --cg-muted: #5b6b75;
   --cg-line: #d7e0e6;
-  --cg-surface: #ffffff;
+  --cg-surface: var(--credix-surface);
   --cg-soft: #f4f7f9;
   --cg-brand: #0f4c81;
   --cg-brand-soft: #e8f1f8;
@@ -15,6 +15,7 @@
   --cg-danger-soft: #fdeceb;
   --cg-productiva: #0f4c81;
   --cg-especial: #8a4b12;
+  --cg-estado-default-bg: #eef2f5;
 }
 
 .cierre-gerencial-page .credix-page-subtitle {
@@ -48,12 +49,12 @@
 
 .cierre-gerencial-status--oficial {
   background: var(--cg-ok-soft);
-  border-color: #b7dfc3;
+  border-color: color-mix(in srgb, var(--cg-ok) 32%, var(--cg-line));
 }
 
 .cierre-gerencial-status--no-oficial {
   background: var(--cg-warn-soft);
-  border-color: #f0d48a;
+  border-color: color-mix(in srgb, var(--cg-warn) 32%, var(--cg-line));
 }
 
 .cierre-gerencial-status-badge {
@@ -234,8 +235,8 @@
 }
 
 .cierre-gerencial-tipo--especial {
-  background: #f1f5f9;
-  color: #475569;
+  background: var(--credix-surface-muted);
+  color: var(--cg-especial);
 }
 
 .cierre-gerencial-estado.ant-tag {
@@ -268,12 +269,13 @@
 
 .cierre-gerencial-estado--default {
   color: var(--cg-muted) !important;
-  background: #eef2f5 !important;
+  background: var(--cg-estado-default-bg, var(--cg-soft)) !important;
+  border-color: transparent !important;
 }
 
 .cierre-gerencial-table .ant-table-thead > tr > th {
-  background: #eef3f6 !important;
-  color: #33424b !important;
+  background: var(--credix-surface-muted) !important;
+  color: var(--credix-text) !important;
   font-size: 0.7rem !important;
   font-weight: 700 !important;
   text-transform: uppercase;

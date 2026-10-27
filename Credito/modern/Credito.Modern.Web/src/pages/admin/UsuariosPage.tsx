@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Alert,
   Button,
@@ -13,7 +13,6 @@ import {
   Select,
   Space,
   Switch,
-  Tabs,
   Tag,
   Typography,
   message,
@@ -21,6 +20,7 @@ import {
 import {
   CopyOutlined,
   EditOutlined,
+  KeyOutlined,
   PlusOutlined,
   ReloadOutlined,
   SearchOutlined,
@@ -41,15 +41,17 @@ import {
 } from '../../validation/formRules'
 import dayjs from 'dayjs'
 import { consultarDniApiPeru } from '../../api/apiperu'
+import { fetchOficinas } from '../../api/oficinas'
+import { fetchRolesGestion } from '../../api/rolesAdmin'
 import {
   activarUsuario,
-  asignarOficinasUsuario,
-  asignarRolesUsuario,
   fetchRolesAsignacion,
   fetchUsuarioDetalle,
   fetchUsuariosGestion,
+  generarClaveTemporal,
   guardarUsuario,
   resetearClaveUsuario,
+  sugerirNombreUsuario,
   validarDniUsuario,
   type UsuarioGestionRow,
 } from '../../api/usuariosAdmin'
@@ -70,9 +72,9 @@ export function UsuariosPage() {
   const [verRed, setVerRed] = useState(true)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [usuarioId, setUsuarioId] = useState(0)
-  const [oficinaRolId, setOficinaRolId] = useState<number | undefined>()
   const [form] = Form.useForm()
   const queryClient = useQueryClient()
+  const credencialesNuevas = useRef<{ usuario: string; clave: string } | null>(null)
 
   const usuariosQuery = useQuery({
     queryKey: ['usuarios-gestion', buscarDebounced, page, pageSize, incluirInactivos, verRed],
@@ -92,57 +94,21 @@ export function UsuariosPage() {
     enabled: usuarioId >= 1 && drawerOpen,
   })
 
+  const oficinasQuery = useQuery({
+    queryKey: ['oficinas'],
+    queryFn: fetchOficinas,
+    enabled: drawerOpen,
+  })
+
+  const rolesCatalogoQuery = useQuery({
+    queryKey: ['roles-gestion', false],
+    queryFn: () => fetchRolesGestion(false),
+    enabled: drawerOpen,
+  })
+
   const esCentral = usuariosQuery.data?.esCentral === true
   const oficinaSesionId = usuariosQuery.data?.oficinaId ?? 0
   const oficinaSesionNombre = usuariosQuery.data?.oficina?.trim() || 'esta sucursal'
-
-  const oficinasAsignadas = useMemo(
-    () => (detalleQuery.data?.oficinas ?? []).filter((o) => o.asignado),
-    [detalleQuery.data?.oficinas],
-  )
-
-  /** Sucursal solo edita roles de su sede. Central elige. */
-  const oficinaRolEfectiva = esCentral
-    ? (oficinaRolId ?? oficinasAsignadas[0]?.oficinaId)
-    : oficinaSesionId >= 1
-      ? oficinaSesionId
-      : oficinasAsignadas[0]?.oficinaId
-
-  const oficinaRolLabel =
-    oficinasAsignadas.find((o) => o.oficinaId === oficinaRolEfectiva)?.denominacion ??
-    'oficina'
-
-  const rolesQuery = useQuery({
-    queryKey: ['usuario-roles', usuarioId, oficinaRolEfectiva],
-    queryFn: () => fetchRolesAsignacion(usuarioId, oficinaRolEfectiva!),
-    enabled: usuarioId >= 1 && oficinaRolEfectiva != null && oficinaRolEfectiva >= 1,
-  })
-
-  /** Resumen de roles en TODAS las oficinas asignadas (evita creer que “no tiene admin” cuando sí lo tiene en Pichari). */
-  const rolesResumenQueries = useQueries({
-    queries: oficinasAsignadas.map((o) => ({
-      queryKey: ['usuario-roles', usuarioId, o.oficinaId] as const,
-      queryFn: () => fetchRolesAsignacion(usuarioId, o.oficinaId),
-      enabled: usuarioId >= 1 && drawerOpen && o.oficinaId >= 1,
-    })),
-  })
-
-  const rolesPorOficina = useMemo(() => {
-    return oficinasAsignadas.map((o, i) => {
-      const q = rolesResumenQueries[i]
-      const nombres =
-        q?.data
-          ?.filter((r) => r.asignado)
-          .map((r) => r.denominacion)
-          .filter(Boolean) ?? []
-      return {
-        oficinaId: o.oficinaId,
-        denominacion: o.denominacion,
-        roles: nombres,
-        loading: q?.isLoading ?? false,
-      }
-    })
-  }, [oficinasAsignadas, rolesResumenQueries])
 
   const guardar = useMutation({
     mutationFn: guardarUsuario,
@@ -151,10 +117,21 @@ export function UsuariosPage() {
         message.error(res.mensaje ?? 'No se pudo guardar')
         return
       }
-      message.success('Usuario guardado')
-      const id = res.id ?? usuarioId
-      if (id && id >= 1) setUsuarioId(id)
+      message.success(usuarioId < 1 ? 'Usuario creado con oficina y rol' : 'Usuario actualizado')
+      const creds = credencialesNuevas.current
+      credencialesNuevas.current = null
+      if (creds) {
+        mostrarCredenciales(
+          'Usuario listo',
+          creds.usuario,
+          creds.clave,
+          'Guarde estas credenciales para entregárselas a la persona. No se vuelven a mostrar.',
+        )
+      }
+      setDrawerOpen(false)
       void queryClient.invalidateQueries({ queryKey: ['usuarios-gestion'] })
+      void queryClient.invalidateQueries({ queryKey: ['usuario-detalle'] })
+      void queryClient.invalidateQueries({ queryKey: ['usuario-roles'] })
     },
     onError: (e: unknown) =>
       message.error(e instanceof ApiError ? e.message : 'Error al guardar'),
@@ -195,28 +172,36 @@ export function UsuariosPage() {
         )
         return
       }
+      const nombre = r.nombres ?? ''
+      const apePaterno = r.apellidoPaterno ?? ''
       form.setFieldsValue({
-        nombre: r.nombres ?? '',
-        apePaterno: r.apellidoPaterno ?? '',
+        nombre,
+        apePaterno,
         apeMaterno: r.apellidoMaterno ?? '',
       })
+      const actual = String(form.getFieldValue('nombreUsuario') ?? '').trim()
+      if (!actual) {
+        const sugerido = sugerirNombreUsuario(nombre, apePaterno)
+        if (sugerido) form.setFieldValue('nombreUsuario', sugerido)
+      }
       message.success('Datos completados desde ApiPerú')
     },
     onError: (e: unknown) =>
       message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error ApiPerú'),
   })
 
-  const mostrarCredencialesReset = (nombreUsuario: string, claveTemporal: string) => {
-    const usuario = nombreUsuario.trim() || form.getFieldValue('nombreUsuario') || '—'
+  const mostrarCredenciales = (titulo: string, nombreUsuario: string, clave: string, extra?: string) => {
+    const usuario = nombreUsuario.trim() || '—'
     Modal.success({
-      title: 'Clave restablecida',
+      title: titulo,
       width: 440,
       content: (
         <Space direction="vertical" size="middle" style={{ width: '100%', marginTop: 8 }}>
-          <Paragraph type="secondary" style={{ marginBottom: 0 }}>
-            Clave temporal generada. El usuario deberá cambiarla en el próximo inicio de sesión.
-            La clave anterior no se puede recuperar (está cifrada).
-          </Paragraph>
+          {extra ? (
+            <Paragraph type="secondary" style={{ marginBottom: 0 }}>
+              {extra}
+            </Paragraph>
+          ) : null}
           <div>
             <Text type="secondary">Usuario</Text>
             <Space.Compact style={{ width: '100%', marginTop: 4 }}>
@@ -232,19 +217,27 @@ export function UsuariosPage() {
             </Space.Compact>
           </div>
           <div>
-            <Text type="secondary">Clave temporal</Text>
+            <Text type="secondary">Clave</Text>
             <Space.Compact style={{ width: '100%', marginTop: 4 }}>
-              <Input.Password value={claveTemporal} readOnly visibilityToggle />
+              <Input.Password value={clave} readOnly visibilityToggle />
               <Button
                 icon={<CopyOutlined />}
                 onClick={() => {
-                  void navigator.clipboard.writeText(claveTemporal).then(() =>
-                    message.success('Clave copiada'),
-                  )
+                  void navigator.clipboard.writeText(clave).then(() => message.success('Clave copiada'))
                 }}
               />
             </Space.Compact>
           </div>
+          <Button
+            block
+            onClick={() => {
+              void navigator.clipboard.writeText(`${usuario}\n${clave}`).then(() =>
+                message.success('Usuario y clave copiados'),
+              )
+            }}
+          >
+            Copiar usuario y clave
+          </Button>
         </Space>
       ),
     })
@@ -267,44 +260,21 @@ export function UsuariosPage() {
         detalleQuery.data?.nombreUsuario ||
         ''
       form.setFieldValue('claveUsuario', '')
-      mostrarCredencialesReset(nombreUsuario, claveTemporal)
+      mostrarCredenciales(
+        'Clave restablecida',
+        nombreUsuario,
+        claveTemporal,
+        'Clave temporal. El usuario deberá cambiarla en el próximo inicio de sesión. La anterior no se puede recuperar.',
+      )
     },
     onError: (e: unknown) =>
       message.error(e instanceof ApiError ? e.message : 'No se pudo restablecer la clave'),
   })
 
-  const asignarOficinas = useMutation({
-    mutationFn: (ids: number[]) => asignarOficinasUsuario(usuarioId, ids),
-    onSuccess: (res) => {
-      if (!res.success) {
-        message.error(res.mensaje ?? 'Error')
-        return
-      }
-      message.success('Oficinas asignadas. Revise Roles en cada sede nueva.')
-      void detalleQuery.refetch()
-      void queryClient.invalidateQueries({ queryKey: ['usuario-roles', usuarioId] })
-    },
-  })
-
-  const asignarRoles = useMutation({
-    mutationFn: ({ oficinaId, rolIds }: { oficinaId: number; rolIds: number[] }) =>
-      asignarRolesUsuario(usuarioId, oficinaId, rolIds),
-    onSuccess: (res, vars) => {
-      if (!res.success) {
-        message.error(res.mensaje ?? 'Error')
-        return
-      }
-      const sede =
-        oficinasAsignadas.find((o) => o.oficinaId === vars.oficinaId)?.denominacion ??
-        `oficina #${vars.oficinaId}`
-      message.success(`Roles guardados en ${sede}`)
-      void queryClient.invalidateQueries({ queryKey: ['usuario-roles', usuarioId] })
-    },
-  })
-
   useEffect(() => {
     const d = detalleQuery.data
-    if (!d) return
+    if (!d || usuarioId < 1) return
+    const asignadas = d.oficinas.filter((o) => o.asignado).map((o) => o.oficinaId)
     form.setFieldsValue({
       apePaterno: d.apePaterno,
       apeMaterno: d.apeMaterno,
@@ -316,32 +286,42 @@ export function UsuariosPage() {
       emailPersonal: d.emailPersonal ?? '',
       direccion: d.direccion ?? '',
       nombreUsuario: d.nombreUsuario,
-      // Vacío = no cambiar. La clave real no se puede mostrar: solo hay hash PBKDF2 en BD.
       claveUsuario: '',
       estado: d.estado,
+      oficinaIds: esCentral ? asignadas : [oficinaSesionId].filter((id) => id >= 1),
     })
-    const asignadas = d.oficinas.filter((o) => o.asignado).map((o) => o.oficinaId)
-    form.setFieldValue('oficinaIds', asignadas)
-  }, [detalleQuery.data, form])
+  }, [detalleQuery.data, esCentral, form, oficinaSesionId, usuarioId])
 
   useEffect(() => {
-    const roles = rolesQuery.data
-    if (!roles) return
-    form.setFieldValue(
-      'rolIds',
-      roles.filter((r) => r.asignado).map((r) => r.rolId),
-    )
-  }, [rolesQuery.data, form])
+    if (usuarioId < 1 || !drawerOpen) return
+    const oficinaRol = esCentral
+      ? ((form.getFieldValue('oficinaIds') as number[] | undefined)?.[0] ??
+        detalleQuery.data?.oficinas.find((o) => o.asignado)?.oficinaId)
+      : oficinaSesionId
+    if (!oficinaRol || oficinaRol < 1) return
+    void fetchRolesAsignacion(usuarioId, oficinaRol).then((roles) => {
+      form.setFieldValue(
+        'rolIds',
+        roles.filter((r) => r.asignado).map((r) => r.rolId),
+      )
+    })
+  }, [detalleQuery.data, drawerOpen, esCentral, form, oficinaSesionId, usuarioId])
+
+  const aplicarClaveGenerada = () => {
+    const clave = generarClaveTemporal()
+    form.setFieldValue('claveUsuario', clave)
+    message.success('Clave generada. Cópiela antes de guardar.')
+    return clave
+  }
 
   const openCreate = () => {
     setUsuarioId(0)
-    setOficinaRolId(undefined)
     form.resetFields()
     form.setFieldsValue({
       sexo: 'M',
       estado: true,
-      claveUsuario: '',
-      oficinaIds: [],
+      claveUsuario: generarClaveTemporal(),
+      oficinaIds: oficinaSesionId >= 1 ? [oficinaSesionId] : [],
       rolIds: [],
     })
     setDrawerOpen(true)
@@ -349,8 +329,49 @@ export function UsuariosPage() {
 
   const openEdit = (row: UsuarioGestionRow) => {
     setUsuarioId(row.usuarioId)
-    setOficinaRolId(undefined)
     setDrawerOpen(true)
+  }
+
+  const guardarTodo = () => {
+    void form.validateFields().then((v) => {
+      const oficinaIds = esCentral
+        ? (((v.oficinaIds as number[]) ?? []).filter((id) => id >= 1))
+        : oficinaSesionId >= 1
+          ? [oficinaSesionId]
+          : []
+      const rolIds = ((v.rolIds as number[]) ?? []).filter((id) => id >= 1)
+      if (oficinaIds.length < 1) {
+        message.warning('Seleccione al menos una oficina')
+        return
+      }
+      if (rolIds.length < 1) {
+        message.warning('Seleccione al menos un rol')
+        return
+      }
+      const claveNueva = ((v.claveUsuario as string) ?? '').trim()
+      const nombreUsuario = String(v.nombreUsuario ?? '').trim()
+      credencialesNuevas.current =
+        usuarioId < 1 && claveNueva ? { usuario: nombreUsuario, clave: claveNueva } : null
+      guardar.mutate({
+        usuarioId,
+        apePaterno: v.apePaterno,
+        apeMaterno: v.apeMaterno,
+        nombre: v.nombre,
+        numeroDocumento: v.numeroDocumento,
+        sexo: v.sexo,
+        fechaNacimiento: v.fechaNacimiento
+          ? (v.fechaNacimiento as dayjs.Dayjs).format('YYYY-MM-DD')
+          : null,
+        telefonoMovil: v.telefonoMovil,
+        emailPersonal: v.emailPersonal,
+        direccion: v.direccion,
+        nombreUsuario,
+        claveUsuario: claveNueva,
+        estado: v.estado !== false,
+        oficinaIds,
+        rolIds,
+      })
+    })
   }
 
   const columns: ColumnsType<UsuarioGestionRow> = [
@@ -435,9 +456,16 @@ export function UsuariosPage() {
     },
   }
 
-  const oficinasOptions = detalleQuery.data?.oficinas ?? []
   const usuariosRows = usuariosQuery.data?.rows ?? []
   const stats = useCrudListStats(usuariosRows, 'usuarios')
+  const oficinasOptions = (oficinasQuery.data ?? []).map((o) => ({
+    value: o.oficinaId,
+    label: o.denominacion ?? `Oficina ${o.oficinaId}`,
+  }))
+  const rolesOptions = (rolesCatalogoQuery.data ?? []).map((r) => ({
+    value: r.rolId,
+    label: r.denominacion,
+  }))
 
   return (
     <CredixCrudPage
@@ -445,7 +473,7 @@ export function UsuariosPage() {
       subtitle={
         esCentral
           ? verRed
-            ? 'Toda la red. Puede filtrar por sede al editar.'
+            ? 'Toda la red. Un solo guardado: datos, sede y rol.'
             : `Personal de ${oficinaSesionNombre}`
           : `Personal de ${oficinaSesionNombre}`
       }
@@ -512,390 +540,200 @@ export function UsuariosPage() {
           width={screens.md ? 640 : '100%'}
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
+          destroyOnClose
+          footer={
+            <Space style={{ width: '100%', justifyContent: 'flex-end' }}>
+              <Button onClick={() => setDrawerOpen(false)}>Cancelar</Button>
+              <Button type="primary" loading={guardar.isPending} onClick={guardarTodo}>
+                Guardar
+              </Button>
+            </Space>
+          }
         >
-          <Form form={form} layout="vertical">
-            <Tabs
-              className="credix-tabs"
-              items={[
-                {
-                  key: 'datos',
-                  label: 'Datos',
-                  children: (
-                    <>
-                      <Form.Item
-                        name="numeroDocumento"
-                        label="DNI"
-                        rules={[required('DNI obligatorio'), dniRule]}
-                        extra={
-                          usuarioId < 1
-                            ? 'Ingrese el DNI y pulse Validar ApiPerú para completar nombres y apellidos.'
-                            : undefined
-                        }
-                      >
-                        <Space.Compact style={{ width: '100%' }}>
-                          <Input
-                            maxLength={FIELD_MAX.dni}
-                            disabled={usuarioId >= 1}
-                            inputMode="numeric"
-                            onPressEnter={() => {
-                              if (usuarioId >= 1) return
-                              const dni = form.getFieldValue('numeroDocumento') as string
-                              if (dni?.trim()) consultarReniec.mutate(dni)
-                            }}
-                          />
-                          {usuarioId < 1 ? (
-                            <Button
-                              type="default"
-                              icon={<SearchOutlined />}
-                              loading={consultarReniec.isPending}
-                              onClick={() => {
-                                const dni = form.getFieldValue('numeroDocumento') as string
-                                consultarReniec.mutate(dni ?? '')
-                              }}
-                            >
-                              Validar ApiPerú
-                            </Button>
-                          ) : null}
-                        </Space.Compact>
-                      </Form.Item>
-                      <Space wrap style={{ width: '100%' }}>
-                        <Form.Item name="apePaterno" label="Ap. paterno" rules={requiredText(FIELD_MAX.nombre)}>
-                          <Input style={{ width: 140 }} maxLength={FIELD_MAX.nombre} />
-                        </Form.Item>
-                        <Form.Item name="apeMaterno" label="Ap. materno" rules={requiredText(FIELD_MAX.nombre)}>
-                          <Input style={{ width: 140 }} maxLength={FIELD_MAX.nombre} />
-                        </Form.Item>
-                        <Form.Item name="nombre" label="Nombres" rules={requiredText(FIELD_MAX.nombre)}>
-                          <Input style={{ width: 160 }} maxLength={FIELD_MAX.nombre} />
-                        </Form.Item>
-                      </Space>
-                      <Form.Item name="sexo" label="Sexo" rules={[{ required: true }]}>
-                        <Select
-                          options={[
-                            { value: 'M', label: 'Masculino' },
-                            { value: 'F', label: 'Femenino' },
-                          ]}
-                        />
-                      </Form.Item>
-                      <Form.Item
-                        name="fechaNacimiento"
-                        label="Fecha nacimiento"
-                        rules={[fechaNacimientoRule(18)]}
-                        extra="Mínimo 18 años; no se admiten fechas futuras."
-                      >
-                        <CredixDatePicker disabledDate={(d) => disabledFechaNacimiento(d, 18)} />
-                      </Form.Item>
-                      <Form.Item name="telefonoMovil" label="Celular" rules={[celularPeRule]}>
-                        <Input maxLength={FIELD_MAX.celular} inputMode="numeric" />
-                      </Form.Item>
-                      <Form.Item name="emailPersonal" label="Email" rules={[emailRule, maxLen(FIELD_MAX.email)]}>
-                        <Input type="email" maxLength={FIELD_MAX.email} />
-                      </Form.Item>
-                      <Form.Item
-                        name="direccion"
-                        label="Dirección"
-                        rules={[direccionRealistaRule('dirección'), maxLen(FIELD_MAX.direccion)]}
-                      >
-                        <Input.TextArea
-                          rows={2}
-                          maxLength={FIELD_MAX.direccion}
-                          placeholder="Jr. / Av. + número (opcional pero debe ser legible)"
-                        />
-                      </Form.Item>
-                      <Form.Item
-                        name="nombreUsuario"
-                        label="Nombre usuario"
-                        rules={requiredText(FIELD_MAX.usuario)}
-                      >
-                        <Input maxLength={FIELD_MAX.usuario} />
-                      </Form.Item>
-                      {usuarioId >= 1 ? (
-                        <Alert
-                          type="info"
-                          showIcon
-                          style={{ marginBottom: 12 }}
-                          message="La clave actual no se puede ver"
-                          description="Por seguridad se guarda cifrada (hash). El ojito solo muestra lo que usted escriba ahora. Use «Resetear clave» para generar una temporal (el usuario deberá cambiarla al iniciar sesión) o escriba una clave nueva y guarde."
-                        />
-                      ) : null}
-                      <Form.Item
-                        name="claveUsuario"
-                        label={usuarioId >= 1 ? 'Nueva clave (opcional)' : 'Clave'}
-                        rules={claveUsuarioRules(usuarioId < 1)}
-                        extra={
-                          usuarioId >= 1
-                            ? 'Vacío = no cambiar. Mínimo 8 caracteres, con letra y número.'
-                            : 'Mínimo 8 caracteres, con letra y número.'
-                        }
-                      >
-                        <Input.Password
-                          visibilityToggle
-                          placeholder={
-                            usuarioId >= 1
-                              ? 'Dejar vacío para no cambiar'
-                              : 'Mínimo 8 caracteres, letra y número'
-                          }
-                          autoComplete="new-password"
-                        />
-                      </Form.Item>
-                      {esCentral ? (
-                        <Form.Item name="estado" label="Activo" valuePropName="checked">
-                          <Switch />
-                        </Form.Item>
-                      ) : (
-                        <Alert
-                          type="info"
-                          showIcon
-                          style={{ marginBottom: 12 }}
-                          message={`Se asigna a ${oficinaSesionNombre}`}
-                          description={
-                            usuarioId < 1
-                              ? 'Al guardar queda en esta sucursal. Luego defina sus roles.'
-                              : 'Para quitarlo use «Quitar de sede» en la lista. No se apaga la cuenta de otras sucursales.'
-                          }
-                        />
-                      )}
-                      <Button
-                        type="primary"
-                        loading={guardar.isPending}
-                        onClick={() => {
-                          void form.validateFields().then((v) => {
-                            const claveNueva = ((v.claveUsuario as string) ?? '').trim()
-                            guardar.mutate({
-                              usuarioId,
-                              apePaterno: v.apePaterno,
-                              apeMaterno: v.apeMaterno,
-                              nombre: v.nombre,
-                              numeroDocumento: v.numeroDocumento,
-                              sexo: v.sexo,
-                              fechaNacimiento: v.fechaNacimiento
-                                ? (v.fechaNacimiento as dayjs.Dayjs).format('YYYY-MM-DD')
-                                : null,
-                              telefonoMovil: v.telefonoMovil,
-                              emailPersonal: v.emailPersonal,
-                              direccion: v.direccion,
-                              nombreUsuario: v.nombreUsuario,
-                              // Vacío en edición = no tocar clave (backend ignora blanco / ********).
-                              claveUsuario: claveNueva,
-                              estado: v.estado !== false,
-                            })
-                          })
-                        }}
-                      >
-                        Guardar datos
-                      </Button>
-                      {usuarioId >= 1 ? (
-                        <Button
-                          style={{ marginLeft: 8 }}
-                          loading={resetClave.isPending}
-                          onClick={() =>
-                            Modal.confirm({
-                              title: '¿Restablecer clave temporal?',
-                              content: (
-                                <Paragraph style={{ marginBottom: 0 }}>
-                                  Se generará una clave temporal para el usuario{' '}
-                                  <Text strong>
-                                    {(form.getFieldValue('nombreUsuario') as string) || '…'}
-                                  </Text>
-                                  . Deberá cambiarla en el próximo inicio de sesión. La clave
-                                  anterior quedará invalidada (no es recuperable).
-                                </Paragraph>
-                              ),
-                              okText: 'Restablecer',
-                              onOk: () => resetClave.mutateAsync(usuarioId),
-                            })
-                          }
-                        >
-                          Resetear clave
-                        </Button>
-                      ) : null}
-                    </>
-                  ),
-                },
-                {
-                  key: 'oficinas',
-                  label: 'Oficinas',
-                  disabled: usuarioId < 1,
-                  children: esCentral ? (
-                    <>
-                      <Paragraph type="secondary">
-                        Central puede asignar varias sedes. Los roles de una sede que quite se
-                        borran.
-                      </Paragraph>
-                      <Form.Item name="oficinaIds" label="Oficinas">
-                        <Select
-                          mode="multiple"
-                          loading={detalleQuery.isLoading}
-                          options={oficinasOptions.map((o) => ({
-                            value: o.oficinaId,
-                            label: o.denominacion,
-                          }))}
-                        />
-                      </Form.Item>
-                      <Button
-                        type="primary"
-                        loading={asignarOficinas.isPending}
-                        onClick={() => {
-                          const ids = (form.getFieldValue('oficinaIds') as number[]) ?? []
-                          asignarOficinas.mutate(ids)
-                        }}
-                      >
-                        Guardar oficinas
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Paragraph>
-                        Este usuario está en <Text strong>{oficinaSesionNombre}</Text>.
-                      </Paragraph>
-                      {(detalleQuery.data?.otrasSedes ?? []).length > 0 ? (
-                        <Alert
-                          type="info"
-                          showIcon
-                          message="También trabaja en otras sedes"
-                          description={(detalleQuery.data?.otrasSedes ?? []).join(', ')}
-                        />
-                      ) : (
-                        <Paragraph type="secondary">
-                          No está asignado a otras sucursales. Central es quien lo habilita en más
-                          de una sede.
-                        </Paragraph>
-                      )}
-                    </>
-                  ),
-                },
-                {
-                  key: 'roles',
-                  label: 'Roles',
-                  disabled: usuarioId < 1,
-                  children: (
-                    <>
-                      <Alert
-                        type="info"
-                        showIcon
-                        style={{ marginBottom: 12 }}
-                        message={
-                          esCentral
-                            ? 'Roles por sede: elija oficina y marque solo los de esa sucursal.'
-                            : `Roles solo de ${oficinaSesionNombre}.`
-                        }
-                      />
+          <Form form={form} layout="vertical" requiredMark>
+            <div style={{ marginBottom: 8 }}>
+              <Text strong>1. Identidad</Text>
+              <Paragraph type="secondary" style={{ marginTop: 4 }}>
+                Valide el DNI para completar nombres. Luego defina acceso y asignación.
+              </Paragraph>
+            </div>
+            <Form.Item
+              name="numeroDocumento"
+              label="DNI"
+              rules={[required('DNI obligatorio'), dniRule]}
+            >
+              <Space.Compact style={{ width: '100%' }}>
+                <Input
+                  maxLength={FIELD_MAX.dni}
+                  disabled={usuarioId >= 1}
+                  inputMode="numeric"
+                  onPressEnter={() => {
+                    if (usuarioId >= 1) return
+                    const dni = form.getFieldValue('numeroDocumento') as string
+                    if (dni?.trim()) consultarReniec.mutate(dni)
+                  }}
+                />
+                {usuarioId < 1 ? (
+                  <Button
+                    icon={<SearchOutlined />}
+                    loading={consultarReniec.isPending}
+                    onClick={() => {
+                      const dni = form.getFieldValue('numeroDocumento') as string
+                      consultarReniec.mutate(dni ?? '')
+                    }}
+                  >
+                    Validar DNI
+                  </Button>
+                ) : null}
+              </Space.Compact>
+            </Form.Item>
+            <Space wrap style={{ width: '100%' }}>
+              <Form.Item name="apePaterno" label="Ap. paterno" rules={requiredText(FIELD_MAX.nombre)}>
+                <Input style={{ width: 140 }} maxLength={FIELD_MAX.nombre} />
+              </Form.Item>
+              <Form.Item name="apeMaterno" label="Ap. materno" rules={requiredText(FIELD_MAX.nombre)}>
+                <Input style={{ width: 140 }} maxLength={FIELD_MAX.nombre} />
+              </Form.Item>
+              <Form.Item name="nombre" label="Nombres" rules={requiredText(FIELD_MAX.nombre)}>
+                <Input style={{ width: 160 }} maxLength={FIELD_MAX.nombre} />
+              </Form.Item>
+            </Space>
+            <Form.Item name="sexo" label="Sexo" rules={[{ required: true }]}>
+              <Select
+                options={[
+                  { value: 'M', label: 'Masculino' },
+                  { value: 'F', label: 'Femenino' },
+                ]}
+              />
+            </Form.Item>
+            <Form.Item
+              name="fechaNacimiento"
+              label="Fecha nacimiento"
+              rules={[fechaNacimientoRule(18)]}
+            >
+              <CredixDatePicker disabledDate={(d) => disabledFechaNacimiento(d, 18)} />
+            </Form.Item>
+            <Form.Item name="telefonoMovil" label="Celular" rules={[celularPeRule]}>
+              <Input maxLength={FIELD_MAX.celular} inputMode="numeric" />
+            </Form.Item>
+            <Form.Item name="emailPersonal" label="Email" rules={[emailRule, maxLen(FIELD_MAX.email)]}>
+              <Input type="email" maxLength={FIELD_MAX.email} />
+            </Form.Item>
+            <Form.Item
+              name="direccion"
+              label="Dirección"
+              rules={[direccionRealistaRule('dirección'), maxLen(FIELD_MAX.direccion)]}
+            >
+              <Input.TextArea rows={2} maxLength={FIELD_MAX.direccion} />
+            </Form.Item>
 
-                      {oficinasAsignadas.length === 0 ? (
-                        <Alert
-                          type="warning"
-                          showIcon
-                          style={{ marginBottom: 12 }}
-                          message="Asigne al menos una oficina en la pestaña Oficinas antes de definir roles."
-                        />
-                      ) : (
-                        <div style={{ marginBottom: 16 }}>
-                          <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                            Resumen actual (todas las sedes del usuario)
-                          </Text>
-                          <Space direction="vertical" size={8} style={{ width: '100%' }}>
-                            {rolesPorOficina.map((row) => (
-                              <div key={row.oficinaId}>
-                                <Space wrap size={[4, 4]} align="center">
-                                  <Button
-                                    type={
-                                      row.oficinaId === oficinaRolEfectiva ? 'primary' : 'default'
-                                    }
-                                    size="small"
-                                    disabled={!esCentral && row.oficinaId !== oficinaSesionId}
-                                    onClick={() => {
-                                      if (!esCentral && row.oficinaId !== oficinaSesionId) return
-                                      setOficinaRolId(row.oficinaId)
-                                    }}
-                                  >
-                                    {row.denominacion}
-                                  </Button>
-                                  {row.loading ? (
-                                    <Tag>Cargando…</Tag>
-                                  ) : row.roles.length === 0 ? (
-                                    <Tag color="orange">Sin roles</Tag>
-                                  ) : (
-                                    row.roles.map((nombre) => (
-                                      <Tag key={`${row.oficinaId}-${nombre}`} color="blue">
-                                        {nombre}
-                                      </Tag>
-                                    ))
-                                  )}
-                                </Space>
-                              </div>
-                            ))}
-                          </Space>
-                        </div>
-                      )}
+            <div style={{ margin: '16px 0 8px' }}>
+              <Text strong>2. Acceso</Text>
+              <Paragraph type="secondary" style={{ marginTop: 4 }}>
+                {usuarioId < 1
+                  ? 'Ya hay una clave generada. Puede copiarla o generar otra. Mínimo 8 caracteres, con letra y número.'
+                  : 'Deje la clave vacía para no cambiarla. «Generar» escribe una nueva; «Restablecer» la aplica ya y obliga a cambiarla al entrar.'}
+              </Paragraph>
+            </div>
+            <Form.Item name="nombreUsuario" label="Usuario de ingreso" rules={requiredText(FIELD_MAX.usuario)}>
+              <Input maxLength={FIELD_MAX.usuario} autoComplete="off" />
+            </Form.Item>
+            <Form.Item
+              name="claveUsuario"
+              label={usuarioId >= 1 ? 'Nueva clave (opcional)' : 'Clave'}
+              rules={claveUsuarioRules(usuarioId < 1)}
+            >
+              <Input.Password
+                visibilityToggle
+                placeholder={usuarioId >= 1 ? 'Vacío = no cambiar' : 'Clave generada o la que usted elija'}
+                autoComplete="new-password"
+              />
+            </Form.Item>
+            <Space wrap style={{ marginBottom: 20, display: 'flex' }}>
+              <Button icon={<KeyOutlined />} onClick={() => aplicarClaveGenerada()}>
+                Generar clave
+              </Button>
+              <Button
+                icon={<CopyOutlined />}
+                onClick={() => {
+                  const usuario = String(form.getFieldValue('nombreUsuario') ?? '').trim()
+                  const clave = String(form.getFieldValue('claveUsuario') ?? '').trim()
+                  if (!clave) {
+                    message.warning('No hay clave para copiar')
+                    return
+                  }
+                  void navigator.clipboard.writeText(usuario ? `${usuario}\n${clave}` : clave).then(() =>
+                    message.success('Copiado'),
+                  )
+                }}
+              >
+                Copiar
+              </Button>
+              {usuarioId >= 1 ? (
+                <Button
+                  loading={resetClave.isPending}
+                  onClick={() =>
+                    Modal.confirm({
+                      title: '¿Restablecer clave ahora?',
+                      content:
+                        'Se genera una clave temporal e invalida la actual. El usuario deberá cambiarla al iniciar sesión. No espera al botón Guardar.',
+                      okText: 'Restablecer',
+                      onOk: () => resetClave.mutateAsync(usuarioId),
+                    })
+                  }
+                >
+                  Restablecer ahora
+                </Button>
+              ) : null}
+            </Space>
 
-                      <Paragraph type="secondary" style={{ marginBottom: 8 }}>
-                        Editando roles de:{' '}
-                        <Text strong>{oficinaRolLabel}</Text>
-                        {oficinaRolEfectiva != null ? (
-                          <>
-                            {' '}
-                            <Text type="secondary">(id {oficinaRolEfectiva})</Text>
-                          </>
-                        ) : null}
-                      </Paragraph>
-                      {esCentral ? (
-                        <Select
-                          placeholder="Oficina para editar roles"
-                          style={{ width: '100%', marginBottom: 12 }}
-                          value={oficinaRolEfectiva}
-                          onChange={(v) => setOficinaRolId(v)}
-                          options={oficinasAsignadas.map((o) => ({
-                            value: o.oficinaId,
-                            label: o.denominacion,
-                          }))}
-                        />
-                      ) : null}
-                      <Form.Item
-                        name="rolIds"
-                        label={`Roles en ${oficinaRolLabel}`}
-                        rules={[
-                          {
-                            validator: async (_, value: number[] | undefined) => {
-                              const ids = (value ?? []).filter((id) => id >= 1)
-                              if (ids.length < 1) {
-                                throw new Error('Debe asignar al menos un rol')
-                              }
-                            },
-                          },
-                        ]}
-                      >
-                        <Select
-                          mode="multiple"
-                          loading={rolesQuery.isLoading}
-                          disabled={!oficinaRolEfectiva}
-                          options={(rolesQuery.data ?? []).map((r) => ({
-                            value: r.rolId,
-                            label: r.denominacion,
-                          }))}
-                        />
-                      </Form.Item>
-                      <Button
-                        type="primary"
-                        disabled={!oficinaRolEfectiva}
-                        loading={asignarRoles.isPending}
-                        onClick={() => {
-                          void form.validateFields(['rolIds']).then((v) => {
-                            const rolIds = ((v.rolIds as number[]) ?? []).filter((id) => id >= 1)
-                            if (rolIds.length < 1) {
-                              message.warning('Debe asignar al menos un rol')
-                              return
-                            }
-                            asignarRoles.mutate({ oficinaId: oficinaRolEfectiva!, rolIds })
-                          })
-                        }}
-                      >
-                        Guardar roles en {oficinaRolLabel}
-                      </Button>
-                    </>
-                  ),
-                },
-              ]}
-            />
+            <div style={{ margin: '16px 0 8px' }}>
+              <Text strong>3. Oficina y rol</Text>
+              <Paragraph type="secondary" style={{ marginTop: 4 }}>
+                {esCentral
+                  ? 'Los mismos roles se aplican a todas las sedes que marque. Un solo Guardar alcanza.'
+                  : `Queda en ${oficinaSesionNombre}. Elija al menos un rol.`}
+              </Paragraph>
+            </div>
+            {esCentral ? (
+              <Form.Item
+                name="oficinaIds"
+                label="Oficinas"
+                rules={[{ required: true, type: 'array', min: 1, message: 'Seleccione al menos una oficina' }]}
+              >
+                <Select
+                  mode="multiple"
+                  loading={oficinasQuery.isLoading}
+                  options={oficinasOptions}
+                  placeholder="Sedes donde podrá entrar"
+                />
+              </Form.Item>
+            ) : (
+              <Alert
+                type="info"
+                showIcon
+                style={{ marginBottom: 12 }}
+                message={`Oficina: ${oficinaSesionNombre}`}
+                description="Central es quien habilita más de una sede."
+              />
+            )}
+            <Form.Item
+              name="rolIds"
+              label="Roles"
+              rules={[{ required: true, type: 'array', min: 1, message: 'Seleccione al menos un rol' }]}
+            >
+              <Select
+                mode="multiple"
+                loading={rolesCatalogoQuery.isLoading}
+                options={rolesOptions}
+                placeholder="Qué puede hacer en el sistema"
+              />
+            </Form.Item>
+            {esCentral ? (
+              <Form.Item name="estado" label="Activo" valuePropName="checked">
+                <Switch />
+              </Form.Item>
+            ) : null}
           </Form>
         </Drawer>
       }

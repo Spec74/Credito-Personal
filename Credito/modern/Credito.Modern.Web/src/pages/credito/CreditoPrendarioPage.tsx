@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { PlusOutlined, SearchOutlined, WhatsAppOutlined } from '@ant-design/icons'
-import { Alert, Badge, Button, Input, Modal, Segmented, Space, Tag, Tooltip, Typography, message } from 'antd'
+import { Alert, Badge, Button, Input, Modal, Space, Tag, Tooltip, Typography, message } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   enviarAvisosVencimientoPrendario,
@@ -25,12 +25,39 @@ import { formatMoney } from '../../utils/formatMoney'
 import { celularPrendarioEsValido } from '../../utils/prendarioWhatsapp'
 import '../../styles/credito-prendario-gestion.css'
 import { situacionPrendario } from '../../utils/prendarioSituacion'
-import { ltvObservado } from '../../utils/prendas'
 
 const { Text } = Typography
 
 function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error desconocido'
+}
+
+function etiquetaAccionListado(row: PrendarioCreditoRow): string {
+  if (row.categoria === 'SinBienes' || row.bienes < 1) {
+    return 'Completar bienes'
+  }
+  const estado = (row.estado ?? '').toUpperCase()
+  if (estado === 'CRE' || estado === 'PEN' || estado === 'AP1' || estado === 'APR') {
+    return 'Continuar'
+  }
+  return 'Gestionar'
+}
+
+function textoVacioListado(categoria: PrendarioCategoria | undefined): string {
+  switch (categoria) {
+    case 'Otro':
+      return 'No hay solicitudes en trámite en esta oficina'
+    case 'SinBienes':
+      return 'No hay créditos prendarios sin bienes'
+    case 'PorVencer':
+      return 'Nadie vence en los próximos 3 días'
+    case 'Vencido':
+      return 'No hay créditos vencidos'
+    case 'Rematado':
+      return 'No hay créditos en cola de remate ni rematados'
+    default:
+      return 'No hay créditos prendarios en esta oficina. Pulse Nuevo para originar.'
+  }
 }
 
 function etiquetaOrigen(origen: string): string {
@@ -188,105 +215,140 @@ export function CreditoPrendarioPage() {
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const elegirCola = (cola: PrendarioCategoria) => {
+    setPage(1)
+    setCategoria((actual) => (actual === cola ? undefined : cola))
+  }
+
   const stats: CredixStatItem[] = useMemo(() => {
     const r = resumen.data
     if (!r) {
       return []
     }
-    return [
-      { label: 'Desembolsados', value: r.total },
-      { label: 'Por vencer (3 días)', value: r.porVencer },
-      { label: 'Vencidos', value: r.vencidos, tone: 'red' },
-      { label: 'Rematados', value: r.rematados },
+    const colas: CredixStatItem[] = [
+      {
+        label: 'Solicitudes',
+        value: r.solicitudes ?? 0,
+        active: categoria === 'Otro',
+        onClick: () => elegirCola('Otro'),
+      },
+      {
+        label: 'Cartera',
+        value: `S/ ${formatMoney(r.montoCartera ?? 0)}`,
+        detail: r.total ? `${r.total} desembolsados` : undefined,
+        active: categoria == null,
+        onClick: () => {
+          setPage(1)
+          setCategoria(undefined)
+        },
+      },
+      {
+        label: 'Por vencer',
+        value: r.porVencer,
+        active: categoria === 'PorVencer',
+        onClick: () => elegirCola('PorVencer'),
+      },
+      {
+        label: 'Vencidos',
+        value: r.vencidos,
+        tone: 'red',
+        active: categoria === 'Vencido',
+        onClick: () => elegirCola('Vencido'),
+      },
+      {
+        label: 'Remate',
+        value: r.rematados,
+        active: categoria === 'Rematado',
+        onClick: () => elegirCola('Rematado'),
+      },
     ]
-  }, [resumen.data])
+    return colas
+  }, [resumen.data, categoria])
 
   const columns: ColumnsType<PrendarioCreditoRow> = useMemo(
     () => [
-    { title: 'Crédito', dataIndex: 'creditoId', width: 90 },
-    {
-      title: 'Contrato',
-      dataIndex: 'numeroContratoPrendario',
-      width: 110,
-      render: (v: string | null) => v || '(pendiente)',
-    },
-    { title: 'DNI', dataIndex: 'numeroDocumento', width: 100 },
-    { title: 'Cliente', dataIndex: 'nombreCompleto', ellipsis: true },
-    {
-      title: 'Tasación',
-      dataIndex: 'montoTasacion',
-      width: 110,
-      align: 'right',
-      render: (v: number) => formatMoney(v),
-    },
-    {
-      title: 'Préstamo',
-      dataIndex: 'montoCredito',
-      width: 110,
-      align: 'right',
-      render: (v: number) => formatMoney(v),
-    },
-    {
-      title: 'LTV',
-      key: 'ltv',
-      width: 72,
-      align: 'right',
-      render: (_, row) => {
-        const pct = ltvObservado(row.montoCredito, row.montoTasacion)
-        return pct == null ? '—' : `${pct}%`
+      {
+        title: 'Cliente',
+        key: 'cliente',
+        width: '24%',
+        render: (_, row) => (
+          <div className="prendario-lista-cliente">
+            <strong title={row.nombreCompleto ?? undefined}>
+              {row.nombreCompleto || 'Sin nombre'}
+            </strong>
+            <span>{row.numeroDocumento || 'Sin DNI'}</span>
+          </div>
+        ),
       },
-    },
-    {
-      title: 'Vence',
-      dataIndex: 'fechaVencimiento',
-      width: 110,
-      render: (v: string) => formatFecha(v),
-    },
-    {
-      title: 'Remate',
-      dataIndex: 'fechaRemate',
-      width: 110,
-      render: (v: string | null) => formatFecha(v),
-    },
-    {
-      title: 'Días',
-      dataIndex: 'diasParaVencer',
-      width: 70,
-      align: 'right',
-      render: (v: number) => (
-        <Text type={v < 0 ? 'danger' : v <= 3 ? 'warning' : undefined}>{v}</Text>
-      ),
-    },
-    {
-      title: 'Situación',
-      key: 'situacion',
-      width: 130,
-      render: (_, row) => {
-        const s = situacionPrendario(row)
-        return (
-          <Tooltip title={s.hint}>
-            <Tag color={s.color}>{s.label}</Tag>
-          </Tooltip>
-        )
+      {
+        title: 'Préstamo',
+        dataIndex: 'montoCredito',
+        width: '18%',
+        align: 'right',
+        render: (v: number) => <strong className="prendario-lista-num">{formatMoney(v)}</strong>,
       },
-    },
-    {
-      title: '',
-      key: 'acciones',
-      width: 130,
-      render: (_, row) => (
-        <Button
-          type="link"
-          size="small"
-          onClick={() =>
-            navigate(`/credito/prendario/gestionar/${row.personaId}?creditoId=${row.creditoId}`)
-          }
-        >
-          {row.categoria === 'SinBienes' || row.bienes < 1 ? 'Completar bienes' : 'Gestionar'}
-        </Button>
-      ),
-    },
-  ],
+      {
+        title: 'Tasación',
+        dataIndex: 'montoTasacion',
+        width: '18%',
+        align: 'right',
+        render: (v: number) =>
+          v > 0 ? (
+            <span className="prendario-lista-num">{formatMoney(v)}</span>
+          ) : (
+            <Text type="secondary">—</Text>
+          ),
+      },
+      {
+        title: 'Vence',
+        key: 'vence',
+        width: '18%',
+        align: 'right',
+        render: (_, row) => {
+          const dias = row.diasParaVencer
+          const urgente = dias < 0 ? 'danger' : dias <= 3 ? 'warning' : undefined
+          return (
+            <div className="prendario-lista-plazo">
+              <strong>{formatFecha(row.fechaVencimiento)}</strong>
+              <Text type={urgente}>
+                {row.categoria === 'Rematado' && row.fechaRemate
+                  ? `Remate ${formatFecha(row.fechaRemate)}`
+                  : dias < 0
+                    ? `${Math.abs(dias)} día${Math.abs(dias) === 1 ? '' : 's'} vencido`
+                    : dias === 0
+                      ? 'Vence hoy'
+                      : `${dias} día${dias === 1 ? '' : 's'}`}
+              </Text>
+            </div>
+          )
+        },
+      },
+      {
+        title: 'Estado',
+        key: 'acciones',
+        width: '22%',
+        render: (_, row) => {
+          const s = situacionPrendario(row)
+          return (
+            <div className="prendario-lista-estado">
+              <Tooltip title={s.hint}>
+                <Tag color={s.color}>{s.label}</Tag>
+              </Tooltip>
+              <Button
+                type="link"
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  navigate(`/credito/prendario/gestionar/${row.personaId}?creditoId=${row.creditoId}`)
+                }}
+              >
+                {etiquetaAccionListado(row)}
+              </Button>
+            </div>
+          )
+        },
+      },
+    ],
     [navigate],
   )
 
@@ -298,7 +360,7 @@ export function CreditoPrendarioPage() {
     <CredixPage
       className="credito-prendario-page"
       title="Crédito prendario"
-      subtitle={undefined}
+      subtitle="Bandeja de esta oficina. Pulse una cifra para filtrar."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -317,24 +379,25 @@ export function CreditoPrendarioPage() {
       }
     >
       <div className="credito-prendario-toolbar">
-        <Segmented
-          value={categoria ?? 'todas'}
-          onChange={(v) => {
-            setPage(1)
-            setCategoria(v === 'todas' ? undefined : (v as PrendarioCategoria))
-          }}
-          options={[
-            { label: 'Todas', value: 'todas' },
-            { label: 'Por vencer', value: 'PorVencer' },
-            { label: 'Vencidos', value: 'Vencido' },
-            { label: 'Remate', value: 'Rematado' },
-          ]}
-        />
+        {categoria ? (
+          <Button type="link" onClick={() => { setPage(1); setCategoria(undefined) }}>
+            Ver todas
+          </Button>
+        ) : (
+          <span />
+        )}
         <Space.Compact className="credito-prendario-toolbar__buscar">
           <Input
-            placeholder="Cliente, DNI o contrato"
+            allowClear
+            placeholder="Cliente o DNI"
             value={buscar}
-            onChange={(e) => setBuscar(e.target.value)}
+            onChange={(e) => {
+              setBuscar(e.target.value)
+              if (e.target.value === '') {
+                setPage(1)
+                setTermino('')
+              }
+            }}
             onPressEnter={() => {
               setPage(1)
               setTermino(buscar.trim())
@@ -356,6 +419,7 @@ export function CreditoPrendarioPage() {
         <Text type="danger">{errMsg(listado.error)}</Text>
       ) : null}
       <CredixDataTable<PrendarioCreditoRow>
+        mode="operacion"
         rowKey="creditoId"
         columns={columns}
         dataSource={listado.data?.items ?? []}
@@ -367,8 +431,13 @@ export function CreditoPrendarioPage() {
           showSizeChanger: false,
           onChange: (p) => setPage(p),
         }}
-        locale={{ emptyText: 'No hay créditos prendarios en esta oficina' }}
-        scroll={{ x: 'max-content' }}
+        locale={{ emptyText: textoVacioListado(categoria) }}
+        tableLayout="fixed"
+        onRow={(row) => ({
+          style: { cursor: 'pointer' },
+          onClick: () =>
+            navigate(`/credito/prendario/gestionar/${row.personaId}?creditoId=${row.creditoId}`),
+        })}
       />
       <Modal
         title="Avisos de vencimiento (3 días)"

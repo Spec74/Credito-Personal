@@ -14,6 +14,8 @@ export interface PrendarioResumen {
   porVencer: number
   vencidos: number
   rematados: number
+  solicitudes: number
+  montoCartera: number
 }
 
 export interface PrendarioCreditoRow {

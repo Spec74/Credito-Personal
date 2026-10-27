@@ -21,12 +21,14 @@ public enum PrendarioCategoria
     Vigente,
 }
 
-/// <summary>Tarjetas del listado, sobre cartera desembolsada (<c>Estado = 'DES'</c>).</summary>
+/// <summary>Tarjetas del listado: colas de trabajo + exposición de cartera viva.</summary>
 public sealed record PrendarioResumenDto(
     int Total,
     int PorVencer,
     int Vencidos,
-    int Rematados);
+    int Rematados,
+    int Solicitudes,
+    decimal MontoCartera);
 
 public sealed record PrendarioCreditoRowDto(
     int CreditoId,

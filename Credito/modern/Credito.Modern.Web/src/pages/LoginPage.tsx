@@ -21,6 +21,7 @@ import { BrandLogo } from '../components/brand/BrandLogo'
 import { branding } from '../config/branding'
 import { fetchClientPublicIp } from '../utils/clientIp'
 import { parseLoginOficinaId } from '../utils/sucursalRed'
+import { CredixColorSchemeToggle } from '../components/layout/CredixColorSchemeToggle'
 
 const { Text } = Typography
 
@@ -141,6 +142,9 @@ export function LoginPage() {
 
   return (
     <main className="credix-login-wrap" translate="no">
+      <div className="credix-login-theme">
+        <CredixColorSchemeToggle />
+      </div>
       <Card className="credix-login-card" styles={{ body: { paddingTop: 20 } }}>
         <BrandLogo showTagline />
 

@@ -108,7 +108,7 @@ describe('medioNombreMarca', () => {
     expect(medioNombreMarca('YAPE')).toBe('Yape')
     expect(medioNombreMarca('YAPE HUANTA')).toBe('Yape')
     expect(medioNombreMarca('BCO CREDITO')).toBe('BCP')
-    expect(medioNombreMarca('BCO NACION')).toBe('Nación')
+    expect(medioNombreMarca('BCO NACION')).toBe('Banco de la Nación')
     expect(medioNombreMarca('INTERBANK')).toBe('Interbank')
   })
 })

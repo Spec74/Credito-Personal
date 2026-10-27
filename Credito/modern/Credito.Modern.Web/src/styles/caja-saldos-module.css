@@ -26,7 +26,7 @@
   padding: 12px 14px;
   border-radius: 10px;
   border: 1px solid var(--credix-border, #e5e7eb);
-  background: #fff;
+  background: var(--credix-surface);
 }
 
 .caja-saldos-asignadas-actions .ant-btn-dangerous {
@@ -47,7 +47,7 @@
 }
 
 .caja-saldos-page .caja-saldos-table .ant-table-cell-fix-right {
-  background: #fff;
+  background: var(--credix-surface);
   box-shadow: -8px 0 12px rgb(15 23 42 / 6%);
 }
 
@@ -71,7 +71,7 @@
 }
 
 .caja-saldos-table .ant-table-body::-webkit-scrollbar-thumb {
-  background: #b9c9dc;
+  background: var(--credix-scroll-thumb);
   border-radius: 8px;
 }
 
@@ -80,7 +80,7 @@
 }
 
 .caja-saldos-table .ant-table-body::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: var(--credix-surface-muted);
 }
 
 .caja-saldos-resumen__boton {
@@ -148,11 +148,12 @@
 
 .caja-saldos-table .ant-table-summary {
   font-weight: 700;
-  background: linear-gradient(90deg, #e8f2fc 0%, #f8fbff 100%);
+  background: var(--credix-brand-light);
 }
 
 .caja-saldos-table .ant-table-summary .ant-table-cell {
-  color: var(--credix-brand, #114885);
+  background: var(--credix-brand-light);
+  color: var(--credix-ink-brand, var(--credix-brand, #114885));
   font-variant-numeric: tabular-nums;
 }
 
@@ -177,15 +178,15 @@
 }
 
 .caja-saldos-cierre-panel .credix-panel {
-  border-color: #c5daf0;
+  border-color: var(--credix-brand-line);
 }
 
 .caja-saldos-boveda-banner {
   margin-bottom: 12px;
   padding: 10px 14px;
   border-radius: 10px;
-  border: 1px solid #c5daf0;
-  background: linear-gradient(90deg, #e8f2fc 0%, #fff 100%);
+  border: 1px solid var(--credix-brand-line);
+  background: var(--credix-brand-light);
   font-size: 13px;
   word-break: break-word;
 }

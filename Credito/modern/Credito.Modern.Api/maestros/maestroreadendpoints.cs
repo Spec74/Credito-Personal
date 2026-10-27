@@ -552,8 +552,10 @@ internal static class MaestroReadEndpoints
         .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
         app.MapGet("/api/v1/almacenes", async Task<Results<Ok<List<AlmacenListItemDto>>, ProblemHttpResult>> (
+            HttpContext httpContext,
             int? oficinaId,
             IAlmacenReadService almacenes,
+            IOficinaReadService oficinas,
             ILoggerFactory loggerFactory,
             IHostEnvironment env,
             CancellationToken ct) =>
@@ -561,7 +563,19 @@ internal static class MaestroReadEndpoints
             var log = loggerFactory.CreateLogger("Almacenes");
             try
             {
-                var items = await almacenes.GetActivosAsync(oficinaId, ct).ConfigureAwait(false);
+                var (info, oficinaProblem) = await SesionOficina
+                    .ResolverAsync(httpContext, oficinas, oficinaId, ct)
+                    .ConfigureAwait(false);
+                if (oficinaProblem is not null)
+                {
+                    return oficinaProblem;
+                }
+
+                // Sin oficinaId: destinos de transferencia (otras sedes). Con filtro: sucursal = JWT.
+                var filtro = oficinaId is >= 1
+                    ? SesionOficina.OficinaLectura(info!, oficinaId, allowRed: false)
+                    : null;
+                var items = await almacenes.GetActivosAsync(filtro, ct).ConfigureAwait(false);
                 return TypedResults.Ok(items);
             }
             catch (InvalidOperationException ex)

@@ -35,7 +35,6 @@ const SECTIONS = [
     title: 'Caja y cobranza',
     links: [
       { to: '/caja/diario', label: 'Caja diario' },
-      { to: '/caja/chica', label: 'Caja chica' },
       { to: '/caja/saldos', label: 'Saldos y cierres' },
       { to: '/informes/cobro-diario', label: 'Cobro diario' },
     ],
@@ -44,6 +43,7 @@ const SECTIONS = [
     title: 'Crédito y clientes',
     links: [
       { to: '/credito/consulta', label: 'Consulta de crédito' },
+      { to: '/credito/nuevo', label: 'Nueva solicitud' },
       { to: '/credito/simulador', label: 'Simulador' },
       { to: '/credito/aprobar', label: 'Aprobar créditos' },
       { to: '/clientes', label: 'Clientes' },

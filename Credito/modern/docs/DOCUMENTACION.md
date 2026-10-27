@@ -1,6 +1,6 @@
 # Documentación de Credito.Modern
 
-**Estado del paquete documental: COMPLETO (100%)** · 2026-10-24 · rama `Eber-migracion`.
+**Estado del paquete documental: COMPLETO (100%)** · 2026-10-27 · rama `Eber-migracion`.
 Una base `CREDITO`; sucursal = `OficinaId`. Alcance sucursal vs Central en SSD-07/08.
 
 Este es el **índice único** para informática, negocio y auditoría.  
@@ -16,7 +16,7 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 | Arquitectura | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Presentación gerencia (slides) | [PRESENTACION_ARQUITECTURA.html](PRESENTACION_ARQUITECTURA.html) |
 | Plan multisucursal + prendario | [migration/PLAN-MULTISUCURSAL-PRENDARIO.md](migration/PLAN-MULTISUCURSAL-PRENDARIO.md) |
-| Siguiente nivel UI / ventaja competitiva (Spec Kit) | [ssd/SSD-13-experiencia-operativa.md](ssd/SSD-13-experiencia-operativa.md) · [speckit/001](speckit/001-experiencia-operativa/spec.md) · [contrato C](speckit/001-experiencia-operativa/contrato-datos-c.md) · [PLA/UIF](speckit/001-experiencia-operativa/contrato-pla-uif.md) · [avisos/agenda](speckit/002-comunicados-agenda/spec.md) · [móvil](speckit/003-movil-shell/spec.md) · [SSD-15](ssd/SSD-15-movil-shell.md) · [alcance red](speckit/004-alcance-red/spec.md) · [Facturador Smart](speckit/005-facturador-smart/spec.md) · [SSD-16](ssd/SSD-16-facturador-smart.md) · [estructura](speckit/006-estructura-contemporanea/spec.md) · [SSD-17](ssd/SSD-17-estructura-contemporanea.md) |
+| Siguiente nivel UI / ventaja competitiva (Spec Kit) | [ssd/SSD-13-experiencia-operativa.md](ssd/SSD-13-experiencia-operativa.md) · [speckit/001](speckit/001-experiencia-operativa/spec.md) · [contrato C](speckit/001-experiencia-operativa/contrato-datos-c.md) · [PLA/UIF](speckit/001-experiencia-operativa/contrato-pla-uif.md) · [avisos/agenda](speckit/002-comunicados-agenda/spec.md) · [móvil](speckit/003-movil-shell/spec.md) · [SSD-15](ssd/SSD-15-movil-shell.md) · [alcance red](speckit/004-alcance-red/spec.md) · [Facturador Smart](speckit/005-facturador-smart/spec.md) · [SSD-16](ssd/SSD-16-facturador-smart.md) · [estructura](speckit/006-estructura-contemporanea/spec.md) · [SSD-17](ssd/SSD-17-estructura-contemporanea.md) · [color](ssd/SSD-19-color-scheme.md) |
 | Tesis BI — preguntas al gerente | [tesis/preguntas-gerente-bi-2026.md](tesis/preguntas-gerente-bi-2026.md) |
 | Glosario | [GLOSARIO.md](GLOSARIO.md) |
 | Ambientes | [AMBIENTES.md](AMBIENTES.md) |
@@ -33,7 +33,7 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 
 ---
 
-## 2. Paquete SSD (as-built 00–12 + cambios 13–16)
+## 2. Paquete SSD (as-built 00–12 + cambios 13–18)
 
 | Id | Módulo | Spec |
 |----|--------|------|
@@ -55,6 +55,8 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 | SSD-15 | Shell móvil (todas las pantallas) | [SSD-15-movil-shell.md](ssd/SSD-15-movil-shell.md) · [cómo aprender Spec Kit](speckit/COMO-APRENDER.md) |
 | SSD-16 | Lecciones Facturador Smart (sin clonar ERP) | [SSD-16-facturador-smart.md](ssd/SSD-16-facturador-smart.md) · [005](speckit/005-facturador-smart/spec.md) · [auditoría](speckit/005-facturador-smart/audit-modulos.md) |
 | SSD-17 | Estructura contemporánea (documento + chrome) | [SSD-17-estructura-contemporanea.md](ssd/SSD-17-estructura-contemporanea.md) · [006](speckit/006-estructura-contemporanea/spec.md) |
+| SSD-18 | Flujos de cada módulo + alcance red | [SSD-18-flujos-modulos.md](ssd/SSD-18-flujos-modulos.md) |
+| SSD-19 | Esquema de color (claro / oscuro, WCAG 2.2 AA) | [SSD-19-color-scheme.md](ssd/SSD-19-color-scheme.md) |
 
 Plantilla: [ssd/SPEC-TEMPLATE.md](ssd/SPEC-TEMPLATE.md).
 

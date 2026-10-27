@@ -1,8 +1,7 @@
 import { useCallback, useMemo } from 'react'
-import { Button, Col, Grid, Input, InputNumber, Row, Space, Typography } from 'antd'
+import { Button, Input, InputNumber, Typography } from 'antd'
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import type { PrendaItem } from '../../api/creditoGestion'
-import { CredixDataTable } from '../credix'
 import { formatMoney } from '../../utils/formatMoney'
 import {
   errorCampoPrenda,
@@ -25,13 +24,13 @@ type Props = {
   errores?: PrendaCampoError[]
 }
 
-type DetailField = {
-  key: string
-  label: string
-  value: string
-  muted?: boolean
-  money?: boolean
-}
+const DETALLE_CAMPOS = [
+  { campo: 'marca', label: 'Marca', max: PRENDA_MAX.marca },
+  { campo: 'modelo', label: 'Modelo', max: PRENDA_MAX.modelo },
+  { campo: 'serie', label: 'Serie', max: PRENDA_MAX.serie, placeholder: 'N/T' },
+  { campo: 'color', label: 'Color', max: PRENDA_MAX.color },
+  { campo: 'codigoInterno', label: 'Código interno', max: PRENDA_MAX.codigoInterno },
+] as const
 
 function celda(texto: string | null | undefined, vacio = '—') {
   const t = (texto ?? '').trim()
@@ -48,43 +47,24 @@ function statusCampo(
   return mensaje ? { status: 'error', help: mensaje } : {}
 }
 
-function camposDetalle(prenda: PrendaItem): DetailField[] {
-  return [
-    { key: 'marca', label: 'Marca', value: celda(prenda.marca), muted: !prenda.marca?.trim() },
-    { key: 'modelo', label: 'Modelo', value: celda(prenda.modelo), muted: !prenda.modelo?.trim() },
-    {
-      key: 'serie',
-      label: 'Serie',
-      value: celda(prenda.serie, 'N/T'),
-      muted: !(prenda.serie ?? '').trim(),
-    },
-    { key: 'color', label: 'Color', value: celda(prenda.color), muted: !prenda.color?.trim() },
-    {
-      key: 'codigo',
-      label: 'Código interno',
-      value: celda(prenda.codigoInterno),
-      muted: !prenda.codigoInterno?.trim(),
-    },
-    {
-      key: 'tasacion',
-      label: 'Tasación',
-      value: formatMoney(prenda.valorTasacion),
-      money: true,
-    },
-    {
-      key: 'obs',
-      label: 'Observaciones',
-      value: celda(prenda.observaciones),
-      muted: !prenda.observaciones?.trim(),
-    },
-  ]
+function extrasLeidos(prenda: PrendaItem): { key: string; label: string; value: string }[] {
+  const rows: { key: string; label: string; value: string }[] = []
+  if (prenda.marca?.trim()) rows.push({ key: 'marca', label: 'Marca', value: prenda.marca.trim() })
+  if (prenda.modelo?.trim()) rows.push({ key: 'modelo', label: 'Modelo', value: prenda.modelo.trim() })
+  if (prenda.serie?.trim()) rows.push({ key: 'serie', label: 'Serie', value: prenda.serie.trim() })
+  if (prenda.color?.trim()) rows.push({ key: 'color', label: 'Color', value: prenda.color.trim() })
+  if (prenda.codigoInterno?.trim()) {
+    rows.push({ key: 'codigo', label: 'Código', value: prenda.codigoInterno.trim() })
+  }
+  if (prenda.observaciones?.trim()) {
+    rows.push({ key: 'obs', label: 'Nota', value: prenda.observaciones.trim() })
+  }
+  return rows
 }
 
 /**
- * Detalle de bienes en custodia. El crédito admite varios, y la tasación del crédito es la
- * suma de los que tengan descripción: el servidor la recalcula desde lo guardado.
- *
- * Móvil: ficha etiqueta/valor. Escritorio: tabla.
+ * Bienes en custodia: ficha por bien (no tabla de 9 columnas).
+ * Obligatorio: descripción + tasación. El resto identifica el bien.
  */
 export function PrendasEditor({
   value,
@@ -93,8 +73,6 @@ export function PrendasEditor({
   readOnly = false,
   errores,
 }: Props) {
-  const screens = Grid.useBreakpoint()
-  const isMobile = screens.md !== true
   const bloqueado = disabled || readOnly
 
   const actualizar = useCallback(
@@ -119,129 +97,85 @@ export function PrendasEditor({
     onChange([...value, prendaVacia()])
   }, [value, onChange, bloqueado])
 
-  const filas = useMemo(
-    () => value.map((prenda, indice) => ({ key: indice, indice, prenda })),
-    [value],
-  )
-
   const total = useMemo(() => totalTasacion(value), [value])
 
-  const footer = (
-    <Row
-      justify="space-between"
-      align="middle"
-      gutter={[8, 8]}
-      className="prendas-editor-mobile__footer"
-      style={{ marginTop: isMobile ? 4 : 12 }}
-    >
-      {!readOnly ? (
-        <Col xs={24} sm="auto">
-          <Button block={isMobile} icon={<PlusOutlined />} disabled={bloqueado} onClick={agregar}>
-            Agregar bien
-          </Button>
-        </Col>
-      ) : (
-        <Col />
-      )}
-      <Col xs={24} sm="auto">
-        <Space>
-          <Text type="secondary">Tasación total</Text>
-          <Text strong>{formatMoney(total)}</Text>
-        </Space>
-      </Col>
-    </Row>
-  )
+  return (
+    <div className="prendas-editor">
+      {value.map((prenda, indice) => {
+        const errDesc = statusCampo(errores, indice, 'descripcion')
+        const errTasa = statusCampo(errores, indice, 'valorTasacion')
+        const extras = extrasLeidos(prenda)
+        return (
+          <article key={indice} className="prendas-editor__card">
+            <header className="prendas-editor__head">
+              <span className="prendas-editor__kicker">Bien {indice + 1}</span>
+              {readOnly ? (
+                <strong className="prendas-editor__tasacion">{formatMoney(prenda.valorTasacion)}</strong>
+              ) : null}
+              {!readOnly && value.length > 1 ? (
+                <Button
+                  type="text"
+                  danger
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  disabled={bloqueado}
+                  aria-label={`Quitar bien ${indice + 1}`}
+                  onClick={() => eliminar(indice)}
+                >
+                  Quitar
+                </Button>
+              ) : null}
+            </header>
 
-  const renderInput = (
-    indice: number,
-    campo: keyof PrendaItem,
-    prenda: PrendaItem,
-    opts?: { placeholder?: string; maxLength?: number },
-  ) => {
-    const err = statusCampo(errores, indice, campo)
-    return (
-      <div>
-        <Input
-          disabled={bloqueado}
-          status={err.status}
-          maxLength={opts?.maxLength}
-          placeholder={opts?.placeholder}
-          value={(prenda[campo] as string | null | undefined) ?? ''}
-          onChange={(e) => actualizar(indice, { [campo]: e.target.value })}
-        />
-        {err.help ? (
-          <Text type="danger" style={{ fontSize: 12 }}>
-            {err.help}
-          </Text>
-        ) : null}
-      </div>
-    )
-  }
-
-  if (isMobile) {
-    return (
-      <div className="prendas-editor-mobile">
-        {value.map((prenda, indice) => {
-          const titulo = celda(prenda.descripcion, `Bien #${indice + 1}`)
-          return (
-            <article key={indice} className="prendas-editor-mobile__card">
-              <div className="prendas-editor-mobile__head">
-                <div className="prendas-editor-mobile__head-title">
-                  <span className="prendas-editor-mobile__head-kicker">Bien #{indice + 1}</span>
-                  {readOnly ? <p className="prendas-editor-mobile__head-name">{titulo}</p> : null}
-                </div>
-                {!readOnly ? (
-                  <Button
-                    type="text"
-                    danger
-                    size="small"
-                    icon={<DeleteOutlined />}
-                    disabled={bloqueado}
-                    aria-label={`Quitar bien ${indice + 1}`}
-                    onClick={() => eliminar(indice)}
-                  />
+            {readOnly ? (
+              <div className="prendas-editor__lectura">
+                <p className="prendas-editor__nombre">{celda(prenda.descripcion, 'Sin descripción')}</p>
+                {extras.length > 0 ? (
+                  <dl className="prendas-editor__dl">
+                    {extras.map((x) => (
+                      <div key={x.key} className="prendas-editor__dl-item">
+                        <dt>{x.label}</dt>
+                        <dd>{x.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
                 ) : null}
               </div>
+            ) : (
+              <div className="prendas-editor__form">
+                <label className="prendas-editor__field prendas-editor__field--hero">
+                  <span>Qué deja en prenda</span>
+                  <Input
+                    disabled={bloqueado}
+                    status={errDesc.status}
+                    maxLength={PRENDA_MAX.descripcion}
+                    placeholder="Ej. moto KTM Duke, anillo oro 18k"
+                    value={prenda.descripcion}
+                    onChange={(e) => actualizar(indice, { descripcion: e.target.value })}
+                  />
+                  {errDesc.help ? <Text type="danger">{errDesc.help}</Text> : null}
+                </label>
+                <label className="prendas-editor__field prendas-editor__field--money">
+                  <span>Tasación (S/)</span>
+                  <InputNumber
+                    min={0}
+                    precision={2}
+                    disabled={bloqueado}
+                    status={errTasa.status}
+                    value={prenda.valorTasacion || null}
+                    onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
+                    prefix="S/"
+                  />
+                  {errTasa.help ? <Text type="danger">{errTasa.help}</Text> : null}
+                </label>
 
-              {readOnly ? (
-                <ul className="prendas-editor-mobile__rows">
-                  {camposDetalle(prenda).map((campo) => (
-                    <li key={campo.key} className="prendas-editor-mobile__row">
-                      <span className="prendas-editor-mobile__label">{campo.label}</span>
-                      <span
-                        className={[
-                          'prendas-editor-mobile__value',
-                          campo.muted ? 'prendas-editor-mobile__value--muted' : '',
-                          campo.money ? 'prendas-editor-mobile__value--money' : '',
-                        ]
-                          .filter(Boolean)
-                          .join(' ')}
-                      >
-                        {campo.value}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <>
-                  {(
-                    [
-                      ['descripcion', 'Descripción', PRENDA_MAX.descripcion, 'Ej. anillo de oro 18k'],
-                      ['marca', 'Marca', PRENDA_MAX.marca, undefined],
-                      ['modelo', 'Modelo', PRENDA_MAX.modelo, undefined],
-                      ['serie', 'Serie', PRENDA_MAX.serie, 'N/T'],
-                      ['color', 'Color', PRENDA_MAX.color, undefined],
-                      ['codigoInterno', 'Código interno', PRENDA_MAX.codigoInterno, undefined],
-                      ['observaciones', 'Observaciones', PRENDA_MAX.observaciones, undefined],
-                    ] as const
-                  ).map(([campo, label, max, placeholder]) => {
+                <div className="prendas-editor__detalle">
+                  {DETALLE_CAMPOS.map(({ campo, label, max, ...rest }) => {
                     const err = statusCampo(errores, indice, campo)
+                    const placeholder = 'placeholder' in rest ? rest.placeholder : undefined
                     return (
-                      <label
-                        key={campo}
-                        className="prendas-editor-mobile__field--edit"
-                      >
-                        <span className="prendas-editor-mobile__label">{label}</span>
+                      <label key={campo} className="prendas-editor__field">
+                        <span>{label}</span>
                         <Input
                           disabled={bloqueado}
                           status={err.status}
@@ -250,187 +184,41 @@ export function PrendasEditor({
                           value={(prenda[campo] as string | null | undefined) ?? ''}
                           onChange={(e) => actualizar(indice, { [campo]: e.target.value })}
                         />
-                        {err.help ? (
-                          <Text type="danger" style={{ fontSize: 12 }}>
-                            {err.help}
-                          </Text>
-                        ) : null}
+                        {err.help ? <Text type="danger">{err.help}</Text> : null}
                       </label>
                     )
                   })}
-                  {(() => {
-                    const err = statusCampo(errores, indice, 'valorTasacion')
-                    return (
-                      <label className="prendas-editor-mobile__field--edit">
-                        <span className="prendas-editor-mobile__label">Tasación</span>
-                        <InputNumber
-                          style={{ width: '100%' }}
-                          min={0}
-                          precision={2}
-                          disabled={bloqueado}
-                          status={err.status}
-                          value={prenda.valorTasacion}
-                          onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
-                        />
-                        {err.help ? (
-                          <Text type="danger" style={{ fontSize: 12 }}>
-                            {err.help}
-                          </Text>
-                        ) : null}
-                      </label>
-                    )
-                  })()}
-                </>
-              )}
-            </article>
-          )
-        })}
-        {footer}
-      </div>
-    )
-  }
-
-  return (
-    <div className="prendas-editor-desktop-wrap">
-      <CredixDataTable
-        mode="operacion"
-        pagination={false}
-        dataSource={filas}
-        rowKey="key"
-        scroll={{ x: readOnly ? 960 : 1100 }}
-        columns={[
-          {
-            title: 'Descripción',
-            width: 240,
-            render: (_, { indice, prenda }) =>
-              readOnly ? (
-                <Text>{celda(prenda.descripcion)}</Text>
-              ) : (
-                renderInput(indice, 'descripcion', prenda, {
-                  placeholder: 'Ej. anillo de oro 18k',
-                  maxLength: PRENDA_MAX.descripcion,
-                })
-              ),
-          },
-          {
-            title: 'Marca',
-            width: 130,
-            render: (_, { indice, prenda }) =>
-              readOnly ? (
-                <Text>{celda(prenda.marca)}</Text>
-              ) : (
-                renderInput(indice, 'marca', prenda, { maxLength: PRENDA_MAX.marca })
-              ),
-          },
-          {
-            title: 'Modelo',
-            width: 130,
-            render: (_, { indice, prenda }) =>
-              readOnly ? (
-                <Text>{celda(prenda.modelo)}</Text>
-              ) : (
-                renderInput(indice, 'modelo', prenda, { maxLength: PRENDA_MAX.modelo })
-              ),
-          },
-          {
-            title: 'Serie',
-            width: 130,
-            render: (_, { indice, prenda }) =>
-              readOnly ? (
-                <Text>{celda(prenda.serie, 'N/T')}</Text>
-              ) : (
-                renderInput(indice, 'serie', prenda, {
-                  placeholder: 'N/T',
-                  maxLength: PRENDA_MAX.serie,
-                })
-              ),
-          },
-          {
-            title: 'Color',
-            width: 110,
-            render: (_, { indice, prenda }) =>
-              readOnly ? (
-                <Text>{celda(prenda.color)}</Text>
-              ) : (
-                renderInput(indice, 'color', prenda, { maxLength: PRENDA_MAX.color })
-              ),
-          },
-          {
-            title: 'Código interno',
-            width: 140,
-            render: (_, { indice, prenda }) =>
-              readOnly ? (
-                <Text>{celda(prenda.codigoInterno)}</Text>
-              ) : (
-                renderInput(indice, 'codigoInterno', prenda, {
-                  maxLength: PRENDA_MAX.codigoInterno,
-                })
-              ),
-          },
-          {
-            title: 'Tasación',
-            width: 140,
-            align: 'right',
-            render: (_, { indice, prenda }) => {
-              if (readOnly) {
-                return <Text strong>{formatMoney(prenda.valorTasacion)}</Text>
-              }
-              const err = statusCampo(errores, indice, 'valorTasacion')
-              return (
-                <div>
-                  <InputNumber
-                    style={{ width: '100%' }}
-                    min={0}
-                    precision={2}
-                    disabled={bloqueado}
-                    status={err.status}
-                    value={prenda.valorTasacion}
-                    onChange={(v) => actualizar(indice, { valorTasacion: v ?? 0 })}
-                  />
-                  {err.help ? (
-                    <Text type="danger" style={{ fontSize: 12 }}>
-                      {err.help}
-                    </Text>
-                  ) : null}
                 </div>
-              )
-            },
-          },
-          {
-            title: 'Observaciones',
-            width: 200,
-            render: (_, { indice, prenda }) =>
-              readOnly ? (
-                <Text>{celda(prenda.observaciones)}</Text>
-              ) : (
-                renderInput(indice, 'observaciones', prenda, {
-                  maxLength: PRENDA_MAX.observaciones,
-                })
-              ),
-          },
-          ...(readOnly
-            ? []
-            : [
-                {
-                  title: 'Acciones',
-                  key: 'acciones',
-                  width: 48,
-                  render: (_: unknown, { indice }: { indice: number }) => (
-                    <Button
-                      type="text"
-                      danger
-                      size="small"
-                      icon={<DeleteOutlined />}
-                      disabled={bloqueado}
-                      aria-label={`Quitar bien ${indice + 1}`}
-                      onClick={() => eliminar(indice)}
-                    />
-                  ),
-                },
-              ]),
-        ]}
-      />
-      {footer}
+
+                <label className="prendas-editor__field prendas-editor__field--wide">
+                  <span>Nota del bien</span>
+                  <Input
+                    disabled={bloqueado}
+                    maxLength={PRENDA_MAX.observaciones}
+                    placeholder="Opcional"
+                    value={prenda.observaciones ?? ''}
+                    onChange={(e) => actualizar(indice, { observaciones: e.target.value })}
+                  />
+                </label>
+              </div>
+            )}
+          </article>
+        )
+      })}
+
+      <div className="prendas-editor__footer">
+        {!readOnly ? (
+          <Button icon={<PlusOutlined />} disabled={bloqueado} onClick={agregar}>
+            Otro bien
+          </Button>
+        ) : (
+          <span />
+        )}
+        <div className="prendas-editor__total">
+          <Text type="secondary">Tasación total</Text>
+          <Text strong>{formatMoney(total)}</Text>
+        </div>
+      </div>
     </div>
   )
 }

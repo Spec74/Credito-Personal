@@ -62,7 +62,8 @@ public sealed record BandejaItemDto(
     string Tipo,
     int Id,
     string Titulo,
-    DateTime Fecha);
+    DateTime Fecha,
+    bool PermanenteNo);
 
 public sealed record ComunicadoAdjuntoContenidoDto(
     int AdjuntoId,

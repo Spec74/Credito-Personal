@@ -21,6 +21,7 @@ Entrar al sistema, obtener menú por oficina/usuario y aterrizar en el tablero o
 **Entra**
 
 - Login SPA, refresh JWT, `/auth/me`, hora SQL
+- Esquema de color (toggle en login y cabecera, SSD-19)
 - Resolución de menú MVC → SPA (`legacyRoutes`, `resolveSpaPathFromMenuItem`)
 - Tableros analista y admin (oficina JWT; Central: `?sedeId=` en `/dashboard/admin/*`)
 - Almacenamiento de clave (claro legado o `$pbk2$`) y migración perezosa

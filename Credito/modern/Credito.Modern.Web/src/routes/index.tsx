@@ -129,6 +129,14 @@ export function AppRoutes() {
         <Route path="/reportes/venta" element={<Pages.ReporteVentaIndexPage />} />
         <Route path="/credito" element={<Pages.CreditoHubPage />} />
         <Route
+          path="/credito/nuevo"
+          element={
+            <CreditoOperacionRoute>
+              <Pages.CreditoNuevoPage />
+            </CreditoOperacionRoute>
+          }
+        />
+        <Route
           path="/credito/simulador"
           element={
             <CreditoOperacionRoute>
