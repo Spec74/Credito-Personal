@@ -77,7 +77,7 @@ Política `CreditoRolPrendario` (ANALISTA o administrador).
 | `GET .../cobro-preview` | Importes de `PlanPago` (no inventa %) |
 | `POST .../actualizar-ficha`, `POST/GET .../prenda-foto` | Cómo llegó + foto (`storage/{creditoId}/`) |
 | `POST .../renovar`, `POST .../abonar`, `POST .../liberar` | Cobros con caja diario abierta |
-| `POST .../rematar` | Bien → artículo `PRM{id}` + lista precio + serie EN_ALMACEN |
+| `POST .../rematar` | Bien → artículo `PRM{id}` + lista precio + serie EN_ALMACEN. La SPA ofrece **Vender ahora** → `/ventas/venta-rapida?codigo=` |
 | `GET .../avisos-vencimiento`, `GET .../estado` | Listado / estado canal |
 | `POST .../avisos-vencimiento/enviar` | Envío Cloud API (sin marca en BD) |
 | `POST .../marcar` | Solo valida que el crédito exista; **no** escribe columna de notificación |

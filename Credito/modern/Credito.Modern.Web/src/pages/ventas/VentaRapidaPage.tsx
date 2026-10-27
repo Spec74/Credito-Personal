@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import { Alert, Button, Input, InputNumber, Space, Spin, Typography, message } from 'antd'
@@ -38,7 +38,10 @@ function errMsg(e: unknown): string {
 export function VentaRapidaPage() {
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
-  const [codigo, setCodigo] = useState('')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const codigoRemate = searchParams.get('codigo')?.trim() ?? ''
+  const remateCargado = useRef(false)
+  const [codigo, setCodigo] = useState(codigoRemate)
   const [articuloId, setArticuloId] = useState<number | undefined>()
   const [articuloCodigo, setArticuloCodigo] = useState('')
   const [cantidad, setCantidad] = useState(1)
@@ -147,6 +150,55 @@ export function VentaRapidaPage() {
       message.error(errMsg(e))
     }
   }
+
+  useEffect(() => {
+    if (codigoRemate && !codigo) setCodigo(codigoRemate)
+  }, [codigoRemate, codigo])
+
+  useEffect(() => {
+    const codigoStock = codigoRemate
+    if (!codigoStock || remateCargado.current || !caja.data) return
+    remateCargado.current = true
+    let cancelado = false
+    void (async () => {
+      try {
+        const art = await fetchArticuloVentaRapida(oficinaId, codigoStock)
+        if (cancelado) return
+        if (art.stock < 1) {
+          message.error(`Stock insuficiente (${art.stock} disponible)`)
+          return
+        }
+        setCarrito((prev) => {
+          if (prev.some((l) => l.articuloId === art.articuloId)) return prev
+          return [
+            ...prev,
+            {
+              key: `${art.articuloId}-${Date.now()}`,
+              articuloId: art.articuloId,
+              codArticulo: art.codArticulo,
+              denominacion: art.denominacion,
+              cantidad: 1,
+              descuento: 0,
+              precioUnit: art.precioVenta ?? 0,
+            },
+          ]
+        })
+        setCodigo('')
+        message.success(`${art.denominacion} listo en el ticket`)
+      } catch (e) {
+        if (!cancelado) message.error(errMsg(e))
+      } finally {
+        if (!cancelado) {
+          const next = new URLSearchParams(searchParams)
+          next.delete('codigo')
+          setSearchParams(next, { replace: true })
+        }
+      }
+    })()
+    return () => {
+      cancelado = true
+    }
+  }, [caja.data, codigoRemate, oficinaId, searchParams, setSearchParams])
 
   const total = carrito.reduce((s, l) => s + l.precioUnit * l.cantidad - l.descuento, 0)
   const stats = useMemo(

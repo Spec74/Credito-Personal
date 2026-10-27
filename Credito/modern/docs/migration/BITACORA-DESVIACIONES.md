@@ -4,6 +4,14 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Remate: vender ahora en el ticket
+
+**Qué hay:** Tras `usp_RematarPrenda` el bien ya es artículo + precio + serie
+en el almacén de la sede. La gestión ofrece **Vender ahora** y venta rápida
+carga el código `PRM{id}` al ticket.
+
+**Qué no hay:** no se arma un POS nuevo ni se emite SUNAT (US-3).
+
 ### 2026-10-27 — Cierre gerencial: chips oscuros + replicar mes
 
 **Qué hay:** Pastillas `SIN CONFIGURAR`, PRODUCTIVA y la barra de cierre

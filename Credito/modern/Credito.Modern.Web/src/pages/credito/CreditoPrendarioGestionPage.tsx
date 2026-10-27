@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalculatorOutlined, FilePdfOutlined, PlusOutlined, UploadOutlined, WhatsAppOutlined } from '@ant-design/icons'
+import { CalculatorOutlined, FilePdfOutlined, PlusOutlined, ShoppingOutlined, UploadOutlined, WhatsAppOutlined } from '@ant-design/icons'
 import { Alert, Button, Input, InputNumber, Modal, Select, Space, Tooltip, Typography, Upload, message } from 'antd'
 import {
   fetchCreditoContexto,
@@ -91,6 +91,11 @@ export function CreditoPrendarioGestionPage() {
   const [tipoPagoId, setTipoPagoId] = useState(1)
   const [fechaTransferencia, setFechaTransferencia] = useState('')
   const [obsFicha, setObsFicha] = useState<Record<number, string>>({})
+  const [stockRemate, setStockRemate] = useState<{
+    codArticulo: string
+    precioVenta: number
+    articuloId: number
+  } | null>(null)
   const puedeProrrogar = puedeProrrogarCreditoUi(roles)
 
   const ficha = useQuery({
@@ -261,6 +266,7 @@ export function CreditoPrendarioGestionPage() {
     void queryClient.invalidateQueries({ queryKey: ['prendario-resumen'] })
     void queryClient.invalidateQueries({ queryKey: ['prendario-cobro-preview', oficinaId, creditoId] })
     void queryClient.invalidateQueries({ queryKey: ['prenda-foto'] })
+    void queryClient.invalidateQueries({ queryKey: ['articulos-gestion'] })
   }
 
   const guardarFicha = useMutation({
@@ -353,8 +359,12 @@ export function CreditoPrendarioGestionPage() {
   const rematarMut = useMutation({
     mutationFn: (prendaId: number) => rematarPrenda({ oficinaId, prendaId }),
     onSuccess: (res) => {
-      message.success(`Rematado. Venda ${res.codArticulo} en venta rápida a ${formatMoney(res.precioVenta)}.`)
       invalidarPrendario()
+      setStockRemate({
+        codArticulo: res.codArticulo,
+        precioVenta: res.precioVenta,
+        articuloId: res.articuloId,
+      })
     },
     onError: (e) => message.error(errMsg(e)),
   })
@@ -733,7 +743,7 @@ export function CreditoPrendarioGestionPage() {
                                 amount: b.valorTasacion,
                                 officeLabel: b.descripcion || 'Bien en custodia',
                                 consequence:
-                                  'Todos los bienes en custodia pasan a stock a su tasación para venderlos en el punto de venta. El préstamo queda cerrado como rematado.',
+                                  'Los bienes en custodia pasan al almacén de esta sede (artículo + precio = tasación). El préstamo queda cerrado. En el siguiente paso puede venderlos en venta rápida.',
                                 okText: 'Rematar',
                                 onOk: async () => {
                                   await rematarMut.mutateAsync(b.prendaId)
@@ -934,6 +944,32 @@ export function CreditoPrendarioGestionPage() {
             </div>
           ) : null}
         </div>
+      </Modal>
+
+      <Modal
+        open={stockRemate != null}
+        title="La prenda ya está en el punto de venta"
+        wrapClassName="credix-modal-operativo"
+        width="min(480px, 96vw)"
+        okText="Vender ahora"
+        cancelText="Más tarde"
+        okButtonProps={{ icon: <ShoppingOutlined /> }}
+        onCancel={() => setStockRemate(null)}
+        onOk={() => {
+          if (!stockRemate) return
+          navigate(
+            `/ventas/venta-rapida?codigo=${encodeURIComponent(stockRemate.codArticulo)}`,
+          )
+        }}
+      >
+        {stockRemate ? (
+          <Paragraph>
+            Código <Text strong>{stockRemate.codArticulo}</Text> · precio{' '}
+            <Text strong>S/ {formatMoney(stockRemate.precioVenta)}</Text> (tasación).
+            No hay que crear artículo ni lista de precios: ya está en stock de esta sede.
+            Pulse <Text strong>Vender ahora</Text> para cargarlo al ticket.
+          </Paragraph>
+        ) : null}
       </Modal>
     </CredixPage>
   )
