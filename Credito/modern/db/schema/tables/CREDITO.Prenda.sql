@@ -16,7 +16,8 @@ CREATE TABLE [CREDITO].[Prenda] (
     [CodigoInterno] nvarchar(50) NULL,
     [UsuarioRegId] int NULL,
     [UsuarioModId] int NULL,
-    [FechaMod] datetime NULL
+    [FechaMod] datetime NULL,
+    [ArticuloRemateId] int NULL
 );
 
 -- Indices

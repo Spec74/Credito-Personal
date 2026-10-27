@@ -103,4 +103,73 @@ public class PrendarioEndpointTests : IClassFixture<CreditoModernWebApplicationF
         var response = await _client.GetAsync("/api/v1/prendario/avisos-vencimiento/estado");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Cobro_preview_sin_jwt_devuelve_401()
+    {
+        var response = await _client.GetAsync("/api/v1/prendario/cobro-preview?oficinaId=1&creditoId=1");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Actualizar_ficha_sin_jwt_devuelve_401()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/prendario/actualizar-ficha",
+            new { oficinaId = 1, prendaId = 1L, observaciones = "RAYONES" });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Renovar_sin_jwt_devuelve_401()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/prendario/renovar",
+            new { oficinaId = 1, cajaDiarioId = 1, creditoId = 1, dias = 30, tipoPagoId = 1 });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Abonar_sin_jwt_devuelve_401()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/prendario/abonar",
+            new { oficinaId = 1, cajaDiarioId = 1, creditoId = 1, importeRecibido = 10m });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Liberar_sin_jwt_devuelve_401()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/prendario/liberar",
+            new { oficinaId = 1, cajaDiarioId = 1, creditoId = 1 });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Rematar_sin_jwt_devuelve_401()
+    {
+        var response = await _client.PostAsJsonAsync(
+            "/api/v1/prendario/rematar",
+            new { oficinaId = 1, prendaId = 1L });
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Foto_get_sin_jwt_devuelve_401()
+    {
+        var response = await _client.GetAsync("/api/v1/prendario/prenda-foto/1?oficinaId=1");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Foto_post_sin_jwt_devuelve_401()
+    {
+        using var content = new MultipartFormDataContent();
+        content.Add(new StringContent("1"), "oficinaId");
+        content.Add(new StringContent("1"), "prendaId");
+        var response = await _client.PostAsync("/api/v1/prendario/prenda-foto", content);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
 }

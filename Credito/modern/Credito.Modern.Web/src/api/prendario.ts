@@ -178,3 +178,100 @@ export interface PrendarioWhatsAppEstado {
 export function fetchPrendarioAvisosEstado(): Promise<PrendarioWhatsAppEstado> {
   return apiFetch<PrendarioWhatsAppEstado>('/prendario/avisos-vencimiento/estado')
 }
+
+export interface PrendarioCobroPreview {
+  creditoId: number
+  capitalPendiente: number
+  interesPendiente: number
+  saldoAprox: number
+  fechaVencimiento: string
+  fechaRemate: string | null
+  fechaRemateEjecutado: string | null
+  puedeRematar: boolean
+  diasRenovar: number
+  nuevoVencimiento: string
+}
+
+export function fetchPrendarioCobroPreview(oficinaId: number, creditoId: number) {
+  const q = new URLSearchParams({ oficinaId: String(oficinaId), creditoId: String(creditoId) })
+  return apiFetch<PrendarioCobroPreview>(`/prendario/cobro-preview?${q}`)
+}
+
+export function actualizarFichaPrenda(body: {
+  oficinaId: number
+  prendaId: number
+  observaciones: string | null
+}) {
+  return apiFetch('/prendario/actualizar-ficha', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
+export function subirFotoPrenda(oficinaId: number, prendaId: number, file: File) {
+  const form = new FormData()
+  form.append('oficinaId', String(oficinaId))
+  form.append('prendaId', String(prendaId))
+  form.append('archivo', file)
+  return apiFetch('/prendario/prenda-foto', { method: 'POST', body: form })
+}
+
+export function renovarPrendario(body: {
+  oficinaId: number
+  cajaDiarioId: number
+  creditoId: number
+  dias?: number
+  tipoPagoId?: number
+  fechaPagoTransferencia?: string
+}) {
+  return apiFetch('/prendario/renovar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ dias: 30, tipoPagoId: 1, ...body }),
+  })
+}
+
+export function abonarPrendario(body: {
+  oficinaId: number
+  cajaDiarioId: number
+  creditoId: number
+  importeRecibido: number
+  tipoPagoId?: number
+  fechaPagoTransferencia?: string
+}) {
+  return apiFetch('/prendario/abonar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tipoPagoId: 1, ...body }),
+  })
+}
+
+export function liberarPrendario(body: {
+  oficinaId: number
+  cajaDiarioId: number
+  creditoId: number
+  tipoPagoId?: number
+  fechaPagoTransferencia?: string
+}) {
+  return apiFetch('/prendario/liberar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tipoPagoId: 1, ...body }),
+  })
+}
+
+export function rematarPrenda(body: { oficinaId: number; prendaId: number }) {
+  return apiFetch<{
+    prendaId: number
+    creditoId: number
+    articuloId: number
+    codArticulo: string
+    precioVenta: number
+    almacenId: number
+  }>('/prendario/rematar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}

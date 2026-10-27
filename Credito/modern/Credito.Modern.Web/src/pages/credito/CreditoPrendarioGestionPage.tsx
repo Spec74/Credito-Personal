@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CalculatorOutlined, FilePdfOutlined, PlusOutlined, WhatsAppOutlined } from '@ant-design/icons'
-import { Alert, Button, Input, InputNumber, Modal, Select, Space, Tooltip, Typography, message } from 'antd'
+import { CalculatorOutlined, FilePdfOutlined, PlusOutlined, UploadOutlined, WhatsAppOutlined } from '@ant-design/icons'
+import { Alert, Button, Input, InputNumber, Modal, Select, Space, Tooltip, Typography, Upload, message } from 'antd'
 import {
   fetchCreditoContexto,
   fetchCreditosGrillaPersona,
@@ -12,11 +12,24 @@ import {
   type PrendaItem,
 } from '../../api/creditoGestion'
 import { prorrogarCredito } from '../../api/creditoPlanes'
+import { fetchCajaDiarioSesion } from '../../api/cajaDiario'
+import { fetchValoresTabla } from '../../api/maestros'
+import { getAccessToken } from '../../auth/tokenStorage'
+import { getApiBaseUrl } from '../../api/client'
+import { TipoPagoChips } from '../../components/caja/TipoPagoChips'
+import { FechaHoraDigitalField, nowDatetimeLocal } from '../caja/components/FechaHoraDigitalField'
 import {
+  abonarPrendario,
+  actualizarFichaPrenda,
   devolverPrenda,
   downloadActaEntregaPrendarioPdf,
   downloadContratoPrendarioPdf,
   downloadDevolucionPrendarioPdf,
+  fetchPrendarioCobroPreview,
+  liberarPrendario,
+  rematarPrenda,
+  renovarPrendario,
+  subirFotoPrenda,
 } from '../../api/prendario'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
@@ -74,6 +87,11 @@ export function CreditoPrendarioGestionPage() {
   const [erroresPrendas, setErroresPrendas] = useState<PrendaCampoError[]>([])
   const [modalProrrogar, setModalProrrogar] = useState(false)
   const [diasProrroga, setDiasProrroga] = useState(7)
+  const [modalCobro, setModalCobro] = useState<'renovar' | 'abonar' | 'liberar' | null>(null)
+  const [montoAbono, setMontoAbono] = useState(0)
+  const [tipoPagoId, setTipoPagoId] = useState(1)
+  const [fechaTransferencia, setFechaTransferencia] = useState('')
+  const [obsFicha, setObsFicha] = useState<Record<number, string>>({})
   const puedeProrrogar = puedeProrrogarCreditoUi(roles)
 
   const ficha = useQuery({
@@ -126,6 +144,11 @@ export function CreditoPrendarioGestionPage() {
     const guardadas = bienes.data ?? []
     setPrendas(guardadas.length > 0 ? guardadas.map(prendaAItem) : [prendaVacia()])
     setFechaRematePrenda(contexto.data?.fechaRemate?.slice(0, 10) ?? '')
+    const next: Record<number, string> = {}
+    for (const b of guardadas) {
+      next[b.prendaId] = b.observaciones ?? ''
+    }
+    setObsFicha(next)
   }, [bienes.data, contexto.data?.fechaRemate])
 
   const guardarBienes = useMutation({
@@ -199,6 +222,139 @@ export function CreditoPrendarioGestionPage() {
       message.success('Vencimiento prorrogado')
       void queryClient.invalidateQueries({ queryKey: ['credito-contexto', creditoId] })
       void queryClient.invalidateQueries({ queryKey: ['prendario-creditos'] })
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const caja = useQuery({
+    queryKey: ['caja-diario-sesion', oficinaId],
+    queryFn: () => fetchCajaDiarioSesion(oficinaId),
+    enabled: oficinaId > 0,
+  })
+
+  const tiposPago = useQuery({
+    queryKey: ['valores-tabla', 13],
+    queryFn: () => fetchValoresTabla(13),
+    staleTime: 5 * 60_000,
+  })
+
+  const tipoPagoOptions = useMemo(
+    () => (tiposPago.data ?? []).map((t) => ({ value: t.itemId, label: t.denominacion })),
+    [tiposPago.data],
+  )
+
+  useEffect(() => {
+    if (tipoPagoId > 1) {
+      setFechaTransferencia((prev) => prev.trim() || nowDatetimeLocal())
+    }
+  }, [tipoPagoId])
+
+  const preview = useQuery({
+    queryKey: ['prendario-cobro-preview', oficinaId, creditoId],
+    queryFn: () => fetchPrendarioCobroPreview(oficinaId, creditoId),
+    enabled: oficinaId > 0 && creditoId > 0,
+  })
+
+  const invalidarPrendario = () => {
+    void queryClient.invalidateQueries({ queryKey: ['prendas', oficinaId, creditoId] })
+    void queryClient.invalidateQueries({ queryKey: ['credito-contexto', creditoId] })
+    void queryClient.invalidateQueries({ queryKey: ['prendario-creditos'] })
+    void queryClient.invalidateQueries({ queryKey: ['prendario-resumen'] })
+    void queryClient.invalidateQueries({ queryKey: ['prendario-cobro-preview', oficinaId, creditoId] })
+  }
+
+  const guardarFicha = useMutation({
+    mutationFn: (prendaId: number) =>
+      actualizarFichaPrenda({
+        oficinaId,
+        prendaId,
+        observaciones: obsFicha[prendaId] ?? '',
+      }),
+    onSuccess: () => {
+      message.success('Ficha actualizada')
+      invalidarPrendario()
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const subirFoto = useMutation({
+    mutationFn: ({ prendaId, file }: { prendaId: number; file: File }) =>
+      subirFotoPrenda(oficinaId, prendaId, file),
+    onSuccess: () => {
+      message.success('Foto guardada')
+      invalidarPrendario()
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const renovarMut = useMutation({
+    mutationFn: () => {
+      const cajaId = caja.data?.cajaDiarioId ?? 0
+      if (cajaId < 1) throw new Error('Abra caja diario en esta sede para cobrar.')
+      return renovarPrendario({
+        oficinaId,
+        cajaDiarioId: cajaId,
+        creditoId,
+        dias: preview.data?.diasRenovar ?? 30,
+        tipoPagoId,
+        fechaPagoTransferencia: tipoPagoId > 1 ? fechaTransferencia : undefined,
+      })
+    },
+    onSuccess: () => {
+      setModalCobro(null)
+      message.success('Interés cobrado y vencimiento prorrogado')
+      invalidarPrendario()
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const abonarMut = useMutation({
+    mutationFn: () => {
+      const cajaId = caja.data?.cajaDiarioId ?? 0
+      if (cajaId < 1) throw new Error('Abra caja diario en esta sede para cobrar.')
+      if (montoAbono <= 0) throw new Error('Indique un monto a abonar')
+      return abonarPrendario({
+        oficinaId,
+        cajaDiarioId: cajaId,
+        creditoId,
+        importeRecibido: montoAbono,
+        tipoPagoId,
+        fechaPagoTransferencia: tipoPagoId > 1 ? fechaTransferencia : undefined,
+      })
+    },
+    onSuccess: () => {
+      setModalCobro(null)
+      message.success('Abono registrado')
+      invalidarPrendario()
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const liberarMut = useMutation({
+    mutationFn: () => {
+      const cajaId = caja.data?.cajaDiarioId ?? 0
+      if (cajaId < 1) throw new Error('Abra caja diario en esta sede para cobrar.')
+      return liberarPrendario({
+        oficinaId,
+        cajaDiarioId: cajaId,
+        creditoId,
+        tipoPagoId,
+        fechaPagoTransferencia: tipoPagoId > 1 ? fechaTransferencia : undefined,
+      })
+    },
+    onSuccess: () => {
+      setModalCobro(null)
+      message.success('Préstamo liberado. La prenda vuelve a su dueño.')
+      invalidarPrendario()
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const rematarMut = useMutation({
+    mutationFn: (prendaId: number) => rematarPrenda({ oficinaId, prendaId }),
+    onSuccess: (res) => {
+      message.success(`Rematado. Venda ${res.codArticulo} en venta rápida a ${formatMoney(res.precioVenta)}.`)
+      invalidarPrendario()
     },
     onError: (e) => message.error(errMsg(e)),
   })
@@ -350,6 +506,38 @@ export function CreditoPrendarioGestionPage() {
               {puedeProrrogar && creditoDesembolsado ? (
                 <Button onClick={() => setModalProrrogar(true)}>Prorrogar</Button>
               ) : null}
+              {creditoDesembolsado && !preview.data?.fechaRemateEjecutado ? (
+                <>
+                  <Button
+                    onClick={() => {
+                      setTipoPagoId(1)
+                      setFechaTransferencia('')
+                      setModalCobro('renovar')
+                    }}
+                  >
+                    Renovar interés
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setTipoPagoId(1)
+                      setFechaTransferencia('')
+                      setMontoAbono(0)
+                      setModalCobro('abonar')
+                    }}
+                  >
+                    Abonar
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setTipoPagoId(1)
+                      setFechaTransferencia('')
+                      setModalCobro('liberar')
+                    }}
+                  >
+                    Liberar
+                  </Button>
+                </>
+              ) : null}
               <Tooltip title="Abre un chat libre con el cliente. El aviso oficial de vencimiento (plantilla a 3 días) se envía desde el listado o de forma automática a las 08:00.">
                 <Button
                   icon={<WhatsAppOutlined />}
@@ -486,6 +674,62 @@ export function CreditoPrendarioGestionPage() {
                     <Text>
                       {b.descripcion || 'Bien'} · {estado}
                     </Text>
+                    {b.prendaId > 0 ? <PrendaFotoThumb prendaId={b.prendaId} oficinaId={oficinaId} hasFoto={Boolean(b.fotoPath)} /> : null}
+                    {b.prendaId > 0 ? (
+                      <Space wrap size={8} style={{ width: '100%' }}>
+                        <Input.TextArea
+                          rows={2}
+                          maxLength={500}
+                          placeholder="Cómo llegó (ej. Bueno, con rayones)"
+                          value={obsFicha[b.prendaId] ?? ''}
+                          onChange={(e) =>
+                            setObsFicha((prev) => ({ ...prev, [b.prendaId]: e.target.value }))
+                          }
+                          style={{ minWidth: 240, flex: 1 }}
+                        />
+                        <Button
+                          size="small"
+                          loading={guardarFicha.isPending}
+                          onClick={() => guardarFicha.mutate(b.prendaId)}
+                        >
+                          Guardar ficha
+                        </Button>
+                        <Upload
+                          accept="image/jpeg,image/png,image/webp"
+                          showUploadList={false}
+                          beforeUpload={(file) => {
+                            void subirFoto.mutateAsync({ prendaId: b.prendaId, file })
+                            return false
+                          }}
+                        >
+                          <Button size="small" icon={<UploadOutlined />} loading={subirFoto.isPending}>
+                            Foto
+                          </Button>
+                        </Upload>
+                      </Space>
+                    ) : null}
+                    {enCustodia && preview.data?.puedeRematar ? (
+                      <Button
+                        size="small"
+                        danger
+                        loading={rematarMut.isPending}
+                        onClick={() =>
+                          confirmMoney({
+                            title: `Rematar ${b.descripcion || 'bien'}`,
+                            amount: b.valorTasacion,
+                            officeLabel: `Crédito #${creditoId}`,
+                            consequence:
+                              'La prenda pasa a stock a su tasación para venderla en el punto de venta. El préstamo queda cerrado como rematado.',
+                            okText: 'Rematar',
+                            onOk: async () => {
+                              await rematarMut.mutateAsync(b.prendaId)
+                            },
+                          })
+                        }
+                      >
+                        Rematar
+                      </Button>
+                    ) : null}
                     {enCustodia ? (
                       <Button
                         size="small"
@@ -565,6 +809,149 @@ export function CreditoPrendarioGestionPage() {
           style={{ width: '100%', marginTop: 8 }}
         />
       </Modal>
+
+      <Modal
+        title={
+          modalCobro === 'renovar'
+            ? `Renovar · crédito #${creditoId}`
+            : modalCobro === 'abonar'
+              ? `Abonar al capital · crédito #${creditoId}`
+              : `Liberar la prenda · crédito #${creditoId}`
+        }
+        open={modalCobro != null}
+        onCancel={() => setModalCobro(null)}
+        confirmLoading={renovarMut.isPending || abonarMut.isPending || liberarMut.isPending}
+        okButtonProps={{
+          disabled:
+            !caja.data?.cajaDiarioId ||
+            (modalCobro === 'abonar' && montoAbono <= 0) ||
+            (tipoPagoId > 1 && !fechaTransferencia.trim()),
+        }}
+        okText={
+          modalCobro === 'renovar'
+            ? `Cobrar ${formatMoney(preview.data?.interesPendiente ?? 0)}`
+            : modalCobro === 'abonar'
+              ? `Cobrar ${formatMoney(montoAbono)}`
+              : `Cobrar ${formatMoney(preview.data?.saldoAprox ?? 0)}`
+        }
+        onOk={() => {
+          if (!caja.data?.cajaDiarioId) {
+            message.warning('Abra caja diario en esta sede')
+            return
+          }
+          if (tipoPagoId > 1 && !fechaTransferencia.trim()) {
+            message.warning('Indique fecha y n.° / hora de la operación')
+            return
+          }
+          if (modalCobro === 'renovar') renovarMut.mutate()
+          if (modalCobro === 'abonar') abonarMut.mutate()
+          if (modalCobro === 'liberar') {
+            void confirmMoney({
+              title: `Liberar crédito #${creditoId}`,
+              amount: preview.data?.saldoAprox ?? 0,
+              officeLabel: 'Pago total',
+              consequence: 'El préstamo queda liberado y la prenda vuelve a su dueño. Esta acción no se deshace.',
+              okText: 'Liberar',
+              onOk: async () => {
+                await liberarMut.mutateAsync()
+              },
+            })
+          }
+        }}
+      >
+        {!caja.data?.cajaDiarioId ? (
+          <Alert type="warning" showIcon message="No hay caja abierto en esta sede." style={{ marginBottom: 12 }} />
+        ) : null}
+        {modalCobro === 'renovar' ? (
+          <Paragraph>
+            Interés del periodo (del plan, no un 5 % inventado):{' '}
+            <Text strong>{formatMoney(preview.data?.interesPendiente ?? 0)}</Text>
+            <br />
+            Nuevo vencimiento: {formatFecha(preview.data?.nuevoVencimiento)}
+          </Paragraph>
+        ) : null}
+        {modalCobro === 'abonar' ? (
+          <>
+            <Paragraph>
+              Capital pendiente: <Text strong>{formatMoney(preview.data?.capitalPendiente ?? 0)}</Text>
+              <br />
+              Capital que queda:{' '}
+              <Text strong>
+                {formatMoney(Math.max(0, (preview.data?.capitalPendiente ?? 0) - montoAbono))}
+              </Text>
+            </Paragraph>
+            <label htmlFor="monto-abono-prendario">Monto a abonar (S/)</label>
+            <InputNumber
+              id="monto-abono-prendario"
+              min={0}
+              max={preview.data?.capitalPendiente ?? undefined}
+              value={montoAbono}
+              onChange={(v) => setMontoAbono(Number(v ?? 0))}
+              style={{ width: '100%', marginTop: 8 }}
+            />
+          </>
+        ) : null}
+        {modalCobro === 'liberar' ? (
+          <Paragraph>
+            Capital {formatMoney(preview.data?.capitalPendiente ?? 0)} + interés{' '}
+            {formatMoney(preview.data?.interesPendiente ?? 0)}. A cobrar{' '}
+            <Text strong>{formatMoney(preview.data?.saldoAprox ?? 0)}</Text>
+            <br />
+            Al confirmar, el préstamo queda liberado y la prenda vuelve a su dueño.
+          </Paragraph>
+        ) : null}
+        <div style={{ marginTop: 12 }}>
+          <Text type="secondary" style={{ display: 'block', marginBottom: 6 }}>
+            Medio de pago
+          </Text>
+          <TipoPagoChips value={tipoPagoId} options={tipoPagoOptions} onChange={setTipoPagoId} wrap />
+          {tipoPagoId > 1 ? (
+            <div style={{ marginTop: 8 }}>
+              <FechaHoraDigitalField value={fechaTransferencia} onChange={setFechaTransferencia} />
+            </div>
+          ) : null}
+        </div>
+      </Modal>
     </CredixPage>
   )
+}
+
+function PrendaFotoThumb({
+  prendaId,
+  oficinaId,
+  hasFoto,
+}: {
+  prendaId: number
+  oficinaId: number
+  hasFoto: boolean
+}) {
+  const [src, setSrc] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!hasFoto || oficinaId < 1 || prendaId < 1) {
+      setSrc(null)
+      return
+    }
+    let objectUrl: string | null = null
+    const token = getAccessToken()
+    if (!token) return
+    void fetch(`${getApiBaseUrl()}/prendario/prenda-foto/${prendaId}?oficinaId=${oficinaId}`, {
+      headers: { Authorization: `Bearer ${token}`, Accept: 'image/*' },
+    })
+      .then((r) => (r.ok ? r.blob() : null))
+      .then((blob) => {
+        if (blob) {
+          objectUrl = URL.createObjectURL(blob)
+          setSrc(objectUrl)
+        }
+      })
+      .catch(() => undefined)
+    return () => {
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
+    }
+  }, [hasFoto, oficinaId, prendaId])
+
+  if (!hasFoto) return null
+  if (!src) return <Text type="secondary">Foto…</Text>
+  return <img src={src} alt="Prenda" style={{ width: 72, height: 72, objectFit: 'cover', borderRadius: 6 }} />
 }

@@ -16,7 +16,7 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 | Arquitectura | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Presentación gerencia (slides) | [PRESENTACION_ARQUITECTURA.html](PRESENTACION_ARQUITECTURA.html) |
 | Plan multisucursal + prendario | [migration/PLAN-MULTISUCURSAL-PRENDARIO.md](migration/PLAN-MULTISUCURSAL-PRENDARIO.md) |
-| Siguiente nivel UI / ventaja competitiva (Spec Kit) | [ssd/SSD-13-experiencia-operativa.md](ssd/SSD-13-experiencia-operativa.md) · [speckit/001](speckit/001-experiencia-operativa/spec.md) · [contrato C](speckit/001-experiencia-operativa/contrato-datos-c.md) · [PLA/UIF](speckit/001-experiencia-operativa/contrato-pla-uif.md) · [avisos/agenda](speckit/002-comunicados-agenda/spec.md) · [móvil](speckit/003-movil-shell/spec.md) · [SSD-15](ssd/SSD-15-movil-shell.md) · [alcance red](speckit/004-alcance-red/spec.md) |
+| Siguiente nivel UI / ventaja competitiva (Spec Kit) | [ssd/SSD-13-experiencia-operativa.md](ssd/SSD-13-experiencia-operativa.md) · [speckit/001](speckit/001-experiencia-operativa/spec.md) · [contrato C](speckit/001-experiencia-operativa/contrato-datos-c.md) · [PLA/UIF](speckit/001-experiencia-operativa/contrato-pla-uif.md) · [avisos/agenda](speckit/002-comunicados-agenda/spec.md) · [móvil](speckit/003-movil-shell/spec.md) · [SSD-15](ssd/SSD-15-movil-shell.md) · [alcance red](speckit/004-alcance-red/spec.md) · [Facturador Smart](speckit/005-facturador-smart/spec.md) · [SSD-16](ssd/SSD-16-facturador-smart.md) |
 | Tesis BI — preguntas al gerente | [tesis/preguntas-gerente-bi-2026.md](tesis/preguntas-gerente-bi-2026.md) |
 | Glosario | [GLOSARIO.md](GLOSARIO.md) |
 | Ambientes | [AMBIENTES.md](AMBIENTES.md) |
@@ -33,7 +33,7 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 
 ---
 
-## 2. Paquete SSD (as-built 00–12 + cambios 13–15)
+## 2. Paquete SSD (as-built 00–12 + cambios 13–16)
 
 | Id | Módulo | Spec |
 |----|--------|------|
@@ -53,6 +53,7 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 | SSD-13 | Experiencia operativa (Spec Kit) | [SSD-13-experiencia-operativa.md](ssd/SSD-13-experiencia-operativa.md) |
 | SSD-14 | Comunicados y agenda | [SSD-14-comunicados-agenda.md](ssd/SSD-14-comunicados-agenda.md) |
 | SSD-15 | Shell móvil (todas las pantallas) | [SSD-15-movil-shell.md](ssd/SSD-15-movil-shell.md) · [cómo aprender Spec Kit](speckit/COMO-APRENDER.md) |
+| SSD-16 | Lecciones Facturador Smart (sin clonar ERP) | [SSD-16-facturador-smart.md](ssd/SSD-16-facturador-smart.md) · [005](speckit/005-facturador-smart/spec.md) · [auditoría](speckit/005-facturador-smart/audit-modulos.md) |
 
 Plantilla: [ssd/SPEC-TEMPLATE.md](ssd/SPEC-TEMPLATE.md).
 

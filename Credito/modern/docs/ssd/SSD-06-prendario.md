@@ -1,6 +1,6 @@
 # SSD-06 — Crédito prendario y WhatsApp
 
-**Estado:** as-built · 2026-09-11 · ver [SSD-12](SSD-12-validacion.md) (2026-09-27) · **originación unificada en curso 2026-10-16**  
+**Estado:** as-built · 2026-10-26 (ficha / remate / cobros 005) · originación 2026-10-16 · ver [SSD-12](SSD-12-validacion.md)  
 **Código:** `/credito/prendario`, `/nuevo`, `/gestionar/:personaId` · `/credito/simulador` (producto prendario) · `/api/v1/prendario/*`  
 **Fuente legacy:** `PrendarioController`, `PrendaBL`, `CrearSolicitudCreditoPrendario` (rama Prendario-Eber)  
 **Doc de ingeniería:** [PARIDAD-PRENDARIO.md](../migration/PARIDAD-PRENDARIO.md) · [PLAN-MULTISUCURSAL-PRENDARIO.md](../migration/PLAN-MULTISUCURSAL-PRENDARIO.md)
@@ -22,6 +22,7 @@ Cartera prendaria: listado, alta de solicitud, bienes en custodia, contrato/acta
 - Listado + resumen (tarjetas DES), nueva solicitud, gestión de prendas
 - Contrato y acta PDF (QuestPDF + cláusulas embebidas)
 - Chat `wa.me` puntual y plantilla Cloud API a 3 días
+- Ficha de bien (observaciones + foto), renovar / abonar / liberar con caja, remate → stock
 
 **No entra**
 
@@ -49,6 +50,11 @@ Identificación: `EsPrendario = 1` **o** `ProductoId = 2`. Alta fija: ver tablas
 | `CREDITO.Prenda` | Bienes (primera carga). `Estado` default `EN CUSTODIA`. |
 | `CREDITO.usp_DevolverPrenda` | `EN CUSTODIA` → `DEVUELTO` (`FechaMod`, `UsuarioModId`). Bloquea crédito `DES`. |
 | `CREDITO.usp_ProrrogarCredito` | Suma días al vencimiento (solo `DES`). No es renovación. |
+| `CREDITO.usp_PrendarioActualizarFicha` | Observaciones (“cómo llegó”) sin tocar tasación. Foto: `FotoPath` + storage. |
+| `CREDITO.usp_PrendarioRenovar` | Cobra `SUM(PlanPago.Interes)` PEN + prórroga. No inventa %. |
+| `CREDITO.usp_PagarCuotaPagoLibre` | Abono a capital (mismo USP de caja). |
+| `CREDITO.usp_PrendarioLiberar` | `usp_PagarCuotasCancelacion` + prendas `DEVUELTO`. |
+| `CREDITO.usp_RematarPrenda` | Bien → artículo + lista precio + serie `EN_ALMACEN`. `FechaRemateEjecutado`. |
 | LTV observado | `MontoCredito / MontoTasacion` en listado/canvas. Tope vigente 100%. |
 | `GET .../creditos?categoria=` | Filtro servidor del CASE 0–5 (SinBienes…Vigente). Cola remate = `Rematado`. |
 | Alta solicitud / generar | Mismos valores que `CrearSolicitudCreditoPrendario` / `CrearCredito` |
@@ -68,6 +74,10 @@ Política `CreditoRolPrendario` (ANALISTA o administrador).
 | `GET /api/v1/credito/prendas`, `POST /api/v1/credito/guardar-prendas` | Gestión |
 | `GET .../contrato-pdf`, `GET .../acta-entrega-pdf` | Gestión |
 | `POST .../devolver-prenda`, `GET .../devolucion-pdf` | Gestión: devolver + comprobante |
+| `GET .../cobro-preview` | Importes de `PlanPago` (no inventa %) |
+| `POST .../actualizar-ficha`, `POST/GET .../prenda-foto` | Cómo llegó + foto (`storage/{creditoId}/`) |
+| `POST .../renovar`, `POST .../abonar`, `POST .../liberar` | Cobros con caja diario abierta |
+| `POST .../rematar` | Bien → artículo `PRM{id}` + lista precio + serie EN_ALMACEN |
 | `GET .../avisos-vencimiento`, `GET .../estado` | Listado / estado canal |
 | `POST .../avisos-vencimiento/enviar` | Envío Cloud API (sin marca en BD) |
 | `POST .../marcar` | Solo valida que el crédito exista; **no** escribe columna de notificación |
@@ -102,6 +112,7 @@ Relato en [BITACORA-DESVIACIONES.md](../migration/BITACORA-DESVIACIONES.md):
 - 2026-09-09 — prendario restringido al rol ANALISTA en la SPA
 - 2026-10-06 — retirada `FechaNotifWhatsapp3d` (aviso wa.me / Cloud sin idempotencia en `Credito`)
 - **2026-10-16 — Originación unificada (gerencia):** menos pasos; bienes + crédito juntos; PDFs en la misma ventana. Ver [PLAN-MULTISUCURSAL-PRENDARIO.md](../migration/PLAN-MULTISUCURSAL-PRENDARIO.md). Sin cambio de tablas.
+- **2026-10-26 — Ciclo empeño (005):** ficha, remate ejecutado, renovar/abonar/liberar. Ver [BITACORA](../migration/BITACORA-DESVIACIONES.md). Script `deploy/sql/2026-10-26-prendario-ficha-remate-cobros.sql`.
 
 ## 9. Pruebas y evidencia
 

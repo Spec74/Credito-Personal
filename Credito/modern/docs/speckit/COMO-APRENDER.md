@@ -32,6 +32,8 @@ constitution → specify → clarify → plan → checklist → tasks → analyz
 
 Ejemplo trabajado: **003-movil-shell** (este cambio). Spec → research → audit de módulos → plan (un CSS de shell + parches donde el CSS lazy gana) → tasks → `credix-mobile-shell.css` → SSD-15.
 
+Ejemplo de **análisis sin clonar**: **005-facturador-smart**. Se probó el demo de un proveedor, se contrastó módulo a módulo con los SSD, y se decidió adoptar / integrar / rechazar **antes** de programar. SSD-16. Eso también es Spec Kit.
+
 ## Cómo corres *tú* el siguiente cambio
 
 1. **¿Es módulo o cambio?** Si es “caja debe mostrar X del USP”, edita `SSD-03`. Si es “todas las pantallas deben…”, abre `004-…` en speckit y un SSD-16.

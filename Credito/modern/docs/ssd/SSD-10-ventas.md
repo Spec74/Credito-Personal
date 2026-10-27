@@ -55,6 +55,7 @@ Paridad con el BL/controlador MVC: donde el legado usaba `usp_*`, el moderno tam
 |-----------------------|-----|
 | `VENTAS.ListaPrecio`, `VENTAS.OrdenVenta`, `OrdenVentaDet`, `OrdenVentaDetSerie` | Pedido y órdenes |
 | `ALMACEN.SerieArticulo` (EstadoId 2 = EN_ALMACEN) | Stock de venta rápida |
+| `CREDITO.usp_RematarPrenda` | Crea `Articulo` `PRM{prendaId}` + `ListaPrecio` (tasación) + serie EN_ALMACEN. Venta = flujo de mostrador, no un POS nuevo. |
 | `CREDITO.usp_PagarCuentaxCobrar` | Cobro del pedido de mostrador |
 | `VENTAS.usp_OrdenVentaDet_Ins` / `_update`, `usp_OrdenVenta_Del` | Líneas de orden |
 | `dbo.usp_CanjearPuntos` | Canje |
@@ -98,6 +99,7 @@ Venta rápida: IGV 18 % para desglosar subtotal/impuesto, igual que el controlad
 ## 8. Desviaciones
 
 - 2026-09-09 — esquema `ALMACEN` (lista de precios / artículos) ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
+- 2026-10-26 — remate prendario alimenta el mismo catálogo; `RolMenu` concede VentaRapida/Almacén a ANALISTA/CAJERO/ADMINISTRADOR/GESTOR si el ítem ya existe (oficina 1 CREDITO suele no tenerlos: grant no-op).
 
 Etiquetas de código de barras RDLC: no hay motor de stickers; el PDF moderno es tabular. PDF Credix ≠ píxel ReportViewer.
 

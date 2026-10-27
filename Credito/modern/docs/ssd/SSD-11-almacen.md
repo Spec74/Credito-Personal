@@ -58,6 +58,7 @@ Esquema **`ALMACEN`** (no `MAESTRO`) para `Articulo`, `Marca`, `Modelo`, `TipoAr
 | `ALMACEN.usp_GenerarKardex`, `usp_ListarSerieKardex`, `usp_ExisteSerieArticulo` | Kardex |
 | `ALMACEN.usp_ReporteStock` | Informe stock |
 | Stock anulados | `ReporteBL.ListarReporteStockAnulados` (mismo origen que el MVC) |
+| `CREDITO.usp_RematarPrenda` | Alta de `Articulo` + `SerieArticulo` EstadoId 2 en el almacén activo de la sede (SSD-06). |
 
 El C# no recalcula costo de inventario: mueve series y llama los mismos procedimientos o el mismo SQL que el BL.
 
@@ -100,6 +101,7 @@ Códigos de barras: `GET /api/v1/ventas/codigo-barras-lst*` desde `/almacen/codi
 ## 8. Desviaciones
 
 - 2026-09-09 — esquema `ALMACEN` en catálogos (marcas, artículos, tipos de movimiento, stock anulados, salidas y transferencias) ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
+- 2026-10-26 — remate prendario inserta artículo/serie sin movimiento de entrada (stock vendible inmediato).
 
 PDF tabular ≠ RDLC. Etiquetas de barras: listado moderno; stickers solo MVC si negocio los exige.
 

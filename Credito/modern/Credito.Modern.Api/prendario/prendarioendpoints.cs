@@ -5,6 +5,8 @@ using System.Security.Claims;
 using System.Text;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Api.Hosting;
+using Credito.Modern.Api.Validation;
+using Credito.Modern.Application.Validation;
 using Credito.Modern.Application.Almacenes;
 using Credito.Modern.Application.Articulos;
 using Credito.Modern.Application.Auth;
@@ -24,9 +26,11 @@ using Credito.Modern.Application.Reportes;
 using Credito.Modern.Application.Time;
 using Credito.Modern.Application.UsuariosAdmin;
 using Credito.Modern.Application.Ventas;
+using Credito.Modern.Infrastructure.CreditoPlanes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Credito.Modern.Api.Prendario;
@@ -744,6 +748,537 @@ internal static class PrendarioEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
+        app.MapGet(
+                "/api/v1/prendario/cobro-preview",
+                async Task<Results<Ok<PrendarioCobroPreviewDto>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    int oficinaId,
+                    int creditoId,
+                    IPrendarioReadService prendarioRead,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (oficinaId < 1 || creditoId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "oficinaId y creditoId deben ser >= 1.");
+                    }
+
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+                    if (oficinaError is not null)
+                        return oficinaError;
+
+                    try
+                    {
+                        var preview = await prendarioRead
+                            .ObtenerCobroPreviewAsync(oficinaId, creditoId, ct)
+                            .ConfigureAwait(false);
+                        if (preview is null)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status404NotFound,
+                                title: "No encontrado",
+                                detail: "Crédito prendario no encontrado en esta sede.");
+                        }
+
+                        return TypedResults.Ok(preview);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        loggerFactory.CreateLogger("PrendarioCobroPreview").LogWarning(ex, "Configuración incompleta");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        loggerFactory.CreateLogger("PrendarioCobroPreview").LogError(ex, "Error al leer preview prendario");
+                        var detail = "No se pudo obtener el preview de cobro.";
+                        if (env.IsDevelopment())
+                            detail += $" Detalle: {ex.Message}";
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("PrendarioCobroPreview")
+            .WithSummary("Importes de PlanPago (interés/capital) para renovar, abonar o liberar. No inventa tasa.")
+            .WithTags("prendario")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario);
+
+        app.MapPost(
+                "/api/v1/prendario/actualizar-ficha",
+                async Task<Results<Ok<PrendarioFichaResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    PrendarioFichaRequest body,
+                    IPrendarioWriteService prendarioWrite,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    var r = await EjecutarEscrituraPrendarioAsync(
+                        httpContext,
+                        body.OficinaId,
+                        () => prendarioWrite.ActualizarFichaAsync(body, 0, ct),
+                        (svc, usuarioId) => prendarioWrite.ActualizarFichaAsync(body, usuarioId, ct),
+                        loggerFactory,
+                        env,
+                        "PrendarioFicha",
+                        "No se pudo guardar la ficha.",
+                        ct).ConfigureAwait(false);
+                    return r;
+                })
+            .WithName("PrendarioActualizarFicha")
+            .WithSummary("Actualiza Observaciones (cómo llegó) sin tocar tasación.")
+            .WithTags("prendario")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario);
+
+        app.MapPost(
+                "/api/v1/prendario/prenda-foto",
+                async Task<Results<Ok<PrendarioFichaResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    IPrendarioWriteService prendarioWrite,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (!int.TryParse(httpContext.Request.Form["oficinaId"], out var oficinaId)
+                        || !long.TryParse(httpContext.Request.Form["prendaId"], out var prendaId)
+                        || oficinaId < 1
+                        || prendaId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "oficinaId y prendaId son obligatorios.");
+                    }
+
+                    var archivo = httpContext.Request.Form.Files.GetFile("archivo")
+                        ?? httpContext.Request.Form.Files.FirstOrDefault();
+                    if (archivo is null || archivo.Length < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "Adjunte una foto.");
+                    }
+
+                    if (archivo.Length > 5 * 1024 * 1024)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Archivo demasiado grande",
+                            detail: "La foto no puede superar 5 MB.");
+                    }
+
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+                    if (oficinaError is not null)
+                        return oficinaError;
+
+                    var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
+                    if (usuarioError is not null)
+                        return usuarioError;
+
+                    var ext = Path.GetExtension(archivo.FileName);
+                    if (string.IsNullOrWhiteSpace(ext))
+                        ext = ".jpg";
+                    var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        ".jpg", ".jpeg", ".png", ".webp",
+                    };
+                    if (!allowed.Contains(ext))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Formato no permitido",
+                            detail: "Use JPG, PNG o WEBP.");
+                    }
+
+                    try
+                    {
+                        await using var stream = archivo.OpenReadStream();
+                        var response = await prendarioWrite
+                            .SubirFotoAsync(oficinaId, prendaId, usuarioId, ext, stream, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(response);
+                    }
+                    catch (InvalidOperationException ex) when (ex.Message.Contains("no encontrado", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status404NotFound,
+                            title: "No encontrado",
+                            detail: ex.Message);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        loggerFactory.CreateLogger("PrendarioFoto").LogWarning(ex, "Configuración incompleta");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        loggerFactory.CreateLogger("PrendarioFoto").LogError(ex, "Error al subir foto de prenda");
+                        var detail = "No se pudo guardar la foto.";
+                        if (env.IsDevelopment())
+                            detail += $" Detalle: {ex.Message}";
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("PrendarioSubirFoto")
+            .WithSummary("Sube FotoPath de CREDITO.Prenda al storage de evidencias.")
+            .WithTags("prendario")
+            .DisableAntiforgery()
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario)
+            .Accepts<IFormFile>("multipart/form-data");
+
+        app.MapGet(
+                "/api/v1/prendario/prenda-foto/{prendaId:long}",
+                async Task<Results<PhysicalFileHttpResult, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    long prendaId,
+                    int oficinaId,
+                    IPrendarioReadService prendarioRead,
+                    IOptions<CreditoStorageOptions> storageOptions,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (oficinaId < 1 || prendaId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "oficinaId y prendaId deben ser >= 1.");
+                    }
+
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+                    if (oficinaError is not null)
+                        return oficinaError;
+
+                    try
+                    {
+                        var meta = await prendarioRead
+                            .ObtenerFotoArchivoAsync(oficinaId, prendaId, ct)
+                            .ConfigureAwait(false);
+                        if (meta is null)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status404NotFound,
+                                title: "No encontrado",
+                                detail: "Esta prenda no tiene foto.");
+                        }
+
+                        var root = CreditoGestionWriteService.ResolveStorageRoot(storageOptions.Value);
+                        var path = Path.GetFullPath(Path.Combine(root, meta.RelativePath.Replace('/', Path.DirectorySeparatorChar)));
+                        if (!path.StartsWith(Path.GetFullPath(root), StringComparison.OrdinalIgnoreCase)
+                            || !File.Exists(path))
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status404NotFound,
+                                title: "No encontrado",
+                                detail: "El archivo de la foto no está en el servidor.");
+                        }
+
+                        var contentType = Path.GetExtension(path).ToLowerInvariant() switch
+                        {
+                            ".png" => "image/png",
+                            ".webp" => "image/webp",
+                            _ => "image/jpeg",
+                        };
+                        return TypedResults.PhysicalFile(path, contentType);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        loggerFactory.CreateLogger("PrendarioFoto").LogWarning(ex, "Configuración incompleta");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        loggerFactory.CreateLogger("PrendarioFoto").LogError(ex, "Error al leer foto de prenda");
+                        var detail = "No se pudo leer la foto.";
+                        if (env.IsDevelopment())
+                            detail += $" Detalle: {ex.Message}";
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("PrendarioObtenerFoto")
+            .WithTags("prendario")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario);
+
+        app.MapPost(
+                "/api/v1/prendario/renovar",
+                async Task<Results<Ok<PrendarioRenovarResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    PrendarioRenovarRequest body,
+                    IPrendarioWriteService prendarioWrite,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                    await EjecutarEscrituraPrendarioAsync(
+                        httpContext,
+                        body.OficinaId,
+                        () => prendarioWrite.RenovarAsync(body, 0, ct),
+                        (svc, usuarioId) => prendarioWrite.RenovarAsync(body, usuarioId, ct),
+                        loggerFactory,
+                        env,
+                        "PrendarioRenovar",
+                        "No se pudo renovar el préstamo.",
+                        ct).ConfigureAwait(false))
+            .WithName("PrendarioRenovar")
+            .WithSummary("Cobra interés de PlanPago + usp_ProrrogarCredito. No copia el 5 % del demo.")
+            .WithTags("prendario")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario);
+
+        app.MapPost(
+                "/api/v1/prendario/abonar",
+                async Task<Results<Ok<PagoCajaResultResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    PagarCuotaPagoLibreRequest body,
+                    ICajaPagoWriteService cajaPago,
+                    ICajaDiarioOficinaReadService cajaDiarioOficina,
+                    ICreditoOficinaReadService creditoOficina,
+                    IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    var idError = CajaCreditoWriteGuards.ValidateBodyIds(body.OficinaId, body.CajaDiarioId, body.CreditoId);
+                    if (idError is not null)
+                        return idError;
+
+                    var moneyError = ProblemResults.IfInvalid(
+                        MoneyRules.RequirePositive(body.ImporteRecibido, "importeRecibido"));
+                    if (moneyError is not null)
+                        return moneyError;
+
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
+                    if (oficinaError is not null)
+                        return oficinaError;
+
+                    var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
+                    if (usuarioError is not null)
+                        return usuarioError;
+
+                    var scopeError = await CajaCreditoWriteGuards
+                        .ValidateCajaYCreditoOficinaAsync(
+                            body.OficinaId,
+                            body.CajaDiarioId,
+                            body.CreditoId,
+                            cajaDiarioOficina,
+                            creditoOficina,
+                            ct)
+                        .ConfigureAwait(false);
+                    if (scopeError is not null)
+                        return scopeError;
+
+                    if (await entradaSalidaRead.CajaDiarioEstaCerradaAsync(body.CajaDiarioId, ct).ConfigureAwait(false))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status409Conflict,
+                            title: "Conflicto",
+                            detail: "La caja diario está cerrada.");
+                    }
+
+                    try
+                    {
+                        var response = await cajaPago
+                            .PagarCuotaPagoLibreAsync(
+                                body.CajaDiarioId,
+                                body.CreditoId,
+                                body.ImporteRecibido,
+                                usuarioId,
+                                body.TipoPagoId < 1 ? 1 : body.TipoPagoId,
+                                body.FechaPagoTransferencia ?? string.Empty,
+                                ct)
+                            .ConfigureAwait(false);
+                        var pagoError = CajaCreditoWriteGuards.MapPagoResult(response);
+                        if (pagoError is not null)
+                            return pagoError;
+                        return TypedResults.Ok(response);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        loggerFactory.CreateLogger("PrendarioAbonar").LogWarning(ex, "Configuración incompleta");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        loggerFactory.CreateLogger("PrendarioAbonar").LogError(ex, "Error usp_PagarCuotaPagoLibre");
+                        var detail = "No se pudo registrar el abono.";
+                        if (env.IsDevelopment())
+                            detail += $" Detalle: {ex.Message}";
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("PrendarioAbonar")
+            .WithSummary("Abono a capital: CREDITO.usp_PagarCuotaPagoLibre (mismo motor de caja).")
+            .WithTags("prendario")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario);
+
+        app.MapPost(
+                "/api/v1/prendario/liberar",
+                async Task<Results<Ok<PrendarioLiberarResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    PrendarioLiberarRequest body,
+                    IPrendarioWriteService prendarioWrite,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                    await EjecutarEscrituraPrendarioAsync(
+                        httpContext,
+                        body.OficinaId,
+                        () => prendarioWrite.LiberarAsync(body, 0, ct),
+                        (svc, usuarioId) => prendarioWrite.LiberarAsync(body, usuarioId, ct),
+                        loggerFactory,
+                        env,
+                        "PrendarioLiberar",
+                        "No se pudo liberar la prenda.",
+                        ct).ConfigureAwait(false))
+            .WithName("PrendarioLiberar")
+            .WithSummary("usp_PagarCuotasCancelacion + prendas DEVUELTO.")
+            .WithTags("prendario")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario);
+
+        app.MapPost(
+                "/api/v1/prendario/rematar",
+                async Task<Results<Ok<RematarPrendaResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    RematarPrendaRequest body,
+                    IPrendarioWriteService prendarioWrite,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                    await EjecutarEscrituraPrendarioAsync(
+                        httpContext,
+                        body.OficinaId,
+                        () => prendarioWrite.RematarAsync(body, 0, ct),
+                        (svc, usuarioId) => prendarioWrite.RematarAsync(body, usuarioId, ct),
+                        loggerFactory,
+                        env,
+                        "PrendarioRematar",
+                        "No se pudo rematar el bien.",
+                        ct).ConfigureAwait(false))
+            .WithName("PrendarioRematar")
+            .WithSummary("Pasa la prenda a stock (artículo + lista precio + serie EN_ALMACEN) y cierra como rematado.")
+            .WithTags("prendario")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolPrendario);
+
+    static async Task<Results<Ok<T>, ProblemHttpResult>> EjecutarEscrituraPrendarioAsync<T>(
+        HttpContext httpContext,
+        int oficinaId,
+        Func<Task<T>> unused,
+        Func<IPrendarioWriteService, int, Task<T>> exec,
+        ILoggerFactory loggerFactory,
+        IHostEnvironment env,
+        string logName,
+        string failDetail,
+        CancellationToken ct)
+    {
+        _ = unused;
+        _ = ct;
+        if (oficinaId < 1)
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Solicitud inválida",
+                detail: "oficinaId debe ser >= 1.");
+        }
+
+        var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+        if (oficinaError is not null)
+            return oficinaError;
+
+        var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
+        if (usuarioError is not null)
+            return usuarioError;
+
+        var log = loggerFactory.CreateLogger(logName);
+        try
+        {
+            var write = httpContext.RequestServices.GetRequiredService<IPrendarioWriteService>();
+            var response = await exec(write, usuarioId).ConfigureAwait(false);
+            return TypedResults.Ok(response);
+        }
+        catch (InvalidOperationException ex)
+        {
+            log.LogWarning(ex, "Configuración incompleta");
+            return TypedResults.Problem(
+                detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Configuración incompleta");
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Parámetros inválidos",
+                detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
+        }
+        catch (DbException ex)
+        {
+            var negocio = MensajeNegocioCiclo(ex);
+            if (negocio is { } n)
+            {
+                log.LogWarning(ex, "Operación prendaria rechazada por contrato");
+                return TypedResults.Problem(
+                    statusCode: n.NotFound ? StatusCodes.Status404NotFound : StatusCodes.Status409Conflict,
+                    title: n.NotFound ? "No encontrado" : "No se puede completar",
+                    detail: n.Detail);
+            }
+
+            log.LogError(ex, "Error en {Operacion}", logName);
+            var detail = failDetail;
+            if (env.IsDevelopment())
+                detail += $" Detalle: {ex.Message}";
+            return TypedResults.Problem(
+                detail: detail,
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Error de base de datos");
+        }
+    }
+
+    static (string Detail, bool NotFound)? MensajeNegocioCiclo(DbException ex)
+    {
+        var msg = (ex.Message ?? string.Empty).Split('\n')[0].Trim();
+        if (msg.Contains("no encontrado", StringComparison.OrdinalIgnoreCase))
+            return (msg, true);
+        if (msg.Contains("caja", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("custodia", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("remat", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("almacén", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("almacen", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("cuotas pendientes", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("incompletos", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("ficha", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("liber", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("renov", StringComparison.OrdinalIgnoreCase))
+        {
+            return (msg, false);
+        }
+
+        return MensajeNegocioDevolucion(ex);
     }
 
     static (string Detail, bool NotFound)? MensajeNegocioDevolucion(DbException ex)
@@ -830,6 +1365,8 @@ internal static class PrendarioEndpoints
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Error de base de datos"));
         }
+    }
+
     }
 
 }

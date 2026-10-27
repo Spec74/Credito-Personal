@@ -38,6 +38,7 @@ CREATE TABLE [CREDITO].[Credito] (
     [MontoTasacion] decimal(18,2) NULL,
     [NumeroContratoPrendario] nvarchar(50) NULL,
     [FechaRemate] date NULL,
+    [FechaRemateEjecutado] datetime NULL,
     [PrendaId] bigint NULL
 );
 

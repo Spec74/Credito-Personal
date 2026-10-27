@@ -9,6 +9,33 @@
   width: 100%;
 }
 
+.caja-tipo-pago-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.caja-tipo-pago-chips__btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid #dbe3ee;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.caja-tipo-pago-chips__btn--on {
+  border-color: #114885;
+  background: #e8f2ff;
+  color: #0f3d6e;
+}
+
 .credito-prendario-gestion-actions .ant-btn {
   min-height: 36px;
 }

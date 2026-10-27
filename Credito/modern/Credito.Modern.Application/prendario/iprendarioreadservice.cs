@@ -38,4 +38,14 @@ public interface IPrendarioReadService
         int oficinaId,
         int creditoId,
         CancellationToken cancellationToken = default);
+
+    Task<PrendarioCobroPreviewDto?> ObtenerCobroPreviewAsync(
+        int oficinaId,
+        int creditoId,
+        CancellationToken cancellationToken = default);
+
+    Task<PrendarioFotoArchivoDto?> ObtenerFotoArchivoAsync(
+        int oficinaId,
+        long prendaId,
+        CancellationToken cancellationToken = default);
 }

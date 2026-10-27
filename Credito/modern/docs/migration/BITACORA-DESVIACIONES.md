@@ -4,6 +4,22 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-26 — Ciclo empeño (ficha, remate, cobros)
+
+**Qué hay:** Spec Kit `005-facturador-smart`. En gestión prendaria: observaciones
+(“cómo llegó”) + foto en `storage/{creditoId}/prenda-{id}`. Renovar cobra
+`SUM(PlanPago.Interes)` PEN + `usp_ProrrogarCredito` (no el 5 % del demo).
+Abonar reusa `usp_PagarCuotaPagoLibre`. Liberar = `usp_PagarCuotasCancelacion`
++ prendas `DEVUELTO`. Remate (`usp_RematarPrenda`) exige cola
+(`FechaRemate` < hoy) y crea artículo `PRM{id}` + lista precio a tasación +
+serie `EN_ALMACEN`. Columnas nuevas: `Credito.FechaRemateEjecutado`,
+`Prenda.ArticuloRemateId`. Script
+`deploy/sql/2026-10-26-prendario-ficha-remate-cobros.sql`.
+
+**Qué no hay:** no se clona Facturador Smart, SIRE, ni se inventa TEA/LTV/%
+en C#. US-3 (PSE/SUNAT) queda fuera hasta elegir proveedor. Oficina 1
+CREDITO sin ítems de ventas: el grant de menú no inventa pantallas.
+
 ### 2026-10-24 — Alcance red: sucursal ≠ rol de reporte
 
 **Qué hay:** Spec Kit `004-alcance-red`. Un ADMIN de sucursal ya no consulta

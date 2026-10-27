@@ -180,3 +180,61 @@ public sealed record PrendarioWhatsAppEstadoDto(
     /// <summary>True si hay AppSecret (firma POST). Obligatorio fuera de Development.</summary>
     bool WebhookAppSecretConfigurado);
 
+public sealed record PrendarioFichaRequest(int OficinaId, long PrendaId, string? Observaciones);
+
+public sealed record PrendarioFichaResponse(
+    long PrendaId,
+    int CreditoId,
+    string? Observaciones,
+    string? FotoPath,
+    string Estado);
+
+public sealed record PrendarioRenovarRequest(
+    int OficinaId,
+    int CajaDiarioId,
+    int CreditoId,
+    int Dias = 30,
+    int TipoPagoId = 1,
+    string? FechaPagoTransferencia = null);
+
+public sealed record PrendarioRenovarResponse(
+    int CreditoId,
+    decimal InteresCobrado,
+    int Dias,
+    int? MovimientoCajaId,
+    DateTime FechaVencimiento,
+    DateTime? FechaRemate);
+
+public sealed record PrendarioLiberarRequest(
+    int OficinaId,
+    int CajaDiarioId,
+    int CreditoId,
+    int TipoPagoId = 1,
+    string? FechaPagoTransferencia = null);
+
+public sealed record PrendarioLiberarResponse(int CreditoId, string Estado, int BienesDevueltos);
+
+public sealed record RematarPrendaRequest(int OficinaId, long PrendaId);
+
+public sealed record RematarPrendaResponse(
+    long PrendaId,
+    int CreditoId,
+    int ArticuloId,
+    string CodArticulo,
+    decimal PrecioVenta,
+    int AlmacenId);
+
+public sealed record PrendarioFotoArchivoDto(int CreditoId, string RelativePath);
+
+public sealed record PrendarioCobroPreviewDto(
+    int CreditoId,
+    decimal CapitalPendiente,
+    decimal InteresPendiente,
+    decimal SaldoAprox,
+    DateTime FechaVencimiento,
+    DateTime? FechaRemate,
+    DateTime? FechaRemateEjecutado,
+    bool PuedeRematar,
+    int DiasRenovar,
+    DateTime NuevoVencimiento);
+

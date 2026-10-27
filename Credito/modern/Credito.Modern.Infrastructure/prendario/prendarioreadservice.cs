@@ -34,13 +34,16 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
 
                 -- COUNT sobre el CASE en vez de SUM: sin filas, SUM devuelve NULL.
                 SELECT
-                    COUNT(*) AS Total,
-                    COUNT(CASE WHEN c.FechaVencimiento >= @Hoy AND c.FechaVencimiento <= @Limite
+                    COUNT(CASE WHEN c.FechaRemateEjecutado IS NULL THEN 1 END) AS Total,
+                    COUNT(CASE WHEN c.FechaRemateEjecutado IS NULL
+                                AND c.FechaVencimiento >= @Hoy AND c.FechaVencimiento <= @Limite
                                THEN 1 END) AS PorVencer,
-                    COUNT(CASE WHEN c.FechaVencimiento < @Hoy
+                    COUNT(CASE WHEN c.FechaRemateEjecutado IS NULL
+                                AND c.FechaVencimiento < @Hoy
                                 AND (c.FechaRemate IS NULL OR c.FechaRemate >= @Hoy)
                                THEN 1 END) AS Vencidos,
-                    COUNT(CASE WHEN c.FechaRemate IS NOT NULL AND c.FechaRemate < @Hoy
+                    COUNT(CASE WHEN c.FechaRemateEjecutado IS NOT NULL
+                                 OR (c.FechaRemate IS NOT NULL AND c.FechaRemate < @Hoy)
                                THEN 1 END) AS Rematados
                 FROM CREDITO.Credito AS c
                 WHERE c.OficinaId = @OficinaId
@@ -92,6 +95,7 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                        ISNULL(pr.Bienes, 0) AS Bienes,
                        CASE
                            WHEN ISNULL(pr.Bienes, 0) = 0 THEN 0
+                           WHEN c.FechaRemateEjecutado IS NOT NULL THEN 2
                            WHEN c.Estado <> 'DES' THEN 1
                            WHEN c.FechaRemate IS NOT NULL AND c.FechaRemate < @Hoy THEN 2
                            WHEN c.FechaVencimiento < @Hoy THEN 3
@@ -480,6 +484,72 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                 new { OficinaId = oficinaId, CreditoId = creditoId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
         return n > 0;
+    }
+
+    public async Task<PrendarioCobroPreviewDto?> ObtenerCobroPreviewAsync(
+        int oficinaId,
+        int creditoId,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        return await connection.QuerySingleOrDefaultAsync<PrendarioCobroPreviewDto>(
+            new CommandDefinition(
+                """
+                SELECT
+                    c.CreditoId,
+                    ISNULL(SUM(CASE WHEN pp.Estado = N'PEN' THEN pp.Amortizacion ELSE 0 END), 0) AS CapitalPendiente,
+                    ISNULL(SUM(CASE WHEN pp.Estado = N'PEN' THEN pp.Interes ELSE 0 END), 0) AS InteresPendiente,
+                    ISNULL(SUM(CASE WHEN pp.Estado = N'PEN' THEN pp.Cuota - ISNULL(pp.PagoLibre, 0) ELSE 0 END), 0) AS SaldoAprox,
+                    c.FechaVencimiento,
+                    c.FechaRemate,
+                    c.FechaRemateEjecutado,
+                    CAST(CASE
+                        WHEN c.Estado = N'DES'
+                         AND c.FechaRemateEjecutado IS NULL
+                         AND COALESCE(c.FechaRemate, DATEADD(DAY, 30, c.FechaVencimiento)) < CONVERT(date, dbo.ufnFecha())
+                        THEN 1 ELSE 0 END AS bit) AS PuedeRematar,
+                    30 AS DiasRenovar,
+                    DATEADD(DAY, 30, c.FechaVencimiento) AS NuevoVencimiento
+                FROM CREDITO.Credito AS c
+                LEFT JOIN CREDITO.PlanPago AS pp ON pp.CreditoId = c.CreditoId
+                WHERE c.CreditoId = @CreditoId
+                  AND c.OficinaId = @OficinaId
+                  AND (c.EsPrendario = CAST(1 AS bit) OR c.ProductoId = 2)
+                GROUP BY
+                    c.CreditoId, c.FechaVencimiento, c.FechaRemate, c.FechaRemateEjecutado, c.Estado;
+                """,
+                new { OficinaId = oficinaId, CreditoId = creditoId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
+
+    public async Task<PrendarioFotoArchivoDto?> ObtenerFotoArchivoAsync(
+        int oficinaId,
+        long prendaId,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var row = await connection.QuerySingleOrDefaultAsync<(int CreditoId, string? FotoPath)>(
+            new CommandDefinition(
+                """
+                SELECT p.CreditoId, p.FotoPath
+                FROM CREDITO.Prenda AS p
+                INNER JOIN CREDITO.Credito AS c ON c.CreditoId = p.CreditoId
+                WHERE p.PrendaId = @PrendaId
+                  AND c.OficinaId = @OficinaId;
+                """,
+                new { PrendaId = prendaId, OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (row.CreditoId < 1 || string.IsNullOrWhiteSpace(row.FotoPath))
+        {
+            return null;
+        }
+
+        return new PrendarioFotoArchivoDto(row.CreditoId, row.FotoPath);
     }
 
     private sealed class DocumentoCabeceraRow
