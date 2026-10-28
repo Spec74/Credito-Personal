@@ -138,6 +138,7 @@ _TeamCity*
 
 # Arte de marca no publicado (export HQ local)
 modern/Credito.Modern.Web/public/brand/credix-hq.png
+modern/Credito.Modern.Web/dist/brand/credix-hq.png
 
 # Volcados accidentales de agente
 modern/_line_*.txt
