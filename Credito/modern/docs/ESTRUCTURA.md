@@ -183,3 +183,35 @@ Detalle: [SSD-01](ssd/SSD-01-auth-inicio.md) · [DEPLOY-AL-SUBIR.md](migration/D
 
 `docs/speckit/` = bitácora Spec Kit de features UX (no es el runtime).  
 `docs/*_migracion.md` = notas de ingeniería por dominio; el canónico es el SSD.
+
+---
+
+## 10. Despliegue (si solo conoces el MVC)
+
+Sí: **API + SPA + la misma base `CREDITO`**. No se publica `Creditos.sln`, ni BE, ni BL, ni DA, ni `Web`.
+
+Equivale a lo que ya sabes, con otros nombres:
+
+| En el legado | En el moderno |
+|--------------|---------------|
+| IIS + `Web` | Azure App Service `crediconfiable-api` (push a `Eber-migracion` lo publica) |
+| ASPX / MVC | Vercel: `Credito/modern/Credito.Modern.Web` |
+| SQL Server `CREDITO` | **La misma** `CREDITO` (Azure SQL o el SQL de prod). No hay otra base. |
+| `web.config` connection + auth | App Settings: `CreditoDatabase__ConnectionString`, `Jwt__SigningKey` (≥32), CORS de Vercel |
+| `usp_*` en SSMS | Los mismos `usp_*`. Si el bak es viejo, correr `deploy/sql/` (empezar por `2026-10-08-prod-bak-restore-completo.sql`) |
+
+**Qué haces**
+
+1. **BD:** backup. Aplicar scripts de `Credito/modern/deploy/sql/` que aún no estén en prod. Confirmar `ClaveUsuario nvarchar(256)`. No reescribir a mano `usp_Credito_Ins`.
+2. **Backend:** ya está el workflow. Push a `Eber-migracion` → App Service. Revisa que la connection string apunte a esa `CREDITO` y que CORS incluya `https://credito-personal.vercel.app`.
+3. **Frontend:** Vercel root = `Credito/modern/Credito.Modern.Web`. `VITE_API_BASE_URL` = `https://<app-service>.azurewebsites.net/api/v1` (dominio real, no el nombre corto).
+
+**Qué no haces**
+
+- No abres ni publicas `Creditos.sln` / `ITB.VENDIX.*` / `Web`.
+- No creas una base nueva ni un SQL por sucursal.
+- WhatsApp es opcional (env vars aparte). No bloquea login/caja/crédito.
+
+**Prueba mínima:** login (`ADMVENDIX`) → menú → `/inicio` → caja diario → un PDF.
+
+Detalle de secretos y bak: [DEPLOY-AL-SUBIR.md](migration/DEPLOY-AL-SUBIR.md).
