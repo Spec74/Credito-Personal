@@ -361,7 +361,7 @@ Variables de entorno típicas: `CreditoDatabase__ConnectionString`, `Jwt__Signin
 
 ### Proxy strangler (staging local)
 
-Guía completa: [docs/migration/PHASE-3B-PROXY-E2E.md](docs/migration/PHASE-3B-PROXY-E2E.md).
+Guía: [docs/ESTRUCTURA.md](docs/ESTRUCTURA.md) §6 · [docs/ssd/SSD-00-cutover.md](docs/ssd/SSD-00-cutover.md).
 
 ```powershell
 cd Credito\modern
@@ -382,7 +382,7 @@ Copy-Item deploy\.env.example deploy\.env
 - **5080** — API directa (depuración).
 - Tras cambiar volúmenes en compose o ficheros nginx, usar **`docker compose ... up -d`** (no solo `restart`) para recrear el contenedor proxy si hace falta.
 - Entorno **`Staging`**: `appsettings.Staging.json` (`AllowDevToken`, CORS `localhost:9080`).
-- **Producción:** plantillas `deploy/iis-arr-web.config.example`, `deploy/nginx/production.conf.example`, `deploy/.env.production.example`; validar con `.\deploy\scripts\verify-production-config.ps1` (PHASE-3B iter. 66).
+- **Producción:** plantillas `deploy/iis-arr-web.config.example`, `deploy/nginx/production.conf.example`, `deploy/.env.production.example`; validar con `.\deploy\scripts\verify-production-config.ps1`.
 - Si rutas nuevas devuelven **404** tras pull: `docker compose ... up -d --build credito-modern-api`.
 
 ## Fase 5 — Interfaz (SPA)
@@ -391,18 +391,16 @@ Migración **backend + SPA** candidata a cierre — [docs/migration/MIGRATION-CL
 
 | Documento | Contenido |
 |-----------|-----------|
-| [PHASE-5-UI-START.md](docs/migration/PHASE-5-UI-START.md) | Hub Fase 5 (subfases 5.0–5.6) |
-| [PHASE-5-UI-STACK-OPTIONS.md](docs/migration/PHASE-5-UI-STACK-OPTIONS.md) | React/Vue/Blazor, SPA vs BFF |
-| [PHASE-5-UI-ARCHITECTURE.md](docs/migration/PHASE-5-UI-ARCHITECTURE.md) | Auth, cliente HTTP, carpetas |
-| [PHASE-5-UI-ROADMAP.md](docs/migration/PHASE-5-UI-ROADMAP.md) | MVC → pantallas (29 controladores) |
+| [ESTRUCTURA.md](docs/ESTRUCTURA.md) | Carpetas API / SPA / SQL |
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Principios (una BD, JWT, usp_*) |
 | [PHASE-5-OPERATIONS-CUTOVER.md](docs/migration/PHASE-5-OPERATIONS-CUTOVER.md) | Preprod/prod (paralelo) |
 
 **Recomendación:** React + TypeScript + Vite en `Credito.Modern.Web`; `VITE_API_BASE_URL=http://localhost:9080/api/v1` en desarrollo.
 
 ## Operaciones (paralelo a UI)
 
-- Desplegar proxy en preprod/prod: [PHASE-3B-PROXY-E2E.md](docs/migration/PHASE-3B-PROXY-E2E.md), [PHASE-5-OPERATIONS-CUTOVER.md](docs/migration/PHASE-5-OPERATIONS-CUTOVER.md).
-- Fase 4 RDLC solo si negocio exige layout idéntico: [PHASE-4-START.md](docs/migration/PHASE-4-START.md).
+- Desplegar: [DEPLOY-AL-SUBIR.md](docs/migration/DEPLOY-AL-SUBIR.md), [PHASE-5-OPERATIONS-CUTOVER.md](docs/migration/PHASE-5-OPERATIONS-CUTOVER.md).
+- PDF: QuestPDF en la API. `VITE_LEGACY_ORIGIN` solo si negocio exige el RDLC del MVC.
 
 
 

@@ -2,7 +2,7 @@
 
 **Estado:** as-built · 2026-10-24  
 **Audiencia:** informática / desarrollo  
-**Specs por módulo:** [ssd/README.md](ssd/README.md) · índice general: [DOCUMENTACION.md](DOCUMENTACION.md)
+**Mapa de carpetas:** [ESTRUCTURA.md](ESTRUCTURA.md) · **Specs:** [ssd/README.md](ssd/README.md) · índice: [DOCUMENTACION.md](DOCUMENTACION.md)
 
 ---
 

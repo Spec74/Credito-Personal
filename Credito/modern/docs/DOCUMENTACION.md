@@ -1,6 +1,6 @@
 # Documentación de Credito.Modern
 
-**Estado del paquete documental: COMPLETO (100%)** · 2026-10-27 · rama `Eber-migracion`.
+**Estado del paquete documental: COMPLETO (100%)** · 2026-10-27 (mapa [ESTRUCTURA.md](ESTRUCTURA.md) + retiro de fases UI históricas) · rama `Eber-migracion`.
 Una base `CREDITO`; sucursal = `OficinaId`. Alcance sucursal vs Central en SSD-07/08.
 
 Este es el **índice único** para informática, negocio y auditoría.  
@@ -13,6 +13,7 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 | Necesitas… | Lee… |
 |------------|------|
 | Índice / este archivo | [DOCUMENTACION.md](DOCUMENTACION.md) |
+| **Mapa de carpetas (ingeniero)** | [ESTRUCTURA.md](ESTRUCTURA.md) |
 | Arquitectura | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Presentación gerencia (slides) | [PRESENTACION_ARQUITECTURA.html](PRESENTACION_ARQUITECTURA.html) |
 | Plan multisucursal + prendario | [migration/PLAN-MULTISUCURSAL-PRENDARIO.md](migration/PLAN-MULTISUCURSAL-PRENDARIO.md) |
@@ -94,7 +95,7 @@ Plantilla: [ssd/SPEC-TEMPLATE.md](ssd/SPEC-TEMPLATE.md).
 | Prendario | [migration/PARIDAD-PRENDARIO.md](migration/PARIDAD-PRENDARIO.md) |
 | Bitácora | [migration/BITACORA-DESVIACIONES.md](migration/BITACORA-DESVIACIONES.md) |
 
-Fases históricas (punteros): `PHASE-3B`, `PHASE-4-START`, `PHASE-5-UI-*` bajo `migration/`.
+Fases UI/proxy históricas: retiradas 2026-10-27 (el mapa vivo es [ESTRUCTURA.md](ESTRUCTURA.md) + [ARCHITECTURE.md](ARCHITECTURE.md) + [DEPLOY-AL-SUBIR.md](migration/DEPLOY-AL-SUBIR.md)). Cutover operativo: [PHASE-5-OPERATIONS-CUTOVER.md](migration/PHASE-5-OPERATIONS-CUTOVER.md).
 
 ---
 

@@ -6,6 +6,7 @@ reescribe esa historia: documenta **lo construido** con el mismo rigor que un sp
 previo, para auditoría, cutover y mantenimiento.
 
 **Índice de toda la documentación del software:** [../DOCUMENTACION.md](../DOCUMENTACION.md)  
+**Mapa de carpetas:** [../ESTRUCTURA.md](../ESTRUCTURA.md)  
 **Arquitectura:** [../ARCHITECTURE.md](../ARCHITECTURE.md)
 
 No es un diario de fases. No duplica el inventario de endpoints de `readme.md` ni la bitácora.

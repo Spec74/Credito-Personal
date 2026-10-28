@@ -50,7 +50,7 @@ cd Credito\modern
 npm run build
 ```
 
-Salida en `dist/`. Servir bajo `/app/` (ver [PHASE-5-UI-ARCHITECTURE.md](../docs/migration/PHASE-5-UI-ARCHITECTURE.md), [SSD-00](../docs/ssd/SSD-00-cutover.md)).
+Salida en `dist/`. Servir bajo `/app/` (ver [ESTRUCTURA.md](../docs/ESTRUCTURA.md), [SSD-00](../docs/ssd/SSD-00-cutover.md)).
 
 ## Cobertura SPA
 

@@ -1,6 +1,7 @@
 # API — visión general
 
 Inventario largo de endpoints: [../readme.md](../readme.md).  
+Mapa de carpetas: [ESTRUCTURA.md](ESTRUCTURA.md).  
 Specs por dominio: [ssd/README.md](ssd/README.md).  
 Validación: [ssd/SSD-12-validacion.md](ssd/SSD-12-validacion.md).
 

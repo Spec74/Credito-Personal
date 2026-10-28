@@ -4,6 +4,15 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Docs: mapa de código y limpieza de fases UI
+
+**Qué hay:** `docs/ESTRUCTURA.md` para el ingeniero (capas, carpetas,
+qué se publica). Se retiran PHASE-3B/4/5-UI y el script de demo
+docente. El cutover operativo sigue en PHASE-5-OPERATIONS-CUTOVER.
+
+**Qué no hay:** no se borra BE/BL/DA/`Web` (rollback). No se toca
+`deploy/sql` ni los SSD.
+
 ### 2026-10-27 — Logo: recorte al lockup y mayor en login
 
 **Qué hay:** El canvas 300×120 dejaba el arte en ~238×79. Se recorta

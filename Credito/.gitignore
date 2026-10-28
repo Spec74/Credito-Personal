@@ -136,6 +136,12 @@ _TeamCity*
 *.coverage
 *.coveragexml
 
+# Arte de marca no publicado (export HQ local)
+modern/Credito.Modern.Web/public/brand/credix-hq.png
+
+# Volcados accidentales de agente
+modern/_line_*.txt
+
 # Credito modern — cobertura local / CI / artefactos FE
 **/coverage/
 Credito/modern/TestResults/
