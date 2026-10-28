@@ -24,7 +24,7 @@ export function BrandLogo({
   onDark = false,
   priority = false,
 }: BrandLogoProps) {
-  const width = compact ? 148 : onDark ? 280 : branding.logoWidth
+  const width = compact ? 148 : onDark ? 440 : branding.logoWidth
   const height = Math.round((width * LOGO_NATIVE_H) / LOGO_NATIVE_W)
   const rootClass = [
     'credix-brand-logo',

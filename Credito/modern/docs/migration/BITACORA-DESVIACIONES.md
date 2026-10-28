@@ -4,6 +4,13 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Login: lockup más grande
+
+**Qué hay:** El logo del login pasa a 440 px, placa 16×22 y un
+aro cian suave. Se lee de frente en la columna de marca.
+
+**Qué no hay:** no se agranda el menú ni se inventa un isotipo.
+
 ### 2026-10-27 — Login: lockup sobre placa blanca ceñida
 
 **Qué hay:** El PNG transparente sobre `#114885` lava el navy. En
