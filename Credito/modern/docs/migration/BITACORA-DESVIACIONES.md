@@ -4,6 +4,23 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Logo: PNG/SVG Corel 300×120 y 900×360
+
+**Qué hay:** Se aplican los export 300×120 y 900×360. Al PNG se le
+quita el fondo blanco de la hoja (el lockup queda con alpha). El SVG
+se guarda sin el rectángulo de página ni los tiradores de Corel.
+
+**Qué no hay:** no se usa el SVG en el `<img>` (los huecos de letra
+siguen en blanco casi puro). El srcset sigue en PNG.
+
+### 2026-10-27 — Logo: export Corel recortado
+
+**Qué hay:** El PNG de Corel venía en hoja 791×1024 con velo
+semitransparente. Se recorta al lockup, se quita el velo blanco y se
+generan `credix.png` 300×107 y `credix-3x.png` 900×321.
+
+**Qué no hay:** no se recolorea el arte ni se commitea `credix-hq.png`.
+
 ### 2026-10-27 — Login: logo sin placa blanca
 
 **Qué hay:** El PNG oficial ya es RGBA. En la columna de marca se

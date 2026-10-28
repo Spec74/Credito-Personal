@@ -9,9 +9,9 @@ interface BrandLogoProps {
   priority?: boolean
 }
 
-/** Arte original de marca (PNG con alpha). */
-const LOGO_NATIVE_W = 299
-const LOGO_NATIVE_H = 102
+/** Arte de marca Corel 300×120 / 900×360 (PNG con alpha). */
+const LOGO_NATIVE_W = 300
+const LOGO_NATIVE_H = 120
 
 /**
  * Lockup oficial de Inversiones CrediConfiable.
