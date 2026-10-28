@@ -9,9 +9,9 @@ interface BrandLogoProps {
   priority?: boolean
 }
 
-/** Arte de marca Corel 300×120 / 900×360 (PNG con alpha). */
-const LOGO_NATIVE_W = 300
-const LOGO_NATIVE_H = 120
+/** Arte Corel recortado al lockup (PNG con alpha). */
+const LOGO_NATIVE_W = 250
+const LOGO_NATIVE_H = 91
 
 /**
  * Lockup oficial de Inversiones CrediConfiable.
@@ -24,7 +24,7 @@ export function BrandLogo({
   onDark = false,
   priority = false,
 }: BrandLogoProps) {
-  const width = compact ? 148 : branding.logoWidth
+  const width = compact ? 148 : onDark ? 340 : branding.logoWidth
   const height = Math.round((width * LOGO_NATIVE_H) / LOGO_NATIVE_W)
   const rootClass = [
     'credix-brand-logo',

@@ -129,9 +129,10 @@
   margin-bottom: clamp(20px, 3vh, 32px);
 }
 
-.credix-login-stage__brand .credix-brand-logo {
+.credix-login-stage__brand .credix-brand-logo,
+.credix-login-stage__brand .credix-brand-logo__plate {
   text-align: left;
-  width: auto;
+  width: min(340px, 100%);
 }
 
 .credix-login-stage__brand .credix-brand-logo.credix-brand-logo--on-dark .credix-brand-logo__plate {
@@ -143,7 +144,8 @@
 
 .credix-login-stage__brand .credix-brand-logo__img,
 :root[data-theme='dark'] .credix-login-stage__brand .credix-brand-logo__img {
-  width: min(260px, 100%);
+  width: 100%;
+  max-width: none;
   height: auto;
   filter: drop-shadow(0 8px 16px rgba(4, 24, 48, 0.22));
 }

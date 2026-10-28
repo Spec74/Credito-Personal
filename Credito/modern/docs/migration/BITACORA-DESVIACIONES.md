@@ -4,6 +4,13 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Logo: recorte al lockup y mayor en login
+
+**Qué hay:** El canvas 300×120 dejaba el arte en ~238×79. Se recorta
+al trazo (250×91 / 748×275) y el login lo muestra a 340 px.
+
+**Qué no hay:** no se cambia el arte ni se pinta el SVG.
+
 ### 2026-10-27 — Logo: PNG/SVG Corel 300×120 y 900×360
 
 **Qué hay:** Se aplican los export 300×120 y 900×360. Al PNG se le
