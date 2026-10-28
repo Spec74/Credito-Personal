@@ -1,7 +1,7 @@
 # Estructura del código — Credito.Modern
 
 **Para:** informática / ingeniero de despliegue  
-**Fecha:** 2026-10-27 · rama `Eber-migracion`  
+**Fecha:** 2026-10-28 · rama `Eber-migracion`  
 **Índice general:** [DOCUMENTACION.md](DOCUMENTACION.md) · **Arquitectura (principios):** [ARCHITECTURE.md](ARCHITECTURE.md)
 
 Este archivo describe **dónde está cada cosa en el árbol**, no la historia de la migración.
@@ -213,5 +213,16 @@ Equivale a lo que ya sabes, con otros nombres:
 - WhatsApp es opcional (env vars aparte). No bloquea login/caja/crédito.
 
 **Prueba mínima:** login (`ADMVENDIX`) → menú → `/inicio` → caja diario → un PDF.
+
+**MVC que está en IIS (referencia; no se publica desde este repo)**
+
+| Rama / remoto | Qué es |
+|---------------|--------|
+| `produccion` → `https://github.com/RichardZC/Credito.git` | Código del legado en producción |
+| `master` local = `produccion/master` (`13e2da9`, 26-sep-2026) | Lo que corre en IIS **hoy** |
+| `PrendarioLegacy` | Ese `master` **+ 27 commits** de prendario MVC. **No están en IIS.** No mergear a `master` de prod salvo que negocio lo pida |
+
+El moderno (`Eber-migracion` en Spec74) no comparte C# / EDMX con ese MVC. Convivencia = la misma `CREDITO` y los mismos `usp_*`.  
+Para **mirar** el código de prod: `git show master:Web/...` o un worktree aparte. **No** hagas checkout de `master` encima de `Eber-migracion` (el árbol de prod va en la raíz; el moderno vive en `Credito/modern`).
 
 Detalle de secretos y bak: [DEPLOY-AL-SUBIR.md](migration/DEPLOY-AL-SUBIR.md).
