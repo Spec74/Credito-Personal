@@ -4,7 +4,7 @@ interface BrandLogoProps {
   compact?: boolean
   showTagline?: boolean
   className?: string
-  /** Sobre fondo de marca: el PNG ya trae alpha; no se invierte. */
+  /** Sobre azul de marca: placa blanca ceñida. El lockup no se invierte. */
   onDark?: boolean
   priority?: boolean
 }
@@ -24,7 +24,7 @@ export function BrandLogo({
   onDark = false,
   priority = false,
 }: BrandLogoProps) {
-  const width = compact ? 148 : onDark ? 340 : branding.logoWidth
+  const width = compact ? 148 : onDark ? 280 : branding.logoWidth
   const height = Math.round((width * LOGO_NATIVE_H) / LOGO_NATIVE_W)
   const rootClass = [
     'credix-brand-logo',

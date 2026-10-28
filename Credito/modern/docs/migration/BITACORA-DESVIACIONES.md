@@ -4,6 +4,14 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-10-27 — Login: lockup sobre placa blanca ceñida
+
+**Qué hay:** El PNG transparente sobre `#114885` lava el navy. En
+login el lockup va sobre blanco recortado (10×14, radio 10, sin
+sombra). No se invierte el arte.
+
+**Qué no hay:** no se vuelve a la tarjeta grande con sombra.
+
 ### 2026-10-27 — Docs: mapa de código y limpieza de fases UI
 
 **Qué hay:** `docs/ESTRUCTURA.md` para el ingeniero (capas, carpetas,
