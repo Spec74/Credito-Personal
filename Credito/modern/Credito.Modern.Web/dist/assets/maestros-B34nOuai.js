@@ -1,1 +1,0 @@
-import{n as e}from"./rolldown-runtime-8BhlS34s.js";import{a as t,n}from"./client-9IPixFbA.js";function r(e){return n(`/valores-tabla?tablaId=${e}&soloItemIdPositivo=true`)}function i(){return(i=e((()=>{t()})))()}export{i as n,r as t};

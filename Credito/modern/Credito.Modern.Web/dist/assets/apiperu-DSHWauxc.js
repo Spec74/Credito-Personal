@@ -1,0 +1,1 @@
+import{n as e}from"./rolldown-runtime-8BhlS34s.js";import{n as t,o as n}from"./client-BoSJUrMn.js";function r(e){return t(`/integraciones/apiperu/dni/${encodeURIComponent(e.trim())}`)}function i(e){return t(`/integraciones/apiperu/ruc/${encodeURIComponent(e.trim())}`)}function a(){return(a=e((()=>{n()})))()}export{i as n,a as r,r as t};
