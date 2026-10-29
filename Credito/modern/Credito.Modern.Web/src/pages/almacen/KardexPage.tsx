@@ -38,6 +38,12 @@ export function KardexPage() {
   const [form] = Form.useForm<FormValues>()
   const oficinaId = session?.oficinaId ?? 0
 
+  const almacenes = useQuery({
+    queryKey: ['almacenes', oficinaId],
+    queryFn: () => fetchAlmacenes(oficinaId),
+    enabled: oficinaId > 0,
+  })
+
   useEffect(() => {
     if (session) {
       form.setFieldsValue({ oficinaId: session.oficinaId })
@@ -49,12 +55,6 @@ export function KardexPage() {
     if (form.getFieldValue('almacenId')) return
     form.setFieldValue('almacenId', almacenes.data[0].almacenId)
   }, [almacenes.data, form])
-
-  const almacenes = useQuery({
-    queryKey: ['almacenes', oficinaId],
-    queryFn: () => fetchAlmacenes(oficinaId),
-    enabled: oficinaId > 0,
-  })
 
   const consulta = useMutation({
     mutationFn: (v: FormValues) => fetchGenerarKardex(toParams(v)),

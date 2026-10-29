@@ -1,27 +1,36 @@
--- LAB — preparar 8 prendarios CON BIENES para probar el flujo en la SPA.
--- Pone cola de remate (DES + FechaRemate ayer). NO remata, NO vende, NO arma kardex.
--- Kardex = movimientos de Entrada/Salida. El remate deja serie EN_ALMACEN sin movimiento.
+-- LAB Azure CREDITO de prueba (la de Vercel). NO producción.
+-- 8 DNI con bienes: cola de remate + 3 remates vía USP (artículos PRM EN_ALMACEN).
+-- Los otros 5 quedan para pulsar Rematar en la SPA. No vende ni cobra.
 --
--- 1) F5 con @AplicarCola = 0  → lista.
--- 2) @AplicarCola = 1         → COMMIT de la cola.
--- 3) En Credix sigue el orden del comentario «SPA».
+-- SSMS → F5. Si el primer SELECT no son estos 8, STOP (no sigas con @Aplicar=1).
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 
-DECLARE @AplicarCola BIT = 0; -- cámbialo a 1 cuando el SELECT esté bien
+DECLARE @AplicarCola   BIT = 1; -- 0 = solo lista
+DECLARE @RematarTop    INT = 3; -- 0 = no llama usp_RematarPrenda (solo fechas)
 DECLARE @Hoy DATE = CONVERT(date, dbo.ufnFecha());
+DECLARE @UsuarioId INT;
 
 DECLARE @Dni TABLE (NumeroDocumento NVARCHAR(20) PRIMARY KEY);
 INSERT INTO @Dni (NumeroDocumento) VALUES
-    (N'76738856'),
-    (N'20719288'),
-    (N'28232176'),
-    (N'28227125'),
-    (N'77403936'),
-    (N'75252746'),
-    (N'74039361'),
-    (N'43278292');
+    (N'76738856'), -- FERNANDEZ LEON, RUTH MARIA
+    (N'20719288'), -- PALOMINO TORRES, RAUL DAVID
+    (N'28232176'), -- PAREDES DE SULCA, FELICITAS
+    (N'28227125'), -- CONTRERAS ESCALANTE, JUSTINA
+    (N'77403936'), -- RAMIREZ MORENO, JARED ARMANDO
+    (N'75252746'), -- MEZA VILLALBA, FABIOLA YOMAIRA
+    (N'74039361'), -- SULCA PAREDES, victor
+    (N'43278292'); -- VILLALBA VILLANUEVA, LEIDA GABY
+
+SELECT TOP (1) @UsuarioId = u.UsuarioId
+FROM MAESTRO.Usuario AS u
+WHERE u.Estado = CAST(1 AS bit)
+  AND u.NombreUsuario IN (N'ADMVENDIX', N'RMANTILLA')
+ORDER BY CASE u.NombreUsuario WHEN N'ADMVENDIX' THEN 0 ELSE 1 END;
+
+IF @UsuarioId IS NULL
+    SELECT TOP (1) @UsuarioId = UsuarioId FROM MAESTRO.Usuario WHERE Estado = CAST(1 AS bit) ORDER BY UsuarioId;
 
 ;WITH cand AS (
     SELECT
@@ -55,7 +64,8 @@ SELECT
     @Hoy AS HoyBd,
     (SELECT COUNT(*) FROM CREDITO.Prenda p
      WHERE p.CreditoId = cand.CreditoId AND p.Estado = N'EN CUSTODIA') AS BienesCustodia,
-    alm.AlmacenId
+    alm.AlmacenId,
+    @UsuarioId AS UsuarioRemate
 FROM cand
 OUTER APPLY (
     SELECT TOP (1) a.AlmacenId
@@ -68,32 +78,48 @@ ORDER BY cand.NombreCompleto;
 
 IF @AplicarCola = 0
 BEGIN
-    PRINT N'Solo lectura. Pon @AplicarCola = 1 y vuelve a ejecutar para dejar la cola.';
+    PRINT N'Solo lectura. Pon @AplicarCola = 1 y vuelve a F5.';
     RETURN;
 END;
 
 BEGIN TRAN;
 
-DECLARE @Batch TABLE (CreditoId INT PRIMARY KEY, OficinaId INT NOT NULL);
+DECLARE @Batch TABLE (
+    CreditoId INT PRIMARY KEY,
+    OficinaId INT NOT NULL,
+    PrendaId BIGINT NOT NULL,
+    Rn INT NOT NULL
+);
 
-INSERT INTO @Batch (CreditoId, OficinaId)
-SELECT CreditoId, OficinaId
+INSERT INTO @Batch (CreditoId, OficinaId, PrendaId, Rn)
+SELECT CreditoId, OficinaId, PrendaId, n
 FROM (
     SELECT
         c.CreditoId,
         c.OficinaId,
-        ROW_NUMBER() OVER (PARTITION BY pe.NumeroDocumento ORDER BY c.CreditoId DESC) AS rn
-    FROM @Dni AS d
-    INNER JOIN MAESTRO.Persona AS pe ON pe.NumeroDocumento = d.NumeroDocumento
-    INNER JOIN CREDITO.Credito AS c ON c.PersonaId = pe.PersonaId
-    WHERE (c.EsPrendario = CAST(1 AS bit) OR c.ProductoId = 2)
-      AND c.FechaRemateEjecutado IS NULL
-      AND EXISTS (
-            SELECT 1 FROM CREDITO.Prenda AS p
-            WHERE p.CreditoId = c.CreditoId AND p.Estado = N'EN CUSTODIA'
-      )
-) AS x
-WHERE x.rn = 1;
+        p.PrendaId,
+        ROW_NUMBER() OVER (ORDER BY pe.NombreCompleto, c.CreditoId) AS n
+    FROM (
+        SELECT
+            c.CreditoId,
+            c.OficinaId,
+            c.PersonaId,
+            ROW_NUMBER() OVER (PARTITION BY pe.NumeroDocumento ORDER BY c.CreditoId DESC) AS rn
+        FROM @Dni AS d
+        INNER JOIN MAESTRO.Persona AS pe ON pe.NumeroDocumento = d.NumeroDocumento
+        INNER JOIN CREDITO.Credito AS c ON c.PersonaId = pe.PersonaId
+        WHERE (c.EsPrendario = CAST(1 AS bit) OR c.ProductoId = 2)
+          AND c.FechaRemateEjecutado IS NULL
+          AND EXISTS (
+                SELECT 1 FROM CREDITO.Prenda AS pr
+                WHERE pr.CreditoId = c.CreditoId AND pr.Estado = N'EN CUSTODIA'
+          )
+    ) AS c
+    INNER JOIN MAESTRO.Persona AS pe ON pe.PersonaId = c.PersonaId
+    INNER JOIN CREDITO.Prenda AS p
+        ON p.CreditoId = c.CreditoId AND p.Estado = N'EN CUSTODIA'
+    WHERE c.rn = 1
+) AS x;
 
 IF NOT EXISTS (SELECT 1 FROM @Batch)
 BEGIN
@@ -118,17 +144,50 @@ SET Estado = N'DES',
 FROM CREDITO.Credito AS c
 INNER JOIN @Batch AS b ON b.CreditoId = c.CreditoId;
 
+IF @RematarTop > 0 AND @UsuarioId IS NOT NULL
+BEGIN
+    DECLARE @PrendaId BIGINT, @OficinaId INT;
+
+    DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+        SELECT TOP (@RematarTop) PrendaId, OficinaId
+        FROM @Batch
+        ORDER BY Rn;
+
+    OPEN cur;
+    FETCH NEXT FROM cur INTO @PrendaId, @OficinaId;
+    WHILE @@FETCH_STATUS = 0
+    BEGIN
+        EXEC CREDITO.usp_RematarPrenda
+            @PrendaId = @PrendaId,
+            @OficinaId = @OficinaId,
+            @UsuarioId = @UsuarioId;
+        FETCH NEXT FROM cur INTO @PrendaId, @OficinaId;
+    END;
+    CLOSE cur;
+    DEALLOCATE cur;
+END;
+
+COMMIT;
+
 SELECT
     pe.NumeroDocumento,
     pe.NombreCompleto,
     c.CreditoId,
     c.Estado,
     CONVERT(date, c.FechaRemate) AS Remate,
-    CAST(1 AS bit) AS PuedeRematarEnUi
+    CAST(CASE WHEN c.FechaRemateEjecutado IS NULL THEN 1 ELSE 0 END AS bit) AS PuedeRematarEnUi,
+    p.PrendaId,
+    p.Estado AS PrendaEstado,
+    art.CodArticulo,
+    art.Denominacion AS Articulo,
+    sa.NumeroSerie,
+    sa.EstadoId AS SerieEstadoId -- 2 = EN_ALMACEN
 FROM @Batch AS b
 INNER JOIN CREDITO.Credito AS c ON c.CreditoId = b.CreditoId
 INNER JOIN MAESTRO.Persona AS pe ON pe.PersonaId = c.PersonaId
-ORDER BY pe.NombreCompleto;
+INNER JOIN CREDITO.Prenda AS p ON p.CreditoId = c.CreditoId
+LEFT JOIN ALMACEN.Articulo AS art ON art.ArticuloId = p.ArticuloRemateId
+LEFT JOIN ALMACEN.SerieArticulo AS sa ON sa.ArticuloId = art.ArticuloId AND sa.EstadoId = 2
+ORDER BY PuedeRematarEnUi DESC, pe.NombreCompleto;
 
-COMMIT;
-PRINT N'Cola lista. En la SPA: Rematar (2 o 3) → Artículos/Stock → Venta rápida. Kardex: Entrada de almacén de un artículo de catálogo.';
+PRINT N'Cola + remates SQL listos. SPA: tarjeta Remate (los que PuedeRematarEnUi=1) y Maestros/Artículos PRM* (stock 1).';
