@@ -56,6 +56,10 @@ import {
 } from '../../components/credix'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import {
+  seriePorTipoDocumento,
+  sugerirTipoDocumento,
+} from '../../utils/tipoDocumentoSugerido'
 
 const { Paragraph, Text } = Typography
 
@@ -144,23 +148,48 @@ export function EntradaAlmacenPage() {
     }
   }, [detalle.data, cabForm, ajusteForm, detForm])
 
+  useEffect(() => {
+    if (almacenId != null) return
+    const first = almacenes.data?.[0]?.almacenId
+    if (first) setAlmacenId(first)
+  }, [almacenes.data, almacenId])
+
+  useEffect(() => {
+    if (tipoNuevo != null) return
+    const first = tiposEntrada.data?.[0]?.tipoMovimientoId
+    if (first) setTipoNuevo(first)
+  }, [tiposEntrada.data, tipoNuevo])
+
+  useEffect(() => {
+    if (!tiposDoc.data?.length) return
+    const sugerido = sugerirTipoDocumento(tiposDoc.data)
+    if (!sugerido) return
+    const actual = docForm.getFieldValue('tipoDocumentoId') as number | undefined
+    if (actual) return
+    docForm.setFieldsValue({
+      tipoDocumentoId: sugerido.tipoDocumentoId,
+      serieDocumento: seriePorTipoDocumento(sugerido.denominacion),
+      nroDocumento: movimientoId > 0 ? String(movimientoId) : '',
+    })
+  }, [tiposDoc.data, movimientoId, docForm])
+
   const refrescar = () => {
     void queryClient.invalidateQueries({ queryKey: ['movimiento-entrada-detalle'] })
     void queryClient.invalidateQueries({ queryKey: ['movimientos-entrada'] })
   }
 
   const crear = useMutation({
-    mutationFn: () =>
+    mutationFn: (tipoMovimientoId: number) =>
       crearMovimientoEntrada({
         oficinaId,
         almacenId: almacenIdEfectivo!,
-        tipoMovimientoId: tipoNuevo!,
+        tipoMovimientoId,
       }),
     onSuccess: (r) => {
       message.success(`Entrada #${r.movimientoId} creada`)
       setNuevaOpen(false)
       setSearchParams({ movimientoId: String(r.movimientoId) })
-      setStep(0)
+      setStep(2)
     },
     onError: (e) => message.error(errMsg(e)),
   })
@@ -398,42 +427,55 @@ export function EntradaAlmacenPage() {
             locale={{ emptyText: 'Sin documentos' }}
           />
           {editable ? (
-            <Form
-              form={docForm}
-              layout="inline"
-              onFinish={(v) =>
-                agregarDoc.mutate({
-                  oficinaId,
-                  movimientoId,
-                  tipoDocumentoId: v.tipoDocumentoId,
-                  serieDocumento: v.serieDocumento,
-                  nroDocumento: v.nroDocumento,
-                })
-              }
-            >
-              <Form.Item name="tipoDocumentoId" rules={[{ required: true }]}>
-                <CredixSelect
-                  placeholder="Tipo doc."
-                  style={{ width: 180 }}
-                  options={(tiposDoc.data ?? []).map((t) => ({
-                    value: t.tipoDocumentoId,
-                    label: t.denominacion,
-                  }))}
-                  loading={tiposDoc.isLoading}
-                />
-              </Form.Item>
-              <Form.Item name="serieDocumento" rules={[{ required: true }]}>
-                <Input placeholder="Serie" style={{ width: 80 }} />
-              </Form.Item>
-              <Form.Item name="nroDocumento" rules={[{ required: true }]}>
-                <Input placeholder="Número" style={{ width: 100 }} />
-              </Form.Item>
-              <Form.Item>
-                <Button type="primary" htmlType="submit" loading={agregarDoc.isPending}>
-                  Agregar
-                </Button>
-              </Form.Item>
-            </Form>
+            <>
+              <Alert
+                type="info"
+                showIcon
+                style={{ marginBottom: 12 }}
+                message="Documento opcional"
+                description="Si hay factura o boleta del proveedor, cárguela. Si es ingreso interno (remate o ajuste) puede saltar a Artículos: ya viene Nota de venta + serie."
+              />
+              <Form
+                form={docForm}
+                layout="inline"
+                onFinish={(v) =>
+                  agregarDoc.mutate({
+                    oficinaId,
+                    movimientoId,
+                    tipoDocumentoId: v.tipoDocumentoId,
+                    serieDocumento: v.serieDocumento,
+                    nroDocumento: v.nroDocumento,
+                  })
+                }
+              >
+                <Form.Item name="tipoDocumentoId" rules={[{ required: true }]}>
+                  <CredixSelect
+                    placeholder="Tipo doc."
+                    style={{ width: 180 }}
+                    options={(tiposDoc.data ?? []).map((t) => ({
+                      value: t.tipoDocumentoId,
+                      label: t.denominacion,
+                    }))}
+                    loading={tiposDoc.isLoading}
+                    onChange={(id) => {
+                      const t = (tiposDoc.data ?? []).find((x) => x.tipoDocumentoId === id)
+                      docForm.setFieldValue('serieDocumento', seriePorTipoDocumento(t?.denominacion))
+                    }}
+                  />
+                </Form.Item>
+                <Form.Item name="serieDocumento" rules={[{ required: true }]}>
+                  <Input placeholder="Serie" style={{ width: 80 }} />
+                </Form.Item>
+                <Form.Item name="nroDocumento" rules={[{ required: true }]}>
+                  <Input placeholder="Número" style={{ width: 100 }} />
+                </Form.Item>
+                <Form.Item>
+                  <Button type="primary" htmlType="submit" loading={agregarDoc.isPending}>
+                    Agregar
+                  </Button>
+                </Form.Item>
+              </Form>
+            </>
           ) : null}
           {cab?.documento ? (
             <Paragraph type="secondary" style={{ marginTop: 12, marginBottom: 0 }}>
@@ -463,8 +505,8 @@ export function EntradaAlmacenPage() {
               initialValues={{
                 movimientoId,
                 movimientoDetId: 0,
-                indAutogenerar: false,
-                indCorrelativo: false,
+                indAutogenerar: true,
+                indCorrelativo: true,
                 cantidad: 1,
                 precioUnitario: 0,
                 descuento: 0,
@@ -549,7 +591,12 @@ export function EntradaAlmacenPage() {
                         <Form.Item name="listaSerie" label="Series (coma o salto de línea)">
                           <Input.TextArea rows={2} placeholder="Si el artículo lleva serie, péguelas aquí" />
                         </Form.Item>
-                        <Form.Item name="indAutogenerar" label="Autogenerar series" valuePropName="checked">
+                        <Form.Item
+                          name="indAutogenerar"
+                          label="Autogenerar series"
+                          valuePropName="checked"
+                          extra="Activo: no pega series a mano."
+                        >
                           <Switch />
                         </Form.Item>
                         <Form.Item name="indCorrelativo" label="Series correlativas" valuePropName="checked">
@@ -710,7 +757,15 @@ export function EntradaAlmacenPage() {
                 type="primary"
                 icon={<PlusOutlined />}
                 disabled={!almacenIdEfectivo}
-                onClick={() => setNuevaOpen(true)}
+                onClick={() => {
+                  const unico = tiposEntrada.data?.length === 1 ? tiposEntrada.data[0].tipoMovimientoId : null
+                  const tipo = unico ?? tipoNuevo
+                  if (tipo) {
+                    crear.mutate(tipo)
+                    return
+                  }
+                  setNuevaOpen(true)
+                }}
               >
                 Nueva entrada
               </Button>
@@ -789,7 +844,7 @@ export function EntradaAlmacenPage() {
             message.warning('Seleccione tipo de movimiento')
             return
           }
-          crear.mutate()
+          crear.mutate(tipoNuevo)
         }}
         confirmLoading={crear.isPending}
         okText="Crear"

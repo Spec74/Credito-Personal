@@ -1,4 +1,4 @@
-import { Typography } from 'antd'
+import { Table, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { CredixDataTable } from '../credix'
 import type { SimuladorCreditoCuota } from '../../types/api'
@@ -43,12 +43,16 @@ export function CreditoPlanPreview({
   }
 
   const primera = cuotas[0]?.cuota
+  const vence = cuotas.at(-1)?.fechaPago
+  const totalCuotas = cuotas.reduce((s, c) => s + (c.cuota ?? 0), 0)
+  const saldoFinal = cuotas.at(-1)?.saldo ?? 0
   return (
     <div className="credito-plan-preview">
       {primera != null ? (
         <Text type="secondary" className="credito-plan-preview__lead">
-          Cuota referencial {formatMoney(primera)} · {cuotas.length} pago
-          {cuotas.length === 1 ? '' : 's'}
+          Cuota {formatMoney(primera)} · {cuotas.length} pago
+          {cuotas.length === 1 ? '' : 's'} · total {formatMoney(totalCuotas)}
+          {vence ? ` · vence ${formatFecha(vence)}` : ''}
         </Text>
       ) : null}
       <CredixDataTable<SimuladorCreditoCuota>
@@ -60,6 +64,25 @@ export function CreditoPlanPreview({
         pagination={false}
         size="small"
         scroll={{ x: 420 }}
+        summary={
+          cuotas.length > 0
+            ? () => (
+                <Table.Summary>
+                  <Table.Summary.Row>
+                    <Table.Summary.Cell index={0} colSpan={2}>
+                      Total a pagar
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell index={2} align="right">
+                      {formatMoney(totalCuotas)}
+                    </Table.Summary.Cell>
+                    <Table.Summary.Cell index={3} align="right">
+                      {formatMoney(saldoFinal)}
+                    </Table.Summary.Cell>
+                  </Table.Summary.Row>
+                </Table.Summary>
+              )
+            : undefined
+        }
       />
     </div>
   )

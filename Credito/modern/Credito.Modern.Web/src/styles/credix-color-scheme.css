@@ -542,3 +542,78 @@
 :root[data-theme='dark'] .caja-saldos-table .ant-table-summary .ant-table-cell {
   color: var(--credix-ink-brand);
 }
+
+/* Clientes: ficha y listado sin placas blancas (mismo criterio que consulta). */
+:root[data-theme='dark'] .cliente-mantener-page,
+:root[data-theme='dark'] .clientes-page {
+  background: var(--credix-bg);
+}
+
+:root[data-theme='dark'] .cliente-mantener__footer {
+  background: color-mix(in srgb, var(--credix-surface) 92%, transparent);
+  border-color: var(--credix-border);
+  box-shadow: none;
+}
+
+:root[data-theme='dark'] .cliente-mantener-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+  background: var(--credix-surface-muted);
+  border-color: var(--credix-border);
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .cliente-mantener-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active {
+  background: var(--credix-brand-light);
+  border-bottom-color: var(--credix-surface);
+}
+
+:root[data-theme='dark'] .cliente-mantener-tabs.ant-tabs-card > .ant-tabs-nav .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--credix-ink-brand);
+}
+
+:root[data-theme='dark'] .cliente-mantener-tabs .ant-tabs-content-holder {
+  background: var(--credix-surface);
+  border-color: var(--credix-border);
+}
+
+:root[data-theme='dark'] .cliente-mantener__section-title {
+  color: var(--credix-ink-brand);
+  border-bottom-color: var(--credix-brand-line);
+}
+
+:root[data-theme='dark'] .cliente-mantener__map-block {
+  background: var(--credix-surface);
+  border-color: var(--credix-border);
+  box-shadow: none;
+}
+
+:root[data-theme='dark'] .cliente-mantener__conyuge-row {
+  background: var(--credix-brand-light);
+  border-color: var(--credix-brand-line);
+}
+
+:root[data-theme='dark'] .cliente-mantener__calificacion-badge {
+  background: var(--credix-action);
+  color: var(--credix-on-brand);
+}
+
+:root[data-theme='dark'] .clientes-table .ant-table-tbody > tr:hover > td {
+  background: var(--credix-row-hover) !important;
+}
+
+:root[data-theme='dark'] .clientes-table__nombre,
+:root[data-theme='dark'] .clientes-empty__icon,
+:root[data-theme='dark'] .clientes-empty__title {
+  color: var(--credix-ink-brand);
+}
+
+:root[data-theme='dark'] .clientes-empty__desc,
+:root[data-theme='dark'] .clientes-table__doc,
+:root[data-theme='dark'] .cliente-mantener__loading-text {
+  color: var(--credix-text-muted);
+}
+
+:root[data-theme='dark'] .prendario-nuevo-accion {
+  background: var(--credix-surface);
+  border-color: var(--credix-border);
+  box-shadow: none;
+}

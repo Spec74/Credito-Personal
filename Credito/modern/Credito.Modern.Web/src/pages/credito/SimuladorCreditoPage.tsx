@@ -59,6 +59,12 @@ import { useAuth } from '../../auth/useAuth'
 import type { SimuladorCreditoCuota } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import {
+  addDaysIso,
+  fechaPrimerPagoPorModalidad,
+  fechaVencimientoPorModalidad,
+  parseIsoDate,
+} from '../../utils/creditoFechas'
 import { getLoginProfile } from '../../auth/sessionProfile'
 import { ClienteBuscarAutoComplete } from '../../components/caja/ClienteBuscarAutoComplete'
 import { CrearPersonaRapidaModal } from '../clientes/components/CrearPersonaRapidaModal'
@@ -128,48 +134,7 @@ type PrendaPreCarga = {
 }
 
 function defaultFecha(): string {
-  const d = new Date()
-  d.setMonth(d.getMonth() + 1)
-  return d.toISOString().slice(0, 10)
-}
-
-function addDaysIso(days: number): string {
-  const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  d.setDate(d.getDate() + days)
-  return d.toISOString().slice(0, 10)
-}
-
-function addMonthsIso(months: number): string {
-  const d = new Date()
-  d.setHours(0, 0, 0, 0)
-  d.setMonth(d.getMonth() + months)
-  return d.toISOString().slice(0, 10)
-}
-
-function fechaPorModalidad(formaPago: string, prendario: boolean): string {
-  // Prendario oficial: 1.er pago = desembolso/hoy + 1 mes calendario (no +30 días fijos).
-  if (prendario) return addMonthsIso(1)
-  switch (formaPago) {
-    case 'D':
-      return addDaysIso(1)
-    case 'S':
-      return addDaysIso(7)
-    case 'Q':
-      return addDaysIso(15)
-    case 'M':
-    default:
-      return addMonthsIso(1)
-  }
-}
-
-function addDaysToIsoDate(isoDate: string, days: number): string {
-  const d = new Date(`${isoDate.slice(0, 10)}T12:00:00`)
-  d.setDate(d.getDate() + days)
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+  return fechaPrimerPagoPorModalidad('M')
 }
 
 function clienteProspectoLabel(v: Partial<SimForm>): string {
@@ -222,6 +187,8 @@ export function SimuladorCreditoPage() {
   const tipoPersona = Form.useWatch('tipoPersona', form) ?? 'N'
   const montoActual = Form.useWatch('monto', form)
   const formaPagoActual = Form.useWatch('formaPago', form) ?? 'M'
+  const nroCuotasActual = Form.useWatch('nroCuotas', form) ?? 1
+  const fechaPrimerPagoActual = Form.useWatch('fechaPrimerPago', form)
   const garantiaActual = Form.useWatch('prendaDescripcion', form)
   const prospectoValues = Form.useWatch([], form) as Partial<SimForm> | undefined
 
@@ -554,7 +521,7 @@ export function SimuladorCreditoPage() {
       }
     }
     if (!(prefillDesdeNuevo && searchParams.has('fechaPrimerPago'))) {
-      form.setFieldValue('fechaPrimerPago', fechaPorModalidad(formaPagoActual, esPrendario))
+      form.setFieldValue('fechaPrimerPago', fechaPrimerPagoPorModalidad(formaPagoActual, esPrendario))
     }
     prevEsPrendarioRef.current = esPrendario
   }, [
@@ -1296,7 +1263,17 @@ export function SimuladorCreditoPage() {
               extra={
                 esPrendario
                   ? 'Base del plan. El vencimiento del crédito es la última cuota; el remate = vencimiento + 30 días. En el contrato la base comercial es la fecha de desembolso en caja.'
-                  : undefined
+                  : `Al cambiar la modalidad se recala el 1.er pago (D +1 día, S +7, Q +15, M +1 mes). Vence ${
+                      fechaPrimerPagoActual
+                        ? formatFecha(
+                            fechaVencimientoPorModalidad(
+                              formaPagoActual,
+                              Number(nroCuotasActual) || 1,
+                              String(fechaPrimerPagoActual).slice(0, 10),
+                            ),
+                          )
+                        : '—'
+                    }.`
               }
               rules={[{ required: true }]}
             >
@@ -1395,7 +1372,7 @@ export function SimuladorCreditoPage() {
                   <Text strong>
                     {formatFecha(
                       cuotas.at(-1)?.fechaPago
-                        ? addDaysToIsoDate(cuotas.at(-1)!.fechaPago!.slice(0, 10), 30)
+                        ? addDaysIso(30, parseIsoDate(cuotas.at(-1)!.fechaPago!.slice(0, 10)))
                         : null,
                     )}
                   </Text>

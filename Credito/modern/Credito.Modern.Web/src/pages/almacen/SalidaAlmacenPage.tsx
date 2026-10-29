@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Link } from 'react-router-dom'
 
@@ -114,7 +114,11 @@ export function SalidaAlmacenPage() {
 
   })
 
-
+  useEffect(() => {
+    if (tipoMovId != null) return
+    const first = tiposSalida.data?.[0]?.tipoMovimientoId
+    if (first) setTipoMovId(first)
+  }, [tiposSalida.data, tipoMovId])
 
   const buscar = useMutation({
 

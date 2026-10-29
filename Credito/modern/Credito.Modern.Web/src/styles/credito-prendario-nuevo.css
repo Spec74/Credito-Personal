@@ -9,6 +9,7 @@
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+  padding-bottom: 8px;
 }
 
 .prendario-nuevo-buscar {
@@ -144,6 +145,7 @@
 
 .credito-plan-preview {
   margin-top: 16px;
+  margin-bottom: 8px;
 }
 
 .credito-plan-preview__lead {

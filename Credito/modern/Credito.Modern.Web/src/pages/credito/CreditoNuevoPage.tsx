@@ -36,9 +36,13 @@ import { cajaConfirm } from '../../components/caja/cajaConfirm'
 import { CLIENTE_CRUZADO_AVISO } from '../../utils/clienteCruzado'
 import { motivoBloqueoOriginacion, montoSobreTope } from '../../utils/clienteOriginacion'
 import {
+  codigoFormaPago,
+  etiquetaFormaPago,
   fechaPrimerPagoPorModalidad,
-  originarCredito,
-} from '../../utils/originarCredito'
+  fechaVencimientoPorModalidad,
+} from '../../utils/creditoFechas'
+import { originarCredito } from '../../utils/originarCredito'
+import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import {
   buildClientesNuevoHref,
@@ -142,6 +146,12 @@ export function CreditoNuevoPage() {
     if (interesMensual > producto.interesMaxima) setInteresMensual(producto.interesMaxima)
   }, [producto, interesMensual])
 
+  const aplicarModalidad = (codigo: string) => {
+    const next = codigoFormaPago(codigo)
+    setFormaPago(next)
+    setFechaPrimerPago(toDayjs(fechaPrimerPagoPorModalidad(next)))
+  }
+
   useEffect(() => {
     setFechaPrimerPago(toDayjs(fechaPrimerPagoPorModalidad(formaPago)))
   }, [formaPago])
@@ -198,7 +208,7 @@ export function CreditoNuevoPage() {
       setPlanLoading(true)
       void simularCredito({
         monto,
-        formaPago,
+        formaPago: codigoFormaPago(formaPago),
         nroCuotas,
         interesMensual,
         fechaPrimerPago: fechaPrimerPago.format('YYYY-MM-DD'),
@@ -279,6 +289,17 @@ export function CreditoNuevoPage() {
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const fechaVencimientoIso = useMemo(() => {
+    const ultima = cuotas.at(-1)?.fechaPago?.slice(0, 10)
+    if (ultima) return ultima
+    if (!fechaPrimerPago) return null
+    return fechaVencimientoPorModalidad(
+      formaPago,
+      nroCuotas,
+      fechaPrimerPago.format('YYYY-MM-DD'),
+    )
+  }, [cuotas, fechaPrimerPago, formaPago, nroCuotas])
+
   const stats: CredixStatItem[] = []
   if (personaId) {
     stats.push({ label: 'Cliente', value: clienteLabel || `Persona #${personaId}` })
@@ -288,6 +309,9 @@ export function CreditoNuevoPage() {
   }
   if (cuotas[0]?.cuota != null) {
     stats.push({ label: 'Cuota', value: formatMoney(cuotas[0].cuota) })
+  }
+  if (fechaVencimientoIso) {
+    stats.push({ label: 'Vence', value: formatFecha(fechaVencimientoIso) })
   }
 
   return (
@@ -405,8 +429,11 @@ export function CreditoNuevoPage() {
                 disabled={!personaId || Boolean(bloqueoCliente)}
                 value={formaPago}
                 options={FORMAS_PAGO}
-                onChange={(v) => setFormaPago(String(v))}
+                onChange={(v) => aplicarModalidad(String(v))}
               />
+              <Text type="secondary" className="prendario-nuevo-ayuda">
+                Recalcula 1.er pago y vencimiento (D +1 día, S +7, Q +15, M +1 mes).
+              </Text>
             </Col>
             <Col xs={24} sm={12} md={8}>
               <Text type="secondary">&nbsp;</Text>
@@ -496,6 +523,18 @@ export function CreditoNuevoPage() {
                 onChange={(d) => setFechaPrimerPago(d)}
               />
             </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Text type="secondary">Vencimiento</Text>
+              <Input
+                className="prendario-nuevo-campo"
+                readOnly
+                value={fechaVencimientoIso ? formatFecha(fechaVencimientoIso) : '—'}
+                aria-label="Vencimiento del crédito"
+              />
+              <Text type="secondary" className="prendario-nuevo-ayuda">
+                Última cuota del plan {etiquetaFormaPago(formaPago)}.
+              </Text>
+            </Col>
             <Col xs={24} md={16}>
               <Text type="secondary">Observación</Text>
               <Input
@@ -517,6 +556,10 @@ export function CreditoNuevoPage() {
               <Text strong className="prendario-nuevo-accion__monto">
                 Solicitud {formatMoney(monto ?? 0)}
                 {cuotas[0]?.cuota != null ? ` · cuota ${formatMoney(cuotas[0].cuota)}` : ''}
+                {cuotas.length > 0
+                  ? ` · total ${formatMoney(cuotas.reduce((s, c) => s + (c.cuota ?? 0), 0))}`
+                  : ''}
+                {fechaVencimientoIso ? ` · vence ${formatFecha(fechaVencimientoIso)}` : ''}
               </Text>
             ) : (
               <Text type="secondary">Complete cliente y condiciones. No pasa por el simulador.</Text>

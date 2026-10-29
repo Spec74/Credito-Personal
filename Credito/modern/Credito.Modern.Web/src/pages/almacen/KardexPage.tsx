@@ -44,6 +44,12 @@ export function KardexPage() {
     }
   }, [session, form])
 
+  useEffect(() => {
+    if (!almacenes.data?.length) return
+    if (form.getFieldValue('almacenId')) return
+    form.setFieldValue('almacenId', almacenes.data[0].almacenId)
+  }, [almacenes.data, form])
+
   const almacenes = useQuery({
     queryKey: ['almacenes', oficinaId],
     queryFn: () => fetchAlmacenes(oficinaId),

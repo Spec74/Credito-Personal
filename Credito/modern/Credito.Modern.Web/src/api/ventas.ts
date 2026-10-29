@@ -9,6 +9,12 @@ export interface ArticuloVentaRapida {
   stock: number
 }
 
+export interface TipoDocumentoVentaItem {
+  tipoDocumentoId: number
+  denominacion: string | null
+  indVenta: boolean
+}
+
 export interface PedidoLinea {
   articuloId: number
   cantidad: number
@@ -148,6 +154,10 @@ export function fetchArticuloVentaRapida(
     codigo: codigo.trim(),
   })
   return apiFetch<ArticuloVentaRapida>(`/ventas/articulo-venta-rapida?${q}`)
+}
+
+export function fetchTiposDocumentoVenta(): Promise<TipoDocumentoVentaItem[]> {
+  return apiFetch<TipoDocumentoVentaItem[]>('/tipos-documento?paraVenta=true')
 }
 
 export function realizarPedido(body: {

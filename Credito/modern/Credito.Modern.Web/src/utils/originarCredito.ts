@@ -1,6 +1,7 @@
 import { crearCredito, crearSolicitudCredito } from '../api/creditoPlanes'
 import { crearSolicitudPrendaria, guardarBienesPrendario } from '../api/prendario'
 import type { PrendaItem } from '../api/creditoGestion'
+import { codigoFormaPago } from './creditoFechas'
 
 const IND_GASTOS_ADM = 'ADE' as const
 
@@ -60,7 +61,7 @@ export async function originarCredito(input: OriginarCreditoInput): Promise<Orig
     montoGastosAdm: input.gastosAdm,
     indGastosAdm: IND_GASTOS_ADM,
     montoCredito: input.monto,
-    modalidad: input.esPrendario ? 'M' : input.modalidad,
+    modalidad: input.esPrendario ? 'M' : codigoFormaPago(input.modalidad),
     numeroCuotas: input.nroCuotas,
     interesMensual: input.interesMensual,
     fechaPrimerPago: `${input.fechaPrimerPago.slice(0, 10)}T00:00:00`,

@@ -95,7 +95,7 @@ import {
   requiredText,
   rucRule,
 } from '../../validation/formRules'
-import '../../styles/cliente-form.css';
+import '../../styles/clientes-module.css'
 
 const { Text } = Typography
 

@@ -3,9 +3,11 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { DeleteOutlined, PlusOutlined } from '@ant-design/icons'
 import { Alert, Button, Input, InputNumber, Spin, Typography, message } from 'antd'
+import { obtenerCliente } from '../../api/clientes'
 import {
   fetchArticuloVentaRapida,
   fetchCajaDiarioVentaRapida,
+  fetchTiposDocumentoVenta,
   realizarPedido,
   type ArticuloVentaRapida,
   type PedidoLinea,
@@ -21,6 +23,10 @@ import {
   type CredixStatItem,
 } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
+import {
+  preferenciaComprobanteCliente,
+  sugerirTipoDocumento,
+} from '../../utils/tipoDocumentoSugerido'
 
 const { Text } = Typography
 
@@ -65,6 +71,28 @@ export function VentaRapidaPage() {
   })
 
   const sinCaja = caja.isError && caja.error instanceof ApiError && caja.error.status === 404
+
+  const tiposVenta = useQuery({
+    queryKey: ['tipos-documento-venta'],
+    queryFn: fetchTiposDocumentoVenta,
+    staleTime: 10 * 60_000,
+  })
+
+  const clienteVenta = useQuery({
+    queryKey: ['cliente-detalle', personaId],
+    queryFn: () => obtenerCliente(personaId!),
+    enabled: personaId != null && personaId > 0,
+  })
+
+  const comprobanteSugerido = useMemo(() => {
+    const rows = tiposVenta.data ?? []
+    if (rows.length === 0) return undefined
+    const pref = preferenciaComprobanteCliente(
+      clienteVenta.data?.numeroDocumento,
+      clienteVenta.data?.tipoPersona,
+    )
+    return sugerirTipoDocumento(rows, pref)
+  }, [tiposVenta.data, clienteVenta.data])
 
   const buscarArticulo = useMutation({
     mutationFn: (c: string) => fetchArticuloVentaRapida(oficinaId, c),
@@ -356,6 +384,12 @@ export function VentaRapidaPage() {
                   <Text type="secondary">Total</Text>
                   <strong>{formatMoney(total)}</strong>
                 </div>
+                {comprobanteSugerido ? (
+                  <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                    Comprobante {comprobanteSugerido.denominacion?.trim() || '—'} (DNI → boleta, RUC →
+                    factura). No se elige a mano.
+                  </Text>
+                ) : null}
                 <Button
                   type="primary"
                   size="large"
