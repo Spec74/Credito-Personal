@@ -27,6 +27,8 @@ export interface ArticuloGestionRow {
   estado: boolean
   monto: number | null
   descuento: number | null
+  /** Series EN_ALMACEN. El catálogo no tiene columna de cantidad. */
+  stockEnAlmacen: number
 }
 
 export interface ArticuloDetalle {

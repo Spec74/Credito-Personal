@@ -368,19 +368,18 @@ body.credix-app-body {
   color: var(--credix-text-muted);
 }
 
-:root[data-theme='dark'] .credix-brand-logo__plate,
-.credix-brand-logo--on-dark .credix-brand-logo__plate {
+/* Solo el login (onDark): placa blanca. El menú usa el PNG con alpha. */
+.credix-brand-logo--on-dark:not(.is-compact) .credix-brand-logo__plate {
   padding: 10px 14px;
   background: #fff;
   box-shadow: 0 8px 24px rgba(8, 32, 64, 0.18);
 }
 
-.credix-brand-logo.is-compact .credix-brand-logo__plate {
-  padding: 8px 10px;
-}
-
-:root[data-theme='light'] .credix-brand-logo.is-compact .credix-brand-logo__plate {
+.credix-brand-logo.is-compact .credix-brand-logo__plate,
+:root[data-theme='dark'] .app-shell-sider-brand .credix-brand-logo__plate {
   padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .app-shell-sider-brand .credix-brand-logo__img {

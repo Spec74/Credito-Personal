@@ -307,6 +307,13 @@ export function ArticulosPage() {
     { title: 'Modelo', dataIndex: 'modeloDenominacion', width: 120, ellipsis: true },
     { title: 'Precio', dataIndex: 'monto', width: 90, align: 'right' },
     {
+      title: 'Stock',
+      dataIndex: 'stockEnAlmacen',
+      width: 80,
+      align: 'right',
+      render: (v: number | undefined) => ((v ?? 0) > 0 ? v : <Text type="secondary">0</Text>),
+    },
+    {
       title: 'Estado',
       dataIndex: 'estado',
       width: 90,
@@ -327,7 +334,7 @@ export function ArticulosPage() {
   return (
     <CredixCrudPage
       title="Artículos"
-      subtitle="Tipo y modelo se eligen o se crean aquí. El código puede quedar vacío."
+      subtitle="El catálogo no tiene cantidad: el stock son series EN_ALMACEN (entrada o remate prendario)."
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },

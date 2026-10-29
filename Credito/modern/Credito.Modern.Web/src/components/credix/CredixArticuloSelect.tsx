@@ -15,7 +15,9 @@ export type CredixArticuloSelectProps = Omit<
 function etiqueta(a: ArticuloGestionRow): string {
   const nombre = a.denominacion?.trim() || `Artículo ${a.articuloId}`
   const codigo = a.codArticulo?.trim()
-  return codigo ? `${nombre} · ${codigo}` : nombre
+  const stock = a.stockEnAlmacen ?? 0
+  const base = codigo ? `${nombre} · ${codigo}` : nombre
+  return `${base} · stock ${stock}`
 }
 
 /** Busca artículo por nombre o código. No pide el id interno. */

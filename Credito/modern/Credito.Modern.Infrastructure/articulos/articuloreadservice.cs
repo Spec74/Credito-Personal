@@ -80,7 +80,13 @@ public sealed class ArticuloReadService(IOptions<SqlDatabaseOptions> options) : 
                    a.IndCanjeable,
                    a.Estado,
                    lp.Monto,
-                   lp.Descuento
+                   lp.Descuento,
+                   (
+                       SELECT COUNT(1)
+                       FROM ALMACEN.SerieArticulo AS s
+                       WHERE s.ArticuloId = a.ArticuloId
+                         AND s.EstadoId = 2
+                   ) AS StockEnAlmacen
             FROM ALMACEN.Articulo AS a
             LEFT JOIN ALMACEN.Modelo AS m ON m.ModeloId = a.ModeloId
             LEFT JOIN ALMACEN.TipoArticulo AS t ON t.TipoArticuloId = a.TipoArticuloId

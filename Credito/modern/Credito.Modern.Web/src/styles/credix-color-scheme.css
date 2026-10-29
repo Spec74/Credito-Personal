@@ -442,6 +442,11 @@
   border-color: var(--credix-border) !important;
 }
 
+:root[data-theme='dark'] .credito-consulta-page .credix-table--operacion .ant-table-tbody > tr:nth-child(even) > td,
+:root[data-theme='dark'] .credito-consulta-page .credito-plan-table .ant-table-tbody > tr.credito-plan-row:nth-child(even) > td {
+  background: var(--credito-table-zebra, var(--credix-surface-muted)) !important;
+}
+
 :root[data-theme='dark'] .ant-table-tbody > tr.ant-table-row:hover > td,
 :root[data-theme='dark'] .ant-table-tbody > tr:hover > td {
   background: var(--credix-row-hover) !important;

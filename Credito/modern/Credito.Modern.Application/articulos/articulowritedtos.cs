@@ -45,7 +45,8 @@ public sealed record ArticuloGestionListItemDto(
     bool? IndCanjeable,
     bool Estado,
     decimal? Monto,
-    decimal? Descuento);
+    decimal? Descuento,
+    int StockEnAlmacen);
 
 public sealed record ArticuloBuscarItemDto(int ArticuloId, string Denominacion);
 

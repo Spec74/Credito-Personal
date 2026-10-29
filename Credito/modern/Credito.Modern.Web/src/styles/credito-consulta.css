@@ -22,6 +22,7 @@
   --credito-table-head: var(--credix-table-head);
   --credito-table-line: var(--credix-border);
   --credito-row-hover: var(--credix-row-hover);
+  --credito-table-zebra: color-mix(in srgb, var(--credix-surface-muted) 72%, var(--credix-surface));
 }
 
 /* Fondo de página sobrio (sin tinte azul legacy) */
@@ -1157,7 +1158,7 @@
 .credito-plan-table .ant-tag {
   margin-inline-end: 0;
   background: var(--credix-surface-muted);
-  border-color: #cbd5e1 !important;
+  border-color: var(--credito-table-line) !important;
   color: var(--credix-text);
   border-radius: 4px;
   font-weight: 650;
@@ -1168,7 +1169,7 @@
   bottom: 0;
   z-index: 2;
   background: var(--credix-surface-muted);
-  border-top: 1px solid #cbd5e1 !important;
+  border-top: 1px solid var(--credito-table-line) !important;
   font-weight: 700;
   color: var(--credix-text);
   box-shadow: none;
@@ -1209,7 +1210,7 @@
   font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: none;
-  border-bottom: 1px solid #cbd5e1 !important;
+  border-bottom: 1px solid var(--credito-table-line) !important;
   border-inline-end: none !important;
   white-space: nowrap;
 }
@@ -1227,8 +1228,23 @@
   background: var(--credito-row-hover) !important;
 }
 
+.credito-consulta-page .credix-table--operacion .ant-table,
+.credito-consulta-page .credix-table--operacion .ant-table-container,
+.credito-consulta-page .credix-table--operacion .ant-table-content {
+  background: var(--credix-surface) !important;
+  color: var(--credix-text);
+}
+
 .credito-consulta-page .credix-table--operacion .ant-table-tbody > tr:nth-child(even) > td {
-  background: #fcfcfd !important;
+  background: var(--credito-table-zebra) !important;
+}
+
+.credito-consulta-page .credito-plan-table .ant-table-tbody > tr.credito-plan-row > td {
+  background: var(--credix-surface) !important;
+}
+
+.credito-consulta-page .credito-plan-table .ant-table-tbody > tr.credito-plan-row:nth-child(even) > td {
+  background: var(--credito-table-zebra) !important;
 }
 
 .credito-consulta-page .credix-table--operacion .ant-table-tbody > tr:nth-child(even):hover > td {
@@ -1256,7 +1272,7 @@
 .credito-consulta-page .credito-consulta-resumen .ant-tag,
 .credito-consulta-page .credix-box-header-extra .ant-tag {
   background: var(--credix-surface-muted);
-  border-color: #cbd5e1 !important;
+  border-color: var(--credito-table-line) !important;
   color: var(--credix-text);
 }
 

@@ -35,6 +35,13 @@ function errMsg(e: unknown): string {
   return e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error desconocido'
 }
 
+function stockInsuficienteMsg(stock: number): string {
+  if (stock < 1) {
+    return 'Sin series en almacén (0 disponible). Crear el artículo no da stock: use Entrada de almacén o remate prendario.'
+  }
+  return `Stock insuficiente (${stock} disponible)`
+}
+
 export function VentaRapidaPage() {
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
@@ -118,7 +125,7 @@ export function VentaRapidaPage() {
       const ya = carrito.find((l) => l.articuloId === art.articuloId)
       const cantidadNueva = (ya?.cantidad ?? 0) + cantidad
       if (art.stock < cantidadNueva) {
-        message.error(`Stock insuficiente (${art.stock} disponible)`)
+        message.error(stockInsuficienteMsg(art.stock))
         return
       }
       const precio = art.precioVenta ?? 0
@@ -165,7 +172,7 @@ export function VentaRapidaPage() {
         const art = await fetchArticuloVentaRapida(oficinaId, codigoStock)
         if (cancelado) return
         if (art.stock < 1) {
-          message.error(`Stock insuficiente (${art.stock} disponible)`)
+          message.error(stockInsuficienteMsg(art.stock))
           return
         }
         setCarrito((prev) => {
@@ -284,8 +291,9 @@ export function VentaRapidaPage() {
                     </Button>
                   </div>
                   <Text type="secondary">
-                    Si no aparece, créelo en <Link to="/maestros/articulos">Artículos</Link> y asigne
-                    precio en <Link to="/ventas/lista-precios">Lista de precios</Link>.
+                    El catálogo no es inventario. Para vender hace falta una serie EN_ALMACEN:{' '}
+                    <Link to="/almacen/entrada">Entrada de almacén</Link> o remate prendario. Precio en{' '}
+                    <Link to="/ventas/lista-precios">Lista de precios</Link>.
                   </Text>
                 </div>
               </CredixPanel>
