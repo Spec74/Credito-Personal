@@ -233,6 +233,12 @@ export function CreditoPrendarioPage() {
         onClick: () => elegirCola('Otro'),
       },
       {
+        label: 'Sin bienes',
+        value: r.sinBienes ?? 0,
+        active: categoria === 'SinBienes',
+        onClick: () => elegirCola('SinBienes'),
+      },
+      {
         label: 'Cartera',
         value: `S/ ${formatMoney(r.montoCartera ?? 0)}`,
         detail: r.total ? `${r.total} desembolsados` : undefined,

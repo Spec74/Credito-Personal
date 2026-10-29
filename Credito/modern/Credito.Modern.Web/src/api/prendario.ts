@@ -16,6 +16,7 @@ export interface PrendarioResumen {
   rematados: number
   solicitudes: number
   montoCartera: number
+  sinBienes: number
 }
 
 export interface PrendarioCreditoRow {

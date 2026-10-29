@@ -17,6 +17,23 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
     private const int DiasAvisoVencimiento = 3;
     private readonly string _connectionString = options.Value.ConnectionString;
 
+    /// <summary>
+    /// Orden del enum <see cref="PrendarioCategoria"/> (0 SinBienes … 5 Vigente).
+    /// Resumen y listado tienen que usar el mismo CASE: si no, la tarjeta cuenta
+    /// desembolsados sin prenda y el clic filtra una cola vacía.
+    /// </summary>
+    private const string SqlCategoria = """
+        CASE
+            WHEN ISNULL(pr.Bienes, 0) = 0 THEN 0
+            WHEN c.FechaRemateEjecutado IS NOT NULL THEN 2
+            WHEN c.Estado <> 'DES' THEN 1
+            WHEN COALESCE(CONVERT(date, c.FechaRemate), DATEADD(DAY, 30, CONVERT(date, c.FechaVencimiento))) < @Hoy THEN 2
+            WHEN CONVERT(date, c.FechaVencimiento) < @Hoy THEN 3
+            WHEN CONVERT(date, c.FechaVencimiento) <= @Limite THEN 4
+            ELSE 5
+        END
+        """;
+
     public async Task<PrendarioResumenDto> ObtenerResumenAsync(
         int oficinaId,
         CancellationToken cancellationToken = default)
@@ -25,38 +42,29 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        // Cartera DES en las 4 primeras tarjetas; Solicitudes = CRE/PEN/AP1/APR.
+        // Colas = mismo CASE que el listado. Total/MontoCartera = DES vivo (incluye sin bienes).
         var resumen = await connection.QueryFirstAsync<PrendarioResumenDto>(
             new CommandDefinition(
-                """
+                $"""
                 DECLARE @Hoy date = dbo.ufnFecha();
                 DECLARE @Limite date = DATEADD(DAY, @DiasAviso, @Hoy);
 
-                -- Remate/Vencido/Cartera alineados con el listado: sin filas en Prenda
-                -- la categoría es SinBienes, no Rematado. COUNT sobre CASE: sin filas → 0.
                 SELECT
                     COUNT(CASE WHEN c.Estado = 'DES' AND c.FechaRemateEjecutado IS NULL THEN 1 END) AS Total,
-                    COUNT(CASE WHEN c.Estado = 'DES' AND c.FechaRemateEjecutado IS NULL
-                                AND c.FechaVencimiento >= @Hoy AND c.FechaVencimiento <= @Limite
-                               THEN 1 END) AS PorVencer,
-                    COUNT(CASE WHEN c.Estado = 'DES' AND c.FechaRemateEjecutado IS NULL
-                                AND c.FechaVencimiento < @Hoy
-                                AND (c.FechaRemate IS NULL OR c.FechaRemate >= @Hoy)
-                               THEN 1 END) AS Vencidos,
-                    COUNT(CASE WHEN c.Estado = 'DES'
-                                AND ISNULL(pr.Bienes, 0) > 0
-                                AND (c.FechaRemateEjecutado IS NOT NULL
-                                     OR COALESCE(c.FechaRemate, DATEADD(DAY, 30, c.FechaVencimiento)) < @Hoy)
-                               THEN 1 END) AS Rematados,
-                    COUNT(CASE WHEN c.Estado IN ('CRE', 'PEN', 'AP1', 'APR') THEN 1 END) AS Solicitudes,
+                    COUNT(CASE WHEN cat.Categoria = 4 THEN 1 END) AS PorVencer,
+                    COUNT(CASE WHEN cat.Categoria = 3 THEN 1 END) AS Vencidos,
+                    COUNT(CASE WHEN cat.Categoria = 2 THEN 1 END) AS Rematados,
+                    COUNT(CASE WHEN cat.Categoria = 1 THEN 1 END) AS Solicitudes,
                     ISNULL(SUM(CASE WHEN c.Estado = 'DES' AND c.FechaRemateEjecutado IS NULL
-                                    THEN c.MontoCredito ELSE 0 END), 0) AS MontoCartera
+                                    THEN c.MontoCredito ELSE 0 END), 0) AS MontoCartera,
+                    COUNT(CASE WHEN cat.Categoria = 0 THEN 1 END) AS SinBienes
                 FROM CREDITO.Credito AS c
                 LEFT JOIN (
                     SELECT CreditoId, COUNT(*) AS Bienes
                     FROM CREDITO.Prenda
                     GROUP BY CreditoId
                 ) AS pr ON pr.CreditoId = c.CreditoId
+                CROSS APPLY (SELECT {SqlCategoria} AS Categoria) AS cat
                 WHERE c.OficinaId = @OficinaId
                   AND (c.EsPrendario = CAST(1 AS bit) OR c.ProductoId = 2)
                   AND c.Estado <> 'ANU';
@@ -87,7 +95,7 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
         // Antes se usaba EsPrendario=0, lo que ocultaba vigentes DES con flag=1 y 0 bienes.
         using var multi = await connection.QueryMultipleAsync(
             new CommandDefinition(
-                """
+                $"""
                 DECLARE @Hoy date = dbo.ufnFecha();
                 DECLARE @Limite date = DATEADD(DAY, @DiasAviso, @Hoy);
 
@@ -104,16 +112,8 @@ public sealed class PrendarioReadService(IOptions<SqlDatabaseOptions> options) :
                        c.Estado,
                        c.EsPrendario,
                        ISNULL(pr.Bienes, 0) AS Bienes,
-                       CASE
-                           WHEN ISNULL(pr.Bienes, 0) = 0 THEN 0
-                           WHEN c.FechaRemateEjecutado IS NOT NULL THEN 2
-                           WHEN c.Estado <> 'DES' THEN 1
-                           WHEN COALESCE(c.FechaRemate, DATEADD(DAY, 30, c.FechaVencimiento)) < @Hoy THEN 2
-                           WHEN c.FechaVencimiento < @Hoy THEN 3
-                           WHEN c.FechaVencimiento <= @Limite THEN 4
-                           ELSE 5
-                       END AS Categoria,
-                       DATEDIFF(DAY, @Hoy, c.FechaVencimiento) AS DiasParaVencer
+                       {SqlCategoria} AS Categoria,
+                       DATEDIFF(DAY, @Hoy, CONVERT(date, c.FechaVencimiento)) AS DiasParaVencer
                 INTO #PrendarioListado
                 FROM CREDITO.Credito AS c
                 INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
