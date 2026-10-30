@@ -750,7 +750,7 @@ export function CreditoPrendarioGestionPage() {
                                 amount: b.valorTasacion,
                                 officeLabel: b.descripcion || 'Bien en custodia',
                                 consequence:
-                                  'Los bienes en custodia pasan al almacén de esta sede (artículo + precio = tasación). El préstamo queda cerrado. En el siguiente paso puede venderlos en venta rápida.',
+                                  'El bien pasa directo a stock de esta sede (artículo PRM + precio = tasación). No registre Entrada de almacén: duplicaría series. El préstamo queda cerrado. Siguiente paso: Venta rápida.',
                                 okText: 'Rematar',
                                 onOk: async () => {
                                   await rematarMut.mutateAsync(b.prendaId)
@@ -956,6 +956,7 @@ export function CreditoPrendarioGestionPage() {
       <Modal
         open={stockRemate != null}
         title="La prenda ya está en el punto de venta"
+        className="credix-modal"
         wrapClassName="credix-modal-operativo"
         width="min(480px, 96vw)"
         okText="Vender ahora"
@@ -973,8 +974,9 @@ export function CreditoPrendarioGestionPage() {
           <Paragraph>
             Código <Text strong>{stockRemate.codArticulo}</Text> · precio{' '}
             <Text strong>S/ {formatMoney(stockRemate.precioVenta)}</Text> (tasación).
-            No hay que crear artículo ni lista de precios: ya está en stock de esta sede.
-            Pulse <Text strong>Vender ahora</Text> para cargarlo al ticket.
+            Ya está EN_ALMACEN: no cree artículo, ni lista de precios, ni Entrada.
+            Pulse <Text strong>Vender ahora</Text> para el ticket, o revíselo en{' '}
+            <Link to="/maestros/articulos">Maestros → Artículos</Link>.
           </Paragraph>
         ) : null}
       </Modal>

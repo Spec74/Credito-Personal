@@ -408,9 +408,35 @@
 }
 
 :root[data-theme='dark'] .ant-modal-content,
+:root[data-theme='dark'] .ant-modal-container,
 :root[data-theme='dark'] .ant-modal-header,
-:root[data-theme='dark'] .ant-modal-footer {
-  background: var(--credix-surface-elevated);
+:root[data-theme='dark'] .ant-modal-body,
+:root[data-theme='dark'] .ant-modal-footer,
+:root[data-theme='dark'] .ant-modal-confirm-body-wrapper,
+:root[data-theme='dark'] .ant-modal-confirm-body,
+:root[data-theme='dark'] .ant-modal-confirm-btns {
+  background: var(--credix-surface-elevated) !important;
+  color: var(--credix-text) !important;
+}
+
+:root[data-theme='dark'] .ant-modal-confirm-title,
+:root[data-theme='dark'] .ant-modal-confirm-content,
+:root[data-theme='dark'] .ant-modal-confirm-paragraph,
+:root[data-theme='dark'] .credix-money-confirm,
+:root[data-theme='dark'] .credix-money-confirm__amount,
+:root[data-theme='dark'] .credix-money-confirm .ant-typography {
+  color: var(--credix-text) !important;
+}
+
+:root[data-theme='dark'] .credix-money-confirm .ant-typography-secondary {
+  color: var(--credix-text-muted) !important;
+}
+
+:root[data-theme='dark'] .ant-modal-confirm .ant-btn-default:not(:disabled),
+:root[data-theme='dark'] .ant-modal-confirm .ant-btn-default:not(:disabled) > span {
+  background: var(--credix-surface) !important;
+  border-color: var(--credix-border) !important;
+  color: var(--credix-text) !important;
 }
 
 :root[data-theme='dark'] :focus-visible {

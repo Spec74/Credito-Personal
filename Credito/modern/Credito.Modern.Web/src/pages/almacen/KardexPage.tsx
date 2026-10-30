@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
@@ -16,6 +16,7 @@ import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixArticuloSelect, CredixDataTable, CredixInformePage, CredixSelect } from '../../components/credix'
 import { useInformeStats } from '../../hooks/useInformeStats'
 import type { GenerarKardexParams, GenerarKardexRow } from '../../types/api'
+import { esCodigoRematePrendario } from '../../utils/codigoRematePrendario'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 
@@ -37,6 +38,7 @@ export function KardexPage() {
   const { session } = useAuth()
   const [form] = Form.useForm<FormValues>()
   const oficinaId = session?.oficinaId ?? 0
+  const [articuloCodigo, setArticuloCodigo] = useState('')
 
   const almacenes = useQuery({
     queryKey: ['almacenes', oficinaId],
@@ -134,7 +136,7 @@ export function KardexPage() {
   return (
     <CredixInformePage
       title="Kardex de artículo"
-      subtitle="Elija almacén y artículo por nombre. No hace falta el id."
+      subtitle="Kardex de entradas y salidas. Un PRM rematado no tiene entrada documental hasta que se vende."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/almacen">Almacén</Link> },
@@ -174,7 +176,10 @@ export function KardexPage() {
             extra={<Link to="/maestros/articulos">Ver artículos</Link>}
             rules={[{ required: true, message: 'Elija un artículo' }]}
           >
-            <CredixArticuloSelect style={{ maxWidth: 360 }} />
+            <CredixArticuloSelect
+              style={{ maxWidth: 360 }}
+              onArticulo={(item) => setArticuloCodigo(item?.codArticulo?.trim() ?? '')}
+            />
           </Form.Item>
           <Form.Item>
             <Button
@@ -212,6 +217,32 @@ export function KardexPage() {
         ) : null
       }
     >
+      {consulta.isSuccess && (consulta.data?.length ?? 0) === 0 ? (
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message={
+            esCodigoRematePrendario(articuloCodigo)
+              ? `${articuloCodigo} no tiene kardex todavía`
+              : 'Sin movimientos de kardex'
+          }
+          description={
+            esCodigoRematePrendario(articuloCodigo) ? (
+              <>
+                El remate deja la serie EN_ALMACEN sin documento de entrada. El kardex aparece al
+                venderlo.{' '}
+                <Link to={`/ventas/venta-rapida?codigo=${encodeURIComponent(articuloCodigo)}`}>
+                  Ir a venta rápida
+                </Link>
+                .
+              </>
+            ) : (
+              'Kardex lee entradas y salidas confirmadas. Use Entrada para catálogo, o Venta rápida para un PRM rematado.'
+            )
+          }
+        />
+      ) : null}
       <CredixDataTable<GenerarKardexRow>
         rowKey={(r, i) => String(r.movimientoDetId ?? i)}
         size="small"
@@ -220,7 +251,11 @@ export function KardexPage() {
         dataSource={consulta.data ?? []}
         columns={columns}
         pagination={{ pageSize: 25, showSizeChanger: true }}
-        locale={{ emptyText: 'Indique artículo y almacén' }}
+        locale={{
+          emptyText: consulta.isSuccess
+            ? 'Sin filas de movimiento'
+            : 'Indique artículo y almacén',
+        }}
       />
     </CredixInformePage>
   )

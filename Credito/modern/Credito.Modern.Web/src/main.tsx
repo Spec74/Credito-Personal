@@ -7,6 +7,7 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/es'
 import { AuthProvider } from './auth/AuthContext'
 import App from './App'
+import { CredixStaticDialogHost } from './components/credix/CredixStaticDialogHost'
 import { CredixColorSchemeProvider } from './theme/CredixColorSchemeProvider'
 import './index.css'
 import './styles/credix-design-system.css'
@@ -63,6 +64,7 @@ createRoot(document.getElementById('root')!).render(
     <QueryClientProvider client={queryClient}>
       <CredixColorSchemeProvider>
         <AntApp>
+          <CredixStaticDialogHost />
           <BrowserRouter
             basename={
               import.meta.env.BASE_URL.replace(/\/$/, '') || undefined

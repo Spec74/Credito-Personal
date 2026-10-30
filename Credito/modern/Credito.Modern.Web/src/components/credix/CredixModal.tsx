@@ -5,7 +5,7 @@ type ModalProps = ComponentProps<typeof Modal>
 
 /**
  * Modal estándar Credix: centrado, responsive y con tipografía corporativa.
- * Usar en formularios y confirmaciones de pantalla; para `Modal.confirm` el tema Ant ya aplica.
+ * Para `Modal.confirm` usar `confirmMoney` / `credixConfirm` (Ant App + tema).
  */
 export function CredixModal({
   children,

@@ -319,8 +319,9 @@ export function VentaRapidaPage() {
                     </Button>
                   </div>
                   <Text type="secondary">
-                    El catálogo no es inventario. Para vender hace falta una serie EN_ALMACEN:{' '}
-                    <Link to="/almacen/entrada">Entrada de almacén</Link> o remate prendario. Precio en{' '}
+                    El catálogo no es inventario. Stock = serie EN_ALMACEN: remate prendario
+                    (código PRM…, ya viene listo) o{' '}
+                    <Link to="/almacen/entrada">Entrada de almacén</Link> para catálogo. Precio en{' '}
                     <Link to="/ventas/lista-precios">Lista de precios</Link>.
                   </Text>
                 </div>

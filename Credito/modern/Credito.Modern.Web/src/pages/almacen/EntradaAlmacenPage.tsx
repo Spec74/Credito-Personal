@@ -56,6 +56,7 @@ import {
 } from '../../components/credix'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { esCodigoRematePrendario } from '../../utils/codigoRematePrendario'
 import {
   seriePorTipoDocumento,
   sugerirTipoDocumento,
@@ -79,6 +80,8 @@ export function EntradaAlmacenPage() {
   const [almacenId, setAlmacenId] = useState<number | null>(null)
   const [buscar, setBuscar] = useState('')
   const [articuloFiltro, setArticuloFiltro] = useState<number | null>(null)
+  const [articuloFiltroCodigo, setArticuloFiltroCodigo] = useState('')
+  const [articuloFiltroStock, setArticuloFiltroStock] = useState(0)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
   const [nuevaOpen, setNuevaOpen] = useState(false)
@@ -559,6 +562,14 @@ export function EntradaAlmacenPage() {
                     if (item.descuento != null && item.descuento > 0) {
                       detForm.setFieldValue('descuento', item.descuento)
                     }
+                    if (
+                      esCodigoRematePrendario(item.codArticulo) &&
+                      (item.stockEnAlmacen ?? 0) > 0
+                    ) {
+                      message.warning(
+                        `${item.codArticulo} ya está en stock por remate. Otra línea de entrada duplicaría series; véndalo en venta rápida.`,
+                      )
+                    }
                   }}
                 />
               </Form.Item>
@@ -691,7 +702,7 @@ export function EntradaAlmacenPage() {
   return (
     <CredixPage
       title="Entrada de almacén"
-      subtitle="Elija el artículo por nombre. Si no existe, créelo en Maestros."
+      subtitle="Compras y ajustes de catálogo. Un remate prendario (código PRM…) ya deja stock: no cree otra entrada."
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -744,6 +755,14 @@ export function EntradaAlmacenPage() {
                 onChange={(v) => {
                   setArticuloFiltro(v ?? null)
                   setPage(1)
+                  if (v == null) {
+                    setArticuloFiltroCodigo('')
+                    setArticuloFiltroStock(0)
+                  }
+                }}
+                onArticulo={(item) => {
+                  setArticuloFiltroCodigo(item?.codArticulo?.trim() ?? '')
+                  setArticuloFiltroStock(item?.stockEnAlmacen ?? 0)
                 }}
               />
               <Button
@@ -774,6 +793,38 @@ export function EntradaAlmacenPage() {
           {listado.isError ? (
             <Alert type="error" showIcon message={errMsg(listado.error)} />
           ) : (
+            <>
+          {!listado.isLoading &&
+          articuloFiltro != null &&
+          (listado.data?.items?.length ?? 0) === 0 ? (
+            <Alert
+              type="info"
+              showIcon
+              style={{ marginBottom: 12 }}
+              message={
+                esCodigoRematePrendario(articuloFiltroCodigo)
+                  ? `Código de remate ${articuloFiltroCodigo}: no aparece aquí`
+                  : 'Este artículo no tiene entradas registradas'
+              }
+              description={
+                <>
+                  {articuloFiltroStock > 0
+                    ? `Ya tiene stock ${articuloFiltroStock} (serie EN_ALMACEN). No cree otra entrada: duplicaría el bien. `
+                    : 'Entrada sirve para compras de catálogo (proveedor). '}
+                  {esCodigoRematePrendario(articuloFiltroCodigo) ? (
+                    <Link
+                      to={`/ventas/venta-rapida?codigo=${encodeURIComponent(articuloFiltroCodigo)}`}
+                    >
+                      Venderlo en venta rápida
+                    </Link>
+                  ) : (
+                    <Link to="/maestros/articulos">Ver artículos</Link>
+                  )}
+                  .
+                </>
+              }
+            />
+          ) : null}
             <CredixDataTable<MovimientoEntradaListRow>
               rowKey="movimientoId"
               size="small"
@@ -791,6 +842,7 @@ export function EntradaAlmacenPage() {
                 },
               }}
             />
+            </>
           )}
         </>
           )}

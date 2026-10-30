@@ -1,16 +1,20 @@
 import { Modal, type ModalFuncProps } from 'antd'
+import { credixAppModal } from './CredixStaticDialogHost'
+
+const WRAP = 'credix-modal credix-modal--confirm'
 
 /**
- * Confirmación estándar Credix (Modal.confirm con defaults corporativos).
+ * Confirmación estándar Credix. Usa Ant App para heredar claro/oscuro.
  */
 export function credixConfirm(options: ModalFuncProps) {
-  return Modal.confirm({
+  const api = credixAppModal()
+  const confirm = api ? api.confirm.bind(api) : Modal.confirm.bind(Modal)
+  return confirm({
     centered: true,
     okText: 'Confirmar',
     cancelText: 'Cancelar',
     ...options,
-    rootClassName: ['credix-modal', 'credix-modal--confirm', options.rootClassName]
-      .filter(Boolean)
-      .join(' '),
+    wrapClassName: [WRAP, options.wrapClassName].filter(Boolean).join(' '),
+    rootClassName: [WRAP, options.rootClassName].filter(Boolean).join(' '),
   })
 }
