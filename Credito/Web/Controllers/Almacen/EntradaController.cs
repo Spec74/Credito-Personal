@@ -9,6 +9,8 @@ namespace VendixWeb.Controllers.Almacen
 {
     public class EntradaController : Controller
     {
+        const string CompraRetirada = "La entrada de almacén (compra a proveedores) no opera en Credix.";
+
         public ActionResult Index()
         {
             return View("Retirado");
@@ -47,29 +49,13 @@ namespace VendixWeb.Controllers.Almacen
         [HttpPost]
         public ActionResult Guardar(int pMovimientoId, int pAlmacenId, int pTipoMovimientoId, string pFecha, string pObservacion)
         {
-            return Json("La entrada de almacén (compra a proveedores) no opera en Credix.", JsonRequestBehavior.AllowGet);
+            return Json(CompraRetirada, JsonRequestBehavior.AllowGet);
         }
         
         [HttpPost]
         public ActionResult AgregarDocumento(int pMovimientoId, int pTipoDocumentoId, string pSerie, string pNumero)
         {
-            var omov = MovimientoBL.Obtener(pMovimientoId);
-            
-            var item = new MovimientoDoc();
-            item.MovimientoId = pMovimientoId;
-            item.TipoDocumentoId = pTipoDocumentoId; 
-            item.SerieDocumento = pSerie;
-            item.NroDocumento = pNumero;
-            MovimientoDocBL.Crear(item);
-
-            var lstdoc = MovimientoDocBL.Listar(x => x.MovimientoId == pMovimientoId ,
-                                                z => z.OrderBy(y => y.TipoDocumentoId), "TipoDocumento");
-            omov.Documento = string.Empty;
-            foreach (var x in lstdoc)
-                omov.Documento += x.TipoDocumento.Descripcion + " " + x.SerieDocumento + "-" + x.NroDocumento + "  ";
-            MovimientoBL.Actualizar(omov);
-
-            return Json(true, JsonRequestBehavior.AllowGet);
+            return Json(CompraRetirada, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult ListarDocs(GridDataRequest request)
@@ -102,20 +88,7 @@ namespace VendixWeb.Controllers.Almacen
         [HttpPost]
         public ActionResult Eliminar(int pid)
         {
-            var odoc = MovimientoDocBL.Obtener(pid);
-            MovimientoDocBL.Eliminar(pid);
-            
-            var lstdoc = MovimientoDocBL.Listar(x => x.MovimientoId == odoc.MovimientoId.Value ,
-                                                z => z.OrderBy(y => y.TipoDocumentoId), "TipoDocumento");
-            
-            var omov = MovimientoBL.Obtener(odoc.MovimientoId.Value);
-            omov.Documento = string.Empty;
-            foreach (var x in lstdoc)
-                omov.Documento += x.TipoDocumento.Descripcion + " " + x.SerieDocumento + "-" + x.NroDocumento + "  ";
-            
-            MovimientoBL.Actualizar(omov);
-
-            return Json(true);
+            return Json(CompraRetirada);
         }
 
         public ActionResult ListarDetalle(GridDataRequest request)
@@ -156,27 +129,25 @@ namespace VendixWeb.Controllers.Almacen
         [HttpPost]
         public ActionResult Delete(int pid)
         {
-            MovimientoDetBL.EliminarDetalle(pid);
-            return Json(true);
+            return Json(CompraRetirada);
         }
         
         [HttpPost]
         public ActionResult CrearMovimientoDetalle(int pMovimientoId, int pMovimientoDetId, int pArticuloId, bool pIndAutogenerar, 
                                                     string pListaSerie, int pCantidad,bool pIndCorrelativo, decimal pPrecioUnitario, decimal pDescuento, int pMedida)
         {
-            return Json("La entrada de almacén (compra a proveedores) no opera en Credix.");
+            return Json(CompraRetirada);
         }
         [HttpPost]
         public ActionResult Confirmar(int pMovimientoId)
         {
-            return Json(MovimientoBL.ConfirmarMov(pMovimientoId), JsonRequestBehavior.AllowGet);
+            return Json(CompraRetirada, JsonRequestBehavior.AllowGet);
         }
 
         [HttpPost]
         public ActionResult ActualizarImporte(int pMovimientoId, decimal pAjuste)
         {
-            MovimientoBL.ActualizarImporte(pMovimientoId, pAjuste);
-            return Json(true, JsonRequestBehavior.AllowGet);
+            return Json(CompraRetirada, JsonRequestBehavior.AllowGet);
         }
 
         public ActionResult ObtenerMovimiento(int pMovimientoId)

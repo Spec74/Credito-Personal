@@ -406,18 +406,11 @@ internal static class AlmacenOperacionEndpoints
 
         app.MapPost(
                 "/api/v1/almacen/agregar-movimiento-documento",
-                async Task<Results<Ok<MovimientoOperacionMensajeResponse>, ProblemHttpResult>> (
-                    HttpContext httpContext,
-                    AgregarMovimientoDocumentoRequest body,
-                    IMovimientoAlmacenWriteService movimientoWrite,
-                    IMovimientoOficinaReadService movimientoOficina,
-                    ILoggerFactory loggerFactory,
-                    IHostEnvironment env,
-                    CancellationToken ct) =>
+                (HttpContext httpContext, AgregarMovimientoDocumentoRequest body) =>
                 {
                     if (body.OficinaId < 1 || body.MovimientoId < 1 || body.TipoDocumentoId < 1)
                     {
-                        return TypedResults.Problem(
+                        return Results.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
                             detail: "oficinaId, movimientoId y tipoDocumentoId deben ser >= 1.");
@@ -429,91 +422,26 @@ internal static class AlmacenOperacionEndpoints
                         return oficinaError;
                     }
 
-                    var movOid = await movimientoOficina.GetOficinaIdByMovimientoIdAsync(body.MovimientoId, ct).ConfigureAwait(false);
-                    if (movOid is null)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status404NotFound,
-                            title: "No encontrado",
-                            detail: "No existe el movimiento indicado.");
-                    }
-
-                    if (movOid.Value != body.OficinaId)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El movimiento no pertenece a la oficina del token JWT.");
-                    }
-
-                    var log = loggerFactory.CreateLogger("AgregarMovimientoDocumento");
-                    try
-                    {
-                        await movimientoWrite
-                            .AgregarDocumentoAsync(
-                                body.MovimientoId,
-                                body.TipoDocumentoId,
-                                body.SerieDocumento,
-                                body.NroDocumento,
-                                ct)
-                            .ConfigureAwait(false);
-                        return TypedResults.Ok(new MovimientoOperacionMensajeResponse(string.Empty));
-                    }
-                    catch (InvalidOperationException ex) when (ex.Message.Contains("pendiente", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status409Conflict,
-                            title: "Conflicto",
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.");
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
-                        return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
-                    }
-                    catch (DbException ex)
-                    {
-                        log.LogError(ex, "Error al agregar documento de movimiento");
-                        var detail = "No se pudo agregar el documento.";
-                        if (env.IsDevelopment())
-                            detail += $" Detalle: {ex.Message}";
-                        return TypedResults.Problem(
-                            detail: detail,
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Error de base de datos");
-                    }
+                    return EntradaCompraRetirada();
                 })
             .WithName("AlmacenAgregarMovimientoDocumento")
-            .WithSummary("Paridad EntradaController.AgregarDocumento.")
+            .WithSummary("Retirado: compra a proveedores no opera en Credix.")
             .WithTags("almacen")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
-            .Produces<MovimientoOperacionMensajeResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status409Conflict)
-            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+            .ProducesProblem(StatusCodes.Status410Gone);
 
 
 
         app.MapPost(
                 "/api/v1/almacen/eliminar-movimiento-documento",
-                async Task<Results<Ok<MovimientoOperacionMensajeResponse>, ProblemHttpResult>> (
-                    HttpContext httpContext,
-                    EliminarMovimientoDocumentoRequest body,
-                    IMovimientoAlmacenWriteService movimientoWrite,
-                    IMovimientoOficinaReadService movimientoOficina,
-                    ILoggerFactory loggerFactory,
-                    IHostEnvironment env,
-                    CancellationToken ct) =>
+                (HttpContext httpContext, EliminarMovimientoDocumentoRequest body) =>
                 {
                     if (body.OficinaId < 1 || body.MovimientoDocId < 1)
                     {
-                        return TypedResults.Problem(
+                        return Results.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
                             detail: "oficinaId y movimientoDocId deben ser >= 1.");
@@ -525,67 +453,26 @@ internal static class AlmacenOperacionEndpoints
                         return oficinaError;
                     }
 
-                    var log = loggerFactory.CreateLogger("EliminarMovimientoDocumento");
-                    try
-                    {
-                        await movimientoWrite.EliminarDocumentoAsync(body.MovimientoDocId, ct).ConfigureAwait(false);
-                        return TypedResults.Ok(new MovimientoOperacionMensajeResponse(string.Empty));
-                    }
-                    catch (InvalidOperationException ex) when (ex.Message.Contains("pendiente", StringComparison.OrdinalIgnoreCase)
-                                                               || ex.Message.Contains("eliminar", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status409Conflict,
-                            title: "Conflicto",
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.");
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
-                        return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
-                    }
-                    catch (DbException ex)
-                    {
-                        log.LogError(ex, "Error al eliminar documento de movimiento");
-                        var detail = "No se pudo eliminar el documento.";
-                        if (env.IsDevelopment())
-                            detail += $" Detalle: {ex.Message}";
-                        return TypedResults.Problem(
-                            detail: detail,
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Error de base de datos");
-                    }
+                    return EntradaCompraRetirada();
                 })
             .WithName("AlmacenEliminarMovimientoDocumento")
-            .WithSummary("Paridad EntradaController.Eliminar (documento).")
+            .WithSummary("Retirado: compra a proveedores no opera en Credix.")
             .WithTags("almacen")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
-            .Produces<MovimientoOperacionMensajeResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status409Conflict)
-            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+            .ProducesProblem(StatusCodes.Status410Gone);
 
 
 
         app.MapPost(
                 "/api/v1/almacen/actualizar-importe-movimiento",
-                async Task<Results<Ok<MovimientoOperacionMensajeResponse>, ProblemHttpResult>> (
-                    HttpContext httpContext,
-                    ActualizarImporteMovimientoRequest body,
-                    IMovimientoAlmacenWriteService movimientoWrite,
-                    IMovimientoOficinaReadService movimientoOficina,
-                    ILoggerFactory loggerFactory,
-                    IHostEnvironment env,
-                    CancellationToken ct) =>
+                (HttpContext httpContext, ActualizarImporteMovimientoRequest body) =>
                 {
                     if (body.OficinaId < 1 || body.MovimientoId < 1)
                     {
-                        return TypedResults.Problem(
+                        return Results.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
                             detail: "oficinaId y movimientoId deben ser >= 1.");
@@ -597,69 +484,16 @@ internal static class AlmacenOperacionEndpoints
                         return oficinaError;
                     }
 
-                    var movOid = await movimientoOficina.GetOficinaIdByMovimientoIdAsync(body.MovimientoId, ct).ConfigureAwait(false);
-                    if (movOid is null)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status404NotFound,
-                            title: "No encontrado",
-                            detail: "No existe el movimiento indicado.");
-                    }
-
-                    if (movOid.Value != body.OficinaId)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El movimiento no pertenece a la oficina del token JWT.");
-                    }
-
-                    var log = loggerFactory.CreateLogger("ActualizarImporteMovimiento");
-                    try
-                    {
-                        await movimientoWrite
-                            .ActualizarImporteAsync(body.MovimientoId, body.AjusteRedondeo, ct)
-                            .ConfigureAwait(false);
-                        return TypedResults.Ok(new MovimientoOperacionMensajeResponse(string.Empty));
-                    }
-                    catch (InvalidOperationException ex) when (ex.Message.Contains("pendiente", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status409Conflict,
-                            title: "Conflicto",
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.");
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
-                        return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
-                    }
-                    catch (DbException ex)
-                    {
-                        log.LogError(ex, "Error al actualizar importe del movimiento");
-                        var detail = "No se pudo actualizar el importe.";
-                        if (env.IsDevelopment())
-                            detail += $" Detalle: {ex.Message}";
-                        return TypedResults.Problem(
-                            detail: detail,
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Error de base de datos");
-                    }
+                    return EntradaCompraRetirada();
                 })
             .WithName("AlmacenActualizarImporteMovimiento")
-            .WithSummary("Paridad MovimientoBL.ActualizarImporte.")
+            .WithSummary("Retirado: compra a proveedores no opera en Credix.")
             .WithTags("almacen")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
-            .Produces<MovimientoOperacionMensajeResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status409Conflict)
-            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+            .ProducesProblem(StatusCodes.Status410Gone);
 
 
 
