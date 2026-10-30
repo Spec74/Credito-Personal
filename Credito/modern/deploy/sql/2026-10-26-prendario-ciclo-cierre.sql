@@ -538,7 +538,6 @@ WHERE r.Denominacion IN (N'ANALISTA', N'CAJERO', N'ADMINISTRADOR', N'GESTOR')
      OR m.Denominacion IN (N'VENTAS', N'VENTA RAPIDA')
      OR (m.Modulo LIKE N'%ALMACEN%' AND m.IndPadre = 0)
      OR m.Url LIKE N'%Almacen/Index%'
-     OR m.Url LIKE N'%Almacen/Entrada%'
   )
   AND NOT EXISTS (
         SELECT 1 FROM MAESTRO.RolMenu AS rm

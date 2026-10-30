@@ -34,6 +34,12 @@ namespace Credito.Modern.Api.Almacen;
 
 internal static class AlmacenOperacionEndpoints
 {
+    static ProblemHttpResult EntradaCompraRetirada() =>
+        TypedResults.Problem(
+            statusCode: StatusCodes.Status410Gone,
+            title: "Módulo retirado",
+            detail: "La entrada de almacén (compra a proveedores) no opera en Credix. El stock de giro entra por remate prendario.");
+
     public static void MapAlmacenOperacionEndpoints(this WebApplication app)
     {
 
@@ -369,19 +375,11 @@ internal static class AlmacenOperacionEndpoints
 
         app.MapPost(
                 "/api/v1/almacen/crear-movimiento",
-                async Task<Results<Ok<CrearMovimientoResponse>, ProblemHttpResult>> (
-                    HttpContext httpContext,
-                    CrearMovimientoRequest body,
-                    IMovimientoAlmacenWriteService movimientoWrite,
-                    IMovimientoEntradaReadService entradaRead,
-                    IDatabaseTimeProvider databaseTime,
-                    ILoggerFactory loggerFactory,
-                    IHostEnvironment env,
-                    CancellationToken ct) =>
+                (HttpContext httpContext, CrearMovimientoRequest body) =>
                 {
                     if (body.OficinaId < 1 || body.AlmacenId < 1 || body.TipoMovimientoId < 1)
                     {
-                        return TypedResults.Problem(
+                        return Results.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
                             detail: "oficinaId, almacenId y tipoMovimientoId deben ser >= 1.");
@@ -393,68 +391,16 @@ internal static class AlmacenOperacionEndpoints
                         return oficinaError;
                     }
 
-                    if (!await entradaRead.AlmacenPerteneceOficinaAsync(body.AlmacenId, body.OficinaId, ct).ConfigureAwait(false))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El almacén no pertenece a la oficina del token JWT.");
-                    }
-
-                    if (!await entradaRead.TipoMovimientoEsEntradaAsync(body.TipoMovimientoId, ct).ConfigureAwait(false))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Tipo inválido",
-                            detail: "El tipo de movimiento debe ser de entrada (IndEntrada).");
-                    }
-
-                    var log = loggerFactory.CreateLogger("CrearMovimiento");
-                    try
-                    {
-                        var serverTime = await databaseTime.GetServerTimeAsync(ct).ConfigureAwait(false);
-                        if (serverTime is null)
-                        {
-                            return TypedResults.Problem(
-                                statusCode: StatusCodes.Status503ServiceUnavailable,
-                                title: "Error de base de datos",
-                                detail: "No se pudo obtener la fecha del servidor (usp_FechaBD).");
-                        }
-
-                        var response = await movimientoWrite
-                            .CrearMovimientoAsync(body.AlmacenId, body.TipoMovimientoId, serverTime.Value, ct)
-                            .ConfigureAwait(false);
-                        return TypedResults.Ok(response);
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
-                        return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
-                    }
-                    catch (DbException ex)
-                    {
-                        log.LogError(ex, "Error al crear movimiento de almacén");
-                        var detail = "No se pudo crear el movimiento de almacén.";
-                        if (env.IsDevelopment())
-                            detail += $" Detalle: {ex.Message}";
-                        return TypedResults.Problem(
-                            detail: detail,
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Error de base de datos");
-                    }
+                    return EntradaCompraRetirada();
                 })
             .WithName("AlmacenCrearMovimiento")
-            .WithSummary("Paridad EntradaController.Guardar (pMovimientoId=0).")
+            .WithSummary("Retirado: compra a proveedores no opera en Credix.")
             .WithTags("almacen")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
-            .Produces<CrearMovimientoResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+            .ProducesProblem(StatusCodes.Status410Gone);
 
 
 
@@ -1729,18 +1675,11 @@ internal static class AlmacenOperacionEndpoints
 
         app.MapPost(
                 "/api/v1/almacen/crear-movimiento-detalle",
-                async Task<Results<Ok<MovimientoOperacionMensajeResponse>, ProblemHttpResult>> (
-                    HttpContext httpContext,
-                    CrearMovimientoDetalleRequest body,
-                    IMovimientoAlmacenWriteService movimientoWrite,
-                    IMovimientoOficinaReadService movimientoOficina,
-                    ILoggerFactory loggerFactory,
-                    IHostEnvironment env,
-                    CancellationToken ct) =>
+                (HttpContext httpContext, CrearMovimientoDetalleRequest body) =>
                 {
                     if (body.OficinaId < 1 || body.MovimientoId < 1 || body.ArticuloId < 1)
                     {
-                        return TypedResults.Problem(
+                        return Results.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
                             detail: "oficinaId, movimientoId y articuloId deben ser >= 1.");
@@ -1752,80 +1691,16 @@ internal static class AlmacenOperacionEndpoints
                         return oficinaError;
                     }
 
-                    var movOid = await movimientoOficina.GetOficinaIdByMovimientoIdAsync(body.MovimientoId, ct).ConfigureAwait(false);
-                    if (movOid is null)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status404NotFound,
-                            title: "No encontrado",
-                            detail: "No existe el movimiento de almacén indicado.");
-                    }
-
-                    if (movOid.Value != body.OficinaId)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El movimiento no pertenece a la oficina del token JWT.");
-                    }
-
-                    var log = loggerFactory.CreateLogger("CrearMovimientoDetalle");
-                    try
-                    {
-                        await movimientoWrite
-                            .CrearDetalleAsync(
-                                body.MovimientoId,
-                                body.MovimientoDetId,
-                                body.ArticuloId,
-                                body.IndAutogenerar,
-                                body.ListaSerie ?? string.Empty,
-                                body.Cantidad,
-                                body.IndCorrelativo,
-                                body.PrecioUnitario,
-                                body.Descuento,
-                                body.Medida,
-                                ct)
-                            .ConfigureAwait(false);
-                        return TypedResults.Ok(new MovimientoOperacionMensajeResponse(string.Empty));
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
-                        return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
-                    }
-                    catch (ArgumentOutOfRangeException ex)
-                    {
-                        log.LogWarning(ex, "Parámetros inválidos");
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
-                    }
-                    catch (DbException ex)
-                    {
-                        log.LogError(ex, "Error al ejecutar ALMACEN.usp_CrearMovimientoDet");
-                        var detail = "No se pudo crear el detalle del movimiento de almacén.";
-                        if (env.IsDevelopment())
-                            detail += $" Detalle: {ex.Message}";
-                        return TypedResults.Problem(
-                            detail: detail,
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Error de base de datos");
-                    }
+                    return EntradaCompraRetirada();
                 })
             .WithName("AlmacenCrearMovimientoDetalle")
-            .WithSummary("Escritura: ALMACEN.usp_CrearMovimientoDet. Paridad MovimientoDetBL.CrearDetalle.")
+            .WithSummary("Retirado: compra a proveedores no opera en Credix.")
             .WithTags("almacen")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
-            .Produces<MovimientoOperacionMensajeResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
-            .ProducesProblem(StatusCodes.Status404NotFound)
-            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+            .ProducesProblem(StatusCodes.Status410Gone);
 
 
 

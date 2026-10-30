@@ -11,17 +11,7 @@ namespace VendixWeb.Controllers.Almacen
     {
         public ActionResult Index()
         {
-            var oficinaId = VendixGlobal.GetOficinaId();
-            var lstalmacen = AlmacenBL.Listar(x => x.Estado && x.OficinaId == oficinaId);
-            var lstTipoMov = TipoMovimientoBL.Listar(x => x.Estado && x.IndEntrada);
-
-            ViewBag.cboAlmacen = new SelectList(lstalmacen, "AlmacenId", "Denominacion");
-            ViewBag.cboAlmacen2 = new SelectList(lstalmacen, "AlmacenId", "Denominacion");
-            ViewBag.cboTipoMovimiento = new SelectList(lstTipoMov, "TipoMovimientoId", "Denominacion");
-            ViewBag.cboTipoMovimiento2 = new SelectList(lstTipoMov, "TipoMovimientoId", "Denominacion");
-            ViewBag.cboTipoDocumento = new SelectList(TipoDocumentoBL.Listar(x => x.Estado && x.IndAlmacen && x.IndAlmacenMov == false), "TipoDocumentoId", "Denominacion");
-            ViewBag.cboMedida = new SelectList(ValorTablaBL.Listar(x => x.TablaId == 10 && x.ItemId > 0), "ItemId","DesCorta");
-            return View();
+            return View("Retirado");
         }
 
         public ActionResult Listar(GridDataRequest request)
@@ -57,29 +47,7 @@ namespace VendixWeb.Controllers.Almacen
         [HttpPost]
         public ActionResult Guardar(int pMovimientoId, int pAlmacenId, int pTipoMovimientoId, string pFecha, string pObservacion)
         {
-            if (pMovimientoId == 0)
-            {
-                var item = new Movimiento
-                               {
-                                   MovimientoId = pMovimientoId,
-                                   AlmacenId = pAlmacenId,
-                                   TipoMovimientoId = pTipoMovimientoId,
-                                   Fecha = VendixGlobal.GetFecha(),
-                                   EstadoId = 1,
-                                   Observacion = string.Empty,
-                                   IGV = 0,
-                                   TotalImporte = 0,
-                                   SubTotal = 0,
-                                   AjusteRedondeo = 0
-                               };
-                MovimientoBL.Crear(item);
-                pMovimientoId = item.MovimientoId;
-            }
-            else
-            {
-                MovimientoBL.ActualizarMov(pMovimientoId, pTipoMovimientoId, DateTime.Parse(pFecha), pObservacion);
-            }
-            return Json(pMovimientoId, JsonRequestBehavior.AllowGet);
+            return Json("La entrada de almacén (compra a proveedores) no opera en Credix.", JsonRequestBehavior.AllowGet);
         }
         
         [HttpPost]
@@ -196,10 +164,7 @@ namespace VendixWeb.Controllers.Almacen
         public ActionResult CrearMovimientoDetalle(int pMovimientoId, int pMovimientoDetId, int pArticuloId, bool pIndAutogenerar, 
                                                     string pListaSerie, int pCantidad,bool pIndCorrelativo, decimal pPrecioUnitario, decimal pDescuento, int pMedida)
         {
-
-            MovimientoDetBL.CrearDetalle(pMovimientoId, pMovimientoDetId, pArticuloId,pIndAutogenerar, pListaSerie, pCantidad,
-                                          pIndCorrelativo, pPrecioUnitario, pDescuento, pMedida);
-            return Json(true);
+            return Json("La entrada de almacén (compra a proveedores) no opera en Credix.");
         }
         [HttpPost]
         public ActionResult Confirmar(int pMovimientoId)
