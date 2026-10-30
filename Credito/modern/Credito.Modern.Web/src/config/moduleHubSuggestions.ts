@@ -43,9 +43,9 @@ const SUGGESTIONS: Record<string, CredixHubLink[]> = {
     { to: '/ventas/lista-precios', label: 'Lista de precios', description: 'Mantenimiento' },
   ],
   ALMACEN: [
-    { to: '/almacen/entrada', label: 'Entrada almacén', description: 'Ingresos' },
     { to: '/almacen/salida', label: 'Salida almacén', description: 'Egresos' },
     { to: '/almacen/kardex', label: 'Kardex', description: 'Movimientos por artículo' },
+    { to: '/informes/reporte-stock', label: 'Stock', description: 'Series EN_ALMACEN' },
   ],
   ADMINISTRACION: [
     { to: '/admin/usuarios', label: 'Usuarios', description: 'Accesos y oficinas' },

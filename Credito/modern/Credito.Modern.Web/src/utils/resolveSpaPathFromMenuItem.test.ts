@@ -142,6 +142,11 @@ describe('resolveSpaPathFromMenuItem', () => {
   it('no resuelve caja chica: gerencia la retiró', () => {
     expect(resolveSpaPathFromMenuItem('CajaChica', 'CAJACHICA', 'CREDITO')).toBeNull()
     expect(resolveSpaPathFromMenuItem(null, 'Caja chica', 'CREDITO')).toBeNull()
+    expect(
+      resolveSpaPathFromMenuItem('/Entrada/Index', 'Entrada de almacen', 'ALMACEN'),
+    ).toBeNull()
+    expect(resolveSpaPathFromMenuItem('/Almacen/Entrada', 'ENTRADA', 'ALMACEN')).toBeNull()
+    expect(resolveSpaPathFromMenuItem(null, 'Entrada de almacén', 'ALMACEN')).toBeNull()
   })
 
   it('cubre los hijos del menú vivo CREDITO (oficina 1) sin null', () => {

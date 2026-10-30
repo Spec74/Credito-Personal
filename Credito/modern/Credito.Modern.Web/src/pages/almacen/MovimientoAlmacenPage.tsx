@@ -271,9 +271,9 @@ export function MovimientoAlmacenPage() {
 
           <Form.Item>
 
-            <Link to="/almacen/entrada">
+            <Link to="/almacen">
 
-              <Button type="primary">Nueva entrada</Button>
+              <Button>Volver a almacén</Button>
 
             </Link>
 

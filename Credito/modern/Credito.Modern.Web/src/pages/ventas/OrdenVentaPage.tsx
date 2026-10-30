@@ -475,7 +475,7 @@ export function OrdenVentaPage() {
                   message="La orden se arma con series del almacén"
                   description={
                     <Space wrap>
-                      <Link to="/almacen/entrada">Dar entrada</Link>
+                      <Link to="/credito/prendario">Rematar prenda</Link>
                       <Link to="/maestros/articulos">Ver artículos</Link>
                     </Space>
                   }
@@ -505,7 +505,7 @@ export function OrdenVentaPage() {
                         <Form.Item
                           name="numeroSerie"
                           label="Número de serie"
-                          extra="Es la serie registrada al dar entrada, no el id del artículo."
+                          extra="Serie EN_ALMACEN del remate (PRM…), no el id del artículo."
                           rules={[{ required: true, message: 'Ingrese la serie' }]}
                         >
                           <Input placeholder="Serie del artículo en almacén" autoComplete="off" />

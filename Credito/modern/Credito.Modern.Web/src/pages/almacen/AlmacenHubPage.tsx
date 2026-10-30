@@ -6,7 +6,6 @@ const SECTIONS = [
   {
     title: 'Operaciones',
     links: [
-      { to: '/almacen/entrada', label: 'Entrada de almacén' },
       { to: '/almacen/salida', label: 'Salida de almacén' },
       { to: '/almacen/transferencia', label: 'Transferencia entre almacenes' },
       { to: '/almacen/movimiento', label: 'Movimiento por ID' },

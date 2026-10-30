@@ -7,7 +7,7 @@ const LEGACY_TO_SPA: Array<{ match: RegExp; spaPath: string }> = [
   { match: /^\/dashboard(\/index)?$/i, spaPath: '/inicio' },
   { match: /^\/administracion$/i, spaPath: '/admin' },
   { match: /^\/tesoreria$/i, spaPath: '/tesoreria' },
-  { match: /\/entrada(\/index)?$/i, spaPath: '/almacen/entrada' },
+  { match: /\/entrada(\/index)?$/i, spaPath: '/almacen' },
   { match: /\/salida(\/index)?$/i, spaPath: '/almacen/salida' },
   { match: /\/transferencia(\/index)?$/i, spaPath: '/almacen/transferencia' },
   { match: /\/marca(\/index)?$/i, spaPath: '/maestros/marcas' },

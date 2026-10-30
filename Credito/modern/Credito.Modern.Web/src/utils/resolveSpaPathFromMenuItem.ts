@@ -130,12 +130,38 @@ function isCajaChicaRetirada(
   )
 }
 
+/** Compra a proveedores no opera en Credix (vive en ventas). Stock de giro = remate. */
+export function isAlmacenEntradaCompraRetirada(
+  url: string | null | undefined,
+  denominacion: string | null | undefined,
+): boolean {
+  const label = normalizeLabel(denominacion ?? '')
+  const path = (url ?? '').toLowerCase().replace(/\\/g, '/')
+  if (label.includes('caja') || path.includes('caja')) {
+    return false
+  }
+  if (path.includes('almacen/entrada')) {
+    return true
+  }
+  if (/\/entrada(\/index)?\/?$/.test(path)) {
+    return true
+  }
+  return label.includes('entrada') && label.includes('almacen')
+}
+
+export function isMenuItemRetirado(
+  url: string | null | undefined,
+  denominacion: string | null | undefined,
+): boolean {
+  return isCajaChicaRetirada(url, denominacion) || isAlmacenEntradaCompraRetirada(url, denominacion)
+}
+
 export function resolveSpaPathFromMenuItem(
   url: string | null | undefined,
   denominacion: string | null | undefined,
   modulo: string | null | undefined,
 ): string | null {
-  if (isCajaChicaRetirada(url, denominacion)) {
+  if (isMenuItemRetirado(url, denominacion)) {
     return null
   }
 
@@ -278,9 +304,6 @@ function resolveCatalogoOperacionFromLabel(label: string, mod: string): string |
 
   if (label.includes('kardex')) {
     return '/almacen/kardex'
-  }
-  if (label.includes('entrada') && label.includes('almacen')) {
-    return '/almacen/entrada'
   }
   if (label.includes('salida') && label.includes('almacen')) {
     return '/almacen/salida'

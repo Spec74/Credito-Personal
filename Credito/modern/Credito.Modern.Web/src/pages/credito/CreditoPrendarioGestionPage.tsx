@@ -750,7 +750,7 @@ export function CreditoPrendarioGestionPage() {
                                 amount: b.valorTasacion,
                                 officeLabel: b.descripcion || 'Bien en custodia',
                                 consequence:
-                                  'El bien pasa directo a stock de esta sede (artículo PRM + precio = tasación). No registre Entrada de almacén: duplicaría series. El préstamo queda cerrado. Siguiente paso: Venta rápida.',
+                                  'El bien pasa directo a stock de esta sede (artículo PRM + precio = tasación). No hay compra a proveedor. El préstamo queda cerrado. Siguiente paso: Venta rápida.',
                                 okText: 'Rematar',
                                 onOk: async () => {
                                   await rematarMut.mutateAsync(b.prendaId)
@@ -974,7 +974,7 @@ export function CreditoPrendarioGestionPage() {
           <Paragraph>
             Código <Text strong>{stockRemate.codArticulo}</Text> · precio{' '}
             <Text strong>S/ {formatMoney(stockRemate.precioVenta)}</Text> (tasación).
-            Ya está EN_ALMACEN: no cree artículo, ni lista de precios, ni Entrada.
+            Ya está EN_ALMACEN: no cree artículo ni lista de precios.
             Pulse <Text strong>Vender ahora</Text> para el ticket, o revíselo en{' '}
             <Link to="/maestros/articulos">Maestros → Artículos</Link>.
           </Paragraph>

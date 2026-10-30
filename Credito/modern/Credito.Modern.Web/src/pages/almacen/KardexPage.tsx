@@ -136,7 +136,7 @@ export function KardexPage() {
   return (
     <CredixInformePage
       title="Kardex de artículo"
-      subtitle="Kardex de entradas y salidas. Un PRM rematado no tiene entrada documental hasta que se vende."
+      subtitle="Kardex de movimientos. Un PRM rematado aparece al venderlo; no hay compra a proveedor en Credix."
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/almacen">Almacén</Link> },
@@ -238,7 +238,7 @@ export function KardexPage() {
                 .
               </>
             ) : (
-              'Kardex lee entradas y salidas confirmadas. Use Entrada para catálogo, o Venta rápida para un PRM rematado.'
+              'Kardex lee la salida al vender. El stock de giro entra por remate prendario, no por compra a proveedor.'
             )
           }
         />

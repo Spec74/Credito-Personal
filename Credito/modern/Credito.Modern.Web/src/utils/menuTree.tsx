@@ -4,7 +4,7 @@ import { formatMenuLabel } from './formatMenuLabel'
 import { resolveSpaPathFromModulo } from './legacyRoutes'
 import { dashboardMenuIcon, menuItemIcon, parentMenuIcon } from './menuIcons'
 import { readMenuIndPadre } from './normalizeMenu'
-import { resolveSpaPathFromMenuItem } from './resolveSpaPathFromMenuItem'
+import { isMenuItemRetirado, resolveSpaPathFromMenuItem } from './resolveSpaPathFromMenuItem'
 
 type AntMenuItem = Required<MenuProps>['items'][number]
 
@@ -33,20 +33,9 @@ function isPadre(item: MenuItemDto): boolean {
   return readMenuIndPadre(item.indPadre)
 }
 
-/** Gerencia: caja chica retirada. No se pinta aunque el menú aún exista en SQL. */
+/** Gerencia: módulos retirados. No se pintan aunque el menú aún exista en SQL. */
 function isMenuRetirado(item: MenuItemDto): boolean {
-  const label = (item.denominacion ?? '')
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-  const url = (item.url ?? '').trim().toLowerCase()
-  return (
-    label.includes('caja chica') ||
-    label.includes('cajachica') ||
-    url.includes('cajachica') ||
-    url.includes('caja/chica')
-  )
+  return isMenuItemRetirado(item.url, item.denominacion)
 }
 
 /**

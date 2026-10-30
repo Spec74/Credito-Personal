@@ -43,7 +43,7 @@ function errMsg(e: unknown): string {
 
 function stockInsuficienteMsg(stock: number): string {
   if (stock < 1) {
-    return 'Sin series en almacén (0 disponible). Crear el artículo no da stock: use Entrada de almacén o remate prendario.'
+    return 'Sin series en almacén (0 disponible). El stock de giro entra al rematar la prenda, no por compra a proveedor.'
   }
   return `Stock insuficiente (${stock} disponible)`
 }
@@ -319,9 +319,8 @@ export function VentaRapidaPage() {
                     </Button>
                   </div>
                   <Text type="secondary">
-                    El catálogo no es inventario. Stock = serie EN_ALMACEN: remate prendario
-                    (código PRM…, ya viene listo) o{' '}
-                    <Link to="/almacen/entrada">Entrada de almacén</Link> para catálogo. Precio en{' '}
+                    El catálogo no es inventario. Stock = serie EN_ALMACEN del remate prendario
+                    (código PRM…). Precio en{' '}
                     <Link to="/ventas/lista-precios">Lista de precios</Link>.
                   </Text>
                 </div>

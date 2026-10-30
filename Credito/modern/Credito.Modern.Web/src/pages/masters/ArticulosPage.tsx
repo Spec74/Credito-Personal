@@ -334,7 +334,7 @@ export function ArticulosPage() {
   return (
     <CredixCrudPage
       title="Artículos"
-      subtitle="El catálogo no tiene cantidad: el stock son series EN_ALMACEN (entrada o remate prendario)."
+      subtitle="El catálogo no tiene cantidad: el stock son series EN_ALMACEN del remate prendario."
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
