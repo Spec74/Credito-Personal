@@ -7,4 +7,5 @@ public sealed record SimuladorCreditoRequest(
     int NroCuotas,
     decimal InteresMensual,
     DateTime FechaPrimerPago,
-    decimal? GastosAdm = null);
+    decimal? GastosAdm = null,
+    bool? SaltarDomingo = true);

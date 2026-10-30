@@ -475,6 +475,8 @@ namespace VendixWeb.Controllers
                 case "Q": fecha = fecha.AddDays(15); break;
                 case "M": fecha = fecha.AddMonths(1); break;
             }
+            if (fecha.DayOfWeek == DayOfWeek.Sunday)
+                fecha = fecha.AddDays(1);
             return Json(fecha.ToString("dd/MM/yyyy"), JsonRequestBehavior.AllowGet);
         }
 

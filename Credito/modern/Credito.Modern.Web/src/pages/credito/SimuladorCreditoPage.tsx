@@ -739,6 +739,7 @@ export function SimuladorCreditoPage() {
         interesMensual: values.interesMensual,
         fechaPrimerPago: `${values.fechaPrimerPago}T00:00:00`,
         gastosAdm: gastosSp,
+        saltarDomingo: !esPrendario,
       })
       try {
         const temRes = await calcularTem(values.interesMensual, values.formaPago)

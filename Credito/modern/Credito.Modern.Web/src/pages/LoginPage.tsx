@@ -14,7 +14,7 @@ import { fetchClientPublicIp } from '../utils/clientIp'
 import { parseLoginOficinaId } from '../utils/sucursalRed'
 import { CredixColorSchemeToggle } from '../components/layout/CredixColorSchemeToggle'
 import { pickLoginFrase } from '../utils/loginFrase'
-import { capitalizarApodo, pickLoginSaludoDia } from '../utils/loginSaludo'
+import { pickLoginSaludoDia } from '../utils/loginSaludo'
 import '../styles/credix-login.css'
 
 const { Text } = Typography
@@ -147,15 +147,19 @@ export function LoginPage() {
   return (
     <main className="credix-login" translate="no">
       <aside className="credix-login-stage">
-        <div className="credix-login-stage__mesh" aria-hidden />
-        <div className="credix-login-stage__grid" aria-hidden />
-        <div className="credix-login-stage__rings" aria-hidden />
-        <p className="credix-login-stage__greet">
-          {saludoDia.saludo}, <em>{capitalizarApodo(saludoDia.apodo)}</em>.
-        </p>
+        <div className="credix-login-ornament credix-login-ornament--stage" aria-hidden>
+          <span className="credix-login-ornament__linen" />
+          <span className="credix-login-ornament__lattice" />
+          <span className="credix-login-ornament__frame" />
+        </div>
+        <header className="credix-login-stage__greet">
+          <p className="credix-login-stage__hello">{saludoDia.saludo}.</p>
+          <p className="credix-login-stage__line">{saludoDia.linea}</p>
+        </header>
         <div className="credix-login-stage__body">
-          <div className="credix-login-stage__brand">
-            <BrandLogo onDark priority />
+          <div className="credix-login-seal">
+            <span className="credix-login-seal__ring" aria-hidden />
+            <BrandLogo className="credix-login-seal__logo" priority />
           </div>
           <p className="credix-login-stage__eyebrow">Acceso del personal</p>
           <blockquote className="credix-login-quote" key={frase.texto}>
@@ -166,7 +170,11 @@ export function LoginPage() {
       </aside>
 
       <section className="credix-login-panel">
-        <div className="credix-login-panel__glow" aria-hidden />
+        <div className="credix-login-ornament credix-login-ornament--panel" aria-hidden>
+          <span className="credix-login-ornament__linen" />
+          <span className="credix-login-ornament__lattice" />
+          <span className="credix-login-ornament__frame" />
+        </div>
         <div className="credix-login-form__head">
           <p className="credix-login-form__context">Sesión de sucursal</p>
           <CredixColorSchemeToggle variant="segmented" />
@@ -177,26 +185,26 @@ export function LoginPage() {
             <Text className="credix-login-form__hint">
               Usa tu usuario de trabajo. La sesión queda en la oficina que elijas.
             </Text>
+            <div className="credix-login-form__alerts" aria-live="polite">
+              {oficinasError ? (
+                <Alert
+                  type="warning"
+                  showIcon
+                  banner
+                  className="credix-login-form__alert"
+                  title="Oficinas no disponibles"
+                  action={
+                    <Button size="small" onClick={() => void oficinasQuery.refetch()}>
+                      Reintentar
+                    </Button>
+                  }
+                />
+              ) : null}
+              {error ? (
+                <Alert type="error" banner showIcon title={error} className="credix-login-form__alert" />
+              ) : null}
+            </div>
           </header>
-
-          {oficinasError ? (
-            <Alert
-              type="warning"
-              showIcon
-              className="credix-login-form__alert"
-              title="Oficinas no disponibles"
-              description={oficinasError}
-              action={
-                <Button size="small" onClick={() => void oficinasQuery.refetch()}>
-                  Reintentar
-                </Button>
-              }
-            />
-          ) : null}
-
-          {error ? (
-            <Alert type="error" title={error} showIcon className="credix-login-form__alert" />
-          ) : null}
 
           <Form<LoginFormValues>
             form={form}
@@ -281,11 +289,6 @@ export function LoginPage() {
             ¿No es colaborador? Acérquese a una agencia.{' '}
             <a href={soporte.href}>{soporte.label}</a>
           </p>
-          {import.meta.env.DEV ? (
-            <Text type="secondary" style={{ display: 'block', marginTop: 8, fontSize: 11 }}>
-              Entorno desarrollo · API vía proxy local
-            </Text>
-          ) : null}
         </div>
       </section>
     </main>

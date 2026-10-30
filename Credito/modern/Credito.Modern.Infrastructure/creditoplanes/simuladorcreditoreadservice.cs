@@ -18,6 +18,7 @@ public sealed class SimuladorCreditoReadService(IOptions<SqlDatabaseOptions> opt
         decimal interesMensual,
         DateTime fechaPrimerPago,
         decimal gastosAdm,
+        bool saltarDomingo = true,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(_connectionString))
@@ -53,6 +54,7 @@ public sealed class SimuladorCreditoReadService(IOptions<SqlDatabaseOptions> opt
                 InteresMensual = interesMensual,
                 FechaPrimerPago = fechaPrimerPago,
                 GastosAdm = gastosAdm,
+                SaltarDomingo = saltarDomingo ? (byte)1 : (byte)0,
             },
             commandType: CommandType.StoredProcedure,
             cancellationToken: cancellationToken);

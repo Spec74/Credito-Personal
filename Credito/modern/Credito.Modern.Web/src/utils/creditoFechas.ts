@@ -21,9 +21,15 @@ export function parseIsoDate(iso: string, fallback = new Date()): Date {
   return atLocalNoon(new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])))
 }
 
+/** Paridad SQL `DATEADD(MONTH, n, fecha)`: recorta al último día del mes. */
 export function addMonthsIso(months: number, from = new Date()): string {
+  const src = atLocalNoon(from)
+  const day = src.getDate()
   const d = atLocalNoon(from)
+  d.setDate(1)
   d.setMonth(d.getMonth() + months)
+  const last = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()
+  d.setDate(Math.min(day, last))
   return toIsoDate(d)
 }
 
@@ -31,6 +37,15 @@ export function addDaysIso(days: number, from = new Date()): string {
   const d = atLocalNoon(from)
   d.setDate(d.getDate() + days)
   return toIsoDate(d)
+}
+
+/** Emerson: en crédito normal, si cae domingo la cuota pasa al lunes. Prendario no. */
+export function aLunesSiDomingo(from: Date): Date {
+  const d = atLocalNoon(from)
+  if (d.getDay() === 0) {
+    d.setDate(d.getDate() + 1)
+  }
+  return d
 }
 
 /** Acepta `Q` / `Quincenal` / etc. para no perder el recálculo si el select manda etiqueta. */
@@ -65,21 +80,24 @@ export function fechaPrimerPagoPorModalidad(
   from = new Date(),
 ): string {
   if (prendario) return addMonthsIso(1, from)
-  switch (codigoFormaPago(formaPago)) {
-    case 'D':
-      return addDaysIso(1, from)
-    case 'S':
-      return addDaysIso(7, from)
-    case 'Q':
-      return addDaysIso(15, from)
-    default:
-      return addMonthsIso(1, from)
-  }
+  const cruda = (() => {
+    switch (codigoFormaPago(formaPago)) {
+      case 'D':
+        return addDaysIso(1, from)
+      case 'S':
+        return addDaysIso(7, from)
+      case 'Q':
+        return addDaysIso(15, from)
+      default:
+        return addMonthsIso(1, from)
+    }
+  })()
+  return toIsoDate(aLunesSiDomingo(parseIsoDate(cruda, from)))
 }
 
 /**
- * Vencimiento = última cuota del simulador: 1.er pago + (n-1) periodos.
- * Diario del USP también salta domingo; aquí el plan SQL manda cuando ya hay cuotas.
+ * Vencimiento = última cuota: misma regla que `usp_SimuladorCredito`.
+ * Crédito normal: si la cuota cae domingo, pasa al lunes. Prendario: corrido.
  */
 export function fechaVencimientoPorModalidad(
   formaPago: string,
@@ -88,12 +106,17 @@ export function fechaVencimientoPorModalidad(
   prendario = false,
 ): string {
   const n = Number.isFinite(nroCuotas) && nroCuotas >= 1 ? Math.floor(nroCuotas) : 1
-  const ancla = parseIsoDate(fechaPrimerPagoIso)
-  if (n <= 1) return toIsoDate(ancla)
-  if (prendario || codigoFormaPago(formaPago) === 'M') {
-    return addMonthsIso(n - 1, ancla)
+  let d = parseIsoDate(fechaPrimerPagoIso)
+  const codigo = codigoFormaPago(formaPago)
+  for (let i = 0; i < n; i += 1) {
+    if (!prendario) d = aLunesSiDomingo(d)
+    if (i === n - 1) break
+    if (prendario || codigo === 'M') {
+      d = parseIsoDate(addMonthsIso(1, d))
+    } else {
+      const dias = codigo === 'D' ? 1 : codigo === 'S' ? 7 : 15
+      d = parseIsoDate(addDaysIso(dias, d))
+    }
   }
-  const dias =
-    codigoFormaPago(formaPago) === 'D' ? 1 : codigoFormaPago(formaPago) === 'S' ? 7 : 15
-  return addDaysIso(dias * (n - 1), ancla)
+  return toIsoDate(d)
 }

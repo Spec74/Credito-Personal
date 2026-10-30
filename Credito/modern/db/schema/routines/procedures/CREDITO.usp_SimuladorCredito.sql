@@ -5,7 +5,8 @@ CREATE PROC [CREDITO].[usp_SimuladorCredito]
 @NroCuotas INT=26, 
 @InteresMensual DECIMAL(4,2)= 7,
 @FechaPrimerPago DATE = '20140101',
-@GastosAdm DECIMAL(16,2) = NULL
+@GastosAdm DECIMAL(16,2) = NULL,
+@SaltarDomingo BIT = 1
 AS
 
 
@@ -19,6 +20,9 @@ DECLARE @Meses INT = 0
 DECLARE @SaldoAcumulado DECIMAL(16,2) = @Monto
 
 set datefirst 1
+
+IF @SaltarDomingo IS NULL
+    SET @SaltarDomingo = 1
 
 IF @GastosAdm IS NULL
 BEGIN
@@ -41,9 +45,8 @@ WHILE (@Sec<@NroCuotas)
 BEGIN
 	SET @Sec=@Sec+1
 	
-	IF @FormaPago='D' 
-		IF datepart(dw, @FechaCuota) = 7 
-			SET @FechaCuota = DATEADD(DAY,1,@FechaCuota)
+	IF @SaltarDomingo = 1 AND datepart(dw, @FechaCuota) = 7
+		SET @FechaCuota = DATEADD(DAY,1,@FechaCuota)
 			
 	-- 2. Restamos la amortización en cada cuota
 	SET @SaldoAcumulado = @SaldoAcumulado - @Amortizacion

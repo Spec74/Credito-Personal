@@ -278,6 +278,8 @@ export interface SimuladorCreditoRequest {
   interesMensual: number
   fechaPrimerPago: string
   gastosAdm?: number | null
+  /** Default true. Prendario: false (domingo sí cuenta). */
+  saltarDomingo?: boolean
 }
 
 export interface SimuladorCreditoCuota {

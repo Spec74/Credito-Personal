@@ -32,6 +32,7 @@ public sealed class RptSimuladorPlanPagosReadService(
         var ga = string.IsNullOrWhiteSpace(query.Ga) ? "CAP" : query.Ga.Trim().ToUpperInvariant();
         var gastosAdmSp = ga == "CUO" ? query.GastosAdm : 0m;
 
+        var saltarDomingo = string.IsNullOrWhiteSpace(query.PrendaDescripcion);
         var cuotas = await simulador
             .SimularAsync(
                 query.Monto,
@@ -40,6 +41,7 @@ public sealed class RptSimuladorPlanPagosReadService(
                 query.InteresMensual,
                 query.FechaPrimerPago,
                 gastosAdmSp,
+                saltarDomingo,
                 cancellationToken)
             .ConfigureAwait(false);
 

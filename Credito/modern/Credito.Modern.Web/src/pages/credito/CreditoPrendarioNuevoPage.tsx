@@ -401,6 +401,7 @@ export function CreditoPrendarioNuevoPage() {
         interesMensual,
         fechaPrimerPago: fechaPrimerPago.format('YYYY-MM-DD'),
         gastosAdm,
+        saltarDomingo: false,
       })
         .then((rows) => {
           if (!cancelled) setCuotas(rows)

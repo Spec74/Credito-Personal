@@ -344,6 +344,7 @@ internal static class CreditoOperacionEndpoints
 
                     try
                     {
+                        var saltarDomingo = body.SaltarDomingo ?? true;
                         var cuotas = await simuladorCredito.SimularAsync(
                                 body.Monto,
                                 formaNormalizada,
@@ -351,6 +352,7 @@ internal static class CreditoOperacionEndpoints
                                 body.InteresMensual,
                                 body.FechaPrimerPago,
                                 gastosAdm,
+                                saltarDomingo,
                                 ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(cuotas.ToList());
@@ -393,7 +395,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoSimuladorCredito")
             .WithSummary(
-                "Solo lectura: CREDITO.usp_SimuladorCredito (plan simulado). formaPago = D|M|Q|S como calcular-tem / MVC. monto <= 0 devuelve lista vac?a sin llamar a SQL (como CreditoController.Simulador). gastosAdm opcional (default 0). CreditoUser.")
+                "Solo lectura: CREDITO.usp_SimuladorCredito (plan simulado). formaPago = D|M|Q|S. saltarDomingo default true (cuota en domingo pasa a lunes). Prendario envía false. gastosAdm opcional (default 0). CreditoUser.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<List<SimuladorCreditoCuotaDto>>(StatusCodes.Status200OK, "application/json")

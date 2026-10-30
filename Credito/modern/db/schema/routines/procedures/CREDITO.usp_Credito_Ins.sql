@@ -51,6 +51,15 @@ BEGIN
     IF @IndGastoAdm = 'CAP'
         SET @Desembolso = @MontoCredito - @MontoGastosAdm;
 
+    DECLARE @SaltarDomingo BIT = 1;
+    IF EXISTS (
+        SELECT 1
+        FROM CREDITO.Credito
+        WHERE CreditoId = @SolicitudCreditoId
+          AND ISNULL(EsPrendario, 0) = 1
+    )
+        SET @SaltarDomingo = 0;
+
     DECLARE @tPlanPagos TABLE(
         Numero INT,
         Capital DECIMAL(16,2),
@@ -69,7 +78,8 @@ BEGIN
         @NroCuotas,
         @Interes,
         @FechaPrimerPago,
-        @MontoGA;
+        @MontoGA,
+        @SaltarDomingo;
 
     INSERT INTO CREDITO.PlanPago (
         CreditoId,

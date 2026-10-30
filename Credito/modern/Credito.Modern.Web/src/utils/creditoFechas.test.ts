@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  aLunesSiDomingo,
   codigoFormaPago,
   fechaPrimerPagoPorModalidad,
   fechaVencimientoPorModalidad,
@@ -23,8 +24,14 @@ describe('fechaPrimerPagoPorModalidad', () => {
     expect(fechaPrimerPagoPorModalidad('S', false, hoy)).toBe('2026-11-05')
     expect(fechaPrimerPagoPorModalidad('Q', false, hoy)).toBe('2026-11-13')
     expect(fechaPrimerPagoPorModalidad('Quincenal', false, hoy)).toBe('2026-11-13')
-    expect(fechaPrimerPagoPorModalidad('M', false, hoy)).toBe('2026-11-29')
+    expect(fechaPrimerPagoPorModalidad('M', false, hoy)).toBe('2026-11-30')
     expect(fechaPrimerPagoPorModalidad('D', true, hoy)).toBe('2026-11-29')
+  })
+
+  it('si el 1.er pago cae domingo pasa al lunes, salvo prendario', () => {
+    const sabado = new Date(2026, 9, 31, 12)
+    expect(fechaPrimerPagoPorModalidad('D', false, sabado)).toBe('2026-11-02')
+    expect(fechaPrimerPagoPorModalidad('M', true, sabado)).toBe('2026-11-30')
   })
 })
 
@@ -37,7 +44,15 @@ describe('fechaVencimientoPorModalidad', () => {
   it('suma periodos de 15/7/30 en el resto de cuotas', () => {
     expect(fechaVencimientoPorModalidad('Q', 2, '2026-11-13')).toBe('2026-11-28')
     expect(fechaVencimientoPorModalidad('S', 4, '2026-11-05')).toBe('2026-11-26')
-    expect(fechaVencimientoPorModalidad('M', 12, '2026-11-29')).toBe('2027-10-29')
-    expect(fechaVencimientoPorModalidad('D', 3, '2026-10-30')).toBe('2026-11-01')
+    expect(fechaVencimientoPorModalidad('M', 12, '2026-11-29')).toBe('2027-11-02')
+    expect(fechaVencimientoPorModalidad('D', 3, '2026-10-30')).toBe('2026-11-02')
+  })
+
+  it('si la cuota cae domingo pasa al lunes, salvo prendario', () => {
+    expect(aLunesSiDomingo(new Date(2026, 10, 1, 12)).getDate()).toBe(2)
+    expect(fechaVencimientoPorModalidad('S', 1, '2026-11-01')).toBe('2026-11-02')
+    expect(fechaVencimientoPorModalidad('Q', 1, '2026-11-01')).toBe('2026-11-02')
+    expect(fechaVencimientoPorModalidad('M', 1, '2026-11-01')).toBe('2026-11-02')
+    expect(fechaVencimientoPorModalidad('M', 1, '2026-11-01', true)).toBe('2026-11-01')
   })
 })

@@ -9,5 +9,6 @@ public interface ISimuladorCreditoReadService
         decimal interesMensual,
         DateTime fechaPrimerPago,
         decimal gastosAdm,
+        bool saltarDomingo = true,
         CancellationToken cancellationToken = default);
 }
