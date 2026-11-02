@@ -56,7 +56,7 @@ BEGIN
         SELECT 1
         FROM CREDITO.Credito
         WHERE CreditoId = @SolicitudCreditoId
-          AND ISNULL(EsPrendario, 0) = 1
+          AND (ISNULL(EsPrendario, 0) = 1 OR ProductoId = 2)
     )
         SET @SaltarDomingo = 0;
 

@@ -23,6 +23,7 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 | Ambientes | [AMBIENTES.md](AMBIENTES.md) |
 | API (visión) | [API-OVERVIEW.md](API-OVERVIEW.md) |
 | Pruebas | [TEST-STRATEGY.md](TEST-STRATEGY.md) |
+| **Guía go-live (jornada + batería, BD vacía)** | [GUIA-PRUEBAS-GO-LIVE.md](GUIA-PRUEBAS-GO-LIVE.md) |
 | Operaciones / runbooks | [OPS.md](OPS.md) |
 | Endurecimiento plataforma | [PLATFORM-HARDENING.md](PLATFORM-HARDENING.md) |
 | Especificaciones SSD | [ssd/README.md](ssd/README.md) |

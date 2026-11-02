@@ -31,24 +31,26 @@ Módulos SSD-01…09 pulidos para piloto (auth, crédito, caja, bóveda, cliente
 3. Aplicar scripts pendientes de `deploy/sql/` si el bacpac / bak no los trae (ver tabla abajo).
 4. Probar conexión desde App Service (firewall Azure SQL: Allow Azure services + IP del equipo si usas SSMS).
 
-### Azure con bak producción (2026-09-22 / 2026-10-06)
+### Azure / producción — paquete único (2026-11-02)
 
-**Un solo archivo:** `deploy/sql/2026-10-08-prod-bak-restore-completo.sql`  
-(A deltas geo/prendario/clave + B mora postergada + C `usp_Credito_Ins` QUOTED_IDENTIFIER).
+**Un solo archivo:** `deploy/sql/2026-11-02-prod-deltas.sql`
+
+Incluye el restore del 8-oct **más** condonación, cierre de caja por oficina, PLA/UIF, comunicados, índices, bóveda multisucursal, ciclo prendario (ficha/remate/renovar/liberar), menú (quitar caja chica y entrada almacén) y domingo→lunes en `usp_SimuladorCredito` / `usp_Credito_Ins`.
 
 | Orden | Acción | ¿Obligatorio? |
 |-------|--------|----------------|
-| 1 | Restaurar bak en Azure | Sí |
-| 2 | Ejecutar `2026-10-08-prod-bak-restore-completo.sql` | Sí |
-| 3 | `2026-10-07-usp-morosidad-empresa.sql` | Solo si el SELECT final deja `MorosidadEmpresa` en NULL |
-| 4 | `2026-10-06-prendario-drop-fecha-notif-whatsapp.sql` | Solo si existe `FechaNotifWhatsapp3d` |
+| 1 | Restaurar bak (si nos pasan un `.bak`) o abrir la BD CREDITO | Sí |
+| 2 | F5 `2026-11-02-prod-deltas.sql` **primero en Azure de prueba** | Sí |
+| 3 | Revisar el result set final: todo en `1`, sobre todo `SimuladorSaltarDomingo` y `CreditoInsSaltarDomingo` | Sí |
+| 4 | El mismo F5 en la base de producción que nos pasen | Sí, después del paso 3 |
 
-Los scripts sueltos (`2026-09-23-prod-bak-deltas-minimos`, `2026-06-credito-mora-postergada`, `2026-09-03-usp-credito-ins-quoted-identifier`) quedan como piezas; el restore completo ya los une.
+Los scripts sueltos de `deploy/sql/2026-10-*.sql` quedan como piezas; no hace falta F5 uno por uno si corre el paquete.
 
-**No** reescribir a mano el cuerpo de `usp_Credito_Ins`.  
-**No** ejecutar `2026-09-23-azure-cutover-modern-deltas.sql` sobre estos bak.
+**No** ejecutar `2026-11-02-vaciar-registros-azure-prueba.sql` en producción.  
+**No** ejecutar `lab/*`, `local/*`, ni `2026-09-23-azure-cutover-modern-deltas.sql`.  
+**No** reescribir a mano el cuerpo de `usp_Credito_Ins` (el paquete ya deja el de domingo→lunes).
 
-Smoke mínimo: login → menú → tablero `/inicio` → caja diario → un informe PDF → (ACL) `/informes/morosos`.
+Smoke mínimo: login → menú → tablero `/inicio` → caja diario → simulador (cuota en domingo debe ir al lunes, prendario no) → un informe PDF → (ACL) `/informes/morosos`.
 
 ## WhatsApp Cloud API (Meta → Azure)
 
