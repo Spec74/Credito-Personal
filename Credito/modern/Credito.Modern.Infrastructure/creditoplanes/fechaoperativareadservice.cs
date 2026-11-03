@@ -6,7 +6,7 @@ using Microsoft.Extensions.Options;
 namespace Credito.Modern.Infrastructure.CreditoPlanes;
 
 /// <summary>
-/// Fecha de negocio: hoy en zona del servidor SQL (misma convención que cuotas-pendientes y legado sin offset custom).
+/// Fecha de negocio: “hoy” en Perú vía dbo.ufnFecha (misma fuente que caja/pagos/tickets).
 /// </summary>
 public sealed class FechaOperativaReadService(IOptions<SqlDatabaseOptions> options)
     : IFechaOperativaReadService
@@ -24,7 +24,7 @@ public sealed class FechaOperativaReadService(IOptions<SqlDatabaseOptions> optio
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
         return await connection.ExecuteScalarAsync<DateTime>(
             new CommandDefinition(
-                "SELECT CAST(SYSDATETIME() AS date);",
+                "SELECT CAST(dbo.ufnFecha() AS date);",
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 }

@@ -69,7 +69,7 @@ BEGIN
 			  CajaDiarioId,Operacion,ImportePago,PersonaId,TipoPagoId,Descripcion,IndEntrada,Estado,UsuarioRegId,FechaReg
 			)
 		VALUES
-			( @CajaDiarioId,'TRS',0, @PersonaIdAgente,1,@Glosa ,0,1,@UsuarioIdAgente,GETDATE() )
+			( @CajaDiarioId,'TRS',0, @PersonaIdAgente,1,@Glosa ,0,1,@UsuarioIdAgente,dbo.ufnFecha() )
 	
 		EXEC CREDITO.usp_RecalcularCajaDiario @CajaDiarioDestinoId
 

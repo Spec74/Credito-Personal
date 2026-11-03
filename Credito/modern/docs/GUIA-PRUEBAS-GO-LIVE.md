@@ -13,6 +13,7 @@ Marca `[x]` al pasar. Un **bloqueante** en rojo de la lista no se salta: sin eso
 - Envíalo como archivo, ábrelo en GitHub, o pégalo en Google Docs / Word.
 - El canvas de Cursor **no tiene URL pública**; este Markdown sí se comparte.
 - SQL de esquema (no vacía datos): `Credito/modern/deploy/sql/2026-11-02-prod-deltas.sql`
+- Hora Perú (caja/tickets): `Credito/modern/deploy/sql/2026-11-03-ufnFecha-peru-timezone.sql`
 - SQL de vaciar (solo prueba, ya corrido): `Credito/modern/deploy/sql/2026-11-02-vaciar-registros-azure-prueba.sql`
 
 ---
@@ -22,6 +23,7 @@ Marca `[x]` al pasar. Un **bloqueante** en rojo de la lista no se salta: sin eso
 Tras el vaciado: no hay clientes ni créditos; **sí** hay usuarios, menú, oficinas, productos, cajas y almacenes. Bóveda en 0. `MAESTRO.Acceso` vacío.
 
 - [ ] **D0-01 Esquema.** F5 `2026-11-02-prod-deltas.sql` en esta Azure. Result set final: todo en `1`, sobre todo `SimuladorSaltarDomingo` y `CreditoInsSaltarDomingo`.
+- [ ] **D0-01b Hora Perú.** F5 `2026-11-03-ufnFecha-peru-timezone.sql`. `FechaOperativaPeru` debe coincidir con el reloj local (±1 min), no con UTC ni UTC+2.
 - [ ] **D0-02 Login / Acceso.** Si dice que el cliente no está autorizado: en App Service de prueba `Auth__RequerirClienteAcceso=false`, o `INSERT` de la IP en `MAESTRO.Acceso`.
 - [ ] **D0-03 Bóveda.** ENCARGADO → ingreso de efectivo (SaldoInicial = 0). Sin esto no se asigna caja.
 - [ ] **D0-04 Caja.** ENCARGADO asigna caja al CAJERO. El cajero abre Diario y ve sesión.
