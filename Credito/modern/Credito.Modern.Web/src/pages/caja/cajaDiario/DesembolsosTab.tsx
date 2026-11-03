@@ -89,7 +89,6 @@ export function DesembolsosTab({
 
   const columns: ColumnsType<DesembolsoPendienteRow> = [
     { title: 'Nro crédito', dataIndex: 'creditoId', width: 88 },
-    { title: 'Código', dataIndex: 'personaCodigo', width: 90 },
     { title: 'Cliente', dataIndex: 'personaNombre', ellipsis: true },
     {
       title: 'Crédito',

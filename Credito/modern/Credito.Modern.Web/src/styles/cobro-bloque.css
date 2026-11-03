@@ -29,7 +29,7 @@
 }
 
 .cobro-bloque-tabs .ant-tabs-nav::before {
-  border-bottom-color: #e8eef5 !important;
+  border-bottom-color: var(--credix-border) !important;
 }
 
 .cobro-bloque-tabs .ant-tabs-tab {
@@ -83,8 +83,8 @@
 
 .cobro-bloque-resumen-mobile__pill--ok {
   color: var(--credix-success);
-  background: #dcfce7;
-  border: 1px solid #86efac;
+  background: var(--credix-success-bg);
+  border: 1px solid color-mix(in srgb, var(--credix-success) 40%, var(--credix-border));
 }
 
 .cobro-bloque-enviados-toolbar {
@@ -108,7 +108,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  border: 1px solid #e8eef5;
+  border: 1px solid var(--credix-border);
   border-radius: 14px;
   background: var(--credix-surface);
 }
@@ -165,10 +165,10 @@
   gap: 10px 12px;
   margin: 0 0 10px;
   padding: 10px 12px;
-  border: 1px solid #e8eef5;
+  border: 1px solid var(--credix-border);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
+  background: color-mix(in srgb, var(--credix-surface) 94%, transparent);
+  box-shadow: 0 4px 18px color-mix(in srgb, var(--credix-text) 8%, transparent);
 }
 
 .cobro-bloque-command__row {
@@ -213,7 +213,7 @@
   align-items: stretch;
   padding: 2px;
   border-radius: 10px;
-  background: #eef2f7;
+  background: var(--credix-surface-muted);
   gap: 2px;
 }
 
@@ -224,7 +224,7 @@
   padding: 6px 10px;
   border-radius: 8px;
   background: transparent;
-  color: #475569;
+  color: var(--credix-text-muted);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.2;
@@ -235,7 +235,7 @@
 .cobro-bloque-command__vista--on {
   background: var(--credix-surface);
   color: var(--credix-brand, #114885);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--credix-text) 12%, transparent);
 }
 
 .cobro-bloque-command__chip {
@@ -252,7 +252,7 @@
 
 .cobro-bloque-command__chip--accent {
   color: var(--credix-ink-brand);
-  background: #e8f2ff;
+  background: var(--credix-brand-light);
 }
 
 .cobro-bloque-page .credix-cobro-bloque-resumen {
@@ -262,7 +262,7 @@
   margin-bottom: 14px;
   padding: 12px 14px;
   border-radius: 12px;
-  border: 1px solid #e8eef5;
+  border: 1px solid var(--credix-border);
   background: var(--credix-info-bg);
 }
 
@@ -342,7 +342,7 @@
   height: 22px;
   border-radius: 6px;
   color: var(--credix-success);
-  background: #e7f8f3;
+  background: var(--credix-success-bg);
 }
 
 .cobro-bloque-col-ubicacion {
@@ -369,7 +369,7 @@
   margin: 0;
   padding: 0 0.35rem;
   border-radius: 3px;
-  background: rgba(17, 72, 133, 0.1);
+  background: var(--credix-brand-light);
   font-style: normal;
   font-size: 0.7rem;
   font-weight: 600;
@@ -378,7 +378,7 @@
 
 .cobro-bloque-celular__wa:hover {
   color: var(--credix-success);
-  background: #d1f0e7;
+  background: color-mix(in srgb, var(--credix-success) 22%, var(--credix-surface));
 }
 
 .cobro-bloque-col-nowrap,
@@ -458,7 +458,7 @@
 .cobro-bloque-page--field .cobro-bloque-panel--field .credix-box-header h2 {
   font-size: 14px;
   font-weight: 700;
-  color: #64748b;
+  color: var(--credix-text-muted);
 }
 
 .cobro-bloque-page--field .cobro-bloque-panel--field .credix-box-content {
@@ -484,27 +484,27 @@
   flex-direction: column;
   gap: 12px;
   padding: 14px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--credix-border);
   border-radius: 16px;
   background: var(--credix-surface);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--credix-text) 6%, transparent);
 }
 
 .cobro-bloque-card--mora {
-  border-color: #fecaca;
+  border-color: color-mix(in srgb, var(--credix-danger) 45%, var(--credix-border));
   background: var(--credix-danger-bg);
 }
 
 .cobro-bloque-card--cobro {
-  border-color: #86efac;
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.22);
+  border-color: color-mix(in srgb, var(--credix-success) 45%, var(--credix-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--credix-success) 22%, transparent);
   background: var(--credix-success-bg);
 }
 
 .cobro-bloque-card--enviado {
   opacity: 0.88;
-  border-color: #93c5fd;
-  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.18);
+  border-color: color-mix(in srgb, var(--credix-brand) 40%, var(--credix-border));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--credix-brand) 18%, transparent);
 }
 
 .cobro-bloque-card__badge--tipado {
@@ -570,17 +570,17 @@
   font-weight: 750;
   letter-spacing: 0.01em;
   color: var(--credix-text);
-  background: #e2e8f0;
+  background: var(--credix-surface-muted);
 }
 
 .cobro-bloque-card__badge--mora {
-  color: #991b1b;
-  background: #fee2e2;
+  color: var(--credix-danger);
+  background: var(--credix-danger-bg);
 }
 
 .cobro-bloque-card__badge--ok {
   color: var(--credix-success);
-  background: #dcfce7;
+  background: var(--credix-success-bg);
 }
 
 .cobro-bloque-card__name {
@@ -635,7 +635,7 @@
   min-height: 36px;
   padding: 6px 10px;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--credix-border);
   background: var(--credix-surface-muted);
   color: var(--credix-brand, #114885);
   font-size: 13px;
@@ -652,17 +652,17 @@
 
 .cobro-bloque-card__contact--wa {
   color: var(--credix-success);
-  background: #e7f8f3;
-  border-color: #b7ebe0;
+  background: var(--credix-success-bg);
+  border-color: color-mix(in srgb, var(--credix-success) 35%, var(--credix-border));
 }
 
 .cobro-bloque-card__contact--dir {
   flex: 1 1 100%;
-  color: #475569;
+  color: var(--credix-text-muted);
 }
 
 .cobro-bloque-card__contact--gps {
-  border-color: #cbd5e1;
+  border-color: var(--credix-border);
   background: var(--credix-surface-muted);
 }
 
@@ -671,7 +671,7 @@
   margin: 0;
   padding: 1px 6px;
   border-radius: 4px;
-  background: #e2e8f0;
+  background: var(--credix-surface-muted);
   color: var(--credix-text);
   font-size: 10px;
   font-style: normal;
@@ -765,7 +765,7 @@
   min-height: 40px;
   padding: 8px 12px;
   border-radius: 999px;
-  border: 1px solid #dbe3ee;
+  border: 1px solid var(--credix-border);
   background: var(--credix-surface);
   color: var(--credix-text);
   font-size: 13px;
@@ -776,7 +776,7 @@
 
 .cobro-bloque-card__metodo--active {
   border-color: var(--credix-brand, #114885);
-  background: #e8f2ff;
+  background: var(--credix-brand-light);
   color: var(--credix-ink-brand);
   box-shadow: inset 0 0 0 1px var(--credix-brand, #114885);
 }
@@ -788,7 +788,7 @@
   padding: 10px;
   border-radius: 12px;
   border: 1px solid var(--credix-brand-line);
-  background: #f0f7ff;
+  background: var(--credix-info-bg);
 }
 
 .cobro-bloque-card__voucher-label {
@@ -798,7 +798,7 @@
 }
 
 .cobro-bloque-card__cuotas {
-  border-top: 1px solid #eef2f7;
+  border-top: 1px solid var(--credix-border);
   padding-top: 8px;
 }
 
@@ -848,11 +848,11 @@
   justify-content: space-between;
   gap: 12px;
   padding: 12px 14px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--credix-border);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.97);
+  background: color-mix(in srgb, var(--credix-surface) 97%, transparent);
   backdrop-filter: blur(12px);
-  box-shadow: 0 10px 32px rgba(15, 23, 42, 0.14);
+  box-shadow: 0 10px 32px color-mix(in srgb, var(--credix-text) 14%, transparent);
 }
 
 .cobro-bloque-dock__stats {
@@ -1096,4 +1096,40 @@
   .cobro-bloque-card__deuda strong {
     font-size: 1.15rem;
   }
+}
+
+/* —— Dark: planilla desktop (inputs/select) + acentos —— */
+:root[data-theme='dark'] .cobro-bloque-command__vista--on {
+  background: var(--credix-surface-elevated);
+  box-shadow: none;
+}
+
+:root[data-theme='dark'] .cobro-bloque-table .cobro-bloque-input-monto.ant-input-number,
+:root[data-theme='dark'] .cobro-bloque-table .cobro-bloque-input-monto .ant-input-number-input,
+:root[data-theme='dark'] .cobro-bloque-table .cobro-bloque-input-tipo .ant-select-selector {
+  background: var(--credix-surface-muted) !important;
+  border-color: var(--credix-border) !important;
+  color: var(--credix-text) !important;
+}
+
+:root[data-theme='dark'] .cobro-bloque-table .cobro-bloque-input-tipo .ant-select-selection-item,
+:root[data-theme='dark'] .cobro-bloque-table .cobro-bloque-input-tipo .ant-select-arrow {
+  color: var(--credix-text) !important;
+}
+
+:root[data-theme='dark'] .cobro-bloque-table .ant-table-thead > tr > th,
+:root[data-theme='dark'] .cobro-bloque-table .ant-table-tbody > tr > td {
+  border-color: var(--credix-border) !important;
+  background: var(--credix-surface) !important;
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .cobro-bloque-table .ant-table-tbody > tr:nth-child(even) > td {
+  background: var(--credix-surface-muted) !important;
+}
+
+:root[data-theme='dark'] .cobro-bloque-fecha-digital__trigger {
+  background: var(--credix-surface-muted);
+  border-color: var(--credix-border);
+  color: var(--credix-text);
 }
