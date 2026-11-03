@@ -134,6 +134,8 @@ public static class RptPlanPagosFichaPdfDocument
             $"Crédito N° {creditoId}",
             "—",
             0,
+            0,
+            string.Empty,
             cuotas.Sum(x => x.Cuota),
             0);
         return Build(stub, cuotas);

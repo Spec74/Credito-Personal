@@ -15,6 +15,8 @@ public sealed record RptEstadoCreditoCabeceraDto(
     string Cliente,
     string Analista,
     decimal MontoGastosAdm,
+    decimal CentralRiesgo,
+    string TipoGastoAdm,
     decimal Total,
     decimal MontoDesembolso);
 

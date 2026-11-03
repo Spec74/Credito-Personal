@@ -26,6 +26,8 @@ public sealed class CuentaPorCobrarPagoReadService(IOptions<SqlDatabaseOptions> 
         var esCajaCentral = await EsCajaCentralAsync(connection, cajaDiarioId, cancellationToken)
             .ConfigureAwait(false);
 
+        // CxC GAD guarda Monto = MontoGastosAdm + CentralRiesgo (usp_Credito_Upd).
+        // Concepto deja explícito GAD puro vs suma con central de riesgo.
         const string sqlCredito = """
             SELECT
                 ISNULL(cr.OrdenVentaId, 0) AS OrdenVentaId,
@@ -33,8 +35,23 @@ public sealed class CuentaPorCobrarPagoReadService(IOptions<SqlDatabaseOptions> 
                 p.Codigo AS PersonaCodigo,
                 p.NombreCompleto AS PersonaNombre,
                 cx.Operacion,
-                (' CREDITO: ' + CAST(cx.CreditoId AS varchar(20))) AS Origen,
+                CASE
+                    WHEN cx.Operacion = N'GAD' AND ISNULL(cr.CentralRiesgo, 0) > 0
+                        THEN CONCAT(
+                            N'GAD ',
+                            CONVERT(varchar(24), CAST(ISNULL(cr.MontoGastosAdm, 0) AS decimal(16, 2))),
+                            N' + central riesgo ',
+                            CONVERT(varchar(24), CAST(cr.CentralRiesgo AS decimal(16, 2))))
+                    WHEN cx.Operacion = N'GAD'
+                        THEN N'GAD puro'
+                    WHEN cx.Operacion = N'INI'
+                        THEN N'Inicial'
+                    ELSE cx.Operacion
+                END AS Concepto,
+                (N'CREDITO: ' + CAST(cx.CreditoId AS varchar(20))) AS Origen,
                 cx.Monto,
+                ISNULL(cr.MontoGastosAdm, 0) AS MontoGastosAdm,
+                ISNULL(cr.CentralRiesgo, 0) AS CentralRiesgo,
                 cx.Estado,
                 ISNULL(cr.FechaAprobacion, cr.FechaReg) AS FechaReg
             FROM CREDITO.CuentaxCobrar AS cx
@@ -77,8 +94,11 @@ public sealed class CuentaPorCobrarPagoReadService(IOptions<SqlDatabaseOptions> 
                 p.Codigo AS PersonaCodigo,
                 p.NombreCompleto AS PersonaNombre,
                 'CON' AS Operacion,
-                ('ORDEN: ' + CAST(ov.OrdenVentaId AS varchar(20))) AS Origen,
+                N'Venta contado' AS Concepto,
+                (N'ORDEN: ' + CAST(ov.OrdenVentaId AS varchar(20))) AS Origen,
                 ov.TotalNeto AS Monto,
+                CAST(0 AS decimal(16, 2)) AS MontoGastosAdm,
+                CAST(0 AS decimal(16, 2)) AS CentralRiesgo,
                 'PEN' AS Estado,
                 ov.FechaReg
             FROM VENTAS.OrdenVenta AS ov

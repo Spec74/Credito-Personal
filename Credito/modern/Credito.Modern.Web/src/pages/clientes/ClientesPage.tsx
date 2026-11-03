@@ -31,7 +31,7 @@ export function ClientesPage() {
   const debounced = useDebouncedValue(termino.trim(), 400)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState<number>(15)
-  const [sortField, setSortField] = useState('Codigo')
+  const [sortField, setSortField] = useState('Cliente')
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc')
 
   useEffect(() => {
@@ -60,7 +60,6 @@ export function ClientesPage() {
 
   const columns: ColumnsType<ClienteListadoRow> = useMemo(
     () => [
-      { title: 'Código', dataIndex: 'codigo', width: 90, sorter: true },
       {
         title: 'Cliente',
         dataIndex: 'cliente',

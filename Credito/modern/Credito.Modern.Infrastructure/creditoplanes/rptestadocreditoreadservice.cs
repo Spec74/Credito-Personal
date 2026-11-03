@@ -44,7 +44,9 @@ public sealed class RptEstadoCreditoReadService(
                     p.NumeroDocumento,
                     p.NombreCompleto,
                     u.NombreUsuario AS Analista,
-                    c.MontoGastosAdm
+                    c.MontoGastosAdm,
+                    ISNULL(c.CentralRiesgo, 0) AS CentralRiesgo,
+                    ISNULL(c.TipoGastoAdm, '') AS TipoGastoAdm
                 FROM CREDITO.Credito AS c
                 INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
                 INNER JOIN CREDITO.Producto AS pr ON pr.ProductoId = c.ProductoId
@@ -77,6 +79,8 @@ public sealed class RptEstadoCreditoReadService(
             $"{cab.NumeroDocumento} {cab.NombreCompleto}".Trim(),
             cab.Analista ?? string.Empty,
             cab.MontoGastosAdm,
+            cab.CentralRiesgo,
+            cab.TipoGastoAdm ?? string.Empty,
             total,
             cab.MontoDesembolso);
 
@@ -120,5 +124,7 @@ public sealed class RptEstadoCreditoReadService(
         public string NombreCompleto { get; init; } = string.Empty;
         public string? Analista { get; init; }
         public decimal MontoGastosAdm { get; init; }
+        public decimal CentralRiesgo { get; init; }
+        public string? TipoGastoAdm { get; init; }
     }
 }

@@ -217,8 +217,12 @@ export interface CuentaPorCobrarPendienteRow {
   personaCodigo: string
   personaNombre: string
   operacion: string
+  /** GAD puro vs GAD + central riesgo (el monto es la suma a cobrar). */
+  concepto: string
   origen: string
   monto: number
+  montoGastosAdm: number
+  centralRiesgo: number
   estado: string
   fechaReg: string
 }
@@ -698,7 +702,11 @@ export interface RptEstadoCreditoCabecera {
   cliente: string
   analista: string
   montoGastosAdm: number
+  centralRiesgo: number
+  /** ADE = adelantado (CxC); CUO = en cuota. */
+  tipoGastoAdm: string
   total: number
+  montoDesembolso?: number
 }
 
 export interface RptEstadoCreditoInforme {

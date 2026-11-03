@@ -14,6 +14,8 @@ type Props = {
 
 /**
  * Campos de solo lectura del crédito activo (paridad filas `txtc*` / cabecera en Creditos.cshtml).
+ * GAD adelantado (ADE): MontoGastosAdm y CentralRiesgo se cobran juntos en caja (CxC),
+ * no en la columna G.A. del plan (queda 0).
  */
 export function CreditoConsultaResumenCredito({ creditoId }: Props) {
   const query = useQuery({
@@ -25,6 +27,11 @@ export function CreditoConsultaResumenCredito({ creditoId }: Props) {
 
   const c = query.data?.cabecera
   const estadoMeta = getCreditoEstadoMeta(c?.estado)
+  const gadPuro = c?.montoGastosAdm ?? 0
+  const centralRiesgo = c?.centralRiesgo ?? 0
+  const tipoGa = (c?.tipoGastoAdm ?? '').toUpperCase()
+  const gaAdelantado = tipoGa === 'ADE' || tipoGa === ''
+  const totalGadCaja = gadPuro + centralRiesgo
 
   return (
     <section className="credito-consulta-resumen" aria-label="Resumen del crédito">
@@ -54,9 +61,31 @@ export function CreditoConsultaResumenCredito({ creditoId }: Props) {
             </Descriptions.Item>
             <Descriptions.Item label="Cuotas">{c.numeroCuotas}</Descriptions.Item>
             <Descriptions.Item label="Interés %">{c.interes}%</Descriptions.Item>
-            <Descriptions.Item label="Gastos adm.">
-              {formatMoney(c.montoGastosAdm)}
+            <Descriptions.Item label="Gastos adm. (puro)">
+              {formatMoney(gadPuro)}
+              {gaAdelantado ? (
+                <Text type="secondary" style={{ display: 'block', fontSize: 12 }}>
+                  Adelantado · no va en la columna G.A. del plan
+                </Text>
+              ) : (
+                <Text type="secondary" style={{ display: 'block', fontSize: 12 }}>
+                  En cuota · se reparte en el plan
+                </Text>
+              )}
             </Descriptions.Item>
+            <Descriptions.Item label="Central de riesgo">
+              {centralRiesgo > 0 ? formatMoney(centralRiesgo) : '—'}
+            </Descriptions.Item>
+            {gaAdelantado && totalGadCaja > 0 ? (
+              <Descriptions.Item label="A cobrar en caja (GAD)">
+                {formatMoney(totalGadCaja)}
+                <Text type="secondary" style={{ display: 'block', fontSize: 12 }}>
+                  {centralRiesgo > 0
+                    ? `GAD ${formatMoney(gadPuro)} + central riesgo ${formatMoney(centralRiesgo)}`
+                    : 'Solo GAD puro'}
+                </Text>
+              </Descriptions.Item>
+            ) : null}
             <Descriptions.Item label="1er pago">
               {formatFecha(c.fechaPrimerPago)}
             </Descriptions.Item>

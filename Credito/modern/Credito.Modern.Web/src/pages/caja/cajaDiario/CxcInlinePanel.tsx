@@ -61,36 +61,45 @@ export function CxcInlinePanel({
   })
 
   const columns: ColumnsType<CuentaPorCobrarPendienteRow> = [
-    { title: 'Código', dataIndex: 'personaCodigo', width: 80 },
     { title: 'Cliente', dataIndex: 'personaNombre', ellipsis: true },
-    { title: 'Operación', dataIndex: 'operacion', width: 90 },
-    { title: 'Origen', dataIndex: 'origen', width: 90 },
+    {
+      title: 'Concepto',
+      dataIndex: 'concepto',
+      ellipsis: true,
+      width: 220,
+      render: (concepto: string, row) => concepto || row.operacion,
+    },
+    { title: 'Origen', dataIndex: 'origen', width: 110 },
     {
       title: 'Monto',
       dataIndex: 'monto',
       align: 'right',
+      width: 100,
       render: formatMoney,
     },
-    { title: 'Estado', dataIndex: 'estado', width: 72 },
     {
       title: 'Fecha',
       dataIndex: 'fechaReg',
-      width: 100,
+      width: 110,
       render: (v: string) => formatFecha(v),
     },
     {
       title: 'Acciones',
       key: 'acciones',
-      width: 100,
+      width: 110,
       render: (_, row) => (
         <Button
           size="small"
           type="primary"
           loading={pagar.isPending}
           onClick={() => {
+            const detalle =
+              row.operacion === 'GAD' && (row.centralRiesgo ?? 0) > 0
+                ? `GAD ${formatMoney(row.montoGastosAdm)} + central riesgo ${formatMoney(row.centralRiesgo)}`
+                : row.concepto || row.operacion
             cajaConfirm({
               title: '¿Pagar cuenta por cobrar?',
-              content: `Registrar cobro de ${formatMoney(row.monto)} para ${row.personaNombre}.`,
+              content: `Registrar cobro de ${formatMoney(row.monto)} (${detalle}) para ${row.personaNombre}.`,
               onOk: () => pagar.mutateAsync(row),
             })
           }}
@@ -139,7 +148,7 @@ export function CxcInlinePanel({
         dataSource={query.data ?? []}
         loading={query.isLoading}
         pagination={{ pageSize: 10, showSizeChanger: true }}
-        scroll={{ x: 860 }}
+        scroll={{ x: 780 }}
       />
     </CajaSection>
   )
