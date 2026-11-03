@@ -1130,55 +1130,129 @@
   border-radius: 10px;
 }
 
-/* Filas del plan: fondo neutro + acento lateral discreto (sin semáforo) */
+/* Plan de pago: filas suaves + acento lateral (sin reja vertical) */
+.credito-plan-table .ant-table-thead > tr > th,
+.credito-plan-table .ant-table-tbody > tr > td,
+.credito-plan-table .ant-table-summary > tr > td {
+  border-inline-end: none !important;
+}
+
+.credito-plan-table.ant-table-bordered .ant-table-cell,
+.credito-plan-table .ant-table-bordered .ant-table-cell {
+  border-inline-end: none !important;
+}
+
+.credito-plan-money {
+  display: inline-block;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum';
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.credito-plan-date {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.credito-plan-atraso {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, #e11d48 14%, transparent);
+  color: #be123c;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .credito-plan-table .credito-plan-row--pagado > td {
-  background: var(--credix-surface) !important;
-  box-shadow: inset 3px 0 0 #94a3b8;
+  background: color-mix(in srgb, #10b981 7%, var(--credix-surface)) !important;
+  box-shadow: inset 3px 0 0 #059669;
 }
 
 .credito-plan-table .credito-plan-row--pendiente > td {
-  background: var(--credix-surface) !important;
-  box-shadow: inset 3px 0 0 #64748b;
+  background: color-mix(in srgb, #3b82f6 6%, var(--credix-surface)) !important;
+  box-shadow: inset 3px 0 0 #2563eb;
 }
 
 .credito-plan-table .credito-plan-row--vencido > td {
-  background: var(--credix-surface) !important;
-  box-shadow: inset 3px 0 0 #9f1239;
+  background: color-mix(in srgb, #f43f5e 8%, var(--credix-surface)) !important;
+  box-shadow: inset 3px 0 0 #e11d48;
 }
 
 .credito-plan-table .credito-plan-row--creado > td {
-  background: var(--credix-surface) !important;
-  box-shadow: inset 3px 0 0 #94a3b8;
+  background: color-mix(in srgb, #94a3b8 8%, var(--credix-surface)) !important;
+  box-shadow: inset 3px 0 0 #64748b;
 }
 
 .credito-plan-table .ant-table-tbody > tr.credito-plan-row:hover > td {
-  background: var(--credito-row-hover) !important;
+  filter: brightness(0.985);
 }
 
-.credito-plan-table .ant-tag {
+.credito-plan-estado-tag.ant-tag {
   margin-inline-end: 0;
-  background: var(--credix-surface-muted);
-  border-color: var(--credito-table-line) !important;
-  color: var(--credix-text);
-  border-radius: 4px;
-  font-weight: 650;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.35;
+  padding: 1px 8px;
+  border-width: 1px;
+}
+
+.credito-plan-estado-tag--pagado.ant-tag {
+  background: color-mix(in srgb, #10b981 16%, transparent);
+  border-color: color-mix(in srgb, #059669 35%, transparent) !important;
+  color: #047857;
+}
+
+.credito-plan-estado-tag--pendiente.ant-tag {
+  background: color-mix(in srgb, #3b82f6 14%, transparent);
+  border-color: color-mix(in srgb, #2563eb 32%, transparent) !important;
+  color: #1d4ed8;
+}
+
+.credito-plan-estado-tag--vencido.ant-tag {
+  background: color-mix(in srgb, #f43f5e 16%, transparent);
+  border-color: color-mix(in srgb, #e11d48 38%, transparent) !important;
+  color: #be123c;
+}
+
+.credito-plan-estado-tag--creado.ant-tag {
+  background: color-mix(in srgb, #94a3b8 18%, transparent);
+  border-color: color-mix(in srgb, #64748b 30%, transparent) !important;
+  color: #475569;
 }
 
 .credito-plan-summary-row > td {
   position: sticky;
   bottom: 0;
   z-index: 2;
-  background: var(--credix-surface-muted);
+  background: var(--credix-surface-muted) !important;
   border-top: 1px solid var(--credito-table-line) !important;
+  border-inline-end: none !important;
   font-weight: 700;
   color: var(--credix-text);
   box-shadow: none;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.credito-plan-summary-row .credito-plan-money {
+  font-weight: 700;
 }
 
 .credito-plan-ticket-link.ant-btn-link {
   height: auto;
   padding: 0;
   font-weight: 700;
+}
+
+.credito-plan-ticket-link .credito-plan-estado-tag {
+  cursor: pointer;
 }
 
 /* —— Tablas corporativas (consulta) —— */
@@ -1239,12 +1313,9 @@
   background: var(--credito-table-zebra) !important;
 }
 
-.credito-consulta-page .credito-plan-table .ant-table-tbody > tr.credito-plan-row > td {
-  background: var(--credix-surface) !important;
-}
-
+/* Plan: el tinte de estado manda sobre el zebra genérico */
 .credito-consulta-page .credito-plan-table .ant-table-tbody > tr.credito-plan-row:nth-child(even) > td {
-  background: var(--credito-table-zebra) !important;
+  background: inherit;
 }
 
 .credito-consulta-page .credix-table--operacion .ant-table-tbody > tr:nth-child(even):hover > td {
@@ -1276,21 +1347,65 @@
   color: var(--credix-text);
 }
 
-/* Acento lateral del plan (después de reglas generales de tabla) */
+/* Acento + tinte del plan (después de reglas generales de tabla) */
 .credito-consulta-page .credito-plan-table .credito-plan-row--pagado > td {
-  box-shadow: inset 3px 0 0 #94a3b8 !important;
+  background: color-mix(in srgb, #10b981 7%, var(--credix-surface)) !important;
+  box-shadow: inset 3px 0 0 #059669 !important;
 }
 
 .credito-consulta-page .credito-plan-table .credito-plan-row--pendiente > td {
-  box-shadow: inset 3px 0 0 #64748b !important;
+  background: color-mix(in srgb, #3b82f6 6%, var(--credix-surface)) !important;
+  box-shadow: inset 3px 0 0 #2563eb !important;
 }
 
 .credito-consulta-page .credito-plan-table .credito-plan-row--vencido > td {
-  box-shadow: inset 3px 0 0 #9f1239 !important;
+  background: color-mix(in srgb, #f43f5e 8%, var(--credix-surface)) !important;
+  box-shadow: inset 3px 0 0 #e11d48 !important;
 }
 
 .credito-consulta-page .credito-plan-table .credito-plan-row--creado > td {
-  box-shadow: inset 3px 0 0 #94a3b8 !important;
+  background: color-mix(in srgb, #94a3b8 8%, var(--credix-surface)) !important;
+  box-shadow: inset 3px 0 0 #64748b !important;
+}
+
+.credito-consulta-page .credito-plan-table .ant-table-tbody > tr.credito-plan-row:hover > td {
+  filter: brightness(0.97);
+}
+
+:root[data-theme='dark'] .credito-consulta-page .credito-plan-table .credito-plan-row--pagado > td {
+  background: color-mix(in srgb, #10b981 12%, var(--credix-surface)) !important;
+}
+
+:root[data-theme='dark'] .credito-consulta-page .credito-plan-table .credito-plan-row--pendiente > td {
+  background: color-mix(in srgb, #3b82f6 11%, var(--credix-surface)) !important;
+}
+
+:root[data-theme='dark'] .credito-consulta-page .credito-plan-table .credito-plan-row--vencido > td {
+  background: color-mix(in srgb, #f43f5e 13%, var(--credix-surface)) !important;
+}
+
+:root[data-theme='dark'] .credito-consulta-page .credito-plan-table .credito-plan-row--creado > td {
+  background: color-mix(in srgb, #94a3b8 10%, var(--credix-surface)) !important;
+}
+
+:root[data-theme='dark'] .credito-plan-estado-tag--pagado.ant-tag {
+  color: #6ee7b7;
+}
+
+:root[data-theme='dark'] .credito-plan-estado-tag--pendiente.ant-tag {
+  color: #93c5fd;
+}
+
+:root[data-theme='dark'] .credito-plan-estado-tag--vencido.ant-tag {
+  color: #fda4af;
+}
+
+:root[data-theme='dark'] .credito-plan-estado-tag--creado.ant-tag {
+  color: #cbd5e1;
+}
+
+:root[data-theme='dark'] .credito-plan-atraso {
+  color: #fda4af;
 }
 
 .credito-consulta-page .credix-box,

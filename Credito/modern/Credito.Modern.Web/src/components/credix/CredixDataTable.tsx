@@ -148,7 +148,7 @@ const MOBILE_CARD_VISIBLE_FIELDS = 5
 export function CredixDataTable<T extends object>(props: CredixDataTableProps<T>) {
   const {
     size = 'small',
-    bordered = true,
+    bordered: borderedProp,
     className,
     pagination,
     scroll,
@@ -161,6 +161,8 @@ export function CredixDataTable<T extends object>(props: CredixDataTableProps<T>
     rowSelection,
     ...rest
   } = props
+  // Operación: sin reja vertical (look moderno). Informes: bordered por defecto.
+  const bordered = borderedProp ?? mode !== 'operacion'
 
   const screens = Grid.useBreakpoint()
   // md undefined antes del layout → tratar como móvil para no aplastar columnas fijas.

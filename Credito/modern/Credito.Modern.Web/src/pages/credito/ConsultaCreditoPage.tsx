@@ -124,6 +124,28 @@ function estadoPlanRowClass(row: EstadoPlanPagoCuota): string {
   return 'credito-plan-row credito-plan-row--pendiente'
 }
 
+function planMoney(value: number | null | undefined) {
+  return <span className="credito-plan-money">{formatMoney(value)}</span>
+}
+
+function planCuotaEstadoTag(row: EstadoPlanPagoCuota) {
+  const estado = row.estado?.trim().toUpperCase()
+  if (estado === 'PAG') {
+    return <Tag className="credito-plan-estado-tag credito-plan-estado-tag--pagado">Pagada</Tag>
+  }
+  if ((row.diasAtrazo ?? 0) > 0) {
+    return (
+      <Tag className="credito-plan-estado-tag credito-plan-estado-tag--vencido">
+        Vencida{row.diasAtrazo ? ` · ${row.diasAtrazo}d` : ''}
+      </Tag>
+    )
+  }
+  if (estado === 'CRE') {
+    return <Tag className="credito-plan-estado-tag credito-plan-estado-tag--creado">Creada</Tag>
+  }
+  return <Tag className="credito-plan-estado-tag credito-plan-estado-tag--pendiente">Pendiente</Tag>
+}
+
 export function ConsultaCreditoPage() {
   const queryClient = useQueryClient()
   const { session } = useAuth()
@@ -323,23 +345,20 @@ export function ConsultaCreditoPage() {
   })
 
   const planCols: ColumnsType<EstadoPlanPagoCuota> = [
-    { title: 'Nro', dataIndex: 'numero' },
+    { title: 'Nro', dataIndex: 'numero', width: 52, align: 'center' },
     {
       title: 'Vence',
       dataIndex: 'fechaVencimiento',
-      render: (v: string) => v?.slice(0, 10),
+      width: 108,
+      render: (v: string) => <span className="credito-plan-date">{v?.slice(0, 10)}</span>,
     },
     {
       title: 'Estado',
       dataIndex: 'estado',
-      render: (estado: string | null, row) => {
-        const meta = getCreditoEstadoMeta(estado)
-        const tag = meta ? (
-          <Tag className="credito-plan-estado-tag">{meta.codigo}</Tag>
-        ) : (
-          estado || '—'
-        )
-        if (estado?.trim().toUpperCase() !== 'PAG' || !row.movimientoCajaId) {
+      width: 128,
+      render: (_estado: string | null, row) => {
+        const tag = planCuotaEstadoTag(row)
+        if (row.estado?.trim().toUpperCase() !== 'PAG' || !row.movimientoCajaId) {
           return tag
         }
 
@@ -361,43 +380,49 @@ export function ConsultaCreditoPage() {
       title: 'Capital',
       dataIndex: 'capital',
       align: 'right',
-      render: formatMoney,
+      width: 100,
+      render: planMoney,
     },
     {
       title: 'Amort.',
       dataIndex: 'amortizacion',
       align: 'right',
-      render: formatMoney,
+      width: 100,
+      render: planMoney,
     },
     {
       title: 'Interés',
       dataIndex: 'interes',
       align: 'right',
-      render: formatMoney,
+      width: 92,
+      render: planMoney,
     },
     {
       title: 'G.A.',
       dataIndex: 'gastosAdm',
       align: 'right',
-      render: formatMoney,
+      width: 84,
+      render: planMoney,
     },
     {
       title: 'Cuota',
       dataIndex: 'cuota',
       align: 'right',
-      render: formatMoney,
+      width: 100,
+      render: planMoney,
     },
     {
       title: 'Mora',
       dataIndex: 'importeMora',
       align: 'right',
-      render: formatMoney,
+      width: 84,
+      render: planMoney,
     },
     {
       title: 'Desc.',
       dataIndex: 'descuento',
       align: 'right',
-      minWidth: 120,
+      width: 120,
       render: (v: number | null, row) =>
         activeId != null && oficinaId > 0 ? (
           <DescuentoCuotaEditor
@@ -409,34 +434,53 @@ export function ConsultaCreditoPage() {
             onSaved={() => void queryClient.invalidateQueries({ queryKey: ['estado-plan-pago', activeId] })}
           />
         ) : (
-          (v != null ? formatMoney(v) : '—')
+          planMoney(v)
         ),
     },
     {
       title: 'Cargo',
       dataIndex: 'cargo',
       align: 'right',
-      render: (v: number | null) => (v != null ? formatMoney(v) : '—'),
+      width: 84,
+      render: (v: number | null) => planMoney(v),
     },
     {
       title: 'P. libre',
       dataIndex: 'pagoLibre',
       align: 'right',
-      render: formatMoney,
+      width: 92,
+      render: planMoney,
     },
     {
       title: 'F. pago',
       dataIndex: 'fechaPagoCuota',
-      render: (v: string | null) => v?.slice(0, 10) ?? '—',
+      width: 108,
+      render: (v: string | null) => (
+        <span className="credito-plan-date">{v?.slice(0, 10) ?? '—'}</span>
+      ),
     },
     {
       title: 'Pagado',
       dataIndex: 'pagoCuota',
       align: 'right',
-      render: formatMoney,
+      width: 100,
+      render: planMoney,
     },
-    { title: 'Atraso', dataIndex: 'diasAtrazo' },
-    { title: 'Mov.', dataIndex: 'movimientoCajaId', responsive: ['lg'] },
+    {
+      title: 'Atraso',
+      dataIndex: 'diasAtrazo',
+      width: 72,
+      align: 'center',
+      render: (v: number | null | undefined) =>
+        v && v > 0 ? <span className="credito-plan-atraso">{v}</span> : '—',
+    },
+    {
+      title: 'Mov.',
+      dataIndex: 'movimientoCajaId',
+      width: 72,
+      responsive: ['lg'],
+      render: (v: number | null | undefined) => v ?? '—',
+    },
   ]
 
   const movCols: ColumnsType<RptMovimientoCreditoRow> = [
@@ -646,13 +690,14 @@ export function ConsultaCreditoPage() {
                 children: (
                   <CredixDataTable<EstadoPlanPagoCuota>
                     mode="operacion"
+                    bordered={false}
                     rowKey="planPagoId"
                     className="credito-plan-table"
                     columns={planCols}
                     dataSource={planQuery.data ?? []}
                     loading={planQuery.isLoading}
                     pagination={{ pageSize: 12, showSizeChanger: false }}
-                    scroll={{ x: 1100 }}
+                    scroll={{ x: 1480 }}
                     rowClassName={estadoPlanRowClass}
                     summary={() => (
                       <Table.Summary fixed>
@@ -663,35 +708,35 @@ export function ConsultaCreditoPage() {
                             </Text>
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={3} align="right">
-                            <Text strong>{formatMoney(planResumen.capital)}</Text>
+                            {planMoney(planResumen.capital)}
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={4} align="right">
-                            <Text strong>{formatMoney(planResumen.amortizacion)}</Text>
+                            {planMoney(planResumen.amortizacion)}
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={5} align="right">
-                            <Text strong>{formatMoney(planResumen.interes)}</Text>
+                            {planMoney(planResumen.interes)}
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={6} align="right">
-                            <Text strong>{formatMoney(planResumen.gastosAdm)}</Text>
+                            {planMoney(planResumen.gastosAdm)}
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={7} align="right">
-                            <Text strong>{formatMoney(planResumen.cuota)}</Text>
+                            {planMoney(planResumen.cuota)}
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={8} align="right">
-                            <Text strong>{formatMoney(planResumen.mora)}</Text>
+                            {planMoney(planResumen.mora)}
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={9} align="right">
-                            <Text strong>{formatMoney(planResumen.descuento)}</Text>
+                            {planMoney(planResumen.descuento)}
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={10} align="right">
-                            <Text strong>{formatMoney(planResumen.cargo)}</Text>
+                            {planMoney(planResumen.cargo)}
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={11} align="right">
-                            <Text strong>{formatMoney(planResumen.pagoLibre)}</Text>
+                            {planMoney(planResumen.pagoLibre)}
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={12}>—</Table.Summary.Cell>
                           <Table.Summary.Cell index={13} align="right">
-                            <Text strong>{formatMoney(planResumen.pagado)}</Text>
+                            {planMoney(planResumen.pagado)}
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={14}>—</Table.Summary.Cell>
                           <Table.Summary.Cell index={15}>—</Table.Summary.Cell>
