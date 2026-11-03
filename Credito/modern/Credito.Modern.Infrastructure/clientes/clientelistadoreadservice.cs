@@ -70,13 +70,20 @@ public sealed class ClienteListadoReadService(IOptions<SqlDatabaseOptions> optio
         }
         else
         {
+            // Sin búsqueda: clientes que registró este usuario O con crédito suyo.
+            // Antes solo había créditos → el alta recién hecha no aparecía hasta originar.
             fromSql = """
                 FROM (
                     SELECT DISTINCT cr.PersonaId
                     FROM CREDITO.Credito AS cr
                     WHERE cr.UsuarioRegId = @UsuarioId
+                    UNION
+                    SELECT c.PersonaId
+                    FROM MAESTRO.Cliente AS c
+                    WHERE c.UsuarioRegId = @UsuarioId
                 ) AS u
                 INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+                INNER JOIN MAESTRO.Cliente AS cl ON cl.PersonaId = p.PersonaId
                 """;
             parameters = new { UsuarioId = usuarioId, Offset = offset, PageSize = pageSize };
         }

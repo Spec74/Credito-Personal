@@ -133,7 +133,7 @@ export function ClientesPage() {
       { value: listado.data.total, label: 'Total registros' },
       { value: listado.data.rows.length, label: 'En esta página' },
       {
-        value: buscarAplicado ? 'Catálogo' : 'Mis créditos',
+        value: buscarAplicado ? 'Catálogo' : 'Mis clientes',
         label: 'Origen listado',
         tone: buscarAplicado ? undefined : 'green',
       },
@@ -183,16 +183,16 @@ export function ClientesPage() {
           hint={
             buscarAplicado
               ? CLIENTE_CRUZADO_AVISO
-              : 'Mostrando clientes de sus créditos (sin filtro o menos de 2 caracteres).'
+              : 'Sin búsqueda: clientes que usted registró o con crédito suyo. Escriba 2+ caracteres para el catálogo.'
           }
-          hintShort={buscarAplicado ? 'Catálogo completo' : 'Mis créditos'}
+          hintShort={buscarAplicado ? 'Catálogo completo' : 'Mis clientes'}
           loading={listado.isFetching}
           onRefresh={refrescar}
           extra={
             buscarAplicado ? (
               <Tag color="blue">Catálogo</Tag>
             ) : (
-              <Tag color="green">Mis créditos</Tag>
+              <Tag color="green">Mis clientes</Tag>
             )
           }
         />
@@ -203,7 +203,7 @@ export function ClientesPage() {
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
-          message="Con menos de 2 caracteres se muestran los clientes asociados a sus créditos."
+          message="Con menos de 2 caracteres se muestran los clientes que usted registró o con crédito suyo."
         />
       ) : null}
 

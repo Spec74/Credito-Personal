@@ -207,9 +207,6 @@ export function CreditoPersonaCabecera({
               Nueva solicitud
             </Button>
           ) : null}
-          <Link to={`/credito/simulador?personaId=${personaId}`}>
-            <Button>Simulador</Button>
-          </Link>
           <Dropdown
             menu={{
               items: [

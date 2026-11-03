@@ -176,6 +176,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   const queryClient = useQueryClient()
   const [usuarioTerm, setUsuarioTerm] = useState('')
   const [activeTab, setActiveTab] = useState('ingreso')
+  const [fondeoForm] = Form.useForm()
   const bovedaId = boveda.bovedaId
   const operacionesDeshabilitadas = boveda.indCierre || oficinaId < 1
   const usuarioTermDebounced = useDebouncedValue(usuarioTerm.trim(), 350)
@@ -317,7 +318,11 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
 
   const transferir = useMutation({
     mutationFn: transferirBoveda,
-    onSuccess: (r) => onOk(`Transferencia (código ${r.resultCode})`),
+    onSuccess: (r) => {
+      fondeoForm.resetFields()
+      fondeoForm.setFieldsValue({ tipoPagoId: 1 })
+      onOk(`Transferencia (código ${r.resultCode})`)
+    },
     onError: (e) => message.error(errMsg(e)),
   })
 
@@ -853,6 +858,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             />
           ) : null}
           <Form
+            form={fondeoForm}
             className="boveda-operaciones-form"
             layout="vertical"
             initialValues={{ tipoPagoId: 1 }}

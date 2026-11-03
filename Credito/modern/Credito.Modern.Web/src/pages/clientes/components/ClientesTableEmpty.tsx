@@ -10,11 +10,11 @@ type Props = {
 export function ClientesTableEmpty({ buscandoCatalogo, terminoCorto }: Props) {
   let title = 'Sin clientes en esta vista'
   let desc =
-    'Los clientes vinculados a sus créditos aparecerán aquí. Use la búsqueda (mín. 2 caracteres) para explorar el catálogo completo.'
+    'Aquí salen los clientes que usted registró o con crédito suyo. Use la búsqueda (mín. 2 caracteres) para el catálogo completo.'
 
   if (terminoCorto) {
     title = 'Escriba al menos 2 caracteres'
-    desc = 'Mientras tanto se muestran los clientes de sus créditos activos.'
+    desc = 'Mientras tanto se muestran los clientes que usted registró o con crédito suyo.'
   } else if (buscandoCatalogo) {
     title = 'Sin coincidencias en el catálogo'
     desc = 'Pruebe con apellidos, DNI, código, celular o correo. Puede registrar un cliente nuevo.'

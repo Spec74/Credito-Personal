@@ -260,13 +260,43 @@ CLOSE curTr;
 DEALLOCATE curTr;
 
 IF @Modo = N'OPERATIVO'
-   AND OBJECT_ID(N'CREDITO.BovedaCuenta', N'U') IS NOT NULL
-   AND COL_LENGTH(N'CREDITO.BovedaCuenta', N'SaldoInicial') IS NOT NULL
 BEGIN
-    UPDATE CREDITO.BovedaCuenta
-    SET SaldoInicial = 0
-    WHERE SaldoInicial <> 0;
-    PRINT N'Boveda: SaldoInicial en 0.';
+    IF OBJECT_ID(N'CREDITO.BovedaCuenta', N'U') IS NOT NULL
+       AND COL_LENGTH(N'CREDITO.BovedaCuenta', N'SaldoInicial') IS NOT NULL
+    BEGIN
+        UPDATE CREDITO.BovedaCuenta
+        SET SaldoInicial = 0
+        WHERE SaldoInicial <> 0;
+        PRINT N'BovedaCuenta: SaldoInicial en 0.';
+    END
+
+    -- Cabecera Boveda se conserva (abierta), pero SI/E/S/SF eran del ledger viejo.
+    IF OBJECT_ID(N'CREDITO.Boveda', N'U') IS NOT NULL
+    BEGIN
+        UPDATE CREDITO.Boveda
+        SET SaldoInicial = 0,
+            Entradas = 0,
+            Salidas = 0,
+            SaldoFinal = 0
+        WHERE IndCierre = CAST(0 AS bit)
+          AND (
+                SaldoInicial <> 0
+             OR Entradas <> 0
+             OR Salidas <> 0
+             OR SaldoFinal <> 0
+          );
+        PRINT N'Boveda abierta: cabecera SI/E/S/SF en 0.';
+
+        UPDATE CREDITO.Boveda
+        SET IndCierre = CAST(1 AS bit),
+            SaldoInicial = 0,
+            Entradas = 0,
+            Salidas = 0,
+            SaldoFinal = 0
+        WHERE IndTemporal = CAST(1 AS bit)
+          AND IndCierre = CAST(0 AS bit);
+        PRINT N'Boveda temporal abierta: cerrada.';
+    END
 END
 
 PRINT N'Recreando FKs...';
