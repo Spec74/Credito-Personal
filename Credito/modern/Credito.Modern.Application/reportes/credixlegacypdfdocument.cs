@@ -11,13 +11,13 @@ namespace Credito.Modern.Application.Reportes;
 /// </summary>
 public static class CredixLegacyPdfDocument
 {
-    public const float HeaderBorderPt = 1.25f;
-    public const float BodyBorderPt = 0.5f;
+    public const float HeaderBorderPt = 0.5f;
+    public const float BodyBorderPt = 0.4f;
     public const float FontSizeBody = CredixReportTokens.FontSizeBody;
     public const float FontSizeTitle = CredixReportTokens.FontSizeTitle;
 
-    private static readonly Color HeaderBg = CredixReportTokens.TableHeader;
-    private static readonly Color BorderColor = CredixReportTokens.Border;
+    private static readonly Color HeaderBg = CredixReportTokens.TableHeaderStrong;
+    private static readonly Color BorderColor = CredixReportTokens.BorderSoft;
 
     static CredixLegacyPdfDocument()
     {
@@ -201,15 +201,18 @@ public static class CredixLegacyPdfDocument
                 }
             });
 
-            foreach (var row in rows)
+            for (var r = 0; r < rows.Count; r++)
             {
+                var row = rows[r];
+                var rowBg = r % 2 == 0 ? Colors.White : CredixReportTokens.Zebra;
                 for (var c = 0; c < colCount; c++)
                 {
                     var raw = c < row.Count ? row[c] : string.Empty;
                     var spec = columnSpecs != null && c < columnSpecs.Count ? columnSpecs[c] : null;
                     var align = ColumnAlign(c, headers, columnSpecs);
+                    var apply = BodyCellFor(align);
                     CredixPdfCellText.Write(
-                        table.Cell().Element(BodyCellFor(align)),
+                        table.Cell().Element(cell => apply(cell.Background(rowBg))),
                         FormatDisplayCell(raw, spec),
                         fontSize);
                 }
@@ -262,7 +265,7 @@ public static class CredixLegacyPdfDocument
     private static IContainer TotalsCell(IContainer container) =>
         container
             .Background(CredixReportTokens.TotalsBg)
-            .Border(HeaderBorderPt)
+            .Border(0.5f)
             .BorderColor(BorderColor)
             .PaddingVertical(3)
             .PaddingHorizontal(4)
@@ -574,38 +577,41 @@ public static class CredixLegacyPdfDocument
         container
             .Background(HeaderBg)
             .Border(HeaderBorderPt)
-            .BorderColor(Colors.White)
+            .BorderColor(BorderColor)
             .PaddingVertical(3)
-            .PaddingHorizontal(4)
+            .PaddingHorizontal(3)
             .AlignMiddle()
-            .AlignCenter();
+            .AlignCenter()
+            .DefaultTextStyle(x => x.FontColor(Colors.White).SemiBold());
 
     public static IContainer HeaderCellLeft(IContainer container) =>
         container
             .Background(HeaderBg)
             .Border(HeaderBorderPt)
-            .BorderColor(Colors.White)
+            .BorderColor(BorderColor)
             .PaddingVertical(3)
-            .PaddingHorizontal(4)
+            .PaddingHorizontal(3)
             .AlignMiddle()
-            .AlignLeft();
+            .AlignLeft()
+            .DefaultTextStyle(x => x.FontColor(Colors.White).SemiBold());
 
     public static IContainer HeaderCellRight(IContainer container) =>
         container
             .Background(HeaderBg)
             .Border(HeaderBorderPt)
-            .BorderColor(Colors.White)
+            .BorderColor(BorderColor)
             .PaddingVertical(3)
-            .PaddingHorizontal(4)
+            .PaddingHorizontal(3)
             .AlignMiddle()
-            .AlignRight();
+            .AlignRight()
+            .DefaultTextStyle(x => x.FontColor(Colors.White).SemiBold());
 
     public static IContainer BodyCell(IContainer container) =>
         container
             .Border(BodyBorderPt)
             .BorderColor(BorderColor)
-            .PaddingVertical(3)
-            .PaddingHorizontal(4)
+            .PaddingVertical(2)
+            .PaddingHorizontal(3)
             .AlignMiddle();
 
     public static IContainer BodyCellCenter(IContainer container) =>

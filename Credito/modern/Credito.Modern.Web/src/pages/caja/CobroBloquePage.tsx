@@ -238,7 +238,6 @@ export function CobroBloquePage() {
     loadCobroCola({ usuarioId: 0, oficinaId: 0, cajaDiarioId: 0 }),
   )
   const [ticketPrintingId, setTicketPrintingId] = useState<number | null>(null)
-  const [ticketBatchPrinting, setTicketBatchPrinting] = useState(false)
   const carteraRowsRef = useRef<CreditoGestorPendienteRow[]>([])
 
   // Day-lock legacy deprecado: limpiar cualquier marca previa y no bloquear nunca.
@@ -898,30 +897,6 @@ export function CobroBloquePage() {
       )
     } finally {
       setTicketPrintingId(null)
-    }
-  }
-
-  const imprimirTicketsEnviados = async () => {
-    const ids = enviadosFiltrados
-      .map((e) => e.movimientoCajaId)
-      .filter((id): id is number => typeof id === 'number' && id > 0)
-    if (ids.length === 0) {
-      message.info('No hay tickets para imprimir en Enviados.')
-      return
-    }
-    setTicketBatchPrinting(true)
-    try {
-      for (let i = 0; i < ids.length; i++) {
-        if (i > 0) await new Promise((res) => window.setTimeout(res, 350))
-        await downloadMovimientoCajaTicketPdf(oficinaId, ids[i]!)
-      }
-      message.success(`${ids.length} ticket(s) descargado(s)`)
-    } catch (e) {
-      message.error(
-        e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error al imprimir tickets',
-      )
-    } finally {
-      setTicketBatchPrinting(false)
     }
   }
 
@@ -1644,21 +1619,6 @@ export function CobroBloquePage() {
                 <Text type="secondary">Aún no hay cobros enviados hoy.</Text>
               ) : fieldMode ? (
                 <>
-                  <div className="cobro-bloque-enviados-toolbar">
-                    <Button
-                      type="default"
-                      icon={<PrinterOutlined />}
-                      loading={ticketBatchPrinting}
-                      disabled={
-                        !enviadosFiltrados.some(
-                          (e) => e.movimientoCajaId && e.movimientoCajaId > 0,
-                        )
-                      }
-                      onClick={() => void imprimirTicketsEnviados()}
-                    >
-                      Imprimir tickets
-                    </Button>
-                  </div>
                   <ul className="cobro-bloque-enviados-list">
                     {enviadosFiltrados.map((it) => (
                       <li
@@ -1704,32 +1664,16 @@ export function CobroBloquePage() {
                   </ul>
                 </>
               ) : (
-                <>
-                  <div className="cobro-bloque-enviados-toolbar">
-                    <Button
-                      icon={<PrinterOutlined />}
-                      loading={ticketBatchPrinting}
-                      disabled={
-                        !enviadosFiltrados.some(
-                          (e) => e.movimientoCajaId && e.movimientoCajaId > 0,
-                        )
-                      }
-                      onClick={() => void imprimirTicketsEnviados()}
-                    >
-                      Imprimir todos los tickets
-                    </Button>
-                  </div>
-                  <CredixDataTable
-                    mode="operacion"
-                    className="cobro-bloque-table"
-                    rowKey={(it: CobroEnviadoItem) => `${it.creditoId}-${it.enviadoAt}`}
-                    columns={columnsEnviados}
-                    dataSource={enviadosFiltrados}
-                    pagination={{ pageSize: 50, showSizeChanger: true }}
-                    size="middle"
-                    scroll={{ x: 'max-content' }}
-                  />
-                </>
+                <CredixDataTable
+                  mode="operacion"
+                  className="cobro-bloque-table"
+                  rowKey={(it: CobroEnviadoItem) => `${it.creditoId}-${it.enviadoAt}`}
+                  columns={columnsEnviados}
+                  dataSource={enviadosFiltrados}
+                  pagination={{ pageSize: 50, showSizeChanger: true }}
+                  size="middle"
+                  scroll={{ x: 'max-content' }}
+                />
               )
             ) : carteraQuery.isError ? (
               <Alert

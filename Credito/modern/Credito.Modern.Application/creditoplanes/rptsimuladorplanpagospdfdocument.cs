@@ -31,7 +31,6 @@ public static class RptSimuladorPlanPagosPdfDocument
 
     private static readonly Color Brand = CredixReportTokens.Brand;
     private static readonly Color BrandDark = CredixReportTokens.BrandDark;
-    private static readonly Color BrandSoft = CredixReportTokens.SoftBg;
     private static readonly Color Border = CredixReportTokens.BorderSoft;
     private static readonly Color TableHeader = CredixReportTokens.TableHeaderStrong;
     private static readonly Color Muted = CredixReportTokens.MutedText;
@@ -212,7 +211,7 @@ public static class RptSimuladorPlanPagosPdfDocument
 
                 foreach (var header in new[] { "N°", "FECHA DE PAGO", "CAPITAL (S/)", "INTERÉS (S/)", "CUOTA (S/)", "SALDO (S/)" })
                 {
-                    table.Cell().Element(TableHeaderCell).Text(header).Bold().FontSize(6).FontColor(BrandDark);
+                    table.Cell().Element(TableHeaderCell).Text(header).Bold().FontSize(6).FontColor(Colors.White);
                 }
 
                 for (var i = 0; i < cuotas.Count; i++)
@@ -371,13 +370,13 @@ public static class RptSimuladorPlanPagosPdfDocument
     }
 
     private static IContainer TableHeaderCell(IContainer c) =>
-        c.Background(BrandSoft).Border(0.45f).BorderColor(Border).Padding(3).AlignCenter().AlignMiddle();
+        c.Background(Brand).Border(0.5f).BorderColor(CredixReportTokens.BorderSoft).Padding(3).AlignCenter().AlignMiddle();
 
     private static IContainer BodyCell(IContainer c, Color bg) =>
-        c.Background(bg).Border(0.35f).BorderColor(Border).PaddingVertical(3).PaddingHorizontal(4).AlignMiddle();
+        c.Background(bg).Border(0.4f).BorderColor(CredixReportTokens.BorderSoft).PaddingVertical(2).PaddingHorizontal(3).AlignMiddle();
 
     private static IContainer TotalCell(IContainer c) =>
-        c.BorderTop(0.6f).BorderColor(Border).Padding(3).AlignCenter().AlignMiddle();
+        c.Background(CredixReportTokens.TotalsBg).Border(0.5f).BorderColor(CredixReportTokens.BorderSoft).Padding(3).AlignCenter().AlignMiddle();
 
     private static IContainer TotalCellRight(IContainer c) =>
         TotalCell(c).AlignRight();

@@ -12,11 +12,11 @@ namespace Credito.Modern.Application.CreditoPlanes;
 /// </summary>
 public static class RptSaldoCarteraCajaDiarioPdfDocument
 {
-    private static readonly Color HeaderBg = CredixReportTokens.TableHeader;
+    private static readonly Color HeaderBg = CredixReportTokens.TableHeaderStrong;
     private static readonly Color GroupIniBg = CredixReportTokens.SoftBg;
     private static readonly Color GroupFinBg = CredixReportTokens.TotalsBg;
-    private static readonly Color BorderColor = CredixReportTokens.Border;
-    private static readonly Color Zebra = CredixReportTokens.MetaBg;
+    private static readonly Color BorderColor = CredixReportTokens.BorderSoft;
+    private static readonly Color Zebra = CredixReportTokens.Zebra;
 
     static RptSaldoCarteraCajaDiarioPdfDocument()
     {

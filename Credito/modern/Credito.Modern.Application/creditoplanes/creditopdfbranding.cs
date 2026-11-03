@@ -15,9 +15,9 @@ public static class CreditoPdfBranding
 {
     public static readonly string BrandHex = CredixReportTokens.BrandHex;
     public static readonly Color BrandColor = CredixReportTokens.Brand;
-    public static readonly Color HeaderBg = CredixReportTokens.TableHeader;
+    public static readonly Color HeaderBg = CredixReportTokens.TableHeaderStrong;
     public static readonly Color MetaBg = CredixReportTokens.MetaBg;
-    public static readonly Color Border = CredixReportTokens.Border;
+    public static readonly Color Border = CredixReportTokens.BorderSoft;
     public static readonly Color Zebra = CredixReportTokens.Zebra;
     public static readonly Color TotalsBg = CredixReportTokens.TotalsBg;
 
@@ -98,39 +98,41 @@ public static class CreditoPdfBranding
 
     public static void ComposeSectionTitle(IContainer container, string title) =>
         container
-            .PaddingBottom(3)
-            .BorderBottom(1)
-            .BorderColor(HeaderBg)
-            .Text(title)
+            .Background(HeaderBg)
+            .Border(0.5f)
+            .BorderColor(Border)
+            .PaddingVertical(4)
+            .PaddingHorizontal(6)
+            .Text(title.Trim().ToUpperInvariant())
             .Bold()
             .FontSize(9)
-            .FontColor(BrandColor);
+            .FontColor(Colors.White);
 
     public static IContainer TableHeaderCell(IContainer c) =>
         c.DefaultTextStyle(x => x.SemiBold().FontSize(7).FontColor(Colors.White))
             .PaddingVertical(3)
-            .PaddingHorizontal(2)
+            .PaddingHorizontal(3)
             .Border(0.5f)
-            .BorderColor(Colors.White)
+            .BorderColor(Border)
             .Background(HeaderBg)
             .AlignMiddle();
 
     public static IContainer TableBodyCell(IContainer c, bool zebra = false) =>
         c.DefaultTextStyle(x => x)
             .PaddingVertical(2)
-            .PaddingHorizontal(2)
-            .BorderBottom(0.25f)
-            .BorderColor(Colors.Grey.Lighten2)
+            .PaddingHorizontal(3)
+            .Border(0.4f)
+            .BorderColor(Border)
             .Background(zebra ? Zebra : Colors.White)
             .AlignMiddle();
 
     public static IContainer TableTotalCell(IContainer c) =>
         c.DefaultTextStyle(x => x.SemiBold().FontSize(7.5f))
             .PaddingVertical(3)
-            .PaddingHorizontal(2)
+            .PaddingHorizontal(3)
             .Background(TotalsBg)
-            .BorderTop(0.8f)
-            .BorderColor(BrandColor)
+            .Border(0.5f)
+            .BorderColor(Border)
             .AlignMiddle();
 
     public static void ComposeFooter(IContainer container) =>

@@ -23,7 +23,7 @@ public static class RptSaldosCajaPdfDocument
         bool cajaChica)
     {
         var logo = CredixReportAssets.LoadLogo();
-        var printedAt = DateTime.Now.ToString("dd/MM/yyyy HH:mm", CajaSaldosPdfStyle.Pe);
+        var printedAt = CredixReportTokens.NowPrinted();
         var fechaTitulo = cab is null ? printedAt : CajaSaldosPdfStyle.Date(cab.Fecha);
         var title = cajaChica
             ? $"SALDOS DE CAJA CHICA DEL {fechaTitulo}"

@@ -52,7 +52,27 @@ public static class CredixReportTokens
     public static readonly CultureInfo Pe = CultureInfo.GetCultureInfo("es-PE");
     public static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 
-    public static string NowPrinted() => DateTime.Now.ToString(DateTimeFormat, Pe);
+    public static string NowPrinted()
+    {
+        // Misma zona que caja (SA Pacific / Lima), independiente del huso del App Service.
+        TimeZoneInfo tz;
+        try
+        {
+            tz = TimeZoneInfo.FindSystemTimeZoneById(
+                OperatingSystem.IsWindows() ? "SA Pacific Standard Time" : "America/Lima");
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            tz = TimeZoneInfo.CreateCustomTimeZone(
+                "PET",
+                TimeSpan.FromHours(-5),
+                "Peru",
+                "Peru");
+        }
+
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
+        return now.ToString(DateTimeFormat, Pe);
+    }
 
     public static string FormatDate(DateTime value) => value.ToString(DateFormat, Pe);
 
