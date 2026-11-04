@@ -280,41 +280,44 @@ html[data-theme='dark'] .credix-login-ornament--panel .credix-login-ornament__fr
     0 10px 28px color-mix(in srgb, #114885 18%, transparent);
 }
 
-/* Cara del sello ≈ 58% del diámetro; el lockup debe quedar dentro con margen. */
-.credix-login-seal__logo {
+/*
+  Cara crema del sello ≈ 58% del diámetro.
+  El lockup debe caber en ese círculo (no en el anillo rayado).
+  Especificidad alta: .credix-brand-logo { width:100% } no debe ganar.
+*/
+.credix-login-seal > .credix-login-seal__logo.credix-brand-logo,
+.credix-login-seal .credix-login-seal__logo {
   position: relative;
   z-index: 1;
   box-sizing: border-box;
-  width: 50%;
-  max-width: 50%;
-  padding-inline: 2%;
+  width: 44% !important;
+  max-width: 44% !important;
+  max-height: 40%;
+  margin: 0;
+  padding: 0;
   text-align: center;
+  overflow: hidden;
 }
 
-.credix-login-seal__logo.credix-brand-logo,
-.credix-login-seal__logo .credix-brand-logo {
-  width: 100%;
-  max-width: 100%;
-}
-
-.credix-login-seal__logo .credix-brand-logo__plate {
+.credix-login-seal .credix-login-seal__logo .credix-brand-logo__plate {
   display: block;
   width: 100%;
   max-width: 100%;
   margin: 0;
-  padding: 0;
-  background: transparent;
+  padding: 0 !important;
+  background: transparent !important;
   border: 0;
-  box-shadow: none;
+  box-shadow: none !important;
   border-radius: 0;
 }
 
-.credix-login-seal__logo .credix-brand-logo__img,
-:root[data-theme='dark'] .credix-login-seal__logo .credix-brand-logo__img {
+.credix-login-seal .credix-login-seal__logo .credix-brand-logo__img,
+:root[data-theme='dark'] .credix-login-seal .credix-login-seal__logo .credix-brand-logo__img {
   display: block;
-  width: 100%;
-  max-width: 100%;
-  height: auto;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  max-height: 100%;
   object-fit: contain;
   object-position: center;
   filter: none;
@@ -634,9 +637,11 @@ html[data-theme='dark'] .credix-login-form__legal a {
     width: min(200px, 48vw, 26dvh);
   }
 
-  .credix-login-seal__logo {
-    width: 46%;
-    max-width: 46%;
+  .credix-login-seal > .credix-login-seal__logo.credix-brand-logo,
+  .credix-login-seal .credix-login-seal__logo {
+    width: 42% !important;
+    max-width: 42% !important;
+    max-height: 38%;
   }
 
   .credix-login-quote {
@@ -671,9 +676,11 @@ html[data-theme='dark'] .credix-login-form__legal a {
     width: min(168px, 42vw, 22dvh);
   }
 
-  .credix-login-seal__logo {
-    width: 44%;
-    max-width: 44%;
+  .credix-login-seal > .credix-login-seal__logo.credix-brand-logo,
+  .credix-login-seal .credix-login-seal__logo {
+    width: 40% !important;
+    max-width: 40% !important;
+    max-height: 36%;
   }
 
   .credix-theme-segmented.ant-segmented {

@@ -7,6 +7,8 @@ interface BrandLogoProps {
   /** Sobre azul de marca: placa blanca ceñida. El lockup no se invierte. */
   onDark?: boolean
   priority?: boolean
+  /** Escala al 100% del contenedor (sello de login); sin ancho fijo en px. */
+  fluid?: boolean
 }
 
 /** Arte Corel recortado al lockup (PNG con alpha). */
@@ -23,8 +25,9 @@ export function BrandLogo({
   className,
   onDark = false,
   priority = false,
+  fluid = false,
 }: BrandLogoProps) {
-  const width = compact ? 148 : onDark ? 440 : branding.logoWidth
+  const width = fluid ? LOGO_NATIVE_W : compact ? 148 : onDark ? 440 : branding.logoWidth
   const height = Math.round((width * LOGO_NATIVE_H) / LOGO_NATIVE_W)
   const rootClass = [
     'credix-brand-logo',
@@ -42,7 +45,7 @@ export function BrandLogo({
           className="credix-brand-logo__img"
           src={branding.logoSrc}
           srcSet={`${branding.logoSrc} 1x, ${branding.logoSrc3x} 3x`}
-          sizes={`${width}px`}
+          sizes={fluid ? '(max-width: 960px) 42vw, 240px' : `${width}px`}
           alt={`${branding.companyLine1} ${branding.companyName}`}
           width={width}
           height={height}

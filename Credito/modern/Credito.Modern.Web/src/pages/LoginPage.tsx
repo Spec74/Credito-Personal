@@ -159,7 +159,7 @@ export function LoginPage() {
         <div className="credix-login-stage__body">
           <div className="credix-login-seal">
             <span className="credix-login-seal__ring" aria-hidden />
-            <BrandLogo className="credix-login-seal__logo" priority />
+            <BrandLogo className="credix-login-seal__logo" fluid priority />
           </div>
           <p className="credix-login-stage__eyebrow">Acceso del personal</p>
           <blockquote className="credix-login-quote" key={frase.texto}>
