@@ -524,13 +524,13 @@
 
 /* Caja diario: pasteles de cuota leíbles sobre canvas oscuro. */
 :root[data-theme='dark'] .caja-diario-page {
-  --caja-cuota-pendiente-bg: var(--credix-warning-bg);
+  --caja-cuota-pendiente-bg: color-mix(in srgb, var(--credix-warning) 18%, var(--credix-surface));
   --caja-cuota-pendiente-border: var(--credix-warning);
   --caja-cuota-pagada-bg: var(--credix-success-bg);
   --caja-cuota-pagada-border: var(--credix-success);
   --caja-cuota-mora-bg: var(--credix-danger-bg);
   --caja-cuota-mora-border: var(--credix-danger);
-  --caja-cuota-creada-bg: #3a3510;
+  --caja-cuota-creada-bg: color-mix(in srgb, #eab308 16%, var(--credix-surface));
   --caja-cuota-creada-border: #eab308;
   --caja-cuota-resumen-bg: var(--credix-surface-muted);
 }
@@ -539,8 +539,22 @@
   border-color: var(--credix-border);
 }
 
+:root[data-theme='dark'] .caja-diario-cobranzas-top .ant-input-affix-wrapper,
+:root[data-theme='dark'] .caja-diario-cobranzas-top .ant-input-affix-wrapper-lg,
+:root[data-theme='dark'] .caja-diario-search-row .ant-input-affix-wrapper {
+  background: var(--credix-surface-muted) !important;
+  border-color: color-mix(in srgb, var(--credix-border) 50%, var(--credix-ink-brand)) !important;
+}
+
+:root[data-theme='dark'] .caja-diario-cobranzas-top .ant-input-affix-wrapper-focused,
+:root[data-theme='dark'] .caja-diario-search-row .ant-input-affix-wrapper-focused {
+  border-color: var(--credix-brand-hover) !important;
+  box-shadow: var(--credix-focus-ring);
+}
+
 :root[data-theme='dark'] .caja-cuotas-table .caja-cuota-row--pendiente > td {
   background: var(--caja-cuota-pendiente-bg) !important;
+  color: var(--credix-text);
 }
 
 :root[data-theme='dark'] .caja-cuotas-table .caja-cuota-row--pagada > td {
