@@ -156,21 +156,21 @@ export function CobranzaPagosPage() {
     {
       title: '1.er pago',
       dataIndex: 'fechaPrimerPago',
-      width: 92,
+      width: 108,
       align: 'center',
-      render: formatFecha,
+      render: (v) => <span className="credix-cobranza-date">{formatFecha(v)}</span>,
     },
     {
       title: 'Vcto.',
       dataIndex: 'fechaVencimiento',
-      width: 92,
+      width: 108,
       align: 'center',
-      render: formatFecha,
+      render: (v) => <span className="credix-cobranza-date">{formatFecha(v)}</span>,
     },
     {
       title: 'Cuotas',
       key: 'cuotas',
-      width: 128,
+      width: 168,
       render: (_, row) => {
         const total = (row.pagosCount ?? 0) + (row.impagosCount ?? 0)
         const mora = row.diasAtrazoMora ?? 0

@@ -45,8 +45,13 @@ export function CobranzaPagosDetalle({
       <div className="credix-cobranza-detalle__head">
         <div className="credix-cobranza-detalle__head-text">
           <strong className="credix-cobranza-detalle__title">Historial de cuotas</strong>
-          {cliente ? <span className="credix-cobranza-detalle__cliente">{cliente}</span> : null}
-          <span className="credix-cobranza-detalle__count">{total} cuota{total === 1 ? '' : 's'}</span>
+          <span className="credix-cobranza-detalle__sub">
+            {cliente ? <span className="credix-cobranza-detalle__cliente">{cliente}</span> : null}
+            {cliente ? <span className="credix-cobranza-detalle__dot" aria-hidden>·</span> : null}
+            <span className="credix-cobranza-detalle__count">
+              {total} cuota{total === 1 ? '' : 's'}
+            </span>
+          </span>
         </div>
         <ul className="credix-cobranza-detalle__meta">
           <li>

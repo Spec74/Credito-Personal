@@ -1452,7 +1452,7 @@ ul.credix-stats--module li span.red {
   margin-bottom: 12px;
   padding: 12px 14px;
   background: var(--credix-brand-light);
-  border: 1px solid rgba(17, 72, 133, 0.12);
+  border: 1px solid var(--credix-brand-line);
   border-radius: var(--credix-radius);
 }
 
@@ -1517,7 +1517,7 @@ ul.credix-stats--module li span.red {
   border-radius: 999px;
   background: var(--credix-brand-light);
   color: var(--credix-ink-brand);
-  border: 1px solid rgba(17, 72, 133, 0.15);
+  border: 1px solid var(--credix-brand-line);
 }
 
 .credix-cobranza-context-tag--muted {
@@ -1581,7 +1581,7 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-kpi__value--alert {
-  color: #c2410c;
+  color: var(--credix-danger);
 }
 
 .credix-cobranza-table-tip {
@@ -1599,24 +1599,40 @@ ul.credix-stats--module li span.red {
   width: 40px;
 }
 
+.credix-cobranza-table .ant-table-thead > tr > th,
+.credix-cobranza-table .ant-table-tbody > tr > td {
+  white-space: nowrap;
+}
+
+.credix-cobranza-date {
+  display: inline-block;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .credix-cobranza-pagado {
   color: var(--credix-success);
   font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .credix-cobranza-saldo {
-  color: #c2410c;
+  color: var(--credix-danger);
   font-weight: 600;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .credix-cobranza-cuotas-cell {
   font-size: 12px;
   line-height: 1.35;
-  max-width: 128px;
+  white-space: nowrap;
 }
 
 .credix-cobranza-cuotas-line {
   color: var(--credix-text);
+  white-space: nowrap;
 }
 
 .credix-cobranza-cuotas-line strong {
@@ -1625,12 +1641,12 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-cuotas-pend {
-  color: #b45309;
+  color: var(--credix-warning);
   font-weight: 600;
 }
 
 .credix-cobranza-cuotas-mora {
-  color: #b91c1c;
+  color: var(--credix-danger);
   font-weight: 600;
 }
 
@@ -1642,20 +1658,20 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-tag--warn {
-  color: #b45309 !important;
+  color: var(--credix-chip-warn-fg) !important;
   background: var(--credix-warning-bg) !important;
 }
 
 .credix-cobranza-tag--mora {
-  color: #b91c1c !important;
-  background: #fef2f2 !important;
+  color: var(--credix-chip-danger-fg) !important;
+  background: var(--credix-danger-bg) !important;
 }
 
 /* Detalle expandible (una fila a la vez) */
 .credix-cobranza-detalle {
   padding: 12px 16px 14px 12px;
   background: var(--credix-brand-light);
-  border-top: 1px solid rgba(17, 72, 133, 0.12);
+  border-top: 1px solid var(--credix-brand-line);
 }
 
 .credix-cobranza-detalle--empty {
@@ -1678,11 +1694,21 @@ ul.credix-stats--module li span.red {
   font-size: 13px;
 }
 
+.credix-cobranza-detalle__sub {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 2px;
+}
+
 .credix-cobranza-detalle__cliente {
-  display: block;
   font-size: 12px;
   color: var(--credix-text-muted);
-  margin-top: 2px;
+}
+
+.credix-cobranza-detalle__dot {
+  color: var(--credix-text-muted);
 }
 
 .credix-cobranza-detalle__meta {
@@ -1719,7 +1745,7 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-detalle__meta-value--fail {
-  color: #b91c1c;
+  color: var(--credix-danger);
 }
 
 .credix-cobranza-detalle__head-text {
@@ -1732,6 +1758,7 @@ ul.credix-stats--module li span.red {
   font-size: 11px;
   color: var(--credix-text-muted);
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .credix-cobranza-detalle__grid {
@@ -1743,7 +1770,7 @@ ul.credix-stats--module li span.red {
   padding: 10px 12px;
   margin: 0;
   background: var(--credix-surface);
-  border: 1px solid rgba(17, 72, 133, 0.1);
+  border: 1px solid var(--credix-brand-line);
   border-radius: 6px;
   scrollbar-width: thin;
 }
@@ -1794,13 +1821,13 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-cuota-chip--ok {
-  border-color: #99f6e4;
-  background: #f0fdfa;
+  border-color: color-mix(in srgb, var(--credix-success) 40%, var(--credix-border));
+  background: var(--credix-success-bg);
 }
 
 .credix-cobranza-cuota-chip--fail {
-  border-color: #fecaca;
-  background: #fef2f2;
+  border-color: color-mix(in srgb, var(--credix-danger) 40%, var(--credix-border));
+  background: var(--credix-danger-bg);
 }
 
 .credix-cobranza-cuota-chip__n {
@@ -1819,7 +1846,7 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-cuota-chip--fail .credix-cobranza-cuota-chip__monto {
-  color: #b91c1c;
+  color: var(--credix-danger);
 }
 
 .credix-cobranza-cuota-chip__fecha {
@@ -1879,440 +1906,6 @@ ul.credix-stats--module li span.red {
 .credix-quick-access-link:hover {
   background: var(--credix-brand);
   color: #fff;
-}
-
-.credix-cobranza-dashboard {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.credix-cobranza-hint {
-  margin: 0;
-}
-
-.credix-cobranza-filtros-card {
-  width: 100%;
-  background: var(--credix-surface);
-  border: 1px solid var(--credix-border);
-  border-radius: var(--credix-radius);
-  padding: 16px 18px;
-  box-shadow: var(--credix-shadow-sm);
-}
-
-.credix-cobranza-filtros-form {
-  width: 100%;
-}
-
-.credix-cobranza-filtros-fields {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 4px 20px;
-}
-
-.credix-cobranza-field .ant-form-item-label > label {
-  font-weight: 600;
-  color: var(--credix-ink-brand);
-}
-
-.credix-cobranza-filtros-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px 16px;
-  margin-top: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--credix-border);
-}
-
-.credix-cobranza-filtros-hint {
-  font-size: 12px;
-  line-height: 1.45;
-  max-width: 520px;
-}
-
-.credix-cobranza-filtros-hint kbd {
-  display: inline-block;
-  padding: 1px 6px;
-  border-radius: 4px;
-  border: 1px solid var(--credix-border);
-  background: var(--credix-brand-light);
-  color: var(--credix-ink-brand);
-  font-size: 11px;
-  font-family: inherit;
-}
-
-/* Búsqueda prominente en informes: ver credix-module-layout.css */
-
-.credix-cobranza-table-search-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--credix-ink-brand);
-  margin-bottom: 6px;
-}
-
-.credix-cobranza-table-search {
-  width: 100%;
-  max-width: 420px;
-}
-
-.credix-cobranza-table-search .ant-input {
-  border-color: var(--credix-brand);
-  box-shadow: 0 0 0 1px rgba(17, 72, 133, 0.08);
-}
-
-.credix-cobranza-table-search .ant-input:focus {
-  border-color: var(--credix-brand-hover);
-  box-shadow: 0 0 0 2px rgba(17, 72, 133, 0.15);
-}
-
-.credix-cobranza-table-search-meta {
-  font-size: 12px;
-  color: var(--credix-text-muted);
-}
-
-.credix-cobranza-table .ant-pagination {
-  margin: 10px 0 !important;
-}
-
-.credix-cobranza-cliente {
-  font-weight: 600;
-  color: var(--credix-ink-brand);
-}
-
-.credix-informe-panel-actions {
-  align-items: center;
-}
-
-.credix-cobranza-context {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.credix-cobranza-context-tag {
-  margin: 0;
-  border-radius: 999px;
-  background: var(--credix-brand-light);
-  color: var(--credix-ink-brand);
-  border: 1px solid rgba(17, 72, 133, 0.15);
-}
-
-.credix-cobranza-context-tag--muted {
-  background: var(--credix-surface);
-  color: var(--credix-text-muted);
-  border-color: var(--credix-border);
-}
-
-/* KPI alineados a marca CrediConfiable (#114885) */
-.credix-cobranza-kpi {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-@media (max-width: 900px) {
-  .credix-cobranza-kpi {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.credix-cobranza-kpi__item {
-  background: var(--credix-surface);
-  border: 1px solid var(--credix-border);
-  border-radius: var(--credix-radius);
-  padding: 12px 14px;
-  box-shadow: var(--credix-shadow-sm);
-}
-
-.credix-cobranza-kpi__item--clientes {
-  border-top: 3px solid var(--credix-brand);
-}
-
-.credix-cobranza-kpi__item--credito {
-  border-top: 3px solid var(--credix-brand-hover);
-}
-
-.credix-cobranza-kpi__item--pagado {
-  border-top: 3px solid #0d9488;
-}
-
-.credix-cobranza-kpi__item--saldo {
-  border-top: 3px solid #c2410c;
-}
-
-.credix-cobranza-kpi__label {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--credix-text-muted);
-  margin-bottom: 4px;
-}
-
-.credix-cobranza-kpi__value {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--credix-ink-brand);
-  line-height: 1.2;
-}
-
-.credix-cobranza-kpi__value--alert {
-  color: #c2410c;
-}
-
-.credix-cobranza-table-tip {
-  display: block;
-  font-size: 12px;
-  margin-bottom: 8px;
-}
-
-.credix-cobranza-table .ant-table-expanded-row > .ant-table-cell {
-  padding: 0 !important;
-  background: var(--credix-brand-light);
-}
-
-.credix-cobranza-table .ant-table-row-expand-icon-cell {
-  width: 40px;
-}
-
-.credix-cobranza-pagado {
-  color: var(--credix-success);
-  font-weight: 600;
-}
-
-.credix-cobranza-saldo {
-  color: #c2410c;
-  font-weight: 600;
-}
-
-.credix-cobranza-cuotas-cell {
-  font-size: 12px;
-  line-height: 1.35;
-  max-width: 128px;
-}
-
-.credix-cobranza-cuotas-line {
-  color: var(--credix-text);
-}
-
-.credix-cobranza-cuotas-line strong {
-  color: var(--credix-ink-brand);
-  font-weight: 700;
-}
-
-.credix-cobranza-cuotas-pend {
-  color: #b45309;
-  font-weight: 600;
-}
-
-.credix-cobranza-cuotas-mora {
-  color: #b91c1c;
-  font-weight: 600;
-}
-
-.credix-cobranza-tag {
-  margin: 0 !important;
-  font-size: 10px;
-  line-height: 16px;
-  padding: 0 6px;
-}
-
-.credix-cobranza-tag--warn {
-  color: #b45309 !important;
-  background: var(--credix-warning-bg) !important;
-}
-
-.credix-cobranza-tag--mora {
-  color: #b91c1c !important;
-  background: #fef2f2 !important;
-}
-
-/* Detalle expandible (una fila a la vez) */
-.credix-cobranza-detalle {
-  padding: 12px 16px 14px 12px;
-  background: var(--credix-brand-light);
-  border-top: 1px solid rgba(17, 72, 133, 0.12);
-}
-
-.credix-cobranza-detalle--empty {
-  color: var(--credix-text-muted);
-  font-size: 13px;
-}
-
-.credix-cobranza-detalle__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px 16px;
-  margin-bottom: 10px;
-}
-
-.credix-cobranza-detalle__title {
-  display: block;
-  color: var(--credix-ink-brand);
-  font-size: 13px;
-}
-
-.credix-cobranza-detalle__cliente {
-  display: block;
-  font-size: 12px;
-  color: var(--credix-text-muted);
-  margin-top: 2px;
-}
-
-.credix-cobranza-detalle__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 20px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.credix-cobranza-detalle__meta li {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.credix-cobranza-detalle__meta-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--credix-text-muted);
-  font-weight: 600;
-}
-
-.credix-cobranza-detalle__meta-value {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--credix-ink-brand);
-}
-
-.credix-cobranza-detalle__meta-value--ok {
-  color: var(--credix-success);
-}
-
-.credix-cobranza-detalle__meta-value--fail {
-  color: #b91c1c;
-}
-
-.credix-cobranza-detalle__head-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.credix-cobranza-detalle__count {
-  font-size: 11px;
-  color: var(--credix-text-muted);
-  font-weight: 500;
-}
-
-.credix-cobranza-detalle__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
-  gap: 8px;
-  max-height: 200px;
-  overflow: auto;
-  padding: 10px 12px;
-  margin: 0;
-  background: var(--credix-surface);
-  border: 1px solid rgba(17, 72, 133, 0.1);
-  border-radius: 6px;
-  scrollbar-width: thin;
-}
-
-.credix-cobranza-detalle__grid--compact {
-  max-height: 168px;
-}
-
-.credix-cobranza-detalle__grid--expanded {
-  max-height: min(420px, 55vh);
-}
-
-.credix-cobranza-detalle__foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 8px;
-}
-
-.credix-cobranza-detalle__scroll-hint {
-  font-size: 11px;
-  color: var(--credix-text-muted);
-  margin: 0;
-}
-
-.credix-cobranza-detalle__scroll-hint--solo {
-  margin-top: 6px;
-}
-
-.credix-cobranza-detalle__toggle {
-  padding: 0 4px;
-  height: auto;
-  font-size: 12px;
-}
-
-.credix-cobranza-cuota-chip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-width: 0;
-  padding: 5px 6px;
-  border-radius: 6px;
-  font-size: 10px;
-  background: var(--credix-surface);
-  border: 1px solid var(--credix-border);
-}
-
-.credix-cobranza-cuota-chip--ok {
-  border-color: #99f6e4;
-  background: #f0fdfa;
-}
-
-.credix-cobranza-cuota-chip--fail {
-  border-color: #fecaca;
-  background: #fef2f2;
-}
-
-.credix-cobranza-cuota-chip__n {
-  font-size: 9px;
-  color: var(--credix-text-muted);
-  font-weight: 600;
-}
-
-.credix-cobranza-cuota-chip__monto {
-  font-weight: 700;
-  color: var(--credix-text);
-}
-
-.credix-cobranza-cuota-chip--ok .credix-cobranza-cuota-chip__monto {
-  color: var(--credix-success);
-}
-
-.credix-cobranza-cuota-chip--fail .credix-cobranza-cuota-chip__monto {
-  color: #b91c1c;
-}
-
-.credix-cobranza-cuota-chip__fecha {
-  font-size: 9px;
-  color: var(--credix-text-muted);
-  margin-top: 2px;
-  max-width: 72px;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .credix-hub-grid {
