@@ -7,7 +7,7 @@ namespace Credito.Modern.Application.CreditoPlanes;
 
 /// <summary>
 /// Estado de cuenta del crédito — paridad datos <c>rptEstadoCredito.rdlc</c>
-/// con layout profesional (cabecera, metadatos, cronograma, totales).
+/// con estilo tabular Credix (cabecera azul, zebra, totales; sin columnas rígidas que partan el “Total”).
 /// </summary>
 public static class RptEstadoCreditoFichaPdfDocument
 {
@@ -32,9 +32,10 @@ public static class RptEstadoCreditoFichaPdfDocument
         {
             document.Page(page =>
             {
-                page.Size(PageSizes.A4);
-                page.Margin(18);
-                page.DefaultTextStyle(x => x.FontSize(7.5f));
+                // Horizontal: 13 columnas numéricas caben sin aplastar “Total” / fechas.
+                page.Size(PageSizes.A4.Landscape());
+                page.Margin(16);
+                page.DefaultTextStyle(x => x.FontSize(7.2f));
                 page.Footer().Element(CreditoPdfBranding.ComposeFooter);
 
                 page.Content().Column(col =>
@@ -42,16 +43,14 @@ public static class RptEstadoCreditoFichaPdfDocument
                     col.Spacing(6);
                     CreditoPdfBranding.ComposeTitleBlock(
                         col,
-                        $"ESTADO DE CUENTA — CRÉDITO N° {cab.CreditoId}",
-                        CredixReportTokens.CompanyLegalName);
+                        $"ESTADO DE CUENTA — CRÉDITO N° {cab.CreditoId}");
 
                     col.Item().Element(c => CreditoPdfBranding.ComposeMetaGrid(c,
                     [
                         ("Cliente", cab.Cliente),
-                        ("Código", CreditoPdfBranding.OrDash(cab.CodigoPersona)),
                         ("Producto", cab.Producto),
-                        ("Estado", cab.Estado),
                         ("Modalidad", cab.Modalidad),
+                        ("Estado", cab.Estado),
                         ("Cuotas", cab.NumeroCuotas.ToString(inv)),
                         ("Monto crédito", CreditoPdfBranding.Money(cab.MontoCredito)),
                         ("Gastos adm.", CreditoPdfBranding.Money(cab.MontoGastosAdm)),
@@ -69,19 +68,19 @@ public static class RptEstadoCreditoFichaPdfDocument
                     {
                         table.ColumnsDefinition(c =>
                         {
-                            c.ConstantColumn(22);
-                            c.ConstantColumn(48);
-                            c.ConstantColumn(52);
-                            c.ConstantColumn(42);
-                            c.ConstantColumn(42);
-                            c.ConstantColumn(36);
-                            c.ConstantColumn(46);
-                            c.ConstantColumn(32);
-                            c.ConstantColumn(28);
-                            c.ConstantColumn(42);
-                            c.ConstantColumn(40);
-                            c.ConstantColumn(52);
-                            c.ConstantColumn(48);
+                            c.RelativeColumn(0.45f); // N°
+                            c.RelativeColumn(1.05f); // Capital
+                            c.RelativeColumn(1.0f);  // Vence
+                            c.RelativeColumn(0.95f); // Amort.
+                            c.RelativeColumn(0.8f);  // Int.
+                            c.RelativeColumn(0.75f); // G.A.
+                            c.RelativeColumn(0.95f); // Cuota
+                            c.RelativeColumn(0.55f); // Est.
+                            c.RelativeColumn(0.5f);  // Días
+                            c.RelativeColumn(0.85f); // Mora
+                            c.RelativeColumn(0.85f); // Desc.
+                            c.RelativeColumn(1.0f);  // F. pago
+                            c.RelativeColumn(1.0f);  // Pagado
                         });
 
                         table.Header(h =>
@@ -90,7 +89,7 @@ public static class RptEstadoCreditoFichaPdfDocument
                             {
                                 var cell = h.Cell().Element(CreditoPdfBranding.TableHeaderCell);
                                 if (right) cell.AlignRight().Text(t);
-                                else cell.Text(t);
+                                else cell.AlignCenter().Text(t);
                             }
 
                             H("N°");
@@ -114,31 +113,30 @@ public static class RptEstadoCreditoFichaPdfDocument
                             var zebra = i++ % 2 == 1;
                             IContainer B(IContainer x) => CreditoPdfBranding.TableBodyCell(x, zebra);
 
-                            table.Cell().Element(B).Text(cu.Numero.ToString(inv));
+                            table.Cell().Element(B).AlignCenter().Text(cu.Numero.ToString(inv));
                             table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(cu.Capital));
-                            table.Cell().Element(B).Text(CreditoPdfBranding.DateShort(cu.FechaVencimiento));
+                            table.Cell().Element(B).AlignCenter().Text(CreditoPdfBranding.DateShort(cu.FechaVencimiento));
                             table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(cu.Amortizacion));
                             table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(cu.Interes));
                             table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(cu.GastosAdm));
                             table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(cu.Cuota));
-                            table.Cell().Element(B).Text(cu.Estado);
-                            table.Cell().Element(B).AlignRight().Text(cu.DiasAtrazo?.ToString(inv) ?? "");
+                            table.Cell().Element(B).AlignCenter().Text(cu.Estado);
+                            table.Cell().Element(B).AlignRight().Text(cu.DiasAtrazo?.ToString(inv) ?? "—");
                             table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(cu.ImporteMora));
                             table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(cu.Descuento));
-                            table.Cell().Element(B).Text(CreditoPdfBranding.DateShort(cu.FechaPagoCuota));
+                            table.Cell().Element(B).AlignCenter().Text(CreditoPdfBranding.DateShort(cu.FechaPagoCuota));
                             table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(cu.PagoCuota));
                         }
 
                         void T(string text, bool right = false)
                         {
                             var cell = table.Cell().Element(CreditoPdfBranding.TableTotalCell);
-                            if (right) cell.AlignRight().Text(text);
-                            else cell.Text(text);
+                            if (right) cell.AlignRight().Text(text).Bold();
+                            else cell.AlignCenter().Text(text).Bold();
                         }
 
-                        T("Total");
-                        T("", true);
-                        T("");
+                        table.Cell().ColumnSpan(3).Element(CreditoPdfBranding.TableTotalCell)
+                            .AlignRight().Text("Total").Bold();
                         T(CreditoPdfBranding.Money(totalAmort), true);
                         T(CreditoPdfBranding.Money(totalInt), true);
                         T(CreditoPdfBranding.Money(totalGa), true);
