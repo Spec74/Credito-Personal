@@ -7,10 +7,7 @@ import {
   type CreditoTareaBuscar,
 } from '../../api/tareas'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
-import {
-  extractSearchTermsFromInput,
-  pickBestClienteMatch,
-} from '../caja/clienteBuscarResolve'
+import { pickBestClienteMatch } from '../caja/clienteBuscarResolve'
 import { CredixDataTable } from '../credix'
 import { formatMoney } from '../../utils/formatMoney'
 
