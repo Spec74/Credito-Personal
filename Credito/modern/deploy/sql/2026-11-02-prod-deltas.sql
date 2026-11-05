@@ -19,7 +19,7 @@
     @Confirmar debe ser N'APLICAR-PROD-DELTAS' (ya está puesto).
 
   No incluye (a propósito)
-    vaciar-registros-azure-prueba, lab/*, local/*, rename wsulca,
+    vaciar-registros-azure-prueba, lab y local, rename wsulca,
     boveda-huanta-sede (datos de sede), smoke/PITR de solo lectura,
     2026-09-23-azure-cutover-modern-deltas.sql (redundante y peligroso
     sobre bak de prod).
