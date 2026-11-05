@@ -6688,59 +6688,57 @@ internal static class CreditoReportesRestantesEndpoints
         app.MapGet(
                 "/api/v1/credito/rpt-notificaciones-vencimiento-pdf",
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
-                    HttpContext httpContext,
-                    int? oficinaId,
-                    IRptCreditoVencidoReadService rptCreditoVencido,
+                    int creditoId,
+                    IRptEstadoCreditoReadService estadoCredito,
+                    IRptClienteReadService cliente,
+                    ICalcularMoraPendienteReadService moraPendiente,
+                    ICreditoVencidoMetricasReadService creditoVencidoMetricas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (oficinaId is null or < 1)
+                    if (creditoId < 1)
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
-                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
+                            detail: "creditoId debe ser >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
-                    }
-
-                    var log = loggerFactory.CreateLogger("RptNotificacionesVencimientoPdf");
+                    var log = loggerFactory.CreateLogger("RptNotificacionVencimientoPdf");
                     try
                     {
-                        // Todas las franjas: listado completo para notificar.
-                        var items = await rptCreditoVencido
-                            .ListarAsync(oficinaId.Value, null, null, null, ct)
+                        var estado = await estadoCredito.ObtenerAsync(creditoId, ct).ConfigureAwait(false);
+                        if (estado is null)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status404NotFound,
+                                title: "No encontrado",
+                                detail: "Crédito no existe.");
+                        }
+
+                        RptClienteFichaDto? ficha = null;
+                        if (estado.Cabecera.PersonaId > 0)
+                        {
+                            var informeCliente = await cliente
+                                .ObtenerAsync(estado.Cabecera.PersonaId, ct)
+                                .ConfigureAwait(false);
+                            ficha = informeCliente?.Ficha;
+                        }
+
+                        var mora = await moraPendiente.ObtenerAsync(creditoId, ct).ConfigureAwait(false);
+                        var metricas = await creditoVencidoMetricas.ObtenerAsync(creditoId, ct)
                             .ConfigureAwait(false);
-                        var pdfContext = await LegacyReportPdf.ResolveAsync(
-                                httpContext,
-                                oficinaId,
-                                fecha: DateTime.Today,
-                                titulo: "NOTIFICACIONES DE VENCIMIENTOS",
-                                cancellationToken: ct)
-                            .ConfigureAwait(false);
-                        var bytes = RptCreditoVencidoFichaPdfDocument.Build(
-                            items,
-                            pdfContext,
-                            RptCreditoVencidoPdfMode.Notificaciones);
+
+                        var bytes = RptNotificacionVencimientoPdfDocument.Build(
+                            estado,
+                            ficha,
+                            mora,
+                            metricas);
                         return TypedResults.File(
                             bytes,
                             "application/pdf",
-                            fileDownloadName: "notificaciones-vencimientos.pdf");
+                            fileDownloadName: $"notificacion-vencimiento-{creditoId}.pdf");
                     }
                     catch (InvalidOperationException ex)
                     {
@@ -6752,8 +6750,8 @@ internal static class CreditoReportesRestantesEndpoints
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al ejecutar CREDITO.usp_RptCreditoVencido (notificaciones PDF)");
-                        var detail = "No se pudo generar el PDF de notificaciones de vencimientos.";
+                        log.LogError(ex, "Error al generar notificación de vencimiento PDF");
+                        var detail = "No se pudo generar el PDF de notificación de vencimiento.";
                         if (env.IsDevelopment())
                         {
                             detail += $" Detalle: {ex.Message}";
@@ -6765,15 +6763,15 @@ internal static class CreditoReportesRestantesEndpoints
                             title: "Error de base de datos");
                     }
                 })
-            .WithName("CreditoRptNotificacionesVencimientoPdf")
+            .WithName("CreditoRptNotificacionVencimientoPdf")
             .WithSummary(
-                "PDF de notificaciones de vencimientos (clientes/créditos vencidos) para gestión de cobranza. usp_RptCreditoVencido. CreditoUser.")
+                "PDF de notificación de vencimiento de un crédito (cliente + cuotas vencidas) para imprimir o enviar. CreditoUser.")
             .WithTags("credito", "reportes")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
-            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 

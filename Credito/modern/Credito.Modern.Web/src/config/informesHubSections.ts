@@ -28,13 +28,13 @@ export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
       },
       {
         to: '/informes/credito-vencido',
-        label: 'Notificaciones de vencimientos',
-        description: 'PDF de créditos vencidos para notificar cobranza',
+        label: 'Crédito vencido',
+        description: 'Vencidos por gestor y franja',
       },
       {
         to: '/informes/morosos',
-        label: 'Morosos empresariales',
-        description: 'Clientes que no pagan (nunca pagó / dejó de pagar)',
+        label: 'Morosos',
+        description: 'Morosidad empresarial con semáforo de pago',
       },
     ],
   },

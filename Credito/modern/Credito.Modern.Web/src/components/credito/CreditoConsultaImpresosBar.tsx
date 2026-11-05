@@ -11,13 +11,12 @@ import {
 import {
   downloadMovimientosCreditoCsv,
   openMovimientosCreditoPdfInTab,
-  openNotificacionesVencimientoPdfInTab,
+  openNotificacionVencimientoPdfInTab,
   openRptClientePdfInTab,
   openRptEstadoCreditoPdfInTab,
   openRptPlanPagosPdfInTab,
 } from '../../api/creditoPlanes'
 import { ApiError } from '../../api/errors'
-import { useAuth } from '../../auth/useAuth'
 
 const { Text } = Typography
 
@@ -34,9 +33,6 @@ type Props = {
  * Reportes del crédito: PDFs principales visibles; el resto en menú.
  */
 export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
-  const { session } = useAuth()
-  const oficinaId = session?.oficinaId ?? 0
-
   const planPdf = useMutation({
     mutationFn: () => openRptPlanPagosPdfInTab(creditoId),
     onSuccess: () => message.success('Plan de pagos abierto'),
@@ -68,8 +64,8 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
   })
 
   const notifVencPdf = useMutation({
-    mutationFn: () => openNotificacionesVencimientoPdfInTab(oficinaId),
-    onSuccess: () => message.success('Notificaciones de vencimientos abiertas'),
+    mutationFn: () => openNotificacionVencimientoPdfInTab(creditoId),
+    onSuccess: () => message.success('Notificación de vencimiento abierta'),
     onError: (e) => message.error(errMsg(e)),
   })
 
@@ -85,8 +81,8 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
     {
       key: 'notif-venc',
       icon: <BellOutlined />,
-      label: 'Notificaciones de vencimientos',
-      disabled: busy || oficinaId < 1,
+      label: 'Notificación de vencimiento',
+      disabled: busy,
       onClick: () => notifVencPdf.mutate(),
     },
     {
@@ -141,7 +137,7 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
           </Button>
         </Tooltip>
         <Dropdown menu={{ items: masItems }} trigger={['click']} placement="bottomRight">
-          <Button disabled={busy}>
+          <Button disabled={busy} loading={notifVencPdf.isPending}>
             Más reportes <DownOutlined />
           </Button>
         </Dropdown>

@@ -342,12 +342,13 @@ export function downloadCreditoVencidoPdf(
   )
 }
 
-/** PDF de trabajo: notificar vencimientos a clientes que no pagan (oficina sesión). */
-export function openNotificacionesVencimientoPdfInTab(
-  oficinaId: number,
+/** Carta PDF: notificación de vencimiento de un crédito (imprimir / enviar al cliente). */
+export function openNotificacionVencimientoPdfInTab(
+  creditoId: number,
 ): Promise<void> {
-  const q = new URLSearchParams({ oficinaId: String(oficinaId) })
-  return apiOpenInTab(`/credito/rpt-notificaciones-vencimiento-pdf?${q}`)
+  return apiOpenInTab(
+    `/credito/rpt-notificaciones-vencimiento-pdf?creditoId=${creditoId}`,
+  )
 }
 
 export function fetchClientesBloqueados(
