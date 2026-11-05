@@ -78,7 +78,7 @@ public static class MovimientoCajaTicketPdfDocument
                             col.Item().Text($"Cuotas atrasadas: {data.CuotasAtrazadas}");
                         }
 
-                        AddMoneyLine(col, "Mora pendiente", data.MoraTotalPendiente, inv);
+                        AddMoneyLine(col, "Mora", data.MoraTotalPendiente, inv);
                         if (!string.IsNullOrWhiteSpace(data.EstadoCredito))
                         {
                             col.Item().Text($"Estado crédito: {data.EstadoCredito}");

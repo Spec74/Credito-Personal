@@ -7,7 +7,7 @@ namespace Credito.Modern.Infrastructure.CreditoPlanes;
 
 public sealed class MovimientoCajaTicketReadService(
     IOptions<SqlDatabaseOptions> options,
-    ICalcularMoraPendienteReadService moraPendiente,
+    ICuotasPendientesReadService cuotasPendientes,
     IFechaOperativaReadService fechaOperativa)
     : IMovimientoCajaTicketReadService
 {
@@ -166,7 +166,7 @@ public sealed class MovimientoCajaTicketReadService(
                 new { CreditoId = creditoId, FechaOperativa = fechaOp.Date },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-        var mora = await moraPendiente.ObtenerAsync(creditoId, cancellationToken).ConfigureAwait(false);
+        var mora = await SumarMoraEnCuotasAsync(creditoId, cancellationToken).ConfigureAwait(false);
         var estadoCredito = MapEstadoCredito(header.EstadoCreditoRaw);
         var pagocuota = agg.PagoCuota ?? 0;
         var importeLibre = header.ImportePago - pagocuota;
@@ -260,7 +260,7 @@ public sealed class MovimientoCajaTicketReadService(
                 new { CreditoId = creditoId, FechaOperativa = fechaOp.Date },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-        var mora = await moraPendiente.ObtenerAsync(creditoId, cancellationToken).ConfigureAwait(false);
+        var mora = await SumarMoraEnCuotasAsync(creditoId, cancellationToken).ConfigureAwait(false);
 
         return new MovimientoCajaTicketDto(
             header.MovimientoCajaId,
@@ -427,6 +427,21 @@ public sealed class MovimientoCajaTicketReadService(
 
     private static string MapEstadoCredito(string? estado) =>
         estado == "PAG" ? "CANCELADO" : string.Empty;
+
+    /// <summary>
+    /// Mora operativa = suma ImporteMora de cuotas (usp_CuotasPendientes),
+    /// no usp_CalcularMoraPendiente (saldo×días del crédito).
+    /// </summary>
+    private async Task<decimal> SumarMoraEnCuotasAsync(
+        int creditoId,
+        CancellationToken cancellationToken)
+    {
+        var fecha = await fechaOperativa.ObtenerFechaAsync(cancellationToken).ConfigureAwait(false);
+        var rows = await cuotasPendientes
+            .ListarAsync(creditoId, fecha.Date, indCancelacion: false, cancellationToken)
+            .ConfigureAwait(false);
+        return rows.Sum(r => r.ImporteMora ?? 0m);
+    }
 
     private void EnsureConnection()
     {
