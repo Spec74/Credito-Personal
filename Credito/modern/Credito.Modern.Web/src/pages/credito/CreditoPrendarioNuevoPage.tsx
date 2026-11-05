@@ -45,6 +45,7 @@ import { motivoBloqueoPrendario } from '../../utils/clienteOriginacion'
 import { originarCredito } from '../../utils/originarCredito'
 import type { SimuladorCreditoCuota } from '../../types/api'
 import { formatMoney } from '../../utils/formatMoney'
+import { roundMoney } from '../../utils/money'
 import {
   PRENDARIO_NUEVO_PATH,
   buildClientesNuevoHref,
@@ -758,7 +759,7 @@ export function CreditoPrendarioNuevoPage() {
                         size="small"
                         type="primary"
                         ghost
-                        onClick={() => setMontoCredito(Number(tasacion.toFixed(2)))}
+                        onClick={() => setMontoCredito(roundMoney(tasacion))}
                       >
                         Ajustar a {formatMoney(tasacion)}
                       </Button>

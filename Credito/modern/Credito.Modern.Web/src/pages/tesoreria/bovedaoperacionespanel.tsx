@@ -877,7 +877,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                 placeholder="Seleccione destino"
                 options={(bovedasDestinoQuery.data ?? []).map((d) => ({
                   value: d.bovedaId,
-                  label: `${d.oficina} · Bóveda #${d.bovedaId} · Saldo S/ ${Number(d.saldoFinal).toFixed(2)}`,
+                  label: `${d.oficina} · Bóveda #${d.bovedaId} · Saldo S/ ${formatMoney(d.saldoFinal)}`,
                 }))}
               />
             </Form.Item>

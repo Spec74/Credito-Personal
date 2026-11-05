@@ -1,5 +1,6 @@
 import type { CreditoGestorPendienteRow } from '../api/cajaDiario'
 import { hasValidCoordinates } from '../config/googleMaps'
+import { roundMoney, sumMoney } from './money'
 
 function pickNonEmpty(...vals: unknown[]): string | null {
   for (const v of vals) {
@@ -27,7 +28,7 @@ export function sugeridaFromInforme(row: {
 }): number {
   const cuota = numOr(row.cuotaTotal, 0) || numOr(row.cuotaPlan, 0)
   const mora = Math.max(0, numOr(row.mora, 0))
-  return Math.max(0, cuota + mora)
+  return Math.max(0, sumMoney([cuota, mora]))
 }
 
 /** Acepta camelCase o PascalCase (por si el host serializa distinto). */
@@ -42,11 +43,11 @@ export function normalizeCreditoGestorPendienteRow(
     creditoId: numOr(raw.creditoId ?? raw.CreditoId),
     personaCodigo: String(raw.personaCodigo ?? raw.PersonaCodigo ?? ''),
     personaNombre: String(raw.personaNombre ?? raw.PersonaNombre ?? ''),
-    montoCredito: numOr(raw.montoCredito ?? raw.MontoCredito),
+    montoCredito: roundMoney(numOr(raw.montoCredito ?? raw.MontoCredito)),
     personaId: numOr(raw.personaId ?? raw.PersonaId),
     fechaVencimiento: String(raw.fechaVencimiento ?? raw.FechaVencimiento ?? ''),
-    importeMora: numOr(raw.importeMora ?? raw.ImporteMora),
-    deudaPendiente: numOr(raw.deudaPendiente ?? raw.DeudaPendiente),
+    importeMora: roundMoney(numOr(raw.importeMora ?? raw.ImporteMora)),
+    deudaPendiente: roundMoney(numOr(raw.deudaPendiente ?? raw.DeudaPendiente)),
     orden: (() => {
       const o = raw.orden ?? raw.Orden
       if (o == null || o === '') return null
@@ -57,7 +58,7 @@ export function normalizeCreditoGestorPendienteRow(
     direccion: pickNonEmpty(raw.direccion, raw.Direccion),
     latitud: gpsOk ? latitud : null,
     longitud: gpsOk ? longitud : null,
-    cuotaSugerida: numOr(raw.cuotaSugerida ?? raw.CuotaSugerida),
+    cuotaSugerida: roundMoney(numOr(raw.cuotaSugerida ?? raw.CuotaSugerida)),
     diasAtrazo: numOr(raw.diasAtrazo ?? raw.DiasAtrazo),
   }
 }

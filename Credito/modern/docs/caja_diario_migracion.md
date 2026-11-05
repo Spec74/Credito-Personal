@@ -101,7 +101,7 @@ Flujo legacy replicado sin cambiar reglas de BD:
 | Caja Diario → Cobranzas | Alerta mora acumulada, botón «Crédito mora», `esUltimaCuota` en pago |
 | Consulta Crédito | KPI mora total/postergada, botón historial, modal `CreditoMoraModal` |
 
-Paridad consulta pendiente: mora vigente (`usp_CalcularMoraPendiente`) + mora postergada (`SUM(SaldoMora)` donde `MovimientoCajaId IS NULL`).
+Paridad consulta pendiente: mora vigente (suma `ImporteMora` de `usp_CuotasPendientes`) + mora postergada (`SUM(SaldoMora)` donde `MovimientoCajaId IS NULL`).
 
 ---
 

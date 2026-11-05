@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 
 type Segment = { key: string; label: string; value: number; color: string }
 
@@ -59,7 +60,7 @@ export function CarteraMixChart({
     [sinMora, conMora, vencido],
   )
 
-  const total = segments.reduce((a, s) => a + s.value, 0)
+  const total = sumMoney(segments.map((s) => s.value))
 
   const arcs = useMemo(() => {
     if (total <= 0 || segments.length === 0) {

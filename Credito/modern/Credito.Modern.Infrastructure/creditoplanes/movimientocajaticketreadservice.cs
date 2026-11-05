@@ -428,10 +428,7 @@ public sealed class MovimientoCajaTicketReadService(
     private static string MapEstadoCredito(string? estado) =>
         estado == "PAG" ? "CANCELADO" : string.Empty;
 
-    /// <summary>
-    /// Mora operativa = suma ImporteMora de cuotas (usp_CuotasPendientes),
-    /// no usp_CalcularMoraPendiente (saldo×días del crédito).
-    /// </summary>
+    /// <summary>Mora operativa = suma ImporteMora de cuotas (usp_CuotasPendientes).</summary>
     private async Task<decimal> SumarMoraEnCuotasAsync(
         int creditoId,
         CancellationToken cancellationToken)

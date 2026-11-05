@@ -12,6 +12,7 @@ import {
   pickBestClienteMatch,
 } from '../caja/clienteBuscarResolve'
 import { CredixDataTable } from '../credix'
+import { formatMoney } from '../../utils/formatMoney'
 
 const { Text } = Typography
 
@@ -88,7 +89,7 @@ export function TareasBuscarCredito({ onSelect }: Props) {
       <div className="credito-tareas-buscar-option">
         <span className="credito-tareas-buscar-option__name">{h.nombre}</span>
         <span className="credito-tareas-buscar-option__meta">
-          DNI {h.dni} · Crédito #{h.creditoId} · {h.montoCredito.toFixed(2)}
+          DNI {h.dni} · Crédito #{h.creditoId} · {formatMoney(h.montoCredito)}
         </span>
       </div>
     ),
@@ -172,7 +173,7 @@ export function TareasBuscarCredito({ onSelect }: Props) {
                 title: 'Monto',
                 dataIndex: 'montoCredito',
                 align: 'right',
-                render: (v: number) => `S/. ${v.toFixed(2)}`,
+                render: (v: number) => formatMoney(v),
               },
               {
                 title: '',

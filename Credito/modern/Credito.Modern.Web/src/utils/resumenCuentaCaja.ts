@@ -1,3 +1,5 @@
+import { roundMoney } from './money'
+
 export type ResumenCuentaItem = {
   cuenta: string
   importe: number
@@ -24,7 +26,7 @@ export function parseResumenCuentaCaja(resumen?: string | null): ResumenCuentaIt
     }
     items.push({
       cuenta: match[1].trim(),
-      importe: Number(match[2].replace(',', '.')),
+      importe: roundMoney(Number(match[2].replace(',', '.'))),
     })
   }
   return items

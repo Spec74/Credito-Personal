@@ -132,7 +132,6 @@ public static class DependencyInjection
         services.AddScoped<ISimuladorCreditoReadService, SimuladorCreditoReadService>();
         services.AddScoped<IEstadoPlanPagoReadService, EstadoPlanPagoReadService>();
         services.AddScoped<ICuotasPendientesReadService, CuotasPendientesReadService>();
-        services.AddScoped<ICalcularMoraPendienteReadService, CalcularMoraPendienteReadService>();
         services.AddScoped<ICreditoMoraReadService, CreditoMoraReadService>();
         services.AddScoped<ICreditoMoraWriteService, CreditoMoraWriteService>();
         services.AddScoped<ICajaPagoMoraOrchestrator, CajaPagoMoraOrchestrator>();

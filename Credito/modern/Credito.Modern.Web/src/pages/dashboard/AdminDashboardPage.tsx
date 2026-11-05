@@ -24,6 +24,7 @@ import { CredixDataTable, CredixPage } from '../../components/credix'
 import { useAuth } from '../../auth/useAuth'
 import { useEsCentral } from '../../hooks/useEsCentral'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import '../../styles/dashboard-analista.css'
 
 const { Text } = Typography
@@ -820,7 +821,7 @@ function Variacion({ pct }: { pct: number | null }) {
 }
 
 function sumaHoy(rows: DashboardAdminFlujoRow[]): number {
-  return rows.reduce((acc, r) => acc + r.importeHoy, 0)
+  return sumMoney(rows.map((r) => r.importeHoy))
 }
 
 function formatEntero(value: number): string {

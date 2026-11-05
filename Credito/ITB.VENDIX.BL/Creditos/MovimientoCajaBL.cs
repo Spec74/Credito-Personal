@@ -77,7 +77,10 @@ namespace ITB.VENDIX.BL
                 var cuotasAtrazadas = db.PlanPago
                     .Count(x => x.CreditoId == creditoid && x.Estado == "PEN" && x.FechaVencimiento < fecha);
 
-                var moraPendiente = db.usp_CalcularMoraPendiente(creditoid).ToList()[0];
+                // Mora operativa = suma ImporteMora por cuota (usp_CuotasPendientes), no saldo×días.
+                var moraPendiente = db.usp_CuotasPendientes(creditoid, fecha, false)
+                    .ToList()
+                    .Sum(p => p.ImporteMora ?? 0m);
                 var estadoCredito=db.Credito.Find(creditoid).Estado;
                 if (estadoCredito == "PAG")
                     estadoCredito = "CANCELADO";
@@ -107,7 +110,7 @@ namespace ITB.VENDIX.BL
                                  CuotasPagadas = cuotaspagadas + " de " + mc.Credito.NumeroCuotas,
                                  ProximaCuota = proxcuota,
                                  CuotasAtrazadas = cuotasAtrazadas,
-                                 MoraTotalPendiente = moraPendiente.Value,
+                                 MoraTotalPendiente = moraPendiente,
                                  EstadoCredito = estadoCredito,
                                  CreditoTotal = CreditoTotal
                              };
@@ -178,7 +181,9 @@ namespace ITB.VENDIX.BL
                 var cuotasAtrazadas = db.PlanPago
                     .Count(x => x.CreditoId == credito.CreditoId && x.Estado == "PEN" && x.FechaVencimiento < fecha);
 
-                var moraPendiente = db.usp_CalcularMoraPendiente(credito.CreditoId).ToList()[0];
+                var moraPendiente = db.usp_CuotasPendientes(credito.CreditoId, fecha, false)
+                    .ToList()
+                    .Sum(p => p.ImporteMora ?? 0m);
                 var estadoCredito = credito.Estado;
                 if (estadoCredito == "PAG")
                     estadoCredito = "CANCELADO";
@@ -202,7 +207,7 @@ namespace ITB.VENDIX.BL
                                  CuotasPagadas = cuotaspagadas.ToString() + " de " + mc.Credito.NumeroCuotas.ToString(),
                                  ProximaCuota = proxcuota,
                                  CuotasAtrazadas = cuotasAtrazadas,
-                                 MoraTotalPendiente = moraPendiente.Value,
+                                 MoraTotalPendiente = moraPendiente,
                                  EstadoCredito = estadoCredito,
                                  CreditoTotal = CreditoTotal
                              };

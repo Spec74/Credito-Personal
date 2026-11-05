@@ -86,14 +86,6 @@ export function fetchMovimientosCredito(
   )
 }
 
-export function fetchMoraPendiente(
-  creditoId: number,
-): Promise<{ moraPendiente: number | null }> {
-  return apiFetch<{ moraPendiente: number | null }>(
-    `/credito/calcular-mora-pendiente?creditoId=${creditoId}`,
-  )
-}
-
 export function downloadMovimientosCreditoCsv(creditoId: number): Promise<void> {
   return apiDownload(
     `/credito/rpt-movimiento-credito-csv?creditoId=${creditoId}`,
