@@ -158,6 +158,7 @@ body {
   font-size: 12px;
 }
 
+/* Anillo de foco solo en el control exterior (affix / select / picker / input suelto). */
 .credix-content .ant-input:focus,
 .credix-content .ant-input-affix-wrapper-focused,
 .credix-content .ant-input-number-focused,
@@ -165,9 +166,32 @@ body {
 .credix-content .ant-select-focused .ant-select-selector,
 .credix-page .ant-input:focus,
 .credix-page .ant-input-affix-wrapper-focused,
+.credix-page .ant-input-number-focused,
 .credix-page .ant-picker-focused,
 .credix-page .ant-select-focused .ant-select-selector {
   box-shadow: var(--credix-focus-ring) !important;
+  outline: none !important;
+}
+
+/* El <input> anidado no debe dibujar un segundo anillo (queda descuadrado). */
+.credix-content .ant-input-affix-wrapper .ant-input,
+.credix-content .ant-input-affix-wrapper .ant-input:focus,
+.credix-content .ant-input-affix-wrapper .ant-input:focus-visible,
+.credix-page .ant-input-affix-wrapper .ant-input,
+.credix-page .ant-input-affix-wrapper .ant-input:focus,
+.credix-page .ant-input-affix-wrapper .ant-input:focus-visible,
+.credix-content .ant-input-number .ant-input-number-input,
+.credix-content .ant-input-number .ant-input-number-input:focus,
+.credix-page .ant-input-number .ant-input-number-input,
+.credix-page .ant-input-number .ant-input-number-input:focus,
+.credix-content .ant-select-selection-search-input,
+.credix-content .ant-select-selection-search-input:focus,
+.credix-page .ant-select-selection-search-input,
+.credix-page .ant-select-selection-search-input:focus,
+.credix-content .ant-picker-input > input:focus,
+.credix-page .ant-picker-input > input:focus {
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 /* —— Tablas —— */

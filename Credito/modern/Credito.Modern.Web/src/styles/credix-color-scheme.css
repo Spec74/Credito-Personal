@@ -277,10 +277,22 @@
 :root[data-theme='dark'] .ant-input,
 :root[data-theme='dark'] .ant-input-affix-wrapper,
 :root[data-theme='dark'] .ant-input-number,
-:root[data-theme='dark'] .ant-input-number-input {
+:root[data-theme='dark'] .ant-input-textarea textarea {
   background: var(--credix-surface-muted) !important;
   border-color: var(--credix-border) !important;
   color: var(--credix-text) !important;
+}
+
+/* Input anidado: transparente para no dibujar un “campo dentro del campo”. */
+:root[data-theme='dark'] .ant-input-affix-wrapper > input.ant-input,
+:root[data-theme='dark'] .ant-input-affix-wrapper .ant-input,
+:root[data-theme='dark'] .ant-input-number .ant-input-number-input,
+:root[data-theme='dark'] .ant-picker-input > input,
+:root[data-theme='dark'] .ant-select-selection-search-input {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 :root[data-theme='dark'] .ant-select-arrow,
@@ -439,9 +451,25 @@
   color: var(--credix-text) !important;
 }
 
-:root[data-theme='dark'] :focus-visible {
+/* Foco teclado en enlaces/botones; los campos Ant usan --credix-focus-ring. */
+:root[data-theme='dark'] a:focus-visible,
+:root[data-theme='dark'] button:focus-visible,
+:root[data-theme='dark'] [role='button']:focus-visible {
   outline: 2px solid var(--credix-ink-brand);
   outline-offset: 2px;
+}
+
+:root[data-theme='dark'] .ant-input:focus-visible,
+:root[data-theme='dark'] .ant-input-affix-wrapper:focus-visible,
+:root[data-theme='dark'] .ant-input-number:focus-visible,
+:root[data-theme='dark'] .ant-select-selector:focus-visible,
+:root[data-theme='dark'] .ant-picker:focus-visible,
+:root[data-theme='dark'] .ant-btn:focus-visible,
+:root[data-theme='dark'] .ant-input-affix-wrapper .ant-input:focus-visible,
+:root[data-theme='dark'] .ant-input-number-input:focus-visible,
+:root[data-theme='dark'] .ant-select-selection-search-input:focus-visible,
+:root[data-theme='dark'] .ant-picker-input > input:focus-visible {
+  outline: none !important;
 }
 
 /* Tablas: cabecera, celdas y totales usan tokens (no blancos de Ant). */
