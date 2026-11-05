@@ -23,6 +23,7 @@ import {
   type CredixStatItem,
 } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
+import { roundMoney, sumMoney } from '../../utils/money'
 import {
   preferenciaComprobanteCliente,
   sugerirTipoDocumento,
@@ -235,7 +236,9 @@ export function VentaRapidaPage() {
     }
   }, [caja.data, codigoRemate, oficinaId, searchParams, setSearchParams])
 
-  const total = carrito.reduce((s, l) => s + l.precioUnit * l.cantidad - l.descuento, 0)
+  const total = sumMoney(
+    carrito.map((l) => roundMoney(l.precioUnit * l.cantidad - l.descuento)),
+  )
   const stats = useMemo(
     (): CredixStatItem[] => [
       { value: carrito.length, label: 'Líneas' },

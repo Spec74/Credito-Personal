@@ -33,6 +33,7 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import type { PagosNoVerificadosRow } from '../../types/api'
 import { filterTableRows } from '../../utils/tableClientFilter'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import { CajaListToolbar } from './components/CajaListToolbar'
 import { VerificarPagosTableEmpty } from './components/VerificarPagosTableEmpty'
 import { TipoPagoCell } from '../tesoreria/components/TipoPagoBrand'
@@ -91,7 +92,7 @@ export function VerificarPagosPage() {
   )
 
   const totalImporte = useMemo(
-    () => filtrados.reduce((s, r) => s + (r.importePago ?? 0), 0),
+    () => sumMoney(filtrados.map((r) => r.importePago ?? 0)),
     [filtrados],
   )
 

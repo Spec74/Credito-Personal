@@ -46,6 +46,7 @@ import {
 import { fetchOficinas } from '../../api/oficinas'
 import { useAuth } from '../../auth/useAuth'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import '../../styles/cierre-gerencial.css';
 
 type TipoFiltro = '' | 'PRODUCTIVA' | 'ESPECIAL'
@@ -292,9 +293,9 @@ export function CierreGerencialPage() {
     const metasOk = filas.filter((f) => f.metaConfigurada).length
     const productivas = filas.filter((f) => !esEspecial(f.tipoCartera)).length
     return {
-      capital: filas.reduce((s, f) => s + (f.capitalActual || 0), 0),
+      capital: sumMoney(filas.map((f) => f.capitalActual || 0)),
       clientes: filas.reduce((s, f) => s + (f.clientesActivosActual || 0), 0),
-      vencidos: filas.reduce((s, f) => s + (f.vencidosActual || 0), 0),
+      vencidos: sumMoney(filas.map((f) => f.vencidosActual || 0)),
       metasOk,
       total,
       productivas,

@@ -74,6 +74,7 @@ import {
 import { sumarMoraVigente } from '../../../components/caja/creditoMoraVista'
 import type { CreditoPorPersonaRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
+import { roundMoney, sumMoney } from '../../../utils/money'
 import { toLegacyFechaTransferencia } from '../../../utils/formatFecha'
 import { CancelacionCreditoPanel } from './CancelacionCreditoPanel'
 import { CxcInlinePanel } from './CxcInlinePanel'
@@ -312,9 +313,8 @@ export function CobranzasTab({
       .map((c) => c.planPagoId)
       .filter((id): id is number => id != null && id > 0)
     setSelectedKeys(ids)
-    const total = cuotasPagables.reduce(
-      (s, c) => s + (c.pagoCuota ?? c.cuota ?? 0),
-      0,
+    const total = sumMoney(
+      cuotasPagables.map((c) => c.pagoCuota ?? c.cuota ?? 0),
     )
     setImporteRecibido(total)
     cajaToastInfo(
@@ -326,8 +326,7 @@ export function CobranzasTab({
 
 
   const totalCuotasCredito = useMemo(
-    () =>
-      cuotasPagables.reduce((s, c) => s + (c.pagoCuota ?? c.cuota ?? 0), 0),
+    () => sumMoney(cuotasPagables.map((c) => c.pagoCuota ?? c.cuota ?? 0)),
     [cuotasPagables],
   )
 
@@ -386,7 +385,7 @@ export function CobranzasTab({
         oficinaId: ctx.oficinaId,
         cajaDiarioId: ctx.cajaDiarioId,
         creditoId,
-        moraCondonacion: Number(mora.toFixed(2)),
+        moraCondonacion: roundMoney(mora),
       })
     },
     onSuccess: () => {
@@ -594,9 +593,11 @@ export function CobranzasTab({
         cuotasPagables.some((c) => c.planPagoId === k),
       )
       setSelectedKeys(valid)
-      const total = cuotasPagables
-        .filter((c) => c.planPagoId != null && valid.includes(c.planPagoId))
-        .reduce((s, c) => s + (c.pagoCuota ?? c.cuota ?? 0), 0)
+      const total = sumMoney(
+        cuotasPagables
+          .filter((c) => c.planPagoId != null && valid.includes(c.planPagoId))
+          .map((c) => c.pagoCuota ?? c.cuota ?? 0),
+      )
       setImporteRecibido(total)
       if (isMobile && valid.length > 0) {
         setPagoDockExpanded(true)
@@ -607,14 +608,20 @@ export function CobranzasTab({
 
   const selectedTotal = useMemo(
     () =>
-      cuotasPagables
-        .filter((c) => c.planPagoId != null && selectedKeys.includes(c.planPagoId))
-        .reduce((s, c) => s + (c.pagoCuota ?? c.cuota ?? 0), 0),
+      sumMoney(
+        cuotasPagables
+          .filter(
+            (c) => c.planPagoId != null && selectedKeys.includes(c.planPagoId),
+          )
+          .map((c) => c.pagoCuota ?? c.cuota ?? 0),
+      ),
     [cuotasPagables, selectedKeys],
   )
 
   const vuelto =
-    importeRecibido != null ? importeRecibido - selectedTotal : null
+    importeRecibido != null
+      ? roundMoney(importeRecibido - selectedTotal)
+      : null
 
   const showPagoDock = Boolean(creditoId) && !ctx.indCierre
   const dockCollapsed = isMobile && showPagoDock && !pagoDockExpanded
@@ -831,7 +838,7 @@ export function CobranzasTab({
                   condonacionPendienteQuery.data?.tienePendiente
                     ? condonacionPendienteQuery.data.moraCondonacion
                     : sumarMoraVigente(cuotas)
-                setMoraSolicitar(Number(mora.toFixed(2)))
+                setMoraSolicitar(roundMoney(mora))
                 setSolicitarOpen(true)
               }}
             >
@@ -1120,7 +1127,7 @@ export function CobranzasTab({
                   condonacionPendienteQuery.data?.tienePendiente
                     ? condonacionPendienteQuery.data.moraCondonacion
                     : sumarMoraVigente(cuotas)
-                setMoraSolicitar(Number(mora.toFixed(2)))
+                setMoraSolicitar(roundMoney(mora))
                 setSolicitarOpen(true)
               }}
             >

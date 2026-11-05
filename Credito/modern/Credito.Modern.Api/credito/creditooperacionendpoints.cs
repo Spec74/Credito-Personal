@@ -587,7 +587,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoCalcularMoraPendiente")
             .WithSummary(
-                "Solo lectura: CREDITO.usp_CalcularMoraPendiente(CreditoId). creditoId obligatorio (>=1). CreditoUser. moraPendiente puede ser null si el proc no devuelve filas.")
+                "Solo lectura legacy: CREDITO.usp_CalcularMoraPendiente (saldo×días). No usar para cobro; la mora operativa es la suma ImporteMora por cuota.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<CalcularMoraPendienteResponse>(StatusCodes.Status200OK, "application/json")

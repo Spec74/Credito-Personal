@@ -21,6 +21,7 @@ import type {
 } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 
 const { Text } = Typography
 
@@ -51,7 +52,7 @@ export function ComprobantesCajaChicaPage() {
   })
 
   const totalImporte = useMemo(
-    () => (consulta.data ?? []).reduce((s, r) => s + (r.importe ?? 0), 0),
+    () => sumMoney((consulta.data ?? []).map((r) => r.importe ?? 0)),
     [consulta.data],
   )
 

@@ -59,6 +59,7 @@ import { useAuth } from '../../auth/useAuth'
 import type { SimuladorCreditoCuota } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import {
   addDaysIso,
   fechaPrimerPagoPorModalidad,
@@ -265,7 +266,7 @@ export function SimuladorCreditoPage() {
   const tasacionEfectiva = useMemo(() => {
     if (prendaPrecarga) return prendaPrecarga.montoTasacion
     if (prendasGuardadasQuery.data && prendasGuardadasQuery.data.length > 0) {
-      return prendasGuardadasQuery.data.reduce((a, p) => a + (p.valorTasacion || 0), 0)
+      return sumMoney(prendasGuardadasQuery.data.map((p) => p.valorTasacion || 0))
     }
     return totalTasacion(prendasEditor)
   }, [prendaPrecarga, prendasGuardadasQuery.data, prendasEditor])
@@ -818,8 +819,8 @@ export function SimuladorCreditoPage() {
     },
   ]
 
-  const totalCuota = cuotas.reduce((s, c) => s + (c.cuota ?? 0), 0)
-  const totalInteres = cuotas.reduce((s, c) => s + (c.interes ?? 0), 0)
+  const totalCuota = sumMoney(cuotas.map((c) => c.cuota ?? 0))
+  const totalInteres = sumMoney(cuotas.map((c) => c.interes ?? 0))
   const montoSim = montoActual as number | undefined
   const nroCuotasSim = Form.useWatch('nroCuotas', form) as number | undefined
   const gastosAdmSim = Form.useWatch('gastosAdm', form) as number | undefined

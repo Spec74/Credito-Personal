@@ -10,6 +10,7 @@ import { CajaCuotasTable } from '../../../components/caja/CajaCuotasTable'
 import { CajaSection } from '../../../components/caja/CajaSection'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import { formatMoney } from '../../../utils/formatMoney'
+import { sumMoney } from '../../../utils/money'
 import { useAuth } from '../../../auth/useAuth'
 import { syncDiarioPagoHaciaCobro } from '../../../utils/cajaOperacionSync'
 import { assertSinCxcPendiente } from './cajaPagoHelpers'
@@ -44,7 +45,7 @@ export function CancelacionCreditoPanel({
   const totales = useMemo(
     () => ({
       cuotas: rows.length,
-      pagoCuota: rows.reduce((s, r) => s + (r.pagoCuota ?? 0), 0),
+      pagoCuota: sumMoney(rows.map((r) => r.pagoCuota ?? 0)),
     }),
     [rows],
   )

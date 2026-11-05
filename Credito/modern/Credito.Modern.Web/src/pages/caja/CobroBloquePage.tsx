@@ -46,6 +46,7 @@ import {
   tipoPagoPopupRender,
 } from '../tesoreria/components/TipoPagoBrand'
 import { formatMoney } from '../../utils/formatMoney'
+import { roundMoney, sumMoney } from '../../utils/money'
 import { formatFecha } from '../../utils/formatFecha'
 import { clearCobroBloqueEjecutadoHoy } from '../../utils/cobroBloqueDayLock'
 import {
@@ -112,12 +113,16 @@ function esCuotaPendiente(c: EstadoPlanPagoCuota): boolean {
 }
 
 function montoCuotaPendiente(c: EstadoPlanPagoCuota): number {
-  const cuota = Number(c.cuota) || 0
-  const cargo = Number(c.cargo) || 0
-  const descuento = Number(c.descuento) || 0
-  const pagoLibre = Number(c.pagoLibre) || 0
-  const mora = Number(c.importeMora) || 0
-  return Math.max(0, cuota + cargo - descuento - pagoLibre + mora)
+  return Math.max(
+    0,
+    sumMoney([
+      Number(c.cuota) || 0,
+      Number(c.cargo) || 0,
+      -(Number(c.descuento) || 0),
+      -(Number(c.pagoLibre) || 0),
+      Number(c.importeMora) || 0,
+    ]),
+  )
 }
 
 function defaultEdit(): RowEdit {
@@ -194,10 +199,12 @@ function CuotasSubgrid({
                   const next = ev.target.checked
                     ? [...selected, c.planPagoId]
                     : selected.filter((id) => id !== c.planPagoId)
-                  const suma = pendientes
-                    .filter((p) => next.includes(p.planPagoId))
-                    .reduce((acc, p) => acc + montoCuotaPendiente(p), 0)
-                  onChange(next, Math.min(suma, deudaMax))
+                  const suma = sumMoney(
+                    pendientes
+                      .filter((p) => next.includes(p.planPagoId))
+                      .map((p) => montoCuotaPendiente(p)),
+                  )
+                  onChange(next, roundMoney(Math.min(suma, deudaMax)))
                 }}
               />
               <span>
@@ -664,7 +671,7 @@ export function CobroBloquePage() {
   }, [cola.enviados, filtro])
 
   const enviadosTotal = useMemo(
-    () => cola.enviados.reduce((a, e) => a + (e.montoPagar || 0), 0),
+    () => sumMoney(cola.enviados.map((e) => e.montoPagar || 0)),
     [cola.enviados],
   )
 
@@ -739,7 +746,7 @@ export function CobroBloquePage() {
     enqueueCobroBloqueProcess({
       ...pending,
       conCobro: resto.length,
-      total: resto.reduce((a, x) => a + x.montoPagar, 0),
+      total: sumMoney(resto.map((x) => x.montoPagar)),
       planilla: resto,
     })
   }
@@ -794,7 +801,7 @@ export function CobroBloquePage() {
       fechaOperacion: fechaOperacionLocal(),
       queuedAt: new Date().toISOString(),
       conCobro: planilla.length,
-      total: planilla.reduce((a, x) => a + x.montoPagar, 0),
+      total: sumMoney(planilla.map((x) => x.montoPagar)),
       planilla,
     })
     setPendingSync(true)

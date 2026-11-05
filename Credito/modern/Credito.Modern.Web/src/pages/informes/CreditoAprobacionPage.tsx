@@ -24,6 +24,7 @@ import type {
 } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import { readUrlDay, readUrlUserId } from '../../utils/informeUrlParams'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { gestorLabelFromId } from '../../utils/gestorInformeForm'
@@ -114,8 +115,8 @@ export function CreditoAprobacionPage() {
     if (!consulta.isSuccess || filas.length === 0) {
       return []
     }
-    const totalCredito = filas.reduce((s, r) => s + r.montoCredito, 0)
-    const totalDesembolso = filas.reduce((s, r) => s + r.montoDesembolso, 0)
+    const totalCredito = sumMoney(filas.map((r) => r.montoCredito))
+    const totalDesembolso = sumMoney(filas.map((r) => r.montoDesembolso))
     const fecha = form.getFieldValue('fechaAprobacion') as Dayjs | undefined
     return [
       {

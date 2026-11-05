@@ -1,6 +1,7 @@
 import type { CredixStatItem } from '../components/credix'
 import type { RptCobroDiarioRow } from '../types/api'
 import { formatMoney } from './formatMoney'
+import { sumMoney } from './money'
 
 export type CobroDiarioKpiOptions = {
   /** Denominación de caja del gestor (MVC ReportParameter Caja). */
@@ -20,11 +21,11 @@ export function buildCobroDiarioKpiExtras(
     return []
   }
 
-  const saldoVencido = rows.reduce((s, r) => s + (r.saldo ?? 0), 0)
-  const saldoMoroso = rows
-    .filter((r) => (r.mora ?? 0) > 0)
-    .reduce((s, r) => s + (r.saldo ?? 0), 0)
-  const moraAcumulada = rows.reduce((s, r) => s + (r.mora ?? 0), 0)
+  const saldoVencido = sumMoney(rows.map((r) => r.saldo ?? 0))
+  const saldoMoroso = sumMoney(
+    rows.filter((r) => (r.mora ?? 0) > 0).map((r) => r.saldo ?? 0),
+  )
+  const moraAcumulada = sumMoney(rows.map((r) => r.mora ?? 0))
 
   const extras: CredixStatItem[] = [
     { value: rows.length, label: 'N° clientes' },

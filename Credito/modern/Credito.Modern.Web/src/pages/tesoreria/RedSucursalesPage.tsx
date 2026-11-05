@@ -6,6 +6,7 @@ import { fetchBovedaRedPosicion, type BovedaRedPosicion } from '../../api/boveda
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage, CredixDataTable } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import { loginSedePath } from '../../utils/sucursalRed'
 
 export function RedSucursalesPage() {
@@ -27,7 +28,7 @@ export function RedSucursalesPage() {
 
   const filas = red.data ?? []
   const propia = filas.find((r) => r.oficinaId === oficinaId)
-  const efectivoRed = filas.reduce((s, r) => s + (r.efectivoOficina || 0), 0)
+  const efectivoRed = sumMoney(filas.map((r) => r.efectivoOficina || 0))
   const descuadres = filas.filter((r) => r.bovedaId && Math.abs(r.deltaMedios) > 0.01).length
   const conBoveda = filas.filter((r) => r.bovedaId).length
 

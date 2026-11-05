@@ -1,4 +1,5 @@
 import type { Prenda, PrendaItem } from '../api/creditoGestion'
+import { sumMoney } from './money'
 
 export function prendaVacia(): PrendaItem {
   return {
@@ -30,7 +31,7 @@ export function prendasValidas(prendas: PrendaItem[]): PrendaItem[] {
 }
 
 export function totalTasacion(prendas: PrendaItem[]): number {
-  return prendasValidas(prendas).reduce((acc, p) => acc + p.valorTasacion, 0)
+  return sumMoney(prendasValidas(prendas).map((p) => p.valorTasacion))
 }
 
 export type PrendaCampoError = {

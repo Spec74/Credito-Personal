@@ -60,6 +60,7 @@ import {
 } from '../../utils/cajaSaldosPermisos'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import { filterTableRows } from '../../utils/tableClientFilter'
 import { compararMonto, compararTexto } from '../../utils/tableSorters'
 import { runOpenReport } from '../../utils/reportExport'
@@ -169,7 +170,7 @@ export function SaldosPage() {
 
   const importeCierre = useMemo(() => {
     const rows = asignadas.data ?? []
-    return rows.reduce((s, r) => s + (r.saldoFinal ?? 0), 0)
+    return sumMoney(rows.map((r) => r.saldoFinal ?? 0))
   }, [asignadas.data])
 
   const asignadasFiltradas = useMemo(
@@ -180,7 +181,7 @@ export function SaldosPage() {
   const totalesAsignadasRow = useMemo<CredixTotals>(() => {
     const rows = asignadasFiltradas
     const suma = (pick: (r: RptCajasAsignadasRow) => number | null | undefined) =>
-      rows.reduce((s, r) => s + (pick(r) ?? 0), 0)
+      sumMoney(rows.map((r) => pick(r) ?? 0))
     return {
       cajaDiarioId: <strong>TOTAL</strong>,
       saldoInicial: formatMoney(suma((r) => r.saldoInicial)),

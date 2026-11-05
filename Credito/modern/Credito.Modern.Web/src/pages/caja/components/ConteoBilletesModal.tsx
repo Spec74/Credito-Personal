@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Form, InputNumber, Modal, Typography } from 'antd'
 import { formatMoney } from '../../../utils/formatMoney'
+import { roundMoney, sumMoney } from '../../../utils/money'
 
 const { Text } = Typography
 
@@ -45,23 +46,23 @@ export function ConteoBilletesModal({
     }
   }, [open, form])
 
+  const sumarConteo = (cantidades: Partial<FormValues>) =>
+    sumMoney(
+      DENOMINACIONES.map((d) =>
+        roundMoney(Number(cantidades[d.name] ?? 0) * d.unit),
+      ),
+    )
+
   const conteoTotal = useMemo(() => {
-    const cantidades = form.getFieldsValue()
-    return DENOMINACIONES.reduce((sum, d) => {
-      const qty = Number(cantidades[d.name] ?? 0)
-      return sum + qty * d.unit
-    }, 0)
+    return sumarConteo(form.getFieldsValue())
     // eslint-disable-next-line react-hooks/exhaustive-deps -- revision fuerza recálculo al editar cantidades
   }, [form, revision])
 
-  const sobrante = Math.max(0, conteoTotal - importeCierre)
+  const sobrante = Math.max(0, roundMoney(conteoTotal - importeCierre))
 
   const handleOk = async () => {
     const values = await form.validateFields()
-    const total = DENOMINACIONES.reduce((sum, d) => {
-      const qty = Number(values[d.name] ?? 0)
-      return sum + qty * d.unit
-    }, 0)
+    const total = sumarConteo(values)
     if (total < importeCierre) {
       Modal.warning({
         title: 'Conteo insuficiente',

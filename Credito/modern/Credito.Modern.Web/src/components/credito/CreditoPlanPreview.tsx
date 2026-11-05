@@ -4,6 +4,7 @@ import { CredixDataTable } from '../credix'
 import type { SimuladorCreditoCuota } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 
 const { Text } = Typography
 
@@ -44,7 +45,7 @@ export function CreditoPlanPreview({
 
   const primera = cuotas[0]?.cuota
   const vence = cuotas.at(-1)?.fechaPago
-  const totalCuotas = cuotas.reduce((s, c) => s + (c.cuota ?? 0), 0)
+  const totalCuotas = sumMoney(cuotas.map((c) => c.cuota ?? 0))
   const saldoFinal = cuotas.at(-1)?.saldo ?? 0
   return (
     <div className="credito-plan-preview">

@@ -18,6 +18,7 @@ import {
 } from '../../components/credix'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import { filterTableRows } from '../../utils/tableClientFilter'
 
 function condonacionRowText(row: CondonacionPendiente): string {
@@ -73,7 +74,7 @@ export function CreditoCondonacionesPage() {
       { label: 'Pendientes', value: String(rows.length) },
       {
         label: 'Mora a condonar',
-        value: `S/ ${formatMoney(rows.reduce((acc, r) => acc + r.moraCondonacion, 0))}`,
+        value: `S/ ${formatMoney(sumMoney(rows.map((r) => r.moraCondonacion)))}`,
       },
     ],
     [rows],

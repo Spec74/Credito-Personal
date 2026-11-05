@@ -9,6 +9,7 @@ import {
   loadCobroBloquePendingProcess,
 } from './cobroBloqueOffline'
 import { markCobroEnviados, type CobroEnviadoItem } from './cobroCola'
+import { sumMoney } from './money'
 
 export type CajaOperacionCtx = {
   usuarioId: number
@@ -90,7 +91,7 @@ export function removeCreditosFromPendingProcess(
   enqueueCobroBloqueProcess({
     ...pending,
     conCobro: resto.length,
-    total: resto.reduce((a, x) => a + x.montoPagar, 0),
+    total: sumMoney(resto.map((x) => x.montoPagar)),
     planilla: resto,
   })
 }

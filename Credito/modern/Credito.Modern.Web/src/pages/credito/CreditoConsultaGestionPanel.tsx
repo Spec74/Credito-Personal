@@ -60,6 +60,7 @@ import { fetchUsuariosGestion } from '../../api/usuariosAdmin'
 import { ApiError } from '../../api/errors'
 import { consultarDniApiPeru } from '../../api/apiperu'
 import { formatMoney } from '../../utils/formatMoney'
+import { roundMoney, sumMoney } from '../../utils/money'
 import { FIELD_MAX } from '../../validation/formRules'
 import {
   puedeCambiarAnalistaCreditoUi,
@@ -483,30 +484,38 @@ export function CreditoConsultaGestionPanel({
     const pendientes = (planPago.data ?? []).filter((c: EstadoPlanPagoCuota) =>
       c.estado?.toUpperCase() === 'PEN',
     )
-    const capital = pendientes.reduce((s, c) => s + (c.amortizacion ?? c.capital ?? 0), 0)
-    const interes = pendientes.reduce((s, c) => s + (c.interes ?? 0), 0)
-    const mora = pendientes.reduce((s, c) => s + (c.importeMora ?? 0), 0)
-    const cargos = pendientes.reduce((s, c) => s + (c.cargo ?? 0), 0)
-    const descuentos = pendientes.reduce((s, c) => s + (c.descuento ?? 0), 0)
-    const total = Math.max(0, capital + interes + mora + cargos - descuentos)
+    const capital = sumMoney(
+      pendientes.map((c) => c.amortizacion ?? c.capital ?? 0),
+    )
+    const interes = sumMoney(pendientes.map((c) => c.interes ?? 0))
+    const mora = sumMoney(pendientes.map((c) => c.importeMora ?? 0))
+    const cargos = sumMoney(pendientes.map((c) => c.cargo ?? 0))
+    const descuentos = sumMoney(pendientes.map((c) => c.descuento ?? 0))
+    const total = Math.max(
+      0,
+      sumMoney([capital, interes, mora, cargos, -descuentos]),
+    )
     return { capital, interes, mora, cargos, descuentos, total, cuotas: pendientes.length }
   }, [planPago.data])
 
   const totalCondonacionSeleccionado = useMemo(() => {
-    const total =
-      (condonarPartes.capital ? condonarMontos.capital : 0) +
-      (condonarPartes.interes ? condonarMontos.interes : 0) +
-      (condonarPartes.mora ? condonarMontos.mora : 0) +
-      (condonarPartes.cargos ? condonarMontos.cargos : 0)
-    return Math.max(0, Number(total.toFixed(2)))
+    return Math.max(
+      0,
+      sumMoney([
+        condonarPartes.capital ? condonarMontos.capital : 0,
+        condonarPartes.interes ? condonarMontos.interes : 0,
+        condonarPartes.mora ? condonarMontos.mora : 0,
+        condonarPartes.cargos ? condonarMontos.cargos : 0,
+      ]),
+    )
   }, [condonarMontos, condonarPartes])
 
   const abrirModalCondonar = () => {
     const montos = {
-      capital: Number(condonacionResumen.capital.toFixed(2)),
-      interes: Number(condonacionResumen.interes.toFixed(2)),
-      mora: Number(condonacionResumen.mora.toFixed(2)),
-      cargos: Number(condonacionResumen.cargos.toFixed(2)),
+      capital: roundMoney(condonacionResumen.capital),
+      interes: roundMoney(condonacionResumen.interes),
+      mora: roundMoney(condonacionResumen.mora),
+      cargos: roundMoney(condonacionResumen.cargos),
     }
     setCondonarMontos(montos)
     setCondonarPartes({
@@ -517,7 +526,7 @@ export function CreditoConsultaGestionPanel({
     })
     const pendiente = condonacionPendiente.data
     if (pendiente?.tienePendiente) {
-      montos.mora = Number(pendiente.moraCondonacion.toFixed(2))
+      montos.mora = roundMoney(pendiente.moraCondonacion)
       setCondonarMontos({ ...montos })
       setCondonarPartes({
         capital: montos.capital > 0,
@@ -526,9 +535,14 @@ export function CreditoConsultaGestionPanel({
         cargos: montos.cargos > 0,
       })
     }
-    const total = montos.capital + montos.interes + montos.mora + montos.cargos
-    setMontoCxc(Number(total.toFixed(2)))
-    setMontoCond(Number(total.toFixed(2)))
+    const total = sumMoney([
+      montos.capital,
+      montos.interes,
+      montos.mora,
+      montos.cargos,
+    ])
+    setMontoCxc(total)
+    setMontoCond(total)
     setObsCondonar('')
     setModalCondonar(true)
   }
@@ -1183,10 +1197,10 @@ export function CreditoConsultaGestionPanel({
               onClick={() => {
                 setCondonarPartes({ capital: true, interes: true, mora: true, cargos: true })
                 setCondonarMontos({
-                  capital: Number(condonacionResumen.capital.toFixed(2)),
-                  interes: Number(condonacionResumen.interes.toFixed(2)),
-                  mora: Number(condonacionResumen.mora.toFixed(2)),
-                  cargos: Number(condonacionResumen.cargos.toFixed(2)),
+                  capital: roundMoney(condonacionResumen.capital),
+                  interes: roundMoney(condonacionResumen.interes),
+                  mora: roundMoney(condonacionResumen.mora),
+                  cargos: roundMoney(condonacionResumen.cargos),
                 })
               }}
             >
@@ -1198,8 +1212,8 @@ export function CreditoConsultaGestionPanel({
                 setCondonarPartes({ capital: false, interes: false, mora: true, cargos: true })
                 setCondonarMontos((prev) => ({
                   ...prev,
-                  mora: Number(condonacionResumen.mora.toFixed(2)),
-                  cargos: Number(condonacionResumen.cargos.toFixed(2)),
+                  mora: roundMoney(condonacionResumen.mora),
+                  cargos: roundMoney(condonacionResumen.cargos),
                 }))
               }}
             >

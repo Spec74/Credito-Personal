@@ -21,6 +21,7 @@ import { useInformeStats } from '../../hooks/useInformeStats'
 import type { CreditoMorosidadParams, RptCreditoMorosidadRow } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import { readUrlDay, readUrlInt, readUrlOfficeId } from '../../utils/informeUrlParams'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
@@ -101,7 +102,7 @@ export function CreditoMorosidadPage() {
     if (!consulta.isSuccess || filas.length === 0) {
       return []
     }
-    const totalDeuda = filas.reduce((s, r) => s + (r.deudaAtrazo ?? 0), 0)
+    const totalDeuda = sumMoney(filas.map((r) => r.deudaAtrazo ?? 0))
     const hasta = form.getFieldValue('hastaFecha') as Dayjs | undefined
     return [
       {

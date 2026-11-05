@@ -44,6 +44,7 @@ import {
 import { originarCredito } from '../../utils/originarCredito'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import {
   buildClientesNuevoHref,
   labelClienteFicha,
@@ -557,7 +558,7 @@ export function CreditoNuevoPage() {
                 Solicitud {formatMoney(monto ?? 0)}
                 {cuotas[0]?.cuota != null ? ` · cuota ${formatMoney(cuotas[0].cuota)}` : ''}
                 {cuotas.length > 0
-                  ? ` · total ${formatMoney(cuotas.reduce((s, c) => s + (c.cuota ?? 0), 0))}`
+                  ? ` · total ${formatMoney(sumMoney(cuotas.map((c) => c.cuota ?? 0)))}`
                   : ''}
                 {fechaVencimientoIso ? ` · vence ${formatFecha(fechaVencimientoIso)}` : ''}
               </Text>

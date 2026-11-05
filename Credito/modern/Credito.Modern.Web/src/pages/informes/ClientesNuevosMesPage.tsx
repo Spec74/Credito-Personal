@@ -22,6 +22,7 @@ import { useInformeStats } from '../../hooks/useInformeStats'
 import type { RptCreditoObservadoRow } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
 import { readUrlDay, readUrlOfficeId, readUrlUserId } from '../../utils/informeUrlParams'
 import {
@@ -131,7 +132,7 @@ export function ClientesNuevosMesPage() {
     if (!consulta.isSuccess || filas.length === 0) {
       return []
     }
-    const total = filas.reduce((s, r) => s + r.montoCredito, 0)
+    const total = sumMoney(filas.map((r) => r.montoCredito))
     return [{ value: formatMoney(total), label: 'Σ monto crédito', tone: 'green' }]
   }, [consulta.isSuccess, filas])
 

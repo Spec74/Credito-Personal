@@ -29,6 +29,7 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { resolveAprobarBuscar } from '../../utils/creditoAprobarSearch'
 import { getCreditoEstadoMeta } from '../../utils/creditoEstados'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
 import {
   esCreditoAdministrador,
@@ -330,7 +331,7 @@ export function CreditoAprobarPage() {
 
   const aprobarStats: CredixStatItem[] = useMemo(() => {
     const rows = listQuery.data?.items ?? []
-    const monto = rows.reduce((s, r) => s + (r.monto ?? 0), 0)
+    const monto = sumMoney(rows.map((r) => r.monto ?? 0))
     return [
       {
         value: total,
