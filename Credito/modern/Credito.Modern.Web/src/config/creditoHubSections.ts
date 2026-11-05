@@ -8,7 +8,7 @@ export const CREDITO_HUB_QUICK_ACCESS: CredixHubLink[] = [
   {
     to: '/credito/nuevo',
     label: 'Nueva solicitud',
-    description: 'Originar crédito personal en una sola pantalla',
+    description: 'Originar crédito personal',
   },
   {
     to: '/credito/prendario',
@@ -18,17 +18,17 @@ export const CREDITO_HUB_QUICK_ACCESS: CredixHubLink[] = [
   {
     to: '/informes/creditos-observados',
     label: 'Créditos observados',
-    description: 'Acceso rápido Observados',
+    description: 'Créditos observados',
   },
   {
     to: '/informes/morosidad-gestor',
     label: 'Morosidad por gestor',
-    description: 'Acceso rápido Vencidos / mora en ruta',
+    description: 'Vencidos y mora',
   },
   {
     to: '/informes/clientes-inactivos',
     label: 'Clientes inactivos',
-    description: 'Acceso rápido del pie del menú',
+    description: 'Accesos del menú',
   },
 ]
 
@@ -54,12 +54,12 @@ export const CREDITO_HUB_SECTIONS: CredixHubSection[] = [
       {
         to: '/credito/nuevo',
         label: 'Nueva solicitud',
-        description: 'Originar crédito personal sin pasar por el simulador',
+        description: 'Originar crédito personal',
       },
       {
         to: '/credito/simulador',
         label: 'Simulador',
-        description: 'Cotizar un plan de pagos sin originar',
+        description: 'Cotizar un plan de pagos',
       },
       {
         to: '/credito/tareas',

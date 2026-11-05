@@ -459,7 +459,7 @@ export function CreditoPrendarioNuevoPage() {
     <CredixPage
       className="prendario-nuevo-page"
       title="Nuevo crédito prendario"
-      subtitle="Cliente, prenda y desembolso. Sin pasar por el simulador."
+      subtitle="Nueva solicitud prendaria"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },

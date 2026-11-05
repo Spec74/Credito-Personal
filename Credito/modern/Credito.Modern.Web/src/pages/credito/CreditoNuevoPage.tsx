@@ -37,7 +37,6 @@ import { CLIENTE_CRUZADO_AVISO } from '../../utils/clienteCruzado'
 import { motivoBloqueoOriginacion, montoSobreTope } from '../../utils/clienteOriginacion'
 import {
   codigoFormaPago,
-  etiquetaFormaPago,
   fechaPrimerPagoPorModalidad,
   fechaVencimientoPorModalidad,
 } from '../../utils/creditoFechas'
@@ -319,7 +318,7 @@ export function CreditoNuevoPage() {
     <CredixPage
       className="prendario-nuevo-page"
       title="Nueva solicitud de crédito"
-      subtitle="Cliente y condiciones en una sola pantalla. El simulador queda para cotizar sin originar."
+      subtitle="Nueva solicitud de crédito personal"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -432,9 +431,6 @@ export function CreditoNuevoPage() {
                 options={FORMAS_PAGO}
                 onChange={(v) => aplicarModalidad(String(v))}
               />
-              <Text type="secondary" className="prendario-nuevo-ayuda">
-                Recalcula 1.er pago y vencimiento (D +1 día, S +7, Q +15, M +1 mes).
-              </Text>
             </Col>
             <Col xs={24} sm={12} md={8}>
               <Text type="secondary">&nbsp;</Text>
@@ -532,9 +528,6 @@ export function CreditoNuevoPage() {
                 value={fechaVencimientoIso ? formatFecha(fechaVencimientoIso) : '—'}
                 aria-label="Vencimiento del crédito"
               />
-              <Text type="secondary" className="prendario-nuevo-ayuda">
-                Última cuota del plan {etiquetaFormaPago(formaPago)}.
-              </Text>
             </Col>
             <Col xs={24} md={16}>
               <Text type="secondary">Observación</Text>
@@ -563,7 +556,7 @@ export function CreditoNuevoPage() {
                 {fechaVencimientoIso ? ` · vence ${formatFecha(fechaVencimientoIso)}` : ''}
               </Text>
             ) : (
-              <Text type="secondary">Complete cliente y condiciones. No pasa por el simulador.</Text>
+              <Text type="secondary">Complete cliente y condiciones.</Text>
             )}
           </div>
           <Button

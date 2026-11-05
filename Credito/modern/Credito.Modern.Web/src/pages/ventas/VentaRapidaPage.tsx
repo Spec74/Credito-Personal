@@ -255,7 +255,7 @@ export function VentaRapidaPage() {
   return (
     <CredixPage
       title="Venta rápida"
-      subtitle="Busque el artículo, revise el ticket y cobre. No hace falta el id interno."
+      subtitle="Venta de mostrador"
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },

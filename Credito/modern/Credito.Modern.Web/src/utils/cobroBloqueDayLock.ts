@@ -1,8 +1,4 @@
-/**
- * Legacy MVC `cobroBloqueEjecutado`.
- * El Cobro moderno ya no bloquea el reingreso: tipar ≠ cobrado y la cola
- * permite seguir el mismo día. Se mantiene la API por tests / migración.
- */
+/** Limpieza de marca local antigua; el cobro moderno no bloquea el día. */
 
 const STORAGE_KEY = 'cobroBloqueEjecutado'
 

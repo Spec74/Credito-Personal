@@ -100,7 +100,7 @@ function AvisosCanalAlert({
         showIcon
         style={{ marginTop: 12 }}
         message="WhatsApp Business no está configurado"
-        description="Falta el token o el Phone Number ID en el servidor (WhatsApp__Token / WhatsApp__PhoneNumberId)."
+        description="Falta el token o el Phone Number ID en el servidor."
       />
     )
   }
@@ -366,7 +366,7 @@ export function CreditoPrendarioPage() {
     <CredixPage
       className="credito-prendario-page"
       title="Crédito prendario"
-      subtitle="Bandeja de esta oficina. Pulse una cifra para filtrar."
+      subtitle="Bandeja de la oficina"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },

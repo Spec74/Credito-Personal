@@ -17,11 +17,6 @@ type Props = {
 export function CreditoConsultaInicio({ recientes, onAbrir, onQuitar }: Props) {
   return (
     <div className="credito-consulta-inicio" translate="no">
-      <p className="credito-consulta-inicio__lead">
-        El DNI o el nro. de crédito cargan solos. El nombre se elige de la lista. Borrar el campo
-        deja la mesa limpia.
-      </p>
-
       {recientes.length > 0 ? (
         <section className="credito-consulta-inicio__block" aria-labelledby="credito-consulta-recientes">
           <h2 id="credito-consulta-recientes">Recientes de esta sesión</h2>

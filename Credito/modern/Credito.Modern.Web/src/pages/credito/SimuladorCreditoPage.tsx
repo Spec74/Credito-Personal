@@ -978,7 +978,7 @@ export function SimuladorCreditoPage() {
     <CredixPage
       className="simulador-page"
       title="Simulador"
-      subtitle="Cotice un plan de pagos. Para originar un crédito real use Nueva solicitud."
+      subtitle="Cotice un plan de pagos"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -1004,7 +1004,7 @@ export function SimuladorCreditoPage() {
           showIcon
           style={{ marginBottom: 16 }}
           message="Crédito prendario"
-          description={`Prenda: ${prendaPrecarga.descripcion.toUpperCase()} | Tasación: ${formatMoney(prendaPrecarga.montoTasacion)}. El vencimiento sale del plan (cuotas + 1.er pago); el remate es vencimiento + 30 días.`}
+          description={`Prenda: ${prendaPrecarga.descripcion.toUpperCase()} · Tasación: ${formatMoney(prendaPrecarga.montoTasacion)}`}
         />
       ) : null}
 
@@ -1289,7 +1289,7 @@ export function SimuladorCreditoPage() {
                 className="simulador-field--wide"
                 name="prendaDescripcion"
                 label="Garantía"
-                extra="Texto del PDF. Marca, serie y tasación se piden al crear la solicitud."
+                extra="Descripción de la garantía para el plan."
                 rules={[
                   { required: true, whitespace: true, message: 'Describa el bien para el plan' },
                   { max: PRENDA_MAX.descripcion },
@@ -1319,7 +1319,7 @@ export function SimuladorCreditoPage() {
                   showIcon
                   style={{ marginBottom: 12 }}
                   message="Origen prendario restringido"
-                  description="Solo ANALISTA o ADMINISTRADOR pueden originar CREDI PRENDARIO. Use el módulo Credi Prendario o cambie de producto."
+                  description="Solo ANALISTA o ADMINISTRADOR pueden originar crédito prendario."
                 />
               ) : null}
               {bienesBloqueados ? (

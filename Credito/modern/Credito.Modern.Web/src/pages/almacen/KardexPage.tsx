@@ -136,7 +136,7 @@ export function KardexPage() {
   return (
     <CredixInformePage
       title="Kardex de artículo"
-      subtitle="Kardex de movimientos. Un PRM rematado aparece al venderlo; no hay compra a proveedor en Credix."
+      subtitle="Movimientos de almacén"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/almacen">Almacén</Link> },
@@ -230,8 +230,7 @@ export function KardexPage() {
           description={
             esCodigoRematePrendario(articuloCodigo) ? (
               <>
-                El remate deja la serie EN_ALMACEN sin documento de entrada. El kardex aparece al
-                venderlo.{' '}
+                El kardex aparece al vender la serie.{' '}
                 <Link to={`/ventas/venta-rapida?codigo=${encodeURIComponent(articuloCodigo)}`}>
                   Ir a venta rápida
                 </Link>

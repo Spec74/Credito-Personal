@@ -291,16 +291,6 @@ export function CobranzaPagosPage() {
               >
                 Generar reporte
               </Button>
-              {puedeElegirGestor ? (
-                <Typography.Text type="secondary" className="credix-cobranza-filtros-hint">
-                  <kbd>Enter</kbd> en gestor carga la tabla · al elegir un gestor concreto también
-                  carga solo · con <strong>Todos</strong> use el botón
-                </Typography.Text>
-              ) : (
-                <Typography.Text type="secondary" className="credix-cobranza-filtros-hint">
-                  Solo su cartera de gestor · pulse Generar reporte
-                </Typography.Text>
-              )}
             </div>
           </Form>
         </div>
@@ -326,8 +316,7 @@ export function CobranzaPagosPage() {
             type="info"
             showIcon
             className="credix-cobranza-hint"
-            message="Comience por elegir un gestor"
-            description="Busque en el campo Gestor, pulse Enter o haga clic en un nombre. Si deja «Todos los gestores», pulse Generar reporte."
+            message="Elija gestor y genere el reporte"
           />
         ) : null}
 

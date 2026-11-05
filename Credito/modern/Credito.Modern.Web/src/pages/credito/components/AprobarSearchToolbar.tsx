@@ -100,12 +100,6 @@ export function AprobarSearchToolbar({
             {campo}
           </span>
         ))}
-        <span className="credito-aprobacion-search-card__chip credito-aprobacion-search-card__chip--hint">
-          <span className="credito-aprobacion-search-card__chip-hint-long">
-            Varias palabras = todas deben coincidir
-          </span>
-          <span className="credito-aprobacion-search-card__chip-hint-short">Multi-palabra</span>
-        </span>
       </div>
 
       <div className="credito-aprobacion-search-card__footer">

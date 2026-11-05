@@ -134,7 +134,7 @@ const OPS_COPY: Record<string, { title: string; blurb: string }> = {
   },
   aceptar: {
     title: 'Pendientes',
-    blurb: 'Solo filas antiguas. El fondeo no espera; aquí únicamente se anulan leftovers.',
+    blurb: 'Anula transferencias pendientes antiguas.',
   },
   cierre: {
     title: 'Cerrar bóveda',
@@ -808,7 +808,6 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                 name="usuarioId"
                 label="Encargado de bóveda temporal"
                 rules={[{ required: true, message: 'Seleccione un encargado' }]}
-                extra="Busque por nombre o DNI; ya no es necesario escribir el ID del usuario."
               >
                 <Select
                   showSearch

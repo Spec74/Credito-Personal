@@ -1157,7 +1157,7 @@ export function CobranzasTab({
             message="Ya hay una solicitud pendiente para este crédito."
           />
         ) : null}
-        <p>Monto de mora a solicitar. El administrador la aprueba en la ficha del crédito.</p>
+        <p>Monto de mora a solicitar.</p>
         <InputNumber
           min={0}
           step={0.01}

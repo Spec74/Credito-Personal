@@ -223,7 +223,7 @@ export function CajaMaestroPage() {
             setPage(1)
           }}
           placeholder="Caja, gestor u oficina"
-          hint="Búsqueda al servidor (400 ms). Doble clic en fila para editar."
+          hint="Doble clic para editar."
           hintShort="Doble clic para editar."
           totalCount={totalRecords}
           loading={cajasQuery.isFetching}

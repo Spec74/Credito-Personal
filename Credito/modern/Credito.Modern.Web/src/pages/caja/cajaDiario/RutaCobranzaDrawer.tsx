@@ -175,7 +175,7 @@ export function RutaCobranzaDrawer({
           showIcon
           style={{ marginBottom: 12 }}
           message="Ruta de cobranza"
-          description="Seleccione clientes (máx. 25) y genere la secuencia con mapa e indicaciones de navegación."
+          description="Seleccione hasta 25 clientes y genere la ruta."
         />
 
         <div style={{ marginBottom: 12 }}>

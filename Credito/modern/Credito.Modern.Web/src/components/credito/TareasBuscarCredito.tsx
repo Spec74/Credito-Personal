@@ -154,10 +154,6 @@ export function TareasBuscarCredito({ onSelect }: Props) {
         <div className="credito-tareas-buscar__tabla">
           <Text type="secondary" className="credito-tareas-buscar__hint">
             {options.length} crédito(s)
-            {extractSearchTermsFromInput(term).length > 1
-              ? ` · búsqueda: ${extractSearchTermsFromInput(term).join(', ')}`
-              : ''}
-            . Elija uno, Enter con coincidencia única o use el desplegable.
           </Text>
           <CredixDataTable<CreditoTareaBuscar>
             mode="operacion"

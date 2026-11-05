@@ -16,7 +16,7 @@ const SUGGESTIONS: Record<string, CredixHubLink[]> = {
     {
       to: '/credito/nuevo',
       label: 'Nueva solicitud',
-      description: 'Originar crédito en una sola pantalla',
+      description: 'Originar crédito',
     },
     {
       to: '/credito/simulador',

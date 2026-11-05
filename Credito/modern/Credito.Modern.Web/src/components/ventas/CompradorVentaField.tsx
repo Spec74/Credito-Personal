@@ -16,10 +16,7 @@ type Props = {
   onClear: () => void
 }
 
-/**
- * Cliente de ticket: busca en el padrón o registra comprador de mostrador
- * (DNI + nombre). No origina crédito ni aprueba nada.
- */
+/** Cliente del ticket: padrón o alta rápida de comprador. */
 export function CompradorVentaField({
   personaId,
   clienteLabel,
@@ -61,9 +58,6 @@ export function CompradorVentaField({
       >
         Registrar comprador
       </Button>
-      <Text type="secondary" style={{ display: 'block' }}>
-        Si no está en el padrón, regístrelo con DNI. No se aprueba crédito.
-      </Text>
       <Modal
         title="Registrar comprador"
         open={altaOpen}
@@ -74,7 +68,6 @@ export function CompradorVentaField({
         <CrearPersonaRapidaModal
           initialDni={dniFromSearchTerm(termino)}
           submitLabel="Usar en esta venta"
-          hint="El comprador de mostrador (prenda rematada u otro contado) no tiene que ser el titular del crédito."
           onCreated={(id, label) => {
             onSelect(id, label)
             onTerminoChange('')

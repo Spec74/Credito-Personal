@@ -209,13 +209,6 @@
   min-width: 0;
 }
 
-.credito-consulta-inicio__lead {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.45;
-  color: var(--credito-muted);
-}
-
 .credito-consulta-inicio__block h2 {
   margin: 0 0 8px;
   font-size: 13px;

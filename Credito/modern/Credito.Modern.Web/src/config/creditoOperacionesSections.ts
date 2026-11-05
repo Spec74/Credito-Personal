@@ -28,12 +28,12 @@ export const CREDITO_OPERACIONES_SECTIONS: CredixHubSection[] = [
       {
         to: '/credito/nuevo',
         label: 'Nueva solicitud',
-        description: 'Originar crédito personal en una sola pantalla',
+        description: 'Originar crédito personal',
       },
       {
         to: '/credito/simulador',
         label: 'Simulador',
-        description: 'Cotizar un plan de pagos sin originar',
+        description: 'Cotizar un plan de pagos',
       },
       {
         to: '/credito/tareas',

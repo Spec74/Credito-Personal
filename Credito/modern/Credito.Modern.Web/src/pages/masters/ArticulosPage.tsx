@@ -334,7 +334,7 @@ export function ArticulosPage() {
   return (
     <CredixCrudPage
       title="Artículos"
-      subtitle="El catálogo no tiene cantidad: el stock son series EN_ALMACEN del remate prendario."
+      subtitle="Catálogo de artículos"
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -368,7 +368,6 @@ export function ArticulosPage() {
               showIcon
               style={{ marginBottom: 12 }}
               message="Primero cree tipo y modelo"
-              description="Marcas, modelos y tipos se gestionan en los enlaces de arriba o aquí: cree GENERAL y luego el artículo."
               action={
                 <Space wrap>
                   <Button size="small" loading={creandoCatalogo} onClick={() => crearTipoRapido.mutate('GENERAL')}>
@@ -468,7 +467,6 @@ export function ArticulosPage() {
                 showIcon
                 style={{ marginBottom: 16 }}
                 message="Aún no hay tipos ni modelos"
-                description="En esta base el catálogo está vacío. Créelos aquí y siga con el artículo; no hace falta ir a otra pantalla."
                 action={
                   <Space wrap>
                     <Button

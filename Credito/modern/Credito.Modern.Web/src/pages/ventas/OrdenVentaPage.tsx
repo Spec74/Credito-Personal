@@ -325,7 +325,7 @@ export function OrdenVentaPage() {
     <CredixPage
       className="orden-venta-page"
       title="Orden de venta"
-      subtitle="Primero el cliente. Luego agregue series que ya estén en almacén."
+      subtitle="Órdenes de venta"
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -505,7 +505,7 @@ export function OrdenVentaPage() {
                         <Form.Item
                           name="numeroSerie"
                           label="Número de serie"
-                          extra="Serie EN_ALMACEN del remate (PRM…), no el id del artículo."
+                          extra="Serie del remate (PRM…)."
                           rules={[{ required: true, message: 'Ingrese la serie' }]}
                         >
                           <Input placeholder="Serie del artículo en almacén" autoComplete="off" />

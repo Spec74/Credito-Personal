@@ -596,7 +596,7 @@ export function CreditoConsultaGestionPanel({
             showIcon
             style={{ marginBottom: 8 }}
             message="Hay una solicitud de condonación pendiente"
-            description={`Mora pedida S/ ${formatMoney(condonacionPendiente.data.moraCondonacion)}. Al condonar se aprueba y se cobra la cuenta por cobrar en la caja que la originó.`}
+            description={`Mora pedida S/ ${formatMoney(condonacionPendiente.data.moraCondonacion)}.`}
           />
         ) : null}
         <Space wrap className="credito-gestion-context-card__actions">

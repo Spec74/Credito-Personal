@@ -228,7 +228,7 @@ export function EntradaSalidaTab({
           Los egresos requieren clave de administrador.
         </Paragraph>
         <Input.Password
-          placeholder="Clave ADMVENDIX"
+          placeholder="Clave de administrador"
           value={claveAdmin}
           onChange={(e) => setClaveAdmin(e.target.value)}
           autoFocus

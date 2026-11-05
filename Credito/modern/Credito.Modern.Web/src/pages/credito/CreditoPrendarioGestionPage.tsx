@@ -628,8 +628,8 @@ export function CreditoPrendarioGestionPage() {
               message="Sin bienes registrados"
               description={
                 puedeEditarBienes
-                  ? 'Registre los bienes una sola vez en este crédito. No se abrirá una solicitud nueva.'
-                  : 'Este crédito prendario aún no tiene bienes. Un analista o administrador puede completarlos.'
+                  ? 'Registre los bienes de este crédito.'
+                  : 'Un analista o administrador debe completar los bienes.'
               }
             />
           ) : !puedeImprimir ? (
@@ -682,13 +682,6 @@ export function CreditoPrendarioGestionPage() {
           />
           {(bienes.data ?? []).length > 0 ? (
             <div className="credito-prendario-fichas">
-              <Alert
-                type="info"
-                showIcon
-                className="credito-prendario-alert"
-                message="Ficha del bien"
-                description="La foto y «cómo llegó» se cargan aquí, después de solicitar: el bien ya tiene código. No se devuelve la prenda mientras el crédito está desembolsado; para eso use Liberar (paga el saldo)."
-              />
               {(bienes.data ?? []).map((b) => {
                 const estado = (b.estado ?? 'EN CUSTODIA').trim().toUpperCase()
                 const enCustodia = estado === 'EN CUSTODIA'
@@ -798,8 +791,7 @@ export function CreditoPrendarioGestionPage() {
               })}
               {creditoDesembolsado ? (
                 <Text type="secondary" className="credito-prendario-ficha__hint">
-                  Con deuda desembolsada no se usa Devolver. El cliente retira el bien con Liberar
-                  (paga capital + interés) o, si no paga, Rematar lo pasa a venta.
+                  Con deuda activa use Liberar (pago) o Rematar (venta).
                 </Text>
               ) : null}
             </div>

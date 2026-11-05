@@ -915,7 +915,7 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
                     name="direccion"
                     label="Domicilio"
                     rules={[direccionRealistaRule('domicilio')]}
-                    extra="Ej. Jr. Lima 245 · Evite solo números o textos de prueba."
+                    extra="Ej. Jr. Lima 245"
                   >
                     <Input.TextArea rows={2} maxLength={250} placeholder="Jr. / Av. / Calle + número + referencia corta" />
                   </Form.Item>

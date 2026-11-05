@@ -473,7 +473,7 @@ export function UsuariosPage() {
       subtitle={
         esCentral
           ? verRed
-            ? 'Toda la red. Un solo guardado: datos, sede y rol.'
+            ? 'Toda la red'
             : `Personal de ${oficinaSesionNombre}`
           : `Personal de ${oficinaSesionNombre}`
       }

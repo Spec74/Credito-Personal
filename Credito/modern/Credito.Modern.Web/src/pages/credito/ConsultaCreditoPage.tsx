@@ -573,7 +573,7 @@ export function ConsultaCreditoPage() {
     <CredixPage
       className="credito-consulta-page"
       title="Créditos"
-      subtitle="DNI o nro. de crédito cargan solos. El nombre se elige. Borrar limpia la ficha."
+      subtitle="Consulta y gestión del crédito"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },
@@ -597,7 +597,7 @@ export function ConsultaCreditoPage() {
           showIcon
           style={{ marginBottom: 12 }}
           message={`Mora postergada acumulada: ${formatMoney(moraResumenQuery.data.saldoPostergado)}`}
-          description="Se liquidará al cobrar la última cuota pendiente (tabla CreditoMora)."
+          description="Se liquidará al cobrar la última cuota pendiente."
           action={
             <Button size="small" onClick={() => setMoraModalOpen(true)}>
               Ver historial
@@ -612,7 +612,6 @@ export function ConsultaCreditoPage() {
           showIcon
           style={{ marginBottom: 12 }}
           message="Consulta en modo solo lectura"
-          description="Puede ver plan, movimientos e impresos. Las operaciones de ciclo y gestión están deshabilitadas."
         />
       ) : null}
 
@@ -654,7 +653,6 @@ export function ConsultaCreditoPage() {
               showIcon
               style={{ marginBottom: 12 }}
               message="Crédito pendiente de aprobación"
-              description="La aprobación se gestiona desde Crédito → Aprobar."
               action={
                 <Link to="/credito/aprobar">
                   <Button size="small" type="primary">

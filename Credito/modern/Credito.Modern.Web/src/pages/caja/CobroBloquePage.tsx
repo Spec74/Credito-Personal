@@ -186,7 +186,7 @@ function CuotasSubgrid({
   return (
     <div className="cobro-bloque-subgrid">
       <Text type="secondary" className="cobro-bloque-subgrid__hint">
-        Marque cuotas para sumar el monto (o digite libre). Máx. S/ {formatMoney(deudaMax)}.
+        Máx. S/ {formatMoney(deudaMax)}
       </Text>
       <div className="cobro-bloque-subgrid__list">
         {pendientes.map((c) => {
@@ -248,7 +248,6 @@ export function CobroBloquePage() {
   const [ticketPrintingId, setTicketPrintingId] = useState<number | null>(null)
   const carteraRowsRef = useRef<CreditoGestorPendienteRow[]>([])
 
-  // Day-lock legacy deprecado: limpiar cualquier marca previa y no bloquear nunca.
   useEffect(() => {
     clearCobroBloqueEjecutadoHoy()
   }, [])
@@ -1502,11 +1501,7 @@ export function CobroBloquePage() {
     <CredixPage
       className={`cobro-bloque-page${fieldMode ? ' cobro-bloque-page--field' : ''}${actionDock ? ' cobro-bloque-page--dock' : ''}`}
       title="Cobro"
-      subtitle={
-        fieldMode
-          ? undefined
-          : undefined
-      }
+      subtitle={undefined}
       breadcrumb={
         fieldMode
           ? undefined
@@ -1532,16 +1527,6 @@ export function CobroBloquePage() {
         />
       ) : (
         <>
-          {!fieldMode ? (
-            <Alert
-              type="info"
-              showIcon
-              className="cobro-bloque-page__hint"
-              message="Ruta digital (reemplazo del reporte impreso / PWA externo)"
-              description="Digite el monto y pulse Cobrar (uno) o Registrar (varios tipados). Los registrados pasan a Enviados; imprima tickets ahí. Completar impagos solo en Caja Diario."
-            />
-          ) : null}
-
           {draftBanner ? (
             <Alert
               type="success"
