@@ -342,6 +342,14 @@ export function downloadCreditoVencidoPdf(
   )
 }
 
+/** PDF de trabajo: notificar vencimientos a clientes que no pagan (oficina sesión). */
+export function openNotificacionesVencimientoPdfInTab(
+  oficinaId: number,
+): Promise<void> {
+  const q = new URLSearchParams({ oficinaId: String(oficinaId) })
+  return apiOpenInTab(`/credito/rpt-notificaciones-vencimiento-pdf?${q}`)
+}
+
 export function fetchClientesBloqueados(
   params: GestorInformeParams,
 ): Promise<RptClientesBloqueadosRow[]> {

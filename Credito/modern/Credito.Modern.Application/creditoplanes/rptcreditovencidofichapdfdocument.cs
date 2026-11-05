@@ -8,6 +8,8 @@ namespace Credito.Modern.Application.CreditoPlanes;
 /// <summary>
 /// PDF profesional de créditos vencidos — paridad datos
 /// <c>CREDITO.usp_RptCreditoVencido</c> / RDLC.
+/// Modo <see cref="RptCreditoVencidoPdfMode.Notificaciones"/>: listado para notificar
+/// vencimientos a clientes que no pagan.
 /// </summary>
 public static class RptCreditoVencidoFichaPdfDocument
 {
@@ -18,12 +20,19 @@ public static class RptCreditoVencidoFichaPdfDocument
 
     public static byte[] Build(
         IReadOnlyList<RptCreditoVencidoRowDto> rows,
-        CredixLegacyReportContext? context = null)
+        CredixLegacyReportContext? context = null,
+        RptCreditoVencidoPdfMode mode = RptCreditoVencidoPdfMode.Estandar)
     {
         var totalMonto = rows.Sum(x => x.MontoCredito);
         var totalVencido = rows.Sum(x => x.CreditoVencido ?? 0m);
         var oficina = CreditoPdfBranding.OrDash(context?.Oficina);
         var franjas = BuildFranjaLabel(rows);
+        var esNotif = mode == RptCreditoVencidoPdfMode.Notificaciones;
+        var titulo = esNotif ? "NOTIFICACIONES DE VENCIMIENTOS" : "REPORTE CRÉDITOS VENCIDOS";
+        var seccion = esNotif ? "CRÉDITOS A NOTIFICAR (CLIENTES QUE NO PAGAN)" : "DETALLE DE CRÉDITOS VENCIDOS";
+        var vacio = esNotif
+            ? "No hay créditos vencidos para notificar en esta oficina."
+            : "No hay créditos vencidos para los filtros indicados.";
 
         return Document.Create(document =>
         {
@@ -39,8 +48,20 @@ public static class RptCreditoVencidoFichaPdfDocument
                     col.Spacing(6);
                     CreditoPdfBranding.ComposeTitleBlock(
                         col,
-                        "REPORTE CRÉDITOS VENCIDOS",
+                        titulo,
                         CredixReportTokens.CompanyLegalName);
+
+                    if (esNotif)
+                    {
+                        col.Item()
+                            .Background(CreditoPdfBranding.MetaBg)
+                            .Border(0.5f)
+                            .BorderColor(CreditoPdfBranding.Border)
+                            .Padding(6)
+                            .Text(
+                                "Documento de trabajo para gestión de cobranza: notificar vencimiento a clientes con crédito vencido / que no pagan.")
+                            .FontSize(7.5f);
+                    }
 
                     col.Item().Element(c => CreditoPdfBranding.ComposeMetaGrid(c,
                     [
@@ -53,12 +74,12 @@ public static class RptCreditoVencidoFichaPdfDocument
                     ]));
 
                     col.Item().Element(c =>
-                        CreditoPdfBranding.ComposeSectionTitle(c, "DETALLE DE CRÉDITOS VENCIDOS"));
+                        CreditoPdfBranding.ComposeSectionTitle(c, seccion));
 
                     if (rows.Count == 0)
                     {
                         col.Item().PaddingTop(12).AlignCenter()
-                            .Text("No hay créditos vencidos para los filtros indicados.")
+                            .Text(vacio)
                             .FontColor(Colors.Grey.Darken1);
                         return;
                     }

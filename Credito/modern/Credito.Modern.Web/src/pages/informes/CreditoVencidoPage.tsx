@@ -84,9 +84,9 @@ export function CreditoVencidoPage() {
 
   return (
     <CredixInformePage
-      title="Crédito vencido"
-      subtitle={undefined}
-      breadcrumb={reportesCreditoBreadcrumb('Crédito vencido')}
+      title="Notificaciones de vencimientos"
+      subtitle="Créditos vencidos para notificar a clientes que no pagan"
+      breadcrumb={reportesCreditoBreadcrumb('Notificaciones de vencimientos')}
       stats={stats}
       filters={
         <Form

@@ -315,7 +315,7 @@ export function MorososEmpresaPage() {
   const breadcrumb = [
     { title: <Link to="/inicio">Inicio</Link> },
     { title: <Link to="/informes">Informes</Link> },
-    { title: 'Notificaciones de vencimientos' },
+    { title: 'Morosos' },
   ]
 
   const seleccionarTipo = (tipo: MorosidadTipo) => {
@@ -341,7 +341,7 @@ export function MorososEmpresaPage() {
 
   if (permisos.isLoading) {
     return (
-      <CredixPage className="morosos-empresa-page" title="Notificaciones de vencimientos" breadcrumb={breadcrumb}>
+      <CredixPage className="morosos-empresa-page" title="Morosidad empresarial" breadcrumb={breadcrumb}>
         <div className="morosos-skeleton">
           <Skeleton active paragraph={{ rows: 2 }} />
           <Skeleton active paragraph={{ rows: 4 }} />
@@ -352,7 +352,7 @@ export function MorososEmpresaPage() {
 
   if (permisos.isError || permisos.data?.puedeConsultar === false) {
     return (
-      <CredixPage className="morosos-empresa-page" title="Notificaciones de vencimientos" breadcrumb={breadcrumb}>
+      <CredixPage className="morosos-empresa-page" title="Morosidad empresarial" breadcrumb={breadcrumb}>
         <Alert
           type="warning"
           showIcon
@@ -370,15 +370,15 @@ export function MorososEmpresaPage() {
   return (
     <CredixPage
       className="morosos-empresa-page"
-      title="Notificaciones de vencimientos"
+      title="Morosidad empresarial"
       subtitle={
         esCentral
           ? sedeSeleccionada?.denominacion
-            ? `Clientes que no pagan · ${sedeSeleccionada.denominacion}`
-            : 'Clientes que no pagan · toda la red'
+            ? `Sede ${sedeSeleccionada.denominacion}`
+            : 'Toda la red'
           : oficinaSesion?.denominacion
-            ? `Clientes que no pagan · ${oficinaSesion.denominacion}`
-            : 'Clientes que no pagan'
+            ? `Sede ${oficinaSesion.denominacion}`
+            : undefined
       }
       breadcrumb={breadcrumb}
       actions={

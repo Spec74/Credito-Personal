@@ -8,15 +8,16 @@ import {
   FilePdfOutlined,
   PrinterOutlined,
 } from '@ant-design/icons'
-import { useNavigate } from 'react-router-dom'
 import {
   downloadMovimientosCreditoCsv,
   openMovimientosCreditoPdfInTab,
+  openNotificacionesVencimientoPdfInTab,
   openRptClientePdfInTab,
   openRptEstadoCreditoPdfInTab,
   openRptPlanPagosPdfInTab,
 } from '../../api/creditoPlanes'
 import { ApiError } from '../../api/errors'
+import { useAuth } from '../../auth/useAuth'
 
 const { Text } = Typography
 
@@ -33,7 +34,8 @@ type Props = {
  * Reportes del crédito: PDFs principales visibles; el resto en menú.
  */
 export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
-  const navigate = useNavigate()
+  const { session } = useAuth()
+  const oficinaId = session?.oficinaId ?? 0
 
   const planPdf = useMutation({
     mutationFn: () => openRptPlanPagosPdfInTab(creditoId),
@@ -65,20 +67,27 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
     onError: (e) => message.error(errMsg(e)),
   })
 
+  const notifVencPdf = useMutation({
+    mutationFn: () => openNotificacionesVencimientoPdfInTab(oficinaId),
+    onSuccess: () => message.success('Notificaciones de vencimientos abiertas'),
+    onError: (e) => message.error(errMsg(e)),
+  })
+
   const busy =
     planPdf.isPending ||
     estadoPdf.isPending ||
     movPdf.isPending ||
     movCsv.isPending ||
-    fichaPdf.isPending
+    fichaPdf.isPending ||
+    notifVencPdf.isPending
 
   const masItems: MenuProps['items'] = [
     {
       key: 'notif-venc',
       icon: <BellOutlined />,
       label: 'Notificaciones de vencimientos',
-      disabled: busy,
-      onClick: () => navigate('/informes/morosos'),
+      disabled: busy || oficinaId < 1,
+      onClick: () => notifVencPdf.mutate(),
     },
     {
       key: 'mov-pdf',

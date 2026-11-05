@@ -6685,6 +6685,97 @@ internal static class CreditoReportesRestantesEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
+        app.MapGet(
+                "/api/v1/credito/rpt-notificaciones-vencimiento-pdf",
+                async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    int? oficinaId,
+                    IRptCreditoVencidoReadService rptCreditoVencido,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (oficinaId is null or < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Parámetros inválidos",
+                            detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
+                    }
+
+                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status403Forbidden,
+                            title: "Prohibido",
+                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
+                    }
+
+                    if (jwtOficinaId != oficinaId.Value)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status403Forbidden,
+                            title: "Prohibido",
+                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                    }
+
+                    var log = loggerFactory.CreateLogger("RptNotificacionesVencimientoPdf");
+                    try
+                    {
+                        // Todas las franjas: listado completo para notificar.
+                        var items = await rptCreditoVencido
+                            .ListarAsync(oficinaId.Value, null, null, null, ct)
+                            .ConfigureAwait(false);
+                        var pdfContext = await LegacyReportPdf.ResolveAsync(
+                                httpContext,
+                                oficinaId,
+                                fecha: DateTime.Today,
+                                titulo: "NOTIFICACIONES DE VENCIMIENTOS",
+                                cancellationToken: ct)
+                            .ConfigureAwait(false);
+                        var bytes = RptCreditoVencidoFichaPdfDocument.Build(
+                            items,
+                            pdfContext,
+                            RptCreditoVencidoPdfMode.Notificaciones);
+                        return TypedResults.File(
+                            bytes,
+                            "application/pdf",
+                            fileDownloadName: "notificaciones-vencimientos.pdf");
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error al ejecutar CREDITO.usp_RptCreditoVencido (notificaciones PDF)");
+                        var detail = "No se pudo generar el PDF de notificaciones de vencimientos.";
+                        if (env.IsDevelopment())
+                        {
+                            detail += $" Detalle: {ex.Message}";
+                        }
+
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("CreditoRptNotificacionesVencimientoPdf")
+            .WithSummary(
+                "PDF de notificaciones de vencimientos (clientes/créditos vencidos) para gestión de cobranza. usp_RptCreditoVencido. CreditoUser.")
+            .WithTags("credito", "reportes")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
 
 
         app.MapGet(

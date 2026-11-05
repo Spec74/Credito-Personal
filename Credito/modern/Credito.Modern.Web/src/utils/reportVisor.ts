@@ -139,6 +139,7 @@ export const KNOWN_REPORT_PDF_PATHS = [
   '/credito/rpt-morosidad-gestor-pdf',
   '/credito/rpt-credito-observado-pdf',
   '/credito/rpt-credito-vencido-pdf',
+  '/credito/rpt-notificaciones-vencimiento-pdf',
   '/credito/rpt-credito-morosidad-pdf',
   '/credito/rpt-plan-pagos-pdf',
   '/credito/rpt-estado-credito-pdf',

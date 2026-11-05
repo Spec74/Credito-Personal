@@ -27,8 +27,13 @@ export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
         description: 'Avance oficial / no oficial',
       },
       {
-        to: '/informes/morosos',
+        to: '/informes/credito-vencido',
         label: 'Notificaciones de vencimientos',
+        description: 'PDF de créditos vencidos para notificar cobranza',
+      },
+      {
+        to: '/informes/morosos',
+        label: 'Morosos empresariales',
         description: 'Clientes que no pagan (nunca pagó / dejó de pagar)',
       },
     ],
