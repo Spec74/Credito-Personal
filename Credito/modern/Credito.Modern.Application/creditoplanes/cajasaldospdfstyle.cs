@@ -27,15 +27,17 @@ internal static class CajaSaldosPdfStyle
     public static IContainer HeaderCell(IContainer c) =>
         c.Background(HeaderBg)
             .Border(0.5f)
-            .BorderColor(Border)
-            .PaddingVertical(3)
+            .BorderColor(HeaderBg)
+            .PaddingVertical(4)
             .PaddingHorizontal(3)
             .AlignMiddle()
             .DefaultTextStyle(x => x.FontColor(Colors.White).SemiBold());
 
     public static IContainer BodyCell(IContainer c, Color bg) =>
         c.Background(bg)
-            .Border(0.4f)
+            .BorderLeft(0.4f)
+            .BorderRight(0.4f)
+            .BorderBottom(0.4f)
             .BorderColor(Border)
             .PaddingVertical(2)
             .PaddingHorizontal(3)
@@ -44,7 +46,9 @@ internal static class CajaSaldosPdfStyle
 
     public static IContainer TotalsCell(IContainer c) =>
         c.Background(TotalsBg)
-            .Border(0.5f)
+            .BorderLeft(0.4f)
+            .BorderRight(0.4f)
+            .BorderBottom(0.5f)
             .BorderColor(Border)
             .PaddingVertical(3)
             .PaddingHorizontal(3)

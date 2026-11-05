@@ -28,8 +28,8 @@ export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
       },
       {
         to: '/informes/morosos',
-        label: 'Morosos',
-        description: 'Morosidad empresarial con semáforo de pago',
+        label: 'Notificaciones de vencimientos',
+        description: 'Clientes que no pagan (nunca pagó / dejó de pagar)',
       },
     ],
   },
@@ -50,7 +50,6 @@ export const INFORMES_HUB_SECTIONS: CredixHubSection[] = [
       { to: '/informes/plan-pagos', label: 'Plan de pagos', description: 'Por número de crédito' },
       { to: '/informes/estado-credito', label: 'Estado de crédito', description: 'Cabecera y cuotas' },
       { to: '/informes/credito-tarea', label: 'Tareas de crédito', description: 'Bandeja de tareas' },
-      { to: '/informes/reporte-cliente', label: 'Ficha cliente', description: 'Datos y avales' },
     ],
   },
   {

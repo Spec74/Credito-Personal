@@ -24,9 +24,10 @@ import {
   UserDeleteOutlined,
   UserOutlined,
 } from '@ant-design/icons'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { toggleClienteBloqueado } from '../../api/clientes'
 import { depurarPersonaCredito, fetchPersonaCreditoFicha } from '../../api/creditoGestion'
+import { openRptClientePdfInTab } from '../../api/creditoPlanes'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { cajaConfirm } from '../caja/cajaConfirm'
@@ -166,7 +167,7 @@ export function CreditoPersonaCabecera({
         <div className="credito-persona-cabecera__main">
         <div className="credito-persona-cabecera__identity">
           <Title level={4} className="credito-persona-cabecera__nombre">
-            <Link to={`/informes/reporte-cliente?personaId=${personaId}`}>{titulo}</Link>
+            {titulo}
           </Title>
           <Space wrap size={[6, 6]}>
             <Tag>{f.estadoCliente}</Tag>
@@ -213,11 +214,12 @@ export function CreditoPersonaCabecera({
                 {
                   key: 'ficha',
                   icon: <FilePdfOutlined />,
-                  label: (
-                    <Link to={`/informes/reporte-cliente?personaId=${personaId}`}>
-                      Ficha cliente PDF
-                    </Link>
-                  ),
+                  label: 'Ficha cliente PDF',
+                  onClick: () => {
+                    void openRptClientePdfInTab(personaId)
+                      .then(() => message.success('Ficha cliente abierta'))
+                      .catch((e: unknown) => message.error(errMsg(e)))
+                  },
                 },
                 ...(puedeDepurar
                   ? ([

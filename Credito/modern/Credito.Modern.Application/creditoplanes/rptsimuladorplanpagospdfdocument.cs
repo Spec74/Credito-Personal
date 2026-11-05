@@ -370,13 +370,27 @@ public static class RptSimuladorPlanPagosPdfDocument
     }
 
     private static IContainer TableHeaderCell(IContainer c) =>
-        c.Background(Brand).Border(0.5f).BorderColor(CredixReportTokens.BorderSoft).Padding(3).AlignCenter().AlignMiddle();
+        c.Background(Brand).Border(0.5f).BorderColor(Brand).Padding(3).AlignCenter().AlignMiddle();
 
     private static IContainer BodyCell(IContainer c, Color bg) =>
-        c.Background(bg).Border(0.4f).BorderColor(CredixReportTokens.BorderSoft).PaddingVertical(2).PaddingHorizontal(3).AlignMiddle();
+        c.Background(bg)
+            .BorderLeft(0.4f)
+            .BorderRight(0.4f)
+            .BorderBottom(0.4f)
+            .BorderColor(CredixReportTokens.BorderSoft)
+            .PaddingVertical(2)
+            .PaddingHorizontal(3)
+            .AlignMiddle();
 
     private static IContainer TotalCell(IContainer c) =>
-        c.Background(CredixReportTokens.TotalsBg).Border(0.5f).BorderColor(CredixReportTokens.BorderSoft).Padding(3).AlignCenter().AlignMiddle();
+        c.Background(CredixReportTokens.TotalsBg)
+            .BorderLeft(0.4f)
+            .BorderRight(0.4f)
+            .BorderBottom(0.5f)
+            .BorderColor(CredixReportTokens.BorderSoft)
+            .Padding(3)
+            .AlignCenter()
+            .AlignMiddle();
 
     private static IContainer TotalCellRight(IContainer c) =>
         TotalCell(c).AlignRight();

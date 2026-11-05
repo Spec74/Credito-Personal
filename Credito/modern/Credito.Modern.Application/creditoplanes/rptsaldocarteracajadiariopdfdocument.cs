@@ -155,7 +155,7 @@ public static class RptSaldoCarteraCajaDiarioPdfDocument
         container
             .Background(bg)
             .Border(CredixLegacyPdfDocument.HeaderBorderPt)
-            .BorderColor(BorderColor)
+            .BorderColor(bg)
             .PaddingVertical(3)
             .AlignCenter()
             .AlignMiddle();
@@ -164,8 +164,8 @@ public static class RptSaldoCarteraCajaDiarioPdfDocument
         container
             .Background(HeaderBg)
             .Border(CredixLegacyPdfDocument.HeaderBorderPt)
-            .BorderColor(BorderColor)
-            .PaddingVertical(3)
+            .BorderColor(HeaderBg)
+            .PaddingVertical(4)
             .PaddingHorizontal(2)
             .AlignCenter()
             .AlignMiddle();

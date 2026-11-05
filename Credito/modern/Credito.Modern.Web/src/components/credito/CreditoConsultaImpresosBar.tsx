@@ -1,7 +1,14 @@
 import { useMutation } from '@tanstack/react-query'
 import { Button, Dropdown, Space, Tooltip, Typography, message } from 'antd'
 import type { MenuProps } from 'antd'
-import { DownOutlined, FileExcelOutlined, FilePdfOutlined, PrinterOutlined } from '@ant-design/icons'
+import {
+  BellOutlined,
+  DownOutlined,
+  FileExcelOutlined,
+  FilePdfOutlined,
+  PrinterOutlined,
+} from '@ant-design/icons'
+import { useNavigate } from 'react-router-dom'
 import {
   downloadMovimientosCreditoCsv,
   openMovimientosCreditoPdfInTab,
@@ -26,6 +33,8 @@ type Props = {
  * Reportes del crédito: PDFs principales visibles; el resto en menú.
  */
 export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
+  const navigate = useNavigate()
+
   const planPdf = useMutation({
     mutationFn: () => openRptPlanPagosPdfInTab(creditoId),
     onSuccess: () => message.success('Plan de pagos abierto'),
@@ -64,6 +73,13 @@ export function CreditoConsultaImpresosBar({ creditoId, personaId }: Props) {
     fichaPdf.isPending
 
   const masItems: MenuProps['items'] = [
+    {
+      key: 'notif-venc',
+      icon: <BellOutlined />,
+      label: 'Notificaciones de vencimientos',
+      disabled: busy,
+      onClick: () => navigate('/informes/morosos'),
+    },
     {
       key: 'mov-pdf',
       icon: <FilePdfOutlined />,

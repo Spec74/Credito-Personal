@@ -16,6 +16,7 @@ import {
   rechazarCredito,
   type CreditoPorAprobarRow,
 } from '../../api/creditoAprobar'
+import { openRptClientePdfInTab } from '../../api/creditoPlanes'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import {
@@ -238,7 +239,11 @@ export function CreditoAprobarPage() {
                 icon={<UserOutlined />}
                 onClick={(e) => {
                   e.stopPropagation()
-                  navigate(`/informes/reporte-cliente?personaId=${row.personaId}`)
+                  void openRptClientePdfInTab(row.personaId)
+                    .then(() => message.success('Ficha cliente abierta'))
+                    .catch((err: unknown) =>
+                      message.error(err instanceof ApiError ? err.message : 'No se pudo abrir la ficha'),
+                    )
                 }}
               >
                 Ficha

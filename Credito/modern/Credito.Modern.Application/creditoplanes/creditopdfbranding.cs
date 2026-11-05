@@ -108,12 +108,16 @@ public static class CreditoPdfBranding
             .FontSize(9)
             .FontColor(Colors.White);
 
+    /// <summary>
+    /// Cabecera de tabla como franja continua (borde del mismo color que el fondo:
+    /// evita “bloques” azul separados por el BorderSoft claro).
+    /// </summary>
     public static IContainer TableHeaderCell(IContainer c) =>
         c.DefaultTextStyle(x => x.SemiBold().FontSize(7).FontColor(Colors.White))
-            .PaddingVertical(3)
+            .PaddingVertical(4)
             .PaddingHorizontal(3)
             .Border(0.5f)
-            .BorderColor(Border)
+            .BorderColor(HeaderBg)
             .Background(HeaderBg)
             .AlignMiddle();
 
@@ -121,7 +125,9 @@ public static class CreditoPdfBranding
         c.DefaultTextStyle(x => x)
             .PaddingVertical(2)
             .PaddingHorizontal(3)
-            .Border(0.4f)
+            .BorderLeft(0.4f)
+            .BorderRight(0.4f)
+            .BorderBottom(0.4f)
             .BorderColor(Border)
             .Background(zebra ? Zebra : Colors.White)
             .AlignMiddle();
@@ -131,7 +137,9 @@ public static class CreditoPdfBranding
             .PaddingVertical(3)
             .PaddingHorizontal(3)
             .Background(TotalsBg)
-            .Border(0.5f)
+            .BorderLeft(0.4f)
+            .BorderRight(0.4f)
+            .BorderBottom(0.5f)
             .BorderColor(Border)
             .AlignMiddle();
 

@@ -192,11 +192,6 @@ export const CREDITO_HUB_SECTIONS: CredixHubSection[] = [
         description: 'Cabecera y cuotas',
       },
       {
-        to: '/informes/reporte-cliente',
-        label: 'Ficha cliente',
-        description: 'Datos y avales de la persona',
-      },
-      {
         to: '/informes/central-riesgo',
         label: 'Central de riesgo',
         description: 'Export TXT por periodo',

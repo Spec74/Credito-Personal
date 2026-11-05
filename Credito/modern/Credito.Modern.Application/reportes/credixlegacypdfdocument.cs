@@ -577,8 +577,8 @@ public static class CredixLegacyPdfDocument
         container
             .Background(HeaderBg)
             .Border(HeaderBorderPt)
-            .BorderColor(BorderColor)
-            .PaddingVertical(3)
+            .BorderColor(HeaderBg)
+            .PaddingVertical(4)
             .PaddingHorizontal(3)
             .AlignMiddle()
             .AlignCenter()
@@ -588,8 +588,8 @@ public static class CredixLegacyPdfDocument
         container
             .Background(HeaderBg)
             .Border(HeaderBorderPt)
-            .BorderColor(BorderColor)
-            .PaddingVertical(3)
+            .BorderColor(HeaderBg)
+            .PaddingVertical(4)
             .PaddingHorizontal(3)
             .AlignMiddle()
             .AlignLeft()
@@ -599,8 +599,8 @@ public static class CredixLegacyPdfDocument
         container
             .Background(HeaderBg)
             .Border(HeaderBorderPt)
-            .BorderColor(BorderColor)
-            .PaddingVertical(3)
+            .BorderColor(HeaderBg)
+            .PaddingVertical(4)
             .PaddingHorizontal(3)
             .AlignMiddle()
             .AlignRight()
@@ -608,7 +608,9 @@ public static class CredixLegacyPdfDocument
 
     public static IContainer BodyCell(IContainer container) =>
         container
-            .Border(BodyBorderPt)
+            .BorderLeft(BodyBorderPt)
+            .BorderRight(BodyBorderPt)
+            .BorderBottom(BodyBorderPt)
             .BorderColor(BorderColor)
             .PaddingVertical(2)
             .PaddingHorizontal(3)
