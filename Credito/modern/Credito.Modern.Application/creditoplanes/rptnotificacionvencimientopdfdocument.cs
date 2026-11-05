@@ -44,10 +44,12 @@ public static class RptNotificacionVencimientoPdfDocument
             .ToList();
 
         var totalCuotasVencidas = vencidas.Sum(c => c.Cuota);
+        // Suma en céntimos: misma cifra que la grilla / cobro (no usp_CalcularMoraPendiente).
         var totalMoraCuotas = vencidas.Sum(c => c.ImporteMora ?? 0m);
         var maxDias = vencidas.Count == 0 ? 0 : vencidas.Max(c => c.DiasAtrazo ?? 0);
         var creditoVencido = metricas?.CreditoVencido ?? totalCuotasVencidas;
-        var mora = moraPendiente ?? totalMoraCuotas;
+        var moraEnCuotas = totalMoraCuotas;
+        var moraConsolidadaRef = moraPendiente;
         var cliente = ficha?.Cliente ?? cab.Cliente;
         var documento = ficha?.NumeroDocumento ?? cab.CodigoPersona;
 
@@ -105,7 +107,13 @@ public static class RptNotificacionVencimientoPdfDocument
                         ("Cuotas vencidas", vencidas.Count.ToString(CreditoPdfBranding.Inv)),
                         ("Máx. días atraso", maxDias.ToString(CreditoPdfBranding.Inv)),
                         ("Importe vencido", CreditoPdfBranding.Money(creditoVencido)),
-                        ("Mora pendiente", CreditoPdfBranding.Money(mora)),
+                        ("Mora en cuotas", CreditoPdfBranding.Money(moraEnCuotas)),
+                        (
+                            "Ref. mora consolidada",
+                            moraConsolidadaRef is null
+                                ? "—"
+                                : CreditoPdfBranding.Money(moraConsolidadaRef)
+                        ),
                     ]));
 
                     col.Item().Element(c =>

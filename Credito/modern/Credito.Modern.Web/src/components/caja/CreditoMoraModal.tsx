@@ -31,6 +31,7 @@ import {
 } from '../../api/creditoPlanes'
 import type { CuotasPendientesRow } from '../../types/api'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import { formatFecha, formatFechaHora } from '../../utils/formatFecha'
 import { CajaModal } from './CajaModal'
 import { CredixDataTable } from '../credix'
@@ -111,7 +112,11 @@ export function CreditoMoraModal({
 
   const indMora = resumenQuery.data?.indMoraProducto ?? false
   const saldoApi = resumenQuery.data?.saldoPostergado ?? 0
-  const moraCalculada = moraCalcQuery.data?.moraPendiente ?? 0
+  const postergada = saldoApi || saldoHistorial
+  /** Misma base que cobro: mora en cuotas + postergada (no el consolidado saldo×días). */
+  const moraTotalCobrar = sumMoney([totalVigente, postergada])
+  /** Referencia legacy usp_CalcularMoraPendiente (otra fórmula; no debe competir con el total). */
+  const moraConsolidadaRef = moraCalcQuery.data?.moraPendiente ?? null
 
   const pdfEstado = useMutation({
     mutationFn: () => downloadRptEstadoCreditoPdf(creditoId!),
@@ -258,7 +263,7 @@ export function CreditoMoraModal({
               loading={false}
             />
             <Text type="secondary" className="caja-mora-kpi__hint">
-              {morasVigentes.length} cuota(s) con atraso
+              {morasVigentes.length} cuota(s) con atraso · suma de la grilla
             </Text>
           </div>
         </Col>
@@ -266,7 +271,7 @@ export function CreditoMoraModal({
           <div className="caja-mora-kpi">
             <Statistic
               title="Postergada (tabla)"
-              value={saldoApi || saldoHistorial}
+              value={postergada}
               precision={2}
               prefix="S/."
               loading={resumenQuery.isLoading}
@@ -279,14 +284,21 @@ export function CreditoMoraModal({
         <Col xs={24} sm={8}>
           <div className="caja-mora-kpi">
             <Statistic
-              title="Mora total (cálculo)"
-              value={moraCalculada}
+              title="Mora total a cobrar"
+              value={moraTotalCobrar}
               precision={2}
               prefix="S/."
-              loading={moraCalcQuery.isLoading}
+              loading={resumenQuery.isLoading}
             />
             <Text type="secondary" className="caja-mora-kpi__hint">
-              Cálculo consolidado del crédito
+              Cuotas + postergada
+              {moraConsolidadaRef != null &&
+              Math.abs(moraConsolidadaRef - moraTotalCobrar) >= 0.01 ? (
+                <>
+                  {' '}
+                  · ref. saldo×días {formatMoney(moraConsolidadaRef)}
+                </>
+              ) : null}
             </Text>
           </div>
         </Col>

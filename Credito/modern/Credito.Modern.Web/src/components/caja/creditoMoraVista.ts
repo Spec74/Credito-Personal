@@ -1,5 +1,6 @@
 import type { CuotasPendientesRow } from '../../types/api'
 import type { CreditoMoraRow } from '../../api/cajaDiario'
+import { sumMoney } from '../../utils/money'
 import { getCuotaRowVariant, isCuotaSelectable } from './cuotaRowStyle'
 
 /** Mora calculada en cuotas aún no registrada en CreditoMora (hasta el pago con atraso). */
@@ -40,14 +41,13 @@ export function extraerMorasVigentesEnCuotas(
 }
 
 export function sumarMoraVigente(cuotas: CuotasPendientesRow[]): number {
-  return extraerMorasVigentesEnCuotas(cuotas).reduce(
-    (s, r) => s + r.importeMora,
-    0,
-  )
+  return sumMoney(extraerMorasVigentesEnCuotas(cuotas).map((r) => r.importeMora))
 }
 
 export function sumarSaldoPostergadoHistorial(rows: CreditoMoraRow[]): number {
-  return rows
-    .filter((r) => r.movimientoCajaId == null || r.movimientoCajaId === 0)
-    .reduce((s, r) => s + (r.saldoMora ?? 0), 0)
+  return sumMoney(
+    rows
+      .filter((r) => r.movimientoCajaId == null || r.movimientoCajaId === 0)
+      .map((r) => r.saldoMora ?? 0),
+  )
 }

@@ -19,7 +19,6 @@ import type { ColumnsType } from 'antd/es/table'
 import {
   anularCredito,
   fetchEstadoPlanPago,
-  fetchMoraPendiente,
   fetchMetricasVencimientoCredito,
   fetchMovimientosCredito,
   fetchRptEstadoCredito,
@@ -32,6 +31,7 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import type { EstadoPlanPagoCuota, RptMovimientoCreditoRow } from '../../types/api'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 import { actualizarDescuentoPlanPago } from '../../api/creditoGestion'
 import { CreditoConsultaGestionPanel } from './CreditoConsultaGestionPanel'
 import { CreditoConsultaClienteBar } from '../../components/credito/CreditoConsultaClienteBar'
@@ -190,13 +190,6 @@ export function ConsultaCreditoPage() {
       setActiveId(creditoIdFromUrl)
     }
   }, [creditoIdFromUrl, activeId])
-
-  const moraQuery = useQuery({
-    queryKey: ['mora-pendiente', activeId],
-    queryFn: () => fetchMoraPendiente(activeId!),
-    enabled: activeId != null,
-    staleTime: creditoStaleTime.operacion,
-  })
 
   const planQuery = useQuery({
     queryKey: ['estado-plan-pago', activeId],
@@ -517,42 +510,36 @@ export function ConsultaCreditoPage() {
 
   const planResumen = useMemo(() => {
     const rows = planQuery.data ?? []
-    return rows.reduce(
-      (acc, row) => ({
-        capital: acc.capital + (row.capital ?? 0),
-        amortizacion: acc.amortizacion + (row.amortizacion ?? 0),
-        interes: acc.interes + (row.interes ?? 0),
-        gastosAdm: acc.gastosAdm + (row.gastosAdm ?? 0),
-        cuota: acc.cuota + (row.cuota ?? 0),
-        mora: acc.mora + (row.importeMora ?? 0),
-        descuento: acc.descuento + (row.descuento ?? 0),
-        cargo: acc.cargo + (row.cargo ?? 0),
-        pagoLibre: acc.pagoLibre + (row.pagoLibre ?? 0),
-        pagado: acc.pagado + (row.pagoCuota ?? 0),
-        pagadas: acc.pagadas + (row.estado?.trim().toUpperCase() === 'PAG' ? 1 : 0),
-      }),
-      {
-        capital: 0,
-        amortizacion: 0,
-        interes: 0,
-        gastosAdm: 0,
-        cuota: 0,
-        mora: 0,
-        descuento: 0,
-        cargo: 0,
-        pagoLibre: 0,
-        pagado: 0,
-        pagadas: 0,
-      },
-    )
+    return {
+      capital: sumMoney(rows.map((r) => r.capital ?? 0)),
+      amortizacion: sumMoney(rows.map((r) => r.amortizacion ?? 0)),
+      interes: sumMoney(rows.map((r) => r.interes ?? 0)),
+      gastosAdm: sumMoney(rows.map((r) => r.gastosAdm ?? 0)),
+      cuota: sumMoney(rows.map((r) => r.cuota ?? 0)),
+      mora: sumMoney(rows.map((r) => r.importeMora ?? 0)),
+      descuento: sumMoney(rows.map((r) => r.descuento ?? 0)),
+      cargo: sumMoney(rows.map((r) => r.cargo ?? 0)),
+      pagoLibre: sumMoney(rows.map((r) => r.pagoLibre ?? 0)),
+      pagado: sumMoney(rows.map((r) => r.pagoCuota ?? 0)),
+      pagadas: rows.filter((r) => r.estado?.trim().toUpperCase() === 'PAG').length,
+    }
   }, [planQuery.data])
 
-  const moraVigente = moraQuery.data?.moraPendiente ?? 0
+  /** Mora operativa = suma ImporteMora de cuotas PEN (misma base que cobro / grilla). */
+  const moraEnCuotas = useMemo(
+    () =>
+      sumMoney(
+        (planQuery.data ?? [])
+          .filter((c) => c.estado?.trim().toUpperCase() !== 'PAG')
+          .map((c) => c.importeMora ?? 0),
+      ),
+    [planQuery.data],
+  )
   const moraPostergada = moraResumenQuery.data?.saldoPostergado ?? 0
   const moraTotal =
     moraResumenQuery.data?.indMoraProducto === true
-      ? moraVigente + moraPostergada
-      : moraVigente
+      ? sumMoney([moraEnCuotas, moraPostergada])
+      : moraEnCuotas
 
   const estadoActivoMeta = getCreditoEstadoMeta(estadoCreditoQuery.data?.cabecera?.estado)
 
@@ -562,7 +549,7 @@ export function ConsultaCreditoPage() {
           { value: activeId, label: 'Crédito N°' },
           {
             value:
-              moraQuery.isLoading || moraResumenQuery.isLoading
+              planQuery.isLoading || moraResumenQuery.isLoading
                 ? '…'
                 : formatMoney(moraTotal),
             label: 'Mora total',
