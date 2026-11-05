@@ -24,6 +24,8 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 | API (visión) | [API-OVERVIEW.md](API-OVERVIEW.md) |
 | Pruebas | [TEST-STRATEGY.md](TEST-STRATEGY.md) |
 | **Guía go-live (jornada + batería, BD vacía)** | [GUIA-PRUEBAS-GO-LIVE.md](GUIA-PRUEBAS-GO-LIVE.md) |
+| **Manual de usuario por rol (capacitación)** | [MANUAL-USUARIO-POR-ROL.md](MANUAL-USUARIO-POR-ROL.md) |
+| Matriz E2E rol × módulo | [E2E-ROLE-MODULE-MATRIX.md](E2E-ROLE-MODULE-MATRIX.md) |
 | Operaciones / runbooks | [OPS.md](OPS.md) |
 | Endurecimiento plataforma | [PLATFORM-HARDENING.md](PLATFORM-HARDENING.md) |
 | Especificaciones SSD | [ssd/README.md](ssd/README.md) |
@@ -100,18 +102,22 @@ Fases UI/proxy históricas: retiradas 2026-10-27 (el mapa vivo es [ESTRUCTURA.md
 
 ---
 
-## 5. Manual rápido de uso
+## 5. Manual de usuario por rol
 
-Ver roles y flujos en la versión anterior consolidada:
+Capacitación operativa completa (flujos, pantallas, matriz ¿quién hace qué?, FAQ):
 
-| Rol | Pantallas |
-|-----|-----------|
-| Gestor / cajero | Login → Inicio → Caja diario / Consulta crédito / Clientes |
-| Encargado | Bóveda, Saldos, asignar, cierres |
-| Aprobador | `/credito/aprobar` |
-| Administrador | Admin, maestros, oficinas, parámetros |
+→ **[MANUAL-USUARIO-POR-ROL.md](MANUAL-USUARIO-POR-ROL.md)**
 
-Detalle de aceptación: SSD-02 / SSD-03 / SSD-04 §7.
+| Perfil | Enfoque |
+|--------|---------|
+| Gestor / Analista | Clientes, solicitud, simulador, prendario, consulta, mora |
+| Cajero | Caja diario, cobro, tickets |
+| Aprobador | Bandeja `/credito/aprobar` |
+| Encargado | Saldos, asignar caja, verificar pagos, fondeo |
+| Administrador | Usuarios, roles, bóveda, condonaciones, red |
+| Lectura / reportes | Informes sin mutar |
+
+ACL automatizado: [E2E-ROLE-MODULE-MATRIX.md](E2E-ROLE-MODULE-MATRIX.md). Criterios SSD: SSD-02 / SSD-03 / SSD-04 §7.
 
 ---
 
