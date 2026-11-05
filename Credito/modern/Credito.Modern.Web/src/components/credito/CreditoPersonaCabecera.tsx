@@ -15,7 +15,6 @@ import {
 import type { MenuProps } from 'antd'
 import {
   FileAddOutlined,
-  FilePdfOutlined,
   LockOutlined,
   MoreOutlined,
   PlayCircleOutlined,
@@ -27,7 +26,6 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { toggleClienteBloqueado } from '../../api/clientes'
 import { depurarPersonaCredito, fetchPersonaCreditoFicha } from '../../api/creditoGestion'
-import { openRptClientePdfInTab } from '../../api/creditoPlanes'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { cajaConfirm } from '../caja/cajaConfirm'
@@ -157,6 +155,42 @@ export function CreditoPersonaCabecera({
     navigate(`/credito/nuevo?personaId=${personaId}`)
   }
 
+  const masItems: NonNullable<MenuProps['items']> = [
+    ...(puedeDepurar
+      ? ([
+          {
+            key: 'depurar',
+            icon: <UserDeleteOutlined />,
+            label: 'Depurar cliente',
+            onClick: () => {
+              setObsDepurar('')
+              setModalDepurar(true)
+            },
+          },
+        ] satisfies NonNullable<MenuProps['items']>)
+      : []),
+    ...(puedeBloquear
+      ? ([
+          {
+            key: 'bloquear',
+            danger: !f.bloqueado,
+            icon: f.bloqueado ? <UnlockOutlined /> : <LockOutlined />,
+            label: f.bloqueado ? 'Desbloquear cliente' : 'Bloquear cliente',
+            disabled: bloquearCliente.isPending,
+            onClick: () => {
+              cajaConfirm({
+                title: f.bloqueado ? 'Desbloquear cliente' : 'Bloquear cliente',
+                content: f.bloqueado
+                  ? '¿Desea desbloquear este cliente? Volverá a estar disponible para operaciones.'
+                  : '¿Desea bloquear este cliente? Se impedirá crear nuevas solicitudes de crédito.',
+                onOk: () => bloquearCliente.mutateAsync(),
+              })
+            },
+          },
+        ] satisfies NonNullable<MenuProps['items']>)
+      : []),
+  ]
+
   return (
     <header className="credito-persona-cabecera credito-persona-cabecera--profile">
       <div className="credito-persona-cabecera__profile-grid">
@@ -208,59 +242,15 @@ export function CreditoPersonaCabecera({
               Nueva solicitud
             </Button>
           ) : null}
-          <Dropdown
-            menu={{
-              items: [
-                {
-                  key: 'ficha',
-                  icon: <FilePdfOutlined />,
-                  label: 'Ficha cliente PDF',
-                  onClick: () => {
-                    void openRptClientePdfInTab(personaId)
-                      .then(() => message.success('Ficha cliente abierta'))
-                      .catch((e: unknown) => message.error(errMsg(e)))
-                  },
-                },
-                ...(puedeDepurar
-                  ? ([
-                      {
-                        key: 'depurar',
-                        icon: <UserDeleteOutlined />,
-                        label: 'Depurar cliente',
-                        onClick: () => {
-                          setObsDepurar('')
-                          setModalDepurar(true)
-                        },
-                      },
-                    ] satisfies NonNullable<MenuProps['items']>)
-                  : []),
-                ...(puedeBloquear
-                  ? ([
-                      {
-                        key: 'bloquear',
-                        danger: !f.bloqueado,
-                        icon: f.bloqueado ? <UnlockOutlined /> : <LockOutlined />,
-                        label: f.bloqueado ? 'Desbloquear cliente' : 'Bloquear cliente',
-                        disabled: bloquearCliente.isPending,
-                        onClick: () => {
-                          cajaConfirm({
-                            title: f.bloqueado ? 'Desbloquear cliente' : 'Bloquear cliente',
-                            content: f.bloqueado
-                              ? '¿Desea desbloquear este cliente? Volverá a estar disponible para operaciones.'
-                              : '¿Desea bloquear este cliente? Se impedirá crear nuevas solicitudes de crédito.',
-                            onOk: () => bloquearCliente.mutateAsync(),
-                          })
-                        },
-                      },
-                    ] satisfies NonNullable<MenuProps['items']>)
-                  : []),
-              ],
-            }}
-            trigger={['click']}
-            placement="bottomRight"
-          >
-            <Button icon={<MoreOutlined />}>Más</Button>
-          </Dropdown>
+          {masItems.length > 0 ? (
+            <Dropdown
+              menu={{ items: masItems }}
+              trigger={['click']}
+              placement="bottomRight"
+            >
+              <Button icon={<MoreOutlined />}>Más</Button>
+            </Dropdown>
+          ) : null}
         </Space>
       </div>
       </div>
