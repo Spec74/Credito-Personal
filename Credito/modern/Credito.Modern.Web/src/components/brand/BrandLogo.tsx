@@ -45,7 +45,7 @@ export function BrandLogo({
           className="credix-brand-logo__img"
           src={branding.logoSrc}
           srcSet={`${branding.logoSrc} 1x, ${branding.logoSrc3x} 3x`}
-          sizes={fluid ? '(max-width: 960px) 42vw, 240px' : `${width}px`}
+          sizes={fluid ? '(max-width: 960px) 32vw, 280px' : `${width}px`}
           alt={`${branding.companyLine1} ${branding.companyName}`}
           width={width}
           height={height}
