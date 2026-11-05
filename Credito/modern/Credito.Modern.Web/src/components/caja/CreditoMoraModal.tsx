@@ -8,16 +8,11 @@ import {
   Statistic,
   Tabs,
   Tag,
-  Typography,
   message,
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import {
-  FilePdfOutlined,
-  InfoCircleOutlined,
-  WalletOutlined,
-} from '@ant-design/icons'
+import { FilePdfOutlined, WalletOutlined } from '@ant-design/icons'
 import {
   fetchCreditoMora,
   fetchCreditoMoraResumen,
@@ -27,7 +22,6 @@ import {
 import {
   downloadRptEstadoCreditoPdf,
   downloadRptPlanPagosPdf,
-  fetchMoraPendiente,
 } from '../../api/creditoPlanes'
 import type { CuotasPendientesRow } from '../../types/api'
 import { formatMoney } from '../../utils/formatMoney'
@@ -42,8 +36,6 @@ import {
   type MoraVigenteCuotaRow,
 } from './creditoMoraVista'
 
-const { Text, Paragraph } = Typography
-
 export function CreditoMoraModal({
   open,
   creditoId,
@@ -53,10 +45,8 @@ export function CreditoMoraModal({
 }: {
   open: boolean
   creditoId: number | null
-  /** Cuotas cargadas en cobranzas (usp_CuotasPendientes). */
   cuotas: CuotasPendientesRow[]
   onClose: () => void
-  /** Selecciona todas las cuotas cobrables y cierra el modal. */
   onPrepararCobroTodasCuotas?: () => void
 }) {
   const historialQuery = useQuery({
@@ -80,17 +70,9 @@ export function CreditoMoraModal({
     [cuotas, cuotasFallbackQuery.data],
   )
 
-
-
   const resumenQuery = useQuery({
     queryKey: ['credito-mora-resumen', creditoId],
     queryFn: () => fetchCreditoMoraResumen(creditoId!),
-    enabled: open && creditoId != null && creditoId > 0,
-  })
-
-  const moraCalcQuery = useQuery({
-    queryKey: ['mora-pendiente', creditoId],
-    queryFn: () => fetchMoraPendiente(creditoId!),
     enabled: open && creditoId != null && creditoId > 0,
   })
 
@@ -113,10 +95,7 @@ export function CreditoMoraModal({
   const indMora = resumenQuery.data?.indMoraProducto ?? false
   const saldoApi = resumenQuery.data?.saldoPostergado ?? 0
   const postergada = saldoApi || saldoHistorial
-  /** Misma base que cobro: mora en cuotas + postergada (no el consolidado saldo×días). */
   const moraTotalCobrar = sumMoney([totalVigente, postergada])
-  /** Referencia legacy usp_CalcularMoraPendiente (otra fórmula; no debe competir con el total). */
-  const moraConsolidadaRef = moraCalcQuery.data?.moraPendiente ?? null
 
   const pdfEstado = useMutation({
     mutationFn: () => downloadRptEstadoCreditoPdf(creditoId!),
@@ -199,6 +178,7 @@ export function CreditoMoraModal({
 
   const sinDatosHistorial = !historialQuery.isLoading && historial.length === 0
   const sinDatosVigente = morasVigentes.length === 0
+  const mostrarPostergada = indMora || postergada > 0
 
   return (
     <CajaModal
@@ -243,83 +223,47 @@ export function CreditoMoraModal({
         </Space>
       }
     >
-      {!indMora && resumenQuery.isSuccess ? (
-        <Alert
-          type="info"
-          showIcon
-          message="Este producto no aplica mora postergada (IndMora desactivado)."
-          style={{ marginBottom: 16 }}
-        />
-      ) : null}
-
       <Row gutter={[12, 12]} className="caja-mora-modal__kpis">
-        <Col xs={24} sm={8}>
+        <Col xs={24} sm={mostrarPostergada ? 8 : 12}>
           <div className="caja-mora-kpi">
             <Statistic
-              title="Mora en cuotas (hoy)"
+              title="Mora en cuotas"
               value={totalVigente}
               precision={2}
               prefix="S/."
-              loading={false}
             />
-            <Text type="secondary" className="caja-mora-kpi__hint">
-              {morasVigentes.length} cuota(s) con atraso · suma de la grilla
-            </Text>
+            {morasVigentes.length > 0 ? (
+              <div className="caja-mora-kpi__hint">
+                {morasVigentes.length} cuota(s) con atraso
+              </div>
+            ) : null}
           </div>
         </Col>
-        <Col xs={24} sm={8}>
+        {mostrarPostergada ? (
+          <Col xs={24} sm={8}>
+            <div className="caja-mora-kpi">
+              <Statistic
+                title="Postergada"
+                value={postergada}
+                precision={2}
+                prefix="S/."
+                loading={resumenQuery.isLoading}
+              />
+            </div>
+          </Col>
+        ) : null}
+        <Col xs={24} sm={mostrarPostergada ? 8 : 12}>
           <div className="caja-mora-kpi">
             <Statistic
-              title="Postergada (tabla)"
-              value={postergada}
-              precision={2}
-              prefix="S/."
-              loading={resumenQuery.isLoading}
-            />
-            <Text type="secondary" className="caja-mora-kpi__hint">
-              Registrada al pagar cuotas con mora
-            </Text>
-          </div>
-        </Col>
-        <Col xs={24} sm={8}>
-          <div className="caja-mora-kpi">
-            <Statistic
-              title="Mora total a cobrar"
+              title="Mora total"
               value={moraTotalCobrar}
               precision={2}
               prefix="S/."
               loading={resumenQuery.isLoading}
             />
-            <Text type="secondary" className="caja-mora-kpi__hint">
-              Cuotas + postergada
-              {moraConsolidadaRef != null &&
-              Math.abs(moraConsolidadaRef - moraTotalCobrar) >= 0.01 ? (
-                <>
-                  {' '}
-                  · ref. saldo×días {formatMoney(moraConsolidadaRef)}
-                </>
-              ) : null}
-            </Text>
           </div>
         </Col>
       </Row>
-
-      <Alert
-        type="info"
-        showIcon
-        icon={<InfoCircleOutlined />}
-        className="caja-mora-modal__info"
-        message="¿Dónde se cobra la mora?"
-        description={
-          <Paragraph style={{ marginBottom: 0 }}>
-            La mora <strong>postergada</strong> se registra en{' '}
-            <code>CREDITO.CreditoMora</code> al cobrar cuotas con atraso y se{' '}
-            <strong>liquida al pagar la última cuota pendiente</strong> en la pestaña
-            Cobranzas (movimiento MOR). No se cobra desde este cuadro: use «Preparar
-            cobro de cuotas» o seleccione las cuotas en la grilla.
-          </Paragraph>
-        }
-      />
 
       <Tabs
         className="caja-mora-modal__tabs"
@@ -327,52 +271,35 @@ export function CreditoMoraModal({
           {
             key: 'vigente',
             label: `Mora vigente (${morasVigentes.length})`,
-            children: (
-              <>
-                {sinDatosVigente ? (
-                  <Alert
-                    type="success"
-                    showIcon
-                    message="No hay cuotas con mora o atraso en la vista actual."
-                  />
-                ) : (
-                  <CredixDataTable<MoraVigenteCuotaRow>
-                    rowKey="key"
-                    columns={colsVigente}
-                    dataSource={morasVigentes}
-                    loading={cuotasFallbackQuery.isLoading && cuotas.length === 0}
-                    pagination={{ defaultPageSize: 8, hideOnSinglePage: true }}
-                    size="small"
-                    scroll={{ x: 640 }}
-                  />
-                )}
-              </>
+            children: sinDatosVigente ? (
+              <Alert type="success" showIcon message="Sin cuotas con mora o atraso." />
+            ) : (
+              <CredixDataTable<MoraVigenteCuotaRow>
+                rowKey="key"
+                columns={colsVigente}
+                dataSource={morasVigentes}
+                loading={cuotasFallbackQuery.isLoading && cuotas.length === 0}
+                pagination={{ defaultPageSize: 8, hideOnSinglePage: true }}
+                size="small"
+                scroll={{ x: 640 }}
+              />
             ),
           },
           {
             key: 'historial',
             label: `Historial postergado (${historial.length})`,
-            children: (
-              <>
-                {sinDatosHistorial ? (
-                  <Alert
-                    type="warning"
-                    showIcon
-                    message="Sin registros en CreditoMora todavía"
-                    description="Es normal si aún no se ha cobrado ninguna cuota con mora en esta sesión. Al pagar cuotas atrasadas, el sistema registrará cada mora aquí hasta liquidarlas con la última cuota."
-                  />
-                ) : (
-                  <CredixDataTable<CreditoMoraRow>
-                    rowKey="creditoMoraId"
-                    columns={colsHistorial}
-                    dataSource={historial}
-                    loading={historialQuery.isLoading}
-                    pagination={{ defaultPageSize: 8, hideOnSinglePage: true }}
-                    size="small"
-                    scroll={{ x: 640 }}
-                  />
-                )}
-              </>
+            children: sinDatosHistorial ? (
+              <Alert type="info" showIcon message="Sin mora postergada registrada." />
+            ) : (
+              <CredixDataTable<CreditoMoraRow>
+                rowKey="creditoMoraId"
+                columns={colsHistorial}
+                dataSource={historial}
+                loading={historialQuery.isLoading}
+                pagination={{ defaultPageSize: 8, hideOnSinglePage: true }}
+                size="small"
+                scroll={{ x: 640 }}
+              />
             ),
           },
         ]}

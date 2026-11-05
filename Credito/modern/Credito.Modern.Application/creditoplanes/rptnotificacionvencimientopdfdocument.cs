@@ -6,8 +6,7 @@ using QuestPDF.Infrastructure;
 namespace Credito.Modern.Application.CreditoPlanes;
 
 /// <summary>
-/// Carta PDF de notificación de vencimiento para un crédito/cliente
-/// (imprimir o enviar). Datos de ficha + estado de cuenta + mora.
+/// Carta PDF de notificación de vencimiento para un crédito/cliente.
 /// </summary>
 public static class RptNotificacionVencimientoPdfDocument
 {
@@ -18,9 +17,7 @@ public static class RptNotificacionVencimientoPdfDocument
 
     public static byte[] Build(
         RptEstadoCreditoInformeDto estado,
-        RptClienteFichaDto? ficha,
-        decimal? moraPendiente,
-        CreditoVencidoMetricasDto? metricas)
+        RptClienteFichaDto? ficha)
     {
         var cab = estado.Cabecera;
         var hoy = DateTime.Today;
@@ -44,14 +41,15 @@ public static class RptNotificacionVencimientoPdfDocument
             .ToList();
 
         var totalCuotasVencidas = vencidas.Sum(c => c.Cuota);
-        // Suma en céntimos: misma cifra que la grilla / cobro (no usp_CalcularMoraPendiente).
-        var totalMoraCuotas = vencidas.Sum(c => c.ImporteMora ?? 0m);
+        var totalMora = vencidas.Sum(c => c.ImporteMora ?? 0m);
         var maxDias = vencidas.Count == 0 ? 0 : vencidas.Max(c => c.DiasAtrazo ?? 0);
-        var creditoVencido = metricas?.CreditoVencido ?? totalCuotasVencidas;
-        var moraEnCuotas = totalMoraCuotas;
-        var moraConsolidadaRef = moraPendiente;
+        var totalPagar = totalCuotasVencidas + totalMora;
         var cliente = ficha?.Cliente ?? cab.Cliente;
         var documento = ficha?.NumeroDocumento ?? cab.CodigoPersona;
+        var direccion = string.Join(
+            " · ",
+            new[] { ficha?.Direccion, ficha?.Distrito }
+                .Where(s => !string.IsNullOrWhiteSpace(s)));
 
         return Document.Create(document =>
         {
@@ -68,61 +66,35 @@ public static class RptNotificacionVencimientoPdfDocument
                     CreditoPdfBranding.ComposeTitleBlock(
                         col,
                         "NOTIFICACIÓN DE VENCIMIENTO",
-                        $"{documento} · {cliente}");
+                        $"Crédito N° {cab.CreditoId.ToString(CreditoPdfBranding.Inv)}");
 
-                    col.Item()
-                        .Background(CreditoPdfBranding.MetaBg)
-                        .Border(0.5f)
-                        .BorderColor(CreditoPdfBranding.Border)
-                        .Padding(8)
-                        .Text(
-                            "Se notifica el vencimiento de obligaciones del crédito indicado. " +
-                            "Documento para entrega o envío al cliente.")
-                        .FontSize(8);
-
-                    col.Item().Element(c => CreditoPdfBranding.ComposeSectionTitle(c, "DATOS DEL CLIENTE"));
+                    col.Item().Element(c => CreditoPdfBranding.ComposeSectionTitle(c, "CLIENTE"));
                     col.Item().Element(c => CreditoPdfBranding.ComposeMetaGrid(c,
                     [
                         ("Cliente", cliente),
                         ("Documento", CreditoPdfBranding.OrDash(documento)),
                         ("Celular", CreditoPdfBranding.OrDash(ficha?.Celular)),
-                        ("Distrito", CreditoPdfBranding.OrDash(ficha?.Distrito)),
-                        ("Dirección", CreditoPdfBranding.OrDash(ficha?.Direccion)),
-                        ("Ref. dirección", CreditoPdfBranding.OrDash(ficha?.DireccionRef)),
+                        ("Dirección", CreditoPdfBranding.OrDash(direccion)),
                     ], columns: 2));
 
-                    col.Item().Element(c => CreditoPdfBranding.ComposeSectionTitle(c, "DATOS DEL CRÉDITO"));
+                    col.Item().Element(c => CreditoPdfBranding.ComposeSectionTitle(c, "RESUMEN"));
                     col.Item().Element(c => CreditoPdfBranding.ComposeMetaGrid(c,
                     [
-                        ("Crédito N°", cab.CreditoId.ToString(CreditoPdfBranding.Inv)),
-                        ("Producto", CreditoPdfBranding.OrDash(cab.Producto)),
-                        ("Estado", CreditoPdfBranding.OrDash(cab.Estado)),
                         ("Modalidad", CreditoPdfBranding.OrDash(cab.Modalidad)),
-                        ("Monto crédito", CreditoPdfBranding.Money(cab.MontoCredito)),
-                        ("Desembolso", CreditoPdfBranding.Money(cab.MontoDesembolso)),
-                        ("N° cuotas", cab.NumeroCuotas.ToString(CreditoPdfBranding.Inv)),
-                        ("1.er pago", CreditoPdfBranding.DateShort(cab.FechaPrimerPago)),
-                        ("Vencimiento", CreditoPdfBranding.DateShort(cab.FechaVencimiento)),
-                        ("Analista", CreditoPdfBranding.OrDash(cab.Analista)),
                         ("Cuotas vencidas", vencidas.Count.ToString(CreditoPdfBranding.Inv)),
                         ("Máx. días atraso", maxDias.ToString(CreditoPdfBranding.Inv)),
-                        ("Importe vencido", CreditoPdfBranding.Money(creditoVencido)),
-                        ("Mora en cuotas", CreditoPdfBranding.Money(moraEnCuotas)),
-                        (
-                            "Ref. mora consolidada",
-                            moraConsolidadaRef is null
-                                ? "—"
-                                : CreditoPdfBranding.Money(moraConsolidadaRef)
-                        ),
-                    ]));
+                        ("Importe cuotas", CreditoPdfBranding.Money(totalCuotasVencidas)),
+                        ("Mora", CreditoPdfBranding.Money(totalMora)),
+                        ("Total a pagar", CreditoPdfBranding.Money(totalPagar)),
+                    ], columns: 3));
 
                     col.Item().Element(c =>
-                        CreditoPdfBranding.ComposeSectionTitle(c, "CUOTAS VENCIDAS / PENDIENTES DE PAGO"));
+                        CreditoPdfBranding.ComposeSectionTitle(c, "CUOTAS VENCIDAS"));
 
                     if (vencidas.Count == 0)
                     {
                         col.Item().PaddingTop(8).AlignCenter()
-                            .Text("Este crédito no registra cuotas vencidas a la fecha de emisión.")
+                            .Text("No hay cuotas vencidas a la fecha de emisión.")
                             .FontColor(Colors.Grey.Darken1);
                     }
                     else
@@ -132,12 +104,11 @@ public static class RptNotificacionVencimientoPdfDocument
                             table.ColumnsDefinition(c =>
                             {
                                 c.ConstantColumn(28);
+                                c.RelativeColumn(1.2f);
                                 c.RelativeColumn(1.1f);
-                                c.RelativeColumn(1.0f);
+                                c.RelativeColumn(0.95f);
+                                c.ConstantColumn(44);
                                 c.RelativeColumn(0.9f);
-                                c.RelativeColumn(0.85f);
-                                c.ConstantColumn(40);
-                                c.RelativeColumn(1.0f);
                             });
 
                             table.Header(h =>
@@ -152,7 +123,6 @@ public static class RptNotificacionVencimientoPdfDocument
                                 H("N°");
                                 H("Vence");
                                 H("Cuota", true);
-                                H("Capital", true);
                                 H("Mora", true);
                                 H("Días");
                                 H("Estado");
@@ -170,8 +140,6 @@ public static class RptNotificacionVencimientoPdfDocument
                                 table.Cell().Element(B).AlignRight()
                                     .Text(CreditoPdfBranding.Money(cu.Cuota));
                                 table.Cell().Element(B).AlignRight()
-                                    .Text(CreditoPdfBranding.Money(cu.Amortizacion));
-                                table.Cell().Element(B).AlignRight()
                                     .Text(CreditoPdfBranding.Money(cu.ImporteMora));
                                 table.Cell().Element(B).AlignCenter()
                                     .Text((cu.DiasAtrazo ?? 0).ToString(CreditoPdfBranding.Inv));
@@ -180,19 +148,18 @@ public static class RptNotificacionVencimientoPdfDocument
                             }
 
                             table.Cell().ColumnSpan(2).Element(CreditoPdfBranding.TableTotalCell)
-                                .Text($"Total ({vencidas.Count} cuotas)");
+                                .Text($"Total ({vencidas.Count})");
                             table.Cell().Element(CreditoPdfBranding.TableTotalCell).AlignRight()
                                 .Text(CreditoPdfBranding.Money(totalCuotasVencidas));
-                            table.Cell().Element(CreditoPdfBranding.TableTotalCell);
                             table.Cell().Element(CreditoPdfBranding.TableTotalCell).AlignRight()
-                                .Text(CreditoPdfBranding.Money(totalMoraCuotas));
+                                .Text(CreditoPdfBranding.Money(totalMora));
                             table.Cell().ColumnSpan(2).Element(CreditoPdfBranding.TableTotalCell);
                         });
                     }
 
                     col.Item().PaddingTop(10).Text(t =>
                     {
-                        t.Span("Se solicita regularizar el pago a la brevedad en la oficina de ")
+                        t.Span("Se solicita regularizar el pago en ")
                             .FontSize(8.5f);
                         t.Span(CredixReportTokens.CompanyLegalName).SemiBold().FontSize(8.5f);
                         t.Span(" o por los canales habilitados.").FontSize(8.5f);

@@ -6691,8 +6691,6 @@ internal static class CreditoReportesRestantesEndpoints
                     int creditoId,
                     IRptEstadoCreditoReadService estadoCredito,
                     IRptClienteReadService cliente,
-                    ICalcularMoraPendienteReadService moraPendiente,
-                    ICreditoVencidoMetricasReadService creditoVencidoMetricas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -6726,15 +6724,7 @@ internal static class CreditoReportesRestantesEndpoints
                             ficha = informeCliente?.Ficha;
                         }
 
-                        var mora = await moraPendiente.ObtenerAsync(creditoId, ct).ConfigureAwait(false);
-                        var metricas = await creditoVencidoMetricas.ObtenerAsync(creditoId, ct)
-                            .ConfigureAwait(false);
-
-                        var bytes = RptNotificacionVencimientoPdfDocument.Build(
-                            estado,
-                            ficha,
-                            mora,
-                            metricas);
+                        var bytes = RptNotificacionVencimientoPdfDocument.Build(estado, ficha);
                         return TypedResults.File(
                             bytes,
                             "application/pdf",

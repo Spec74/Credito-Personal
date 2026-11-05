@@ -291,10 +291,7 @@
   display: block;
   margin-top: 4px;
   font-size: 11px;
-}
-
-.caja-mora-modal__info {
-  margin-bottom: 12px;
+  color: var(--credix-text-secondary, #64748b);
 }
 
 .caja-mora-modal__tabs .ant-tabs-nav {
