@@ -1,5 +1,5 @@
 import { memo, useMemo, useState, type Key } from 'react'
-import { Segmented, Tag, Typography, type TableProps } from 'antd'
+import { Segmented, Tag, type TableProps } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { CuotaCobranzaRow } from './cuotasGridMerge'
 import { formatMoney } from '../../utils/formatMoney'
@@ -19,8 +19,6 @@ import {
 } from './cuotaRowStyle'
 import { CajaCuotasLegend } from './CajaCuotasLegend'
 import { CredixDataTable } from '../credix'
-
-const { Text } = Typography
 
 function MoraCell({ value, atraso }: { value: number | null; atraso: number | null }) {
   const mora = (value ?? 0) > 0
@@ -183,14 +181,8 @@ function CajaCuotasTableInner({
     <div className="caja-cuotas-table-wrap">
       {showLegend ? <CajaCuotasLegend /> : null}
 
-      <div className="caja-cuotas-table-toolbar">
-        {!mobileCards ? (
-          <Text type="secondary" className="caja-cuotas-table-hint">
-            Plan completo del crédito: pagadas (check bloqueado), pendientes y con mora
-            seleccionables. Totales al final cuando el sistema los incluye.
-          </Text>
-        ) : null}
-        {showVistaFiltro ? (
+      {showVistaFiltro ? (
+        <div className="caja-cuotas-table-toolbar">
           <Segmented<CuotaVistaFiltro>
             size="small"
             value={vista}
@@ -201,8 +193,8 @@ function CajaCuotasTableInner({
               { label: `Con mora (${conMora})`, value: 'mora' },
             ]}
           />
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
       <CredixDataTable<CuotaCobranzaRow>
         mode="operacion"

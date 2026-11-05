@@ -3,19 +3,19 @@ export function CajaCuotasLegend() {
     <ul className="caja-cuotas-legend" aria-label="Leyenda de estados de cuota">
       <li>
         <span className="caja-cuotas-legend__swatch caja-cuota-row--pendiente" />
-        Pendiente (cobrable)
+        Pendiente
       </li>
       <li>
         <span className="caja-cuotas-legend__swatch caja-cuota-row--mora" />
-        Con mora / atraso (cobrable)
+        Con mora
       </li>
       <li>
         <span className="caja-cuotas-legend__swatch caja-cuota-row--pagada" />
-        Pagada (no seleccionable)
+        Pagada
       </li>
       <li>
         <span className="caja-cuotas-legend__swatch caja-cuota-row--creada" />
-        Creada (no seleccionable)
+        Creada
       </li>
       <li>
         <span className="caja-cuotas-legend__swatch caja-cuota-row--resumen" />

@@ -42,6 +42,7 @@ import { useAuth } from '../../auth/useAuth'
 import { CredixDataTable, CredixPage, CredixPanel } from '../../components/credix'
 import {
   TipoPagoCell,
+  buildTipoPagoOptions,
   tipoPagoOptionRender,
   tipoPagoPopupRender,
 } from '../tesoreria/components/TipoPagoBrand'
@@ -478,11 +479,7 @@ export function CobroBloquePage() {
   })
 
   const tipoPagoOptions = useMemo(
-    () =>
-      (tiposPagoQuery.data ?? []).map((t) => ({
-        value: t.itemId,
-        label: t.denominacion,
-      })),
+    () => buildTipoPagoOptions(tiposPagoQuery.data ?? []),
     [tiposPagoQuery.data],
   )
 

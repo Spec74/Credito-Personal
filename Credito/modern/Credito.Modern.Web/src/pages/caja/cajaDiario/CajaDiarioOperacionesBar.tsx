@@ -59,9 +59,6 @@ export function CajaDiarioOperacionesBar({
           <span className="caja-diario-side-section__eyebrow">
             Acciones rápidas
           </span>
-          <span className="caja-diario-ops-heading__hint">
-            PDF, ruta, movimientos y cobro en campo.
-          </span>
         </div>
         <Button
           block={variant === 'stack'}

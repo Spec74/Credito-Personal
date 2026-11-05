@@ -14,6 +14,7 @@ import {
   fetchTipoOperaciones,
 } from '../../../api/cajaDiario'
 import { fetchValoresTabla } from '../../../api/maestros'
+import { buildTipoPagoOptions } from '../../tesoreria/components/TipoPagoBrand'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
 import { CajaModal } from '../../../components/caja/CajaModal'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
@@ -55,9 +56,9 @@ export function EntradaSalidaTab({
 
   const tipoPagoOptions = useMemo(
     () =>
-      (tiposPagoQuery.data ?? []).map((t) => ({
-        value: t.itemId,
-        label: t.denominacion,
+      buildTipoPagoOptions(tiposPagoQuery.data ?? []).map((t) => ({
+        value: t.value,
+        label: t.label,
       })),
     [tiposPagoQuery.data],
   )
@@ -96,26 +97,13 @@ export function EntradaSalidaTab({
 
   return (
     <div className="caja-diario-entrada-salida">
-      <div
-        className={[
-          'caja-diario-entrada-salida-hint',
-          esEgreso ? 'is-warning' : '',
-        ]
-          .filter(Boolean)
-          .join(' ')}
-        role="note"
-      >
-        {esEgreso ? (
+      {esEgreso ? (
+        <div className="caja-diario-entrada-salida-hint is-warning" role="note">
           <Paragraph type="warning" style={{ margin: 0 }}>
             Los egresos requieren clave de administrador.
           </Paragraph>
-        ) : (
-          <Paragraph type="secondary" style={{ margin: 0 }}>
-            Registre ingresos o egresos de caja. Busque la persona por nombre o
-            documento; no es necesario escribir el ID manualmente.
-          </Paragraph>
-        )}
-      </div>
+        </div>
+      ) : null}
 
       <Form
         className="caja-diario-entrada-salida-form"

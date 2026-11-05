@@ -62,6 +62,7 @@ import {
 import { CajaSection } from '../../../components/caja/CajaSection'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
 import { TipoPagoChips } from '../../../components/caja/TipoPagoChips'
+import { buildTipoPagoOptions } from '../../tesoreria/components/TipoPagoBrand'
 import {
   FechaHoraDigitalField,
   nowDatetimeLocal,
@@ -147,11 +148,7 @@ export function CobranzasTab({
   })
 
   const tipoPagoOptions = useMemo(
-    () =>
-      (tiposPagoQuery.data ?? []).map((t) => ({
-        value: t.itemId,
-        label: t.denominacion,
-      })),
+    () => buildTipoPagoOptions(tiposPagoQuery.data ?? []),
     [tiposPagoQuery.data],
   )
 
@@ -650,19 +647,13 @@ export function CobranzasTab({
         type="info"
         showIcon
         className="caja-diario-cobro-bridge"
-        message={isMobile ? 'Cobro en campo' : 'Cobranza en campo → módulo Cobro'}
-        description={
-          isMobile
-            ? 'Planilla, GPS y Cobrar → Enviados.'
-            : 'Para tipar la planilla (Cartera → Enviar → lote → Enviados) use Cobro. Aquí: consulta, pago puntual, GAD y Completar impagos al cierre.'
-        }
+        message="Cobro en campo"
         action={
           <Link to="/caja/cobro">
             <Button
               type="primary"
               icon={<TeamOutlined />}
               disabled={ctx.indCierre}
-              size={isMobile ? 'middle' : 'middle'}
               block={isMobile}
             >
               Ir a Cobro
@@ -771,11 +762,6 @@ export function CobranzasTab({
                 ? ` · postergada ${formatMoney(moraResumenQuery.data.saldoPostergado)}`
                 : ''}
             </>
-          }
-          description={
-            isMobile
-              ? undefined
-              : 'La mora postergada se liquida al cobrar la última cuota.'
           }
           action={
             <Button size="small" onClick={() => setMoraModalOpen(true)}>
@@ -1171,10 +1157,7 @@ export function CobranzasTab({
             message="Ya hay una solicitud pendiente para este crédito."
           />
         ) : null}
-        <p>
-          Se registra la mora a condonar en la caja abierta. El administrador la aprueba en la
-          ficha del crédito.
-        </p>
+        <p>Monto de mora a solicitar. El administrador la aprueba en la ficha del crédito.</p>
         <InputNumber
           min={0}
           step={0.01}

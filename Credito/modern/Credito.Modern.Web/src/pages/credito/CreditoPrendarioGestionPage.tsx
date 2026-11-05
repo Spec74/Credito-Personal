@@ -15,6 +15,7 @@ import { prorrogarCredito } from '../../api/creditoPlanes'
 import { fetchCajaDiarioSesion } from '../../api/cajaDiario'
 import { fetchValoresTabla } from '../../api/maestros'
 import { TipoPagoChips } from '../../components/caja/TipoPagoChips'
+import { buildTipoPagoOptions } from '../tesoreria/components/TipoPagoBrand'
 import { FechaHoraDigitalField, nowDatetimeLocal } from '../caja/components/FechaHoraDigitalField'
 import {
   abonarPrendario,
@@ -243,7 +244,7 @@ export function CreditoPrendarioGestionPage() {
   })
 
   const tipoPagoOptions = useMemo(
-    () => (tiposPago.data ?? []).map((t) => ({ value: t.itemId, label: t.denominacion })),
+    () => buildTipoPagoOptions(tiposPago.data ?? []),
     [tiposPago.data],
   )
 

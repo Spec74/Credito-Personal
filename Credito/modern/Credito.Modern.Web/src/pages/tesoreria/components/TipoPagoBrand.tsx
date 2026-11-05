@@ -8,15 +8,21 @@ type TipoPagoOption = {
   searchText: string
 }
 
-/** Opción de Select con marca bancaria (label string para filtro; icono vía optionRender). */
+/**
+ * Catálogo operativo de medios (efectivo + marcas).
+ * Omite placeholder ItemId≤0 y variantes por sede del legado
+ * («YAPE HUANTA», «INTERBANK HUANTA», …) que duplicaban el chip visual.
+ */
 export function buildTipoPagoOptions(
   items: { itemId: number; denominacion: string }[],
 ): TipoPagoOption[] {
-  return items.filter(esMarcaTipoPago).map((t) => ({
-    value: t.itemId,
-    label: t.denominacion,
-    searchText: t.denominacion,
-  }))
+  return items
+    .filter((t) => t.itemId > 0 && esMarcaTipoPago(t))
+    .map((t) => ({
+      value: t.itemId,
+      label: t.denominacion,
+      searchText: t.denominacion,
+    }))
 }
 
 export function TipoPagoOptionLabel({ denominacion }: { denominacion: string }) {
