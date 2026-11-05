@@ -18,11 +18,13 @@ import {
   CheckCircleOutlined,
   CreditCardOutlined,
   DollarOutlined,
+  DownOutlined,
   FilePdfOutlined,
   FileSearchOutlined,
   HistoryOutlined,
   TeamOutlined,
   UnorderedListOutlined,
+  UpOutlined,
   WalletOutlined,
 } from '@ant-design/icons'
 import {
@@ -120,6 +122,8 @@ export function CobranzasTab({
   const [solicitarOpen, setSolicitarOpen] = useState(false)
   const [moraSolicitar, setMoraSolicitar] = useState<number | null>(null)
   const [modoPago, setModoPago] = useState<'cuotas' | 'libre'>('cuotas')
+  /** Móvil: sheet de pago expandido; colapsado deja ver plan/tablas. */
+  const [pagoDockExpanded, setPagoDockExpanded] = useState(true)
   const [dockBox, setDockBox] = useState<{ left: number; width: number } | null>(
     null,
   )
@@ -204,8 +208,16 @@ export function CobranzasTab({
 
   const cargarCuotas = (id: number, options?: { silent?: boolean }) => {
     setCreditoId(id)
+    // Móvil: sheet colapsado al cargar → se ve el plan; se abre al elegir cuotas.
+    setPagoDockExpanded(!isMobile)
     buscar.mutate({ creditoId: id, silent: options?.silent })
   }
+
+  useEffect(() => {
+    if (!creditoId) {
+      setPagoDockExpanded(true)
+    }
+  }, [creditoId])
 
   useEffect(() => {
     if (!creditoIdInicial) {
@@ -586,8 +598,11 @@ export function CobranzasTab({
         .filter((c) => c.planPagoId != null && valid.includes(c.planPagoId))
         .reduce((s, c) => s + (c.pagoCuota ?? c.cuota ?? 0), 0)
       setImporteRecibido(total)
+      if (isMobile && valid.length > 0) {
+        setPagoDockExpanded(true)
+      }
     },
-    [cuotasPagables],
+    [cuotasPagables, isMobile],
   )
 
   const selectedTotal = useMemo(
@@ -602,16 +617,23 @@ export function CobranzasTab({
     importeRecibido != null ? importeRecibido - selectedTotal : null
 
   const showPagoDock = Boolean(creditoId) && !ctx.indCierre
+  const dockCollapsed = isMobile && showPagoDock && !pagoDockExpanded
   /** PC: panel en flujo (no tapa la grilla). Móvil: dock fijo inferior. */
   const pagoDockClass = isMobile
     ? 'caja-diario-pago-dock-fixed'
     : 'caja-diario-pago-dock-panel'
+
+  const dockSummary =
+    modoPago === 'cuotas'
+      ? `Total ${formatMoney(selectedTotal)} · ${selectedKeys.length} cuota(s)`
+      : `Libre ${pagoLibre != null ? formatMoney(pagoLibre) : '—'}`
 
   return (
     <div
       className={[
         'caja-diario-cobranzas',
         showPagoDock && isMobile ? 'caja-diario-cobranzas--dock' : '',
+        dockCollapsed ? 'caja-diario-cobranzas--dock-collapsed' : '',
         isMobile ? 'caja-diario-cobranzas--mobile' : '',
       ]
         .filter(Boolean)
@@ -641,7 +663,16 @@ export function CobranzasTab({
           </Link>
         }
       />
-      <div className="caja-diario-cobranzas-top">
+      <div
+        className={[
+          'caja-diario-cobranzas-top',
+          isMobile && (personaId > 0 || creditoId)
+            ? 'caja-diario-cobranzas-top--compact'
+            : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
+      >
         <div className="caja-diario-cobranzas-top__search">
           <span className="caja-diario-cobranzas-top__label" id="caja-buscar-cliente-label">
             Buscar cliente
@@ -678,6 +709,7 @@ export function CobranzasTab({
                 setPagoLibre(null)
                 setShowCxc(false)
                 setModoPago('cuotas')
+                setPagoDockExpanded(true)
               }}
             >
               Nuevo cobro
@@ -841,7 +873,12 @@ export function CobranzasTab({
 
       {showPagoDock ? (
         <div
-          className={pagoDockClass}
+          className={[
+            pagoDockClass,
+            dockCollapsed ? 'is-collapsed' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           role="region"
           aria-label="Registrar pago"
           style={
@@ -851,6 +888,34 @@ export function CobranzasTab({
           }
         >
           <div className={`${pagoDockClass}__inner`}>
+            {isMobile ? (
+              <button
+                type="button"
+                className="caja-diario-pago-dock__handle"
+                aria-expanded={pagoDockExpanded}
+                aria-controls="caja-diario-pago-dock-body"
+                onClick={() => setPagoDockExpanded((v) => !v)}
+              >
+                <span className="caja-diario-pago-dock__handle-grip" aria-hidden />
+                <span className="caja-diario-pago-dock__handle-summary">{dockSummary}</span>
+                <span className="caja-diario-pago-dock__handle-chevron" aria-hidden>
+                  {pagoDockExpanded ? <DownOutlined /> : <UpOutlined />}
+                </span>
+                <span className="caja-diario-pago-dock__handle-hint">
+                  {pagoDockExpanded ? 'Ocultar pago' : 'Mostrar pago'}
+                </span>
+              </button>
+            ) : null}
+            <div
+              id="caja-diario-pago-dock-body"
+              className={[
+                'caja-diario-pago-dock__body',
+                dockCollapsed ? 'is-collapsed' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')}
+              hidden={dockCollapsed}
+            >
             <div
               className="caja-diario-pago-modos"
               role="tablist"
@@ -1033,6 +1098,7 @@ export function CobranzasTab({
                 ) : null}
               </>
             )}
+            </div>
           </div>
         </div>
       ) : null}

@@ -1532,6 +1532,74 @@
   box-shadow: 0 8px 24px color-mix(in srgb, var(--credix-text) 14%, transparent);
 }
 
+/* Móvil: asa para expandir / colapsar el sheet de pago */
+.caja-diario-pago-dock__handle {
+  appearance: none;
+  display: none;
+  width: 100%;
+  margin: 0;
+  padding: 4px 4px 8px;
+  border: 0;
+  background: transparent;
+  color: var(--credix-text);
+  cursor: pointer;
+  text-align: left;
+  gap: 8px;
+  align-items: center;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.caja-diario-pago-dock__handle-grip {
+  display: block;
+  width: 36px;
+  height: 4px;
+  margin: 0 auto 6px;
+  border-radius: 999px;
+  background: var(--credix-border);
+  grid-column: 1 / -1;
+}
+
+.caja-diario-pago-dock__handle-summary {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: var(--credix-ink-brand);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.caja-diario-pago-dock__handle-chevron {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--credix-surface-muted);
+  color: var(--credix-text-muted);
+  font-size: 12px;
+}
+
+.caja-diario-pago-dock__handle-hint {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.caja-diario-pago-dock__body.is-collapsed {
+  display: none;
+}
+
 .caja-diario-pago-modos {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1747,6 +1815,27 @@
     position: sticky;
     top: 0;
     z-index: 35;
+    background: var(--credix-bg);
+    padding-bottom: 6px;
+  }
+
+  /* Con cliente cargado: búsqueda compacta (sigue visible, sin segundo sheet). */
+  .caja-diario-cobranzas-top--compact {
+    gap: 6px;
+    padding: 6px 0 4px;
+  }
+
+  .caja-diario-cobranzas-top--compact .caja-diario-cobranzas-top__label {
+    display: none;
+  }
+
+  .caja-diario-cobranzas-top--compact .caja-diario-actions-row {
+    gap: 6px;
+  }
+
+  .caja-diario-cobranzas-top--compact .caja-diario-actions-row .ant-btn {
+    min-height: 36px;
+    padding-inline: 10px;
   }
 
   .caja-diario-page--cobro .credix-page-breadcrumb,
@@ -1757,6 +1846,19 @@
   .caja-diario-cobranzas--mobile .caja-diario-pago-recibido .ant-input-number {
     width: 100%;
     min-width: 0;
+  }
+
+  .caja-diario-pago-dock-fixed .caja-diario-pago-dock__handle {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-rows: auto auto;
+    position: relative;
+  }
+
+  .caja-diario-pago-dock-fixed.is-collapsed .caja-diario-pago-dock-fixed__inner {
+    gap: 0;
+    padding-top: 6px;
+    padding-bottom: 8px;
   }
 
   .caja-diario-pago-dock-fixed .caja-diario-pago-totals {
@@ -1776,7 +1878,11 @@
   }
 
   .caja-diario-cobranzas--dock {
-    padding-bottom: calc(220px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(280px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .caja-diario-cobranzas--dock-collapsed {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
   }
 }
 
