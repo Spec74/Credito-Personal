@@ -3,7 +3,9 @@ import '../../styles/caja-tipo-pago-chips.css'
 import {
   medioEtiquetaUi,
   medioNombreMarca,
+  medioNombrePorItemId,
 } from '../../pages/tesoreria/components/bovedaResumenCuentaParse'
+import { marcaDesdeTipoPagoId } from '../../pages/tesoreria/components/resumencuentabrands'
 
 type Opt = { value: number; label: string }
 
@@ -48,16 +50,17 @@ export function TipoPagoChips({
     >
       {uniq.map((opt) => {
         const active = value === opt.value
-        const { variant, aria } = medioEtiquetaUi(opt.label)
-        const nombre = medioNombreMarca(opt.label)
+        const nombre = medioNombrePorItemId(opt.value) ?? medioNombreMarca(opt.label)
+        const fromTexto = medioEtiquetaUi(nombre)
+        const variant = marcaDesdeTipoPagoId(opt.value) ?? fromTexto.variant
         return (
           <button
             key={opt.value}
             type="button"
             role="radio"
             aria-checked={active}
-            aria-label={aria}
-            title={aria}
+            aria-label={nombre}
+            title={nombre}
             disabled={disabled}
             className={[
               'caja-tipo-pago-chips__btn',
@@ -67,7 +70,7 @@ export function TipoPagoChips({
               .join(' ')}
             onClick={() => onChange(opt.value)}
           >
-            <ResumenCuentaBrandLogo variant={variant} etiqueta={nombre} size="sm" />
+            <ResumenCuentaBrandLogo variant={variant} etiqueta={nombre} size="sm" tone="mark" />
             <span translate="no">{nombre}</span>
           </button>
         )

@@ -26,8 +26,14 @@ export type ResumenCuentaVariant =
 
 const RE_LINEA = /([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ0-9\s./-]*?)\s*=\s*(-?\d+(?:\.\d+)?)/gi
 
+/** Mayúsculas sin tildes (match ASCII-safe: René→RENE, Nación→NACION). */
 function normalizarClave(raw: string): string {
-  return raw.trim().replace(/\s+/g, ' ').toUpperCase()
+  return raw
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
 }
 
 /** Prefijos de marca. Lo que sobra en ValorTabla.Denominacion es la sede. */
