@@ -378,14 +378,14 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                 return null;
             }
 
-            var personaIdRaw = await connection.ExecuteScalarAsync<int?>(
-                new CommandDefinition(
-                    "SELECT PersonaId FROM MAESTRO.Usuario WHERE UsuarioId = @UsuarioId;",
-                    new { UsuarioId = usuarioRegId },
-                    transaction: transaction,
-                    cancellationToken: cancellationToken)).ConfigureAwait(false);
-            // FK Persona: 0 / inválido → NULL (no tumba la transferencia).
-            int? personaId = personaIdRaw is > 0 ? personaIdRaw : null;
+            // TRE bóveda→caja: PersonaId opcional. Nunca enviar huérfanos (rompe FK_MovimientoCaja_Persona).
+            var personaId = await ResolvePersonaIdParaMovimientoCajaAsync(
+                    connection,
+                    transaction,
+                    cajaDiario.CajaDiarioId,
+                    usuarioRegId,
+                    cancellationToken)
+                .ConfigureAwait(false);
 
             var glosaBoveda = Truncar("TRANS A CAJA: " + descripcion.Trim().ToUpperInvariant(), 500);
             var movimientoBovedaId = await connection.ExecuteScalarAsync<int>(
@@ -432,6 +432,15 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                 $"[MovBoveda:{movimientoBovedaId}] TRANS DE BOVEDA: {descripcion.Trim().ToUpperInvariant()}",
                 500);
 
+            var movCajaParams = new DynamicParameters();
+            movCajaParams.Add("CajaDiarioId", cajaDiario.CajaDiarioId);
+            movCajaParams.Add("ImportePago", importe);
+            movCajaParams.Add("PersonaId", personaId, DbType.Int32);
+            movCajaParams.Add("Descripcion", descripcionCaja);
+            movCajaParams.Add("TipoPagoDestinoId", tipoPagoDestinoId);
+            movCajaParams.Add("UsuarioRegId", usuarioRegId);
+            movCajaParams.Add("FechaReg", fechaOperacion);
+
             var movimientoCajaId = await connection.ExecuteScalarAsync<int>(
                 new CommandDefinition(
                     """
@@ -459,16 +468,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                         @FechaReg);
                     SELECT CAST(SCOPE_IDENTITY() AS int);
                     """,
-                    new
-                    {
-                        CajaDiarioId = cajaDiario.CajaDiarioId,
-                        ImportePago = importe,
-                        PersonaId = personaId,
-                        Descripcion = descripcionCaja,
-                        TipoPagoDestinoId = tipoPagoDestinoId,
-                        UsuarioRegId = usuarioRegId,
-                        FechaReg = fechaOperacion,
-                    },
+                    movCajaParams,
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
@@ -566,15 +566,24 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
 
             var personaId = await connection.ExecuteScalarAsync<int?>(
                 new CommandDefinition(
-                    "SELECT PersonaId FROM MAESTRO.Usuario WHERE UsuarioId = @UsuarioId;",
+                    """
+                    SELECT TOP (1) u.PersonaId
+                    FROM MAESTRO.Usuario AS u
+                    INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+                    WHERE u.UsuarioId = @UsuarioId
+                      AND u.PersonaId IS NOT NULL
+                      AND u.PersonaId > 0;
+                    """,
                     new { UsuarioId = usuarioRegId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-            if (personaId is null)
+            if (personaId is null or <= 0)
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                return ("Usuario no encontrado.", null);
+                return (
+                    "El usuario no tiene persona válida en el padrón (MAESTRO.Persona). Corrija la ficha del usuario.",
+                    null);
             }
 
             var glosaBoveda = "TRANS A CAJA CHICA: " + descripcion.ToUpperInvariant();
@@ -847,6 +856,53 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
 
     private static string Truncar(string value, int max) =>
         value.Length <= max ? value : value[..max];
+
+    /// <summary>
+    /// Persona válida para MovimientoCaja: primero el asignado de la caja, luego el usuario
+    /// que registra. Solo IDs que existen en MAESTRO.Persona (evita FK_MovimientoCaja_Persona).
+    /// </summary>
+    private static async Task<int?> ResolvePersonaIdParaMovimientoCajaAsync(
+        SqlConnection connection,
+        SqlTransaction? transaction,
+        int cajaDiarioId,
+        int usuarioRegId,
+        CancellationToken cancellationToken)
+    {
+        var fromCaja = await connection.ExecuteScalarAsync<int?>(
+            new CommandDefinition(
+                """
+                SELECT TOP (1) u.PersonaId
+                FROM CREDITO.CajaDiario AS cd
+                INNER JOIN MAESTRO.Usuario AS u ON u.UsuarioId = cd.UsuarioAsignadoId
+                INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+                WHERE cd.CajaDiarioId = @CajaDiarioId
+                  AND u.PersonaId IS NOT NULL
+                  AND u.PersonaId > 0;
+                """,
+                new { CajaDiarioId = cajaDiarioId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+        if (fromCaja is > 0)
+        {
+            return fromCaja;
+        }
+
+        var fromUsuario = await connection.ExecuteScalarAsync<int?>(
+            new CommandDefinition(
+                """
+                SELECT TOP (1) u.PersonaId
+                FROM MAESTRO.Usuario AS u
+                INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+                WHERE u.UsuarioId = @UsuarioId
+                  AND u.PersonaId IS NOT NULL
+                  AND u.PersonaId > 0;
+                """,
+                new { UsuarioId = usuarioRegId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        return fromUsuario is > 0 ? fromUsuario : null;
+    }
 
     private static string MensajeSqlAmigable(SqlException ex)
     {
