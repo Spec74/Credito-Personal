@@ -5,7 +5,13 @@ public sealed class ListarSaldoCarteraRowDto
 {
     public int AgenteId { get; init; }
 
+    /// <summary>Nombre legible del gestor (enriquecido tras el USP).</summary>
+    public string? AgenteNombre { get; init; }
+
     public int OficinaId { get; init; }
+
+    /// <summary>Denominación de oficina (enriquecida tras el USP).</summary>
+    public string? OficinaNombre { get; init; }
 
     public int? NroDesembolsos { get; init; }
 

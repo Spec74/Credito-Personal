@@ -133,11 +133,11 @@ export function CreditoMorosidadPage() {
 
   return (
     <CredixInformePage
-      title="Reporte morosidad"
-      subtitle={undefined}
-      breadcrumb={reportesCreditoBreadcrumb('Reporte morosidad')}
+      title="Morosidad por días de atraso"
+      subtitle="Corte oficial: créditos cuya mora cae en el rango de días indicado"
+      breadcrumb={reportesCreditoBreadcrumb('Morosidad por días de atraso')}
       stats={stats}
-      panelTitle="Créditos con morosidad"
+      panelTitle="Créditos en el rango de atraso"
       tableResultCount={filas.length}
       enableTableSearch={queried && filas.length > 0}
       searchPlaceholder="Buscar por crédito, artículo o contacto…"

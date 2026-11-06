@@ -12,7 +12,7 @@ public class ListarSaldoCarteraCsvFormatterTests
     {
         var bytes = ListarSaldoCarteraCsvFormatter.ToUtf8BomCsv(Array.Empty<ListarSaldoCarteraRowDto>());
         AssertUtf8Bom(bytes);
-        Assert.StartsWith("AgenteId,OficinaId,NroDesembolsos", HeaderLine(bytes), StringComparison.Ordinal);
+        Assert.StartsWith("Agente,Oficina,AgenteId,OficinaId,NroDesembolsos", HeaderLine(bytes), StringComparison.Ordinal);
     }
 
     [Fact]
@@ -24,7 +24,9 @@ public class ListarSaldoCarteraCsvFormatterTests
             new()
             {
                 AgenteId = 5,
+                AgenteNombre = "ANA GESTOR",
                 OficinaId = 1,
+                OficinaNombre = "OFICINA PRINCIPAL",
                 NroDesembolsos = 12,
                 MontoDesembolsos = 45000.50m,
                 SaldoCartera = 38000m,
@@ -38,6 +40,8 @@ public class ListarSaldoCarteraCsvFormatterTests
             },
         };
         var line = DataLine(ListarSaldoCarteraCsvFormatter.ToUtf8BomCsv(rows));
+        Assert.Contains("ANA GESTOR", line);
+        Assert.Contains("OFICINA PRINCIPAL", line);
         Assert.Contains("5", line);
         Assert.Contains("45000.50", line);
         Assert.Contains("2500.75", line);

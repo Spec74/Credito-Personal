@@ -115,7 +115,9 @@ export interface ListaPrecioListItem {
 
 export interface ListarSaldoCarteraRow {
   agenteId: number
+  agenteNombre?: string | null
   oficinaId: number
+  oficinaNombre?: string | null
   nroDesembolsos: number | null
   montoDesembolsos: number | null
   saldoCartera: number | null

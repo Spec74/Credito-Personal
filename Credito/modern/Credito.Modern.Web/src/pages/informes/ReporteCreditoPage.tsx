@@ -120,9 +120,9 @@ export function ReporteCreditoPage() {
     { title: 'Cliente', dataIndex: 'cliente', width: 140, ellipsis: true },
     { title: 'Estado', dataIndex: 'estado', width: 90 },
     {
-      title: 'Desembolso',
+      title: 'F. desembolso',
       dataIndex: 'fechaDesembolso',
-      width: 100,
+      width: 110,
       render: formatFecha,
     },
     {
@@ -170,9 +170,9 @@ export function ReporteCreditoPage() {
       render: formatMoney,
     },
     {
-      title: 'Desembolso',
+      title: 'Monto desembolso',
       dataIndex: 'montoDesembolso',
-      width: 95,
+      width: 110,
       align: 'right',
       render: formatMoney,
     },

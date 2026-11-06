@@ -44,9 +44,9 @@ export const quickActions: QuickAction[] = [
     icon: 'observados',
   },
   {
-    label: 'Vencidos',
+    label: 'Solo mora',
     legacyPath: '/Reporte/ReporteMorosidadGestor',
-    spaPath: '/informes/morosidad-gestor',
+    spaPath: '/informes/cobro-diario?soloMora=1',
     kind: 'pdf-vencidos',
     icon: 'vencidos',
   },

@@ -143,11 +143,11 @@ export function ClientesNuevosMesPage() {
 
   return (
     <CredixInformePage
-      title="Clientes nuevos del mes"
-      subtitle={undefined}
-      breadcrumb={reportesCreditoBreadcrumb('Clientes nuevos del mes')}
+      title="Primeros desembolsos del periodo"
+      subtitle="Clientes con su primer desembolso en el rango de fechas (no es solo «alta de ficha»)"
+      breadcrumb={reportesCreditoBreadcrumb('Primeros desembolsos del periodo')}
       stats={stats}
-      panelTitle="CLIENTES NUEVOS"
+      panelTitle="PRIMEROS DESEMBOLSOS"
       tableResultCount={filas.length}
       enableTableSearch={queried && filas.length > 0}
       searchPlaceholder="Buscar por crédito, cliente, agente u observación…"
@@ -232,7 +232,10 @@ export function ClientesNuevosMesPage() {
           {rango?.[0] && rango[1]
             ? `${formatFecha(rango[0].format('YYYY-MM-DD'))} – ${formatFecha(rango[1].format('YYYY-MM-DD'))}`
             : null}{' '}
-          · Oficina sesión #{session?.oficinaId} · {gestorLabelFromId(gestorId)}
+          ·{' '}
+          {session?.oficinaDenominacion?.trim() ||
+            (session?.oficinaId ? `Oficina #${session.oficinaId}` : 'Oficina')}{' '}
+          · {gestorLabelFromId(gestorId)}
         </Typography.Text>
       ) : null}
 

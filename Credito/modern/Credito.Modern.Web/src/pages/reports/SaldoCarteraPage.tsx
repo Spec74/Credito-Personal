@@ -94,8 +94,20 @@ export function SaldoCarteraPage() {
 
   const stats = useInformeStats({ ...consulta, data: rows }, session?.oficinaId)
   const columns: ColumnsType<ListarSaldoCarteraRow> = [
-    { title: 'Agente', dataIndex: 'agenteId', width: 90 },
-    { title: 'Oficina', dataIndex: 'oficinaId', width: 90 },
+    {
+      title: 'Agente',
+      dataIndex: 'agenteNombre',
+      width: 160,
+      ellipsis: true,
+      render: (v, r) => (typeof v === 'string' && v.trim() ? v : `Usuario #${r.agenteId}`),
+    },
+    {
+      title: 'Oficina',
+      dataIndex: 'oficinaNombre',
+      width: 150,
+      ellipsis: true,
+      render: (v, r) => (typeof v === 'string' && v.trim() ? v : `Oficina #${r.oficinaId}`),
+    },
     {
       title: 'N° desembolsos',
       dataIndex: 'nroDesembolsos',
@@ -161,7 +173,7 @@ export function SaldoCarteraPage() {
   return (
     <CredixInformePage
       title="Saldo de cartera"
-      subtitle={undefined}
+      subtitle="Desembolsos, saldo vigente y mora del mes por gestor y oficina"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/credito">Crédito</Link> },

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type Key } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { Alert, Button, Form, InputNumber, Typography, message } from 'antd'
+import { Alert, Button, Form, InputNumber, Switch, Typography, message } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import {
@@ -48,13 +48,19 @@ type FormValues = {
   usuarioId?: number
 }
 
+function readSoloMora(sp: URLSearchParams): boolean {
+  const raw = (sp.get('soloMora') ?? sp.get('solo_mora') ?? '').trim().toLowerCase()
+  return raw === '1' || raw === 'true' || raw === 'yes'
+}
+
 export function CobroDiarioPage() {
   const { session } = useAuth()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   const [rutaResult, setRutaResult] = useState<RutaCobradorResult | null>(null)
   const [rutaOpen, setRutaOpen] = useState(false)
   const [form] = Form.useForm<FormValues>()
+  const soloMora = readSoloMora(searchParams)
 
   const puedeElegirGestor = canViewReporteCredito(session?.roles ?? [])
 
@@ -64,18 +70,24 @@ export function CobroDiarioPage() {
   }
 
   const consulta = useMutation({
-    mutationFn: (v: FormValues) => {
+    mutationFn: (v: FormValues & { soloMora?: boolean }) => {
       if (!session?.oficinaId) {
         throw new Error('Sin oficina en sesión')
       }
       if (!v.usuarioId || v.usuarioId < 1) {
         throw new Error('Seleccione un gestor')
       }
-      return fetchCobroDiario(toCobroDiarioQuery(session.oficinaId, v.usuarioId))
+      return fetchCobroDiario(
+        toCobroDiarioQuery(session.oficinaId, v.usuarioId, v.soloMora ?? soloMora),
+      )
     },
     onSuccess: (data) => {
       setSelectedIds([])
-      message.success(`${data.length} registro(s)`)
+      message.success(
+        soloMora
+          ? `${data.length} crédito(s) con mora`
+          : `${data.length} registro(s)`,
+      )
     },
     onError: (e) =>
       message.error(e instanceof ApiError ? e.message : 'Error al consultar'),
@@ -94,20 +106,38 @@ export function CobroDiarioPage() {
             : session.usuarioId,
     }
     form.setFieldsValue(next)
+    const hasUsuario = next.usuarioId != null && next.usuarioId > 0
     const autoFromUrl =
-      next.usuarioId != null &&
-      next.usuarioId > 0 &&
+      hasUsuario &&
       (searchParams.has('usuarioId') || searchParams.has('pUsuarioId'))
     // Gestor: consultar al entrar (atajo dashboard / accesos).
-    const autoGestor =
-      !puedeElegirGestor &&
-      next.usuarioId != null &&
-      next.usuarioId > 0
-    if (autoFromUrl || autoGestor) {
-      consulta.mutate(next)
+    // También si llega con ?soloMora=1 y ya hay gestor de sesión.
+    const autoGestor = !puedeElegirGestor && hasUsuario
+    const autoSoloMoraConGestor = soloMora && hasUsuario && (autoFromUrl || autoGestor)
+    if (autoFromUrl || autoGestor || autoSoloMoraConGestor) {
+      consulta.mutate({ ...next, soloMora })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta desde índice reportes / dashboard
   }, [session, searchParams.toString(), puedeElegirGestor])
+
+  const setSoloMora = (checked: boolean) => {
+    const next = new URLSearchParams(searchParams)
+    if (checked) {
+      next.set('soloMora', '1')
+    } else {
+      next.delete('soloMora')
+      next.delete('solo_mora')
+    }
+    setSearchParams(next, { replace: true })
+    const usuarioId = form.getFieldValue('usuarioId') as number | undefined
+    if (usuarioId != null && usuarioId > 0) {
+      consulta.mutate({
+        oficinaId: session?.oficinaId ?? 0,
+        usuarioId,
+        soloMora: checked,
+      })
+    }
+  }
 
   const openExport = (kind: 'csv' | 'pdf') => {
     if (!session?.oficinaId) {
@@ -119,7 +149,7 @@ export function CobroDiarioPage() {
       message.error('Seleccione un gestor')
       return
     }
-    const query = toCobroDiarioQuery(session.oficinaId, usuarioId)
+    const query = toCobroDiarioQuery(session.oficinaId, usuarioId, soloMora)
     if (kind === 'csv') {
       void openCobroDiarioCsvInTab(query)
       return
@@ -144,10 +174,19 @@ export function CobroDiarioPage() {
       return []
     }
     return buildCobroDiarioKpiExtras(filas, {
+      soloMorosidad: soloMora,
       caja: cajaQuery.data?.denominacion,
       seleccionados: selectedIds.length,
     })
-  }, [consulta.isSuccess, filas, selectedIds.length, cajaQuery.data?.denominacion])
+  }, [consulta.isSuccess, filas, selectedIds.length, cajaQuery.data?.denominacion, soloMora])
+
+  const oficinaLabel =
+    session?.oficinaDenominacion?.trim() ||
+    (session?.oficinaId ? `Oficina #${session.oficinaId}` : 'Oficina')
+  const pageTitle = soloMora ? 'Cobro diario · solo mora' : 'Cobro diario'
+  const panelTitle = soloMora
+    ? 'Cartera del día con mora'
+    : 'Cartera del día del gestor'
 
   const cobroStats = useInformeStats(consulta, session?.oficinaId, cobroExtras)
 
@@ -223,11 +262,15 @@ export function CobroDiarioPage() {
   return (
     <>
     <CredixInformePage
-      title="Cobro diario"
-      subtitle={undefined}
-      breadcrumb={reportesCreditoBreadcrumb('Cobro diario')}
+      title={pageTitle}
+      subtitle={
+        soloMora
+          ? 'Misma consulta de cobro diario, limitada a créditos con mora pendiente'
+          : 'Qué debe cobrar el gestor hoy (montos, mora, contacto)'
+      }
+      breadcrumb={reportesCreditoBreadcrumb(pageTitle)}
       stats={cobroStats}
-      panelTitle="Cartera del día del gestor"
+      panelTitle={panelTitle}
       tableResultCount={filas.length}
       enableTableSearch={queried && filas.length > 0}
       searchPlaceholder="Buscar por crédito, cliente, dirección o celular…"
@@ -237,7 +280,7 @@ export function CobroDiarioPage() {
             form={form}
             layout="inline"
             initialValues={defaultValues}
-            onFinish={(v) => consulta.mutate(v)}
+            onFinish={(v) => consulta.mutate({ ...v, soloMora })}
           >
             <Form.Item name="oficinaId" hidden>
               <InputNumber />
@@ -255,6 +298,9 @@ export function CobroDiarioPage() {
                 <InputNumber />
               </Form.Item>
             )}
+            <Form.Item label="Solo mora">
+              <Switch checked={soloMora} onChange={setSoloMora} />
+            </Form.Item>
             <Form.Item>
               <Button
                 type="primary"
@@ -302,8 +348,9 @@ export function CobroDiarioPage() {
     >
       {queried && consulta.isSuccess ? (
         <Typography.Text type="secondary" className="credix-aprobacion-filtros-aplicados">
-          Fecha {formatFecha(dayjs().format('YYYY-MM-DD'))} · Oficina sesión #{session?.oficinaId} ·{' '}
+          Fecha {formatFecha(dayjs().format('YYYY-MM-DD'))} · {oficinaLabel} ·{' '}
           {gestorLabelFromId(gestorId)}
+          {soloMora ? ' · Solo mora' : ''}
           {cajaQuery.data?.denominacion
             ? ` · Caja ${cajaQuery.data.denominacion}`
             : gestorId != null && gestorId > 0

@@ -14,6 +14,7 @@ import {
 /** Rutas SPA de atajos de cartera del dashboard. */
 export const DASHBOARD_CARTERA_ALLOWED_PATHS = [
   '/informes/cobro-diario',
+  '/informes/cobro-diario?soloMora=1',
   '/informes/morosidad-gestor',
   '/informes/creditos-observados',
   '/informes/clientes-inactivos',
@@ -56,7 +57,7 @@ export function buildAnalistaCarteraActions(
       id: 'vencidos',
       label: 'Vencidos',
       kind: 'pdf-vencidos',
-      spaPath: '/informes/morosidad-gestor',
+      spaPath: '/informes/cobro-diario?soloMora=1',
     },
     {
       id: 'observados',
@@ -98,9 +99,9 @@ export function buildAdminCarteraActions(
   const actions: Omit<DashboardCarteraAction, 'icon'>[] = [
     {
       id: 'vencidos',
-      label: 'Morosidad / vencidos',
+      label: 'Cobro diario · solo mora',
       kind: 'pdf-vencidos',
-      spaPath: '/informes/morosidad-gestor',
+      spaPath: '/informes/cobro-diario?soloMora=1',
     },
     {
       id: 'cobro-diario',

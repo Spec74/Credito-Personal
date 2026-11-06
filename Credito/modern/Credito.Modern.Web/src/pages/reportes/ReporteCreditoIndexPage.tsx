@@ -276,7 +276,7 @@ export function ReporteCreditoIndexPage() {
           description="Seguimiento de atrasos, aprobaciones y cobro del día por gestor."
         >
         <CredixReportBox
-          title="Reporte morosidad"
+          title="Morosidad por días de atraso"
           icon={<AuditOutlined />}
           actions={
             <ReportExportActions
@@ -461,20 +461,24 @@ export function ReporteCreditoIndexPage() {
         </CredixReportBox>
 
         <CredixReportBox
-          title="Morosidad por gestor"
+          title="Cobro diario · solo mora"
           icon={<TeamOutlined />}
           actions={
             <ReportExportActions
-              screenTo="/informes/morosidad-gestor"
-              screenSearchParams={gestorScreenParams}
+              screenTo="/informes/cobro-diario"
+              screenSearchParams={{ ...gestorScreenParams, soloMora: '1' }}
               exports={[
                 {
                   label: 'PDF',
                   format: 'pdf',
                   onClick: () =>
-                    runOpenReport('Morosidad gestor', () =>
+                    runOpenReport('Cobro diario solo mora', () =>
                       downloadMorosidadGestorPdf(
-                        toCobroDiarioQuery(gestorParams.oficinaId, gestorParams.usuarioId),
+                        toCobroDiarioQuery(
+                          gestorParams.oficinaId,
+                          gestorParams.usuarioId,
+                          true,
+                        ),
                       ),
                     ),
                 },
@@ -482,9 +486,13 @@ export function ReporteCreditoIndexPage() {
                   label: 'XLS',
                   format: 'xls',
                   onClick: () =>
-                    runOpenReport('Morosidad gestor XLS', () =>
+                    runOpenReport('Cobro diario solo mora XLS', () =>
                       downloadMorosidadGestorCsv(
-                        toCobroDiarioQuery(gestorParams.oficinaId, gestorParams.usuarioId),
+                        toCobroDiarioQuery(
+                          gestorParams.oficinaId,
+                          gestorParams.usuarioId,
+                          true,
+                        ),
                       ),
                     ),
                 },
@@ -493,7 +501,7 @@ export function ReporteCreditoIndexPage() {
           }
         >
           <p className="credix-report-card-hint">
-            Cartera en atraso filtrada por el gestor de la barra superior («Todos» permitido).
+            Misma cartera del día del gestor, filtrada a créditos con mora («Todos» permitido).
           </p>
         </CredixReportBox>
 

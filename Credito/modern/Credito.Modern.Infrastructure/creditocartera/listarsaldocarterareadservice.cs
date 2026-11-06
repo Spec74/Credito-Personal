@@ -52,7 +52,88 @@ public sealed class ListarSaldoCarteraReadService(IOptions<SqlDatabaseOptions> o
             new { Anio = anio, Mes = mes, OficinaId = oficinaId, UsuarioId = usuarioId },
             commandType: CommandType.StoredProcedure,
             cancellationToken: cancellationToken);
-        var rows = await connection.QueryAsync<ListarSaldoCarteraRowDto>(command).ConfigureAwait(false);
-        return rows.ToList();
+        var rows = (await connection.QueryAsync<ListarSaldoCarteraRowDto>(command).ConfigureAwait(false))
+            .ToList();
+        if (rows.Count == 0)
+        {
+            return rows;
+        }
+
+        return await EnrichWithNamesAsync(connection, rows, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<List<ListarSaldoCarteraRowDto>> EnrichWithNamesAsync(
+        SqlConnection connection,
+        List<ListarSaldoCarteraRowDto> rows,
+        CancellationToken cancellationToken)
+    {
+        var agenteIds = rows.Select(r => r.AgenteId).Where(id => id > 0).Distinct().ToArray();
+        var oficinaIds = rows.Select(r => r.OficinaId).Where(id => id > 0).Distinct().ToArray();
+
+        var agentes = new Dictionary<int, string>();
+        if (agenteIds.Length > 0)
+        {
+            const string sqlAgentes = """
+                SELECT u.UsuarioId,
+                       COALESCE(
+                           NULLIF(LTRIM(RTRIM(p.NombreCompleto)), N''),
+                           NULLIF(LTRIM(RTRIM(u.NombreUsuario)), N''),
+                           CONCAT(N'Usuario ', u.UsuarioId)) AS Nombre
+                FROM MAESTRO.Usuario AS u
+                LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+                WHERE u.UsuarioId IN @Ids;
+                """;
+            var agenteRows = await connection
+                .QueryAsync<(int UsuarioId, string Nombre)>(
+                    new CommandDefinition(sqlAgentes, new { Ids = agenteIds }, cancellationToken: cancellationToken))
+                .ConfigureAwait(false);
+            foreach (var a in agenteRows)
+            {
+                agentes[a.UsuarioId] = a.Nombre;
+            }
+        }
+
+        var oficinas = new Dictionary<int, string>();
+        if (oficinaIds.Length > 0)
+        {
+            const string sqlOficinas = """
+                SELECT OficinaId,
+                       COALESCE(NULLIF(LTRIM(RTRIM(Denominacion)), N''), CONCAT(N'Oficina ', OficinaId)) AS Nombre
+                FROM MAESTRO.Oficina
+                WHERE OficinaId IN @Ids;
+                """;
+            var oficinaRows = await connection
+                .QueryAsync<(int OficinaId, string Nombre)>(
+                    new CommandDefinition(sqlOficinas, new { Ids = oficinaIds }, cancellationToken: cancellationToken))
+                .ConfigureAwait(false);
+            foreach (var o in oficinaRows)
+            {
+                oficinas[o.OficinaId] = o.Nombre;
+            }
+        }
+
+        return rows
+            .Select(r => new ListarSaldoCarteraRowDto
+            {
+                AgenteId = r.AgenteId,
+                AgenteNombre = agentes.TryGetValue(r.AgenteId, out var an)
+                    ? an
+                    : (r.AgenteId > 0 ? $"Usuario {r.AgenteId}" : null),
+                OficinaId = r.OficinaId,
+                OficinaNombre = oficinas.TryGetValue(r.OficinaId, out var on)
+                    ? on
+                    : (r.OficinaId > 0 ? $"Oficina {r.OficinaId}" : null),
+                NroDesembolsos = r.NroDesembolsos,
+                MontoDesembolsos = r.MontoDesembolsos,
+                SaldoCartera = r.SaldoCartera,
+                NroClientesSaldoCartera = r.NroClientesSaldoCartera,
+                SaldoMoraCartera = r.SaldoMoraCartera,
+                NroClientesSaldoMoraCartera = r.NroClientesSaldoMoraCartera,
+                SaldoVencido = r.SaldoVencido,
+                SaldoMorosidad = r.SaldoMorosidad,
+                NroClientesNuevos = r.NroClientesNuevos,
+                FechaCierre = r.FechaCierre,
+            })
+            .ToList();
     }
 }

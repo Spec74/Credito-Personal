@@ -221,8 +221,8 @@ export function AnalystDashboardPage() {
             label="Vencen esta semana"
             value={formatEntero(kpis.porVencerSemana)}
             meta={<span>Próximos 7 días — seguimiento preventivo</span>}
-            href="/informes/morosidad-gestor"
-            actionHint="Abrir vencidos"
+            href="/informes/cobro-diario?soloMora=1"
+            actionHint="Abrir cobro diario (solo mora)"
           />
         </section>
 

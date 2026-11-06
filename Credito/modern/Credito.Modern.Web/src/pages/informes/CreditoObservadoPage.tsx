@@ -181,8 +181,10 @@ export function CreditoObservadoPage() {
     >
       {queried && consulta.isSuccess ? (
         <Typography.Text type="secondary" className="credix-aprobacion-filtros-aplicados">
-          Fecha {formatFecha(dayjs().format('YYYY-MM-DD'))} · Oficina sesión #{session?.oficinaId} ·{' '}
-          {gestorLabelFromId(gestorId)}
+          Fecha {formatFecha(dayjs().format('YYYY-MM-DD'))} ·{' '}
+          {session?.oficinaDenominacion?.trim() ||
+            (session?.oficinaId ? `Oficina #${session.oficinaId}` : 'Oficina')}{' '}
+          · {gestorLabelFromId(gestorId)}
         </Typography.Text>
       ) : null}
 

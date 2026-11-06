@@ -21,9 +21,9 @@ export const CREDITO_HUB_QUICK_ACCESS: CredixHubLink[] = [
     description: 'Créditos observados',
   },
   {
-    to: '/informes/morosidad-gestor',
-    label: 'Morosidad por gestor',
-    description: 'Vencidos y mora',
+    to: '/informes/cobro-diario?soloMora=1',
+    label: 'Cobro diario · solo mora',
+    description: 'Cartera del día filtrada a créditos con mora',
   },
   {
     to: '/informes/clientes-inactivos',
@@ -97,19 +97,19 @@ export const CREDITO_HUB_SECTIONS: CredixHubSection[] = [
         description: 'Detalle de cobranza del gestor',
       },
       {
-        to: '/informes/morosidad-gestor',
-        label: 'Morosidad por gestor',
-        description: 'Cobro diario filtrado por mora',
+        to: '/informes/cobro-diario?soloMora=1',
+        label: 'Cobro diario · solo mora',
+        description: 'Misma cartera del día, solo créditos con mora',
       },
       {
         to: '/informes/credito-vencido',
-        label: 'Crédito vencido',
-        description: 'Cartera vencida',
+        label: 'Crédito vencido por franja',
+        description: 'Vencidos por franja de días',
       },
       {
         to: '/informes/credito-morosidad',
         label: 'Morosidad por días de atraso',
-        description: 'Reporte morosidad (rango de días)',
+        description: 'Corte oficial por rango de días de atraso',
       },
     ],
   },

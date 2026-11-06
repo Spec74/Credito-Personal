@@ -31,7 +31,7 @@ export function buildAprobacionInformeColumns(): ColumnsType<RptCreditoAprobacio
     },
     { title: 'N° cuotas', dataIndex: 'numeroCuotas', minWidth: 72, align: 'right' },
     {
-      title: 'Desembolso',
+      title: 'Monto desembolso',
       dataIndex: 'montoDesembolso',
       minWidth: 96,
       align: 'right',

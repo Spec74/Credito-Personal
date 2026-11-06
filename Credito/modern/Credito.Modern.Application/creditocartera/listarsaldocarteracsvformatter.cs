@@ -15,11 +15,13 @@ public static class ListarSaldoCarteraCsvFormatter
     {
         var sb = new StringBuilder(capacity: Math.Max(256, rows.Count * 96));
         sb.AppendLine(
-            "AgenteId,OficinaId,NroDesembolsos,MontoDesembolsos,SaldoCartera,NroClientesSaldoCartera,SaldoMoraCartera,NroClientesSaldoMoraCartera,SaldoVencido,SaldoMorosidad,NroClientesNuevos,FechaCierre");
+            "Agente,Oficina,AgenteId,OficinaId,NroDesembolsos,MontoDesembolsos,SaldoCartera,NroClientesSaldoCartera,SaldoMoraCartera,NroClientesSaldoMoraCartera,SaldoVencido,SaldoMorosidad,NroClientesNuevos,FechaCierre");
         var inv = CultureInfo.InvariantCulture;
         foreach (var r in rows)
         {
-            sb.Append(r.AgenteId.ToString(inv)).Append(',')
+            sb.Append(CsvUtf8BomEncoding.EscapeField(r.AgenteNombre)).Append(',')
+                .Append(CsvUtf8BomEncoding.EscapeField(r.OficinaNombre)).Append(',')
+                .Append(r.AgenteId.ToString(inv)).Append(',')
                 .Append(r.OficinaId.ToString(inv)).Append(',')
                 .Append(r.NroDesembolsos?.ToString(inv) ?? string.Empty).Append(',')
                 .Append(r.MontoDesembolsos?.ToString(inv) ?? string.Empty).Append(',')

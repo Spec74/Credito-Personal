@@ -412,8 +412,8 @@ public static class CredixLegacyReportCatalog
             [CredixLegacyReportKey.ListarSaldoCartera] = Def(
                 "SALDO CARTERA",
                 Cols(
-                    C("AgenteId", "N° agente"),
-                    C("OficinaId", "N° oficina"),
+                    L("AgenteNombre", "Agente"),
+                    L("OficinaNombre", "Oficina"),
                     C("NroDesembolsos", "N° desembolsos"),
                     N("MontoDesembolsos", "Monto desembolsos"),
                     N("SaldoCartera", "Saldo cartera"),
