@@ -24,9 +24,6 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
         "yyyy-MM-dd HH:mm:ss",
     ];
 
-    /// <summary>Paridad JS legacy <c>tiposPagoDigital = [2, 3, 4, 5]</c>.</summary>
-    private static readonly HashSet<int> TiposPagoDigital = [2, 3, 4, 5];
-
     private static readonly IReadOnlyList<CobroPlanillaTicketDto> SinTickets =
         Array.Empty<CobroPlanillaTicketDto>();
 
@@ -72,20 +69,24 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
                 throw new ArgumentOutOfRangeException(nameof(planilla), "creditoId inválido en la planilla.");
             }
 
-            if (raw.TipoPagoId < 1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(planilla), "tipoPagoId inválido en la planilla.");
-            }
-
-            if (TiposPagoDigital.Contains(raw.TipoPagoId)
-                && string.IsNullOrWhiteSpace(raw.FechaHoraTrans))
+            var tipoErr = TipoPagoRules.RequireCobroPermitido(raw.TipoPagoId);
+            if (tipoErr is not null)
             {
                 return new CobrarPlanillaBloqueResponse(
                     false,
-                    $"Ingrese la fecha/hora de transferencia para el crédito {raw.CreditoId}.",
+                    $"Crédito {raw.CreditoId}: {tipoErr}",
                     0,
                     0,
                     SinTickets);
+            }
+
+            var fechaErr = TipoPagoRules.RequireDigitalFecha(
+                raw.TipoPagoId,
+                raw.FechaHoraTrans,
+                $"crédito {raw.CreditoId} fecha/hora");
+            if (fechaErr is not null)
+            {
+                return new CobrarPlanillaBloqueResponse(false, fechaErr, 0, 0, SinTickets);
             }
 
             items.Add(raw with { MontoPagar = monto });

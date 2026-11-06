@@ -90,16 +90,19 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
                 throw new ArgumentException(err, nameof(medios));
             }
 
-            if (linea.TipoPagoId < 1)
+            var tipoErr = TipoPagoRules.RequireCobroPermitido(linea.TipoPagoId, $"medios[{i}].tipoPagoId");
+            if (tipoErr is not null)
             {
-                throw new ArgumentOutOfRangeException(nameof(medios), $"medios[{i}].tipoPagoId debe ser >= 1.");
+                throw new ArgumentException(tipoErr, nameof(medios));
             }
 
-            if (linea.TipoPagoId > 1 && string.IsNullOrWhiteSpace(linea.FechaPagoTransferencia))
+            var fechaErr = TipoPagoRules.RequireDigitalFecha(
+                linea.TipoPagoId,
+                linea.FechaPagoTransferencia,
+                $"medios[{i}].fechaPagoTransferencia");
+            if (fechaErr is not null)
             {
-                throw new ArgumentException(
-                    $"medios[{i}]: los digitales requieren fecha/hora de transferencia.",
-                    nameof(medios));
+                throw new ArgumentException(fechaErr, nameof(medios));
             }
 
             total = decimal.Round(total + importe, 2, MidpointRounding.AwayFromZero);
@@ -182,7 +185,8 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
             cancellationToken);
 
     /// <summary>
-    /// Paridad operativa: si TipoPagoId &gt; 1, el movimiento debe tener Extension
+    /// Paridad operativa: si el medio es digital/transferencia (TipoPagoId &gt; 1),
+    /// el movimiento debe tener Extension
     /// (Verificar pagos / bloqueo de cierre). El SP histórico solo lo hacía en pago libre;
     /// aquí se garantiza también para cobro de cuotas (idempotente si el SP ya lo insertó).
     /// </summary>
@@ -211,7 +215,7 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
                 cancellationToken: cancellationToken);
             var resultId = await connection.QueryFirstOrDefaultAsync<int?>(command).ConfigureAwait(false);
 
-            if (tipoPagoId > 1 && resultId is > 0)
+            if (TipoPagoRules.IsDigital(tipoPagoId) && resultId is > 0)
             {
                 await connection.ExecuteAsync(
                     new CommandDefinition(

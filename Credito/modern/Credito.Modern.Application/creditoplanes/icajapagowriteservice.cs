@@ -23,7 +23,7 @@ public interface ICajaPagoWriteService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Cobro mixto: una línea por medio (Yape/Plin/efectivo). Misma caja/crédito; una transacción.
+    /// Cobro mixto: una línea por medio (Yape/BCP/Interbank/Nación/efectivo…). Misma caja/crédito; una transacción.
     /// </summary>
     Task<PagoCajaMixtoResultResponse> PagarCuotaPagoLibreMixtoAsync(
         int cajaDiarioId,

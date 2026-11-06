@@ -1,5 +1,6 @@
 import { moneyEquals, roundMoney, sumMoney } from './money'
 import type { CobroBloqueRowDraft } from './cobroBloqueDraft'
+import { esTipoPagoDigital } from './tipoPago'
 
 export type PlanillaPayloadItem = {
   creditoId: number
@@ -41,8 +42,8 @@ export function validateRowMixtoMoney(edit: CobroBloqueRowDraft): string | null 
     return `La suma de medios (${suma.toFixed(2)}) debe coincidir al céntimo con el monto tipado (${esperado.toFixed(2)}).`
   }
   for (const m of medios) {
-    if (m.tipoPagoId > 1 && !(m.fechaHoraTrans ?? '').trim()) {
-      return 'Cada medio digital requiere fecha/hora de transferencia.'
+    if (esTipoPagoDigital(m.tipoPagoId) && !(m.fechaHoraTrans ?? '').trim()) {
+      return 'Cada medio digital/transferencia (Yape, BCP, Interbank, Nación…) requiere fecha/hora del voucher.'
     }
   }
   return null

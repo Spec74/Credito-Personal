@@ -3435,7 +3435,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
-                            detail: "El cobro mixto requiere al menos 2 medios (p. ej. Yape + efectivo).");
+                            detail: "El cobro mixto requiere al menos 2 medios (p. ej. Yape/BCP + efectivo).");
                     }
 
                     var total = body.Medios.Sum(m => m.Importe);
@@ -3538,7 +3538,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoPagarCuotaImporteLibreMixto")
             .WithSummary(
-                "Escritura: N× CREDITO.usp_PagarCuotaPagoLibre en una transacción (Yape/Plin + efectivo). CreditoRolOperador.")
+                "Escritura: N× CREDITO.usp_PagarCuotaPagoLibre en una transacción (Yape/BCP/Interbank/Nación + efectivo). CreditoRolOperador.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
             .Produces<PagoCajaMixtoResultResponse>(StatusCodes.Status200OK, "application/json")

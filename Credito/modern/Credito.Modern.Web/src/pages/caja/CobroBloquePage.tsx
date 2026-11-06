@@ -48,6 +48,7 @@ import {
 } from '../tesoreria/components/TipoPagoBrand'
 import { formatMoney } from '../../utils/formatMoney'
 import { moneyEquals, roundMoney, sumMoney } from '../../utils/money'
+import { esTipoPagoDigital } from '../../utils/tipoPago'
 import {
   collapsePlanillaByCredito,
   expandRowToPlanillaItems,
@@ -113,9 +114,6 @@ type VistaCampo = 'todos' | 'mora' | 'cobro'
 type TabPrincipal = 'cartera' | 'enviados'
 
 const { Text } = Typography
-
-/** Paridad legacy `tiposPagoDigital = [2, 3, 4, 5]`. */
-const TIPOS_PAGO_DIGITAL = new Set([2, 3, 4, 5])
 
 type RowEdit = CobroBloqueRowDraft
 
@@ -620,7 +618,7 @@ export function CobroBloquePage() {
       if (next.montoPagar < 0) next.montoPagar = 0
       // Pago digital: asegurar fecha/hora del voucher (por defecto ahora).
       if (
-        TIPOS_PAGO_DIGITAL.has(next.tipoPagoId) &&
+        esTipoPagoDigital(next.tipoPagoId) &&
         !next.fechaHoraTrans?.trim()
       ) {
         next.fechaHoraTrans = nowDatetimeLocal()
@@ -734,7 +732,7 @@ export function CobroBloquePage() {
       }
       const medios = e.medios?.filter((m) => roundMoney(m.importe) > 0) ?? []
       if (medios.length >= 2) continue
-      if (TIPOS_PAGO_DIGITAL.has(e.tipoPagoId) && !e.fechaHoraTrans?.trim()) {
+      if (esTipoPagoDigital(e.tipoPagoId) && !e.fechaHoraTrans?.trim()) {
         return `Ingrese la fecha/hora de transferencia para ${row.personaNombre} (crédito ${row.creditoId}).`
       }
     }
@@ -1241,7 +1239,7 @@ export function CobroBloquePage() {
         if ((e.medios?.length ?? 0) >= 2) {
           return <Text type="secondary">Por medio</Text>
         }
-        if (!TIPOS_PAGO_DIGITAL.has(e.tipoPagoId)) {
+        if (!esTipoPagoDigital(e.tipoPagoId)) {
           return <Text type="secondary">—</Text>
         }
         return (
@@ -1879,7 +1877,9 @@ export function CobroBloquePage() {
                 ...getEdit(row),
                 montoPagar: roundMoney(total),
                 tipoPagoId: mixtoLineas[0]?.tipoPagoId ?? 1,
-                fechaHoraTrans: mixtoLineas.find((l) => l.tipoPagoId > 1)?.fechaTransferencia ?? '',
+                fechaHoraTrans:
+                  mixtoLineas.find((l) => esTipoPagoDigital(l.tipoPagoId))?.fechaTransferencia ??
+                  '',
                 medios: mixtoLineas.map((l) => ({
                   tipoPagoId: l.tipoPagoId,
                   importe: roundMoney(l.importe ?? 0),

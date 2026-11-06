@@ -1,4 +1,4 @@
--- Glosa de pago libre incluye medio (Yape/Plin/efectivo) para el reporte de movimientos.
+-- Glosa de pago libre incluye medio (Yape/BCP/Interbank/Nación/efectivo) para el reporte de movimientos.
 SET NOCOUNT ON;
 GO
 

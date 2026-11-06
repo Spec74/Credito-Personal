@@ -32,7 +32,7 @@ function mergeDateTime(base: Dayjs, datePart: Dayjs, timePart: Dayjs | null): Da
 }
 
 /**
- * Fecha/hora del voucher digital (Yape, Plin, transferencia…).
+ * Fecha/hora del voucher digital/transferencia (Yape, BCP, Interbank, Nación…).
  * Desktop: DatePicker con hora. Móvil: hoja inferior táctil (calendario + hora apilados).
  */
 export function FechaHoraDigitalField({ value, onChange, status, compact = false }: Props) {

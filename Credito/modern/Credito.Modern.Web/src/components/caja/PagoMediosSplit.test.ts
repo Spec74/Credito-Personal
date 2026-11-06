@@ -8,7 +8,9 @@ import {
 const opts = [
   { value: 1, label: 'EFECTIVO' },
   { value: 2, label: 'YAPE' },
-  { value: 3, label: 'PLIN' },
+  { value: 3, label: 'INTERBANK' },
+  { value: 4, label: 'BCO CREDITO' },
+  { value: 5, label: 'BCO NACION' },
 ]
 
 describe('PagoMediosSplit', () => {
@@ -22,7 +24,7 @@ describe('PagoMediosSplit', () => {
   it('exige fecha en medios digitales', () => {
     const lineas = defaultPagoMediosSplit(opts, 20)
     lineas[0] = { ...lineas[0], fechaTransferencia: '' }
-    expect(validatePagoMedios(lineas)).toMatch(/digital/i)
+    expect(validatePagoMedios(lineas)).toMatch(/voucher|digital|Yape|BCP/i)
   })
 
   it('exige igualdad al céntimo con el total esperado', () => {

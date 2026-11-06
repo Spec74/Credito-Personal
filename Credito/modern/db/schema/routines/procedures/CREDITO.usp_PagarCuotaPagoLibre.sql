@@ -46,7 +46,7 @@ AS
 	SET @MovimientoCajaId = @@IDENTITY
 	
 	
-	IF @TipoPagoId>1 -- SOLO PAGOS POR YAPE, PLIN, BCP, NACION
+	IF @TipoPagoId>1 -- Digital/transferencia: Yape, Interbank, BCP, Banco de la Nación, …
 		INSERT INTO	CREDITO.MovimientoCajaExtension
 		(	MovimientoCajaId, FechaTransferencia, IndTransferenciaVerificada )
 		VALUES	(   @MovimientoCajaId, @FechaPagoTransferencia, 0 )

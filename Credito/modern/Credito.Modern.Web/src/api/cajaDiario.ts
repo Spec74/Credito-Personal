@@ -96,7 +96,7 @@ export function pagarCuotaImporteLibre(body: {
   })
 }
 
-/** Cobro mixto: N movimientos CUO (p. ej. Yape + efectivo) en una transacción. */
+/** Cobro mixto: N movimientos CUO (p. ej. Yape/BCP + efectivo) en una transacción. */
 export function pagarCuotaImporteLibreMixto(body: {
   oficinaId: number
   cajaDiarioId: number

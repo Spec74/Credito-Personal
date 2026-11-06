@@ -7,6 +7,7 @@ import {
 } from '../../pages/caja/components/FechaHoraDigitalField'
 import { formatMoney } from '../../utils/formatMoney'
 import { moneyEquals, roundMoney, sumMoney } from '../../utils/money'
+import { esTipoPagoCobroPermitido, esTipoPagoDigital } from '../../utils/tipoPago'
 
 export type PagoMedioLineaUi = {
   key: string
@@ -21,10 +22,10 @@ function newKey(): string {
   return `m-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`
 }
 
-/** Líneas por defecto: efectivo + primer digital del catálogo (Yape/Plin…). */
+/** Líneas por defecto: primer digital/transferencia del catálogo + efectivo. */
 export function defaultPagoMediosSplit(options: Opt[], totalHint?: number): PagoMedioLineaUi[] {
   const efectivo = options.find((o) => o.value === 1)?.value ?? 1
-  const digital = options.find((o) => o.value > 1)?.value ?? 2
+  const digital = options.find((o) => esTipoPagoDigital(o.value))?.value ?? 2
   const half =
     totalHint != null && totalHint > 0 ? roundMoney(totalHint / 2) : null
   const rest =
@@ -59,9 +60,11 @@ export function validatePagoMedios(
   for (const l of lineas) {
     const imp = roundMoney(l.importe ?? 0)
     if (!(imp > 0)) return 'Cada medio debe tener importe mayor a 0 (mín. S/ 0.01).'
-    if (l.tipoPagoId < 1) return 'Seleccione el medio de cada línea.'
-    if (l.tipoPagoId > 1 && !l.fechaTransferencia.trim()) {
-      return 'Los medios digitales requieren fecha/hora de transferencia.'
+    if (!esTipoPagoCobroPermitido(l.tipoPagoId)) {
+      return 'Seleccione un medio válido (Efectivo, Yape, Interbank, BCP o Banco de la Nación).'
+    }
+    if (esTipoPagoDigital(l.tipoPagoId) && !l.fechaTransferencia.trim()) {
+      return 'Yape, BCP, Interbank, Nación u otro digital: indique fecha/hora del voucher.'
     }
   }
   if (expectedTotal != null && expectedTotal > 0) {
@@ -73,7 +76,7 @@ export function validatePagoMedios(
   return null
 }
 
-/** Editor de cobro mixto (Yape/Plin + efectivo, etc.). */
+/** Editor de cobro mixto (Yape/BCP/Interbank/Nación + efectivo, etc.). */
 export function PagoMediosSplit({
   lineas,
   options,
@@ -91,7 +94,11 @@ export function PagoMediosSplit({
       lineas.map((l) => {
         if (l.key !== key) return l
         const next = { ...l, ...partial }
-        if (partial.tipoPagoId != null && partial.tipoPagoId > 1 && !next.fechaTransferencia) {
+        if (
+          partial.tipoPagoId != null &&
+          esTipoPagoDigital(partial.tipoPagoId) &&
+          !next.fechaTransferencia
+        ) {
           next.fechaTransferencia = nowDatetimeLocal()
         }
         return next
@@ -102,7 +109,8 @@ export function PagoMediosSplit({
   return (
     <div className="caja-pago-medios-split">
       <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-        Divida el cobro en varios medios. Total: <strong>{formatMoney(total)}</strong>
+        Divida el cobro (Yape, BCP, Interbank, Nación, efectivo…). Total:{' '}
+        <strong>{formatMoney(total)}</strong>
       </Typography.Text>
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
         {lineas.map((l, idx) => (

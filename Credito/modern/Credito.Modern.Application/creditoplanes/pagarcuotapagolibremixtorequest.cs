@@ -1,6 +1,6 @@
 namespace Credito.Modern.Application.CreditoPlanes;
 
-/// <summary>Línea de cobro mixto (p. ej. 10 Yape + 20 efectivo).</summary>
+/// <summary>Línea de cobro mixto (p. ej. 10 Yape/BCP + 20 efectivo).</summary>
 public sealed record PagoMedioLineaDto(
     int TipoPagoId,
     decimal Importe,

@@ -85,6 +85,7 @@ import { sumarMoraVigente } from '../../../components/caja/creditoMoraVista'
 import type { CreditoPorPersonaRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
 import { moneyEquals, roundMoney, sumMoney } from '../../../utils/money'
+import { esTipoPagoDigital } from '../../../utils/tipoPago'
 import { toLegacyFechaTransferencia } from '../../../utils/formatFecha'
 import { CancelacionCreditoPanel } from './CancelacionCreditoPanel'
 import { CxcInlinePanel } from './CxcInlinePanel'
@@ -183,13 +184,13 @@ export function CobranzasTab({
   }, [])
 
   useEffect(() => {
-    if (tipoPagoId > 1) {
+    if (esTipoPagoDigital(tipoPagoId)) {
       setFechaTransferencia((prev) => prev.trim() || nowDatetimeLocal())
     }
   }, [tipoPagoId])
 
   useEffect(() => {
-    if (tipoPagoLibreId > 1) {
+    if (esTipoPagoDigital(tipoPagoLibreId)) {
       setFechaPagoLibre((prev) => prev.trim() || nowDatetimeLocal())
     }
   }, [tipoPagoLibreId])
@@ -354,7 +355,7 @@ export function CobranzasTab({
             tipoPagoId: l.tipoPagoId,
             importe: roundMoney(l.importe ?? 0),
             fechaPagoTransferencia:
-              l.tipoPagoId > 1 && l.fechaTransferencia
+              esTipoPagoDigital(l.tipoPagoId) && l.fechaTransferencia
                 ? toLegacyFechaTransferencia(l.fechaTransferencia) ?? null
                 : null,
           })),
@@ -368,7 +369,7 @@ export function CobranzasTab({
         importeRecibido: importeRecibido ?? 0,
         tipoPagoId,
         fechaPagoTransferencia:
-          tipoPagoId > 1 && fechaTransferencia
+          esTipoPagoDigital(tipoPagoId) && fechaTransferencia
             ? toLegacyFechaTransferencia(fechaTransferencia)
             : undefined,
         esUltimaCuota:
@@ -450,7 +451,7 @@ export function CobranzasTab({
             tipoPagoId: l.tipoPagoId,
             importe: l.importe ?? 0,
             fechaPagoTransferencia:
-              l.tipoPagoId > 1 && l.fechaTransferencia
+              esTipoPagoDigital(l.tipoPagoId) && l.fechaTransferencia
                 ? toLegacyFechaTransferencia(l.fechaTransferencia) ?? null
                 : null,
           })),
@@ -468,7 +469,7 @@ export function CobranzasTab({
           esUltimaCuota: true,
           tipoPagoId: tipoPagoLibreId,
           fechaPagoTransferencia:
-            tipoPagoLibreId > 1 && fechaPagoLibre
+            esTipoPagoDigital(tipoPagoLibreId) && fechaPagoLibre
               ? toLegacyFechaTransferencia(fechaPagoLibre) ?? null
               : null,
         })
@@ -480,7 +481,7 @@ export function CobranzasTab({
         importeRecibido: pagoLibre ?? 0,
         tipoPagoId: tipoPagoLibreId,
         fechaPagoTransferencia:
-          tipoPagoLibreId > 1 && fechaPagoLibre
+          esTipoPagoDigital(tipoPagoLibreId) && fechaPagoLibre
             ? toLegacyFechaTransferencia(fechaPagoLibre) ?? null
             : null,
       })
@@ -622,7 +623,7 @@ export function CobranzasTab({
       if (!(await assertSinCxcPendiente(creditoId))) {
         return
       }
-      if (tipoPagoLibreId > 1 && !fechaPagoLibre.trim()) {
+      if (esTipoPagoDigital(tipoPagoLibreId) && !fechaPagoLibre.trim()) {
         cajaToastWarning('Indique la hora del voucher en el panel de cobro')
         return
       }
@@ -632,7 +633,7 @@ export function CobranzasTab({
       cajaConfirm({
         title: 'Confirmar pago libre',
         content:
-          tipoPagoLibreId > 1
+          esTipoPagoDigital(tipoPagoLibreId)
             ? `¿Registrar ${formatMoney(pagoLibre)} por ${tipoLabel}?`
             : `¿Registrar pago libre de ${formatMoney(pagoLibre)}?`,
         onOk: () => ejecutarPagoLibre.mutateAsync(),
@@ -684,7 +685,7 @@ export function CobranzasTab({
         return
       }
 
-      if (tipoPagoId > 1 && !fechaTransferencia.trim()) {
+      if (esTipoPagoDigital(tipoPagoId) && !fechaTransferencia.trim()) {
         cajaToastWarning('Indique la hora del voucher en el panel de cobro')
         return
       }
@@ -693,7 +694,7 @@ export function CobranzasTab({
       cajaConfirm({
         title: 'Confirmar cobro',
         content:
-          tipoPagoId > 1
+          esTipoPagoDigital(tipoPagoId)
             ? `¿Cobrar ${selectedKeys.length} cuota(s) · ${formatMoney(selectedTotal)} por ${tipoLabel}?`
             : `¿Cobrar ${selectedKeys.length} cuota(s) por ${formatMoney(selectedTotal)}?`,
         onOk: () => pagar.mutateAsync(),
@@ -1155,7 +1156,7 @@ export function CobranzasTab({
                   }}
                   style={{ marginBottom: 8 }}
                 >
-                  Dividir en varios medios (Yape/Plin + efectivo)
+                  Dividir en varios medios (Yape, BCP, Interbank, Nación + efectivo)
                 </Checkbox>
                 {cuotaMixto ? (
                   <PagoMediosSplit
@@ -1172,7 +1173,7 @@ export function CobranzasTab({
                       onChange={setTipoPagoId}
                       wrap={!isMobile}
                     />
-                    {tipoPagoId > 1 ? (
+                    {esTipoPagoDigital(tipoPagoId) ? (
                       <FechaHoraDigitalField
                         value={fechaTransferencia}
                         status={!fechaTransferencia ? 'error' : undefined}
@@ -1205,7 +1206,7 @@ export function CobranzasTab({
                   }}
                   style={{ marginBottom: 8 }}
                 >
-                  Dividir en varios medios (Yape/Plin + efectivo)
+                  Dividir en varios medios (Yape, BCP, Interbank, Nación + efectivo)
                 </Checkbox>
                 {pagoLibreMixto ? (
                   <>
@@ -1289,7 +1290,7 @@ export function CobranzasTab({
                       onChange={setTipoPagoLibreId}
                       wrap={!isMobile}
                     />
-                    {tipoPagoLibreId > 1 ? (
+                    {esTipoPagoDigital(tipoPagoLibreId) ? (
                       <FechaHoraDigitalField
                         value={fechaPagoLibre}
                         status={!fechaPagoLibre ? 'error' : undefined}

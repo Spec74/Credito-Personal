@@ -30,8 +30,7 @@ import {
   medioEtiquetaUi,
   medioNombreMarca,
 } from '../../tesoreria/components/bovedaResumenCuentaParse'
-
-const TIPOS_PAGO_DIGITAL = new Set([2, 3, 4, 5])
+import { esTipoPagoDigital } from '../../../utils/tipoPago'
 
 export type CobroBloqueFieldEdit = {
   montoPagar: number
@@ -88,7 +87,7 @@ export function CobroBloqueFieldCard({
   const sug = Math.max(0, row.cuotaSugerida || 0)
   const deuda = Math.max(0, row.deudaPendiente || 0)
   const phone = digitsPhone(row.celular)
-  const digital = TIPOS_PAGO_DIGITAL.has(edit.tipoPagoId)
+  const digital = esTipoPagoDigital(edit.tipoPagoId)
   const mapaPunto = {
     direccion: row.direccion,
     latitud: row.latitud,
