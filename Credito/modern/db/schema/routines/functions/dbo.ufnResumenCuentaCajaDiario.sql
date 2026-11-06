@@ -14,7 +14,10 @@ AS
 		;WITH SALDOINICIAL AS(	
 			SELECT ItemId 'TipoPagoId',Denominacion, IIF(ItemId=1,@SaldoInicial,0) 'Importe'
 			FROM MAESTRO.ValorTabla 
-			WHERE TablaId=13 AND ItemId>0
+			WHERE TablaId=13
+			  AND ItemId > 0
+			  AND ItemId NOT BETWEEN 6 AND 8
+			  AND ISNULL(DesCorta, N'') <> N'OBSOLETO'
 		),CUENTAS AS (
 			SELECT TipoPagoId,SUM(IIF(MC.IndEntrada=1,MC.ImportePago,-MC.ImportePago) ) 'Importe'
 			FROM CREDITO.MovimientoCaja MC  
@@ -28,7 +31,7 @@ AS
 		)
 		SELECT @Retorno=( STRING_AGG(Denominacion + ' = ' + CAST (Saldo AS VARCHAR(15)),'  ') )
 		FROM SALDOS
-		WHERE Saldo>0
+		WHERE Saldo <> 0
         
 		RETURN @Retorno
     END

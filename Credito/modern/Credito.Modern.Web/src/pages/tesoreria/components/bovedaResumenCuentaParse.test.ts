@@ -94,8 +94,12 @@ describe('medioComplemento', () => {
 })
 
 describe('esMarcaTipoPago', () => {
-  it('deja marcas activas (1–5 + Plin) y excluye sede disfrazada', () => {
-    expect(esMarcaTipoPago({ itemId: 2, denominacion: 'YAPE' })).toBe(true)
+  it('deja billeteras postables; excluye Yape rollup y sede disfrazada', () => {
+    expect(esMarcaTipoPago({ itemId: 2, denominacion: 'YAPE', desCorta: 'ROLLUP' })).toBe(
+      false,
+    )
+    expect(esMarcaTipoPago({ itemId: 10, denominacion: 'YAPE GERENTE' })).toBe(true)
+    expect(esMarcaTipoPago({ itemId: 11, denominacion: 'YAPE RENE' })).toBe(true)
     expect(esMarcaTipoPago({ itemId: 6, denominacion: 'YAPE HUANTA' })).toBe(false)
     expect(esMarcaTipoPago({ itemId: 99, denominacion: 'YAPE PICHARI' })).toBe(false)
     expect(esMarcaTipoPago({ itemId: 4, denominacion: 'BCO CREDITO' })).toBe(true)
@@ -112,6 +116,8 @@ describe('medioNombreMarca', () => {
     expect(medioNombreMarca('BCO NACION')).toBe('Banco de la Nación')
     expect(medioNombreMarca('INTERBANK')).toBe('Interbank')
     expect(medioNombreMarca('PLIN')).toBe('Plin')
+    expect(medioNombreMarca('YAPE GERENTE')).toBe('Yape Gerente')
+    expect(medioNombreMarca('YAPE RENE')).toBe('Yape Rene')
   })
 })
 

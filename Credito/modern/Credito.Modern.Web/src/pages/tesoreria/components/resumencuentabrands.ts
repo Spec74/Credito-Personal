@@ -40,6 +40,9 @@ export function marcaDesdeTipoPagoId(tipoPagoId: number): ResumenCuentaVariant |
       return 'banco-nacion'
     case 9:
       return 'plin'
+    case 10:
+    case 11:
+      return 'yape' // Gerente / René → misma marca visual; suman al Yape total
     default:
       return null
   }

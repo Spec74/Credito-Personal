@@ -14,7 +14,7 @@ type TipoPagoOption = {
  * («YAPE HUANTA», «INTERBANK HUANTA», …) que duplicaban el chip visual.
  */
 export function buildTipoPagoOptions(
-  items: { itemId: number; denominacion: string }[],
+  items: { itemId: number; denominacion: string; desCorta?: string | null }[],
 ): TipoPagoOption[] {
   return items
     .filter((t) => t.itemId > 0 && esMarcaTipoPago(t))

@@ -44,10 +44,10 @@ IF @flagAceptar = 0
 			  AND vt.ItemId = @TipoPagoId
 			  AND vt.ItemId > 0
 			  AND vt.ItemId NOT BETWEEN 6 AND 8
-			  AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
+			  AND ISNULL(vt.DesCorta, N'') NOT IN (N'OBSOLETO', N'ROLLUP')
 		)
 		BEGIN
-			RAISERROR(N'El medio debe ser una marca activa (Efectivo, Yape, Interbank, BCP, Nación, Plin). No use tipos de sede (6-8).', 16, 1)
+			RAISERROR(N'El medio debe ser postable (Efectivo, Yape Gerente/René, Interbank, BCP, Nación, Plin). No use Yape rollup ni tipos de sede (6-8).', 16, 1)
 			RETURN
 		END
 

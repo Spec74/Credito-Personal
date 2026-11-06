@@ -154,9 +154,21 @@ export function medioComplemento(
   return sufijoSede(etiqueta).trim()
 }
 
-/** Catálogo 1–5 es marca. 6–8 y «YAPE HUANTA» son sede disfrazada: no van al combo. */
-export function esMarcaTipoPago(item: { itemId: number; denominacion: string }): boolean {
+/**
+ * Medios postables en combo/chips.
+ * Excluye: 6–8 sede, OBSOLETO/ROLLUP (Yape padre), sufijos de sede en el nombre.
+ * Incluye: Yape Gerente / Yape René (billeteras que suman al Yape total).
+ */
+export function esMarcaTipoPago(item: {
+  itemId: number
+  denominacion: string
+  desCorta?: string | null
+}): boolean {
   if (item.itemId >= 6 && item.itemId <= 8) return false
+  const dc = (item.desCorta ?? '').trim().toUpperCase()
+  if (dc === 'OBSOLETO' || dc === 'ROLLUP') return false
+  // Padre Yape (ItemId 2) aunque DesCorta aún no esté migrado.
+  if (item.itemId === 2) return false
   return !/\s+(HUANTA|PICHARI|ANDAHUAYLAS|HUAMANGA|CENTRAL)\s*$/i.test(
     item.denominacion.trim(),
   )
@@ -189,8 +201,14 @@ export function medioNombreMarca(raw: string): string {
   switch (variant) {
     case 'efectivo':
       return 'Efectivo'
-    case 'yape':
+    case 'yape': {
+      // Billeteras persona (Gerente / René); sedes obsoletas quedan solo «Yape».
+      const k = normalizarClave(raw)
+      if (/\bGERENTE\b/.test(k) || /\bREN[EÉ]\b/.test(k)) {
+        return etiqueta.startsWith('Yape') ? etiqueta : 'Yape'
+      }
       return 'Yape'
+    }
     case 'plin':
       return 'Plin'
     case 'interbank':
@@ -248,8 +266,9 @@ export function parseResumenBovedaTexto(texto: string): ResumenCuentaParsed {
 
   while ((match = re.exec(trimmed)) !== null) {
     const clave = match[1].trim()
-    const monto = Number.parseFloat(match[2])
-    if (!Number.isFinite(monto)) continue
+    const montoRaw = Number.parseFloat(match[2])
+    if (!Number.isFinite(montoRaw)) continue
+    const monto = Math.round(montoRaw * 100) / 100
     const { etiqueta, variant } = resolveResumenCuentaVariant(clave)
     items.push({ clave: normalizarClave(clave), etiqueta, monto, variant })
   }

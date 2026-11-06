@@ -358,34 +358,42 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         SesionOficinaRow sesion,
         IReadOnlyList<MedioRedRow> filas)
     {
-        (short Id, string Marca, string Variant)[] catalogo =
+        // Id de marca visible + familia que suma al total (Yape = 2+10+11).
+        (short Id, string Marca, string Variant, short[] Familia)[] catalogo =
         [
-            (1, "Efectivo", "efectivo"),
-            (2, "Yape", "yape"),
-            (3, "Interbank", "interbank"),
-            (4, "BCP", "bcp"),
-            (5, "Nación", "banco-nacion"),
-            (9, "Plin", "plin"),
+            (1, "Efectivo", "efectivo", [1]),
+            (2, "Yape", "yape", [2, 10, 11]),
+            (3, "Interbank", "interbank", [3]),
+            (4, "BCP", "bcp", [4]),
+            (5, "Nación", "banco-nacion", [5]),
+            (9, "Plin", "plin", [9]),
         ];
 
         var result = new List<BovedaMedioMarcaDto>(catalogo.Length);
-        foreach (var (id, marca, variant) in catalogo)
+        foreach (var (id, marca, variant, familia) in catalogo)
         {
-            var propias = filas.Where(f => f.TipoPagoId == id).ToList();
+            var familySet = familia.ToHashSet();
+            var propias = filas.Where(f => familySet.Contains(f.TipoPagoId)).ToList();
             if (!sesion.IndPrincipal)
             {
                 propias = propias.Where(f => f.OficinaId == sesion.OficinaId).ToList();
             }
 
+            // Por sede: sumar billeteras de la misma marca (Gerente+René → Yape).
             var sedes = propias
                 .Where(f => f.BovedaId is > 0 && (sesion.IndPrincipal || f.OficinaId == sesion.OficinaId))
-                .Select(f => new BovedaMedioSedeDto(
-                    f.OficinaId,
-                    f.Oficina,
-                    f.IndPrincipal,
-                    f.BovedaId,
-                    f.Monto))
-                .Where(s => sesion.IndPrincipal ? true : s.OficinaId == sesion.OficinaId)
+                .GroupBy(f => f.OficinaId)
+                .Select(g =>
+                {
+                    var first = g.First();
+                    return new BovedaMedioSedeDto(
+                        first.OficinaId,
+                        first.Oficina,
+                        first.IndPrincipal,
+                        first.BovedaId,
+                        decimal.Round(g.Sum(x => x.Monto), 2, MidpointRounding.AwayFromZero));
+                })
+                .Where(s => sesion.IndPrincipal || s.OficinaId == sesion.OficinaId)
                 .ToList();
 
             if (sesion.IndPrincipal)
@@ -398,8 +406,8 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             }
 
             var total = sesion.IndPrincipal
-                ? sedes.Sum(s => s.Monto)
-                : propias.FirstOrDefault()?.Monto ?? 0m;
+                ? decimal.Round(sedes.Sum(s => s.Monto), 2, MidpointRounding.AwayFromZero)
+                : decimal.Round(propias.Sum(p => p.Monto), 2, MidpointRounding.AwayFromZero);
 
             result.Add(new BovedaMedioMarcaDto(id, marca, variant, total, sedes));
         }

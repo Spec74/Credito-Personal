@@ -7,7 +7,8 @@ import {
 
 const opts = [
   { value: 1, label: 'EFECTIVO' },
-  { value: 2, label: 'YAPE' },
+  { value: 10, label: 'YAPE GERENTE' },
+  { value: 11, label: 'YAPE RENE' },
   { value: 3, label: 'INTERBANK' },
   { value: 4, label: 'BCO CREDITO' },
   { value: 5, label: 'BCO NACION' },

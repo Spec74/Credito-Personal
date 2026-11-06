@@ -1,32 +1,47 @@
 /**
  * Medios de pago (MAESTRO.ValorTabla TablaId = 13).
  *
- * Catálogo operativo vigente:
- * 1 Efectivo · 2 Yape · 3 Interbank · 4 BCP · 5 Banco de la Nación · 9 Plin
- * (6–8 = variantes por sede obsoletas; no usar en cobro).
+ * 1 Efectivo · 2 Yape (ROLLUP) · 3 Interbank · 4 BCP · 5 Nación · 9 Plin
+ * 10 Yape Gerente · 11 Yape René
+ * 6–8 sede obsoleta.
  *
- * Regla alineada a los USP: todo TipoPagoId &gt; 1 es digital/transferencia
- * y exige fecha/hora de voucher + MovimientoCajaExtension.
+ * Postable = cobro/fondeo. Digital (&gt;1) exige voucher.
  */
 
 export const TIPO_PAGO_EFECTIVO = 1
+export const TIPO_PAGO_YAPE = 2
 export const TIPO_PAGO_PLIN = 9
+export const TIPO_PAGO_YAPE_GERENTE = 10
+export const TIPO_PAGO_YAPE_RENE = 11
 
-/** Efectivo = 1; Yape / Plin / bancos / cualquier marca digital = &gt; 1. */
+export const YAPE_FAMILY_IDS: readonly number[] = [
+  TIPO_PAGO_YAPE,
+  TIPO_PAGO_YAPE_GERENTE,
+  TIPO_PAGO_YAPE_RENE,
+]
+
 export function esTipoPagoDigital(tipoPagoId: number): boolean {
   return Number(tipoPagoId) > TIPO_PAGO_EFECTIVO
 }
 
-/** Variantes legacy por sede (no van al combo ni a cobros nuevos). */
 export function esTipoPagoSedeObsoleto(tipoPagoId: number): boolean {
   const id = Number(tipoPagoId)
   return id >= 6 && id <= 8
 }
 
-/** Medio aceptable en cobro moderno (efectivo o marca activa, no 6–8). */
+export function esTipoPagoYapeFamilia(tipoPagoId: number): boolean {
+  return YAPE_FAMILY_IDS.includes(Number(tipoPagoId))
+}
+
+/** Padre rollup (ItemId 2): no se tipa en cobro/fondeo. */
+export function esTipoPagoRollup(tipoPagoId: number): boolean {
+  return Number(tipoPagoId) === TIPO_PAGO_YAPE
+}
+
 export function esTipoPagoCobroPermitido(tipoPagoId: number): boolean {
   const id = Number(tipoPagoId)
   if (!Number.isFinite(id) || id < 1) return false
   if (esTipoPagoSedeObsoleto(id)) return false
+  if (esTipoPagoRollup(id)) return false
   return true
 }
