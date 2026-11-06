@@ -127,7 +127,24 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
             var pagos = 0;
             foreach (var item in items)
             {
-                var fechaSegura = NormalizarFechaTransferencia(item.FechaHoraTrans);
+                string fechaSegura;
+                try
+                {
+                    fechaSegura = NormalizarFechaTransferencia(
+                        item.FechaHoraTrans,
+                        TipoPagoRules.IsDigital(item.TipoPagoId));
+                }
+                catch (ArgumentException ex)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return new CobrarPlanillaBloqueResponse(
+                        false,
+                        $"Crédito {item.CreditoId}: {ex.Message}",
+                        pagos,
+                        0,
+                        SinTickets);
+                }
+
                 var resultId = await connection.QueryFirstOrDefaultAsync<int?>(
                     new CommandDefinition(
                         "CREDITO.usp_PagarCuotaPagoLibre",
@@ -203,11 +220,20 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
         }
     }
 
-    private static string NormalizarFechaTransferencia(string? raw)
+    /// <summary>
+    /// Digital: fecha obligatoria y parseable (no inventa "ahora").
+    /// Efectivo: cadena vacía.
+    /// </summary>
+    private static string NormalizarFechaTransferencia(string? raw, bool esDigital)
     {
+        if (!esDigital)
+        {
+            return string.Empty;
+        }
+
         if (string.IsNullOrWhiteSpace(raw))
         {
-            return DateTime.Now.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
+            throw new ArgumentException("Fecha/hora del voucher digital es obligatoria.");
         }
 
         if (DateTime.TryParseExact(
@@ -222,6 +248,7 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
             return parsed.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
         }
 
-        return DateTime.Now.ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture);
+        throw new ArgumentException(
+            $"Fecha/hora del voucher no es válida: «{raw.Trim()}».");
     }
 }

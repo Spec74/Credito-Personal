@@ -2726,6 +2726,9 @@ GO
 /* ===== INICIO 2026-10-24-boveda-cuadre-contrato.sql ===== */
 GO
 -- Cuadre multisucursal (2026-10-24)
+-- SUPERSEDED parcial: marcas bóveda 1-5 → activas (incl. Plin=9) en
+--   deploy/sql/2026-11-06-boveda-medio-plin.sql (fuente de verdad).
+-- Este bloque quedó alineado al filtro de marcas activas para no regresar Plin.
 -- 1) usp_TransferirBoveda: @TipoPagoId (default 1) en TRS/TRE; no overdraw del medio.
 -- 2) usp_CerrarBoveda: una principal; no cerrar con cajas abiertas / no enviadas.
 -- 3) usp_CerrarBovedaTemporal: todos los medios; UsuarioRol ENCARGADO por OficinaId.
@@ -2776,9 +2779,17 @@ IF @flagAceptar = 0
 			RETURN
 		END
 
-		IF @TipoPagoId NOT BETWEEN 1 AND 5
+		IF NOT EXISTS (
+			SELECT 1
+			FROM MAESTRO.ValorTabla AS vt
+			WHERE vt.TablaId = 13
+			  AND vt.ItemId = @TipoPagoId
+			  AND vt.ItemId > 0
+			  AND vt.ItemId NOT BETWEEN 6 AND 8
+			  AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
+		)
 		BEGIN
-			RAISERROR(N'El medio debe ser una marca (1-5). No use tipos de sede (6-8).', 16, 1)
+			RAISERROR(N'El medio debe ser una marca activa (Efectivo, Yape, Interbank, BCP, Nación, Plin). No use tipos de sede (6-8).', 16, 1)
 			RETURN
 		END
 
@@ -2907,7 +2918,10 @@ SELECT @BovedaNuevoId=@@IDENTITY
 	FROM MAESTRO.ValorTabla vt
 	LEFT JOIN CUENTAS C ON  vt.ItemId=c.TipoPagoId
 	LEFT JOIN CREDITO.BovedaCuenta BC ON BC.BovedaId = @BovedaId and BC.TipoPagoId = vt.ItemId
-	WHERE vt.TablaId=13 AND vt.ItemId BETWEEN 1 AND 5
+	WHERE vt.TablaId=13
+	  AND vt.ItemId > 0
+	  AND vt.ItemId NOT BETWEEN 6 AND 8
+	  AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
 
 	DELETE CREDITO.BovedaCuenta WHERE BovedaId=@BovedaNuevoId AND SaldoInicial=0
 GO
@@ -2952,7 +2966,10 @@ SELECT @BovedaId,'TRE','CIERRE BOVEDA TEMPORAL',vt.ItemId, ISNULL(BC.SaldoInicia
 FROM MAESTRO.ValorTabla vt
 LEFT JOIN CUENTAS C ON vt.ItemId = C.TipoPagoId
 LEFT JOIN CREDITO.BovedaCuenta BC ON BC.BovedaId = @BovedaIdTemporal AND BC.TipoPagoId = vt.ItemId
-WHERE vt.TablaId=13 AND vt.ItemId BETWEEN 1 AND 5
+WHERE vt.TablaId=13
+  AND vt.ItemId > 0
+  AND vt.ItemId NOT BETWEEN 6 AND 8
+  AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
 AND ISNULL(BC.SaldoInicial,0) + ISNULL(c.Importe,0) <> 0
 
 UPDATE CREDITO.Boveda

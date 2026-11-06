@@ -449,7 +449,7 @@ export function CobranzasTab({
           creditoId: creditoId!,
           medios: mediosLibre.map((l) => ({
             tipoPagoId: l.tipoPagoId,
-            importe: l.importe ?? 0,
+            importe: roundMoney(l.importe ?? 0),
             fechaPagoTransferencia:
               esTipoPagoDigital(l.tipoPagoId) && l.fechaTransferencia
                 ? toLegacyFechaTransferencia(l.fechaTransferencia) ?? null
@@ -657,6 +657,21 @@ export function CobranzasTab({
       }
 
       if (cuotaMixto) {
+        // Mixto usa pago libre (FIFO): debe ser el prefijo de cuotas pendientes (sin saltar).
+        const prefijoIds = cuotasPagables
+          .slice(0, selectedKeys.length)
+          .map((c) => c.planPagoId)
+          .filter((id): id is number => id != null && id > 0)
+        const seleccion = new Set(selectedKeys.map(Number))
+        const esPrefijo =
+          prefijoIds.length === seleccion.size &&
+          prefijoIds.every((id) => seleccion.has(id))
+        if (!esPrefijo) {
+          cajaToastError(
+            'En cobro mixto seleccione las primeras cuotas pendientes (sin saltar). El sistema aplica el monto FIFO.',
+          )
+          return
+        }
         const esperado = roundMoney(importeRecibido)
         if (!moneyEquals(esperado, roundMoney(selectedTotal))) {
           cajaToastError(

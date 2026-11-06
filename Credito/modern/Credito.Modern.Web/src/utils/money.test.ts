@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { roundMoney, sumMoney } from './money'
+import { moneyEquals, roundMoney, sumMoney } from './money'
 
 describe('money', () => {
   it('roundMoney evita 43.649999…', () => {
@@ -19,5 +19,16 @@ describe('money', () => {
 
   it('conteo con céntimos 3×0.20 = 0.60', () => {
     expect(sumMoney([roundMoney(3 * 0.2)])).toBe(0.6)
+  })
+
+  it('roundMoney y sumMoney coinciden en midpoints (1.005)', () => {
+    expect(roundMoney(1.005)).toBe(sumMoney([1.005]))
+    expect(moneyEquals(roundMoney(1.005), sumMoney([1.005]))).toBe(true)
+  })
+
+  it('moneyEquals es exacto al céntimo', () => {
+    expect(moneyEquals(10.1, 10.1)).toBe(true)
+    expect(moneyEquals(10.1, 10.11)).toBe(false)
+    expect(moneyEquals(0.1 + 0.2, 0.3)).toBe(true)
   })
 })

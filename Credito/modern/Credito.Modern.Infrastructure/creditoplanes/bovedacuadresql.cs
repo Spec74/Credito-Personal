@@ -31,11 +31,15 @@ internal static class BovedaCuadreSql
                       AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
                 )
                 ELSE (
+                    /* Sin BovedaCuenta: misma base de marcas activas (no 6–8). */
                     ISNULL((SELECT SaldoInicial FROM CREDITO.Boveda WHERE BovedaId = @BovedaId), 0)
                     + ISNULL((
                         SELECT SUM(IIF(IndEntrada = 1, Importe, -Importe))
-                        FROM CREDITO.BovedaMov
-                        WHERE BovedaId = @BovedaId AND Estado = 1
+                        FROM CREDITO.BovedaMov AS bm
+                        WHERE bm.BovedaId = @BovedaId
+                          AND bm.Estado = 1
+                          AND bm.TipoPagoId > 0
+                          AND bm.TipoPagoId NOT BETWEEN 6 AND 8
                     ), 0)
                 )
             END

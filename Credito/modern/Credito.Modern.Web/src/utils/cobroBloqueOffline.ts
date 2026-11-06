@@ -15,6 +15,11 @@ export type CobroBloquePlanillaItem = {
   montoPagar: number
   tipoPagoId: number
   fechaHoraTrans?: string | null
+  /**
+   * Deuda pendiente al encolar (anti doble cobro offline).
+   * Si al sincronizar la deuda bajó ≈ este tipado, se omite el ítem.
+   */
+  deudaAlTipar?: number | null
 }
 
 export type CobroBloqueSessionSnap = {

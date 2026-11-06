@@ -19,7 +19,7 @@ BEGIN
 
 	UPDATE CREDITO.CajaDiario 
 	SET Entradas=ISNULL(@entradas,0) , Salidas = ISNULL(@salidas,0) , 
-		SaldoFinal = ROUND(SaldoInicial + ISNULL(@entradas,0) - ISNULL(@salidas,0),1)
+		SaldoFinal = CAST(SaldoInicial + ISNULL(@entradas,0) - ISNULL(@salidas,0) AS DECIMAL(16,2))
 	WHERE CajaDiarioId=@CajaDiarioId
 	
 END

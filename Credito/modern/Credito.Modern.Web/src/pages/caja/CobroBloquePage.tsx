@@ -812,6 +812,13 @@ export function CobroBloquePage() {
 
   const encolarPorOffline = (planilla: PlanillaItem[]) => {
     if (!ctx) return
+    const conDeuda = planilla.map((p) => {
+      const row = (carteraRows ?? []).find((r) => r.creditoId === p.creditoId)
+      return {
+        ...p,
+        deudaAlTipar: row?.deudaPendiente ?? null,
+      }
+    })
     enqueueCobroBloqueProcess({
       version: 1,
       usuarioId,
@@ -819,9 +826,9 @@ export function CobroBloquePage() {
       cajaDiarioId: ctx.cajaDiarioId,
       fechaOperacion: fechaOperacionLocal(),
       queuedAt: new Date().toISOString(),
-      conCobro: planilla.length,
-      total: sumMoney(planilla.map((x) => x.montoPagar)),
-      planilla,
+      conCobro: collapsePlanillaByCredito(conDeuda).length,
+      total: sumMoney(conDeuda.map((x) => x.montoPagar)),
+      planilla: conDeuda,
     })
     setPendingSync(true)
     message.warning(
@@ -951,6 +958,16 @@ export function CobroBloquePage() {
           if (deudaByCredito.size > 0) {
             const deuda = deudaByCredito.get(p.creditoId)
             if (deuda == null || deuda <= 0) return false
+            // Anti doble cobro: si la deuda ya bajó ≈ el tipado encolado, el pago ya entró.
+            if (p.deudaAlTipar != null && p.deudaAlTipar > 0) {
+              const esperadaTrasPago = roundMoney(p.deudaAlTipar - p.montoPagar)
+              if (
+                moneyEquals(esperadaTrasPago, deuda) ||
+                roundMoney(deuda) < esperadaTrasPago
+              ) {
+                return false
+              }
+            }
           }
           return true
         })

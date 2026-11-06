@@ -3152,13 +3152,13 @@ internal static class CreditoOperacionEndpoints
                     if (moneyError is not null)
                         return moneyError;
 
-                    if (body.TipoPagoId < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inv?lida",
-                            detail: "tipoPagoId debe ser >= 1.");
-                    }
+                    var tipoPagoError = ProblemResults.IfInvalid(
+                        TipoPagoRules.RequireCobroPermitido(body.TipoPagoId)
+                        ?? TipoPagoRules.RequireDigitalFecha(
+                            body.TipoPagoId,
+                            body.FechaPagoTransferencia));
+                    if (tipoPagoError is not null)
+                        return tipoPagoError;
 
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)
@@ -3315,13 +3315,13 @@ internal static class CreditoOperacionEndpoints
                     if (moneyError is not null)
                         return moneyError;
 
-                    if (body.TipoPagoId < 1)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Solicitud inv?lida",
-                            detail: "tipoPagoId debe ser >= 1.");
-                    }
+                    var tipoPagoError = ProblemResults.IfInvalid(
+                        TipoPagoRules.RequireCobroPermitido(body.TipoPagoId)
+                        ?? TipoPagoRules.RequireDigitalFecha(
+                            body.TipoPagoId,
+                            body.FechaPagoTransferencia));
+                    if (tipoPagoError is not null)
+                        return tipoPagoError;
 
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)
