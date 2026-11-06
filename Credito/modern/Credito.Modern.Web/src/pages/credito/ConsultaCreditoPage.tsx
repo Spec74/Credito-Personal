@@ -26,12 +26,17 @@ import {
   reprogramarCredito,
   validarAnularCredito,
 } from '../../api/creditoPlanes'
-import { downloadMovimientoCajaTicketPdf, fetchCreditoMoraResumen } from '../../api/cajaDiario'
+import {
+  downloadMovimientoCajaTicketPdf,
+  fetchCreditoMoraResumen,
+  fetchCuotasPendientes,
+} from '../../api/cajaDiario'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import type { EstadoPlanPagoCuota, RptMovimientoCreditoRow } from '../../types/api'
 import { formatMoney } from '../../utils/formatMoney'
 import { sumMoney } from '../../utils/money'
+import { isCuotaFilaResumen } from '../../components/caja/cuotaRowStyle'
 import { actualizarDescuentoPlanPago } from '../../api/creditoGestion'
 import { CreditoConsultaGestionPanel } from './CreditoConsultaGestionPanel'
 import { CreditoConsultaClienteBar } from '../../components/credito/CreditoConsultaClienteBar'
@@ -323,12 +328,34 @@ export function ConsultaCreditoPage() {
         creditoId: activeId!,
       }),
     onSuccess: () => {
-      message.success('Crédito reprogramado')
+      message.success(
+        'Crédito reprogramado: el actual pasó a REP y se creó uno nuevo en CRE con la deuda pendiente.',
+      )
       setModalReprogramar(false)
       invalidarConsulta()
     },
     onError: (e) => message.error(errMsg(e)),
   })
+
+  const cuotasReprogQuery = useQuery({
+    queryKey: ['cuotas-pendientes-reprogramar', activeId],
+    queryFn: () => fetchCuotasPendientes(activeId!),
+    enabled: modalReprogramar && activeId != null && activeId > 0,
+    staleTime: 15_000,
+  })
+
+  const reprogPreview = useMemo(() => {
+    const rows = (cuotasReprogQuery.data ?? []).filter((r) => !isCuotaFilaResumen(r))
+    const deuda = sumMoney(rows.map((r) => Number(r.pagoCuota ?? 0)))
+    const mora = sumMoney(rows.map((r) => Number(r.importeMora ?? 0)))
+    return {
+      nCuotas: rows.length,
+      deuda,
+      mora,
+      loading: cuotasReprogQuery.isLoading,
+      error: cuotasReprogQuery.isError,
+    }
+  }, [cuotasReprogQuery.data, cuotasReprogQuery.isLoading, cuotasReprogQuery.isError])
 
   const ticketMovimiento = useMutation({
     mutationFn: (movimientoCajaId: number) =>
@@ -848,14 +875,58 @@ export function ConsultaCreditoPage() {
         title={`Reprogramar crédito ${activeId ?? ''}`}
         open={modalReprogramar}
         onCancel={() => setModalReprogramar(false)}
-        onOk={() => reprogramar.mutate()}
-        confirmLoading={reprogramar.isPending}
+        onOk={() => {
+          if (reprogPreview.error) {
+            message.error('No se pudo calcular la deuda pendiente.')
+            return
+          }
+          if (!reprogPreview.loading && reprogPreview.deuda <= 0) {
+            message.warning('No hay deuda pendiente para reprogramar.')
+            return
+          }
+          reprogramar.mutate()
+        }}
+        confirmLoading={reprogramar.isPending || reprogPreview.loading}
         okText="Reprogramar"
+        okButtonProps={{
+          disabled: reprogPreview.loading || reprogPreview.error || reprogPreview.deuda <= 0,
+        }}
       >
-        <Paragraph>
-          Reprograma el plan de pagos del crédito según las reglas del
-          procedimiento almacenado.
-        </Paragraph>
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          <Alert
+            type="info"
+            showIcon
+            message="Qué ocurre al confirmar"
+            description={
+              <>
+                El crédito actual pasa a estado <Tag>REP</Tag> y se crea uno nuevo en{' '}
+                <Tag>CRE</Tag> por el saldo pendiente (misma forma de pago y cuotas). Luego
+                debe continuar el flujo de aprobación del crédito nuevo.
+              </>
+            }
+          />
+          {reprogPreview.loading ? (
+            <Paragraph type="secondary">Calculando deuda pendiente…</Paragraph>
+          ) : reprogPreview.error ? (
+            <Alert type="error" showIcon message="No se pudieron cargar las cuotas pendientes." />
+          ) : (
+            <ul className="credito-reprogramar-preview" style={{ margin: 0, paddingLeft: 18 }}>
+              <li>
+                Cuotas pendientes: <strong>{reprogPreview.nCuotas}</strong>
+              </li>
+              <li>
+                Deuda a reprogramar (pago cuota):{' '}
+                <strong>S/ {formatMoney(reprogPreview.deuda)}</strong>
+              </li>
+              {reprogPreview.mora > 0 ? (
+                <li>
+                  Mora vigente informativa:{' '}
+                  <strong>S/ {formatMoney(reprogPreview.mora)}</strong>
+                </li>
+              ) : null}
+            </ul>
+          )}
+        </Space>
       </Modal>
 
       <CreditoMoraModal

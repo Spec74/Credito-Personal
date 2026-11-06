@@ -440,9 +440,35 @@ public sealed class CreditoGestionWriteService(
         DateTime fechaServidor,
         CancellationToken cancellationToken = default)
     {
+        var obs = (request.Observacion ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(obs))
+        {
+            return new CreditoGestionOperacionResponse(false, "Indique el motivo de depuración.");
+        }
+
+        if (request.PersonaId < 1)
+        {
+            return new CreditoGestionOperacionResponse(false, "Persona inválida.");
+        }
+
         EnsureConnection();
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var yaDepurado = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT COUNT(1)
+                FROM MAESTRO.PersonaDepurado
+                WHERE PersonaId = @PersonaId AND Estado = CAST(1 AS bit);
+                """,
+                new { request.PersonaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+        if (yaDepurado > 0)
+        {
+            return new CreditoGestionOperacionResponse(false, "El cliente ya está depurado.");
+        }
+
         await connection.ExecuteAsync(
             new CommandDefinition(
                 """
@@ -454,7 +480,7 @@ public sealed class CreditoGestionWriteService(
                 new
                 {
                     request.PersonaId,
-                    request.Observacion,
+                    Descripcion = obs.ToUpperInvariant(),
                     UsuarioRegId = usuarioId,
                     FechaReg = fechaServidor,
                 },

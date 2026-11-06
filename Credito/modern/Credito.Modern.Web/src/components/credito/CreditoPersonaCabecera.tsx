@@ -24,7 +24,7 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import { toggleClienteBloqueado } from '../../api/clientes'
+import { habilitarClienteDepurado, toggleClienteBloqueado } from '../../api/clientes'
 import { depurarPersonaCredito, fetchPersonaCreditoFicha } from '../../api/creditoGestion'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
@@ -33,6 +33,7 @@ import {
   puedeCrearSolicitudCreditoUi,
   puedeDepurarClienteCredito,
   puedeEditarTopeCreditoUi,
+  puedeHabilitarDepuradoCliente,
 } from '../../utils/creditoOperacionPermisos'
 import {
   calificacionTagColor,
@@ -75,6 +76,15 @@ export function CreditoPersonaCabecera({
     staleTime: creditoStaleTime.ficha,
   })
 
+  const invalidarFichaCliente = () => {
+    void queryClient.invalidateQueries({
+      queryKey: ['persona-credito-ficha', oficinaId, personaId],
+    })
+    void queryClient.invalidateQueries({
+      queryKey: ['creditos-grilla-persona', oficinaId, personaId],
+    })
+  }
+
   const depurar = useMutation({
     mutationFn: () =>
       depurarPersonaCredito({
@@ -86,12 +96,21 @@ export function CreditoPersonaCabecera({
       message.success('Cliente depurado')
       setModalDepurar(false)
       setObsDepurar('')
-      void queryClient.invalidateQueries({
-        queryKey: ['persona-credito-ficha', oficinaId, personaId],
-      })
-      void queryClient.invalidateQueries({
-        queryKey: ['creditos-grilla-persona', oficinaId, personaId],
-      })
+      invalidarFichaCliente()
+      onDepurado?.()
+    },
+    onError: (e) => message.error(errMsg(e)),
+  })
+
+  const rehabilitar = useMutation({
+    mutationFn: () => habilitarClienteDepurado(personaId),
+    onSuccess: (ok) => {
+      if (!ok) {
+        message.warning('No había depuración activa para rehabilitar.')
+        return
+      }
+      message.success('Cliente rehabilitado: ya puede originar créditos.')
+      invalidarFichaCliente()
       onDepurado?.()
     },
     onError: (e) => message.error(errMsg(e)),
@@ -100,6 +119,9 @@ export function CreditoPersonaCabecera({
   const f = fichaQuery.data
   const depurado = Boolean(f?.depuradoDescripcion)
   const puedeDepurar = f ? puedeDepurarClienteCredito(roles, depurado) : false
+  const puedeHabilitarDepurado = f
+    ? puedeHabilitarDepuradoCliente(roles, depurado)
+    : false
   const puedeBloquear = f ? puedeEditarTopeCreditoUi(roles) : false
   const puedeCrear = f
     ? puedeCrearSolicitudCreditoUi(roles, {
@@ -165,6 +187,24 @@ export function CreditoPersonaCabecera({
             onClick: () => {
               setObsDepurar('')
               setModalDepurar(true)
+            },
+          },
+        ] satisfies NonNullable<MenuProps['items']>)
+      : []),
+    ...(puedeHabilitarDepurado
+      ? ([
+          {
+            key: 'rehabilitar',
+            icon: <PlayCircleOutlined />,
+            label: 'Rehabilitar cliente',
+            disabled: rehabilitar.isPending,
+            onClick: () => {
+              cajaConfirm({
+                title: 'Rehabilitar cliente',
+                content:
+                  '¿Quitar la depuración? El cliente podrá volver a crear solicitudes de crédito.',
+                onOk: () => rehabilitar.mutateAsync(),
+              })
             },
           },
         ] satisfies NonNullable<MenuProps['items']>)
@@ -263,6 +303,25 @@ export function CreditoPersonaCabecera({
           className="credito-persona-cabecera__depurado"
           message="Cliente depurado"
           description={f.depuradoDescripcion}
+          action={
+            puedeHabilitarDepurado ? (
+              <Button
+                size="small"
+                type="primary"
+                loading={rehabilitar.isPending}
+                onClick={() => {
+                  cajaConfirm({
+                    title: 'Rehabilitar cliente',
+                    content:
+                      '¿Quitar la depuración? El cliente podrá volver a crear solicitudes de crédito.',
+                    onOk: () => rehabilitar.mutateAsync(),
+                  })
+                }}
+              >
+                Rehabilitar
+              </Button>
+            ) : undefined
+          }
         />
       ) : null}
 

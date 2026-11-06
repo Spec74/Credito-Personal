@@ -10,8 +10,11 @@ import {
   puedeCompletarBienesPrendarioUi,
   esCreditoProductoPrendario,
   puedeAnularCreditoUi,
+  puedeDepurarClienteCredito,
+  puedeHabilitarDepuradoCliente,
   puedeMutarAviso,
   puedePublicarAvisos,
+  puedeReprogramarCreditoUi,
 } from './creditoOperacionPermisos'
 
 describe('creditoOperacionPermisos', () => {
@@ -95,5 +98,22 @@ describe('bienes prendario', () => {
     expect(esCreditoProductoPrendario({ esPrendario: true, productoId: 1 })).toBe(true)
     expect(esCreditoProductoPrendario({ esPrendario: false, productoId: 2 })).toBe(true)
     expect(esCreditoProductoPrendario({ esPrendario: false, productoId: 1 })).toBe(false)
+  })
+})
+
+describe('reprogramar y depurar', () => {
+  it('reprogramar solo administrador', () => {
+    expect(puedeReprogramarCreditoUi(['ADMINISTRADOR'])).toBe(true)
+    expect(puedeReprogramarCreditoUi(['APROBADOR 1'])).toBe(false)
+    expect(puedeReprogramarCreditoUi(['ANALISTA'])).toBe(false)
+  })
+
+  it('depurar operadores; rehabilitar aprobador1/admin', () => {
+    expect(puedeDepurarClienteCredito(['ANALISTA', 'CAJA'], false)).toBe(true)
+    expect(puedeDepurarClienteCredito(['ANALISTA'], true)).toBe(false)
+    expect(puedeHabilitarDepuradoCliente(['APROBADOR 1'], true)).toBe(true)
+    expect(puedeHabilitarDepuradoCliente(['ADMINISTRADOR'], true)).toBe(true)
+    expect(puedeHabilitarDepuradoCliente(['ANALISTA'], true)).toBe(false)
+    expect(puedeHabilitarDepuradoCliente(['APROBADOR 1'], false)).toBe(false)
   })
 })

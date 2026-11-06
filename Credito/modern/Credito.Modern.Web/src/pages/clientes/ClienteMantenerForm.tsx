@@ -63,6 +63,7 @@ import {
   esCreditoAnalista,
   esCreditoAprobador1,
   puedeEditarTopeCreditoUi,
+  puedeHabilitarDepuradoCliente,
   puedeOperarCreditoCompleto,
 } from '../../utils/creditoOperacionPermisos'
 import { geocodeDistritoCliente, geocodeDomicilioCliente } from '../../utils/googleGeocode'
@@ -680,19 +681,29 @@ export function ClienteMantenerForm({ esEdicion, personaId }: Props) {
           message="Cliente depurado"
           description={detalle.data.depuradoDescripcion}
           action={
-            puedeAprobador ? (
+            puedeHabilitarDepuradoCliente(roles, true) ? (
               <Button
                 size="small"
                 type="primary"
-                danger
-                onClick={() =>
-                  habilitarClienteDepurado(personaId).then(() => {
-                    message.success('Cliente habilitado')
-                    detalle.refetch()
+                onClick={() => {
+                  Modal.confirm({
+                    title: 'Rehabilitar cliente',
+                    content:
+                      '¿Quitar la depuración? El cliente podrá volver a crear solicitudes de crédito.',
+                    okText: 'Rehabilitar',
+                    onOk: () =>
+                      habilitarClienteDepurado(personaId).then((ok) => {
+                        if (!ok) {
+                          message.warning('No había depuración activa.')
+                          return
+                        }
+                        message.success('Cliente rehabilitado')
+                        void detalle.refetch()
+                      }),
                   })
-                }
+                }}
               >
-                Habilitar
+                Rehabilitar
               </Button>
             ) : undefined
           }

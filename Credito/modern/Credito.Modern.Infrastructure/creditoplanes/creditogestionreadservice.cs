@@ -393,8 +393,13 @@ public sealed class CreditoGestionReadService(IOptions<SqlDatabaseOptions> optio
                        pd.Descripcion AS DepuradoDescripcion
                 FROM MAESTRO.Persona AS p
                 INNER JOIN MAESTRO.Cliente AS c ON c.PersonaId = p.PersonaId
-                LEFT JOIN MAESTRO.PersonaDepurado AS pd
-                    ON pd.PersonaId = p.PersonaId AND pd.Estado = CAST(1 AS bit)
+                OUTER APPLY (
+                    SELECT TOP (1) d.Descripcion
+                    FROM MAESTRO.PersonaDepurado AS d
+                    WHERE d.PersonaId = p.PersonaId
+                      AND d.Estado = CAST(1 AS bit)
+                    ORDER BY d.FechaReg DESC
+                ) AS pd
                 WHERE p.PersonaId = @PersonaId;
                 """,
                 new { PersonaId = personaId, OficinaId = oficinaId },

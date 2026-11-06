@@ -2157,6 +2157,14 @@ internal static class CreditoOperacionEndpoints
                             detail: "oficinaId y personaId son obligatorios.");
                     }
 
+                    if (string.IsNullOrWhiteSpace(body.Observacion))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "observacion (motivo de depuración) es obligatoria.");
+                    }
+
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)
                         return oficinaError;
@@ -2179,6 +2187,14 @@ internal static class CreditoOperacionEndpoints
                         var response = await gestionWrite
                             .DepurarPersonaAsync(body, usuarioId, serverTime.Value, ct)
                             .ConfigureAwait(false);
+                        if (!response.Success)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status422UnprocessableEntity,
+                                title: "No se pudo depurar",
+                                detail: response.Mensaje ?? "No se pudo depurar la persona.");
+                        }
+
                         return TypedResults.Ok(response);
                     }
                     catch (InvalidOperationException ex)

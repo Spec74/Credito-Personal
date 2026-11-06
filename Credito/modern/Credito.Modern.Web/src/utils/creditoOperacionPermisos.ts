@@ -229,6 +229,18 @@ export function puedeDepurarClienteCredito(roles: string[], depurado: boolean): 
   return puedeOperarCreditoCompleto(roles)
 }
 
+/**
+ * Rehabilitar cliente depurado (API `habilitar-depurado`).
+ * Paridad ficha Clientes: Aprobador 1 o Administrador.
+ */
+export function puedeHabilitarDepuradoCliente(roles: string[], depurado: boolean): boolean {
+  if (!depurado || tieneCreditoModoLectura(roles)) {
+    return false
+  }
+
+  return esCreditoAprobador1(roles) || esCreditoAdministrador(roles)
+}
+
 /** Paridad `btnCrearSolicitud` + `Model.lectura == false`. */
 export function puedeCrearSolicitudCreditoUi(
   roles: string[],
