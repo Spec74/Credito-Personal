@@ -184,6 +184,19 @@ internal static class AuthEndpoints
                         "Hay más de un usuario activo con ese nombre de usuario en la oficina. Un administrador debe renombrar o desactivar el duplicado en Seguridad → Usuario.");
                 }
 
+                if (outcome.Status == LegacyLoginStatus.PersonaUsuarioInvalida)
+                {
+                    log.LogWarning(
+                        "Login bloqueado por Persona inválida NombreUsuario={NombreUsuario} OficinaId={OficinaId}.",
+                        body.NombreUsuario?.Trim() ?? string.Empty,
+                        body.OficinaId);
+                    return TypedResults.Problem(
+                        statusCode: StatusCodes.Status403Forbidden,
+                        title: "Usuario sin persona",
+                        detail:
+                        "Su usuario no tiene ficha de persona válida en el padrón. Un administrador debe corregir el vínculo en Administración → Usuarios antes de operar.");
+                }
+
                 if (outcome.Status != LegacyLoginStatus.Success)
                 {
                     log.LogWarning(

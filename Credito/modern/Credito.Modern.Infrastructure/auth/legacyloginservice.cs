@@ -23,9 +23,11 @@ public sealed class LegacyLoginService(
         SELECT uo.UsuarioId,
                uo.OficinaId,
                uo.UsuarioOficinaId,
-               u.ClaveUsuario AS ClaveAlmacenada
+               u.ClaveUsuario AS ClaveAlmacenada,
+               CAST(CASE WHEN p.PersonaId IS NULL THEN 0 ELSE 1 END AS bit) AS PersonaValida
         FROM MAESTRO.UsuarioOficina AS uo
         INNER JOIN MAESTRO.Usuario AS u ON u.UsuarioId = uo.UsuarioId
+        LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId AND u.PersonaId > 0
         WHERE UPPER(LTRIM(RTRIM(u.NombreUsuario))) = @NombreUsuario
           AND uo.OficinaId = @OficinaId
           AND uo.Estado = CAST(1 AS bit)
@@ -126,6 +128,15 @@ public sealed class LegacyLoginService(
         if (row is null || string.IsNullOrEmpty(row.ClaveAlmacenada))
         {
             return new LegacyLoginOutcome(LegacyLoginStatus.CredencialesInvalidas, 0, 0, 0, []);
+        }
+
+        if (!row.PersonaValida)
+        {
+            logger.LogWarning(
+                "Login bloqueado: UsuarioId {UsuarioId} sin Persona válida en MAESTRO.Persona (oficina {OficinaId}).",
+                row.UsuarioId,
+                row.OficinaId);
+            return new LegacyLoginOutcome(LegacyLoginStatus.PersonaUsuarioInvalida, 0, 0, 0, []);
         }
 
         if (!UsuarioPasswordHasher.Verify(row.ClaveAlmacenada, clave, out var esClavePlanaLegada))
@@ -253,7 +264,12 @@ public sealed class LegacyLoginService(
             .ToList();
     }
 
-    private sealed record UsuarioOficinaRow(int UsuarioId, int OficinaId, int UsuarioOficinaId, string? ClaveAlmacenada);
+    private sealed record UsuarioOficinaRow(
+        int UsuarioId,
+        int OficinaId,
+        int UsuarioOficinaId,
+        string? ClaveAlmacenada,
+        bool PersonaValida);
 
     private sealed record SessionProfileRow(string NombreUsuario, string? OficinaDenominacion);
 
