@@ -358,18 +358,20 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         SesionOficinaRow sesion,
         IReadOnlyList<MedioRedRow> filas)
     {
-        // Central: billeteras Gerente/René visibles por separado; genéricos 2/3 = solo sucursales.
-        // Sucursal: familia rollup (Yape = 2+10+11) filtrada a su oficina.
+        // Central: billeteras Gerente/René (si existen en catálogo) + genéricos solo con saldo sucursal.
+        // Sucursal: un Yape / un Interbank (familia).
+        var idsEnCatalogo = filas.Select(f => f.TipoPagoId).ToHashSet();
+
         (short Id, string Marca, string Variant, short[] Familia)[] catalogo = sesion.IndPrincipal
             ?
             [
                 (1, "Efectivo", "efectivo", [1]),
                 (10, "Yape Gerente", "yape", [10]),
                 (11, "Yape René", "yape", [11]),
-                (2, "Yape", "yape", [2]),
                 (12, "Interbank Gerente", "interbank", [12]),
                 (13, "Interbank René", "interbank", [13]),
-                (3, "Interbank", "interbank", [3]),
+                (2, "Yape sucursales", "yape", [2]),
+                (3, "Interbank sucursales", "interbank", [3]),
                 (4, "BCP", "bcp", [4]),
                 (5, "Banco de la Nación", "banco-nacion", [5]),
                 (9, "Plin", "plin", [9]),
@@ -387,6 +389,12 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         var result = new List<BovedaMedioMarcaDto>(catalogo.Length);
         foreach (var (id, marca, variant, familia) in catalogo)
         {
+            // No inventar cards de billetera si el ItemId no está en ValorTabla.
+            if ((id is 10 or 11 or 12 or 13) && !idsEnCatalogo.Contains(id))
+            {
+                continue;
+            }
+
             var familySet = familia.ToHashSet();
             var propias = filas.Where(f => familySet.Contains(f.TipoPagoId)).ToList();
             if (!sesion.IndPrincipal)
@@ -394,7 +402,6 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                 propias = propias.Where(f => f.OficinaId == sesion.OficinaId).ToList();
             }
 
-            // Por sede: una fila por oficina (billeteras Central ya van en cards propias).
             var sedes = propias
                 .Where(f => f.BovedaId is > 0 && (sesion.IndPrincipal || f.OficinaId == sesion.OficinaId))
                 .GroupBy(f => f.OficinaId)
@@ -413,13 +420,11 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
 
             if (sesion.IndPrincipal)
             {
-                // Billeteras persona: solo Central (aunque queden cuentas huérfanas en sucursal).
                 if (id is 10 or 11 or 12 or 13)
                 {
                     sedes = sedes.Where(s => s.IndPrincipal).ToList();
                 }
 
-                // Genéricos 2/3: solo saldos de sucursal (no Central).
                 if (id is 2 or 3)
                 {
                     sedes = sedes.Where(s => !s.IndPrincipal).ToList();
@@ -431,12 +436,14 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                     .ThenBy(s => s.Oficina, StringComparer.OrdinalIgnoreCase)
                     .ToList();
 
-                // Genérico sucursal: ocultar si no hay sedes o todo en cero (evita 3.er Yape vacío).
+                // Genérico sucursal vacío → no ensuciar junto a Gerente/René.
                 if (id is 2 or 3)
                 {
                     if (sedes.Count == 0) continue;
-                    var sumaSuc = decimal.Round(sedes.Sum(s => s.Monto), 2, MidpointRounding.AwayFromZero);
-                    if (sumaSuc == 0m) continue;
+                    if (decimal.Round(sedes.Sum(s => s.Monto), 2, MidpointRounding.AwayFromZero) == 0m)
+                    {
+                        continue;
+                    }
                 }
             }
 

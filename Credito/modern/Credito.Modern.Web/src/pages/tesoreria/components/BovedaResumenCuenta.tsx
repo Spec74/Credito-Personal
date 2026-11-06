@@ -91,19 +91,23 @@ export function BovedaResumenCuenta({
         <div className="boveda-resumen-cuenta__grid">
           {data.marcas.map((marca) => {
             const variant = marcaDesdeTipoPagoId(marca.tipoPagoId) ?? asVariant(marca.variant)
-            // Wordmark cubre la marca; persona (Gerente/René) o nombre corto si aplica.
-            const persona = (() => {
-              const m = marca.marca.trim()
-              if (/\bGerente\b/i.test(m)) return 'Gerente'
-              if (/\bRen[eé]\b/i.test(m)) return 'René'
-              return null
+            // Etiqueta corta por ItemId (no depende del texto API ni de tilde).
+            const etiquetaVisible = (() => {
+              switch (marca.tipoPagoId) {
+                case 10:
+                case 12:
+                  return 'Gerente'
+                case 11:
+                case 13:
+                  return 'René'
+                case 2:
+                case 3:
+                  // En red: genérico solo si hay saldo sucursal → aclarar que no es Central.
+                  return red ? 'Sucursales' : null
+                default:
+                  return null
+              }
             })()
-            const etiquetaVisible = persona ?? (
-              // Plin/otros sin wordmark fuerte: mostrar nombre. Cash/Yape logo ya nombra.
-              variant === 'plin' || variant === 'otro' || variant === 'transferencia'
-                ? marca.marca
-                : null
-            )
             return (
               <div
                 key={marca.tipoPagoId}
