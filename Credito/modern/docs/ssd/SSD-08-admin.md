@@ -11,10 +11,12 @@ Dar de alta oficinas, usuarios, roles/menús y (vacío a propósito) comisiones.
 
 | Rol | Uso |
 |-----|-----|
-| Administrador en sucursal | Lista y escribe solo `UsuarioOficina` de su sede. Alta queda en esa oficina. No apaga `Usuario.Estado` global |
-| Administrador en Central (`IndPrincipal`) | Ve la red (`verRed`), asigna otras sedes y puede desactivar la cuenta |
+| Administrador en sucursal | Lista y escribe solo `UsuarioOficina` de su sede. Alta queda en esa oficina. No apaga `Usuario.Estado` global. UI: «Administrador de sede» (código `ADMINISTRADOR`) |
+| Administrador en Central (`IndPrincipal`) | Ve la red (`verRed`), asigna otras sedes y puede desactivar la cuenta. UI: «Administrador de red» (mismo código) |
 | Cualquier autenticado | Combo de oficinas activas en login (SSD-01); gestores para filtros de informe |
 | Resto | Sin ítem USUARIO/ROL/OFICINA no entra |
+
+**Etiquetas vs códigos (2026-11-06):** no se renombran filas de `MAESTRO.Rol`. La SPA muestra etiquetas amigables (`roleDisplayLabels`) y tooltips (LECTURA / LECTURA_SALDO / SALDOS CAJA; rol `CAJA CENTRAL` ≠ maestro de caja). `CreditoRolOperador` incluye la denominación viva `CAJA`.
 
 ## 2. Alcance
 

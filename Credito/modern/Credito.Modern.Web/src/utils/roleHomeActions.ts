@@ -1,6 +1,7 @@
 import {
   esCreditoAdministrador,
   esCreditoAnalista,
+  esCreditoAprobador,
   esCreditoAprobador1,
   esCreditoEncargado,
   esCreditoPerfilSoloBandeja,
@@ -17,7 +18,8 @@ export type RoleHomeAction = {
 /** Acciones de “Hoy”: pocas, por rol. El menú sigue siendo el catálogo. */
 export function buildRoleHomeActions(roles: string[]): RoleHomeAction[] {
   if (esCreditoPerfilSoloBandeja(roles)) {
-    return [{ to: '/credito/aprobar', label: 'Aprobar créditos', primary: true }]
+    const label = esCreditoAprobador1(roles) ? 'Aprobar créditos' : 'Bandeja de aprobación'
+    return [{ to: '/credito/aprobar', label, primary: true }]
   }
 
   const actions: RoleHomeAction[] = []
@@ -29,7 +31,8 @@ export function buildRoleHomeActions(roles: string[]): RoleHomeAction[] {
   const esCaja = esRolCaja(roles) || roles.some((r) => r.toUpperCase().includes('GESTOR'))
   const esAdmin = esCreditoAdministrador(roles)
   const esEncargado = esCreditoEncargado(roles) || esAdmin
-  const esAprobador = esCreditoAprobador1(roles) || esAdmin
+  const esAprobador = esCreditoAprobador(roles) || esAdmin
+  const puedeAprobar = esCreditoAprobador1(roles) || esAdmin
   const esAnalista = esCreditoAnalista(roles)
 
   if (esCaja) {
@@ -38,12 +41,20 @@ export function buildRoleHomeActions(roles: string[]): RoleHomeAction[] {
     push({ to: '/credito/prendario/nuevo', label: 'Nuevo prendario', primary: true })
   } else if (esAnalista) {
     push({ to: '/credito/nuevo', label: 'Nueva solicitud', primary: true })
-  } else if (esAprobador) {
+  } else if (puedeAprobar) {
     push({ to: '/credito/aprobar', label: 'Aprobar', primary: true })
+  } else if (esAprobador) {
+    push({ to: '/credito/aprobar', label: 'Bandeja de aprobación', primary: true })
   }
 
-  if (esAprobador) {
+  if (puedeAprobar) {
     push({ to: '/credito/aprobar', label: 'Aprobar', primary: !actions.some((a) => a.primary) })
+  } else if (esAprobador) {
+    push({
+      to: '/credito/aprobar',
+      label: 'Bandeja de aprobación',
+      primary: !actions.some((a) => a.primary),
+    })
   }
   if (esEncargado) {
     push({ to: '/caja/saldos', label: 'Saldos y cierre' })

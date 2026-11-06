@@ -2,10 +2,14 @@ import { describe, expect, it } from 'vitest'
 import {
   debeMostrarDashboardAdmin,
   debeMostrarDashboardAnalista,
+  esCreditoAprobador2,
+  esCreditoOperador,
   esCreditoPerfilSoloBandeja,
+  esRolCaja,
   puedeOperarCreditoCompleto,
   puedeCompletarBienesPrendarioUi,
   esCreditoProductoPrendario,
+  puedeAnularCreditoUi,
   puedeMutarAviso,
   puedePublicarAvisos,
 } from './creditoOperacionPermisos'
@@ -20,6 +24,20 @@ describe('creditoOperacionPermisos', () => {
 
   it('mantiene APROBADOR 1 puro como solo bandeja', () => {
     expect(esCreditoPerfilSoloBandeja(['APROBADOR 1'])).toBe(true)
+  })
+
+  it('APROBADOR 1 + CAJA no es solo bandeja (denominación viva)', () => {
+    expect(esCreditoPerfilSoloBandeja(['APROBADOR 1', 'CAJA'])).toBe(false)
+    expect(esRolCaja(['CAJA'])).toBe(true)
+    expect(esCreditoOperador(['CAJA'])).toBe(true)
+    expect(esCreditoOperador(['CAJA CENTRAL'])).toBe(true)
+  })
+
+  it('APROBADOR 2 puro es bandeja consultiva; no anula', () => {
+    expect(esCreditoAprobador2(['APROBADOR 2'])).toBe(true)
+    expect(esCreditoPerfilSoloBandeja(['APROBADOR 2'])).toBe(true)
+    expect(puedeAnularCreditoUi(['APROBADOR 2'])).toBe(false)
+    expect(puedeAnularCreditoUi(['APROBADOR 1'])).toBe(true)
   })
 })
 

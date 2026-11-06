@@ -38,6 +38,7 @@ export function puedeCobroBloqueUi(roles: string[]): boolean {
     return (
       roleMatches(r, 'ANALISTA') ||
       roleMatches(r, 'GESTOR') ||
+      // CAJA / CAJERO / CAJACENTRAL (rol menú; la caja física «central» es el maestro)
       roleMatches(r, 'CAJA') ||
       roleMatches(r, 'CAJERO') ||
       roleMatches(r, 'ADMINISTRADOR') ||

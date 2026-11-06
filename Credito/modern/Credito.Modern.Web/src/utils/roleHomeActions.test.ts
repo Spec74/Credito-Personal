@@ -13,6 +13,18 @@ describe('buildRoleHomeActions', () => {
     expect(actions.some((a) => a.to === '/caja/cobro')).toBe(true)
   })
 
+  it('acepta denominación viva CAJA igual que CAJERO', () => {
+    const actions = buildRoleHomeActions(['CAJA'])
+    expect(actions[0]).toEqual({ to: '/caja/diario', label: 'Caja del día', primary: true })
+  })
+
+  it('APROBADOR 2 puro entra a bandeja consultiva', () => {
+    const actions = buildRoleHomeActions(['APROBADOR 2'])
+    expect(actions).toEqual([
+      { to: '/credito/aprobar', label: 'Bandeja de aprobación', primary: true },
+    ])
+  })
+
   it('ofrece originación al analista', () => {
     const tos = buildRoleHomeActions(['ANALISTA']).map((a) => a.to)
     expect(tos).toContain('/credito/prendario/nuevo')

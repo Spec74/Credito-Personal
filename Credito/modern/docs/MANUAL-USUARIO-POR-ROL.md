@@ -14,10 +14,14 @@ En la práctica casi nadie tiene **un solo** rol. El sistema combina roles del m
 |-------------------|---------------------|------------|
 | **Gestor / Analista** | `ANALISTA` (+ a veces `CAJA`) | Originación, clientes, consulta, prendario, tareas |
 | **Cajero** | `CAJA` (+ a veces `ANALISTA`, `CAJA CENTRAL`) | Caja diario, cobros, tickets |
-| **Aprobador** | `APROBADOR 1` / `APROBADOR 2` | Bandeja de aprobación |
+| **Aprobador nivel 1** | `APROBADOR 1` | Aprueba / rechaza en bandeja |
+| **Aprobador nivel 2** | `APROBADOR 2` | Consulta bandeja y reportes; **no** aprueba (hace falta nivel 1 o admin) |
 | **Encargado de sede** | `ENCARGADO` (+ `SALDOS CAJA`, reportes) | Asignar/abrir caja, saldos, verificar pagos, fondeo |
-| **Administrador** | `ADMINISTRADOR` | Seguridad, oficinas, usuarios, bóveda, condonaciones, todo lo anterior |
+| **Administrador de sede** | `ADMINISTRADOR` en oficina no Central | Seguridad y operación de su sede |
+| **Administrador de red** | `ADMINISTRADOR` en Central (`IndPrincipal`) | Misma denominación; alcance de red (verRed, otras sedes) |
 | **Solo lectura / reportes** | `LECTURA`, `REPORTE`, `REPORTEPARCIAL`, `LECTURA_SALDO` | Consultar e imprimir, sin mutar |
+
+**No confundir:** el rol `CAJA CENTRAL` abre menús de cajero central; la **caja física** «CAJA CENTRAL …» se define en el maestro de cajas. `LECTURA` (crédito) ≠ `LECTURA_SALDO` (saldos) ≠ `SALDOS CAJA` (menú de saldos).
 
 Si al entrar ve **«Sin permiso»**, el menú de su usuario no incluye esa ruta: pida al administrador que revise **Admin → Roles / Usuarios**, no es un error de la pantalla.
 
@@ -290,5 +294,7 @@ Roles **activos** en catálogo (`MAESTRO.Rol.Estado = 1`):
 
 Roles **inactivos** (catálogo histórico, no usar en alta nueva):  
 `VENDEDOR`, `ALMACEN`, `PROMOTOR`.
+
+**Políticas API (escritura):** `CreditoRolOperador` acepta `CAJA` / `CAJERO` / `CAJA CENTRAL` además de admin, encargado, analista y gestor. Aprobar/rechazar exige `APROBADOR 1` o administrador; `APROBADOR 2` no abre esa política.
 
 La asignación real de menús se administra en **Admin → Roles**; este manual describe la operación esperada, no sustituye el ACL de cada usuario.

@@ -59,6 +59,7 @@ import { ApiError } from '../../api/errors'
 import { CredixCrudPage, CredixDataTable, CredixDatePicker } from '../../components/credix'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { roleDisplayHint, roleSelectLabel } from '../../utils/roleDisplayLabels'
 
 const { Paragraph, Text } = Typography
 
@@ -471,7 +472,8 @@ export function UsuariosPage() {
   }))
   const rolesOptions = (rolesCatalogoQuery.data ?? []).map((r) => ({
     value: r.rolId,
-    label: r.denominacion,
+    label: roleSelectLabel(r.denominacion, { esCentral }),
+    title: roleDisplayHint(r.denominacion),
   }))
 
   return (
@@ -733,6 +735,11 @@ export function UsuariosPage() {
             <Form.Item
               name="rolIds"
               label="Roles"
+              extra={
+                esCentral
+                  ? 'ADMINISTRADOR aquí = administrador de red. CAJA CENTRAL es menú de cajero central; la caja física se define en Mantenimiento → Cajas.'
+                  : 'ADMINISTRADOR aquí = administrador de sede. APROBADOR 2 consulta; APROBADOR 1 aprueba.'
+              }
               rules={
                 usuarioId < 1
                   ? []
@@ -743,6 +750,7 @@ export function UsuariosPage() {
                 mode="multiple"
                 loading={rolesCatalogoQuery.isLoading}
                 options={rolesOptions}
+                optionFilterProp="label"
                 placeholder="Qué puede hacer en el sistema"
               />
             </Form.Item>

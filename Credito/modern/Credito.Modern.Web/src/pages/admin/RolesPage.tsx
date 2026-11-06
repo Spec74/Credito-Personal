@@ -14,6 +14,7 @@ import {
   Switch,
   Tabs,
   Tag,
+  Tooltip,
   Typography,
   message,
 } from 'antd'
@@ -31,6 +32,7 @@ import {
 import { ApiError } from '../../api/errors'
 import { CredixCrudPage, CredixDataTable } from '../../components/credix'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
+import { roleDisplayHint, roleDisplayLabel } from '../../utils/roleDisplayLabels'
 
 const { Paragraph } = Typography
 
@@ -150,6 +152,21 @@ export function RolesPage() {
       title: 'Rol',
       dataIndex: 'denominacion',
       sorter: (a, b) => a.denominacion.localeCompare(b.denominacion, 'es'),
+      render: (denominacion: string) => {
+        const hint = roleDisplayHint(denominacion)
+        const friendly = roleDisplayLabel(denominacion)
+        const body = (
+          <Space direction="vertical" size={0}>
+            <span>{friendly}</span>
+            {friendly.toUpperCase() !== denominacion.trim().toUpperCase() ? (
+              <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                Código: {denominacion}
+              </Typography.Text>
+            ) : null}
+          </Space>
+        )
+        return hint ? <Tooltip title={hint}>{body}</Tooltip> : body
+      },
     },
     {
       title: 'Estado',
@@ -192,7 +209,7 @@ export function RolesPage() {
   return (
     <CredixCrudPage
       title="Roles"
-      subtitle={undefined}
+      subtitle="Códigos estables en BD/JWT. Las etiquetas aclaran sede vs red y caja vs maestro de caja."
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -248,10 +265,20 @@ export function RolesPage() {
                 label: 'Datos',
                 children: (
                   <Form form={form} layout="vertical">
+                    <Paragraph type="secondary" style={{ marginBottom: 12 }}>
+                      No renombre códigos usados por políticas (p. ej. CAJA, ADMINISTRADOR,
+                      APROBADOR 1). ADMINISTRADOR es de sede o de red según la oficina de
+                      sesión; CAJA CENTRAL como rol no sustituye el maestro de cajas.
+                    </Paragraph>
                     <Form.Item
                       name="denominacion"
-                      label="Denominación"
+                      label="Denominación (código)"
                       rules={denominacionRules}
+                      extra={
+                        rolId >= 1
+                          ? roleDisplayHint(String(form.getFieldValue('denominacion') ?? ''))
+                          : 'Use mayúsculas como en el catálogo legado.'
+                      }
                     >
                       <Input maxLength={FIELD_MAX.denominacion} />
                     </Form.Item>
