@@ -3,12 +3,13 @@ namespace Credito.Modern.Application.CreditoPlanes;
 /// <summary>
 /// Medios (<c>MAESTRO.ValorTabla</c> TablaId = 13) — multisucursal:
 /// <list type="bullet">
-/// <item>Sucursal: Yape(2), Interbank(3), BCP, Nación, Plin(9), Efectivo.</item>
-/// <item>Central: Yape Gerente/René (10/11), Interbank Gerente/René (12/13) en lugar del genérico 2/3;
-///       Plin/BCP/Nación/Efectivo iguales.</item>
+/// <item>Sucursal tipa: Yape(2), Interbank(3), BCP, Nación, Plin(9), Efectivo.</item>
+/// <item>Central tipa: Yape Gerente/René (10/11), Interbank Gerente/René (12/13) — no el genérico 2/3.</item>
+/// <item>Medios de red (vista Central): Yape(2) e Interbank(3) muestran saldos de todas las sedes
+///       (como BCP/Plin); Gerente/René son detalle solo de Central. Sin doble conteo de tipado.</item>
+/// <item>Fondeo Central→sucursal con billetera: destino acredita familia (10/11→2, 12/13→3).</item>
 /// </list>
-/// Familia Yape = 2+10+11; Interbank = 3+12+13 (rollup de totales).
-/// 6–8 sede obsoleta. Digital = TipoPagoId &gt; 1.
+/// Familia Yape = 2+10+11; Interbank = 3+12+13. 6–8 sede obsoleta. Digital = TipoPagoId &gt; 1.
 /// </summary>
 public static class TipoPagoRules
 {

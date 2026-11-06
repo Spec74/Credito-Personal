@@ -358,8 +358,12 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         SesionOficinaRow sesion,
         IReadOnlyList<MedioRedRow> filas)
     {
-        // Central: billeteras Gerente/René (si existen en catálogo) + genéricos solo con saldo sucursal.
-        // Sucursal: un Yape / un Interbank (familia).
+        // Modelo (sin doble conteo en cards):
+        // - Central tipa Gerente/René (10–13) → cards solo Central.
+        // - Yape(2)/Interbank(3) son el medio de red/sucursales → mismas sedes que BCP/Plin
+        //   (Central/Huanta/Pichari), siempre visibles aunque estén en 0.
+        // - Sucursal: un Yape / un Interbank (familia 2+10+11 / 3+12+13) solo de su oficina.
+        // Σ medios del cuadre viene de la bóveda local (no de sumar estas cards de red).
         var idsEnCatalogo = filas.Select(f => f.TipoPagoId).ToHashSet();
 
         (short Id, string Marca, string Variant, short[] Familia)[] catalogo = sesion.IndPrincipal
@@ -368,10 +372,10 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                 (1, "Efectivo", "efectivo", [1]),
                 (10, "Yape Gerente", "yape", [10]),
                 (11, "Yape René", "yape", [11]),
+                (2, "Yape", "yape", [2]),
                 (12, "Interbank Gerente", "interbank", [12]),
                 (13, "Interbank René", "interbank", [13]),
-                (2, "Yape sucursales", "yape", [2]),
-                (3, "Interbank sucursales", "interbank", [3]),
+                (3, "Interbank", "interbank", [3]),
                 (4, "BCP", "bcp", [4]),
                 (5, "Banco de la Nación", "banco-nacion", [5]),
                 (9, "Plin", "plin", [9]),
@@ -389,7 +393,6 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         var result = new List<BovedaMedioMarcaDto>(catalogo.Length);
         foreach (var (id, marca, variant, familia) in catalogo)
         {
-            // No inventar cards de billetera si el ItemId no está en ValorTabla.
             if ((id is 10 or 11 or 12 or 13) && !idsEnCatalogo.Contains(id))
             {
                 continue;
@@ -420,31 +423,19 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
 
             if (sesion.IndPrincipal)
             {
+                // Billeteras persona: solo la sede Central.
                 if (id is 10 or 11 or 12 or 13)
                 {
                     sedes = sedes.Where(s => s.IndPrincipal).ToList();
                 }
 
-                if (id is 2 or 3)
-                {
-                    sedes = sedes.Where(s => !s.IndPrincipal).ToList();
-                }
-
+                // Yape/Interbank genéricos: todas las sedes (paridad visual con BCP/Plin).
+                // No se ocultan en cero: la red debe verse completa.
                 sedes = sedes
                     .Where(s => s.BovedaId is > 0)
                     .OrderByDescending(s => s.IndPrincipal)
                     .ThenBy(s => s.Oficina, StringComparer.OrdinalIgnoreCase)
                     .ToList();
-
-                // Genérico sucursal vacío → no ensuciar junto a Gerente/René.
-                if (id is 2 or 3)
-                {
-                    if (sedes.Count == 0) continue;
-                    if (decimal.Round(sedes.Sum(s => s.Monto), 2, MidpointRounding.AwayFromZero) == 0m)
-                    {
-                        continue;
-                    }
-                }
             }
 
             var total = sesion.IndPrincipal

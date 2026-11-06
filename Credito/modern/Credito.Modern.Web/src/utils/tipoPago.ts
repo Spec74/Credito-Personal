@@ -1,8 +1,10 @@
 /**
  * Medios (ValorTabla 13) — multisucursal:
- * - Sucursal: Yape(2), Interbank(3), BCP, Nación, Plin(9), Efectivo
- * - Central: Yape Gerente/René (10/11), Interbank Gerente/René (12/13) en vez de 2/3
- * Familias (totales): Yape = 2+10+11 · Interbank = 3+12+13
+ * - Sucursal tipa: Yape(2), Interbank(3), BCP, Nación, Plin(9), Efectivo
+ * - Central tipa: Yape/Interbank Gerente·René (10–13); no genéricos 2/3
+ * - Vista red: Yape(2)/Interbank(3) muestran todas las sedes (como BCP); 10–13 solo Central
+ * - Fondeo billetera→sucursal: 10/11→2 y 12/13→3 en destino
+ * Familias: Yape = 2+10+11 · Interbank = 3+12+13
  */
 
 export const TIPO_PAGO_EFECTIVO = 1

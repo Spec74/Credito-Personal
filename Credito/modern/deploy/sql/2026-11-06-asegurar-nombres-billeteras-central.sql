@@ -72,17 +72,19 @@ DECLARE @OficinaCentralId INT = (
     ORDER BY OficinaId
 );
 
--- Plin en todas las bóvedas abiertas
+-- Medios de red en TODAS las bóvedas abiertas (paridad con BCP/Plin/Efectivo).
+-- Incluye Yape(2) e Interbank(3): las sucursales tipan aquí; Central ve el desglose por sede.
 INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
-SELECT b.BovedaId, 9, CAST(0 AS decimal(16, 2))
+SELECT b.BovedaId, v.ItemId, CAST(0 AS decimal(16, 2))
 FROM CREDITO.Boveda AS b
+CROSS JOIN (VALUES (1), (2), (3), (4), (5), (9)) AS v(ItemId)
 WHERE b.IndCierre = CAST(0 AS bit)
   AND NOT EXISTS (
       SELECT 1 FROM CREDITO.BovedaCuenta AS bc
-      WHERE bc.BovedaId = b.BovedaId AND bc.TipoPagoId = 9
+      WHERE bc.BovedaId = b.BovedaId AND bc.TipoPagoId = v.ItemId
   );
 
--- Billeteras Gerente/René solo en Central
+-- Billeteras Gerente/René solo en Central (tipado operativo de la principal).
 IF @OficinaCentralId IS NOT NULL
 BEGIN
     INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
