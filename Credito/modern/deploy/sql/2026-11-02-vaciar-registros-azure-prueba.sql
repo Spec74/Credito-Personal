@@ -12,6 +12,9 @@
   Preferible: SSMS contra Azure, timeout de consulta = 0.
 
   OPERATIVO = borra operación, deja usuarios/menú/oficinas/productos/cajas.
+  IMPORTANTE: preferir 2026-11-05-vaciar-semilla-producto.sql (modo SEMILLA)
+  para base genérica vendible. Este script OPERATIVO ya conserva Persona
+  (evita huérfanos Usuario→Persona).
 */
 
 SET NOCOUNT ON;
@@ -50,10 +53,12 @@ BEGIN
         (N'MAESTRO', N'Menu'),
         (N'MAESTRO', N'Rol'),
         (N'MAESTRO', N'RolMenu'),
+        (N'MAESTRO', N'Persona'), /* coherente con Usuario (no truncar padrón si quedan logins) */
         (N'MAESTRO', N'Usuario'),
         (N'MAESTRO', N'UsuarioRol'),
         (N'MAESTRO', N'UsuarioOficina'),
         (N'MAESTRO', N'Oficina'),
+        (N'MAESTRO', N'Acceso'),
         (N'MAESTRO', N'Departamento'),
         (N'MAESTRO', N'Provincia'),
         (N'MAESTRO', N'Distrito'),
@@ -141,7 +146,7 @@ BEGIN
             + N' DROP CONSTRAINT ' + QUOTENAME(fk.name) + N';',
         N'ALTER TABLE ' + QUOTENAME(OBJECT_SCHEMA_NAME(fk.parent_object_id))
             + N'.' + QUOTENAME(OBJECT_NAME(fk.parent_object_id))
-            + N' WITH NOCHECK ADD CONSTRAINT ' + QUOTENAME(fk.name)
+            + N' WITH CHECK ADD CONSTRAINT ' + QUOTENAME(fk.name)
             + N' FOREIGN KEY (' + pc.ParentCols + N') REFERENCES '
             + QUOTENAME(OBJECT_SCHEMA_NAME(fk.referenced_object_id))
             + N'.' + QUOTENAME(OBJECT_NAME(fk.referenced_object_id))
