@@ -8,7 +8,7 @@ const RUTA_BANDEJA_APROBAR = '/credito/aprobar'
 
 
 
-/** Filtra tarjetas del hub de crédito para perfil APROBADOR 1 solo bandeja. */
+/** Filtra tarjetas del hub de crédito para perfil APROBADOR 1/2 solo bandeja. */
 
 export function filterCreditoHubSections(
 

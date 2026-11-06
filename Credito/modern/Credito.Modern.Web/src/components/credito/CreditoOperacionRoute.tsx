@@ -4,8 +4,8 @@ import { useAuth } from '../../auth/useAuth'
 import { esCreditoPerfilSoloBandeja } from '../../utils/creditoOperacionPermisos'
 
 /**
- * Restringe simulador, consulta, tareas, etc. cuando el usuario es solo APROBADOR 1
- * (paridad menú operativo vs bandeja CreditoAprobar).
+ * Restringe simulador, consulta, tareas, etc. cuando el usuario es solo APROBADOR 1/2
+ * sin rol operativo (paridad menú vs bandeja CreditoAprobar).
  */
 export function CreditoOperacionRoute({ children }: { children: ReactNode }) {
   const { session } = useAuth()

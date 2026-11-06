@@ -43,6 +43,7 @@ export function RolesPage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [rolId, setRolId] = useState(0)
   const [form] = Form.useForm<{ denominacion: string; estado: boolean; menuIds: number[] }>()
+  const denominacionWatch = Form.useWatch('denominacion', form)
   const queryClient = useQueryClient()
 
   const rolesQuery = useQuery({
@@ -275,9 +276,8 @@ export function RolesPage() {
                       label="Denominación (código)"
                       rules={denominacionRules}
                       extra={
-                        rolId >= 1
-                          ? roleDisplayHint(String(form.getFieldValue('denominacion') ?? ''))
-                          : 'Use mayúsculas como en el catálogo legado.'
+                        roleDisplayHint(String(denominacionWatch ?? '')) ??
+                        'Use mayúsculas como en el catálogo legado (no renombre códigos de políticas).'
                       }
                     >
                       <Input maxLength={FIELD_MAX.denominacion} />

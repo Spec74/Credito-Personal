@@ -20,18 +20,6 @@ function hasRoleLike(roles: string[], expected: string): boolean {
   })
 }
 
-/** Roles con escritura operativa (paridad API `HasRolOperador`). */
-const ROLES_CREDITO_OPERACION_COMPLETA = [
-  'ADMINISTRADOR',
-  'ADMIN',
-  'ENCARGADO',
-  'ANALISTA',
-  'GESTOR',
-  'CAJA',
-  'CAJERO',
-  'CAJA CENTRAL',
-] as const
-
 export function tieneCreditoModoLectura(roles: string[]): boolean {
   return norm(roles).some((r) => compact(r) === 'LECTURA')
 }
@@ -133,16 +121,16 @@ export function puedeMutarAviso(roles: string[], alcance: string): boolean {
 }
 
 /**
- * APROBADOR 1/2 sin rol operativo (admin, encargado, gestor, caja): solo bandeja en el hub.
- * APROBADOR 2 puro también se limita al hub de aprobación (consulta); la API de aprobar sigue exigiendo nivel 1.
+ * APROBADOR 1/2 sin rol operativo (paridad API `HasRolOperador`): solo bandeja en el hub.
+ * APROBADOR 2 puro también se limita al hub (consulta); la API de aprobar sigue exigiendo nivel 1.
  */
 export function esCreditoPerfilSoloBandeja(roles: string[]): boolean {
   if (!esCreditoAprobador1(roles) && !esCreditoAprobador2(roles)) {
     return false
   }
 
-  const r = norm(roles)
-  return !r.some((x) => (ROLES_CREDITO_OPERACION_COMPLETA as readonly string[]).includes(x))
+  // Misma familia que CreditoRolOperador (incluye variantes CAJA / CAJA CENTRAL).
+  return !esCreditoOperador(roles)
 }
 
 export function puedeOperarCreditoCompleto(roles: string[]): boolean {

@@ -28,6 +28,7 @@ describe('creditoOperacionPermisos', () => {
 
   it('APROBADOR 1 + CAJA no es solo bandeja (denominación viva)', () => {
     expect(esCreditoPerfilSoloBandeja(['APROBADOR 1', 'CAJA'])).toBe(false)
+    expect(esCreditoPerfilSoloBandeja(['APROBADOR 1', 'CAJA CENTRAL'])).toBe(false)
     expect(esRolCaja(['CAJA'])).toBe(true)
     expect(esCreditoOperador(['CAJA'])).toBe(true)
     expect(esCreditoOperador(['CAJA CENTRAL'])).toBe(true)
