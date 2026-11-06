@@ -124,7 +124,8 @@ BEGIN
     RETURN;
 END;
 
-PRINT N'Tablas a vaciar: ' + CONVERT(varchar(12), (SELECT COUNT(*) FROM @Tablas));
+DECLARE @nTablasVaciar int = (SELECT COUNT(*) FROM @Tablas);
+PRINT N'Tablas a vaciar: ' + CONVERT(varchar(12), @nTablasVaciar);
 
 IF OBJECT_ID(N'dbo._CredixWipeFk', N'U') IS NULL
 BEGIN
@@ -186,7 +187,8 @@ BEGIN
     WHERE OBJECT_SCHEMA_NAME(fk.parent_object_id) IN (N'CREDITO', N'MAESTRO', N'ALMACEN', N'VENTAS', N'dbo')
        OR OBJECT_SCHEMA_NAME(fk.referenced_object_id) IN (N'CREDITO', N'MAESTRO', N'ALMACEN', N'VENTAS', N'dbo');
 
-    PRINT N'FKs respaldadas: ' + CONVERT(varchar(12), (SELECT COUNT(*) FROM dbo._CredixWipeFk));
+    DECLARE @nFkRespaldadas int = (SELECT COUNT(*) FROM dbo._CredixWipeFk);
+    PRINT N'FKs respaldadas: ' + CONVERT(varchar(12), @nFkRespaldadas);
 END
 ELSE
     PRINT N'Reanudando: dbo._CredixWipeFk ya tenía FKs.';
@@ -310,21 +312,25 @@ BEGIN
     DECLARE @PersonaId int;
     DECLARE @UsuarioId int;
     DECLARE @OficinaId int;
-    DECLARE @RolId int =
-    (
-        SELECT TOP (1) r.RolId
-        FROM MAESTRO.Rol AS r
-        WHERE r.Estado = CAST(1 AS bit)
-          AND (
-                UPPER(r.Denominacion) LIKE N'%ADMIN%'
-             OR UPPER(r.Denominacion) LIKE N'%MAESTRO%'
-             OR UPPER(r.Denominacion) = N'SUPERVISOR'
-          )
-        ORDER BY r.RolId
-    );
+    DECLARE @RolId int;
+
+    SELECT TOP (1) @RolId = r.RolId
+    FROM MAESTRO.Rol AS r
+    WHERE r.Estado = CAST(1 AS bit)
+      AND (
+            UPPER(r.Denominacion) LIKE N'%ADMIN%'
+         OR UPPER(r.Denominacion) LIKE N'%MAESTRO%'
+         OR UPPER(r.Denominacion) = N'SUPERVISOR'
+      )
+    ORDER BY r.RolId;
 
     IF @RolId IS NULL
-        SET @RolId = (SELECT TOP (1) RolId FROM MAESTRO.Rol WHERE Estado = CAST(1 AS bit) ORDER BY RolId);
+    BEGIN
+        SELECT TOP (1) @RolId = RolId
+        FROM MAESTRO.Rol
+        WHERE Estado = CAST(1 AS bit)
+        ORDER BY RolId;
+    END
 
     IF @RolId IS NULL
     BEGIN
@@ -387,7 +393,12 @@ BEGIN
 
     IF OBJECT_ID(N'CREDITO.BovedaCuenta', N'U') IS NOT NULL
     BEGIN
-        DECLARE @BovedaId int = (SELECT TOP (1) BovedaId FROM CREDITO.Boveda WHERE OficinaId = @OficinaId AND IndCierre = 0 ORDER BY BovedaId);
+        DECLARE @BovedaId int;
+        SELECT TOP (1) @BovedaId = BovedaId
+        FROM CREDITO.Boveda
+        WHERE OficinaId = @OficinaId AND IndCierre = 0
+        ORDER BY BovedaId;
+
         IF @BovedaId IS NOT NULL
            AND COL_LENGTH(N'CREDITO.BovedaCuenta', N'TipoPagoId') IS NOT NULL
         BEGIN
