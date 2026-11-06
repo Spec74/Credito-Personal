@@ -46,6 +46,7 @@ import {
   tipoPagoOptionRender,
   tipoPagoPopupRender,
 } from '../tesoreria/components/TipoPagoBrand'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { formatMoney } from '../../utils/formatMoney'
 import { moneyEquals, roundMoney, sumMoney } from '../../utils/money'
 import { esTipoPagoDigital } from '../../utils/tipoPago'
@@ -236,6 +237,7 @@ export function CobroBloquePage() {
   const screens = Grid.useBreakpoint()
   const fieldMode = screens.md !== true
   const { session } = useAuth()
+  const { esCentral } = useEsCentral()
   const oficinaId = session?.oficinaId ?? 0
   const usuarioId = session?.usuarioId ?? 0
   const [filtro, setFiltro] = useState('')
@@ -489,8 +491,8 @@ export function CobroBloquePage() {
   })
 
   const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPagoQuery.data ?? []),
-    [tiposPagoQuery.data],
+    () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }),
+    [tiposPagoQuery.data, esCentral],
   )
 
   // Recuperar borrador al abrir sesión de caja (solo una vez).

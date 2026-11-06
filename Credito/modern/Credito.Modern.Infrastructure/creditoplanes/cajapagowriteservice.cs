@@ -77,6 +77,12 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
             throw new ArgumentOutOfRangeException(nameof(medios), "Máximo 8 medios por cobro mixto.");
         }
 
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var esCentral = await TipoPagoOficinaSql
+            .EsCentralPorCajaDiarioAsync(connection, cajaDiarioId, cancellationToken)
+            .ConfigureAwait(false);
+
         var normalizados = new List<PagoMedioLineaDto>(medios.Count);
         decimal total = 0m;
         var i = 0;
@@ -90,7 +96,10 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
                 throw new ArgumentException(err, nameof(medios));
             }
 
-            var tipoErr = TipoPagoRules.RequireCobroPermitido(linea.TipoPagoId, $"medios[{i}].tipoPagoId");
+            var tipoErr = TipoPagoRules.RequireCobroPermitido(
+                linea.TipoPagoId,
+                esCentral,
+                $"medios[{i}].tipoPagoId");
             if (tipoErr is not null)
             {
                 throw new ArgumentException(tipoErr, nameof(medios));
@@ -123,8 +132,6 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
         }
 
         var ids = new List<int>(normalizados.Count);
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
         await using var transaction = (SqlTransaction)await connection
             .BeginTransactionAsync(cancellationToken)
             .ConfigureAwait(false);

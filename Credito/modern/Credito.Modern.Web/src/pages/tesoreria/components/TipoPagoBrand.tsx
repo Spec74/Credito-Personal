@@ -10,14 +10,16 @@ type TipoPagoOption = {
 
 /**
  * Catálogo operativo de medios (efectivo + marcas).
- * Omite placeholder ItemId≤0 y variantes por sede del legado
- * («YAPE HUANTA», «INTERBANK HUANTA», …) que duplicaban el chip visual.
+ * Multisucursal: Central ve billeteras Gerente/René; sucursal ve Yape/Interbank genéricos.
+ * Plin/BCP/Nación/Efectivo en todas.
  */
 export function buildTipoPagoOptions(
   items: { itemId: number; denominacion: string; desCorta?: string | null }[],
+  opts?: { esCentral?: boolean },
 ): TipoPagoOption[] {
+  const esCentral = opts?.esCentral === true
   return items
-    .filter((t) => t.itemId > 0 && esMarcaTipoPago(t))
+    .filter((t) => t.itemId > 0 && esMarcaTipoPago(t, esCentral))
     .map((t) => ({
       value: t.itemId,
       label: t.denominacion,

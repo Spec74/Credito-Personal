@@ -72,6 +72,7 @@ import {
   type PagoMedioLineaUi,
 } from '../../../components/caja/PagoMediosSplit'
 import { buildTipoPagoOptions } from '../../tesoreria/components/TipoPagoBrand'
+import { useEsCentral } from '../../../hooks/useEsCentral'
 import {
   FechaHoraDigitalField,
   nowDatetimeLocal,
@@ -106,6 +107,7 @@ export function CobranzasTab({
   onChanged: () => void
 }) {
   const { session } = useAuth()
+  const { esCentral } = useEsCentral()
   const usuarioId = session?.usuarioId ?? 0
   const [clienteLabel, setClienteLabel] = useState('')
   const [personaId, setPersonaId] = useState(0)
@@ -162,8 +164,8 @@ export function CobranzasTab({
   })
 
   const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPagoQuery.data ?? []),
-    [tiposPagoQuery.data],
+    () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }),
+    [tiposPagoQuery.data, esCentral],
   )
 
   useEffect(() => {

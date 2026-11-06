@@ -49,6 +49,12 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
 
         ArgumentNullException.ThrowIfNull(planilla);
 
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var esCentral = await TipoPagoOficinaSql
+            .EsCentralPorCajaDiarioAsync(connection, cajaDiarioId, cancellationToken)
+            .ConfigureAwait(false);
+
         var items = new List<PagoPlanillaItemDto>();
         foreach (var raw in planilla)
         {
@@ -69,7 +75,7 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
                 throw new ArgumentOutOfRangeException(nameof(planilla), "creditoId inválido en la planilla.");
             }
 
-            var tipoErr = TipoPagoRules.RequireCobroPermitido(raw.TipoPagoId);
+            var tipoErr = TipoPagoRules.RequireCobroPermitido(raw.TipoPagoId, esCentral);
             if (tipoErr is not null)
             {
                 return new CobrarPlanillaBloqueResponse(
@@ -92,8 +98,6 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
             items.Add(raw with { MontoPagar = monto });
         }
 
-        await using var connection = new SqlConnection(_connectionString);
-        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
         await using var transaction = (SqlTransaction)await connection
             .BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken)
             .ConfigureAwait(false);

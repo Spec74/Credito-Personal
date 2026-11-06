@@ -16,6 +16,7 @@ import { fetchCajaDiarioSesion } from '../../api/cajaDiario'
 import { fetchValoresTabla } from '../../api/maestros'
 import { TipoPagoChips } from '../../components/caja/TipoPagoChips'
 import { buildTipoPagoOptions } from '../tesoreria/components/TipoPagoBrand'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { FechaHoraDigitalField, nowDatetimeLocal } from '../caja/components/FechaHoraDigitalField'
 import {
   abonarPrendario,
@@ -76,6 +77,7 @@ export function CreditoPrendarioGestionPage() {
   const { personaId: personaParam } = useParams()
   const [searchParams, setSearchParams] = useSearchParams()
   const { session } = useAuth()
+  const { esCentral } = useEsCentral()
   const roles = session?.roles ?? []
   const oficinaId = session?.oficinaId ?? 0
   const personaId = Number(personaParam)
@@ -244,8 +246,8 @@ export function CreditoPrendarioGestionPage() {
   })
 
   const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPago.data ?? []),
-    [tiposPago.data],
+    () => buildTipoPagoOptions(tiposPago.data ?? [], { esCentral }),
+    [tiposPago.data, esCentral],
   )
 
   useEffect(() => {

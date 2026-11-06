@@ -7,7 +7,7 @@ import {
 } from '../../pages/caja/components/FechaHoraDigitalField'
 import { formatMoney } from '../../utils/formatMoney'
 import { moneyEquals, roundMoney, sumMoney } from '../../utils/money'
-import { esTipoPagoCobroPermitido, esTipoPagoDigital } from '../../utils/tipoPago'
+import { esTipoPagoDigital, esTipoPagoSedeObsoleto } from '../../utils/tipoPago'
 
 export type PagoMedioLineaUi = {
   key: string
@@ -60,8 +60,8 @@ export function validatePagoMedios(
   for (const l of lineas) {
     const imp = roundMoney(l.importe ?? 0)
     if (!(imp > 0)) return 'Cada medio debe tener importe mayor a 0 (mín. S/ 0.01).'
-    if (!esTipoPagoCobroPermitido(l.tipoPagoId)) {
-      return 'Seleccione un medio válido (Efectivo, Yape Gerente/René, Plin, Interbank, BCP o Nación).'
+    if (!(l.tipoPagoId >= 1) || esTipoPagoSedeObsoleto(l.tipoPagoId)) {
+      return 'Seleccione un medio válido (catálogo de la sede).'
     }
     if (esTipoPagoDigital(l.tipoPagoId) && !l.fechaTransferencia.trim()) {
       return 'Yape Gerente/René, Plin, BCP, Interbank, Nación u otro digital: indique fecha/hora del voucher.'

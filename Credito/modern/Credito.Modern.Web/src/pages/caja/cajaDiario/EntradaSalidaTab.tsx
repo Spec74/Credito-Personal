@@ -15,6 +15,7 @@ import {
 } from '../../../api/cajaDiario'
 import { fetchValoresTabla } from '../../../api/maestros'
 import { buildTipoPagoOptions } from '../../tesoreria/components/TipoPagoBrand'
+import { useEsCentral } from '../../../hooks/useEsCentral'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
 import { CajaModal } from '../../../components/caja/CajaModal'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
@@ -33,6 +34,7 @@ export function EntradaSalidaTab({
   ctx: CajaSession
   onChanged: () => void
 }) {
+  const { esCentral } = useEsCentral()
   const [form] = Form.useForm()
   const [clienteLabel, setClienteLabel] = useState('')
   const [claveModalOpen, setClaveModalOpen] = useState(false)
@@ -56,11 +58,11 @@ export function EntradaSalidaTab({
 
   const tipoPagoOptions = useMemo(
     () =>
-      buildTipoPagoOptions(tiposPagoQuery.data ?? []).map((t) => ({
+      buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }).map((t) => ({
         value: t.value,
         label: t.label,
       })),
-    [tiposPagoQuery.data],
+    [tiposPagoQuery.data, esCentral],
   )
 
   const tiposCaja = (tiposQuery.data ?? []).filter((t) => t.indCajaDiario)

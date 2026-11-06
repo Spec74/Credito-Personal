@@ -3129,6 +3129,7 @@ internal static class CreditoOperacionEndpoints
                     ICreditoOficinaReadService creditoOficina,
                     IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
                     IDatabaseTimeProvider databaseTime,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -3152,19 +3153,25 @@ internal static class CreditoOperacionEndpoints
                     if (moneyError is not null)
                         return moneyError;
 
-                    var tipoPagoError = ProblemResults.IfInvalid(
-                        TipoPagoRules.RequireCobroPermitido(body.TipoPagoId)
-                        ?? TipoPagoRules.RequireDigitalFecha(
-                            body.TipoPagoId,
-                            body.FechaPagoTransferencia));
-                    if (tipoPagoError is not null)
-                        return tipoPagoError;
-
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)
                     {
                         return oficinaError;
                     }
+
+                    var (sesionTipo, sesionTipoErr) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, null, ct)
+                        .ConfigureAwait(false);
+                    if (sesionTipoErr is not null)
+                        return sesionTipoErr;
+
+                    var tipoPagoError = ProblemResults.IfInvalid(
+                        TipoPagoRules.RequireCobroPermitido(body.TipoPagoId, sesionTipo!.EsCentral)
+                        ?? TipoPagoRules.RequireDigitalFecha(
+                            body.TipoPagoId,
+                            body.FechaPagoTransferencia));
+                    if (tipoPagoError is not null)
+                        return tipoPagoError;
 
                     var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
                     if (usuarioError is not null)
@@ -3300,6 +3307,7 @@ internal static class CreditoOperacionEndpoints
                     ICajaDiarioOficinaReadService cajaDiarioOficina,
                     ICreditoOficinaReadService creditoOficina,
                     IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -3315,19 +3323,25 @@ internal static class CreditoOperacionEndpoints
                     if (moneyError is not null)
                         return moneyError;
 
-                    var tipoPagoError = ProblemResults.IfInvalid(
-                        TipoPagoRules.RequireCobroPermitido(body.TipoPagoId)
-                        ?? TipoPagoRules.RequireDigitalFecha(
-                            body.TipoPagoId,
-                            body.FechaPagoTransferencia));
-                    if (tipoPagoError is not null)
-                        return tipoPagoError;
-
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)
                     {
                         return oficinaError;
                     }
+
+                    var (sesionTipo, sesionTipoErr) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, null, ct)
+                        .ConfigureAwait(false);
+                    if (sesionTipoErr is not null)
+                        return sesionTipoErr;
+
+                    var tipoPagoError = ProblemResults.IfInvalid(
+                        TipoPagoRules.RequireCobroPermitido(body.TipoPagoId, sesionTipo!.EsCentral)
+                        ?? TipoPagoRules.RequireDigitalFecha(
+                            body.TipoPagoId,
+                            body.FechaPagoTransferencia));
+                    if (tipoPagoError is not null)
+                        return tipoPagoError;
 
                     var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
                     if (usuarioError is not null)

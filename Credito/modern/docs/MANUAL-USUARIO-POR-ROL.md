@@ -114,7 +114,7 @@ Abrir sesión de caja, cobrar cuotas, pagos libres, desembolsos autorizados, emi
 2. Abrir **Caja diario** → estado **ABIERTO**.
 3. Buscar cliente / crédito.
 4. Seleccionar cuotas → importe recibido → tipo de pago (efectivo / digital).
-5. Si paga con **varios medios** (p. ej. 10 Yape Gerente + 20 efectivo): en pago libre marque **Dividir en varios medios**, complete cada línea (**Yape Gerente** / **Yape René** / Plin / BCP / Interbank / Nación / efectivo) y confirme cobro mixto. El total Yape de bóveda es la suma de Gerente + René.
+5. Si paga con **varios medios**: marque **Dividir en varios medios**. En **Central** use **Yape Gerente / Yape René** e **Interbank Gerente / Interbank René** (el total de cada marca es la suma de ambas billeteras). En **sucursal** use Yape / Interbank genéricos. Plin, BCP, Nación y efectivo aplican en todas las sedes.
 6. Confirmar → ticket PDF.
 7. Al cierre: entregar cuadre al encargado (conteo de billetes si aplica).
 
@@ -124,7 +124,7 @@ Abrir sesión de caja, cobrar cuotas, pagos libres, desembolsos autorizados, emi
 
 1. Cargar cartera del día.
 2. Tipar montos o marcar cuotas.
-3. Si el cliente paga con **varios medios**: **Dividir** → Yape Gerente / Yape René / Plin / BCP / Interbank / Nación + efectivo (la suma debe cuadrar al céntimo con el monto tipado).
+3. Si el cliente paga con **varios medios**: **Dividir** (Central: billeteras Gerente/René de Yape e Interbank; sucursal: medios genéricos) + efectivo. La suma debe cuadrar al céntimo.
 4. Enviar planilla (online u offline según cobertura).
 5. Revisar **Enviados** y tickets.
 

@@ -10,6 +10,7 @@ import {
 import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { CredixPage, CredixDataTable, confirmMoney } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
 import { resolverBovedaDestinoPorSede } from '../../utils/sucursalRed'
@@ -22,6 +23,7 @@ import type { BovedaDestinoTransferencia } from '../../api/boveda'
 
 export function FondearSucursalesPage() {
   const { session } = useAuth()
+  const { esCentral } = useEsCentral()
   const oficinaId = session?.oficinaId ?? 0
   const queryClient = useQueryClient()
   const [montos, setMontos] = useState<Record<number, number>>({})
@@ -48,8 +50,8 @@ export function FondearSucursalesPage() {
     staleTime: 5 * 60_000,
   })
   const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPago.data ?? []),
-    [tiposPago.data],
+    () => buildTipoPagoOptions(tiposPago.data ?? [], { esCentral }),
+    [tiposPago.data, esCentral],
   )
 
   const filas = useMemo(() => destinos.data ?? [], [destinos.data])

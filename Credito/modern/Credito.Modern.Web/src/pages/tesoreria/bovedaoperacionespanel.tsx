@@ -39,6 +39,7 @@ import { fetchTipoOperaciones } from '../../api/cajaDiario'
 import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { useSecondaryDataReady } from '../../hooks/useSecondaryDataReady'
 import type { TipoOperacionListItem } from '../../types/api'
 import { FIELD_MAX, glosaRules, moneyRequired } from '../../validation/formRules'
@@ -173,6 +174,7 @@ type Props = {
 }
 
 export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Props) {
+  const { esCentral } = useEsCentral()
   const queryClient = useQueryClient()
   const [usuarioTerm, setUsuarioTerm] = useState('')
   const [activeTab, setActiveTab] = useState('ingreso')
@@ -205,8 +207,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     staleTime: 5 * 60_000,
   })
   const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPagoQuery.data ?? []),
-    [tiposPagoQuery.data],
+    () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }),
+    [tiposPagoQuery.data, esCentral],
   )
 
   const tipoPagoSelectProps = {

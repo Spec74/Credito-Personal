@@ -44,10 +44,25 @@ IF @flagAceptar = 0
 			  AND vt.ItemId = @TipoPagoId
 			  AND vt.ItemId > 0
 			  AND vt.ItemId NOT BETWEEN 6 AND 8
-			  AND ISNULL(vt.DesCorta, N'') NOT IN (N'OBSOLETO', N'ROLLUP')
+			  AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
 		)
 		BEGIN
-			RAISERROR(N'El medio debe ser postable (Efectivo, Yape Gerente/René, Interbank, BCP, Nación, Plin). No use Yape rollup ni tipos de sede (6-8).', 16, 1)
+			RAISERROR(N'El medio no es una marca activa.', 16, 1)
+			RETURN
+		END
+
+		IF EXISTS (
+			SELECT 1 FROM MAESTRO.ValorTabla
+			WHERE TablaId = 13 AND ItemId = @TipoPagoId AND DesCorta = N'CENTRAL'
+		)
+		AND NOT EXISTS (
+			SELECT 1
+			FROM CREDITO.Boveda AS b
+			INNER JOIN MAESTRO.Oficina AS o ON o.OficinaId = b.OficinaId
+			WHERE b.BovedaId = @BovedaInicioId AND o.IndPrincipal = CAST(1 AS bit)
+		)
+		BEGIN
+			RAISERROR(N'Yape/Interbank Gerente y René solo aplican en la bóveda Central.', 16, 1)
 			RETURN
 		END
 

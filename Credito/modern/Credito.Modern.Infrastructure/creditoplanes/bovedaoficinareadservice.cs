@@ -363,7 +363,7 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         [
             (1, "Efectivo", "efectivo", [1]),
             (2, "Yape", "yape", [2, 10, 11]),
-            (3, "Interbank", "interbank", [3]),
+            (3, "Interbank", "interbank", [3, 12, 13]),
             (4, "BCP", "bcp", [4]),
             (5, "Nación", "banco-nacion", [5]),
             (9, "Plin", "plin", [9]),

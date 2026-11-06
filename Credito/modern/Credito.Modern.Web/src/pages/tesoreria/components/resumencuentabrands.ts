@@ -42,7 +42,10 @@ export function marcaDesdeTipoPagoId(tipoPagoId: number): ResumenCuentaVariant |
       return 'plin'
     case 10:
     case 11:
-      return 'yape' // Gerente / René → misma marca visual; suman al Yape total
+      return 'yape'
+    case 12:
+    case 13:
+      return 'interbank'
     default:
       return null
   }

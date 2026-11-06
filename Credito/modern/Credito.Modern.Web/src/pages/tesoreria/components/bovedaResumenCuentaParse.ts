@@ -155,23 +155,34 @@ export function medioComplemento(
 }
 
 /**
- * Medios postables en combo/chips.
- * Excluye: 6–8 sede, OBSOLETO/ROLLUP (Yape padre), sufijos de sede en el nombre.
- * Incluye: Yape Gerente / Yape René (billeteras que suman al Yape total).
+ * Medios postables en combo/chips (multisucursal).
+ * - Central: billeteras Gerente/René (10–13); oculta genéricos Yape(2)/Interbank(3).
+ * - Sucursal: genéricos 2/3; oculta billeteras CENTRAL.
+ * - Todas: Plin, BCP, Nación, Efectivo. Nunca 6–8 / OBSOLETO / sede en nombre.
  */
-export function esMarcaTipoPago(item: {
-  itemId: number
-  denominacion: string
-  desCorta?: string | null
-}): boolean {
+export function esMarcaTipoPago(
+  item: {
+    itemId: number
+    denominacion: string
+    desCorta?: string | null
+  },
+  esCentral = false,
+): boolean {
   if (item.itemId >= 6 && item.itemId <= 8) return false
   const dc = (item.desCorta ?? '').trim().toUpperCase()
-  if (dc === 'OBSOLETO' || dc === 'ROLLUP') return false
-  // Padre Yape (ItemId 2) aunque DesCorta aún no esté migrado.
-  if (item.itemId === 2) return false
-  return !/\s+(HUANTA|PICHARI|ANDAHUAYLAS|HUAMANGA|CENTRAL)\s*$/i.test(
-    item.denominacion.trim(),
-  )
+  if (dc === 'OBSOLETO') return false
+  // Sufijo sede en denominación (legado), no la bandera DesCorta=CENTRAL.
+  if (/\s+(HUANTA|PICHARI|ANDAHUAYLAS|HUAMANGA|CENTRAL)\s*$/i.test(item.denominacion.trim())) {
+    return false
+  }
+  const esBilleteraCentral =
+    dc === 'CENTRAL' || item.itemId === 10 || item.itemId === 11 || item.itemId === 12 || item.itemId === 13
+  if (esCentral) {
+    if (item.itemId === 2 || item.itemId === 3) return false
+    return true
+  }
+  if (esBilleteraCentral) return false
+  return true
 }
 
 /** Nombre corto de sede para la lista (Oficina.Denominacion). */
@@ -202,7 +213,6 @@ export function medioNombreMarca(raw: string): string {
     case 'efectivo':
       return 'Efectivo'
     case 'yape': {
-      // Billeteras persona (Gerente / René); sedes obsoletas quedan solo «Yape».
       const k = normalizarClave(raw)
       if (/\bGERENTE\b/.test(k) || /\bREN[EÉ]\b/.test(k)) {
         return etiqueta.startsWith('Yape') ? etiqueta : 'Yape'
@@ -211,8 +221,13 @@ export function medioNombreMarca(raw: string): string {
     }
     case 'plin':
       return 'Plin'
-    case 'interbank':
+    case 'interbank': {
+      const k = normalizarClave(raw)
+      if (/\bGERENTE\b/.test(k) || /\bREN[EÉ]\b/.test(k)) {
+        return etiqueta.startsWith('Interbank') ? etiqueta : 'Interbank'
+      }
       return 'Interbank'
+    }
     case 'bcp':
       return 'BCP'
     case 'banco-nacion':

@@ -1,19 +1,25 @@
 namespace Credito.Modern.Application.CreditoPlanes;
 
 /// <summary>
-/// Medios de pago (<c>MAESTRO.ValorTabla</c> TablaId = 13).
-/// Catálogo: 1 efectivo · 2 Yape (ROLLUP) · 3 Interbank · 4 BCP · 5 Nación · 9 Plin ·
-/// 10 Yape Gerente · 11 Yape René. 6–8 sede obsoleta.
-/// Postable = no OBSOLETO / no ROLLUP / no 6–8.
-/// Digital = TipoPagoId &gt; 1 (voucher + Extension).
+/// Medios (<c>MAESTRO.ValorTabla</c> TablaId = 13) — multisucursal:
+/// <list type="bullet">
+/// <item>Sucursal: Yape(2), Interbank(3), BCP, Nación, Plin(9), Efectivo.</item>
+/// <item>Central: Yape Gerente/René (10/11), Interbank Gerente/René (12/13) en lugar del genérico 2/3;
+///       Plin/BCP/Nación/Efectivo iguales.</item>
+/// </list>
+/// Familia Yape = 2+10+11; Interbank = 3+12+13 (rollup de totales).
+/// 6–8 sede obsoleta. Digital = TipoPagoId &gt; 1.
 /// </summary>
 public static class TipoPagoRules
 {
     public const int Efectivo = 1;
     public const int Yape = 2;
+    public const int Interbank = 3;
     public const int Plin = 9;
     public const int YapeGerente = 10;
     public const int YapeRene = 11;
+    public const int InterbankGerente = 12;
+    public const int InterbankRene = 13;
 
     public static bool IsDigital(int tipoPagoId) => tipoPagoId > Efectivo;
 
@@ -23,15 +29,21 @@ public static class TipoPagoRules
     public static bool IsYapeFamily(int tipoPagoId) =>
         tipoPagoId is Yape or YapeGerente or YapeRene;
 
-    /// <summary>ItemId 2 es padre rollup: no cobro/fondeo nuevo.</summary>
-    public static bool IsRollupParent(int tipoPagoId) => tipoPagoId == Yape;
+    public static bool IsInterbankFamily(int tipoPagoId) =>
+        tipoPagoId is Interbank or InterbankGerente or InterbankRene;
 
-    public static bool IsPostable(int tipoPagoId) =>
-        tipoPagoId >= 1
-        && !IsObsoleteSedeVariant(tipoPagoId)
-        && !IsRollupParent(tipoPagoId);
+    /// <summary>Billeteras Gerente/René: solo oficina Central (<c>IndPrincipal</c>).</summary>
+    public static bool IsCentralWallet(int tipoPagoId) =>
+        tipoPagoId is YapeGerente or YapeRene or InterbankGerente or InterbankRene;
 
-    public static string? RequireCobroPermitido(int tipoPagoId, string fieldName = "tipoPagoId")
+    /// <summary>Genéricos que Central no debe tipar (usa billeteras).</summary>
+    public static bool IsCentralReplacedGeneric(int tipoPagoId) =>
+        tipoPagoId is Yape or Interbank;
+
+    public static string? RequireCobroPermitido(
+        int tipoPagoId,
+        bool esCentral,
+        string fieldName = "tipoPagoId")
     {
         if (tipoPagoId < 1)
         {
@@ -40,16 +52,27 @@ public static class TipoPagoRules
 
         if (IsObsoleteSedeVariant(tipoPagoId))
         {
-            return $"{fieldName}: no use variantes por sede (6–8). Elija Yape Gerente/René, Plin, Interbank, BCP o Nación.";
+            return $"{fieldName}: no use variantes por sede (6–8).";
         }
 
-        if (IsRollupParent(tipoPagoId))
+        if (IsCentralWallet(tipoPagoId) && !esCentral)
         {
-            return $"{fieldName}: use Yape Gerente o Yape René (el Yape genérico es solo total/rollup).";
+            return $"{fieldName}: Yape/Interbank Gerente y René solo aplican en Central. En sucursal use Yape o Interbank.";
+        }
+
+        if (esCentral && IsCentralReplacedGeneric(tipoPagoId))
+        {
+            return tipoPagoId == Yape
+                ? $"{fieldName}: en Central use Yape Gerente o Yape René (el Yape genérico es el total)."
+                : $"{fieldName}: en Central use Interbank Gerente o Interbank René (el Interbank genérico es el total).";
         }
 
         return null;
     }
+
+    /// <summary>Compat: sin contexto de sede asume no-Central (bloquea billeteras CENTRAL).</summary>
+    public static string? RequireCobroPermitido(int tipoPagoId, string fieldName = "tipoPagoId") =>
+        RequireCobroPermitido(tipoPagoId, esCentral: false, fieldName);
 
     public static string? RequireDigitalFecha(
         int tipoPagoId,
@@ -63,7 +86,7 @@ public static class TipoPagoRules
 
         if (string.IsNullOrWhiteSpace(fechaPagoTransferencia))
         {
-            return $"{fieldName}: los medios digitales/transferencia (Yape Gerente/René, Plin, bancos…) requieren fecha/hora del voucher.";
+            return $"{fieldName}: los medios digitales/transferencia requieren fecha/hora del voucher.";
         }
 
         return null;
