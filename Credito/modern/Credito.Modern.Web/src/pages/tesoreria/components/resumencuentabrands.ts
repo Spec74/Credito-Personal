@@ -11,6 +11,7 @@ export type MedioMarcaTone = 'logo' | 'mark'
 const LOGO_OFICIAL: ReadonlySet<ResumenCuentaVariant> = new Set([
   'efectivo',
   'yape',
+  'plin',
   'interbank',
   'bcp',
   'banco-nacion',
@@ -23,7 +24,7 @@ export function resumenCuentaLogoSrc(
   const oficial = LOGO_OFICIAL.has(variant)
   const folder = tone === 'logo' && oficial ? '' : 'mark/'
   const ext = oficial ? 'png' : 'svg'
-  return `${base}assets/resumen-cuenta/${folder}${variant}.${ext}?v=6`
+  return `${base}assets/resumen-cuenta/${folder}${variant}.${ext}?v=7`
 }
 
 export function marcaDesdeTipoPagoId(tipoPagoId: number): ResumenCuentaVariant | null {

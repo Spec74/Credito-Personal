@@ -24,8 +24,8 @@ public interface IBovedaOficinaReadService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Medios por marca (Yape = Gerente+René+legado). Central ve desglose por oficina;
-    /// sucursal solo la suya. Sin USP nuevo.
+    /// Medios por marca. Central: billeteras Gerente/René separadas + genéricos de sucursal;
+    /// sucursal: familia rollup (Yape/Interbank) solo de su oficina. Sin USP nuevo.
     /// </summary>
     Task<BovedaMediosRedDto> ListarMediosRedAsync(
         int oficinaId,

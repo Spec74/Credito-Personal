@@ -91,6 +91,13 @@ export function BovedaResumenCuenta({
         <div className="boveda-resumen-cuenta__grid">
           {data.marcas.map((marca) => {
             const variant = marcaDesdeTipoPagoId(marca.tipoPagoId) ?? asVariant(marca.variant)
+            // Wordmark ya dice Yape/Interbank/Plin; Gerente/René van como subtítulo.
+            const subtitulo = (() => {
+              const m = marca.marca.trim()
+              if (/\bGerente\b/i.test(m)) return 'Gerente'
+              if (/\bRen[eé]\b/i.test(m)) return 'René'
+              return null
+            })()
             return (
               <div
                 key={marca.tipoPagoId}
@@ -104,6 +111,11 @@ export function BovedaResumenCuenta({
                     tone="logo"
                     eager={eagerLogos}
                   />
+                  {subtitulo ? (
+                    <span className="boveda-resumen-cuenta__item-sub" translate="no">
+                      {subtitulo}
+                    </span>
+                  ) : null}
                 </div>
                 <div className="boveda-resumen-cuenta__item-meta">
                   <span

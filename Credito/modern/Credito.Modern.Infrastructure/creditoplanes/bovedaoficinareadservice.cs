@@ -358,16 +358,31 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         SesionOficinaRow sesion,
         IReadOnlyList<MedioRedRow> filas)
     {
-        // Id de marca visible + familia que suma al total (Yape = 2+10+11).
-        (short Id, string Marca, string Variant, short[] Familia)[] catalogo =
-        [
-            (1, "Efectivo", "efectivo", [1]),
-            (2, "Yape", "yape", [2, 10, 11]),
-            (3, "Interbank", "interbank", [3, 12, 13]),
-            (4, "BCP", "bcp", [4]),
-            (5, "Nación", "banco-nacion", [5]),
-            (9, "Plin", "plin", [9]),
-        ];
+        // Central: billeteras Gerente/René visibles por separado; genéricos 2/3 = solo sucursales.
+        // Sucursal: familia rollup (Yape = 2+10+11) filtrada a su oficina.
+        (short Id, string Marca, string Variant, short[] Familia)[] catalogo = sesion.IndPrincipal
+            ?
+            [
+                (1, "Efectivo", "efectivo", [1]),
+                (10, "Yape Gerente", "yape", [10]),
+                (11, "Yape René", "yape", [11]),
+                (2, "Yape", "yape", [2]),
+                (12, "Interbank Gerente", "interbank", [12]),
+                (13, "Interbank René", "interbank", [13]),
+                (3, "Interbank", "interbank", [3]),
+                (4, "BCP", "bcp", [4]),
+                (5, "Banco de la Nación", "banco-nacion", [5]),
+                (9, "Plin", "plin", [9]),
+            ]
+            :
+            [
+                (1, "Efectivo", "efectivo", [1]),
+                (2, "Yape", "yape", [2, 10, 11]),
+                (3, "Interbank", "interbank", [3, 12, 13]),
+                (4, "BCP", "bcp", [4]),
+                (5, "Banco de la Nación", "banco-nacion", [5]),
+                (9, "Plin", "plin", [9]),
+            ];
 
         var result = new List<BovedaMedioMarcaDto>(catalogo.Length);
         foreach (var (id, marca, variant, familia) in catalogo)
@@ -379,7 +394,7 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                 propias = propias.Where(f => f.OficinaId == sesion.OficinaId).ToList();
             }
 
-            // Por sede: sumar billeteras de la misma marca (Gerente+René → Yape).
+            // Por sede: una fila por oficina (billeteras Central ya van en cards propias).
             var sedes = propias
                 .Where(f => f.BovedaId is > 0 && (sesion.IndPrincipal || f.OficinaId == sesion.OficinaId))
                 .GroupBy(f => f.OficinaId)
@@ -398,11 +413,23 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
 
             if (sesion.IndPrincipal)
             {
+                // Genéricos 2/3: solo saldos de sucursal (no Central).
+                if (id is 2 or 3)
+                {
+                    sedes = sedes.Where(s => !s.IndPrincipal).ToList();
+                }
+
                 sedes = sedes
                     .Where(s => s.BovedaId is > 0)
                     .OrderByDescending(s => s.IndPrincipal)
                     .ThenBy(s => s.Oficina, StringComparer.OrdinalIgnoreCase)
                     .ToList();
+
+                // Sin movimiento en sucursales: no mostrar card genérico vacío junto a Gerente/René.
+                if ((id is 2 or 3) && sedes.Count == 0)
+                {
+                    continue;
+                }
             }
 
             var total = sesion.IndPrincipal

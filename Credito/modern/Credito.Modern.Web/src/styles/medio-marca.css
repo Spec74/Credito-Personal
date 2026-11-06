@@ -53,8 +53,7 @@
 
 .boveda-tipo-pago-opt__text,
 .boveda-tipo-pago-cell__text {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
   white-space: nowrap;
   font-size: 13px;
   font-weight: 600;

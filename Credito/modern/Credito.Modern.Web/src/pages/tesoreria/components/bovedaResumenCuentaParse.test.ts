@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   esMarcaTipoPago,
   medioNombreMarca,
+  medioNombrePorItemId,
   etiquetaSede,
   parseResumenBovedaTexto,
   resolveResumenCuentaVariant,
@@ -66,11 +67,21 @@ describe('medioNombreMarca', () => {
     expect(medioNombreMarca('YAPE')).toBe('Yape')
     expect(medioNombreMarca('YAPE HUANTA')).toBe('Yape')
     expect(medioNombreMarca('YAPE GERENTE')).toBe('Yape Gerente')
-    expect(medioNombreMarca('YAPE RENE')).toBe('Yape Rene')
+    expect(medioNombreMarca('YAPE RENE')).toBe('Yape René')
     expect(medioNombreMarca('INTERBANK GERENTE')).toBe('Interbank Gerente')
-    expect(medioNombreMarca('INTERBANK RENE')).toBe('Interbank Rene')
+    expect(medioNombreMarca('INTERBANK RENE')).toBe('Interbank René')
     expect(medioNombreMarca('BCO CREDITO')).toBe('BCP')
     expect(medioNombreMarca('PLIN')).toBe('Plin')
+  })
+})
+
+describe('medioNombrePorItemId', () => {
+  it('fija Gerente/René por ItemId', () => {
+    expect(medioNombrePorItemId(10)).toBe('Yape Gerente')
+    expect(medioNombrePorItemId(11)).toBe('Yape René')
+    expect(medioNombrePorItemId(12)).toBe('Interbank Gerente')
+    expect(medioNombrePorItemId(13)).toBe('Interbank René')
+    expect(medioNombrePorItemId(9)).toBe('Plin')
   })
 })
 

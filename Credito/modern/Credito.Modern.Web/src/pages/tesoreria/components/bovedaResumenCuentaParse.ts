@@ -206,28 +206,52 @@ export function medioEtiquetaUi(raw: string): {
   }
 }
 
+/** Billeteras Central: nombre estable por ItemId (no depende del texto en ValorTabla). */
+export function medioNombrePorItemId(itemId: number): string | null {
+  switch (itemId) {
+    case 1:
+      return 'Efectivo'
+    case 2:
+      return 'Yape'
+    case 3:
+      return 'Interbank'
+    case 4:
+      return 'BCP'
+    case 5:
+      return 'Banco de la Nación'
+    case 9:
+      return 'Plin'
+    case 10:
+      return 'Yape Gerente'
+    case 11:
+      return 'Yape René'
+    case 12:
+      return 'Interbank Gerente'
+    case 13:
+      return 'Interbank René'
+    default:
+      return null
+  }
+}
+
 /** Nombre de marca para combos y chips. El icono no sustituye al texto. */
 export function medioNombreMarca(raw: string): string {
   const { variant, etiqueta } = resolveResumenCuentaVariant(raw)
+  const persona = (() => {
+    const k = normalizarClave(raw)
+    if (/\bGERENTE\b/.test(k)) return 'Gerente'
+    if (/\bREN[EÉ]\b/.test(k)) return 'René'
+    return null
+  })()
   switch (variant) {
     case 'efectivo':
       return 'Efectivo'
-    case 'yape': {
-      const k = normalizarClave(raw)
-      if (/\bGERENTE\b/.test(k) || /\bREN[EÉ]\b/.test(k)) {
-        return etiqueta.startsWith('Yape') ? etiqueta : 'Yape'
-      }
-      return 'Yape'
-    }
+    case 'yape':
+      return persona ? `Yape ${persona}` : 'Yape'
     case 'plin':
       return 'Plin'
-    case 'interbank': {
-      const k = normalizarClave(raw)
-      if (/\bGERENTE\b/.test(k) || /\bREN[EÉ]\b/.test(k)) {
-        return etiqueta.startsWith('Interbank') ? etiqueta : 'Interbank'
-      }
-      return 'Interbank'
-    }
+    case 'interbank':
+      return persona ? `Interbank ${persona}` : 'Interbank'
     case 'bcp':
       return 'BCP'
     case 'banco-nacion':

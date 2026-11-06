@@ -256,10 +256,19 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  gap: 8px;
   height: 28px;
   min-height: 28px;
   padding: 0;
   background: transparent;
+}
+
+.boveda-resumen-cuenta__item-sub {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--credix-text, #1f2937);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
 
 .boveda-resumen-cuenta__item-meta {
@@ -716,8 +725,7 @@
 
 .boveda-tipo-pago-opt__text,
 .boveda-tipo-pago-cell__text {
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow: visible;
   white-space: nowrap;
 }
 
