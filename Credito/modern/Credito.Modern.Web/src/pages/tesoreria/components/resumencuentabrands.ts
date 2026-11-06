@@ -24,7 +24,7 @@ export function resumenCuentaLogoSrc(
   const oficial = LOGO_OFICIAL.has(variant)
   const folder = tone === 'logo' && oficial ? '' : 'mark/'
   const ext = oficial ? 'png' : 'svg'
-  return `${base}assets/resumen-cuenta/${folder}${variant}.${ext}?v=7`
+  return `${base}assets/resumen-cuenta/${folder}${variant}.${ext}?v=8`
 }
 
 export function marcaDesdeTipoPagoId(tipoPagoId: number): ResumenCuentaVariant | null {

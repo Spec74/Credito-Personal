@@ -6,6 +6,7 @@ import {
   medioNombrePorItemId,
 } from './bovedaResumenCuentaParse'
 import { ResumenCuentaBrandLogo } from './resumenCuentaBrandIcons'
+import { marcaDesdeTipoPagoId } from './resumencuentabrands'
 
 type TipoPagoOption = {
   value: number
@@ -68,13 +69,16 @@ export function TipoPagoOptionLabel({
   const nombre =
     (itemId != null && itemId > 0 ? medioNombrePorItemId(itemId) : null) ??
     medioNombreMarca(denominacion)
-  const { variant, aria } = medioEtiquetaUi(
+  const fromTexto = medioEtiquetaUi(
     itemId != null && itemId > 0
       ? medioNombrePorItemId(itemId) ?? denominacion
       : denominacion,
   )
+  // ItemId manda el logo (evita cruzar marcas si el texto falla).
+  const variant =
+    (itemId != null && itemId > 0 ? marcaDesdeTipoPagoId(itemId) : null) ?? fromTexto.variant
   return (
-    <span className="boveda-tipo-pago-opt" translate="no" title={nombre} aria-label={aria || nombre}>
+    <span className="boveda-tipo-pago-opt" translate="no" title={nombre} aria-label={fromTexto.aria || nombre}>
       <ResumenCuentaBrandLogo variant={variant} etiqueta={nombre} size="sm" tone="mark" />
       <span className="boveda-tipo-pago-opt__text">{nombre}</span>
     </span>
