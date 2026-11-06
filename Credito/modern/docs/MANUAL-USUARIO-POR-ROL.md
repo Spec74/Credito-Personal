@@ -114,10 +114,11 @@ Abrir sesión de caja, cobrar cuotas, pagos libres, desembolsos autorizados, emi
 2. Abrir **Caja diario** → estado **ABIERTO**.
 3. Buscar cliente / crédito.
 4. Seleccionar cuotas → importe recibido → tipo de pago (efectivo / digital).
-5. Confirmar → ticket PDF.
-6. Al cierre: entregar cuadre al encargado (conteo de billetes si aplica).
+5. Si paga con **varios medios** (p. ej. 10 Yape + 20 efectivo): en pago libre marque **Dividir en varios medios**, complete cada línea y confirme cobro mixto.
+6. Confirmar → ticket PDF.
+7. Al cierre: entregar cuadre al encargado (conteo de billetes si aplica).
 
-**Adelanto el mismo día del desembolso:** si el cliente paga antes de su **1.er pago** (incluso el día que se desembolsó), regístrelo como pago libre / cobro normal. **No** use «Completar impagos» para eso: esa opción solo aplica a créditos cuyo 1.er pago ya llegó y hoy tenían cuota por cobrar sin movimiento.
+**Adelanto el mismo día del desembolso:** si el cliente paga antes de su **1.er pago** (incluso el día que se desembolsó), regístrelo como pago libre / cobro normal (o cobro mixto). **No** use «Completar impagos» para eso: esa opción solo aplica a créditos cuyo 1.er pago ya llegó y hoy tenían cuota por cobrar sin movimiento.
 
 ### Cobro en bloque / campo
 

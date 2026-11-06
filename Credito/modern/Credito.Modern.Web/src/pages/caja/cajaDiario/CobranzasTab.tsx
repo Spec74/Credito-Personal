@@ -10,6 +10,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Alert,
   Button,
+  Checkbox,
   Grid,
   InputNumber,
   Space,
@@ -35,6 +36,7 @@ import {
   fetchCuentasPorCobrarPendientes,
   pagarCuotaConMora,
   pagarCuotaImporteLibre,
+  pagarCuotaImporteLibreMixto,
   pagarCuotas,
 } from '../../../api/cajaDiario'
 import { downloadMovimientosCreditoPdf } from '../../../api/creditoPlanes'
@@ -62,6 +64,13 @@ import {
 import { CajaSection } from '../../../components/caja/CajaSection'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
 import { TipoPagoChips } from '../../../components/caja/TipoPagoChips'
+import {
+  defaultPagoMediosSplit,
+  PagoMediosSplit,
+  sumPagoMedios,
+  validatePagoMedios,
+  type PagoMedioLineaUi,
+} from '../../../components/caja/PagoMediosSplit'
 import { buildTipoPagoOptions } from '../../tesoreria/components/TipoPagoBrand'
 import {
   FechaHoraDigitalField,
@@ -115,6 +124,8 @@ export function CobranzasTab({
   const [tipoPagoId, setTipoPagoId] = useState(1)
   const [tipoPagoLibreId, setTipoPagoLibreId] = useState(1)
   const [pagoLibre, setPagoLibre] = useState<number | null>(null)
+  const [pagoLibreMixto, setPagoLibreMixto] = useState(false)
+  const [mediosLibre, setMediosLibre] = useState<PagoMedioLineaUi[]>([])
   const [fechaTransferencia, setFechaTransferencia] = useState('')
   const [fechaPagoLibre, setFechaPagoLibre] = useState('')
   const [showCxc, setShowCxc] = useState(false)
@@ -401,6 +412,23 @@ export function CobranzasTab({
 
   const ejecutarPagoLibre = useMutation({
     mutationFn: async () => {
+      if (pagoLibreMixto) {
+        const err = validatePagoMedios(mediosLibre)
+        if (err) throw new Error(err)
+        return pagarCuotaImporteLibreMixto({
+          oficinaId: ctx.oficinaId,
+          cajaDiarioId: ctx.cajaDiarioId,
+          creditoId: creditoId!,
+          medios: mediosLibre.map((l) => ({
+            tipoPagoId: l.tipoPagoId,
+            importe: l.importe ?? 0,
+            fechaPagoTransferencia:
+              l.tipoPagoId > 1 && l.fechaTransferencia
+                ? toLegacyFechaTransferencia(l.fechaTransferencia) ?? null
+                : null,
+          })),
+        })
+      }
       const esUltima = cuotasPagables.length <= 1
       const usarMoraIntegrada =
         (moraResumenQuery.data?.indMoraProducto ?? false) && esUltima
@@ -434,7 +462,9 @@ export function CobranzasTab({
       const msg =
         'mensaje' in r && r.mensaje
           ? r.mensaje
-          : 'Pago libre registrado'
+          : pagoLibreMixto
+            ? 'Cobro mixto registrado'
+            : 'Pago libre registrado'
       cajaToastSuccess(msg)
       const movId =
         'movimientoCajaId' in r
@@ -442,6 +472,10 @@ export function CobranzasTab({
           : 'resultId' in r
             ? r.resultId
             : null
+      const montoSync = pagoLibreMixto ? sumPagoMedios(mediosLibre) : (pagoLibre ?? 0)
+      const tipoSync = pagoLibreMixto
+        ? (mediosLibre[0]?.tipoPagoId ?? 1)
+        : tipoPagoLibreId
       if (creditoId && usuarioId > 0) {
         syncDiarioPagoHaciaCobro({
           usuarioId,
@@ -449,12 +483,14 @@ export function CobranzasTab({
           cajaDiarioId: ctx.cajaDiarioId,
           creditoId,
           personaNombre: clienteLabel || creditoSel?.descripcion,
-          montoPagar: pagoLibre ?? 0,
-          tipoPagoId: tipoPagoLibreId,
+          montoPagar: montoSync,
+          tipoPagoId: tipoSync,
           movimientoCajaId: movId ?? null,
         })
       }
       setPagoLibre(null)
+      setPagoLibreMixto(false)
+      setMediosLibre([])
       onChanged()
       void moraResumenQuery.refetch()
       if (creditoId) {
@@ -510,7 +546,43 @@ export function CobranzasTab({
   }
 
   const solicitarPagoLibre = async () => {
-    if (!creditoId || !pagoLibre || pagoLibre <= 0) {
+    if (!creditoId) return
+
+    if (pagoLibreMixto) {
+      const err = validatePagoMedios(mediosLibre)
+      if (err) {
+        cajaToastWarning(err)
+        return
+      }
+      const totalMixto = sumPagoMedios(mediosLibre)
+      if (totalMixto > totalCuotasCredito && totalCuotasCredito > 0) {
+        cajaToastError(
+          `El cobro mixto no debe superar ${formatMoney(totalCuotasCredito)}`,
+        )
+        return
+      }
+      try {
+        if (!(await assertSinCxcPendiente(creditoId))) return
+        const detalle = mediosLibre
+          .map((l) => {
+            const lab =
+              tipoPagoOptions.find((o) => o.value === l.tipoPagoId)?.label ??
+              `Tipo ${l.tipoPagoId}`
+            return `${lab} ${formatMoney(l.importe ?? 0)}`
+          })
+          .join(' + ')
+        cajaConfirm({
+          title: 'Confirmar cobro mixto',
+          content: `¿Registrar ${formatMoney(totalMixto)} (${detalle})?`,
+          onOk: () => ejecutarPagoLibre.mutateAsync(),
+        })
+      } catch (e) {
+        cajaToastError(errMsg(e))
+      }
+      return
+    }
+
+    if (!pagoLibre || pagoLibre <= 0) {
       return
     }
     if (pagoLibre > totalCuotasCredito && totalCuotasCredito > 0) {
@@ -523,7 +595,6 @@ export function CobranzasTab({
       if (!(await assertSinCxcPendiente(creditoId))) {
         return
       }
-      // Fecha ya está en el dock (FechaHoraDigitalField); no abrir modal redundante.
       if (tipoPagoLibreId > 1 && !fechaPagoLibre.trim()) {
         cajaToastWarning('Indique la hora del voucher en el panel de cobro')
         return
@@ -1023,72 +1094,120 @@ export function CobranzasTab({
               </>
             ) : (
               <>
-                <div className="caja-diario-pago-dock-row">
-                  <div className="caja-diario-pago-libre-dock">
-                    <label className="caja-diario-pago-recibido">
-                      <span>Monto libre</span>
-                      <InputNumber
-                        min={0}
-                        step={0.01}
+                <Checkbox
+                  checked={pagoLibreMixto}
+                  disabled={!creditoId}
+                  onChange={(e) => {
+                    const on = e.target.checked
+                    setPagoLibreMixto(on)
+                    if (on) {
+                      const hint = pagoLibre ?? selectedTotal ?? totalCuotasCredito
+                      setMediosLibre(
+                        defaultPagoMediosSplit(
+                          tipoPagoOptions,
+                          hint > 0 ? hint : undefined,
+                        ),
+                      )
+                    } else {
+                      setMediosLibre([])
+                    }
+                  }}
+                  style={{ marginBottom: 8 }}
+                >
+                  Dividir en varios medios (Yape/Plin + efectivo)
+                </Checkbox>
+                {pagoLibreMixto ? (
+                  <>
+                    <PagoMediosSplit
+                      lineas={mediosLibre}
+                      options={tipoPagoOptions}
+                      onChange={setMediosLibre}
+                      disabled={ejecutarPagoLibre.isPending}
+                    />
+                    <Button
+                      type="primary"
+                      size={isMobile ? 'large' : 'middle'}
+                      block={isMobile}
+                      className="caja-btn-pago-libre"
+                      icon={<DollarOutlined />}
+                      disabled={!creditoId || sumPagoMedios(mediosLibre) <= 0}
+                      loading={ejecutarPagoLibre.isPending}
+                      onClick={() => void solicitarPagoLibre()}
+                      style={{ marginTop: 12 }}
+                    >
+                      Cobro mixto
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <div className="caja-diario-pago-dock-row">
+                      <div className="caja-diario-pago-libre-dock">
+                        <label className="caja-diario-pago-recibido">
+                          <span>Monto libre</span>
+                          <InputNumber
+                            min={0}
+                            step={0.01}
+                            size={isMobile ? 'large' : 'middle'}
+                            controls={false}
+                            inputMode="decimal"
+                            prefix="S/"
+                            value={pagoLibre}
+                            onChange={setPagoLibre}
+                          />
+                        </label>
+                        <div className="caja-diario-pago-chips-row">
+                          <Button
+                            size="small"
+                            disabled={selectedTotal <= 0}
+                            onClick={() => setPagoLibre(selectedTotal)}
+                          >
+                            = Selección
+                          </Button>
+                          <Button
+                            size="small"
+                            disabled={totalCuotasCredito <= 0}
+                            onClick={() => setPagoLibre(totalCuotasCredito)}
+                          >
+                            Deuda cuotas
+                          </Button>
+                          <Button
+                            size="small"
+                            disabled={!pagoLibre}
+                            onClick={() => setPagoLibre(null)}
+                          >
+                            0
+                          </Button>
+                        </div>
+                      </div>
+                      <Button
+                        type="primary"
                         size={isMobile ? 'large' : 'middle'}
-                        controls={false}
-                        inputMode="decimal"
-                        prefix="S/"
-                        value={pagoLibre}
-                        onChange={setPagoLibre}
-                      />
-                    </label>
-                    <div className="caja-diario-pago-chips-row">
-                      <Button
-                        size="small"
-                        disabled={selectedTotal <= 0}
-                        onClick={() => setPagoLibre(selectedTotal)}
+                        block={isMobile}
+                        className="caja-btn-pago-libre"
+                        icon={<DollarOutlined />}
+                        disabled={!creditoId || !pagoLibre}
+                        loading={ejecutarPagoLibre.isPending}
+                        onClick={() => void solicitarPagoLibre()}
                       >
-                        = Selección
-                      </Button>
-                      <Button
-                        size="small"
-                        disabled={totalCuotasCredito <= 0}
-                        onClick={() => setPagoLibre(totalCuotasCredito)}
-                      >
-                        Deuda cuotas
-                      </Button>
-                      <Button
-                        size="small"
-                        disabled={!pagoLibre}
-                        onClick={() => setPagoLibre(null)}
-                      >
-                        0
+                        Pago libre
                       </Button>
                     </div>
-                  </div>
-                  <Button
-                    type="primary"
-                    size={isMobile ? 'large' : 'middle'}
-                    block={isMobile}
-                    className="caja-btn-pago-libre"
-                    icon={<DollarOutlined />}
-                    disabled={!creditoId || !pagoLibre}
-                    loading={ejecutarPagoLibre.isPending}
-                    onClick={() => void solicitarPagoLibre()}
-                  >
-                    Pago libre
-                  </Button>
-                </div>
-                <TipoPagoChips
-                  value={tipoPagoLibreId}
-                  options={tipoPagoOptions}
-                  onChange={setTipoPagoLibreId}
-                  wrap={!isMobile}
-                />
-                {tipoPagoLibreId > 1 ? (
-                  <FechaHoraDigitalField
-                    value={fechaPagoLibre}
-                    status={!fechaPagoLibre ? 'error' : undefined}
-                    onChange={setFechaPagoLibre}
-                    compact={!isMobile}
-                  />
-                ) : null}
+                    <TipoPagoChips
+                      value={tipoPagoLibreId}
+                      options={tipoPagoOptions}
+                      onChange={setTipoPagoLibreId}
+                      wrap={!isMobile}
+                    />
+                    {tipoPagoLibreId > 1 ? (
+                      <FechaHoraDigitalField
+                        value={fechaPagoLibre}
+                        status={!fechaPagoLibre ? 'error' : undefined}
+                        onChange={setFechaPagoLibre}
+                        compact={!isMobile}
+                      />
+                    ) : null}
+                  </>
+                )}
               </>
             )}
             </div>

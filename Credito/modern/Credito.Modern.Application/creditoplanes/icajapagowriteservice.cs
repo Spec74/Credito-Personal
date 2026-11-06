@@ -22,6 +22,16 @@ public interface ICajaPagoWriteService
         string fechaPagoTransferencia,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Cobro mixto: una línea por medio (Yape/Plin/efectivo). Misma caja/crédito; una transacción.
+    /// </summary>
+    Task<PagoCajaMixtoResultResponse> PagarCuotaPagoLibreMixtoAsync(
+        int cajaDiarioId,
+        int creditoId,
+        int usuarioId,
+        IReadOnlyList<PagoMedioLineaDto> medios,
+        CancellationToken cancellationToken = default);
+
     Task<PagoCajaResultResponse> PagarCuotasCancelacionAsync(
         int cajaDiarioId,
         int creditoId,

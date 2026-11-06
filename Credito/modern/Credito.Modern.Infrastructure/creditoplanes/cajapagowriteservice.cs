@@ -58,6 +58,89 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
             },
             cancellationToken);
 
+    public async Task<PagoCajaMixtoResultResponse> PagarCuotaPagoLibreMixtoAsync(
+        int cajaDiarioId,
+        int creditoId,
+        int usuarioId,
+        IReadOnlyList<PagoMedioLineaDto> medios,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureConnectionConfigured();
+        if (medios is null || medios.Count < 1)
+        {
+            throw new ArgumentException("Debe indicar al menos un medio de pago.", nameof(medios));
+        }
+
+        if (medios.Count > 8)
+        {
+            throw new ArgumentOutOfRangeException(nameof(medios), "Máximo 8 medios por cobro mixto.");
+        }
+
+        var ids = new List<int>(medios.Count);
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = (SqlTransaction)await connection
+            .BeginTransactionAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        try
+        {
+            foreach (var linea in medios)
+            {
+                if (linea.TipoPagoId < 1)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(medios), "tipoPagoId debe ser >= 1.");
+                }
+
+                if (linea.Importe <= 0m)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(medios), "Cada importe del mixto debe ser > 0.");
+                }
+
+                if (linea.TipoPagoId > 1
+                    && string.IsNullOrWhiteSpace(linea.FechaPagoTransferencia))
+                {
+                    throw new ArgumentException(
+                        "Los medios digitales requieren fecha/hora de transferencia.",
+                        nameof(medios));
+                }
+
+                var command = new CommandDefinition(
+                    "CREDITO.usp_PagarCuotaPagoLibre",
+                    new
+                    {
+                        CajaDiarioId = cajaDiarioId,
+                        CreditoId = creditoId,
+                        ImporteRecibido = linea.Importe,
+                        UsuarioId = usuarioId,
+                        TipoPagoId = linea.TipoPagoId,
+                        FechaPagoTransferencia = linea.FechaPagoTransferencia ?? string.Empty,
+                    },
+                    transaction: transaction,
+                    commandType: CommandType.StoredProcedure,
+                    cancellationToken: cancellationToken);
+                var resultId = await connection.QueryFirstOrDefaultAsync<int?>(command).ConfigureAwait(false);
+                if (resultId is > 0)
+                {
+                    ids.Add(resultId.Value);
+                }
+            }
+
+            if (ids.Count < 1)
+            {
+                throw new InvalidOperationException("El cobro mixto no generó movimientos.");
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new PagoCajaMixtoResultResponse(ids[^1], ids);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+    }
+
     public Task<PagoCajaResultResponse> PagarCuotasCancelacionAsync(
         int cajaDiarioId,
         int creditoId,

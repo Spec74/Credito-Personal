@@ -29,12 +29,19 @@ AS
 	--SELECT * FROM @tCuotasPendientes
 
 	
-	-- PAGO IMPORTE LIBRE
+	DECLARE @MedioPago VARCHAR(80) = (
+		SELECT TOP (1) vt.Denominacion
+		FROM MAESTRO.ValorTabla AS vt
+		WHERE vt.TablaId = 13 AND vt.ItemId = @TipoPagoId
+	)
+
+	-- PAGO IMPORTE LIBRE (glosa incluye medio: EFECTIVO / YAPE / PLIN…)
 	INSERT INTO CREDITO.MovimientoCaja
 			( CajaDiarioId,PersonaId ,Operacion ,ImportePago ,
 			  Descripcion ,IndEntrada ,Estado,OrdenVentaId,CreditoId ,UsuarioRegId ,FechaReg,TipoPagoId)
 	VALUES  ( @CajaDiarioId,@PersonaId, 'CUO' , @ImporteRecibido , 
-			  'CREDITO ' + CAST(@CreditoId AS VARCHAR(20)) + ' PAGO LIBRE ' + CAST(@ImporteRecibido AS VARCHAR(20)) , 
+			  'CREDITO ' + CAST(@CreditoId AS VARCHAR(20)) + ' PAGO LIBRE ' + CAST(@ImporteRecibido AS VARCHAR(20))
+			  + ISNULL(' (' + @MedioPago + ')', '') , 
 			  1, 1,NULL,@CreditoId, @UsuarioId , @FechaActual,@TipoPagoId)
 	SET @MovimientoCajaId = @@IDENTITY
 	

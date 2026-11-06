@@ -96,6 +96,24 @@ export function pagarCuotaImporteLibre(body: {
   })
 }
 
+/** Cobro mixto: N movimientos CUO (p. ej. Yape + efectivo) en una transacción. */
+export function pagarCuotaImporteLibreMixto(body: {
+  oficinaId: number
+  cajaDiarioId: number
+  creditoId: number
+  medios: Array<{
+    tipoPagoId: number
+    importe: number
+    fechaPagoTransferencia?: string | null
+  }>
+}): Promise<{ resultId: number | null; movimientoCajaIds: number[] }> {
+  return apiFetch('/credito/pagar-cuota-importe-libre-mixto', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
 export function validarAnularMovimientoCaja(
   oficinaId: number,
   movimientoCajaId: number,

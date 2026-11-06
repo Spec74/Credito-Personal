@@ -3411,7 +3411,144 @@ internal static class CreditoOperacionEndpoints
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
+        app.MapPost(
+                "/api/v1/credito/pagar-cuota-importe-libre-mixto",
+                async Task<Results<Ok<PagoCajaMixtoResultResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    PagarCuotaPagoLibreMixtoRequest body,
+                    ICajaPagoWriteService cajaPago,
+                    ICajaDiarioOficinaReadService cajaDiarioOficina,
+                    ICreditoOficinaReadService creditoOficina,
+                    IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    var idError = CajaCreditoWriteGuards.ValidateBodyIds(body.OficinaId, body.CajaDiarioId, body.CreditoId);
+                    if (idError is not null)
+                    {
+                        return idError;
+                    }
 
+                    if (body.Medios is null || body.Medios.Count < 2)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "El cobro mixto requiere al menos 2 medios (p. ej. Yape + efectivo).");
+                    }
+
+                    var total = body.Medios.Sum(m => m.Importe);
+                    var moneyError = ProblemResults.IfInvalid(
+                        MoneyRules.RequirePositive(total, "suma de medios"));
+                    if (moneyError is not null)
+                    {
+                        return moneyError;
+                    }
+
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
+                    if (oficinaError is not null)
+                    {
+                        return oficinaError;
+                    }
+
+                    var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
+                    if (usuarioError is not null)
+                    {
+                        return usuarioError;
+                    }
+
+                    var scopeError = await CajaCreditoWriteGuards
+                        .ValidateCajaYCreditoOficinaAsync(
+                            body.OficinaId,
+                            body.CajaDiarioId,
+                            body.CreditoId,
+                            cajaDiarioOficina,
+                            creditoOficina,
+                            ct)
+                        .ConfigureAwait(false);
+                    if (scopeError is not null)
+                    {
+                        return scopeError;
+                    }
+
+                    if (await entradaSalidaRead.CajaDiarioEstaCerradaAsync(body.CajaDiarioId, ct).ConfigureAwait(false))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status409Conflict,
+                            title: "Conflicto",
+                            detail: "La caja diario está cerrada.");
+                    }
+
+                    var log = loggerFactory.CreateLogger("PagarCuotaPagoLibreMixto");
+                    try
+                    {
+                        var response = await cajaPago
+                            .PagarCuotaPagoLibreMixtoAsync(
+                                body.CajaDiarioId,
+                                body.CreditoId,
+                                usuarioId,
+                                body.Medios,
+                                ct)
+                            .ConfigureAwait(false);
+                        if (response.MovimientoCajaIds.Count < 1)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status422UnprocessableEntity,
+                                title: "No procesado",
+                                detail: "El cobro mixto no generó movimientos.");
+                        }
+
+                        return TypedResults.Ok(response);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        log.LogWarning(ex, "Parámetros de cobro mixto inválidos");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "Revise los medios e importes."
+                                : ex.Message);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Cobro mixto no ejecutado");
+                        return TypedResults.Problem(
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "No se pudo completar el cobro mixto."
+                                : ex.Message,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Operación incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error al ejecutar cobro mixto (usp_PagarCuotaPagoLibre)");
+                        var detail = "No se pudo registrar el cobro mixto.";
+                        if (env.IsDevelopment())
+                        {
+                            detail += $" Detalle: {ex.Message}";
+                        }
+
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("CreditoPagarCuotaImporteLibreMixto")
+            .WithSummary(
+                "Escritura: N× CREDITO.usp_PagarCuotaPagoLibre en una transacción (Yape/Plin + efectivo). CreditoRolOperador.")
+            .WithTags("credito")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
+            .Produces<PagoCajaMixtoResultResponse>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status409Conflict)
+            .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
         app.MapPost(
                 "/api/v1/credito/pagar-cuota-con-mora",
