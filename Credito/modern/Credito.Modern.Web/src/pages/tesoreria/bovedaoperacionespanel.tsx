@@ -141,12 +141,12 @@ function opsCopy(esCentral: boolean): Record<string, { title: string; blurb: str
       ? {
           title: 'Fondear sucursales',
           blurb:
-            'Envía saldo desde Central a la bóveda de una sucursal. Se acredita al instante (Yape/Interbank Gerente·René llegan como genérico en la sede).',
+            'Elija el medio de Central que sale. Yape/Interbank Gerente·René llegan a la sucursal como Yape/Interbank genérico.',
         }
       : {
           title: 'Enviar a Central',
           blurb:
-            'Remesa saldo de esta sucursal a la bóveda Central. Se acredita al instante en el mismo medio (Yape, Interbank, BCP, Plin, efectivo…).',
+            'Elija a qué medio de Central llega el dinero (Yape Gerente/René, Interbank Gerente/René, BCP…). En esta sede se descuenta el genérico de la misma familia.',
         },
     aceptar: {
       title: 'Pendientes',
@@ -227,6 +227,11 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   const tipoPagoOptions = useMemo(
     () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }),
     [tiposPagoQuery.data, esCentral],
+  )
+  /** Fondeo/remesa: siempre catálogo Central (billeteras Gerente/René + bancos). */
+  const tipoPagoOptionsRed = useMemo(
+    () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral: true }),
+    [tiposPagoQuery.data],
   )
 
   const tipoPagoSelectProps = {
@@ -376,10 +381,13 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     tipoPagoId?: number
   }) => {
     const dest = bovedasDestinoQuery.data?.find((d) => d.bovedaId === v.bovedaDestinoId)
+    const medioId = v.tipoPagoId && v.tipoPagoId > 0 ? v.tipoPagoId : 1
     const medio =
-      tipoPagoOptions.find((o) => o.value === (v.tipoPagoId && v.tipoPagoId > 0 ? v.tipoPagoId : 1))
-        ?.label ?? 'efectivo'
+      tipoPagoOptionsRed.find((o) => o.value === medioId)?.label ?? 'efectivo'
     const haciaCentral = !esCentral
+    const consecuencia = haciaCentral
+      ? `Llega a Central como ${medio}. En esta sede se descuenta el medio de familia (Yape/Interbank genérico si aplica).`
+      : `Sale ${medio} desde Central. En la sucursal se acredita el genérico de familia si es Yape/Interbank.`
     confirmMoney({
       title: dest
         ? haciaCentral
@@ -392,7 +400,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       officeLabel: dest
         ? `Bóveda #${bovedaId} → ${dest.oficina} · #${dest.bovedaId}`
         : `Bóveda #${bovedaId}`,
-      consequence: `Viaja ${medio}. Se acredita de inmediato en origen y destino.`,
+      consequence: consecuencia,
       okText: haciaCentral ? 'Enviar' : 'Fondear',
       onOk: async () => {
         await transferir.mutateAsync({
@@ -949,13 +957,18 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             </Form.Item>
             <Form.Item
               name="tipoPagoId"
-              label="Medio"
+              label={esCentral ? 'Medio que sale de Central' : 'Medio destino en Central'}
+              extra={
+                esCentral
+                  ? 'Si elige Yape/Interbank Gerente o René, la sucursal recibe el genérico.'
+                  : 'Si elige Yape/Interbank Gerente o René, aquí se descuenta Yape/Interbank de la sede.'
+              }
               rules={[{ required: true, message: 'Seleccione el medio' }]}
             >
               <Select
                 loading={tiposPagoQuery.isLoading}
-                placeholder="Efectivo, Yape, banco…"
-                options={tipoPagoOptions}
+                placeholder="Yape Gerente, Yape René, BCP…"
+                options={tipoPagoOptionsRed}
                 {...tipoPagoSelectProps}
               />
             </Form.Item>

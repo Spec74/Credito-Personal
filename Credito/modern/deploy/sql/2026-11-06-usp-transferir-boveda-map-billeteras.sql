@@ -1,5 +1,6 @@
--- Fondeo Central→sucursal: billeteras Gerente/René (10–13) salen de Central
--- y llegan a la sucursal como genérico de familia (Yape=2 / Interbank=3).
+-- Transferencia interoficina con billeteras Central (10–13):
+--   Fondeo Central→sucursal: sale 10–13, llega familia genérica (2/3).
+--   Remesa sucursal→Central: elige billetera destino (10–13); sale familia (2/3).
 -- Evita saldos huérfanos 10–13 fuera de IndPrincipal.
 -- Idempotente (CREATE OR ALTER).
 
@@ -23,11 +24,16 @@ BEGIN
 
     DECLARE @Estado BIT = 1;
     DECLARE @FechaReg DATETIME = dbo.ufnFecha();
+    DECLARE @TipoPagoOrigenId SMALLINT;
     DECLARE @TipoPagoDestinoId SMALLINT;
+    DECLARE @OrigenEsCentral BIT;
+    DECLARE @DestinoEsCentral BIT;
+    DECLARE @EsBilleteraCentral BIT;
 
     IF ISNULL(@TipoPagoId, 0) < 1
         SET @TipoPagoId = 1;
 
+    SET @TipoPagoOrigenId = @TipoPagoId;
     SET @TipoPagoDestinoId = @TipoPagoId;
 
     IF @flagAceptar = 0
@@ -65,18 +71,62 @@ BEGIN
             RETURN;
         END
 
-        IF EXISTS (
-            SELECT 1 FROM MAESTRO.ValorTabla
-            WHERE TablaId = 13 AND ItemId = @TipoPagoId AND DesCorta = N'CENTRAL'
-        )
-        AND NOT EXISTS (
-            SELECT 1
-            FROM CREDITO.Boveda AS b
-            INNER JOIN MAESTRO.Oficina AS o ON o.OficinaId = b.OficinaId
-            WHERE b.BovedaId = @BovedaInicioId AND o.IndPrincipal = CAST(1 AS bit)
-        )
+        SELECT @OrigenEsCentral = CAST(ISNULL(o.IndPrincipal, 0) AS bit)
+        FROM CREDITO.Boveda AS b
+        INNER JOIN MAESTRO.Oficina AS o ON o.OficinaId = b.OficinaId
+        WHERE b.BovedaId = @BovedaInicioId;
+
+        SELECT @DestinoEsCentral = CAST(ISNULL(o.IndPrincipal, 0) AS bit)
+        FROM CREDITO.Boveda AS b
+        INNER JOIN MAESTRO.Oficina AS o ON o.OficinaId = b.OficinaId
+        WHERE b.BovedaId = @BovedaDestinoId;
+
+        IF @OrigenEsCentral IS NULL OR @DestinoEsCentral IS NULL
         BEGIN
-            RAISERROR(N'Yape/Interbank Gerente y René solo aplican en la bóveda Central.', 16, 1);
+            RAISERROR(N'No se pudo resolver la oficina de origen o destino.', 16, 1);
+            RETURN;
+        END
+
+        SET @EsBilleteraCentral = CASE
+            WHEN EXISTS (
+                SELECT 1 FROM MAESTRO.ValorTabla
+                WHERE TablaId = 13 AND ItemId = @TipoPagoId AND DesCorta = N'CENTRAL')
+            THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END;
+
+        IF @EsBilleteraCentral = CAST(1 AS bit)
+        BEGIN
+            -- Fondeo: Central tipa billetera → sucursal recibe genérico.
+            IF @OrigenEsCentral = CAST(1 AS bit) AND @DestinoEsCentral = CAST(0 AS bit)
+            BEGIN
+                SET @TipoPagoDestinoId = CASE
+                    WHEN @TipoPagoId IN (10, 11) THEN CAST(2 AS smallint)
+                    WHEN @TipoPagoId IN (12, 13) THEN CAST(3 AS smallint)
+                    ELSE @TipoPagoId
+                END;
+            END
+            -- Remesa: sucursal elige billetera destino → sale genérico de familia.
+            ELSE IF @OrigenEsCentral = CAST(0 AS bit) AND @DestinoEsCentral = CAST(1 AS bit)
+            BEGIN
+                SET @TipoPagoOrigenId = CASE
+                    WHEN @TipoPagoId IN (10, 11) THEN CAST(2 AS smallint)
+                    WHEN @TipoPagoId IN (12, 13) THEN CAST(3 AS smallint)
+                    ELSE @TipoPagoId
+                END;
+            END
+            ELSE
+            BEGIN
+                RAISERROR(
+                    N'Yape/Interbank Gerente y René solo aplican en fondeo Central→sucursal o remesa sucursal→Central.',
+                    16, 1);
+                RETURN;
+            END
+        END
+        ELSE IF @TipoPagoId IN (2, 3)
+             AND @OrigenEsCentral = CAST(1 AS bit)
+        BEGIN
+            RAISERROR(
+                N'En Central use Yape/Interbank Gerente o René (el genérico es el total de red).',
+                16, 1);
             RETURN;
         END
 
@@ -92,25 +142,6 @@ BEGIN
             RETURN;
         END
 
-        -- Billetera CENTRAL → sucursal: acredita familia genérica (2/3).
-        IF EXISTS (
-            SELECT 1 FROM MAESTRO.ValorTabla
-            WHERE TablaId = 13 AND ItemId = @TipoPagoId AND DesCorta = N'CENTRAL'
-        )
-        AND NOT EXISTS (
-            SELECT 1
-            FROM CREDITO.Boveda AS b
-            INNER JOIN MAESTRO.Oficina AS o ON o.OficinaId = b.OficinaId
-            WHERE b.BovedaId = @BovedaDestinoId AND o.IndPrincipal = CAST(1 AS bit)
-        )
-        BEGIN
-            SET @TipoPagoDestinoId = CASE
-                WHEN @TipoPagoId IN (10, 11) THEN CAST(2 AS smallint)
-                WHEN @TipoPagoId IN (12, 13) THEN CAST(3 AS smallint)
-                ELSE @TipoPagoId
-            END;
-        END
-
         DECLARE @HayCuentas BIT = CASE
             WHEN EXISTS (SELECT 1 FROM CREDITO.BovedaCuenta WHERE BovedaId = @BovedaInicioId)
             THEN 1 ELSE 0 END;
@@ -119,13 +150,13 @@ BEGIN
         DECLARE @SiMedio DECIMAL(16, 2) = ISNULL((
             SELECT SaldoInicial
             FROM CREDITO.BovedaCuenta
-            WHERE BovedaId = @BovedaInicioId AND TipoPagoId = @TipoPagoId), 0);
-        IF @HayCuentas = 0 AND @TipoPagoId = 1
+            WHERE BovedaId = @BovedaInicioId AND TipoPagoId = @TipoPagoOrigenId), 0);
+        IF @HayCuentas = 0 AND @TipoPagoOrigenId = 1
             SET @SiMedio = ISNULL(@SiBoveda, 0);
         DECLARE @NetoMedio DECIMAL(16, 2) = ISNULL((
             SELECT SUM(IIF(IndEntrada = 1, Importe, -Importe))
             FROM CREDITO.BovedaMov
-            WHERE BovedaId = @BovedaInicioId AND Estado = 1 AND TipoPagoId = @TipoPagoId), 0);
+            WHERE BovedaId = @BovedaInicioId AND Estado = 1 AND TipoPagoId = @TipoPagoOrigenId), 0);
 
         IF (@SiMedio + @NetoMedio) < @Monto
         BEGIN
@@ -145,7 +176,7 @@ BEGIN
         INSERT INTO CREDITO.BovedaMov (
             BovedaId, CodOperacion, Glosa, Importe, IndEntrada, Estado, UsuarioRegId, FechaReg, TipoPagoId)
         VALUES (
-            @BovedaInicioId, 'TRS', @Glosa, @Monto, 0, @Estado, @UsuarioRegId, @FechaReg, @TipoPagoId);
+            @BovedaInicioId, 'TRS', @Glosa, @Monto, 0, @Estado, @UsuarioRegId, @FechaReg, @TipoPagoOrigenId);
         EXEC CREDITO.usp_ActualizarSaldosBoveda @BovedaId = @BovedaInicioId;
 
         INSERT INTO CREDITO.BovedaMov (

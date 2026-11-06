@@ -89,4 +89,14 @@ describe('flujo medios 100% — matriz sede', () => {
       )
     }
   })
+
+  it('remesa a Central: el select usa catálogo Central (billeteras, no genéricos 2/3)', () => {
+    const opts = buildTipoPagoOptions(CATALOGO, { esCentral: true })
+    expect(opts.map((o) => o.value)).toContain(10)
+    expect(opts.map((o) => o.value)).toContain(11)
+    expect(opts.map((o) => o.value)).toContain(12)
+    expect(opts.map((o) => o.value)).toContain(13)
+    expect(opts.map((o) => o.value)).not.toContain(2)
+    expect(opts.map((o) => o.value)).not.toContain(3)
+  })
 })

@@ -51,13 +51,13 @@ public sealed class TipoPagoRulesTests
     }
 
     [Fact]
-    public void MapFondeoDestino_Familias()
+    public void MapFamilia_FondeoYRemesa()
     {
         Assert.Equal(TipoPagoRules.Yape, TipoPagoRules.MapFondeoDestino((short)TipoPagoRules.YapeGerente));
-        Assert.Equal(TipoPagoRules.Yape, TipoPagoRules.MapFondeoDestino((short)TipoPagoRules.YapeRene));
+        Assert.Equal(TipoPagoRules.Yape, TipoPagoRules.MapRemesaOrigen((short)TipoPagoRules.YapeRene));
         Assert.Equal(TipoPagoRules.Interbank, TipoPagoRules.MapFondeoDestino((short)TipoPagoRules.InterbankGerente));
-        Assert.Equal(TipoPagoRules.Interbank, TipoPagoRules.MapFondeoDestino((short)TipoPagoRules.InterbankRene));
-        Assert.Equal((short)Bcp, TipoPagoRules.MapFondeoDestino((short)Bcp));
+        Assert.Equal(TipoPagoRules.Interbank, TipoPagoRules.MapRemesaOrigen((short)TipoPagoRules.InterbankRene));
+        Assert.Equal((short)Bcp, TipoPagoRules.MapFamiliaGenerica((short)Bcp));
     }
 
     [Fact]

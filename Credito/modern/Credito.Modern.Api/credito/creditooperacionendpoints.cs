@@ -6128,9 +6128,11 @@ internal static class CreditoOperacionEndpoints
                     if (sesionTipoErr is not null)
                         return sesionTipoErr;
 
+                    // Fondeo y remesa tipan con el catálogo Central (billeteras + bancos).
+                    // Sucursal: el Id elegido es la billetera destino en Central; el USP debita el genérico.
                     var tipoPagoFondeo = body.TipoPagoId < 1 ? 1 : body.TipoPagoId;
                     var tipoPagoError = ProblemResults.IfInvalid(
-                        TipoPagoRules.RequireCobroPermitido(tipoPagoFondeo, sesionTipo!.EsCentral));
+                        TipoPagoRules.RequireCobroPermitido(tipoPagoFondeo, esCentral: true));
                     if (tipoPagoError is not null)
                         return tipoPagoError;
 
