@@ -12,7 +12,11 @@ public interface IBovedaMovWriteService
         DateTime fechaOperacion,
         CancellationToken cancellationToken = default);
 
-    Task<BovedaMovOperacionResponse?> TransferirACajaAsync(
+    /// <summary>
+    /// Paridad <c>BovedaMovBL.TransferirBovedaCaja</c>. Valida saldo del medio
+    /// (SI BovedaCuenta + neto ledger, misma fórmula que <c>usp_TransferirBoveda</c>).
+    /// </summary>
+    Task<(string? Error, BovedaMovOperacionResponse? Result)> TransferirACajaAsync(
         int oficinaId,
         int cajaId,
         decimal importe,

@@ -110,7 +110,7 @@ const OPS_COPY: Record<string, { title: string; blurb: string }> = {
   },
   caja: {
     title: 'Transferir a caja',
-    blurb: 'Pasa efectivo a una caja diaria abierta. El medio es efectivo en origen y destino.',
+    blurb: 'Fondea una caja diaria abierta. Puede salir de efectivo o de un banco (entra como efectivo en caja).',
   },
   analista: {
     title: 'Transferir a analista',
@@ -369,14 +369,24 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   const cajasAbiertas = cajasQuery.data ?? []
   const cajasConAnalista = cajasAbiertas.filter((c) => c.usuarioAsignadoId > 0)
 
-  const pedirCaja = (v: { cajaId: number; importe: number; descripcion: string }) => {
+  const pedirCaja = (v: {
+    cajaId: number
+    importe: number
+    descripcion: string
+    tipoPagoOrigenId?: number
+  }) => {
     const caja = cajasAbiertas.find((c) => c.cajaId === v.cajaId)
+    const origenId = v.tipoPagoOrigenId && v.tipoPagoOrigenId > 0 ? v.tipoPagoOrigenId : 1
+    const medioOrigen =
+      tipoPagoOptions.find((o) => o.value === origenId)?.label ?? efectivoLabel
     confirmMoney({
       title: 'Transferir a caja',
       amount: v.importe,
       officeLabel: caja?.etiqueta,
       consequence:
-        'Sale efectivo de la bóveda y entra efectivo en la caja diaria. El medio no cambia.',
+        origenId === 1
+          ? `Sale ${medioOrigen} de la bóveda y entra efectivo en la caja diaria.`
+          : `Sale ${medioOrigen} de la bóveda y entra como efectivo en la caja (embudo).`,
       okText: 'Transferir',
       onOk: () =>
         aCaja.mutateAsync({
@@ -384,7 +394,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           cajaId: v.cajaId,
           importe: v.importe,
           descripcion: v.descripcion,
-          tipoPagoOrigenId: 1,
+          tipoPagoOrigenId: origenId,
           tipoPagoDestinoId: 1,
         }),
     })
@@ -569,17 +579,18 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
         <Form
           className="boveda-operaciones-form"
           layout="vertical"
-          initialValues={{ tipoPagoOrigenId: 1, tipoPagoDestinoId: 1 }}
+          initialValues={{ tipoPagoOrigenId: 1 }}
           onFinish={(v) =>
             pedirCaja({
               cajaId: v.cajaId,
               importe: v.importe,
               descripcion: v.descripcion,
+              tipoPagoOrigenId: v.tipoPagoOrigenId,
             })
           }
         >
           <MedioRuta
-            origen={`Bóveda · ${efectivoLabel}`}
+            origen="Bóveda · medio elegido"
             destino={`Caja diaria · ${efectivoLabel}`}
           />
           {!cajasQuery.isLoading && cajasAbiertas.length === 0 ? (
@@ -589,7 +600,14 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               style={{ marginBottom: 14 }}
               message="No hay cajas diarias abiertas en esta oficina."
             />
-          ) : null}
+          ) : (
+            <Alert
+              type="info"
+              showIcon
+              style={{ marginBottom: 14 }}
+              message="El desembolso exige saldo en la caja. Elija el medio donde sí hay fondos en bóveda."
+            />
+          )}
           <div className="boveda-operaciones-form__row">
           <Form.Item name="cajaId" label="Caja diaria abierta" rules={[{ required: true }]}>
             <Select
@@ -603,11 +621,13 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               }))}
             />
           </Form.Item>
-          <MedioFijo
-            label="Medio"
-            denominacion={efectivoLabel}
-            hint="Efectivo. No cambia de medio."
-          />
+          <Form.Item
+            name="tipoPagoOrigenId"
+            label="Medio de origen (bóveda)"
+            rules={[{ required: true, message: 'Elija el medio' }]}
+          >
+            <Select options={tipoPagoOptions} {...tipoPagoSelectProps} />
+          </Form.Item>
           </div>
           {importeField}
           {descripcionField}

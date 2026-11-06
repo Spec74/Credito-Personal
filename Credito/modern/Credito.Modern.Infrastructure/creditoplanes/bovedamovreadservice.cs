@@ -29,8 +29,11 @@ public sealed class BovedaMovReadService(IOptions<SqlDatabaseOptions> options) :
         const string sql = """
             SELECT
                 cd.CajaId,
-                c.Denominacion + N' - ' + u.NombreUsuario AS Etiqueta,
-                cd.UsuarioAsignadoId
+                cd.CajaDiarioId,
+                c.Denominacion + N' - ' + u.NombreUsuario
+                    + N' · S/ ' + FORMAT(cd.SaldoFinal, 'N2', 'es-PE') AS Etiqueta,
+                cd.UsuarioAsignadoId,
+                cd.SaldoFinal
             FROM CREDITO.CajaDiario AS cd
             INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
             INNER JOIN MAESTRO.Usuario AS u ON u.UsuarioId = cd.UsuarioAsignadoId

@@ -258,8 +258,10 @@ export interface BovedaMovOperacionResponse {
 
 export interface CajaAbiertaTransferenciaRow {
   cajaId: number
+  cajaDiarioId: number
   etiqueta: string
   usuarioAsignadoId: number
+  saldoFinal: number
 }
 
 export interface AsignarBovedaTemporalResponse {

@@ -7075,7 +7075,7 @@ internal static class CreditoOperacionEndpoints
                                 detail: "No se pudo obtener la fecha del servidor (usp_FechaBD).");
                         }
 
-                        var result = await bovedaMovWrite
+                        var (error, result) = await bovedaMovWrite
                             .TransferirACajaAsync(
                                 body.OficinaId,
                                 body.CajaId,
@@ -7088,38 +7088,38 @@ internal static class CreditoOperacionEndpoints
                                 ct)
                             .ConfigureAwait(false);
 
-                        if (result is null)
+                        if (error is not null || result is null)
                         {
                             return TypedResults.Problem(
                                 statusCode: StatusCodes.Status422UnprocessableEntity,
                                 title: "No se pudo transferir",
-                                detail: "B?veda o caja diario no disponible en la oficina.");
+                                detail: error ?? "Bóveda o caja diario no disponible en la oficina.");
                         }
 
                         return TypedResults.Ok(result);
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
+                        log.LogWarning(ex, "Cadena de conexión no configurada");
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
                             statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuraci?n incompleta");
+                            title: "Configuración incompleta");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Par?metros inv?lidos");
+                        log.LogWarning(ex, "Parámetros inválidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Par?metros inv?lidos",
+                            title: "Parámetros inválidos",
                             detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
-                        log.LogError(ex, "Error al transferir b?veda a caja");
-                        var detail = "No se pudo transferir de b?veda a caja.";
-                        if (env.IsDevelopment())
-                            detail += $" Detalle: {ex.Message}";
+                        log.LogError(ex, "Error al transferir bóveda a caja");
+                        var detail = string.IsNullOrWhiteSpace(ex.Message)
+                            ? "No se pudo transferir de bóveda a caja."
+                            : $"No se pudo transferir de bóveda a caja. Detalle: {ex.Message}";
                         return TypedResults.Problem(
                             detail: detail,
                             statusCode: StatusCodes.Status503ServiceUnavailable,
@@ -7128,7 +7128,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoTransferirBovedaCaja")
             .WithSummary(
-                "Escritura: paridad BovedaMovBL.TransferirBovedaCaja (BovedaMov TRS + MovimientoCaja TRE + usp_ActualizarSaldosBoveda). Soporta embudo tipoPagoOrigenId ? tipoPagoDestinoId (default efectivo).")
+                "Escritura: paridad BovedaMovBL.TransferirBovedaCaja (BovedaMov TRS + MovimientoCaja TRE + usp_ActualizarSaldosBoveda). Soporta embudo tipoPagoOrigenId → tipoPagoDestinoId (default efectivo).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<BovedaMovOperacionResponse>(StatusCodes.Status200OK, "application/json")

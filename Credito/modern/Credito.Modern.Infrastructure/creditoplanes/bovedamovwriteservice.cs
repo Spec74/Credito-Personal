@@ -46,7 +46,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             cancellationToken);
     }
 
-    public Task<BovedaMovOperacionResponse?> TransferirACajaAsync(
+    public async Task<(string? Error, BovedaMovOperacionResponse? Result)> TransferirACajaAsync(
         int oficinaId,
         int cajaId,
         decimal importe,
@@ -59,34 +59,77 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
     {
         if (oficinaId < 1 || cajaId < 1 || usuarioRegId < 1)
         {
-            throw new ArgumentOutOfRangeException(nameof(oficinaId), "Parámetros inválidos.");
+            return ("Parámetros de oficina/caja inválidos.", null);
         }
 
         if (importe <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(importe), "importe debe ser > 0.");
+            return ("El importe debe ser mayor a cero.", null);
         }
 
         if (string.IsNullOrWhiteSpace(descripcion))
         {
-            throw new ArgumentOutOfRangeException(nameof(descripcion), "descripcion es obligatoria.");
+            return ("La descripción es obligatoria.", null);
         }
 
         if (tipoPagoOrigenId < 1 || tipoPagoDestinoId < 1)
         {
-            throw new ArgumentOutOfRangeException(nameof(tipoPagoOrigenId), "tipoPago debe ser >= 1.");
+            return ("Debe indicar el medio de origen y destino.", null);
         }
 
-        return ExecuteTransferirACajaAsync(
-            oficinaId,
-            cajaId,
-            importe,
-            descripcion,
-            usuarioRegId,
-            fechaOperacion,
-            tipoPagoOrigenId,
-            tipoPagoDestinoId,
-            cancellationToken);
+        EnsureConnection();
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var bovedaId = await GetBovedaAbiertaIdAsync(connection, null, oficinaId, cancellationToken)
+            .ConfigureAwait(false);
+        if (bovedaId is null)
+        {
+            return ("La bóveda de la oficina no está abierta.", null);
+        }
+
+        var disponible = await GetSaldoMedioDisponibleAsync(
+                connection,
+                transaction: null,
+                bovedaId.Value,
+                tipoPagoOrigenId,
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (importe > disponible)
+        {
+            return (
+                $"Saldo insuficiente en el medio de origen. Disponible S/ {disponible:N2}; solicitado S/ {importe:N2}. "
+                + "Si el dinero está en Yape/banco, use «Entre medios» para pasarlo a efectivo o elija ese medio como origen.",
+                null);
+        }
+
+        try
+        {
+            var result = await ExecuteTransferirACajaAsync(
+                    oficinaId,
+                    cajaId,
+                    importe,
+                    descripcion,
+                    usuarioRegId,
+                    fechaOperacion,
+                    tipoPagoOrigenId,
+                    tipoPagoDestinoId,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            if (result is null)
+            {
+                return (
+                    "No hay caja diaria abierta para esa caja en esta oficina, o la bóveda dejó de estar disponible.",
+                    null);
+            }
+
+            return (null, result);
+        }
+        catch (SqlException ex)
+        {
+            return (MensajeSqlAmigable(ex), null);
+        }
     }
 
     public async Task<(string? Error, BovedaMovOperacionResponse? Result)> TransferirAAnalistaAsync(
@@ -130,25 +173,18 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             return ("La bóveda de la oficina no está abierta.", null);
         }
 
-        // Saldo del medio desde el ledger (optimización vs parseo de texto usp_ResumenCuentaBoveda).
-        var saldoDisponible = await connection.ExecuteScalarAsync<decimal>(
-            new CommandDefinition(
-                """
-                SELECT ISNULL(SUM(
-                    CASE WHEN bm.IndEntrada = CAST(1 AS bit) THEN bm.Importe ELSE -bm.Importe END
-                ), 0)
-                FROM CREDITO.BovedaMov AS bm
-                WHERE bm.BovedaId = @BovedaId
-                  AND bm.Estado = CAST(1 AS bit)
-                  AND bm.TipoPagoId = @TipoPagoId;
-                """,
-                new { BovedaId = bovedaId.Value, TipoPagoId = tipoPagoOrigenId },
-                cancellationToken: cancellationToken)).ConfigureAwait(false);
+        var saldoDisponible = await GetSaldoMedioDisponibleAsync(
+                connection,
+                transaction: null,
+                bovedaId.Value,
+                tipoPagoOrigenId,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         if (importe > saldoDisponible)
         {
             return (
-                $"Operación rechazada: saldo insuficiente. El medio seleccionado solo dispone de {saldoDisponible:N2}.",
+                $"Saldo insuficiente en el medio de origen. Disponible S/ {saldoDisponible:N2}; solicitado S/ {importe:N2}.",
                 null);
         }
 
@@ -171,23 +207,30 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             return ("El analista/agente seleccionado no tiene una caja abierta el día de hoy.", null);
         }
 
-        var result = await ExecuteTransferirACajaAsync(
-            oficinaId,
-            caja.CajaId,
-            importe,
-            descripcion,
-            usuarioRegId,
-            fechaOperacion,
-            tipoPagoOrigenId,
-            tipoPagoDestinoId: 1,
-            cancellationToken).ConfigureAwait(false);
-
-        if (result is null)
+        try
         {
-            return ("No se pudo registrar la transferencia en la base de datos.", null);
-        }
+            var result = await ExecuteTransferirACajaAsync(
+                oficinaId,
+                caja.CajaId,
+                importe,
+                descripcion,
+                usuarioRegId,
+                fechaOperacion,
+                tipoPagoOrigenId,
+                tipoPagoDestinoId: 1,
+                cancellationToken).ConfigureAwait(false);
 
-        return (null, result);
+            if (result is null)
+            {
+                return ("No se pudo registrar la transferencia en la base de datos.", null);
+            }
+
+            return (null, result);
+        }
+        catch (SqlException ex)
+        {
+            return (MensajeSqlAmigable(ex), null);
+        }
     }
 
     private async Task<BovedaMovOperacionResponse?> ExecuteIngresoEgresoAsync(
@@ -335,14 +378,16 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                 return null;
             }
 
-            var personaId = await connection.ExecuteScalarAsync<int?>(
+            var personaIdRaw = await connection.ExecuteScalarAsync<int?>(
                 new CommandDefinition(
                     "SELECT PersonaId FROM MAESTRO.Usuario WHERE UsuarioId = @UsuarioId;",
                     new { UsuarioId = usuarioRegId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
+            // FK Persona: 0 / inválido → NULL (no tumba la transferencia).
+            int? personaId = personaIdRaw is > 0 ? personaIdRaw : null;
 
-            var glosaBoveda = "TRANS A CAJA: " + descripcion.ToUpperInvariant();
+            var glosaBoveda = Truncar("TRANS A CAJA: " + descripcion.Trim().ToUpperInvariant(), 500);
             var movimientoBovedaId = await connection.ExecuteScalarAsync<int>(
                 new CommandDefinition(
                     """
@@ -357,7 +402,6 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                         CajaDiarioId,
                         UsuarioRegId,
                         FechaReg)
-                    OUTPUT INSERTED.MovimientoBovedaId
                     VALUES (
                         @BovedaId,
                         N'TRS',
@@ -369,6 +413,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                         @CajaDiarioId,
                         @UsuarioRegId,
                         @Fecha);
+                    SELECT CAST(SCOPE_IDENTITY() AS int);
                     """,
                     new
                     {
@@ -383,8 +428,9 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-            var descripcionCaja =
-                $"[MovBoveda:{movimientoBovedaId}] TRANS DE BOVEDA: {descripcion.ToUpperInvariant()}";
+            var descripcionCaja = Truncar(
+                $"[MovBoveda:{movimientoBovedaId}] TRANS DE BOVEDA: {descripcion.Trim().ToUpperInvariant()}",
+                500);
 
             var movimientoCajaId = await connection.ExecuteScalarAsync<int>(
                 new CommandDefinition(
@@ -760,6 +806,72 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                 new { OficinaId = oficinaId },
                 transaction: transaction,
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Disponible del medio = SI (BovedaCuenta o cabecera si no hay cuentas y es efectivo)
+    /// + neto de BovedaMov. Misma regla que <c>usp_TransferirBoveda</c>.
+    /// </summary>
+    private static async Task<decimal> GetSaldoMedioDisponibleAsync(
+        SqlConnection connection,
+        SqlTransaction? transaction,
+        int bovedaId,
+        short tipoPagoId,
+        CancellationToken cancellationToken)
+    {
+        return await connection.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(
+                """
+                DECLARE @HayCuentas bit = CASE
+                    WHEN EXISTS (SELECT 1 FROM CREDITO.BovedaCuenta WHERE BovedaId = @BovedaId)
+                    THEN 1 ELSE 0 END;
+                DECLARE @SiMedio decimal(16, 2) = ISNULL((
+                    SELECT SaldoInicial
+                    FROM CREDITO.BovedaCuenta
+                    WHERE BovedaId = @BovedaId AND TipoPagoId = @TipoPagoId), 0);
+                IF @HayCuentas = 0 AND @TipoPagoId = 1
+                    SET @SiMedio = ISNULL((
+                        SELECT SaldoInicial FROM CREDITO.Boveda WHERE BovedaId = @BovedaId), 0);
+                DECLARE @Neto decimal(16, 2) = ISNULL((
+                    SELECT SUM(IIF(IndEntrada = 1, Importe, -Importe))
+                    FROM CREDITO.BovedaMov
+                    WHERE BovedaId = @BovedaId
+                      AND Estado = 1
+                      AND TipoPagoId = @TipoPagoId), 0);
+                SELECT @SiMedio + @Neto;
+                """,
+                new { BovedaId = bovedaId, TipoPagoId = tipoPagoId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
+
+    private static string Truncar(string value, int max) =>
+        value.Length <= max ? value : value[..max];
+
+    private static string MensajeSqlAmigable(SqlException ex)
+    {
+        var msg = (ex.Message ?? string.Empty).Trim();
+        if (msg.Length == 0)
+        {
+            return "No se pudo completar la transferencia bóveda → caja (error de base de datos).";
+        }
+
+        // RAISERROR de negocio / FK / constraint: mostrar tal cual.
+        if (msg.Contains("Saldo insuficiente", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("bóveda", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("boveda", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("caja", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("FOREIGN KEY", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("REFERENCE", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("CHECK", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("TRUNCATE", StringComparison.OrdinalIgnoreCase)
+            || msg.Contains("String or binary", StringComparison.OrdinalIgnoreCase))
+        {
+            return msg;
+        }
+
+        return $"No se pudo transferir de bóveda a caja. Detalle: {msg}";
     }
 
     private static async Task ActualizarSaldosBovedaAsync(

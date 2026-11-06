@@ -254,7 +254,12 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
 
         if (montoDesembolso.Value > caja.SaldoFinal)
         {
-            return new ValidarDesembolsoResponse(false, "Saldo Insuficiente!");
+            var falta = montoDesembolso.Value - caja.SaldoFinal;
+            return new ValidarDesembolsoResponse(
+                false,
+                $"Saldo insuficiente en caja. Disponible S/ {caja.SaldoFinal:N2}; "
+                    + $"desembolso S/ {montoDesembolso.Value:N2} (faltan S/ {falta:N2}). "
+                    + "Fondee la caja desde Bóveda → Transferir → A caja.");
         }
 
         return new ValidarDesembolsoResponse(true, null);
