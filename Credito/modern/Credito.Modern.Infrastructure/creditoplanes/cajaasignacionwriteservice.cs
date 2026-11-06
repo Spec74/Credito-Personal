@@ -78,7 +78,7 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
             if (caja.CajeroId is null or < 1)
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                return ("No tiene adignado un Cajero.", null);
+                return ("No tiene asignado un Cajero.", null);
             }
 
             var esEncargado = await connection.ExecuteScalarAsync<bool>(

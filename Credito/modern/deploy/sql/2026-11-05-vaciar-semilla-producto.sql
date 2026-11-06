@@ -381,8 +381,9 @@ BEGIN
         END
     END
 
-    INSERT INTO CREDITO.Caja (OficinaId, Denominacion, Estado, UsuarioRegId, FechaReg, IndAbierto)
-    VALUES (@OficinaId, N'CAJA PRINCIPAL', CAST(1 AS bit), @UsuarioId, SYSUTCDATETIME(), CAST(0 AS bit));
+    /* CajeroId = ADMIN: sin esto, asignar-caja falla con «No tiene asignado un Cajero». */
+    INSERT INTO CREDITO.Caja (OficinaId, Denominacion, Estado, UsuarioRegId, FechaReg, IndAbierto, CajeroId)
+    VALUES (@OficinaId, N'CAJA PRINCIPAL', CAST(1 AS bit), @UsuarioId, SYSUTCDATETIME(), CAST(0 AS bit), @UsuarioId);
 
     INSERT INTO CREDITO.Boveda (
         OficinaId, SaldoInicial, Entradas, Salidas, SaldoFinal,
