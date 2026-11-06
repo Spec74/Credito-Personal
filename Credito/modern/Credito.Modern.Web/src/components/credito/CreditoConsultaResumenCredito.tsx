@@ -56,6 +56,9 @@ export function CreditoConsultaResumenCredito({ creditoId }: Props) {
             </Descriptions.Item>
             <Descriptions.Item label="Modalidad">{c.modalidad}</Descriptions.Item>
             <Descriptions.Item label="Analista">{c.analista || '—'}</Descriptions.Item>
+            <Descriptions.Item label="Desembolsó">
+              {c.usuarioDesembolso?.trim() || '—'}
+            </Descriptions.Item>
             <Descriptions.Item label="Monto crédito">
               {formatMoney(c.montoCredito)}
             </Descriptions.Item>

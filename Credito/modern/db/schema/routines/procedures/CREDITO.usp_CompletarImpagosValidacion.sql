@@ -12,6 +12,8 @@ SELECT	@Impagos = COUNT(1)
 FROM CREDITO.Credito c
     WHERE c.Estado = 'DES' 
       AND c.UsuarioRegId = @UsuarioId
+      -- No marcar impago antes del 1.er pago (adelanto el mismo día del desembolso es voluntario)
+      AND c.FechaPrimerPago <= CAST(@Fecha AS DATE)
       -- Condición 1: No existe movimiento de caja relacionado a caja diario
       AND NOT EXISTS (
           SELECT 1 
@@ -22,7 +24,7 @@ FROM CREDITO.Credito c
             AND mc.Estado = 1
 		    AND mc.Operacion = 'CUO'
       )
-	  -- Condición 2: La fecha actual NO coincide con ninguna fecha de vencimiento del plan de pago
+	  -- Condición 2: hoy hay cuota con vencimiento (día de cobro programado)
       AND EXISTS (
           SELECT 1
           FROM CREDITO.PlanPago pp

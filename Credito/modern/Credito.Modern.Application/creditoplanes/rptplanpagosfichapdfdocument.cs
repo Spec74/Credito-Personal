@@ -56,6 +56,7 @@ public static class RptPlanPagosFichaPdfDocument
                         ("Vencimiento", CreditoPdfBranding.DateShort(cab.FechaVencimiento)),
                         ("Estado", cab.Estado),
                         ("Analista", CreditoPdfBranding.OrDash(cab.Analista)),
+                        ("Desembolsó", CreditoPdfBranding.OrDash(cab.UsuarioDesembolso)),
                     ]));
 
                     col.Item().Element(c => CreditoPdfBranding.ComposeSectionTitle(c, "CRONOGRAMA DE PAGOS"));
@@ -138,6 +139,7 @@ public static class RptPlanPagosFichaPdfDocument
             "—",
             string.Empty,
             $"Crédito N° {creditoId}",
+            "—",
             "—",
             0,
             0,

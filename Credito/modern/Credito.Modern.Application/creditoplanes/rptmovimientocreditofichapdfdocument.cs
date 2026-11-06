@@ -58,6 +58,7 @@ public static class RptMovimientoCreditoFichaPdfDocument
                             ("1.er pago", CreditoPdfBranding.DateShort(cab.FechaPrimerPago)),
                             ("Vencimiento", CreditoPdfBranding.DateShort(cab.FechaVencimiento)),
                             ("Analista", CreditoPdfBranding.OrDash(cab.Analista)),
+                            ("Desembolsó", CreditoPdfBranding.OrDash(cab.UsuarioDesembolso)),
                         ]));
                     }
                     else

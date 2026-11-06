@@ -44,6 +44,7 @@ public sealed class RptEstadoCreditoReadService(
                     p.NumeroDocumento,
                     p.NombreCompleto,
                     u.NombreUsuario AS Analista,
+                    des.UsuarioDesembolso,
                     c.MontoGastosAdm,
                     ISNULL(c.CentralRiesgo, 0) AS CentralRiesgo,
                     ISNULL(c.TipoGastoAdm, '') AS TipoGastoAdm
@@ -51,6 +52,15 @@ public sealed class RptEstadoCreditoReadService(
                 INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = c.PersonaId
                 INNER JOIN CREDITO.Producto AS pr ON pr.ProductoId = c.ProductoId
                 INNER JOIN MAESTRO.Usuario AS u ON u.UsuarioId = c.UsuarioRegId
+                OUTER APPLY (
+                    SELECT TOP (1) ud.NombreUsuario AS UsuarioDesembolso
+                    FROM CREDITO.MovimientoCaja AS mc
+                    INNER JOIN MAESTRO.Usuario AS ud ON ud.UsuarioId = mc.UsuarioRegId
+                    WHERE mc.CreditoId = c.CreditoId
+                      AND mc.Operacion = N'DES'
+                      AND mc.Estado = CAST(1 AS bit)
+                    ORDER BY mc.MovimientoCajaId ASC
+                ) AS des
                 WHERE c.CreditoId = @CreditoId;
                 """,
                 new { CreditoId = creditoId },
@@ -78,6 +88,7 @@ public sealed class RptEstadoCreditoReadService(
             cab.CodigoPersona ?? string.Empty,
             $"{cab.NumeroDocumento} {cab.NombreCompleto}".Trim(),
             cab.Analista ?? string.Empty,
+            cab.UsuarioDesembolso ?? string.Empty,
             cab.MontoGastosAdm,
             cab.CentralRiesgo,
             cab.TipoGastoAdm ?? string.Empty,
@@ -123,6 +134,7 @@ public sealed class RptEstadoCreditoReadService(
         public string NumeroDocumento { get; init; } = string.Empty;
         public string NombreCompleto { get; init; } = string.Empty;
         public string? Analista { get; init; }
+        public string? UsuarioDesembolso { get; init; }
         public decimal MontoGastosAdm { get; init; }
         public decimal CentralRiesgo { get; init; }
         public string? TipoGastoAdm { get; init; }

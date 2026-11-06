@@ -59,6 +59,7 @@ public static class RptEstadoCreditoFichaPdfDocument
                         ("1.er pago", CreditoPdfBranding.DateShort(cab.FechaPrimerPago)),
                         ("Vencimiento", CreditoPdfBranding.DateShort(cab.FechaVencimiento)),
                         ("Analista", CreditoPdfBranding.OrDash(cab.Analista)),
+                        ("Desembolsó", CreditoPdfBranding.OrDash(cab.UsuarioDesembolso)),
                         ("Total crédito", CreditoPdfBranding.Money(cab.Total)),
                     ]));
 

@@ -703,6 +703,8 @@ export interface RptEstadoCreditoCabecera {
   codigoPersona: string
   cliente: string
   analista: string
+  /** Usuario del movimiento DES (quien desembolsó en caja). */
+  usuarioDesembolso?: string | null
   montoGastosAdm: number
   centralRiesgo: number
   /** ADE = adelantado (CxC); CUO = en cuota. */

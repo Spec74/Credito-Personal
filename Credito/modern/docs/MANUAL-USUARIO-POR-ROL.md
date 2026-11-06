@@ -117,6 +117,8 @@ Abrir sesión de caja, cobrar cuotas, pagos libres, desembolsos autorizados, emi
 5. Confirmar → ticket PDF.
 6. Al cierre: entregar cuadre al encargado (conteo de billetes si aplica).
 
+**Adelanto el mismo día del desembolso:** si el cliente paga antes de su **1.er pago** (incluso el día que se desembolsó), regístrelo como pago libre / cobro normal. **No** use «Completar impagos» para eso: esa opción solo aplica a créditos cuyo 1.er pago ya llegó y hoy tenían cuota por cobrar sin movimiento.
+
 ### Cobro en bloque / campo
 
 1. Cargar cartera del día.

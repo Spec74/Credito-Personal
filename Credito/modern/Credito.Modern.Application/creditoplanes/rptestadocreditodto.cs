@@ -14,6 +14,8 @@ public sealed record RptEstadoCreditoCabeceraDto(
     string CodigoPersona,
     string Cliente,
     string Analista,
+    /// <summary>Usuario que registró el movimiento DES (caja). Vacío si aún no desembolsó.</summary>
+    string UsuarioDesembolso,
     decimal MontoGastosAdm,
     decimal CentralRiesgo,
     string TipoGastoAdm,
