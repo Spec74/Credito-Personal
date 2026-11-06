@@ -380,9 +380,13 @@ export function CobranzasTab({
       })
     },
     onSuccess: (r) => {
+      const ids =
+        'movimientoCajaIds' in r && Array.isArray(r.movimientoCajaIds)
+          ? r.movimientoCajaIds
+          : null
       cajaToastSuccess(
         cuotaMixto
-          ? `Cobro mixto registrado (${'movimientoCajaIds' in r ? r.movimientoCajaIds.length : 1} mov.)`
+          ? `Cobro mixto registrado (${ids?.length ?? 1} mov.)`
           : `Pago registrado (${r.resultId ?? 'OK'})`,
       )
       if (creditoId && usuarioId > 0) {

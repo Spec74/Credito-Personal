@@ -107,11 +107,14 @@ export function pagarCuotaImporteLibreMixto(body: {
     fechaPagoTransferencia?: string | null
   }>
 }): Promise<{ resultId: number | null; movimientoCajaIds: number[] }> {
-  return apiFetch('/credito/pagar-cuota-importe-libre-mixto', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
+  return apiFetch<{ resultId: number | null; movimientoCajaIds: number[] }>(
+    '/credito/pagar-cuota-importe-libre-mixto',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    },
+  )
 }
 
 export function validarAnularMovimientoCaja(
