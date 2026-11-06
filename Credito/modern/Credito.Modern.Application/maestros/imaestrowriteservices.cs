@@ -20,7 +20,12 @@ public interface ITipoArticuloWriteService
 
 public interface IOficinaWriteService
 {
-    Task<MaestroOperacionResponse> GuardarAsync(GuardarOficinaRequest request, CancellationToken ct = default);
+    /// <param name="operadorUsuarioId">Usuario JWT que guarda; se usa como responsable si el request no trae uno.</param>
+    Task<MaestroOperacionResponse> GuardarAsync(
+        GuardarOficinaRequest request,
+        int operadorUsuarioId,
+        CancellationToken ct = default);
+
     Task<MaestroOperacionResponse> ActivarAsync(int oficinaId, CancellationToken ct = default);
 }
 

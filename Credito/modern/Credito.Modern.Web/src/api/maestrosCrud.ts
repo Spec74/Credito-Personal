@@ -42,7 +42,7 @@ export interface OficinaGestionRow {
   denominacion: string | null
   descripcion: string | null
   telefono: string | null
-  usuarioAsignadoId: number
+  usuarioAsignadoId: number | null
   indPrincipal: boolean
   estado: boolean
   latitud?: number | null
@@ -141,7 +141,8 @@ export function guardarOficina(body: {
   denominacion: string
   descripcion?: string | null
   telefono?: string | null
-  usuarioAsignadoId: number
+  /** Null = API usa el usuario de la sesión como responsable. */
+  usuarioAsignadoId?: number | null
   estado: boolean
   indPrincipal: boolean
   latitud?: number | null

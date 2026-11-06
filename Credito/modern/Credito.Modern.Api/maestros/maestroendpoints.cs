@@ -313,6 +313,7 @@ internal static class MaestroEndpoints
         app.MapPost(
                 "/api/v1/oficinas/guardar",
                 async Task<Results<Ok<MaestroOperacionResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     GuardarOficinaRequest body,
                     IOficinaWriteService write,
                     ILoggerFactory loggerFactory,
@@ -323,12 +324,16 @@ internal static class MaestroEndpoints
                     if (denomError is not null)
                         return denomError;
 
+                    var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var operadorUsuarioId);
+                    if (usuarioError is not null)
+                        return usuarioError;
+
                     return await MaestroWriteAsync(
                         loggerFactory,
                         env,
                         "GuardarOficina",
                         ct,
-                        token => write.GuardarAsync(body, token)).ConfigureAwait(false);
+                        token => write.GuardarAsync(body, operadorUsuarioId, token)).ConfigureAwait(false);
                 })
             .WithName("GuardarOficina")
             .WithTags("maestros")

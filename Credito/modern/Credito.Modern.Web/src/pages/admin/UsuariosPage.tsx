@@ -334,19 +334,26 @@ export function UsuariosPage() {
 
   const guardarTodo = () => {
     void form.validateFields().then((v) => {
+      const rolIds = ((v.rolIds as number[]) ?? []).filter((id) => id >= 1)
       const oficinaIds = esCentral
         ? (((v.oficinaIds as number[]) ?? []).filter((id) => id >= 1))
-        : oficinaSesionId >= 1
+        : rolIds.length > 0 && oficinaSesionId >= 1
           ? [oficinaSesionId]
           : []
-      const rolIds = ((v.rolIds as number[]) ?? []).filter((id) => id >= 1)
-      if (oficinaIds.length < 1) {
+      const esNuevo = usuarioId < 1
+      if (!esNuevo && rolIds.length < 1) {
+        message.warning('Seleccione al menos un rol')
+        return
+      }
+      if (!esNuevo && esCentral && oficinaIds.length < 1) {
         message.warning('Seleccione al menos una oficina')
         return
       }
-      if (rolIds.length < 1) {
-        message.warning('Seleccione al menos un rol')
-        return
+      if (esNuevo && (oficinaIds.length < 1 || rolIds.length < 1)) {
+        message.info(
+          'Se guardará la identidad. Sin sede y rol el usuario no podrá iniciar sesión; asígnelos después.',
+          6,
+        )
       }
       const claveNueva = ((v.claveUsuario as string) ?? '').trim()
       const nombreUsuario = String(v.nombreUsuario ?? '').trim()
@@ -473,8 +480,8 @@ export function UsuariosPage() {
       subtitle={
         esCentral
           ? verRed
-            ? 'Toda la red'
-            : `Personal de ${oficinaSesionNombre}`
+            ? 'Toda la red · puede crear identidad y asignar sede/rol después'
+            : `Personal de ${oficinaSesionNombre} · sede/rol opcionales al crear`
           : `Personal de ${oficinaSesionNombre}`
       }
       stats={stats}
@@ -690,16 +697,22 @@ export function UsuariosPage() {
             <div style={{ margin: '16px 0 8px' }}>
               <Text strong>3. Oficina y rol</Text>
               <Paragraph type="secondary" style={{ marginTop: 4 }}>
-                {esCentral
-                  ? 'Los mismos roles se aplican a todas las sedes que marque. Un solo Guardar alcanza.'
-                  : `Queda en ${oficinaSesionNombre}. Elija al menos un rol.`}
+                {usuarioId < 1
+                  ? 'Opcional al crear: puede guardar solo la identidad y asignar sede/rol después. Sin ambos no podrá iniciar sesión.'
+                  : esCentral
+                    ? 'Los mismos roles se aplican a todas las sedes que marque.'
+                    : `Queda en ${oficinaSesionNombre}. Debe tener al menos un rol.`}
               </Paragraph>
             </div>
             {esCentral ? (
               <Form.Item
                 name="oficinaIds"
                 label="Oficinas"
-                rules={[{ required: true, type: 'array', min: 1, message: 'Seleccione al menos una oficina' }]}
+                rules={
+                  usuarioId < 1
+                    ? []
+                    : [{ required: true, type: 'array', min: 1, message: 'Seleccione al menos una oficina' }]
+                }
               >
                 <Select
                   mode="multiple"
@@ -720,7 +733,11 @@ export function UsuariosPage() {
             <Form.Item
               name="rolIds"
               label="Roles"
-              rules={[{ required: true, type: 'array', min: 1, message: 'Seleccione al menos un rol' }]}
+              rules={
+                usuarioId < 1
+                  ? []
+                  : [{ required: true, type: 'array', min: 1, message: 'Seleccione al menos un rol' }]
+              }
             >
               <Select
                 mode="multiple"

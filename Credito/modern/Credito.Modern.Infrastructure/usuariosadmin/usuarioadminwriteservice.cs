@@ -608,8 +608,8 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
     {
         var rolIds = (request.RolIds ?? []).Where(id => id >= 1).Distinct().ToArray();
         var oficinasEnviadas = (request.OficinaIds ?? []).Where(id => id >= 1).Distinct().ToArray();
-        var hayAsignacion = rolIds.Length > 0 || oficinasEnviadas.Length > 0 || request.UsuarioId < 1;
-        if (!hayAsignacion)
+        // Identidad primero: sin sede ni rol no asignamos (el usuario aún no puede entrar).
+        if (rolIds.Length < 1 && oficinasEnviadas.Length < 1)
         {
             return;
         }
@@ -617,7 +617,17 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
         int[] oficinas;
         if (scope.EsCentral)
         {
-            oficinas = oficinasEnviadas.Length > 0 ? oficinasEnviadas : [scope.OficinaId];
+            // Roles sin sede explícita → sede del operador (puede completar sedes después).
+            oficinas = oficinasEnviadas.Length > 0
+                ? oficinasEnviadas
+                : rolIds.Length > 0
+                    ? [scope.OficinaId]
+                    : [];
+            if (oficinas.Length < 1)
+            {
+                return;
+            }
+
             await ReemplazarOficinasCentralAsync(c, tx, usuarioId, oficinas, ct).ConfigureAwait(false);
         }
         else

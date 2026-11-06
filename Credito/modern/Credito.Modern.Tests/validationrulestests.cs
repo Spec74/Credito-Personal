@@ -134,14 +134,18 @@ public sealed class ValidationRulesTests
     }
 
     [Fact]
-    public void UsuarioValidacion_NuevoRequiereRolYClave()
+    public void UsuarioValidacion_NuevoRequiereClave_RolOpcional()
     {
-        var sinRol = new GuardarUsuarioRequest(
+        var sinClave = new GuardarUsuarioRequest(
             0, "PEREZ", "LOPEZ", "JUAN", "12345678", "M",
-            null, "987654321", null, null, "JPEREZ", "Clave1234", true);
-        Assert.Contains("rol", UsuarioValidacion.ValidarGuardar(sinRol) ?? "", StringComparison.OrdinalIgnoreCase);
+            null, "987654321", null, null, "JPEREZ", "", true);
+        Assert.Contains("clave", UsuarioValidacion.ValidarGuardar(sinClave) ?? "", StringComparison.OrdinalIgnoreCase);
 
-        var ok = sinRol with { RolIds = [1] };
-        Assert.Null(UsuarioValidacion.ValidarGuardar(ok));
+        // Identidad primero: sede/rol se asignan después (paridad legacy).
+        var soloIdentidad = sinClave with { ClaveUsuario = "Clave1234" };
+        Assert.Null(UsuarioValidacion.ValidarGuardar(soloIdentidad));
+
+        var conRol = soloIdentidad with { RolIds = [1] };
+        Assert.Null(UsuarioValidacion.ValidarGuardar(conRol));
     }
 }

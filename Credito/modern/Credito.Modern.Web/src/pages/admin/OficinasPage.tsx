@@ -2,6 +2,7 @@ import { startTransition, useMemo, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  Alert,
   Button,
   Checkbox,
   Input,
@@ -102,8 +103,8 @@ export function OficinasPage() {
       dataIndex: 'usuarioAsignadoId',
       width: 160,
       ellipsis: true,
-      render: (id: number) =>
-        id > 0 ? gestorLabelById.get(id) ?? `Usuario ${id}` : '—',
+      render: (id: number | null) =>
+        id != null && id > 0 ? gestorLabelById.get(id) ?? `Usuario ${id}` : 'Sin asignar',
     },
     {
       title: 'GPS',
@@ -165,7 +166,7 @@ export function OficinasPage() {
   return (
     <CredixCrudPage
       title={isMantenimiento ? 'Mantenimiento de oficinas' : 'Oficinas'}
-      subtitle={undefined}
+      subtitle="Primero la sede (responsable = usted). Luego asigne usuarios a esa sede."
       stats={stats}
       breadcrumb={breadcrumb}
       actions={
@@ -182,6 +183,13 @@ export function OficinasPage() {
         </Space>
       }
       toolbar={
+        <Space wrap direction="vertical" style={{ width: '100%' }}>
+        <Alert
+          type="info"
+          showIcon
+          message="Procedimiento"
+          description="1) Nueva oficina (queda usted como responsable). 2) Administración → Usuarios: cree o edite personas y asígneles esa oficina + rol. No hace falta un usuario nuevo antes de crear la sede."
+        />
         <Space wrap>
           <Input.Search
             allowClear
@@ -207,6 +215,7 @@ export function OficinasPage() {
           >
             Actualizar
           </Button>
+        </Space>
         </Space>
       }
       extra={

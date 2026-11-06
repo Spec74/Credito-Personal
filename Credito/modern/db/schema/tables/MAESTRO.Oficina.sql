@@ -7,7 +7,7 @@ CREATE TABLE [MAESTRO].[Oficina] (
     [Telefono] varchar(20) NULL,
     [IndPrincipal] bit NOT NULL,
     [Estado] bit NOT NULL DEFAULT ((0)),
-    [UsuarioAsignadoId] int NOT NULL DEFAULT ((3)),
+    [UsuarioAsignadoId] int NULL,
     [Latitud] decimal(11,8) NULL,
     [Longitud] decimal(11,8) NULL
 );

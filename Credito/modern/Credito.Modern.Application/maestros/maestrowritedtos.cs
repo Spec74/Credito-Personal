@@ -21,7 +21,8 @@ public sealed record GuardarOficinaRequest(
     string Denominacion,
     string? Descripcion,
     string? Telefono,
-    int UsuarioAsignadoId,
+    /// <summary>Responsable opcional. Null/≤0 = operador JWT (o NULL en BD si la columna lo permite).</summary>
+    int? UsuarioAsignadoId,
     bool Estado,
     bool IndPrincipal,
     decimal? Latitud = null,
@@ -48,7 +49,7 @@ public sealed record OficinaAdminListItemDto(
     string? Denominacion,
     string? Descripcion,
     string? Telefono,
-    int UsuarioAsignadoId,
+    int? UsuarioAsignadoId,
     bool IndPrincipal,
     bool Estado,
     decimal? Latitud = null,

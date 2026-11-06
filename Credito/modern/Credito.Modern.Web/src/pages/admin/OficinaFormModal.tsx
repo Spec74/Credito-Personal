@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import { Form, Grid, Input, Modal, Select, Switch, message } from 'antd'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { Alert, Form, Grid, Input, Modal, Select, Switch, message } from 'antd'
 import { fetchCajaGestores } from '../../api/cajaMaestro'
 import { guardarOficina, type OficinaGestionRow } from '../../api/maestrosCrud'
 import { ApiError } from '../../api/errors'
+import { useAuth } from '../../auth/useAuth'
 import { GoogleMapLocationPicker } from '../../components/maps/GoogleMapLocationPicker'
 import { type MapLatLng, toMapLatLng } from '../../config/googleMaps'
 import { denominacionRules, FIELD_MAX, maxLen } from '../../validation/formRules'
-import { useQuery } from '@tanstack/react-query'
 
 type FormValues = {
   denominacion: string
@@ -29,6 +29,7 @@ export function OficinaFormModal({
   onClose: () => void
   onSaved: () => void
 }) {
+  const { session } = useAuth()
   const screens = Grid.useBreakpoint()
   const [form] = Form.useForm<FormValues>()
   const [mapLocation, setMapLocation] = useState<MapLatLng | null>(null)
@@ -46,7 +47,10 @@ export function OficinaFormModal({
         denominacion: editing.denominacion ?? '',
         descripcion: editing.descripcion ?? '',
         telefono: editing.telefono ?? '',
-        usuarioAsignadoId: editing.usuarioAsignadoId > 0 ? editing.usuarioAsignadoId : undefined,
+        usuarioAsignadoId:
+          editing.usuarioAsignadoId != null && editing.usuarioAsignadoId > 0
+            ? editing.usuarioAsignadoId
+            : undefined,
         indPrincipal: editing.indPrincipal,
         estado: editing.estado,
       })
@@ -56,13 +60,14 @@ export function OficinaFormModal({
         denominacion: '',
         descripcion: '',
         telefono: '',
-        usuarioAsignadoId: undefined,
+        // Por defecto el admin en sesión; se puede limpiar o cambiar.
+        usuarioAsignadoId: session?.usuarioId && session.usuarioId > 0 ? session.usuarioId : undefined,
         indPrincipal: false,
         estado: true,
       })
       setMapLocation(null)
     }
-  }, [open, editing, form])
+  }, [open, editing, form, session?.usuarioId])
 
   const guardar = useMutation({
     mutationFn: guardarOficina,
@@ -90,6 +95,13 @@ export function OficinaFormModal({
       destroyOnHidden
       styles={{ body: { maxHeight: 'calc(100vh - 200px)', overflowY: 'auto' } }}
     >
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        message="Orden profesional"
+        description="La oficina se crea con el administrador actual como responsable (puede cambiarlo). Los usuarios de esa sede se crean o asignan después en Administración → Usuarios."
+      />
       <Form
         form={form}
         layout="vertical"
@@ -99,7 +111,10 @@ export function OficinaFormModal({
             denominacion: v.denominacion.trim(),
             descripcion: v.descripcion?.trim() || null,
             telefono: v.telefono?.trim() || null,
-            usuarioAsignadoId: v.usuarioAsignadoId ?? 0,
+            usuarioAsignadoId:
+              v.usuarioAsignadoId != null && v.usuarioAsignadoId > 0
+                ? v.usuarioAsignadoId
+                : null,
             indPrincipal: v.indPrincipal,
             estado: v.estado,
             latitud: mapLocation?.lat ?? null,
@@ -116,12 +131,16 @@ export function OficinaFormModal({
         <Form.Item name="telefono" label="Teléfono" rules={[maxLen(20)]}>
           <Input maxLength={20} />
         </Form.Item>
-        <Form.Item name="usuarioAsignadoId" label="Responsable">
+        <Form.Item
+          name="usuarioAsignadoId"
+          label="Responsable"
+          extra="Opcional. Si lo deja vacío, queda usted (sesión). Puede asignarlo más tarde."
+        >
           <Select
             allowClear
             showSearch
             optionFilterProp="label"
-            placeholder="Seleccione responsable"
+            placeholder="Usted (sesión) si no elige otro"
             loading={gestoresQuery.isLoading}
             options={(gestoresQuery.data ?? []).map((g) => ({
               value: g.usuarioId,

@@ -190,7 +190,10 @@ public sealed class OficinaWriteService(IOptions<SqlDatabaseOptions> options) : 
 {
     private readonly string _cs = options.Value.ConnectionString;
 
-    public async Task<MaestroOperacionResponse> GuardarAsync(GuardarOficinaRequest request, CancellationToken ct = default)
+    public async Task<MaestroOperacionResponse> GuardarAsync(
+        GuardarOficinaRequest request,
+        int operadorUsuarioId,
+        CancellationToken ct = default)
     {
         Ensure();
         await using var c = new SqlConnection(_cs);
@@ -198,8 +201,54 @@ public sealed class OficinaWriteService(IOptions<SqlDatabaseOptions> options) : 
         await using var tx = (SqlTransaction)await c.BeginTransactionAsync(ct).ConfigureAwait(false);
         try
         {
-            // UsuarioAsignadoId es NOT NULL + FK a MAESTRO.Usuario (default legado = 3).
-            var usuarioAsignadoId = request.UsuarioAsignadoId > 0 ? request.UsuarioAsignadoId : 3;
+            // Responsable: elegido → en alta el operador JWT → NULL (si la columna lo permite).
+            // Nunca hardcodear UsuarioId=3 (rompe bases semilla / sin ese usuario).
+            int? usuarioAsignadoId;
+            if (request.UsuarioAsignadoId is > 0)
+            {
+                usuarioAsignadoId = request.UsuarioAsignadoId;
+            }
+            else if (request.OficinaId < 1)
+            {
+                // Alta: si no eligió, queda el admin que está creando la sede.
+                usuarioAsignadoId = operadorUsuarioId > 0 ? operadorUsuarioId : null;
+            }
+            else
+            {
+                // Edición con responsable limpio.
+                usuarioAsignadoId = null;
+            }
+
+            if (usuarioAsignadoId is > 0)
+            {
+                var existe = await c.ExecuteScalarAsync<int>(
+                    new CommandDefinition(
+                        """
+                        SELECT CASE WHEN EXISTS (
+                            SELECT 1 FROM MAESTRO.Usuario
+                            WHERE UsuarioId = @UsuarioId AND Estado = CAST(1 AS bit)
+                        ) THEN 1 ELSE 0 END;
+                        """,
+                        new { UsuarioId = usuarioAsignadoId.Value },
+                        transaction: tx,
+                        cancellationToken: ct)).ConfigureAwait(false);
+                if (existe != 1)
+                {
+                    await tx.RollbackAsync(ct).ConfigureAwait(false);
+                    return new MaestroOperacionResponse(
+                        false,
+                        null,
+                        "El responsable no existe o está inactivo. Cree el usuario primero o elija otro.");
+                }
+            }
+            else if (!await OficinaUsuarioAsignadoNullableAsync(c, tx, ct).ConfigureAwait(false))
+            {
+                await tx.RollbackAsync(ct).ConfigureAwait(false);
+                return new MaestroOperacionResponse(
+                    false,
+                    null,
+                    "Debe indicar un responsable (o inicie sesión con un usuario válido).");
+            }
 
             if (request.OficinaId < 1)
             {
@@ -330,6 +379,24 @@ public sealed class OficinaWriteService(IOptions<SqlDatabaseOptions> options) : 
         return n > 0
             ? new MaestroOperacionResponse(true, oficinaId, null)
             : new MaestroOperacionResponse(false, null, "Oficina no encontrada.");
+    }
+
+    private static async Task<bool> OficinaUsuarioAsignadoNullableAsync(
+        SqlConnection c,
+        SqlTransaction tx,
+        CancellationToken ct)
+    {
+        var nullable = await c.ExecuteScalarAsync<bool>(
+            new CommandDefinition(
+                """
+                SELECT CAST(c.is_nullable AS bit)
+                FROM sys.columns AS c
+                WHERE c.object_id = OBJECT_ID(N'MAESTRO.Oficina')
+                  AND c.name = N'UsuarioAsignadoId';
+                """,
+                transaction: tx,
+                cancellationToken: ct)).ConfigureAwait(false);
+        return nullable;
     }
 
     private void Ensure()

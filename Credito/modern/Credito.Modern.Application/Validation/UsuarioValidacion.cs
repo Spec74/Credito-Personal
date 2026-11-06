@@ -56,10 +56,8 @@ public static class UsuarioValidacion
                 : null,
             (esNuevo || claveNueva) && !clavePlaceholder
                 ? ValidarClaveNueva(request.ClaveUsuario)
-                : null,
-            esNuevo && (request.RolIds is null || request.RolIds.Count(id => id >= 1) < 1)
-                ? "Debe asignar al menos un rol."
                 : null);
+        // Oficina/rol son opcionales en el alta (identidad primero). Sin sede+rol no podrá iniciar sesión.
     }
 
     public static string? ValidarAsignarRoles(int oficinaId, int[]? rolIds)
