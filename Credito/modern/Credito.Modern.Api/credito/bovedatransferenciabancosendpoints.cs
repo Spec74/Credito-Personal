@@ -2,6 +2,7 @@ using System.Data.Common;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Oficinas;
 using Credito.Modern.Application.Validation;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -17,6 +18,7 @@ internal static class BovedaTransferenciaBancosEndpoints
                     HttpContext httpContext,
                     TransferirBovedaBancosRequest body,
                     IBovedaMovWriteService bovedaMovWrite,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -36,6 +38,19 @@ internal static class BovedaTransferenciaBancosEndpoints
                     {
                         return oficinaError;
                     }
+
+                    var (sesionTipo, sesionTipoErr) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, null, ct)
+                        .ConfigureAwait(false);
+                    if (sesionTipoErr is not null)
+                        return sesionTipoErr;
+
+                    var tipoPagoError = ProblemResults.IfInvalid(
+                        ValidationGate.First(
+                            TipoPagoRules.RequireCobroPermitido(body.TipoPagoOrigenId, sesionTipo!.EsCentral, "tipoPagoOrigenId"),
+                            TipoPagoRules.RequireCobroPermitido(body.TipoPagoDestinoId, sesionTipo.EsCentral, "tipoPagoDestinoId")));
+                    if (tipoPagoError is not null)
+                        return tipoPagoError;
 
                     var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
                     if (usuarioError is not null)

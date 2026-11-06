@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { buildTipoPagoOptions } from './TipoPagoBrand'
 import {
   esMarcaTipoPago,
   medioNombreMarca,
@@ -8,6 +9,20 @@ import {
   resolveResumenCuentaVariant,
   medioEtiquetaUi,
 } from './bovedaResumenCuentaParse'
+
+const CATALOGO_MEDIOS = [
+  { itemId: 1, denominacion: 'EFECTIVO', desCorta: null as string | null },
+  { itemId: 2, denominacion: 'YAPE', desCorta: null },
+  { itemId: 3, denominacion: 'INTERBANK', desCorta: null },
+  { itemId: 4, denominacion: 'BCO CREDITO', desCorta: null },
+  { itemId: 5, denominacion: 'BCO NACION', desCorta: null },
+  { itemId: 6, denominacion: 'YAPE HUANTA', desCorta: 'OBSOLETO' },
+  { itemId: 9, denominacion: 'PLIN', desCorta: null },
+  { itemId: 10, denominacion: 'YAPE GERENTE', desCorta: 'CENTRAL' },
+  { itemId: 11, denominacion: 'YAPE RENE', desCorta: 'CENTRAL' },
+  { itemId: 12, denominacion: 'INTERBANK GERENTE', desCorta: 'CENTRAL' },
+  { itemId: 13, denominacion: 'INTERBANK RENE', desCorta: 'CENTRAL' },
+]
 
 describe('resolveResumenCuentaVariant', () => {
   it('reconoce marcas y sedes', () => {
@@ -99,5 +114,35 @@ describe('parseResumenBovedaTexto', () => {
     )
     expect(r.items.length).toBe(3)
     expect(r.items[0].monto).toBe(10.5)
+  })
+})
+
+describe('buildTipoPagoOptions', () => {
+  it('Central: billeteras con nombre; sin genéricos 2/3', () => {
+    const opts = buildTipoPagoOptions(CATALOGO_MEDIOS, { esCentral: true })
+    expect(opts.map((o) => o.value)).toEqual([1, 10, 11, 12, 13, 4, 5, 9])
+    expect(opts.map((o) => o.label)).toEqual([
+      'Efectivo',
+      'Yape Gerente',
+      'Yape René',
+      'Interbank Gerente',
+      'Interbank René',
+      'BCP',
+      'Banco de la Nación',
+      'Plin',
+    ])
+  })
+
+  it('Sucursal: genéricos; sin billeteras CENTRAL', () => {
+    const opts = buildTipoPagoOptions(CATALOGO_MEDIOS, { esCentral: false })
+    expect(opts.map((o) => o.value)).toEqual([1, 2, 3, 4, 5, 9])
+    expect(opts.map((o) => o.label)).toEqual([
+      'Efectivo',
+      'Yape',
+      'Interbank',
+      'BCP',
+      'Banco de la Nación',
+      'Plin',
+    ])
   })
 })

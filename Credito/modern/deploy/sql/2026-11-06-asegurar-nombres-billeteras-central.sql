@@ -2,6 +2,12 @@
 -- Crea si faltan: Plin(9), Yape Gerente/René(10/11), Interbank Gerente/René(12/13).
 -- El UPDATE solo NO alcanza: sin INSERT el combo no muestra Interbank.
 -- Genéricos 2/3 quedan para sucursal. Billeteras CENTRAL solo en IndPrincipal.
+--
+-- Azure / producción — correr EN ESTE ORDEN:
+--   1) este script
+--   2) 2026-11-06-usp-transferir-boveda-map-billeteras.sql
+--   3) si hubo saldos previos en 2/3 o billeteras en sucursal:
+--      2026-11-06-central-billeteras-yape-interbank.sql
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;

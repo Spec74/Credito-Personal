@@ -6101,6 +6101,7 @@ internal static class CreditoOperacionEndpoints
                     TransferirBovedaRequest body,
                     IBovedaWriteService bovedaWrite,
                     IBovedaOficinaReadService bovedaOficina,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -6118,6 +6119,18 @@ internal static class CreditoOperacionEndpoints
                     {
                         return oficinaError;
                     }
+
+                    var (sesionTipo, sesionTipoErr) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, null, ct)
+                        .ConfigureAwait(false);
+                    if (sesionTipoErr is not null)
+                        return sesionTipoErr;
+
+                    var tipoPagoFondeo = body.TipoPagoId < 1 ? 1 : body.TipoPagoId;
+                    var tipoPagoError = ProblemResults.IfInvalid(
+                        TipoPagoRules.RequireCobroPermitido(tipoPagoFondeo, sesionTipo!.EsCentral));
+                    if (tipoPagoError is not null)
+                        return tipoPagoError;
 
                     var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
                     if (usuarioError is not null)
@@ -7084,6 +7097,7 @@ internal static class CreditoOperacionEndpoints
                     HttpContext httpContext,
                     IngresoEgresoBovedaRequest body,
                     IBovedaMovWriteService bovedaMovWrite,
+                    IOficinaReadService oficinas,
                     IDatabaseTimeProvider databaseTime,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -7101,6 +7115,17 @@ internal static class CreditoOperacionEndpoints
                     {
                         return oficinaError;
                     }
+
+                    var (sesionTipo, sesionTipoErr) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, null, ct)
+                        .ConfigureAwait(false);
+                    if (sesionTipoErr is not null)
+                        return sesionTipoErr;
+
+                    var tipoPagoError = ProblemResults.IfInvalid(
+                        TipoPagoRules.RequireCobroPermitido(body.TipoPagoId, sesionTipo!.EsCentral));
+                    if (tipoPagoError is not null)
+                        return tipoPagoError;
 
                     var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
                     if (usuarioError is not null)

@@ -8,15 +8,20 @@ CREATE PROCEDURE [CREDITO].[usp_TransferirBoveda](
 @BovedaMovTempId INT=0,
 @TipoPagoId SMALLINT=1)
 AS
-DECLARE @Estado BIT,@FechaReg DATETIME
-SET @Estado= 1
-SET @FechaReg = dbo.ufnFecha()
+BEGIN
+	SET NOCOUNT ON;
 
-IF ISNULL(@TipoPagoId, 0) < 1
-	SET @TipoPagoId = 1
+	DECLARE @Estado BIT = 1
+	DECLARE @FechaReg DATETIME = dbo.ufnFecha()
+	DECLARE @TipoPagoDestinoId SMALLINT
 
--- transferir boveda a boveda
-IF @flagAceptar = 0
+	IF ISNULL(@TipoPagoId, 0) < 1
+		SET @TipoPagoId = 1
+
+	SET @TipoPagoDestinoId = @TipoPagoId
+
+	-- transferir boveda a boveda
+	IF @flagAceptar = 0
 	BEGIN
 		IF @BovedaInicioId IS NULL OR @BovedaDestinoId IS NULL
 			OR @BovedaInicioId < 1 OR @BovedaDestinoId < 1
@@ -78,6 +83,25 @@ IF @flagAceptar = 0
 			RETURN
 		END
 
+		-- Billetera CENTRAL → sucursal: acredita familia genérica (Yape=2 / Interbank=3).
+		IF EXISTS (
+			SELECT 1 FROM MAESTRO.ValorTabla
+			WHERE TablaId = 13 AND ItemId = @TipoPagoId AND DesCorta = N'CENTRAL'
+		)
+		AND NOT EXISTS (
+			SELECT 1
+			FROM CREDITO.Boveda AS b
+			INNER JOIN MAESTRO.Oficina AS o ON o.OficinaId = b.OficinaId
+			WHERE b.BovedaId = @BovedaDestinoId AND o.IndPrincipal = CAST(1 AS bit)
+		)
+		BEGIN
+			SET @TipoPagoDestinoId = CASE
+				WHEN @TipoPagoId IN (10, 11) THEN CAST(2 AS smallint)
+				WHEN @TipoPagoId IN (12, 13) THEN CAST(3 AS smallint)
+				ELSE @TipoPagoId
+			END
+		END
+
 		DECLARE @HayCuentas BIT = CASE
 			WHEN EXISTS (SELECT 1 FROM CREDITO.BovedaCuenta WHERE BovedaId = @BovedaInicioId)
 			THEN 1 ELSE 0 END
@@ -100,17 +124,26 @@ IF @flagAceptar = 0
 			RETURN
 		END
 
+		IF NOT EXISTS (
+			SELECT 1 FROM CREDITO.BovedaCuenta
+			WHERE BovedaId = @BovedaDestinoId AND TipoPagoId = @TipoPagoDestinoId
+		)
+		BEGIN
+			INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
+			VALUES (@BovedaDestinoId, @TipoPagoDestinoId, CAST(0 AS decimal(16, 2)))
+		END
+
 		INSERT INTO CREDITO.BovedaMov (BovedaId, CodOperacion,Glosa,Importe,IndEntrada,Estado,UsuarioRegId,FechaReg,TipoPagoId)
 					VALUES(@BovedaInicioId, 'TRS',@Glosa, @Monto,0,@Estado,@UsuarioRegId,@FechaReg,@TipoPagoId)
 		EXEC CREDITO.usp_ActualizarSaldosBoveda @BovedaId = @BovedaInicioId
 
 		INSERT INTO CREDITO.BovedaMov (BovedaId, CodOperacion,Glosa,Importe,IndEntrada,Estado,UsuarioRegId,FechaReg,TipoPagoId)
-		VALUES(@BovedaDestinoId, 'TRE',@Glosa, @Monto,1,@Estado,@UsuarioRegId,@FechaReg,@TipoPagoId)
+		VALUES(@BovedaDestinoId, 'TRE',@Glosa, @Monto,1,@Estado,@UsuarioRegId,@FechaReg,@TipoPagoDestinoId)
 
 		EXEC CREDITO.usp_ActualizarSaldosBoveda @BovedaId = @BovedaDestinoId
 	END
 
-IF @flagAceptar = 2
+	IF @flagAceptar = 2
 	BEGIN
 	DELETE CREDITO.BovedaMov WHERE MovimientoBovedaId = (SELECT MovimientoBovedaIniId FROM CREDITO.BovedaMovTemp
 														 WHERE BovedaMovTempId = @BovedaMovTempId )
@@ -120,3 +153,4 @@ IF @flagAceptar = 2
 
 	DELETE CREDITO.BovedaMovTemp where BovedaMovTempId = @BovedaMovTempId
 	END
+END
