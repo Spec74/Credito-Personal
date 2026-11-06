@@ -6,7 +6,7 @@ import {
   nowDatetimeLocal,
 } from '../../pages/caja/components/FechaHoraDigitalField'
 import { formatMoney } from '../../utils/formatMoney'
-import { roundMoney, sumMoney } from '../../utils/money'
+import { moneyEquals, roundMoney, sumMoney } from '../../utils/money'
 
 export type PagoMedioLineaUi = {
   key: string
@@ -53,13 +53,21 @@ export function sumPagoMedios(lineas: PagoMedioLineaUi[]): number {
 
 export function validatePagoMedios(
   lineas: PagoMedioLineaUi[],
+  expectedTotal?: number | null,
 ): string | null {
   if (lineas.length < 2) return 'Indique al menos dos medios.'
   for (const l of lineas) {
-    if (!l.importe || l.importe <= 0) return 'Cada medio debe tener importe mayor a 0.'
+    const imp = roundMoney(l.importe ?? 0)
+    if (!(imp > 0)) return 'Cada medio debe tener importe mayor a 0 (mín. S/ 0.01).'
     if (l.tipoPagoId < 1) return 'Seleccione el medio de cada línea.'
     if (l.tipoPagoId > 1 && !l.fechaTransferencia.trim()) {
       return 'Los medios digitales requieren fecha/hora de transferencia.'
+    }
+  }
+  if (expectedTotal != null && expectedTotal > 0) {
+    const suma = sumPagoMedios(lineas)
+    if (!moneyEquals(suma, roundMoney(expectedTotal))) {
+      return `La suma de medios (${formatMoney(suma)}) debe coincidir al céntimo con ${formatMoney(expectedTotal)}.`
     }
   }
   return null

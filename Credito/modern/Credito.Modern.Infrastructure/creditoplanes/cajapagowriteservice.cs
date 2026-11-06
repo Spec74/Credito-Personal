@@ -1,5 +1,6 @@
 using System.Data;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Validation;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -66,9 +67,9 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
         CancellationToken cancellationToken = default)
     {
         EnsureConnectionConfigured();
-        if (medios is null || medios.Count < 1)
+        if (medios is null || medios.Count < 2)
         {
-            throw new ArgumentException("Debe indicar al menos un medio de pago.", nameof(medios));
+            throw new ArgumentException("El cobro mixto requiere al menos 2 medios.", nameof(medios));
         }
 
         if (medios.Count > 8)
@@ -76,7 +77,49 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
             throw new ArgumentOutOfRangeException(nameof(medios), "Máximo 8 medios por cobro mixto.");
         }
 
-        var ids = new List<int>(medios.Count);
+        var normalizados = new List<PagoMedioLineaDto>(medios.Count);
+        decimal total = 0m;
+        var i = 0;
+        foreach (var linea in medios)
+        {
+            i++;
+            var importe = decimal.Round(linea.Importe, 2, MidpointRounding.AwayFromZero);
+            var err = MoneyRules.RequirePositive(importe, $"medios[{i}].importe");
+            if (err is not null)
+            {
+                throw new ArgumentException(err, nameof(medios));
+            }
+
+            if (linea.TipoPagoId < 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(medios), $"medios[{i}].tipoPagoId debe ser >= 1.");
+            }
+
+            if (linea.TipoPagoId > 1 && string.IsNullOrWhiteSpace(linea.FechaPagoTransferencia))
+            {
+                throw new ArgumentException(
+                    $"medios[{i}]: los digitales requieren fecha/hora de transferencia.",
+                    nameof(medios));
+            }
+
+            total = decimal.Round(total + importe, 2, MidpointRounding.AwayFromZero);
+            normalizados.Add(linea with { Importe = importe });
+        }
+
+        var totalErr = MoneyRules.RequirePositive(total, "suma de medios");
+        if (totalErr is not null)
+        {
+            throw new ArgumentException(totalErr, nameof(medios));
+        }
+
+        var sumaLineas = normalizados.Sum(x => x.Importe);
+        if (sumaLineas != total)
+        {
+            throw new InvalidOperationException(
+                "Inconsistencia de céntimos en cobro mixto: revise los importes.");
+        }
+
+        var ids = new List<int>(normalizados.Count);
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
         await using var transaction = (SqlTransaction)await connection
@@ -85,26 +128,8 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
 
         try
         {
-            foreach (var linea in medios)
+            foreach (var linea in normalizados)
             {
-                if (linea.TipoPagoId < 1)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(medios), "tipoPagoId debe ser >= 1.");
-                }
-
-                if (linea.Importe <= 0m)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(medios), "Cada importe del mixto debe ser > 0.");
-                }
-
-                if (linea.TipoPagoId > 1
-                    && string.IsNullOrWhiteSpace(linea.FechaPagoTransferencia))
-                {
-                    throw new ArgumentException(
-                        "Los medios digitales requieren fecha/hora de transferencia.",
-                        nameof(medios));
-                }
-
                 var command = new CommandDefinition(
                     "CREDITO.usp_PagarCuotaPagoLibre",
                     new
@@ -120,15 +145,13 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
                     commandType: CommandType.StoredProcedure,
                     cancellationToken: cancellationToken);
                 var resultId = await connection.QueryFirstOrDefaultAsync<int?>(command).ConfigureAwait(false);
-                if (resultId is > 0)
+                if (resultId is null or < 1)
                 {
-                    ids.Add(resultId.Value);
+                    throw new InvalidOperationException(
+                        "El cobro mixto se abortó: un medio no generó movimiento (sin cambios parciales).");
                 }
-            }
 
-            if (ids.Count < 1)
-            {
-                throw new InvalidOperationException("El cobro mixto no generó movimientos.");
+                ids.Add(resultId.Value);
             }
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);

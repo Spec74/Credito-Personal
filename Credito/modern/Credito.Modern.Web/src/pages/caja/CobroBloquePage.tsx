@@ -47,7 +47,18 @@ import {
   tipoPagoPopupRender,
 } from '../tesoreria/components/TipoPagoBrand'
 import { formatMoney } from '../../utils/formatMoney'
-import { roundMoney, sumMoney } from '../../utils/money'
+import { moneyEquals, roundMoney, sumMoney } from '../../utils/money'
+import {
+  collapsePlanillaByCredito,
+  expandRowToPlanillaItems,
+  validateRowMixtoMoney,
+} from '../../utils/cobroBloquePlanillaExpand'
+import {
+  defaultPagoMediosSplit,
+  PagoMediosSplit,
+  sumPagoMedios,
+  type PagoMedioLineaUi,
+} from '../../components/caja/PagoMediosSplit'
 import { formatFecha } from '../../utils/formatFecha'
 import { clearCobroBloqueEjecutadoHoy } from '../../utils/cobroBloqueDayLock'
 import {
@@ -246,6 +257,8 @@ export function CobroBloquePage() {
     loadCobroCola({ usuarioId: 0, oficinaId: 0, cajaDiarioId: 0 }),
   )
   const [ticketPrintingId, setTicketPrintingId] = useState<number | null>(null)
+  const [mixtoCreditoId, setMixtoCreditoId] = useState<number | null>(null)
+  const [mixtoLineas, setMixtoLineas] = useState<PagoMedioLineaUi[]>([])
   const carteraRowsRef = useRef<CreditoGestorPendienteRow[]>([])
 
   useEffect(() => {
@@ -673,24 +686,37 @@ export function CobroBloquePage() {
 
   const resumen = useMemo(() => {
     let listos = 0
-    let total = 0
+    const montos: number[] = []
     const porMetodo = new Map<number, { label: string; monto: number; n: number }>()
     for (const row of carteraRows ?? []) {
       if (!esTipado(row)) continue
       const e = getEdit(row)
       listos++
-      total += e.montoPagar
+      montos.push(e.montoPagar)
+      const medios = e.medios?.filter((m) => roundMoney(m.importe) > 0) ?? []
+      if (medios.length >= 2) {
+        for (const m of medios) {
+          const label =
+            tipoPagoOptions.find((o) => o.value === m.tipoPagoId)?.label ??
+            `Tipo ${m.tipoPagoId}`
+          const cur = porMetodo.get(m.tipoPagoId) ?? { label, monto: 0, n: 0 }
+          cur.monto = sumMoney([cur.monto, m.importe])
+          cur.n += 1
+          porMetodo.set(m.tipoPagoId, cur)
+        }
+        continue
+      }
       const label =
         tipoPagoOptions.find((o) => o.value === e.tipoPagoId)?.label ?? `Tipo ${e.tipoPagoId}`
       const cur = porMetodo.get(e.tipoPagoId) ?? { label, monto: 0, n: 0 }
-      cur.monto += e.montoPagar
+      cur.monto = sumMoney([cur.monto, e.montoPagar])
       cur.n += 1
       porMetodo.set(e.tipoPagoId, cur)
     }
     const totalFilas = carteraRows?.length ?? 0
     return {
       conCobro: listos,
-      total,
+      total: sumMoney(montos),
       porMetodo: [...porMetodo.values()],
       totalFilas,
     }
@@ -702,6 +728,12 @@ export function CobroBloquePage() {
       if (e.montoPagar <= 0) {
         return `Digite un monto mayor a cero para ${row.personaNombre} (crédito ${row.creditoId}).`
       }
+      const mixtoErr = validateRowMixtoMoney(e)
+      if (mixtoErr) {
+        return `${row.personaNombre} (crédito ${row.creditoId}): ${mixtoErr}`
+      }
+      const medios = e.medios?.filter((m) => roundMoney(m.importe) > 0) ?? []
+      if (medios.length >= 2) continue
       if (TIPOS_PAGO_DIGITAL.has(e.tipoPagoId) && !e.fechaHoraTrans?.trim()) {
         return `Ingrese la fecha/hora de transferencia para ${row.personaNombre} (crédito ${row.creditoId}).`
       }
@@ -709,19 +741,11 @@ export function CobroBloquePage() {
     return null
   }
 
-  /** Tipados con monto &gt; 0 que aún no fueron enviados. */
+  /** Tipados con monto &gt; 0; mixto se expande a N ítems del mismo crédito. */
   const buildPlanillaPayload = () =>
     (carteraRows ?? [])
       .filter((row) => esTipado(row))
-      .map((row) => {
-        const e = getEdit(row)
-        return {
-          creditoId: row.creditoId,
-          montoPagar: e.montoPagar,
-          tipoPagoId: e.tipoPagoId,
-          fechaHoraTrans: e.fechaHoraTrans,
-        }
-      })
+      .flatMap((row) => expandRowToPlanillaItems(row.creditoId, getEdit(row)))
       .filter((x) => x.montoPagar > 0)
 
   type PlanillaItem = ReturnType<typeof buildPlanillaPayload>[number]
@@ -757,9 +781,10 @@ export function CobroBloquePage() {
     const nombres = new Map(
       carteraRowsRef.current.map((r) => [r.creditoId, r.personaNombre] as const),
     )
+    const colapsada = collapsePlanillaByCredito(planilla)
     const nextCola = markCobroEnviados(
       { usuarioId, oficinaId, cajaDiarioId },
-      planilla.map((p) => ({
+      colapsada.map((p) => ({
         creditoId: p.creditoId,
         personaNombre: nombres.get(p.creditoId) ?? `Crédito ${p.creditoId}`,
         montoPagar: p.montoPagar,
@@ -769,7 +794,7 @@ export function CobroBloquePage() {
       })),
     )
     setCola(nextCola)
-    const ids = planilla.map((p) => p.creditoId)
+    const ids = colapsada.map((p) => p.creditoId)
     setEdits((prev) => {
       const next = { ...prev }
       for (const id of ids) delete next[id]
@@ -850,10 +875,13 @@ export function CobroBloquePage() {
       for (const t of r.result.tickets ?? []) {
         if (t.movimientoCajaId > 0) ticketMap[t.creditoId] = t.movimientoCajaId
       }
-      const origen = r.planilla.length === 1 ? 'cobrar_ya' : 'lote'
+      const creditosUnicos = collapsePlanillaByCredito(r.planilla)
+      const origen = creditosUnicos.length === 1 ? 'cobrar_ya' : 'lote'
       aplicarEnviados(r.planilla, origen, ticketMap)
       setTabPrincipal('enviados')
-      message.success(r.result.mensaje || `${r.planilla.length} cobro(s) enviado(s).`)
+      message.success(
+        r.result.mensaje || `${creditosUnicos.length} crédito(s) cobrado(s).`,
+      )
     },
     onError: (e) =>
       message.error(e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'Error'),
@@ -875,14 +903,7 @@ export function CobroBloquePage() {
       return
     }
     const e = getEdit(row)
-    void enviarPlanilla.mutateAsync([
-      {
-        creditoId: row.creditoId,
-        montoPagar: e.montoPagar,
-        tipoPagoId: e.tipoPagoId,
-        fechaHoraTrans: e.fechaHoraTrans,
-      },
-    ])
+    void enviarPlanilla.mutateAsync(expandRowToPlanillaItems(row.creditoId, e))
   }
 
   const imprimirTicket = async (movimientoCajaId: number | null | undefined) => {
@@ -1191,6 +1212,10 @@ export function CobroBloquePage() {
       onCell: () => ({ className: 'cobro-bloque-col-tipo' }),
       render: (_, row) => {
         const e = getEdit(row)
+        const mixto = (e.medios?.length ?? 0) >= 2
+        if (mixto) {
+          return <Tag color="processing">Mixto</Tag>
+        }
         return (
           <Select
             value={e.tipoPagoId}
@@ -1199,7 +1224,9 @@ export function CobroBloquePage() {
             optionRender={tipoPagoOptionRender}
             popupRender={tipoPagoPopupRender}
             popupClassName="medio-marca-dropdown"
-            onChange={(v) => patchEdit(row.creditoId, { tipoPagoId: v }, row)}
+            onChange={(v) =>
+              patchEdit(row.creditoId, { tipoPagoId: v, medios: undefined }, row)
+            }
           />
         )
       },
@@ -1211,6 +1238,9 @@ export function CobroBloquePage() {
       onCell: () => ({ className: 'cobro-bloque-col-fecha' }),
       render: (_, row) => {
         const e = getEdit(row)
+        if ((e.medios?.length ?? 0) >= 2) {
+          return <Text type="secondary">Por medio</Text>
+        }
         if (!TIPOS_PAGO_DIGITAL.has(e.tipoPagoId)) {
           return <Text type="secondary">—</Text>
         }
@@ -1237,8 +1267,29 @@ export function CobroBloquePage() {
         }
         const errorMsg = cola.errores[String(row.creditoId)]
         const tipado = esTipado(row)
+        const e = getEdit(row)
+        const esMixto = (e.medios?.length ?? 0) >= 2
         return (
           <Space size={4} wrap>
+            <Button
+              size="small"
+              disabled={e.montoPagar <= 0}
+              onClick={() => {
+                const base =
+                  e.medios && e.medios.length >= 2
+                    ? e.medios.map((m) => ({
+                        key: `m-${m.tipoPagoId}-${m.importe}`,
+                        tipoPagoId: m.tipoPagoId,
+                        importe: m.importe,
+                        fechaTransferencia: m.fechaHoraTrans,
+                      }))
+                    : defaultPagoMediosSplit(tipoPagoOptions, e.montoPagar)
+                setMixtoLineas(base)
+                setMixtoCreditoId(row.creditoId)
+              }}
+            >
+              {esMixto ? 'Editar mixto' : 'Dividir'}
+            </Button>
             <Button
               type="primary"
               size="small"
@@ -1795,6 +1846,81 @@ export function CobroBloquePage() {
           </CredixPanel>
 
           {actionDock}
+
+          <Modal
+            title="Dividir cobro en varios medios"
+            open={mixtoCreditoId != null}
+            onCancel={() => {
+              setMixtoCreditoId(null)
+              setMixtoLineas([])
+            }}
+            okText="Aplicar mixto"
+            cancelText="Cancelar"
+            onOk={() => {
+              if (mixtoCreditoId == null) return
+              const row = (carteraRows ?? []).find((r) => r.creditoId === mixtoCreditoId)
+              if (!row) return
+              const total = sumPagoMedios(mixtoLineas)
+              if (!(total > 0)) {
+                message.warning('Indique importes mayores a cero.')
+                return Promise.reject()
+              }
+              const deuda = roundMoney(row.deudaPendiente)
+              if (
+                roundMoney(total) > deuda &&
+                !moneyEquals(total, deuda)
+              ) {
+                message.error(
+                  `El mixto (${formatMoney(total)}) no puede superar la deuda (${formatMoney(deuda)}).`,
+                )
+                return Promise.reject()
+              }
+              const draft: CobroBloqueRowDraft = {
+                ...getEdit(row),
+                montoPagar: roundMoney(total),
+                tipoPagoId: mixtoLineas[0]?.tipoPagoId ?? 1,
+                fechaHoraTrans: mixtoLineas.find((l) => l.tipoPagoId > 1)?.fechaTransferencia ?? '',
+                medios: mixtoLineas.map((l) => ({
+                  tipoPagoId: l.tipoPagoId,
+                  importe: roundMoney(l.importe ?? 0),
+                  fechaHoraTrans: l.fechaTransferencia,
+                })),
+              }
+              const err = validateRowMixtoMoney(draft)
+              if (err) {
+                message.warning(err)
+                return Promise.reject()
+              }
+              patchEdit(mixtoCreditoId, draft, row)
+              setMixtoCreditoId(null)
+              setMixtoLineas([])
+              message.success(`Mixto aplicado: ${formatMoney(total)}`)
+            }}
+            destroyOnClose
+          >
+            <PagoMediosSplit
+              lineas={mixtoLineas}
+              options={tipoPagoOptions}
+              onChange={setMixtoLineas}
+            />
+            {mixtoCreditoId != null ? (
+              <Button
+                type="link"
+                danger
+                style={{ paddingLeft: 0, marginTop: 8 }}
+                onClick={() => {
+                  const row = (carteraRows ?? []).find((r) => r.creditoId === mixtoCreditoId)
+                  if (!row) return
+                  patchEdit(mixtoCreditoId, { medios: undefined }, row)
+                  setMixtoCreditoId(null)
+                  setMixtoLineas([])
+                  message.info('Mixto quitado; queda un solo medio.')
+                }}
+              >
+                Quitar mixto
+              </Button>
+            ) : null}
+          </Modal>
         </>
       )}
     </CredixPage>

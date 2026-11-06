@@ -24,4 +24,10 @@ describe('PagoMediosSplit', () => {
     lineas[0] = { ...lineas[0], fechaTransferencia: '' }
     expect(validatePagoMedios(lineas)).toMatch(/digital/i)
   })
+
+  it('exige igualdad al céntimo con el total esperado', () => {
+    const lineas = defaultPagoMediosSplit(opts, 30)
+    expect(validatePagoMedios(lineas, 30)).toBeNull()
+    expect(validatePagoMedios(lineas, 30.01)).toMatch(/céntimo/i)
+  })
 })

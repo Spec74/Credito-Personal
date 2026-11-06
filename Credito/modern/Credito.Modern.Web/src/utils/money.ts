@@ -11,3 +11,8 @@ export function sumMoney(values: Iterable<number>): number {
   }
   return cents / 100
 }
+
+/** Igualdad monetaria exacta al céntimo (sin float). */
+export function moneyEquals(a: number, b: number): boolean {
+  return Math.round(Number(a) * 100) === Math.round(Number(b) * 100)
+}

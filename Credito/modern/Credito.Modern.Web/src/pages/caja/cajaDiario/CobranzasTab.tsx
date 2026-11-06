@@ -84,7 +84,7 @@ import {
 import { sumarMoraVigente } from '../../../components/caja/creditoMoraVista'
 import type { CreditoPorPersonaRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
-import { roundMoney, sumMoney } from '../../../utils/money'
+import { moneyEquals, roundMoney, sumMoney } from '../../../utils/money'
 import { toLegacyFechaTransferencia } from '../../../utils/formatFecha'
 import { CancelacionCreditoPanel } from './CancelacionCreditoPanel'
 import { CxcInlinePanel } from './CxcInlinePanel'
@@ -126,6 +126,8 @@ export function CobranzasTab({
   const [pagoLibre, setPagoLibre] = useState<number | null>(null)
   const [pagoLibreMixto, setPagoLibreMixto] = useState(false)
   const [mediosLibre, setMediosLibre] = useState<PagoMedioLineaUi[]>([])
+  const [cuotaMixto, setCuotaMixto] = useState(false)
+  const [mediosCuota, setMediosCuota] = useState<PagoMedioLineaUi[]>([])
   const [fechaTransferencia, setFechaTransferencia] = useState('')
   const [fechaPagoLibre, setFechaPagoLibre] = useState('')
   const [showCxc, setShowCxc] = useState(false)
@@ -339,8 +341,26 @@ export function CobranzasTab({
   )
 
   const pagar = useMutation({
-    mutationFn: () =>
-      pagarCuotas({
+    mutationFn: async () => {
+      if (cuotaMixto) {
+        const esperado = roundMoney(importeRecibido ?? selectedTotal)
+        const err = validatePagoMedios(mediosCuota, esperado)
+        if (err) throw new Error(err)
+        return pagarCuotaImporteLibreMixto({
+          oficinaId: ctx.oficinaId,
+          cajaDiarioId: ctx.cajaDiarioId,
+          creditoId: creditoId!,
+          medios: mediosCuota.map((l) => ({
+            tipoPagoId: l.tipoPagoId,
+            importe: roundMoney(l.importe ?? 0),
+            fechaPagoTransferencia:
+              l.tipoPagoId > 1 && l.fechaTransferencia
+                ? toLegacyFechaTransferencia(l.fechaTransferencia) ?? null
+                : null,
+          })),
+        })
+      }
+      return pagarCuotas({
         oficinaId: ctx.oficinaId,
         cajaDiarioId: ctx.cajaDiarioId,
         creditoId: creditoId!,
@@ -354,9 +374,14 @@ export function CobranzasTab({
         esUltimaCuota:
           selectedKeys.length > 0 && selectedKeys.length === cuotasPagables.length,
         aplicarMoraPostergada: moraResumenQuery.data?.indMoraProducto === true,
-      }),
+      })
+    },
     onSuccess: (r) => {
-      cajaToastSuccess(`Pago registrado (${r.resultId ?? 'OK'})`)
+      cajaToastSuccess(
+        cuotaMixto
+          ? `Cobro mixto registrado (${'movimientoCajaIds' in r ? r.movimientoCajaIds.length : 1} mov.)`
+          : `Pago registrado (${r.resultId ?? 'OK'})`,
+      )
       if (creditoId && usuarioId > 0) {
         syncDiarioPagoHaciaCobro({
           usuarioId,
@@ -364,11 +389,13 @@ export function CobranzasTab({
           cajaDiarioId: ctx.cajaDiarioId,
           creditoId,
           personaNombre: clienteLabel || creditoSel?.descripcion,
-          montoPagar: importeRecibido ?? 0,
-          tipoPagoId,
+          montoPagar: cuotaMixto ? sumPagoMedios(mediosCuota) : (importeRecibido ?? 0),
+          tipoPagoId: cuotaMixto ? (mediosCuota[0]?.tipoPagoId ?? 1) : tipoPagoId,
           movimientoCajaId: r.resultId ?? null,
         })
       }
+      setCuotaMixto(false)
+      setMediosCuota([])
       onChanged()
       void moraResumenQuery.refetch()
       if (creditoId) {
@@ -548,13 +575,13 @@ export function CobranzasTab({
   const solicitarPagoLibre = async () => {
     if (!creditoId) return
 
-    if (pagoLibreMixto) {
-      const err = validatePagoMedios(mediosLibre)
+      if (pagoLibreMixto) {
+      const totalMixto = sumPagoMedios(mediosLibre)
+      const err = validatePagoMedios(mediosLibre, totalMixto)
       if (err) {
         cajaToastWarning(err)
         return
       }
-      const totalMixto = sumPagoMedios(mediosLibre)
       if (totalMixto > totalCuotasCredito && totalCuotasCredito > 0) {
         cajaToastError(
           `El cobro mixto no debe superar ${formatMoney(totalCuotasCredito)}`,
@@ -627,7 +654,36 @@ export function CobranzasTab({
       if (!(await assertSinCxcPendiente(creditoId))) {
         return
       }
-      // Misma fecha del dock; sin segundo modal de fecha/hora.
+
+      if (cuotaMixto) {
+        const esperado = roundMoney(importeRecibido)
+        if (!moneyEquals(esperado, roundMoney(selectedTotal))) {
+          cajaToastError(
+            'En cobro mixto el importe recibido debe coincidir al céntimo con el total de cuotas seleccionadas.',
+          )
+          return
+        }
+        const err = validatePagoMedios(mediosCuota, esperado)
+        if (err) {
+          cajaToastWarning(err)
+          return
+        }
+        const detalle = mediosCuota
+          .map((l) => {
+            const lab =
+              tipoPagoOptions.find((o) => o.value === l.tipoPagoId)?.label ??
+              `Tipo ${l.tipoPagoId}`
+            return `${lab} ${formatMoney(l.importe ?? 0)}`
+          })
+          .join(' + ')
+        cajaConfirm({
+          title: 'Confirmar cobro mixto',
+          content: `¿Cobrar ${selectedKeys.length} cuota(s) · ${formatMoney(esperado)} (${detalle})?`,
+          onOk: () => pagar.mutateAsync(),
+        })
+        return
+      }
+
       if (tipoPagoId > 1 && !fechaTransferencia.trim()) {
         cajaToastWarning('Indique la hora del voucher en el panel de cobro')
         return
@@ -1074,23 +1130,58 @@ export function CobranzasTab({
                     loading={pagar.isPending}
                     onClick={() => void solicitarPagarCuota()}
                   >
-                    Pagar cuota
+                    {cuotaMixto ? 'Cobro mixto' : 'Pagar cuota'}
                   </Button>
                 </div>
-                <TipoPagoChips
-                  value={tipoPagoId}
-                  options={tipoPagoOptions}
-                  onChange={setTipoPagoId}
-                  wrap={!isMobile}
-                />
-                {tipoPagoId > 1 ? (
-                  <FechaHoraDigitalField
-                    value={fechaTransferencia}
-                    status={!fechaTransferencia ? 'error' : undefined}
-                    onChange={setFechaTransferencia}
-                    compact={!isMobile}
+                <Checkbox
+                  checked={cuotaMixto}
+                  disabled={!creditoId || selectedKeys.length === 0}
+                  onChange={(e) => {
+                    const on = e.target.checked
+                    setCuotaMixto(on)
+                    if (on) {
+                      // Mixto de cuota: suma de medios = total de cuotas seleccionadas (al céntimo).
+                      const hint = roundMoney(selectedTotal)
+                      setImporteRecibido(hint)
+                      setMediosCuota(
+                        defaultPagoMediosSplit(
+                          tipoPagoOptions,
+                          hint > 0 ? hint : undefined,
+                        ),
+                      )
+                    } else {
+                      setMediosCuota([])
+                    }
+                  }}
+                  style={{ marginBottom: 8 }}
+                >
+                  Dividir en varios medios (Yape/Plin + efectivo)
+                </Checkbox>
+                {cuotaMixto ? (
+                  <PagoMediosSplit
+                    lineas={mediosCuota}
+                    options={tipoPagoOptions}
+                    onChange={setMediosCuota}
+                    disabled={pagar.isPending}
                   />
-                ) : null}
+                ) : (
+                  <>
+                    <TipoPagoChips
+                      value={tipoPagoId}
+                      options={tipoPagoOptions}
+                      onChange={setTipoPagoId}
+                      wrap={!isMobile}
+                    />
+                    {tipoPagoId > 1 ? (
+                      <FechaHoraDigitalField
+                        value={fechaTransferencia}
+                        status={!fechaTransferencia ? 'error' : undefined}
+                        onChange={setFechaTransferencia}
+                        compact={!isMobile}
+                      />
+                    ) : null}
+                  </>
+                )}
               </>
             ) : (
               <>

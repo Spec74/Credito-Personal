@@ -124,8 +124,9 @@ Abrir sesión de caja, cobrar cuotas, pagos libres, desembolsos autorizados, emi
 
 1. Cargar cartera del día.
 2. Tipar montos o marcar cuotas.
-3. Enviar planilla (online u offline según cobertura).
-4. Revisar **Enviados** y tickets.
+3. Si el cliente paga con **varios medios**: **Dividir** → Yape/Plin + efectivo (la suma debe cuadrar al céntimo con el monto tipado).
+4. Enviar planilla (online u offline según cobertura).
+5. Revisar **Enviados** y tickets.
 
 ### Mora al cobrar
 

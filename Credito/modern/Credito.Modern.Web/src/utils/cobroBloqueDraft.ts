@@ -7,11 +7,19 @@
  * - Si el gestor no vuelve: el borrador caduca solo; no altera la BD.
  */
 
+export type CobroBloqueMedioDraft = {
+  tipoPagoId: number
+  importe: number
+  fechaHoraTrans: string
+}
+
 export type CobroBloqueRowDraft = {
   montoPagar: number
   tipoPagoId: number
   fechaHoraTrans: string
   cuotasSeleccionadas: number[]
+  /** Si hay 2+ medios, el envío expande a N ítems del mismo crédito (suma = montoPagar). */
+  medios?: CobroBloqueMedioDraft[]
 }
 
 export type CobroBloqueDraft = {

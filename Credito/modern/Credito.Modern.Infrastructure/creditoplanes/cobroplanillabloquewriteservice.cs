@@ -1,6 +1,7 @@
 using System.Data;
 using System.Globalization;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Validation;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -51,30 +52,43 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
 
         ArgumentNullException.ThrowIfNull(planilla);
 
-        var items = planilla.Where(x => x.MontoPagar > 0).ToList();
-
-        foreach (var item in items)
+        var items = new List<PagoPlanillaItemDto>();
+        foreach (var raw in planilla)
         {
-            if (item.CreditoId < 1)
+            var monto = decimal.Round(raw.MontoPagar, 2, MidpointRounding.AwayFromZero);
+            if (monto <= 0m)
+            {
+                continue;
+            }
+
+            var moneyErr = MoneyRules.RequirePositive(monto, $"crédito {raw.CreditoId} monto");
+            if (moneyErr is not null)
+            {
+                return new CobrarPlanillaBloqueResponse(false, moneyErr, 0, 0, SinTickets);
+            }
+
+            if (raw.CreditoId < 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(planilla), "creditoId inválido en la planilla.");
             }
 
-            if (item.TipoPagoId < 1)
+            if (raw.TipoPagoId < 1)
             {
                 throw new ArgumentOutOfRangeException(nameof(planilla), "tipoPagoId inválido en la planilla.");
             }
 
-            if (TiposPagoDigital.Contains(item.TipoPagoId)
-                && string.IsNullOrWhiteSpace(item.FechaHoraTrans))
+            if (TiposPagoDigital.Contains(raw.TipoPagoId)
+                && string.IsNullOrWhiteSpace(raw.FechaHoraTrans))
             {
                 return new CobrarPlanillaBloqueResponse(
                     false,
-                    $"Ingrese la fecha/hora de transferencia para el crédito {item.CreditoId}.",
+                    $"Ingrese la fecha/hora de transferencia para el crédito {raw.CreditoId}.",
                     0,
                     0,
                     SinTickets);
             }
+
+            items.Add(raw with { MontoPagar = monto });
         }
 
         await using var connection = new SqlConnection(_connectionString);
