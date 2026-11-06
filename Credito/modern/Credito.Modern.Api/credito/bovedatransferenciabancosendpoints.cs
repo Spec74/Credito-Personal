@@ -46,9 +46,10 @@ internal static class BovedaTransferenciaBancosEndpoints
                         return sesionTipoErr;
 
                     var tipoPagoError = ProblemResults.IfInvalid(
-                        ValidationGate.First(
-                            TipoPagoRules.RequireCobroPermitido(body.TipoPagoOrigenId, sesionTipo!.EsCentral, "tipoPagoOrigenId"),
-                            TipoPagoRules.RequireCobroPermitido(body.TipoPagoDestinoId, sesionTipo.EsCentral, "tipoPagoDestinoId")));
+                        TipoPagoRules.RequireParCobroPermitido(
+                            body.TipoPagoOrigenId,
+                            body.TipoPagoDestinoId,
+                            sesionTipo!.EsCentral));
                     if (tipoPagoError is not null)
                         return tipoPagoError;
 

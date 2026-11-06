@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ExclamationCircleOutlined } from '@ant-design/icons'
 import {
@@ -83,64 +83,80 @@ function MedioFijo({
   )
 }
 
-const OPS_GROUPS: { title: string; items: { key: string; label: string }[] }[] = [
-  { title: 'Registrar', items: [{ key: 'ingreso', label: 'Movimiento' }] },
-  {
-    title: 'Transferir',
-    items: [
-      { key: 'caja', label: 'A caja' },
-      { key: 'analista', label: 'A analista' },
-      { key: 'bancos', label: 'Entre medios' },
-      { key: 'temporal', label: 'Temporal' },
-    ],
-  },
-  {
-    title: 'Red',
-    items: [
-      { key: 'interoficina', label: 'Fondeo' },
-      { key: 'aceptar', label: 'Pendientes' },
-    ],
-  },
-  { title: 'Cierre', items: [{ key: 'cierre', label: 'Cerrar bóveda' }] },
-]
+function opsGroups(esCentral: boolean): {
+  title: string
+  items: { key: string; label: string }[]
+}[] {
+  return [
+    { title: 'Registrar', items: [{ key: 'ingreso', label: 'Movimiento' }] },
+    {
+      title: 'Transferir',
+      items: [
+        { key: 'caja', label: 'A caja' },
+        { key: 'analista', label: 'A analista' },
+        { key: 'bancos', label: 'Entre medios' },
+        { key: 'temporal', label: 'Temporal' },
+      ],
+    },
+    {
+      title: 'Red',
+      items: [
+        { key: 'interoficina', label: esCentral ? 'Fondeo' : 'A Central' },
+        { key: 'aceptar', label: 'Pendientes' },
+      ],
+    },
+    { title: 'Cierre', items: [{ key: 'cierre', label: 'Cerrar bóveda' }] },
+  ]
+}
 
-const OPS_COPY: Record<string, { title: string; blurb: string }> = {
-  ingreso: {
-    title: 'Registrar movimiento',
-    blurb: 'Ingreso o egreso de esta bóveda, con el medio de pago.',
-  },
-  caja: {
-    title: 'Transferir a caja',
-    blurb: 'Fondea una caja diaria abierta. Puede salir de efectivo o de un banco (entra como efectivo en caja).',
-  },
-  analista: {
-    title: 'Transferir a analista',
-    blurb: 'El analista ya tiene caja. Se descuenta el medio (Yape, banco…) y se abona efectivo en esa caja.',
-  },
-  chica: {
-    title: 'Caja chica',
-    blurb: 'Pasa efectivo a la caja chica abierta.',
-  },
-  bancos: {
-    title: 'Entre medios',
-    blurb: 'Mueve saldo entre efectivo, Yape o bancos de esta misma bóveda.',
-  },
-  temporal: {
-    title: 'Bóveda temporal',
-    blurb: 'Asigna un encargado o transfiere saldo a la temporal ya abierta.',
-  },
-  interoficina: {
-    title: 'Fondeo entre oficinas',
-    blurb: 'El saldo se acredita al instante en origen y destino. No espera aceptación.',
-  },
-  aceptar: {
-    title: 'Pendientes',
-    blurb: 'Anula transferencias pendientes antiguas.',
-  },
-  cierre: {
-    title: 'Cerrar bóveda',
-    blurb: 'La principal, cuando las cajas estén cerradas. La temporal, si aplica.',
-  },
+function opsCopy(esCentral: boolean): Record<string, { title: string; blurb: string }> {
+  return {
+    ingreso: {
+      title: 'Registrar movimiento',
+      blurb: 'Ingreso o egreso de esta bóveda, con el medio de pago.',
+    },
+    caja: {
+      title: 'Transferir a caja',
+      blurb:
+        'Fondea una caja diaria abierta. Puede salir de efectivo o de un banco (entra como efectivo en caja).',
+    },
+    analista: {
+      title: 'Transferir a analista',
+      blurb:
+        'El analista ya tiene caja. Se descuenta el medio (Yape, banco…) y se abona efectivo en esa caja.',
+    },
+    chica: {
+      title: 'Caja chica',
+      blurb: 'Pasa efectivo a la caja chica abierta.',
+    },
+    bancos: {
+      title: 'Entre medios',
+      blurb: 'Mueve saldo entre efectivo, Yape o bancos de esta misma bóveda.',
+    },
+    temporal: {
+      title: 'Bóveda temporal',
+      blurb: 'Asigna un encargado o transfiere saldo a la temporal ya abierta.',
+    },
+    interoficina: esCentral
+      ? {
+          title: 'Fondear sucursales',
+          blurb:
+            'Envía saldo desde Central a la bóveda de una sucursal. Se acredita al instante (Yape/Interbank Gerente·René llegan como genérico en la sede).',
+        }
+      : {
+          title: 'Enviar a Central',
+          blurb:
+            'Remesa saldo de esta sucursal a la bóveda Central. Se acredita al instante en el mismo medio (Yape, Interbank, BCP, Plin, efectivo…).',
+        },
+    aceptar: {
+      title: 'Pendientes',
+      blurb: 'Anula transferencias pendientes antiguas.',
+    },
+    cierre: {
+      title: 'Cerrar bóveda',
+      blurb: 'La principal, cuando las cajas estén cerradas. La temporal, si aplica.',
+    },
+  }
 }
 
 function errMsg(e: unknown): string {
@@ -175,6 +191,8 @@ type Props = {
 
 export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Props) {
   const { esCentral } = useEsCentral()
+  const navGroups = useMemo(() => opsGroups(esCentral), [esCentral])
+  const stageCopy = useMemo(() => opsCopy(esCentral), [esCentral])
   const queryClient = useQueryClient()
   const [usuarioTerm, setUsuarioTerm] = useState('')
   const [activeTab, setActiveTab] = useState('ingreso')
@@ -244,6 +262,17 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     queryFn: () => fetchBovedasDestinoTransferencia(oficinaId),
     enabled: oficinaOk && needsDestinos,
   })
+
+  // Sucursal: preselecciona Central cuando hay un solo destino de red.
+  useEffect(() => {
+    if (esCentral || !needsDestinos) return
+    const destinos = bovedasDestinoQuery.data
+    if (!destinos || destinos.length !== 1) return
+    const actual = fondeoForm.getFieldValue('bovedaDestinoId')
+    if (actual == null) {
+      fondeoForm.setFieldsValue({ bovedaDestinoId: destinos[0].bovedaId })
+    }
+  }, [esCentral, needsDestinos, bovedasDestinoQuery.data, fondeoForm])
 
   const transferenciasPendientesQuery = useQuery({
     queryKey: ['boveda-transferencias-pendientes', bovedaId],
@@ -350,14 +379,21 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     const medio =
       tipoPagoOptions.find((o) => o.value === (v.tipoPagoId && v.tipoPagoId > 0 ? v.tipoPagoId : 1))
         ?.label ?? 'efectivo'
+    const haciaCentral = !esCentral
     confirmMoney({
-      title: dest ? `Fondear ${dest.oficina}` : 'Fondear / transferir ahora',
+      title: dest
+        ? haciaCentral
+          ? `Enviar a ${dest.oficina}`
+          : `Fondear ${dest.oficina}`
+        : haciaCentral
+          ? 'Enviar a Central'
+          : 'Fondear ahora',
       amount: v.monto,
       officeLabel: dest
         ? `Bóveda #${bovedaId} → ${dest.oficina} · #${dest.bovedaId}`
         : `Bóveda #${bovedaId}`,
-      consequence: `Viaja ${medio}. Se acredita de inmediato en origen y destino. No espera aceptación.`,
-      okText: 'Transferir',
+      consequence: `Viaja ${medio}. Se acredita de inmediato en origen y destino.`,
+      okText: haciaCentral ? 'Enviar' : 'Fondear',
       onOk: async () => {
         await transferir.mutateAsync({
           oficinaId,
@@ -880,7 +916,11 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               type="warning"
               showIcon
               style={{ marginBottom: 12 }}
-              message="No hay bóvedas principales abiertas en otras oficinas."
+              message={
+                esCentral
+                  ? 'No hay bóvedas de sucursal abiertas para fondear.'
+                  : 'La bóveda Central no está abierta. No se puede remesar ahora.'
+              }
             />
           ) : null}
           <Form
@@ -893,17 +933,17 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             <div className="boveda-operaciones-form__row">
             <Form.Item
               name="bovedaDestinoId"
-              label="Oficina / bóveda destino"
+              label={esCentral ? 'Sucursal destino' : 'Central (destino)'}
               rules={[{ required: true, message: 'Seleccione una bóveda destino' }]}
             >
               <Select
                 loading={bovedasDestinoQuery.isLoading}
                 showSearch
                 optionFilterProp="label"
-                placeholder="Seleccione destino"
+                placeholder={esCentral ? 'Seleccione sucursal' : 'Bóveda Central'}
                 options={(bovedasDestinoQuery.data ?? []).map((d) => ({
                   value: d.bovedaId,
-                  label: `${d.oficina} · Bóveda #${d.bovedaId} · Saldo S/ ${formatMoney(d.saldoFinal)}`,
+                  label: `${d.indPrincipal ? 'Central · ' : ''}${d.oficina} · Bóveda #${d.bovedaId} · Saldo S/ ${formatMoney(d.saldoFinal)}`,
                 }))}
               />
             </Form.Item>
@@ -926,7 +966,10 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             <Form.Item name="glosa" label="Glosa" rules={glosaRules}>
               <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
             </Form.Item>
-            {formActions('Transferir ahora', transferir.isPending)}
+            {formActions(
+              esCentral ? 'Fondear ahora' : 'Enviar a Central',
+              transferir.isPending,
+            )}
           </Form>
         </>
     ),
@@ -939,7 +982,11 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               type="success"
               showIcon
               message="Nada en espera hacia esta bóveda."
-              description="Para enviar saldo a otra sede use Fondeo. Queda acreditado de inmediato."
+              description={
+                esCentral
+                  ? 'Para enviar saldo a una sucursal use Fondeo. Queda acreditado de inmediato.'
+                  : 'Para remesar saldo a Central use «A Central». Queda acreditado de inmediato.'
+              }
             />
           ) : (
             <ul className="boveda-pendientes">
@@ -1029,7 +1076,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       ) : null}
       <div className="boveda-ops" translate="no">
         <nav className="boveda-ops-nav" aria-label="Operaciones de bóveda">
-          {OPS_GROUPS.map((group) => (
+          {navGroups.map((group) => (
             <div key={group.title} className="boveda-ops-nav__group">
               <p className="boveda-ops-nav__title">{group.title}</p>
               {group.items.map((item) => {
@@ -1057,10 +1104,10 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           ))}
         </nav>
         <div className="boveda-ops-stage">
-          {OPS_COPY[activeTab] ? (
+          {stageCopy[activeTab] ? (
             <header className="boveda-ops-stage__head">
-              <h3>{OPS_COPY[activeTab].title}</h3>
-              <p>{OPS_COPY[activeTab].blurb}</p>
+              <h3>{stageCopy[activeTab].title}</h3>
+              <p>{stageCopy[activeTab].blurb}</p>
             </header>
           ) : null}
           {panes[activeTab]}

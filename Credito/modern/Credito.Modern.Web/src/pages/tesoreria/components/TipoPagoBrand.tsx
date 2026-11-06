@@ -1,9 +1,12 @@
 import type { ReactElement, ReactNode } from 'react'
 import {
+  medioNombrePorItemId,
+  ordenTipoPago,
+} from '../../../utils/tipoPago'
+import {
   esMarcaTipoPago,
   medioEtiquetaUi,
   medioNombreMarca,
-  medioNombrePorItemId,
 } from './bovedaResumenCuentaParse'
 import { ResumenCuentaBrandLogo } from './resumenCuentaBrandIcons'
 import { marcaDesdeTipoPagoId } from './resumencuentabrands'
@@ -12,20 +15,6 @@ type TipoPagoOption = {
   value: number
   label: string
   searchText: string
-}
-
-/** Orden estable: Efectivo → Yape(s) → Interbank(s) → BCP → Nación → Plin. */
-const TIPO_PAGO_ORDEN: Record<number, number> = {
-  1: 10,
-  10: 20,
-  11: 21,
-  2: 22,
-  12: 30,
-  13: 31,
-  3: 32,
-  4: 40,
-  5: 50,
-  9: 60,
 }
 
 function nombreOpcion(itemId: number, denominacion: string): string {
@@ -52,11 +41,7 @@ export function buildTipoPagoOptions(
         searchText: `${nombre} ${t.denominacion}`.trim(),
       }
     })
-    .sort(
-      (a, b) =>
-        (TIPO_PAGO_ORDEN[a.value] ?? 100 + a.value) -
-        (TIPO_PAGO_ORDEN[b.value] ?? 100 + b.value),
-    )
+    .sort((a, b) => ordenTipoPago(a.value) - ordenTipoPago(b.value))
 }
 
 export function TipoPagoOptionLabel({

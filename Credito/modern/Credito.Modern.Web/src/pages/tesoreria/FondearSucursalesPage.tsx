@@ -102,6 +102,31 @@ export function FondearSucursalesPage() {
     })
   }
 
+  if (oficinaId > 0 && !esCentral) {
+    return (
+      <CredixPage
+        title="Fondear sucursales"
+        breadcrumb={[
+          { title: <Link to="/inicio">Inicio</Link> },
+          { title: <Link to="/tesoreria">Tesorería</Link> },
+          { title: 'Fondear' },
+        ]}
+      >
+        <Alert
+          type="info"
+          showIcon
+          message="El fondeo a sucursales solo se hace desde Central."
+          description={
+            <>
+              Para remesar saldo de esta sede a Central, abra{' '}
+              <Link to="/tesoreria/boveda">Bóveda → A Central</Link>.
+            </>
+          }
+        />
+      </CredixPage>
+    )
+  }
+
   return (
     <CredixPage
       title="Fondear sucursales"

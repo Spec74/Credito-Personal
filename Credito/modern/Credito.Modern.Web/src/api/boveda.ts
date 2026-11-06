@@ -73,6 +73,8 @@ export interface BovedaDestinoTransferencia {
   oficina: string
   saldoFinal: number
   fechaIniOperacion: string
+  /** true = destino es la oficina Central (IndPrincipal). */
+  indPrincipal?: boolean
 }
 
 export interface BovedaRedPosicion {

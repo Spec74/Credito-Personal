@@ -143,19 +143,30 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
 
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        // Central fondea sucursales; sucursal remesa solo a Central (no peer-to-peer).
         const string sql = """
+            DECLARE @OrigenEsCentral bit = (
+                SELECT CAST(ISNULL(IndPrincipal, 0) AS bit)
+                FROM MAESTRO.Oficina
+                WHERE OficinaId = @OficinaOrigenId);
+
             SELECT
                 b.BovedaId,
                 b.OficinaId,
                 COALESCE(o.Denominacion, CONCAT('Oficina ', b.OficinaId)) AS Oficina,
                 b.SaldoFinal,
-                b.FechaIniOperacion
+                b.FechaIniOperacion,
+                CAST(ISNULL(o.IndPrincipal, 0) AS bit) AS IndPrincipal
             FROM CREDITO.Boveda AS b
-            LEFT JOIN MAESTRO.Oficina AS o ON o.OficinaId = b.OficinaId
+            INNER JOIN MAESTRO.Oficina AS o ON o.OficinaId = b.OficinaId
             WHERE b.IndCierre = CAST(0 AS bit)
               AND b.IndTemporal = CAST(0 AS bit)
               AND b.OficinaId <> @OficinaOrigenId
-            ORDER BY o.Denominacion, b.BovedaId;
+              AND (
+                    (@OrigenEsCentral = CAST(1 AS bit) AND ISNULL(o.IndPrincipal, 0) = CAST(0 AS bit))
+                 OR (@OrigenEsCentral = CAST(0 AS bit) AND o.IndPrincipal = CAST(1 AS bit))
+              )
+            ORDER BY o.IndPrincipal DESC, o.Denominacion, b.BovedaId;
             """;
         var rows = await connection
             .QueryAsync<BovedaDestinoTransferenciaDto>(
@@ -369,31 +380,31 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         (short Id, string Marca, string Variant, short[] Familia)[] catalogo = sesion.IndPrincipal
             ?
             [
-                (1, "Efectivo", "efectivo", [1]),
-                (10, "Yape Gerente", "yape", [10]),
-                (11, "Yape René", "yape", [11]),
-                (2, "Yape", "yape", [2]),
-                (12, "Interbank Gerente", "interbank", [12]),
-                (13, "Interbank René", "interbank", [13]),
-                (3, "Interbank", "interbank", [3]),
+                ((short)TipoPagoRules.Efectivo, "Efectivo", "efectivo", [(short)TipoPagoRules.Efectivo]),
+                ((short)TipoPagoRules.YapeGerente, "Yape Gerente", "yape", [(short)TipoPagoRules.YapeGerente]),
+                ((short)TipoPagoRules.YapeRene, "Yape René", "yape", [(short)TipoPagoRules.YapeRene]),
+                ((short)TipoPagoRules.Yape, "Yape", "yape", [(short)TipoPagoRules.Yape]),
+                ((short)TipoPagoRules.InterbankGerente, "Interbank Gerente", "interbank", [(short)TipoPagoRules.InterbankGerente]),
+                ((short)TipoPagoRules.InterbankRene, "Interbank René", "interbank", [(short)TipoPagoRules.InterbankRene]),
+                ((short)TipoPagoRules.Interbank, "Interbank", "interbank", [(short)TipoPagoRules.Interbank]),
                 (4, "BCP", "bcp", [4]),
                 (5, "Banco de la Nación", "banco-nacion", [5]),
-                (9, "Plin", "plin", [9]),
+                ((short)TipoPagoRules.Plin, "Plin", "plin", [(short)TipoPagoRules.Plin]),
             ]
             :
             [
-                (1, "Efectivo", "efectivo", [1]),
-                (2, "Yape", "yape", [2, 10, 11]),
-                (3, "Interbank", "interbank", [3, 12, 13]),
+                ((short)TipoPagoRules.Efectivo, "Efectivo", "efectivo", [(short)TipoPagoRules.Efectivo]),
+                ((short)TipoPagoRules.Yape, "Yape", "yape", [(short)TipoPagoRules.Yape, (short)TipoPagoRules.YapeGerente, (short)TipoPagoRules.YapeRene]),
+                ((short)TipoPagoRules.Interbank, "Interbank", "interbank", [(short)TipoPagoRules.Interbank, (short)TipoPagoRules.InterbankGerente, (short)TipoPagoRules.InterbankRene]),
                 (4, "BCP", "bcp", [4]),
                 (5, "Banco de la Nación", "banco-nacion", [5]),
-                (9, "Plin", "plin", [9]),
+                ((short)TipoPagoRules.Plin, "Plin", "plin", [(short)TipoPagoRules.Plin]),
             ];
 
         var result = new List<BovedaMedioMarcaDto>(catalogo.Length);
         foreach (var (id, marca, variant, familia) in catalogo)
         {
-            if ((id is 10 or 11 or 12 or 13) && !idsEnCatalogo.Contains(id))
+            if (TipoPagoRules.IsCentralWallet(id) && !idsEnCatalogo.Contains(id))
             {
                 continue;
             }
@@ -424,7 +435,7 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             if (sesion.IndPrincipal)
             {
                 // Billeteras persona: solo la sede Central.
-                if (id is 10 or 11 or 12 or 13)
+                if (TipoPagoRules.IsCentralWallet(id))
                 {
                     sedes = sedes.Where(s => s.IndPrincipal).ToList();
                 }

@@ -8,6 +8,7 @@ namespace Credito.Modern.Application.CreditoPlanes;
 /// <item>Medios de red (vista Central): Yape(2) e Interbank(3) muestran saldos de todas las sedes
 ///       (como BCP/Plin); Gerente/René son detalle solo de Central. Sin doble conteo de tipado.</item>
 /// <item>Fondeo Central→sucursal con billetera: destino acredita familia (10/11→2, 12/13→3).</item>
+/// <item>Remesa sucursal→Central: mismo medio genérico (2/3/4/5/9); sin peer entre sucursales.</item>
 /// </list>
 /// Familia Yape = 2+10+11; Interbank = 3+12+13. 6–8 sede obsoleta. Digital = TipoPagoId &gt; 1.
 /// </summary>
@@ -74,6 +75,25 @@ public static class TipoPagoRules
     /// <summary>Compat: sin contexto de sede asume no-Central (bloquea billeteras CENTRAL).</summary>
     public static string? RequireCobroPermitido(int tipoPagoId, string fieldName = "tipoPagoId") =>
         RequireCobroPermitido(tipoPagoId, esCentral: false, fieldName);
+
+    /// <summary>Origen + destino en la misma sede (transferencias internas / bancos).</summary>
+    public static string? RequireParCobroPermitido(
+        int tipoPagoOrigenId,
+        int tipoPagoDestinoId,
+        bool esCentral,
+        string origenField = "tipoPagoOrigenId",
+        string destinoField = "tipoPagoDestinoId") =>
+        RequireCobroPermitido(tipoPagoOrigenId, esCentral, origenField)
+        ?? RequireCobroPermitido(tipoPagoDestinoId, esCentral, destinoField);
+
+    /// <summary>Fondeo Central→sucursal: destino acredita familia genérica.</summary>
+    public static short MapFondeoDestino(short tipoPagoOrigenId) =>
+        tipoPagoOrigenId switch
+        {
+            YapeGerente or YapeRene => (short)Yape,
+            InterbankGerente or InterbankRene => (short)Interbank,
+            _ => tipoPagoOrigenId,
+        };
 
     public static string? RequireDigitalFecha(
         int tipoPagoId,

@@ -5478,7 +5478,8 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoBovedasDestinoTransferencia")
-            .WithSummary("B?vedas principales abiertas de otras oficinas para transferencia interoficina.")
+            .WithSummary(
+                "Destinos de red: Central lista sucursales abiertas; sucursal lista solo la bóveda Central.")
             .WithTags("credito", "boveda")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<List<BovedaDestinoTransferenciaDto>>(StatusCodes.Status200OK, "application/json")
@@ -5610,7 +5611,8 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoBovedaMediosRed")
-            .WithSummary("Medios por marca activa (1–5 + Plin). Central: total + desglose por sede. Sucursal: solo la suya.")
+            .WithSummary(
+                "Medios de red: Central muestra Gerente/René + Yape/Interbank/BCP/Plin por sede; sucursal solo su oficina.")
             .WithTags("credito", "boveda")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<BovedaMediosRedDto>(StatusCodes.Status200OK, "application/json")
@@ -6215,6 +6217,27 @@ internal static class CreditoOperacionEndpoints
                                     statusCode: StatusCodes.Status404NotFound,
                                     title: "No encontrado",
                                     detail: "No existe la b?veda de destino indicada.");
+                            }
+
+                            // Red: Central → sucursal; sucursal → Central. Sin peer entre sucursales.
+                            var activas = await oficinas.GetActivasAsync(ct).ConfigureAwait(false);
+                            var destinoEsCentral = activas
+                                .FirstOrDefault(o => o.OficinaId == oficinaDestino.Value)
+                                ?.IndPrincipal == true;
+                            if (sesionTipo!.EsCentral && destinoEsCentral)
+                            {
+                                return TypedResults.Problem(
+                                    statusCode: StatusCodes.Status400BadRequest,
+                                    title: "Destino inválido",
+                                    detail: "Desde Central fondee una sucursal (no otra bóveda Central).");
+                            }
+
+                            if (!sesionTipo.EsCentral && !destinoEsCentral)
+                            {
+                                return TypedResults.Problem(
+                                    statusCode: StatusCodes.Status400BadRequest,
+                                    title: "Destino inválido",
+                                    detail: "Desde sucursal solo puede enviar saldo a la bóveda Central.");
                             }
                         }
 
@@ -7215,6 +7238,7 @@ internal static class CreditoOperacionEndpoints
                     HttpContext httpContext,
                     TransferirBovedaCajaRequest body,
                     IBovedaMovWriteService bovedaMovWrite,
+                    IOficinaReadService oficinas,
                     IDatabaseTimeProvider databaseTime,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -7232,6 +7256,22 @@ internal static class CreditoOperacionEndpoints
                     {
                         return oficinaError;
                     }
+
+                    var (sesionTipo, sesionTipoErr) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, null, ct)
+                        .ConfigureAwait(false);
+                    if (sesionTipoErr is not null)
+                        return sesionTipoErr;
+
+                    var tipoOrigen = body.TipoPagoOrigenId < 1 ? (short)1 : body.TipoPagoOrigenId;
+                    var tipoDestino = body.TipoPagoDestinoId < 1 ? (short)1 : body.TipoPagoDestinoId;
+                    var tipoPagoError = ProblemResults.IfInvalid(
+                        TipoPagoRules.RequireParCobroPermitido(
+                            tipoOrigen,
+                            tipoDestino,
+                            sesionTipo!.EsCentral));
+                    if (tipoPagoError is not null)
+                        return tipoPagoError;
 
                     var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
                     if (usuarioError is not null)
@@ -7259,8 +7299,8 @@ internal static class CreditoOperacionEndpoints
                                 body.Descripcion,
                                 usuarioId,
                                 serverTime.Value,
-                                body.TipoPagoOrigenId,
-                                body.TipoPagoDestinoId,
+                                tipoOrigen,
+                                tipoDestino,
                                 ct)
                             .ConfigureAwait(false);
 
@@ -7322,6 +7362,7 @@ internal static class CreditoOperacionEndpoints
                     HttpContext httpContext,
                     TransferirBovedaAnalistaRequest body,
                     IBovedaMovWriteService bovedaMovWrite,
+                    IOficinaReadService oficinas,
                     IDatabaseTimeProvider databaseTime,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -7340,6 +7381,20 @@ internal static class CreditoOperacionEndpoints
                     {
                         return oficinaError;
                     }
+
+                    var (sesionTipo, sesionTipoErr) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, null, ct)
+                        .ConfigureAwait(false);
+                    if (sesionTipoErr is not null)
+                        return sesionTipoErr;
+
+                    var tipoPagoError = ProblemResults.IfInvalid(
+                        TipoPagoRules.RequireCobroPermitido(
+                            body.TipoPagoOrigenId,
+                            sesionTipo!.EsCentral,
+                            "tipoPagoOrigenId"));
+                    if (tipoPagoError is not null)
+                        return tipoPagoError;
 
                     var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
                     if (usuarioError is not null)

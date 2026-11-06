@@ -1,3 +1,8 @@
+import {
+  esMarcaTipoPagoCatalogo,
+  medioNombrePorItemId as medioNombrePorItemIdCatalogo,
+} from '../../../utils/tipoPago'
+
 /** Resultado de parsear el texto de CREDITO.usp_ResumenCuentaBoveda */
 export type ResumenCuentaItem = {
   clave: string
@@ -161,10 +166,7 @@ export function medioComplemento(
 }
 
 /**
- * Medios postables en combo/chips (multisucursal).
- * - Central: billeteras Gerente/René (10–13); oculta genéricos Yape(2)/Interbank(3).
- * - Sucursal: genéricos 2/3; oculta billeteras CENTRAL.
- * - Todas: Plin, BCP, Nación, Efectivo. Nunca 6–8 / OBSOLETO / sede en nombre.
+ * Medios postables en combo/chips — tipado de sede en `utils/tipoPago`.
  */
 export function esMarcaTipoPago(
   item: {
@@ -174,21 +176,12 @@ export function esMarcaTipoPago(
   },
   esCentral = false,
 ): boolean {
-  if (item.itemId >= 6 && item.itemId <= 8) return false
-  const dc = (item.desCorta ?? '').trim().toUpperCase()
-  if (dc === 'OBSOLETO') return false
-  // Sufijo sede en denominación (legado), no la bandera DesCorta=CENTRAL.
-  if (/\s+(HUANTA|PICHARI|ANDAHUAYLAS|HUAMANGA|CENTRAL)\s*$/i.test(item.denominacion.trim())) {
-    return false
-  }
-  const esBilleteraCentral =
-    dc === 'CENTRAL' || item.itemId === 10 || item.itemId === 11 || item.itemId === 12 || item.itemId === 13
-  if (esCentral) {
-    if (item.itemId === 2 || item.itemId === 3) return false
-    return true
-  }
-  if (esBilleteraCentral) return false
-  return true
+  return esMarcaTipoPagoCatalogo(item, esCentral)
+}
+
+/** Reexport: nombre UI estable por ItemId (compat con imports existentes). */
+export function medioNombrePorItemId(itemId: number): string | null {
+  return medioNombrePorItemIdCatalogo(itemId)
 }
 
 /** Nombre corto de sede para la lista (Oficina.Denominacion). */
@@ -209,34 +202,6 @@ export function medioEtiquetaUi(raw: string): {
     variant,
     aria: etiqueta,
     visible: medioComplemento(etiqueta, variant),
-  }
-}
-
-/** Billeteras Central: nombre estable por ItemId (no depende del texto en ValorTabla). */
-export function medioNombrePorItemId(itemId: number): string | null {
-  switch (itemId) {
-    case 1:
-      return 'Efectivo'
-    case 2:
-      return 'Yape'
-    case 3:
-      return 'Interbank'
-    case 4:
-      return 'BCP'
-    case 5:
-      return 'Banco de la Nación'
-    case 9:
-      return 'Plin'
-    case 10:
-      return 'Yape Gerente'
-    case 11:
-      return 'Yape René'
-    case 12:
-      return 'Interbank Gerente'
-    case 13:
-      return 'Interbank René'
-    default:
-      return null
   }
 }
 

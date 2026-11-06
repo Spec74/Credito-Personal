@@ -149,7 +149,7 @@ export function PagoMediosSplit({
                 style={{ width: '100%' }}
               />
             </label>
-            {l.tipoPagoId > 1 ? (
+            {esTipoPagoDigital(l.tipoPagoId) ? (
               <FechaHoraDigitalField
                 value={l.fechaTransferencia}
                 status={!l.fechaTransferencia ? 'error' : undefined}

@@ -15,13 +15,17 @@ public sealed record BovedaAbiertaDto(
     decimal SumaMedios = 0m,
     decimal DeltaMedios = 0m);
 
-/// <summary>Bóveda abierta disponible para transferencia interoficina.</summary>
+/// <summary>
+/// Bóveda abierta disponible para transferencia interoficina.
+/// Regla de red: Central → solo sucursales; sucursal → solo Central (<c>IndPrincipal</c>).
+/// </summary>
 public sealed record BovedaDestinoTransferenciaDto(
     int BovedaId,
     int OficinaId,
     string Oficina,
     decimal SaldoFinal,
-    DateTime FechaIniOperacion);
+    DateTime FechaIniOperacion,
+    bool IndPrincipal = false);
 
 /// <summary>Posición de efectivo de una sede (principal abierta). Cartera no entra.</summary>
 public sealed record BovedaRedPosicionDto(

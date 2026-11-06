@@ -7,12 +7,15 @@ import {
   TIPO_PAGO_YAPE,
   TIPO_PAGO_YAPE_GERENTE,
   TIPO_PAGO_YAPE_RENE,
+  esMarcaTipoPagoCatalogo,
   esTipoPagoBilleteraCentral,
   esTipoPagoCobroPermitido,
   esTipoPagoDigital,
   esTipoPagoInterbankFamilia,
   esTipoPagoSedeObsoleto,
   esTipoPagoYapeFamilia,
+  marcaDesdeTipoPagoId,
+  medioNombrePorItemId,
 } from './tipoPago'
 
 describe('tipoPago multisucursal', () => {
@@ -50,5 +53,29 @@ describe('tipoPago multisucursal', () => {
     expect(esTipoPagoBilleteraCentral(TIPO_PAGO_INTERBANK_RENE)).toBe(true)
     expect(esTipoPagoSedeObsoleto(6)).toBe(true)
     expect(esTipoPagoCobroPermitido(6, true)).toBe(false)
+  })
+
+  it('catálogo UI: nombres, marcas y filtro de combo', () => {
+    expect(medioNombrePorItemId(TIPO_PAGO_YAPE_RENE)).toBe('Yape René')
+    expect(medioNombrePorItemId(5)).toBe('Banco de la Nación')
+    expect(marcaDesdeTipoPagoId(TIPO_PAGO_INTERBANK_GERENTE)).toBe('interbank')
+    expect(
+      esMarcaTipoPagoCatalogo(
+        { itemId: 10, denominacion: 'YAPE GERENTE', desCorta: 'CENTRAL' },
+        true,
+      ),
+    ).toBe(true)
+    expect(
+      esMarcaTipoPagoCatalogo(
+        { itemId: 2, denominacion: 'YAPE' },
+        true,
+      ),
+    ).toBe(false)
+    expect(
+      esMarcaTipoPagoCatalogo(
+        { itemId: 2, denominacion: 'YAPE HUANTA' },
+        false,
+      ),
+    ).toBe(false)
   })
 })

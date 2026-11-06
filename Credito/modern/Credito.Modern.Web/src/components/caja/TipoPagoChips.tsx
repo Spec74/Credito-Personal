@@ -1,11 +1,14 @@
+import { useCallback, useId, useRef, type KeyboardEvent } from 'react'
 import { ResumenCuentaBrandLogo } from '../../pages/tesoreria/components/resumenCuentaBrandIcons'
 import '../../styles/caja-tipo-pago-chips.css'
 import {
   medioEtiquetaUi,
   medioNombreMarca,
-  medioNombrePorItemId,
 } from '../../pages/tesoreria/components/bovedaResumenCuentaParse'
-import { marcaDesdeTipoPagoId } from '../../pages/tesoreria/components/resumencuentabrands'
+import {
+  marcaDesdeTipoPagoId,
+  medioNombrePorItemId,
+} from '../../utils/tipoPago'
 
 type Opt = { value: number; label: string }
 
@@ -32,12 +35,43 @@ export function TipoPagoChips({
   options: Opt[]
   onChange: (id: number) => void
   disabled?: boolean
-  /** En PC: varias filas en lugar de scroll horizontal infinito. */
+  /** En PC: varias filas en lugar de scroll horizontal. En móvil el CSS también apila. */
   wrap?: boolean
 }) {
   const uniq = dedupeOptions(options)
+  const groupId = useId()
+  const btnRefs = useRef<(HTMLButtonElement | null)[]>([])
+
+  const focusAt = useCallback((index: number) => {
+    const el = btnRefs.current[index]
+    el?.focus()
+  }, [])
+
+  const onKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLDivElement>) => {
+      if (disabled || uniq.length === 0) return
+      const keys = ['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Home', 'End']
+      if (!keys.includes(e.key)) return
+      e.preventDefault()
+      const found = uniq.findIndex((o) => o.value === value)
+      const i = found >= 0 ? found : 0
+      let next = i
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (i + 1) % uniq.length
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp')
+        next = (i - 1 + uniq.length) % uniq.length
+      else if (e.key === 'Home') next = 0
+      else if (e.key === 'End') next = uniq.length - 1
+      onChange(uniq[next].value)
+      focusAt(next)
+    },
+    [disabled, uniq, value, onChange, focusAt],
+  )
+
+  const activeIndex = uniq.findIndex((o) => o.value === value)
+
   return (
     <div
+      id={groupId}
       className={[
         'caja-tipo-pago-chips',
         wrap ? 'caja-tipo-pago-chips--wrap' : '',
@@ -47,20 +81,26 @@ export function TipoPagoChips({
       role="radiogroup"
       aria-label="Forma de pago"
       translate="no"
+      onKeyDown={onKeyDown}
     >
-      {uniq.map((opt) => {
+      {uniq.map((opt, index) => {
         const active = value === opt.value
         const nombre = medioNombrePorItemId(opt.value) ?? medioNombreMarca(opt.label)
         const fromTexto = medioEtiquetaUi(nombre)
         const variant = marcaDesdeTipoPagoId(opt.value) ?? fromTexto.variant
+        const tabStop = active || (activeIndex < 0 && index === 0)
         return (
           <button
             key={opt.value}
+            ref={(el) => {
+              btnRefs.current[index] = el
+            }}
             type="button"
             role="radio"
             aria-checked={active}
             aria-label={nombre}
             title={nombre}
+            tabIndex={tabStop ? 0 : -1}
             disabled={disabled}
             className={[
               'caja-tipo-pago-chips__btn',
