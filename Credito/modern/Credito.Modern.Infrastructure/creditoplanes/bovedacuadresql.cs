@@ -25,7 +25,10 @@ internal static class BovedaCuadreSql
                         WHERE BovedaId = @BovedaId AND Estado = 1
                         GROUP BY TipoPagoId
                     ) AS m ON m.TipoPagoId = vt.ItemId
-                    WHERE vt.TablaId = 13 AND vt.ItemId BETWEEN 1 AND 5
+                    WHERE vt.TablaId = 13
+                      AND vt.ItemId > 0
+                      AND vt.ItemId NOT BETWEEN 6 AND 8
+                      AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
                 )
                 ELSE (
                     ISNULL((SELECT SaldoInicial FROM CREDITO.Boveda WHERE BovedaId = @BovedaId), 0)

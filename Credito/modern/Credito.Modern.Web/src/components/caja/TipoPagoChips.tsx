@@ -18,7 +18,7 @@ function dedupeOptions(options: Opt[]): Opt[] {
   return out
 }
 
-/** Selector táctil de forma de pago (efectivo, Yape, BCP, Interbank, Nación…). */
+/** Selector táctil de forma de pago (efectivo, Yape, Plin, BCP, Interbank, Nación…). */
 export function TipoPagoChips({
   value,
   options,

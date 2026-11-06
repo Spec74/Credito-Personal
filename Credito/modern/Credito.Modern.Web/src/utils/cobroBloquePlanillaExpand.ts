@@ -43,7 +43,7 @@ export function validateRowMixtoMoney(edit: CobroBloqueRowDraft): string | null 
   }
   for (const m of medios) {
     if (esTipoPagoDigital(m.tipoPagoId) && !(m.fechaHoraTrans ?? '').trim()) {
-      return 'Cada medio digital/transferencia (Yape, BCP, Interbank, Nación…) requiere fecha/hora del voucher.'
+      return 'Cada medio digital/transferencia (Yape, Plin, BCP, Interbank, Nación…) requiere fecha/hora del voucher.'
     }
   }
   return null

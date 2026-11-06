@@ -1156,7 +1156,7 @@ export function CobranzasTab({
                   }}
                   style={{ marginBottom: 8 }}
                 >
-                  Dividir en varios medios (Yape, BCP, Interbank, Nación + efectivo)
+                  Dividir en varios medios (Yape, Plin, BCP, Interbank, Nación + efectivo)
                 </Checkbox>
                 {cuotaMixto ? (
                   <PagoMediosSplit
@@ -1206,7 +1206,7 @@ export function CobranzasTab({
                   }}
                   style={{ marginBottom: 8 }}
                 >
-                  Dividir en varios medios (Yape, BCP, Interbank, Nación + efectivo)
+                  Dividir en varios medios (Yape, Plin, BCP, Interbank, Nación + efectivo)
                 </Checkbox>
                 {pagoLibreMixto ? (
                   <>

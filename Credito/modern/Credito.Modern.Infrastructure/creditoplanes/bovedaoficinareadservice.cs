@@ -313,7 +313,8 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                         WHERE b.IndCierre = CAST(0 AS bit)
                           AND b.IndTemporal = CAST(0 AS bit)
                           AND bm.Estado = CAST(1 AS bit)
-                          AND bm.TipoPagoId BETWEEN 1 AND 5
+                          AND bm.TipoPagoId > 0
+                          AND bm.TipoPagoId NOT BETWEEN 6 AND 8
                         GROUP BY b.OficinaId, bm.TipoPagoId
                     )
                     SELECT
@@ -333,7 +334,10 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                         ORDER BY bv.BovedaId DESC
                     ) AS b
                     INNER JOIN MAESTRO.ValorTabla AS vt
-                        ON vt.TablaId = 13 AND vt.ItemId BETWEEN 1 AND 5
+                        ON vt.TablaId = 13
+                       AND vt.ItemId > 0
+                       AND vt.ItemId NOT BETWEEN 6 AND 8
+                       AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
                     LEFT JOIN CREDITO.BovedaCuenta AS bc
                         ON bc.BovedaId = b.BovedaId AND bc.TipoPagoId = vt.ItemId
                     LEFT JOIN Movs AS m
@@ -361,6 +365,7 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             (3, "Interbank", "interbank"),
             (4, "BCP", "bcp"),
             (5, "Nación", "banco-nacion"),
+            (9, "Plin", "plin"),
         ];
 
         var result = new List<BovedaMedioMarcaDto>(catalogo.Length);

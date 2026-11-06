@@ -3435,7 +3435,7 @@ internal static class CreditoOperacionEndpoints
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
-                            detail: "El cobro mixto requiere al menos 2 medios (p. ej. Yape/BCP + efectivo).");
+                            detail: "El cobro mixto requiere al menos 2 medios (p. ej. Yape/Plin/BCP + efectivo).");
                     }
 
                     var total = body.Medios.Sum(m => m.Importe);
@@ -3538,7 +3538,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoPagarCuotaImporteLibreMixto")
             .WithSummary(
-                "Escritura: N× CREDITO.usp_PagarCuotaPagoLibre en una transacción (Yape/BCP/Interbank/Nación + efectivo). CreditoRolOperador.")
+                "Escritura: N× CREDITO.usp_PagarCuotaPagoLibre en una transacción (Yape/Plin/BCP/Interbank/Nación + efectivo). CreditoRolOperador.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
             .Produces<PagoCajaMixtoResultResponse>(StatusCodes.Status200OK, "application/json")
@@ -5596,7 +5596,7 @@ internal static class CreditoOperacionEndpoints
                     }
                 })
             .WithName("CreditoBovedaMediosRed")
-            .WithSummary("Medios por marca (1–5). Central: total + desglose por sede. Sucursal: solo la suya.")
+            .WithSummary("Medios por marca activa (1–5 + Plin). Central: total + desglose por sede. Sucursal: solo la suya.")
             .WithTags("credito", "boveda")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<BovedaMediosRedDto>(StatusCodes.Status200OK, "application/json")

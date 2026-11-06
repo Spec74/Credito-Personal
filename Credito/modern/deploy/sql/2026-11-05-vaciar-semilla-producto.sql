@@ -407,7 +407,10 @@ BEGIN
                 INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
                 SELECT @BovedaId, vt.ItemId, 0
                 FROM MAESTRO.ValorTabla AS vt
-                WHERE vt.TablaId = 13 AND vt.ItemId BETWEEN 1 AND 5
+                WHERE vt.TablaId = 13
+                  AND vt.ItemId > 0
+                  AND vt.ItemId NOT BETWEEN 6 AND 8
+                  AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
                   AND NOT EXISTS (
                         SELECT 1 FROM CREDITO.BovedaCuenta AS bc
                         WHERE bc.BovedaId = @BovedaId AND bc.TipoPagoId = vt.ItemId);

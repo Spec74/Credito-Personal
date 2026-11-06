@@ -61,10 +61,10 @@ export function validatePagoMedios(
     const imp = roundMoney(l.importe ?? 0)
     if (!(imp > 0)) return 'Cada medio debe tener importe mayor a 0 (mín. S/ 0.01).'
     if (!esTipoPagoCobroPermitido(l.tipoPagoId)) {
-      return 'Seleccione un medio válido (Efectivo, Yape, Interbank, BCP o Banco de la Nación).'
+      return 'Seleccione un medio válido (Efectivo, Yape, Plin, Interbank, BCP o Banco de la Nación).'
     }
     if (esTipoPagoDigital(l.tipoPagoId) && !l.fechaTransferencia.trim()) {
-      return 'Yape, BCP, Interbank, Nación u otro digital: indique fecha/hora del voucher.'
+      return 'Yape, Plin, BCP, Interbank, Nación u otro digital: indique fecha/hora del voucher.'
     }
   }
   if (expectedTotal != null && expectedTotal > 0) {
@@ -76,7 +76,7 @@ export function validatePagoMedios(
   return null
 }
 
-/** Editor de cobro mixto (Yape/BCP/Interbank/Nación + efectivo, etc.). */
+/** Editor de cobro mixto (Yape/Plin/BCP/Interbank/Nación + efectivo, etc.). */
 export function PagoMediosSplit({
   lineas,
   options,
@@ -109,7 +109,7 @@ export function PagoMediosSplit({
   return (
     <div className="caja-pago-medios-split">
       <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-        Divida el cobro (Yape, BCP, Interbank, Nación, efectivo…). Total:{' '}
+        Divida el cobro (Yape, Plin, BCP, Interbank, Nación, efectivo…). Total:{' '}
         <strong>{formatMoney(total)}</strong>
       </Typography.Text>
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>

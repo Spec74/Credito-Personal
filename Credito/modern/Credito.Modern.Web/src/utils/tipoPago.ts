@@ -2,7 +2,7 @@
  * Medios de pago (MAESTRO.ValorTabla TablaId = 13).
  *
  * Catálogo operativo vigente:
- * 1 Efectivo · 2 Yape · 3 Interbank · 4 BCP · 5 Banco de la Nación
+ * 1 Efectivo · 2 Yape · 3 Interbank · 4 BCP · 5 Banco de la Nación · 9 Plin
  * (6–8 = variantes por sede obsoletas; no usar en cobro).
  *
  * Regla alineada a los USP: todo TipoPagoId &gt; 1 es digital/transferencia
@@ -10,8 +10,9 @@
  */
 
 export const TIPO_PAGO_EFECTIVO = 1
+export const TIPO_PAGO_PLIN = 9
 
-/** Efectivo = 1; Yape / bancos / cualquier marca digital = &gt; 1. */
+/** Efectivo = 1; Yape / Plin / bancos / cualquier marca digital = &gt; 1. */
 export function esTipoPagoDigital(tipoPagoId: number): boolean {
   return Number(tipoPagoId) > TIPO_PAGO_EFECTIVO
 }
@@ -22,7 +23,7 @@ export function esTipoPagoSedeObsoleto(tipoPagoId: number): boolean {
   return id >= 6 && id <= 8
 }
 
-/** Medio aceptable en cobro moderno (efectivo o marca activa 2–5). */
+/** Medio aceptable en cobro moderno (efectivo o marca activa, no 6–8). */
 export function esTipoPagoCobroPermitido(tipoPagoId: number): boolean {
   const id = Number(tipoPagoId)
   if (!Number.isFinite(id) || id < 1) return false

@@ -94,11 +94,12 @@ describe('medioComplemento', () => {
 })
 
 describe('esMarcaTipoPago', () => {
-  it('deja marcas 1–5 y excluye sede disfrazada', () => {
+  it('deja marcas activas (1–5 + Plin) y excluye sede disfrazada', () => {
     expect(esMarcaTipoPago({ itemId: 2, denominacion: 'YAPE' })).toBe(true)
     expect(esMarcaTipoPago({ itemId: 6, denominacion: 'YAPE HUANTA' })).toBe(false)
-    expect(esMarcaTipoPago({ itemId: 9, denominacion: 'YAPE PICHARI' })).toBe(false)
+    expect(esMarcaTipoPago({ itemId: 99, denominacion: 'YAPE PICHARI' })).toBe(false)
     expect(esMarcaTipoPago({ itemId: 4, denominacion: 'BCO CREDITO' })).toBe(true)
+    expect(esMarcaTipoPago({ itemId: 9, denominacion: 'PLIN' })).toBe(true)
   })
 })
 
@@ -110,6 +111,7 @@ describe('medioNombreMarca', () => {
     expect(medioNombreMarca('BCO CREDITO')).toBe('BCP')
     expect(medioNombreMarca('BCO NACION')).toBe('Banco de la Nación')
     expect(medioNombreMarca('INTERBANK')).toBe('Interbank')
+    expect(medioNombreMarca('PLIN')).toBe('Plin')
   })
 })
 

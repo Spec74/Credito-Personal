@@ -38,6 +38,8 @@ export function marcaDesdeTipoPagoId(tipoPagoId: number): ResumenCuentaVariant |
       return 'bcp'
     case 5:
       return 'banco-nacion'
+    case 9:
+      return 'plin'
     default:
       return null
   }

@@ -114,7 +114,7 @@ Abrir sesión de caja, cobrar cuotas, pagos libres, desembolsos autorizados, emi
 2. Abrir **Caja diario** → estado **ABIERTO**.
 3. Buscar cliente / crédito.
 4. Seleccionar cuotas → importe recibido → tipo de pago (efectivo / digital).
-5. Si paga con **varios medios** (p. ej. 10 Yape + 20 efectivo, o BCP + efectivo): en pago libre marque **Dividir en varios medios**, complete cada línea (Yape / BCP / Interbank / Nación / efectivo) y confirme cobro mixto.
+5. Si paga con **varios medios** (p. ej. 10 Yape + 20 efectivo, o BCP + efectivo): en pago libre marque **Dividir en varios medios**, complete cada línea (Yape / Plin / BCP / Interbank / Nación / efectivo) y confirme cobro mixto.
 6. Confirmar → ticket PDF.
 7. Al cierre: entregar cuadre al encargado (conteo de billetes si aplica).
 
@@ -124,7 +124,7 @@ Abrir sesión de caja, cobrar cuotas, pagos libres, desembolsos autorizados, emi
 
 1. Cargar cartera del día.
 2. Tipar montos o marcar cuotas.
-3. Si el cliente paga con **varios medios**: **Dividir** → Yape / BCP / Interbank / Banco de la Nación + efectivo (la suma debe cuadrar al céntimo con el monto tipado).
+3. Si el cliente paga con **varios medios**: **Dividir** → Yape / Plin / BCP / Interbank / Banco de la Nación + efectivo (la suma debe cuadrar al céntimo con el monto tipado).
 4. Enviar planilla (online u offline según cobertura).
 5. Revisar **Enviados** y tickets.
 

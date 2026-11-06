@@ -24,7 +24,7 @@ public interface IBovedaOficinaReadService
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Medios por marca (ItemId 1–5). Central ve desglose por oficina;
+    /// Medios por marca activa (1–5 + Plin=9). Central ve desglose por oficina;
     /// sucursal solo la suya. Sin USP nuevo.
     /// </summary>
     Task<BovedaMediosRedDto> ListarMediosRedAsync(

@@ -11,6 +11,7 @@ const opts = [
   { value: 3, label: 'INTERBANK' },
   { value: 4, label: 'BCO CREDITO' },
   { value: 5, label: 'BCO NACION' },
+  { value: 9, label: 'PLIN' },
 ]
 
 describe('PagoMediosSplit', () => {

@@ -71,6 +71,9 @@ SELECT @BovedaNuevoId=@@IDENTITY
 	FROM MAESTRO.ValorTabla vt
 	LEFT JOIN CUENTAS C ON  vt.ItemId=c.TipoPagoId
 	LEFT JOIN CREDITO.BovedaCuenta BC ON BC.BovedaId = @BovedaId and BC.TipoPagoId = vt.ItemId
-	WHERE vt.TablaId=13 AND vt.ItemId BETWEEN 1 AND 5
+	WHERE vt.TablaId=13
+	  AND vt.ItemId > 0
+	  AND vt.ItemId NOT BETWEEN 6 AND 8
+	  AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
 
 	DELETE CREDITO.BovedaCuenta WHERE BovedaId=@BovedaNuevoId AND SaldoInicial=0

@@ -676,7 +676,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             >
               <Select
                 options={tipoPagoOptions.filter((o) => o.value !== 1)}
-                placeholder="Yape, BCP, Interbank, Nación…"
+                placeholder="Yape, Plin, BCP, Interbank, Nación…"
                 {...tipoPagoSelectProps}
               />
             </Form.Item>
