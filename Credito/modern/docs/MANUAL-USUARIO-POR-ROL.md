@@ -181,7 +181,8 @@ Control de efectivo de la oficina: bóveda local / saldos, asignación de cajas,
 |----------|------|----------|
 | Saldos caja | `/caja/saldos` | Cierre, conteo, asignar caja |
 | Verificar pagos | `/caja/verificar-pagos` | Conciliar digitales |
-| Fondear sedes / Red | `/tesoreria/fondear-sucursales`, `/tesoreria/red` | Si el menú lo da |
+| Bóveda | `/tesoreria/boveda` | Movimientos locales; **Fondeo** (Central) o **A Central** (sucursal) |
+| Fondear sedes / Red | `/tesoreria/fondear-sucursales`, `/tesoreria/red` | Solo Central: fondear varias sedes |
 | Reportes crédito | menú Reportes | Control |
 
 ### Flujo típico — inicio de día
@@ -190,12 +191,18 @@ Control de efectivo de la oficina: bóveda local / saldos, asignación de cajas,
 2. **Asignar caja** al cajero (importe inicial).
 3. Confirmar que el cajero abre **Caja diario**.
 
+### Red de efectivo (fondeo / remesa)
+
+- **Central → sucursal (Fondeo):** elija el medio de Central (Yape/Interbank Gerente·René, BCP…). Si sale una billetera, la sucursal recibe el **genérico** de esa familia.
+- **Sucursal → Central (A Central):** elija a qué medio de **Central** llega (Gerente/René, BCP…). En la sucursal se descuenta el genérico de la misma familia (Yape/Interbank). BCP/Plin/Nación/efectivo viajan 1:1. No hay envíos entre sucursales.
+
 ### Flujo típico — fin de día
 
 1. Cajero entrega cuadre.
 2. **Saldos** → validar cierre / conteo de billetes.
 3. Verificar pagos digitales pendientes.
 4. Cerrar según política de la sede (no cerrar si hay créditos/caja bloqueantes).
+5. Si sobra saldo de red: **Bóveda → A Central** y elegir la billetera destino.
 
 ---
 
@@ -267,6 +274,8 @@ Configuración de la red, seguridad y operación completa de respaldo.
 |---------|-------------|
 | Sin permiso en una pantalla | Menú del rol en Admin → Roles |
 | Caja no abre | Asignación y fondeo del encargado |
+| Remesa no muestra Gerente/René | Desplegar API + aplicar `2026-11-06-usp-transferir-boveda-map-billeteras.sql` |
+| No puede enviar a otra sucursal | Correcto: solo Central ↔ sucursal |
 | Mora “distinta” entre pantallas | Debe coincidir la **suma de cuotas**; recargar (Ctrl+F5) |
 | Ticket / PDF viejo | Reiniciar API tras despliegue |
 | Oficina incorrecta | Usuario ligado a otra sede; no inventar oficina en URL |
