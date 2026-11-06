@@ -217,10 +217,15 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     optionRender: tipoPagoOptionRender,
     popupRender: tipoPagoPopupRender,
     popupClassName: 'medio-marca-dropdown',
-    labelRender: (props: { label?: ReactNode }) =>
-      typeof props.label === 'string'
-        ? tipoPagoOptionRender({ label: props.label })
-        : props.label,
+    labelRender: (props: { label?: ReactNode; value?: string | number }) =>
+      tipoPagoOptionRender({
+        label: typeof props.label === 'string' ? props.label : undefined,
+        value: props.value,
+        data: {
+          label: typeof props.label === 'string' ? props.label : undefined,
+          value: props.value,
+        },
+      }),
   }
 
   const needsCajas =

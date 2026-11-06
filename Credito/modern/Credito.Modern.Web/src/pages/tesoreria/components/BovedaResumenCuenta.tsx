@@ -91,13 +91,19 @@ export function BovedaResumenCuenta({
         <div className="boveda-resumen-cuenta__grid">
           {data.marcas.map((marca) => {
             const variant = marcaDesdeTipoPagoId(marca.tipoPagoId) ?? asVariant(marca.variant)
-            // Wordmark ya dice Yape/Interbank/Plin; Gerente/René van como subtítulo.
-            const subtitulo = (() => {
+            // Wordmark cubre la marca; persona (Gerente/René) o nombre corto si aplica.
+            const persona = (() => {
               const m = marca.marca.trim()
               if (/\bGerente\b/i.test(m)) return 'Gerente'
               if (/\bRen[eé]\b/i.test(m)) return 'René'
               return null
             })()
+            const etiquetaVisible = persona ?? (
+              // Plin/otros sin wordmark fuerte: mostrar nombre. Cash/Yape logo ya nombra.
+              variant === 'plin' || variant === 'otro' || variant === 'transferencia'
+                ? marca.marca
+                : null
+            )
             return (
               <div
                 key={marca.tipoPagoId}
@@ -111,13 +117,13 @@ export function BovedaResumenCuenta({
                     tone="logo"
                     eager={eagerLogos}
                   />
-                  {subtitulo ? (
-                    <span className="boveda-resumen-cuenta__item-sub" translate="no">
-                      {subtitulo}
-                    </span>
-                  ) : null}
                 </div>
                 <div className="boveda-resumen-cuenta__item-meta">
+                  {etiquetaVisible ? (
+                    <span className="boveda-resumen-cuenta__item-label" translate="no">
+                      {etiquetaVisible}
+                    </span>
+                  ) : null}
                   <span
                     className={
                       marca.total < 0

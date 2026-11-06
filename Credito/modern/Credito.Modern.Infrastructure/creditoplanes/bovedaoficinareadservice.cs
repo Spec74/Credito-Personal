@@ -413,6 +413,12 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
 
             if (sesion.IndPrincipal)
             {
+                // Billeteras persona: solo Central (aunque queden cuentas huérfanas en sucursal).
+                if (id is 10 or 11 or 12 or 13)
+                {
+                    sedes = sedes.Where(s => s.IndPrincipal).ToList();
+                }
+
                 // Genéricos 2/3: solo saldos de sucursal (no Central).
                 if (id is 2 or 3)
                 {
@@ -425,10 +431,12 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                     .ThenBy(s => s.Oficina, StringComparer.OrdinalIgnoreCase)
                     .ToList();
 
-                // Sin movimiento en sucursales: no mostrar card genérico vacío junto a Gerente/René.
-                if ((id is 2 or 3) && sedes.Count == 0)
+                // Genérico sucursal: ocultar si no hay sedes o todo en cero (evita 3.er Yape vacío).
+                if (id is 2 or 3)
                 {
-                    continue;
+                    if (sedes.Count == 0) continue;
+                    var sumaSuc = decimal.Round(sedes.Sum(s => s.Monto), 2, MidpointRounding.AwayFromZero);
+                    if (sumaSuc == 0m) continue;
                 }
             }
 
