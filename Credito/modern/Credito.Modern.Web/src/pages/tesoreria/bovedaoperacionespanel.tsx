@@ -434,10 +434,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       title: 'Transferir a caja',
       amount: v.importe,
       officeLabel: caja?.etiqueta,
-      consequence:
-        origenId === 1
-          ? `Sale ${medioOrigen} de la bóveda y entra efectivo en la caja diaria.`
-          : `Sale ${medioOrigen} de la bóveda y entra como efectivo en la caja (embudo).`,
+      consequence: `Sale ${medioOrigen} de la bóveda y entra el mismo medio en la caja diaria (sin conversión).`,
       okText: 'Transferir',
       onOk: () =>
         aCaja.mutateAsync({
@@ -446,7 +443,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           importe: v.importe,
           descripcion: v.descripcion,
           tipoPagoOrigenId: origenId,
-          tipoPagoDestinoId: 1,
+          tipoPagoDestinoId: origenId,
         }),
     })
   }
@@ -464,7 +461,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       title: 'Transferir a analista',
       amount: v.importe,
       officeLabel: caja?.etiqueta,
-      consequence: `Sale ${medio} de la bóveda y entra efectivo en la caja del analista.`,
+      consequence: `Sale ${medio} de la bóveda y entra el mismo medio en la caja del analista (sin conversión).`,
       okText: 'Transferir',
       onOk: () =>
         aAnalista.mutateAsync({

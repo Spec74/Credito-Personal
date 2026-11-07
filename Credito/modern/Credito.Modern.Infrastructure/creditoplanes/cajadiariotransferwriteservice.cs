@@ -18,11 +18,18 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
         string descripcion,
         int? cajaIdDestino,
         DateTime fechaOperacion,
+        short tipoPagoId = 1,
         CancellationToken cancellationToken = default)
     {
+        importe = decimal.Round(importe, 2, MidpointRounding.AwayFromZero);
         if (oficinaId < 1 || cajaDiarioOrigenId < 1 || usuarioRegId < 1 || importe <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(oficinaId));
+        }
+
+        if (tipoPagoId < 1 || tipoPagoId is >= 6 and <= 8)
+        {
+            return ("Tipo de pago inválido.", false);
         }
 
         if (string.IsNullOrWhiteSpace(descripcion))
@@ -63,15 +70,28 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                 return ("La caja diario de origen no está abierta.", false);
             }
 
-            var saldoOrigen = await ObtenerSaldoCajaDiarioBloqueadoAsync(
+            var esCentral = await TipoPagoOficinaSql
+                .EsCentralPorOficinaAsync(connection, oficinaId, cancellationToken, transaction)
+                .ConfigureAwait(false);
+            var tipoErr = TipoPagoRules.RequireCobroPermitido(tipoPagoId, esCentral, "tipoPagoId");
+            if (tipoErr is not null)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return (tipoErr, false);
+            }
+
+            var saldoMedio = await ObtenerSaldoMedioCajaDiarioAsync(
                 connection,
                 transaction,
                 origen.CajaDiarioId,
+                tipoPagoId,
                 cancellationToken).ConfigureAwait(false);
-            if (saldoOrigen < importe)
+            if (saldoMedio < importe)
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                return ("El monto a transferir debe ser menor o igual al saldo en caja.", false);
+                return (
+                    $"El monto a transferir debe ser menor o igual al saldo del medio (disponible {saldoMedio:0.00}).",
+                    false);
             }
 
             var desc = descripcion.Trim();
@@ -88,6 +108,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                     importe,
                     desc,
                     fechaOperacion,
+                    tipoPagoId,
                     cancellationToken).ConfigureAwait(false);
                 if (error is not null)
                 {
@@ -106,6 +127,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                     importe,
                     desc,
                     fechaOperacion,
+                    tipoPagoId,
                     cancellationToken).ConfigureAwait(false);
                 if (error is not null)
                 {
@@ -134,6 +156,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
         decimal importe,
         string descripcion,
         DateTime fechaOperacion,
+        short tipoPagoId,
         CancellationToken cancellationToken)
     {
         var destino = await connection.QueryFirstOrDefaultAsync<CajaDiarioDestinoRow>(
@@ -201,7 +224,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                     CAST(0 AS bit),
                     CAST(1 AS bit),
                     @PersonaId,
-                    1,
+                    @TipoPagoId,
                     @UsuarioRegId,
                     @FechaReg);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
@@ -212,6 +235,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                     ImportePago = importe,
                     Descripcion = descOrigen,
                     PersonaId = personaOrigenId.Value,
+                    TipoPagoId = tipoPagoId,
                     UsuarioRegId = usuarioRegId,
                     FechaReg = fechaOperacion,
                 },
@@ -243,7 +267,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                     CAST(1 AS bit),
                     CAST(1 AS bit),
                     @PersonaId,
-                    1,
+                    @TipoPagoId,
                     @UsuarioRegId,
                     @FechaReg);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
@@ -254,6 +278,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                     ImportePago = importe,
                     Descripcion = descDestino,
                     PersonaId = personaDestinoId.Value,
+                    TipoPagoId = tipoPagoId,
                     UsuarioRegId = usuarioRegId,
                     FechaReg = fechaOperacion,
                 },
@@ -298,6 +323,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
         decimal importe,
         string descripcion,
         DateTime fechaOperacion,
+        short tipoPagoId,
         CancellationToken cancellationToken)
     {
         var boveda = await connection.QueryFirstOrDefaultAsync<BovedaRow>(
@@ -354,7 +380,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                 VALUES (
                     @BovedaId,
                     'TRE',
-                    1,
+                    @TipoPagoId,
                     @Glosa,
                     @Importe,
                     CAST(1 AS bit),
@@ -366,6 +392,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                 new
                 {
                     BovedaId = boveda.BovedaId,
+                    TipoPagoId = tipoPagoId,
                     Glosa = glosaBoveda,
                     Importe = importe,
                     CajaDiarioId = cajaDiarioOrigenId,
@@ -397,7 +424,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                     CAST(0 AS bit),
                     CAST(1 AS bit),
                     @PersonaId,
-                    1,
+                    @TipoPagoId,
                     @UsuarioRegId,
                     @FechaReg);
                 """,
@@ -408,6 +435,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                     Descripcion =
                         $"[MovBoveda:{movimientoBovedaId}] TRANS A BOVEDA: {descripcion}",
                     PersonaId = personaOficinaId.Value,
+                    TipoPagoId = tipoPagoId,
                     UsuarioRegId = usuarioRegId,
                     FechaReg = fechaOperacion,
                 },
@@ -449,19 +477,27 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
-    private static async Task<decimal> ObtenerSaldoCajaDiarioBloqueadoAsync(
+    /// <summary>
+    /// Disponible del medio en caja: movimientos del TipoPagoId (+ SaldoInicial solo si es efectivo).
+    /// </summary>
+    private static async Task<decimal> ObtenerSaldoMedioCajaDiarioAsync(
         SqlConnection connection,
         SqlTransaction transaction,
         int cajaDiarioId,
+        short tipoPagoId,
         CancellationToken cancellationToken)
     {
         return await connection.ExecuteScalarAsync<decimal>(
             new CommandDefinition(
                 """
                 SELECT
-                    cd.SaldoInicial
-                    + ISNULL(SUM(CASE WHEN mc.IndEntrada = CAST(1 AS bit) THEN mc.ImportePago ELSE 0 END), 0)
-                    - ISNULL(SUM(CASE WHEN mc.IndEntrada = CAST(0 AS bit) THEN mc.ImportePago ELSE 0 END), 0)
+                    IIF(@TipoPagoId = 1, cd.SaldoInicial, CAST(0 AS decimal(16, 2)))
+                    + ISNULL(SUM(CASE
+                        WHEN mc.TipoPagoId = @TipoPagoId AND mc.IndEntrada = CAST(1 AS bit)
+                            THEN mc.ImportePago
+                        WHEN mc.TipoPagoId = @TipoPagoId AND mc.IndEntrada = CAST(0 AS bit)
+                            THEN -mc.ImportePago
+                        ELSE 0 END), 0)
                 FROM CREDITO.CajaDiario AS cd WITH (UPDLOCK, HOLDLOCK)
                 LEFT JOIN CREDITO.MovimientoCaja AS mc WITH (UPDLOCK, HOLDLOCK)
                     ON mc.CajaDiarioId = cd.CajaDiarioId
@@ -469,7 +505,7 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                 WHERE cd.CajaDiarioId = @CajaDiarioId
                 GROUP BY cd.CajaDiarioId, cd.SaldoInicial;
                 """,
-                new { CajaDiarioId = cajaDiarioId },
+                new { CajaDiarioId = cajaDiarioId, TipoPagoId = tipoPagoId },
                 transaction: transaction,
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
     }

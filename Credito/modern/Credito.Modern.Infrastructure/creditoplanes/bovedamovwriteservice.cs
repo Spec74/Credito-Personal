@@ -63,6 +63,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             return ("Parámetros de oficina/caja inválidos.", null);
         }
 
+        importe = decimal.Round(importe, 2, MidpointRounding.AwayFromZero);
         if (importe <= 0)
         {
             return ("El importe debe ser mayor a cero.", null);
@@ -76,6 +77,12 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
         if (tipoPagoOrigenId < 1 || tipoPagoDestinoId < 1)
         {
             return ("Debe indicar el medio de origen y destino.", null);
+        }
+
+        // Sin conversión silenciosa: el medio que sale de bóveda es el que entra en caja.
+        if (tipoPagoDestinoId != tipoPagoOrigenId)
+        {
+            tipoPagoDestinoId = tipoPagoOrigenId;
         }
 
         EnsureConnection();
@@ -100,7 +107,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
         {
             return (
                 $"Saldo insuficiente en el medio de origen. Disponible S/ {disponible:N2}; solicitado S/ {importe:N2}. "
-                + "Si el dinero está en Yape/banco, use «Entre medios» para pasarlo a efectivo o elija ese medio como origen.",
+                + "Si necesita otro medio, use «Entre medios» y luego transfiera.",
                 null);
         }
 
@@ -157,6 +164,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             return ("Parámetros de oficina/analista inválidos.", null);
         }
 
+        importe = decimal.Round(importe, 2, MidpointRounding.AwayFromZero);
         if (importe <= 0)
         {
             return ("El importe debe ser mayor a cero.", null);
@@ -227,6 +235,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
 
         try
         {
+            // Mismo medio bóveda→caja (sin convertir digital a efectivo).
             var result = await ExecuteTransferirACajaAsync(
                 oficinaId,
                 caja.CajaId,
@@ -236,7 +245,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                 personaId,
                 fechaOperacion,
                 tipoPagoOrigenId,
-                tipoPagoDestinoId: 1,
+                tipoPagoDestinoId: tipoPagoOrigenId,
                 cancellationToken).ConfigureAwait(false);
 
             if (result is null)
@@ -294,6 +303,33 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
                 return null;
+            }
+
+            importe = decimal.Round(importe, 2, MidpointRounding.AwayFromZero);
+            await EnsureBovedaCuentaAsync(
+                    connection,
+                    transaction,
+                    bovedaId.Value,
+                    tipoPagoId,
+                    cancellationToken)
+                .ConfigureAwait(false);
+
+            // Egreso: no permitir saldo negativo del medio (al céntimo).
+            if (!tipoOp.IndEntrada)
+            {
+                var disponible = await GetSaldoMedioDisponibleAsync(
+                        connection,
+                        transaction,
+                        bovedaId.Value,
+                        tipoPagoId,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+                if (importe > disponible)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    throw new InvalidOperationException(
+                        $"Saldo insuficiente en el medio. Disponible S/ {disponible:N2}; solicitado S/ {importe:N2}.");
+                }
             }
 
             var movimientoBovedaId = await connection.ExecuteScalarAsync<int>(
@@ -733,6 +769,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                 "El banco de origen y el de destino no pueden ser iguales.");
         }
 
+        importe = decimal.Round(importe, 2, MidpointRounding.AwayFromZero);
         if (importe <= 0)
         {
             throw new ArgumentOutOfRangeException(nameof(importe), "El importe debe ser mayor a cero.");
@@ -741,6 +778,14 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
         if (string.IsNullOrWhiteSpace(glosa))
         {
             throw new ArgumentOutOfRangeException(nameof(glosa), "glosa es obligatoria.");
+        }
+
+        if (TipoPagoRules.IsObsoleteSedeVariant(tipoPagoOrigenId)
+            || TipoPagoRules.IsObsoleteSedeVariant(tipoPagoDestinoId))
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(tipoPagoOrigenId),
+                "No use variantes de medio por sede (6–8).");
         }
 
         EnsureConnection();
@@ -754,6 +799,34 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             throw new InvalidOperationException(
                 "Operación rechazada: La Bóveda de la oficina no está abierta o la sesión expiró.");
         }
+
+        var disponible = await GetSaldoMedioDisponibleAsync(
+                connection,
+                transaction: null,
+                bovedaId.Value,
+                tipoPagoOrigenId,
+                cancellationToken)
+            .ConfigureAwait(false);
+        if (importe > disponible)
+        {
+            throw new InvalidOperationException(
+                $"Saldo insuficiente en el medio de origen. Disponible S/ {disponible:N2}; solicitado S/ {importe:N2}.");
+        }
+
+        await EnsureBovedaCuentaAsync(
+                connection,
+                transaction: null,
+                bovedaId.Value,
+                tipoPagoOrigenId,
+                cancellationToken)
+            .ConfigureAwait(false);
+        await EnsureBovedaCuentaAsync(
+                connection,
+                transaction: null,
+                bovedaId.Value,
+                tipoPagoDestinoId,
+                cancellationToken)
+            .ConfigureAwait(false);
 
         SpResultadoRow? row;
         try
@@ -851,7 +924,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                     WHERE BovedaId = @BovedaId
                       AND Estado = 1
                       AND TipoPagoId = @TipoPagoId), 0);
-                SELECT @SiMedio + @Neto;
+                SELECT CAST(ROUND(@SiMedio + @Neto, 2) AS decimal(16, 2));
                 """,
                 new { BovedaId = bovedaId, TipoPagoId = tipoPagoId },
                 transaction: transaction,
@@ -885,6 +958,28 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
         }
 
         return $"No se pudo transferir de bóveda a caja. Detalle: {msg}";
+    }
+
+    /// <summary>Garantiza fila en BovedaCuenta para no perder el medio en Σ / cards.</summary>
+    private static async Task EnsureBovedaCuentaAsync(
+        SqlConnection connection,
+        SqlTransaction? transaction,
+        int bovedaId,
+        short tipoPagoId,
+        CancellationToken cancellationToken)
+    {
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                IF NOT EXISTS (
+                    SELECT 1 FROM CREDITO.BovedaCuenta
+                    WHERE BovedaId = @BovedaId AND TipoPagoId = @TipoPagoId)
+                INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
+                VALUES (@BovedaId, @TipoPagoId, CAST(0 AS decimal(16, 2)));
+                """,
+                new { BovedaId = bovedaId, TipoPagoId = tipoPagoId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
     private static async Task ActualizarSaldosBovedaAsync(

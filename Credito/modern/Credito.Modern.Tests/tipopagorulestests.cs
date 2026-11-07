@@ -58,6 +58,35 @@ public sealed class TipoPagoRulesTests
         Assert.Equal(TipoPagoRules.Interbank, TipoPagoRules.MapFondeoDestino((short)TipoPagoRules.InterbankGerente));
         Assert.Equal(TipoPagoRules.Interbank, TipoPagoRules.MapRemesaOrigen((short)TipoPagoRules.InterbankRene));
         Assert.Equal((short)Bcp, TipoPagoRules.MapFamiliaGenerica((short)Bcp));
+        Assert.Equal((short)TipoPagoRules.Plin, TipoPagoRules.MapFamiliaGenerica((short)TipoPagoRules.Plin));
+        Assert.Equal((short)5, TipoPagoRules.MapFamiliaGenerica(5)); // Nación 1:1
+        // Simetría: billetera → familia → (no vuelve a billetera; genérico es el peer de sucursal)
+        Assert.Equal(
+            TipoPagoRules.MapFondeoDestino((short)TipoPagoRules.YapeRene),
+            TipoPagoRules.MapRemesaOrigen((short)TipoPagoRules.YapeGerente));
+    }
+
+    [Theory]
+    [InlineData(TipoPagoRules.Efectivo, true)]
+    [InlineData(TipoPagoRules.Efectivo, false)]
+    [InlineData(Bcp, true)]
+    [InlineData(Bcp, false)]
+    [InlineData(5, true)]
+    [InlineData(5, false)]
+    [InlineData(TipoPagoRules.Plin, false)]
+    public void RequireCobroPermitido_EfectivoBancosPlin_OkEnAmbasSedes(int tipoPagoId, bool esCentral)
+    {
+        Assert.Null(TipoPagoRules.RequireCobroPermitido(tipoPagoId, esCentral));
+    }
+
+    [Fact]
+    public void RequirePar_EntreBilleterasCentral_Ok()
+    {
+        Assert.Null(
+            TipoPagoRules.RequireParCobroPermitido(
+                TipoPagoRules.YapeGerente,
+                TipoPagoRules.YapeRene,
+                esCentral: true));
     }
 
     [Fact]

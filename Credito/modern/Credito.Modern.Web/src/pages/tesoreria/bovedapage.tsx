@@ -174,7 +174,7 @@ export function BovedaPage() {
             <strong>{formatMoney(boveda.data.saldoFinal)}</strong>
           </span>
           <span>
-            Σ medios {formatMoney(sumaMedios)}
+            Σ medios bóveda {formatMoney(sumaMedios)}
             {descuadre
               ? ` · delta ${formatMoney(deltaMedios)}`
               : ' = saldo final'}
@@ -190,7 +190,7 @@ export function BovedaPage() {
           type="error"
           showIcon
           message="El cuadre de medios no cierra"
-          description="La suma por efectivo, Yape y bancos no coincide con el saldo final. No cierre hasta corregir los asientos."
+          description="La suma por medio en la bóveda (efectivo, Yape Gerente/René, Plin, bancos…) no coincide con el saldo final. No cierre hasta corregir los asientos."
         />
       ) : null}
 
@@ -230,6 +230,10 @@ export function BovedaPage() {
       ) : boveda.data ? (
         <>
           <CredixPanel title="Medios de pago" className="boveda-panel-medios">
+            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+              Posición operativa por medio (bóveda + caja aún no transferida). El banner Σ
+              medios cuadra solo la bóveda al céntimo.
+            </Text>
             <BovedaResumenCuenta
               data={resumen.data}
               loading={resumen.isLoading}

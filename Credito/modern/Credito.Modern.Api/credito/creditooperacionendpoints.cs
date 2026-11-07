@@ -4238,6 +4238,7 @@ internal static class CreditoOperacionEndpoints
                                 detail: "No se pudo obtener la fecha del servidor (usp_FechaBD).");
                         }
 
+                        var tipoPagoId = body.TipoPagoId is > 0 ? body.TipoPagoId.Value : (short)1;
                         var (error, success) = await transferWrite
                             .TransferirSaldosAsync(
                                 body.OficinaId,
@@ -4247,6 +4248,7 @@ internal static class CreditoOperacionEndpoints
                                 body.Descripcion,
                                 body.CajaIdDestino,
                                 serverTime.Value,
+                                tipoPagoId,
                                 ct)
                             .ConfigureAwait(false);
 
@@ -4282,7 +4284,7 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoTransferirSaldosCajaDiario")
             .WithSummary(
-                "Escritura: paridad CajaDiarioController.TransferirSaldos (caja???caja o caja???b?veda).")
+                "Escritura: transferencia caja→caja o caja→bóveda preservando tipoPagoId (Yape René, Plin, BCP…).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
             .Produces(StatusCodes.Status200OK)
@@ -7207,6 +7209,15 @@ internal static class CreditoOperacionEndpoints
                         }
 
                         return TypedResults.Ok(result);
+                    }
+                    catch (InvalidOperationException ex) when (
+                        ex.Message.Contains("Saldo insuficiente", StringComparison.OrdinalIgnoreCase))
+                    {
+                        log.LogWarning(ex, "Egreso bóveda sin saldo en medio");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status422UnprocessableEntity,
+                            title: "Saldo insuficiente",
+                            detail: ex.Message);
                     }
                     catch (InvalidOperationException ex)
                     {

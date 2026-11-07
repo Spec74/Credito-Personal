@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Alert,
@@ -15,8 +15,15 @@ import {
   fetchSaldoCuentaCajaDiario,
   transferirSaldosCajaDiario,
 } from '../../../api/cajaDiario'
+import { fetchValoresTabla } from '../../../api/maestros'
 import { CajaDrawer } from '../../../components/caja/CajaDrawer'
+import { useEsCentral } from '../../../hooks/useEsCentral'
 import { formatMoney } from '../../../utils/formatMoney'
+import {
+  buildTipoPagoOptions,
+  tipoPagoOptionRender,
+  tipoPagoPopupRender,
+} from '../../tesoreria/components/TipoPagoBrand'
 import {
   cajaToastError,
   cajaToastSuccess,
@@ -43,10 +50,26 @@ export function TransferirSaldosDrawer({
 }) {
   const [form] = Form.useForm()
   const [modo, setModo] = useState<Modo>('boveda')
+  const { esCentral } = useEsCentral()
+  const tipoPagoId = Form.useWatch('tipoPagoId', form) as number | undefined
+
+  const tiposPagoQuery = useQuery({
+    queryKey: ['valores-tabla', 13],
+    queryFn: () => fetchValoresTabla(13),
+    enabled: open,
+    staleTime: 5 * 60_000,
+  })
+
+  const tipoPagoOptions = useMemo(
+    () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }),
+    [tiposPagoQuery.data, esCentral],
+  )
+
+  const medioId = tipoPagoId && tipoPagoId > 0 ? tipoPagoId : 1
 
   const saldoQuery = useQuery({
-    queryKey: ['caja-saldo-transferir', ctx.cajaDiarioId],
-    queryFn: () => fetchSaldoCuentaCajaDiario(ctx.cajaDiarioId),
+    queryKey: ['caja-saldo-transferir', ctx.cajaDiarioId, medioId],
+    queryFn: () => fetchSaldoCuentaCajaDiario(ctx.cajaDiarioId, medioId),
     enabled: open,
   })
 
@@ -61,6 +84,7 @@ export function TransferirSaldosDrawer({
       importe: number
       descripcion: string
       cajaIdDestino?: number | null
+      tipoPagoId: number
     }) =>
       transferirSaldosCajaDiario({
         oficinaId: ctx.oficinaId,
@@ -68,6 +92,7 @@ export function TransferirSaldosDrawer({
         importe: values.importe,
         descripcion: values.descripcion,
         cajaIdDestino: values.cajaIdDestino ?? null,
+        tipoPagoId: values.tipoPagoId,
       }),
     onSuccess: () => {
       cajaToastSuccess('Transferencia registrada', 'caja-transfer')
@@ -82,10 +107,14 @@ export function TransferirSaldosDrawer({
     if (!open) {
       form.resetFields()
       setModo('boveda')
+    } else {
+      form.setFieldsValue({ tipoPagoId: 1 })
     }
   }, [open, form])
 
   const saldo = saldoQuery.data?.saldo ?? null
+  const medioLabel =
+    tipoPagoOptions.find((o) => o.value === medioId)?.label ?? 'medio'
   const cajasOptions = (cajasQuery.data ?? [])
     .filter((c) => c.cajaId !== ctx.cajaId)
     .map((c) => ({ value: c.cajaId, label: c.etiqueta }))
@@ -108,7 +137,7 @@ export function TransferirSaldosDrawer({
       }
     >
       <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
-        Saldo en caja (efectivo):{' '}
+        Saldo del medio ({medioLabel}):{' '}
         <strong>
           {saldoQuery.isLoading
             ? '…'
@@ -121,10 +150,11 @@ export function TransferirSaldosDrawer({
       <Form
         form={form}
         layout="vertical"
+        initialValues={{ tipoPagoId: 1 }}
         onFinish={(v) => {
           if (saldo != null && v.importe > saldo) {
             cajaToastWarning(
-              'El monto a transferir debe ser menor o igual al saldo en caja.',
+              'El monto a transferir debe ser menor o igual al saldo del medio.',
             )
             return
           }
@@ -132,6 +162,7 @@ export function TransferirSaldosDrawer({
             importe: v.importe,
             descripcion: v.descripcion,
             cajaIdDestino: modo === 'caja' ? v.cajaIdDestino : null,
+            tipoPagoId: v.tipoPagoId && v.tipoPagoId > 0 ? v.tipoPagoId : 1,
           })
         }}
       >
@@ -143,6 +174,21 @@ export function TransferirSaldosDrawer({
             <Radio value="boveda">Bóveda de la oficina</Radio>
             <Radio value="caja">Otra caja abierta</Radio>
           </Radio.Group>
+        </Form.Item>
+
+        <Form.Item
+          name="tipoPagoId"
+          label="Medio de pago"
+          rules={[{ required: true, message: 'Seleccione el medio' }]}
+        >
+          <Select
+            showSearch
+            optionFilterProp="label"
+            options={tipoPagoOptions}
+            optionRender={tipoPagoOptionRender}
+            popupRender={tipoPagoPopupRender}
+            placeholder="Efectivo, Yape René, Plin…"
+          />
         </Form.Item>
 
         {modo === 'caja' && (
@@ -170,7 +216,7 @@ export function TransferirSaldosDrawer({
               validator: (_, value) => {
                 if (saldo != null && value > saldo) {
                   return Promise.reject(
-                    new Error('Monto mayor al saldo disponible'),
+                    new Error('Monto mayor al saldo disponible del medio'),
                   )
                 }
                 return Promise.resolve()
@@ -189,7 +235,11 @@ export function TransferirSaldosDrawer({
       <Alert
         type="info"
         showIcon
-        message="Transfiere el saldo de esta caja a otra caja diaria abierta."
+        message={
+          modo === 'boveda'
+            ? 'El medio elegido (p. ej. Yape René) se acredita igual en la bóveda; no se convierte a efectivo.'
+            : 'Transfiere el saldo del medio a otra caja diaria abierta.'
+        }
         style={{ marginTop: 8 }}
       />
     </CajaDrawer>

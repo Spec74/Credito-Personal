@@ -314,11 +314,14 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             .QueryAsync<MedioRedRow>(
                 new CommandDefinition(
                     """
-                    ;WITH Movs AS (
+                    /* Posición por medio = bóveda abierta + caja aún no transferida (TransBoveda=0).
+                       Así un cobro Yape René/Plin/BCP se ve en Medios antes del cierre/TRE.
+                       Tras usp_CerrarCajasDiarios (TransBoveda=1) solo cuenta BovedaMov (sin doble). */
+                    ;WITH Partes AS (
                         SELECT
                             b.OficinaId,
                             bm.TipoPagoId,
-                            SUM(IIF(bm.IndEntrada = 1, bm.Importe, -bm.Importe)) AS Importe
+                            IIF(bm.IndEntrada = 1, bm.Importe, -bm.Importe) AS Importe
                         FROM CREDITO.BovedaMov AS bm
                         INNER JOIN CREDITO.Boveda AS b ON b.BovedaId = bm.BovedaId
                         WHERE b.IndCierre = CAST(0 AS bit)
@@ -326,7 +329,40 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                           AND bm.Estado = CAST(1 AS bit)
                           AND bm.TipoPagoId > 0
                           AND bm.TipoPagoId NOT BETWEEN 6 AND 8
-                        GROUP BY b.OficinaId, bm.TipoPagoId
+
+                        UNION ALL
+
+                        SELECT
+                            c.OficinaId,
+                            mc.TipoPagoId,
+                            IIF(mc.IndEntrada = 1, mc.ImportePago, -mc.ImportePago) AS Importe
+                        FROM CREDITO.MovimientoCaja AS mc
+                        INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = mc.CajaDiarioId
+                        INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                        WHERE cd.TransBoveda = CAST(0 AS bit)
+                          AND mc.Estado = CAST(1 AS bit)
+                          AND mc.TipoPagoId > 0
+                          AND mc.TipoPagoId NOT BETWEEN 6 AND 8
+
+                        UNION ALL
+
+                        /* SaldoInicial de caja pendiente → efectivo (paridad cierre TRE). */
+                        SELECT
+                            c.OficinaId,
+                            CAST(1 AS smallint) AS TipoPagoId,
+                            cd.SaldoInicial AS Importe
+                        FROM CREDITO.CajaDiario AS cd
+                        INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                        WHERE cd.TransBoveda = CAST(0 AS bit)
+                          AND cd.SaldoInicial <> 0
+                    ),
+                    Movs AS (
+                        SELECT
+                            OficinaId,
+                            TipoPagoId,
+                            SUM(Importe) AS Importe
+                        FROM Partes
+                        GROUP BY OficinaId, TipoPagoId
                     )
                     SELECT
                         o.OficinaId,
@@ -334,10 +370,22 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                         CAST(o.IndPrincipal AS bit) AS IndPrincipal,
                         b.BovedaId,
                         vt.ItemId AS TipoPagoId,
-                        CAST(ISNULL(bc.SaldoInicial, 0) + ISNULL(m.Importe, 0) AS decimal(16, 2)) AS Monto
+                        /* SI por cuenta; si no hay BovedaCuenta, el SI de cabecera va a efectivo (paridad cuadre). */
+                        CAST(ROUND(
+                            CASE
+                                WHEN b.BovedaId IS NULL THEN CAST(0 AS decimal(16, 2))
+                                WHEN NOT EXISTS (
+                                        SELECT 1 FROM CREDITO.BovedaCuenta AS x
+                                        WHERE x.BovedaId = b.BovedaId)
+                                     AND vt.ItemId = 1
+                                    THEN ISNULL(b.SaldoInicialCab, 0)
+                                ELSE ISNULL(bc.SaldoInicial, 0)
+                            END
+                            + ISNULL(m.Importe, 0)
+                        , 2) AS decimal(16, 2)) AS Monto
                     FROM MAESTRO.Oficina AS o
                     OUTER APPLY (
-                        SELECT TOP (1) bv.BovedaId
+                        SELECT TOP (1) bv.BovedaId, bv.SaldoInicial AS SaldoInicialCab
                         FROM CREDITO.Boveda AS bv
                         WHERE bv.OficinaId = o.OficinaId
                           AND bv.IndCierre = CAST(0 AS bit)
@@ -369,12 +417,10 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         SesionOficinaRow sesion,
         IReadOnlyList<MedioRedRow> filas)
     {
-        // Modelo (sin doble conteo en cards):
-        // - Central tipa Gerente/René (10–13) → cards solo Central.
-        // - Yape(2)/Interbank(3) son el medio de red/sucursales → mismas sedes que BCP/Plin
-        //   (Central/Huanta/Pichari), siempre visibles aunque estén en 0.
-        // - Sucursal: un Yape / un Interbank (familia 2+10+11 / 3+12+13) solo de su oficina.
-        // Σ medios del cuadre viene de la bóveda local (no de sumar estas cards de red).
+        // Sin doble conteo tipado:
+        // - Central: cards 10–13 solo Central; cards 2/3 = genéricos de red (sucursales), no suman 10–13.
+        // - Sucursal: un Yape / Interbank con familia (por si hubiera asiento legado 10–13).
+        // - Σ medios (banner) = solo bóveda local; estas cards = bóveda + caja pendiente (operativo).
         var idsEnCatalogo = filas.Select(f => f.TipoPagoId).ToHashSet();
 
         (short Id, string Marca, string Variant, short[] Familia)[] catalogo = sesion.IndPrincipal
@@ -394,6 +440,7 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             :
             [
                 ((short)TipoPagoRules.Efectivo, "Efectivo", "efectivo", [(short)TipoPagoRules.Efectivo]),
+                // Sucursal tipa genérico; familia absorbe tipados si llegaran por error/legado.
                 ((short)TipoPagoRules.Yape, "Yape", "yape", [(short)TipoPagoRules.Yape, (short)TipoPagoRules.YapeGerente, (short)TipoPagoRules.YapeRene]),
                 ((short)TipoPagoRules.Interbank, "Interbank", "interbank", [(short)TipoPagoRules.Interbank, (short)TipoPagoRules.InterbankGerente, (short)TipoPagoRules.InterbankRene]),
                 (4, "BCP", "bcp", [4]),

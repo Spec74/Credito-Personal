@@ -9,4 +9,6 @@ public sealed record TransferirSaldosCajaDiarioRequest(
     int CajaDiarioId,
     decimal Importe,
     string Descripcion,
-    int? CajaIdDestino);
+    int? CajaIdDestino,
+    /// <summary>Medio a transferir (1 efectivo; 2–13 digitales / billeteras). Default 1.</summary>
+    short? TipoPagoId = null);

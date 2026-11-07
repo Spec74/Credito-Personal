@@ -479,6 +479,8 @@ export function transferirSaldosCajaDiario(body: {
   importe: number
   descripcion: string
   cajaIdDestino?: number | null
+  /** Medio a transferir (1 efectivo; 9–13 Plin / billeteras Central, etc.). */
+  tipoPagoId?: number | null
 }): Promise<{ success: boolean }> {
   return apiFetch('/credito/transferir-saldos-caja-diario', {
     method: 'POST',

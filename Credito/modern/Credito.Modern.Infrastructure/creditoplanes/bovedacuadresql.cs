@@ -10,7 +10,7 @@ internal static class BovedaCuadreSql
     internal const decimal Tolerancia = 0.01m;
 
     internal const string SumaMedios = """
-        SELECT CAST(
+        SELECT CAST(ROUND(
             CASE
                 WHEN EXISTS (
                     SELECT 1 FROM CREDITO.BovedaCuenta WHERE BovedaId = @BovedaId)
@@ -22,7 +22,10 @@ internal static class BovedaCuadreSql
                     LEFT JOIN (
                         SELECT TipoPagoId, SUM(IIF(IndEntrada = 1, Importe, -Importe)) AS Importe
                         FROM CREDITO.BovedaMov
-                        WHERE BovedaId = @BovedaId AND Estado = 1
+                        WHERE BovedaId = @BovedaId
+                          AND Estado = 1
+                          AND TipoPagoId > 0
+                          AND TipoPagoId NOT BETWEEN 6 AND 8
                         GROUP BY TipoPagoId
                     ) AS m ON m.TipoPagoId = vt.ItemId
                     WHERE vt.TablaId = 13
@@ -31,7 +34,7 @@ internal static class BovedaCuadreSql
                       AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
                 )
                 ELSE (
-                    /* Sin BovedaCuenta: misma base de marcas activas (no 6–8). */
+                    /* Sin BovedaCuenta: SI cabecera + neto de marcas activas (no 6–8). */
                     ISNULL((SELECT SaldoInicial FROM CREDITO.Boveda WHERE BovedaId = @BovedaId), 0)
                     + ISNULL((
                         SELECT SUM(IIF(IndEntrada = 1, Importe, -Importe))
@@ -43,6 +46,6 @@ internal static class BovedaCuadreSql
                     ), 0)
                 )
             END
-        AS decimal(16, 2));
+        , 2) AS decimal(16, 2));
         """;
 }
