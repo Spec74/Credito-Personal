@@ -34,6 +34,10 @@ import {
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import type { EstadoPlanPagoCuota, RptMovimientoCreditoRow } from '../../types/api'
+import {
+  importePagadoPlanCuota,
+  totalPagadoPlanCuotas,
+} from '../../utils/estadoPlanPagoMontos'
 import { formatMoney } from '../../utils/formatMoney'
 import { sumMoney } from '../../utils/money'
 import { isCuotaFilaResumen } from '../../components/caja/cuotaRowStyle'
@@ -126,6 +130,7 @@ function estadoPlanRowClass(row: EstadoPlanPagoCuota): string {
     return 'credito-plan-row credito-plan-row--vencido'
   }
   if (estado === 'CRE') return 'credito-plan-row credito-plan-row--creado'
+  if ((row.pagoLibre ?? 0) > 0) return 'credito-plan-row credito-plan-row--parcial'
   return 'credito-plan-row credito-plan-row--pendiente'
 }
 
@@ -147,6 +152,9 @@ function planCuotaEstadoTag(row: EstadoPlanPagoCuota) {
   }
   if (estado === 'CRE') {
     return <Tag className="credito-plan-estado-tag credito-plan-estado-tag--creado">Creada</Tag>
+  }
+  if ((row.pagoLibre ?? 0) > 0) {
+    return <Tag className="credito-plan-estado-tag credito-plan-estado-tag--parcial">Parcial</Tag>
   }
   return <Tag className="credito-plan-estado-tag credito-plan-estado-tag--pendiente">Pendiente</Tag>
 }
@@ -484,7 +492,7 @@ export function ConsultaCreditoPage() {
       dataIndex: 'pagoCuota',
       align: 'right',
       width: 100,
-      render: planMoney,
+      render: (_v: number | null, row) => planMoney(importePagadoPlanCuota(row)),
     },
     {
       title: 'Atraso',
@@ -538,7 +546,7 @@ export function ConsultaCreditoPage() {
   const planResumen = useMemo(() => {
     const rows = planQuery.data ?? []
     return {
-      capital: sumMoney(rows.map((r) => r.capital ?? 0)),
+      // Capital = saldo residual por cuota; no se suma en el Total (confunde con el monto del crédito).
       amortizacion: sumMoney(rows.map((r) => r.amortizacion ?? 0)),
       interes: sumMoney(rows.map((r) => r.interes ?? 0)),
       gastosAdm: sumMoney(rows.map((r) => r.gastosAdm ?? 0)),
@@ -547,7 +555,7 @@ export function ConsultaCreditoPage() {
       descuento: sumMoney(rows.map((r) => r.descuento ?? 0)),
       cargo: sumMoney(rows.map((r) => r.cargo ?? 0)),
       pagoLibre: sumMoney(rows.map((r) => r.pagoLibre ?? 0)),
-      pagado: sumMoney(rows.map((r) => r.pagoCuota ?? 0)),
+      pagado: totalPagadoPlanCuotas(rows),
       pagadas: rows.filter((r) => r.estado?.trim().toUpperCase() === 'PAG').length,
     }
   }, [planQuery.data])
@@ -720,7 +728,7 @@ export function ConsultaCreditoPage() {
                             </Text>
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={3} align="right">
-                            {planMoney(planResumen.capital)}
+                            —
                           </Table.Summary.Cell>
                           <Table.Summary.Cell index={4} align="right">
                             {planMoney(planResumen.amortizacion)}

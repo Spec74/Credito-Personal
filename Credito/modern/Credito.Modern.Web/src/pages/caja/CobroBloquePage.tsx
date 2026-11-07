@@ -789,6 +789,13 @@ export function CobroBloquePage() {
         personaNombre: nombres.get(p.creditoId) ?? `Crédito ${p.creditoId}`,
         montoPagar: p.montoPagar,
         tipoPagoId: p.tipoPagoId,
+        medios:
+          p.medios && p.medios.length >= 2
+            ? p.medios.map((m) => ({
+                tipoPagoId: m.tipoPagoId,
+                importe: m.importe,
+              }))
+            : undefined,
         movimientoCajaId: extra?.[p.creditoId] ?? null,
         origen,
       })),
@@ -1349,11 +1356,35 @@ export function CobroBloquePage() {
     {
       title: 'Tipo pago',
       dataIndex: 'tipoPagoId',
-      render: (v: number) => (
-        <TipoPagoCell
-          tipoPago={tipoPagoOptions.find((o) => o.value === v)?.label ?? `Tipo ${v}`}
-        />
-      ),
+      render: (_v: number, it) => {
+        const medios =
+          it.medios && it.medios.length >= 2
+            ? it.medios
+            : [{ tipoPagoId: it.tipoPagoId, importe: it.montoPagar }]
+        if (medios.length >= 2) {
+          return (
+            <div className="cobro-enviado-medios" translate="no">
+              {medios.map((m, i) => {
+                const label =
+                  tipoPagoOptions.find((o) => o.value === m.tipoPagoId)?.label ??
+                  `Tipo ${m.tipoPagoId}`
+                return (
+                  <div key={`${it.creditoId}-${m.tipoPagoId}-${i}`} className="cobro-enviado-medios__row">
+                    <TipoPagoCell tipoPago={label} />
+                    <span className="cobro-enviado-medios__monto">
+                      S/ {formatMoney(m.importe)}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )
+        }
+        const label =
+          tipoPagoOptions.find((o) => o.value === medios[0].tipoPagoId)?.label ??
+          `Tipo ${medios[0].tipoPagoId}`
+        return <TipoPagoCell tipoPago={label} />
+      },
     },
     {
       title: 'Origen',
@@ -1698,6 +1729,21 @@ export function CobroBloquePage() {
                               hour: '2-digit',
                               minute: '2-digit',
                             })}
+                          </span>
+                          <span className="cobro-bloque-enviados-list__medios" translate="no">
+                            {(it.medios && it.medios.length >= 2
+                              ? it.medios
+                              : [{ tipoPagoId: it.tipoPagoId, importe: it.montoPagar }]
+                            )
+                              .map((m) => {
+                                const label =
+                                  tipoPagoOptions.find((o) => o.value === m.tipoPagoId)?.label ??
+                                  `Tipo ${m.tipoPagoId}`
+                                return it.medios && it.medios.length >= 2
+                                  ? `${label} S/ ${formatMoney(m.importe)}`
+                                  : label
+                              })
+                              .join(' + ')}
                           </span>
                         </div>
                         <div className="cobro-bloque-enviados-list__right">

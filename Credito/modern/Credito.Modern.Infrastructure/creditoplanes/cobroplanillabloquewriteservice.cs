@@ -127,6 +127,71 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
                     SinTickets);
             }
 
+            // Multisucursal: cada crédito de la planilla debe ser de la oficina de la caja.
+            if (items.Count > 0)
+            {
+                var oficinaCaja = await connection.ExecuteScalarAsync<int?>(
+                    new CommandDefinition(
+                        """
+                        SELECT cj.OficinaId
+                        FROM CREDITO.CajaDiario cd
+                        INNER JOIN CREDITO.Caja cj ON cj.CajaId = cd.CajaId
+                        WHERE cd.CajaDiarioId = @CajaDiarioId;
+                        """,
+                        new { CajaDiarioId = cajaDiarioId },
+                        transaction: transaction,
+                        cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+                if (oficinaCaja is null or < 1)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return new CobrarPlanillaBloqueResponse(
+                        false,
+                        "No se pudo resolver la oficina de la caja diario.",
+                        0,
+                        0,
+                        SinTickets);
+                }
+
+                var creditoIds = items.Select(i => i.CreditoId).Distinct().ToArray();
+                var oficinasCredito = (await connection.QueryAsync<(int CreditoId, int OficinaId)>(
+                    new CommandDefinition(
+                        """
+                        SELECT CreditoId, OficinaId
+                        FROM CREDITO.Credito
+                        WHERE CreditoId IN @CreditoIds;
+                        """,
+                        new { CreditoIds = creditoIds },
+                        transaction: transaction,
+                        cancellationToken: cancellationToken)).ConfigureAwait(false))
+                    .ToDictionary(x => x.CreditoId, x => x.OficinaId);
+
+                foreach (var creditoId in creditoIds)
+                {
+                    if (!oficinasCredito.TryGetValue(creditoId, out var oid))
+                    {
+                        await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                        return new CobrarPlanillaBloqueResponse(
+                            false,
+                            $"Crédito {creditoId}: no existe.",
+                            0,
+                            0,
+                            SinTickets);
+                    }
+
+                    if (oid != oficinaCaja.Value)
+                    {
+                        await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                        return new CobrarPlanillaBloqueResponse(
+                            false,
+                            $"Crédito {creditoId}: no pertenece a la oficina de la caja (multisucursal).",
+                            0,
+                            0,
+                            SinTickets);
+                    }
+                }
+            }
+
             var tickets = new List<CobroPlanillaTicketDto>(items.Count);
             var pagos = 0;
             foreach (var item in items)

@@ -30,8 +30,12 @@ BEGIN
     DECLARE @DestinoEsCentral BIT;
     DECLARE @EsBilleteraCentral BIT;
 
+    -- Fail-fast: no embudo silencioso a efectivo (pérdida de medio en multisucursal).
     IF ISNULL(@TipoPagoId, 0) < 1
-        SET @TipoPagoId = 1;
+    BEGIN
+        RAISERROR(N'TipoPagoId es obligatorio; no se asume efectivo.', 16, 1);
+        RETURN;
+    END
 
     SET @TipoPagoOrigenId = @TipoPagoId;
     SET @TipoPagoDestinoId = @TipoPagoId;

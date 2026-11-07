@@ -11,7 +11,7 @@ SELECT * FROM CREDITO.MovimientoCaja
 SELECT * FROM VENTAS.OrdenVenta
 
 */
-ALTER PROC [CREDITO].[usp_PagarCuotas]
+CREATE OR ALTER PROC [CREDITO].[usp_PagarCuotas]
 @CajaDiarioId INT ,
 @CreditoId INT,
 @ListaPlanPagoId VARCHAR(MAX),
@@ -24,6 +24,30 @@ AS
 
 DECLARE @TotalPago DECIMAL(16,2)=0, @IndImporteLibre BIT = 0
 DECLARE @FechaActual Datetime=dbo.ufnFecha()
+DECLARE @OficinaCredito INT, @OficinaCaja INT
+
+-- Multisucursal: el cobro solo puede ir a la caja de la misma oficina del crédito.
+SELECT @OficinaCredito = OficinaId FROM CREDITO.Credito WHERE CreditoId = @CreditoId
+SELECT @OficinaCaja = cj.OficinaId
+FROM CREDITO.CajaDiario cd
+INNER JOIN CREDITO.Caja cj ON cj.CajaId = cd.CajaId
+WHERE cd.CajaDiarioId = @CajaDiarioId
+
+IF @OficinaCredito IS NULL
+BEGIN
+	RAISERROR(N'Crédito no existe.', 16, 1)
+	RETURN
+END
+IF @OficinaCaja IS NULL
+BEGIN
+	RAISERROR(N'Caja diario no existe.', 16, 1)
+	RETURN
+END
+IF @OficinaCredito <> @OficinaCaja
+BEGIN
+	RAISERROR(N'El crédito no pertenece a la oficina de la caja (multisucursal).', 16, 1)
+	RETURN
+END
 
 IF @ListaPlanPagoId IS NULL
 	SET @ListaPlanPagoId = ''

@@ -46,13 +46,19 @@ describe('cobroBloquePlanillaExpand', () => {
     expect(err).toMatch(/céntimo/i)
   })
 
-  it('colapsa enviados por crédito', () => {
+  it('colapsa enviados por crédito conservando medios mixtos', () => {
     const collapsed = collapsePlanillaByCredito([
-      { creditoId: 1, montoPagar: 10, tipoPagoId: 2, fechaHoraTrans: 'x' },
-      { creditoId: 1, montoPagar: 20, tipoPagoId: 1, fechaHoraTrans: '' },
+      { creditoId: 1, montoPagar: 100, tipoPagoId: 10, fechaHoraTrans: 'x' },
+      { creditoId: 1, montoPagar: 400, tipoPagoId: 12, fechaHoraTrans: '' },
       { creditoId: 2, montoPagar: 5, tipoPagoId: 1, fechaHoraTrans: '' },
     ])
     expect(collapsed).toHaveLength(2)
-    expect(collapsed.find((x) => x.creditoId === 1)?.montoPagar).toBe(30)
+    const mixto = collapsed.find((x) => x.creditoId === 1)
+    expect(mixto?.montoPagar).toBe(500)
+    expect(mixto?.tipoPagoId).toBe(10)
+    expect(mixto?.medios).toEqual([
+      { tipoPagoId: 10, importe: 100 },
+      { tipoPagoId: 12, importe: 400 },
+    ])
   })
 })

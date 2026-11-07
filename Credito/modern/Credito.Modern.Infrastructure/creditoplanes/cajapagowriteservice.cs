@@ -179,8 +179,10 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
         int creditoId,
         int usuarioId,
         DateTime fechaPago,
+        int tipoPagoId = 1,
+        string fechaPagoTransferencia = "",
         CancellationToken cancellationToken = default) =>
-        ExecuteScalarProcAsync(
+        ExecutePagarCuotasWithExtensionAsync(
             "CREDITO.usp_PagarCuotasCancelacion",
             new
             {
@@ -188,7 +190,11 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
                 CreditoId = creditoId,
                 UsuarioId = usuarioId,
                 FechaPago = fechaPago.Date,
+                TipoPagoId = tipoPagoId < 1 ? 1 : tipoPagoId,
+                FechaPagoTransferencia = fechaPagoTransferencia ?? string.Empty,
             },
+            tipoPagoId < 1 ? 1 : tipoPagoId,
+            fechaPagoTransferencia ?? string.Empty,
             cancellationToken);
 
     /// <summary>

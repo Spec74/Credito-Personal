@@ -26,7 +26,7 @@ public static class RptEstadoCreditoFichaPdfDocument
         var totalCuota = informe.Cuotas.Sum(x => x.Cuota);
         var totalMora = informe.Cuotas.Sum(x => x.ImporteMora ?? 0m);
         var totalDesc = informe.Cuotas.Sum(x => x.Descuento ?? 0m);
-        var totalPagado = informe.Cuotas.Sum(x => x.PagoCuota ?? 0m);
+        var totalPagado = EstadoPlanPagoMontos.TotalPagado(informe.Cuotas);
 
         return Document.Create(document =>
         {
@@ -126,7 +126,8 @@ public static class RptEstadoCreditoFichaPdfDocument
                             table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(cu.ImporteMora));
                             table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(cu.Descuento));
                             table.Cell().Element(B).AlignCenter().Text(CreditoPdfBranding.DateShort(cu.FechaPagoCuota));
-                            table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(cu.PagoCuota));
+                            table.Cell().Element(B).AlignRight().Text(
+                                CreditoPdfBranding.Money(EstadoPlanPagoMontos.ImportePagado(cu)));
                         }
 
                         void T(string text, bool right = false)

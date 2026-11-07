@@ -3712,6 +3712,7 @@ internal static class CreditoOperacionEndpoints
                     ICreditoOficinaReadService creditoOficina,
                     IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
                     IDatabaseTimeProvider databaseTime,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -3727,6 +3728,21 @@ internal static class CreditoOperacionEndpoints
                     {
                         return oficinaError;
                     }
+
+                    var (sesionTipo, sesionTipoErr) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, null, ct)
+                        .ConfigureAwait(false);
+                    if (sesionTipoErr is not null)
+                        return sesionTipoErr;
+
+                    var tipoPagoId = body.TipoPagoId < 1 ? 1 : body.TipoPagoId;
+                    var tipoPagoError = ProblemResults.IfInvalid(
+                        TipoPagoRules.RequireCobroPermitido(tipoPagoId, sesionTipo!.EsCentral)
+                        ?? TipoPagoRules.RequireDigitalFecha(
+                            tipoPagoId,
+                            body.FechaPagoTransferencia));
+                    if (tipoPagoError is not null)
+                        return tipoPagoError;
 
                     var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
                     if (usuarioError is not null)
@@ -3774,6 +3790,8 @@ internal static class CreditoOperacionEndpoints
                                 body.CreditoId,
                                 usuarioId,
                                 serverTime.Value,
+                                tipoPagoId,
+                                body.FechaPagoTransferencia ?? string.Empty,
                                 ct)
                             .ConfigureAwait(false);
                         var pagoError = CajaCreditoWriteGuards.MapPagoResult(response);

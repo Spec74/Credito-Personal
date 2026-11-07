@@ -1123,7 +1123,7 @@
   border-radius: 10px;
 }
 
-/* Plan de pago: filas suaves + acento lateral (sin reja vertical) */
+/* Plan de pago: estado por relleno de fila (sin barras verticales) */
 .credito-plan-table .ant-table-thead > tr > th,
 .credito-plan-table .ant-table-tbody > tr > td,
 .credito-plan-table .ant-table-summary > tr > td {
@@ -1163,23 +1163,28 @@
 }
 
 .credito-plan-table .credito-plan-row--pagado > td {
-  background: color-mix(in srgb, #10b981 7%, var(--credix-surface)) !important;
-  box-shadow: inset 3px 0 0 #059669;
+  background: color-mix(in srgb, #10b981 14%, var(--credix-surface)) !important;
+  box-shadow: none !important;
 }
 
 .credito-plan-table .credito-plan-row--pendiente > td {
-  background: color-mix(in srgb, #3b82f6 6%, var(--credix-surface)) !important;
-  box-shadow: inset 3px 0 0 #2563eb;
+  background: color-mix(in srgb, #3b82f6 10%, var(--credix-surface)) !important;
+  box-shadow: none !important;
+}
+
+.credito-plan-table .credito-plan-row--parcial > td {
+  background: color-mix(in srgb, #f59e0b 12%, var(--credix-surface)) !important;
+  box-shadow: none !important;
 }
 
 .credito-plan-table .credito-plan-row--vencido > td {
-  background: color-mix(in srgb, #f43f5e 8%, var(--credix-surface)) !important;
-  box-shadow: inset 3px 0 0 #e11d48;
+  background: color-mix(in srgb, #f43f5e 14%, var(--credix-surface)) !important;
+  box-shadow: none !important;
 }
 
 .credito-plan-table .credito-plan-row--creado > td {
-  background: color-mix(in srgb, #94a3b8 8%, var(--credix-surface)) !important;
-  box-shadow: inset 3px 0 0 #64748b;
+  background: color-mix(in srgb, #94a3b8 12%, var(--credix-surface)) !important;
+  box-shadow: none !important;
 }
 
 .credito-plan-table .ant-table-tbody > tr.credito-plan-row:hover > td {
@@ -1206,6 +1211,12 @@
   background: color-mix(in srgb, #3b82f6 14%, transparent);
   border-color: color-mix(in srgb, #2563eb 32%, transparent) !important;
   color: #1d4ed8;
+}
+
+.credito-plan-estado-tag--parcial.ant-tag {
+  background: color-mix(in srgb, #f59e0b 18%, transparent);
+  border-color: color-mix(in srgb, #d97706 36%, transparent) !important;
+  color: #b45309;
 }
 
 .credito-plan-estado-tag--vencido.ant-tag {
@@ -1340,25 +1351,30 @@
   color: var(--credix-text);
 }
 
-/* Acento + tinte del plan (después de reglas generales de tabla) */
+/* Relleno de estado del plan (después de reglas generales; sin barras laterales) */
 .credito-consulta-page .credito-plan-table .credito-plan-row--pagado > td {
-  background: color-mix(in srgb, #10b981 7%, var(--credix-surface)) !important;
-  box-shadow: inset 3px 0 0 #059669 !important;
+  background: color-mix(in srgb, #10b981 14%, var(--credix-surface)) !important;
+  box-shadow: none !important;
 }
 
 .credito-consulta-page .credito-plan-table .credito-plan-row--pendiente > td {
-  background: color-mix(in srgb, #3b82f6 6%, var(--credix-surface)) !important;
-  box-shadow: inset 3px 0 0 #2563eb !important;
+  background: color-mix(in srgb, #3b82f6 10%, var(--credix-surface)) !important;
+  box-shadow: none !important;
+}
+
+.credito-consulta-page .credito-plan-table .credito-plan-row--parcial > td {
+  background: color-mix(in srgb, #f59e0b 12%, var(--credix-surface)) !important;
+  box-shadow: none !important;
 }
 
 .credito-consulta-page .credito-plan-table .credito-plan-row--vencido > td {
-  background: color-mix(in srgb, #f43f5e 8%, var(--credix-surface)) !important;
-  box-shadow: inset 3px 0 0 #e11d48 !important;
+  background: color-mix(in srgb, #f43f5e 14%, var(--credix-surface)) !important;
+  box-shadow: none !important;
 }
 
 .credito-consulta-page .credito-plan-table .credito-plan-row--creado > td {
-  background: color-mix(in srgb, #94a3b8 8%, var(--credix-surface)) !important;
-  box-shadow: inset 3px 0 0 #64748b !important;
+  background: color-mix(in srgb, #94a3b8 12%, var(--credix-surface)) !important;
+  box-shadow: none !important;
 }
 
 .credito-consulta-page .credito-plan-table .ant-table-tbody > tr.credito-plan-row:hover > td {
@@ -1366,19 +1382,23 @@
 }
 
 :root[data-theme='dark'] .credito-consulta-page .credito-plan-table .credito-plan-row--pagado > td {
-  background: color-mix(in srgb, #10b981 12%, var(--credix-surface)) !important;
+  background: color-mix(in srgb, #10b981 18%, var(--credix-surface)) !important;
 }
 
 :root[data-theme='dark'] .credito-consulta-page .credito-plan-table .credito-plan-row--pendiente > td {
-  background: color-mix(in srgb, #3b82f6 11%, var(--credix-surface)) !important;
+  background: color-mix(in srgb, #3b82f6 15%, var(--credix-surface)) !important;
+}
+
+:root[data-theme='dark'] .credito-consulta-page .credito-plan-table .credito-plan-row--parcial > td {
+  background: color-mix(in srgb, #f59e0b 16%, var(--credix-surface)) !important;
 }
 
 :root[data-theme='dark'] .credito-consulta-page .credito-plan-table .credito-plan-row--vencido > td {
-  background: color-mix(in srgb, #f43f5e 13%, var(--credix-surface)) !important;
+  background: color-mix(in srgb, #f43f5e 18%, var(--credix-surface)) !important;
 }
 
 :root[data-theme='dark'] .credito-consulta-page .credito-plan-table .credito-plan-row--creado > td {
-  background: color-mix(in srgb, #94a3b8 10%, var(--credix-surface)) !important;
+  background: color-mix(in srgb, #94a3b8 14%, var(--credix-surface)) !important;
 }
 
 :root[data-theme='dark'] .credito-plan-estado-tag--pagado.ant-tag {
@@ -1387,6 +1407,10 @@
 
 :root[data-theme='dark'] .credito-plan-estado-tag--pendiente.ant-tag {
   color: #93c5fd;
+}
+
+:root[data-theme='dark'] .credito-plan-estado-tag--parcial.ant-tag {
+  color: #fcd34d;
 }
 
 :root[data-theme='dark'] .credito-plan-estado-tag--vencido.ant-tag {

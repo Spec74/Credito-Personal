@@ -484,9 +484,8 @@ export function CreditoConsultaGestionPanel({
     const pendientes = (planPago.data ?? []).filter((c: EstadoPlanPagoCuota) =>
       c.estado?.toUpperCase() === 'PEN',
     )
-    const capital = sumMoney(
-      pendientes.map((c) => c.amortizacion ?? c.capital ?? 0),
-    )
+    // Solo amortización pendiente (nunca el saldo residual de Capital).
+    const capital = sumMoney(pendientes.map((c) => c.amortizacion ?? 0))
     const interes = sumMoney(pendientes.map((c) => c.interes ?? 0))
     const mora = sumMoney(pendientes.map((c) => c.importeMora ?? 0))
     const cargos = sumMoney(pendientes.map((c) => c.cargo ?? 0))

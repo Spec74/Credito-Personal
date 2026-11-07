@@ -63,6 +63,13 @@ public sealed class BovedaWriteService(IOptions<SqlDatabaseOptions> options) : I
         short tipoPagoId = 1,
         CancellationToken cancellationToken = default)
     {
+        if (tipoPagoId < 1)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(tipoPagoId),
+                "TipoPagoId es obligatorio; no se asume efectivo.");
+        }
+
         return ExecuteIntProcAsync(
             "CREDITO.usp_TransferirBoveda",
             new
@@ -74,7 +81,7 @@ public sealed class BovedaWriteService(IOptions<SqlDatabaseOptions> options) : I
                 UsuarioRegId = usuarioRegId,
                 flagAceptar = flagAceptar,
                 BovedaMovTempId = bovedaMovTempId,
-                TipoPagoId = tipoPagoId < 1 ? (short)1 : tipoPagoId,
+                TipoPagoId = tipoPagoId,
             },
             cancellationToken);
     }

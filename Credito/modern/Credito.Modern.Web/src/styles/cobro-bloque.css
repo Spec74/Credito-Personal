@@ -153,6 +153,33 @@
   white-space: nowrap;
 }
 
+.cobro-enviado-medios {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.cobro-enviado-medios__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cobro-enviado-medios__monto {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.cobro-bloque-enviados-list__medios {
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.35;
+}
+
 .cobro-bloque-col-accion {
   min-width: 148px;
 }

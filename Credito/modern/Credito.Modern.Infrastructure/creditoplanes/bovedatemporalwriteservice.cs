@@ -161,6 +161,12 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
                 descripcion = "TRANS A BOVEDA TEMPORAL: " + descripcion;
             }
 
+            if (tipoPagoId < 1)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ("TipoPagoId es obligatorio; no se asume efectivo.", null);
+            }
+
             await EjecutarTransferirBovedaAsync(
                 connection,
                 transaction,
@@ -169,7 +175,7 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
                 descripcion,
                 importe,
                 usuarioRegId,
-                tipoPagoId < 1 ? (short)1 : tipoPagoId,
+                tipoPagoId,
                 cancellationToken).ConfigureAwait(false);
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -273,7 +279,7 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
             UsuarioRegId = usuarioRegId,
             flagAceptar = 0,
             BovedaMovTempId = 0,
-            TipoPagoId = tipoPagoId < 1 ? (short)1 : tipoPagoId,
+            TipoPagoId = tipoPagoId,
         });
         dynamicParams.Add("ReturnValue", dbType: DbType.Int32, direction: ParameterDirection.ReturnValue);
         await connection.ExecuteAsync(

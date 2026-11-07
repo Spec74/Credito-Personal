@@ -1,5 +1,4 @@
 
-
 /*
 SELECT * FROM CREDITO.PlanPago WHERE CreditoId=16
 EXEC [CREDITO].[usp_PagarCuotasCancelacion] 2,16,3,'20140311'
@@ -11,11 +10,37 @@ CREATE PROC [CREDITO].[usp_PagarCuotasCancelacion]
 @CajaDiarioId INT ,
 @CreditoId INT,
 @UsuarioId INT,
-@FechaPago DATE=NULL
+@FechaPago DATE=NULL,
+@TipoPagoId INT=1,
+@FechaPagoTransferencia VARCHAR(16)=''
 AS
 DECLARE @FechaActual DATETIME=dbo.ufnFecha()
 DECLARE @ListaPlanPagoId VARCHAR(MAX)='',@PagoCuota DECIMAL(16,2)=0,@PlanPagoId INT,@Index INT=1, @SumaPagoCuota DECIMAL(16,2)=0,
 		@NroCuotas INT=0
+DECLARE @OficinaCredito INT, @OficinaCaja INT
+
+-- Multisucursal: cancelación solo en caja de la misma oficina del crédito.
+SELECT @OficinaCredito = OficinaId FROM CREDITO.Credito WHERE CreditoId = @CreditoId
+SELECT @OficinaCaja = cj.OficinaId
+FROM CREDITO.CajaDiario cd
+INNER JOIN CREDITO.Caja cj ON cj.CajaId = cd.CajaId
+WHERE cd.CajaDiarioId = @CajaDiarioId
+
+IF @OficinaCredito IS NULL
+BEGIN
+	RAISERROR(N'Crédito no existe.', 16, 1)
+	RETURN
+END
+IF @OficinaCaja IS NULL
+BEGIN
+	RAISERROR(N'Caja diario no existe.', 16, 1)
+	RETURN
+END
+IF @OficinaCredito <> @OficinaCaja
+BEGIN
+	RAISERROR(N'El crédito no pertenece a la oficina de la caja (multisucursal).', 16, 1)
+	RETURN
+END
 
 IF EXISTS(SELECT 1 FROM CREDITO.Credito WITH(NOLOCK) WHERE Estado<>'DES' AND CreditoId=@CreditoId)
 	RETURN
@@ -50,6 +75,13 @@ END
 IF LEN(@ListaPlanPagoId)>0
 BEGIN
 	SET @ListaPlanPagoId = SUBSTRING(@ListaPlanPagoId,1,LEN(@ListaPlanPagoId)-1)
-	--SELECT @SumaPagoCuota, @ListaPlanPagoId 
-	EXEC CREDITO.usp_PagarCuotas @CajaDiarioId,@CreditoId,@ListaPlanPagoId,@SumaPagoCuota,@UsuarioId,@FechaPago
+	EXEC CREDITO.usp_PagarCuotas
+		@CajaDiarioId=@CajaDiarioId,
+		@CreditoId=@CreditoId,
+		@ListaPlanPagoId=@ListaPlanPagoId,
+		@ImporteRecibido=@SumaPagoCuota,
+		@UsuarioId=@UsuarioId,
+		@FechaPago=@FechaPago,
+		@TipoPagoId=@TipoPagoId,
+		@FechaPagoTransferencia=@FechaPagoTransferencia
 END

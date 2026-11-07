@@ -17,7 +17,7 @@ public static class RptEstadoCreditoCsvFormatter
         sb.AppendLine($"Total,{c.Total.ToString(inv)}");
         sb.AppendLine();
         sb.AppendLine(
-            "Numero,Capital,FechaVencimiento,Amortizacion,Interes,GastosAdm,Cuota,Estado,DiasAtrazo,ImporteMora,Descuento,Cargo,PagoLibre,FechaPagoCuota,PagoCuota");
+            "Numero,Capital,FechaVencimiento,Amortizacion,Interes,GastosAdm,Cuota,Estado,DiasAtrazo,ImporteMora,Descuento,Cargo,PagoLibre,FechaPagoCuota,Pagado");
         foreach (var r in informe.Cuotas)
         {
             sb.Append(r.Numero).Append(',')
@@ -34,7 +34,7 @@ public static class RptEstadoCreditoCsvFormatter
                 .Append(r.Cargo?.ToString(inv) ?? string.Empty).Append(',')
                 .Append(r.PagoLibre.ToString(inv)).Append(',')
                 .Append(r.FechaPagoCuota?.ToString("yyyy-MM-dd", inv) ?? string.Empty).Append(',')
-                .Append(r.PagoCuota?.ToString(inv) ?? string.Empty)
+                .Append(EstadoPlanPagoMontos.ImportePagado(r).ToString(inv))
                 .AppendLine();
         }
 

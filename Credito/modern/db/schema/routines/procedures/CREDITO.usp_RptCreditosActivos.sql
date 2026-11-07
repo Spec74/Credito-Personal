@@ -1,6 +1,6 @@
 ﻿--exec CREDITO.usp_RptCreditosActivos '20250901','20250930',8
 
-CREATE PROC [CREDITO].[usp_RptCreditosActivos]
+CREATE OR ALTER PROC [CREDITO].[usp_RptCreditosActivos]
 @FechaIni  DATE,
 @FechaFin  DATE,
 @UsuarioId INT = NULL,
@@ -17,7 +17,11 @@ DECLARE @FechaAct DATE = dbo.ufnFecha();
         SUM(CASE WHEN Estado = 'PEN' THEN Cuota - PagoLibre  ELSE 0 END)      AS Saldo,
         SUM(CASE WHEN Estado = 'PEN' THEN Amortizacion       ELSE 0 END)      AS SaldoCapital,
         ABS(SUM(CASE WHEN Estado = 'PEN' THEN Interes - PagoLibre ELSE 0 END))AS SaldoInteres,
-        SUM(ISNULL(PagoCuota, 0) + PagoLibre)                                 AS Pagado,
+        /* Pagado real: PAG→PagoCuota; PEN→PagoLibre (no sumar ambos). */
+        SUM(CASE
+                WHEN Estado = 'PAG' THEN ISNULL(PagoCuota, 0)
+                ELSE ISNULL(PagoLibre, 0)
+            END)                                                              AS Pagado,
         SUM(CASE WHEN Estado = 'PAG' THEN ISNULL(Interes, 0) ELSE 0 END)      AS InteresPagado,
         SUM(Interes)                                                            AS MontoInteres,
         SUM(Cuota)                                                              AS MontoCreditoTotal,
@@ -26,33 +30,32 @@ DECLARE @FechaAct DATE = dbo.ufnFecha();
     FROM CREDITO.PlanPago
     GROUP BY CreditoId
 ),
-DESEMBOLSOS AS (
-    -- Creditos DESEMBOLSADOS activos
-    --SELECT
-    --    C.CreditoId,
-    --    dbo.ufnCalcularDiasAtrazo(AP.MinFechaVenPen, @FechaAct)               AS DiasAtrazo,
-    --    AP.NroCuotasPen,
-    --    AP.Saldo,
-    --    AP.SaldoCapital,
-    --    AP.SaldoInteres,
-    --    AP.Pagado,
-    --    AP.InteresPagado,
-    --    AP.MontoInteres,
-    --    AP.MontoCreditoTotal,
-    --    dbo.ufnCalcularDiasAtrazo(C.FechaVencimiento, @FechaAct)              AS Mora,
-    --    AP.CuotaNro1                                                            AS Cuota
-    --FROM CREDITO.Credito C
-    --INNER JOIN MAESTRO.Persona P ON C.PersonaId = P.PersonaId
-    --INNER JOIN AGG_PP AP         ON C.CreditoId = AP.CreditoId
-    --WHERE C.Estado = 'DES'
-    --  AND C.OficinaId    = ISNULL(@OficinaId, C.OficinaId)
-    --  AND C.UsuarioRegId = ISNULL(@UsuarioId, C.UsuarioRegId)
-
-    --UNION ALL
-
-    -- Creditos PAGADOS dentro del rango de fechas
+CARTERA AS (
+    -- Créditos DESEMBOLSADOS activos (cartera viva)
     SELECT
-        C.CreditoId,        
+        C.CreditoId,
+        dbo.ufnCalcularDiasAtrazo(AP.MinFechaVenPen, @FechaAct)               AS DiasAtrazo,
+        AP.NroCuotasPen,
+        AP.Saldo,
+        AP.SaldoCapital,
+        AP.SaldoInteres,
+        AP.Pagado,
+        AP.InteresPagado,
+        AP.MontoInteres,
+        AP.MontoCreditoTotal,
+        CONVERT(DECIMAL(10,2), AP.TotalImporteMora)                            AS Mora,
+        AP.CuotaNro1                                                            AS Cuota
+    FROM CREDITO.Credito C
+    INNER JOIN AGG_PP AP ON C.CreditoId = AP.CreditoId
+    WHERE C.Estado = 'DES'
+      AND C.OficinaId    = ISNULL(@OficinaId, C.OficinaId)
+      AND C.UsuarioRegId = ISNULL(@UsuarioId, C.UsuarioRegId)
+
+    UNION ALL
+
+    -- Créditos PAGADOS cuyo 1.er pago cae en el rango (histórico del periodo)
+    SELECT
+        C.CreditoId,
         0                                                                       AS DiasAtrazo,
         0                                                                       AS NroCuotasPen,
         0.0                                                                       AS Saldo,
@@ -65,8 +68,7 @@ DESEMBOLSOS AS (
         CONVERT(DECIMAL(10,2), AP.TotalImporteMora)                            AS Mora,
         AP.CuotaNro1                                                            AS Cuota
     FROM CREDITO.Credito C
-    INNER JOIN MAESTRO.Persona P ON C.PersonaId = P.PersonaId
-    INNER JOIN AGG_PP AP         ON C.CreditoId = AP.CreditoId
+    INNER JOIN AGG_PP AP ON C.CreditoId = AP.CreditoId
     WHERE C.Estado = 'PAG'
       AND C.FechaPrimerPago BETWEEN @FechaIni AND @FechaFin
       AND C.OficinaId    = ISNULL(@OficinaId, C.OficinaId)
@@ -99,9 +101,8 @@ SELECT
     CM.DiasAtrazo,
     CONVERT(DECIMAL(10,2), CM.Mora)                                            AS Mora
 FROM CREDITO.Credito C
-INNER JOIN DESEMBOLSOS CM    ON C.CreditoId    = CM.CreditoId
+INNER JOIN CARTERA CM        ON C.CreditoId    = CM.CreditoId
 INNER JOIN MAESTRO.Persona P ON C.PersonaId    = P.PersonaId
 INNER JOIN MAESTRO.Usuario u ON C.UsuarioRegId = u.UsuarioId
 INNER JOIN MAESTRO.Persona A ON u.PersonaId    = A.PersonaId
 ORDER BY C.Estado, A.NombreCompleto, P.NombreCompleto;
-

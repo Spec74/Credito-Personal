@@ -40,10 +40,10 @@ public static class RptNotificacionVencimientoPdfDocument
             .OrderBy(c => c.Numero)
             .ToList();
 
-        var totalCuotasVencidas = vencidas.Sum(c => c.Cuota);
+        // PagoCuota PEN = saldo real (cuota − abonos + mora/cargos). No sumar Cuota+Mora a ciegas.
+        var totalPagar = EstadoPlanPagoMontos.TotalSaldoPorPagar(vencidas);
         var totalMora = vencidas.Sum(c => c.ImporteMora ?? 0m);
         var maxDias = vencidas.Count == 0 ? 0 : vencidas.Max(c => c.DiasAtrazo ?? 0);
-        var totalPagar = totalCuotasVencidas + totalMora;
         var cliente = ficha?.Cliente ?? cab.Cliente;
         var documento = ficha?.NumeroDocumento ?? cab.CodigoPersona;
         var direccion = string.Join(
@@ -83,10 +83,9 @@ public static class RptNotificacionVencimientoPdfDocument
                         ("Modalidad", CreditoPdfBranding.OrDash(cab.Modalidad)),
                         ("Cuotas vencidas", vencidas.Count.ToString(CreditoPdfBranding.Inv)),
                         ("Máx. días atraso", maxDias.ToString(CreditoPdfBranding.Inv)),
-                        ("Importe cuotas", CreditoPdfBranding.Money(totalCuotasVencidas)),
                         ("Mora", CreditoPdfBranding.Money(totalMora)),
                         ("Total a pagar", CreditoPdfBranding.Money(totalPagar)),
-                    ], columns: 3));
+                    ], columns: 2));
 
                     col.Item().Element(c =>
                         CreditoPdfBranding.ComposeSectionTitle(c, "CUOTAS VENCIDAS"));
@@ -122,7 +121,7 @@ public static class RptNotificacionVencimientoPdfDocument
 
                                 H("N°");
                                 H("Vence");
-                                H("Cuota", true);
+                                H("A pagar", true);
                                 H("Mora", true);
                                 H("Días");
                                 H("Estado");
@@ -138,7 +137,7 @@ public static class RptNotificacionVencimientoPdfDocument
                                 table.Cell().Element(B).AlignCenter()
                                     .Text(CreditoPdfBranding.DateShort(cu.FechaVencimiento));
                                 table.Cell().Element(B).AlignRight()
-                                    .Text(CreditoPdfBranding.Money(cu.Cuota));
+                                    .Text(CreditoPdfBranding.Money(EstadoPlanPagoMontos.SaldoPorPagar(cu)));
                                 table.Cell().Element(B).AlignRight()
                                     .Text(CreditoPdfBranding.Money(cu.ImporteMora));
                                 table.Cell().Element(B).AlignCenter()
@@ -150,7 +149,7 @@ public static class RptNotificacionVencimientoPdfDocument
                             table.Cell().ColumnSpan(2).Element(CreditoPdfBranding.TableTotalCell)
                                 .Text($"Total ({vencidas.Count})");
                             table.Cell().Element(CreditoPdfBranding.TableTotalCell).AlignRight()
-                                .Text(CreditoPdfBranding.Money(totalCuotasVencidas));
+                                .Text(CreditoPdfBranding.Money(totalPagar));
                             table.Cell().Element(CreditoPdfBranding.TableTotalCell).AlignRight()
                                 .Text(CreditoPdfBranding.Money(totalMora));
                             table.Cell().ColumnSpan(2).Element(CreditoPdfBranding.TableTotalCell);

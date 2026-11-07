@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
-import { Button, Descriptions, InputNumber } from 'antd'
+import { Button, Descriptions, InputNumber, Table, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   downloadRptEstadoCreditoCsv,
@@ -15,6 +15,22 @@ import { useInformeStats } from '../../hooks/useInformeStats'
 import type { EstadoPlanPagoCuota } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
+import {
+  importePagadoPlanCuota,
+  totalPagadoPlanCuotas,
+  totalSaldoPorPagarPlanCuotas,
+} from '../../utils/estadoPlanPagoMontos'
+import '../../styles/credito-consulta.css'
+
+function estadoPlanRowClass(row: EstadoPlanPagoCuota): string {
+  const estado = row.estado?.trim().toUpperCase()
+  if (estado === 'PAG') return 'credito-plan-row credito-plan-row--pagado'
+  if ((row.diasAtrazo ?? 0) > 0) return 'credito-plan-row credito-plan-row--vencido'
+  if (estado === 'CRE') return 'credito-plan-row credito-plan-row--creado'
+  if ((row.pagoLibre ?? 0) > 0) return 'credito-plan-row credito-plan-row--parcial'
+  return 'credito-plan-row credito-plan-row--pendiente'
+}
 
 export function EstadoCreditoPage() {
   const [creditoId, setCreditoId] = useState<number | null>(null)
@@ -37,8 +53,26 @@ export function EstadoCreditoPage() {
     }
   }
 
-  const stats = useInformeStats({ ...consulta, data: consulta.data?.cuotas })
+  const cuotas = consulta.data?.cuotas ?? []
+  const stats = useInformeStats({ ...consulta, data: cuotas })
   const cab = consulta.data?.cabecera
+
+  const resumen = useMemo(() => {
+    const pagadas = cuotas.filter((r) => r.estado?.trim().toUpperCase() === 'PAG').length
+    return {
+      amortizacion: sumMoney(cuotas.map((r) => r.amortizacion ?? 0)),
+      interes: sumMoney(cuotas.map((r) => r.interes ?? 0)),
+      gastosAdm: sumMoney(cuotas.map((r) => r.gastosAdm ?? 0)),
+      cuota: sumMoney(cuotas.map((r) => r.cuota ?? 0)),
+      mora: sumMoney(cuotas.map((r) => r.importeMora ?? 0)),
+      descuento: sumMoney(cuotas.map((r) => r.descuento ?? 0)),
+      cargo: sumMoney(cuotas.map((r) => r.cargo ?? 0)),
+      pagoLibre: sumMoney(cuotas.map((r) => r.pagoLibre ?? 0)),
+      pagado: totalPagadoPlanCuotas(cuotas),
+      saldo: totalSaldoPorPagarPlanCuotas(cuotas),
+      pagadas,
+    }
+  }, [cuotas])
 
   const columns: ColumnsType<EstadoPlanPagoCuota> = [
     { title: 'N°', dataIndex: 'numero', width: 50 },
@@ -125,11 +159,11 @@ export function EstadoCreditoPage() {
       render: formatFecha,
     },
     {
-      title: 'Pago cuota',
+      title: 'Pagado',
       dataIndex: 'pagoCuota',
       width: 95,
       align: 'right',
-      render: formatMoney,
+      render: (_v: number | null, row) => formatMoney(importePagadoPlanCuota(row)),
     },
   ]
 
@@ -185,18 +219,72 @@ export function EstadoCreditoPage() {
           <Descriptions.Item label="Total (monto + intereses)">
             {formatMoney(cab.total)}
           </Descriptions.Item>
+          <Descriptions.Item label="Pagado real">
+            {formatMoney(resumen.pagado)}
+          </Descriptions.Item>
+          <Descriptions.Item label="Saldo por pagar">
+            {formatMoney(resumen.saldo)}
+          </Descriptions.Item>
           <Descriptions.Item label="Analista">{cab.analista}</Descriptions.Item>
         </Descriptions>
       ) : null}
-      <CredixDataTable<EstadoPlanPagoCuota>
-        rowKey="planPagoId"
-        columns={columns}
-        dataSource={consulta.data?.cuotas ?? []}
-        loading={consulta.isPending}
-        pagination={{ pageSize: 24 }}
-        scroll={{ x: 1400 }}
-        locale={{ emptyText: 'Indique crédito y consulte' }}
-      />
+      <div className="credito-consulta-page">
+        <CredixDataTable<EstadoPlanPagoCuota>
+          className="credito-plan-table"
+          rowKey="planPagoId"
+          columns={columns}
+          dataSource={cuotas}
+          loading={consulta.isPending}
+          pagination={{ pageSize: 24 }}
+          scroll={{ x: 1400 }}
+          rowClassName={estadoPlanRowClass}
+          locale={{ emptyText: 'Indique crédito y consulte' }}
+          summary={() =>
+            cuotas.length === 0 ? null : (
+              <Table.Summary fixed>
+                <Table.Summary.Row className="credito-plan-summary-row">
+                  <Table.Summary.Cell index={0} colSpan={2}>
+                    <Typography.Text strong>
+                      Total ({resumen.pagadas}/{cuotas.length} pagadas)
+                    </Typography.Text>
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={2} align="right">
+                    {formatMoney(resumen.amortizacion)}
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={3} align="right">
+                    {formatMoney(resumen.interes)}
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={4} align="right">
+                    {formatMoney(resumen.gastosAdm)}
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={5}>—</Table.Summary.Cell>
+                  <Table.Summary.Cell index={6} align="right">
+                    {formatMoney(resumen.cuota)}
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={7}>—</Table.Summary.Cell>
+                  <Table.Summary.Cell index={8}>—</Table.Summary.Cell>
+                  <Table.Summary.Cell index={9} align="right">
+                    {formatMoney(resumen.mora)}
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={10} align="right">
+                    {formatMoney(resumen.descuento)}
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={11} align="right">
+                    {formatMoney(resumen.cargo)}
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={12} align="right">
+                    {formatMoney(resumen.pagoLibre)}
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={13}>—</Table.Summary.Cell>
+                  <Table.Summary.Cell index={14} align="right">
+                    {formatMoney(resumen.pagado)}
+                  </Table.Summary.Cell>
+                </Table.Summary.Row>
+              </Table.Summary>
+            )
+          }
+        />
+      </div>
     </CredixInformePage>
   )
 }

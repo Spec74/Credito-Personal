@@ -5,6 +5,12 @@ CREATE PROC [CREDITO].[usp_CompletarImpagosValidacion]
 AS
 
 DECLARE @UsuarioId INT=(select UsuarioAsignadoId from CREDITO.CajaDiario where CajaDiarioId=@CajaDiarioId)
+DECLARE @OficinaId INT=(
+    SELECT cj.OficinaId
+    FROM CREDITO.CajaDiario cd
+    INNER JOIN CREDITO.Caja cj ON cj.CajaId = cd.CajaId
+    WHERE cd.CajaDiarioId = @CajaDiarioId
+)
 DECLARE @Impagos INT=0
 DECLARE @Fecha DATETIME = dbo.ufnFecha()
 
@@ -12,6 +18,7 @@ SELECT	@Impagos = COUNT(1)
 FROM CREDITO.Credito c
     WHERE c.Estado = 'DES' 
       AND c.UsuarioRegId = @UsuarioId
+      AND c.OficinaId = @OficinaId
       -- No marcar impago antes del 1.er pago (adelanto el mismo día del desembolso es voluntario)
       AND c.FechaPrimerPago <= CAST(@Fecha AS DATE)
       -- Condición 1: No existe movimiento de caja relacionado a caja diario

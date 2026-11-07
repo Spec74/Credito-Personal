@@ -11,6 +11,13 @@ BEGIN
         WHERE CajaDiarioId = @CajaDiarioId
     );
 
+    DECLARE @OficinaId INT = (
+        SELECT cj.OficinaId
+        FROM CREDITO.CajaDiario cd
+        INNER JOIN CREDITO.Caja cj ON cj.CajaId = cd.CajaId
+        WHERE cd.CajaDiarioId = @CajaDiarioId
+    );
+
     DECLARE @Fecha DATETIME = dbo.ufnFecha() 
     
     IF EXISTS(SELECT 1 FROM CREDITO.CajaDiario WHERE CajaDiarioId = @CajaDiarioId AND IndCierre = 1)
@@ -19,17 +26,17 @@ BEGIN
     END
 		
     -- Validar que existe la caja y tiene usuario asignado
-    IF @UsuarioId IS NULL
+    IF @UsuarioId IS NULL OR @OficinaId IS NULL
     BEGIN
-        RAISERROR('CajaDiarioId no válido o sin usuario asignado.', 16, 1);
+        RAISERROR('CajaDiarioId no válido o sin usuario/oficina asignados.', 16, 1);
         RETURN;
     END
 
-    -- Inserción masiva de impagos (Monto 0.00)
+    -- Inserción masiva de impagos (Monto 0.00) — solo créditos de la misma oficina de la caja.
     INSERT INTO CREDITO.MovimientoCaja (
         CajaDiarioId, PersonaId, Operacion, ImportePago,
         Descripcion, IndEntrada, Estado, OrdenVentaId, 
-        CreditoId, UsuarioRegId, FechaReg
+        CreditoId, UsuarioRegId, FechaReg, TipoPagoId
     )
     SELECT 
         @CajaDiarioId, 
@@ -40,10 +47,12 @@ BEGIN
         1, 1, NULL, 
         c.CreditoId, 
         @UsuarioId, 
-        @Fecha
+        @Fecha,
+        1 /* Impago documental: medio efectivo (importe 0; no mueve bóveda) */
     FROM CREDITO.Credito c
     WHERE c.Estado = 'DES' 
       AND c.UsuarioRegId = @UsuarioId
+      AND c.OficinaId = @OficinaId
       
       -- CONDICIÓN OPTIMIZADA: Solo procesar si ya llegó o ya pasó la fecha de su primer pago
       AND c.FechaPrimerPago <= CAST(@Fecha AS DATE)

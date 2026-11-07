@@ -37,5 +37,7 @@ public interface ICajaPagoWriteService
         int creditoId,
         int usuarioId,
         DateTime fechaPago,
+        int tipoPagoId = 1,
+        string fechaPagoTransferencia = "",
         CancellationToken cancellationToken = default);
 }

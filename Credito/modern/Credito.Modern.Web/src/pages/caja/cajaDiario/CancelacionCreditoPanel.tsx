@@ -15,6 +15,7 @@ import { useAuth } from '../../../auth/useAuth'
 import { syncDiarioPagoHaciaCobro } from '../../../utils/cajaOperacionSync'
 import { assertSinCxcPendiente } from './cajaPagoHelpers'
 import { cajaToastError, cajaToastSuccess } from './cajaFeedback'
+import { toLegacyFechaTransferencia } from '../../../utils/formatFecha'
 import type { CajaSession } from './types'
 import { errMsg } from './types'
 
@@ -24,15 +25,21 @@ export function CancelacionCreditoPanel({
   creditoId,
   onChanged,
   clienteLabel,
+  tipoPagoId = 1,
+  fechaPagoTransferencia = '',
 }: {
   ctx: CajaSession
   creditoId: number | null
   onChanged: () => void
   clienteLabel?: string
+  /** Medio elegido en cobranzas (evita forzar efectivo). */
+  tipoPagoId?: number
+  fechaPagoTransferencia?: string
 }) {
   const { session } = useAuth()
   const usuarioId = session?.usuarioId ?? 0
   const [expanded, setExpanded] = useState(false)
+  const medioId = tipoPagoId > 0 ? tipoPagoId : 1
 
   const query = useQuery({
     queryKey: ['cuotas-cancelacion', creditoId],
@@ -56,6 +63,12 @@ export function CancelacionCreditoPanel({
         oficinaId: ctx.oficinaId,
         cajaDiarioId: ctx.cajaDiarioId,
         creditoId: creditoId!,
+        tipoPagoId: medioId,
+        fechaPagoTransferencia:
+          medioId > 1 && fechaPagoTransferencia
+            ? (toLegacyFechaTransferencia(fechaPagoTransferencia) ??
+              fechaPagoTransferencia)
+            : undefined,
       }),
     onSuccess: (r) => {
       cajaToastSuccess('Cancelación de crédito registrada', 'caja-cancel')
@@ -67,7 +80,7 @@ export function CancelacionCreditoPanel({
           creditoId,
           personaNombre: clienteLabel,
           montoPagar: totales.pagoCuota,
-          tipoPagoId: 1,
+          tipoPagoId: medioId,
           movimientoCajaId: r.resultId ?? null,
         })
       }

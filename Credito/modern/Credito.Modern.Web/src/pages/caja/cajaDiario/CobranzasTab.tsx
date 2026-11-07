@@ -1357,6 +1357,8 @@ export function CobranzasTab({
             creditoId={creditoId}
             clienteLabel={clienteLabel}
             onChanged={onChanged}
+            tipoPagoId={tipoPagoId}
+            fechaPagoTransferencia={fechaTransferencia}
           />
         </div>
       </details>

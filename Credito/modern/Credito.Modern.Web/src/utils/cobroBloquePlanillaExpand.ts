@@ -7,6 +7,8 @@ export type PlanillaPayloadItem = {
   montoPagar: number
   tipoPagoId: number
   fechaHoraTrans: string
+  /** Tras colapsar un mixto: tramos por medio (misma suma que montoPagar). */
+  medios?: { tipoPagoId: number; importe: number }[]
 }
 
 /** Expande un tipado a 1..N ítems de planilla (mixto = varios medios del mismo crédito). */
@@ -49,20 +51,29 @@ export function validateRowMixtoMoney(edit: CobroBloqueRowDraft): string | null 
   return null
 }
 
-/** Colapsa N ítems del mismo crédito a uno (para cola «enviados»). */
+/** Colapsa N ítems del mismo crédito a uno (para cola «enviados»), conservando medios. */
 export function collapsePlanillaByCredito(
   planilla: PlanillaPayloadItem[],
 ): PlanillaPayloadItem[] {
   const map = new Map<number, PlanillaPayloadItem>()
   for (const p of planilla) {
+    const tramo = { tipoPagoId: p.tipoPagoId, importe: roundMoney(p.montoPagar) }
     const prev = map.get(p.creditoId)
     if (!prev) {
-      map.set(p.creditoId, { ...p })
+      map.set(p.creditoId, {
+        ...p,
+        medios: p.medios && p.medios.length >= 2 ? p.medios : [tramo],
+      })
       continue
     }
+    const mediosPrev =
+      prev.medios && prev.medios.length > 0
+        ? prev.medios
+        : [{ tipoPagoId: prev.tipoPagoId, importe: roundMoney(prev.montoPagar) }]
     map.set(p.creditoId, {
       ...prev,
       montoPagar: sumMoney([prev.montoPagar, p.montoPagar]),
+      medios: [...mediosPrev, tramo],
     })
   }
   return [...map.values()]

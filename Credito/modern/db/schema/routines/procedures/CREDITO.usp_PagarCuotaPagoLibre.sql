@@ -15,10 +15,32 @@ AS
 
 	DECLARE @TotalPago DECIMAL(16,2)=0, @IndImporteLibre BIT = 0
 	DECLARE @FechaActual DATETIME=dbo.ufnFecha()
-
 	DECLARE @PersonaId INT, @MovimientoCajaId INT
-	SELECT	@PersonaId = PersonaId FROM	CREDITO.Credito WHERE CreditoId = @CreditoId
+	DECLARE @OficinaCredito INT, @OficinaCaja INT
 
+	-- Multisucursal: el cobro solo puede ir a la caja de la misma oficina del crédito.
+	SELECT @OficinaCredito = OficinaId, @PersonaId = PersonaId
+	FROM CREDITO.Credito WHERE CreditoId = @CreditoId
+	SELECT @OficinaCaja = cj.OficinaId
+	FROM CREDITO.CajaDiario cd
+	INNER JOIN CREDITO.Caja cj ON cj.CajaId = cd.CajaId
+	WHERE cd.CajaDiarioId = @CajaDiarioId
+
+	IF @OficinaCredito IS NULL
+	BEGIN
+		RAISERROR(N'Crédito no existe.', 16, 1)
+		RETURN
+	END
+	IF @OficinaCaja IS NULL
+	BEGIN
+		RAISERROR(N'Caja diario no existe.', 16, 1)
+		RETURN
+	END
+	IF @OficinaCredito <> @OficinaCaja
+	BEGIN
+		RAISERROR(N'El crédito no pertenece a la oficina de la caja (multisucursal).', 16, 1)
+		RETURN
+	END
 
 	DECLARE @tCuotasPendientes TABLE(Id INT IDENTITY(1,1),PlanPagoId INT,Glosa VARCHAR(MAX),FechaVencimiento DATE,Amortizacion DECIMAL(16,2),
 									Interes DECIMAL(16,2), GastosAdm DECIMAL(16,2), Cuota DECIMAL(16,2), DiasAtrazo INT,

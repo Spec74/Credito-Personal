@@ -1,6 +1,6 @@
 
 -- CREDITO.usp_RptCreditoRentabilidad 1,'20200301','20200330'
-CREATE PROC [CREDITO].[usp_RptCreditoRentabilidad]
+CREATE OR ALTER PROC [CREDITO].[usp_RptCreditoRentabilidad]
 @OficnaId INT = NULL,
 @FechaIni DATE ,
 @FechaFin DATE,
@@ -10,7 +10,8 @@ AS
 ;WITH CREDITOSUM AS(
 	SELECT CR.CreditoId,COUNT(1) 'CuotasPagadas', SUM(PP.Interes) 'SumInteres',
 	SUM(PP.Cuota) 'SumCuota',SUM(PP.ImporteMora) 'SumMora',
-	SUM(PP.PagoCuota + PP.PagoLibre) 'SumPago',MAX(PP.FechaPagoCuota) 'FechaPago'
+	/* Solo cuotas PAG: PagoCuota es el cobrado (no sumar PagoLibre otra vez). */
+	SUM(ISNULL(PP.PagoCuota, 0)) 'SumPago',MAX(PP.FechaPagoCuota) 'FechaPago'
 	FROM CREDITO.Credito CR
 	INNER JOIN CREDITO.PlanPago PP ON CR.CreditoId = PP.CreditoId AND PP.Estado='PAG'
 	WHERE CR.Estado=@EstadoCredito /* in('PAG','REP')*/  AND	CR.OficinaId=ISNULL(@OficnaId,CR.OficinaId)		

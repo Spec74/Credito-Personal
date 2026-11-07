@@ -283,11 +283,16 @@ export function pagarCuotasCancelacion(body: {
   oficinaId: number
   cajaDiarioId: number
   creditoId: number
+  tipoPagoId?: number
+  fechaPagoTransferencia?: string
 }): Promise<PagoCajaResult> {
   return apiFetch<PagoCajaResult>('/credito/pagar-cuotas-cancelacion', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      tipoPagoId: 1,
+      ...body,
+    }),
   })
 }
 

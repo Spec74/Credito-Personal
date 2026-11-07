@@ -7,11 +7,19 @@
 
 import { fechaOperacionLocal } from './cobroBloqueDraft'
 
+export type CobroEnviadoMedio = {
+  tipoPagoId: number
+  importe: number
+}
+
 export type CobroEnviadoItem = {
   creditoId: number
   personaNombre: string
   montoPagar: number
+  /** Medio principal (primer tramo si fue mixto). */
   tipoPagoId: number
+  /** Si hubo cobro mixto, todos los tramos (para Enviados). */
+  medios?: CobroEnviadoMedio[]
   enviadoAt: string
   movimientoCajaId?: number | null
   origen: 'cobrar_ya' | 'lote' | 'sync' | 'diario'
