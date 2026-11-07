@@ -48,6 +48,7 @@ import type {
   CajaDiarioOperacionResponse,
   CrearSolicitudCreditoResponse,
   CreditoCicloOperacionResponse,
+  ReprogramarCreditoResponse,
   CrearCreditoResponse,
   SimuladorCreditoCuota,
   SimuladorCreditoRequest,
@@ -1301,8 +1302,8 @@ export function prorrogarCredito(body: {
 export function reprogramarCredito(body: {
   oficinaId: number
   creditoId: number
-}): Promise<CreditoCicloOperacionResponse> {
-  return apiFetch<CreditoCicloOperacionResponse>('/credito/reprogramar-credito', {
+}): Promise<ReprogramarCreditoResponse> {
+  return apiFetch<ReprogramarCreditoResponse>('/credito/reprogramar-credito', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),

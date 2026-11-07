@@ -20,6 +20,7 @@ import dayjs, { type Dayjs } from 'dayjs'
 import { obtenerCliente } from '../../api/clientes'
 import { calcularGastosAdm } from '../../api/gastosAdm'
 import { simularCredito } from '../../api/creditoPlanes'
+import { fetchSolicitudCredito } from '../../api/creditoGestion'
 import { fetchProductos } from '../../api/productos'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
@@ -43,7 +44,7 @@ import {
 import { originarCredito } from '../../utils/originarCredito'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
-import { sumMoney } from '../../utils/money'
+import { moneyEquals, sumMoney } from '../../utils/money'
 import {
   buildClientesNuevoHref,
   labelClienteFicha,
@@ -53,6 +54,7 @@ import {
   esCreditoAdministrador,
   esCreditoAprobador1,
 } from '../../utils/creditoOperacionPermisos'
+import { esObservacionReprogramacion } from '../../utils/creditoEstados'
 import type { SimuladorCreditoCuota } from '../../types/api'
 import '../../styles/credito-prendario-nuevo.css'
 
@@ -106,6 +108,7 @@ export function CreditoNuevoPage() {
   const [indCentralRiesgo, setIndCentralRiesgo] = useState(true)
   const [cuotas, setCuotas] = useState<SimuladorCreditoCuota[]>([])
   const [planLoading, setPlanLoading] = useState(false)
+  const [solicitudHidratada, setSolicitudHidratada] = useState(false)
 
   const productosQuery = useQuery({
     queryKey: ['productos'],
@@ -124,6 +127,23 @@ export function CreditoNuevoPage() {
     enabled: personaId != null && personaId > 0,
   })
 
+  const solicitudQuery = useQuery({
+    queryKey: ['solicitud-credito', oficinaId, solicitudUrl],
+    queryFn: () => fetchSolicitudCredito(oficinaId, solicitudUrl),
+    enabled: oficinaId > 0 && solicitudUrl > 0,
+    staleTime: 30_000,
+  })
+
+  const esReprogramacion = esObservacionReprogramacion(solicitudQuery.data?.observacion)
+  const saldoPendienteSugerido =
+    esReprogramacion && (solicitudQuery.data?.montoCredito ?? 0) > 0
+      ? solicitudQuery.data!.montoCredito
+      : null
+  const montoDistintoDelSugerido =
+    saldoPendienteSugerido != null &&
+    monto != null &&
+    !moneyEquals(monto, saldoPendienteSugerido)
+
   useEffect(() => {
     if (personaIdUrl > 0 && personaId !== personaIdUrl) setPersonaId(personaIdUrl)
   }, [personaIdUrl, personaId])
@@ -135,10 +155,31 @@ export function CreditoNuevoPage() {
   }, [clienteQuery.data])
 
   useEffect(() => {
+    setSolicitudHidratada(false)
+  }, [solicitudUrl])
+
+  useEffect(() => {
+    const sol = solicitudQuery.data
+    if (!sol || solicitudHidratada) return
+    if (sol.personaId > 0) setPersonaId(sol.personaId)
+    if (sol.productoId != null && sol.productoId > 0) setProductoId(sol.productoId)
+    if (sol.montoCredito > 0) setMonto(sol.montoCredito)
+    if (sol.formaPago) setFormaPago(codigoFormaPago(sol.formaPago))
+    if (sol.numeroCuotas >= 1) setNroCuotas(sol.numeroCuotas)
+    if (sol.interes > 0) setInteresMensual(sol.interes)
+    if (sol.fechaPrimerPago) setFechaPrimerPago(toDayjs(sol.fechaPrimerPago))
+    setGastosAdm(sol.montoGastosAdm ?? 0)
+    if (sol.observacion) setObservacion(sol.observacion)
+    setIndCentralRiesgo(sol.centralRiesgo !== 0)
+    setSolicitudHidratada(true)
+  }, [solicitudQuery.data, solicitudHidratada])
+
+  useEffect(() => {
     if (productoId != null || productos.length === 0) return
+    if (solicitudUrl > 0 && !solicitudHidratada) return
     setProductoId(productos[0].productoId)
     setInteresMensual(productos[0].interesMinima)
-  }, [productoId, productos])
+  }, [productoId, productos, solicitudUrl, solicitudHidratada])
 
   useEffect(() => {
     if (!producto || interesMensual == null) return
@@ -153,8 +194,9 @@ export function CreditoNuevoPage() {
   }
 
   useEffect(() => {
+    if (solicitudHidratada && solicitudUrl > 0) return
     setFechaPrimerPago(toDayjs(fechaPrimerPagoPorModalidad(formaPago)))
-  }, [formaPago])
+  }, [formaPago, solicitudHidratada, solicitudUrl])
 
   useEffect(() => {
     if (monto == null || !(monto > 0)) {
@@ -403,6 +445,26 @@ export function CreditoNuevoPage() {
         )}
 
         <CredixPanel title="Condiciones">
+          {esReprogramacion && saldoPendienteSugerido != null ? (
+            <Alert
+              type="info"
+              showIcon
+              className="prendario-nuevo-consulta"
+              message="Reprogramación"
+              description={`Monto sugerido: saldo pendiente a pagar (${formatMoney(saldoPendienteSugerido)}). Puede dejarlo o modificarlo según el acuerdo con el cliente.`}
+              style={{ marginBottom: 12 }}
+            />
+          ) : null}
+          {solicitudUrl > 0 && solicitudQuery.isError ? (
+            <Alert
+              type="warning"
+              showIcon
+              className="prendario-nuevo-consulta"
+              message="No se pudo cargar la solicitud"
+              description={errMsg(solicitudQuery.error)}
+              style={{ marginBottom: 12 }}
+            />
+          ) : null}
           <Row gutter={[16, 12]}>
             <Col xs={24} sm={12} md={8}>
               <Text type="secondary">Producto</Text>
@@ -456,6 +518,23 @@ export function CreditoNuevoPage() {
                 onChange={(v) => setMonto(v)}
                 prefix="S/"
               />
+              {esReprogramacion && saldoPendienteSugerido != null ? (
+                <div className="prendario-nuevo-ayuda">
+                  <Text type="secondary">
+                    Default: saldo pendiente {formatMoney(saldoPendienteSugerido)}.
+                  </Text>
+                  {montoDistintoDelSugerido ? (
+                    <Button
+                      type="link"
+                      size="small"
+                      style={{ paddingInline: 0, height: 'auto' }}
+                      onClick={() => setMonto(saldoPendienteSugerido)}
+                    >
+                      Restaurar saldo pendiente
+                    </Button>
+                  ) : null}
+                </div>
+              ) : null}
               {sobreTope ? (
                 <Text type="warning" className="prendario-nuevo-ayuda">
                   El monto supera el tope del cliente. El USP decide si lo admite.

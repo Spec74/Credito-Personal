@@ -14,7 +14,7 @@ public interface ICreditoCicloWriteService
         int usuarioId,
         CancellationToken cancellationToken = default);
 
-    Task<CreditoCicloOperacionResponse> ReprogramarAsync(
+    Task<ReprogramarCreditoResponse> ReprogramarAsync(
         int creditoId,
         int usuarioId,
         CancellationToken cancellationToken = default);

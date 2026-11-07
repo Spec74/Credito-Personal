@@ -5,6 +5,15 @@ import {
   puedeReprogramarCreditoUi,
 } from './creditoOperacionPermisos'
 
+/**
+ * Marca que deja `CREDITO.usp_ReprogramarCredito` en Observacion del CRE nuevo.
+ * El monto se precarga con la deuda, pero sigue siendo editable en Nueva solicitud.
+ */
+export function esObservacionReprogramacion(observacion: string | null | undefined): boolean {
+  const obs = (observacion ?? '').trim().toUpperCase()
+  return obs.startsWith('REPROGRAMADO')
+}
+
 export type CreditoEstadoCodigo = 'CRE' | 'PEN' | 'AP1' | 'APR' | 'DES' | 'PAG' | 'REP' | 'ANU'
 
 type CreditoEstadoMeta = {

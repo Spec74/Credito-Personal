@@ -38,15 +38,70 @@ public sealed class CreditoCicloWriteService(IOptions<SqlDatabaseOptions> option
             creditoId,
             cancellationToken);
 
-    public Task<CreditoCicloOperacionResponse> ReprogramarAsync(
+    public async Task<ReprogramarCreditoResponse> ReprogramarAsync(
         int creditoId,
         int usuarioId,
-        CancellationToken cancellationToken = default) =>
-        ExecuteProcAsync(
-            "CREDITO.usp_ReprogramarCredito",
-            new { CreditoId = creditoId, UsuarioId = usuarioId },
-            creditoId,
-            cancellationToken);
+        CancellationToken cancellationToken = default)
+    {
+        if (creditoId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(creditoId), "creditoId debe ser >= 1.");
+        }
+
+        if (usuarioId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(usuarioId), "usuarioId debe ser >= 1.");
+        }
+
+        if (string.IsNullOrWhiteSpace(_connectionString))
+        {
+            throw new InvalidOperationException(
+                "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = (SqlTransaction)await connection
+            .BeginTransactionAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        try
+        {
+            var command = new CommandDefinition(
+                "CREDITO.usp_ReprogramarCredito",
+                new { CreditoId = creditoId, UsuarioId = usuarioId },
+                transaction: transaction,
+                commandType: CommandType.StoredProcedure,
+                cancellationToken: cancellationToken);
+
+            var row = await connection
+                .QueryFirstOrDefaultAsync<ReprogramarResultRow>(command)
+                .ConfigureAwait(false);
+
+            if (row is null || row.NuevoCreditoId < 1)
+            {
+                throw new InvalidOperationException(
+                    "usp_ReprogramarCredito no devolvió NuevoCreditoId.");
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new ReprogramarCreditoResponse(
+                creditoId,
+                row.NuevoCreditoId,
+                row.Deuda);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+    }
+
+    private sealed class ReprogramarResultRow
+    {
+        public int NuevoCreditoId { get; init; }
+        public decimal Deuda { get; init; }
+    }
 
     public Task<CreditoCicloOperacionResponse> ProrrogarAsync(
         int creditoId,

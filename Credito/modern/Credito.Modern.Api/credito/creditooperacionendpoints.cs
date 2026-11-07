@@ -9041,7 +9041,7 @@ internal static class CreditoOperacionEndpoints
 
         app.MapPost(
                 "/api/v1/credito/reprogramar-credito",
-                async Task<Results<Ok<CreditoCicloOperacionResponse>, ProblemHttpResult>> (
+                async Task<Results<Ok<ReprogramarCreditoResponse>, ProblemHttpResult>> (
                     HttpContext httpContext,
                     ReprogramarCreditoRequest body,
                     ICreditoCicloWriteService creditoCiclo,
@@ -9116,7 +9116,7 @@ internal static class CreditoOperacionEndpoints
             .WithSummary("Escritura: CREDITO.usp_ReprogramarCredito. Paridad CreditoBL.ReprogramarCredito.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolSoloAdministrador)
-            .Produces<CreditoCicloOperacionResponse>(StatusCodes.Status200OK, "application/json")
+            .Produces<ReprogramarCreditoResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)

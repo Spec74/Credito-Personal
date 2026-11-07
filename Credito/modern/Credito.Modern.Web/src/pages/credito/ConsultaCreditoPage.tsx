@@ -335,12 +335,18 @@ export function ConsultaCreditoPage() {
         oficinaId,
         creditoId: activeId!,
       }),
-    onSuccess: () => {
+    onSuccess: (res) => {
       message.success(
-        'Crédito reprogramado: el actual pasó a REP y se creó uno nuevo en CRE con la deuda pendiente.',
+        `Crédito reprogramado: se creó la solicitud #${res.nuevoCreditoId} con deuda ${formatMoney(res.deuda)}.`,
       )
       setModalReprogramar(false)
       invalidarConsulta()
+      const personaId = personaIdActiva
+      if (res.nuevoCreditoId > 0 && personaId != null && personaId > 0) {
+        navigate(
+          `/credito/nuevo?personaId=${personaId}&solicitudCreditoId=${res.nuevoCreditoId}`,
+        )
+      }
     },
     onError: (e) => message.error(errMsg(e)),
   })

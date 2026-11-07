@@ -928,6 +928,13 @@ export interface CreditoCicloOperacionResponse {
   ok?: boolean
 }
 
+export interface ReprogramarCreditoResponse {
+  creditoId: number
+  nuevoCreditoId: number
+  deuda: number
+  ok?: boolean
+}
+
 export interface CrearSolicitudCreditoResponse {
   solicitudCreditoId: number
 }
