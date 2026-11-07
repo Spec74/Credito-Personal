@@ -403,6 +403,18 @@
   font-weight: 500;
 }
 
+.boveda-resumen-cuenta__sede--total {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--credix-border, #e5e7eb);
+}
+
+.boveda-resumen-cuenta__sede--total .boveda-resumen-cuenta__sede-nom,
+.boveda-resumen-cuenta__sede--total .boveda-resumen-cuenta__sede-monto {
+  font-weight: 800;
+  color: var(--credix-ink-brand, var(--credix-brand, #114885));
+}
+
 /* —— Trabajo: operaciones + contexto —— */
 .boveda-work {
   display: grid;

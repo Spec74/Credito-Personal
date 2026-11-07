@@ -166,6 +166,23 @@ export function BovedaResumenCuenta({
                         </li>
                       )
                     })}
+                    {marca.sedes.length > 1 ? (
+                      <li className="boveda-resumen-cuenta__sede boveda-resumen-cuenta__sede--total">
+                        <span className="boveda-resumen-cuenta__sede-nom" translate="no">
+                          Total
+                        </span>
+                        <span
+                          className={
+                            marca.total < 0
+                              ? 'boveda-resumen-cuenta__sede-monto boveda-resumen-cuenta__sede-monto--neg'
+                              : 'boveda-resumen-cuenta__sede-monto'
+                          }
+                          translate="no"
+                        >
+                          {formatMoney(marca.total)}
+                        </span>
+                      </li>
+                    ) : null}
                   </ul>
                 ) : null}
               </div>

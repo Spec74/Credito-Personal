@@ -418,7 +418,7 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         IReadOnlyList<MedioRedRow> filas)
     {
         // Sin doble conteo tipado:
-        // - Central: cards 10–13 solo Central; cards 2/3 = genéricos de red (sucursales), no suman 10–13.
+        // - Central: cards 10–13 y 2/3 separados (billetera ≠ genérico); cada card lista toda la red.
         // - Sucursal: un Yape / Interbank con familia (por si hubiera asiento legado 10–13).
         // - Σ medios (banner) = solo bóveda local; estas cards = bóveda + caja pendiente (operativo).
         var idsEnCatalogo = filas.Select(f => f.TipoPagoId).ToHashSet();
@@ -481,14 +481,9 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
 
             if (sesion.IndPrincipal)
             {
-                // Billeteras persona: solo la sede Central.
-                if (TipoPagoRules.IsCentralWallet(id))
-                {
-                    sedes = sedes.Where(s => s.IndPrincipal).ToList();
-                }
-
-                // Yape/Interbank genéricos: todas las sedes (paridad visual con BCP/Plin).
-                // No se ocultan en cero: la red debe verse completa.
+                // Todas las marcas (incl. Yape/Interbank Gerente·René) listan la red completa
+                // Central + sucursales — paridad visual con Efectivo/BCP/Plin.
+                // En billeteras persona el monto en sucursal será 0; el Total suma sedes visibles.
                 sedes = sedes
                     .Where(s => s.BovedaId is > 0)
                     .OrderByDescending(s => s.IndPrincipal)
