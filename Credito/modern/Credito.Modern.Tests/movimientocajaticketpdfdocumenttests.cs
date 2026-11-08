@@ -36,7 +36,53 @@ public sealed class MovimientoCajaTicketPdfDocumentTests
             null,
             null);
 
-        var bytes = MovimientoCajaTicketPdfDocument.Build(dto);
+        AssertPdf(MovimientoCajaTicketPdfDocument.Build(dto));
+    }
+
+    [Fact]
+    public void Build_boveda_con_medio_entrada_y_titulo_devuelve_pdf()
+    {
+        var dto = new MovimientoCajaTicketDto(
+            21,
+            MovimientoCajaTicketLayout.Simple,
+            0,
+            "BÓVEDA",
+            "René Pérez",
+            new DateTime(2026, 11, 8, 11, 0, 0),
+            "OFICINA PRINCIPAL",
+            "Operación TRE (Activo)",
+            "Entrada",
+            "transferencia Interbank sucursal",
+            150m,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            MedioPago: "Interbank Gerente",
+            TituloComprobante: "COMPROBANTE DE BÓVEDA",
+            Entrada: 150m,
+            Salida: null);
+
+        Assert.Equal("Interbank Gerente", dto.MedioPago);
+        Assert.Equal("COMPROBANTE DE BÓVEDA", dto.TituloComprobante);
+        Assert.Equal(150m, dto.Entrada);
+        AssertPdf(MovimientoCajaTicketPdfDocument.Build(dto));
+    }
+
+    private static void AssertPdf(byte[] bytes)
+    {
         Assert.NotNull(bytes);
         Assert.True(bytes.Length > 200);
         Assert.Equal(0x25, bytes[0]);

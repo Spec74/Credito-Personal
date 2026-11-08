@@ -197,7 +197,7 @@ export function ArqueoTab({
     {
       title: 'Tipo pago',
       dataIndex: 'tipoPago',
-      width: 140,
+      width: 200,
       render: (v: string) => <TipoPagoCell tipoPago={v} />,
     },
     { title: 'Glosa', dataIndex: 'glosa', ellipsis: true },

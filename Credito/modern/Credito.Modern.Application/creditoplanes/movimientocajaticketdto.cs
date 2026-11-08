@@ -1,6 +1,6 @@
 namespace Credito.Modern.Application.CreditoPlanes;
 
-/// <summary>Datos unificados para ticket PDF de movimiento de caja (paridad ReporteMovimientoCaja).</summary>
+/// <summary>Datos unificados para ticket PDF (caja, bóveda, caja chica).</summary>
 public sealed record MovimientoCajaTicketDto(
     int MovimientoCajaId,
     MovimientoCajaTicketLayout Layout,
@@ -28,7 +28,13 @@ public sealed record MovimientoCajaTicketDto(
     int? CuotasAtrazadas,
     decimal? MoraTotalPendiente,
     string? EstadoCredito,
-    decimal? CreditoTotal);
+    decimal? CreditoTotal,
+    /// <summary>Medio tipado (Yape Gerente, Interbank René, Efectivo…).</summary>
+    string? MedioPago = null,
+    /// <summary>Título del comprobante; default según dominio.</summary>
+    string? TituloComprobante = null,
+    decimal? Entrada = null,
+    decimal? Salida = null);
 
 public enum MovimientoCajaTicketLayout
 {

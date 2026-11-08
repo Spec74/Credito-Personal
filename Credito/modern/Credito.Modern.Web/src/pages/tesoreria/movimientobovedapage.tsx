@@ -101,7 +101,7 @@ export function MovimientoBovedaPage() {
     {
       title: 'Tipo pago',
       dataIndex: 'tipoPago',
-      width: 140,
+      width: 200,
       render: (v: string) => <TipoPagoCell tipoPago={v} />,
     },
     { title: 'Agente', dataIndex: 'agente', width: 120, ellipsis: true },

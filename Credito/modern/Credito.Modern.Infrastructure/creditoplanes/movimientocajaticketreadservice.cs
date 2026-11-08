@@ -38,10 +38,12 @@ public sealed class MovimientoCajaTicketReadService(
                     mc.Descripcion,
                     mc.IndEntrada,
                     mc.FechaReg,
+                    mc.TipoPagoId,
                     ISNULL(p.NombreCompleto, '') AS Cliente,
                     u.NombreUsuario AS [User],
                     o.Denominacion AS Oficina,
                     ISNULL(pr.Denominacion, mc.Descripcion) AS Producto,
+                    COALESCE(vt.Denominacion, CONCAT('Medio ', mc.TipoPagoId)) AS TipoPago,
                     c.NumeroCuotas,
                     c.Estado AS EstadoCreditoRaw,
                     c.IndCondonacion,
@@ -55,6 +57,8 @@ public sealed class MovimientoCajaTicketReadService(
                 LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = mc.PersonaId
                 LEFT JOIN CREDITO.Credito AS c ON c.CreditoId = mc.CreditoId
                 LEFT JOIN CREDITO.Producto AS pr ON pr.ProductoId = c.ProductoId
+                LEFT JOIN MAESTRO.ValorTabla AS vt
+                    ON vt.TablaId = 13 AND vt.ItemId = mc.TipoPagoId
                 WHERE mc.MovimientoCajaId = @MovimientoCajaId;
                 """,
                 new { MovimientoCajaId = movimientoCajaId },
@@ -198,7 +202,8 @@ public sealed class MovimientoCajaTicketReadService(
             cuotasAtrazadas,
             mora,
             estadoCredito,
-            creditoTotal);
+            creditoTotal,
+            MedioPago: MedioLabel(header));
     }
 
     private async Task<MovimientoCajaTicketDto> BuildCuotaLibreAsync(
@@ -289,7 +294,8 @@ public sealed class MovimientoCajaTicketReadService(
             cuotasAtrazadas,
             mora,
             MapEstadoCredito(header.EstadoCreditoRaw),
-            creditoTotal);
+            creditoTotal,
+            MedioPago: MedioLabel(header));
     }
 
     private static MovimientoCajaTicketDto BuildInicial(TicketHeaderRow header)
@@ -338,7 +344,8 @@ public sealed class MovimientoCajaTicketReadService(
             null,
             null,
             null,
-            null);
+            null,
+            MedioPago: MedioLabel(header));
     }
 
     private async Task<MovimientoCajaTicketDto> BuildContadoAsync(
@@ -387,7 +394,8 @@ public sealed class MovimientoCajaTicketReadService(
             null,
             null,
             null,
-            null);
+            null,
+            MedioPago: MedioLabel(header));
     }
 
     private static MovimientoCajaTicketDto BuildOtros(TicketHeaderRow header)
@@ -422,7 +430,21 @@ public sealed class MovimientoCajaTicketReadService(
             null,
             null,
             null,
-            null);
+            null,
+            MedioPago: MedioLabel(header),
+            Entrada: header.IndEntrada ? header.ImportePago : null,
+            Salida: header.IndEntrada ? null : header.ImportePago);
+    }
+
+    private static string? MedioLabel(TicketHeaderRow header)
+    {
+        if (string.IsNullOrWhiteSpace(header.TipoPago))
+        {
+            return null;
+        }
+
+        var label = ResumenCuentaCajaParser.DisplayLabel(header.TipoPago);
+        return string.IsNullOrWhiteSpace(label) ? header.TipoPago.Trim() : label;
     }
 
     private static string MapEstadoCredito(string? estado) =>
@@ -463,6 +485,8 @@ public sealed class MovimientoCajaTicketReadService(
         public string User { get; init; } = string.Empty;
         public string Oficina { get; init; } = string.Empty;
         public string Producto { get; init; } = string.Empty;
+        public short TipoPagoId { get; init; }
+        public string TipoPago { get; init; } = string.Empty;
         public int? NumeroCuotas { get; init; }
         public string? EstadoCreditoRaw { get; init; }
         public bool IndCondonacion { get; init; }

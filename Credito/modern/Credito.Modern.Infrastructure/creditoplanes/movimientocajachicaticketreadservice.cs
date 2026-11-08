@@ -62,7 +62,7 @@ public sealed class MovimientoCajaChicaTicketReadService(IOptions<SqlDatabaseOpt
             row.User,
             row.FechaReg,
             "PRINCIPAL",
-            "CAJA DIARIO",
+            "CAJA CHICA",
             concepto,
             articulo,
             row.ImportePago,
@@ -81,7 +81,10 @@ public sealed class MovimientoCajaChicaTicketReadService(IOptions<SqlDatabaseOpt
             null,
             null,
             null,
-            null);
+            null,
+            TituloComprobante: "COMPROBANTE DE CAJA CHICA",
+            Entrada: row.IndEntrada ? row.ImportePago : null,
+            Salida: row.IndEntrada ? null : row.ImportePago);
     }
 
     private void EnsureConnection()

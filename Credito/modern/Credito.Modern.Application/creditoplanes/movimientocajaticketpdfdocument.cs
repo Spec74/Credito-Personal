@@ -15,6 +15,10 @@ public static class MovimientoCajaTicketPdfDocument
     public static byte[] Build(MovimientoCajaTicketDto data)
     {
         var inv = System.Globalization.CultureInfo.InvariantCulture;
+        var titulo = string.IsNullOrWhiteSpace(data.TituloComprobante)
+            ? "COMPROBANTE DE CAJA"
+            : data.TituloComprobante.Trim();
+
         return Document.Create(document =>
         {
             document.Page(page =>
@@ -27,11 +31,16 @@ public static class MovimientoCajaTicketPdfDocument
                 page.Content().Column(col =>
                 {
                     col.Spacing(4);
-                    col.Item().AlignCenter().Text("COMPROBANTE DE CAJA").Bold().FontSize(10);
+                    col.Item().AlignCenter().Text(titulo).Bold().FontSize(10);
                     col.Item().Text($"Mov. N° {data.MovimientoCajaId}");
                     col.Item().Text($"Oficina: {data.Oficina}");
                     col.Item().Text($"Fecha: {data.FechaReg:g}");
-                    col.Item().Text($"Cajero: {data.User}");
+                    col.Item().Text($"Usuario: {data.User}");
+                    if (!string.IsNullOrWhiteSpace(data.MedioPago))
+                    {
+                        col.Item().Text($"Medio: {data.MedioPago}").Bold();
+                    }
+
                     col.Item().LineHorizontal(0.5f);
                     col.Item().Text($"Cliente: {data.Cliente}");
                     if (data.PersonaId > 0)
@@ -47,7 +56,7 @@ public static class MovimientoCajaTicketPdfDocument
 
                     if (!string.IsNullOrWhiteSpace(data.Articulo))
                     {
-                        col.Item().Text(data.Articulo);
+                        col.Item().Text($"Glosa: {data.Articulo}");
                     }
 
                     if (data.Layout == MovimientoCajaTicketLayout.CuotaCredito
@@ -89,6 +98,12 @@ public static class MovimientoCajaTicketPdfDocument
                     else
                     {
                         col.Item().LineHorizontal(0.5f);
+                        if (data.Entrada is > 0 || data.Salida is > 0)
+                        {
+                            AddMoneyLine(col, "Entrada", data.Entrada, inv);
+                            AddMoneyLine(col, "Salida", data.Salida, inv);
+                        }
+
                         col.Item().Text($"Importe: {data.ImportePago.ToString("N2", inv)}").Bold().FontSize(10);
                     }
 
