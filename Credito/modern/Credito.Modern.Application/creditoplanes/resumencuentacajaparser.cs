@@ -167,7 +167,10 @@ public static class ResumenCuentaCajaParser
         foreach (var item in items)
         {
             var k = item.Cuenta.Trim().ToUpperInvariant();
-            if (k.Contains("HUANTA", StringComparison.Ordinal) || k.Contains("CENTRAL", StringComparison.Ordinal))
+            // Billeteras Gerente/René no se reetiquetan como «… CENTRAL».
+            if (EsBilleteraPersona(k)
+                || k.Contains("HUANTA", StringComparison.Ordinal)
+                || k.Contains("CENTRAL", StringComparison.Ordinal))
             {
                 result.Add(item);
                 continue;
@@ -187,8 +190,14 @@ public static class ResumenCuentaCajaParser
         return result;
     }
 
+    private static bool EsBilleteraPersona(string k) =>
+        k.Contains("GERENTE", StringComparison.Ordinal)
+        || Regex.IsMatch(k, @"\bREN[EÉ]\b");
+
     private static string? MarcaBase(string k)
     {
+        if (EsBilleteraPersona(k))
+            return null;
         if (k.Contains("YAPE", StringComparison.Ordinal))
             return "YAPE";
         if (k.Contains("PLIN", StringComparison.Ordinal))

@@ -35,8 +35,10 @@ SALDOS AS (
 	  AND vt.ItemId NOT BETWEEN 6 AND 8
 	  AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
 )
-SELECT
-	'RESUMEN BOVEDA: ' + STRING_AGG(Denominacion + ' = ' + CAST(Saldo AS VARCHAR(20)), '  ')
-		WITHIN GROUP (ORDER BY TipoPagoId) AS Total
-FROM SALDOS
-WHERE Saldo <> 0
+SELECT COALESCE((
+	SELECT
+		N'RESUMEN BOVEDA: ' + STRING_AGG(Denominacion + ' = ' + CAST(Saldo AS VARCHAR(20)), '  ')
+			WITHIN GROUP (ORDER BY TipoPagoId)
+	FROM SALDOS
+	WHERE Saldo <> 0
+), N'RESUMEN BOVEDA: ') AS Total

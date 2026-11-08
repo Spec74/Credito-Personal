@@ -193,6 +193,19 @@ public sealed class RptCajaSaldosModulePdfDocumentTests
     }
 
     [Fact]
+    public void Compose_no_reetiqueta_billeteras_gerente_rene_como_central()
+    {
+        var c = ResumenCuentaCajaParser.Compose(
+            "RESUMEN BOVEDA: EFECTIVO = 100.00  YAPE GERENTE = 50.00  YAPE RENE = 25.00  YAPE HUANTA = 10.00");
+        Assert.Equal(
+            ["EFECTIVO", "YAPE GERENTE", "YAPE RENE", "YAPE HUANTA"],
+            c.Items.Select(i => i.Cuenta).ToArray());
+        Assert.Equal("Yape Gerente", ResumenCuentaCajaParser.DisplayLabel(c.Items[1].Cuenta));
+        Assert.Equal("Yape René", ResumenCuentaCajaParser.DisplayLabel(c.Items[2].Cuenta));
+        Assert.Equal("Yape Huanta", ResumenCuentaCajaParser.DisplayLabel(c.Items[3].Cuenta));
+    }
+
+    [Fact]
     public void Movimiento_boveda_con_resumen_central_huanta_es_pdf_valido()
     {
         var cab = new BovedaAbiertaDto(
