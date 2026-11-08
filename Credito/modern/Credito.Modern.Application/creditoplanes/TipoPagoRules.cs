@@ -5,8 +5,8 @@ namespace Credito.Modern.Application.CreditoPlanes;
 /// <list type="bullet">
 /// <item>Sucursal tipa: Yape(2), Interbank(3), BCP, Nación, Plin(9), Efectivo.</item>
 /// <item>Central tipa: Yape Gerente/René (10/11), Interbank Gerente/René (12/13) — no el genérico 2/3.</item>
-/// <item>Medios de red (vista Central): Yape(2) e Interbank(3) muestran saldos de todas las sedes
-///       (como BCP/Plin); Gerente/René son detalle solo de Central. Sin doble conteo de tipado.</item>
+/// <item>Medios de red (vista Central): padres Yape/Interbank = rollup familia (2+10+11 / 3+12+13)
+///       con desglose por sede; Gerente/René = detalle de billetera (sin filas de sucursal vacías).</item>
 /// <item>Fondeo Central→sucursal con billetera: destino acredita familia (10/11→2, 12/13→3).</item>
 /// <item>Remesa sucursal→Central: elige billetera destino (10–13); origen debita familia (2/3).
 ///       BCP/Nación/Plin/efectivo viajan 1:1. Sin peer entre sucursales.</item>

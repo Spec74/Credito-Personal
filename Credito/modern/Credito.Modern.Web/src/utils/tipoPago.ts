@@ -4,7 +4,7 @@
  *
  * Sucursal tipa: Yape(2), Interbank(3), BCP, Nación, Plin(9), Efectivo.
  * Central tipa: billeteras Gerente/René (10–13); no genéricos 2/3.
- * Vista red: Yape(2)/Interbank(3) = todas las sedes; 10–13 solo Central.
+ * Vista red Central: padre Yape/Interbank = rollup familia; 10–13 = detalle billetera.
  * Fondeo billetera→sucursal: 10/11→2 y 12/13→3.
  */
 

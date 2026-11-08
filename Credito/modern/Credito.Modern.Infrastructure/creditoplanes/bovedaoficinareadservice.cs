@@ -417,10 +417,11 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         SesionOficinaRow sesion,
         IReadOnlyList<MedioRedRow> filas)
     {
-        // Sin doble conteo tipado:
-        // - Central: cards 10–13 y 2/3 separados (billetera ≠ genérico); cada card lista toda la red.
-        // - Sucursal: un Yape / Interbank con familia (por si hubiera asiento legado 10–13).
-        // - Σ medios (banner) = solo bóveda local; estas cards = bóveda + caja pendiente (operativo).
+        // Vista Central:
+        // - Variantes Gerente/René: saldo de esa billetera; sin desglose por sucursal (solo viven en Central).
+        // - Padre Yape/Interbank: rollup de familia (2+10+11 / 3+12+13) con red completa por sede.
+        // Sucursal: una card por familia (genérico + tipados legado).
+        // Σ medios (banner) = bóveda local por TipoPagoId; no suma estas cards (evita doble conteo visual).
         var idsEnCatalogo = filas.Select(f => f.TipoPagoId).ToHashSet();
 
         (short Id, string Marca, string Variant, short[] Familia)[] catalogo = sesion.IndPrincipal
@@ -429,10 +430,20 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                 ((short)TipoPagoRules.Efectivo, "Efectivo", "efectivo", [(short)TipoPagoRules.Efectivo]),
                 ((short)TipoPagoRules.YapeGerente, "Yape Gerente", "yape", [(short)TipoPagoRules.YapeGerente]),
                 ((short)TipoPagoRules.YapeRene, "Yape René", "yape", [(short)TipoPagoRules.YapeRene]),
-                ((short)TipoPagoRules.Yape, "Yape", "yape", [(short)TipoPagoRules.Yape]),
+                ((short)TipoPagoRules.Yape, "Yape", "yape",
+                [
+                    (short)TipoPagoRules.Yape,
+                    (short)TipoPagoRules.YapeGerente,
+                    (short)TipoPagoRules.YapeRene,
+                ]),
                 ((short)TipoPagoRules.InterbankGerente, "Interbank Gerente", "interbank", [(short)TipoPagoRules.InterbankGerente]),
                 ((short)TipoPagoRules.InterbankRene, "Interbank René", "interbank", [(short)TipoPagoRules.InterbankRene]),
-                ((short)TipoPagoRules.Interbank, "Interbank", "interbank", [(short)TipoPagoRules.Interbank]),
+                ((short)TipoPagoRules.Interbank, "Interbank", "interbank",
+                [
+                    (short)TipoPagoRules.Interbank,
+                    (short)TipoPagoRules.InterbankGerente,
+                    (short)TipoPagoRules.InterbankRene,
+                ]),
                 (4, "BCP", "bcp", [4]),
                 (5, "Banco de la Nación", "banco-nacion", [5]),
                 ((short)TipoPagoRules.Plin, "Plin", "plin", [(short)TipoPagoRules.Plin]),
@@ -441,8 +452,18 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             [
                 ((short)TipoPagoRules.Efectivo, "Efectivo", "efectivo", [(short)TipoPagoRules.Efectivo]),
                 // Sucursal tipa genérico; familia absorbe tipados si llegaran por error/legado.
-                ((short)TipoPagoRules.Yape, "Yape", "yape", [(short)TipoPagoRules.Yape, (short)TipoPagoRules.YapeGerente, (short)TipoPagoRules.YapeRene]),
-                ((short)TipoPagoRules.Interbank, "Interbank", "interbank", [(short)TipoPagoRules.Interbank, (short)TipoPagoRules.InterbankGerente, (short)TipoPagoRules.InterbankRene]),
+                ((short)TipoPagoRules.Yape, "Yape", "yape",
+                [
+                    (short)TipoPagoRules.Yape,
+                    (short)TipoPagoRules.YapeGerente,
+                    (short)TipoPagoRules.YapeRene,
+                ]),
+                ((short)TipoPagoRules.Interbank, "Interbank", "interbank",
+                [
+                    (short)TipoPagoRules.Interbank,
+                    (short)TipoPagoRules.InterbankGerente,
+                    (short)TipoPagoRules.InterbankRene,
+                ]),
                 (4, "BCP", "bcp", [4]),
                 (5, "Banco de la Nación", "banco-nacion", [5]),
                 ((short)TipoPagoRules.Plin, "Plin", "plin", [(short)TipoPagoRules.Plin]),
@@ -463,6 +484,18 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                 propias = propias.Where(f => f.OficinaId == sesion.OficinaId).ToList();
             }
 
+            // Billeteras Gerente/René: solo total; el desglose Central/Huanta/Pichari no aporta
+            // (sucursales no tipan 10–13; quedan en cero).
+            if (sesion.IndPrincipal && TipoPagoRules.IsCentralWallet(id))
+            {
+                var totalBilletera = decimal.Round(
+                    propias.Where(p => p.BovedaId is > 0).Sum(p => p.Monto),
+                    2,
+                    MidpointRounding.AwayFromZero);
+                result.Add(new BovedaMedioMarcaDto(id, marca, variant, totalBilletera, []));
+                continue;
+            }
+
             var sedes = propias
                 .Where(f => f.BovedaId is > 0 && (sesion.IndPrincipal || f.OficinaId == sesion.OficinaId))
                 .GroupBy(f => f.OficinaId)
@@ -481,9 +514,7 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
 
             if (sesion.IndPrincipal)
             {
-                // Todas las marcas (incl. Yape/Interbank Gerente·René) listan la red completa
-                // Central + sucursales — paridad visual con Efectivo/BCP/Plin.
-                // En billeteras persona el monto en sucursal será 0; el Total suma sedes visibles.
+                // Padres Yape/Interbank (familia) y medios 1:1: red completa Central + sucursales.
                 sedes = sedes
                     .Where(s => s.BovedaId is > 0)
                     .OrderByDescending(s => s.IndPrincipal)

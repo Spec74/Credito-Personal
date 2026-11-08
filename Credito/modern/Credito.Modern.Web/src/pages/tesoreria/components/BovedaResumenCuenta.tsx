@@ -6,6 +6,7 @@ import { formatMoney } from '../../../utils/formatMoney'
 import { etiquetaSede, type ResumenCuentaVariant } from './bovedaResumenCuentaParse'
 import { ResumenCuentaBrandLogo } from './resumenCuentaBrandIcons'
 import { marcaDesdeTipoPagoId } from './resumencuentabrands'
+import { esTipoPagoBilleteraCentral } from '../../../utils/tipoPago'
 
 const { Text } = Typography
 
@@ -92,6 +93,7 @@ export function BovedaResumenCuenta({
           {data.marcas.map((marca) => {
             const variant = marcaDesdeTipoPagoId(marca.tipoPagoId) ?? asVariant(marca.variant)
             // Solo billeteras persona llevan subtítulo; Yape/Interbank genéricos se ven como BCP/Plin.
+            // Gerente/René: subtítulo de billetera; sin filas de sucursal (API manda sedes=[]).
             const etiquetaVisible = (() => {
               switch (marca.tipoPagoId) {
                 case 10:
@@ -104,6 +106,8 @@ export function BovedaResumenCuenta({
                   return null
               }
             })()
+            const mostrarSedes =
+              red && marca.sedes.length > 0 && !esTipoPagoBilleteraCentral(marca.tipoPagoId)
             return (
               <div
                 key={marca.tipoPagoId}
@@ -135,7 +139,7 @@ export function BovedaResumenCuenta({
                     S/ {formatMoney(marca.total)}
                   </span>
                 </div>
-                {red && marca.sedes.length > 0 ? (
+                {mostrarSedes ? (
                   <ul className="boveda-resumen-cuenta__sedes">
                     {marca.sedes.map((sede) => {
                       const nombre = sede.esLegado

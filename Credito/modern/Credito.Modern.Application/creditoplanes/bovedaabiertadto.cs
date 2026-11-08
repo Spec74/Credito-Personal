@@ -52,7 +52,11 @@ public sealed record BovedaMedioSedeDto(
     decimal Monto,
     bool EsLegado = false);
 
-/// <summary>Marca de medio (Yape, BCP…) con total y, en central, desglose por sucursal.</summary>
+/// <summary>
+/// Marca de medio (Yape, BCP…) con total.
+/// En Central, padres Yape/Interbank y medios 1:1 traen desglose por sede;
+/// billeteras Gerente/René solo el total (sin sedes).
+/// </summary>
 public sealed record BovedaMedioMarcaDto(
     short TipoPagoId,
     string Marca,
@@ -61,7 +65,7 @@ public sealed record BovedaMedioMarcaDto(
     IReadOnlyList<BovedaMedioSedeDto> Sedes);
 
 /// <summary>
-/// Resumen estructurado. Central: total de red + lista por oficina.
+/// Resumen estructurado. Central: padres Yape/Interbank = familia; variantes = billetera.
 /// Sucursal: solo su bóveda. No usa ítems 6–8 del catálogo como si fueran marcas.
 /// </summary>
 public sealed record BovedaMediosRedDto(
