@@ -24,6 +24,7 @@ public sealed class MovimientoCajaChicaTicketReadService(IOptions<SqlDatabaseOpt
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
+        // Oficina real (UsuarioOficina), usuario = quien registró el mov (paridad legacy mc.Usuario).
         var row = await connection.QueryFirstOrDefaultAsync<ChicaTicketRow>(
             new CommandDefinition(
                 """
@@ -31,15 +32,27 @@ public sealed class MovimientoCajaChicaTicketReadService(IOptions<SqlDatabaseOpt
                     mc.Id AS MovimientoCajaChicaId,
                     cd.UsuarioId,
                     cd.IndCierre,
+                    mc.PersonaId,
+                    mc.Operacion,
                     ISNULL(p.NombreCompleto, '') AS Cliente,
-                    u.NombreUsuario AS [User],
+                    ISNULL(uReg.NombreUsuario, uDiario.NombreUsuario) AS [User],
                     mc.FechaReg,
                     mc.Importe AS ImportePago,
                     mc.Descripcion,
-                    mc.IndEntrada
+                    mc.IndEntrada,
+                    COALESCE(
+                        (
+                            SELECT TOP 1 o.Denominacion
+                            FROM MAESTRO.UsuarioOficina AS uo
+                            INNER JOIN MAESTRO.Oficina AS o ON o.OficinaId = uo.OficinaId
+                            WHERE uo.UsuarioId = cd.UsuarioId AND uo.Estado = CAST(1 AS bit)
+                            ORDER BY uo.UsuarioOficinaId
+                        ),
+                        N'PRINCIPAL') AS Oficina
                 FROM CREDITO.MovimientoCajaChica AS mc
                 INNER JOIN CREDITO.CajaChicaDiario AS cd ON cd.Id = mc.CajaChicaDiarioId
-                INNER JOIN MAESTRO.Usuario AS u ON u.UsuarioId = cd.UsuarioId
+                INNER JOIN MAESTRO.Usuario AS uDiario ON uDiario.UsuarioId = cd.UsuarioId
+                LEFT JOIN MAESTRO.Usuario AS uReg ON uReg.UsuarioId = mc.UsuarioRegId
                 LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = mc.PersonaId
                 WHERE mc.Id = @MovimientoCajaChicaId;
                 """,
@@ -53,16 +66,18 @@ public sealed class MovimientoCajaChicaTicketReadService(IOptions<SqlDatabaseOpt
 
         var articulo = string.IsNullOrWhiteSpace(row.Descripcion) ? "*" : row.Descripcion;
         var concepto = row.IndEntrada ? "ENTRADA" : "SALIDA";
+        var op = string.IsNullOrWhiteSpace(row.Operacion) ? string.Empty : row.Operacion.Trim();
+        var producto = string.IsNullOrEmpty(op) ? "CAJA CHICA" : $"CAJA CHICA · {op}";
 
         return new MovimientoCajaTicketDto(
             row.MovimientoCajaChicaId,
             MovimientoCajaTicketLayout.Simple,
-            0,
+            row.PersonaId,
             row.Cliente,
             row.User,
             row.FechaReg,
-            "PRINCIPAL",
-            "CAJA CHICA",
+            row.Oficina,
+            producto,
             concepto,
             articulo,
             row.ImportePago,
@@ -101,11 +116,14 @@ public sealed class MovimientoCajaChicaTicketReadService(IOptions<SqlDatabaseOpt
         public int MovimientoCajaChicaId { get; init; }
         public int UsuarioId { get; init; }
         public bool IndCierre { get; init; }
+        public int PersonaId { get; init; }
+        public string Operacion { get; init; } = string.Empty;
         public string Cliente { get; init; } = string.Empty;
         public string User { get; init; } = string.Empty;
         public DateTime FechaReg { get; init; }
         public decimal ImportePago { get; init; }
         public string? Descripcion { get; init; }
         public bool IndEntrada { get; init; }
+        public string Oficina { get; init; } = "PRINCIPAL";
     }
 }

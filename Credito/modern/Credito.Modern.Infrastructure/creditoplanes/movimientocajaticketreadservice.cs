@@ -175,6 +175,10 @@ public sealed class MovimientoCajaTicketReadService(
         var pagocuota = agg.PagoCuota ?? 0;
         var importeLibre = header.ImportePago - pagocuota;
 
+        var productoCuota = string.IsNullOrWhiteSpace(header.Producto)
+            ? $"CREDITO {creditoId}"
+            : $"{header.Producto.Trim()} CREDITO {creditoId}";
+
         return new MovimientoCajaTicketDto(
             header.MovimientoCajaId,
             MovimientoCajaTicketLayout.CuotaCredito,
@@ -183,7 +187,7 @@ public sealed class MovimientoCajaTicketReadService(
             header.User,
             header.FechaReg,
             header.Oficina,
-            header.Producto,
+            productoCuota,
             "PAGO CUOTA",
             string.Empty,
             header.ImportePago,
@@ -267,6 +271,10 @@ public sealed class MovimientoCajaTicketReadService(
 
         var mora = await SumarMoraEnCuotasAsync(creditoId, cancellationToken).ConfigureAwait(false);
 
+        var productoLibre = string.IsNullOrWhiteSpace(header.Producto)
+            ? $"CREDITO {creditoId}"
+            : $"{header.Producto.Trim()} CREDITO {creditoId}";
+
         return new MovimientoCajaTicketDto(
             header.MovimientoCajaId,
             MovimientoCajaTicketLayout.CuotaLibre,
@@ -275,7 +283,7 @@ public sealed class MovimientoCajaTicketReadService(
             header.User,
             header.FechaReg,
             header.Oficina,
-            header.Producto,
+            productoLibre,
             "PAGO LIBRE",
             header.Descripcion ?? string.Empty,
             header.ImportePago,
@@ -402,16 +410,18 @@ public sealed class MovimientoCajaTicketReadService(
     {
         var articulo = string.IsNullOrWhiteSpace(header.Descripcion) ? "*" : header.Descripcion;
         var concepto = header.IndEntrada ? "ENTRADA" : "SALIDA";
+        var op = string.IsNullOrWhiteSpace(header.Operacion) ? string.Empty : header.Operacion.Trim();
+        var producto = string.IsNullOrEmpty(op) ? "CAJA DIARIO" : $"CAJA DIARIO · {op}";
 
         return new MovimientoCajaTicketDto(
             header.MovimientoCajaId,
             MovimientoCajaTicketLayout.Simple,
-            0,
+            header.PersonaId ?? 0,
             header.Cliente,
             header.User,
             header.FechaReg,
             header.Oficina,
-            "CAJA DIARIO",
+            producto,
             concepto,
             articulo,
             header.ImportePago,

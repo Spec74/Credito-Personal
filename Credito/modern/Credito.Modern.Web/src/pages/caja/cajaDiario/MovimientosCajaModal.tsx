@@ -11,6 +11,7 @@ import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBusca
 import { CajaModal } from '../../../components/caja/CajaModal'
 import { CredixDataTable } from '../../../components/credix'
 import type { RptSaldosCajaRow } from '../../../types/api'
+import { TipoPagoCell } from '../../tesoreria/components/TipoPagoBrand'
 import { formatMoney } from '../../../utils/formatMoney'
 import { formatFechaHora } from '../../../utils/formatFecha'
 import { cajaToastError } from './cajaFeedback'
@@ -67,9 +68,16 @@ export function MovimientosCajaModal({
     },
     { title: 'Descripción', dataIndex: 'glosa', ellipsis: true },
     {
+      title: 'Tipo pago',
+      dataIndex: 'tipoPago',
+      width: 180,
+      render: (v: string) => <TipoPagoCell tipoPago={v} />,
+    },
+    {
       title: 'Importe',
       dataIndex: 'importePago',
       align: 'right',
+      width: 100,
       render: (v: number, r) => (
         <span className={r.indEntrada ? 'caja-monto-entrada' : 'caja-monto-salida'}>
           {formatMoney(v)}
@@ -98,7 +106,7 @@ export function MovimientosCajaModal({
       open={open}
       onCancel={onClose}
       footer={null}
-      width={820}
+      width={960}
     >
       <Space wrap style={{ marginBottom: 12 }}>
         <ClienteBuscarAutoComplete
@@ -127,7 +135,7 @@ export function MovimientosCajaModal({
         loading={query.isLoading}
         pagination={{ defaultPageSize: 20 }}
         size="small"
-        scroll={{ x: 700 }}
+        scroll={{ x: 880 }}
       />
     </CajaModal>
   )
