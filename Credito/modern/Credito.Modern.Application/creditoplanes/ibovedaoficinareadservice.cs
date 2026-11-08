@@ -40,4 +40,12 @@ public interface IBovedaOficinaReadService
     Task<int?> GetOficinaIdByBovedaMovTempDestinoAsync(
         int bovedaMovTempId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Disponible del medio en la bóveda (paridad <c>usp_TransferirBoveda</c>).
+    /// </summary>
+    Task<BovedaSaldoMedioDto?> ObtenerSaldoMedioDisponibleAsync(
+        int bovedaId,
+        short tipoPagoId,
+        CancellationToken cancellationToken = default);
 }

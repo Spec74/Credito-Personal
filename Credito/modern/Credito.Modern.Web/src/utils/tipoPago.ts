@@ -103,6 +103,29 @@ export function esTipoPagoGenericoCentral(tipoPagoId: number): boolean {
   return id === TIPO_PAGO_YAPE || id === TIPO_PAGO_INTERBANK
 }
 
+/**
+ * Billetera Central ↔ genérico de familia (paridad TipoPagoRules.MapFamiliaGenerica / USP).
+ * 10/11 → 2, 12/13 → 3; resto 1:1.
+ */
+export function mapFamiliaGenerica(tipoPagoId: number): number {
+  const id = Number(tipoPagoId)
+  if (id === TIPO_PAGO_YAPE_GERENTE || id === TIPO_PAGO_YAPE_RENE) return TIPO_PAGO_YAPE
+  if (id === TIPO_PAGO_INTERBANK_GERENTE || id === TIPO_PAGO_INTERBANK_RENE) {
+    return TIPO_PAGO_INTERBANK
+  }
+  return id
+}
+
+/** Fondeo Central→sucursal: lo que acredita la sede. */
+export function mapFondeoDestino(tipoPagoOrigenCentral: number): number {
+  return mapFamiliaGenerica(tipoPagoOrigenCentral)
+}
+
+/** Remesa sucursal→Central: lo que debita la sede. */
+export function mapRemesaOrigen(tipoPagoDestinoCentral: number): number {
+  return mapFamiliaGenerica(tipoPagoDestinoCentral)
+}
+
 /** Regla de tipado (cobro / ingreso / transferencia) según sede. */
 export function esTipoPagoCobroPermitido(
   tipoPagoId: number,

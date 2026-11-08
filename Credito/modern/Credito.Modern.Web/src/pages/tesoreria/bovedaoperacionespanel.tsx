@@ -19,6 +19,7 @@ import {
   buscarUsuariosBoveda,
   cerrarBoveda,
   cerrarBovedaTemporal,
+  fetchBovedaSaldoMedio,
   fetchBovedaTransferenciasPendientes,
   fetchBovedasDestinoTransferencia,
   fetchCajasAbiertasTransferenciaBoveda,
@@ -35,6 +36,12 @@ import {
 import { confirmMoney } from '../../components/credix'
 import { formatFechaHora } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { moneyGreater } from '../../utils/money'
+import {
+  mapFondeoDestino,
+  mapRemesaOrigen,
+  medioNombrePorItemId,
+} from '../../utils/tipoPago'
 import { fetchTipoOperaciones } from '../../api/cajaDiario'
 import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
@@ -49,6 +56,7 @@ import {
   tipoPagoOptionRender,
   tipoPagoPopupRender,
 } from './components/TipoPagoBrand'
+import { BovedaRedTransferRuta } from './components/BovedaRedTransferRuta'
 
 const { Paragraph } = Typography
 
@@ -141,12 +149,12 @@ function opsCopy(esCentral: boolean): Record<string, { title: string; blurb: str
       ? {
           title: 'Fondear sucursales',
           blurb:
-            'Elija el medio de Central que sale. Yape/Interbank Gerente·René llegan a la sucursal como Yape/Interbank genérico.',
+            'Elija el medio que sale de Central. Se valida el saldo de ese medio; Yape/Interbank Gerente·René acreditan el genérico en la sucursal.',
         }
       : {
           title: 'Enviar a Central',
           blurb:
-            'Elija a qué medio de Central llega el dinero (Yape Gerente/René, Interbank Gerente/René, BCP…). En esta sede se descuenta el genérico de la misma familia.',
+            'Elija el medio destino en Central. El origen en esta sede (familia o 1:1) se calcula automáticamente y se valida contra el saldo de bóveda.',
         },
     aceptar: {
       title: 'Pendientes',
@@ -174,6 +182,7 @@ function invalidateBoveda(
   void queryClient.invalidateQueries({ queryKey: ['existe-boveda-temporal', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['resumen-cuenta-boveda', bovedaId] })
   void queryClient.invalidateQueries({ queryKey: ['boveda-medios-red', oficinaId] })
+  void queryClient.invalidateQueries({ queryKey: ['boveda-saldo-medio'] })
   void queryClient.invalidateQueries({ queryKey: ['rpt-movimiento-boveda', bovedaId] })
   void queryClient.invalidateQueries({ queryKey: ['saldos-caja-diario-boveda', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['validar-cierre-saldos', oficinaId] })
@@ -256,6 +265,14 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   const needsDestinos = activeTab === 'interoficina'
   const needsCierre = activeTab === 'cierre'
 
+  const medioRedWatch = Form.useWatch('tipoPagoId', fondeoForm)
+  const montoRedWatch = Form.useWatch('monto', fondeoForm)
+  const medioRedId =
+    typeof medioRedWatch === 'number' && medioRedWatch > 0 ? medioRedWatch : 1
+  /** Débito local (ledger USP) y crédito destino según dirección. */
+  const tipoPagoDebitoId = esCentral ? medioRedId : mapRemesaOrigen(medioRedId)
+  const tipoPagoCreditoId = esCentral ? mapFondeoDestino(medioRedId) : medioRedId
+
   const cajasQuery = useQuery({
     queryKey: ['cajas-transferencia-boveda', oficinaId],
     queryFn: () => fetchCajasAbiertasTransferenciaBoveda(oficinaId),
@@ -267,6 +284,23 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     queryFn: () => fetchBovedasDestinoTransferencia(oficinaId),
     enabled: oficinaOk && needsDestinos,
   })
+
+  const saldoMedioOrigenQuery = useQuery({
+    queryKey: ['boveda-saldo-medio', bovedaId, tipoPagoDebitoId],
+    queryFn: () => fetchBovedaSaldoMedio(bovedaId, tipoPagoDebitoId),
+    enabled: oficinaOk && needsDestinos && bovedaId > 0 && tipoPagoDebitoId > 0,
+    staleTime: 10_000,
+  })
+  const saldoOrigenDisponible = saldoMedioOrigenQuery.data?.disponible ?? null
+  const montoRedNum =
+    typeof montoRedWatch === 'number' && Number.isFinite(montoRedWatch)
+      ? montoRedWatch
+      : null
+  const saldoOrigenInsuficiente =
+    saldoOrigenDisponible != null &&
+    montoRedNum != null &&
+    montoRedNum > 0 &&
+    moneyGreater(montoRedNum, saldoOrigenDisponible)
 
   // Sucursal: preselecciona Central cuando hay un solo destino de red.
   useEffect(() => {
@@ -382,12 +416,29 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   }) => {
     const dest = bovedasDestinoQuery.data?.find((d) => d.bovedaId === v.bovedaDestinoId)
     const medioId = v.tipoPagoId && v.tipoPagoId > 0 ? v.tipoPagoId : 1
-    const medio =
-      tipoPagoOptionsRed.find((o) => o.value === medioId)?.label ?? 'efectivo'
     const haciaCentral = !esCentral
+    const debitoId = haciaCentral ? mapRemesaOrigen(medioId) : medioId
+    const creditoId = haciaCentral ? medioId : mapFondeoDestino(medioId)
+    const nombreDebito =
+      medioNombrePorItemId(debitoId) ??
+      tipoPagoOptionsRed.find((o) => o.value === debitoId)?.label ??
+      `Medio #${debitoId}`
+    const nombreCredito =
+      medioNombrePorItemId(creditoId) ??
+      tipoPagoOptionsRed.find((o) => o.value === creditoId)?.label ??
+      `Medio #${creditoId}`
+    if (
+      saldoOrigenDisponible != null &&
+      moneyGreater(v.monto, saldoOrigenDisponible)
+    ) {
+      message.error(
+        `Saldo insuficiente en ${nombreDebito}: disponible S/ ${formatMoney(saldoOrigenDisponible)}.`,
+      )
+      return
+    }
     const consecuencia = haciaCentral
-      ? `Llega a Central como ${medio}. En esta sede se descuenta el medio de familia (Yape/Interbank genérico si aplica).`
-      : `Sale ${medio} desde Central. En la sucursal se acredita el genérico de familia si es Yape/Interbank.`
+      ? `Se descuenta ${nombreDebito} en esta sede y llega a Central como ${nombreCredito}.`
+      : `Sale ${nombreDebito} desde Central y la sucursal acredita ${nombreCredito}.`
     confirmMoney({
       title: dest
         ? haciaCentral
@@ -409,7 +460,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
           bovedaDestinoId: v.bovedaDestinoId,
           glosa: v.glosa,
           monto: v.monto,
-          tipoPagoId: v.tipoPagoId && v.tipoPagoId > 0 ? v.tipoPagoId : 1,
+          tipoPagoId: medioId,
         })
       },
     })
@@ -545,14 +596,18 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     })
   }
 
-  const formActions = (submitLabel: string, loading: boolean) => (
+  const formActions = (
+    submitLabel: string,
+    loading: boolean,
+    disabledExtra = false,
+  ) => (
     <div className="boveda-operaciones-form__actions">
       <Button
         type="primary"
         htmlType="submit"
         size="large"
         loading={loading}
-        disabled={operacionesDeshabilitadas}
+        disabled={operacionesDeshabilitadas || disabledExtra}
       >
         {submitLabel}
       </Button>
@@ -957,8 +1012,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               label={esCentral ? 'Medio que sale de Central' : 'Medio destino en Central'}
               extra={
                 esCentral
-                  ? 'Si elige Yape/Interbank Gerente o René, la sucursal recibe el genérico.'
-                  : 'Si elige Yape/Interbank Gerente o René, aquí se descuenta Yape/Interbank de la sede.'
+                  ? 'La sucursal acredita el genérico de familia si elige billetera Gerente/René.'
+                  : 'El origen en esta sede se calcula automáticamente (familia o 1:1).'
               }
               rules={[{ required: true, message: 'Seleccione el medio' }]}
             >
@@ -970,6 +1025,14 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               />
             </Form.Item>
             </div>
+            <BovedaRedTransferRuta
+              modo={esCentral ? 'fondeo' : 'remesa'}
+              tipoPagoDebitoId={tipoPagoDebitoId}
+              tipoPagoCreditoId={tipoPagoCreditoId}
+              disponible={saldoOrigenDisponible}
+              disponibleLoading={saldoMedioOrigenQuery.isLoading}
+              monto={montoRedNum}
+            />
             <Form.Item name="monto" label="Monto" rules={moneyRequired('Monto mayor a cero')}>
               <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
             </Form.Item>
@@ -979,6 +1042,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             {formActions(
               esCentral ? 'Fondear ahora' : 'Enviar a Central',
               transferir.isPending,
+              saldoOrigenInsuficiente,
             )}
           </Form>
         </>

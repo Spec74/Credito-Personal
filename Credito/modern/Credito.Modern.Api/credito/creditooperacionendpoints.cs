@@ -5658,6 +5658,99 @@ internal static class CreditoOperacionEndpoints
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
         app.MapGet(
+                "/api/v1/credito/boveda-saldo-medio",
+                async Task<Results<Ok<BovedaSaldoMedioDto>, NotFound, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    int bovedaId,
+                    short tipoPagoId,
+                    IBovedaOficinaReadService bovedaOficina,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (bovedaId < 1 || tipoPagoId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "bovedaId y tipoPagoId deben ser enteros >= 1.");
+                    }
+
+                    var log = loggerFactory.CreateLogger("BovedaSaldoMedio");
+                    try
+                    {
+                        var oficinaBoveda = await bovedaOficina
+                            .GetOficinaIdByBovedaIdAsync(bovedaId, ct)
+                            .ConfigureAwait(false);
+                        if (oficinaBoveda is null or < 1)
+                        {
+                            return TypedResults.NotFound();
+                        }
+
+                        var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(
+                            httpContext,
+                            oficinaBoveda.Value);
+                        if (oficinaError is not null)
+                        {
+                            return oficinaError;
+                        }
+
+                        var dto = await bovedaOficina
+                            .ObtenerSaldoMedioDisponibleAsync(bovedaId, tipoPagoId, ct)
+                            .ConfigureAwait(false);
+                        if (dto is null)
+                        {
+                            return TypedResults.NotFound();
+                        }
+
+                        return TypedResults.Ok(dto);
+                    }
+                    catch (ArgumentOutOfRangeException ex)
+                    {
+                        log.LogWarning(ex, "Parámetros inválidos saldo medio");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Parámetros inválidos",
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "Los parámetros enviados no son válidos."
+                                : ex.Message);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Saldo medio bóveda: configuración incompleta");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error al leer saldo medio de bóveda");
+                        var detail = "No se pudo consultar el saldo del medio.";
+                        if (env.IsDevelopment())
+                        {
+                            detail += $" Detalle: {ex.Message}";
+                        }
+
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("CreditoBovedaSaldoMedio")
+            .WithSummary(
+                "Saldo disponible de un medio en bóveda (SI cuenta + neto mov; paridad usp_TransferirBoveda).")
+            .WithTags("credito", "boveda")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .Produces<BovedaSaldoMedioDto>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+        app.MapGet(
                 "/api/v1/credito/boveda-transferencias-pendientes",
                 async Task<Results<Ok<List<BovedaTransferenciaPendienteDto>>, ProblemHttpResult>> (
                     HttpContext httpContext,

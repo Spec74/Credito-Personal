@@ -14,6 +14,8 @@ import {
   esTipoPagoInterbankFamilia,
   esTipoPagoSedeObsoleto,
   esTipoPagoYapeFamilia,
+  mapFondeoDestino,
+  mapRemesaOrigen,
   marcaDesdeTipoPagoId,
   medioNombrePorItemId,
 } from './tipoPago'
@@ -53,6 +55,18 @@ describe('tipoPago multisucursal', () => {
     expect(esTipoPagoBilleteraCentral(TIPO_PAGO_INTERBANK_RENE)).toBe(true)
     expect(esTipoPagoSedeObsoleto(6)).toBe(true)
     expect(esTipoPagoCobroPermitido(6, true)).toBe(false)
+  })
+
+  it('map remesa/fondeo: billetera ↔ genérico; bancos 1:1', () => {
+    expect(mapRemesaOrigen(TIPO_PAGO_YAPE_GERENTE)).toBe(TIPO_PAGO_YAPE)
+    expect(mapRemesaOrigen(TIPO_PAGO_YAPE_RENE)).toBe(TIPO_PAGO_YAPE)
+    expect(mapRemesaOrigen(TIPO_PAGO_INTERBANK_GERENTE)).toBe(TIPO_PAGO_INTERBANK)
+    expect(mapRemesaOrigen(TIPO_PAGO_INTERBANK_RENE)).toBe(TIPO_PAGO_INTERBANK)
+    expect(mapRemesaOrigen(TIPO_PAGO_EFECTIVO)).toBe(TIPO_PAGO_EFECTIVO)
+    expect(mapRemesaOrigen(4)).toBe(4)
+    expect(mapFondeoDestino(TIPO_PAGO_YAPE_GERENTE)).toBe(TIPO_PAGO_YAPE)
+    expect(mapFondeoDestino(TIPO_PAGO_INTERBANK_RENE)).toBe(TIPO_PAGO_INTERBANK)
+    expect(mapFondeoDestino(9)).toBe(9)
   })
 
   it('catálogo UI: nombres, marcas y filtro de combo', () => {

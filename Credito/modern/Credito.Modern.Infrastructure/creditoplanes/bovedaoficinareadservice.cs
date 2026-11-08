@@ -635,4 +635,61 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                     cancellationToken: cancellationToken))
             .ConfigureAwait(false);
     }
+
+    public async Task<BovedaSaldoMedioDto?> ObtenerSaldoMedioDisponibleAsync(
+        int bovedaId,
+        short tipoPagoId,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(_connectionString))
+        {
+            throw new InvalidOperationException(
+                "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
+        }
+
+        if (bovedaId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(bovedaId), "bovedaId debe ser >= 1.");
+        }
+
+        if (tipoPagoId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(tipoPagoId), "tipoPagoId debe ser >= 1.");
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        const string sql = """
+            SELECT
+                b.BovedaId,
+                b.OficinaId,
+                CAST(@TipoPagoId AS smallint) AS TipoPagoId,
+                CAST(ROUND(
+                    CASE
+                        WHEN EXISTS (SELECT 1 FROM CREDITO.BovedaCuenta WHERE BovedaId = b.BovedaId)
+                        THEN ISNULL((
+                            SELECT bc.SaldoInicial
+                            FROM CREDITO.BovedaCuenta AS bc
+                            WHERE bc.BovedaId = b.BovedaId AND bc.TipoPagoId = @TipoPagoId), 0)
+                        WHEN @TipoPagoId = 1 THEN ISNULL(b.SaldoInicial, 0)
+                        ELSE CAST(0 AS decimal(16, 2))
+                    END
+                    + ISNULL((
+                        SELECT SUM(IIF(m.IndEntrada = 1, m.Importe, -m.Importe))
+                        FROM CREDITO.BovedaMov AS m
+                        WHERE m.BovedaId = b.BovedaId
+                          AND m.Estado = 1
+                          AND m.TipoPagoId = @TipoPagoId), 0)
+                , 2) AS decimal(16, 2)) AS Disponible
+            FROM CREDITO.Boveda AS b
+            WHERE b.BovedaId = @BovedaId;
+            """;
+        return await connection
+            .QueryFirstOrDefaultAsync<BovedaSaldoMedioDto>(
+                new CommandDefinition(
+                    sql,
+                    new { BovedaId = bovedaId, TipoPagoId = tipoPagoId },
+                    cancellationToken: cancellationToken))
+            .ConfigureAwait(false);
+    }
 }

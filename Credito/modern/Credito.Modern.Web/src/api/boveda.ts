@@ -129,6 +129,25 @@ export function fetchBovedaMediosRed(oficinaId: number): Promise<BovedaMediosRed
   )
 }
 
+/** Disponible de un medio en bóveda (paridad usp_TransferirBoveda). */
+export interface BovedaSaldoMedio {
+  bovedaId: number
+  oficinaId: number
+  tipoPagoId: number
+  disponible: number
+}
+
+export function fetchBovedaSaldoMedio(
+  bovedaId: number,
+  tipoPagoId: number,
+): Promise<BovedaSaldoMedio> {
+  const q = new URLSearchParams({
+    bovedaId: String(bovedaId),
+    tipoPagoId: String(tipoPagoId),
+  })
+  return apiFetch<BovedaSaldoMedio>(`/credito/boveda-saldo-medio?${q}`)
+}
+
 export function fetchBovedaEstadoDinero(oficinaId: number): Promise<BovedaEstadoDinero> {
   return apiFetch<BovedaEstadoDinero>(
     `/credito/boveda-estado-dinero?oficinaId=${oficinaId}`,
