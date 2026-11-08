@@ -129,12 +129,21 @@ export function fetchBovedaMediosRed(oficinaId: number): Promise<BovedaMediosRed
   )
 }
 
-/** Disponible de un medio en bóveda (paridad usp_TransferirBoveda). */
+/**
+ * Saldo de medio para remesa/fondeo.
+ * `disponible` = solo bóveda (paridad USP). `pendienteCaja` = cobros aún no TRE.
+ */
 export interface BovedaSaldoMedio {
   bovedaId: number
   oficinaId: number
   tipoPagoId: number
+  /** Remesable ahora (ledger bóveda; = disponibleBoveda). */
   disponible: number
+  disponibleBoveda: number
+  /** En caja diaria con TransBoveda=0 (visible en Medios, no remesable). */
+  pendienteCaja: number
+  /** Suma vault de la familia Yape/Interbank; igual a disponible si no hay legado. */
+  disponibleFamiliaBoveda: number
 }
 
 export function fetchBovedaSaldoMedio(

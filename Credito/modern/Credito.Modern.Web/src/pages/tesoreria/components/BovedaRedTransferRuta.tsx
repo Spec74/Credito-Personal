@@ -11,20 +11,25 @@ type Props = {
   modo: 'remesa' | 'fondeo'
   tipoPagoDebitoId: number
   tipoPagoCreditoId: number
-  disponible: number | null
+  /** Ledger bóveda (paridad USP) — lo único remesable/fondeable. */
+  disponibleBoveda: number | null
+  pendienteCaja?: number | null
+  disponibleFamiliaBoveda?: number | null
   disponibleLoading: boolean
   monto: number | null
 }
 
 /**
- * Ruta de medios en remesa/fondeo: muestra origen (débito local) → destino,
- * saldo disponible del ledger y alerta si el monto no alcanza.
+ * Ruta de medios en remesa/fondeo: origen → destino, saldo de bóveda vs caja pendiente.
+ * Nunca mezcla caja en el disponible remesable (evita descuadre / falso positivo).
  */
 export function BovedaRedTransferRuta({
   modo,
   tipoPagoDebitoId,
   tipoPagoCreditoId,
-  disponible,
+  disponibleBoveda,
+  pendienteCaja = null,
+  disponibleFamiliaBoveda = null,
   disponibleLoading,
   monto,
 }: Props) {
@@ -34,8 +39,36 @@ export function BovedaRedTransferRuta({
     medioNombrePorItemId(tipoPagoCreditoId) ?? `Medio #${tipoPagoCreditoId}`
   const montoNum = typeof monto === 'number' && Number.isFinite(monto) ? monto : null
   const insuficiente =
-    disponible != null && montoNum != null && montoNum > 0 && moneyGreater(montoNum, disponible)
+    disponibleBoveda != null &&
+    montoNum != null &&
+    montoNum > 0 &&
+    moneyGreater(montoNum, disponibleBoveda)
   const familiaCruzada = tipoPagoDebitoId !== tipoPagoCreditoId
+  const hayCajaPendiente =
+    pendienteCaja != null && Number.isFinite(pendienteCaja) && moneyGreater(pendienteCaja, 0)
+  const hayLegadoFamilia =
+    disponibleBoveda != null &&
+    disponibleFamiliaBoveda != null &&
+    moneyGreater(disponibleFamiliaBoveda, disponibleBoveda)
+
+  const descripcionInsuficiente = (() => {
+    if (disponibleBoveda == null) return undefined
+    const partes = [
+      `En bóveda solo hay S/ ${formatMoney(disponibleBoveda)} de ${nombreDebito} (lo que se puede remesar/fondear).`,
+    ]
+    if (hayCajaPendiente) {
+      partes.push(
+        `Además hay S/ ${formatMoney(pendienteCaja!)} en caja diaria pendiente de pasar a bóveda (cierre/TRE). Ese monto se ve en Medios, pero aún no está en el ledger de bóveda.`,
+      )
+    }
+    if (hayLegadoFamilia) {
+      partes.push(
+        `Hay S/ ${formatMoney(disponibleFamiliaBoveda!)} en la familia en bóveda (incluye tipados). Unifique con «Entre medios» al genérico antes de remesar.`,
+      )
+    }
+    partes.push('Reduzca el monto, elija otro medio con saldo en bóveda, o cierre cajas si el dinero sigue en caja.')
+    return partes.join(' ')
+  })()
 
   return (
     <div className="boveda-red-ruta" role="status" aria-live="polite">
@@ -45,7 +78,7 @@ export function BovedaRedTransferRuta({
         </Text>
         {disponibleLoading ? (
           <Spin size="small" />
-        ) : disponible != null ? (
+        ) : disponibleBoveda != null ? (
           <Text
             className={
               insuficiente
@@ -54,7 +87,7 @@ export function BovedaRedTransferRuta({
             }
             translate="no"
           >
-            Disponible S/ {formatMoney(disponible)}
+            En bóveda S/ {formatMoney(disponibleBoveda)}
           </Text>
         ) : null}
       </div>
@@ -89,17 +122,33 @@ export function BovedaRedTransferRuta({
         </Text>
       )}
 
+      {hayCajaPendiente && !insuficiente ? (
+        <Alert
+          type="info"
+          showIcon
+          className="boveda-red-ruta__alert"
+          message={`S/ ${formatMoney(pendienteCaja!)} de ${nombreDebito} sigue en caja`}
+          description="Medios muestra bóveda + caja pendiente. La remesa solo mueve el ledger de bóveda. Cierre las cajas diarias (TRE) para pasar ese saldo a bóveda y luego remese."
+        />
+      ) : null}
+
+      {hayCajaPendiente && insuficiente ? (
+        <Alert
+          type="warning"
+          showIcon
+          className="boveda-red-ruta__alert"
+          message="El saldo de Medios aún no está en bóveda"
+          description={`Hay S/ ${formatMoney(pendienteCaja!)} en caja pendiente de TRE. Por eso «En bóveda» es S/ ${formatMoney(disponibleBoveda ?? 0)} aunque Medios muestre más.`}
+        />
+      ) : null}
+
       {insuficiente ? (
         <Alert
           type="error"
           showIcon
           className="boveda-red-ruta__alert"
-          message="Saldo insuficiente en el medio de origen"
-          description={
-            disponible != null
-              ? `Disponible S/ ${formatMoney(disponible)}. Reduzca el monto o elija otro medio destino cuya familia tenga saldo.`
-              : undefined
-          }
+          message="Saldo insuficiente en bóveda (medio de origen)"
+          description={descripcionInsuficiente}
         />
       ) : null}
     </div>

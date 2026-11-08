@@ -231,8 +231,9 @@ export function BovedaPage() {
         <>
           <CredixPanel title="Medios de pago" className="boveda-panel-medios">
             <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-              Posición operativa por medio (bóveda + caja aún no transferida). El banner Σ
-              medios cuadra solo la bóveda al céntimo.
+              Posición operativa por medio (bóveda + caja aún no transferida a bóveda). El
+              banner Σ medios y la remesa a Central usan solo el ledger de bóveda: si Medios
+              muestra más, ese excedente sigue en caja pendiente de cierre/TRE.
             </Text>
             <BovedaResumenCuenta
               data={resumen.data}

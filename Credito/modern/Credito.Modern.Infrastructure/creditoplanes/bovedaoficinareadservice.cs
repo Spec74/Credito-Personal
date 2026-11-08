@@ -659,36 +659,89 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
 
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        // Familia para Yape/Interbank (paridad TipoPagoRules); resto = solo el id (params fijos).
+        short f1 = tipoPagoId;
+        short f2 = tipoPagoId;
+        short f3 = tipoPagoId;
+        if (TipoPagoRules.IsYapeFamily(tipoPagoId))
+        {
+            f1 = (short)TipoPagoRules.Yape;
+            f2 = (short)TipoPagoRules.YapeGerente;
+            f3 = (short)TipoPagoRules.YapeRene;
+        }
+        else if (TipoPagoRules.IsInterbankFamily(tipoPagoId))
+        {
+            f1 = (short)TipoPagoRules.Interbank;
+            f2 = (short)TipoPagoRules.InterbankGerente;
+            f3 = (short)TipoPagoRules.InterbankRene;
+        }
+
         const string sql = """
+            DECLARE @HayCuentas bit = CASE
+                WHEN EXISTS (SELECT 1 FROM CREDITO.BovedaCuenta WHERE BovedaId = @BovedaId)
+                THEN 1 ELSE 0 END;
+
+            ;WITH Ids AS (
+                SELECT @F1 AS TipoPagoId
+                UNION SELECT @F2
+                UNION SELECT @F3
+            ),
+            VaultTipo AS (
+                SELECT
+                    t.TipoPagoId,
+                    CAST(ROUND(
+                        CASE
+                            WHEN @HayCuentas = 1 THEN ISNULL((
+                                SELECT bc.SaldoInicial
+                                FROM CREDITO.BovedaCuenta AS bc
+                                WHERE bc.BovedaId = @BovedaId AND bc.TipoPagoId = t.TipoPagoId), 0)
+                            WHEN t.TipoPagoId = 1 THEN ISNULL((
+                                SELECT b0.SaldoInicial FROM CREDITO.Boveda AS b0 WHERE b0.BovedaId = @BovedaId), 0)
+                            ELSE CAST(0 AS decimal(16, 2))
+                        END
+                        + ISNULL((
+                            SELECT SUM(IIF(m.IndEntrada = 1, m.Importe, -m.Importe))
+                            FROM CREDITO.BovedaMov AS m
+                            WHERE m.BovedaId = @BovedaId
+                              AND m.Estado = 1
+                              AND m.TipoPagoId = t.TipoPagoId), 0)
+                    , 2) AS decimal(16, 2)) AS Disponible
+                FROM Ids AS t
+            )
             SELECT
                 b.BovedaId,
                 b.OficinaId,
                 CAST(@TipoPagoId AS smallint) AS TipoPagoId,
-                CAST(ROUND(
-                    CASE
-                        WHEN EXISTS (SELECT 1 FROM CREDITO.BovedaCuenta WHERE BovedaId = b.BovedaId)
-                        THEN ISNULL((
-                            SELECT bc.SaldoInicial
-                            FROM CREDITO.BovedaCuenta AS bc
-                            WHERE bc.BovedaId = b.BovedaId AND bc.TipoPagoId = @TipoPagoId), 0)
-                        WHEN @TipoPagoId = 1 THEN ISNULL(b.SaldoInicial, 0)
-                        ELSE CAST(0 AS decimal(16, 2))
-                    END
-                    + ISNULL((
-                        SELECT SUM(IIF(m.IndEntrada = 1, m.Importe, -m.Importe))
-                        FROM CREDITO.BovedaMov AS m
-                        WHERE m.BovedaId = b.BovedaId
-                          AND m.Estado = 1
-                          AND m.TipoPagoId = @TipoPagoId), 0)
-                , 2) AS decimal(16, 2)) AS Disponible
+                ISNULL((SELECT v.Disponible FROM VaultTipo AS v WHERE v.TipoPagoId = @TipoPagoId), 0) AS Disponible,
+                ISNULL((SELECT v.Disponible FROM VaultTipo AS v WHERE v.TipoPagoId = @TipoPagoId), 0) AS DisponibleBoveda,
+                CAST(ROUND(ISNULL((
+                    SELECT SUM(IIF(mc.IndEntrada = 1, mc.ImportePago, -mc.ImportePago))
+                    FROM CREDITO.MovimientoCaja AS mc
+                    INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = mc.CajaDiarioId
+                    INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                    WHERE c.OficinaId = b.OficinaId
+                      AND cd.TransBoveda = CAST(0 AS bit)
+                      AND mc.Estado = CAST(1 AS bit)
+                      AND mc.TipoPagoId IN (@F1, @F2, @F3)
+                ), 0), 2) AS decimal(16, 2)) AS PendienteCaja,
+                ISNULL((SELECT SUM(v.Disponible) FROM VaultTipo AS v), 0) AS DisponibleFamiliaBoveda
             FROM CREDITO.Boveda AS b
             WHERE b.BovedaId = @BovedaId;
             """;
+
         return await connection
             .QueryFirstOrDefaultAsync<BovedaSaldoMedioDto>(
                 new CommandDefinition(
                     sql,
-                    new { BovedaId = bovedaId, TipoPagoId = tipoPagoId },
+                    new
+                    {
+                        BovedaId = bovedaId,
+                        TipoPagoId = tipoPagoId,
+                        F1 = f1,
+                        F2 = f2,
+                        F3 = f3,
+                    },
                     cancellationToken: cancellationToken))
             .ConfigureAwait(false);
     }

@@ -291,7 +291,11 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     enabled: oficinaOk && needsDestinos && bovedaId > 0 && tipoPagoDebitoId > 0,
     staleTime: 10_000,
   })
-  const saldoOrigenDisponible = saldoMedioOrigenQuery.data?.disponible ?? null
+  const saldoOrigen = saldoMedioOrigenQuery.data
+  const saldoOrigenDisponible =
+    saldoOrigen?.disponibleBoveda ?? saldoOrigen?.disponible ?? null
+  const saldoOrigenPendienteCaja = saldoOrigen?.pendienteCaja ?? null
+  const saldoOrigenFamilia = saldoOrigen?.disponibleFamiliaBoveda ?? null
   const montoRedNum =
     typeof montoRedWatch === 'number' && Number.isFinite(montoRedWatch)
       ? montoRedWatch
@@ -431,8 +435,12 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       saldoOrigenDisponible != null &&
       moneyGreater(v.monto, saldoOrigenDisponible)
     ) {
+      const cajaHint =
+        saldoOrigenPendienteCaja != null && moneyGreater(saldoOrigenPendienteCaja, 0)
+          ? ` Hay S/ ${formatMoney(saldoOrigenPendienteCaja)} en caja pendiente de TRE (visible en Medios, no remesable aún).`
+          : ''
       message.error(
-        `Saldo insuficiente en ${nombreDebito}: disponible S/ ${formatMoney(saldoOrigenDisponible)}.`,
+        `Saldo insuficiente en bóveda (${nombreDebito}): S/ ${formatMoney(saldoOrigenDisponible)}.${cajaHint}`,
       )
       return
     }
@@ -1029,7 +1037,9 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               modo={esCentral ? 'fondeo' : 'remesa'}
               tipoPagoDebitoId={tipoPagoDebitoId}
               tipoPagoCreditoId={tipoPagoCreditoId}
-              disponible={saldoOrigenDisponible}
+              disponibleBoveda={saldoOrigenDisponible}
+              pendienteCaja={saldoOrigenPendienteCaja}
+              disponibleFamiliaBoveda={saldoOrigenFamilia}
               disponibleLoading={saldoMedioOrigenQuery.isLoading}
               monto={montoRedNum}
             />
