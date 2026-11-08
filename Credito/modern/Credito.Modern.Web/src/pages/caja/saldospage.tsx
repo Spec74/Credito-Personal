@@ -61,6 +61,7 @@ import {
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { sumMoney } from '../../utils/money'
+import { efectivoDesdeResumenCuenta } from '../../utils/resumenCuentaCaja'
 import { filterTableRows } from '../../utils/tableClientFilter'
 import { compararMonto, compararTexto } from '../../utils/tableSorters'
 import { runOpenReport } from '../../utils/reportExport'
@@ -168,9 +169,24 @@ export function SaldosPage() {
     enabled: oficinaId > 0 && tab === 'cierre' && puedeOperar,
   })
 
-  const importeCierre = useMemo(() => {
+  /** Total posición (efectivo + digitales) — banner / info. */
+  const importeCierreTotal = useMemo(() => {
     const rows = asignadas.data ?? []
     return sumMoney(rows.map((r) => r.saldoFinal ?? 0))
+  }, [asignadas.data])
+
+  /**
+   * Solo efectivo tipado en el resumen — base del conteo de billetes.
+   * Los digitales (Yape/Interbank…) van a bóveda por TipoPagoId sin contarse en billetes.
+   */
+  const importeCierreEfectivo = useMemo(() => {
+    const rows = asignadas.data ?? []
+    const desdeResumen = sumMoney(rows.map((r) => efectivoDesdeResumenCuenta(r.resumen)))
+    if (desdeResumen > 0 || rows.some((r) => (r.resumen ?? '').trim().length > 0)) {
+      return Math.max(0, desdeResumen)
+    }
+    // Fallback: si no hay resumen parseable, no inventar — usar 0 y mostrar total aparte.
+    return 0
   }, [asignadas.data])
 
   const asignadasFiltradas = useMemo(
@@ -369,7 +385,7 @@ export function SaldosPage() {
         { value: rows.length, label: 'Cajas asignadas' },
         { value: abiertas, label: 'En operación' },
         {
-          value: formatMoney(importeCierre),
+          value: formatMoney(importeCierreTotal),
           label: 'Saldo final (cierre)',
           tone: 'red',
         },
@@ -429,12 +445,12 @@ export function SaldosPage() {
     bovedaSaldos.data,
     validacion.data,
     validacionChica.data,
-    importeCierre,
+    importeCierreTotal,
     puedeOperar,
   ])
 
   const iniciarCierreMasivo = () => {
-    if (importeCierre <= 0 && (asignadas.data?.length ?? 0) === 0) {
+    if (importeCierreTotal <= 0 && (asignadas.data?.length ?? 0) === 0) {
       message.warning('No hay cajas asignadas para cerrar.')
       return
     }
@@ -734,23 +750,39 @@ export function SaldosPage() {
                     description={validacion.data.mensaje}
                   />
                 ) : null}
-                {validacionChica.data ? (
+                {validacionChica.data?.puedeCerrar ? (
                   <Alert
-                    type={validacionChica.data.puedeCerrar ? 'success' : 'warning'}
+                    type="success"
                     showIcon
-                    message={
-                      validacionChica.data.puedeCerrar
-                        ? 'Puede transferir cierre de caja chica'
-                        : 'Aún no puede cerrar caja chica'
-                    }
+                    message="Puede transferir cierre de caja chica"
                     description={validacionChica.data.mensaje}
+                  />
+                ) : validacionChica.data &&
+                  !/NO HAY CAJA CHICA PENDIENTE|NO EXISTEN CAJAS POR CERRAR/i.test(
+                    validacionChica.data.mensaje ?? '',
+                  ) ? (
+                  <Alert
+                    type="warning"
+                    showIcon
+                    message="Aún no puede cerrar caja chica"
+                    description={validacionChica.data.mensaje}
+                  />
+                ) : validacionChica.data ? (
+                  <Alert
+                    type="info"
+                    showIcon
+                    message="Caja chica"
+                    description="No hay caja chica pendiente de transferir a bóveda."
                   />
                 ) : null}
 
                 <CredixPanel title="Cerrar cajas diarias (CERRAR CAJAS)">
                   <Paragraph type="secondary">
-                    Saldo final para conteo: <strong>S/ {formatMoney(importeCierre)}</strong>{' '}
-                    (suma de cajas asignadas).
+                    Posición total a transferir:{' '}
+                    <strong>S/ {formatMoney(importeCierreTotal)}</strong> (efectivo + digitales).
+                    El conteo de billetes solo exige el efectivo tipado:{' '}
+                    <strong>S/ {formatMoney(importeCierreEfectivo)}</strong>. Yape/Interbank/BCP
+                    pasan a bóveda con su mismo medio (sin contarse en billetes).
                   </Paragraph>
                   <Button
                     type="primary"
@@ -813,7 +845,8 @@ export function SaldosPage() {
 
       <ConteoBilletesModal
         open={conteoOpen}
-        importeCierre={importeCierre}
+        importeCierre={importeCierreEfectivo}
+        importeTotal={importeCierreTotal}
         loading={cerrar.isPending}
         onCancel={() => setConteoOpen(false)}
         onConfirm={async (sobrante) => {

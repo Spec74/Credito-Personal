@@ -23,7 +23,10 @@ type FormValues = Record<(typeof DENOMINACIONES)[number]['name'], number>
 
 type Props = {
   open: boolean
+  /** Efectivo tipado a cubrir con billetes (no incluye Yape/Interbank…). */
   importeCierre: number
+  /** Posición total (efectivo + digitales) solo informativa. */
+  importeTotal?: number
   loading?: boolean
   onCancel: () => void
   onConfirm: (sobrante: number) => void | Promise<void>
@@ -32,6 +35,7 @@ type Props = {
 export function ConteoBilletesModal({
   open,
   importeCierre,
+  importeTotal,
   loading,
   onCancel,
   onConfirm,
@@ -63,15 +67,15 @@ export function ConteoBilletesModal({
   const handleOk = async () => {
     const values = await form.validateFields()
     const total = sumarConteo(values)
+    const sobranteConfirm = Math.max(0, roundMoney(total - importeCierre))
     if (total < importeCierre) {
       Modal.warning({
         title: 'Conteo insuficiente',
-        content:
-          'El conteo de billetes debe ser mayor o igual al saldo final de cajas.',
+        content: `El conteo de billetes (S/ ${formatMoney(total)}) debe ser mayor o igual al efectivo tipado en caja (S/ ${formatMoney(importeCierre)}). Los medios digitales no se cuentan aquí: pasan a bóveda con su mismo tipo de pago.`,
       })
       return
     }
-    await onConfirm(sobrante)
+    await onConfirm(sobranteConfirm)
   }
 
   return (
@@ -88,8 +92,18 @@ export function ConteoBilletesModal({
       className="caja-saldos-conteo-modal"
     >
       <p className="caja-saldos-conteo-modal__resumen">
-        Saldo final cajas: <strong>S/ {formatMoney(importeCierre)}</strong>
+        Efectivo a contar: <strong>S/ {formatMoney(importeCierre)}</strong>
+        {importeTotal != null && importeTotal !== importeCierre ? (
+          <>
+            {' '}
+            · Posición total (con digitales): <strong>S/ {formatMoney(importeTotal)}</strong>
+          </>
+        ) : null}
       </p>
+      <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
+        Solo cuente billetes/monedas. Yape, Interbank, BCP, Plin, etc. se transfieren a bóveda
+        tipados; el sobrante del conteo se registra como efectivo.
+      </Text>
       <Form
         form={form}
         layout="vertical"
@@ -115,7 +129,7 @@ export function ConteoBilletesModal({
           Conteo billetes: <strong>S/ {formatMoney(conteoTotal)}</strong>
         </Text>
         <Text type={sobrante > 0 ? 'success' : 'secondary'}>
-          Sobrante: <strong>S/ {formatMoney(sobrante)}</strong>
+          Sobrante (efectivo): <strong>S/ {formatMoney(sobrante)}</strong>
         </Text>
       </div>
     </Modal>

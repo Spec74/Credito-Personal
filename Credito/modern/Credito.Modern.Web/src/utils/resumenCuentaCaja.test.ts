@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseResumenCuentaCaja } from './resumenCuentaCaja'
+import { efectivoDesdeResumenCuenta, parseResumenCuentaCaja } from './resumenCuentaCaja'
 
 describe('parseResumenCuentaCaja', () => {
   it('separa las cuentas del resumen de caja', () => {
@@ -29,5 +29,12 @@ describe('parseResumenCuentaCaja', () => {
   it('devuelve vacío si el formato no es el esperado (se mostrará el texto crudo)', () => {
     expect(parseResumenCuentaCaja('sin formato conocido')).toEqual([])
     expect(parseResumenCuentaCaja('EFECTIVO = 100  YAPE')).toEqual([])
+  })
+
+  it('efectivoDesdeResumenCuenta ignora digitales', () => {
+    expect(
+      efectivoDesdeResumenCuenta('EFECTIVO = 1000.00  YAPE = 150.00  INTERBANK = 150.00'),
+    ).toBe(1000)
+    expect(efectivoDesdeResumenCuenta('YAPE = 150.00')).toBe(0)
   })
 })

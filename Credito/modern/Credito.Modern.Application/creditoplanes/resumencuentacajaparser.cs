@@ -101,7 +101,7 @@ public static class ResumenCuentaCajaParser
     }
 
     /// <summary>
-    /// Etiqueta legible conservando sede (Central / Huanta) cuando el SP la distingue.
+    /// Etiqueta legible: billeteras Gerente/René, sede (Central/Huanta) y marcas genéricas.
     /// </summary>
     public static string DisplayLabel(string? cuenta)
     {
@@ -109,18 +109,24 @@ public static class ResumenCuentaCajaParser
             return string.Empty;
 
         var k = cuenta.Trim().ToUpperInvariant();
-        var sede = k.Contains("HUANTA", StringComparison.Ordinal) ? " Huanta"
-            : k.Contains("CENTRAL", StringComparison.Ordinal) ? " Central"
+        // Billeteras persona tienen prioridad sobre el sufijo sede (no se tipan en sucursal).
+        var persona = k.Contains("GERENTE", StringComparison.Ordinal) ? " Gerente"
+            : Regex.IsMatch(k, @"\bREN[EÉ]\b") ? " René"
+            : string.Empty;
+        var sede = string.IsNullOrEmpty(persona)
+            ? (k.Contains("HUANTA", StringComparison.Ordinal) ? " Huanta"
+                : k.Contains("CENTRAL", StringComparison.Ordinal) ? " Central"
+                : string.Empty)
             : string.Empty;
 
         if (k.Contains("EFECTIVO", StringComparison.Ordinal) || k is "CASH")
             return "Efectivo";
         if (k.Contains("YAPE", StringComparison.Ordinal))
-            return "Yape" + sede;
+            return "Yape" + persona + sede;
         if (k.Contains("PLIN", StringComparison.Ordinal))
             return "Plin" + sede;
         if (k.Contains("INTERBANK", StringComparison.Ordinal))
-            return "Interbank" + sede;
+            return "Interbank" + persona + sede;
         if (k.Contains("BCP", StringComparison.Ordinal)
             || k.Contains("BCO CREDITO", StringComparison.Ordinal)
             || k.Contains("BANCO CREDITO", StringComparison.Ordinal))

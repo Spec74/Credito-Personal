@@ -169,6 +169,18 @@ public sealed class RptCajaSaldosModulePdfDocumentTests
     }
 
     [Fact]
+    public void DisplayLabel_distingue_billeteras_gerente_rene()
+    {
+        Assert.Equal("Yape Gerente", ResumenCuentaCajaParser.DisplayLabel("YAPE GERENTE"));
+        Assert.Equal("Yape René", ResumenCuentaCajaParser.DisplayLabel("YAPE RENE"));
+        Assert.Equal("Yape René", ResumenCuentaCajaParser.DisplayLabel("YAPE RENÉ"));
+        Assert.Equal("Interbank Gerente", ResumenCuentaCajaParser.DisplayLabel("INTERBANK GERENTE"));
+        Assert.Equal("Interbank René", ResumenCuentaCajaParser.DisplayLabel("INTERBANK RENE"));
+        Assert.Equal("Yape", ResumenCuentaCajaParser.DisplayLabel("YAPE"));
+        Assert.Equal("Interbank", ResumenCuentaCajaParser.DisplayLabel("INTERBANK"));
+    }
+
+    [Fact]
     public void Compose_aclara_central_cuando_sp_solo_marca_huanta()
     {
         var c = ResumenCuentaCajaParser.Compose(

@@ -107,7 +107,9 @@ public sealed class SaldosCierreReadService(IOptions<SqlDatabaseOptions> options
 
         if (porCerrar == 0)
         {
-            return new ValidarCierreSaldosResponse(false, "NO EXISTEN CAJAS POR CERRAR.");
+            return new ValidarCierreSaldosResponse(
+                false,
+                "NO HAY CAJA CHICA PENDIENTE DE TRANSFERIR A BÓVEDA.");
         }
 
         return new ValidarCierreSaldosResponse(true, string.Empty);

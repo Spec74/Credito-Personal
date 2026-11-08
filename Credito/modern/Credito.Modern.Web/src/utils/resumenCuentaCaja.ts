@@ -31,3 +31,17 @@ export function parseResumenCuentaCaja(resumen?: string | null): ResumenCuentaIt
   }
   return items
 }
+
+export function esCuentaEfectivo(cuenta: string): boolean {
+  const k = cuenta.trim().toUpperCase()
+  return k === 'EFECTIVO' || k === 'CASH' || k.includes('EFECTIVO')
+}
+
+/** Efectivo tipado en el resumen de caja (para conteo de billetes). */
+export function efectivoDesdeResumenCuenta(resumen?: string | null): number {
+  return roundMoney(
+    parseResumenCuentaCaja(resumen)
+      .filter((i) => esCuentaEfectivo(i.cuenta))
+      .reduce((acc, i) => acc + i.importe, 0),
+  )
+}
