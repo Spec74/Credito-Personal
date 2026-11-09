@@ -1,8 +1,8 @@
 # SSD-19 — Esquema de color (claro / oscuro)
 
-**Estado:** as-built · 2026-10-27  
+**Estado:** as-built · 2026-10-27 · saldos/avisos/cards 2026-11-09  
 **Código:** `theme/credixColorScheme.ts`, `theme/credixDarkTheme.ts`, `theme/CredixColorSchemeProvider.tsx`, `styles/credix-color-scheme.css`, tokens en `credix-design-system.css`  
-**Complementa:** [SSD-13](SSD-13-experiencia-operativa.md) (anatomía), [SSD-17](SSD-17-estructura-contemporanea.md) (host), [CONSTITUTION-UX](../speckit/CONSTITUTION-UX.md) p. 4, 6, 14
+**Complementa:** [SSD-13](SSD-13-experiencia-operativa.md) (anatomía), [SSD-15](SSD-15-movil-shell.md), [SSD-17](SSD-17-estructura-contemporanea.md) (host), [CONSTITUTION-UX](../speckit/CONSTITUTION-UX.md) p. 4, 6, 14
 
 El operador elige claro u oscuro. El oscuro **no** es invertir la pantalla.
 
@@ -68,7 +68,9 @@ Sin cambio de JWT. `color-scheme` solo informa al UA (scrollbars, inputs nativos
 - [x] Foco visible (2.4.13) y toque ≥ 40 px en el toggle (2.5.8 / 2.5.5).
 - [x] Tests de resolución de preferencia (`credixColorScheme.test.ts`).
 - [x] Superficies de módulo (`#f8fafc`, degradés a `#fff`, thead/summary Ant, scroll de tabla) usan tokens (`--credix-surface`, `--credix-surface-muted`, `--credix-table-head`, `--credix-scroll-*`).
-- [x] Bóveda (tarjetas medio), caja diario (Crédito activo + leyenda), caja saldos (thead + TOTAL), crédito tareas (subtarea) y aprobar no dejan bloques blancos en oscuro.
+- [x] Bóveda (tarjetas medio), caja diario (Crédito activo + leyenda), caja saldos (thead + TOTAL + hover + summary + banner + popover resumen), crédito tareas (subtarea) y aprobar no dejan bloques blancos en oscuro.
+- [x] Avisos/campana: popover, inbox y gestión usan `--credix-surface` / `--credix-row-hover` en oscuro (2026-11-09).
+- [x] Cards móviles globales (`.credix-mobile-card*`) usan `--credix-border` / `--credix-brand-light` (sin hex claros fijos).
 - [x] Semáforo (morosos, SBS): en oscuro tinte + texto cromático (`--credix-chip-*`), no relleno neón. Buscador de créditos usa `--credix-surface`.
 - [x] Cierre gerencial: `SIN CONFIGURAR`, PRODUCTIVA/ESPECIAL, barra de cierre oficial y `ant-tag-*` usan chips/tokens (no `#eef2f5` ni navy `#0f4c81` como texto).
 
@@ -78,7 +80,7 @@ Sin cambio de JWT. `color-scheme` solo informa al UA (scrollbars, inputs nativos
 
 ## 9. Pruebas
 
-`vitest` tema + `tsc -b`. Smoke: `/tesoreria/boveda`, `/caja/diario`, `/caja/saldos`, `/credito/tareas`, `/credito/aprobar`, `/reportes/credito`, `/informes/cierre-gerencial`. Alternar sol/luna.
+`vitest` tema + `tsc -b`. Smoke: `/tesoreria/boveda`, `/caja/diario`, `/caja/saldos`, `/comunicados` (avisos), campana, `/credito/tareas`, `/credito/aprobar`, `/reportes/credito`, `/informes/cierre-gerencial`. Alternar sol/luna.
 
 ## 10. Go-live
 

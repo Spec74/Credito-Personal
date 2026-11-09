@@ -33,6 +33,7 @@ Escrituras sensibles validan **oficina del JWT = oficina del body** (`CajaCredit
 | Auth / menú / oficinas | `/auth/*`, `/menu`, `/oficinas` | SSD-01 |
 | Crédito | `/credito/*` (consulta, aprobar, cargos, condonar, pagar-cuotas…) | SSD-02 |
 | Caja | `/credito/*` caja-diario, chica, saldos, verificar; `/cajas/*` maestro | SSD-03 |
+| Tickets PDF | `movimiento-caja-ticket-pdf`, `movimiento-boveda-ticket-pdf`, `movimiento-caja-chica-ticket-pdf` | [tickets_comprobantes.md](tickets_comprobantes.md) |
 | Bóveda | `/credito/*` boveda, transferir-boveda-* | SSD-04 |
 | Clientes | `/clientes/*` | SSD-05 |
 | Prendario | rutas prendario bajo `/credito` / API dedicada | SSD-06 |

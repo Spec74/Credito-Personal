@@ -53,7 +53,7 @@ Paridad con `Web/Controllers/BovedaController.cs` y `Views/Boveda/Index.cshtml`.
 | Aceptar / rechazar transferencia | Completo |
 | Cierre principal + validación saldos | Completo |
 | Grilla historial bóvedas | Completo |
-| Grilla movimientos + ticket PDF | Completo |
+| Grilla movimientos + ticket PDF (oficina, agente, medio tipado, E/S) | Completo · [tickets_comprobantes.md](tickets_comprobantes.md) |
 | Grilla saldos caja diario sesión | Completo (`UsuarioAsignadoId` en SQL) |
 | Informe movimientos (página + PDF) | Completo |
 
@@ -73,7 +73,7 @@ Paridad con `Web/Controllers/BovedaController.cs` y `Views/Boveda/Index.cshtml`.
 | Aceptar / rechazar transferencia | Completo |
 | Cierre principal + validación saldos | Completo |
 | Grilla historial bóvedas | Completo |
-| Grilla movimientos + ticket PDF | Completo |
+| Grilla movimientos + ticket PDF (oficina, agente, medio tipado, E/S) | Completo · [tickets_comprobantes.md](tickets_comprobantes.md) |
 | Grilla saldos caja diario sesión | Completo (`UsuarioAsignadoId` en SQL) |
 | Informe movimientos (página + PDF) | Completo |
 

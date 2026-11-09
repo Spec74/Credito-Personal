@@ -1,8 +1,8 @@
 # SSD-15 — Shell móvil (todas las pantallas)
 
-**Estado:** as-built · 2026-10-24  
-**Código:** `CredixPage`, `AppShell`, `styles/credix-mobile-shell.css`, `index.html`  
-**Spec Kit:** [003-movil-shell](../speckit/003-movil-shell/spec.md)  
+**Estado:** as-built · 2026-10-24 · pasada avisos/saldos/cards 2026-11-09  
+**Código:** `CredixPage`, `AppShell`, `styles/credix-mobile-shell.css`, `credix-responsive-global.css`, `credix-intranet.css`, `index.html`  
+**Spec Kit:** [003-movil-shell](../speckit/003-movil-shell/spec.md) · auditoría viva: [responsive-audit.md](../responsive-audit.md)  
 **No entra negocio:** ningún `usp_*`.
 
 ## 1. Propósito y actores
@@ -35,7 +35,8 @@ Sin cambio de JWT ni menú. `translate="no"` no relaja CSP.
 - [x] Código: pila `flex-start`, `100dvh`, stats en fila compacta, sin margen doble, pie oculto ≤640 px.
 - [x] Código: `html` / `body` / app / page / login sin traductor automático.
 - [x] Código: Inicio sin reserva 28rem/9.5rem en móvil; bóveda sin KPI de 200 px; chica/verificar/diario/clientes/stats-3 en `auto-fit`.
-- [ ] Smoke 375 px en simulador, tareas, inicio, diario, bóveda, login (firma operativa).
+- [x] Código 2026-11-09: avisos toolbar en columna ≤640; campana `credix-notify-popover` con max-width viewport; saldos tabs scroll horizontal; cards móviles con tokens (no `#f5f9ff` fijo); drawer extra táctil.
+- [ ] Smoke 375 px en simulador, tareas, inicio, diario, bóveda, avisos, saldos, login (firma operativa).
 
 ## 8. Desviaciones
 

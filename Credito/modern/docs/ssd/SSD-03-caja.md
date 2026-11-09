@@ -1,9 +1,9 @@
 # SSD-03 — Caja (diario, chica, saldos, verificar)
 
-**Estado:** as-built · 2026-09-11 · Cobro campo (`/caja/cobro`) cola + GPS 2026-10-12 · validación E/S, transferencias y rendiciones 2026-09-27 ([SSD-12](SSD-12-validacion.md))  
+**Estado:** as-built · 2026-09-11 · Cobro campo 2026-10-12 · tickets enriquecidos + saldos dark/responsive 2026-11-09 ([SSD-12](SSD-12-validacion.md))  
 **Código:** `/caja/*` · `/api/v1/credito/*` (caja) + venta rápida de mostrador  
 **Fuente legacy:** `CajaDiarioController`, `CajaChicaController`, `SaldosController`, `VerificarPagosController`, `CajaController` (maestro), vista `Credito/CajaDiario.cshtml`  
-**Doc de ingeniería:** [caja_diario_migracion.md](../caja_diario_migracion.md), [caja_saldos_migracion.md](../caja_saldos_migracion.md), [caja_chica_verificar_migracion.md](../caja_chica_verificar_migracion.md)
+**Doc de ingeniería:** [caja_diario_migracion.md](../caja_diario_migracion.md), [caja_saldos_migracion.md](../caja_saldos_migracion.md), [caja_chica_verificar_migracion.md](../caja_chica_verificar_migracion.md), [tickets_comprobantes.md](../tickets_comprobantes.md)
 
 ## 1. Propósito y actores
 
@@ -23,7 +23,7 @@ Operación de efectivo del día: cobrar, desembolsar, arqueo, cierre, caja chica
 - `/caja/diario`, `/caja/chica`, `/caja/saldos`, `/caja/asignar`, `/caja/verificar-pagos`, `/caja/maestro` (`/mantenimiento/cajas`)
 - `/caja/cobro` — Cobro campo del gestor (cola Cartera / Por enviar / Enviados, offline, GPS). Alias legacy `/caja/cobro-bloque` → redirect
 - Mora postergada al cobrar; solicitar condonación desde diario (bandeja en SSD-02)
-- Tickets PDF de movimiento cuando el SP devuelve `MovimientoCajaId` (`Cobrar ya` en Cobro; diario Cobranzas)
+- Tickets PDF de movimiento cuando el SP devuelve `MovimientoCajaId` (Arqueo, Movimientos, Cobro Enviados, Consulta crédito). Campos: oficina, usuario, **medio tipado**, cliente, glosa, desglose CUO / E·S — ver [tickets_comprobantes.md](../tickets_comprobantes.md)
 
 **No entra**
 
@@ -90,7 +90,7 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 | Registrar | `POST cobrar-planilla-bloque` con `CompletarImpagos: false` → Enviados + `MovimientoCajaId` |
 | Diario → Enviados | Pago en Cobranzas marca el crédito en Enviados (`origen: diario`) y limpia tipado/offline |
 | Caches | Tras cobro (Diario o Cobro) se invalidan sesión, movimientos, cartera gestor |
-| Tickets | Solo en **Enviados** (Imprimir bajo demanda) |
+| Tickets | Solo en **Enviados** (Imprimir bajo demanda). PDF con medio tipado (Gerente/René) |
 | Offline | Tipados en Cartera; sync omite ya enviados / sin deuda; errores por crédito |
 | Completar impagos | Solo Caja Diario → Cobranzas |
 

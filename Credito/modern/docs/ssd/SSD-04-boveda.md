@@ -22,7 +22,7 @@ Fondo de oficina: saldos, movimientos, transferencias (caja, caja chica, bancos,
 - Estado de dinero, saldos, resumen de cuenta, historial
 - Ingreso/egreso, transferir caja / caja chica / entre bancos / inter-oficina
 - Bóveda temporal (asignar, confirmar, cerrar)
-- Informe y tickets PDF de movimiento
+- Informe y tickets PDF de movimiento ([tickets_comprobantes.md](../tickets_comprobantes.md): oficina real, agente, medio tipado, E/S)
 
 **No entra**
 
@@ -79,7 +79,7 @@ La puerta de negocio es el menú BOVEDA en la SPA. La API replica al MVC: autent
 - [ ] Entre bancos lista tabla 13, registra TRF y actualiza saldos bóveda.
 - [ ] Informe movimientos accesible desde bóveda (mismo permiso de menú).
 - [ ] Caja diario no abre `/tesoreria/movimiento-boveda`.
-- [ ] Ticket PDF de un movimiento de bóveda usa API JWT.
+- [ ] Ticket PDF de un movimiento de bóveda usa API JWT y muestra oficina, agente, medio tipado, glosa y entrada/salida (no placeholders legacy).
 - [ ] Cierre de cajas diarios en oficina ≠ 1 genera `TRE` en la bóveda de esa oficina (no solo oficina 1).
 - [ ] Desde central, transferencia interoficina a Pichari acredita saldo en destino de inmediato.
 
@@ -92,6 +92,7 @@ La puerta de negocio es el menú BOVEDA en la SPA. La API replica al MVC: autent
 - **2026-10-16 — fondeo central:** transferencia inter-oficina (`flagAceptar = 0`) es **inmediata** (TRS origen + TRE destino). Pendientes no es el camino de fondeo: solo anula leftovers (`flag 2`).
 - **2026-10-23 — Pendientes:** sin aceptación inventada. API 400 si tempId > 0 y flag ≠ 2; destino debe ser la oficina del token.
 - **2026-10-24 — marcas 1–5:** wordmark oficial PNG (Yape, BCP, Interbank, BN, CASH). 6–8 no son catálogo vigente. Huanta = `OficinaId`, no medio legado.
+- **2026-11-08/09 — ticket bóveda:** deja de hardcodear oficina/usuario; imprime `DisplayLabel` del medio y montos E/S ([BITACORA](../migration/BITACORA-DESVIACIONES.md)).
 
 Producto: destino inter-oficina por ID de bóveda, no combo de oficina.
 
@@ -111,7 +112,7 @@ Checklist completo: [PLAN-MULTISUCURSAL-PRENDARIO.md §5.1](../migration/PLAN-MU
 
 - API: `bovedaendpointtests`, `bovedamovendpointtests`, `bovedatemporalendpointtests`
 - SPA: `menuRouteAccess.test.ts` (bóveda vs caja diario)
-- Smoke: abrir bóveda, ver TRF en historial, PDF movimientos
+- Smoke: abrir bóveda, ver TRF/TRE en historial, Ticket con Medio + oficina, PDF movimientos
 
 ## 10. Go-live
 

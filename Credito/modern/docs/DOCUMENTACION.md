@@ -1,6 +1,6 @@
 # Documentación de Credito.Modern
 
-**Estado del paquete documental: COMPLETO (100%)** · 2026-10-27 (mapa [ESTRUCTURA.md](ESTRUCTURA.md) + retiro de fases UI históricas) · rama `Eber-migracion`.
+**Estado del paquete documental: COMPLETO (100%)** · 2026-11-09 (tickets térmicos + responsive/dark avisos·saldos; mapa [ESTRUCTURA.md](ESTRUCTURA.md)) · rama `Eber-migracion`.
 Una base `CREDITO`; sucursal = `OficinaId`. Alcance sucursal vs Central en SSD-07/08.
 
 Este es el **índice único** para informática, negocio y auditoría.  
@@ -76,8 +76,10 @@ Plantilla: [ssd/SPEC-TEMPLATE.md](ssd/SPEC-TEMPLATE.md).
 | Caja saldos | [caja_saldos_migracion.md](caja_saldos_migracion.md) |
 | Caja chica / verificar | [caja_chica_verificar_migracion.md](caja_chica_verificar_migracion.md) |
 | Bóveda | [boveda_migracion.md](boveda_migracion.md) |
+| **Tickets / comprobantes térmicos** | [tickets_comprobantes.md](tickets_comprobantes.md) (caja · bóveda · caja chica) |
 | UI Credix / módulos | [ui_modernizacion_modulos.md](ui_modernizacion_modulos.md) |
-| Responsive | [responsive-audit.md](responsive-audit.md) |
+| Responsive | [responsive-audit.md](responsive-audit.md) · [SSD-15](ssd/SSD-15-movil-shell.md) |
+| Color claro / oscuro | [SSD-19-color-scheme.md](ssd/SSD-19-color-scheme.md) |
 | Admin / maestros / ventas / almacén | SSD-08…11 (canónicos) + `ui_modernizacion_modulos.md` |
 
 ---
@@ -125,11 +127,13 @@ ACL automatizado: [E2E-ROLE-MODULE-MATRIX.md](E2E-ROLE-MODULE-MATRIX.md). Criter
 
 | Entregable | Estado |
 |------------|--------|
-| Catálogo SSD 00–12 | Completo |
+| Catálogo SSD 00–19 | Completo |
 | Arquitectura + ambientes + API overview + glosario + tests + ops | Completo |
 | Ingeniería por módulo crédito/caja/bóveda/clientes | Completo |
+| Tickets térmicos (caja · bóveda · caja chica) | Completo → [tickets_comprobantes.md](tickets_comprobantes.md) |
+| Responsive + color oscuro (avisos, saldos, cards) | Completo → SSD-15/19 + [responsive-audit.md](responsive-audit.md) |
 | Admin/maestros/ventas/almacén | Completo vía SSD-08…11 |
 | Cutover **documentado** (runbooks + checklist) | Completo |
 | Cutover **ejecutado** en preprod | Fuera de alcance documental (SSD-00 §7 operativo) |
 
-**Firma documental:** paquete realineado 2026-10-08 (Morosos + WhatsApp + bak + [PLATFORM-HARDENING](PLATFORM-HARDENING.md): CI, OTel, CSP, ACL shell, E2E, smoke BD). Cambios futuros → actualizar el SSD del módulo + este índice si cambia el mapa.
+**Firma documental:** paquete realineado 2026-11-09 — tickets as-built ([tickets_comprobantes.md](tickets_comprobantes.md)), responsive/dark (SSD-15/19 + avisos/saldos), Azure batch tesorería ([deploy/sql/README-2026-11-08-AZURE.md](../deploy/sql/README-2026-11-08-AZURE.md)). Base previa 2026-10-08 (Morosos + WhatsApp + [PLATFORM-HARDENING](PLATFORM-HARDENING.md)). Cambios futuros → actualizar el SSD del módulo + este índice si cambia el mapa.

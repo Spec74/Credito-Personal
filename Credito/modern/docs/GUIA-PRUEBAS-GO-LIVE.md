@@ -147,6 +147,7 @@ Lista vacía. ANALISTA → Nuevo.
 | ACC-01 | `/login` | Login sede, tema, teléfono 954 892 020, sin scroll | TODOS | B | [ ] |
 | ACC-02 | `/login` | Combo oficinas; clave mala | TODOS | B | [ ] |
 | ACC-03 | Shell | Menú RolMenu; sin caja chica ni entrada | TODOS | B | [ ] |
+| ACC-04 | Campana / avisos | ≤640: lista usable; oscuro sin placa blanca | TODOS | B | [ ] |
 | INI-01 | `/inicio` | Tablero vacío sin error; luego cifras | ANALISTA, GESTOR, ADMIN, CAJERO | A | [ ] |
 
 ### Clientes
@@ -194,8 +195,9 @@ Lista vacía. ANALISTA → Nuevo.
 | CAJ-05 | `/caja/cobro` Cartera | GESTOR tipa lote | GESTOR, CAJERO | B | [ ] |
 | CAJ-06 | Enviados | No duplicar | GESTOR | A | [ ] |
 | CAJ-07 | Verificar pagos | Transferencia OK/rechazo | ENCARGADO, ADMIN | A | [ ] |
-| CAJ-08 | Saldos | Lista sede; REPORTE no asigna | ENCARGADO, ADMIN, REPORTE | B | [ ] |
+| CAJ-08 | Saldos | Lista sede; REPORTE no asigna; **oscuro** hover/totales OK | ENCARGADO, ADMIN, REPORTE | B | [ ] |
 | CAJ-09 | Cierre diarios | Destino = bóveda de **esa** sede | ENCARGADO, ADMIN | A | [ ] |
+| CAJ-10 | Ticket caja | Arqueo/Movimientos: PDF con **Medio** tipado + oficina | CAJA, ENCARGADO | B | [ ] |
 
 ### Tesorería
 
@@ -203,6 +205,7 @@ Lista vacía. ANALISTA → Nuevo.
 |----|----------|-----------|-------|--------|----|
 | TES-01 | `/tesoreria/boveda` | Saldo JWT; ingreso/egreso; no otra sede | ENCARGADO, ADMIN | B | [ ] |
 | TES-02 | Movimiento bóveda | Filtro + PDF cuadra | ENCARGADO, ADMIN | A | [ ] |
+| TES-02b | Ticket bóveda | Historial → Ticket: oficina, usuario, medio, E/S (no SISTEMA) | ENCARGADO, ADMIN | B | [ ] |
 | TES-03 | Fondear sucursales | Solo Central | ADMIN, ENCARGADO | A | [ ] |
 | TES-04 | Red | Solo Central | ADMIN | A | [ ] |
 

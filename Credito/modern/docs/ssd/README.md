@@ -90,10 +90,10 @@ en `docs/speckit/` (constitución → spec → plan → tasks). Primer cambio:
 
 - [SSD-13 experiencia operativa](SSD-13-experiencia-operativa.md) · [001-experiencia-operativa](../speckit/001-experiencia-operativa/spec.md) · [CONSTITUTION-UX](../speckit/CONSTITUTION-UX.md)
 
-## Cierre documental (2026-09-27)
+## Cierre documental (2026-11-09)
 
 **Paquete documental: 100% completo.**
 
-Incluye: SSD-00…12, [DOCUMENTACION.md](../DOCUMENTACION.md), [ARCHITECTURE.md](../ARCHITECTURE.md), [GLOSARIO.md](../GLOSARIO.md), [AMBIENTES.md](../AMBIENTES.md), [API-OVERVIEW.md](../API-OVERVIEW.md), [TEST-STRATEGY.md](../TEST-STRATEGY.md), [OPS.md](../OPS.md).
+Incluye: SSD-00…19, [DOCUMENTACION.md](../DOCUMENTACION.md), [ARCHITECTURE.md](../ARCHITECTURE.md), [tickets_comprobantes.md](../tickets_comprobantes.md), [responsive-audit.md](../responsive-audit.md), [GLOSARIO.md](../GLOSARIO.md), [AMBIENTES.md](../AMBIENTES.md), [API-OVERVIEW.md](../API-OVERVIEW.md), [TEST-STRATEGY.md](../TEST-STRATEGY.md), [OPS.md](../OPS.md).
 
 Lo único fuera de la documentación es la **ejecución operativa** del cutover preprod (SSD-00 §7 casillas abiertas). Eso no es un hueco de spec.

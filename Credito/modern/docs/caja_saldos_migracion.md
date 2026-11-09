@@ -81,7 +81,8 @@ Asignación: `GET cajas-para-asignar` (incluye cajero), `GET monto-boveda-asigna
 | Colores Credix | `caja-saldos-module.css` — `#114885`, `--credix-brand-light` |
 | Rendimiento | React Query lazy por tab; historial paginado en servidor con `keepPreviousData`; columnas memoizadas |
 | Búsqueda | Historial: `buscar` al servidor con debounce 350 ms; cajas asignadas: `filterTableRows` sin round-trip |
-| Responsive | Toolbar wrap, tablas `mode="operacion"`, columnas secundarias por breakpoint (`responsive`), modal a ancho de viewport |
+| Responsive | Toolbar wrap, tablas `mode="operacion"`, columnas secundarias por breakpoint (`responsive`), modal a ancho de viewport; tabs scroll ≤640 (2026-11-09) |
+| Dark mode | Hover/summary/banner/popover resumen con tokens `:root[data-theme='dark']` ([SSD-19](ssd/SSD-19-color-scheme.md)) |
 | Tabla ancha | Rueda del mouse → scroll horizontal; `Saldo final` anclado a la derecha; degradado cuando hay más columnas |
 | Usabilidad | Stats KPI, badges rol, header sticky, orden por columna en cajas asignadas, estados vacíos explicativos |
 

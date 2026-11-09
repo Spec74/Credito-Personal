@@ -4,6 +4,26 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-11-09 — Responsive + dark: avisos y saldos caja
+
+**Qué hay:** Toolbar de avisos en columna ≤640 px; campana usa
+`credix-notify-popover` con max-width de viewport; cards móviles y
+saldos (hover, summary, banner, popover resumen) con tokens
+`--credix-*` bajo `:root[data-theme='dark']`. Doc: SSD-14/15/19 +
+`responsive-audit.md`.
+
+**Qué no hay:** no se inventan breakpoints; se mantienen 991 / 640 / 480.
+
+### 2026-11-08/09 — Tickets térmicos con datos reales
+
+**Qué hay:** Los tres tickets (caja, bóveda, caja chica) dejan
+placeholders legacy (`SISTEMA`, oficina fija, sin medio). Imprimen
+oficina, agente/usuario, `DisplayLabel` del medio, glosa y E/S.
+Catálogo: [tickets_comprobantes.md](../tickets_comprobantes.md).
+
+**Qué no hay:** no se vuelve a RDLC/ReportViewer; layout QuestPDF
+estrecho compartido.
+
 ### 2026-10-27 — Login: lockup más grande
 
 **Qué hay:** El logo del login pasa a 440 px, placa 16×22 y un

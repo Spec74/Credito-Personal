@@ -115,7 +115,7 @@ Abrir sesión de caja, cobrar cuotas, pagos libres, desembolsos autorizados, emi
 3. Buscar cliente / crédito.
 4. Seleccionar cuotas → importe recibido → tipo de pago (efectivo / digital).
 5. Si paga con **varios medios**: marque **Dividir en varios medios**. En **Central** use **Yape Gerente / Yape René** e **Interbank Gerente / Interbank René** (el total de cada marca es la suma de ambas billeteras). En **sucursal** use Yape / Interbank genéricos. Plin, BCP, Nación y efectivo aplican en todas las sedes.
-6. Confirmar → ticket PDF.
+6. Confirmar → ticket PDF (oficina, usuario, **medio de pago**, importe y glosa).
 7. Al cierre: entregar cuadre al encargado (conteo de billetes si aplica).
 
 **Adelanto el mismo día del desembolso:** si el cliente paga antes de su **1.er pago** (incluso el día que se desembolsó), regístrelo como pago libre / cobro normal (o cobro mixto). **No** use «Completar impagos» para eso: esa opción solo aplica a créditos cuyo 1.er pago ya llegó y hoy tenían cuota por cobrar sin movimiento.
@@ -181,7 +181,7 @@ Control de efectivo de la oficina: bóveda local / saldos, asignación de cajas,
 |----------|------|----------|
 | Saldos caja | `/caja/saldos` | Cierre, conteo, asignar caja |
 | Verificar pagos | `/caja/verificar-pagos` | Conciliar digitales |
-| Bóveda | `/tesoreria/boveda` | Movimientos locales; **Fondeo** (Central) o **A Central** (sucursal) |
+| Bóveda | `/tesoreria/boveda` | Movimientos locales; **Fondeo** (Central) o **A Central** (sucursal); **Ticket** por movimiento (oficina, medio, glosa) |
 | Fondear sedes / Red | `/tesoreria/fondear-sucursales`, `/tesoreria/red` | Solo Central: fondear varias sedes |
 | Reportes crédito | menú Reportes | Control |
 
@@ -277,7 +277,8 @@ Configuración de la red, seguridad y operación completa de respaldo.
 | Remesa no muestra Gerente/René | Desplegar API + aplicar `2026-11-06-usp-transferir-boveda-map-billeteras.sql` |
 | No puede enviar a otra sucursal | Correcto: solo Central ↔ sucursal |
 | Mora “distinta” entre pantallas | Debe coincidir la **suma de cuotas**; recargar (Ctrl+F5) |
-| Ticket / PDF viejo | Reiniciar API tras despliegue |
+| Ticket / PDF viejo o sin medio | Reiniciar API tras despliegue; el ticket debe mostrar oficina + medio tipado |
+| Pantalla clara en modo oscuro (saldos/avisos) | Alternar sol/luna; si persiste, hard refresh tras deploy |
 | Oficina incorrecta | Usuario ligado a otra sede; no inventar oficina en URL |
 | Pago digital no cuadra | Encargado → Verificar pagos |
 

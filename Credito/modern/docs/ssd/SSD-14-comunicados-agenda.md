@@ -48,6 +48,7 @@ JWT con oficina y usuario. RED solo ADMIN. ENCARGADO publica solo su sede. `/adm
 - [ ] Chrome móvil: sede + Cambiar sede táctil; sin letras C/E/H ni “N roles”.
 - [ ] Campana: cajón con marcar todo; clic abre el aviso o el evento.
 - [ ] Bandeja avisos: lista + lectura en PC; en móvil una cara y Volver.
+- [x] Código 2026-11-09: toolbar busca+filtros apilada ≤640; adjuntos/imagen sin desborde; campana con `credix-notify-popover` acotada al viewport; dark tokens en inbox/popover.
 - [ ] Agenda: clic en hueco crea; línea de ahora en hoy; Personal/Sede se ocultan.
 
 ## 8. Desviaciones

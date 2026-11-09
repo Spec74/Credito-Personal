@@ -25,10 +25,10 @@ Un solo patrón de **toolbar de listado**:
 | Módulo / ruta | Layout | Toolbar / búsqueda | Responsive | Archivo principal |
 |---------------|--------|-------------------|------------|-------------------|
 | Shell / menú | AppShell | Campana + chip de caja | OK (oficina solo en header azul; Salir = cambiar sede; caja en chip) | `credix-oleada-a.css` + design system |
-| **Avisos / agenda** | CredixPage | Campana + bandeja | OK (móvil: lista del día; imagen inline) | `pages/intranet/*` |
+| **Avisos / agenda** | CredixPage | Campana + bandeja | OK 2026-11-09 (toolbar columna ≤640; popover campana; dark inbox) | `credix-intranet.css` + `pages/intranet/*` |
 | Hubs (`/inicio`, `/caja`, …) | CredixHubGrid | — | OK (1 col ≤480px) | design system |
 | **Aprobación crédito** | CredixPage | Tarjeta búsqueda propia | OK | `credito-aprobacion-module.css` |
-| **Saldos** | CredixPage | `SaldosTableToolbar` → `CajaListToolbar` | OK | `caja-saldos-module.css` + list-toolbar |
+| **Saldos** | CredixPage | `SaldosTableToolbar` → `CajaListToolbar` | OK 2026-11-09 (tabs scroll; dark hover/summary/popover) | `caja-saldos-module.css` + `credix-color-scheme.css` |
 | **Verificar pagos** | CredixCrudPage | `CajaListToolbar` | OK | `caja-verificar-pagos-module.css` |
 | **Caja chica** | CredixPage | `CajaListToolbar` (Rendición/Arqueo) | OK | `caja-chica-module.css` |
 | **Maestro cajas** | CredixCrudPage | `CajaListToolbar` + filtros extra | OK | `caja-maestro-module.css` + **global** |

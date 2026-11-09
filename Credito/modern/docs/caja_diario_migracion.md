@@ -124,7 +124,7 @@ Paridad consulta pendiente: mora vigente (suma `ImporteMora` de `usp_CuotasPendi
 1. **Movimientos modal:** Legacy `ListarMovimientoCajaGrd` solo lista si hay `PersonaId`; modern muestra todos los movimientos de la caja (`rpt-saldos-caja`) con filtro cliente — **más útil en operación diaria**.
 2. **Desembolsos:** Legacy formulario de un crédito; modern grilla de pendientes APR — misma lógica de negocio, mejor descubrimiento.
 3. **Layout:** Tabs Ant Design vs pestañas jQuery UI; colores cuotas alineados a `Creditos.cshtml`.
-4. **Tickets auto-impresión:** En legacy muchos `ImprimirMovCaja` estaban comentados; modern los activa cuando el SP devuelve ID de movimiento.
+4. **Tickets auto-impresión:** En legacy muchos `ImprimirMovCaja` estaban comentados; modern los activa cuando el SP devuelve ID de movimiento. El PDF incluye **medio tipado** (Gerente/René) y nro. de crédito en CUO — [tickets_comprobantes.md](tickets_comprobantes.md).
 5. **Cierre:** Legacy recarga toda la página; modern navega a inicio tras cerrar (sesión ya no tiene caja).
 6. **Saldos → Anular movimiento:** En MVC el `ValidarAnular` estaba comentado; modern aplica el mismo bloqueo INI+PAG que Caja Diario (más seguro).
 
