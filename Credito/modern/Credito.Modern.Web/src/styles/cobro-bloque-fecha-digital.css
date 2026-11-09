@@ -86,7 +86,7 @@
 }
 
 .cobro-bloque-fecha-digital__sheet-body .ant-picker-calendar {
-  border: 1px solid #e8eef5;
+  border: 1px solid var(--credix-border, #e8eef5);
   border-radius: 12px;
   padding: 4px;
 }

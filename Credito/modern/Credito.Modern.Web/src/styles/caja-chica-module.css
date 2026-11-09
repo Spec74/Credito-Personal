@@ -21,8 +21,9 @@
   margin-bottom: 12px;
   padding: 10px 14px;
   border-radius: 8px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
+  background: var(--credix-success-bg, #f0fdf4);
+  border: 1px solid var(--credix-success, #bbf7d0);
+  color: var(--credix-text);
   font-size: 13px;
   word-break: break-word;
 }

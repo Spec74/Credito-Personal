@@ -143,7 +143,7 @@
 }
 
 .caja-saldos-table .ant-table-tbody > tr:hover > td {
-  background: var(--credix-brand-light, #e8f2fc) !important;
+  background: var(--credix-row-hover, var(--credix-brand-light, #e8f2fc)) !important;
 }
 
 .caja-saldos-table .ant-table-summary {
@@ -261,5 +261,26 @@
   .caja-saldos-boveda-banner {
     font-size: 12px;
     padding: 8px 10px;
+  }
+
+  .caja-saldos-page .credix-tabs > .ant-tabs-nav {
+    margin-bottom: 8px;
+  }
+
+  .caja-saldos-page .credix-tabs > .ant-tabs-nav .ant-tabs-nav-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .caja-saldos-page .credix-tabs > .ant-tabs-nav .ant-tabs-nav-list {
+    flex-wrap: nowrap;
+  }
+
+  .caja-saldos-page .credix-list-toolbar {
+    gap: 8px;
+  }
+
+  .caja-saldos-page .credix-list-toolbar .ant-btn {
+    min-height: var(--credix-touch-min, 40px);
   }
 }

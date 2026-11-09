@@ -27,6 +27,7 @@ export function ResumenCuentaCaja({ resumen, caja }: Props) {
 
   return (
     <Popover
+      rootClassName="caja-saldos-resumen-popover"
       trigger={['hover', 'click']}
       placement="left"
       title={`Resumen de cuentas · ${caja}`}

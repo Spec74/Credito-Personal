@@ -195,7 +195,7 @@
   font-weight: 500;
   letter-spacing: 0;
   color: var(--credix-text-muted, #6b7280);
-  background: #f3f4f6;
+  background: var(--credix-surface-muted, #f3f4f6);
   border-color: var(--credix-border, #e5e7eb);
 }
 

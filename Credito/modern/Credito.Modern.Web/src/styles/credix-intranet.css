@@ -639,7 +639,47 @@
     max-height: min(78vh, 560px);
   }
 
+  .credix-inbox-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credix-inbox-toolbar .ant-input-affix-wrapper,
+  .credix-inbox-toolbar .ant-input,
   .credix-inbox-toolbar .ant-segmented {
     width: 100%;
+    flex: 1 1 auto;
+  }
+
+  .credix-inbox-toolbar .ant-segmented {
+    overflow-x: auto;
+  }
+
+  .credix-inbox-row,
+  .credix-notify-row {
+    min-height: var(--credix-touch-min, 40px);
+  }
+
+  .credix-aviso-lectura__back {
+    min-height: var(--credix-touch-min, 40px);
+    padding-inline: 0;
+  }
+
+  .credix-gestion-card__actions .ant-btn {
+    min-height: var(--credix-touch-min, 40px);
+  }
+
+  .credix-comunicado-img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .credix-adjunto-chip {
+    flex-wrap: wrap;
+  }
+
+  .credix-aviso-lectura__cuerpo {
+    overflow-wrap: anywhere;
+    word-break: break-word;
   }
 }

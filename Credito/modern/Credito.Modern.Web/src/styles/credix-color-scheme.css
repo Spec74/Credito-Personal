@@ -684,3 +684,117 @@
   border-color: var(--credix-border);
   box-shadow: none;
 }
+
+/* —— Saldos caja: hover, summary, banner, popover (tokens dark) —— */
+:root[data-theme='dark'] .caja-saldos-page {
+  background: var(--credix-bg);
+}
+
+:root[data-theme='dark'] .caja-saldos-table .ant-table-tbody > tr:hover > td {
+  background: var(--credix-row-hover) !important;
+}
+
+:root[data-theme='dark'] .caja-saldos-page .caja-saldos-table .ant-table-cell-fix-right {
+  background: var(--credix-surface);
+  box-shadow: -8px 0 12px rgb(0 0 0 / 35%);
+}
+
+:root[data-theme='dark'] .caja-saldos-table .ant-table-summary,
+:root[data-theme='dark'] .caja-saldos-table .ant-table-summary .ant-table-cell {
+  background: var(--credix-brand-light);
+  border-color: var(--credix-border);
+  color: var(--credix-ink-brand);
+}
+
+:root[data-theme='dark'] .caja-saldos-boveda-banner,
+:root[data-theme='dark'] .caja-saldos-conteo-modal__resumen {
+  background: var(--credix-brand-light);
+  border-color: var(--credix-border);
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .caja-saldos-resumen__boton {
+  color: var(--credix-ink-brand);
+}
+
+:root[data-theme='dark'] .caja-saldos-resumen__boton:hover,
+:root[data-theme='dark'] .caja-saldos-resumen__boton:focus-visible {
+  background: var(--credix-brand-light);
+}
+
+:root[data-theme='dark'] .caja-saldos-resumen-popover .ant-popover-inner,
+:root[data-theme='dark'] .caja-saldos-resumen-popover .ant-popover-title {
+  background: var(--credix-surface-elevated);
+  border-color: var(--credix-border);
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .caja-saldos-resumen__lista li {
+  border-color: var(--credix-border);
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .caja-saldos-resumen__crudo,
+:root[data-theme='dark'] .caja-saldos-resumen__vacio,
+:root[data-theme='dark'] .caja-saldos-anular-panel__hint {
+  color: var(--credix-text-muted);
+}
+
+:root[data-theme='dark'] .caja-saldos-asignadas-actions {
+  background: var(--credix-surface-muted);
+  border-color: var(--credix-border);
+}
+
+/* —— Avisos / campana: popover + inbox sin placas claras —— */
+:root[data-theme='dark'] .credix-notify-popover .ant-popover-inner {
+  background: var(--credix-surface-elevated);
+  border-color: var(--credix-border);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 45%);
+}
+
+:root[data-theme='dark'] .credix-notify-panel,
+:root[data-theme='dark'] .credix-inbox,
+:root[data-theme='dark'] .credix-inbox__list,
+:root[data-theme='dark'] .credix-gestion-card {
+  background: var(--credix-surface);
+  border-color: var(--credix-border);
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .credix-notify-row:hover,
+:root[data-theme='dark'] .credix-notify-row:focus-visible,
+:root[data-theme='dark'] .credix-inbox-row:hover,
+:root[data-theme='dark'] .credix-inbox-row:focus-visible {
+  background: var(--credix-row-hover);
+}
+
+:root[data-theme='dark'] .credix-inbox-row.is-active {
+  background: var(--credix-brand-light);
+}
+
+:root[data-theme='dark'] .credix-mobile-card--selected {
+  background: var(--credix-brand-light);
+  box-shadow: 0 0 0 1px var(--credix-brand), 0 6px 18px rgb(0 0 0 / 35%);
+}
+
+:root[data-theme='dark'] .credix-mobile-card {
+  box-shadow: 0 6px 18px rgb(0 0 0 / 28%);
+}
+
+:root[data-theme='dark'] .credito-aprobacion-search-card__chip--hint {
+  background: var(--credix-surface-muted);
+  border-color: var(--credix-border);
+  color: var(--credix-text-muted);
+}
+
+:root[data-theme='dark'] .caja-chica-rendicion-banner {
+  background: var(--credix-success-bg);
+  border-color: var(--credix-success);
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .caja-chica-arqueo-total {
+  background: var(--credix-brand-light);
+  border-color: var(--credix-border);
+  color: var(--credix-ink-brand);
+}
