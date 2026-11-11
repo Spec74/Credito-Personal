@@ -83,6 +83,7 @@ Asignación: `GET cajas-para-asignar` (incluye cajero), `GET monto-boveda-asigna
 | Búsqueda | Historial: `buscar` al servidor con debounce 350 ms; cajas asignadas: `filterTableRows` sin round-trip |
 | Responsive | Toolbar wrap, tablas `mode="operacion"`, columnas secundarias por breakpoint (`responsive`), modal a ancho de viewport; tabs scroll ≤640 (2026-11-09) |
 | Dark mode | Hover/summary/banner/popover resumen con tokens `:root[data-theme='dark']` ([SSD-19](ssd/SSD-19-color-scheme.md)) |
+| Conteo billetes (2026-11-11) | Umbral = **solo efectivo** tipado; moneda 0.05; API `ValidarCierreMasivo` + sobrante ≥ 0; USP `ROUND(,2)`; revalidación al confirmar |
 | Tabla ancha | Rueda del mouse → scroll horizontal; `Saldo final` anclado a la derecha; degradado cuando hay más columnas |
 | Usabilidad | Stats KPI, badges rol, header sticky, orden por columna en cajas asignadas, estados vacíos explicativos |
 

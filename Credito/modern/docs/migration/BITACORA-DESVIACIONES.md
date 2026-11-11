@@ -4,6 +4,19 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-11-11 — Conteo billetes: céntimos y gobernanza de cierre
+
+**Qué hay:** Umbral de conteo = solo efectivo tipado; moneda de
+5 céntimos; parse de resumen tolerante (paridad C#); API
+`cerrar-cajas-diarios` valida cierre masivo (409) y rechaza
+sobrante negativo; USP `ROUND(...,2)` + `@Sobrante >= 0`; la SPA
+revalida al confirmar. Deploy:
+`2026-11-11-usp-cerrar-cajas-diarios-centimos.sql`.
+
+**Qué no hay:** no se reintroduce conteo de Yape como billetes
+(legacy `Σ SaldoFinal`); no se inventa desglose de denominaciones
+en BD (solo sobrante neto).
+
 ### 2026-11-09 — Responsive + dark: avisos y saldos caja
 
 **Qué hay:** Toolbar de avisos en columna ≤640 px; campana usa

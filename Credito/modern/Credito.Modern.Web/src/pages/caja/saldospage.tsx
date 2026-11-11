@@ -60,8 +60,12 @@ import {
 } from '../../utils/cajaSaldosPermisos'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
-import { sumMoney } from '../../utils/money'
-import { efectivoDesdeResumenCuenta } from '../../utils/resumenCuentaCaja'
+import { moneyEquals, roundMoney, sumMoney } from '../../utils/money'
+import {
+  digitalesDesdeResumenCuenta,
+  efectivoDesdeResumenCuenta,
+  parseResumenCuentaCaja,
+} from '../../utils/resumenCuentaCaja'
 import { filterTableRows } from '../../utils/tableClientFilter'
 import { compararMonto, compararTexto } from '../../utils/tableSorters'
 import { runOpenReport } from '../../utils/reportExport'
@@ -187,6 +191,34 @@ export function SaldosPage() {
     }
     // Fallback: si no hay resumen parseable, no inventar — usar 0 y mostrar total aparte.
     return 0
+  }, [asignadas.data])
+
+  /** Detecta descuadre resumen ↔ saldoFinal (evita cerrar con umbral de conteo erróneo). */
+  const descuadreResumenCierre = useMemo(() => {
+    const rows = asignadas.data ?? []
+    if (rows.length === 0) return null
+
+    for (const r of rows) {
+      const texto = (r.resumen ?? '').trim()
+      if (!texto) {
+        if ((r.saldoFinal ?? 0) !== 0) {
+          return `La caja ${r.caja ?? r.cajaDiarioId} tiene saldo pero sin resumen de medios; no se puede contar con seguridad.`
+        }
+        continue
+      }
+      const pares = parseResumenCuentaCaja(texto)
+      if (pares.length === 0) {
+        return `No se pudo interpretar el resumen de medios de la caja ${r.caja ?? r.cajaDiarioId}.`
+      }
+      const compuesto = roundMoney(
+        efectivoDesdeResumenCuenta(texto) + digitalesDesdeResumenCuenta(texto),
+      )
+      const saldo = roundMoney(r.saldoFinal ?? 0)
+      if (!moneyEquals(compuesto, saldo)) {
+        return `Descuadre en ${r.caja ?? r.cajaDiarioId}: resumen S/ ${compuesto.toFixed(2)} ≠ saldo final S/ ${saldo.toFixed(2)}.`
+      }
+    }
+    return null
   }, [asignadas.data])
 
   const asignadasFiltradas = useMemo(
@@ -452,6 +484,13 @@ export function SaldosPage() {
   const iniciarCierreMasivo = () => {
     if (importeCierreTotal <= 0 && (asignadas.data?.length ?? 0) === 0) {
       message.warning('No hay cajas asignadas para cerrar.')
+      return
+    }
+    if (descuadreResumenCierre) {
+      Modal.error({
+        title: 'No se puede iniciar el conteo',
+        content: descuadreResumenCierre,
+      })
       return
     }
     setConteoOpen(true)
@@ -784,11 +823,20 @@ export function SaldosPage() {
                     <strong>S/ {formatMoney(importeCierreEfectivo)}</strong>. Yape/Interbank/BCP
                     pasan a bóveda con su mismo medio (sin contarse en billetes).
                   </Paragraph>
+                  {descuadreResumenCierre ? (
+                    <Alert
+                      type="error"
+                      showIcon
+                      style={{ marginBottom: 12 }}
+                      message="Resumen de medios inconsistente"
+                      description={descuadreResumenCierre}
+                    />
+                  ) : null}
                   <Button
                     type="primary"
                     danger
                     size="large"
-                    disabled={!validacion.data?.puedeCerrar}
+                    disabled={!validacion.data?.puedeCerrar || !!descuadreResumenCierre}
                     loading={cerrar.isPending}
                     onClick={iniciarCierreMasivo}
                   >
@@ -850,6 +898,26 @@ export function SaldosPage() {
         loading={cerrar.isPending}
         onCancel={() => setConteoOpen(false)}
         onConfirm={async (sobrante) => {
+          // Revalidar al confirmar: evita carrera (caja reabierta / estado stale).
+          const [val, cajas] = await Promise.all([
+            fetchValidarCierreSaldos(oficinaId),
+            fetchCajasAsignadas(oficinaId),
+          ])
+          if (!val.puedeCerrar) {
+            const msg =
+              val.mensaje || 'Ya no se puede cerrar: revise cajas abiertas o pendientes.'
+            message.error(msg)
+            throw new Error(msg)
+          }
+          const efectivoActual = sumMoney(
+            (cajas ?? []).map((r) => efectivoDesdeResumenCuenta(r.resumen)),
+          )
+          if (!moneyEquals(roundMoney(Math.max(0, efectivoActual)), roundMoney(importeCierreEfectivo))) {
+            const msg = `El efectivo tipado cambió (antes S/ ${importeCierreEfectivo.toFixed(2)}, ahora S/ ${efectivoActual.toFixed(2)}). Vuelva a contar.`
+            message.error(msg)
+            setConteoOpen(false)
+            throw new Error(msg)
+          }
           await cerrar.mutateAsync(sobrante)
         }}
       />

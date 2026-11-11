@@ -1,6 +1,6 @@
 # SSD-03 — Caja (diario, chica, saldos, verificar)
 
-**Estado:** as-built · 2026-09-11 · Cobro campo 2026-10-12 · tickets enriquecidos + saldos dark/responsive 2026-11-09 ([SSD-12](SSD-12-validacion.md))  
+**Estado:** as-built · 2026-09-11 · Cobro campo 2026-10-12 · tickets 2026-11-09 · conteo billetes robusto 2026-11-11 ([SSD-12](SSD-12-validacion.md))  
 **Código:** `/caja/*` · `/api/v1/credito/*` (caja) + venta rápida de mostrador  
 **Fuente legacy:** `CajaDiarioController`, `CajaChicaController`, `SaldosController`, `VerificarPagosController`, `CajaController` (maestro), vista `Credito/CajaDiario.cshtml`  
 **Doc de ingeniería:** [caja_diario_migracion.md](../caja_diario_migracion.md), [caja_saldos_migracion.md](../caja_saldos_migracion.md), [caja_chica_verificar_migracion.md](../caja_chica_verificar_migracion.md), [tickets_comprobantes.md](../tickets_comprobantes.md)

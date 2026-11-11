@@ -9687,6 +9687,7 @@ internal static class CreditoOperacionEndpoints
                     HttpContext httpContext,
                     CerrarCajasDiariosRequest body,
                     ICajaDiarioOperacionWriteService cajaDiarioOperacion,
+                    ISaldosCierreReadService saldosCierre,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -9699,6 +9700,14 @@ internal static class CreditoOperacionEndpoints
                             detail: "oficinaId debe ser un entero >= 1.");
                     }
 
+                    if (body.Sobrante < 0m)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "sobrante no puede ser negativo.");
+                    }
+
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)
                     {
@@ -9709,6 +9718,20 @@ internal static class CreditoOperacionEndpoints
                     if (usuarioError is not null)
                     {
                         return usuarioError;
+                    }
+
+                    // Paridad caja chica: no ejecutar USP si aún hay cajas abiertas / nada por cerrar.
+                    var validacion = await saldosCierre
+                        .ValidarCierreMasivoAsync(body.OficinaId, ct)
+                        .ConfigureAwait(false);
+                    if (!validacion.PuedeCerrar)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status409Conflict,
+                            title: "Conflicto",
+                            detail: string.IsNullOrWhiteSpace(validacion.Mensaje)
+                                ? "No se puede cerrar/transferir las cajas diarias."
+                                : validacion.Mensaje);
                     }
 
                     var log = loggerFactory.CreateLogger("CerrarCajasDiarios");
@@ -9749,13 +9772,14 @@ internal static class CreditoOperacionEndpoints
                 })
             .WithName("CreditoCerrarCajasDiarios")
             .WithSummary(
-                "Escritura: CREDITO.usp_CerrarCajasDiarios(UsuarioCierreId, OficinaId, Sobrante). usuarioCierreId = vendix:usuario_id. Paridad CajaDiarioBL.TransferirCajaDiarioBoveda / SaldosController.Transferir. Distinto de CerrarCajaDiario (EF compuesto en MVC).")
+                "Escritura: CREDITO.usp_CerrarCajasDiarios(UsuarioCierreId, OficinaId, Sobrante). Valida cierre masivo (409) y rechaza sobrante negativo. usuarioCierreId = vendix:usuario_id. Paridad CajaDiarioBL.TransferirCajaDiarioBoveda / SaldosController.Transferir.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<CajaDiarioOperacionResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status409Conflict)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
     }

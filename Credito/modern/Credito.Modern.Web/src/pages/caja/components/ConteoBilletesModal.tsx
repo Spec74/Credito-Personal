@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Form, InputNumber, Modal, Typography } from 'antd'
 import { formatMoney } from '../../../utils/formatMoney'
-import { roundMoney, sumMoney } from '../../../utils/money'
+import { moneyGreater, roundMoney, sumMoney } from '../../../utils/money'
 
 const { Text } = Typography
 
+/** Denominaciones PEN en circulación (incl. moneda de 5 céntimos). */
 const DENOMINACIONES = [
   { name: 'd200', label: '200 soles', unit: 200 },
   { name: 'd100', label: '100 soles', unit: 100 },
@@ -17,6 +18,7 @@ const DENOMINACIONES = [
   { name: 'c50', label: '50 céntimos', unit: 0.5 },
   { name: 'c20', label: '20 céntimos', unit: 0.2 },
   { name: 'c10', label: '10 céntimos', unit: 0.1 },
+  { name: 'c5', label: '5 céntimos', unit: 0.05 },
 ] as const
 
 type FormValues = Record<(typeof DENOMINACIONES)[number]['name'], number>
@@ -62,16 +64,17 @@ export function ConteoBilletesModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- revision fuerza recálculo al editar cantidades
   }, [form, revision])
 
-  const sobrante = Math.max(0, roundMoney(conteoTotal - importeCierre))
+  const efectivoRequerido = roundMoney(Math.max(0, importeCierre))
+  const sobrante = Math.max(0, roundMoney(conteoTotal - efectivoRequerido))
 
   const handleOk = async () => {
     const values = await form.validateFields()
     const total = sumarConteo(values)
-    const sobranteConfirm = Math.max(0, roundMoney(total - importeCierre))
-    if (total < importeCierre) {
+    const sobranteConfirm = Math.max(0, roundMoney(total - efectivoRequerido))
+    if (moneyGreater(efectivoRequerido, total)) {
       Modal.warning({
         title: 'Conteo insuficiente',
-        content: `El conteo de billetes (S/ ${formatMoney(total)}) debe ser mayor o igual al efectivo tipado en caja (S/ ${formatMoney(importeCierre)}). Los medios digitales no se cuentan aquí: pasan a bóveda con su mismo tipo de pago.`,
+        content: `El conteo de billetes (S/ ${formatMoney(total)}) debe ser mayor o igual al efectivo tipado en caja (S/ ${formatMoney(efectivoRequerido)}). Los medios digitales no se cuentan aquí: pasan a bóveda con su mismo tipo de pago.`,
       })
       return
     }
@@ -92,8 +95,8 @@ export function ConteoBilletesModal({
       className="caja-saldos-conteo-modal"
     >
       <p className="caja-saldos-conteo-modal__resumen">
-        Efectivo a contar: <strong>S/ {formatMoney(importeCierre)}</strong>
-        {importeTotal != null && importeTotal !== importeCierre ? (
+        Efectivo a contar: <strong>S/ {formatMoney(efectivoRequerido)}</strong>
+        {importeTotal != null && importeTotal !== efectivoRequerido ? (
           <>
             {' '}
             · Posición total (con digitales): <strong>S/ {formatMoney(importeTotal)}</strong>
@@ -101,8 +104,8 @@ export function ConteoBilletesModal({
         ) : null}
       </p>
       <Text type="secondary" style={{ display: 'block', marginBottom: 12 }}>
-        Solo cuente billetes/monedas. Yape, Interbank, BCP, Plin, etc. se transfieren a bóveda
-        tipados; el sobrante del conteo se registra como efectivo.
+        Solo cuente billetes/monedas (hasta 5 céntimos). Yape, Interbank, BCP, Plin, etc. se
+        transfieren a bóveda tipados; el sobrante del conteo se registra como efectivo.
       </Text>
       <Form
         form={form}

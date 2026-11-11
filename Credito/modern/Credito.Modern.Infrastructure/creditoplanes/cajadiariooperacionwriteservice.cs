@@ -59,6 +59,14 @@ public sealed class CajaDiarioOperacionWriteService(IOptions<SqlDatabaseOptions>
             throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
         }
 
+        if (sobrante < 0m)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sobrante), "sobrante no puede ser negativo.");
+        }
+
+        // Céntimos: evita 1.005 → bóveda con milésimas fantasma.
+        sobrante = Math.Round(sobrante, 2, MidpointRounding.AwayFromZero);
+
         return ExecuteIntProcAsync(
             "CREDITO.usp_CerrarCajasDiarios",
             new

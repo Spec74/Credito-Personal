@@ -9,6 +9,14 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
+    IF @Sobrante < 0
+    BEGIN
+        RAISERROR(N'El sobrante no puede ser negativo.', 16, 1);
+        RETURN;
+    END
+
+    SET @Sobrante = ROUND(@Sobrante, 2);
+
     DECLARE @Fecha DATETIME = dbo.ufnFecha();
     DECLARE @FechaTexto VARCHAR(20) = 'CIERRE ' + CONVERT(varchar, @Fecha, 103) + ' ';
 
