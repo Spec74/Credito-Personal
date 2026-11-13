@@ -33,14 +33,14 @@ export function uniqueTicks(length: number): number[] {
   return ticks
 }
 
-/** Colores de decisión (Credix navy + semáforo corporativo; sin púrpura genérica). */
+/** Colores de series (tokens chart-*; en dark info≈ink y no sirven para dual). */
 export const DASH_CHART_COLORS = {
-  cobrado: 'var(--credix-ink-brand, #2e69ae)',
-  cobradoFill: 'var(--credix-ink-brand, #2e69ae)',
-  desembolso: 'var(--credix-info, #0e7490)',
-  desembolsoFill: 'var(--credix-info, #0e7490)',
+  cobrado: 'var(--credix-chart-cobrado, #15803d)',
+  cobradoFill: 'var(--credix-chart-cobrado, #15803d)',
+  desembolso: 'var(--credix-chart-desembolso, #0e7490)',
+  desembolsoFill: 'var(--credix-chart-desembolso, #0e7490)',
   promedio: 'var(--credix-text-muted, #64748b)',
   sinMora: 'var(--credix-success, #15803d)',
-  conMora: '#9f1239',
+  conMora: 'var(--credix-mix-mora, #9f1239)',
   vencido: 'var(--credix-danger, #b91c1c)',
 } as const

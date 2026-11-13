@@ -515,14 +515,16 @@
 
 .dash-chart-line {
   fill: none;
-  stroke: var(--credix-ink-brand);
+  stroke: var(--credix-chart-cobrado, var(--credix-success));
   stroke-width: 2.5;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
 .dash-chart-line.is-desembolso {
-  stroke: var(--credix-info);
+  stroke: var(--credix-chart-desembolso, var(--credix-warning));
+  stroke-dasharray: 7 5;
+  stroke-width: 2.25;
 }
 
 .dash-chart-crosshair {
@@ -565,11 +567,16 @@
   margin-right: 6px;
   vertical-align: middle;
   border-radius: 2px;
-  background: var(--credix-ink-brand);
+  background: var(--credix-chart-cobrado, var(--credix-success));
 }
 
 .dash-chart-legend .is-desembolso::before {
-  background: var(--credix-info);
+  background: var(--credix-chart-desembolso, var(--credix-warning));
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--credix-chart-desembolso, var(--credix-warning)) 0 7px,
+    transparent 7px 12px
+  );
 }
 
 .dash-chart-legend .is-gap::before {
@@ -586,20 +593,20 @@
 
 .dash-chart-dot {
   fill: var(--credix-surface);
-  stroke: var(--credix-ink-brand);
+  stroke: var(--credix-chart-cobrado, var(--credix-success));
   stroke-width: 2;
 }
 
 .dash-chart-dot.is-desembolso {
-  stroke: var(--credix-info);
+  stroke: var(--credix-chart-desembolso, var(--credix-warning));
 }
 
 .dash-chart-dot.is-active {
-  fill: var(--credix-ink-brand);
+  fill: var(--credix-chart-cobrado, var(--credix-success));
 }
 
 .dash-chart-dot.is-desembolso.is-active {
-  fill: var(--credix-info);
+  fill: var(--credix-chart-desembolso, var(--credix-warning));
 }
 
 .dash-chart-axis {

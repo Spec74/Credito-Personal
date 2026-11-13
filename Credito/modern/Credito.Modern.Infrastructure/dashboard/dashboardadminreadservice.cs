@@ -414,7 +414,20 @@ public sealed class DashboardAdminReadService(
         )
         SELECT CAST(me.FechaMes AS datetime) AS FechaMes,
                CAST(CASE WHEN me.FechaMes = @InicioMes THEN 1 ELSE 0 END AS bit) AS EsMesActual,
-               DATENAME(MONTH, me.FechaMes) + ' ' + CAST(YEAR(me.FechaMes) AS varchar(4)) AS Etiqueta,
+               CASE MONTH(me.FechaMes)
+                   WHEN 1 THEN N'ene'
+                   WHEN 2 THEN N'feb'
+                   WHEN 3 THEN N'mar'
+                   WHEN 4 THEN N'abr'
+                   WHEN 5 THEN N'may'
+                   WHEN 6 THEN N'jun'
+                   WHEN 7 THEN N'jul'
+                   WHEN 8 THEN N'ago'
+                   WHEN 9 THEN N'sep'
+                   WHEN 10 THEN N'oct'
+                   WHEN 11 THEN N'nov'
+                   ELSE N'dic'
+               END + N' ' + CAST(YEAR(me.FechaMes) AS varchar(4)) AS Etiqueta,
                ISNULL(c.Colocaciones, 0) AS Colocaciones,
                ISNULL(c.Desembolsado, 0) AS Desembolsado,
                ISNULL(b.Cobrado, 0) AS Cobrado,

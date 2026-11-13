@@ -26,6 +26,7 @@ import { CredixDataTable, CredixPage } from '../../components/credix'
 import { useAuth } from '../../auth/useAuth'
 import { useEsCentral } from '../../hooks/useEsCentral'
 import { formatMoney } from '../../utils/formatMoney'
+import { formatMesEs } from '../../utils/formatMesEs'
 import { buildDashboardDecisions } from '../../utils/dashboardDecisionStrip'
 import { sumMoney } from '../../utils/money'
 import '../../styles/dashboard-analista.css'
@@ -214,7 +215,8 @@ export function AdminDashboardPage() {
     () =>
       (detalle?.historicoMensual ?? []).map((p) => ({
         fecha: p.fechaMes,
-        etiqueta: p.etiqueta.replace(/^\w/, (c) => c.toUpperCase()),
+        // SQL DATENAME(MONTH) usa el idioma del servidor (a menudo inglés).
+        etiqueta: formatMesEs(p.fechaMes, 'short'),
         cobrado: p.cobrado,
         desembolsado: p.desembolsado,
       })),

@@ -61,10 +61,18 @@ export function buildAntMenuItems(items: MenuItemDto[]): AntMenuItem[] {
         return false
       }
       const ref = ordenKey(c.referencia)
-      return parentOrden != null && ref != null && ref === parentOrden
+      if (parentOrden == null || ref == null || ref !== parentOrden) {
+        return false
+      }
+      // El ítem fijo «Dashboard» ya apunta a /inicio; no duplicar bajo REPORTES.
+      return !isInicioDashboardItem(c)
     })
 
     if (children.length === 0) {
+      // Padre vacío (p. ej. solo tenía Dashboard) no se lista.
+      if (sorted.some((c) => !isPadre(c) && ordenKey(c.referencia) === parentOrden)) {
+        continue
+      }
       submenuParents.push(toMenuNode(parent))
       continue
     }
@@ -88,10 +96,16 @@ export function buildAntMenuItems(items: MenuItemDto[]): AntMenuItem[] {
   return [dashboard, ...submenuParents]
 }
 
+/** Ítem del SP que abre el mismo tablero que el Dashboard fijo del chrome. */
+function isInicioDashboardItem(item: MenuItemDto): boolean {
+  const spa = resolveSpaPathFromMenuItem(item.url, item.denominacion, item.modulo)
+  return spa === '/inicio'
+}
+
 /** Solo si el SP no marca padres (datos atípicos). */
 function buildByModulo(items: MenuItemDto[]): AntMenuItem[] {
   const groups = new Map<string, MenuItemDto[]>()
-  for (const item of items.filter((i) => !isPadre(i))) {
+  for (const item of items.filter((i) => !isPadre(i) && !isInicioDashboardItem(i))) {
     const mod = item.modulo?.trim() || 'General'
     const list = groups.get(mod) ?? []
     list.push(item)

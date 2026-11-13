@@ -35,6 +35,9 @@
   --credix-info: #2e69ae;
   --credix-info-bg: #eff6ff;
   --credix-ink-brand: #114885;
+  /* Series del tablero: cobrado (entrada) ≠ desembolso (salida); no reutilizar info=ink. */
+  --credix-chart-cobrado: #15803d;
+  --credix-chart-desembolso: #0e7490;
   --credix-brand-line: #c5daf0;
   --credix-table-head: #e8f0f8;
   --credix-row-hover: #eff6ff;
@@ -108,6 +111,9 @@
   --credix-info: #8cb6e8;
   --credix-info-bg: #152a40;
   --credix-ink-brand: #8cb6e8;
+  /* Dark: verde vs ámbar — info e ink-brand son el mismo azul y no sirven para dual. */
+  --credix-chart-cobrado: #4ade80;
+  --credix-chart-desembolso: #fbbf24;
   --credix-brand-line: #2a4a66;
   --credix-table-head: #1a2838;
   --credix-row-hover: #243044;

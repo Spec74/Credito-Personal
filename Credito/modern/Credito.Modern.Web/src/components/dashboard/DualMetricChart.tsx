@@ -70,12 +70,12 @@ export function DualMetricChart({
       <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={ariaLabel} className="dash-chart-svg">
         <defs>
           <linearGradient id={`dualCobradoFill-${uid}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--credix-ink-brand)" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="var(--credix-ink-brand)" stopOpacity="0.01" />
+            <stop offset="0%" stopColor="var(--credix-chart-cobrado)" stopOpacity="0.24" />
+            <stop offset="100%" stopColor="var(--credix-chart-cobrado)" stopOpacity="0.01" />
           </linearGradient>
           <linearGradient id={`dualDesembolsoFill-${uid}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="var(--credix-info)" stopOpacity="0.16" />
-            <stop offset="100%" stopColor="var(--credix-info)" stopOpacity="0.01" />
+            <stop offset="0%" stopColor="var(--credix-chart-desembolso)" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="var(--credix-chart-desembolso)" stopOpacity="0.01" />
           </linearGradient>
         </defs>
         {geometry.yTicks.map((tick) => (
