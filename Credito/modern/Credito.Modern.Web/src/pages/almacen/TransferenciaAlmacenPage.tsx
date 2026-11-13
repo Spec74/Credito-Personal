@@ -243,6 +243,7 @@ export function TransferenciaAlmacenPage() {
 
   return (
     <CredixPage
+      className="almacen-ops"
       title="Transferencias de almacén"
       subtitle={undefined}
       stats={stats}
@@ -347,14 +348,15 @@ export function TransferenciaAlmacenPage() {
                   </Paragraph>
 
                   {editable ? (
-                    <Form layout="inline" style={{ marginBottom: 12 }}>
-                      <Form.Item label="Serie" style={{ flex: 1, minWidth: 200 }}>
+                    <Form layout="inline" className="almacen-ops__serie-form" style={{ marginBottom: 12 }}>
+                      <Form.Item label="Serie" style={{ flex: 1, minWidth: 0, width: '100%' }}>
                         <Input.Search
                           placeholder="Escanear o escribir número de serie"
                           value={serieTerm}
                           onChange={(e) => setSerieTerm(e.target.value)}
                           onSearch={(v) => validarSerie.mutate(v)}
                           loading={validarSerie.isPending}
+                          style={{ width: '100%' }}
                         />
                       </Form.Item>
                     </Form>

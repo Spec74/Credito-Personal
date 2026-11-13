@@ -9,6 +9,7 @@ import { CredixPage } from '../../components/credix'
 export function EntradaAlmacenPage() {
   return (
     <CredixPage
+      className="almacen-ops"
       title="Entrada de almacén"
       subtitle="Módulo retirado · no opera en Credix"
       breadcrumb={[

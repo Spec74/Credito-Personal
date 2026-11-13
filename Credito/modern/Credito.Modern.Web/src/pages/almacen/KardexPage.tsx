@@ -147,7 +147,7 @@ export function KardexPage() {
         <Form
           form={form}
           layout="vertical"
-          className="kardex-filtros"
+          className="credix-informe-filter-row kardex-filtros"
           onFinish={(v) => consulta.mutate({ ...v, oficinaId })}
         >
           <Form.Item name="oficinaId" hidden>
@@ -167,7 +167,7 @@ export function KardexPage() {
               placeholder="Almacén"
               options={almacenOptions}
               loading={almacenes.isLoading}
-              style={{ maxWidth: 360 }}
+              style={{ width: '100%', maxWidth: 360 }}
             />
           </Form.Item>
           <Form.Item
@@ -177,7 +177,7 @@ export function KardexPage() {
             rules={[{ required: true, message: 'Elija un artículo' }]}
           >
             <CredixArticuloSelect
-              style={{ maxWidth: 360 }}
+              style={{ width: '100%', maxWidth: 360 }}
               onArticulo={(item) => setArticuloCodigo(item?.codArticulo?.trim() ?? '')}
             />
           </Form.Item>

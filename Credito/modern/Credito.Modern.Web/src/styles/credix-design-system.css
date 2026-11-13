@@ -1551,7 +1551,7 @@ ul.credix-stats--module li span.red {
   gap: 12px;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 991px) {
   .credix-cobranza-kpi {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1560,6 +1560,21 @@ ul.credix-stats--module li span.red {
 @media (max-width: 640px) {
   .credix-cobranza-kpi {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .credix-cobranza-kpi {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .credix-cobranza-kpi__item {
+    padding: 10px 12px;
+  }
+
+  .credix-cobranza-kpi__value {
+    font-size: 16px;
   }
 }
 

@@ -200,23 +200,15 @@ export function MovimientoAlmacenPage() {
   return (
 
     <CredixPage
-
+      className="almacen-ops"
       title="Movimiento de almacén"
-
       subtitle={undefined}
-
       stats={stats}
-
       breadcrumb={[
-
         { title: <Link to="/inicio">Inicio</Link> },
-
         { title: <Link to="/almacen">Almacén</Link> },
-
         { title: 'Movimiento' },
-
       ]}
-
     >
 
       {oficinaId < 1 ? (

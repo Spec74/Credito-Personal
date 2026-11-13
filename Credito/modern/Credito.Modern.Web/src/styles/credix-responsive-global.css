@@ -240,6 +240,42 @@
   display: none;
 }
 
+.credix-mobile-card__expand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: var(--credix-touch-min, 40px);
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--credix-brand-line, #c5d4e8);
+  border-radius: var(--credix-radius, 6px);
+  background: var(--credix-brand-light, #eef3f9);
+  color: var(--credix-ink-brand, #114885);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.credix-mobile-card__expand:focus-visible {
+  outline: 2px solid var(--credix-ink-brand, #114885);
+  outline-offset: 2px;
+}
+
+.credix-mobile-card__expanded {
+  margin-top: 10px;
+  min-width: 0;
+}
+
+.credix-mobile-card.credix-cobranza-row.is-mora {
+  border-left: 3px solid var(--credix-warning);
+}
+
+.credix-mobile-card.credix-cobranza-row.is-mora-grave {
+  border-left: 3px solid var(--credix-danger);
+}
+
 .credix-mobile-cards__pager {
   display: flex;
   justify-content: center;
@@ -499,6 +535,23 @@
   .boveda-resumen-cuenta__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .credix-cobranza-filtros-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .credix-cobranza-segments {
+    gap: 8px;
+  }
+
+  .credix-cobranza-segment {
+    flex: 1 1 calc(50% - 8px);
+    justify-content: space-between;
+  }
+
+  .almacen-ops .credix-panel .ant-space {
+    flex-wrap: wrap;
+  }
 }
 
 /* —— Móvil (≤640px) —— */
@@ -586,6 +639,124 @@
 
   .credix-cobranza-table-search-meta {
     font-size: 12px;
+  }
+
+  .credix-cobranza-filtros-card {
+    padding: 12px;
+  }
+
+  .credix-cobranza-filtros-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .credix-cobranza-filtros-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credix-cobranza-filtros-actions .ant-btn {
+    width: 100%;
+    min-height: var(--credix-touch-min, 40px);
+  }
+
+  .credix-cobranza-filtros-hint {
+    max-width: none;
+  }
+
+  .credix-cobranza-table-search {
+    max-width: none;
+  }
+
+  .credix-cobranza-segments {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .credix-cobranza-segment {
+    width: 100%;
+    flex: none;
+  }
+
+  .credix-cobranza-mix__legend {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .credix-cobranza-detalle {
+    padding: 10px 12px 12px;
+  }
+
+  .credix-cobranza-detalle__head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .credix-cobranza-detalle__meta {
+    width: 100%;
+    gap: 10px 14px;
+  }
+
+  .credix-cobranza-detalle__grid {
+    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  }
+
+  .kardex-filtros.credix-informe-filter-row .ant-select,
+  .kardex-filtros.credix-informe-filter-row .ant-select-selector,
+  .kardex-filtros .ant-btn {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .almacen-ops .ant-form-inline {
+    flex-direction: column;
+    align-items: stretch;
+    row-gap: 8px;
+  }
+
+  .almacen-ops .ant-form-inline .ant-form-item {
+    margin-inline-end: 0 !important;
+    width: 100%;
+  }
+
+  .almacen-ops .ant-form-inline .ant-form-item-control-input-content,
+  .almacen-ops .ant-form-inline .ant-input-number,
+  .almacen-ops .ant-form-inline .ant-input-affix-wrapper,
+  .almacen-ops .ant-form-inline .ant-input-search,
+  .almacen-ops .ant-form-inline .ant-btn {
+    width: 100%;
+  }
+
+  .almacen-ops .ant-form-inline .ant-input-search > .ant-input-group {
+    display: flex;
+    width: 100%;
+  }
+
+  .almacen-ops form[style*='max-width'] {
+    max-width: 100% !important;
+  }
+
+  .almacen-ops .credix-panel-extra .ant-space,
+  .almacen-ops .ant-card-extra .ant-space {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .almacen-ops .credix-panel-extra .ant-btn,
+  .almacen-ops .ant-card-extra .ant-btn {
+    flex: 1 1 auto;
+    min-height: var(--credix-touch-min, 40px);
+  }
+
+  .almacen-ops .ant-alert-with-description.ant-alert-action,
+  .almacen-ops .ant-alert .ant-alert-action {
+    margin-inline-start: 0;
+    margin-top: 10px;
+    width: 100%;
+  }
+
+  .almacen-ops .ant-alert .ant-alert-action .ant-btn {
+    width: 100%;
   }
 
   .credix-informe-page ul.credix-stats {
@@ -706,6 +877,18 @@
 
   .credix-informe-export-row .ant-btn {
     width: 100%;
+  }
+
+  .credix-cobranza-segments {
+    grid-template-columns: 1fr;
+  }
+
+  .credix-cobranza-decisions__list {
+    grid-template-columns: 1fr;
+  }
+
+  .credix-mobile-card__expanded .credix-cobranza-detalle__grid {
+    max-height: min(360px, 50vh);
   }
 }
 

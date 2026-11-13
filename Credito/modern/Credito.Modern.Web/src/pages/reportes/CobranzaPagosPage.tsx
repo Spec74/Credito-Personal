@@ -417,7 +417,7 @@ export function CobranzaPagosPage() {
             {segmento !== 'todos'
               ? 'Lista priorizada por días de mora y saldo. '
               : null}
-            Use <strong>+</strong> para ver cuotas (una fila a la vez).
+            Abra el detalle de cada cliente para ver cuotas (una a la vez).
           </Typography.Text>
         ) : null}
 

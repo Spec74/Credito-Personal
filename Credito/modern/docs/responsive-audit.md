@@ -39,6 +39,8 @@ Un solo patrón de **toolbar de listado**:
 | Tareas crédito | CredixCrudPage | Toolbar grid | OK | `credito-tareas.css` |
 | Bóveda | CredixPage | Formularios + grids | OK | **global** (antes sin `@media`) |
 | Informes (~28) | CredixInformePage | filter-row + export + cobranza search | OK | **global** (antes sin `@media`) |
+| **Reportes / cobranza** | CredixInformePage | filtros card + KPI + segments + cards expand | OK 2026-11-13 (KPI 991/640/480; detalle en móvil) | design-system + **global** |
+| **Almacén / kardex** | CredixInformePage / CredixPage | `credix-informe-filter-row` + `.almacen-ops` | OK 2026-11-13 (filtros + forms inline → columna) | **global** |
 | Admin / maestros | CredixCrudPage | `credix-crud-toolbar` | OK | **global** + `credix-crud-toolbar.css` |
 | Mantener cliente | CredixPage | Tabs + footer sticky | OK | `clientes-module.css` |
 
@@ -91,6 +93,9 @@ Guion: `deploy/scripts/piloto-un-dia.ps1`. Código ya aplica 24/40 px; esto es f
 | `/app/clientes` | Buscador + acciones en columna | [x] | 2026-11-12 Auto |
 | `/app/inicio` | Hub 1 columna | [x] | 2026-11-12 Auto |
 | `/app/credito/prendario` | Listado usable en móvil | [x] | 2026-11-12 Auto |
+| `/app/almacen/kardex` | Filtros en columna; tabla→cards | [x] | 2026-11-13 Auto |
+| `/app/almacen` (salida/transf./mov.) | Forms inline apilados; botones táctiles | [x] | 2026-11-13 Auto |
+| `/app/reportes/cobranza` | KPI/segments; detalle cuotas en card | [x] | 2026-11-13 Auto |
 
 ---
 

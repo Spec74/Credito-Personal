@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type Key, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type Key, type MouseEvent, type ReactNode } from 'react'
 import { Checkbox, Grid, Pagination, Table, type TableProps } from 'antd'
 import type { ColumnType, ColumnsType } from 'antd/es/table'
 import type { TableRowSelection } from 'antd/es/table/interface'
@@ -251,6 +251,8 @@ export function CredixDataTable<T extends object>(props: CredixDataTableProps<T>
         onRow={rest.onRow}
         loading={rest.loading}
         locale={rest.locale}
+        expandable={rest.expandable}
+        rowClassName={rest.rowClassName}
         pagination={{
           total,
           pageSize: Math.min(defaultPagination === false ? 8 : pageSize, 8),
@@ -301,6 +303,8 @@ function CredixMobileCardList<T extends object>({
   onRow,
   loading,
   locale,
+  expandable,
+  rowClassName,
 }: {
   className?: string
   records: readonly T[]
@@ -318,6 +322,8 @@ function CredixMobileCardList<T extends object>({
   onRow?: TableProps<T>['onRow']
   loading?: TableProps<T>['loading']
   locale?: TableProps<T>['locale']
+  expandable?: TableProps<T>['expandable']
+  rowClassName?: TableProps<T>['rowClassName']
 }) {
   const [page, setPage] = useState(1)
   useEffect(() => {
@@ -372,16 +378,40 @@ function CredixMobileCardList<T extends object>({
           const checkboxProps = rowSelection?.getCheckboxProps?.(record) ?? {}
           const checked = selectedKeys.has(String(key))
           const selectedClass = checked ? 'credix-mobile-card--selected' : ''
+          const toneClass =
+            typeof rowClassName === 'function'
+              ? rowClassName(record, absoluteIndex, absoluteIndex)
+              : rowClassName
+          const canExpand =
+            Boolean(expandable) && (expandable?.rowExpandable?.(record) ?? true)
+          const expandedKeySet = new Set(
+            (expandable?.expandedRowKeys ?? []).map((k) => String(k)),
+          )
+          const isExpanded = expandedKeySet.has(String(key))
+          const toggleExpand = (e: MouseEvent) => {
+            e.stopPropagation()
+            if (!expandable?.onExpandedRowsChange) return
+            const current = [...(expandable.expandedRowKeys ?? [])]
+            const keyStr = String(key)
+            const next = isExpanded
+              ? current.filter((k) => String(k) !== keyStr)
+              : [...current, key]
+            expandable.onExpandedRowsChange(next)
+          }
           return (
             <article
               key={key}
-              className={['credix-mobile-card', selectedClass, rowProps.className]
+              className={['credix-mobile-card', selectedClass, toneClass, rowProps.className]
                 .filter(Boolean)
                 .join(' ')}
               onClick={(e) => {
                 if (selectionEnabled && !(checkboxProps.disabled)) {
                   const target = e.target as HTMLElement
-                  if (!target.closest('.credix-mobile-card__actions, a, button, .ant-btn')) {
+                  if (
+                    !target.closest(
+                      '.credix-mobile-card__actions, .credix-mobile-card__expand, .credix-mobile-card__expanded, a, button, .ant-btn',
+                    )
+                  ) {
                     toggleKey(key, !checked)
                   }
                 }
@@ -462,6 +492,21 @@ function CredixMobileCardList<T extends object>({
                         {renderColumnCell(col, record, absoluteIndex)}
                       </div>
                     ))}
+                  </div>
+                ) : null}
+                {canExpand ? (
+                  <button
+                    type="button"
+                    className="credix-mobile-card__expand"
+                    aria-expanded={isExpanded}
+                    onClick={toggleExpand}
+                  >
+                    {isExpanded ? 'Ocultar detalle' : 'Ver detalle'}
+                  </button>
+                ) : null}
+                {canExpand && isExpanded && expandable?.expandedRowRender ? (
+                  <div className="credix-mobile-card__expanded">
+                    {expandable.expandedRowRender(record, absoluteIndex, 0, true)}
                   </div>
                 ) : null}
               </div>
