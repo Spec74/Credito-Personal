@@ -18,6 +18,7 @@ import {
 import { Alert, Checkbox, InputNumber, Select, message } from 'antd'
 import dayjs, { type Dayjs } from 'dayjs'
 import { useAuth } from '../../auth/useAuth'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { CredixPage } from '../../components/credix'
 import { CredixReportBox } from '../../components/reportes/CredixReportBox'
 import { ReportExportActions } from '../../components/reportes/ReportExportActions'
@@ -39,8 +40,6 @@ import {
   downloadClientesTopeCreditoPdf,
   downloadCobroDiarioCsv,
   downloadCobroDiarioPdf,
-  downloadComprobantesCajaChicaCsv,
-  downloadComprobantesCajaChicaPdf,
   downloadCreditoAprobacionCsv,
   downloadCreditoAprobacionPdf,
   downloadCreditoCondonadoCsv,
@@ -113,9 +112,16 @@ function yearOptions(from: number, to: number): { value: number; label: string }
 
 export function ReporteCreditoIndexPage() {
   const { session } = useAuth()
+  const { esCentral } = useEsCentral()
   const roles = session?.roles ?? []
   const oficinaSesion = session?.oficinaId ?? 0
   const anioActual = dayjs().year()
+  /** Central elige sede sin re-login; sucursal queda fijada al JWT. */
+  const [sedeOficinaId, setSedeOficinaId] = useState<number | undefined>()
+  const oficinaConsulta =
+    esCentral && sedeOficinaId != null && sedeOficinaId > 0
+      ? sedeOficinaId
+      : oficinaSesion
 
   const [moraHasta, setMoraHasta] = useState(dayjs())
   const [moraIni, setMoraIni] = useState(1)
@@ -134,7 +140,6 @@ export function ReporteCreditoIndexPage() {
   const [variosGestor, setVariosGestor] = useState<number | undefined>()
   const [variosRango, setVariosRango] = useState<[Dayjs, Dayjs]>(monthRangeDefaults)
 
-  const [cajaChicaRango, setCajaChicaRango] = useState<[Dayjs, Dayjs]>(monthRangeDefaults)
   const [anuladoRango, setAnuladoRango] = useState<[Dayjs, Dayjs]>(monthRangeDefaults)
   const [saldoAnioIni, setSaldoAnioIni] = useState(dayjs().subtract(1, 'month').year())
   const [saldoMesIni, setSaldoMesIni] = useState(dayjs().subtract(1, 'month').month() + 1)
@@ -145,11 +150,11 @@ export function ReporteCreditoIndexPage() {
 
   const gestorParams = useMemo(
     () => ({
-      oficinaId: oficinaSesion,
+      oficinaId: oficinaConsulta,
       usuarioId:
         gestorUsuario != null && gestorUsuario > 0 ? gestorUsuario : undefined,
     }),
-    [gestorUsuario, oficinaSesion],
+    [gestorUsuario, oficinaConsulta],
   )
 
   const gestorScreenParams = useMemo(
@@ -201,16 +206,16 @@ export function ReporteCreditoIndexPage() {
     const fechaIni = variosRango[0].format('YYYY-MM-DD')
     const fechaFin = variosRango[1].format('YYYY-MM-DD')
     return {
-      oficinaId: oficinaSesion,
+      oficinaId: oficinaConsulta,
       usuarioId,
-      pOficinaId: oficinaSesion,
+      pOficinaId: oficinaConsulta,
       pUsuarioId: usuarioId,
       fechaIni,
       fechaFin,
       pFechaIni: fechaIni,
       pFechaFin: fechaFin,
     }
-  }, [variosGestor, variosRango, oficinaSesion])
+  }, [variosGestor, variosRango, oficinaConsulta])
 
   const saldoAnios = useMemo(
     () => yearOptions(2022, Math.max(2032, anioActual + 2)),
@@ -224,13 +229,17 @@ export function ReporteCreditoIndexPage() {
 
   const variosApi = useMemo(
     () => ({
-      oficinaId: oficinaSesion,
+      oficinaId: oficinaConsulta,
       usuarioId: variosGestor != null && variosGestor > 0 ? variosGestor : undefined,
       fechaIni: isoDate(variosRango[0]),
       fechaFin: isoDate(variosRango[1]),
     }),
-    [variosGestor, variosRango, oficinaSesion],
+    [variosGestor, variosRango, oficinaConsulta],
   )
+
+  const onSedeChange = (v: number | undefined) => {
+    setSedeOficinaId(v != null && v > 0 ? v : undefined)
+  }
 
   if (!canViewReporteCredito(roles)) {
     return (
@@ -259,21 +268,36 @@ export function ReporteCreditoIndexPage() {
     >
       <div className="credix-reportes-shell">
         <div className="credix-reportes-intro">
-          Las operaciones del día están en <Link to="/credito">Crédito → Operaciones</Link>.{' '}
-          <strong>Ver pantalla</strong> muestra los resultados en tabla; PDF y Excel exportan el mismo
-          conjunto de datos de su sesión. Excel se entrega en CSV UTF-8, salvo{' '}
-          <Link to="/reportes/cobranza">Cobranza pagos</Link>.
+          Cada tarjeta responde a una pregunta distinta (sin duplicar el mismo corte).{' '}
+          <strong>Ver pantalla</strong>, PDF y Excel usan los mismos filtros. Excel = CSV UTF-8, salvo{' '}
+          <Link to="/reportes/cobranza">Cobranza pagos</Link>. Operaciones del día:{' '}
+          <Link to="/credito">Crédito → Operaciones</Link>.
         </div>
 
+        {esCentral ? (
+          <div className="credix-reportes-toolbar credix-reportes-toolbar--sede">
+            <ReporteField label="Sede a consultar">
+              <OficinaSelect
+                value={oficinaConsulta > 0 ? oficinaConsulta : undefined}
+                onChange={onSedeChange}
+              />
+            </ReporteField>
+            <p className="credix-reportes-toolbar__meta">
+              Central: elija la sede; todos los reportes de esta pantalla usan esa oficina. Sin
+              selección, se usa la oficina del token de sesión.
+            </p>
+          </div>
+        ) : null}
+
         <ol className="credix-reportes-steps" aria-label="Cómo usar los reportes">
-          <li>Ajuste los filtros de la tarjeta</li>
-          <li>Exporte PDF o Excel</li>
-          <li>O abra Ver pantalla para consultar en tabla</li>
+          <li>{esCentral ? 'Elija la sede' : 'Confirme su oficina'}</li>
+          <li>Ajuste filtros de la tarjeta</li>
+          <li>Exporte o abra Ver pantalla</li>
         </ol>
 
         <ReportesSection
           title="Cobranza y morosidad"
-          description="Seguimiento de atrasos, aprobaciones y cobro del día por gestor."
+          description="Morosidad por días (corte de cartera) ≠ cobro del día por gestor ≠ solo mora del día."
         >
         <CredixReportBox
           title="Morosidad por días de atraso"
@@ -282,7 +306,7 @@ export function ReporteCreditoIndexPage() {
             <ReportExportActions
               screenTo="/informes/credito-morosidad"
               screenSearchParams={{
-                oficinaId: oficinaSesion,
+                oficinaId: oficinaConsulta,
                 hastaFecha: moraHasta.format('YYYY-MM-DD'),
                 diasAtrazoIni: moraIni,
                 diasAtrazoFin: moraFin,
@@ -294,7 +318,7 @@ export function ReporteCreditoIndexPage() {
                   onClick: () =>
                     runOpenReport('Morosidad PDF', () =>
                       downloadCreditoMorosidadPdf({
-                        oficinaId: oficinaSesion,
+                        oficinaId: oficinaConsulta,
                         hastaFecha: isoDate(moraHasta),
                         diasAtrazoIni: moraIni,
                         diasAtrazoFin: moraFin,
@@ -307,7 +331,7 @@ export function ReporteCreditoIndexPage() {
                   onClick: () =>
                     runOpenReport('Morosidad Excel', () =>
                       downloadCreditoMorosidadCsv({
-                        oficinaId: oficinaSesion,
+                        oficinaId: oficinaConsulta,
                         hastaFecha: isoDate(moraHasta),
                         diasAtrazoIni: moraIni,
                         diasAtrazoFin: moraFin,
@@ -318,8 +342,12 @@ export function ReporteCreditoIndexPage() {
             />
           }
         >
-          <ReporteField label="Oficina">
-            <OficinaSelect disabled value={oficinaSesion} />
+          <ReporteField label={esCentral ? 'Sede' : 'Oficina'}>
+            <OficinaSelect
+              disabled={!esCentral}
+              value={oficinaConsulta > 0 ? oficinaConsulta : undefined}
+              onChange={onSedeChange}
+            />
           </ReporteField>
           <ReporteField label="Hasta la fecha">
             <CredixDatePicker
@@ -336,6 +364,9 @@ export function ReporteCreditoIndexPage() {
           <ReporteField label="Días atraso final">
             <InputNumber size="small" min={0} value={moraFin} onChange={(v) => setMoraFin(v ?? 9999)} style={{ width: '100%' }} />
           </ReporteField>
+          <p className="credix-report-card-hint">
+            Corte de cartera en atraso por rango de días (no es el cobro programado del día).
+          </p>
         </CredixReportBox>
 
         <CredixReportBox
@@ -345,7 +376,7 @@ export function ReporteCreditoIndexPage() {
             <ReportExportActions
               screenTo="/informes/credito-aprobacion"
               screenSearchParams={{
-                oficinaId: oficinaSesion,
+                oficinaId: oficinaConsulta,
                 usuarioId: aprobGestor,
                 fechaAprobacion: aprobFecha.format('YYYY-MM-DD'),
               }}
@@ -356,7 +387,7 @@ export function ReporteCreditoIndexPage() {
                   onClick: () =>
                     runOpenReport('Aprobados PDF', () =>
                       downloadCreditoAprobacionPdf({
-                        oficinaId: oficinaSesion,
+                        oficinaId: oficinaConsulta,
                         usuarioId: aprobGestor,
                         fechaAprobacion: isoDate(aprobFecha),
                       }),
@@ -368,7 +399,7 @@ export function ReporteCreditoIndexPage() {
                   onClick: () =>
                     runOpenReport('Aprobados Excel', () =>
                       downloadCreditoAprobacionCsv({
-                        oficinaId: oficinaSesion,
+                        oficinaId: oficinaConsulta,
                         usuarioId: aprobGestor,
                         fechaAprobacion: isoDate(aprobFecha),
                       }),
@@ -378,8 +409,12 @@ export function ReporteCreditoIndexPage() {
             />
           }
         >
-          <ReporteField label="Oficina">
-            <OficinaSelect disabled value={oficinaSesion} />
+          <ReporteField label={esCentral ? 'Sede' : 'Oficina'}>
+            <OficinaSelect
+              disabled={!esCentral}
+              value={oficinaConsulta > 0 ? oficinaConsulta : undefined}
+              onChange={onSedeChange}
+            />
           </ReporteField>
           <ReporteField label="Gestor">
             <GestorSelect allowAll legacyList value={aprobGestor} onChange={setAprobGestor} />
@@ -393,12 +428,19 @@ export function ReporteCreditoIndexPage() {
               }}
             />
           </ReporteField>
+          <p className="credix-report-card-hint">
+            Créditos aprobados en la fecha indicada (pipeline de origen, no cartera en mora).
+          </p>
         </CredixReportBox>
 
         <h3 className="credix-reportes-block-title">Informes por gestor</h3>
         <div className="credix-reportes-toolbar">
-          <ReporteField label="Oficina">
-            <OficinaSelect disabled value={oficinaSesion} />
+          <ReporteField label={esCentral ? 'Sede' : 'Oficina'}>
+            <OficinaSelect
+              disabled={!esCentral}
+              value={oficinaConsulta > 0 ? oficinaConsulta : undefined}
+              onChange={onSedeChange}
+            />
           </ReporteField>
           <ReporteField label="Gestor">
             <GestorSelect allowAll legacyList value={gestorUsuario} onChange={setGestorUsuario} />
@@ -455,8 +497,7 @@ export function ReporteCreditoIndexPage() {
           }
         >
           <p className="credix-report-card-hint">
-            Cobros del día del gestor. Seleccione gestor en la barra superior para exportar o ver
-            pantalla.
+            Agenda de cobro del día del gestor (cuotas a recaudar hoy). Exige gestor concreto.
           </p>
         </CredixReportBox>
 
@@ -501,7 +542,7 @@ export function ReporteCreditoIndexPage() {
           }
         >
           <p className="credix-report-card-hint">
-            Misma cartera del día del gestor, filtrada a créditos con mora («Todos» permitido).
+            Del cobro del día, solo cuotas ya en mora (distinto del corte «Morosidad por días»).
           </p>
         </CredixReportBox>
 
@@ -534,7 +575,7 @@ export function ReporteCreditoIndexPage() {
           }
         >
           <p className="credix-report-card-hint">
-            Créditos marcados como observados según el gestor seleccionado.
+            Créditos con observación operativa (no equivale a mora ni a bloqueo de cliente).
           </p>
         </CredixReportBox>
 
@@ -562,7 +603,7 @@ export function ReporteCreditoIndexPage() {
           }
         >
           <p className="credix-report-card-hint">
-            Altas del mes en curso para el gestor de la barra superior.
+            Altas del mes calendario actual por gestor (fijo al mes en curso).
           </p>
         </CredixReportBox>
 
@@ -590,7 +631,7 @@ export function ReporteCreditoIndexPage() {
           }
         >
           <p className="credix-report-card-hint">
-            Clientes sin movimiento reciente asociados al gestor seleccionado.
+            Sin movimiento reciente por gestor (sin rango de fechas; distinto del listado con periodo).
           </p>
         </CredixReportBox>
 
@@ -647,7 +688,7 @@ export function ReporteCreditoIndexPage() {
 
         <ReportesSection
           title="Cartera y créditos"
-          description="Consulta general de créditos y reportes agrupados por periodo."
+          description="Listado filtrable por estado/fechas; rentabilidad; consultas de periodo (activos, cierres, condonados)."
         >
         <CredixReportBox
           title="Reporte créditos"
@@ -656,7 +697,7 @@ export function ReporteCreditoIndexPage() {
             <ReportExportActions
               screenTo="/informes/reporte-creditos"
               screenSearchParams={{
-                oficinaId: oficinaSesion,
+                oficinaId: oficinaConsulta,
                 usuarioId: rptGestor,
                 estadoCredito: rptEstado,
                 fechaIni: isoDate(rptRango[0]),
@@ -669,7 +710,7 @@ export function ReporteCreditoIndexPage() {
                   onClick: () =>
                     runOpenReport('Reporte créditos', () =>
                       downloadReporteCreditoPdf({
-                        oficinaId: oficinaSesion,
+                        oficinaId: oficinaConsulta,
                         gestorId: rptGestor,
                         estadoCredito: rptEstado,
                         fechaIni: isoDate(rptRango[0]),
@@ -683,7 +724,7 @@ export function ReporteCreditoIndexPage() {
                   onClick: () =>
                     runOpenReport('Reporte créditos Excel', () =>
                       downloadReporteCreditoCsv({
-                        oficinaId: oficinaSesion,
+                        oficinaId: oficinaConsulta,
                         gestorId: rptGestor,
                         estadoCredito: rptEstado,
                         fechaIni: isoDate(rptRango[0]),
@@ -695,8 +736,12 @@ export function ReporteCreditoIndexPage() {
             />
           }
         >
-          <ReporteField label="Oficina">
-            <OficinaSelect disabled value={oficinaSesion} />
+          <ReporteField label={esCentral ? 'Sede' : 'Oficina'}>
+            <OficinaSelect
+              disabled={!esCentral}
+              value={oficinaConsulta > 0 ? oficinaConsulta : undefined}
+              onChange={onSedeChange}
+            />
           </ReporteField>
           <ReporteField label="Gestor">
             <GestorSelect allowAll legacyList value={rptGestor} onChange={setRptGestor} />
@@ -719,6 +764,9 @@ export function ReporteCreditoIndexPage() {
               style={{ width: '100%' }}
             />
           </ReporteField>
+          <p className="credix-report-card-hint">
+            Listado por estado y rango (cualquier estado). No sustituye «Créditos activos».
+          </p>
         </CredixReportBox>
 
         <CredixReportBox
@@ -728,7 +776,7 @@ export function ReporteCreditoIndexPage() {
             <ReportExportActions
               screenTo="/informes/credito-rentabilidad"
               screenSearchParams={{
-                oficinaId: oficinaSesion,
+                oficinaId: oficinaConsulta,
                 estadoCredito: rptEstado,
                 fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
                 fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
@@ -740,7 +788,7 @@ export function ReporteCreditoIndexPage() {
                   onClick: () =>
                     runOpenReport('Rentabilidad PDF', () =>
                       downloadCreditoRentabilidadPdf({
-                        oficinaId: oficinaSesion,
+                        oficinaId: oficinaConsulta,
                         fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
                         fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
                         estadoCredito: rptEstado,
@@ -753,7 +801,7 @@ export function ReporteCreditoIndexPage() {
                   onClick: () =>
                     runOpenReport('Rentabilidad XLS', () =>
                       downloadCreditoRentabilidadCsv({
-                        oficinaId: oficinaSesion,
+                        oficinaId: oficinaConsulta,
                         fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
                         fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
                         estadoCredito: rptEstado,
@@ -764,8 +812,12 @@ export function ReporteCreditoIndexPage() {
             />
           }
         >
-          <ReporteField label="Oficina">
-            <OficinaSelect disabled value={oficinaSesion} />
+          <ReporteField label={esCentral ? 'Sede' : 'Oficina'}>
+            <OficinaSelect
+              disabled={!esCentral}
+              value={oficinaConsulta > 0 ? oficinaConsulta : undefined}
+              onChange={onSedeChange}
+            />
           </ReporteField>
           <ReporteField label="Estado">
             <Select
@@ -794,14 +846,21 @@ export function ReporteCreditoIndexPage() {
               Histórico completo (desde 2018)
             </Checkbox>
           </ReporteField>
+          <p className="credix-report-card-hint">
+            Margen e interés generado; no es listado operativo de cuotas del día.
+          </p>
         </CredixReportBox>
 
         {showVarios ? (
           <>
             <h3 className="credix-reportes-block-title">Consultas por periodo</h3>
             <div className="credix-reportes-toolbar">
-              <ReporteField label="Oficina">
-                <OficinaSelect disabled value={oficinaSesion} />
+              <ReporteField label={esCentral ? 'Sede' : 'Oficina'}>
+                <OficinaSelect
+                  disabled={!esCentral}
+                  value={oficinaConsulta > 0 ? oficinaConsulta : undefined}
+                  onChange={onSedeChange}
+                />
               </ReporteField>
               <ReporteField label="Gestor">
                 <GestorSelect allowAll legacyList value={variosGestor} onChange={setVariosGestor} />
@@ -857,7 +916,7 @@ export function ReporteCreditoIndexPage() {
                   }
                 >
                   <p className="credix-report-card-hint">
-                    Condonaciones en el rango y gestor de la barra superior.
+                    Solo condonaciones registradas en el periodo (no cartera activa).
                   </p>
                 </CredixReportBox>
 
@@ -890,7 +949,7 @@ export function ReporteCreditoIndexPage() {
                   }
                 >
                   <p className="credix-report-card-hint">
-                    Cartera activa según filtros del bloque «Consultas por periodo».
+                    Snapshot de cartera vigente al momento (estado activo), con gestor/rango del bloque.
                   </p>
                 </CredixReportBox>
 
@@ -923,7 +982,7 @@ export function ReporteCreditoIndexPage() {
                   }
                 >
                   <p className="credix-report-card-hint">
-                    Créditos cerrados en el periodo seleccionado.
+                    Créditos que cerraron en el periodo (salida de cartera, no cuotas del día).
                   </p>
                 </CredixReportBox>
 
@@ -956,7 +1015,7 @@ export function ReporteCreditoIndexPage() {
                   }
                 >
                   <p className="credix-report-card-hint">
-                    Créditos que salieron de mora con pago en el rango indicado.
+                    Salieron de mora con pago en el rango (recuperación, no corte de atraso).
                   </p>
                 </CredixReportBox>
 
@@ -975,7 +1034,7 @@ export function ReporteCreditoIndexPage() {
                             runOpenReport('Clientes nuevos', () =>
                               downloadClientesNuevosMesPdf(
                                 toClientesNuevosMesParams(
-                                  oficinaSesion,
+                                  oficinaConsulta,
                                   variosGestor,
                                   variosRango[0].format('YYYY-MM-DD'),
                                   variosRango[1].format('YYYY-MM-DD'),
@@ -988,7 +1047,7 @@ export function ReporteCreditoIndexPage() {
                   }
                 >
                   <p className="credix-report-card-hint">
-                    Altas de clientes en el rango de fechas de la barra (no solo el mes actual).
+                    Altas en el rango libre de la barra (no el mes fijo del bloque por gestor).
                   </p>
                 </CredixReportBox>
 
@@ -1013,7 +1072,7 @@ export function ReporteCreditoIndexPage() {
                   }
                 >
                   <p className="credix-report-card-hint">
-                    Resumen de cajas diarias del periodo y gestor seleccionados.
+                    Resumen de cajas diarias del periodo/gestor (cuadre, no cobranza de cuotas).
                   </p>
                 </CredixReportBox>
               </>
@@ -1034,7 +1093,7 @@ export function ReporteCreditoIndexPage() {
                         runOpenReport('Clientes inactivos pagados', () =>
                           downloadClientesInactivosPdf(
                             toClientesInactivosParams(
-                              oficinaSesion,
+                              oficinaConsulta,
                               variosGestor ?? session?.usuarioId,
                               variosRango[0].format('YYYY-MM-DD'),
                               variosRango[1].format('YYYY-MM-DD'),
@@ -1047,8 +1106,7 @@ export function ReporteCreditoIndexPage() {
               }
             >
               <p className="credix-report-card-hint">
-                Inactivos con filtro de rango (distinto del listado «sin rango» del bloque por
-                gestor).
+                Inactivos acotados al rango de la barra (distinto del listado sin rango por gestor).
               </p>
             </CredixReportBox>
           </>
@@ -1058,52 +1116,8 @@ export function ReporteCreditoIndexPage() {
         {showAdmin ? (
           <ReportesSection
             title="Caja y administración"
-            description="Comprobantes, anulaciones, saldo de cartera y central de riesgos."
+            description="Anulaciones, saldo de cartera y central de riesgos por sede. Caja chica retirada del menú."
           >
-            <CredixReportBox
-              title="Comprobantes caja chica"
-              icon={<BankOutlined />}
-              actions={
-                <ReportExportActions
-                  screenTo="/informes/comprobantes-caja-chica"
-                  exports={[
-                    {
-                      label: 'PDF',
-                      format: 'pdf',
-                      onClick: () =>
-                        runOpenReport('Comprobantes PDF', () =>
-                          downloadComprobantesCajaChicaPdf({
-                            fechaIni: isoDate(cajaChicaRango[0]),
-                            fechaFin: isoDate(cajaChicaRango[1]),
-                          }),
-                        ),
-                    },
-                    {
-                      label: 'XLS',
-                      format: 'xls',
-                      onClick: () =>
-                        runOpenReport('Comprobantes XLS', () =>
-                          downloadComprobantesCajaChicaCsv({
-                            fechaIni: isoDate(cajaChicaRango[0]),
-                            fechaFin: isoDate(cajaChicaRango[1]),
-                          }),
-                        ),
-                    },
-                  ]}
-                />
-              }
-            >
-              <ReporteField label="Rango fechas">
-                <CredixRangePicker
-                  size="small"
-                  value={cajaChicaRango}
-                  onChange={(v) => v && setCajaChicaRango(v as [Dayjs, Dayjs])}
-                  format="DD/MM/YYYY"
-                  style={{ width: '100%' }}
-                />
-              </ReporteField>
-            </CredixReportBox>
-
             <CredixReportBox
               title="Movimientos anulados"
               icon={<StopOutlined />}
@@ -1117,7 +1131,7 @@ export function ReporteCreditoIndexPage() {
                       onClick: () =>
                         runOpenReport('Anulados PDF', () =>
                           downloadMovimientoCajaAnuladoPdf({
-                            oficinaId: oficinaSesion,
+                            oficinaId: oficinaConsulta,
                             fechaIni: isoDate(anuladoRango[0]),
                             fechaFin: isoDate(anuladoRango[1]),
                           }),
@@ -1127,6 +1141,13 @@ export function ReporteCreditoIndexPage() {
                 />
               }
             >
+              <ReporteField label={esCentral ? 'Sede' : 'Oficina'}>
+                <OficinaSelect
+                  disabled={!esCentral}
+                  value={oficinaConsulta > 0 ? oficinaConsulta : undefined}
+                  onChange={onSedeChange}
+                />
+              </ReporteField>
               <ReporteField label="Rango fechas">
                 <CredixRangePicker
                   size="small"
@@ -1136,6 +1157,9 @@ export function ReporteCreditoIndexPage() {
                   style={{ width: '100%' }}
                 />
               </ReporteField>
+              <p className="credix-report-card-hint">
+                Movimientos de caja anulados en el periodo (auditoría, no cobro operativo).
+              </p>
             </CredixReportBox>
 
             <CredixReportBox
@@ -1151,7 +1175,7 @@ export function ReporteCreditoIndexPage() {
                       onClick: () =>
                         runOpenReport('Saldo cartera', () =>
                           downloadSaldoCarteraCajaDiarioPdf({
-                            oficinaId: oficinaSesion,
+                            oficinaId: oficinaConsulta,
                             anioIni: saldoAnioIni,
                             mesIni: saldoMesIni,
                             anioFin: saldoAnioFin,
@@ -1163,8 +1187,12 @@ export function ReporteCreditoIndexPage() {
                 />
               }
             >
-              <ReporteField label="Oficina">
-                <OficinaSelect disabled value={oficinaSesion} />
+              <ReporteField label={esCentral ? 'Sede' : 'Oficina'}>
+                <OficinaSelect
+                  disabled={!esCentral}
+                  value={oficinaConsulta > 0 ? oficinaConsulta : undefined}
+                  onChange={onSedeChange}
+                />
               </ReporteField>
               <ReporteField label="Periodo">
                 <div className="credix-report-period-row">
@@ -1195,6 +1223,9 @@ export function ReporteCreditoIndexPage() {
                   />
                 </div>
               </ReporteField>
+              <p className="credix-report-card-hint">
+                Evolución mensual de saldo de cartera de la sede (cuadre gerencial).
+              </p>
             </CredixReportBox>
 
             <CredixReportBox
@@ -1210,7 +1241,7 @@ export function ReporteCreditoIndexPage() {
                       onClick: () =>
                         runOpenReport('Central de riesgo', () =>
                           downloadCentralRiesgoGenerarTxt({
-                            oficinaId: oficinaSesion,
+                            oficinaId: oficinaConsulta,
                             anio: riesgoAnio,
                             mes: riesgoMes,
                           }),
@@ -1220,8 +1251,12 @@ export function ReporteCreditoIndexPage() {
                 />
               }
             >
-              <ReporteField label="Oficina">
-                <OficinaSelect disabled value={oficinaSesion} />
+              <ReporteField label={esCentral ? 'Sede' : 'Oficina'}>
+                <OficinaSelect
+                  disabled={!esCentral}
+                  value={oficinaConsulta > 0 ? oficinaConsulta : undefined}
+                  onChange={onSedeChange}
+                />
               </ReporteField>
               <ReporteField label="Periodo">
                 <div className="credix-report-period-row">
@@ -1239,6 +1274,9 @@ export function ReporteCreditoIndexPage() {
                   />
                 </div>
               </ReporteField>
+              <p className="credix-report-card-hint">
+                Archivo regulatorio TXT del mes/sede (no es reporte de cobranza interna).
+              </p>
             </CredixReportBox>
           </ReportesSection>
         ) : null}

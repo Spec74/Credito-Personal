@@ -120,7 +120,11 @@ public static class RptSimuladorPlanPagosPdfDocument
     {
         container.Row(row =>
         {
-            row.ConstantItem(112).Height(52).PaddingRight(8).Image(logo).FitArea();
+            row.ConstantItem(CredixReportTokens.LogoWidthPt)
+                .Height(CredixReportTokens.LogoHeightPt)
+                .PaddingRight(8)
+                .Image(logo)
+                .FitArea();
             row.RelativeItem().Background(Brand).PaddingVertical(11).AlignMiddle().AlignCenter()
                 .Text("PLAN DE PAGOS")
                 .Bold()

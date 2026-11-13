@@ -93,19 +93,24 @@ public static class CredixLegacyPdfDocument
             .PaddingBottom(6)
             .Row(row =>
             {
-                row.ConstantItem(88).Height(46).Image(logo).FitArea();
-                row.RelativeItem().AlignMiddle().AlignCenter().Column(col =>
+                row.ConstantItem(CredixReportTokens.LogoWidthPt)
+                    .Height(CredixReportTokens.LogoHeightPt)
+                    .Image(logo)
+                    .FitArea();
+                row.RelativeItem().AlignMiddle().AlignCenter().PaddingHorizontal(8).Column(col =>
                 {
                     col.Item().Text(CredixReportTokens.CompanyLegalName)
                         .Bold()
-                        .FontSize(8)
+                        .FontSize(CredixReportTokens.FontSizeCompany)
                         .FontColor(CredixReportTokens.Brand);
-                    col.Item().PaddingTop(1).Text(title)
+                    col.Item().PaddingTop(2).Text(title)
                         .Bold()
                         .FontSize(FontSizeTitle)
                         .FontColor(Colors.Black);
                 });
-                row.ConstantItem(120).AlignMiddle().AlignRight().Text(printedAt).FontSize(8);
+                row.ConstantItem(118).AlignMiddle().AlignRight()
+                    .Text(printedAt)
+                    .FontSize(CredixReportTokens.FontSizeMeta);
             });
     }
 
@@ -302,7 +307,7 @@ public static class CredixLegacyPdfDocument
     }
 
     public static float ResolveBodyFont(int columnCount) =>
-        columnCount >= 20 ? 6.2f : columnCount >= 12 ? 6.8f : FontSizeBody;
+        columnCount >= 20 ? 7.2f : columnCount >= 12 ? 7.8f : FontSizeBody;
 
     /// <summary>
     /// Ancho relativo según el texto real (encabezado + celdas), con piso por tipo de columna.

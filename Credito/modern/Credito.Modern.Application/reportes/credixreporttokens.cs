@@ -31,10 +31,15 @@ public static class CredixReportTokens
     public const string DateTimeFormat = "dd/MM/yyyy HH:mm";
     public const string DateFormat = "dd/MM/yyyy";
 
-    public const float FontSizeBody = 7.5f;
-    public const float FontSizeTitle = 11f;
-    public const float FontSizeMeta = 7.5f;
-    public const float FontSizeFooter = 7.5f;
+    /// <summary>Cuerpo legible en pantalla e impresión (evitar &lt; 8 pt en tablas densas).</summary>
+    public const float FontSizeBody = 8.5f;
+    public const float FontSizeTitle = 13f;
+    public const float FontSizeMeta = 8.5f;
+    public const float FontSizeFooter = 8f;
+    public const float FontSizeCompany = 10.5f;
+    /// <summary>Logo dominante en la banda de título (estándar único).</summary>
+    public const float LogoWidthPt = 128f;
+    public const float LogoHeightPt = 64f;
 
     public static readonly Color Brand = Color.FromHex(BrandHex);
     public static readonly Color BrandDark = Color.FromHex(BrandDarkHex);

@@ -1128,7 +1128,7 @@ ul.credix-stats--module li span.red {
   border: 1px solid var(--credix-border);
   border-left: 4px solid var(--credix-brand);
   border-radius: 0 var(--credix-radius) var(--credix-radius) 0;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--credix-text-muted);
   line-height: 1.55;
 }
@@ -1306,10 +1306,15 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-report-card-hint {
-  margin: 0;
+  margin: 4px 0 0;
+  grid-column: 1 / -1;
   font-size: 13px;
   color: var(--credix-text-muted);
   line-height: 1.45;
+}
+
+.credix-reportes-toolbar--sede {
+  margin-bottom: 0;
 }
 
 .credix-report-card__footer {
@@ -2574,7 +2579,7 @@ ul.credix-stats--module li span.red {
   background: var(--credix-table-head) !important;
   color: var(--credix-ink-brand) !important;
   font-weight: 600;
-  font-size: 12px;
+  font-size: 13px;
   border-color: var(--credix-brand-line) !important;
   white-space: nowrap;
 }
@@ -2611,7 +2616,7 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-informe-table.ant-table .ant-table-cell {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .credix-informe-page ul.credix-stats li {
