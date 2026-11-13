@@ -15,6 +15,7 @@ public sealed class CentralRiesgoGenerarReadService(IOptions<SqlDatabaseOptions>
         int oficinaId,
         int anio,
         int mes,
+        bool regenerar = false,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(_connectionString))
@@ -42,7 +43,13 @@ public sealed class CentralRiesgoGenerarReadService(IOptions<SqlDatabaseOptions>
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
         var command = new CommandDefinition(
             "CREDITO.usp_CentralRiesgoGenerar",
-            new { OficinaId = oficinaId, Anio = anio, Mes = mes },
+            new
+            {
+                OficinaId = oficinaId,
+                Anio = anio,
+                Mes = mes,
+                Regenerar = regenerar,
+            },
             commandType: CommandType.StoredProcedure,
             cancellationToken: cancellationToken);
         var rows = await connection.QueryAsync<CentralRiesgoGenerarRowDto>(command).ConfigureAwait(false);

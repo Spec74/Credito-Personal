@@ -1203,7 +1203,8 @@ export function ReporteCreditoIndexPage() {
                 </div>
               </ReporteField>
               <p className="credix-report-card-hint">
-                Archivo regulatorio TXT del mes/sede (no es reporte de cobranza interna).
+                Archivo regulatorio TXT del mes/sede (snapshot cacheado por oficina). No es cobranza
+                interna.
               </p>
             </CredixReportBox>
           </ReportesSection>

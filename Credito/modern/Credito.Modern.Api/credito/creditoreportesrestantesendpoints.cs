@@ -46,6 +46,7 @@ internal static class CreditoReportesRestantesEndpoints
                     int? oficinaId,
                     int? anio,
                     int? mes,
+                    bool? regenerar,
                     ICentralRiesgoGenerarReadService centralRiesgo,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -78,9 +79,9 @@ internal static class CreditoReportesRestantesEndpoints
                     var log = loggerFactory.CreateLogger("CentralRiesgoGenerarTxt");
                     try
                     {
-                        var items = await centralRiesgo.ListarAsync(oficinaId.Value, anio.Value, mes.Value, ct).ConfigureAwait(false);
+                        var items = await centralRiesgo.ListarAsync(oficinaId.Value, anio.Value, mes.Value, regenerar == true, ct).ConfigureAwait(false);
                         var bytes = CentralRiesgoGenerarTxtFormatter.ToUtf8Bytes(items);
-                        return TypedResults.File(bytes, "text/plain; charset=utf-8", fileDownloadName: "DM007898.txt");
+                        return TypedResults.File(bytes, "text/plain; charset=utf-8", fileDownloadName: $"DM007898_O{oficinaId.Value}_{anio.Value}{mes.Value:D2}.txt");
                     }
                     catch (InvalidOperationException ex)
                     {
@@ -3097,6 +3098,7 @@ internal static class CreditoReportesRestantesEndpoints
                     int? oficinaId,
                     int? anio,
                     int? mes,
+                    bool? regenerar,
                     ICentralRiesgoGenerarReadService centralRiesgo,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -3129,7 +3131,7 @@ internal static class CreditoReportesRestantesEndpoints
                     var log = loggerFactory.CreateLogger("CentralRiesgoGenerar");
                     try
                     {
-                        var items = await centralRiesgo.ListarAsync(oficinaId.Value, anio.Value, mes.Value, ct).ConfigureAwait(false);
+                        var items = await centralRiesgo.ListarAsync(oficinaId.Value, anio.Value, mes.Value, regenerar == true, ct).ConfigureAwait(false);
                         return TypedResults.Ok(items.ToList());
                     }
                     catch (InvalidOperationException ex)
@@ -3162,7 +3164,7 @@ internal static class CreditoReportesRestantesEndpoints
                 })
             .WithName("CreditoCentralRiesgoGenerar")
             .WithSummary(
-                "Solo lectura: CREDITO.usp_CentralRiesgoGenerar(OficinaId, Anio, Mes). Parámetros obligatorios; oficinaId debe coincidir con vendix:oficina_id del JWT. CreditoUser. Equivale a ReporteBL.ListarReporteCentralRiesgo (sin oficina null para todas).")
+                "Central de riesgos por sede: CREDITO.usp_CentralRiesgoGenerar(OficinaId, Anio, Mes, Regenerar). Cache y lectura filtrados por oficina. regenerar=true recalcula el snapshot de la sede/periodo. CreditoUser.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<List<CentralRiesgoGenerarRowDto>>(StatusCodes.Status200OK, "application/json")
@@ -3180,6 +3182,7 @@ internal static class CreditoReportesRestantesEndpoints
                     int? oficinaId,
                     int? anio,
                     int? mes,
+                    bool? regenerar,
                     ICentralRiesgoGenerarReadService centralRiesgo,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -3212,9 +3215,9 @@ internal static class CreditoReportesRestantesEndpoints
                     var log = loggerFactory.CreateLogger("CentralRiesgoGenerarCsv");
                     try
                     {
-                        var items = await centralRiesgo.ListarAsync(oficinaId.Value, anio.Value, mes.Value, ct).ConfigureAwait(false);
+                        var items = await centralRiesgo.ListarAsync(oficinaId.Value, anio.Value, mes.Value, regenerar == true, ct).ConfigureAwait(false);
                         var bytes = CentralRiesgoGenerarCsvFormatter.ToUtf8BomCsv(items);
-                        return TypedResults.File(bytes, "text/csv; charset=utf-8", fileDownloadName: "central-riesgo-generar.csv");
+                        return TypedResults.File(bytes, "text/csv; charset=utf-8", fileDownloadName: $"DM007898_O{oficinaId.Value}_{anio.Value}{mes.Value:D2}.csv");
                     }
                     catch (InvalidOperationException ex)
                     {
@@ -3267,6 +3270,7 @@ internal static class CreditoReportesRestantesEndpoints
                     int? oficinaId,
                     int? anio,
                     int? mes,
+                    bool? regenerar,
                     ICentralRiesgoGenerarReadService centralRiesgo,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -3299,7 +3303,7 @@ internal static class CreditoReportesRestantesEndpoints
                     var log = loggerFactory.CreateLogger("CentralRiesgoGenerarPdf");
                     try
                     {
-                        var items = await centralRiesgo.ListarAsync(oficinaId.Value, anio.Value, mes.Value, ct).ConfigureAwait(false);
+                        var items = await centralRiesgo.ListarAsync(oficinaId.Value, anio.Value, mes.Value, regenerar == true, ct).ConfigureAwait(false);
                         var csvBytes = CentralRiesgoGenerarCsvFormatter.ToUtf8BomCsv(items);
                         var pdfContext = await LegacyReportPdf.ResolveAsync(
                                 httpContext,
@@ -3309,7 +3313,7 @@ internal static class CreditoReportesRestantesEndpoints
                                 cancellationToken: ct)
                             .ConfigureAwait(false);
                         var bytes = TabularPdfDocument.FromUtf8BomCsv("Central de riesgo", csvBytes, context: pdfContext);
-                        return TypedResults.File(bytes, "application/pdf", fileDownloadName: "central-riesgo-generar.pdf");
+                        return TypedResults.File(bytes, "application/pdf", fileDownloadName: $"DM007898_O{oficinaId.Value}_{anio.Value}{mes.Value:D2}.pdf");
                     }
                     catch (InvalidOperationException ex)
                     {

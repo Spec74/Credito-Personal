@@ -1205,6 +1205,8 @@ export interface CentralRiesgoParams {
   oficinaId: number
   anio: number
   mes: number
+  /** Recalcula el snapshot de la sede/periodo (borra cache previo de esa oficina). */
+  regenerar?: boolean
 }
 
 export interface CreditoVencidoMetricas {
@@ -1214,12 +1216,21 @@ export interface CreditoVencidoMetricas {
   vencidoIrrecuperable: number | null
 }
 
+function centralRiesgoFileBase(p: CentralRiesgoParams): string {
+  const mes = String(p.mes).padStart(2, '0')
+  return `DM007898_O${p.oficinaId}_${p.anio}${mes}`
+}
+
 function queryCentralRiesgo(p: CentralRiesgoParams): string {
-  return new URLSearchParams({
+  const q = new URLSearchParams({
     oficinaId: String(p.oficinaId),
     anio: String(p.anio),
     mes: String(p.mes),
-  }).toString()
+  })
+  if (p.regenerar) {
+    q.set('regenerar', 'true')
+  }
+  return q.toString()
 }
 
 export function fetchCentralRiesgoGenerar(
@@ -1235,7 +1246,7 @@ export function downloadCentralRiesgoGenerarCsv(
 ): Promise<void> {
   return apiDownload(
     `/credito/central-riesgo-generar-csv?${queryCentralRiesgo(params)}`,
-    'central-riesgo-generar.csv',
+    `${centralRiesgoFileBase(params)}.csv`,
   )
 }
 
@@ -1244,7 +1255,7 @@ export function downloadCentralRiesgoGenerarPdf(
 ): Promise<void> {
   return apiDownload(
     `/credito/central-riesgo-generar-pdf?${queryCentralRiesgo(params)}`,
-    'central-riesgo-generar.pdf',
+    `${centralRiesgoFileBase(params)}.pdf`,
   )
 }
 
@@ -1253,7 +1264,7 @@ export function downloadCentralRiesgoGenerarTxt(
 ): Promise<void> {
   return apiDownload(
     `/credito/central-riesgo-generar-txt?${queryCentralRiesgo(params)}`,
-    'DM007898.txt',
+    `${centralRiesgoFileBase(params)}.txt`,
   )
 }
 
