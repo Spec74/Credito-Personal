@@ -5,19 +5,19 @@ using Microsoft.Extensions.Options;
 
 namespace Credito.Modern.Infrastructure.Clientes;
 
-/// <summary>Paridad <c>ClienteBL.BuscarUsuario</c>.</summary>
+/// <summary>Usuarios activos por documento/nombre. Expone UsuarioId (no PersonaId como id operativo).</summary>
 public sealed class UsuarioBuscarReadService(IOptions<SqlDatabaseOptions> options)
     : IUsuarioBuscarReadService
 {
     private readonly string _connectionString = options.Value.ConnectionString;
 
-    public async Task<IReadOnlyList<ClienteBuscarItemDto>> BuscarAsync(
+    public async Task<IReadOnlyList<UsuarioBuscarItemDto>> BuscarAsync(
         string term,
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(term) || term.Trim().Length < 2)
         {
-            return Array.Empty<ClienteBuscarItemDto>();
+            return Array.Empty<UsuarioBuscarItemDto>();
         }
 
         EnsureConnection();
@@ -30,6 +30,7 @@ public sealed class UsuarioBuscarReadService(IOptions<SqlDatabaseOptions> option
             new CommandDefinition(
                 """
                 SELECT TOP (10)
+                    u.UsuarioId,
                     p.PersonaId,
                     p.NumeroDocumento,
                     p.NombreCompleto
@@ -39,6 +40,7 @@ public sealed class UsuarioBuscarReadService(IOptions<SqlDatabaseOptions> option
                   AND (
                       p.NombreCompleto LIKE @Clave
                       OR p.NumeroDocumento LIKE @Clave
+                      OR u.NombreUsuario LIKE @Clave
                   )
                 ORDER BY p.NombreCompleto;
                 """,
@@ -46,7 +48,8 @@ public sealed class UsuarioBuscarReadService(IOptions<SqlDatabaseOptions> option
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
         return rows
-            .Select(r => new ClienteBuscarItemDto(
+            .Select(r => new UsuarioBuscarItemDto(
+                r.UsuarioId,
                 r.PersonaId,
                 $"{r.NumeroDocumento} {r.NombreCompleto}".Trim()))
             .ToList();
@@ -63,6 +66,7 @@ public sealed class UsuarioBuscarReadService(IOptions<SqlDatabaseOptions> option
 
     private sealed class Row
     {
+        public int UsuarioId { get; init; }
         public int PersonaId { get; init; }
         public string NumeroDocumento { get; init; } = string.Empty;
         public string NombreCompleto { get; init; } = string.Empty;

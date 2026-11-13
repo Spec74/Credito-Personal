@@ -206,6 +206,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   const [usuarioTerm, setUsuarioTerm] = useState('')
   const [activeTab, setActiveTab] = useState('ingreso')
   const [fondeoForm] = Form.useForm()
+  const [temporalForm] = Form.useForm()
   const bovedaId = boveda.bovedaId
   const operacionesDeshabilitadas = boveda.indCierre || oficinaId < 1
   const usuarioTermDebounced = useDebouncedValue(usuarioTerm.trim(), 350)
@@ -215,6 +216,12 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     message.success(msg)
     invalidateBoveda(queryClient, oficinaId, bovedaId)
   }
+
+  // Tras crear temporal, el form pasa a modo “solo transferir”: fijar valores sin remount agresivo.
+  useEffect(() => {
+    if (!existeTemporal) return
+    temporalForm.setFieldsValue({ usuarioId: 0 })
+  }, [existeTemporal, temporalForm])
 
   const oficinaOk = oficinaId >= 1
 
@@ -386,12 +393,24 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
 
   const temporal = useMutation({
     mutationFn: asignarBovedaTemporal,
-    onSuccess: (r) =>
+    onSuccess: (r) => {
+      const asignoNueva = (r.bovedaTemporalId ?? 0) > 0 && !existeTemporal
+      temporalForm.resetFields()
+      temporalForm.setFieldsValue({
+        usuarioId: 0,
+        tipoPagoId: 1,
+        importe: undefined,
+        descripcion: undefined,
+      })
+      setUsuarioTerm('')
       onOk(
-        r.bovedaTemporalId
-          ? `Bóveda temporal #${r.bovedaTemporalId}`
-          : 'Transferencia a temporal registrada',
-      ),
+        asignoNueva
+          ? `Bóveda temporal #${r.bovedaTemporalId}. El responsable recibió rol ENCARGADO: debe volver a iniciar sesión para asignar cajas desde la temporal.`
+          : r.bovedaTemporalId
+            ? `Transferencia a temporal #${r.bovedaTemporalId}`
+            : 'Transferencia a temporal registrada',
+      )
+    },
     onError: (e) => message.error(errMsg(e)),
   })
 
@@ -911,6 +930,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     ),
     temporal: (
           <Form
+            form={temporalForm}
             className="boveda-operaciones-form"
             layout="vertical"
             initialValues={{
@@ -922,7 +942,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                 oficinaId,
                 importe: v.importe,
                 descripcion: v.descripcion,
-                usuarioId: existeTemporal ? 0 : v.usuarioId,
+                usuarioId: existeTemporal ? 0 : Number(v.usuarioId),
                 tipoPagoId: v.tipoPagoId && v.tipoPagoId > 0 ? v.tipoPagoId : 1,
               })
             }
@@ -932,31 +952,42 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                 type="info"
                 showIcon
                 style={{ marginBottom: 12 }}
-                message="Ya existe una bóveda temporal abierta. Esta operación solo transferirá saldo a la temporal actual."
+                message="Ya existe una bóveda temporal abierta. Solo se transferirá saldo adicional a esa temporal."
+                description="Quien tenga rol ENCARGADO en esta oficina descuenta de la temporal al asignar cajas. Al cerrar la temporal se quita ENCARGADO de la oficina."
               />
             ) : (
-              <Form.Item
-                name="usuarioId"
-                label="Encargado de bóveda temporal"
-                rules={[{ required: true, message: 'Seleccione un encargado' }]}
-              >
-                <Select
-                  showSearch
-                  filterOption={false}
-                  onSearch={setUsuarioTerm}
-                  loading={usuariosQuery.isFetching}
-                  placeholder="Buscar usuario encargado"
-                  options={(usuariosQuery.data ?? []).map((u) => ({
-                    value: u.personaId,
-                    label: u.label,
-                  }))}
-                  notFoundContent={
-                    usuarioTermDebounced.length < 2
-                      ? 'Escriba al menos 2 caracteres'
-                      : 'Sin usuarios encontrados'
-                  }
+              <>
+                <Alert
+                  type="info"
+                  showIcon
+                  style={{ marginBottom: 12 }}
+                  message="Asignar bóveda temporal"
+                  description="El encargado de oficina (o administrador) elige al responsable. Ese usuario recibe el rol ENCARGADO: es quien abre cajas y el monto sale de la temporal, no de la principal. Tras asignar, el responsable debe volver a iniciar sesión."
                 />
-              </Form.Item>
+                <Form.Item
+                  name="usuarioId"
+                  label="Responsable de bóveda temporal"
+                  rules={[{ required: true, message: 'Seleccione el responsable' }]}
+                  extra="Se guarda el UsuarioId (no PersonaId). Busque por documento o nombre."
+                >
+                  <Select
+                    showSearch
+                    filterOption={false}
+                    onSearch={setUsuarioTerm}
+                    loading={usuariosQuery.isFetching}
+                    placeholder="Buscar usuario responsable"
+                    options={(usuariosQuery.data ?? []).map((u) => ({
+                      value: u.usuarioId,
+                      label: u.label,
+                    }))}
+                    notFoundContent={
+                      usuarioTermDebounced.length < 2
+                        ? 'Escriba al menos 2 caracteres'
+                        : 'Sin usuarios encontrados'
+                    }
+                  />
+                </Form.Item>
+              </>
             )}
             <Form.Item
               name="tipoPagoId"
@@ -964,13 +995,18 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               rules={[{ required: true, message: 'Seleccione el medio' }]}
             >
               <Select
-                loading={tiposPagoQuery.isLoading}
+                loading={tiposPagoQuery.isLoading && !tiposPagoQuery.data}
                 placeholder="Efectivo, Yape, banco…"
                 options={tipoPagoOptions}
                 {...tipoPagoSelectProps}
               />
             </Form.Item>
-            {importeDescripcionFields}
+            <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
+              <InputNumber min={0.01} step={0.01} precision={2} style={{ width: '100%' }} />
+            </Form.Item>
+            <Form.Item name="descripcion" label="Descripción / glosa" rules={glosaRules}>
+              <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
+            </Form.Item>
             {formActions(
               existeTemporal ? 'Transferir a temporal' : 'Asignar temporal',
               temporal.isPending,

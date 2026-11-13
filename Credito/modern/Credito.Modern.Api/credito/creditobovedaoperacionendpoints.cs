@@ -1207,10 +1207,10 @@ internal static class CreditoBovedaOperacionEndpoints
                     var log = loggerFactory.CreateLogger("MontoBovedaAsignacion");
                     try
                     {
-                        var monto = await cajaAsignacion
+                        var (monto, esTemporal) = await cajaAsignacion
                             .ObtenerMontoBovedaAsignacionAsync(oficinaId, usuarioId, ct)
                             .ConfigureAwait(false);
-                        return TypedResults.Ok(new MontoBovedaAsignacionResponse(monto));
+                        return TypedResults.Ok(new MontoBovedaAsignacionResponse(monto, esTemporal));
                     }
                     catch (InvalidOperationException ex)
                     {

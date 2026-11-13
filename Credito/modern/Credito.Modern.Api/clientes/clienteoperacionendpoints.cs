@@ -492,7 +492,7 @@ internal static class ClienteOperacionEndpoints
 
         app.MapGet(
                 "/api/v1/usuarios/buscar",
-                async Task<Results<Ok<List<ClienteBuscarItemDto>>, ProblemHttpResult>> (
+                async Task<Results<Ok<List<UsuarioBuscarItemDto>>, ProblemHttpResult>> (
                     string? term,
                     IUsuarioBuscarReadService usuarios,
                     ILoggerFactory loggerFactory,
@@ -529,10 +529,11 @@ internal static class ClienteOperacionEndpoints
                     }
                 })
             .WithName("UsuariosBuscar")
-            .WithSummary("Autocomplete usuarios activos (paridad ClienteController.BuscarUsuario). Mínimo 2 caracteres.")
+            .WithSummary(
+                "Autocomplete usuarios activos. Devuelve usuarioId (operativo) + personaId + label. Mínimo 2 caracteres.")
             .WithTags("usuarios")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
-            .Produces<List<ClienteBuscarItemDto>>(StatusCodes.Status200OK, "application/json")
+            .Produces<List<UsuarioBuscarItemDto>>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 

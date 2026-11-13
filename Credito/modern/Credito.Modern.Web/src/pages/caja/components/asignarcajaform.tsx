@@ -94,6 +94,8 @@ export function AsignarCajaForm({
   const cajaIdSeleccionada = Form.useWatch('cajaId', form)
   const cajas = cajasQuery.data ?? []
   const montoBoveda = bovedaQuery.data?.monto
+  const esBovedaTemporal = bovedaQuery.data?.esBovedaTemporal === true
+  const fuenteBoveda = esBovedaTemporal ? 'bóveda temporal' : 'bóveda principal'
   const cajaSeleccionada = cajas.find((c) => c.cajaId === cajaIdSeleccionada)
   // El admin puede corregir el cajero del maestro sin salir del modal; los demás perfiles
   // solo pueden abrir cajas que ya lo tengan configurado.
@@ -184,13 +186,20 @@ export function AsignarCajaForm({
         />
       ) : (
         <Alert
-          type="info"
+          type={esBovedaTemporal ? 'success' : 'info'}
           showIcon
           style={{ marginBottom: 12 }}
           message={
             montoBoveda == null
               ? 'Consultando saldo de bóveda…'
-              : `Saldo en bóveda: ${formatMoney(montoBoveda)}`
+              : `Saldo en ${fuenteBoveda}: ${formatMoney(montoBoveda)}`
+          }
+          description={
+            montoBoveda == null
+              ? undefined
+              : esBovedaTemporal
+                ? 'Con rol ENCARGADO el monto de apertura se descuenta de la bóveda temporal.'
+                : 'Sin rol ENCARGADO en esta oficina el monto sale de la bóveda principal (aunque exista temporal).'
           }
         />
       )}
@@ -291,7 +300,9 @@ export function AsignarCajaForm({
           label="Saldo inicial"
           extra={
             montoBoveda != null ? (
-              <Text type="secondary">Máximo: {formatMoney(montoBoveda)} (bóveda).</Text>
+              <Text type="secondary">
+                Máximo: {formatMoney(montoBoveda)} ({fuenteBoveda}).
+              </Text>
             ) : null
           }
           rules={[

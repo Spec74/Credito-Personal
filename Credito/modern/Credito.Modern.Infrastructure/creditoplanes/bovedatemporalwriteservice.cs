@@ -61,6 +61,7 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
+            int? usuarioEncargadoResuelto = null;
             if (usuarioAsignadoId > 0)
             {
                 if (existeTemporal)
@@ -69,10 +70,19 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
                     return ("Ya Existe una boveda Temporal Creada", null);
                 }
 
-                if (usuarioAsignadoId < 1)
+                usuarioEncargadoResuelto = await ResolverUsuarioIdAsync(
+                        connection,
+                        transaction,
+                        usuarioAsignadoId,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (usuarioEncargadoResuelto is null)
                 {
                     await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                    return ("usuarioId debe ser >= 1 para asignación.", null);
+                    return (
+                        "El encargado seleccionado no es un usuario activo. Busque de nuevo y elija un usuario válido.",
+                        null);
                 }
             }
             else
@@ -105,7 +115,7 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
             }
 
             int bovedaTemporalId;
-            if (usuarioAsignadoId > 0)
+            if (usuarioEncargadoResuelto is > 0)
             {
                 bovedaTemporalId = await connection.ExecuteScalarAsync<int>(
                     new CommandDefinition(
@@ -138,7 +148,7 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
                     connection,
                     transaction,
                     oficinaId,
-                    usuarioAsignadoId,
+                    usuarioEncargadoResuelto.Value,
                     cancellationToken).ConfigureAwait(false);
 
                 descripcion = "ASIGNACION TEMPORAL: " + descripcion;
@@ -188,6 +198,45 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
         }
     }
 
+    /// <summary>
+    /// Resuelve UsuarioId operativo. Acepta UsuarioId directo; si no existe, intenta PersonaId→Usuario
+    /// (compatibilidad con clientes que enviaban personaId por error).
+    /// </summary>
+    private static async Task<int?> ResolverUsuarioIdAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        int id,
+        CancellationToken cancellationToken)
+    {
+        var porUsuario = await connection.ExecuteScalarAsync<int?>(
+            new CommandDefinition(
+                """
+                SELECT TOP 1 UsuarioId
+                FROM MAESTRO.Usuario
+                WHERE UsuarioId = @Id AND Estado = CAST(1 AS bit);
+                """,
+                new { Id = id },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (porUsuario is > 0)
+        {
+            return porUsuario;
+        }
+
+        return await connection.ExecuteScalarAsync<int?>(
+            new CommandDefinition(
+                """
+                SELECT TOP 1 UsuarioId
+                FROM MAESTRO.Usuario
+                WHERE PersonaId = @Id AND Estado = CAST(1 AS bit)
+                ORDER BY UsuarioId;
+                """,
+                new { Id = id },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
+
     private static async Task EnsureEncargadoRolAsync(
         SqlConnection connection,
         SqlTransaction transaction,
@@ -195,12 +244,13 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
         int usuarioId,
         CancellationToken cancellationToken)
     {
+        // Exacto "ENCARGADO" (paridad CajaDiarioBL.AsignarUsuarioCaja). No LIKE %ENCARGADO%.
         var rolId = await connection.ExecuteScalarAsync<int?>(
             new CommandDefinition(
                 """
                 SELECT TOP 1 RolId
                 FROM MAESTRO.Rol
-                WHERE Denominacion LIKE N'%ENCARGADO%'
+                WHERE Denominacion = N'ENCARGADO'
                   AND Estado = CAST(1 AS bit);
                 """,
                 transaction: transaction,

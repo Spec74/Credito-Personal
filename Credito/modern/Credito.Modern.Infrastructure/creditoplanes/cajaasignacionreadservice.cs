@@ -41,7 +41,7 @@ public sealed class CajaAsignacionReadService(IOptions<SqlDatabaseOptions> optio
         return rows.ToList();
     }
 
-    public async Task<decimal> ObtenerMontoBovedaAsignacionAsync(
+    public async Task<(decimal Monto, bool EsBovedaTemporal)> ObtenerMontoBovedaAsignacionAsync(
         int oficinaId,
         int usuarioId,
         CancellationToken cancellationToken = default)
@@ -89,7 +89,7 @@ public sealed class CajaAsignacionReadService(IOptions<SqlDatabaseOptions> optio
                 new { OficinaId = oficinaId, IndTemporal = esEncargado },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-        return monto ?? 0m;
+        return (monto ?? 0m, esEncargado);
     }
 
     private void EnsureConnection()

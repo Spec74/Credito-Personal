@@ -1,9 +1,9 @@
 namespace Credito.Modern.Application.Clientes;
 
-/// <summary>Paridad <c>ClienteController.BuscarUsuario</c> (personaId + etiqueta).</summary>
+/// <summary>Autocomplete usuarios activos (bóveda temporal, etc.).</summary>
 public interface IUsuarioBuscarReadService
 {
-    Task<IReadOnlyList<ClienteBuscarItemDto>> BuscarAsync(
+    Task<IReadOnlyList<UsuarioBuscarItemDto>> BuscarAsync(
         string term,
         CancellationToken cancellationToken = default);
 }

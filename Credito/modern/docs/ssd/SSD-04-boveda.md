@@ -11,7 +11,8 @@ Fondo de oficina: saldos, movimientos, transferencias (caja, caja chica, bancos,
 
 | Rol | Uso |
 |-----|-----|
-| Encargado / administrador | Operar bóveda, temporal (alta de encargado), cierre, transferencias |
+| Encargado / administrador | Opera bóveda principal; asigna **bóveda temporal** a un responsable |
+| Responsable de temporal | Recibe rol `ENCARGADO` al asignar; abre cajas desde Saldos; el monto sale de la **temporal** (re-login tras alta) |
 | Gestor (con menú BOVEDA) | Misma pantalla; la API de movimiento es `CreditoUser` |
 | Cajero | No opera bóveda desde caja diario (eso es SSD-03) |
 

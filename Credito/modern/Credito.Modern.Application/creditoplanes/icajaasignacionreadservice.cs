@@ -6,7 +6,11 @@ public interface ICajaAsignacionReadService
         int oficinaId,
         CancellationToken cancellationToken = default);
 
-    Task<decimal> ObtenerMontoBovedaAsignacionAsync(
+    /// <summary>
+    /// Saldo de la bóveda que usará <c>asignar-caja</c>: temporal si el usuario tiene
+    /// <c>UsuarioRol.ENCARGADO</c> en la oficina; principal en caso contrario.
+    /// </summary>
+    Task<(decimal Monto, bool EsBovedaTemporal)> ObtenerMontoBovedaAsignacionAsync(
         int oficinaId,
         int usuarioId,
         CancellationToken cancellationToken = default);

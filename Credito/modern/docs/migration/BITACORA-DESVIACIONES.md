@@ -4,6 +4,29 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-11-13 — Bóveda temporal: UsuarioId, ENCARGADO y fuente del monto
+
+**Qué hay:** El combo «Responsable de bóveda temporal» enviaba
+`personaId` como `usuarioId`, así que `UsuarioRol.ENCARGADO` se
+grababa mal y al asignar caja el débito seguía saliendo de la
+**principal**. `/usuarios/buscar` ahora devuelve `usuarioId` +
+`personaId`; la SPA usa `usuarioId`. El write resuelve UsuarioId
+(y acepta PersonaId→Usuario por compatibilidad). Rol exacto
+`ENCARGADO` (no `LIKE %ENCARGADO%`). `monto-boveda-asignacion`
+expone `esBovedaTemporal`. Formulario temporal con `Form`
+propio (deja de «recargar» campos al invalidar queries).
+
+**Lógica de negocio (paridad MVC):** encargado/admin de oficina
+asigna temporal → el responsable recibe `ENCARGADO` → ese perfil
+abre cajas y el saldo inicial sale de la **temporal**. Sin
+`UsuarioRol.ENCARGADO` el débito es de la principal. Cerrar
+temporal quita todos los `ENCARGADO` de la oficina
+(`usp_CerrarBovedaTemporal`). El responsable debe **re-login**
+para ver el menú/acciones de asignar caja (JWT).
+
+**Qué no hay:** no se guarda el responsable en `CREDITO.Boveda`;
+no se cambia el criterio legado «ENCARGADO ⇒ temporal».
+
 ### 2026-11-12 — Mantenibilidad: endpoints crédito partidos por dominio
 
 **Qué hay:** `creditooperacionendpoints.cs` y

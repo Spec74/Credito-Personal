@@ -20,10 +20,16 @@ export function fetchCajasParaAsignar(
   )
 }
 
+export interface MontoBovedaAsignacion {
+  monto: number
+  /** True = el JWT tiene UsuarioRol ENCARGADO → saldo de bóveda temporal. */
+  esBovedaTemporal: boolean
+}
+
 export function fetchMontoBovedaAsignacion(
   oficinaId: number,
-): Promise<{ monto: number }> {
-  return apiFetch<{ monto: number }>(
+): Promise<MontoBovedaAsignacion> {
+  return apiFetch<MontoBovedaAsignacion>(
     `/credito/monto-boveda-asignacion?oficinaId=${oficinaId}`,
   )
 }

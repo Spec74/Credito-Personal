@@ -1,5 +1,5 @@
 import { apiDownload, apiFetch } from './client'
-import type { CajaDiarioOperacionResponse, ClienteBuscarItem } from '../types/api'
+import type { CajaDiarioOperacionResponse } from '../types/api'
 
 export interface BovedaAbiertaDto {
   bovedaId: number
@@ -424,8 +424,15 @@ export function fetchCajasAbiertasTransferenciaBoveda(
   )
 }
 
-export function buscarUsuariosBoveda(term: string): Promise<ClienteBuscarItem[]> {
-  return apiFetch<ClienteBuscarItem[]>(
+/** Usuario activo para asignar bóveda temporal (usuarioId operativo, no personaId). */
+export interface UsuarioBovedaBuscarItem {
+  usuarioId: number
+  personaId: number
+  label: string
+}
+
+export function buscarUsuariosBoveda(term: string): Promise<UsuarioBovedaBuscarItem[]> {
+  return apiFetch<UsuarioBovedaBuscarItem[]>(
     `/usuarios/buscar?term=${encodeURIComponent(term)}`,
   )
 }
