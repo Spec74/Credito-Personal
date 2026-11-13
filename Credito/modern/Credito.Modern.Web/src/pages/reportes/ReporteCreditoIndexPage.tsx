@@ -34,9 +34,7 @@ import {
   downloadCentralRiesgoGenerarTxt,
   downloadClientesBloqueadosPdf,
   downloadClientesInactivosPdf,
-  downloadClientesInactivosPdfGestor,
   downloadClientesNuevosMesPdf,
-  downloadClientesNuevosMesPdfGestor,
   downloadClientesTopeCreditoPdf,
   downloadCobroDiarioCsv,
   downloadCobroDiarioPdf,
@@ -76,7 +74,10 @@ import {
 } from '../../utils/reporteCreditoAccess'
 import { reportesCreditoIndexBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { runOpenReport } from '../../utils/reportExport'
-import { CREDITO_ESTADO_REPORTE_OPTIONS } from '../../utils/creditoEstados'
+import {
+  CREDITO_ESTADO_RENTABILIDAD_OPTIONS,
+  CREDITO_ESTADO_REPORTE_OPTIONS,
+} from '../../utils/creditoEstados'
 
 const MESES = [
   { value: 1, label: 'Enero' },
@@ -133,7 +134,8 @@ export function ReporteCreditoIndexPage() {
   const [gestorUsuario, setGestorUsuario] = useState<number | undefined>()
 
   const [rptGestor, setRptGestor] = useState<number | undefined>()
-  const [rptEstado, setRptEstado] = useState('CRE')
+  const [rptEstado, setRptEstado] = useState('DES')
+  const [rentEstado, setRentEstado] = useState('PAG')
   const [rentabilidadTodos, setRentabilidadTodos] = useState(false)
   const [rptRango, setRptRango] = useState<[Dayjs, Dayjs]>(monthRangeDefaults)
 
@@ -173,26 +175,6 @@ export function ReporteCreditoIndexPage() {
         ? gestorScreenParams
         : undefined,
     [gestorParams.usuarioId, gestorScreenParams],
-  )
-
-  const gestorNuevosScreenParams = useMemo(() => {
-    const ini = dayjs().startOf('month').format('YYYY-MM-DD')
-    const fin = dayjs().endOf('month').format('YYYY-MM-DD')
-    return {
-      ...gestorScreenParams,
-      fechaIni: ini,
-      fechaFin: fin,
-      pFechaIni: ini,
-      pFechaFin: fin,
-    }
-  }, [gestorScreenParams])
-
-  const gestorInactivosScreenParams = useMemo(
-    () => ({
-      ...gestorScreenParams,
-      sinRango: '1',
-    }),
-    [gestorScreenParams],
   )
 
   const gestorApiParams = useMemo(
@@ -268,9 +250,9 @@ export function ReporteCreditoIndexPage() {
     >
       <div className="credix-reportes-shell">
         <div className="credix-reportes-intro">
-          Cada tarjeta responde a una pregunta distinta (sin duplicar el mismo corte).{' '}
-          <strong>Ver pantalla</strong>, PDF y Excel usan los mismos filtros. Excel = CSV UTF-8, salvo{' '}
-          <Link to="/reportes/cobranza">Cobranza pagos</Link>. Operaciones del día:{' '}
+          Genere solo el informe que responde su pregunta de negocio (cada tarjeta es un corte
+          distinto). PDF/Excel usan los filtros de la tarjeta. Excel = CSV UTF-8, salvo{' '}
+          <Link to="/reportes/cobranza">Cobranza pagos</Link>. Operaciones:{' '}
           <Link to="/credito">Crédito → Operaciones</Link>.
         </div>
 
@@ -349,7 +331,7 @@ export function ReporteCreditoIndexPage() {
               onChange={onSedeChange}
             />
           </ReporteField>
-          <ReporteField label="Hasta la fecha">
+          <ReporteField label="Desembolsados hasta">
             <CredixDatePicker
               size="small"
               value={moraHasta}
@@ -365,7 +347,8 @@ export function ReporteCreditoIndexPage() {
             <InputNumber size="small" min={0} value={moraFin} onChange={(v) => setMoraFin(v ?? 9999)} style={{ width: '100%' }} />
           </ReporteField>
           <p className="credix-report-card-hint">
-            Corte de cartera en atraso por rango de días (no es el cobro programado del día).
+            Cartera con atraso hoy (días calculados a la fecha actual). «Desembolsados hasta»
+            limita créditos por fecha de desembolso — no es un corte histórico de mora.
           </p>
         </CredixReportBox>
 
@@ -452,7 +435,7 @@ export function ReporteCreditoIndexPage() {
         </div>
 
         <CredixReportBox
-          title="Cobro diario"
+          title="Cartera del gestor (ruta de cobro)"
           icon={<CalendarOutlined />}
           actions={
             <ReportExportActions
@@ -466,10 +449,10 @@ export function ReporteCreditoIndexPage() {
                   disabled: !gestorUsuario,
                   onClick: () => {
                     if (!gestorUsuario) {
-                      message.warning('Seleccione un gestor para cobro diario')
+                      message.warning('Seleccione un gestor para la ruta de cobro')
                       return
                     }
-                    runOpenReport('Cobro diario PDF', () =>
+                    runOpenReport('Cartera gestor PDF', () =>
                       downloadCobroDiarioPdf(
                         toCobroDiarioQuery(gestorParams.oficinaId, gestorUsuario),
                       ),
@@ -485,7 +468,7 @@ export function ReporteCreditoIndexPage() {
                       message.warning('Seleccione un gestor')
                       return
                     }
-                    runOpenReport('Cobro diario XLS', () =>
+                    runOpenReport('Cartera gestor XLS', () =>
                       downloadCobroDiarioCsv(
                         toCobroDiarioQuery(gestorParams.oficinaId, gestorUsuario),
                       ),
@@ -497,12 +480,13 @@ export function ReporteCreditoIndexPage() {
           }
         >
           <p className="credix-report-card-hint">
-            Agenda de cobro del día del gestor (cuotas a recaudar hoy). Exige gestor concreto.
+            Toda la cartera DES del gestor (vigente y en atraso), ordenada para ruta. Exige gestor;
+            no es solo «vence hoy».
           </p>
         </CredixReportBox>
 
         <CredixReportBox
-          title="Cobro diario · solo mora"
+          title="Cartera del gestor · solo atraso"
           icon={<TeamOutlined />}
           actions={
             <ReportExportActions
@@ -542,7 +526,8 @@ export function ReporteCreditoIndexPage() {
           }
         >
           <p className="credix-report-card-hint">
-            Del cobro del día, solo cuotas ya en mora (distinto del corte «Morosidad por días»).
+            Misma cartera del gestor filtrada a créditos con días de atraso o mora &gt; 0 (acción de
+            cobranza). Distinto del corte «Morosidad por días» de toda la sede.
           </p>
         </CredixReportBox>
 
@@ -576,62 +561,6 @@ export function ReporteCreditoIndexPage() {
         >
           <p className="credix-report-card-hint">
             Créditos con observación operativa (no equivale a mora ni a bloqueo de cliente).
-          </p>
-        </CredixReportBox>
-
-        <CredixReportBox
-          title="Clientes nuevos del mes"
-          icon={<UserOutlined />}
-          actions={
-            <ReportExportActions
-              screenTo="/informes/clientes-nuevos-mes"
-              screenSearchParams={gestorNuevosScreenParams}
-              exports={[
-                {
-                  label: 'PDF',
-                  format: 'pdf',
-                  onClick: () =>
-                    runOpenReport('Clientes nuevos', () =>
-                      downloadClientesNuevosMesPdfGestor({
-                        oficinaId: gestorParams.oficinaId,
-                        usuarioId: gestorParams.usuarioId,
-                      }),
-                    ),
-                },
-              ]}
-            />
-          }
-        >
-          <p className="credix-report-card-hint">
-            Altas del mes calendario actual por gestor (fijo al mes en curso).
-          </p>
-        </CredixReportBox>
-
-        <CredixReportBox
-          title="Clientes inactivos"
-          icon={<UserDeleteOutlined />}
-          actions={
-            <ReportExportActions
-              screenTo="/informes/clientes-inactivos"
-              screenSearchParams={gestorInactivosScreenParams}
-              exports={[
-                {
-                  label: 'PDF',
-                  format: 'pdf',
-                  onClick: () =>
-                    runOpenReport('Clientes inactivos', () =>
-                      downloadClientesInactivosPdfGestor({
-                        oficinaId: gestorParams.oficinaId,
-                        usuarioId: gestorParams.usuarioId,
-                      }),
-                    ),
-                },
-              ]}
-            />
-          }
-        >
-          <p className="credix-report-card-hint">
-            Sin movimiento reciente por gestor (sin rango de fechas; distinto del listado con periodo).
           </p>
         </CredixReportBox>
 
@@ -765,19 +694,20 @@ export function ReporteCreditoIndexPage() {
             />
           </ReporteField>
           <p className="credix-report-card-hint">
-            Listado por estado y rango (cualquier estado). No sustituye «Créditos activos».
+            Listado por estado. El rango filtra distinta fecha según estado (CRE/PEN=registro,
+            DES=desembolso, PAG=pagado). Default DES. No sustituye la cartera con saldos.
           </p>
         </CredixReportBox>
 
         <CredixReportBox
-          title="Rentabilidad de crédito"
+          title="Intereses y mora cobrados"
           icon={<DollarOutlined />}
           actions={
             <ReportExportActions
               screenTo="/informes/credito-rentabilidad"
               screenSearchParams={{
                 oficinaId: oficinaConsulta,
-                estadoCredito: rptEstado,
+                estadoCredito: rentEstado,
                 fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
                 fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
               }}
@@ -786,12 +716,12 @@ export function ReporteCreditoIndexPage() {
                   label: 'PDF',
                   format: 'pdf',
                   onClick: () =>
-                    runOpenReport('Rentabilidad PDF', () =>
+                    runOpenReport('Intereses/mora PDF', () =>
                       downloadCreditoRentabilidadPdf({
                         oficinaId: oficinaConsulta,
                         fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
                         fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
-                        estadoCredito: rptEstado,
+                        estadoCredito: rentEstado,
                       }),
                     ),
                 },
@@ -799,12 +729,12 @@ export function ReporteCreditoIndexPage() {
                   label: 'XLS',
                   format: 'xls',
                   onClick: () =>
-                    runOpenReport('Rentabilidad XLS', () =>
+                    runOpenReport('Intereses/mora XLS', () =>
                       downloadCreditoRentabilidadCsv({
                         oficinaId: oficinaConsulta,
                         fechaIni: rentabilidadTodos ? '2018-01-01' : isoDate(rptRango[0]),
                         fechaFin: rentabilidadTodos ? isoDate(dayjs()) : isoDate(rptRango[1]),
-                        estadoCredito: rptEstado,
+                        estadoCredito: rentEstado,
                       }),
                     ),
                 },
@@ -819,16 +749,16 @@ export function ReporteCreditoIndexPage() {
               onChange={onSedeChange}
             />
           </ReporteField>
-          <ReporteField label="Estado">
+          <ReporteField label="Estado crédito">
             <Select
               size="small"
-              options={CREDITO_ESTADO_REPORTE_OPTIONS}
-              value={rptEstado}
-              onChange={setRptEstado}
+              options={CREDITO_ESTADO_RENTABILIDAD_OPTIONS}
+              value={rentEstado}
+              onChange={setRentEstado}
               style={{ width: '100%' }}
             />
           </ReporteField>
-          <ReporteField label="Fechas">
+          <ReporteField label="Rango (último pago)">
             <CredixRangePicker
               size="small"
               value={rptRango}
@@ -847,7 +777,8 @@ export function ReporteCreditoIndexPage() {
             </Checkbox>
           </ReporteField>
           <p className="credix-report-card-hint">
-            Margen e interés generado; no es listado operativo de cuotas del día.
+            Σ interés, mora y pagos cobrados (default PAG). No es margen neto contable ni cuotas del
+            día. CRE/PEN no aplican.
           </p>
         </CredixReportBox>
 
@@ -894,10 +825,7 @@ export function ReporteCreditoIndexPage() {
                           format: 'pdf',
                           onClick: () =>
                             runOpenReport('Condonación PDF', () =>
-                              downloadCreditoCondonadoPdf({
-                                ...variosApi,
-                                usuarioId: variosApi.usuarioId ?? session?.usuarioId ?? 0,
-                              }),
+                              downloadCreditoCondonadoPdf(variosApi),
                             ),
                         },
                         {
@@ -905,10 +833,7 @@ export function ReporteCreditoIndexPage() {
                           format: 'xls',
                           onClick: () =>
                             runOpenReport('Condonación XLS', () =>
-                              downloadCreditoCondonadoCsv({
-                                ...variosApi,
-                                usuarioId: variosApi.usuarioId ?? session?.usuarioId ?? 0,
-                              }),
+                              downloadCreditoCondonadoCsv(variosApi),
                             ),
                         },
                       ]}
@@ -921,7 +846,7 @@ export function ReporteCreditoIndexPage() {
                 </CredixReportBox>
 
                 <CredixReportBox
-                  title="Créditos activos"
+                  title="Cartera desembolsada (activos)"
                   icon={<CheckCircleOutlined />}
                   actions={
                     <ReportExportActions
@@ -949,12 +874,13 @@ export function ReporteCreditoIndexPage() {
                   }
                 >
                   <p className="credix-report-card-hint">
-                    Snapshot de cartera vigente al momento (estado activo), con gestor/rango del bloque.
+                    DES vigentes + PAG cuyo primer pago cae en el rango. Use saldos/mora del PDF
+                    para decisión de cartera (no confundir con «Reporte créditos»).
                   </p>
                 </CredixReportBox>
 
                 <CredixReportBox
-                  title="Cierres de crédito"
+                  title="Créditos con primer pago en periodo"
                   icon={<FileProtectOutlined />}
                   actions={
                     <ReportExportActions
@@ -965,7 +891,7 @@ export function ReporteCreditoIndexPage() {
                           label: 'PDF',
                           format: 'pdf',
                           onClick: () =>
-                            runOpenReport('Cierre PDF', () =>
+                            runOpenReport('Primer pago PDF', () =>
                               downloadCreditosCierresPdf(variosApi),
                             ),
                         },
@@ -973,7 +899,7 @@ export function ReporteCreditoIndexPage() {
                           label: 'XLS',
                           format: 'xls',
                           onClick: () =>
-                            runOpenReport('Cierre XLS', () =>
+                            runOpenReport('Primer pago XLS', () =>
                               downloadCreditosCierresCsv(variosApi),
                             ),
                         },
@@ -982,12 +908,13 @@ export function ReporteCreditoIndexPage() {
                   }
                 >
                   <p className="credix-report-card-hint">
-                    Créditos que cerraron en el periodo (salida de cartera, no cuotas del día).
+                    Filtra por fecha de primer pago (incluye DES aún activos). No es cierre por
+                    FechaPagado; para salidas use estado PAG en «Reporte créditos».
                   </p>
                 </CredixReportBox>
 
                 <CredixReportBox
-                  title="Morosos pagados"
+                  title="Pagados tras vencimiento"
                   icon={<AuditOutlined />}
                   actions={
                     <ReportExportActions
@@ -998,7 +925,7 @@ export function ReporteCreditoIndexPage() {
                           label: 'PDF',
                           format: 'pdf',
                           onClick: () =>
-                            runOpenReport('Morosos pagados PDF', () =>
+                            runOpenReport('Pagados tras vcto PDF', () =>
                               downloadCreditosMorososPagadosPdf(variosApi),
                             ),
                         },
@@ -1006,7 +933,7 @@ export function ReporteCreditoIndexPage() {
                           label: 'XLS',
                           format: 'xls',
                           onClick: () =>
-                            runOpenReport('Morosos pagados XLS', () =>
+                            runOpenReport('Pagados tras vcto XLS', () =>
                               downloadCreditosMorososPagadosCsv(variosApi),
                             ),
                         },
@@ -1015,12 +942,12 @@ export function ReporteCreditoIndexPage() {
                   }
                 >
                   <p className="credix-report-card-hint">
-                    Salieron de mora con pago en el rango (recuperación, no corte de atraso).
+                    PAG con FechaPagado &gt; vencimiento del contrato en el rango (recuperación tardía).
                   </p>
                 </CredixReportBox>
 
                 <CredixReportBox
-                  title="Clientes nuevos (periodo)"
+                  title="Clientes nuevos (con crédito DES)"
                   icon={<UserOutlined />}
                   actions={
                     <ReportExportActions
@@ -1047,7 +974,8 @@ export function ReporteCreditoIndexPage() {
                   }
                 >
                   <p className="credix-report-card-hint">
-                    Altas en el rango libre de la barra (no el mes fijo del bloque por gestor).
+                    Altas de cliente en el rango que ya tienen crédito desembolsado (una fila por
+                    crédito DES, no por persona).
                   </p>
                 </CredixReportBox>
 
@@ -1090,11 +1018,11 @@ export function ReporteCreditoIndexPage() {
                       label: 'PDF',
                       format: 'pdf',
                       onClick: () =>
-                        runOpenReport('Clientes inactivos pagados', () =>
+                        runOpenReport('Clientes inactivos', () =>
                           downloadClientesInactivosPdf(
                             toClientesInactivosParams(
                               oficinaConsulta,
-                              variosGestor ?? session?.usuarioId,
+                              variosGestor,
                               variosRango[0].format('YYYY-MM-DD'),
                               variosRango[1].format('YYYY-MM-DD'),
                             ),
@@ -1106,7 +1034,7 @@ export function ReporteCreditoIndexPage() {
               }
             >
               <p className="credix-report-card-hint">
-                Inactivos acotados al rango de la barra (distinto del listado sin rango por gestor).
+                Sin crédito activo en el rango (gestor opcional «Todos»). Útil para reactivación.
               </p>
             </CredixReportBox>
           </>
@@ -1116,7 +1044,7 @@ export function ReporteCreditoIndexPage() {
         {showAdmin ? (
           <ReportesSection
             title="Caja y administración"
-            description="Anulaciones, saldo de cartera y central de riesgos por sede. Caja chica retirada del menú."
+            description="Anulaciones de caja, saldo de cartera por agente y archivo regulatorio de riesgos."
           >
             <CredixReportBox
               title="Movimientos anulados"

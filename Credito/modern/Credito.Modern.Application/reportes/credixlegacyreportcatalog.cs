@@ -39,7 +39,7 @@ public static class CredixLegacyReportCatalog
                 Add("Fecha: ", ctx.Fecha ?? ctx.FechaReporte);
                 Add("Agente: ", ctx.Agente ?? ctx.Gestor);
                 Add("Caja: ", ctx.Caja);
-                Add("Saldo vencido: ", ctx.SaldoVencido);
+                Add("Saldo cartera: ", ctx.SaldoVencido);
                 Add("Saldo moroso: ", ctx.SaldoMoroso);
                 Add("N° clientes: ", ctx.NroClientes);
                 break;
@@ -235,27 +235,28 @@ public static class CredixLegacyReportCatalog
                     N("Interes", "Interés"),
                     N("MontoCondonado", "Monto condonado"),
                     L("Agente", "Agente"),
-                    L("Observacion", "Observación"))),
+                    L("Observacion", "Observación")),
+                totals: ["MontoCredito", "MontoCondonado"]),
             [CredixLegacyReportKey.CreditoRentabilidad] = Def(
-                "RENTABILIDAD DE CRÉDITOS",
+                "INTERESES Y MORA COBRADOS",
                 Cols(
                     C("CreditoId", "N° créd."),
                     L("Oficina", "Oficina"),
-                    C("Codigo", "Código"),
                     L("Cliente", "Cliente"),
                     C("FechaDesembolso", "F. desembolso"),
-                    C("FechaPago", "F. pago"),
+                    C("FechaPago", "F. último pago"),
                     C("NumeroCuotas", "N° cuotas"),
                     C("FormaPago", "Forma pago"),
                     C("Estado", "Estado"),
                     N("MontoCredito", "Monto crédito"),
-                    N("Interes", "Interés"),
+                    N("Interes", "Interés %"),
                     N("SumCuota", "Σ cuota"),
                     C("CuotasPagadas", "Cuotas pag."),
                     N("MontoGastosAdm", "Gastos adm."),
                     N("SumInteres", "Σ interés"),
                     N("SumMora", "Σ mora"),
-                    N("SumPago", "Σ pago"))),
+                    N("SumPago", "Σ pago")),
+                totals: ["MontoCredito", "MontoGastosAdm", "SumInteres", "SumMora", "SumPago"]),
             [CredixLegacyReportKey.CreditoAprobacion] = Def(
                 "CRÉDITOS APROBADOS",
                 Cols(
@@ -264,35 +265,38 @@ public static class CredixLegacyReportCatalog
                     L("Cliente", "Cliente"),
                     C("FechaAprobacion", "F. aprobación"),
                     N("MontoCredito", "Monto crédito"),
+                    N("MontoDesembolso", "Desembolso"),
                     N("Interes", "Interés"),
                     C("NumeroCuotas", "N° cuotas"),
                     L("Gestor", "Gestor")),
-                landscape: true),
+                landscape: true,
+                totals: ["MontoCredito", "MontoDesembolso"]),
             [CredixLegacyReportKey.CreditosActivos] = Def(
                 "CRÉDITOS ACTIVOS",
-                CreditosActivosCols()),
+                CreditosActivosCols(),
+                totals: ["MontoCredito", "Saldo", "SaldoCapital", "Mora"]),
             [CredixLegacyReportKey.CreditosCierres] = Def(
-                "CRÉDITOS CIERRES",
+                "CRÉDITOS CON PRIMER PAGO EN PERIODO",
                 Cols(
                     C("CreditoId", "N° créd."),
                     C("Estado", "Estado"),
                     L("Agente", "Agente"),
-                    C("Codigo", "Código"),
                     L("Cliente", "Cliente"),
                     N("MontoCredito", "Monto crédito"),
                     C("FormaPago", "Forma pago"),
                     C("NumeroCuotas", "N° cuotas"),
                     N("Interes", "Interés"),
                     N("MontoGastosAdm", "Gastos adm."),
-                    C("CentralRiesgo", "Cent. riesgo"),
+                    C("CentralRiesgo", "Cargo c. riesgo"),
                     C("FechaPrimerPago", "F. primer pago"),
                     C("FechaVencimiento", "F. vencimiento"),
                     N("SumAmortizacion", "Σ capital"),
                     N("SumInteres", "Σ interés"),
                     N("SumCuota", "Σ cuota"),
-                    C("SumNroCuota", "Σ n° cuota"))),
+                    C("SumNroCuota", "Σ n° cuota")),
+                totals: ["MontoCredito", "SumAmortizacion", "SumInteres", "SumCuota"]),
             [CredixLegacyReportKey.CreditosMorososPagados] = Def(
-                "CRÉDITOS MOROSOS PAGADOS",
+                "PAGADOS TRAS VENCIMIENTO DEL CONTRATO",
                 Cols(
                     C("CreditoId", "N° créd."),
                     L("Cliente", "Cliente"),
@@ -301,11 +305,12 @@ public static class CredixLegacyReportCatalog
                     C("FormaPago", "Forma pago"),
                     C("NumeroCuotas", "N° cuotas"),
                     N("MontoGastosAdm", "Gastos adm."),
-                    C("CentralRiesgo", "Cent. riesgo"),
+                    C("CentralRiesgo", "Cargo c. riesgo"),
                     C("FechaPrimerPago", "F. primer pago"),
                     C("FechaVencimiento", "F. vencimiento"),
                     C("FechaPagado", "F. pagado"),
-                    L("Agente", "Agente"))),
+                    L("Agente", "Agente")),
+                totals: ["MontoCredito"]),
             [CredixLegacyReportKey.ReporteCredito] = Def(
                 "REPORTE DE CRÉDITOS",
                 Cols(
@@ -627,7 +632,6 @@ public static class CredixLegacyReportCatalog
             C("Estado", "Estado"),
             L("Agente", "Agente"),
             C("CreditoId", "N° créd."),
-            C("Codigo", "Código"),
             L("Cliente", "Cliente"),
             N("MontoCredito", "Monto crédito"),
             C("FormaPago", "Forma pago"),
@@ -636,7 +640,7 @@ public static class CredixLegacyReportCatalog
             N("MontoInteres", "Monto int."),
             N("MontoCreditoTotal", "Total crédito"),
             N("MontoGastosAdm", "Gastos adm."),
-            C("CentralRiesgo", "Cent. riesgo"),
+            C("CentralRiesgo", "Cargo c. riesgo"),
             C("FechaPrimerPago", "F. 1er pago"),
             C("FechaVencimiento", "F. vcto"),
             C("NroCuotasPagado", "Cuotas pag."),

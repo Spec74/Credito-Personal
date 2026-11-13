@@ -49,6 +49,7 @@ internal static class CreditoReportesRestantesEndpoints
                     ICentralRiesgoGenerarReadService centralRiesgo,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (oficinaId is null or < 1 || anio is null || mes is null)
@@ -67,20 +68,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "anio debe estar entre 1900 y 2100 y mes entre 1 y 12.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("CentralRiesgoGenerarTxt");
@@ -1458,10 +1450,11 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptClientesBloqueadosReadService rptClientes,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -1523,10 +1516,11 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptClientesBloqueadosReadService rptClientes,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     var (oficinaResolvedCsv, usuarioResolvedCsv, accessErrCsv) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErrCsv is not null)
                     {
                         return accessErrCsv;
@@ -1589,10 +1583,11 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptClientesBloqueadosReadService rptClientes,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     var (oficinaResolvedCsv, usuarioResolvedCsv, accessErrCsv) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErrCsv is not null)
                     {
                         return accessErrCsv;
@@ -1663,10 +1658,11 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptClientesTopeCreditoReadService rptTope,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     var (oficinaResolvedTope, usuarioResolvedTope, accessErrTope) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErrTope is not null)
                     {
                         return accessErrTope;
@@ -1728,10 +1724,11 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptClientesTopeCreditoReadService rptTope,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     var (oficinaResolvedTopeCsv, usuarioResolvedTopeCsv, accessErrTopeCsv) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErrTopeCsv is not null)
                     {
                         return accessErrTopeCsv;
@@ -1794,10 +1791,11 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptClientesTopeCreditoReadService rptTope,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     var (oficinaResolvedTopeCsv, usuarioResolvedTopeCsv, accessErrTopeCsv) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErrTopeCsv is not null)
                     {
                         return accessErrTopeCsv;
@@ -3102,6 +3100,7 @@ internal static class CreditoReportesRestantesEndpoints
                     ICentralRiesgoGenerarReadService centralRiesgo,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (oficinaId is null or < 1 || anio is null || mes is null)
@@ -3120,20 +3119,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "anio debe estar entre 1900 y 2100 y mes entre 1 y 12.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("CentralRiesgoGenerar");
@@ -3193,6 +3183,7 @@ internal static class CreditoReportesRestantesEndpoints
                     ICentralRiesgoGenerarReadService centralRiesgo,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (oficinaId is null or < 1 || anio is null || mes is null)
@@ -3211,20 +3202,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "anio debe estar entre 1900 y 2100 y mes entre 1 y 12.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("CentralRiesgoGenerarCsv");
@@ -3288,6 +3270,7 @@ internal static class CreditoReportesRestantesEndpoints
                     ICentralRiesgoGenerarReadService centralRiesgo,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (oficinaId is null or < 1 || anio is null || mes is null)
@@ -3306,20 +3289,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "anio debe estar entre 1900 y 2100 y mes entre 1 y 12.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("CentralRiesgoGenerarPdf");
@@ -3393,6 +3367,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditoReadService rptCredito,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -3437,7 +3412,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, gestorId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, gestorId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -3509,6 +3484,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditoReadService rptCredito,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -3553,7 +3529,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, gestorId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, gestorId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -3626,6 +3602,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditoReadService rptCredito,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -3670,7 +3647,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, gestorId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, gestorId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -3752,6 +3729,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditoMorosidadReadService morosidad,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (hastaFecha is null)
@@ -3804,20 +3782,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoMorosidad");
@@ -3937,20 +3906,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoMorosidadCsv");
@@ -4071,20 +4031,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoMorosidadPdf");
@@ -4161,6 +4112,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditoRentabilidadReadService rentabilidadCredito,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -4213,20 +4165,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "estadoCredito admite como máximo 32 caracteres.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoRentabilidad");
@@ -4293,6 +4236,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditoRentabilidadReadService rentabilidadCredito,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -4345,20 +4289,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "estadoCredito admite como máximo 32 caracteres.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoRentabilidadCsv");
@@ -4426,6 +4361,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditoRentabilidadReadService rentabilidadCredito,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -4478,20 +4414,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "estadoCredito admite como máximo 32 caracteres.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoRentabilidadPdf");
@@ -4588,7 +4515,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -4656,6 +4583,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditoAprobacionReadService aprobacion,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaAprobacion is null)
@@ -4676,7 +4604,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -4745,6 +4673,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditoAprobacionReadService aprobacion,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaAprobacion is null)
@@ -4765,7 +4694,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -4843,6 +4772,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditosActivosReadService creditosActivos,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -4872,7 +4802,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -4942,6 +4872,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditosActivosReadService creditosActivos,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -4971,7 +4902,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -5042,6 +4973,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditosActivosReadService creditosActivos,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -5071,7 +5003,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -5151,6 +5083,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditosCierresReadService cierres,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -5180,7 +5113,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -5250,6 +5183,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditosCierresReadService cierres,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -5279,7 +5213,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -5350,6 +5284,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditosCierresReadService cierres,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -5379,7 +5314,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -5459,6 +5394,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditosMorososPagadosReadService morososPagados,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -5488,7 +5424,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -5558,6 +5494,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditosMorososPagadosReadService morososPagados,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -5587,7 +5524,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -5658,6 +5595,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditosMorososPagadosReadService morososPagados,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -5687,7 +5625,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -5809,7 +5747,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolvedInactivos, usuarioResolvedInactivos, accessInactivosErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessInactivosErr is not null)
                     {
                         return accessInactivosErr;
@@ -5879,6 +5817,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptClientesInactivosReadService clientesInactivos,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if ((fechaIni is null) != (fechaFin is null))
@@ -5919,7 +5858,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolvedInactivosCsv, usuarioResolvedInactivosCsv, accessInactivosCsvErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessInactivosCsvErr is not null)
                     {
                         return accessInactivosCsvErr;
@@ -5990,6 +5929,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptClientesInactivosReadService clientesInactivos,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if ((fechaIni is null) != (fechaFin is null))
@@ -6030,7 +5970,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolvedInactivosCsv, usuarioResolvedInactivosCsv, accessInactivosCsvErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessInactivosCsvErr is not null)
                     {
                         return accessInactivosCsvErr;
@@ -6114,6 +6054,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCajaDiarioReadService rptCajaDiario,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -6143,7 +6084,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -6213,6 +6154,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCajaDiarioReadService rptCajaDiario,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -6242,7 +6184,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -6313,6 +6255,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCajaDiarioReadService rptCajaDiario,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -6342,7 +6285,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -6776,6 +6719,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptMovimientoCajaAnuladoReadService rptMovimientoCajaAnulado,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -6812,20 +6756,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptMovimientoCajaAnulado");
@@ -6890,6 +6825,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptMovimientoCajaAnuladoReadService rptMovimientoCajaAnulado,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -6926,20 +6862,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptMovimientoCajaAnuladoCsv");
@@ -7005,6 +6932,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptMovimientoCajaAnuladoReadService rptMovimientoCajaAnulado,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -7041,20 +6969,11 @@ internal static class CreditoReportesRestantesEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptMovimientoCajaAnuladoPdf");
@@ -7131,6 +7050,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptSaldoCarteraCajaDiarioReadService rptSaldoCarteraCajaDiario,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (anioIni is null || mesIni is null || anioFin is null || mesFin is null)
@@ -7142,7 +7062,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -7220,6 +7140,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptSaldoCarteraCajaDiarioReadService rptSaldoCarteraCajaDiario,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (anioIni is null || mesIni is null || anioFin is null || mesFin is null)
@@ -7231,7 +7152,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -7322,7 +7243,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -7573,7 +7494,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolvedObs, usuarioResolvedObs, accessObsErr) =
-                        GestorInformeReportAccess.ResolveOptionalOficina(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveOptionalOficinaAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessObsErr is not null)
                     {
                         return accessObsErr;
@@ -7640,6 +7561,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditoObservadoReadService rptCreditoObservado,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (usuarioId is < 1)
@@ -7651,7 +7573,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolvedObsCsv, usuarioResolvedObsCsv, accessObsCsvErr) =
-                        GestorInformeReportAccess.ResolveOptionalOficina(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveOptionalOficinaAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessObsCsvErr is not null)
                     {
                         return accessObsCsvErr;
@@ -7720,7 +7642,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {                    var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.ResolveOptionalOficina(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveOptionalOficinaAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -7790,6 +7712,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditoCondonadoReadService rptCreditoCondonado,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -7808,7 +7731,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -7874,6 +7797,7 @@ internal static class CreditoReportesRestantesEndpoints
                     IRptCreditoCondonadoReadService rptCreditoCondonado,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
+                    IOficinaReadService oficinas,
                     CancellationToken ct) =>
                 {
                     if (fechaIni is null || fechaFin is null)
@@ -7892,7 +7816,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -7979,7 +7903,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolved, usuarioResolved, accessErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessErr is not null)
                     {
                         return accessErr;
@@ -8103,7 +8027,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolvedNuevos, usuarioResolvedNuevos, accessNuevosErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessNuevosErr is not null)
                     {
                         return accessNuevosErr;
@@ -8222,7 +8146,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolvedNuevosCsv, usuarioResolvedNuevosCsv, accessNuevosCsvErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessNuevosCsvErr is not null)
                     {
                         return accessNuevosCsvErr;
@@ -8342,7 +8266,7 @@ internal static class CreditoReportesRestantesEndpoints
                     }
 
                     var (oficinaResolvedNuevosCsv, usuarioResolvedNuevosCsv, accessNuevosCsvErr) =
-                        GestorInformeReportAccess.Resolve(httpContext, oficinaId, usuarioId);
+                        await GestorInformeReportAccess.ResolveAsync(httpContext, oficinas, oficinaId, usuarioId, ct).ConfigureAwait(false);
                     if (accessNuevosCsvErr is not null)
                     {
                         return accessNuevosCsvErr;

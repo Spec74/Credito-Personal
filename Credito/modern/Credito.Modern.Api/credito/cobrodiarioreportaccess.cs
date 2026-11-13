@@ -204,11 +204,15 @@ internal static class CobroDiarioReportAccess
         return (uid, oid, null);
     }
 
+    /// <summary>
+    /// Misma regla que el PDF de cobro diario (<c>IsVencido</c>): días de atraso de cuota
+    /// o mora calculada &gt; 0. Filtrar solo por <c>Mora</c> excluía atrasos antes del vencimiento final.
+    /// </summary>
     internal static List<RptCobroDiarioRowDto> ApplySoloMora(
         IReadOnlyList<RptCobroDiarioRowDto> items,
         bool soloMora) =>
         soloMora
-            ? items.Where(x => (x.Mora ?? 0) > 0).ToList()
+            ? items.Where(x => (x.DiasAtrazo ?? 0) > 0 || (x.Mora ?? 0) > 0).ToList()
             : items.ToList();
 
     private static ProblemHttpResult BadRequest(string detail) =>

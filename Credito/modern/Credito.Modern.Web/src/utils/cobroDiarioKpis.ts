@@ -21,22 +21,22 @@ export function buildCobroDiarioKpiExtras(
     return []
   }
 
-  const saldoVencido = sumMoney(rows.map((r) => r.saldo ?? 0))
-  const saldoMoroso = sumMoney(
-    rows.filter((r) => (r.mora ?? 0) > 0).map((r) => r.saldo ?? 0),
-  )
+  const saldoCartera = sumMoney(rows.map((r) => r.saldo ?? 0))
+  const enAtraso = rows.filter((r) => (r.diasAtrazo ?? 0) > 0 || (r.mora ?? 0) > 0)
+  const saldoMoroso = sumMoney(enAtraso.map((r) => r.saldo ?? 0))
   const moraAcumulada = sumMoney(rows.map((r) => r.mora ?? 0))
 
   const extras: CredixStatItem[] = [
-    { value: rows.length, label: 'N° clientes' },
+    { value: rows.length, label: 'N° créditos' },
   ]
 
   if (!options?.soloMorosidad) {
-    extras.push({ value: formatMoney(saldoVencido), label: 'Saldo vencido' })
+    extras.push({ value: formatMoney(saldoCartera), label: 'Saldo cartera' })
   }
 
   extras.push(
-    { value: formatMoney(saldoMoroso), label: 'Saldo moroso', tone: 'red' },
+    { value: enAtraso.length, label: 'En atraso', tone: 'red' },
+    { value: formatMoney(saldoMoroso), label: 'Saldo en atraso', tone: 'red' },
     { value: formatMoney(moraAcumulada), label: 'Mora acumulada', tone: 'red' },
   )
 

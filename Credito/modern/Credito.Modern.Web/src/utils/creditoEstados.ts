@@ -96,6 +96,12 @@ export const CREDITO_ESTADO_REPORTE_OPTIONS = ['CRE', 'PEN', 'DES', 'PAG', 'REP'
   }),
 )
 
+/** Rentabilidad solo tiene sentido con cuotas pagadas (DES/PAG/REP). */
+export const CREDITO_ESTADO_RENTABILIDAD_OPTIONS = ['PAG', 'DES', 'REP'].map((codigo) => ({
+  value: codigo,
+  label: `${codigo} - ${ESTADOS[codigo as CreditoEstadoCodigo].label}`,
+}))
+
 export function normalizeCreditoEstado(estado?: string | null): CreditoEstadoCodigo | null {
   const codigo = estado?.trim().toUpperCase()
   return codigo && codigo in ESTADOS ? (codigo as CreditoEstadoCodigo) : null
