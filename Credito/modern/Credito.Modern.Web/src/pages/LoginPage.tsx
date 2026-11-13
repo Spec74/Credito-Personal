@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { BankOutlined, LockOutlined, UserOutlined } from '@ant-design/icons'
-import { Alert, Button, Checkbox, Form, Input, Select, Spin, Typography } from 'antd'
+import { Alert, Button, Checkbox, Form, Grid, Input, Select, Spin, Typography } from 'antd'
 import { fetchOficinas } from '../api/oficinas'
 import { ApiError } from '../api/errors'
 import { getAuthLoginErrorMessage } from '../auth/authLoginError'
@@ -37,6 +37,9 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { isAuthenticated, isLoading, login } = useAuth()
+  const screens = Grid.useBreakpoint()
+  // md undefined al primer paint → tratar como compacto (móvil) para no abrir teclado.
+  const isCompact = screens.md !== true
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [clientIp, setClientIp] = useState<string | null>(null)
@@ -225,7 +228,7 @@ export function LoginPage() {
                 autoCapitalize="none"
                 autoCorrect="off"
                 spellCheck={false}
-                autoFocus
+                autoFocus={!isCompact}
                 prefix={<UserOutlined aria-hidden />}
               />
             </Form.Item>
@@ -246,7 +249,8 @@ export function LoginPage() {
               rules={[{ required: true, message: 'Seleccione oficina' }]}
             >
               <Select
-                showSearch
+                // En móvil showSearch enfoca un input y abre el teclado → desplaza el login.
+                showSearch={!isCompact}
                 optionFilterProp="label"
                 prefix={<BankOutlined aria-hidden />}
                 loading={oficinasQuery.isLoading}
@@ -258,6 +262,8 @@ export function LoginPage() {
                       : 'Sin oficinas'
                 }
                 options={oficinaOptions}
+                listHeight={isCompact ? 220 : 256}
+                getPopupContainer={(node) => node.parentElement ?? document.body}
                 notFoundContent={
                   oficinasQuery.isLoading ? (
                     <Spin size="small" />

@@ -1,7 +1,10 @@
-/* Login a una pantalla (100dvh). Lino en claro; marino corporativo en oscuro. */
+/* Login a una pantalla (svh estable; teclado no reacomoda el shell). Lino en claro; marino en oscuro. */
 html:has(.credix-login),
 html:has(.credix-login) body {
   background: #f3ebd6;
+  /* Evita rubber-band / scroll del body detrás del login al enfocar campos. */
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 html[data-theme='dark']:has(.credix-login),
@@ -32,9 +35,13 @@ html[data-theme='dark']:has(.credix-login) body {
     sans-serif
   );
   box-sizing: border-box;
+  /* svh = viewport “pequeño” estable; el teclado no cambia la altura del shell. */
   height: 100dvh;
+  height: 100svh;
   max-height: 100dvh;
+  max-height: 100svh;
   min-height: 100dvh;
+  min-height: 100svh;
   overflow: hidden;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
@@ -595,11 +602,20 @@ html[data-theme='dark'] .credix-login-form__legal a {
 @media (max-width: 960px) {
   .credix-login {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(140px, 34dvh) minmax(0, 1fr);
+    /* svh: no saltar de 34dvh→26dvh cuando aparece el teclado. */
+    grid-template-rows: minmax(140px, 34svh) minmax(0, 1fr);
     height: 100dvh;
+    height: 100svh;
     max-height: 100dvh;
+    max-height: 100svh;
     min-height: 100dvh;
+    min-height: 100svh;
     overflow: hidden;
+  }
+
+  /* Dropdown de oficina anclado al campo (sin teclado de búsqueda en compacto). */
+  .credix-login-form__fields .ant-select-dropdown {
+    position: absolute !important;
   }
 
   /*
@@ -640,8 +656,14 @@ html[data-theme='dark'] .credix-login-form__legal a {
   .credix-login-form__main {
     overflow-x: hidden;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     justify-content: flex-start;
     min-height: 0;
+  }
+
+  .credix-login-form__fields .ant-form-item {
+    scroll-margin-block: 12px 28px;
   }
 
   .credix-login-stage__body,
@@ -651,7 +673,7 @@ html[data-theme='dark'] .credix-login-form__legal a {
   }
 
   .credix-login-seal {
-    width: min(228px, 58vw, 32dvh);
+    width: min(228px, 58vw, 32svh);
   }
 
   .credix-login-seal > .credix-login-seal__logo.credix-brand-logo,
@@ -696,7 +718,7 @@ html[data-theme='dark'] .credix-login-form__legal a {
   }
 
   .credix-login-seal {
-    width: min(220px, 68vw, 32dvh);
+    width: min(220px, 68vw, 32svh);
   }
 
   .credix-login-seal > .credix-login-seal__logo.credix-brand-logo,
@@ -742,10 +764,13 @@ html[data-theme='dark'] .credix-login-form__legal a {
   }
 }
 
-/* Teclado móvil: el escenario se encoge y el formulario sigue alcanzable. */
-@media (max-width: 960px) and (max-height: 560px) {
+/*
+  Teléfonos en landscape / pantallas muy bajas de verdad (no teclado virtual).
+  Con interactive-widget=resizes-visual el teclado ya no dispara max-height.
+*/
+@media (max-width: 960px) and (max-height: 480px) and (orientation: landscape) {
   .credix-login {
-    grid-template-rows: minmax(96px, 26dvh) minmax(0, 1fr);
+    grid-template-rows: minmax(72px, 22svh) minmax(0, 1fr);
   }
 
   .credix-login-stage__eyebrow {
