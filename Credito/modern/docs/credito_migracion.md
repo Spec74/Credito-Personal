@@ -16,7 +16,7 @@ Paridad con `Web/Views/Credito/Creditos.cshtml`, `CreditoController`, `CreditoBL
 | Tareas | `/credito/tareas` | `tareas/*` | **Hecho** (UI moderna mayo 2026) |
 | Caja diario (cobro) | `/caja/diario` | `pagar-cuotas`, `cuotas-pendientes`, mora | **Hecho** |
 | Impresos plan / estado / mov. | Botones en consulta + informes | `rpt-plan-pagos-pdf`, `rpt-estado-credito-pdf`, `rpt-movimiento-credito-pdf` | **Hecho** (QuestPDF, no RDLC) |
-| Informes cartera | `/informes/*`, `/reportes/credito` | `rpt-credito-*` | **Hecho** |
+| Informes cartera | `/informes/*`, `/reportes/credito` | `rpt-credito-*` | **Hecho** (2026-11-12: hub con «Sede a consultar» para Central; «Ver pantalla» envía `oficinaId` + filtros y cada informe la resuelve con `resolveInformeOficinaId` de `utils/informeUrlParams.ts`; Central de riesgos por sede — ver [SSD-07](ssd/SSD-07-informes.md)) |
 | Evidencias | Panel gestión + `/credito/evidencias` (ruta legacy) | `evidencias-credito`, `subir-evidencia-credito` | **Hecho** |
 | Condonar, cargos, aval, tope | `CreditoConsultaGestionPanel` | `condonar-credito`, `guardar-cargo`, … | **Hecho** |
 | Solicitud de condonación (caja → bandeja → aprobar) | `/credito/condonaciones` + caja diario | `usp_SolicitarCondonacion`, `condonaciones-pendientes` | **Hecho** |

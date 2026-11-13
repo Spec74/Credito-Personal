@@ -1,6 +1,6 @@
 # SSD-07 — Informes y reportes
 
-**Estado:** as-built · 2026-09-11 · cobertura informes 2026-09-27 (52/46) · Morosos empresariales 2026-10-07 · **alcance por sede 2026-10-24** · ver [SSD-12](SSD-12-validacion.md)  
+**Estado:** as-built · 2026-09-11 · cobertura informes 2026-09-27 (52/46) · Morosos empresariales 2026-10-07 · **alcance por sede 2026-10-24** · **hub sede + central de riesgos por sede 2026-11-12** · ver [SSD-12](SSD-12-validacion.md)  
 **Código:** `/informes/*`, `/reportes/*` · `/api/v1/reportes/*` + `rpt-*` + `/api/v1/morosidad/*` + `/api/v1/cierre-gerencial/*`  
 **Fuente legacy:** `ReporteController`, índices `Reporte/Credito`, `CobranzaPagos`, `Almacen`, `Venta`, `MorosidadController`, `CierreGerencialController`  
 **Doc de ingeniería:** [CATALOGO-INFORMES-COBERTURA.md](../migration/CATALOGO-INFORMES-COBERTURA.md), [PARIDAD-MOROSIDAD.md](../migration/PARIDAD-MOROSIDAD.md)
@@ -11,7 +11,7 @@ Consultar cartera, cobranza, caja, stock y ventas con la misma data que el MVC, 
 
 | Rol | Uso |
 |-----|-----|
-| Gestor | Cobro diario, morosidad, vencidos de su cartera (oficina JWT) |
+| Gestor | Cobro diario, morosidad, vencidos de su cartera (oficina JWT; en Central, la sede elegida en el hub) |
 | Aprobador / admin / `REPORTEPARCIAL` | Índice Reportes → Crédito (`canViewReporteCredito`) |
 | Encargado | Caja diario, cajas asignadas, movimientos anulados |
 | Analista | Informes de crédito si el menú lo concede |
@@ -27,7 +27,7 @@ Consultar cartera, cobranza, caja, stock y ventas con la misma data que el MVC, 
 - Índices `/reportes/credito`, `/reportes/cobranza`, `/reportes/almacen`, `/reportes/venta` (tarjetas siguen tokens SSD-19: pie y PDF/XLS no quedan blancos en oscuro)
 - Pantallas `/informes/*` con JSON + CSV + PDF (mismos `usp_*` que el RDLC)
 - Visor JWT `/reportes/visor?path=` (blob de la API, no ReportViewer)
-- Central de riesgo (CSV/PDF/TXT)
+- Central de riesgo por sede (CSV/PDF/TXT; `regenerar` recalcula el snapshot de la sede/periodo)
 - **Morosos empresariales** `/informes/morosos` → `CREDITO.usp_MorosidadEmpresa` + Excel ClosedXML
 - **Cierre y metas gerenciales** `/informes/cierre-gerencial` → `usp_ObtenerAvanceMetasGerenciales` / `usp_ListarMetasGerencialesDefinitivas` / `usp_GuardarMetaGerencialDefinitiva` + Excel ClosedXML
 
@@ -64,6 +64,7 @@ El C# no recalcula cartera ni mora de los `rpt-*`. Cada informe invoca su `usp_R
 | Matriz cobertura | `GET .../catalogo-cobertura` — 46 `completo-datos`, `soloMvc = 0`, ≥6 `parcial`, 5 adicionales API, 3 `json-texto` |
 | `CredixLegacyReportCatalog` | Título y columnas PDF (tildes normalizadas) |
 | Tres JSON `{ texto }` | Resumen ingreso caja, tipo cuenta, cuenta bóveda (sin CSV/PDF de filas) |
+| `CREDITO.usp_CentralRiesgoGenerar` | `@OficinaId, @Anio, @Mes, @Regenerar`: cache y lectura filtrados por sede (2026-11-12). Script `deploy/sql/2026-11-12-usp-central-riesgo-generar-por-sede.sql` ([README Azure](../../deploy/sql/README-2026-11-08-AZURE.md)) |
 | `CREDITO.usp_MorosidadEmpresa` | Morosos empresa; `@OficinaId` opcional. Sucursal: la API fuerza JWT. Central: null = red o la sede elegida. Script `deploy/sql/2026-10-07-usp-morosidad-empresa.sql` |
 | `CREDITO.usp_ObtenerAvanceMetasGerenciales` | Avance por `@Periodo` + `@OficinaId`. Sucursal: una llamada. Central: una por sede activa (o `sedeId`) y el C# sella `Oficina` |
 | `CREDITO.usp_ListarMetasGerencialesDefinitivas` | 19 carteras de la empresa. Sucursal / sede: se filtra por `UsuarioOficina` en C# |
@@ -74,7 +75,8 @@ El C# no recalcula cartera ni mora de los `rpt-*`. Cada informe invoca su `usp_R
 | Método y ruta | Política | Pantalla |
 |---------------|----------|----------|
 | `GET /api/v1/reportes/catalogo`, `politica-exportacion`, `catalogo-cobertura` | `CreditoUser` | `/informes/cobertura` |
-| `GET /api/v1/credito/rpt-*` (JSON/CSV/PDF) | `CreditoUser` (oficina JWT) | `/informes/*`, índice crédito |
+| `GET /api/v1/credito/rpt-*` (JSON/CSV/PDF) | `CreditoUser` (sucursal = oficina JWT; Central puede pasar otra `oficinaId`) | `/informes/*`, índice crédito |
+| `GET /api/v1/credito/central-riesgo-generar` (+ `-csv`, `-pdf`, `-txt`) | `CreditoUser`; `oficinaId`, `anio`, `mes` obligatorios; `regenerar` opcional | `/informes/central-riesgo`; archivo `DM007898_O{sede}_{AAAAMM}` |
 | `GET /api/v1/ventas/rpt-*` | `CreditoUser` | Índice venta |
 | `GET cobranza-pagos` Excel | `CreditoUser` | `/reportes/cobranza` |
 | `GET /api/v1/morosidad/permisos` | `CreditoUser` | Menú / hub (ACL) |
@@ -94,6 +96,10 @@ Política de export (catálogo): fase `pdf-tabular-completo` (cada `-csv` tiene 
 - `/informes/morosos` y `/informes/cierre-gerencial` están en `EXACT_MENU_ROUTES`: el hub de reportes **no** las abre; hace falta `extraAllowedPaths` tras los `GET .../permisos`.
 - Alcance de datos (2026-10-24): `IndPrincipal` = Central. Sucursal ignora `oficinaId`/`sedeId` del query y usa el JWT. Central honra el filtro o ve la red. No se ensancha RoleHome ni las listas ACL.
 - Cobranza / cobro diario / morosidad gestor (004): el rol ADMIN/APROBADOR/REPORTEPARCIAL **en sucursal** ya no abre otra oficina ni “todas”. Solo Central conserva el combo. Spec Kit [004-alcance-red](../speckit/004-alcance-red/spec.md).
+- **Hub `/reportes/credito` — Central sede (2026-11-12):** Central ve la toolbar «Sede a consultar» (`oficinaConsulta`; sin elegir usa la oficina del JWT) y todas las tarjetas usan esa sede. Sucursal no ve selector y queda en su JWT.
+- **Pantallas hijas:** «Ver pantalla» envía `oficinaId` + filtros de la tarjeta (`screenSearchParams`); cada `/informes/*` toma la sede con `resolveInformeOficinaId` (`utils/informeUrlParams.ts`: query `oficinaId`/`pOficinaId`, si no JWT). La API revalida: sucursal con otra `oficinaId` → 403; Central puede cruzar sede.
+- **Central de riesgo:** snapshot, CSV/PDF/TXT y `regenerar` acotados a la sede/periodo. El deploy exige `2026-11-12-usp-central-riesgo-generar-por-sede.sql` (`deploy/scripts/smoke-db-gate.ps1` lo verifica).
+- **Morosos / Cierre gerencial:** usan `useEsCentral` y muestran una «Acción sugerida» (decision hint) según sede/red. Siguen detrás de ACL; el hub no los abre.
 - Índice crédito además filtra roles (`reporteCreditoAccess.ts`).
 - Padre REPORTES no concede el hub.
 - PDF sin Bearer → 401 (`reportpdfendpointsunauthorizedtests`).
@@ -118,7 +124,8 @@ Política de export (catálogo): fase `pdf-tabular-completo` (cada `-csv` tiene 
 - 2026-09-10 — PDFs tabulares: catálogo por título (tildes) y layout usable ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
 - 2026-10-07 — Morosos empresariales: módulo ACL + SP (ver [PARIDAD-MOROSIDAD](../migration/PARIDAD-MOROSIDAD.md))
 - **2026-10-24 — alcance por sede:** Morosos y Cierre gerencial dejan de pedir toda la red desde sucursal. No se inventa USP ni se toca el cierre mensual oficial ([BITACORA](../migration/BITACORA-DESVIACIONES.md)).
-- **2026-10-24 — 004 cobranza:** sucursal con rol de reporte ya no consulta la red. Los ~28 informes con oficina oculta siguen siendo JWT (Central entra a la sede).
+- **2026-10-24 — 004 cobranza:** sucursal con rol de reporte ya no consulta la red. Los ~28 informes con oficina oculta eran JWT-only; desde 2026-11-12 Central entra a otra sede vía hub / `oficinaId` en la URL (sucursal sigue en su JWT).
+- **2026-11-12 — Central de riesgos por sede + hub sede:** usp, API y archivo `DM007898_O{sede}_{periodo}`; «Ver pantalla» conserva sede y filtros; Morosos/Cierre con decision hints ([BITACORA](../migration/BITACORA-DESVIACIONES.md)).
 
 Producto: PDF Credix ≠ píxel RDLC. `VITE_LEGACY_ORIGIN` solo si negocio lo pide.
 
@@ -126,7 +133,7 @@ Producto: PDF Credix ≠ píxel RDLC. `VITE_LEGACY_ORIGIN` solo si negocio lo pi
 
 - API: `reportescatalogocoberturaendpointtests` (52 / **46** completo-datos / soloMvc 0), `reportesexportpoliticaendpointtests`, `credixlegacyreportcatalogtests`, `rpt*` endpoint/CSV/PDF por informe, `morosidadendpointtests`
 - SPA: `resolvespapathfrommenuitem.test.ts` (CREDITO/COBRANZA/VENTA REPORTES), `menuRouteAccess.test.ts` (morosos solo con `extraAllowedPaths`)
-- Smoke: índice crédito → PDF; cobertura; un informe de caja y uno de almacén; Morosos con usuario ACL
+- Smoke: índice crédito → PDF; cobertura; un informe de caja y uno de almacén; Morosos con usuario ACL; Central: elegir sede en `/reportes/credito` → «Ver pantalla» conserva la sede; Central de riesgo con `regenerar` en dos sedes
 
 ## 10. Go-live
 

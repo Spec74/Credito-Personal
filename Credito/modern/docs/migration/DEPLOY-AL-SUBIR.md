@@ -52,6 +52,18 @@ Los scripts sueltos de `deploy/sql/2026-10-*.sql` quedan como piezas; no hace fa
 
 Smoke mínimo: login → menú → tablero `/inicio` → caja diario → simulador (cuota en domingo debe ir al lunes, prendario no) → un informe PDF → (ACL) `/informes/morosos`.
 
+### Post 2026-11-08 — scripts ordenados (06 → 11 → 12)
+
+Detalle y comandos `sqlcmd`: [deploy/sql/README-2026-11-08-AZURE.md](../../deploy/sql/README-2026-11-08-AZURE.md). Aplicar **después** del paquete tesorería 11-08, en este orden:
+
+| Orden | Script (`deploy/sql/`) | Qué asegura |
+|-------|------------------------|-------------|
+| 1 | `2026-11-06-caja-saldo-final-centimos.sql` | `usp_RecalcularCajaDiario` ROUND 2 |
+| 2 | `2026-11-11-usp-cerrar-cajas-diarios-centimos.sql` | `usp_CerrarCajasDiarios` ROUND 2, sin TRE en cero |
+| 3 | `2026-11-12-usp-central-riesgo-generar-por-sede.sql` | `usp_CentralRiesgoGenerar` por sede |
+
+Gate opcional: `deploy/scripts/smoke-db-gate.ps1` (ROUND 2 en cierre/recalcular y filtro de sede en central de riesgos).
+
 ## WhatsApp Cloud API (Meta → Azure)
 
 Callback URL (App Service):

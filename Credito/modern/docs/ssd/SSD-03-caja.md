@@ -138,6 +138,7 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 - 2026-09-10 — condonación: listado/alta por oficina JWT; bloqueo de cierre como `ValidarCierreCajaDiario` ([BITACORA](../migration/BITACORA-DESVIACIONES.md))
 - **2026-10-24 — maestro de cajas por sede:** sucursal no lista ni crea cajas ajenas ([004-alcance-red](../speckit/004-alcance-red/spec.md)).
 - 2026-09-09 — mora postergada y `SCOPE_IDENTITY` en liquidación
+- **2026-11-11 — céntimos ROUND 2:** conteo de billetes solo efectivo tipado, moneda 0.05, cierre masivo valida 409 y sobrante ≥ 0. Saldo final sin perder céntimos: SQL `usp_RecalcularCajaDiario` / `usp_CerrarCajasDiarios` con `ROUND(,2)` y C# `CajaDiarioCierreService` (`SaldoFinal` ROUND 2, antes 1 decimal). Detalle en [caja_saldos_migracion](../caja_saldos_migracion.md); deploy en `deploy/sql/2026-11-06-caja-saldo-final-centimos.sql` y `2026-11-11-usp-cerrar-cajas-diarios-centimos.sql` ([orden](../migration/DEPLOY-AL-SUBIR.md), [README Azure](../../deploy/sql/README-2026-11-08-AZURE.md); [BITACORA](../migration/BITACORA-DESVIACIONES.md))
 
 Aceptadas de producto: grilla de desembolsos APR (el MVC era un formulario); modal de movimientos de toda la caja; tickets auto cuando el SP devuelve id; rendiciones de caja chica en línea (no pixel-perfect de modales legacy); Saldos Anular aplica bloqueo INI+PAG aunque el MVC lo tenía comentado; cobro de cuota admite tipo pago digital (legacy solo efectivo) **con** Extension/Verificar.
 

@@ -4,14 +4,50 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
-### 2026-11-11 — Conteo billetes: céntimos y gobernanza de cierre
+### 2026-11-12 — Central de riesgos por sede
+
+**Qué hay:** `CREDITO.usp_CentralRiesgoGenerar(@OficinaId, @Anio, @Mes,
+@Regenerar)` filtra cache y lectura por oficina; `regenerar=true`
+recalcula solo el snapshot de esa sede/periodo. La API
+(`central-riesgo-generar`, `-csv`, `-pdf`, `-txt`) valida la sede con
+`GestorInformeReportAccess.EnsureOficinaConsultaAsync`: sucursal solo su
+JWT, Central cualquier sede. Archivos exportados:
+`DM007898_O{sede}_{AAAAMM}.{txt|csv|pdf}`. Deploy:
+`deploy/sql/2026-11-12-usp-central-riesgo-generar-por-sede.sql`
+(el `smoke-db-gate.ps1` verifica el filtro por sede).
+
+**Qué no hay:** no se cambia el layout TXT DM007898 ni se consolida la
+red en un solo archivo; no se agrega un endpoint nuevo.
+
+### 2026-11-12 — Reportes crédito: sede del hub llega a «Ver pantalla»
+
+**Qué hay:** En `/reportes/credito`, Central elige **Sede a consultar**
+(`oficinaConsulta`; sin elegir usa la oficina del JWT). Las tarjetas
+pasan `oficinaId` y sus filtros (fechas, año/mes) a «Ver pantalla»
+(`screenSearchParams`). Las pantallas `/informes/*` resuelven la sede con
+`resolveInformeOficinaId` (`utils/informeUrlParams.ts`): query
+`oficinaId`/`pOficinaId` primero, JWT si no hay. En el API, los `rpt-*`
+de crédito usan `ResolveAsync`/`EnsureOficinaConsultaAsync`: Central
+puede consultar otra sede; sucursal con `oficinaId` ajeno recibe 403.
+Morosos y Cierre gerencial muestran una «Acción sugerida» según sede y
+`useEsCentral`.
+
+**Qué no hay:** el hub no abre `/informes/morosos` ni
+`/informes/cierre-gerencial` (siguen por ACL); la escritura de caja y
+crédito sigue exigiendo oficina = JWT.
+
+### 2026-11-11 — Conteo billetes: céntimos y gobernanza de cierre (ROUND 2)
 
 **Qué hay:** Umbral de conteo = solo efectivo tipado; moneda de
 5 céntimos; parse de resumen tolerante (paridad C#); API
 `cerrar-cajas-diarios` valida cierre masivo (409) y rechaza
 sobrante negativo; USP `ROUND(...,2)` + `@Sobrante >= 0`; la SPA
-revalida al confirmar. Deploy:
-`2026-11-11-usp-cerrar-cajas-diarios-centimos.sql`.
+revalida al confirmar. Saldo final: SQL `usp_RecalcularCajaDiario`
+(`2026-11-06-caja-saldo-final-centimos.sql`) y C#
+(`CajaDiarioCierreService`, `Math.Round(SaldoFinal, 2)`, antes 1
+decimal) alineados en ROUND 2. Deploy:
+`2026-11-11-usp-cerrar-cajas-diarios-centimos.sql` — orden en
+[DEPLOY-AL-SUBIR](DEPLOY-AL-SUBIR.md).
 
 **Qué no hay:** no se reintroduce conteo de Yape como billetes
 (legacy `Σ SaldoFinal`); no se inventa desglose de denominaciones

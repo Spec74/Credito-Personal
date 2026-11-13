@@ -20,7 +20,7 @@ No es un diario de fases. No duplica el inventario de endpoints de `readme.md` n
 | Docs de ingeniería por módulo | Sí (crédito/caja/bóveda/clientes + SSD para el resto) | `docs/*_migracion.md` + `docs/ssd/` |
 | SSD / Spec Kit (visión, spec, criterios, trazabilidad) | As-built **00–12** + cambios **SSD-13/14** (Spec Kit) | `docs/ssd/` · `docs/speckit/` |
 | Validación FE/BE transversal | Sí | [SSD-12-validacion.md](SSD-12-validacion.md) |
-| Documentación completa del software (índice + arquitectura) | Sí | [DOCUMENTACION.md](../DOCUMENTACION.md), [ARCHITECTURE.md](../ARCHITECTURE.md) |
+| Documentación del software (índice + arquitectura) | Sí, as-built hasta 2026-11-12 (con deuda abierta, ver abajo) | [DOCUMENTACION.md](../DOCUMENTACION.md), [ARCHITECTURE.md](../ARCHITECTURE.md) |
 | Cutover preprod/prod | Pendiente de **ejecución** (docs listos) | `DEPLOY-AL-SUBIR.md`, `PHASE-5-OPERATIONS-CUTOVER.md`, [SSD-00](SSD-00-cutover.md) |
 
 ## Cómo se usa (Spec Kit, sin teatro)
@@ -60,7 +60,7 @@ El menú vivo de **oficina 1 (CREDITO)** cubre SSD-01 … SSD-09 y SSD-00. Venta
 | SSD-04 | Tesorería / bóveda | Hecho | `boveda_migracion.md` | [SSD-04-boveda.md](SSD-04-boveda.md) |
 | SSD-05 | Clientes | Hecho | `clientes_migracion.md` | [SSD-05-clientes.md](SSD-05-clientes.md) |
 | SSD-06 | Prendario + WhatsApp | Hecho | `PARIDAD-PRENDARIO.md` | [SSD-06-prendario.md](SSD-06-prendario.md) |
-| SSD-07 | Informes y reportes (+ Morosos + Cierre gerencial, alcance por sede) | Hecho | `CATALOGO-INFORMES-COBERTURA.md`, `PARIDAD-MOROSIDAD.md` | [SSD-07-informes.md](SSD-07-informes.md) |
+| SSD-07 | Informes y reportes (+ Morosos + Cierre gerencial, alcance por sede; hub sede + central de riesgos por sede 2026-11-12) | Hecho | `CATALOGO-INFORMES-COBERTURA.md`, `PARIDAD-MOROSIDAD.md` | [SSD-07-informes.md](SSD-07-informes.md) |
 | SSD-08 | Admin / seguridad / oficinas | Hecho | `ui_modernizacion_modulos.md` | [SSD-08-admin.md](SSD-08-admin.md) |
 | SSD-09 | Maestros | Hecho | `ui_modernizacion_modulos.md` | [SSD-09-maestros.md](SSD-09-maestros.md) |
 | SSD-10 | Ventas | Hecho (SPA; **no** en menú vivo oficina 1) | `ui_modernizacion_modulos.md` | [SSD-10-ventas.md](SSD-10-ventas.md) |
@@ -90,10 +90,12 @@ en `docs/speckit/` (constitución → spec → plan → tasks). Primer cambio:
 
 - [SSD-13 experiencia operativa](SSD-13-experiencia-operativa.md) · [001-experiencia-operativa](../speckit/001-experiencia-operativa/spec.md) · [CONSTITUTION-UX](../speckit/CONSTITUTION-UX.md)
 
-## Cierre documental (2026-11-09)
+## Estado documental (hasta 2026-11-12)
 
-**Paquete documental: 100% completo.**
+El as-built está al día hasta **2026-11-12** (céntimos ROUND 2, central de riesgos por sede, hub `/reportes/credito` con sede). No se declara «100% completo»: queda deuda abierta.
+
+**Deuda restante:** archivos de endpoints «dios» (`creditooperacionendpoints.cs`, `creditoreportesrestantesendpoints.cs`) sin partir; checklist manual de responsive ([responsive-audit.md](../responsive-audit.md)) sin firmar.
 
 Incluye: SSD-00…19, [DOCUMENTACION.md](../DOCUMENTACION.md), [ARCHITECTURE.md](../ARCHITECTURE.md), [tickets_comprobantes.md](../tickets_comprobantes.md), [responsive-audit.md](../responsive-audit.md), [GLOSARIO.md](../GLOSARIO.md), [AMBIENTES.md](../AMBIENTES.md), [API-OVERVIEW.md](../API-OVERVIEW.md), [TEST-STRATEGY.md](../TEST-STRATEGY.md), [OPS.md](../OPS.md).
 
-Lo único fuera de la documentación es la **ejecución operativa** del cutover preprod (SSD-00 §7 casillas abiertas). Eso no es un hueco de spec.
+Fuera de la documentación quedan la **ejecución operativa** del cutover preprod (SSD-00 §7 casillas abiertas) y la deuda técnica indicada arriba.

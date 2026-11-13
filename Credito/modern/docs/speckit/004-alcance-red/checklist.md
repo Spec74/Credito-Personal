@@ -11,3 +11,5 @@
 | Caja diario / crédito (escritura) | Sigue exigiendo JWT = oficina | [x] |
 | `/maestros/almacenes` sucursal | Solo almacenes de la sesión; no crear en otra oficina | [x] |
 | `/maestros/almacenes` Central | Selector de sede o red; puede crear en una sede | [x] |
+| `/reportes/credito` Central (2026-11-12) | Toolbar «Sede a consultar» (`oficinaConsulta`); «Ver pantalla» pasa `oficinaId` + filtros y `/informes/*` usa `resolveInformeOficinaId`; Central de riesgo por sede (`regenerar`, `DM007898_O{sede}_…`) | [x] |
+| `/reportes/credito` sucursal | Sin selector de sede; `oficinaId` ajeno → 403; datos de su JWT | [x] |

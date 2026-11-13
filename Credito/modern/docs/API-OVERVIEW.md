@@ -37,7 +37,7 @@ Escrituras sensibles validan **oficina del JWT = oficina del body** (`CajaCredit
 | Bóveda | `/credito/*` boveda, transferir-boveda-* | SSD-04 |
 | Clientes | `/clientes/*` | SSD-05 |
 | Prendario | rutas prendario bajo `/credito` / API dedicada | SSD-06 |
-| Informes | `/credito/rpt-*`, `/reportes/*`, `/ventas/rpt-*`, `/morosidad/*` | SSD-07 |
+| Informes | `/credito/rpt-*`, `/reportes/*`, `/ventas/rpt-*`, `/morosidad/*` · Central de riesgos: `/credito/central-riesgo-generar` (+ `-csv`, `-pdf`, `-txt`) con `oficinaId`, `anio`, `mes` y `regenerar` opcional (recalcula el snapshot de esa sede; archivo `DM007898_O{sede}_{AAAAMM}`). Sucursal: `oficinaId` = JWT; Central: otra sede permitida | SSD-07 |
 | Admin | `/usuarios/*`, `/roles/*`, oficinas CRUD | SSD-08 |
 | Maestros | `/marcas`, `/modelos`, `/articulos`, `/almacenes` | SSD-09 |
 | Ventas | `/ventas/*`, `/lista-precios/*` | SSD-10 |
