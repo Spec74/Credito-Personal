@@ -178,6 +178,11 @@ export function LoginPage() {
           <span className="credix-login-ornament__lattice" />
           <span className="credix-login-ornament__frame" />
         </div>
+        {/* Solo móvil: marca plana (sin sello). Escritorio sigue usando el stage de 2 columnas. */}
+        <div className="credix-login-form__brand">
+          <BrandLogo className="credix-login-form__logo" compact priority />
+          <p className="credix-login-form__greet">{saludoDia.saludo}.</p>
+        </div>
         <div className="credix-login-form__head">
           <p className="credix-login-form__context">Sesión de sucursal</p>
           <CredixColorSchemeToggle variant="segmented" />

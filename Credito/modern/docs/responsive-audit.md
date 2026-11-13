@@ -70,7 +70,7 @@ Guion: `deploy/scripts/piloto-un-dia.ps1`. Código ya aplica 24/40 px; esto es f
 
 | Ruta | Criterio | OK | Fecha / quien |
 |------|----------|----|----------------|
-| `/app/login` | Formulario usable; oficina sin teclado; shell svh estable | [x] | 2026-11-13 Auto (teclado/oficina) |
+| `/app/login` | Móvil 1 bloque (logo+tema+form); desktop 2 cols; oficina sin teclado | [x] | 2026-11-13 Auto |
 | `/app/inicio` | Hoy 1 columna, colas del rol | [x] | 2026-11-12 Auto (CredixHubGrid + shell) |
 | `/app/credito/aprobar` | Bandeja + ficha; Rechazar táctil | [x] | 2026-11-12 Auto (módulo + 44px) |
 | `/app/caja/diario` | Sesión + cobro sin scroll horizontal bloqueante | [x] | 2026-11-12 Auto (caja-diario + global) |

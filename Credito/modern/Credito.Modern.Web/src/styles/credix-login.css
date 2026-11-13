@@ -209,12 +209,18 @@ html[data-theme='dark'] .credix-login-ornament--panel .credix-login-ornament__fr
 
 .credix-login-stage__greet,
 .credix-login-stage__body,
+.credix-login-form__brand,
 .credix-login-form__head,
 .credix-login-form__main,
 .credix-login-form__foot {
   position: relative;
   z-index: 1;
   width: 100%;
+}
+
+/* Marca compacta del panel: visible solo en ≤960px (ver @media abajo). */
+.credix-login-form__brand {
+  display: none;
 }
 
 .credix-login-stage__greet {
@@ -600,10 +606,13 @@ html[data-theme='dark'] .credix-login-form__legal a {
 }
 
 @media (max-width: 960px) {
+  /*
+    Un solo bloque: sin stage/sello estático. Logo plano + tema + formulario.
+    ≥961px conserva las dos columnas con sello.
+  */
   .credix-login {
     grid-template-columns: 1fr;
-    /* svh: no saltar de 34dvh→26dvh cuando aparece el teclado. */
-    grid-template-rows: minmax(140px, 34svh) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     height: 100dvh;
     height: 100svh;
     max-height: 100dvh;
@@ -613,15 +622,44 @@ html[data-theme='dark'] .credix-login-form__legal a {
     overflow: hidden;
   }
 
+  .credix-login-stage {
+    display: none !important;
+  }
+
+  .credix-login-form__brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+    padding-top: 4px;
+  }
+
+  .credix-login-form__logo.credix-brand-logo,
+  .credix-login-form__logo {
+    width: min(220px, 72vw);
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .credix-login-form__logo .credix-brand-logo__img {
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  .credix-login-form__greet {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--login-navy);
+  }
+
   /* Dropdown de oficina anclado al campo (sin teclado de búsqueda en compacto). */
   .credix-login-form__fields .ant-select-dropdown {
     position: absolute !important;
   }
 
-  /*
-    Marcos L en el margen; padding deja holgura (≈ inset + brazo + 10px)
-    para que saludo / «Sesión de sucursal» / pie no se crucen.
-  */
   .credix-login-ornament__frame {
     inset: 8px;
     background:
@@ -635,22 +673,14 @@ html[data-theme='dark'] .credix-login-form__legal a {
       linear-gradient(var(--login-navy), var(--login-navy)) bottom right / 1.5px 14px no-repeat;
   }
 
-  .credix-login-stage,
   .credix-login-panel {
     min-height: 0;
     height: 100%;
-    padding: clamp(32px, 3.6vh, 40px) clamp(32px, 5.5vw, 40px);
-    gap: clamp(6px, 1.2vh, 12px);
-  }
-
-  .credix-login-stage {
     overflow: hidden;
-    grid-template-rows: auto 1fr;
-  }
-
-  .credix-login-panel {
-    overflow: hidden;
-    grid-template-rows: auto minmax(0, 1fr) auto;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    padding: clamp(20px, 3.2vh, 36px) clamp(20px, 5vw, 40px);
+    gap: clamp(10px, 1.6vh, 16px);
   }
 
   .credix-login-form__main {
@@ -660,36 +690,11 @@ html[data-theme='dark'] .credix-login-form__legal a {
     overscroll-behavior: contain;
     justify-content: flex-start;
     min-height: 0;
+    max-width: none;
   }
 
   .credix-login-form__fields .ant-form-item {
     scroll-margin-block: 12px 28px;
-  }
-
-  .credix-login-stage__body,
-  .credix-login-form__main {
-    justify-content: flex-start;
-    max-width: none;
-  }
-
-  .credix-login-seal {
-    width: min(228px, 58vw, 32svh);
-  }
-
-  .credix-login-seal > .credix-login-seal__logo.credix-brand-logo,
-  .credix-login-seal .credix-login-seal__logo {
-    width: 64% !important;
-    max-width: 64% !important;
-    max-height: none;
-  }
-
-  .credix-login-quote {
-    display: none;
-  }
-
-  .credix-login-quote p {
-    font-size: clamp(1rem, 3.4vw, 1.25rem);
-    max-width: none;
   }
 
   .credix-login-form__header {
@@ -697,35 +702,9 @@ html[data-theme='dark'] .credix-login-form__legal a {
   }
 
   .credix-login-form__head {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 560px) {
-  .credix-login-ornament__lattice,
-  .credix-login-ornament__frame,
-  .credix-login-ornament--stage::after {
-    display: none;
-  }
-
-  .credix-login-stage,
-  .credix-login-panel {
-    padding: 20px 20px 18px;
-  }
-
-  .credix-login-stage__line {
-    display: none;
-  }
-
-  .credix-login-seal {
-    width: min(220px, 68vw, 32svh);
-  }
-
-  .credix-login-seal > .credix-login-seal__logo.credix-brand-logo,
-  .credix-login-seal .credix-login-seal__logo {
-    width: 66% !important;
-    max-width: 66% !important;
-    max-height: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
 
   .credix-theme-segmented.ant-segmented {
@@ -736,10 +715,27 @@ html[data-theme='dark'] .credix-login-form__legal a {
     flex: 1;
     justify-content: center;
   }
+}
 
-  .credix-login-form__head {
-    flex-direction: column;
-    align-items: stretch;
+@media (max-width: 560px) {
+  .credix-login-ornament__lattice,
+  .credix-login-ornament__frame,
+  .credix-login-ornament--stage::after {
+    display: none;
+  }
+
+  .credix-login-panel {
+    padding: 16px 18px 14px;
+    gap: 10px;
+  }
+
+  .credix-login-form__logo.credix-brand-logo,
+  .credix-login-form__logo {
+    width: min(188px, 64vw);
+  }
+
+  .credix-login-form__context {
+    text-align: center;
   }
 }
 
@@ -764,16 +760,19 @@ html[data-theme='dark'] .credix-login-form__legal a {
   }
 }
 
-/*
-  Teléfonos en landscape / pantallas muy bajas de verdad (no teclado virtual).
-  Con interactive-widget=resizes-visual el teclado ya no dispara max-height.
-*/
+/* Landscape estrecho: marca más chica para priorizar el formulario. */
 @media (max-width: 960px) and (max-height: 480px) and (orientation: landscape) {
-  .credix-login {
-    grid-template-rows: minmax(72px, 22svh) minmax(0, 1fr);
+  .credix-login-form__greet {
+    display: none;
   }
 
-  .credix-login-stage__eyebrow {
-    display: none;
+  .credix-login-form__logo.credix-brand-logo,
+  .credix-login-form__logo {
+    width: min(140px, 36vw);
+  }
+
+  .credix-login-panel {
+    padding-block: 10px;
+    gap: 8px;
   }
 }
