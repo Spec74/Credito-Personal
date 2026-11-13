@@ -24,14 +24,20 @@ import { CobranzaAreaChart } from '../../components/dashboard/CobranzaAreaChart'
 import { DashboardClientesMoraModal } from '../../components/dashboard/DashboardClientesMoraModal'
 import { DashboardDecisionStrip } from '../../components/dashboard/DashboardDecisionStrip'
 import { CredixPage } from '../../components/credix'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { formatMoney } from '../../utils/formatMoney'
 import { buildDashboardDecisions } from '../../utils/dashboardDecisionStrip'
 import '../../styles/dashboard-analista.css'
 
 export function AnalystDashboardPage() {
   const { session } = useAuth()
+  const { oficinas, oficinaSesionId } = useEsCentral()
   const [params] = useSearchParams()
   const desdeAdmin = params.get('vista') === 'analista'
+  const oficinaSesion = oficinas.find((o) => o.oficinaId === oficinaSesionId)
+  const nombreOficinaSesion =
+    oficinaSesion?.denominacion?.trim() ||
+    (oficinaSesionId > 0 ? `Oficina ${oficinaSesionId}` : 'oficina de sesión')
   const [moraOpen, setMoraOpen] = useState(false)
   const [moraTipo, setMoraTipo] = useState<DashboardMoraTipo>('TODOS')
 
@@ -136,10 +142,13 @@ export function AnalystDashboardPage() {
       <div className="dash-analista">
         <header className="dash-head">
           <div>
-            <p className="dash-kicker">Tablero del gestor</p>
+            <p className="dash-kicker">Tablero del gestor · {nombreOficinaSesion}</p>
             <h2 className="dash-hello">
               {saludo()}, {data.nombreAnalista}
             </h2>
+            <p className="dash-scope" role="status">
+              Alcance: oficina activa en sesión. Para ver otra sede, entre con esa oficina.
+            </p>
           </div>
           <div className="dash-date">{fechaLarga}</div>
         </header>

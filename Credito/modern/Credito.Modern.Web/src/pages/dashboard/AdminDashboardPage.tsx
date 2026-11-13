@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import {
   CalendarOutlined,
@@ -39,12 +40,36 @@ const queryOpts = {
 
 export function AdminDashboardPage() {
   const { session } = useAuth()
-  const { esCentral, oficinas } = useEsCentral()
+  const { esCentral, oficinas, oficinaSesionId } = useEsCentral()
+  const [params, setParams] = useSearchParams()
   const [buscar, setBuscar] = useState('')
-  const [sedeId, setSedeId] = useState<number | undefined>(undefined)
+  /** Central: lectura de otra sede sin re-login (`?sedeId=`). Sucursal: siempre JWT. */
+  const sedeId = useMemo(() => {
+    if (!esCentral) return undefined
+    const raw = Number(params.get('sedeId') ?? '')
+    return Number.isFinite(raw) && raw > 0 ? raw : undefined
+  }, [esCentral, params])
+  const setSedeId = (next: number | undefined) => {
+    const nextParams = new URLSearchParams(params)
+    if (next != null && next > 0) {
+      nextParams.set('sedeId', String(next))
+    } else {
+      nextParams.delete('sedeId')
+    }
+    setParams(nextParams, { replace: true })
+  }
   const oficinaKey = session?.oficinaId
   const sedeQuery = esCentral ? sedeId : undefined
   const enabled = (oficinaKey ?? 0) > 0
+  const sedeSeleccionada = sedeId
+    ? oficinas.find((o) => o.oficinaId === sedeId)
+    : undefined
+  const oficinaSesion = oficinas.find((o) => o.oficinaId === oficinaSesionId)
+  const alcanceLectura = sedeSeleccionada
+    ? `Sede consultada: ${sedeSeleccionada.denominacion || `Sede ${sedeId}`}`
+    : esCentral
+      ? `Oficina de sesión: ${oficinaSesion?.denominacion || shellNombreFallback(oficinaSesionId)} · elija otra sede para comparar`
+      : `Oficina: ${oficinaSesion?.denominacion || shellNombreFallback(oficinaSesionId)}`
 
   const shellQuery = useQuery({
     queryKey: ['dashboard-admin-shell', oficinaKey, sedeQuery],
@@ -362,14 +387,15 @@ export function AdminDashboardPage() {
           {esCentral ? (
             <Select
               allowClear
-              placeholder="Sede (esta sesión)"
-              style={{ minWidth: 200 }}
+              placeholder="Consultar otra sede…"
+              style={{ minWidth: 220 }}
               value={sedeId}
               onChange={(v) => setSedeId(v)}
               options={oficinas.map((o) => ({
                 value: o.oficinaId,
                 label: o.denominacion || `Sede ${o.oficinaId}`,
               }))}
+              aria-label="Sede a consultar en el tablero gerencial"
             />
           ) : null}
           <Button icon={<ReloadOutlined />} onClick={refetchAll} loading={isFetching}>
@@ -388,8 +414,14 @@ export function AdminDashboardPage() {
         ) : null}
         <header className="dash-head">
           <div>
-            <p className="dash-kicker">Tablero gerencial</p>
+            <p className="dash-kicker">Tablero gerencial · multisucursal</p>
             <h2 className="dash-hello">{shell.nombreOficina}</h2>
+            <p className="dash-scope" role="status">
+              {alcanceLectura}
+              {esCentral && !sedeId
+                ? ' (no es consolidado de red: indicadores de una oficina)'
+                : ''}
+            </p>
           </div>
           <div className="dash-date">{fechaLarga}</div>
         </header>
@@ -738,6 +770,10 @@ export function AdminDashboardPage() {
       </div>
     </CredixPage>
   )
+}
+
+function shellNombreFallback(oficinaId: number): string {
+  return oficinaId > 0 ? `Oficina ${oficinaId}` : 'sin oficina en sesión'
 }
 
 function dayKey(iso: string): string {

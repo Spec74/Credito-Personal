@@ -49,6 +49,14 @@
   color: var(--credix-text-muted);
 }
 
+.dash-scope {
+  margin: 8px 0 0;
+  max-width: 42rem;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--credix-text-muted);
+}
+
 .dash-date {
   font-size: 13px;
   color: var(--credix-text-muted);
