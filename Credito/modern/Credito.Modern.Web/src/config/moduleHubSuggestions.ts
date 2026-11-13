@@ -38,14 +38,28 @@ const SUGGESTIONS: Record<string, CredixHubLink[]> = {
     { to: '/reportes/credito', label: 'Reportes crédito', description: 'Exportaciones cartera' },
   ],
   VENTAS: [
-    { to: '/ventas/venta-rapida', label: 'Venta rápida', description: 'Mostrador' },
+    {
+      to: '/ventas/venta-rapida',
+      label: 'Punto de venta',
+      description: 'Venta rápida · remate',
+    },
     { to: '/ventas/orden-venta', label: 'Orden de venta', description: 'Pedidos' },
     { to: '/ventas/lista-precios', label: 'Lista de precios', description: 'Mantenimiento' },
+    {
+      to: '/informes/rentabilidad-venta',
+      label: 'Rentabilidad',
+      description: 'Margen por venta',
+    },
   ],
   ALMACEN: [
-    { to: '/almacen/salida', label: 'Salida almacén', description: 'Egresos' },
     { to: '/almacen/kardex', label: 'Kardex', description: 'Movimientos por artículo' },
     { to: '/informes/reporte-stock', label: 'Stock', description: 'Series EN_ALMACEN' },
+    { to: '/almacen/salida', label: 'Salida almacén', description: 'Egresos manuales' },
+    {
+      to: '/ventas/venta-rapida',
+      label: 'Punto de venta',
+      description: 'Liquidar stock de remate',
+    },
   ],
   ADMINISTRACION: [
     { to: '/admin/usuarios', label: 'Usuarios', description: 'Accesos y oficinas' },
@@ -83,9 +97,18 @@ const SUGGESTIONS: Record<string, CredixHubLink[]> = {
     { to: '/reportes/credito', label: 'Reportes crédito', description: 'Exportaciones cartera' },
   ],
   VENTA: [
-    { to: '/ventas/venta-rapida', label: 'Venta rápida', description: 'Mostrador' },
+    {
+      to: '/ventas/venta-rapida',
+      label: 'Punto de venta',
+      description: 'Venta rápida · remate',
+    },
     { to: '/ventas/orden-venta', label: 'Orden de venta', description: 'Pedidos' },
     { to: '/ventas/lista-precios', label: 'Lista de precios', description: 'Mantenimiento' },
+    {
+      to: '/informes/rentabilidad-venta',
+      label: 'Rentabilidad',
+      description: 'Margen por venta',
+    },
   ],
   PRENDARIO: [
     { to: '/credito/prendario', label: 'Listado prendario', description: 'Cartera prendaria' },

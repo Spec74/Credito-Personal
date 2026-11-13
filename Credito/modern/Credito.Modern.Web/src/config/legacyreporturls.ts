@@ -440,8 +440,11 @@ export function openLegacyKardex(params: {
   openUrl(`/Reporte/ReporteKardex?${q}`)
 }
 
+/** @deprecated Entrada por compra retirada de Credix; no abrir legado. */
 export function openLegacyEntradaAlmacen(): void {
-  openUrl('/Entrada')
+  if (import.meta.env.DEV) {
+    console.warn('[Credix] Entrada almacén (compra) está retirada. Use remate → venta rápida.')
+  }
 }
 
 export function openLegacySalidaAlmacen(): void {

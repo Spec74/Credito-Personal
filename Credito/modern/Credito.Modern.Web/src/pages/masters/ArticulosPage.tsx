@@ -37,7 +37,6 @@ import {
 } from '../../api/articulosCrud'
 import { ApiError } from '../../api/errors'
 import { CredixCrudPage, CredixDataTable, CredixSelect } from '../../components/credix'
-import { useCrudListStats } from '../../hooks/useCrudListStats'
 import {
   FIELD_MAX,
   denominacionRules,
@@ -103,6 +102,7 @@ export function ArticulosPage() {
   const [modeloId, setModeloId] = useState<number | undefined>()
   const [tipoArticuloId, setTipoArticuloId] = useState<number | undefined>()
   const [filtro, setFiltro] = useState('')
+  const [soloConStock, setSoloConStock] = useState(false)
   const [incluirInactivos, setIncluirInactivos] = useState(true)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [articuloId, setArticuloId] = useState(0)
@@ -241,7 +241,10 @@ export function ArticulosPage() {
   })
 
   const filtradas = useMemo(() => {
-    const lista = articulosQuery.data ?? []
+    let lista = articulosQuery.data ?? []
+    if (soloConStock) {
+      lista = lista.filter((a) => (a.stockEnAlmacen ?? 0) > 0)
+    }
     const q = filtro.trim().toLowerCase()
     if (!q) return lista
     return lista.filter(
@@ -250,9 +253,20 @@ export function ArticulosPage() {
         a.codArticulo.toLowerCase().includes(q) ||
         String(a.articuloId).includes(q),
     )
-  }, [articulosQuery.data, filtro])
+  }, [articulosQuery.data, filtro, soloConStock])
 
-  const stats = useCrudListStats(filtradas, 'artículos')
+  const conStock = useMemo(
+    () => (articulosQuery.data ?? []).filter((a) => (a.stockEnAlmacen ?? 0) > 0).length,
+    [articulosQuery.data],
+  )
+
+  const stats = useMemo(() => {
+    if (!articulosQuery.isSuccess) return undefined
+    return [
+      { label: 'En lista', value: filtradas.length },
+      { label: 'Con stock', value: conStock },
+    ]
+  }, [articulosQuery.isSuccess, filtradas.length, conStock])
 
   const cargarDetalle = async (id: number) => {
     const d = await fetchArticuloDetalle(id)
@@ -322,11 +336,20 @@ export function ArticulosPage() {
     {
       title: '',
       key: 'acc',
-      width: 90,
+      width: 168,
       render: (_, row) => (
-        <Button size="small" icon={<EditOutlined />} onClick={() => void cargarDetalle(row.articuloId)}>
-          Editar
-        </Button>
+        <Space size={4} wrap>
+          <Button size="small" icon={<EditOutlined />} onClick={() => void cargarDetalle(row.articuloId)}>
+            Editar
+          </Button>
+          {(row.stockEnAlmacen ?? 0) > 0 && row.codArticulo ? (
+            <Link to={`/ventas/venta-rapida?codigo=${encodeURIComponent(row.codArticulo)}`}>
+              <Button size="small" type="link">
+                Vender
+              </Button>
+            </Link>
+          ) : null}
+        </Space>
       ),
     },
   ]
@@ -334,7 +357,7 @@ export function ArticulosPage() {
   return (
     <CredixCrudPage
       title="Artículos"
-      subtitle="Catálogo de artículos"
+      subtitle="Catálogo · stock de giro por remate (PRM). No hay compra a proveedor."
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -343,6 +366,7 @@ export function ArticulosPage() {
       ]}
       actions={
         <Space wrap size="small">
+          <Link to="/ventas/venta-rapida">Punto de venta</Link>
           <Link to="/maestros/marcas">Marcas</Link>
           <Link to="/maestros/modelos">Modelos</Link>
           <Link to="/maestros/tipos-articulo">Tipos</Link>
@@ -406,6 +430,12 @@ export function ArticulosPage() {
             value={filtro}
             onChange={(e) => setFiltro(e.target.value)}
           />
+          <Checkbox
+            checked={soloConStock}
+            onChange={(e) => setSoloConStock(e.target.checked)}
+          >
+            Solo con stock
+          </Checkbox>
           <Checkbox
             checked={incluirInactivos}
             onChange={(e) => setIncluirInactivos(e.target.checked)}

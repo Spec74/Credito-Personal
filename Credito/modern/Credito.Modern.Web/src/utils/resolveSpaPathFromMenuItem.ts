@@ -130,7 +130,7 @@ function isCajaChicaRetirada(
   )
 }
 
-/** Compra a proveedores no opera en Credix (vive en ventas). Stock de giro = remate. */
+/** Compra a proveedores no opera en Credix. Stock de giro = remate → venta rápida. */
 export function isAlmacenEntradaCompraRetirada(
   url: string | null | undefined,
   denominacion: string | null | undefined,

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
@@ -20,6 +20,7 @@ import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../com
 import { useInformeStats } from '../../hooks/useInformeStats'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { sumMoney } from '../../utils/money'
 
 
 type FormValues = {
@@ -65,7 +66,25 @@ export function RentabilidadVentaPage() {
     mutationFn: (v: FormValues) => downloadRentabilidadVentaPdf(toParams(v)),
   })
 
-  const stats = useInformeStats(consulta, session?.oficinaId)
+  const margenTotal = useMemo(() => {
+    const rows = consulta.data ?? []
+    return sumMoney(rows.map((r) => r.rentabilidad ?? 0))
+  }, [consulta.data])
+
+  const ventasNegativas = useMemo(
+    () => (consulta.data ?? []).filter((r) => (r.rentabilidad ?? 0) < 0).length,
+    [consulta.data],
+  )
+
+  const stats = useInformeStats(consulta, session?.oficinaId, [
+    { label: 'Margen total', value: `S/ ${formatMoney(margenTotal)}` },
+    {
+      label: 'Ventas en pérdida',
+      value: ventasNegativas,
+      tone: ventasNegativas > 0 ? 'red' : 'default',
+    },
+  ])
+
   const columns: ColumnsType<RptRentabilidadVentaRow> = [
     { title: 'Nro', dataIndex: 'nro', width: 55 },
     { title: 'Código', dataIndex: 'codigo', width: 80 },
@@ -111,7 +130,7 @@ export function RentabilidadVentaPage() {
   return (
     <CredixInformePage
       title="Rentabilidad de ventas"
-      subtitle={undefined}
+      subtitle="Margen = precio venta − precio entrada (remate/tasación) · oficina de sesión"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/informes">Informes</Link> },

@@ -254,8 +254,8 @@ export function VentaRapidaPage() {
 
   return (
     <CredixPage
-      title="Venta rápida"
-      subtitle="Venta de mostrador"
+      title="Punto de venta"
+      subtitle="Venta rápida · stock de remate prendario (no compra a proveedor)"
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },

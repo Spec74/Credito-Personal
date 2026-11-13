@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom'
-import { Alert } from 'antd'
+import { Alert, Button, Space } from 'antd'
 import { CredixPage } from '../../components/credix'
 
-/** Gerencia: compra a proveedores no opera en Credix. El stock de giro entra por remate. */
+/**
+ * Compra a proveedores quedó fuera de Credix (gerencia).
+ * Stock de giro = remate prendario → serie EN_ALMACEN → venta rápida.
+ */
 export function EntradaAlmacenPage() {
   return (
     <CredixPage
       title="Entrada de almacén"
-      subtitle="Este módulo ya no forma parte de la operación de crédito."
+      subtitle="Módulo retirado · no opera en Credix"
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
         { title: <Link to="/almacen">Almacén</Link> },
@@ -15,18 +18,33 @@ export function EntradaAlmacenPage() {
       ]}
     >
       <Alert
-        type="info"
+        type="warning"
         showIcon
-        message="La compra a proveedores no va en Credix"
+        message="La compra a proveedores no forma parte de Credix"
         description={
           <>
-            Gerencia: las compras de mercadería se operan en <strong>ventas</strong>, no aquí. En
-            esta casa el stock de giro entra al rematar una prenda y se vende en{' '}
-            <Link to="/ventas/venta-rapida">venta rápida</Link>. Consulte existencias en{' '}
-            <Link to="/informes/reporte-stock">stock</Link> o{' '}
-            <Link to="/almacen/kardex">kardex</Link>. Las tablas de movimiento se conservan porque
-            la salida por venta las usa.
+            No registre mercadería de terceros aquí. El inventario de giro entra al{' '}
+            <strong>rematar una prenda</strong> (artículo PRM + serie en almacén) y se vende en el{' '}
+            <strong>punto de venta</strong> (venta rápida). Consulte existencias en stock o kardex.
           </>
+        }
+        action={
+          <Space direction="vertical" size="small">
+            <Link to="/ventas/venta-rapida">
+              <Button type="primary" size="small">
+                Ir al punto de venta
+              </Button>
+            </Link>
+            <Link to="/informes/reporte-stock">
+              <Button size="small">Ver stock</Button>
+            </Link>
+            <Link to="/almacen/kardex">
+              <Button size="small">Kardex</Button>
+            </Link>
+            <Link to="/credito/prendario">
+              <Button size="small">Cartera prendaria</Button>
+            </Link>
+          </Space>
         }
       />
     </CredixPage>

@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+import { Alert } from 'antd'
 import dayjs from 'dayjs'
 import { CredixPage } from '../../components/credix'
 import { CredixReportBox } from '../../components/reportes/CredixReportBox'
@@ -18,13 +20,25 @@ export function ReporteVentaIndexPage() {
   return (
     <CredixPage
       title="Reportes de venta"
-      subtitle={undefined}
+      subtitle="Margen del mes y precios · oficina de sesión"
       breadcrumb={reportesVentaIndexBreadcrumb()}
     >
       <div className="credix-reportes-shell">
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message="Qué medir aquí"
+          description={
+            <>
+              Rentabilidad compara precio de entrada (remate/tasación) vs precio de venta. Operar el
+              mostrador en <Link to="/ventas/venta-rapida">punto de venta</Link>.
+            </>
+          }
+        />
         <div className="credix-reportes-intro">
-          Rentabilidad y listas de precios de la oficina en sesión. Los filtros completos están en
-          cada pantalla; desde aquí puede exportar el mes en curso con un clic.
+          Exportaciones del mes en curso con un clic; abra «Ver informe» para rango y filtros
+          completos.
         </div>
         <ol className="credix-reportes-steps" aria-label="Cómo usar los reportes">
           <li>Revise la tarjeta</li>
