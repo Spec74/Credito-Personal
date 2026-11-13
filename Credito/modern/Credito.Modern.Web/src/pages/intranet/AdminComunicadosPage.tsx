@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  Alert,
   Button,
   DatePicker,
   Drawer,
@@ -12,6 +13,7 @@ import {
   Radio,
   Select,
   Space,
+  Spin,
   Switch,
   Upload,
   message,
@@ -34,6 +36,7 @@ import { fetchOficinas } from '../../api/oficinas'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage } from '../../components/credix'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import {
   esCreditoAdministrador,
   puedeMutarAviso,
@@ -69,6 +72,7 @@ type FormValues = {
 
 export function AdminComunicadosPage() {
   const { session } = useAuth()
+  const { oficinas: oficinasSesion, oficinaSesionId } = useEsCentral()
   const roles = session?.roles ?? []
   const admin = esCreditoAdministrador(roles)
   const publica = puedePublicarAvisos(roles)
@@ -82,6 +86,10 @@ export function AdminComunicadosPage() {
   const [busqueda, setBusqueda] = useState('')
   const alcance = Form.useWatch('alcance', form)
   const permanente = Form.useWatch('permanente', form)
+  const oficinaSesion = oficinasSesion.find((o) => o.oficinaId === oficinaSesionId)
+  const nombreOficina =
+    oficinaSesion?.denominacion?.trim() ||
+    (oficinaSesionId > 0 ? `Oficina ${oficinaSesionId}` : 'esta sede')
 
   const oficinas = useQuery({
     queryKey: ['oficinas'],
@@ -229,6 +237,31 @@ export function AdminComunicadosPage() {
     setOpen(true)
   }
 
+  if (!publica) {
+    return (
+      <CredixPage
+        title="Publicar aviso"
+        breadcrumb={[
+          { title: <Link to="/inicio">Inicio</Link> },
+          { title: <Link to="/comunicados">Avisos</Link> },
+          { title: 'Publicar' },
+        ]}
+      >
+        <Alert
+          type="warning"
+          showIcon
+          message="Sin permiso para publicar"
+          description="Solo administrador o encargado de sede pueden publicar o retirar avisos."
+          action={
+            <Link to="/comunicados">
+              <Button size="small">Ir a avisos</Button>
+            </Link>
+          }
+        />
+      </CredixPage>
+    )
+  }
+
   return (
     <CredixPage
       title="Publicar aviso"
@@ -238,17 +271,35 @@ export function AdminComunicadosPage() {
         { title: 'Publicar' },
       ]}
       actions={
-        publica ? (
-          <Button type="primary" onClick={abrirNuevo}>
-            Nuevo aviso
-          </Button>
-        ) : undefined
+        <Button type="primary" onClick={abrirNuevo}>
+          Nuevo aviso
+        </Button>
       }
       stats={[
         { value: lista.data?.length ?? 0, label: 'Publicados' },
         { value: (lista.data ?? []).filter((r) => r.alcance === 'RED').length, label: 'Toda la red' },
       ]}
     >
+      <p className="credix-intranet-scope" role="status">
+        {admin
+          ? 'Administrador: puede publicar a toda la red o a una sede.'
+          : `Encargado de ${nombreOficina}: publica solo a esta sede.`}
+      </p>
+
+      {lista.isError ? (
+        <Alert
+          type="error"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message={lista.error instanceof ApiError ? lista.error.message : 'No se pudo cargar la gestión.'}
+          action={
+            <Button size="small" onClick={() => void lista.refetch()}>
+              Reintentar
+            </Button>
+          }
+        />
+      ) : null}
+
       <div className="credix-inbox-toolbar">
         <Input
           allowClear
@@ -259,9 +310,13 @@ export function AdminComunicadosPage() {
         />
       </div>
 
-      {lista.isLoading ? null : visibles.length === 0 ? (
+      {lista.isLoading ? (
         <div className="credix-inbox__empty">
-          <p>Aún no hay avisos. Publique el primero.</p>
+          <Spin />
+        </div>
+      ) : visibles.length === 0 ? (
+        <div className="credix-inbox__empty">
+          <p>{lista.isError ? 'No hay datos para mostrar.' : 'Aún no hay avisos. Publique el primero.'}</p>
         </div>
       ) : (
         <ul className="credix-gestion-list">

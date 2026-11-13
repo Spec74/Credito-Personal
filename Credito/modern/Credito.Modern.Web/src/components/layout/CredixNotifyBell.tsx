@@ -20,15 +20,18 @@ export function CredixNotifyBell() {
 
   const items = bandeja.data ?? []
 
+  const invalidateInbox = () => {
+    void qc.invalidateQueries({ queryKey: ['bandeja'] })
+    void qc.invalidateQueries({ queryKey: ['comunicados'] })
+    void qc.invalidateQueries({ queryKey: ['agenda'] })
+  }
+
   const ack = useMutation({
     mutationFn: async (row: BandejaItem) => {
       if (row.tipo === 'COMUNICADO') await marcarComunicadoLeido(row.id)
       else await descartarAgenda(row.id)
     },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['bandeja'] })
-      void qc.invalidateQueries({ queryKey: ['comunicados'] })
-    },
+    onSuccess: invalidateInbox,
   })
 
   const marcarTodos = useMutation({
@@ -39,10 +42,7 @@ export function CredixNotifyBell() {
         ),
       )
     },
-    onSuccess: () => {
-      void qc.invalidateQueries({ queryKey: ['bandeja'] })
-      void qc.invalidateQueries({ queryKey: ['comunicados'] })
-    },
+    onSuccess: invalidateInbox,
   })
 
   const abrir = (n: BandejaItem) => {
@@ -75,7 +75,14 @@ export function CredixNotifyBell() {
             ) : null}
           </div>
 
-          {items.length === 0 ? (
+          {bandeja.isError ? (
+            <div className="credix-notify-panel__empty">
+              <p>No se pudo cargar la campana.</p>
+              <Button size="small" onClick={() => void bandeja.refetch()}>
+                Reintentar
+              </Button>
+            </div>
+          ) : items.length === 0 ? (
             <div className="credix-notify-panel__empty">
               <p>Está al día. Los avisos y recordatorios aparecen aquí.</p>
               <nav>

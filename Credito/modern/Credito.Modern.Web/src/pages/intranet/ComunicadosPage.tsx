@@ -1,11 +1,13 @@
 import { useMemo } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button, Empty, Input, Segmented, Spin } from 'antd'
+import { Alert, Button, Empty, Input, Segmented, Spin } from 'antd'
 import { ArrowLeftOutlined } from '@ant-design/icons'
 import { fetchComunicado, fetchComunicados, marcarComunicadoLeido } from '../../api/intranet'
+import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage } from '../../components/credix'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { formatRelativo } from '../../utils/formatFecha'
 import { puedePublicarAvisos } from '../../utils/creditoOperacionPermisos'
 import { AdjuntoVista } from './AdjuntoVista'
@@ -15,12 +17,17 @@ type Filtro = 'todos' | 'nuevos' | 'permanentes'
 
 export function ComunicadosPage() {
   const { session } = useAuth()
+  const { oficinas, oficinaSesionId } = useEsCentral()
   const qc = useQueryClient()
   const [params, setParams] = useSearchParams()
   const puedeEditar = puedePublicarAvisos(session?.roles ?? [])
   const abierto = Number(params.get('id')) || null
   const filtro = (params.get('f') as Filtro) || 'todos'
   const q = params.get('q') ?? ''
+  const oficinaSesion = oficinas.find((o) => o.oficinaId === oficinaSesionId)
+  const alcanceSesion =
+    oficinaSesion?.denominacion?.trim() ||
+    (oficinaSesionId > 0 ? `Oficina ${oficinaSesionId}` : 'su oficina')
 
   const setAbierto = (id: number | null) => {
     const next = new URLSearchParams(params)
@@ -101,6 +108,24 @@ export function ComunicadosPage() {
         { value: nPerm, label: 'Siempre visibles' },
       ]}
     >
+      <p className="credix-intranet-scope" role="status">
+        Bandeja de {alcanceSesion}: avisos de toda la red y de esta sede.
+      </p>
+
+      {lista.isError ? (
+        <Alert
+          type="error"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message={errMsg(lista.error)}
+          action={
+            <Button size="small" onClick={() => void lista.refetch()}>
+              Reintentar
+            </Button>
+          }
+        />
+      ) : null}
+
       <div className="credix-inbox-toolbar">
         <Input
           allowClear
@@ -125,6 +150,10 @@ export function ComunicadosPage() {
           {lista.isLoading ? (
             <div className="credix-inbox__empty">
               <Spin />
+            </div>
+          ) : lista.isError ? (
+            <div className="credix-inbox__empty">
+              <Empty description="No se pudo cargar la bandeja" />
             </div>
           ) : filas.length === 0 ? (
             <div className="credix-inbox__empty">
@@ -192,6 +221,19 @@ export function ComunicadosPage() {
             <div className="credix-inbox__empty">
               <Spin />
             </div>
+          ) : detalle.isError ? (
+            <div className="credix-inbox__empty">
+              <Empty
+                description={
+                  <span>
+                    {errMsg(detalle.error)}{' '}
+                    <Button type="link" onClick={() => void detalle.refetch()}>
+                      Reintentar
+                    </Button>
+                  </span>
+                }
+              />
+            </div>
           ) : detalle.data ? (
             <article className="credix-aviso-lectura">
               <h2>{detalle.data.cabecera.titulo}</h2>
@@ -220,4 +262,9 @@ export function ComunicadosPage() {
       </div>
     </CredixPage>
   )
+}
+
+function errMsg(e: unknown): string {
+  if (e instanceof ApiError) return e.message
+  return 'No se pudieron cargar los avisos.'
 }

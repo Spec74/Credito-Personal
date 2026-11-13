@@ -134,6 +134,14 @@
   border-left: 1px solid var(--credix-border);
 }
 
+.credix-intranet-scope {
+  margin: 0 0 12px;
+  max-width: 48rem;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--credix-text-muted);
+}
+
 .credix-inbox-toolbar {
   display: flex;
   flex-wrap: wrap;

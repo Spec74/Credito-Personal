@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button, Drawer, Form, Grid, Input, Modal, Radio, Segmented, Select, Space } from 'antd'
+import { Alert, Button, Drawer, Form, Grid, Input, Modal, Radio, Segmented, Select, Space, Spin } from 'antd'
 import { LeftOutlined, PlusOutlined, RightOutlined } from '@ant-design/icons'
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
@@ -9,6 +9,7 @@ import { bajaAgenda, fetchAgenda, saveAgenda, type AgendaEvento } from '../../ap
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CredixPage } from '../../components/credix'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { esCreditoAdministrador, esCreditoEncargado } from '../../utils/creditoOperacionPermisos'
 import { AgendaCuandoFields } from './agenda/AgendaCuandoFields'
 import { AgendaMiniMonth } from './agenda/AgendaMiniMonth'
@@ -64,6 +65,7 @@ function leerCals(): { personal: boolean; sede: boolean } {
 
 export function AgendaPage() {
   const { session } = useAuth()
+  const { oficinas, oficinaSesionId } = useEsCentral()
   const screens = Grid.useBreakpoint()
   const movil = screens.md === false
   const qc = useQueryClient()
@@ -77,6 +79,10 @@ export function AgendaPage() {
   const [editando, setEditando] = useState<AgendaEvento | null>(null)
   const [now, setNow] = useState(dayjs())
   const [form] = Form.useForm<FormValues>()
+  const oficinaSesion = oficinas.find((o) => o.oficinaId === oficinaSesionId)
+  const nombreOficina =
+    oficinaSesion?.denominacion?.trim() ||
+    (oficinaSesionId > 0 ? `Oficina ${oficinaSesionId}` : 'esta sede')
 
   useEffect(() => {
     setVista(leerVista(movil))
@@ -255,8 +261,29 @@ export function AgendaPage() {
         )
       }
     >
+      <p className="credix-intranet-scope" role="status">
+        Calendario de {nombreOficina}: personal de su usuario
+        {puedeSede ? ' y eventos de esta sede' : ''}. Cambiar de sede requiere entrar con esa oficina.
+      </p>
+
       {guardar.error instanceof ApiError ? (
-        <p className="credix-field-error">{guardar.error.message}</p>
+        <Alert type="error" showIcon style={{ marginBottom: 12 }} message={guardar.error.message} />
+      ) : null}
+      {borrar.error instanceof ApiError ? (
+        <Alert type="error" showIcon style={{ marginBottom: 12 }} message={borrar.error.message} />
+      ) : null}
+      {eventosQ.isError ? (
+        <Alert
+          type="error"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message={eventosQ.error instanceof ApiError ? eventosQ.error.message : 'No se pudo cargar la agenda.'}
+          action={
+            <Button size="small" onClick={() => void eventosQ.refetch()}>
+              Reintentar
+            </Button>
+          }
+        />
       ) : null}
 
       <div className="credix-gcal-toolbar">
@@ -278,18 +305,23 @@ export function AgendaPage() {
       </div>
 
       {movil ? (
-        <CalendariosFiltro cals={cals} onChange={cambiarCals} compact />
+        <CalendariosFiltro cals={cals} onChange={cambiarCals} sedeLabel={nombreOficina} compact />
       ) : null}
 
-      <div className={`credix-gcal${movil ? ' is-movil' : ''}`}>
+      <div className={`credix-gcal${movil ? ' is-movil' : ''}${eventosQ.isLoading ? ' is-loading' : ''}`}>
         {movil ? null : (
           <aside className="credix-gcal__side">
             <AgendaMiniMonth value={ancla} eventos={eventos} onChange={setAncla} />
-            <CalendariosFiltro cals={cals} onChange={cambiarCals} />
+            <CalendariosFiltro cals={cals} onChange={cambiarCals} sedeLabel={nombreOficina} />
           </aside>
         )}
 
         <div className="credix-gcal__main">
+          {eventosQ.isLoading ? (
+            <div className="credix-gcal-loading" aria-busy="true" aria-label="Cargando agenda">
+              <Spin />
+            </div>
+          ) : null}
           {vista === 'mes' ? (
             <AgendaMonthView
               ancla={ancla}
@@ -385,7 +417,7 @@ export function AgendaPage() {
           <Form.Item name="alcance" label="Calendario">
             <Radio.Group>
               <Radio value="PERSONAL">Personal</Radio>
-              {puedeSede ? <Radio value="OFICINA">Esta sede</Radio> : null}
+              {puedeSede ? <Radio value="OFICINA">Sede · {nombreOficina}</Radio> : null}
             </Radio.Group>
           </Form.Item>
           <Form.Item name="notas" label="Notas">
@@ -400,10 +432,12 @@ export function AgendaPage() {
 function CalendariosFiltro({
   cals,
   onChange,
+  sedeLabel,
   compact = false,
 }: {
   cals: { personal: boolean; sede: boolean }
   onChange: (next: { personal: boolean; sede: boolean }) => void
+  sedeLabel: string
   compact?: boolean
 }) {
   return (
@@ -425,7 +459,7 @@ function CalendariosFiltro({
           onChange={(e) => onChange({ ...cals, sede: e.target.checked })}
         />
         <i className="credix-gcal-swatch is-sede" />
-        Esta sede
+        {sedeLabel}
       </label>
     </div>
   )

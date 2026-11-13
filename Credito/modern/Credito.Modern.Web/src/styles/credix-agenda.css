@@ -53,6 +53,7 @@
 }
 
 .credix-gcal__main {
+  position: relative;
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -155,7 +156,8 @@
 }
 
 .credix-gcal-mini__grid button.is-out {
-  color: #b0b6c0;
+  color: var(--credix-text-muted);
+  opacity: 0.55;
 }
 
 .credix-gcal-mini__grid button.is-today {
@@ -165,7 +167,7 @@
 
 .credix-gcal-mini__grid button.is-active {
   background: var(--credix-brand);
-  color: #fff;
+  color: var(--credix-on-brand);
 }
 
 .credix-gcal-mini__grid button i {
@@ -225,7 +227,7 @@
 
 .credix-gcal-dhead.is-today strong {
   background: var(--credix-brand);
-  color: #fff;
+  color: var(--credix-on-brand);
 }
 
 .credix-gcal-allday {
@@ -253,7 +255,7 @@
   border: 0;
   border-radius: 4px;
   background: var(--credix-brand);
-  color: #fff;
+  color: var(--credix-on-brand);
   font-size: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -265,7 +267,7 @@
 
 .credix-gcal-pill.is-sede {
   background: var(--credix-warning);
-  color: #fff;
+  color: #141414;
 }
 
 .credix-gcal-grid__scroll {
@@ -308,7 +310,7 @@
 }
 
 .credix-gcal-col.is-today {
-  background: rgba(17, 72, 133, 0.04);
+  background: color-mix(in srgb, var(--credix-ink-brand) 8%, transparent);
 }
 
 .credix-gcal-slot {
@@ -321,7 +323,7 @@
   left: 0;
   right: 0;
   height: 0;
-  border-top: 2px solid #d93025;
+  border-top: 2px solid var(--credix-danger);
   z-index: 3;
   pointer-events: none;
 }
@@ -333,7 +335,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #d93025;
+  background: var(--credix-danger);
 }
 
 .credix-gcal-block {
@@ -347,7 +349,7 @@
   border: 0;
   border-radius: 4px;
   background: var(--credix-brand);
-  color: #fff;
+  color: var(--credix-on-brand);
   cursor: pointer;
   overflow: hidden;
   text-align: left;
@@ -365,13 +367,14 @@
 }
 
 .credix-gcal-block.is-sede {
-  background: #a16207;
+  background: var(--credix-warning);
+  color: #141414;
 }
 
 .credix-gcal-block:hover,
 .credix-gcal-block:focus-visible {
   filter: brightness(1.08);
-  outline: 2px solid #fff;
+  outline: 2px solid var(--credix-surface);
   outline-offset: -2px;
 }
 
@@ -425,7 +428,7 @@
 
 .credix-gcal-mcell.is-today .credix-gcal-mcell__num {
   background: var(--credix-brand);
-  color: #fff;
+  color: var(--credix-on-brand);
   font-weight: 700;
 }
 
@@ -437,7 +440,7 @@
   border: 0;
   border-radius: 3px;
   background: var(--credix-brand);
-  color: #fff;
+  color: var(--credix-on-brand);
   font-size: 11px;
   text-align: left;
   overflow: hidden;
@@ -447,7 +450,8 @@
 }
 
 .credix-gcal-mchip.is-sede {
-  background: #a16207;
+  background: var(--credix-warning);
+  color: #141414;
 }
 
 .credix-gcal-mchip.is-more {
@@ -510,15 +514,25 @@
   border: 0;
   border-radius: 16px;
   background: var(--credix-brand);
-  color: #fff;
+  color: var(--credix-on-brand);
   font-size: 20px;
-  box-shadow: 0 6px 16px rgba(17, 72, 133, 0.35);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--credix-ink-brand) 35%, transparent);
   cursor: pointer;
 }
 
 .credix-gcal-fab:focus-visible {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--credix-surface);
   outline-offset: 2px;
+}
+
+.credix-gcal-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--credix-surface) 72%, transparent);
+  pointer-events: none;
 }
 
 .credix-cuando {
