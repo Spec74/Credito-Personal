@@ -24,6 +24,7 @@ import {
   fetchBovedasDestinoTransferencia,
   fetchCajasAbiertasTransferenciaBoveda,
   fetchValidarCierreBoveda,
+  fetchValidarCierreBovedaTemporal,
   ingresoEgresoBoveda,
   transferirBoveda,
   transferirBovedaBancos,
@@ -102,6 +103,7 @@ function opsGroups(esCentral: boolean): {
       items: [
         { key: 'caja', label: 'A caja' },
         { key: 'analista', label: 'A analista' },
+        { key: 'chica', label: 'Caja chica' },
         { key: 'bancos', label: 'Entre medios' },
         { key: 'temporal', label: 'Temporal' },
       ],
@@ -126,16 +128,16 @@ function opsCopy(esCentral: boolean): Record<string, { title: string; blurb: str
     caja: {
       title: 'Transferir a caja',
       blurb:
-        'Fondea una caja diaria abierta. Puede salir de efectivo o de un banco (entra como efectivo en caja).',
+        'Fondea una caja diaria abierta. Sale el medio elegido en bóveda y entra el mismo medio en la caja (sin conversión).',
     },
     analista: {
       title: 'Transferir a analista',
       blurb:
-        'El analista ya tiene caja. Se descuenta el medio (Yape, banco…) y se abona efectivo en esa caja.',
+        'El analista ya tiene caja. Se descuenta Yape/banco en bóveda y se abona efectivo en esa caja (embudo legado).',
     },
     chica: {
       title: 'Caja chica',
-      blurb: 'Pasa efectivo a la caja chica abierta.',
+      blurb: 'Pasa efectivo de la bóveda a la caja chica abierta de la sede.',
     },
     bancos: {
       title: 'Entre medios',
@@ -190,6 +192,8 @@ function invalidateBoveda(
   void queryClient.invalidateQueries({ queryKey: ['bovedas-destino-transferencia', oficinaId] })
   void queryClient.invalidateQueries({ queryKey: ['boveda-transferencias-pendientes', bovedaId] })
   void queryClient.invalidateQueries({ queryKey: ['boveda-red-posicion'] })
+  void queryClient.invalidateQueries({ queryKey: ['validar-cierre-boveda', oficinaId] })
+  void queryClient.invalidateQueries({ queryKey: ['validar-cierre-boveda-temporal', oficinaId] })
 }
 
 type Props = {
@@ -348,12 +352,23 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     queryFn: () => fetchValidarCierreBoveda(oficinaId),
     enabled: oficinaOk && needsCierre,
   })
+  const validacionCierreTemporal = useQuery({
+    queryKey: ['validar-cierre-boveda-temporal', oficinaId],
+    queryFn: () => fetchValidarCierreBovedaTemporal(oficinaId),
+    enabled: oficinaOk && needsCierre && existeTemporal,
+  })
   const cierrePrincipalBloqueado =
     boveda.indTemporal ||
     (needsCierre &&
       (validacionCierre.isLoading ||
         validacionCierre.isError ||
         validacionCierre.data?.puedeCerrar === false))
+  const cierreTemporalBloqueado =
+    needsCierre &&
+    existeTemporal &&
+    (validacionCierreTemporal.isLoading ||
+      validacionCierreTemporal.isError ||
+      validacionCierreTemporal.data?.puedeCerrar === false)
 
   const ingresoEgreso = useMutation({
     mutationFn: ingresoEgresoBoveda,
@@ -512,7 +527,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       title: 'Transferir a caja',
       amount: v.importe,
       officeLabel: caja?.etiqueta,
-      consequence: `Sale ${medioOrigen} de la bóveda y entra el mismo medio en la caja diaria (sin conversión).`,
+      consequence: `Sale ${medioOrigen} de la bóveda y entra ${medioOrigen} en la caja diaria (mismo medio).`,
       okText: 'Transferir',
       onOk: () =>
         aCaja.mutateAsync({
@@ -539,7 +554,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       title: 'Transferir a analista',
       amount: v.importe,
       officeLabel: caja?.etiqueta,
-      consequence: `Sale ${medio} de la bóveda y entra el mismo medio en la caja del analista (sin conversión).`,
+      consequence: `Sale ${medio} de la bóveda y entra ${efectivoLabel} en la caja del analista (embudo).`,
       okText: 'Transferir',
       onOk: () =>
         aAnalista.mutateAsync({
@@ -583,11 +598,17 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   }
 
   const confirmarCierre = (temporalOnly: boolean) => {
-    const validacion = validacionCierre.data
-    if (!temporalOnly && validacion?.puedeCerrar === false) {
+    const validacion = temporalOnly
+      ? validacionCierreTemporal.data
+      : validacionCierre.data
+    if (validacion?.puedeCerrar === false) {
       Modal.warning({
         title: 'Cierre bloqueado',
-        content: validacion.mensaje || 'Debe completar el cierre de cajas antes de cerrar la bóveda.',
+        content:
+          validacion.mensaje ||
+          (temporalOnly
+            ? 'Debe completar el cierre de cajas y el cuadre de la temporal.'
+            : 'Debe completar el cierre de cajas antes de cerrar la bóveda.'),
       })
       return
     }
@@ -596,27 +617,14 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       title: temporalOnly ? 'Cerrar bóveda temporal' : 'Cerrar bóveda principal',
       icon: <ExclamationCircleOutlined />,
       content: (
-        <>
-          {validacion && !validacion.puedeCerrar ? (
-            <Alert
-              type="warning"
-              showIcon
-              style={{ marginBottom: 12 }}
-              message={validacion.mensaje}
-            />
-          ) : null}
-          <Paragraph style={{ marginBottom: 0 }}>
-            {temporalOnly
-              ? 'Se cerrará la bóveda temporal de esta oficina. Confirme solo si ya no hay operaciones pendientes en ella.'
-              : 'Se cerrará la bóveda principal de esta oficina. Confirme solo si las cajas están en orden.'}
-          </Paragraph>
-        </>
+        <Paragraph style={{ marginBottom: 0 }}>
+          {temporalOnly
+            ? 'Se devolverá el saldo de la temporal a la principal y se quitará el rol ENCARGADO de la oficina.'
+            : 'Se cerrará la bóveda principal de esta oficina. Confirme solo si las cajas están en orden.'}
+        </Paragraph>
       ),
       okText: 'Cerrar',
-      okButtonProps: {
-        danger: true,
-        disabled: !temporalOnly && validacion?.puedeCerrar === false,
-      },
+      okButtonProps: { danger: true },
       cancelText: 'Cancelar',
       onOk: () =>
         temporalOnly ? cerrarTemp.mutateAsync() : cerrar.mutateAsync(),
@@ -721,7 +729,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
         >
           <MedioRuta
             origen="Bóveda · medio elegido"
-            destino={`Caja diaria · ${efectivoLabel}`}
+            destino="Caja diaria · mismo medio"
           />
           {!cajasQuery.isLoading && cajasAbiertas.length === 0 ? (
             <Alert
@@ -735,7 +743,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               type="info"
               showIcon
               style={{ marginBottom: 14 }}
-              message="El desembolso exige saldo en la caja. Elija el medio donde sí hay fondos en bóveda."
+              message="Elija el medio con saldo en bóveda. Entra el mismo medio en la caja (sin convertir a efectivo)."
             />
           )}
           <div className="boveda-operaciones-form__row">
@@ -1165,7 +1173,9 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             <Button
               size="large"
               loading={cerrarTemp.isPending}
-              disabled={!boveda.indTemporal && !existeTemporal}
+              disabled={
+                (!boveda.indTemporal && !existeTemporal) || cierreTemporalBloqueado
+              }
               onClick={() => confirmarCierre(true)}
             >
               Cerrar bóveda temporal

@@ -20,70 +20,48 @@ Paridad con `Web/Controllers/BovedaController.cs` y `Views/Boveda/Index.cshtml`.
 ## Pantalla principal
 
 1. **Estado de dinero** — KPIs: bóveda, caja chica, cajas, plan pago, vencidos (total y franjas), total fondo. Enlaces a caja, saldos e informe vencido.
-2. **Bóveda abierta** — saldos, temporal, resumen cuenta.
-3. **Operaciones** — ingreso/egreso, transferencia caja/caja chica, **entre bancos**, cierre, bóveda temporal (si aplica).
+2. **Bóveda abierta** — saldos, temporal, resumen cuenta (pantalla = **principal**).
+3. **Operaciones** — ingreso/egreso, a caja, a analista (embudo→efectivo), caja chica, entre medios, temporal, red, cierre.
 4. **Historial** — selección de bóveda + movimientos + saldos caja diario de la sesión.
 
-## API nuevas (2026)
-
-- `GET /api/v1/credito/boveda-estado-dinero?oficinaId=` — `BovedaEstadoDineroReadService` (cajas abiertas, caja chica, `usp_ObtenerMontoPendientePlanPago`, cartera vencida).
-- `GET /api/v1/credito/boveda-listar?oficinaId=&page=&pageSize=` — historial paginado por oficina.
-- `POST /api/v1/credito/transferir-boveda-bancos` — `usp_RegistrarTransferenciaBancos` + `usp_ActualizarSaldosBoveda`.
-
-## UI
-
-- `styles/boveda-module.css` — KPIs y grillas (tema `#114885`).
-- `CredixPage` + `CredixPanel` como Clientes/Tareas.
-- Resumen de cuenta: tarjetas por entidad con iconos SVG inline modernos en `resumenCuentaBrandIcons.tsx` (Yape, Plin, Interbank, BCP, BN, efectivo, etc.). Para logos oficiales de marca, ampliar ese archivo o añadir un componente por `variant`.
-- Resumen de cuenta: tarjetas por entidad con iconos SVG inline modernos en `resumenCuentaBrandIcons.tsx` (Yape, Plin, Interbank, BCP, BN, efectivo, etc.). Para logos oficiales de marca, ampliar ese archivo o añadir un componente por `variant`.
-
-## Checklist de paridad (2026)
+## Checklist de paridad (2026-11-13)
 
 | Funcionalidad legacy | Estado modern |
 |---------------------|---------------|
 | KPIs estado de dinero | Completo |
-| Saldos bóveda (ini/ent/sal/fin) | Completo (`BovedaSaldosGrid`) |
-| Resumen cuenta (`usp_ResumenCuentaBoveda`) | Completo (`BovedaResumenCuenta`, tarjetas + iconos marca) |
+| Saldos bóveda (ini/ent/sal/fin) | Completo |
+| Resumen cuenta / medios | Completo (`boveda-medios-red`) |
 | Ingreso / egreso | Completo |
-| Transferir a caja | Completo |
-| Transferir a caja chica | Completo |
-| Transferir entre bancos | Completo (`usp_RegistrarTransferenciaBancos`, catálogo tabla 13) |
-| Bóveda temporal (asignar / transferir / cerrar) | Completo |
-| Transferir bóveda inter-oficina | Completo (ID destino, ver diferencia) |
-| Aceptar / rechazar transferencia | Completo |
-| Cierre principal + validación saldos | Completo |
-| Grilla historial bóvedas | Completo |
-| Grilla movimientos + ticket PDF (oficina, agente, medio tipado, E/S) | Completo · [tickets_comprobantes.md](tickets_comprobantes.md) |
-| Grilla saldos caja diario sesión | Completo (`UsuarioAsignadoId` en SQL) |
-| Informe movimientos (página + PDF) | Completo |
-
-## Checklist de paridad (2026)
-
-| Funcionalidad legacy | Estado modern |
-|---------------------|---------------|
-| KPIs estado de dinero | Completo |
-| Saldos bóveda (ini/ent/sal/fin) | Completo (`BovedaSaldosGrid`) |
-| Resumen cuenta (`usp_ResumenCuentaBoveda`) | Completo (`BovedaResumenCuenta`, tarjetas + iconos marca) |
-| Ingreso / egreso | Completo |
-| Transferir a caja | Completo |
-| Transferir a caja chica | Completo |
-| Transferir entre bancos | Completo (`usp_RegistrarTransferenciaBancos`, catálogo tabla 13) |
-| Bóveda temporal (asignar / transferir / cerrar) | Completo |
-| Transferir bóveda inter-oficina | Completo (ID destino, ver diferencia) |
-| Aceptar / rechazar transferencia | Completo |
-| Cierre principal + validación saldos | Completo |
-| Grilla historial bóvedas | Completo |
-| Grilla movimientos + ticket PDF (oficina, agente, medio tipado, E/S) | Completo · [tickets_comprobantes.md](tickets_comprobantes.md) |
-| Grilla saldos caja diario sesión | Completo (`UsuarioAsignadoId` en SQL) |
-| Informe movimientos (página + PDF) | Completo |
+| Transferir a caja (mismo medio) | Completo |
+| Transferir a analista (embudo → efectivo) | Completo |
+| Transferir a caja chica | Completo (tab visible) |
+| Transferir entre bancos / medios | Completo (tabla 13) |
+| Bóveda temporal (asignar / transferir / cerrar) | Completo (`UsuarioId` + retorno a temporal) |
+| Transferir bóveda inter-oficina | Completo (inmediato; ID bóveda destino) |
+| Pendientes leftover | Solo **anular** (`flagAceptar=2`); no hay aceptar/rechazar |
+| Cierre principal + validación | Completo (cuadre Σ medios) |
+| Cierre temporal | Completo (validación acotada a temporal) |
+| Grillas historial + ticket PDF | Completo |
+| Informe movimientos | Completo |
 
 ## Diferencias conocidas
 
-- Transferencia inter-oficina: legacy combo de oficina destino; moderno usa **ID bóveda destino** (`transferir-boveda`).
-- Pendientes leftover: `anularTransferenciaPendienteBoveda` (`flagAceptar = 2`). El USP no acepta (no hay flag 1 ni INSERT a `BovedaMovTemp`).
-- Transferencia entre bancos: el MVC hardcodea IDs 1–8 de Huanta; el moderno lista `MAESTRO.ValorTabla` tabla 13. Tras el SP se llama `usp_ActualizarSaldosBoveda` (el BL legado no lo hacía).
-- `POST /api/v1/credito/transferir-boveda-bancos` — paridad `Boveda/RegistrarTransferenciaBancos`.
+- Transferencia inter-oficina: legacy combo de oficina destino; moderno usa **ID bóveda destino**.
+- Pendientes: solo anula leftovers (`flag 2`). El USP no acepta (no hay flag 1).
+- Entre bancos: MVC hardcodeaba IDs Huanta; moderno lista `ValorTabla` 13 + `usp_ActualizarSaldosBoveda`.
+- A caja: mismo medio bóveda→caja. A analista: embudo a efectivo (paridad MVC).
+- Con temporal abierta, retorno de cajas va a **temporal** (`BovedaOperativaSql` = `usp_CerrarCajasDiarios`).
+
+## Ciclo temporal (cero céntimos)
+
+1. Principal → temporal  
+2. Temporal → caja (si ENCARGADO)  
+3. Retorno / cierre cajas → temporal  
+4. Cerrar temporal → principal  
+
+Deploy: `2026-11-13-usp-cerrar-boveda-temporal-centimos.sql` (+ scripts caja ROUND 2).
 
 ## Pruebas
 
-- `BovedaEndpointTests`: 401 en endpoints sensibles (incl. `boveda-estado-dinero`, `boveda-listar`).
+- `BovedaEndpointTests`, `BovedaMovEndpointTests`, `BovedaTemporalEndpointTests`
+- SPA: `menuRouteAccess.test.ts` (bóveda vs caja diario)

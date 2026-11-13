@@ -272,12 +272,21 @@ export function fetchValidarCierreSaldos(
   )
 }
 
-/** Paridad BovedaController.ValidarCierre (previo a cerrar bóveda principal/temporal). */
+/** Paridad BovedaController.ValidarCierre (previo a cerrar bóveda principal). */
 export function fetchValidarCierreBoveda(
   oficinaId: number,
 ): Promise<ValidarCierreSaldosResponse> {
   return apiFetch<ValidarCierreSaldosResponse>(
     `/credito/validar-cierre-boveda?oficinaId=${oficinaId}`,
+  )
+}
+
+/** Previo a cerrar solo la temporal (cuadre temporal; cajas cerradas/enviadas). */
+export function fetchValidarCierreBovedaTemporal(
+  oficinaId: number,
+): Promise<ValidarCierreSaldosResponse> {
+  return apiFetch<ValidarCierreSaldosResponse>(
+    `/credito/validar-cierre-boveda-temporal?oficinaId=${oficinaId}`,
   )
 }
 
@@ -449,4 +458,4 @@ export function actualizarDatosPostCierreBoveda(
   return postJson('/credito/actualizar-datos-post-cierre-boveda', { oficinaId })
 }
 
-/** Aceptación/rechazo de transferencia inter-oficina (bovedaMovTempId > 0). */
+/** Anular leftover inter-oficina (flagAceptar=2). No hay aceptación flag 1. */

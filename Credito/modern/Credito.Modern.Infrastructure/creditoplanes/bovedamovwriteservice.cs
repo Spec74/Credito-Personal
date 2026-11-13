@@ -235,7 +235,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
 
         try
         {
-            // Mismo medio bóveda→caja (sin convertir digital a efectivo).
+            // Paridad BovedaController.TransferirAAnalista: embudo digital/banco → efectivo en caja.
             var result = await ExecuteTransferirACajaAsync(
                 oficinaId,
                 caja.CajaId,
@@ -245,7 +245,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                 personaId,
                 fechaOperacion,
                 tipoPagoOrigenId,
-                tipoPagoDestinoId: tipoPagoOrigenId,
+                tipoPagoDestinoId: 1,
                 cancellationToken).ConfigureAwait(false);
 
             if (result is null)

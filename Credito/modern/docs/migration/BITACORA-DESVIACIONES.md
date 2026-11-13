@@ -4,6 +4,18 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-11-13 — Bóveda módulo: gaps de UI/auth/paridad cerrados
+
+**Qué hay:** Tab **Caja chica** visible en operaciones. Analista = embudo
+a efectivo (paridad MVC). A caja = mismo medio (UI alineada). Cierre
+temporal con `ValidarCierreBovedaTemporal` (no exige cuadre de la
+principal). `saldos-caja-diario-boveda` exige que `bovedaId` sea de la
+oficina JWT. Docs `boveda_migracion` / SSD-04 honestos (pendientes =
+solo anular).
+
+**Qué no hay:** casillas SSD §7 siguen siendo smoke operativo; no se
+inventa “aceptar transferencia” flag 1.
+
 ### 2026-11-13 — Ciclo temporal↔cajas: un solo destino y céntimos
 
 **Qué hay:** Con bóveda temporal abierta, el **retorno** de caja diario /

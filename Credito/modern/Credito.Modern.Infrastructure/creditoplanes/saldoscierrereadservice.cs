@@ -201,6 +201,103 @@ public sealed class SaldosCierreReadService(IOptions<SqlDatabaseOptions> options
         return new ValidarCierreSaldosResponse(true, string.Empty);
     }
 
+    public async Task<ValidarCierreSaldosResponse> ValidarCierreBovedaTemporalAsync(
+        int oficinaId,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureConnection();
+        if (oficinaId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(oficinaId), "oficinaId debe ser >= 1.");
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var existeTemporal = await connection.ExecuteScalarAsync<bool>(
+            new CommandDefinition(
+                """
+                SELECT CAST(CASE WHEN EXISTS (
+                    SELECT 1 FROM CREDITO.Boveda
+                    WHERE OficinaId = @OficinaId
+                      AND IndCierre = CAST(0 AS bit)
+                      AND IndTemporal = CAST(1 AS bit)
+                ) THEN 1 ELSE 0 END AS bit);
+                """,
+                new { OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (!existeTemporal)
+        {
+            return new ValidarCierreSaldosResponse(false, "No hay bóveda temporal abierta en la oficina.");
+        }
+
+        var abiertas = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT COUNT(1)
+                FROM CREDITO.CajaDiario AS cd
+                INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                WHERE cd.IndCierre = CAST(0 AS bit)
+                  AND c.OficinaId = @OficinaId;
+                """,
+                new { OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (abiertas > 0)
+        {
+            return new ValidarCierreSaldosResponse(false, "EXISTEN CAJAS ABIERTAS.");
+        }
+
+        var cerradasNoEnviadas = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT COUNT(1)
+                FROM CREDITO.CajaDiario AS cd
+                INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                WHERE cd.IndCierre = CAST(1 AS bit)
+                  AND cd.TransBoveda = CAST(0 AS bit)
+                  AND c.OficinaId = @OficinaId;
+                """,
+                new { OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (cerradasNoEnviadas > 0)
+        {
+            return new ValidarCierreSaldosResponse(
+                false,
+                "EXISTEN CAJAS CERRADAS NO ENVIADAS A BOVEDA. REVISE FORMULARIO SALDOS CAJA.");
+        }
+
+        var temporal = await connection.QueryFirstOrDefaultAsync<(int BovedaId, decimal SaldoFinal)>(
+            new CommandDefinition(
+                """
+                SELECT TOP 1 BovedaId, SaldoFinal
+                FROM CREDITO.Boveda
+                WHERE OficinaId = @OficinaId
+                  AND IndCierre = CAST(0 AS bit)
+                  AND IndTemporal = CAST(1 AS bit)
+                ORDER BY BovedaId;
+                """,
+                new { OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        var sumaMedios = await connection.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(
+                BovedaCuadreSql.SumaMedios,
+                new { BovedaId = temporal.BovedaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+        var delta = decimal.Round(sumaMedios - temporal.SaldoFinal, 2);
+        if (Math.Abs(delta) > BovedaCuadreSql.Tolerancia)
+        {
+            return new ValidarCierreSaldosResponse(
+                false,
+                $"La bóveda temporal no cuadra: Σ medios ({sumaMedios:0.00}) ≠ saldo final ({temporal.SaldoFinal:0.00}). Delta {delta:0.00}.");
+        }
+
+        return new ValidarCierreSaldosResponse(true, string.Empty);
+    }
+
     private void EnsureConnection()
     {
         if (string.IsNullOrWhiteSpace(_connectionString))

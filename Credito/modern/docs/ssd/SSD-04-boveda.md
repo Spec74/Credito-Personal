@@ -1,6 +1,6 @@
 # SSD-04 — Tesorería / bóveda
 
-**Estado:** as-built · 2026-09-11 · validación movimientos/bancos/inter-oficina 2026-09-27 ([SSD-12](SSD-12-validacion.md)) · **multisucursal 2026-10-16…24**  
+**Estado:** as-built · código completo 2026-11-13 (temporal/retorno/caja chica/analista embudo/auth saldos) · validación 2026-09-27 ([SSD-12](SSD-12-validacion.md)) · **multisucursal 2026-10-16…24**  
 **Código:** `/tesoreria/boveda`, `/tesoreria/movimiento-boveda` · `/api/v1/credito/*` (bóveda)  
 **Fuente legacy:** `BovedaController`, `Views/Boveda/Index.cshtml`  
 **Doc de ingeniería:** [boveda_migracion.md](../boveda_migracion.md) · [PLAN-MULTISUCURSAL-PRENDARIO.md](../migration/PLAN-MULTISUCURSAL-PRENDARIO.md)
@@ -96,6 +96,7 @@ La puerta de negocio es el menú BOVEDA en la SPA. La API replica al MVC: autent
 - **2026-10-23 — Pendientes:** sin aceptación inventada. API 400 si tempId > 0 y flag ≠ 2; destino debe ser la oficina del token.
 - **2026-10-24 — marcas 1–5:** wordmark oficial PNG (Yape, BCP, Interbank, BN, CASH). 6–8 no son catálogo vigente. Huanta = `OficinaId`, no medio legado.
 - **2026-11-08/09 — ticket bóveda:** deja de hardcodear oficina/usuario; imprime `DisplayLabel` del medio y montos E/S ([BITACORA](../migration/BITACORA-DESVIACIONES.md)).
+- **2026-11-13 — módulo al 100% código:** tab caja chica visible; analista embudo→efectivo; a caja mismo medio; retorno cajas→temporal; cierre temporal con validación propia; `saldos-caja-diario-boveda` exige `bovedaId` de la sede JWT.
 
 Producto: destino inter-oficina por ID de bóveda, no combo de oficina.
 

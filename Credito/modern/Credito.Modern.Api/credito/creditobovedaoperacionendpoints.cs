@@ -841,8 +841,9 @@ internal static class CreditoBovedaOperacionEndpoints
                     var log = loggerFactory.CreateLogger("CerrarBovedaTemporal");
                     try
                     {
+                        // Solo temporal: no bloquea por descuadre de la principal.
                         var validacion = await saldosCierre
-                            .ValidarCierreBovedaAsync(body.OficinaId, ct)
+                            .ValidarCierreBovedaTemporalAsync(body.OficinaId, ct)
                             .ConfigureAwait(false);
                         if (!validacion.PuedeCerrar)
                         {
@@ -1501,7 +1502,7 @@ internal static class CreditoBovedaOperacionEndpoints
                 })
             .WithName("CreditoValidarCierreBoveda")
             .WithSummary(
-                "Solo lectura: paridad BovedaController.ValidarCierre (previo a cerrar-boveda / cerrar-boveda-temporal).")
+                "Solo lectura: paridad BovedaController.ValidarCierre (previo a cerrar-boveda principal).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<ValidarCierreSaldosResponse>(StatusCodes.Status200OK, "application/json")
@@ -1510,7 +1511,78 @@ internal static class CreditoBovedaOperacionEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
+        app.MapGet(
+                "/api/v1/credito/validar-cierre-boveda-temporal",
+                async Task<Results<Ok<ValidarCierreSaldosResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    int oficinaId,
+                    ISaldosCierreReadService saldosCierre,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (oficinaId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "oficinaId debe ser un entero >= 1.");
+                    }
 
+                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+                    if (oficinaError is not null)
+                    {
+                        return oficinaError;
+                    }
+
+                    var log = loggerFactory.CreateLogger("ValidarCierreBovedaTemporal");
+                    try
+                    {
+                        var response = await saldosCierre
+                            .ValidarCierreBovedaTemporalAsync(oficinaId, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(response);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Cadena de conexión no configurada");
+                        return TypedResults.Problem(
+                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Configuración incompleta");
+                    }
+                    catch (ArgumentOutOfRangeException ex)
+                    {
+                        log.LogWarning(ex, "Parámetros inválidos");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Parámetros inválidos",
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "Los parámetros enviados no son válidos."
+                                : ex.Message);
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error al validar cierre de bóveda temporal");
+                        var detail = "No se pudo validar el cierre de bóveda temporal.";
+                        if (env.IsDevelopment())
+                            detail += $" Detalle: {ex.Message}";
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("CreditoValidarCierreBovedaTemporal")
+            .WithSummary(
+                "Solo lectura: cajas cerradas/enviadas + cuadre de la temporal (no exige cuadre de la principal).")
+            .WithTags("credito")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .Produces<ValidarCierreSaldosResponse>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
         app.MapGet(
                 "/api/v1/credito/saldos-caja-diario",
@@ -1637,6 +1709,7 @@ internal static class CreditoBovedaOperacionEndpoints
                     int bovedaId,
                     int oficinaId,
                     ISaldosCajaDiarioReadService saldos,
+                    IBovedaOficinaReadService bovedaOficina,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct,
@@ -1661,6 +1734,25 @@ internal static class CreditoBovedaOperacionEndpoints
                     var log = loggerFactory.CreateLogger("SaldosCajaDiarioBoveda");
                     try
                     {
+                        var oficinaBoveda = await bovedaOficina
+                            .GetOficinaIdByBovedaIdAsync(bovedaId, ct)
+                            .ConfigureAwait(false);
+                        if (oficinaBoveda is null)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status404NotFound,
+                                title: "No encontrado",
+                                detail: "No existe la bóveda indicada.");
+                        }
+
+                        if (oficinaBoveda.Value != oficinaId)
+                        {
+                            return TypedResults.Problem(
+                                statusCode: StatusCodes.Status403Forbidden,
+                                title: "Prohibido",
+                                detail: "La bóveda no pertenece a la oficina de la sesión.");
+                        }
+
                         var pagina = await saldos
                             .ListarCajaDiarioBovedaAsync(bovedaId, buscar, page, pageSize, ct)
                             .ConfigureAwait(false);
