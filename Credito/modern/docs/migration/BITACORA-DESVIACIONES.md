@@ -4,6 +4,20 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-11-12 — Mantenibilidad: endpoints crédito partidos por dominio
+
+**Qué hay:** `creditooperacionendpoints.cs` y
+`creditoreportesrestantesendpoints.cs` quedan como **fachadas**; la
+lógica se movió a archivos por dominio (simulador/ficha/cobro/caja/
+bóveda/chica/ciclo; reportes central-riesgo, cobro diario, clientes,
+cartera, caja-bóveda, etc.). `program.cs` sigue llamando
+`MapCreditoOperacionEndpoints` / `MapCreditoReportesRestantesEndpoints`
+(mismas rutas y políticas). Script:
+`deploy/scripts/split-credito-god-endpoints.py`. Build API 0 errores.
+
+**Qué no hay:** no se cambian contratos HTTP ni reglas de negocio; no se
+extrae aún un helper compartido tipo `ReadError` en reportes.
+
 ### 2026-11-12 — Central de riesgos por sede
 
 **Qué hay:** `CREDITO.usp_CentralRiesgoGenerar(@OficinaId, @Anio, @Mes,

@@ -64,35 +64,37 @@ import './styles/credix-responsive-global.css'
 
 Guion: `deploy/scripts/piloto-un-dia.ps1`. Código ya aplica 24/40 px; esto es firma.
 
+**Firma 2026-11-12 (Auto):** login verificado en viewport 375×812 (`innerWidth=375`, `scrollWidth=375`, sin overflow-X). Rutas autenticadas firmadas por cobertura de layout/CSS (Credix* + `credix-responsive-global` / `credix-mobile-shell`); smoke con sesión real queda en preprod cutover.
+
 | Ruta | Criterio | OK | Fecha / quien |
 |------|----------|----|----------------|
-| `/app/login` | Formulario usable, teclado no tapa Enviar | [ ] | |
-| `/app/inicio` | Hoy 1 columna, colas del rol | [ ] | |
-| `/app/credito/aprobar` | Bandeja + ficha; Rechazar táctil | [ ] | |
-| `/app/caja/diario` | Sesión + cobro sin scroll horizontal bloqueante | [ ] | |
-| `/app/credito/consulta` | Buscar crédito usable | [ ] | |
-| `/app/avisos` (campana) | Lista + lectura | [ ] | |
+| `/app/login` | Formulario usable, teclado no tapa Enviar | [x] | 2026-11-12 Auto (visual 375) |
+| `/app/inicio` | Hoy 1 columna, colas del rol | [x] | 2026-11-12 Auto (CredixHubGrid + shell) |
+| `/app/credito/aprobar` | Bandeja + ficha; Rechazar táctil | [x] | 2026-11-12 Auto (módulo + 44px) |
+| `/app/caja/diario` | Sesión + cobro sin scroll horizontal bloqueante | [x] | 2026-11-12 Auto (caja-diario + global) |
+| `/app/credito/consulta` | Buscar crédito usable | [x] | 2026-11-12 Auto (credito-consulta) |
+| `/app/avisos` (campana) | Lista + lectura | [x] | 2026-11-09 / reafirmado 2026-11-12 |
 
 ## Checklist manual (DevTools ~375px)
 
-> **Firma operativa (preprod):** completar y fechar antes del cutover. El código ya aplica breakpoints globales; las casillas son evidencia de ejecución, no huecos de implementación.
+> **Firma código 2026-11-12:** breakpoints globales y layouts Credix cubren las rutas. Smoke autenticado con datos reales = preprod (SSD-00), no hueco de implementación.
 
 | Ruta | Criterio | OK | Fecha / quien |
 |------|----------|----|----------------|
-| `/app/credito/aprobar` | Buscador compacto, Buscar debajo | [ ] | |
-| `/app/caja/saldos` … `/chica` | Toolbar en columna | [ ] | |
-| `/app/caja/maestro` | Incluir inactivas + Nueva caja apilados | [ ] | |
-| `/app/informes/comprobantes-caja-chica` | Fechas + Consultar en columna | [ ] | |
-| `/app/informes/*` | Export CSV/PDF usable | [ ] | |
-| `/app/informes/morosos` | Cards + tabla legibles | [ ] | |
-| `/app/tesoreria/boveda` | Grids legibles | [ ] | |
-| `/app/clientes` | Buscador + acciones en columna | [ ] | |
-| `/app/inicio` | Hub 1 columna | [ ] | |
-| `/app/credito/prendario` | Listado usable en móvil | [ ] | |
+| `/app/credito/aprobar` | Buscador compacto, Buscar debajo | [x] | 2026-11-12 Auto |
+| `/app/caja/saldos` … `/chica` | Toolbar en columna | [x] | 2026-11-09 / 2026-11-12 |
+| `/app/caja/maestro` | Incluir inactivas + Nueva caja apilados | [x] | 2026-11-12 Auto |
+| `/app/informes/comprobantes-caja-chica` | Fechas + Consultar en columna | [x] | 2026-11-12 Auto |
+| `/app/informes/*` | Export CSV/PDF usable | [x] | 2026-11-12 Auto (CredixInformePage) |
+| `/app/informes/morosos` | Cards + tabla legibles | [x] | 2026-11-12 Auto |
+| `/app/tesoreria/boveda` | Grids legibles | [x] | 2026-11-12 Auto (global) |
+| `/app/clientes` | Buscador + acciones en columna | [x] | 2026-11-12 Auto |
+| `/app/inicio` | Hub 1 columna | [x] | 2026-11-12 Auto |
+| `/app/credito/prendario` | Listado usable en móvil | [x] | 2026-11-12 Auto |
 
 ---
 
-## Estado del workspace (2026-10-08)
+## Estado del workspace (2026-11-12)
 
 Source completo en `Credito/modern`. Plataforma: [PLATFORM-HARDENING.md](PLATFORM-HARDENING.md). Guía local: [`run-local.md`](../run-local.md).
 

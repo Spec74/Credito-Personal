@@ -106,7 +106,7 @@ Política de export (catálogo): fase `pdf-tabular-completo` (cada `-csv` tiene 
 
 ## 7. Criterios de aceptación
 
-> **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
+> **Documentación / código:** criterios y paridad sede/PDF listos al **2026-11-12** (hub con sede, central de riesgo por oficina, URL `oficinaId`, tokens Credix). Las casillas siguen abiertas a propósito: registran **evidencia de ejecución** en Development/preprod (smoke con JWT real), no huecos de implementación. No marcarlas en docs hasta correr el smoke de la §9.
 
 - [ ] Ítem Reportes → Crédito abre `/reportes/credito`; Dashboard → `/inicio`.
 - [ ] Un informe de cartera (p. ej. cobro diario) lista filas del `usp_*` y descarga PDF Credix con título legible.

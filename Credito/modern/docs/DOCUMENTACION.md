@@ -1,7 +1,7 @@
 # Documentación de Credito.Modern
 
 **Estado del paquete documental:** as-built actualizado hasta **2026-11-12** (céntimos ROUND 2, central de riesgos por sede, hub de reportes con sede; mapa [ESTRUCTURA.md](ESTRUCTURA.md)) · rama `Eber-migracion`. No es «100% cerrado»: queda deuda técnica y de evidencia.
-**Deuda abierta:** archivos de endpoints «dios» en API (`creditooperacionendpoints.cs`, `creditoreportesrestantesendpoints.cs`) pendientes de partir por dominio; checklist **manual** de responsive (~375 px) sin firmar en [responsive-audit.md](responsive-audit.md); casillas SSD §7 y cutover preprod por ejecutar. **Hecho 2026-11-12 (SPA):** cliente `creditoPlanes.ts` partido en `creditoInformesExport.ts` + `centralRiesgoApi.ts` (barrel sin romper imports).
+**Deuda operativa (no código):** casillas SSD §7 y cutover preprod siguen abiertas hasta smoke firmado en ambiente. **Hecho 2026-11-12:** SPA `creditoPlanes` → `creditoInformesExport` + `centralRiesgoApi`; API `creditooperacionendpoints` / `creditoreportesrestantesendpoints` partidos por dominio (fachadas intactas); checklist responsive código firmado en [responsive-audit.md](responsive-audit.md).
 Una base `CREDITO`; sucursal = `OficinaId`. Alcance sucursal vs Central en SSD-07/08.
 
 Este es el **índice único** para informática, negocio y auditoría.  

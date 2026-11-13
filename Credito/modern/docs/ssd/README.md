@@ -94,7 +94,7 @@ en `docs/speckit/` (constitución → spec → plan → tasks). Primer cambio:
 
 El as-built está al día hasta **2026-11-12** (céntimos ROUND 2, central de riesgos por sede, hub `/reportes/credito` con sede). No se declara «100% completo»: queda deuda abierta.
 
-**Deuda restante:** archivos de endpoints «dios» (`creditooperacionendpoints.cs`, `creditoreportesrestantesendpoints.cs`) sin partir; checklist manual de responsive ([responsive-audit.md](../responsive-audit.md)) sin firmar.
+**Cerrado 2026-11-12 (mantenibilidad):** endpoints de operación y reportes restantes partidos por dominio (fachadas `MapCreditoOperacionEndpoints` / `MapCreditoReportesRestantesEndpoints` sin cambio de rutas); responsive código firmado en [responsive-audit.md](../responsive-audit.md). Queda solo evidencia operativa SSD §7 / cutover preprod.
 
 Incluye: SSD-00…19, [DOCUMENTACION.md](../DOCUMENTACION.md), [ARCHITECTURE.md](../ARCHITECTURE.md), [tickets_comprobantes.md](../tickets_comprobantes.md), [responsive-audit.md](../responsive-audit.md), [GLOSARIO.md](../GLOSARIO.md), [AMBIENTES.md](../AMBIENTES.md), [API-OVERVIEW.md](../API-OVERVIEW.md), [TEST-STRATEGY.md](../TEST-STRATEGY.md), [OPS.md](../OPS.md).
 
