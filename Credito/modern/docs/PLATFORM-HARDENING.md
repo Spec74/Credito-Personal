@@ -56,10 +56,16 @@ Cierra el gap de “calidad de plataforma” (~4/5 → checklist de release).
 | E2E login Playwright | CI/local con `CREDITO_E2E_*` | Opcional; smoke sin login ya corre |
 | Cookie httpOnly / BFF | Fase futura | No bloquea go-live actual |
 
-## 8. Responsive
+## 8. Integridad monetaria (cobro → caja → bóveda)
+
+Código (2026-11-13): tipado 1:1 medio; mixto N movimientos en 1 tran; asignar caja valida **efectivo por medio** (no `SaldoFinal` total); `EnsureBovedaCuenta` migra SI de cabecera a tipo 1; transferencia bóveda→caja revalida saldo **dentro** de la misma tran + `UPDLOCK`; cobro serializa crédito con `UPDLOCK`.
+
+Pendiente operativo (no código): humo firmado SSD §7 (mixto sucursal/Central → retorno → cierre → temporal → remesa).
+
+## 9. Responsive
 
 - Checklist en [responsive-audit.md](responsive-audit.md) — firmar en preprod (~375px) antes del cutover.
 
-## 9. Higiene
+## 10. Higiene
 
 - `.gitignore`: `dist/`, `bin/`, `obj/`, coverage, playwright-report

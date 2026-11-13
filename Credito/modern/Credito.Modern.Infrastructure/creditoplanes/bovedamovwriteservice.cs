@@ -143,6 +143,10 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
 
             return (null, result);
         }
+        catch (InvalidOperationException ex)
+        {
+            return (ex.Message, null);
+        }
         catch (SqlException ex)
         {
             return (MensajeSqlAmigable(ex), null);
@@ -254,6 +258,10 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             }
 
             return (null, result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return (ex.Message, null);
         }
         catch (SqlException ex)
         {
@@ -437,6 +445,50 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
                 return null;
+            }
+
+            // Serializa egresos de la misma bóveda y revalida disponible en la misma tran (anti TOCTOU).
+            await connection.ExecuteAsync(
+                new CommandDefinition(
+                    """
+                    SELECT BovedaId
+                    FROM CREDITO.Boveda WITH (UPDLOCK, HOLDLOCK)
+                    WHERE BovedaId = @BovedaId;
+                    """,
+                    new { BovedaId = bovedaId.Value },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+            var disponible = await GetSaldoMedioDisponibleAsync(
+                    connection,
+                    transaction,
+                    bovedaId.Value,
+                    tipoPagoOrigenId,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            if (importe > disponible)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                throw new InvalidOperationException(
+                    $"Saldo insuficiente en el medio de origen. Disponible S/ {disponible:N2}; solicitado S/ {importe:N2}.");
+            }
+
+            await EnsureBovedaCuentaAsync(
+                    connection,
+                    transaction,
+                    bovedaId.Value,
+                    tipoPagoOrigenId,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            if (tipoPagoDestinoId != tipoPagoOrigenId)
+            {
+                await EnsureBovedaCuentaAsync(
+                        connection,
+                        transaction,
+                        bovedaId.Value,
+                        tipoPagoDestinoId,
+                        cancellationToken)
+                    .ConfigureAwait(false);
             }
 
             // TRE: PersonaId = persona del operador (UsuarioRegId), paridad MVC BovedaMovBL.
@@ -960,7 +1012,10 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
         return $"No se pudo transferir de bóveda a caja. Detalle: {msg}";
     }
 
-    /// <summary>Garantiza fila en BovedaCuenta para no perder el medio en Σ / cards.</summary>
+    /// <summary>
+    /// Garantiza fila en BovedaCuenta. Si es la primera cuenta de la bóveda, migra
+    /// <c>Boveda.SaldoInicial</c> a tipo 1 para no “ocultar” el SI histórico al pasar a cuentas.
+    /// </summary>
     private static async Task EnsureBovedaCuentaAsync(
         SqlConnection connection,
         SqlTransaction? transaction,
@@ -974,8 +1029,26 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                 IF NOT EXISTS (
                     SELECT 1 FROM CREDITO.BovedaCuenta
                     WHERE BovedaId = @BovedaId AND TipoPagoId = @TipoPagoId)
-                INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
-                VALUES (@BovedaId, @TipoPagoId, CAST(0 AS decimal(16, 2)));
+                BEGIN
+                    IF NOT EXISTS (SELECT 1 FROM CREDITO.BovedaCuenta WHERE BovedaId = @BovedaId)
+                    BEGIN
+                        DECLARE @SiCabecera decimal(16, 2) = ISNULL((
+                            SELECT SaldoInicial FROM CREDITO.Boveda WHERE BovedaId = @BovedaId), 0);
+                        IF @TipoPagoId = 1
+                            INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
+                            VALUES (@BovedaId, 1, @SiCabecera);
+                        ELSE
+                        BEGIN
+                            INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
+                            VALUES (@BovedaId, 1, @SiCabecera);
+                            INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
+                            VALUES (@BovedaId, @TipoPagoId, CAST(0 AS decimal(16, 2)));
+                        END
+                    END
+                    ELSE
+                        INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
+                        VALUES (@BovedaId, @TipoPagoId, CAST(0 AS decimal(16, 2)));
+                END
                 """,
                 new { BovedaId = bovedaId, TipoPagoId = tipoPagoId },
                 transaction: transaction,

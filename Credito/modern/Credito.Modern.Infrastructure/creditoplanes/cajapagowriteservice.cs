@@ -23,6 +23,7 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
         CancellationToken cancellationToken = default) =>
         ExecutePagarCuotasWithExtensionAsync(
             "CREDITO.usp_PagarCuotas",
+            creditoId,
             new
             {
                 CajaDiarioId = cajaDiarioId,
@@ -48,6 +49,7 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
         CancellationToken cancellationToken = default) =>
         ExecuteScalarProcAsync(
             "CREDITO.usp_PagarCuotaPagoLibre",
+            creditoId,
             new
             {
                 CajaDiarioId = cajaDiarioId,
@@ -138,6 +140,9 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
 
         try
         {
+            await LockCreditoForPagoAsync(connection, transaction, creditoId, cancellationToken)
+                .ConfigureAwait(false);
+
             foreach (var linea in normalizados)
             {
                 var command = new CommandDefinition(
@@ -184,6 +189,7 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
         CancellationToken cancellationToken = default) =>
         ExecutePagarCuotasWithExtensionAsync(
             "CREDITO.usp_PagarCuotasCancelacion",
+            creditoId,
             new
             {
                 CajaDiarioId = cajaDiarioId,
@@ -205,6 +211,7 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
     /// </summary>
     private async Task<PagoCajaResultResponse> ExecutePagarCuotasWithExtensionAsync(
         string procedureName,
+        int creditoId,
         object parameters,
         int tipoPagoId,
         string fechaPagoTransferencia,
@@ -220,6 +227,9 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
 
         try
         {
+            await LockCreditoForPagoAsync(connection, transaction, creditoId, cancellationToken)
+                .ConfigureAwait(false);
+
             var command = new CommandDefinition(
                 procedureName,
                 parameters,
@@ -262,6 +272,7 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
 
     private async Task<PagoCajaResultResponse> ExecuteScalarProcAsync(
         string procedureName,
+        int creditoId,
         object parameters,
         CancellationToken cancellationToken)
     {
@@ -275,6 +286,9 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
 
         try
         {
+            await LockCreditoForPagoAsync(connection, transaction, creditoId, cancellationToken)
+                .ConfigureAwait(false);
+
             var command = new CommandDefinition(
                 procedureName,
                 parameters,
@@ -289,6 +303,38 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
         {
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
+        }
+    }
+
+    /// <summary>
+    /// Serializa cobros concurrentes al mismo crédito (doble clic / dos cajeros).
+    /// El SP sigue siendo la fuente de verdad del plan; esto evita carreras entre llamadas.
+    /// </summary>
+    private static async Task LockCreditoForPagoAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        int creditoId,
+        CancellationToken cancellationToken)
+    {
+        if (creditoId < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(creditoId), "creditoId debe ser >= 1.");
+        }
+
+        var locked = await connection.ExecuteScalarAsync<int?>(
+            new CommandDefinition(
+                """
+                SELECT CreditoId
+                FROM CREDITO.Credito WITH (UPDLOCK, ROWLOCK)
+                WHERE CreditoId = @CreditoId;
+                """,
+                new { CreditoId = creditoId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (locked is null)
+        {
+            throw new InvalidOperationException("No existe el crédito indicado.");
         }
     }
 

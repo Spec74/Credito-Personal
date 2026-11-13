@@ -214,6 +214,28 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
                         SinTickets);
                 }
 
+                // Serializa cobros al mismo crédito frente a cobro diario / otro bloque concurrente.
+                var creditoLock = await connection.ExecuteScalarAsync<int?>(
+                    new CommandDefinition(
+                        """
+                        SELECT CreditoId
+                        FROM CREDITO.Credito WITH (UPDLOCK, ROWLOCK)
+                        WHERE CreditoId = @CreditoId;
+                        """,
+                        new { CreditoId = item.CreditoId },
+                        transaction: transaction,
+                        cancellationToken: cancellationToken)).ConfigureAwait(false);
+                if (creditoLock is null)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return new CobrarPlanillaBloqueResponse(
+                        false,
+                        $"Crédito {item.CreditoId}: no existe.",
+                        pagos,
+                        0,
+                        SinTickets);
+                }
+
                 var resultId = await connection.QueryFirstOrDefaultAsync<int?>(
                     new CommandDefinition(
                         "CREDITO.usp_PagarCuotaPagoLibre",

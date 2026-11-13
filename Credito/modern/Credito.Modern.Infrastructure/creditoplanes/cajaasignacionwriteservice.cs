@@ -118,10 +118,39 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
                 return ("No existe bóveda abierta para la oficina.", null);
             }
 
-            if (saldoInicial > boveda.SaldoFinal)
+            // SI de caja siempre sale como efectivo (TipoPagoId=1). Validar ese medio, no SaldoFinal total
+            // (el total incluye Yape/Plin/bancos y permitiría overdraw de efectivo).
+            var efectivoDisponible = await connection.ExecuteScalarAsync<decimal>(
+                new CommandDefinition(
+                    """
+                    DECLARE @HayCuentas bit = CASE
+                        WHEN EXISTS (SELECT 1 FROM CREDITO.BovedaCuenta WHERE BovedaId = @BovedaId)
+                        THEN 1 ELSE 0 END;
+                    DECLARE @SiMedio decimal(16, 2) = ISNULL((
+                        SELECT SaldoInicial
+                        FROM CREDITO.BovedaCuenta
+                        WHERE BovedaId = @BovedaId AND TipoPagoId = 1), 0);
+                    IF @HayCuentas = 0
+                        SET @SiMedio = ISNULL((
+                            SELECT SaldoInicial FROM CREDITO.Boveda WHERE BovedaId = @BovedaId), 0);
+                    DECLARE @Neto decimal(16, 2) = ISNULL((
+                        SELECT SUM(IIF(IndEntrada = 1, Importe, -Importe))
+                        FROM CREDITO.BovedaMov
+                        WHERE BovedaId = @BovedaId
+                          AND Estado = 1
+                          AND TipoPagoId = 1), 0);
+                    SELECT CAST(ROUND(@SiMedio + @Neto, 2) AS decimal(16, 2));
+                    """,
+                    new { BovedaId = boveda.BovedaId },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+            if (saldoInicial > efectivoDisponible)
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                return ("Saldo Insuficiente de la boveda.", null);
+                return (
+                    $"Saldo insuficiente de efectivo en bóveda. Disponible S/ {efectivoDisponible:N2}; solicitado S/ {saldoInicial:N2}.",
+                    null);
             }
 
             var esCajaChica = caja.Denominacion.Contains("CAJA CHICA", StringComparison.OrdinalIgnoreCase);
@@ -286,7 +315,7 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
                         transaction: transaction,
                         cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-                // Misma vía que transferencias/cierre: actualiza cabecera y BovedaCuenta por medio.
+                // Cabecera Entradas/Salidas/SaldoFinal (usp no reescribe BovedaCuenta por medio).
                 await connection.ExecuteAsync(
                     new CommandDefinition(
                         "EXEC CREDITO.usp_ActualizarSaldosBoveda @BovedaId;",
