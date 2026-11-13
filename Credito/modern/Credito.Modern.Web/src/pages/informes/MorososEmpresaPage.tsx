@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Alert,
-  AutoComplete,
   Button,
   DatePicker,
   Empty,
@@ -41,8 +40,8 @@ import {
   CredixPage,
   CredixPanel,
 } from '../../components/credix'
-import { fetchOficinas } from '../../api/oficinas'
 import { useAuth } from '../../auth/useAuth'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { formatMoney } from '../../utils/formatMoney'
 import '../../styles/morosos-empresa.css'
 
@@ -83,13 +82,14 @@ function resumenTipo(filas: MorosidadEmpresaItem[], codigo: string) {
 
 export function MorososEmpresaPage() {
   const { session } = useAuth()
+  const { esCentral, oficinas, oficinaSesionId } = useEsCentral()
   const [fechaCorte, setFechaCorte] = useState<Dayjs>(() => dayjs())
   const [fechaCorteAplicada, setFechaCorteAplicada] = useState(() => dayjs().format('YYYY-MM-DD'))
   const [tipoActivo, setTipoActivo] = useState<MorosidadTipo>('TODOS')
   const [buscar, setBuscar] = useState('')
   const buscarDeferred = useDeferredValue(buscar)
   const [oficinaFiltro, setOficinaFiltro] = useState<number | undefined>(undefined)
-  const [gestorFiltro, setGestorFiltro] = useState('')
+  const [gestorIdFiltro, setGestorIdFiltro] = useState<number | undefined>(undefined)
   const [orden, setOrden] = useState<OrdenKey>('DIAS_DESC')
   const [pagina, setPagina] = useState(1)
   const [exportOpen, setExportOpen] = useState(false)
@@ -102,26 +102,24 @@ export function MorososEmpresaPage() {
     staleTime: 5 * 60_000,
   })
 
-  const oficinasQ = useQuery({
-    queryKey: ['oficinas-activas'],
-    queryFn: fetchOficinas,
-    staleTime: 5 * 60_000,
-  })
-
-  const esCentral =
-    oficinasQ.data?.some((o) => o.oficinaId === session?.oficinaId && o.indPrincipal) === true
-  const oficinaSesion = oficinasQ.data?.find((o) => o.oficinaId === session?.oficinaId)
+  const oficinaSesion = oficinas.find((o) => o.oficinaId === oficinaSesionId)
   const sedeSeleccionada = oficinaFiltro
-    ? oficinasQ.data?.find((o) => o.oficinaId === oficinaFiltro)
+    ? oficinas.find((o) => o.oficinaId === oficinaFiltro)
     : undefined
   const oficinaConsulta = esCentral ? oficinaFiltro : undefined
 
   const dataQuery = useQuery({
-    queryKey: ['morosidad-empresa', fechaCorteAplicada, oficinaConsulta ?? 'red'],
+    queryKey: [
+      'morosidad-empresa',
+      fechaCorteAplicada,
+      oficinaConsulta ?? 'red',
+      gestorIdFiltro ?? 'todos',
+    ],
     queryFn: () =>
       fetchMorosidadEmpresa({
         fechaCorte: fechaCorteAplicada,
         oficinaId: oficinaConsulta,
+        gestorId: gestorIdFiltro,
       }),
     enabled: permisos.data?.puedeConsultar === true,
     staleTime: 60_000,
@@ -159,35 +157,28 @@ export function MorososEmpresaPage() {
   const filas = dataQuery.data?.filas ?? []
 
   const gestoresOptions = useMemo(() => {
-    const set = new Set<string>()
+    const map = new Map<number, string>()
     for (const f of filas) {
-      const label = etiquetaGestor(f)
-      if (label !== '—') set.add(label)
+      if (f.gestorId == null || f.gestorId < 1) continue
+      if (!map.has(f.gestorId)) map.set(f.gestorId, etiquetaGestor(f))
     }
-    return [...set].sort((a, b) => a.localeCompare(b, 'es')).map((v) => ({ value: v }))
+    return [...map.entries()]
+      .sort((a, b) => a[1].localeCompare(b[1], 'es'))
+      .map(([value, label]) => ({ value, label }))
   }, [filas])
 
   const baseFiltrada = useMemo(() => {
     const q = buscarDeferred.trim().toUpperCase()
-    const gestorQ = gestorFiltro.trim().toUpperCase()
 
     return filas.filter((item) => {
-      if (q) {
-        const haystack = [item.nombreCompleto, item.numeroDocumento, item.celular]
-          .filter(Boolean)
-          .join(' ')
-          .toUpperCase()
-        if (!haystack.includes(q)) return false
-      }
-
-      if (gestorQ) {
-        const responsable = etiquetaGestor(item).toUpperCase()
-        if (!responsable.includes(gestorQ)) return false
-      }
-
-      return true
+      if (!q) return true
+      const haystack = [item.nombreCompleto, item.numeroDocumento, item.celular]
+        .filter(Boolean)
+        .join(' ')
+        .toUpperCase()
+      return haystack.includes(q)
     })
-  }, [filas, buscarDeferred, gestorFiltro])
+  }, [filas, buscarDeferred])
 
   const kpis = useMemo(() => {
     let saldo = 0
@@ -205,6 +196,18 @@ export function MorososEmpresaPage() {
       atraso: resumenTipo(baseFiltrada, 'PAGA_CON_ATRASO'),
     }
   }, [baseFiltrada])
+
+  const decisionHint = useMemo(() => {
+    if (kpis.clientes === 0) return null
+    const nuncaPct = kpis.saldo > 0 ? Math.round((kpis.nunca.monto / kpis.saldo) * 100) : 0
+    if (kpis.nunca.cantidad > 0) {
+      return `Priorice «Nunca pagaron»: ${kpis.nunca.cantidad} cliente(s), S/ ${formatMoney(kpis.nunca.monto)} (${nuncaPct}% del saldo).`
+    }
+    if (kpis.dejo.cantidad > 0) {
+      return `Priorice «Dejaron de pagar»: ${kpis.dejo.cantidad} cliente(s) por reactivar cobro.`
+    }
+    return `Cartera con atraso controlable: ${kpis.atraso.cantidad} cliente(s) pagan con demora.`
+  }, [kpis])
 
   const filtradas = useMemo(() => {
     const rows =
@@ -327,7 +330,7 @@ export function MorososEmpresaPage() {
     setTipoActivo('TODOS')
     setBuscar('')
     setOficinaFiltro(undefined)
-    setGestorFiltro('')
+    setGestorIdFiltro(undefined)
     setOrden('DIAS_DESC')
     setPagina(1)
   }
@@ -490,6 +493,17 @@ export function MorososEmpresaPage() {
         </button>
       </section>
 
+      {decisionHint && !dataQuery.isLoading ? (
+        <Alert
+          type="info"
+          showIcon
+          className="morosos-decision-hint"
+          style={{ marginBottom: 16 }}
+          message="Acción sugerida"
+          description={decisionHint}
+        />
+      ) : null}
+
       <CredixPanel
         title="Clientes morosos"
         extra={
@@ -522,29 +536,29 @@ export function MorososEmpresaPage() {
               allowClear
               placeholder="Todas las sedes"
               value={oficinaFiltro}
-              options={(oficinasQ.data ?? []).map((o) => ({
+              options={oficinas.map((o) => ({
                 value: o.oficinaId,
                 label: o.denominacion || `Sede ${o.oficinaId}`,
               }))}
               onChange={(v) => {
                 setOficinaFiltro(v)
+                setGestorIdFiltro(undefined)
                 setPagina(1)
               }}
               style={{ minWidth: 180 }}
             />
           ) : null}
-          <AutoComplete
+          <Select
             allowClear
+            showSearch
+            optionFilterProp="label"
             options={gestoresOptions}
-            value={gestorFiltro}
+            value={gestorIdFiltro}
             onChange={(v) => {
-              setGestorFiltro(v)
+              setGestorIdFiltro(v)
               setPagina(1)
             }}
             placeholder="Todos los analistas"
-            filterOption={(input, option) =>
-              (option?.value ?? '').toUpperCase().includes(input.toUpperCase())
-            }
             style={{ minWidth: 220 }}
           />
           <Select

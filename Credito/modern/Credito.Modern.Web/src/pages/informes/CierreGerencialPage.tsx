@@ -8,6 +8,7 @@ import {
   Form,
   Input,
   InputNumber,
+  Modal,
   Select,
   Skeleton,
   Space,
@@ -43,8 +44,7 @@ import {
   CredixPage,
   CredixPanel,
 } from '../../components/credix'
-import { fetchOficinas } from '../../api/oficinas'
-import { useAuth } from '../../auth/useAuth'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { formatMoney } from '../../utils/formatMoney'
 import { sumMoney } from '../../utils/money'
 import '../../styles/cierre-gerencial.css';
@@ -158,7 +158,7 @@ function EstadoTag({ estado }: { estado?: string }) {
 
 export function CierreGerencialPage() {
   const queryClient = useQueryClient()
-  const { session } = useAuth()
+  const { esCentral, oficinas, oficinaSesionId } = useEsCentral()
   const [periodo, setPeriodo] = useState<Dayjs>(() => dayjs().startOf('month'))
   const periodoKey = periodoIso(periodo)
   const [tipoFiltro, setTipoFiltro] = useState<TipoFiltro>('')
@@ -173,18 +173,10 @@ export function CierreGerencialPage() {
     queryFn: fetchCierreGerencialPermisos,
   })
 
-  const oficinasQ = useQuery({
-    queryKey: ['oficinas-activas'],
-    queryFn: fetchOficinas,
-    staleTime: 5 * 60_000,
-  })
-
-  const esCentral =
-    oficinasQ.data?.some((o) => o.oficinaId === session?.oficinaId && o.indPrincipal) === true
   const sedeQuery = esCentral ? sedeId : undefined
-  const oficinaSesion = oficinasQ.data?.find((o) => o.oficinaId === session?.oficinaId)
+  const oficinaSesion = oficinas.find((o) => o.oficinaId === oficinaSesionId)
   const sedeSeleccionada = sedeId
-    ? oficinasQ.data?.find((o) => o.oficinaId === sedeId)
+    ? oficinas.find((o) => o.oficinaId === sedeId)
     : undefined
   const verSedeColumna = esCentral && !sedeId
 
@@ -306,6 +298,14 @@ export function CierreGerencialPage() {
 
   const puedeEditarMetas = metas.data?.puedeEditar === true
   const filtroActivo = Boolean(tipoFiltro || buscarDeferred.trim())
+  const decisionHint =
+    kpis.total === 0
+      ? null
+      : kpis.metasOk < kpis.total
+        ? `Faltan metas en ${kpis.total - kpis.metasOk} cartera(s) (${kpis.metasPct}% configurado). Complete la pestaña Metas antes del cierre.`
+        : kpis.vencidos > 0
+          ? `Saldo vencido visible: S/ ${formatMoney(kpis.vencidos)}. Cruce con Morosos empresa si hay incumplimientos.`
+          : null
 
   const patchMeta = (
     usuarioId: number,
@@ -668,7 +668,19 @@ export function CierreGerencialPage() {
                   loading={guardar.isPending}
                   onClick={() => {
                     setTab('metas')
-                    void guardar.mutateAsync()
+                    const save = () => void guardar.mutateAsync()
+                    if (esCentral && sedeId == null) {
+                      Modal.confirm({
+                        title: 'Guardar metas de toda la red',
+                        content:
+                          'No hay sede seleccionada: se guardarán las metas visibles de todas las oficinas. ¿Continuar?',
+                        okText: 'Guardar red',
+                        cancelText: 'Cancelar',
+                        onOk: save,
+                      })
+                      return
+                    }
+                    save()
                   }}
                 >
                   Guardar metas
@@ -679,6 +691,16 @@ export function CierreGerencialPage() {
         </Space>
       }
     >
+      {decisionHint && avance.data ? (
+        <Alert
+          type={kpis.metasOk < kpis.total ? 'warning' : 'info'}
+          showIcon
+          style={{ marginBottom: 16 }}
+          message="Acción sugerida"
+          description={decisionHint}
+        />
+      ) : null}
+
       {avance.data ? (
         <div
           className={`cierre-gerencial-status ${
@@ -765,7 +787,7 @@ export function CierreGerencialPage() {
                   style={{ width: 200 }}
                   value={sedeId}
                   onChange={(v) => setSedeId(v)}
-                  options={(oficinasQ.data ?? []).map((o) => ({
+                  options={oficinas.map((o) => ({
                     value: o.oficinaId,
                     label: o.denominacion || `Sede ${o.oficinaId}`,
                   }))}
