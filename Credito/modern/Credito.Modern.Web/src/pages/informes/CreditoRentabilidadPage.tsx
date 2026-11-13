@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, Form, InputNumber, Select } from 'antd'
+import { Alert, Button, Form, Select } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
@@ -20,6 +21,9 @@ import type { CreditoRentabilidadParams, RptCreditoRentabilidadRow } from '../..
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { CREDITO_ESTADO_REPORTE_OPTIONS } from '../../utils/creditoEstados'
+import { OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { useEsCentral } from '../../hooks/useEsCentral'
+import { readUrlDay, resolveInformeOficinaId } from '../../utils/informeUrlParams'
 
 
 type FormValues = {
@@ -41,15 +45,35 @@ export function CreditoRentabilidadPage() {
   const { session } = useAuth()
   const [form] = Form.useForm<FormValues>()
 
-  useEffect(() => {
-    if (session) {
-      form.setFieldsValue({ oficinaId: session.oficinaId })
-    }
-  }, [session, form])
+  const { esCentral } = useEsCentral()
+  const [searchParams] = useSearchParams()
 
   const consulta = useMutation({
     mutationFn: (v: FormValues) => fetchCreditoRentabilidad(toParams(v)),
   })
+
+  useEffect(() => {
+    if (!session) return
+    const ini = readUrlDay(searchParams, 'pFechaIni', 'fechaIni')
+    const fin = readUrlDay(searchParams, 'pFechaFin', 'fechaFin')
+    const estado = searchParams.get('estadoCredito')
+    const next: FormValues = {
+      oficinaId: resolveInformeOficinaId(searchParams, session.oficinaId),
+      estadoCredito: estado && estado.length > 0 ? estado : 'DES',
+      rango: [ini ?? dayjs().startOf('month'), fin ?? dayjs()],
+    }
+    form.setFieldsValue(next)
+    if (
+      searchParams.has('fechaIni') ||
+      searchParams.has('pFechaIni') ||
+      searchParams.has('estadoCredito') ||
+      searchParams.has('oficinaId') ||
+      searchParams.has('pOficinaId')
+    ) {
+      consulta.mutate(next)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta desde índice reportes
+  }, [session, form, searchParams.toString()])
 
   const csv = useMutation({
     mutationFn: (v: FormValues) => downloadCreditoRentabilidadCsv(toParams(v)),
@@ -59,7 +83,8 @@ export function CreditoRentabilidadPage() {
     mutationFn: (v: FormValues) => downloadCreditoRentabilidadPdf(toParams(v)),
   })
 
-  const stats = useInformeStats(consulta, session?.oficinaId)
+  const oficinaWatch = Form.useWatch('oficinaId', form)
+  const stats = useInformeStats(consulta, oficinaWatch ?? session?.oficinaId)
   const columns: ColumnsType<RptCreditoRentabilidadRow> = [
     { title: 'Crédito', dataIndex: 'creditoId', width: 75, fixed: 'left' },
     { title: 'Oficina', dataIndex: 'oficina', width: 90, ellipsis: true },
@@ -149,8 +174,8 @@ export function CreditoRentabilidadPage() {
           }}
           onFinish={(v) => consulta.mutate(v)}
         >
-          <Form.Item name="oficinaId" hidden>
-            <InputNumber />
+          <Form.Item name="oficinaId" label="Oficina">
+            <OficinaSelect disabled={!esCentral} size="middle" />
           </Form.Item>
           <Form.Item name="estadoCredito" rules={[{ required: true }]}>
             <Select options={CREDITO_ESTADO_REPORTE_OPTIONS} style={{ width: 200 }} />

@@ -15,7 +15,8 @@ import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage, CredixRangePicker, type CredixStatItem } from '../../components/credix'
 
-import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { buildClientesNuevosMesInformeColumns } from '../../config/clientesNuevosMesInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
@@ -24,7 +25,7 @@ import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { sumMoney } from '../../utils/money'
 import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
-import { readUrlDay, readUrlOfficeId, readUrlUserId } from '../../utils/informeUrlParams'
+import { readUrlDay, readUrlUserId, resolveInformeOficinaId } from '../../utils/informeUrlParams'
 import {
   gestorLabelFromId,
   toClientesNuevosMesParams,
@@ -48,6 +49,9 @@ export function ClientesNuevosMesPage() {
   const [searchParams] = useSearchParams()
   const [form] = Form.useForm<FormValues>()
   const puedeElegirGestor = usePuedeElegirGestorInforme()
+  const { esCentral } = useEsCentral()
+  const oficinaWatch = Form.useWatch('oficinaId', form)
+  const oficinaEfectiva = oficinaWatch ?? session?.oficinaId ?? 0
 
   const defaultValues: FormValues = {
     oficinaId: session?.oficinaId ?? 0,
@@ -57,12 +61,12 @@ export function ClientesNuevosMesPage() {
 
   const consulta = useMutation({
     mutationFn: (v: FormValues) => {
-      if (!session?.oficinaId) {
+      if (!v.oficinaId) {
         throw new Error('Sin oficina en sesión')
       }
       return fetchClientesNuevosMes(
         toClientesNuevosMesParams(
-          session.oficinaId,
+          v.oficinaId,
           v.usuarioId,
           v.rango[0].format('YYYY-MM-DD'),
           v.rango[1].format('YYYY-MM-DD'),
@@ -77,7 +81,7 @@ export function ClientesNuevosMesPage() {
     const fin = readUrlDay(searchParams, 'pFechaFin', 'fechaFin')
     const uid = readUrlUserId(searchParams)
     const next: FormValues = {
-      oficinaId: readUrlOfficeId(searchParams) ?? session.oficinaId,
+      oficinaId: resolveInformeOficinaId(searchParams, session.oficinaId),
       usuarioId:
         uid != null && uid > 0 ? uid : puedeElegirGestor ? undefined : session.usuarioId,
       rango: ini && fin ? [ini, fin] : mesCalendarioActual(),
@@ -98,10 +102,10 @@ export function ClientesNuevosMesPage() {
 
   const csv = useMutation({
     mutationFn: async (v: FormValues) => {
-      if (!session?.oficinaId) return
+      if (!v.oficinaId) return
       await downloadClientesNuevosMesCsv(
         toClientesNuevosMesParams(
-          session.oficinaId,
+          v.oficinaId,
           v.usuarioId,
           v.rango[0].format('YYYY-MM-DD'),
           v.rango[1].format('YYYY-MM-DD'),
@@ -112,10 +116,10 @@ export function ClientesNuevosMesPage() {
 
   const pdf = useMutation({
     mutationFn: async (v: FormValues) => {
-      if (!session?.oficinaId) return
+      if (!v.oficinaId) return
       await downloadClientesNuevosMesPdf(
         toClientesNuevosMesParams(
-          session.oficinaId,
+          v.oficinaId,
           v.usuarioId,
           v.rango[0].format('YYYY-MM-DD'),
           v.rango[1].format('YYYY-MM-DD'),
@@ -136,7 +140,7 @@ export function ClientesNuevosMesPage() {
     return [{ value: formatMoney(total), label: 'Σ monto crédito', tone: 'green' }]
   }, [consulta.isSuccess, filas])
 
-  const stats = useInformeStats(consulta, session?.oficinaId, statsExtras)
+  const stats = useInformeStats(consulta, oficinaEfectiva, statsExtras)
 
   const gestorId = form.getFieldValue('usuarioId') as number | undefined
   const rango = form.getFieldValue('rango') as [Dayjs, Dayjs] | undefined
@@ -158,8 +162,8 @@ export function ClientesNuevosMesPage() {
           initialValues={defaultValues}
           onFinish={(v) => consulta.mutate(v)}
         >
-          <Form.Item name="oficinaId" hidden>
-            <InputNumber />
+          <Form.Item name="oficinaId" label="Oficina">
+            <OficinaSelect disabled={!esCentral} size="middle" />
           </Form.Item>
           {puedeElegirGestor ? (
             <Form.Item name="usuarioId" label="Gestor">
@@ -233,8 +237,11 @@ export function ClientesNuevosMesPage() {
             ? `${formatFecha(rango[0].format('YYYY-MM-DD'))} – ${formatFecha(rango[1].format('YYYY-MM-DD'))}`
             : null}{' '}
           ·{' '}
-          {session?.oficinaDenominacion?.trim() ||
-            (session?.oficinaId ? `Oficina #${session.oficinaId}` : 'Oficina')}{' '}
+          {oficinaEfectiva === session?.oficinaId && session?.oficinaDenominacion?.trim()
+            ? session.oficinaDenominacion.trim()
+            : oficinaEfectiva > 0
+              ? `Oficina #${oficinaEfectiva}`
+              : 'Oficina'}{' '}
           · {gestorLabelFromId(gestorId)}
         </Typography.Text>
       ) : null}

@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
 import { Alert, Button, Form, InputNumber, Select } from 'antd'
@@ -11,7 +12,9 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage } from '../../components/credix'
-import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { useEsCentral } from '../../hooks/useEsCentral'
+import { readUrlInt, readUrlUserId, resolveInformeOficinaId } from '../../utils/informeUrlParams'
 import { buildSaldoCarteraCajaDiarioInformeColumns } from '../../config/saldoCarteraCajaDiarioInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
@@ -56,6 +59,9 @@ export function SaldoCarteraCajaDiarioPage() {
   const { session } = useAuth()
   const [form] = Form.useForm<FormValues>()
   const puedeElegirGestor = usePuedeElegirGestorInforme()
+  const { esCentral } = useEsCentral()
+  const [searchParams] = useSearchParams()
+  const oficinaWatch = Form.useWatch('oficinaId', form)
 
   const defaultValues: FormValues = {
     oficinaId: session?.oficinaId ?? 0,
@@ -66,17 +72,38 @@ export function SaldoCarteraCajaDiarioPage() {
     usuarioId: puedeElegirGestor ? undefined : session?.usuarioId,
   }
 
-  useEffect(() => {
-    if (!session) return
-    form.setFieldsValue({
-      oficinaId: session.oficinaId,
-      usuarioId: puedeElegirGestor ? form.getFieldValue('usuarioId') : session.usuarioId,
-    })
-  }, [session, form, puedeElegirGestor])
-
   const consulta = useMutation({
     mutationFn: (v: FormValues) => fetchSaldoCarteraCajaDiario(toParams(v)),
   })
+
+  useEffect(() => {
+    if (!session) return
+    const uid = readUrlUserId(searchParams)
+    const next: FormValues = {
+      oficinaId: resolveInformeOficinaId(searchParams, session.oficinaId),
+      anioIni: readUrlInt(searchParams, 'pAnioIni', 'anioIni') ?? defaultValues.anioIni,
+      mesIni: readUrlInt(searchParams, 'pMesIni', 'mesIni') ?? defaultValues.mesIni,
+      anioFin: readUrlInt(searchParams, 'pAnioFin', 'anioFin') ?? defaultValues.anioFin,
+      mesFin: readUrlInt(searchParams, 'pMesFin', 'mesFin') ?? defaultValues.mesFin,
+      usuarioId: puedeElegirGestor
+        ? uid != null && uid > 0
+          ? uid
+          : undefined
+        : session.usuarioId,
+    }
+    form.setFieldsValue(next)
+    if (
+      searchParams.has('oficinaId') ||
+      searchParams.has('pOficinaId') ||
+      searchParams.has('anioIni') ||
+      searchParams.has('pAnioIni') ||
+      searchParams.has('usuarioId') ||
+      searchParams.has('pUsuarioId')
+    ) {
+      consulta.mutate(next)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta desde índice reportes
+  }, [session, searchParams.toString(), puedeElegirGestor])
 
   const csv = useMutation({
     mutationFn: (v: FormValues) => downloadSaldoCarteraCajaDiarioCsv(toParams(v)),
@@ -86,7 +113,7 @@ export function SaldoCarteraCajaDiarioPage() {
     mutationFn: (v: FormValues) => downloadSaldoCarteraCajaDiarioPdf(toParams(v)),
   })
 
-  const stats = useInformeStats(consulta, session?.oficinaId)
+  const stats = useInformeStats(consulta, oficinaWatch ?? session?.oficinaId)
 
   return (
     <CredixInformePage
@@ -101,8 +128,8 @@ export function SaldoCarteraCajaDiarioPage() {
           initialValues={defaultValues}
           onFinish={(v) => consulta.mutate(v)}
         >
-          <Form.Item name="oficinaId" hidden>
-            <InputNumber />
+          <Form.Item name="oficinaId" label="Oficina">
+            <OficinaSelect disabled={!esCentral} size="middle" />
           </Form.Item>
           <Form.Item name="anioIni" rules={[{ required: true }]}>
             <InputNumber min={2000} max={2100} placeholder="Año ini." style={{ width: 90 }} />

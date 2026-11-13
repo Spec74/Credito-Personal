@@ -14,7 +14,8 @@ import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage } from '../../components/credix'
 import type { CredixStatItem } from '../../components/credix'
-import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { buildCreditoObservadoInformeColumns } from '../../config/creditoObservadoInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
@@ -27,7 +28,7 @@ import {
   toGestorInformeParams,
 } from '../../utils/gestorInformeForm'
 import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
-import { readUrlUserId } from '../../utils/informeUrlParams'
+import { readUrlUserId, resolveInformeOficinaId } from '../../utils/informeUrlParams'
 
 const OBSERVADO_COLUMNS = buildCreditoObservadoInformeColumns()
 
@@ -41,6 +42,9 @@ export function CreditoObservadoPage() {
   const [searchParams] = useSearchParams()
   const [form] = Form.useForm<FormValues>()
   const puedeElegirGestor = usePuedeElegirGestorInforme()
+  const { esCentral } = useEsCentral()
+  const oficinaWatch = Form.useWatch('oficinaId', form)
+  const oficinaEfectiva = oficinaWatch ?? session?.oficinaId ?? 0
 
   const defaultValues: FormValues = {
     oficinaId: session?.oficinaId ?? 0,
@@ -49,11 +53,11 @@ export function CreditoObservadoPage() {
 
   const consulta = useMutation({
     mutationFn: (v: FormValues) => {
-      if (!session?.oficinaId) {
+      if (!v.oficinaId) {
         throw new Error('Sin oficina en sesión')
       }
       return fetchCreditoObservado(
-        toGestorInformeParams(session.oficinaId, v.usuarioId),
+        toGestorInformeParams(v.oficinaId, v.usuarioId),
       )
     },
   })
@@ -62,7 +66,7 @@ export function CreditoObservadoPage() {
     if (!session) return
     const uid = readUrlUserId(searchParams)
     const next: FormValues = {
-      oficinaId: session.oficinaId,
+      oficinaId: resolveInformeOficinaId(searchParams, session.oficinaId),
       usuarioId:
         uid != null && uid > 0 ? uid : puedeElegirGestor ? undefined : session.usuarioId,
     }
@@ -80,18 +84,18 @@ export function CreditoObservadoPage() {
 
   const csv = useMutation({
     mutationFn: async (v: FormValues) => {
-      if (!session?.oficinaId) return
+      if (!v.oficinaId) return
       await downloadCreditoObservadoCsv(
-        toGestorInformeParams(session.oficinaId, v.usuarioId),
+        toGestorInformeParams(v.oficinaId, v.usuarioId),
       )
     },
   })
 
   const pdf = useMutation({
     mutationFn: async (v: FormValues) => {
-      if (!session?.oficinaId) return
+      if (!v.oficinaId) return
       await downloadCreditoObservadoPdf(
-        toGestorInformeParams(session.oficinaId, v.usuarioId),
+        toGestorInformeParams(v.oficinaId, v.usuarioId),
       )
     },
   })
@@ -111,7 +115,7 @@ export function CreditoObservadoPage() {
     ]
   }, [consulta.isSuccess, filas])
 
-  const stats = useInformeStats(consulta, session?.oficinaId, statsExtras)
+  const stats = useInformeStats(consulta, oficinaEfectiva, statsExtras)
 
   const gestorId = form.getFieldValue('usuarioId') as number | undefined
 
@@ -132,8 +136,8 @@ export function CreditoObservadoPage() {
           initialValues={defaultValues}
           onFinish={(v) => consulta.mutate(v)}
         >
-          <Form.Item name="oficinaId" hidden>
-            <InputNumber />
+          <Form.Item name="oficinaId" label="Oficina">
+            <OficinaSelect disabled={!esCentral} size="middle" />
           </Form.Item>
           {puedeElegirGestor ? (
             <Form.Item name="usuarioId" label="Gestor">
@@ -182,8 +186,11 @@ export function CreditoObservadoPage() {
       {queried && consulta.isSuccess ? (
         <Typography.Text type="secondary" className="credix-aprobacion-filtros-aplicados">
           Fecha {formatFecha(dayjs().format('YYYY-MM-DD'))} ·{' '}
-          {session?.oficinaDenominacion?.trim() ||
-            (session?.oficinaId ? `Oficina #${session.oficinaId}` : 'Oficina')}{' '}
+          {oficinaEfectiva === session?.oficinaId && session?.oficinaDenominacion?.trim()
+            ? session.oficinaDenominacion.trim()
+            : oficinaEfectiva > 0
+              ? `Oficina #${oficinaEfectiva}`
+              : 'Oficina'}{' '}
           · {gestorLabelFromId(gestorId)}
         </Typography.Text>
       ) : null}

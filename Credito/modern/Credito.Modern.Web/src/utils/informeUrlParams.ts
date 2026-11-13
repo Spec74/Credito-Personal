@@ -32,3 +32,18 @@ export function readUrlOfficeId(search: URLSearchParams): number | undefined {
 export function readUrlUserId(search: URLSearchParams): number | undefined {
   return readUrlInt(search, 'pUsuarioId', 'usuarioId')
 }
+
+/**
+ * Sede efectiva del informe: query (`oficinaId` / `pOficinaId`) o JWT de sesión.
+ * Central puede llegar desde el hub con otra sede; sucursal suele coincidir con el token.
+ */
+export function resolveInformeOficinaId(
+  search: URLSearchParams,
+  sessionOficinaId: number | undefined | null,
+): number {
+  const fromUrl = readUrlOfficeId(search)
+  if (fromUrl != null && fromUrl > 0) {
+    return fromUrl
+  }
+  return sessionOficinaId != null && sessionOficinaId > 0 ? sessionOficinaId : 0
+}

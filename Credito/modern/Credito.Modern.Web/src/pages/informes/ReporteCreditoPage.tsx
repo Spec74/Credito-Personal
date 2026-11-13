@@ -23,7 +23,8 @@ import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { CREDITO_ESTADO_REPORTE_OPTIONS } from '../../utils/creditoEstados'
 import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
-import { readUrlDay, readUrlUserId } from '../../utils/informeUrlParams'
+import { readUrlDay, readUrlUserId, resolveInformeOficinaId } from '../../utils/informeUrlParams'
+import { useEsCentral } from '../../hooks/useEsCentral'
 
 type FormValues = {
   oficinaId: number
@@ -32,9 +33,9 @@ type FormValues = {
   gestorId?: number
 }
 
-function toParams(v: FormValues, oficinaSesion: number): ReporteCreditoParams {
+function toParams(v: FormValues): ReporteCreditoParams {
   const p: ReporteCreditoParams = {
-    oficinaId: oficinaSesion,
+    oficinaId: v.oficinaId,
     estadoCredito: v.estadoCredito,
     fechaIni: v.rango[0].format('YYYY-MM-DD'),
     fechaFin: v.rango[1].format('YYYY-MM-DD'),
@@ -50,6 +51,9 @@ export function ReporteCreditoPage() {
   const [searchParams] = useSearchParams()
   const [form] = Form.useForm<FormValues>()
   const puedeElegirGestor = usePuedeElegirGestorInforme()
+  const { esCentral } = useEsCentral()
+  const oficinaWatch = Form.useWatch('oficinaId', form)
+  const oficinaStats = oficinaWatch ?? session?.oficinaId
 
   const defaultValues: FormValues = {
     oficinaId: session?.oficinaId ?? 0,
@@ -60,10 +64,10 @@ export function ReporteCreditoPage() {
 
   const consulta = useMutation({
     mutationFn: (v: FormValues) => {
-      if (!session?.oficinaId) {
+      if (!v.oficinaId) {
         throw new Error('Sin oficina en sesión')
       }
-      return fetchReporteCredito(toParams(v, session.oficinaId))
+      return fetchReporteCredito(toParams(v))
     },
   })
 
@@ -74,7 +78,7 @@ export function ReporteCreditoPage() {
     const fin = readUrlDay(searchParams, 'pFechaFin', 'fechaFin')
     const estado = searchParams.get('estadoCredito')
     const next: FormValues = {
-      oficinaId: session.oficinaId,
+      oficinaId: resolveInformeOficinaId(searchParams, session.oficinaId),
       estadoCredito: estado && estado.length > 0 ? estado : 'DES',
       rango: [
         ini ?? dayjs().startOf('month'),
@@ -92,7 +96,10 @@ export function ReporteCreditoPage() {
       searchParams.has('fechaIni') ||
       searchParams.has('pFechaIni') ||
       searchParams.has('estadoCredito') ||
-      searchParams.has('usuarioId')
+      searchParams.has('usuarioId') ||
+      searchParams.has('pUsuarioId') ||
+      searchParams.has('oficinaId') ||
+      searchParams.has('pOficinaId')
     ) {
       consulta.mutate(next)
     }
@@ -101,19 +108,19 @@ export function ReporteCreditoPage() {
 
   const csv = useMutation({
     mutationFn: (v: FormValues) => {
-      if (!session?.oficinaId) return Promise.resolve()
-      return downloadReporteCreditoCsv(toParams(v, session.oficinaId))
+      if (!v.oficinaId) return Promise.resolve()
+      return downloadReporteCreditoCsv(toParams(v))
     },
   })
 
   const pdf = useMutation({
     mutationFn: (v: FormValues) => {
-      if (!session?.oficinaId) return Promise.resolve()
-      return downloadReporteCreditoPdf(toParams(v, session.oficinaId))
+      if (!v.oficinaId) return Promise.resolve()
+      return downloadReporteCreditoPdf(toParams(v))
     },
   })
 
-  const stats = useInformeStats(consulta, session?.oficinaId)
+  const stats = useInformeStats(consulta, oficinaStats)
   const columns: ColumnsType<RptCreditoRow> = [
     { title: 'Crédito', dataIndex: 'creditoId', width: 75, fixed: 'left' },
     { title: 'Producto', dataIndex: 'producto', width: 100, ellipsis: true },
@@ -193,7 +200,7 @@ export function ReporteCreditoPage() {
           onFinish={(v) => consulta.mutate(v)}
         >
           <Form.Item name="oficinaId" label="Oficina">
-            <OficinaSelect disabled size="middle" />
+            <OficinaSelect disabled={!esCentral} size="middle" />
           </Form.Item>
           {puedeElegirGestor ? (
             <Form.Item name="gestorId" label="Gestor">

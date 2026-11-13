@@ -17,7 +17,8 @@ import { ApiError } from '../../api/errors'
 import type { RptCobroDiarioRow } from '../../types/api'
 import { CredixDataTable, CredixInformePage } from '../../components/credix'
 import type { CredixStatItem } from '../../components/credix'
-import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { buildCobroDiarioInformeColumns } from '../../config/cobroDiarioInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
@@ -27,7 +28,7 @@ import {
   gestorLabelFromId,
   toCobroDiarioQuery,
 } from '../../utils/gestorInformeForm'
-import { readUrlUserId } from '../../utils/informeUrlParams'
+import { readUrlUserId, resolveInformeOficinaId } from '../../utils/informeUrlParams'
 import { canViewReporteCredito } from '../../utils/reporteCreditoAccess'
 import {
   RutaCobradorResultModal,
@@ -61,6 +62,7 @@ export function CobroDiarioPage() {
   const [rutaOpen, setRutaOpen] = useState(false)
   const [form] = Form.useForm<FormValues>()
   const soloMora = readSoloMora(searchParams)
+  const { esCentral } = useEsCentral()
 
   const puedeElegirGestor = canViewReporteCredito(session?.roles ?? [])
 
@@ -71,14 +73,14 @@ export function CobroDiarioPage() {
 
   const consulta = useMutation({
     mutationFn: (v: FormValues & { soloMora?: boolean }) => {
-      if (!session?.oficinaId) {
+      if (!v.oficinaId) {
         throw new Error('Sin oficina en sesión')
       }
       if (!v.usuarioId || v.usuarioId < 1) {
         throw new Error('Seleccione un gestor')
       }
       return fetchCobroDiario(
-        toCobroDiarioQuery(session.oficinaId, v.usuarioId, v.soloMora ?? soloMora),
+        toCobroDiarioQuery(v.oficinaId, v.usuarioId, v.soloMora ?? soloMora),
       )
     },
     onSuccess: (data) => {
@@ -97,7 +99,7 @@ export function CobroDiarioPage() {
     if (!session) return
     const uid = readUrlUserId(searchParams)
     const next: FormValues = {
-      oficinaId: session.oficinaId,
+      oficinaId: resolveInformeOficinaId(searchParams, session.oficinaId),
       usuarioId:
         uid != null && uid > 0
           ? uid
@@ -109,7 +111,10 @@ export function CobroDiarioPage() {
     const hasUsuario = next.usuarioId != null && next.usuarioId > 0
     const autoFromUrl =
       hasUsuario &&
-      (searchParams.has('usuarioId') || searchParams.has('pUsuarioId'))
+      (searchParams.has('usuarioId') ||
+        searchParams.has('pUsuarioId') ||
+        searchParams.has('oficinaId') ||
+        searchParams.has('pOficinaId'))
     // Gestor: consultar al entrar (atajo dashboard / accesos).
     // También si llega con ?soloMora=1 y ya hay gestor de sesión.
     const autoGestor = !puedeElegirGestor && hasUsuario
@@ -132,7 +137,8 @@ export function CobroDiarioPage() {
     const usuarioId = form.getFieldValue('usuarioId') as number | undefined
     if (usuarioId != null && usuarioId > 0) {
       consulta.mutate({
-        oficinaId: session?.oficinaId ?? 0,
+        oficinaId:
+          (form.getFieldValue('oficinaId') as number | undefined) ?? session?.oficinaId ?? 0,
         usuarioId,
         soloMora: checked,
       })
@@ -140,7 +146,8 @@ export function CobroDiarioPage() {
   }
 
   const openExport = (kind: 'csv' | 'pdf') => {
-    if (!session?.oficinaId) {
+    const oficinaId = (form.getFieldValue('oficinaId') as number | undefined) ?? 0
+    if (!oficinaId) {
       message.error('Sin oficina en sesión')
       return
     }
@@ -149,7 +156,7 @@ export function CobroDiarioPage() {
       message.error('Seleccione un gestor')
       return
     }
-    const query = toCobroDiarioQuery(session.oficinaId, usuarioId, soloMora)
+    const query = toCobroDiarioQuery(oficinaId, usuarioId, soloMora)
     if (kind === 'csv') {
       void openCobroDiarioCsvInTab(query)
       return
@@ -180,21 +187,26 @@ export function CobroDiarioPage() {
     })
   }, [consulta.isSuccess, filas, selectedIds.length, cajaQuery.data?.denominacion, soloMora])
 
+  const oficinaWatch = Form.useWatch('oficinaId', form)
+  const oficinaEfectiva = oficinaWatch ?? session?.oficinaId ?? 0
   const oficinaLabel =
-    session?.oficinaDenominacion?.trim() ||
-    (session?.oficinaId ? `Oficina #${session.oficinaId}` : 'Oficina')
+    oficinaEfectiva === session?.oficinaId && session?.oficinaDenominacion?.trim()
+      ? session.oficinaDenominacion.trim()
+      : oficinaEfectiva > 0
+        ? `Oficina #${oficinaEfectiva}`
+        : 'Oficina'
   const pageTitle = soloMora ? 'Cobro diario · solo mora' : 'Cobro diario'
   const panelTitle = soloMora
     ? 'Cartera del día con mora'
     : 'Cartera del día del gestor'
 
-  const cobroStats = useInformeStats(consulta, session?.oficinaId, cobroExtras)
+  const cobroStats = useInformeStats(consulta, oficinaEfectiva, cobroExtras)
 
   const rutaWa = useMutation({
     mutationFn: (ids: number[]) => {
       const v = form.getFieldsValue()
       const usuarioId = v.usuarioId ?? session?.usuarioId
-      const oficinaId = session?.oficinaId
+      const oficinaId = v.oficinaId ?? session?.oficinaId
       if (!usuarioId || usuarioId < 1 || !oficinaId) {
         throw new Error('Seleccione un gestor y oficina antes de generar la ruta')
       }
@@ -282,8 +294,8 @@ export function CobroDiarioPage() {
             initialValues={defaultValues}
             onFinish={(v) => consulta.mutate({ ...v, soloMora })}
           >
-            <Form.Item name="oficinaId" hidden>
-              <InputNumber />
+            <Form.Item name="oficinaId" label="Oficina">
+              <OficinaSelect disabled={!esCentral} size="middle" />
             </Form.Item>
             {puedeElegirGestor ? (
               <Form.Item

@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
 import { Alert, Button, Form, InputNumber } from 'antd'
@@ -13,7 +14,9 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../components/credix'
-import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { useEsCentral } from '../../hooks/useEsCentral'
+import { readUrlDay, readUrlUserId, resolveInformeOficinaId } from '../../utils/informeUrlParams'
 
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
@@ -47,6 +50,9 @@ export function CreditosMorososPagadosPage() {
   const { session } = useAuth()
   const [form] = Form.useForm<FormValues>()
   const puedeElegirGestor = usePuedeElegirGestorInforme()
+  const { esCentral } = useEsCentral()
+  const [searchParams] = useSearchParams()
+  const oficinaWatch = Form.useWatch('oficinaId', form)
 
   const defaultValues: FormValues = {
     oficinaId: session?.oficinaId ?? 0,
@@ -54,18 +60,37 @@ export function CreditosMorososPagadosPage() {
     usuarioId: puedeElegirGestor ? undefined : session?.usuarioId,
   }
 
-  useEffect(() => {
-    if (!session) return
-    form.setFieldsValue({
-      oficinaId: session.oficinaId,
-      usuarioId: puedeElegirGestor ? form.getFieldValue('usuarioId') : session.usuarioId,
-    })
-  }, [session, form, puedeElegirGestor])
-
   const consulta = useMutation({
     mutationFn: (v: FormValues) => fetchCreditosMorososPagados(toParams(v)),
   })
 
+  useEffect(() => {
+    if (!session) return
+    const ini = readUrlDay(searchParams, 'pFechaIni', 'fechaIni')
+    const fin = readUrlDay(searchParams, 'pFechaFin', 'fechaFin')
+    const uid = readUrlUserId(searchParams)
+    const next: FormValues = {
+      oficinaId: resolveInformeOficinaId(searchParams, session.oficinaId),
+      rango: ini && fin ? [ini, fin] : defaultValues.rango!,
+      usuarioId: puedeElegirGestor
+        ? uid != null && uid > 0
+          ? uid
+          : undefined
+        : session.usuarioId,
+    }
+    form.setFieldsValue(next)
+    if (
+      searchParams.has('oficinaId') ||
+      searchParams.has('pOficinaId') ||
+      searchParams.has('usuarioId') ||
+      searchParams.has('pUsuarioId') ||
+      searchParams.has('fechaIni') ||
+      searchParams.has('pFechaIni')
+    ) {
+      consulta.mutate(next)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta desde índice reportes
+  }, [session, searchParams.toString(), puedeElegirGestor])
   const csv = useMutation({
     mutationFn: (v: FormValues) => downloadCreditosMorososPagadosCsv(toParams(v)),
   })
@@ -74,7 +99,7 @@ export function CreditosMorososPagadosPage() {
     mutationFn: (v: FormValues) => downloadCreditosMorososPagadosPdf(toParams(v)),
   })
 
-  const stats = useInformeStats(consulta, session?.oficinaId)
+  const stats = useInformeStats(consulta, oficinaWatch ?? session?.oficinaId)
   const columns: ColumnsType<RptCreditosMorososPagadosRow> = [
     { title: 'Crédito', dataIndex: 'creditoId', width: 75 },
     { title: 'Cliente', dataIndex: 'cliente', ellipsis: true },
@@ -142,8 +167,8 @@ export function CreditosMorososPagadosPage() {
           initialValues={defaultValues}
           onFinish={(v) => consulta.mutate(v)}
         >
-          <Form.Item name="oficinaId" hidden>
-            <InputNumber />
+          <Form.Item name="oficinaId" label="Oficina">
+            <OficinaSelect disabled={!esCentral} size="middle" />
           </Form.Item>
           <Form.Item name="rango" rules={[{ required: true }]}>
             <CredixRangePicker format="DD/MM/YYYY" />

@@ -13,7 +13,8 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import { CredixDataTable, CredixInformePage } from '../../components/credix'
-import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { buildClientesBloqueadosInformeColumns } from '../../config/clientesBloqueadosInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
@@ -24,7 +25,7 @@ import {
   toGestorInformeParams,
 } from '../../utils/gestorInformeForm'
 import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
-import { readUrlUserId } from '../../utils/informeUrlParams'
+import { readUrlUserId, resolveInformeOficinaId } from '../../utils/informeUrlParams'
 
 const BLOQUEADOS_COLUMNS = buildClientesBloqueadosInformeColumns()
 
@@ -38,6 +39,9 @@ export function ClientesBloqueadosPage() {
   const [searchParams] = useSearchParams()
   const [form] = Form.useForm<FormValues>()
   const puedeElegirGestor = usePuedeElegirGestorInforme()
+  const { esCentral } = useEsCentral()
+  const oficinaWatch = Form.useWatch('oficinaId', form)
+  const oficinaEfectiva = oficinaWatch ?? session?.oficinaId ?? 0
 
   const defaultValues: FormValues = {
     oficinaId: session?.oficinaId ?? 0,
@@ -46,11 +50,11 @@ export function ClientesBloqueadosPage() {
 
   const consulta = useMutation({
     mutationFn: (v: FormValues) => {
-      if (!session?.oficinaId) {
+      if (!v.oficinaId) {
         throw new Error('Sin oficina en sesión')
       }
       return fetchClientesBloqueados(
-        toGestorInformeParams(session.oficinaId, v.usuarioId),
+        toGestorInformeParams(v.oficinaId, v.usuarioId),
       )
     },
   })
@@ -59,7 +63,7 @@ export function ClientesBloqueadosPage() {
     if (!session) return
     const uid = readUrlUserId(searchParams)
     const next: FormValues = {
-      oficinaId: session.oficinaId,
+      oficinaId: resolveInformeOficinaId(searchParams, session.oficinaId),
       usuarioId:
         uid != null && uid > 0 ? uid : puedeElegirGestor ? undefined : session.usuarioId,
     }
@@ -77,18 +81,18 @@ export function ClientesBloqueadosPage() {
 
   const csv = useMutation({
     mutationFn: async (v: FormValues) => {
-      if (!session?.oficinaId) return
+      if (!v.oficinaId) return
       await downloadClientesBloqueadosCsv(
-        toGestorInformeParams(session.oficinaId, v.usuarioId),
+        toGestorInformeParams(v.oficinaId, v.usuarioId),
       )
     },
   })
 
   const pdf = useMutation({
     mutationFn: async (v: FormValues) => {
-      if (!session?.oficinaId) return
+      if (!v.oficinaId) return
       await downloadClientesBloqueadosPdf(
-        toGestorInformeParams(session.oficinaId, v.usuarioId),
+        toGestorInformeParams(v.oficinaId, v.usuarioId),
       )
     },
   })
@@ -96,7 +100,7 @@ export function ClientesBloqueadosPage() {
   const filas = useMemo(() => consulta.data ?? [], [consulta.data])
   const queried = consulta.isSuccess || consulta.isError
   const exportDisabled = !consulta.isSuccess || filas.length === 0
-  const stats = useInformeStats(consulta, session?.oficinaId)
+  const stats = useInformeStats(consulta, oficinaEfectiva)
   const gestorId = form.getFieldValue('usuarioId') as number | undefined
 
   return (
@@ -116,8 +120,8 @@ export function ClientesBloqueadosPage() {
           initialValues={defaultValues}
           onFinish={(v) => consulta.mutate(v)}
         >
-          <Form.Item name="oficinaId" hidden>
-            <InputNumber />
+          <Form.Item name="oficinaId" label="Oficina">
+            <OficinaSelect disabled={!esCentral} size="middle" />
           </Form.Item>
           {puedeElegirGestor ? (
             <Form.Item name="usuarioId" label="Gestor">
@@ -165,7 +169,7 @@ export function ClientesBloqueadosPage() {
     >
       {queried && consulta.isSuccess ? (
         <Typography.Text type="secondary" className="credix-aprobacion-filtros-aplicados">
-          Fecha {formatFecha(dayjs().format('YYYY-MM-DD'))} · Oficina sesión #{session?.oficinaId}{' '}
+          Fecha {formatFecha(dayjs().format('YYYY-MM-DD'))} · Oficina #{oficinaEfectiva}{' '}
           · {gestorLabelFromId(gestorId)}
         </Typography.Text>
       ) : null}

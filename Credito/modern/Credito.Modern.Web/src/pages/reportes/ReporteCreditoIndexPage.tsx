@@ -1052,6 +1052,11 @@ export function ReporteCreditoIndexPage() {
               actions={
                 <ReportExportActions
                   screenTo="/informes/movimientos-caja-anulados"
+                  screenSearchParams={{
+                    oficinaId: oficinaConsulta,
+                    fechaIni: isoDate(anuladoRango[0]),
+                    fechaFin: isoDate(anuladoRango[1]),
+                  }}
                   exports={[
                     {
                       label: 'Anulados PDF',
@@ -1096,6 +1101,13 @@ export function ReporteCreditoIndexPage() {
               actions={
                 <ReportExportActions
                   screenTo="/informes/saldo-cartera-caja-diario"
+                  screenSearchParams={{
+                    oficinaId: oficinaConsulta,
+                    anioIni: saldoAnioIni,
+                    mesIni: saldoMesIni,
+                    anioFin: saldoAnioFin,
+                    mesFin: saldoMesFin,
+                  }}
                   exports={[
                     {
                       label: 'Reporte saldo cartera',
@@ -1162,6 +1174,11 @@ export function ReporteCreditoIndexPage() {
               actions={
                 <ReportExportActions
                   screenTo="/informes/central-riesgo"
+                  screenSearchParams={{
+                    oficinaId: oficinaConsulta,
+                    anio: riesgoAnio,
+                    mes: riesgoMes,
+                  }}
                   exports={[
                     {
                       label: 'Central de riesgo TXT',

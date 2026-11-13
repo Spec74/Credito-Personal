@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { SearchOutlined } from '@ant-design/icons'
-import { Alert, Button, Form, InputNumber } from 'antd'
+import { Alert, Button, Form } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs, { type Dayjs } from 'dayjs'
 import {
@@ -22,6 +23,9 @@ import type {
 } from '../../types/api'
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
+import { OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { useEsCentral } from '../../hooks/useEsCentral'
+import { readUrlDay, resolveInformeOficinaId } from '../../utils/informeUrlParams'
 
 
 type FormValues = {
@@ -41,15 +45,33 @@ export function MovimientoCajaAnuladoPage() {
   const { session } = useAuth()
   const [form] = Form.useForm<FormValues>()
 
-  useEffect(() => {
-    if (session) {
-      form.setFieldsValue({ oficinaId: session.oficinaId })
-    }
-  }, [session, form])
+  const { esCentral } = useEsCentral()
+  const [searchParams] = useSearchParams()
+  const oficinaWatch = Form.useWatch('oficinaId', form)
 
   const consulta = useMutation({
     mutationFn: (v: FormValues) => fetchMovimientoCajaAnulado(toParams(v)),
   })
+
+  useEffect(() => {
+    if (!session) return
+    const ini = readUrlDay(searchParams, 'pFechaIni', 'fechaIni')
+    const fin = readUrlDay(searchParams, 'pFechaFin', 'fechaFin')
+    const next: FormValues = {
+      oficinaId: resolveInformeOficinaId(searchParams, session.oficinaId),
+      rango: [ini ?? dayjs().startOf('month'), fin ?? dayjs()],
+    }
+    form.setFieldsValue(next)
+    if (
+      searchParams.has('oficinaId') ||
+      searchParams.has('pOficinaId') ||
+      searchParams.has('fechaIni') ||
+      searchParams.has('pFechaIni')
+    ) {
+      consulta.mutate(next)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta desde índice reportes
+  }, [session, form, searchParams.toString()])
 
   const csv = useMutation({
     mutationFn: (v: FormValues) => downloadMovimientoCajaAnuladoCsv(toParams(v)),
@@ -59,7 +81,7 @@ export function MovimientoCajaAnuladoPage() {
     mutationFn: (v: FormValues) => downloadMovimientoCajaAnuladoPdf(toParams(v)),
   })
 
-  const stats = useInformeStats(consulta, session?.oficinaId)
+  const stats = useInformeStats(consulta, oficinaWatch ?? session?.oficinaId)
   const columns: ColumnsType<RptMovimientoCajaAnuladoRow> = [
     { title: 'Id', dataIndex: 'movimientoCajaId', width: 70 },
     { title: 'Operación', dataIndex: 'operacion', width: 80 },
@@ -105,8 +127,8 @@ export function MovimientoCajaAnuladoPage() {
           }}
           onFinish={(v) => consulta.mutate(v)}
         >
-          <Form.Item name="oficinaId" hidden>
-            <InputNumber />
+          <Form.Item name="oficinaId" label="Oficina">
+            <OficinaSelect disabled={!esCentral} size="middle" />
           </Form.Item>
           <Form.Item name="rango" rules={[{ required: true }]}>
             <CredixRangePicker format="DD/MM/YYYY" />

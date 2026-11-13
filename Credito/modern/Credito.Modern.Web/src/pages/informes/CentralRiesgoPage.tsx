@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useMutation } from '@tanstack/react-query'
 import { FileTextOutlined, SearchOutlined } from '@ant-design/icons'
 import { Alert, Button, Checkbox, Form, InputNumber, Select } from 'antd'
@@ -20,6 +21,7 @@ import { buildCentralRiesgoInformeColumns } from '../../config/centralRiesgoInfo
 import { useEsCentral } from '../../hooks/useEsCentral'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
+import { readUrlInt, resolveInformeOficinaId } from '../../utils/informeUrlParams'
 
 const COLUMNS = buildCentralRiesgoInformeColumns()
 const MESES = [
@@ -56,22 +58,33 @@ function toParams(v: FormValues): CentralRiesgoParams {
 export function CentralRiesgoPage() {
   const { session } = useAuth()
   const { esCentral } = useEsCentral()
+  const [searchParams] = useSearchParams()
   const [form] = Form.useForm<FormValues>()
-  useEffect(() => {
-    if (session) {
-      const prevMonth = dayjs().subtract(1, 'month')
-      form.setFieldsValue({
-        oficinaId: session.oficinaId,
-        anio: prevMonth.year(),
-        mes: prevMonth.month() + 1,
-        regenerar: false,
-      })
-    }
-  }, [session, form])
 
   const consulta = useMutation({
     mutationFn: (v: FormValues) => fetchCentralRiesgoGenerar(toParams(v)),
   })
+
+  useEffect(() => {
+    if (!session) return
+    const prevMonth = dayjs().subtract(1, 'month')
+    const next: FormValues = {
+      oficinaId: resolveInformeOficinaId(searchParams, session.oficinaId),
+      anio: readUrlInt(searchParams, 'pAnio', 'anio') ?? prevMonth.year(),
+      mes: readUrlInt(searchParams, 'pMes', 'mes') ?? prevMonth.month() + 1,
+      regenerar: false,
+    }
+    form.setFieldsValue(next)
+    if (
+      searchParams.has('anio') ||
+      searchParams.has('pAnio') ||
+      searchParams.has('mes') ||
+      searchParams.has('pMes')
+    ) {
+      consulta.mutate(next)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- auto-consulta desde índice reportes
+  }, [session, form, searchParams.toString()])
 
   const csv = useMutation({
     mutationFn: (v: FormValues) => downloadCentralRiesgoGenerarCsv(toParams(v)),

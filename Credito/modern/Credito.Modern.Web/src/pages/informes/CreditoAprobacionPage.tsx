@@ -25,7 +25,8 @@ import type {
 import { formatFecha } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { sumMoney } from '../../utils/money'
-import { readUrlDay, readUrlUserId } from '../../utils/informeUrlParams'
+import { readUrlDay, readUrlUserId, resolveInformeOficinaId } from '../../utils/informeUrlParams'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { gestorLabelFromId } from '../../utils/gestorInformeForm'
 import '../../styles/credito-aprobacion-module.css';
@@ -36,9 +37,9 @@ type FormValues = {
   usuarioId?: number
 }
 
-function toParams(v: FormValues, oficinaSesion: number): CreditoAprobacionInformeParams {
+function toParams(v: FormValues): CreditoAprobacionInformeParams {
   const p: CreditoAprobacionInformeParams = {
-    oficinaId: oficinaSesion,
+    oficinaId: v.oficinaId,
     fechaAprobacion: v.fechaAprobacion.format('YYYY-MM-DD'),
   }
   if (v.usuarioId != null && v.usuarioId > 0) {
@@ -54,6 +55,9 @@ export function CreditoAprobacionPage() {
   const [searchParams] = useSearchParams()
   const [form] = Form.useForm<FormValues>()
   const puedeElegirGestor = usePuedeElegirGestorInforme()
+  const { esCentral } = useEsCentral()
+  const oficinaWatch = Form.useWatch('oficinaId', form)
+  const oficinaStats = oficinaWatch ?? session?.oficinaId
 
   const defaultValues: FormValues = {
     oficinaId: session?.oficinaId ?? 0,
@@ -63,10 +67,10 @@ export function CreditoAprobacionPage() {
 
   const consulta = useMutation({
     mutationFn: (v: FormValues) => {
-      if (!session?.oficinaId) {
+      if (!v.oficinaId) {
         throw new Error('Sin oficina en sesión')
       }
-      return fetchCreditoAprobacion(toParams(v, session.oficinaId))
+      return fetchCreditoAprobacion(toParams(v))
     },
   })
 
@@ -74,7 +78,7 @@ export function CreditoAprobacionPage() {
     if (!session) return
     const uid = readUrlUserId(searchParams)
     const next: FormValues = {
-      oficinaId: session.oficinaId,
+      oficinaId: resolveInformeOficinaId(searchParams, session.oficinaId),
       fechaAprobacion:
         readUrlDay(searchParams, 'pFecha', 'fechaAprobacion') ?? dayjs(),
       usuarioId:
@@ -96,15 +100,15 @@ export function CreditoAprobacionPage() {
 
   const csv = useMutation({
     mutationFn: (v: FormValues) => {
-      if (!session?.oficinaId) return Promise.resolve()
-      return downloadCreditoAprobacionCsv(toParams(v, session.oficinaId))
+      if (!v.oficinaId) return Promise.resolve()
+      return downloadCreditoAprobacionCsv(toParams(v))
     },
   })
 
   const pdf = useMutation({
     mutationFn: (v: FormValues) => {
-      if (!session?.oficinaId) return Promise.resolve()
-      return downloadCreditoAprobacionPdf(toParams(v, session.oficinaId))
+      if (!v.oficinaId) return Promise.resolve()
+      return downloadCreditoAprobacionPdf(toParams(v))
     },
   })
 
@@ -135,7 +139,7 @@ export function CreditoAprobacionPage() {
     ]
   }, [consulta.isSuccess, filas, form])
 
-  const stats = useInformeStats(consulta, session?.oficinaId, statsExtras)
+  const stats = useInformeStats(consulta, oficinaStats, statsExtras)
   const exportDisabled = !consulta.isSuccess || filas.length === 0
   const gestorLabel = gestorLabelFromId(form.getFieldValue('usuarioId') as number | undefined)
 
@@ -157,7 +161,7 @@ export function CreditoAprobacionPage() {
           onFinish={(v) => consulta.mutate(v)}
         >
           <Form.Item name="oficinaId" label="Oficina">
-            <OficinaSelect disabled size="middle" />
+            <OficinaSelect disabled={!esCentral} size="middle" />
           </Form.Item>
           {puedeElegirGestor ? (
             <Form.Item name="usuarioId" label="Gestor">
@@ -212,7 +216,7 @@ export function CreditoAprobacionPage() {
     >
       {queried && consulta.isSuccess ? (
         <Typography.Text type="secondary" className="credix-aprobacion-filtros-aplicados">
-          Oficina sesión #{session?.oficinaId} · Fecha{' '}
+          Oficina #{oficinaStats} · Fecha{' '}
           {formatFecha(form.getFieldValue('fechaAprobacion')?.format('YYYY-MM-DD'))} · {gestorLabel}
         </Typography.Text>
       ) : null}

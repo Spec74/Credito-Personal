@@ -16,7 +16,8 @@ import { InformeExportBar } from '../../components/informes/InformeExportBar'
 
 import { CredixDataTable, CredixInformePage, CredixRangePicker } from '../../components/credix'
 
-import { GestorSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { GestorSelect, OficinaSelect } from '../../components/reportes/ReporteFiltrosMaestros'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import { buildClientesInactivosInformeColumns } from '../../config/clientesInactivosInformeColumns'
 import { reportesCreditoBreadcrumb } from '../../utils/reportesBreadcrumbs'
 import { useInformeStats } from '../../hooks/useInformeStats'
@@ -27,7 +28,7 @@ import {
   toClientesInactivosParams,
 } from '../../utils/gestorInformeForm'
 import { usePuedeElegirGestorInforme } from '../../hooks/usePuedeElegirGestorInforme'
-import { readUrlDay, readUrlOfficeId, readUrlUserId } from '../../utils/informeUrlParams'
+import { readUrlDay, readUrlUserId, resolveInformeOficinaId } from '../../utils/informeUrlParams'
 
 
 const INACTIVOS_COLUMNS = buildClientesInactivosInformeColumns()
@@ -44,6 +45,9 @@ export function ClientesInactivosPage() {
   const [searchParams] = useSearchParams()
   const [form] = Form.useForm<FormValues>()
   const puedeElegirGestor = usePuedeElegirGestorInforme()
+  const { esCentral } = useEsCentral()
+  const oficinaWatch = Form.useWatch('oficinaId', form)
+  const oficinaEfectiva = oficinaWatch ?? session?.oficinaId ?? 0
 
   const defaultValues: FormValues = {
     oficinaId: session?.oficinaId ?? 0,
@@ -54,13 +58,13 @@ export function ClientesInactivosPage() {
 
   const consulta = useMutation({
     mutationFn: (v: FormValues) => {
-      if (!session?.oficinaId) {
+      if (!v.oficinaId) {
         throw new Error('Sin oficina en sesión')
       }
       const fechaIni = v.sinRango ? undefined : v.rango?.[0]?.format('YYYY-MM-DD')
       const fechaFin = v.sinRango ? undefined : v.rango?.[1]?.format('YYYY-MM-DD')
       return fetchClientesInactivos(
-        toClientesInactivosParams(session.oficinaId, v.usuarioId, fechaIni, fechaFin),
+        toClientesInactivosParams(v.oficinaId, v.usuarioId, fechaIni, fechaFin),
       )
     },
   })
@@ -72,7 +76,7 @@ export function ClientesInactivosPage() {
     const uid = readUrlUserId(searchParams)
     const sinRango = !ini && !fin
     const next: FormValues = {
-      oficinaId: readUrlOfficeId(searchParams) ?? session.oficinaId,
+      oficinaId: resolveInformeOficinaId(searchParams, session.oficinaId),
       usuarioId:
         uid != null && uid > 0 ? uid : puedeElegirGestor ? undefined : session.usuarioId,
       sinRango,
@@ -95,22 +99,22 @@ export function ClientesInactivosPage() {
 
   const csv = useMutation({
     mutationFn: async (v: FormValues) => {
-      if (!session?.oficinaId) return
+      if (!v.oficinaId) return
       const fechaIni = v.sinRango ? undefined : v.rango?.[0]?.format('YYYY-MM-DD')
       const fechaFin = v.sinRango ? undefined : v.rango?.[1]?.format('YYYY-MM-DD')
       await downloadClientesInactivosCsv(
-        toClientesInactivosParams(session.oficinaId, v.usuarioId, fechaIni, fechaFin),
+        toClientesInactivosParams(v.oficinaId, v.usuarioId, fechaIni, fechaFin),
       )
     },
   })
 
   const pdf = useMutation({
     mutationFn: async (v: FormValues) => {
-      if (!session?.oficinaId) return
+      if (!v.oficinaId) return
       const fechaIni = v.sinRango ? undefined : v.rango?.[0]?.format('YYYY-MM-DD')
       const fechaFin = v.sinRango ? undefined : v.rango?.[1]?.format('YYYY-MM-DD')
       await downloadClientesInactivosPdf(
-        toClientesInactivosParams(session.oficinaId, v.usuarioId, fechaIni, fechaFin),
+        toClientesInactivosParams(v.oficinaId, v.usuarioId, fechaIni, fechaFin),
       )
     },
   })
@@ -120,7 +124,7 @@ export function ClientesInactivosPage() {
   const exportDisabled = !consulta.isSuccess || filas.length === 0
   const sinRango = Form.useWatch('sinRango', form) ?? true
 
-  const stats = useInformeStats(consulta, session?.oficinaId)
+  const stats = useInformeStats(consulta, oficinaEfectiva)
   const gestorId = form.getFieldValue('usuarioId') as number | undefined
   const rango = form.getFieldValue('rango') as [Dayjs, Dayjs] | undefined
 
@@ -141,8 +145,8 @@ export function ClientesInactivosPage() {
           initialValues={defaultValues}
           onFinish={(v) => consulta.mutate(v)}
         >
-          <Form.Item name="oficinaId" hidden>
-            <InputNumber />
+          <Form.Item name="oficinaId" label="Oficina">
+            <OficinaSelect disabled={!esCentral} size="middle" />
           </Form.Item>
           {puedeElegirGestor ? (
             <Form.Item name="usuarioId" label="Gestor">
@@ -207,7 +211,7 @@ export function ClientesInactivosPage() {
             : rango?.[0] && rango[1]
               ? `${formatFecha(rango[0].format('YYYY-MM-DD'))} – ${formatFecha(rango[1].format('YYYY-MM-DD'))}`
               : null}{' '}
-          · Oficina sesión #{session?.oficinaId} · {gestorLabelFromId(gestorId)}
+          · Oficina #{oficinaEfectiva} · {gestorLabelFromId(gestorId)}
         </Typography.Text>
       ) : null}
 
