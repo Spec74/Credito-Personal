@@ -76,9 +76,9 @@
 }
 
 .cobro-bloque-resumen-mobile__pill--send {
-  color: #ad6800;
+  color: var(--credix-warning, #ad6800);
   background: var(--credix-warning-bg);
-  border: 1px solid #ffe58f;
+  border: 1px solid color-mix(in srgb, var(--credix-warning, #c47a00) 40%, var(--credix-surface, #fff));
 }
 
 .cobro-bloque-resumen-mobile__pill--ok {
@@ -142,7 +142,7 @@
 
 .cobro-bloque-enviados-list__meta {
   font-size: 12px;
-  color: #64748b;
+  color: var(--credix-text-muted, #64748b);
 }
 
 .cobro-bloque-enviados-list__monto {
@@ -170,13 +170,13 @@
 .cobro-enviado-medios__monto {
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--credix-text-muted, #64748b);
   white-space: nowrap;
 }
 
 .cobro-bloque-enviados-list__medios {
   font-size: 12px;
-  color: #334155;
+  color: var(--credix-text, #334155);
   line-height: 1.35;
 }
 
@@ -535,14 +535,14 @@
 }
 
 .cobro-bloque-card__badge--tipado {
-  color: #ad6800;
+  color: var(--credix-warning, #ad6800);
   background: var(--credix-warning-bg);
 }
 
 .cobro-bloque-card__error {
   margin: 0;
   font-size: 0.78rem;
-  color: #a8071a;
+  color: var(--credix-danger, #a8071a);
   line-height: 1.35;
 }
 
@@ -561,7 +561,7 @@
   margin: 0;
   font-size: 0.75rem;
   line-height: 1.35;
-  color: #64748b;
+  color: var(--credix-text-muted, #64748b);
 }
 
 .cobro-bloque-card__quitar.ant-btn {

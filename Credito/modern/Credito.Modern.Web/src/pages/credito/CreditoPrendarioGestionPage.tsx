@@ -920,6 +920,7 @@ export function CreditoPrendarioGestionPage() {
               id="monto-abono-prendario"
               className="credito-prendario-campo"
               min={0}
+              precision={2}
               max={preview.data?.capitalPendiente ?? undefined}
               value={montoAbono}
               onChange={(v) => setMontoAbono(Number(v ?? 0))}

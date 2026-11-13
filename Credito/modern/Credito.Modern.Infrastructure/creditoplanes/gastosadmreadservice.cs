@@ -50,7 +50,7 @@ public sealed class GastosAdmReadService(IOptions<SqlDatabaseOptions> options) :
             gastos += item.IndPorcentaje ? importe * (item.Valor / 100m) : item.Valor;
         }
 
-        return Math.Round(gastos, 2);
+        return Math.Round(gastos, 2, MidpointRounding.AwayFromZero);
     }
 
     private sealed class GastosAdmRow

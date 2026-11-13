@@ -643,6 +643,7 @@ export function CreditoPrendarioNuevoPage() {
                     className="prendario-nuevo-campo"
                     min={1}
                     step={10}
+                    precision={2}
                     disabled={bloqueado}
                     status={errorMontoVsTasacion ? 'error' : undefined}
                     value={montoCredito}
@@ -720,6 +721,7 @@ export function CreditoPrendarioNuevoPage() {
                     className="prendario-nuevo-campo"
                     min={0}
                     step={1}
+                    precision={2}
                     disabled={bloqueado}
                     value={gastosAdm}
                     onChange={(v) => setGastosAdm(v)}

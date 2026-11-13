@@ -24,7 +24,9 @@
   --credix-on-brand: #ffffff;
   /* ≥4.5:1 sobre --credix-bg (#f8f9fb) — WCAG AA (Lighthouse color-contrast) */
   --credix-text-muted: #595f6b;
+  --credix-text-secondary: #4b5563;
   --credix-success: #15803d;
+  --credix-success-hover: #166534;
   --credix-success-bg: #f0fdf4;
   --credix-warning: #c47a00;
   --credix-warning-bg: #fffbeb;
@@ -101,7 +103,9 @@
   --credix-text: #e6e8ec;
   --credix-on-brand: #ffffff;
   --credix-text-muted: #b4bcc8;
+  --credix-text-secondary: #c9d0da;
   --credix-success: #4ade80;
+  --credix-success-hover: #22c55e;
   --credix-success-bg: #16351f;
   --credix-warning: #fbbf24;
   --credix-warning-bg: #3a2a0a;

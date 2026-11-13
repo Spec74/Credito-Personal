@@ -798,3 +798,81 @@
   border-color: var(--credix-border);
   color: var(--credix-ink-brand);
 }
+
+/* —— P0 dark: caja diario / bóveda / sin sesión / cobro bloque / consulta (tokens) —— */
+:root[data-theme='dark'] .caja-section--cxc .caja-section__icon {
+  background: var(--credix-warning);
+  color: var(--credix-bg);
+}
+
+:root[data-theme='dark'] .ruta-cobrador-result__list .ruta-cobrador-pin--sin-gps {
+  background: var(--credix-text-muted);
+  color: var(--credix-bg);
+}
+
+:root[data-theme='dark'] .caja-diario-session-status.is-abierto {
+  border-color: color-mix(in srgb, var(--credix-success) 45%, var(--credix-border));
+}
+
+:root[data-theme='dark'] .boveda-cuadre--roto,
+:root[data-theme='dark'] .boveda-resumen-cuenta__sede-monto--neg {
+  color: var(--credix-danger);
+}
+
+:root[data-theme='dark'] .boveda-saldos-grid__card--final {
+  border-color: var(--credix-brand-line);
+}
+
+:root[data-theme='dark'] .caja-sin-sesion-alert.ant-alert {
+  background: var(--credix-warning-bg);
+  border-color: color-mix(in srgb, var(--credix-warning) 45%, var(--credix-border));
+}
+
+:root[data-theme='dark'] .caja-sin-sesion-alert .ant-alert-message {
+  color: var(--credix-warning);
+}
+
+:root[data-theme='dark'] .caja-sin-sesion-alert .ant-alert-description {
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .cobro-bloque-resumen-mobile__pill--send,
+:root[data-theme='dark'] .cobro-bloque-card__badge--tipado {
+  color: var(--credix-warning);
+  background: var(--credix-warning-bg);
+}
+
+:root[data-theme='dark'] .cobro-bloque-card__error {
+  color: var(--credix-danger);
+}
+
+:root[data-theme='dark'] .cobro-bloque-enviados-list__meta,
+:root[data-theme='dark'] .cobro-enviado-medios__monto {
+  color: var(--credix-text-muted);
+}
+
+:root[data-theme='dark'] .cobro-bloque-enviados-list__medios {
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .credito-consulta-avales__table,
+:root[data-theme='dark'] .credito-consulta-page .credito-persona-cabecera__info-item,
+:root[data-theme='dark'] .credito-persona-cabecera__avatar {
+  border-color: var(--credix-border);
+}
+
+:root[data-theme='dark'] .credito-consulta-page .credito-persona-cabecera .ant-tag {
+  border-color: var(--credix-border) !important;
+}
+
+:root[data-theme='dark'] .credito-consulta-page .credito-persona-cabecera .ant-tag-error {
+  background: var(--credix-danger-bg);
+  border-color: var(--credix-danger) !important;
+  color: var(--credix-danger) !important;
+}
+
+:root[data-theme='dark'] .credito-consulta-page .credito-persona-cabecera .ant-tag-gold {
+  background: var(--credix-warning-bg) !important;
+  border-color: var(--credix-warning) !important;
+  color: var(--credix-warning) !important;
+}

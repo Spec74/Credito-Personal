@@ -224,7 +224,7 @@ export function TransferirSaldosDrawer({
             },
           ]}
         >
-          <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
+          <InputNumber min={0.01} step={0.01} precision={2} style={{ width: '100%' }} />
         </Form.Item>
 
         <Form.Item name="descripcion" label="Descripción" rules={glosaRules}>

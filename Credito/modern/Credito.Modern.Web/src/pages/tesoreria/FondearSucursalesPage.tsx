@@ -187,6 +187,7 @@ export function FondearSucursalesPage() {
               <InputNumber
                 min={0}
                 step={10}
+                precision={2}
                 prefix="S/"
                 style={{ width: '100%' }}
                 value={montos[row.oficinaId]}

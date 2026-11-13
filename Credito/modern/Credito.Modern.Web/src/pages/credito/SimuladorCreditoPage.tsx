@@ -1279,10 +1279,10 @@ export function SimuladorCreditoPage() {
               }
               rules={[{ required: true }]}
             >
-              <Input type="date" style={{ width: 160 }} />
+              <Input type="date" style={{ width: 160, maxWidth: '100%' }} />
             </Form.Item>
             <Form.Item name="gastosAdm" label="Trámite adm.">
-              <InputNumber min={0} step={1} style={{ width: 120 }} />
+              <InputNumber min={0} step={1} style={{ width: 120, maxWidth: '100%' }} />
             </Form.Item>
             {cotizaPrendario ? (
               <Form.Item
@@ -1564,7 +1564,7 @@ export function SimuladorCreditoPage() {
             Producto: {productoSeleccionado?.denominacion ?? 'pendiente'}
           </Tag>
           <Select
-            style={{ width: 320 }}
+            style={{ width: 320, maxWidth: '100%' }}
             value="ADE"
             disabled
             options={IND_GASTOS_ADM_OPTIONS}

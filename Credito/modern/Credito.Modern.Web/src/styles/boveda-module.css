@@ -40,7 +40,7 @@
 .boveda-cuadre--roto {
   border-color: var(--credix-danger);
   background: var(--credix-danger-bg);
-  color: #9b1c1c;
+  color: var(--credix-danger, #9b1c1c);
 }
 
 /* —— Fuera de esta bóveda (4 baldosas, sin repetir saldo/total) —— */
@@ -50,7 +50,7 @@
   gap: 12px;
 }
 
-@media (max-width: 1099px) {
+@media (max-width: 991px) {
   .boveda-estado-dinero {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -128,7 +128,7 @@
 
 .boveda-saldos-grid__card--final {
   background: var(--credix-brand-light);
-  border-color: #b8d4ef;
+  border-color: var(--credix-brand-line, #b8d4ef);
 }
 
 .boveda-saldos-grid__value {
@@ -219,7 +219,7 @@
   gap: 8px;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 641px) {
   .boveda-resumen-cuenta__grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
@@ -332,13 +332,13 @@
   grid-template-columns: 1fr;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 641px) {
   .boveda-resumen-cuenta--red .boveda-resumen-cuenta__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 992px) {
   .boveda-resumen-cuenta--red .boveda-resumen-cuenta__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -395,7 +395,7 @@
 }
 
 .boveda-resumen-cuenta__sede-monto--neg {
-  color: #b91c1c;
+  color: var(--credix-danger, #b91c1c);
 }
 
 .boveda-resumen-cuenta__sede--legado .boveda-resumen-cuenta__sede-nom {
@@ -715,7 +715,7 @@
   }
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 992px) {
   .boveda-work {
     grid-template-columns: minmax(0, 1fr) 280px;
   }

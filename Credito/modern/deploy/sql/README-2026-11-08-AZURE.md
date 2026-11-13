@@ -24,11 +24,21 @@ Incluye:
 - Remesa: disponible bóveda vs caja pendiente TRE
 - UI 2026-11-09: responsive avisos + dark saldos ([SSD-15](../../docs/ssd/SSD-15-movil-shell.md) / [SSD-19](../../docs/ssd/SSD-19-color-scheme.md))
 
-## Post 2026-11-08 (conteo / céntimos)
+## Post 2026-11-08 (conteo / céntimos / central riesgo)
+
+Orden recomendado:
 
 ```powershell
+sqlcmd -S <server> -d CREDITO -U <user> -P <pass> -I -i deploy\sql\2026-11-06-caja-saldo-final-centimos.sql
 sqlcmd -S <server> -d CREDITO -U <user> -P <pass> -I -i deploy\sql\2026-11-11-usp-cerrar-cajas-diarios-centimos.sql
+sqlcmd -S <server> -d CREDITO -U <user> -P <pass> -I -i deploy\sql\2026-11-12-usp-central-riesgo-generar-por-sede.sql
 ```
 
-- Reafirma `ROUND(..., 2)`, rechaza `@Sobrante < 0`, omite TRE en cero.
-- App: API valida cierre masivo (409) antes del USP; UI revalida + moneda 5 céntimos.
+| Script | Qué asegura |
+|--------|-------------|
+| `2026-11-06-caja-saldo-final-centimos.sql` | `usp_RecalcularCajaDiario` ROUND 2 |
+| `2026-11-11-usp-cerrar-cajas-diarios-centimos.sql` | `usp_CerrarCajasDiarios` ROUND 2, sin TRE en cero |
+| `2026-11-12-usp-central-riesgo-generar-por-sede.sql` | Central de riesgos cache/lectura por sede |
+
+- App: cierre masivo valida 409; UI conteo con moneda 5 céntimos; saldo final C# ROUND 2.
+- Gate: `deploy/scripts/smoke-db-gate.ps1` exige ROUND 2 en cierre/recalcular y filtro sede en central riesgo.

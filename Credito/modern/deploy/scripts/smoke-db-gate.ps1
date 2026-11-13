@@ -71,6 +71,21 @@ SELECT COUNT(*) FROM sys.indexes WHERE name IN (
     N'IX_CentralRiesgo_CreditoId', N'IX_CreditoMora_CreditoId', N'IX_CuentaxCobrar_CreditoId',
     N'IX_PlaInusual_CreditoId', N'IX_CajaDiario_Caja_IndCierre', N'IX_Caja_OficinaId',
     N'IX_BovedaMov_BovedaId', N'IX_BovedaMov_CajaDiarioId')
+"@ },
+    @{ Name = 'CerrarCajasCentimos'; Sql = @"
+SELECT CASE WHEN OBJECT_DEFINITION(OBJECT_ID(N'CREDITO.usp_CerrarCajasDiarios'))
+  LIKE N'%ROUND(CU.Importe, 2)%' THEN 1 ELSE 0 END
+"@ },
+    @{ Name = 'RecalcularCajaCentimos'; Sql = @"
+SELECT CASE
+  WHEN OBJECT_ID(N'CREDITO.usp_RecalcularCajaDiario', N'P') IS NULL THEN 0
+  WHEN OBJECT_DEFINITION(OBJECT_ID(N'CREDITO.usp_RecalcularCajaDiario'))
+    LIKE N'%ROUND(%2)%' THEN 1
+  ELSE 0 END
+"@ },
+    @{ Name = 'CentralRiesgoPorSede'; Sql = @"
+SELECT CASE WHEN OBJECT_DEFINITION(OBJECT_ID(N'CREDITO.usp_CentralRiesgoGenerar'))
+  LIKE N'%C.OficinaId = @OficinaId%' THEN 1 ELSE 0 END
 "@ }
 )
 
@@ -81,6 +96,9 @@ foreach ($c in $checks) {
     if ($c.Name -eq 'CreditoInsQuotedOn') { $ok = [int]$v -eq 1 }
     if ($c.Name -eq 'ClaveUsuarioLen') { $ok = [int]$v -ge 256 }
     if ($c.Name -eq 'IxCalientes') { $ok = [int]$v -ge 11 }
+    if ($c.Name -eq 'CerrarCajasCentimos') { $ok = [int]$v -eq 1 }
+    if ($c.Name -eq 'RecalcularCajaCentimos') { $ok = [int]$v -eq 1 }
+    if ($c.Name -eq 'CentralRiesgoPorSede') { $ok = [int]$v -eq 1 }
     $status = if ($ok) { 'OK' } else { 'FAIL'; $script:failed++ }
     Write-Host ("{0,-28} {1}  ({2})" -f $c.Name, $status, $v)
 }

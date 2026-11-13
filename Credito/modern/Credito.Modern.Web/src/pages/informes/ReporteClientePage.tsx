@@ -115,7 +115,7 @@ export function ReporteClientePage() {
                 const t = termino.trim()
                 if (t.length >= 2) busqueda.mutate(t)
               }}
-              style={{ width: 320 }}
+              style={{ width: 320, maxWidth: '100%' }}
             />
             <Button
               icon={<SearchOutlined />}

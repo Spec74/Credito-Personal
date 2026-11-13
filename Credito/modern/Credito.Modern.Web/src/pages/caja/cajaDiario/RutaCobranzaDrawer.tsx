@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Alert, Button, Grid, Input, Radio, Typography } from 'antd'
+import { Alert, Button, Grid, Input, Radio, Spin, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { fetchCobroDiario, generarRutaCobros } from '../../../api/creditoPlanes'
 import { ApiError } from '../../../api/errors'
@@ -13,10 +13,13 @@ import {
   cajaToastError,
   cajaToastWarning,
 } from './cajaFeedback'
-import {
-  RutaCobradorResultModal,
-  type RutaCobradorResult,
-} from './RutaCobradorResultModal'
+import type { RutaCobradorResult } from './RutaCobradorResultModal'
+
+const RutaCobradorResultModal = lazy(() =>
+  import('./RutaCobradorResultModal').then((m) => ({
+    default: m.RutaCobradorResultModal,
+  })),
+)
 
 const { Text } = Typography
 const MAX_RUTA = 25
@@ -253,14 +256,24 @@ export function RutaCobranzaDrawer({
         />
       </CajaDrawer>
 
-      <RutaCobradorResultModal
-        open={resultOpen}
-        result={result}
-        onClose={() => {
-          setResultOpen(false)
-          setResult(null)
-        }}
-      />
+      {resultOpen ? (
+        <Suspense
+          fallback={
+            <div style={{ display: 'grid', placeItems: 'center', padding: 24 }}>
+              <Spin />
+            </div>
+          }
+        >
+          <RutaCobradorResultModal
+            open={resultOpen}
+            result={result}
+            onClose={() => {
+              setResultOpen(false)
+              setResult(null)
+            }}
+          />
+        </Suspense>
+      ) : null}
     </>
   )
 }

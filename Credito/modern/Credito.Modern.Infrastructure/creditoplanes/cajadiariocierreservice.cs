@@ -171,7 +171,7 @@ public sealed class CajaDiarioCierreService(
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-            var saldoFinalRedondeado = Math.Round(info.SaldoFinal, 1, MidpointRounding.AwayFromZero);
+            var saldoFinalRedondeado = Math.Round(info.SaldoFinal, 2, MidpointRounding.AwayFromZero);
 
             var filasCajaDiario = await connection.ExecuteAsync(
                 new CommandDefinition(

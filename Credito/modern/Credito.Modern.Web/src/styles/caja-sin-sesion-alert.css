@@ -6,17 +6,17 @@
 .caja-sin-sesion-alert.ant-alert {
   align-items: flex-start;
   border-radius: 12px;
-  border: 1px solid #f0d78c;
+  border: 1px solid color-mix(in srgb, var(--credix-warning, #c47a00) 40%, var(--credix-surface, #fff));
   background: var(--credix-warning-bg);
 }
 
 .caja-sin-sesion-alert .ant-alert-message {
   font-weight: 700;
-  color: #92400e;
+  color: var(--credix-warning, #92400e);
 }
 
 .caja-sin-sesion-alert .ant-alert-description {
-  color: #78350f;
+  color: var(--credix-text, #78350f);
   line-height: 1.45;
 }
 

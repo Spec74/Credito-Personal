@@ -909,6 +909,7 @@ export function CreditoConsultaGestionPanel({
                 <InputNumber
                   style={{ width: '100%', marginBottom: 8 }}
                   min={0}
+                  precision={2}
                   value={tope}
                   onChange={(v) => setTope(v ?? 0)}
                 />
@@ -1326,6 +1327,7 @@ export function CreditoConsultaGestionPanel({
           style={{ width: '100%', marginBottom: 12 }}
           min={0.01}
           step={0.01}
+          precision={2}
           placeholder="Monto"
           value={montoCargo}
           onChange={(v) => setMontoCargo(v ?? 0)}

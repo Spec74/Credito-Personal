@@ -625,7 +625,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
 
   const importeField = (
     <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
-      <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
+      <InputNumber min={0.01} step={0.01} precision={2} style={{ width: '100%' }} />
     </Form.Item>
   )
   const descripcionField = (
@@ -901,7 +901,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             </Form.Item>
             </div>
             <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
-              <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
+              <InputNumber min={0.01} step={0.01} precision={2} style={{ width: '100%' }} />
             </Form.Item>
             <Form.Item name="glosa" label="Glosa" rules={glosaRules}>
               <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />
@@ -1044,7 +1044,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               monto={montoRedNum}
             />
             <Form.Item name="monto" label="Monto" rules={moneyRequired('Monto mayor a cero')}>
-              <InputNumber min={0.01} step={0.01} style={{ width: '100%' }} />
+              <InputNumber min={0.01} step={0.01} precision={2} style={{ width: '100%' }} />
             </Form.Item>
             <Form.Item name="glosa" label="Glosa" rules={glosaRules}>
               <Input.TextArea rows={2} maxLength={FIELD_MAX.glosa} showCount />

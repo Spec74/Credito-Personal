@@ -320,7 +320,10 @@ public sealed class MovimientoCajaTicketReadService(
         var articulo = string.Empty;
         if (header.IndCondonacion && header.MontoCondonacion is > 0)
         {
-            var total = Math.Round(header.ImportePago + header.MontoCondonacion.Value, 2);
+            var total = Math.Round(
+                header.ImportePago + header.MontoCondonacion.Value,
+                2,
+                MidpointRounding.AwayFromZero);
             articulo =
                 $"MONTO TOTAL POR PAGAR   {total:N2}\n MONTO CONDONADO   {header.MontoCondonacion.Value:N2}";
         }

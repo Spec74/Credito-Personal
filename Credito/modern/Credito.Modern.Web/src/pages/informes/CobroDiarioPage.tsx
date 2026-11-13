@@ -1,8 +1,8 @@
-import { useEffect, useMemo, useState, type Key } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState, type Key } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { Alert, Button, Form, InputNumber, Switch, Typography, message } from 'antd'
+import { Alert, Button, Form, InputNumber, Spin, Switch, Typography, message } from 'antd'
 import { SearchOutlined } from '@ant-design/icons'
 import { InformeExportBar } from '../../components/informes/InformeExportBar'
 import {
@@ -30,10 +30,13 @@ import {
 } from '../../utils/gestorInformeForm'
 import { readUrlUserId, resolveInformeOficinaId } from '../../utils/informeUrlParams'
 import { canViewReporteCredito } from '../../utils/reporteCreditoAccess'
-import {
-  RutaCobradorResultModal,
-  type RutaCobradorResult,
-} from '../caja/cajaDiario/RutaCobradorResultModal'
+import type { RutaCobradorResult } from '../caja/cajaDiario/RutaCobradorResultModal'
+
+const RutaCobradorResultModal = lazy(() =>
+  import('../caja/cajaDiario/RutaCobradorResultModal').then((m) => ({
+    default: m.RutaCobradorResultModal,
+  })),
+)
 
 const COBRO_DIARIO_COLUMNS = buildCobroDiarioInformeColumns()
 const MAX_RUTA_WA = 25
@@ -395,14 +398,24 @@ export function CobroDiarioPage() {
         locale={{ emptyText: 'Pulse Consultar para cargar resultados.' }}
       />
     </CredixInformePage>
-    <RutaCobradorResultModal
-      open={rutaOpen}
-      result={rutaResult}
-      onClose={() => {
-        setRutaOpen(false)
-        setRutaResult(null)
-      }}
-    />
+    {rutaOpen ? (
+      <Suspense
+        fallback={
+          <div style={{ display: 'grid', placeItems: 'center', padding: 24 }}>
+            <Spin />
+          </div>
+        }
+      >
+        <RutaCobradorResultModal
+          open={rutaOpen}
+          result={rutaResult}
+          onClose={() => {
+            setRutaOpen(false)
+            setRutaResult(null)
+          }}
+        />
+      </Suspense>
+    ) : null}
     </>
   )
 }

@@ -1105,6 +1105,7 @@ export function CobranzasTab({
                       <InputNumber
                         min={0}
                         step={0.01}
+                        precision={2}
                         size={isMobile ? 'large' : 'middle'}
                         controls={false}
                         inputMode="decimal"
@@ -1260,6 +1261,7 @@ export function CobranzasTab({
                           <InputNumber
                             min={0}
                             step={0.01}
+                            precision={2}
                             size={isMobile ? 'large' : 'middle'}
                             controls={false}
                             inputMode="decimal"
@@ -1395,6 +1397,7 @@ export function CobranzasTab({
         <InputNumber
           min={0}
           step={0.01}
+          precision={2}
           style={{ width: '100%' }}
           value={moraSolicitar}
           onChange={(v) => setMoraSolicitar(v)}

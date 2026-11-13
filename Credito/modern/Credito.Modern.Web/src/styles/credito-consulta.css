@@ -352,7 +352,7 @@
   gap: 4px;
   min-width: 128px;
   padding: 12px 14px;
-  border: 2px solid #d7e6f7;
+  border: 2px solid var(--credix-brand-line, #d7e6f7);
   border-radius: 10px;
   background: var(--credix-surface);
   cursor: pointer;
@@ -364,7 +364,7 @@
 }
 
 .credito-consulta-credito-chip:hover {
-  border-color: #93c5fd;
+  border-color: var(--credix-info, #93c5fd);
 }
 
 .credito-consulta-credito-chip.is-active {
@@ -428,7 +428,7 @@
   min-height: 56px;
   padding: 8px 6px;
   background: var(--credito-brand-soft);
-  border: 1px solid #c7daf3;
+  border: 1px solid var(--credix-brand-line, #c7daf3);
   border-radius: 12px;
   color: var(--credito-brand);
   font-size: 22px;
@@ -570,7 +570,7 @@
 
 .credito-consulta-avales__table {
   overflow: hidden;
-  border: 1px solid #e5edf7;
+  border: 1px solid var(--credito-card-border, #e5edf7);
   border-radius: 10px;
 }
 
@@ -671,7 +671,7 @@
 .credito-consulta-page .credix-report-btn--pdf,
 .credito-consulta-page .credix-report-btn--xls {
   background: var(--credix-surface);
-  border-color: #cbd5e1;
+  border-color: var(--credix-border, #cbd5e1);
   color: var(--credix-text);
 }
 
@@ -800,7 +800,7 @@
 .credito-gestion-card {
   margin: 0 !important;
   overflow: hidden;
-  border: 1px solid #dfe8f2 !important;
+  border: 1px solid var(--credito-card-border, #dfe8f2) !important;
   border-radius: 14px !important;
   background: var(--credix-surface) !important;
   box-shadow: 0 6px 18px rgb(15 23 42 / 5%) !important;
@@ -810,7 +810,7 @@
   min-height: 42px;
   padding-inline: 16px;
   background: var(--credix-info-bg);
-  border-bottom: 1px solid #e6eef7 !important;
+  border-bottom: 1px solid var(--credix-border, #e6eef7) !important;
 }
 
 .credito-gestion-tab .ant-card-head-title {
@@ -910,7 +910,7 @@
 .credito-consulta-panel-credito .ant-card-head {
   min-height: 44px;
   background: var(--credix-brand-light);
-  border-bottom-color: #e4eef8;
+  border-bottom-color: var(--credix-border, #e4eef8);
 }
 
 .credito-consulta-panel-credito .ant-card-head-title {
@@ -1013,7 +1013,7 @@
 .credito-prendario-card .ant-alert {
   border-radius: 12px;
   background: var(--credix-info-bg);
-  border-color: #dfe8f2;
+  border-color: var(--credix-border, #dfe8f2);
 }
 
 /* Detalle de bienes: estilos en prendas-editor.css (evitar override que pega etiqueta+valor). */
@@ -1073,7 +1073,7 @@
 
 .credito-condonar__table {
   overflow: hidden;
-  border: 1px solid #dfe8f2;
+  border: 1px solid var(--credix-border, #dfe8f2);
   border-radius: 12px;
 }
 
@@ -1083,7 +1083,7 @@
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border-top: 1px solid #edf2f7;
+  border-top: 1px solid var(--credix-border, #edf2f7);
 }
 
 .credito-condonar__row:first-child {
@@ -1111,7 +1111,7 @@
   gap: 12px;
   padding: 12px 14px;
   background: var(--credix-info-bg);
-  border: 1px solid #dfe8f2;
+  border: 1px solid var(--credix-border, #dfe8f2);
   border-radius: 12px;
 }
 
@@ -1448,7 +1448,7 @@
 
 .credito-consulta-page .credito-persona-cabecera__info-item {
   background: var(--credix-surface-muted);
-  border-color: #e2e8f0;
+  border-color: var(--credito-card-border, #e2e8f0);
   box-shadow: none;
 }
 
@@ -1464,21 +1464,21 @@
 
 .credito-consulta-page .credito-persona-cabecera .ant-tag {
   background: var(--credix-surface-muted);
-  border-color: #cbd5e1 !important;
+  border-color: var(--credix-border, #cbd5e1) !important;
   color: var(--credix-text);
   border-radius: 4px;
 }
 
 .credito-consulta-page .credito-persona-cabecera .ant-tag-error {
   background: var(--credix-danger-bg);
-  border-color: #fecdd3 !important;
-  color: #9f1239 !important;
+  border-color: color-mix(in srgb, var(--credix-danger, #b91c1c) 35%, var(--credix-surface, #fff)) !important;
+  color: var(--credix-danger, #9f1239) !important;
 }
 
 .credito-consulta-page .credito-persona-cabecera .ant-tag-gold {
   background: var(--credix-warning-bg) !important;
-  border-color: #fde68a !important;
-  color: #92400e !important;
+  border-color: color-mix(in srgb, var(--credix-warning, #c47a00) 40%, var(--credix-surface, #fff)) !important;
+  color: var(--credix-warning, #92400e) !important;
 }
 
 .credito-consulta-avales__table .ant-table-thead > tr > th {

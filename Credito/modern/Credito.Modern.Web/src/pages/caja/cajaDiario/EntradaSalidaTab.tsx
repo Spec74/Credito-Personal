@@ -167,7 +167,7 @@ export function EntradaSalidaTab({
             />
           </Form.Item>
           <Form.Item name="importe" label="Importe" rules={moneyRequired()}>
-            <InputNumber style={{ width: '100%' }} min={0.01} step={0.01} />
+            <InputNumber style={{ width: '100%' }} min={0.01} step={0.01} precision={2} />
           </Form.Item>
           <Form.Item
             name="tipoPagoId"

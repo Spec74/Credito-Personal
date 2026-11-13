@@ -140,6 +140,7 @@ export function PagoMediosSplit({
               <InputNumber
                 min={0}
                 step={0.01}
+                precision={2}
                 controls={false}
                 inputMode="decimal"
                 prefix="S/"

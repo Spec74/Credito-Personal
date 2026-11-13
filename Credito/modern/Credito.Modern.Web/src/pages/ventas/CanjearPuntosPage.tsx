@@ -275,7 +275,7 @@ export function CanjearPuntosPage() {
 
                 placeholder="Apellidos, DNI, código o celular (mín. 2 caracteres)"
 
-                style={{ width: 360 }}
+                style={{ width: 360, maxWidth: '100%' }}
 
                 value={terminoCliente}
 

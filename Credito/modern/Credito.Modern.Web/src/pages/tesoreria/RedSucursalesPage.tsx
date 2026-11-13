@@ -104,7 +104,7 @@ export function RedSucursalesPage() {
               if (!row.bovedaId) return '—'
               const roto = Math.abs(row.deltaMedios) > 0.01
               return (
-                <span style={roto ? { color: '#9b1c1c', fontWeight: 600 } : undefined}>
+                <span style={roto ? { color: 'var(--credix-danger)', fontWeight: 600 } : undefined}>
                   {formatMoney(row.deltaMedios)}
                 </span>
               )

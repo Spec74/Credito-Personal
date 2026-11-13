@@ -512,6 +512,7 @@ export function CreditoNuevoPage() {
                 className="prendario-nuevo-campo"
                 min={1}
                 step={50}
+                precision={2}
                 disabled={!personaId || Boolean(bloqueoCliente)}
                 status={sobreTope ? 'warning' : undefined}
                 value={monto}
@@ -557,6 +558,7 @@ export function CreditoNuevoPage() {
                 className="prendario-nuevo-campo"
                 min={0}
                 step={1}
+                precision={2}
                 disabled={!personaId || Boolean(bloqueoCliente)}
                 value={gastosAdm}
                 onChange={(v) => setGastosAdm(v)}

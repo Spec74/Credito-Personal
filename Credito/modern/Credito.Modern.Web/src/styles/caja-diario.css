@@ -63,7 +63,7 @@
 }
 
 .caja-diario-page ul.credix-stats li span.red {
-  color: #b91c1c;
+  color: var(--credix-danger, #b91c1c);
 }
 
 .caja-diario-page ul.credix-stats li:last-child:has(span.green) {
@@ -86,7 +86,7 @@
   font-size: 1.05rem;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 640px) {
   .caja-diario-page ul.credix-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -170,7 +170,7 @@
   margin-inline-start: 12px;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 640px) {
   .caja-diario-cobro-bridge {
     flex-direction: column;
     align-items: stretch;
@@ -261,10 +261,10 @@
   width: 100%;
   min-width: 0;
   padding-top: 4px;
-  border-top: 1px solid #c7daf3;
+  border-top: 1px solid var(--credix-brand-line, #c7daf3);
 }
 
-@media (min-width: 768px) {
+@media (min-width: 641px) {
   .caja-diario-actions-row {
     justify-content: flex-start;
   }
@@ -339,7 +339,7 @@
 .caja-diario-session-status.is-abierto {
   background: var(--credix-success-bg, #f0fdf4);
   color: var(--credix-success, #15803d);
-  border: 1px solid #bbf7d0;
+  border: 1px solid color-mix(in srgb, var(--credix-success, #15803d) 35%, var(--credix-surface, #fff));
 }
 
 .caja-diario-session-status.is-cerrado {
@@ -716,7 +716,7 @@
 }
 
 .caja-diario-credito-chip:hover {
-  border-color: #bfd4ec;
+  border-color: var(--credix-brand-line, #bfd4ec);
   background: var(--credix-surface);
 }
 
@@ -938,7 +938,7 @@
   margin: 12px 0 0 !important;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 640px) {
   .caja-creditos-pendientes-modal-root .ant-modal {
     max-width: calc(100vw - 16px);
     margin: 8px auto;
@@ -1200,7 +1200,7 @@
   padding: 10px 14px;
   font-size: 13px;
   background: var(--caja-brand-light);
-  border: 1px solid #c7daf3;
+  border: 1px solid var(--credix-brand-line, #c7daf3);
   border-radius: 8px;
 }
 
@@ -1230,7 +1230,7 @@
 }
 
 .caja-vuelto-neg {
-  color: #dc2626 !important;
+  color: var(--credix-danger, #dc2626) !important;
 }
 
 .caja-diario-pago-actions .ant-btn-primary {
@@ -1357,7 +1357,7 @@
 }
 
 .caja-monto-salida {
-  color: #dc2626;
+  color: var(--credix-danger, #dc2626);
   font-weight: 600;
 }
 
@@ -1381,12 +1381,12 @@
   padding: 10px 14px;
   border-radius: 8px;
   background: var(--credix-surface-muted);
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--credix-border, #e2e8f0);
 }
 
 .caja-diario-entrada-salida-hint.is-warning {
   background: var(--credix-warning-bg);
-  border-color: #fcd34d;
+  border-color: color-mix(in srgb, var(--credix-warning, #c47a00) 45%, var(--credix-surface, #fff));
 }
 
 .caja-diario-entrada-salida-form {
@@ -1411,13 +1411,13 @@
   grid-column: 1 / -1;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 641px) {
   .caja-diario-es-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 992px) {
   .caja-diario-es-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1807,7 +1807,7 @@
   background: var(--credix-warning-bg) !important;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 640px) {
   .caja-diario-cobranzas-top {
     position: sticky;
     top: 0;
@@ -2012,7 +2012,7 @@
   align-items: start;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   .ruta-cobrador-result-modal-root .ant-modal-wrap {
     padding: 0;
   }
@@ -2071,7 +2071,7 @@
 }
 
 .ruta-cobrador-result__list .ruta-cobrador-pin--sin-gps {
-  background: #94a3b8;
+  background: var(--credix-text-muted, #94a3b8);
 }
 
 .caja-ruta-qr-body {

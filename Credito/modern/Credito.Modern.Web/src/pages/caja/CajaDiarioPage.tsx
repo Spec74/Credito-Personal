@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Button, Space, Tabs } from 'antd'
+import { Alert, Button, Space, Spin, Tabs } from 'antd'
 import { ReloadOutlined } from '@ant-design/icons'
 import {
   completarImpagosValidacion,
@@ -23,10 +23,25 @@ import { formatMoney } from '../../utils/formatMoney'
 import { formatFechaHora } from '../../utils/formatFecha'
 import { invalidateCajaOperacion } from '../../utils/cajaOperacionSync'
 import { CajaDiarioOperacionesBar } from './cajaDiario/CajaDiarioOperacionesBar'
-import { ArqueoTab } from './cajaDiario/ArqueoTab'
 import { CobranzasTab } from './cajaDiario/CobranzasTab'
-import { DesembolsosTab } from './cajaDiario/DesembolsosTab'
-import { EntradaSalidaTab } from './cajaDiario/EntradaSalidaTab'
+
+const ArqueoTab = lazy(() =>
+  import('./cajaDiario/ArqueoTab').then((m) => ({ default: m.ArqueoTab })),
+)
+const DesembolsosTab = lazy(() =>
+  import('./cajaDiario/DesembolsosTab').then((m) => ({ default: m.DesembolsosTab })),
+)
+const EntradaSalidaTab = lazy(() =>
+  import('./cajaDiario/EntradaSalidaTab').then((m) => ({ default: m.EntradaSalidaTab })),
+)
+
+function TabFallback() {
+  return (
+    <div style={{ display: 'grid', placeItems: 'center', minHeight: 160 }}>
+      <Spin />
+    </div>
+  )
+}
 import {
   cajaToastError,
   cajaToastSuccess,
@@ -390,43 +405,49 @@ export function CajaDiarioPage() {
                         key: 'desembolsos',
                         label: 'Desembolsos',
                         children: (
-                          <DesembolsosTab
-                            ctx={ctx}
-                            active={activeTab === 'desembolsos'}
-                            onChanged={refreshCaja}
-                          />
+                          <Suspense fallback={<TabFallback />}>
+                            <DesembolsosTab
+                              ctx={ctx}
+                              active={activeTab === 'desembolsos'}
+                              onChanged={refreshCaja}
+                            />
+                          </Suspense>
                         ),
                       },
                       {
                         key: 'egreso-ingreso',
                         label: 'Egreso / Ingreso',
                         children: (
-                          <EntradaSalidaTab
-                            ctx={ctx}
-                            onChanged={refreshCaja}
-                          />
+                          <Suspense fallback={<TabFallback />}>
+                            <EntradaSalidaTab
+                              ctx={ctx}
+                              onChanged={refreshCaja}
+                            />
+                          </Suspense>
                         ),
                       },
                       {
                         key: 'arqueo',
                         label: 'Arqueo',
                         children: (
-                          <ArqueoTab
-                            ctx={ctx}
-                            entradas={movimientosEntrada}
-                            salidas={movimientosSalida}
-                            loading={movimientosQuery.isLoading}
-                            onRefresh={() => void movimientosQuery.refetch()}
-                            onChanged={() => {
-                              invalidateCaja()
-                              void cajaQuery.refetch()
-                            }}
-                            onCerrada={() => {
-                              void cajaQuery.refetch()
-                              navigate('/inicio')
-                            }}
-                            openCierre={tabQuery === 'cierre'}
-                          />
+                          <Suspense fallback={<TabFallback />}>
+                            <ArqueoTab
+                              ctx={ctx}
+                              entradas={movimientosEntrada}
+                              salidas={movimientosSalida}
+                              loading={movimientosQuery.isLoading}
+                              onRefresh={() => void movimientosQuery.refetch()}
+                              onChanged={() => {
+                                invalidateCaja()
+                                void cajaQuery.refetch()
+                              }}
+                              onCerrada={() => {
+                                void cajaQuery.refetch()
+                                navigate('/inicio')
+                              }}
+                              openCierre={tabQuery === 'cierre'}
+                            />
+                          </Suspense>
                         ),
                       },
                     ]}
