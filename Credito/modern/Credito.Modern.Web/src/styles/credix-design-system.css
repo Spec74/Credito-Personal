@@ -1535,14 +1535,20 @@ ul.credix-stats--module li span.red {
   border-color: var(--credix-border);
 }
 
-/* KPI alineados a marca CrediConfiable (#114885) */
+/* KPI alineados a marca CrediConfiable */
 .credix-cobranza-kpi {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
+  .credix-cobranza-kpi {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
   .credix-cobranza-kpi {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1565,11 +1571,15 @@ ul.credix-stats--module li span.red {
 }
 
 .credix-cobranza-kpi__item--pagado {
-  border-top: 3px solid #0d9488;
+  border-top: 3px solid var(--credix-success);
 }
 
 .credix-cobranza-kpi__item--saldo {
-  border-top: 3px solid #c2410c;
+  border-top: 3px solid var(--credix-warning);
+}
+
+.credix-cobranza-kpi__item--mora {
+  border-top: 3px solid var(--credix-danger);
 }
 
 .credix-cobranza-kpi__label {
@@ -1591,6 +1601,214 @@ ul.credix-stats--module li span.red {
 
 .credix-cobranza-kpi__value--alert {
   color: var(--credix-danger);
+}
+
+.credix-cobranza-kpi__meta {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--credix-text-muted);
+}
+
+.credix-cobranza-mix {
+  margin: 12px 0 4px;
+}
+
+.credix-cobranza-mix__bar {
+  display: flex;
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--credix-bg);
+  border: 1px solid var(--credix-border);
+}
+
+.credix-cobranza-mix__bar > span {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+}
+
+.credix-cobranza-mix__bar > .is-ok {
+  background: var(--credix-success);
+}
+
+.credix-cobranza-mix__bar > .is-mora {
+  background: var(--credix-danger);
+}
+
+.credix-cobranza-mix__bar > .is-done {
+  background: var(--credix-text-muted);
+  opacity: 0.55;
+}
+
+.credix-cobranza-mix__legend {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  font-size: 12px;
+  color: var(--credix-text-muted);
+}
+
+.credix-cobranza-mix__legend i {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.credix-cobranza-mix__legend i.is-ok {
+  background: var(--credix-success);
+}
+
+.credix-cobranza-mix__legend i.is-mora {
+  background: var(--credix-danger);
+}
+
+.credix-cobranza-mix__legend i.is-done {
+  background: var(--credix-text-muted);
+}
+
+.credix-cobranza-decisions {
+  margin: 14px 0 10px;
+}
+
+.credix-cobranza-decisions__head h3 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--credix-text);
+}
+
+.credix-cobranza-decisions__head p {
+  margin: 2px 0 8px;
+  font-size: 12px;
+  color: var(--credix-text-muted);
+}
+
+.credix-cobranza-decisions__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 991px) {
+  .credix-cobranza-decisions__list {
+    grid-template-columns: 1fr;
+  }
+}
+
+.credix-cobranza-decision {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--credix-border);
+  border-left-width: 3px;
+  background: var(--credix-surface);
+}
+
+.credix-cobranza-decision.is-danger {
+  border-left-color: var(--credix-danger);
+  background: color-mix(in srgb, var(--credix-danger) 6%, var(--credix-surface));
+}
+
+.credix-cobranza-decision.is-warning {
+  border-left-color: var(--credix-warning);
+  background: color-mix(in srgb, var(--credix-warning) 7%, var(--credix-surface));
+}
+
+.credix-cobranza-decision.is-success {
+  border-left-color: var(--credix-success);
+  background: color-mix(in srgb, var(--credix-success) 6%, var(--credix-surface));
+}
+
+.credix-cobranza-decision.is-info {
+  border-left-color: var(--credix-info);
+  background: color-mix(in srgb, var(--credix-info) 7%, var(--credix-surface));
+}
+
+.credix-cobranza-decision strong {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: var(--credix-text);
+}
+
+.credix-cobranza-decision p {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--credix-text-muted);
+}
+
+.credix-cobranza-decision__cta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--credix-ink-brand);
+  text-decoration: none;
+}
+
+.credix-cobranza-decision__cta:hover {
+  text-decoration: underline;
+}
+
+.credix-cobranza-segments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+
+.credix-cobranza-segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--credix-touch-min);
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--credix-border);
+  background: var(--credix-surface);
+  color: var(--credix-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.credix-cobranza-segment strong {
+  font-variant-numeric: tabular-nums;
+  color: var(--credix-ink-brand);
+}
+
+.credix-cobranza-segment.is-active {
+  border-color: var(--credix-ink-brand);
+  background: var(--credix-brand-light);
+}
+
+.credix-cobranza-segment:focus-visible {
+  outline: 2px solid var(--credix-ink-brand);
+  outline-offset: 2px;
+}
+
+.credix-cobranza-table .credix-cobranza-row.is-mora > td {
+  background: color-mix(in srgb, var(--credix-warning) 8%, var(--credix-surface));
+}
+
+.credix-cobranza-table .credix-cobranza-row.is-mora-grave > td {
+  background: color-mix(in srgb, var(--credix-danger) 10%, var(--credix-surface));
+}
+
+.credix-cobranza-tag--ok {
+  background: var(--credix-success-bg);
+  color: var(--credix-success);
+  border: 0;
 }
 
 .credix-cobranza-table-tip {

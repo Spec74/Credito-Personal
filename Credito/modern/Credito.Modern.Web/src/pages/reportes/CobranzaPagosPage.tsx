@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Alert, Button, Form, InputNumber, Spin, Tag, Tooltip, Typography, message } from 'antd'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
@@ -13,8 +13,19 @@ import { fetchUsuariosReporteGestores } from '../../api/usuariosAdmin'
 import { useAuth } from '../../auth/useAuth'
 import { ApiError } from '../../api/errors'
 import { CredixDataTable, CredixInformePage } from '../../components/credix'
+import {
+  CobranzaDecisionStrip,
+  CobranzaMixBar,
+  CobranzaSegmentChips,
+} from '../../components/reportes/cobranza/CobranzaDecisionStrip'
 import { CobranzaKpiStrip } from '../../components/reportes/cobranza/CobranzaKpiStrip'
 import { CobranzaPagosDetalle } from '../../components/reportes/cobranza/CobranzaPagosDetalle'
+import {
+  buildCobranzaInsights,
+  filterCobranzaSegmento,
+  sortCobranzaPrioridad,
+  type CobranzaSegmento,
+} from '../../components/reportes/cobranza/cobranzaPagosInsights'
 import {
   GestorSelect,
   OficinaSelect,
@@ -52,6 +63,8 @@ export function CobranzaPagosPage() {
   const puedeElegirSede = puedeElegirGestor && esCentral
   const [form] = Form.useForm<CobranzaFiltrosForm>()
   const [expandedKeys, setExpandedKeys] = useState<string[]>([])
+  const [segmento, setSegmento] = useState<CobranzaSegmento>('todos')
+  const autoLoaded = useRef(false)
 
   const gestores = useQuery({
     queryKey: ['usuarios-gestores-reporte', 'legacy'],
@@ -76,11 +89,24 @@ export function CobranzaPagosPage() {
       fetchCobranzaPagos(params),
     onSuccess: (data) => {
       setExpandedKeys([])
+      setSegmento('todos')
       message.success(`${data.resumen.totalClientes} cliente(s) cargados`)
     },
     onError: (e) =>
       message.error(e instanceof ApiError ? e.message : 'No se pudo generar el reporte'),
   })
+
+  /** Gestor sin combo: carga sola su cartera (valor inmediato al abrir el módulo). */
+  useEffect(() => {
+    if (!session || puedeElegirGestor || autoLoaded.current) return
+    if ((session.usuarioId ?? 0) <= 0) return
+    autoLoaded.current = true
+    consulta.mutate({
+      oficinaId: session.oficinaId,
+      usuarioId: session.usuarioId,
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar sesión de gestor
+  }, [session, puedeElegirGestor])
 
   const excel = useMutation({
     mutationFn: downloadCobranzaPagosExcel,
@@ -93,6 +119,21 @@ export function CobranzaPagosPage() {
   const filtrosAplicados = consulta.data?.filtrosAplicados
   const filas = consulta.data?.data ?? []
   const queried = consulta.isSuccess || consulta.isError
+
+  const insights = useMemo(
+    () =>
+      resumen
+        ? buildCobranzaInsights(filas, resumen)
+        : null,
+    [filas, resumen],
+  )
+
+  const filasVista = useMemo(() => {
+    const filtered = filterCobranzaSegmento(filas, segmento)
+    return segmento === 'todos' || segmento === 'sin_saldo'
+      ? filtered
+      : sortCobranzaPrioridad(filtered)
+  }, [filas, segmento])
 
   const gestorAplicadoLabel = useMemo(() => {
     const uid = filtrosAplicados?.usuarioId
@@ -168,12 +209,30 @@ export function CobranzaPagosPage() {
       render: (v) => <span className="credix-cobranza-date">{formatFecha(v)}</span>,
     },
     {
+      title: 'Riesgo',
+      key: 'riesgo',
+      width: 108,
+      align: 'center',
+      render: (_, row) => {
+        const mora = row.diasAtrazoMora ?? 0
+        if (mora >= 30) {
+          return <Tag className="credix-cobranza-tag credix-cobranza-tag--mora">{mora}d</Tag>
+        }
+        if (mora > 0) {
+          return <Tag className="credix-cobranza-tag credix-cobranza-tag--warn">{mora}d</Tag>
+        }
+        if ((row.saldo ?? 0) <= 0.009) {
+          return <Tag className="credix-cobranza-tag">Liquidado</Tag>
+        }
+        return <Tag className="credix-cobranza-tag credix-cobranza-tag--ok">Al día</Tag>
+      },
+    },
+    {
       title: 'Cuotas',
       key: 'cuotas',
-      width: 168,
+      width: 148,
       render: (_, row) => {
         const total = (row.pagosCount ?? 0) + (row.impagosCount ?? 0)
-        const mora = row.diasAtrazoMora ?? 0
         const pend = row.impagosCount ?? 0
         return (
           <div className="credix-cobranza-cuotas-cell" title="Expandir fila para ver cada cuota">
@@ -183,7 +242,6 @@ export function CobranzaPagosPage() {
               </strong>{' '}
               pag.
               {pend > 0 ? <span className="credix-cobranza-cuotas-pend"> · {pend} pend.</span> : null}
-              {mora > 0 ? <span className="credix-cobranza-cuotas-mora"> · {mora}d mora</span> : null}
             </span>
           </div>
         )
@@ -217,13 +275,17 @@ export function CobranzaPagosPage() {
   return (
     <CredixInformePage
       title="Cobranza pagos por gestor"
-      subtitle={undefined}
+      subtitle="Cartera, recuperación y mora — priorice visitas con datos accionables"
       breadcrumb={reportesCobranzaBreadcrumb()}
-      enableTableSearch={queried && filas.length > 0}
+      enableTableSearch={queried && filasVista.length > 0}
       tableSearchVariant="compact"
       panelSearchFirst
       searchPlaceholder="Buscar cliente o nro…"
-      panelTitle="Clientes del gestor"
+      panelTitle={
+        segmento === 'todos'
+          ? 'Clientes del gestor'
+          : `Clientes · ${filasVista.length} de ${filas.length}`
+      }
       panelActions={
         <Tooltip title="Descarga .xlsx con título, colores y detalle de cuotas">
           <Button
@@ -316,7 +378,11 @@ export function CobranzaPagosPage() {
             type="info"
             showIcon
             className="credix-cobranza-hint"
-            message="Elija gestor y genere el reporte"
+            message={
+              puedeElegirGestor
+                ? 'Elija gestor (y sede si es Central) y genere el reporte'
+                : 'Cargando su cartera…'
+            }
           />
         ) : null}
 
@@ -329,12 +395,29 @@ export function CobranzaPagosPage() {
           </div>
         ) : null}
 
-        {resumen ? <CobranzaKpiStrip resumen={resumen} /> : null}
+        {resumen && insights ? (
+          <>
+            <CobranzaKpiStrip resumen={resumen} insights={insights} />
+            <CobranzaMixBar insights={insights} />
+            <CobranzaDecisionStrip decisions={insights.decisions} />
+            <CobranzaSegmentChips
+              insights={insights}
+              total={filas.length}
+              value={segmento}
+              onChange={(s) => {
+                setSegmento(s)
+                setExpandedKeys([])
+              }}
+            />
+          </>
+        ) : null}
 
-        {filas.length > 0 ? (
+        {filasVista.length > 0 ? (
           <Typography.Text type="secondary" className="credix-cobranza-table-tip">
-            Use <strong>+</strong> en cada fila para ver u ocultar cuotas (una expandida a la vez).
-            Muchas cuotas: cuadrícula con scroll y «Ampliar».
+            {segmento !== 'todos'
+              ? 'Lista priorizada por días de mora y saldo. '
+              : null}
+            Use <strong>+</strong> para ver cuotas (una fila a la vez).
           </Typography.Text>
         ) : null}
 
@@ -347,15 +430,30 @@ export function CobranzaPagosPage() {
           />
         ) : null}
 
-        <Spin spinning={consulta.isPending} tip="Cargando cartera…">
-          {filas.length > 0 ? (
+        {consulta.isSuccess && filas.length > 0 && filasVista.length === 0 ? (
+          <Alert
+            type="info"
+            showIcon
+            message="Ningún cliente en este segmento"
+            description="Elija otro filtro rápido (Todos / En mora / Al día)."
+          />
+        ) : null}
+
+        <Spin spinning={consulta.isPending}>
+          {filasVista.length > 0 ? (
             <CredixDataTable<CobranzaPagosRow>
               className="credix-cobranza-table"
               rowKey={rowKey}
               columns={columns}
-              dataSource={filas}
+              dataSource={filasVista}
               pagination={tablePagination}
-              scroll={{ x: 1080 }}
+              scroll={{ x: 1140 }}
+              rowClassName={(row) => {
+                const mora = row.diasAtrazoMora ?? 0
+                if (mora >= 30) return 'credix-cobranza-row is-mora-grave'
+                if (mora > 0) return 'credix-cobranza-row is-mora'
+                return 'credix-cobranza-row'
+              }}
               expandable={{
                 expandedRowKeys: expandedKeys,
                 onExpandedRowsChange: (keys) => {
