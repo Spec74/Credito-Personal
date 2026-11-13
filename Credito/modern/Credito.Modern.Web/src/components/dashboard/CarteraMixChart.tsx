@@ -12,15 +12,15 @@ const R = 78
 const R_INNER = 48
 
 /**
- * Paleta de composición (marca Credix, sin naranja):
+ * Paleta de composición (marca Credix, sin naranja; CSS vars = dark-safe):
  * - Sin mora → verde éxito corporativo
  * - Con mora → vino / riesgo medio (no naranja)
  * - Vencido → rojo peligro
  */
 const MIX_COLORS = {
-  sinMora: '#15803d',
-  conMora: '#9f1239',
-  vencido: '#b91c1c',
+  sinMora: 'var(--credix-success, #15803d)',
+  conMora: 'var(--credix-mix-mora, #9f1239)',
+  vencido: 'var(--credix-danger, #b91c1c)',
 } as const
 
 /** Composición de cartera: sin mora / con mora / vencido (donut). */

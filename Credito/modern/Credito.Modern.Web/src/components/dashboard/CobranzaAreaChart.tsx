@@ -1,10 +1,15 @@
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { formatMoney } from '../../utils/formatMoney'
 import type { DashboardProductividadPunto } from '../../api/dashboard'
+import {
+  formatAxisMoney,
+  niceMax,
+  uniqueTicks,
+} from '../../utils/dashboardChartGeometry'
 
 const W = 640
-const H = 220
-const PAD = { top: 16, right: 16, bottom: 36, left: 52 }
+const H = 228
+const PAD = { top: 18, right: 16, bottom: 36, left: 52 }
 
 export function CobranzaAreaChart({
   puntos,
@@ -12,6 +17,7 @@ export function CobranzaAreaChart({
   puntos: DashboardProductividadPunto[]
 }) {
   const [hover, setHover] = useState<number | null>(null)
+  const uid = useId().replace(/:/g, '')
 
   const geometry = useMemo(() => {
     if (puntos.length === 0) {
@@ -19,8 +25,10 @@ export function CobranzaAreaChart({
     }
     const innerW = W - PAD.left - PAD.right
     const innerH = H - PAD.top - PAD.bottom
-    const max = Math.max(...puntos.map((p) => p.montoCobrado), 0)
-    const yMax = max <= 0 ? 1 : niceMax(max)
+    const montos = puntos.map((p) => p.montoCobrado)
+    const max = Math.max(...montos, 0)
+    const avg = montos.reduce((a, b) => a + b, 0) / montos.length
+    const yMax = max <= 0 ? 1 : niceMax(Math.max(max, avg))
     const xAt = (i: number) =>
       PAD.left + (puntos.length === 1 ? innerW / 2 : (i / (puntos.length - 1)) * innerW)
     const yAt = (v: number) => PAD.top + innerH - (v / yMax) * innerH
@@ -31,7 +39,7 @@ export function CobranzaAreaChart({
     const ticks = 4
     const yTicks = Array.from({ length: ticks + 1 }, (_, i) => (yMax / ticks) * i)
     const xTickIdx = uniqueTicks(puntos.length)
-    return { innerH, yMax, xAt, yAt, line, area, yTicks, xTickIdx }
+    return { innerH, yMax, xAt, yAt, line, area, yTicks, xTickIdx, avg }
   }, [puntos])
 
   if (!geometry) {
@@ -39,6 +47,10 @@ export function CobranzaAreaChart({
   }
 
   const hovered = hover != null ? puntos[hover] : null
+  const vsAvg =
+    hovered != null
+      ? hovered.montoCobrado - geometry.avg
+      : null
 
   return (
     <div className="dash-chart">
@@ -49,7 +61,7 @@ export function CobranzaAreaChart({
         className="dash-chart-svg"
       >
         <defs>
-          <linearGradient id="dashCobranzaFill" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={`dashCobranzaFill-${uid}`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--credix-ink-brand)" stopOpacity="0.28" />
             <stop offset="100%" stopColor="var(--credix-ink-brand)" stopOpacity="0.02" />
           </linearGradient>
@@ -68,7 +80,22 @@ export function CobranzaAreaChart({
             </text>
           </g>
         ))}
-        <path d={geometry.area} fill="url(#dashCobranzaFill)" />
+        <path d={geometry.area} fill={`url(#dashCobranzaFill-${uid})`} />
+        <line
+          x1={PAD.left}
+          x2={W - PAD.right}
+          y1={geometry.yAt(geometry.avg)}
+          y2={geometry.yAt(geometry.avg)}
+          className="dash-chart-avg"
+        />
+        <text
+          x={W - PAD.right}
+          y={geometry.yAt(geometry.avg) - 6}
+          className="dash-chart-avg-label"
+          textAnchor="end"
+        >
+          Prom. S/ {formatMoney(geometry.avg)}
+        </text>
         <path d={geometry.line} className="dash-chart-line" />
         {geometry.xTickIdx.map((i) => (
           <text
@@ -103,47 +130,21 @@ export function CobranzaAreaChart({
           />
         ))}
       </svg>
-      {hovered ? (
+      {hovered && vsAvg != null ? (
         <div className="dash-chart-tooltip" role="status">
           <strong>
             {hovered.etiqueta} · {hovered.fecha.slice(0, 4)}
           </strong>
           <span>S/ {formatMoney(hovered.montoCobrado)}</span>
+          <span className={vsAvg >= 0 ? 'is-pos' : 'is-neg'}>
+            {vsAvg >= 0 ? '+' : '−'}S/ {formatMoney(Math.abs(vsAvg))} vs promedio
+          </span>
         </div>
       ) : (
-        <div className="dash-chart-tooltip is-hint">Pase el cursor sobre la línea para ver el detalle diario.</div>
+        <div className="dash-chart-tooltip is-hint">
+          Línea punteada = promedio del período. Pase el cursor para el detalle diario.
+        </div>
       )}
     </div>
   )
-}
-
-function formatAxisMoney(value: number): string {
-  if (value >= 1000) {
-    return `S/ ${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}k`
-  }
-  return `S/ ${value.toFixed(0)}`
-}
-
-function niceMax(max: number): number {
-  const exp = Math.floor(Math.log10(max))
-  const base = 10 ** exp
-  const n = max / base
-  const nice = n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10
-  return nice * base
-}
-
-function uniqueTicks(length: number): number[] {
-  if (length <= 6) {
-    return Array.from({ length }, (_, i) => i)
-  }
-  const last = length - 1
-  const step = Math.ceil(last / 5)
-  const ticks = [0]
-  for (let i = step; i < last; i += step) {
-    ticks.push(i)
-  }
-  if (ticks[ticks.length - 1] !== last) {
-    ticks.push(last)
-  }
-  return ticks
 }

@@ -20,10 +20,12 @@ import {
 import { ApiError } from '../../api/errors'
 import { DualMetricChart } from '../../components/dashboard/DualMetricChart'
 import { CarteraMixChart } from '../../components/dashboard/CarteraMixChart'
+import { DashboardDecisionStrip } from '../../components/dashboard/DashboardDecisionStrip'
 import { CredixDataTable, CredixPage } from '../../components/credix'
 import { useAuth } from '../../auth/useAuth'
 import { useEsCentral } from '../../hooks/useEsCentral'
 import { formatMoney } from '../../utils/formatMoney'
+import { buildDashboardDecisions } from '../../utils/dashboardDecisionStrip'
 import { sumMoney } from '../../utils/money'
 import '../../styles/dashboard-analista.css'
 
@@ -207,6 +209,19 @@ export function AdminDashboardPage() {
     }
     return Math.round((r.cobradoMesActual / r.desembolsoMesActual) * 1000) / 10
   }, [r])
+
+  const decisions = useMemo(() => {
+    if (!r) return []
+    return buildDashboardDecisions({
+      pctMoraCartera,
+      coberturaMes,
+      flujoNetoHoy: r.flujoNetoHoy,
+      cobradoHoy: r.cobradoHoy,
+      cobradoAyer: r.cobradoAyer,
+      creditosPorVencerSemana: r.creditosPorVencerSemana,
+      clientesMora: r.clientesMora,
+    })
+  }, [r, pctMoraCartera, coberturaMes])
 
   const columns: ColumnsType<DashboardAdminAnalistaRow> = useMemo(
     () => [
@@ -439,6 +454,8 @@ export function AdminDashboardPage() {
             }
           />
         </section>
+
+        {detalleReady ? <DashboardDecisionStrip items={decisions} /> : null}
 
         <h3 className="dash-section-title">Acumulado mensual</h3>
         <p className="dash-section-hint">Comparación contra el mismo número de días del mes anterior</p>

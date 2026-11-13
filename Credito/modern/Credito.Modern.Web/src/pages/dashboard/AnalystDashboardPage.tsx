@@ -22,8 +22,10 @@ import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CobranzaAreaChart } from '../../components/dashboard/CobranzaAreaChart'
 import { DashboardClientesMoraModal } from '../../components/dashboard/DashboardClientesMoraModal'
+import { DashboardDecisionStrip } from '../../components/dashboard/DashboardDecisionStrip'
 import { CredixPage } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
+import { buildDashboardDecisions } from '../../utils/dashboardDecisionStrip'
 import '../../styles/dashboard-analista.css'
 
 export function AnalystDashboardPage() {
@@ -51,6 +53,21 @@ export function AnalystDashboardPage() {
     () => resumenProductividad(data?.productividad ?? []),
     [data?.productividad],
   )
+
+  const decisions = useMemo(() => {
+    if (!data?.kpis) return []
+    const k = data.kpis
+    // Analista: sin desembolso de oficina; cobertura null → prioriza mora/ritmo/vencimientos.
+    return buildDashboardDecisions({
+      pctMoraCartera: k.porcentajeMora,
+      coberturaMes: null,
+      flujoNetoHoy: Math.max(0, k.cobradoHoy),
+      cobradoHoy: k.cobradoHoy,
+      cobradoAyer: k.cobradoAyer,
+      creditosPorVencerSemana: k.porVencerSemana,
+      clientesMora: k.clientesMora,
+    })
+  }, [data?.kpis])
 
   if (query.isLoading) {
     // Pinta el LCP (dash-sub) sin esperar al API — el subtítulo es copy fijo.
@@ -173,6 +190,8 @@ export function AnalystDashboardPage() {
             meta={<span>Saldo pendiente de créditos desembolsados a tu cargo</span>}
           />
         </section>
+
+        <DashboardDecisionStrip items={decisions} title="Prioridades del día" />
 
         <h3 className="dash-section-title">Riesgo de cartera</h3>
         <section className="dash-kpis dash-kpis-4" aria-label="Riesgo de cartera">

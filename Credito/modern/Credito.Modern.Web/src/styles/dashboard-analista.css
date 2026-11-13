@@ -517,6 +517,28 @@
   stroke: var(--credix-info);
 }
 
+.dash-chart-crosshair {
+  stroke: var(--credix-text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.dash-chart-avg {
+  stroke: var(--credix-text-muted);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.dash-chart-avg-label {
+  fill: var(--credix-text-muted);
+  font-size: 10px;
+  pointer-events: none;
+}
+
 .dash-chart-legend {
   display: flex;
   flex-wrap: wrap;
@@ -524,6 +546,7 @@
   margin-top: 8px;
   font-size: 12px;
   color: var(--credix-text-muted);
+  align-items: center;
 }
 
 .dash-chart-legend span::before {
@@ -541,14 +564,34 @@
   background: var(--credix-info);
 }
 
+.dash-chart-legend .is-gap::before {
+  display: none;
+}
+
+.dash-chart-legend .is-gap strong.is-pos {
+  color: var(--credix-success);
+}
+
+.dash-chart-legend .is-gap strong.is-neg {
+  color: var(--credix-danger);
+}
+
 .dash-chart-dot {
   fill: var(--credix-surface);
   stroke: var(--credix-ink-brand);
   stroke-width: 2;
 }
 
+.dash-chart-dot.is-desembolso {
+  stroke: var(--credix-info);
+}
+
 .dash-chart-dot.is-active {
   fill: var(--credix-ink-brand);
+}
+
+.dash-chart-dot.is-desembolso.is-active {
+  fill: var(--credix-info);
 }
 
 .dash-chart-axis {
@@ -572,8 +615,99 @@
   gap: 2px;
 }
 
+.dash-chart-tooltip .is-pos {
+  color: var(--credix-success);
+  font-weight: 600;
+}
+
+.dash-chart-tooltip .is-neg {
+  color: var(--credix-danger);
+  font-weight: 600;
+}
+
 .dash-chart-tooltip.is-hint {
   color: var(--credix-text-muted);
+}
+
+/* Prioridades accionables (ventaja competitiva: qué hacer ahora) */
+.dash-decision {
+  margin: 4px 0 18px;
+}
+
+.dash-decision__head {
+  margin-bottom: 8px;
+}
+
+.dash-decision__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.dash-decision__card {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--credix-border);
+  background: var(--credix-surface);
+  border-left-width: 3px;
+  box-shadow: var(--credix-shadow-sm);
+}
+
+.dash-decision__card.is-danger {
+  border-left-color: var(--credix-danger);
+  background: color-mix(in srgb, var(--credix-danger) 6%, var(--credix-surface));
+}
+
+.dash-decision__card.is-warning {
+  border-left-color: #b45309;
+  background: color-mix(in srgb, #b45309 7%, var(--credix-surface));
+}
+
+.dash-decision__card.is-success {
+  border-left-color: var(--credix-success);
+  background: color-mix(in srgb, var(--credix-success) 6%, var(--credix-surface));
+}
+
+.dash-decision__card.is-info {
+  border-left-color: var(--credix-info);
+  background: color-mix(in srgb, var(--credix-info) 7%, var(--credix-surface));
+}
+
+.dash-decision__card strong {
+  display: block;
+  font-size: 13px;
+  color: var(--credix-text);
+  margin-bottom: 4px;
+}
+
+.dash-decision__card p {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--credix-text-muted);
+}
+
+.dash-decision__cta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--credix-ink-brand);
+  text-decoration: none;
+}
+
+.dash-decision__cta:hover,
+.dash-decision__cta:focus-visible {
+  text-decoration: underline;
+  outline: none;
+}
+
+@media (max-width: 991px) {
+  .dash-decision__list {
+    grid-template-columns: 1fr;
+  }
 }
 
 .dash-chart-empty {

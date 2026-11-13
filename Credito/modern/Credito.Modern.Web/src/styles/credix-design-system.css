@@ -30,6 +30,8 @@
   --credix-warning-bg: #fffbeb;
   --credix-danger: #b91c1c;
   --credix-danger-bg: #fef2f2;
+  /* Cartera «con mora» (vino; distinto de vencido/danger) */
+  --credix-mix-mora: #9f1239;
   --credix-info: #2e69ae;
   --credix-info-bg: #eff6ff;
   --credix-ink-brand: #114885;
@@ -102,6 +104,7 @@
   --credix-warning-bg: #3a2a0a;
   --credix-danger: #f87171;
   --credix-danger-bg: #3b1616;
+  --credix-mix-mora: #fb7185;
   --credix-info: #8cb6e8;
   --credix-info-bg: #152a40;
   --credix-ink-brand: #8cb6e8;
