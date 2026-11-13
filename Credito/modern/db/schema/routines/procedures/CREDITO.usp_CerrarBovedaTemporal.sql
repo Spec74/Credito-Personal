@@ -35,7 +35,8 @@ EXEC CREDITO.usp_ActualizarSaldosBoveda @BovedaId = @BovedaIdTemporal
 	GROUP BY MC.BovedaId,MC.TipoPagoId
 )
 INSERT	INTO CREDITO.BovedaMov(BovedaId,CodOperacion,Glosa,TipoPagoId,Importe,IndEntrada, Estado, CajaDiarioId, UsuarioRegId, FechaReg)
-SELECT @BovedaId,'TRE','CIERRE BOVEDA TEMPORAL',vt.ItemId, ISNULL(BC.SaldoInicial,0) + ISNULL(c.Importe,0),1,1,0,@UsuarioRegId,dbo.ufnFecha()
+SELECT @BovedaId,'TRE','CIERRE BOVEDA TEMPORAL',vt.ItemId,
+       ROUND(ISNULL(BC.SaldoInicial,0) + ISNULL(c.Importe,0), 2),1,1,0,@UsuarioRegId,dbo.ufnFecha()
 FROM MAESTRO.ValorTabla vt
 LEFT JOIN CUENTAS C ON vt.ItemId = C.TipoPagoId
 LEFT JOIN CREDITO.BovedaCuenta BC ON BC.BovedaId = @BovedaIdTemporal AND BC.TipoPagoId = vt.ItemId
@@ -43,7 +44,7 @@ WHERE vt.TablaId=13
   AND vt.ItemId > 0
   AND vt.ItemId NOT BETWEEN 6 AND 8
   AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
-  AND ISNULL(BC.SaldoInicial,0) + ISNULL(c.Importe,0) <> 0
+  AND ROUND(ISNULL(BC.SaldoInicial,0) + ISNULL(c.Importe,0), 2) <> 0
 
 UPDATE CREDITO.Boveda
 SET IndCierre=1, FechaFinOperacion=dbo.ufnFecha()

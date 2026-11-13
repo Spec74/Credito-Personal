@@ -28,6 +28,9 @@ public sealed class BovedaAbiertaReadService(IOptions<SqlDatabaseOptions> option
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
+        // Pantalla bóveda de sede: principal primero (IndTemporal=0).
+        // El turno temporal se fondea con asignar-boveda-temporal; el retorno de cajas
+        // usa BovedaOperativaSql (temporal si abierta) — no esta query.
         const string sql = """
             SELECT TOP 1
                 BovedaId,

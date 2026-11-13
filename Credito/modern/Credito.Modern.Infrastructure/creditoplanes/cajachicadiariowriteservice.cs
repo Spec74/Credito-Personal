@@ -35,15 +35,10 @@ public sealed class CajaChicaDiarioWriteService(IOptions<SqlDatabaseOptions> opt
 
         try
         {
+            // Misma regla que usp_CerrarCajasDiarios: temporal abierta ⇒ retorno a temporal.
             var bovedaId = await connection.ExecuteScalarAsync<int?>(
                 new CommandDefinition(
-                    """
-                    SELECT TOP 1 BovedaId
-                    FROM CREDITO.Boveda
-                    WHERE OficinaId = @OficinaId
-                      AND IndCierre = CAST(0 AS bit)
-                    ORDER BY IndTemporal, BovedaId;
-                    """,
+                    BovedaOperativaSql.SelectIdDestinoRetornoCajas,
                     new { OficinaId = oficinaId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
@@ -79,6 +74,23 @@ public sealed class CajaChicaDiarioWriteService(IOptions<SqlDatabaseOptions> opt
             var glosaBase = "CIERRE CAJA CHICA " + fechaOperacion.ToString("d");
             foreach (var caja in cajas)
             {
+                var importe = Math.Round(caja.SaldoFinal, 2, MidpointRounding.AwayFromZero);
+                if (importe == 0m)
+                {
+                    await connection.ExecuteAsync(
+                        new CommandDefinition(
+                            """
+                            UPDATE CREDITO.CajaChicaDiario
+                            SET TransBoveda = CAST(1 AS bit)
+                            WHERE Id = @Id
+                              AND TransBoveda = CAST(0 AS bit);
+                            """,
+                            new { caja.Id },
+                            transaction: transaction,
+                            cancellationToken: cancellationToken)).ConfigureAwait(false);
+                    continue;
+                }
+
                 await connection.ExecuteAsync(
                     new CommandDefinition(
                         """
@@ -121,7 +133,7 @@ public sealed class CajaChicaDiarioWriteService(IOptions<SqlDatabaseOptions> opt
                         {
                             BovedaId = bovedaId.Value,
                             Glosa = glosaBase,
-                            Importe = caja.SaldoFinal,
+                            Importe = importe,
                             CajaChicaDiarioId = caja.Id,
                             UsuarioRegId = usuarioRegId,
                             Fecha = fechaOperacion,
@@ -132,23 +144,7 @@ public sealed class CajaChicaDiarioWriteService(IOptions<SqlDatabaseOptions> opt
 
             await connection.ExecuteAsync(
                 new CommandDefinition(
-                    """
-                    UPDATE b
-                    SET
-                        Entradas = ISNULL(t.Entradas, 0),
-                        Salidas = ISNULL(t.Salidas, 0),
-                        SaldoFinal = b.SaldoInicial + ISNULL(t.Entradas, 0) - ISNULL(t.Salidas, 0)
-                    FROM CREDITO.Boveda AS b
-                    OUTER APPLY (
-                        SELECT
-                            SUM(CASE WHEN bm.IndEntrada = CAST(1 AS bit) THEN bm.Importe ELSE 0 END) AS Entradas,
-                            SUM(CASE WHEN bm.IndEntrada = CAST(0 AS bit) THEN bm.Importe ELSE 0 END) AS Salidas
-                        FROM CREDITO.BovedaMov AS bm
-                        WHERE bm.BovedaId = b.BovedaId
-                          AND bm.Estado = CAST(1 AS bit)
-                    ) AS t
-                    WHERE b.BovedaId = @BovedaId;
-                    """,
+                    "EXEC CREDITO.usp_ActualizarSaldosBoveda @BovedaId;",
                     new { BovedaId = bovedaId.Value },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
@@ -239,9 +235,15 @@ public sealed class CajaChicaDiarioWriteService(IOptions<SqlDatabaseOptions> opt
         DateTime fechaOperacion,
         CancellationToken cancellationToken = default)
     {
-        if (oficinaId < 1 || usuarioId < 1 || importe <= 0)
+        if (oficinaId < 1 || usuarioId < 1)
         {
             throw new ArgumentOutOfRangeException(nameof(oficinaId));
+        }
+
+        importe = Math.Round(importe, 2, MidpointRounding.AwayFromZero);
+        if (importe <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(importe), "importe debe ser > 0.");
         }
 
         if (string.IsNullOrWhiteSpace(descripcion))
@@ -265,12 +267,7 @@ public sealed class CajaChicaDiarioWriteService(IOptions<SqlDatabaseOptions> opt
         {
             var boveda = await connection.QueryFirstOrDefaultAsync<BovedaRow>(
                 new CommandDefinition(
-                    """
-                    SELECT TOP 1 BovedaId, IndCierre
-                    FROM CREDITO.Boveda
-                    WHERE OficinaId = @OficinaId
-                    ORDER BY IndTemporal, BovedaId;
-                    """,
+                    BovedaOperativaSql.SelectRowDestinoRetornoCajas,
                     new { OficinaId = oficinaId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);

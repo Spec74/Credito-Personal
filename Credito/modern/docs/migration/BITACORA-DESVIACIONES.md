@@ -4,6 +4,31 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-11-13 — Ciclo temporal↔cajas: un solo destino y céntimos
+
+**Qué hay:** Con bóveda temporal abierta, el **retorno** de caja diario /
+caja chica (transferir-saldos y cierre chica) usa la misma regla que
+`usp_CerrarCajasDiarios`: destino = **temporal**. Antes el retorno iba a
+la principal (`ORDER BY IndTemporal` ASC) y el cierre masivo a temporal,
+partiendo el dinero. Helper `BovedaOperativaSql`. `asignar-caja` redondea
+AwayFromZero(2) y llama `usp_ActualizarSaldosBoveda`. Cierre temporal:
+`2026-11-13-usp-cerrar-boveda-temporal-centimos.sql` (ROUND 2, sin TRE 0).
+
+**Ciclo completo (sede = JWT oficinaId):**
+1. Principal → temporal (`asignar-boveda-temporal` / `usp_TransferirBoveda`)
+2. Temporal → caja (`asignar-caja` si ENCARGADO)
+3. Operación caja; retorno parcial/total → **temporal**
+4. `cerrar-cajas-diarios` → TRE a **temporal** + `usp_ActualizarSaldosBoveda`
+5. Cuadre (`ValidarCierreBoveda`)
+6. `cerrar-boveda-temporal` → TRE a **principal**; quita ENCARGADO
+
+**Multisucursal:** cada USP/escritura filtra `OficinaId` del JWT; no hay
+cross-sede en cuerpo. Central remesa con reglas propias (no peer
+sucursal↔sucursal).
+
+**Qué no hay:** la pantalla `/tesoreria/boveda` sigue mostrando la
+**principal** (fondeo sede); no cambia `GetBovedaAbiertaId` a temporal.
+
 ### 2026-11-13 — Bóveda temporal: UsuarioId, ENCARGADO y fuente del monto
 
 **Qué hay:** El combo «Responsable de bóveda temporal» enviaba

@@ -61,6 +61,8 @@ Detalle y comandos `sqlcmd`: [deploy/sql/README-2026-11-08-AZURE.md](../../deplo
 | 1 | `2026-11-06-caja-saldo-final-centimos.sql` | `usp_RecalcularCajaDiario` ROUND 2 |
 | 2 | `2026-11-11-usp-cerrar-cajas-diarios-centimos.sql` | `usp_CerrarCajasDiarios` ROUND 2, sin TRE en cero |
 | 3 | `2026-11-12-usp-central-riesgo-generar-por-sede.sql` | `usp_CentralRiesgoGenerar` por sede |
+| 4 | `2026-11-13-usp-cerrar-boveda-temporal-centimos.sql` | `usp_CerrarBovedaTemporal` ROUND 2 al devolver a principal |
+| 3 | `2026-11-12-usp-central-riesgo-generar-por-sede.sql` | `usp_CentralRiesgoGenerar` por sede |
 
 Gate opcional: `deploy/scripts/smoke-db-gate.ps1` (ROUND 2 en cierre/recalcular y filtro de sede en central de riesgos).
 

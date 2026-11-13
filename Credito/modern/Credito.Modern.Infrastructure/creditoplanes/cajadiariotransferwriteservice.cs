@@ -326,14 +326,16 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
         short tipoPagoId,
         CancellationToken cancellationToken)
     {
+        importe = Math.Round(importe, 2, MidpointRounding.AwayFromZero);
+        if (importe <= 0)
+        {
+            return "El importe debe ser mayor a 0.";
+        }
+
+        // Misma regla que usp_CerrarCajasDiarios: con temporal abierta, el retorno va a temporal.
         var boveda = await connection.QueryFirstOrDefaultAsync<BovedaRow>(
             new CommandDefinition(
-                """
-                SELECT TOP 1 BovedaId, IndCierre
-                FROM CREDITO.Boveda WITH (UPDLOCK, HOLDLOCK)
-                WHERE OficinaId = @OficinaId
-                ORDER BY IndTemporal, BovedaId;
-                """,
+                BovedaOperativaSql.SelectRowDestinoRetornoCajas,
                 new { OficinaId = oficinaId },
                 transaction: transaction,
                 cancellationToken: cancellationToken)).ConfigureAwait(false);

@@ -38,6 +38,8 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
             throw new ArgumentOutOfRangeException(nameof(saldoInicial), "saldoInicial debe ser >= 0.");
         }
 
+        saldoInicial = Math.Round(saldoInicial, 2, MidpointRounding.AwayFromZero);
+
         if (string.IsNullOrWhiteSpace(_connectionString))
         {
             throw new InvalidOperationException(
@@ -284,35 +286,11 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
                         transaction: transaction,
                         cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-                var totales = await connection.QueryFirstAsync<BovedaTotalesRow>(
-                    new CommandDefinition(
-                        """
-                        SELECT
-                            ISNULL(SUM(CASE WHEN IndEntrada = CAST(1 AS bit) THEN Importe ELSE 0 END), 0) AS Entradas,
-                            ISNULL(SUM(CASE WHEN IndEntrada = CAST(0 AS bit) THEN Importe ELSE 0 END), 0) AS Salidas
-                        FROM CREDITO.BovedaMov WITH (UPDLOCK, HOLDLOCK)
-                        WHERE BovedaId = @BovedaId
-                          AND Estado = CAST(1 AS bit);
-                        """,
-                        new { BovedaId = boveda.BovedaId },
-                        transaction: transaction,
-                        cancellationToken: cancellationToken)).ConfigureAwait(false);
-
+                // Misma vía que transferencias/cierre: actualiza cabecera y BovedaCuenta por medio.
                 await connection.ExecuteAsync(
                     new CommandDefinition(
-                        """
-                        UPDATE CREDITO.Boveda
-                        SET Entradas = @Entradas,
-                            Salidas = @Salidas,
-                            SaldoFinal = SaldoInicial + @Entradas - @Salidas
-                        WHERE BovedaId = @BovedaId;
-                        """,
-                        new
-                        {
-                            BovedaId = boveda.BovedaId,
-                            totales.Entradas,
-                            totales.Salidas,
-                        },
+                        "EXEC CREDITO.usp_ActualizarSaldosBoveda @BovedaId;",
+                        new { BovedaId = boveda.BovedaId },
                         transaction: transaction,
                         cancellationToken: cancellationToken)).ConfigureAwait(false);
             }
@@ -342,11 +320,5 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
         public int BovedaId { get; init; }
         public decimal SaldoInicial { get; init; }
         public decimal SaldoFinal { get; init; }
-    }
-
-    private sealed class BovedaTotalesRow
-    {
-        public decimal Entradas { get; init; }
-        public decimal Salidas { get; init; }
     }
 }

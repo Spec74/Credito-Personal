@@ -16,6 +16,8 @@ Fondo de oficina: saldos, movimientos, transferencias (caja, caja chica, bancos,
 | Gestor (con menú BOVEDA) | Misma pantalla; la API de movimiento es `CreditoUser` |
 | Cajero | No opera bóveda desde caja diario (eso es SSD-03) |
 
+**Ciclo de dinero con temporal (cero céntimos, sede = JWT):** fondeo principal→temporal → asignar caja (débito temporal si ENCARGADO) → operación → retorno/cierre de cajas a **temporal** → cuadre → cierre temporal→principal. Ver [BITACORA 2026-11-13](../migration/BITACORA-DESVIACIONES.md).
+
 ## 2. Alcance
 
 **Entra**
