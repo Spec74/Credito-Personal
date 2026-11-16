@@ -17,6 +17,7 @@ import {
   anularTransferenciaPendienteBoveda,
   asignarBovedaTemporal,
   buscarUsuariosBoveda,
+  type UsuarioBovedaBuscarItem,
   cerrarBoveda,
   cerrarBovedaTemporal,
   fetchBovedaSaldoMedio,
@@ -208,6 +209,9 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   const stageCopy = useMemo(() => opsCopy(esCentral), [esCentral])
   const queryClient = useQueryClient()
   const [usuarioTerm, setUsuarioTerm] = useState('')
+  /** Último responsable elegido: el select borra la búsqueda al elegir y si no, pierde la etiqueta. */
+  const [usuarioElegido, setUsuarioElegido] = useState<UsuarioBovedaBuscarItem | null>(null)
+  const [usuarioHits, setUsuarioHits] = useState<UsuarioBovedaBuscarItem[]>([])
   const [activeTab, setActiveTab] = useState('ingreso')
   const [fondeoForm] = Form.useForm()
   const [temporalForm] = Form.useForm()
@@ -347,6 +351,22 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       usuarioTermDebounced.length >= 2,
   })
 
+  useEffect(() => {
+    if (usuariosQuery.data) setUsuarioHits(usuariosQuery.data)
+  }, [usuariosQuery.data])
+
+  const usuarioOptions = useMemo(() => {
+    const rows = usuarioHits.map((u) => ({ value: u.usuarioId, label: u.label }))
+    if (
+      usuarioElegido &&
+      usuarioElegido.usuarioId > 0 &&
+      !rows.some((r) => r.value === usuarioElegido.usuarioId)
+    ) {
+      return [{ value: usuarioElegido.usuarioId, label: usuarioElegido.label }, ...rows]
+    }
+    return rows
+  }, [usuarioElegido, usuarioHits])
+
   const validacionCierre = useQuery({
     queryKey: ['validar-cierre-boveda', oficinaId],
     queryFn: () => fetchValidarCierreBoveda(oficinaId),
@@ -418,6 +438,8 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
         descripcion: undefined,
       })
       setUsuarioTerm('')
+      setUsuarioElegido(null)
+      setUsuarioHits([])
       onOk(
         asignoNueva
           ? `Bóveda temporal #${r.bovedaTemporalId}. El responsable recibió rol ENCARGADO: debe volver a iniciar sesión para asignar cajas desde la temporal.`
@@ -980,16 +1002,27 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                 >
                   <Select
                     showSearch
+                    allowClear
                     filterOption={false}
+                    optionLabelProp="label"
                     onSearch={setUsuarioTerm}
+                    onChange={(id) => {
+                      const n = Number(id)
+                      if (!Number.isFinite(n) || n < 1) {
+                        setUsuarioElegido(null)
+                        return
+                      }
+                      const hit =
+                        usuarioHits.find((u) => u.usuarioId === n) ??
+                        (usuarioElegido?.usuarioId === n ? usuarioElegido : null)
+                      if (hit) setUsuarioElegido(hit)
+                    }}
+                    onClear={() => setUsuarioElegido(null)}
                     loading={usuariosQuery.isFetching}
                     placeholder="Buscar usuario responsable"
-                    options={(usuariosQuery.data ?? []).map((u) => ({
-                      value: u.usuarioId,
-                      label: u.label,
-                    }))}
+                    options={usuarioOptions}
                     notFoundContent={
-                      usuarioTermDebounced.length < 2
+                      usuarioTermDebounced.length < 2 && usuarioOptions.length === 0
                         ? 'Escriba al menos 2 caracteres'
                         : 'Sin usuarios encontrados'
                     }
