@@ -59,6 +59,28 @@ elseif (-not (Test-Path $envFile)) {
     Write-Host 'Creado deploy\.env desde .env.example - edita SQL y JWT_SIGNING_KEY antes de continuar.' -ForegroundColor Yellow
 }
 
+$spaDistIndex = Join-Path $modernRoot "Credito.Modern.Web\dist\index.html"
+if (-not (Test-Path $spaDistIndex)) {
+    $webPkg = Join-Path $modernRoot "Credito.Modern.Web\package.json"
+    if (-not (Test-Path $webPkg)) {
+        throw "Falta Credito.Modern.Web (necesario para montar /app/ en nginx)."
+    }
+    Write-Host "SPA dist ausente: npm run build en Credito.Modern.Web (nginx monta /app/)..." -ForegroundColor Yellow
+    Push-Location (Join-Path $modernRoot "Credito.Modern.Web")
+    try {
+        & npm run build
+        if ($LASTEXITCODE -ne 0) {
+            throw "npm run build fallo con codigo $LASTEXITCODE"
+        }
+    }
+    finally {
+        Pop-Location
+    }
+    if (-not (Test-Path $spaDistIndex)) {
+        throw "Tras npm run build sigue sin existir Credito.Modern.Web\dist\index.html"
+    }
+}
+
 Push-Location $modernRoot
 try {
     $dockerArgs = @(
