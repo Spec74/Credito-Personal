@@ -296,7 +296,7 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
           size="small"
           columns={colsBoveda}
           dataSource={cierres}
-          loading={historial.isLoading}
+          loading={historial.isLoading || !secondaryReady}
           rowSelection={{
             type: 'radio',
             selectedRowKeys: bovedaId ? [bovedaId] : [],
@@ -322,7 +322,7 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
           size="small"
           columns={colsMov}
           dataSource={movs}
-          loading={movimientos.isLoading}
+          loading={movimientos.isLoading || !secondaryReady}
           pagination={{ pageSize: 10, showSizeChanger: true }}
           locale={{ emptyText: bovedaId ? 'Sin movimientos' : 'Elija una bóveda en Cierres' }}
         />
@@ -335,7 +335,7 @@ export function BovedaHistorialGrillas({ oficinaId, bovedaAbiertaId }: Props) {
           size="small"
           columns={colsCaja}
           dataSource={cajasFiltradas}
-          loading={cajas.isFetching}
+          loading={cajas.isFetching || !secondaryReady}
           pagination={{
             current: cajasPage,
             pageSize: CAJAS_PAGE_SIZE,

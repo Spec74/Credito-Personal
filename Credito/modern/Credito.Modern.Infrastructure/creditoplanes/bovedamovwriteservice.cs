@@ -626,14 +626,15 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             throw new ArgumentOutOfRangeException(nameof(oficinaId), "Parámetros inválidos.");
         }
 
-        if (importe <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(importe), "importe debe ser > 0.");
-        }
-
         if (string.IsNullOrWhiteSpace(descripcion))
         {
             throw new ArgumentOutOfRangeException(nameof(descripcion), "descripcion es obligatoria.");
+        }
+
+        importe = decimal.Round(importe, 2, MidpointRounding.AwayFromZero);
+        if (importe <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(importe), "importe debe ser > 0.");
         }
 
         EnsureConnection();
@@ -653,13 +654,18 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                 return ("No existe bóveda abierta para la oficina.", null);
             }
 
+            // Misma resolución por sede que cierre/transferencia chica→bóveda (join Caja.OficinaId).
             var cajaChica = await connection.QueryFirstOrDefaultAsync<CajaChicaAbiertaRow>(
                 new CommandDefinition(
                     """
-                    SELECT TOP 1 Id
-                    FROM CREDITO.CajaChicaDiario
-                    WHERE IndCierre = CAST(0 AS bit);
+                    SELECT TOP 1 ccd.Id
+                    FROM CREDITO.CajaChicaDiario AS ccd
+                    INNER JOIN CREDITO.Caja AS c ON c.CajaId = ccd.Id
+                    WHERE ccd.IndCierre = CAST(0 AS bit)
+                      AND c.OficinaId = @OficinaId
+                    ORDER BY ccd.Id;
                     """,
+                    new { OficinaId = oficinaId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
@@ -667,6 +673,22 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
                 return ("NO EXISTE CAJA CHICA ABIERTA", null);
+            }
+
+            const short tipoPagoEfectivo = 1;
+            var disponible = await GetSaldoMedioDisponibleAsync(
+                    connection,
+                    transaction,
+                    bovedaId.Value,
+                    tipoPagoEfectivo,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            if (importe > disponible)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return (
+                    $"Saldo insuficiente en el medio de origen. Disponible S/ {disponible:N2}; solicitado S/ {importe:N2}.",
+                    null);
             }
 
             var (personaError, personaId) = await UsuarioPersonaIntegrity

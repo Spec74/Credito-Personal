@@ -2465,7 +2465,7 @@ internal static class CreditoBovedaOperacionEndpoints
                 })
             .WithName("CreditoTransferirBovedaCajaChica")
             .WithSummary(
-                "Escritura: paridad BovedaMovBL.TransferirBovedaCajaChica. Caja chica abierta sin filtro oficina (como MVC).")
+                "Escritura: bóveda→caja chica (efectivo). Resuelve caja chica abierta de la oficina JWT y valida saldo del medio.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<BovedaMovOperacionResponse>(StatusCodes.Status200OK, "application/json")
@@ -2593,6 +2593,7 @@ internal static class CreditoBovedaOperacionEndpoints
                     HttpContext httpContext,
                     AsignarBovedaTemporalRequest body,
                     IBovedaTemporalWriteService bovedaTemporalWrite,
+                    IOficinaReadService oficinas,
                     IDatabaseTimeProvider databaseTime,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
@@ -2610,6 +2611,18 @@ internal static class CreditoBovedaOperacionEndpoints
                     {
                         return oficinaError;
                     }
+
+                    var (sesionTipo, sesionTipoErr) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, null, ct)
+                        .ConfigureAwait(false);
+                    if (sesionTipoErr is not null)
+                        return sesionTipoErr;
+
+                    var tipoPagoId = body.TipoPagoId < 1 ? (short)1 : body.TipoPagoId;
+                    var tipoPagoError = ProblemResults.IfInvalid(
+                        TipoPagoRules.RequireCobroPermitido(tipoPagoId, sesionTipo!.EsCentral));
+                    if (tipoPagoError is not null)
+                        return tipoPagoError;
 
                     var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
                     if (usuarioError is not null)
@@ -2637,7 +2650,7 @@ internal static class CreditoBovedaOperacionEndpoints
                                 body.UsuarioId,
                                 usuarioId,
                                 serverTime.Value,
-                                body.TipoPagoId < 1 ? (short)1 : body.TipoPagoId,
+                                tipoPagoId,
                                 ct)
                             .ConfigureAwait(false);
 

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Alert, Button, InputNumber, Select, message } from 'antd'
+import { Alert, Button, InputNumber, Select, Spin, message } from 'antd'
 import {
   fetchBovedaAbierta,
   fetchBovedasDestinoTransferencia,
@@ -23,7 +23,7 @@ import type { BovedaDestinoTransferencia } from '../../api/boveda'
 
 export function FondearSucursalesPage() {
   const { session } = useAuth()
-  const { esCentral } = useEsCentral()
+  const { esCentral, loading: oficinasLoading } = useEsCentral()
   const oficinaId = session?.oficinaId ?? 0
   const queryClient = useQueryClient()
   const [montos, setMontos] = useState<Record<number, number>>({})
@@ -100,6 +100,21 @@ export function FondearSucursalesPage() {
         await enviar.mutateAsync(row)
       },
     })
+  }
+
+  if (oficinasLoading) {
+    return (
+      <CredixPage
+        title="Fondear sucursales"
+        breadcrumb={[
+          { title: <Link to="/inicio">Inicio</Link> },
+          { title: <Link to="/tesoreria">Tesorería</Link> },
+          { title: 'Fondear' },
+        ]}
+      >
+        <Spin />
+      </CredixPage>
+    )
   }
 
   if (oficinaId > 0 && !esCentral) {

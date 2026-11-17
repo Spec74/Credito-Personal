@@ -237,7 +237,7 @@ export function BovedaPage() {
             </Text>
             <BovedaResumenCuenta
               data={resumen.data}
-              loading={resumen.isLoading}
+              loading={resumen.isLoading || !secondaryReady}
               isError={resumen.isError}
               error={resumen.error}
               hideHeader
@@ -265,7 +265,8 @@ export function BovedaPage() {
                 <BovedaOperacionesPanel
                   oficinaId={oficinaId}
                   boveda={boveda.data}
-                  existeTemporal={temporal.data?.existe ?? false}
+                  existeTemporal={temporal.data?.existe === true}
+                  temporalListo={temporal.isSuccess}
                 />
               </Suspense>
             </CredixPanel>

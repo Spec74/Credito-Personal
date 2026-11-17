@@ -40,6 +40,8 @@ import { formatFechaHora } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { moneyGreater } from '../../utils/money'
 import {
+  TIPO_PAGO_YAPE,
+  TIPO_PAGO_YAPE_GERENTE,
   mapFondeoDestino,
   mapRemesaOrigen,
   medioNombrePorItemId,
@@ -200,10 +202,18 @@ function invalidateBoveda(
 type Props = {
   oficinaId: number
   boveda: BovedaAbiertaDto
+  /** Solo true cuando la API confirmó temporal abierta (nunca coerce loading → false). */
   existeTemporal: boolean
+  /** false mientras `existe-boveda-temporal` aún no resolvió. */
+  temporalListo: boolean
 }
 
-export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Props) {
+export function BovedaOperacionesPanel({
+  oficinaId,
+  boveda,
+  existeTemporal,
+  temporalListo,
+}: Props) {
   const { esCentral } = useEsCentral()
   const navGroups = useMemo(() => opsGroups(esCentral), [esCentral])
   const stageCopy = useMemo(() => opsCopy(esCentral), [esCentral])
@@ -215,6 +225,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   const [activeTab, setActiveTab] = useState('ingreso')
   const [fondeoForm] = Form.useForm()
   const [temporalForm] = Form.useForm()
+  const [analistaForm] = Form.useForm()
   const bovedaId = boveda.bovedaId
   const operacionesDeshabilitadas = boveda.indCierre || oficinaId < 1
   const usuarioTermDebounced = useDebouncedValue(usuarioTerm.trim(), 350)
@@ -227,9 +238,9 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
 
   // Tras crear temporal, el form pasa a modo “solo transferir”: fijar valores sin remount agresivo.
   useEffect(() => {
-    if (!existeTemporal) return
+    if (!temporalListo || !existeTemporal) return
     temporalForm.setFieldsValue({ usuarioId: 0 })
-  }, [existeTemporal, temporalForm])
+  }, [existeTemporal, temporalListo, temporalForm])
 
   const oficinaOk = oficinaId >= 1
 
@@ -257,6 +268,26 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral: true }),
     [tiposPagoQuery.data],
   )
+  /** Analista: no efectivo. Central tipa billeteras 10–13; sucursal tipa genéricos 2/3…. */
+  const tipoPagoOptionsAnalista = useMemo(
+    () => tipoPagoOptions.filter((o) => o.value !== 1),
+    [tipoPagoOptions],
+  )
+  const analistaMedioDefault = useMemo(() => {
+    const preferred = esCentral ? TIPO_PAGO_YAPE_GERENTE : TIPO_PAGO_YAPE
+    if (tipoPagoOptionsAnalista.some((o) => o.value === preferred)) return preferred
+    return tipoPagoOptionsAnalista[0]?.value
+  }, [esCentral, tipoPagoOptionsAnalista])
+
+  // Evita Select huérfano (value 2 en Central) cuando el catálogo sede aún no filtró.
+  useEffect(() => {
+    if (analistaMedioDefault == null) return
+    const actual = analistaForm.getFieldValue('tipoPagoOrigenId') as number | undefined
+    const allowed = new Set(tipoPagoOptionsAnalista.map((o) => o.value))
+    if (actual == null || !allowed.has(actual)) {
+      analistaForm.setFieldsValue({ tipoPagoOrigenId: analistaMedioDefault })
+    }
+  }, [analistaForm, analistaMedioDefault, tipoPagoOptionsAnalista])
 
   const tipoPagoSelectProps = {
     showSearch: true,
@@ -387,7 +418,7 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
   const validacionCierreTemporal = useQuery({
     queryKey: ['validar-cierre-boveda-temporal', oficinaId],
     queryFn: () => fetchValidarCierreBovedaTemporal(oficinaId),
-    enabled: oficinaOk && needsCierre && existeTemporal,
+    enabled: oficinaOk && needsCierre && temporalListo && existeTemporal,
   })
   const cierrePrincipalBloqueado =
     boveda.indTemporal ||
@@ -397,10 +428,11 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
         validacionCierre.data?.puedeCerrar === false))
   const cierreTemporalBloqueado =
     needsCierre &&
-    existeTemporal &&
-    (validacionCierreTemporal.isLoading ||
-      validacionCierreTemporal.isError ||
-      validacionCierreTemporal.data?.puedeCerrar === false)
+    (!temporalListo ||
+      (existeTemporal &&
+        (validacionCierreTemporal.isLoading ||
+          validacionCierreTemporal.isError ||
+          validacionCierreTemporal.data?.puedeCerrar === false)))
 
   const ingresoEgreso = useMutation({
     mutationFn: ingresoEgresoBoveda,
@@ -808,9 +840,12 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
     ),
     analista: (
         <Form
+            form={analistaForm}
             className="boveda-operaciones-form"
             layout="vertical"
-            initialValues={{ tipoPagoOrigenId: 2 }}
+            initialValues={{
+              tipoPagoOrigenId: analistaMedioDefault ?? (esCentral ? TIPO_PAGO_YAPE_GERENTE : TIPO_PAGO_YAPE),
+            }}
             onFinish={(v) =>
               pedirAnalista({
                 usuarioAnalistaId: v.usuarioAnalistaId,
@@ -847,8 +882,13 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
               rules={[{ required: true }]}
             >
               <Select
-                options={tipoPagoOptions.filter((o) => o.value !== 1)}
-                placeholder="Yape, Plin, BCP, Interbank, Nación…"
+                loading={tiposPagoQuery.isLoading}
+                options={tipoPagoOptionsAnalista}
+                placeholder={
+                  esCentral
+                    ? 'Yape Gerente/René, Interbank Gerente/René…'
+                    : 'Yape, Plin, BCP, Interbank, Nación…'
+                }
                 {...tipoPagoSelectProps}
               />
             </Form.Item>
@@ -970,7 +1010,13 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             {formActions('Transferir entre bancos', entreBancos.isPending)}
           </Form>
     ),
-    temporal: (
+    temporal: !temporalListo ? (
+          <Alert
+            type="info"
+            showIcon
+            message="Comprobando si hay bóveda temporal abierta…"
+          />
+    ) : (
           <Form
             form={temporalForm}
             className="boveda-operaciones-form"
@@ -1268,9 +1314,11 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
             </Button>
             <Button
               size="large"
-              loading={cerrarTemp.isPending}
+              loading={cerrarTemp.isPending || (needsCierre && !temporalListo)}
               disabled={
-                (!boveda.indTemporal && !existeTemporal) || cierreTemporalBloqueado
+                !temporalListo ||
+                (!boveda.indTemporal && !existeTemporal) ||
+                cierreTemporalBloqueado
               }
               onClick={() => confirmarCierre(true)}
             >
