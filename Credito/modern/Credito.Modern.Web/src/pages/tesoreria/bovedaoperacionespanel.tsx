@@ -1040,46 +1040,49 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                     options={usuarioOptions}
                     showSearch={{
                       filterOption: false,
+                      // No vaciar el término al elegir: si se limpia, las opciones
+                      // desaparecen antes del clic y la selección no queda.
+                      autoClearSearchValue: false,
+                      searchValue: usuarioTerm,
                       onSearch: setUsuarioTerm,
-                    }}
-                    onSelect={(value, option) => {
-                      const raw =
-                        typeof value === 'object' && value !== null && 'value' in value
-                          ? (value as { value: unknown }).value
-                          : (value ?? option?.value)
-                      const usuarioId = Number(raw)
-                      if (!Number.isFinite(usuarioId) || usuarioId < 1) return
-                      const fromOpt =
-                        typeof option?.label === 'string'
-                          ? option.label
-                          : option?.label != null
-                            ? String(option.label)
-                            : undefined
-                      const fromLabeled =
-                        typeof value === 'object' &&
-                        value !== null &&
-                        'label' in value &&
-                        (value as { label?: unknown }).label != null
-                          ? String((value as { label: unknown }).label)
-                          : undefined
-                      const label =
-                        fromOpt ??
-                        fromLabeled ??
-                        usuarioHits.find((u) => u.usuarioId === usuarioId)?.label ??
-                        String(usuarioId)
-                      const personaId =
-                        typeof option?.personaId === 'number'
-                          ? option.personaId
-                          : (usuarioHits.find((u) => u.usuarioId === usuarioId)
-                              ?.personaId ?? 0)
-                      setUsuarioElegido({ usuarioId, personaId, label })
                     }}
                     onClear={() => {
                       setUsuarioElegido(null)
                       setUsuarioTerm('')
                     }}
-                    onChange={(v) => {
-                      if (v == null) setUsuarioElegido(null)
+                    onChange={(v, option) => {
+                      if (v == null || v === '') {
+                        setUsuarioElegido(null)
+                        return
+                      }
+                      const raw =
+                        typeof v === 'object' && v !== null && 'value' in v
+                          ? (v as { value: unknown }).value
+                          : v
+                      const usuarioId = Number(raw)
+                      if (!Number.isFinite(usuarioId) || usuarioId < 1) {
+                        setUsuarioElegido(null)
+                        return
+                      }
+                      const opt = Array.isArray(option) ? option[0] : option
+                      const fromOpt =
+                        typeof opt?.label === 'string'
+                          ? opt.label
+                          : opt?.label != null
+                            ? String(opt.label)
+                            : undefined
+                      const fromLabeled =
+                        typeof v === 'object' &&
+                        v !== null &&
+                        'label' in v &&
+                        (v as { label?: unknown }).label != null
+                          ? String((v as { label: unknown }).label)
+                          : undefined
+                      const hit = usuarioHits.find((u) => u.usuarioId === usuarioId)
+                      const label = fromOpt ?? fromLabeled ?? hit?.label ?? String(usuarioId)
+                      const personaId =
+                        typeof opt?.personaId === 'number' ? opt.personaId : (hit?.personaId ?? 0)
+                      setUsuarioElegido({ usuarioId, personaId, label })
                     }}
                     notFoundContent={
                       usuarioTermDebounced.length < 2 && usuarioOptions.length === 0
