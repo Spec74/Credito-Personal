@@ -6,6 +6,8 @@
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
+-- Requerido si sqlcmd no usa -I: índices filtrados en CREDITO.Credito.
+SET QUOTED_IDENTIFIER ON;
 
 DECLARE @AplicarCola   BIT = 1; -- 0 = solo lista
 DECLARE @RematarTop    INT = 3; -- 0 = no llama usp_RematarPrenda (solo fechas)

@@ -6,6 +6,8 @@
 
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
+-- Requerido si sqlcmd no usa -I: índices filtrados en CREDITO.Credito.
+SET QUOTED_IDENTIFIER ON;
 
 DECLARE @Limite INT = 8;
 DECLARE @Hoy DATE = CONVERT(date, dbo.ufnFecha());
