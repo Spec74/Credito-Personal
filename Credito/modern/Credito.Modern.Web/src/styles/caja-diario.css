@@ -1665,6 +1665,16 @@
   flex: 0 0 auto;
 }
 
+/* Móvil: el mixto va justo bajo Cuotas/Libre, siempre visible (no debajo del botón). */
+.caja-diario-pago-dock-fixed .caja-diario-pago-mixto-toggle {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  margin: 0 0 6px;
+  padding: 8px 2px;
+  background: var(--credix-surface-elevated);
+}
+
 .caja-diario-pago-dock__body.is-collapsed {
   display: none;
 }

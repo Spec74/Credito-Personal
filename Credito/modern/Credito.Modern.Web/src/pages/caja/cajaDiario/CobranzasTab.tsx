@@ -1097,6 +1097,40 @@ export function CobranzasTab({
               </button>
             </div>
 
+            <Checkbox
+              className="caja-diario-pago-mixto-toggle"
+              checked={modoPago === 'cuotas' ? cuotaMixto : pagoLibreMixto}
+              disabled={!creditoId || (modoPago === 'cuotas' && selectedKeys.length === 0)}
+              onChange={(e) => {
+                const on = e.target.checked
+                if (isMobile) setPagoDockExpanded(true)
+                if (modoPago === 'cuotas') {
+                  setCuotaMixto(on)
+                  if (on) {
+                    const hint = roundMoney(selectedTotal)
+                    setImporteRecibido(hint)
+                    setMediosCuota(
+                      defaultPagoMediosSplit(tipoPagoOptions, hint > 0 ? hint : undefined),
+                    )
+                  } else {
+                    setMediosCuota([])
+                  }
+                } else {
+                  setPagoLibreMixto(on)
+                  if (on) {
+                    const hint = pagoLibre ?? selectedTotal ?? totalCuotasCredito
+                    setMediosLibre(
+                      defaultPagoMediosSplit(tipoPagoOptions, hint > 0 ? hint : undefined),
+                    )
+                  } else {
+                    setMediosLibre([])
+                  }
+                }
+              }}
+            >
+              Dividir en varios medios (efectivo + Yape/Plin/banco)
+            </Checkbox>
+
             {modoPago === 'cuotas' ? (
               <>
                 <div className="caja-diario-pago-dock-row">
@@ -1162,33 +1196,6 @@ export function CobranzasTab({
                     {cuotaMixto ? 'Cobro mixto' : 'Pagar cuota'}
                   </Button>
                 </div>
-                <Checkbox
-                  className="caja-diario-pago-mixto-toggle"
-                  checked={cuotaMixto}
-                  disabled={!creditoId || selectedKeys.length === 0}
-                  onChange={(e) => {
-                    const on = e.target.checked
-                    setCuotaMixto(on)
-                    if (on) {
-                      if (isMobile) setPagoDockExpanded(true)
-                      // Mixto de cuota: suma de medios = total de cuotas seleccionadas (al céntimo).
-                      const hint = roundMoney(selectedTotal)
-                      setImporteRecibido(hint)
-                      setMediosCuota(
-                        defaultPagoMediosSplit(
-                          tipoPagoOptions,
-                          hint > 0 ? hint : undefined,
-                        ),
-                      )
-                    } else {
-                      setMediosCuota([])
-                    }
-                  }}
-                >
-                  {isMobile
-                    ? 'Cobro mixto (efectivo + Yape/Plin/banco)'
-                    : 'Dividir en varios medios (Yape Gerente/René, Plin, bancos + efectivo)'}
-                </Checkbox>
                 {cuotaMixto ? (
                   <PagoMediosSplit
                     lineas={mediosCuota}
@@ -1217,31 +1224,6 @@ export function CobranzasTab({
               </>
             ) : (
               <>
-                <Checkbox
-                  className="caja-diario-pago-mixto-toggle"
-                  checked={pagoLibreMixto}
-                  disabled={!creditoId}
-                  onChange={(e) => {
-                    const on = e.target.checked
-                    setPagoLibreMixto(on)
-                    if (on) {
-                      if (isMobile) setPagoDockExpanded(true)
-                      const hint = pagoLibre ?? selectedTotal ?? totalCuotasCredito
-                      setMediosLibre(
-                        defaultPagoMediosSplit(
-                          tipoPagoOptions,
-                          hint > 0 ? hint : undefined,
-                        ),
-                      )
-                    } else {
-                      setMediosLibre([])
-                    }
-                  }}
-                >
-                  {isMobile
-                    ? 'Cobro mixto (efectivo + Yape/Plin/banco)'
-                    : 'Dividir en varios medios (Yape Gerente/René, Plin, bancos + efectivo)'}
-                </Checkbox>
                 {pagoLibreMixto ? (
                   <>
                     <PagoMediosSplit

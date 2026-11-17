@@ -351,20 +351,32 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
       usuarioTermDebounced.length >= 2,
   })
 
+  // Solo reemplazar hits con resultados de una búsqueda válida (≥2). Al elegir,
+  // Ant Design limpia el término y la query se deshabilita: no debemos vaciar opciones.
   useEffect(() => {
+    if (usuarioTermDebounced.length < 2) return
     if (usuariosQuery.data) setUsuarioHits(usuariosQuery.data)
-  }, [usuariosQuery.data])
+  }, [usuarioTermDebounced, usuariosQuery.data])
 
   const usuarioOptions = useMemo(() => {
-    const rows = usuarioHits.map((u) => ({ value: u.usuarioId, label: u.label }))
-    if (
-      usuarioElegido &&
-      usuarioElegido.usuarioId > 0 &&
-      !rows.some((r) => r.value === usuarioElegido.usuarioId)
-    ) {
-      return [{ value: usuarioElegido.usuarioId, label: usuarioElegido.label }, ...rows]
+    const byId = new Map<number, { value: number; label: string; personaId: number }>()
+    if (usuarioElegido && usuarioElegido.usuarioId > 0) {
+      byId.set(usuarioElegido.usuarioId, {
+        value: usuarioElegido.usuarioId,
+        label: usuarioElegido.label,
+        personaId: usuarioElegido.personaId,
+      })
     }
-    return rows
+    for (const u of usuarioHits) {
+      if (u.usuarioId > 0 && !byId.has(u.usuarioId)) {
+        byId.set(u.usuarioId, {
+          value: u.usuarioId,
+          label: u.label,
+          personaId: u.personaId,
+        })
+      }
+    }
+    return [...byId.values()]
   }, [usuarioElegido, usuarioHits])
 
   const validacionCierre = useQuery({
@@ -999,28 +1011,79 @@ export function BovedaOperacionesPanel({ oficinaId, boveda, existeTemporal }: Pr
                   label="Responsable de bóveda temporal"
                   rules={[{ required: true, message: 'Seleccione el responsable' }]}
                   extra="Se guarda el UsuarioId (no PersonaId). Busque por documento o nombre."
+                  getValueFromEvent={(v) => {
+                    if (v == null || v === '') return undefined
+                    const raw =
+                      typeof v === 'object' && v !== null && 'value' in v
+                        ? (v as { value: unknown }).value
+                        : v
+                    const n = Number(raw)
+                    return Number.isFinite(n) && n > 0 ? n : undefined
+                  }}
+                  getValueProps={(id) => {
+                    if (id == null || Number(id) < 1) return { value: undefined }
+                    const n = Number(id)
+                    const label =
+                      (usuarioElegido?.usuarioId === n ? usuarioElegido.label : undefined) ??
+                      usuarioHits.find((u) => u.usuarioId === n)?.label ??
+                      String(n)
+                    // Select is labelInValue: keep { value, label } so the closed
+                    // control still shows the name if remote options drop the row.
+                    return { value: { value: n, label } }
+                  }}
                 >
                   <Select
-                    showSearch
                     allowClear
-                    filterOption={false}
-                    optionLabelProp="label"
-                    onSearch={setUsuarioTerm}
-                    onChange={(id) => {
-                      const n = Number(id)
-                      if (!Number.isFinite(n) || n < 1) {
-                        setUsuarioElegido(null)
-                        return
-                      }
-                      const hit =
-                        usuarioHits.find((u) => u.usuarioId === n) ??
-                        (usuarioElegido?.usuarioId === n ? usuarioElegido : null)
-                      if (hit) setUsuarioElegido(hit)
-                    }}
-                    onClear={() => setUsuarioElegido(null)}
+                    labelInValue
                     loading={usuariosQuery.isFetching}
                     placeholder="Buscar usuario responsable"
                     options={usuarioOptions}
+                    showSearch={{
+                      filterOption: false,
+                      // No vaciar el término al elegir: si se limpia, las opciones
+                      // desaparecen antes del clic y la selección no queda.
+                      autoClearSearchValue: false,
+                      searchValue: usuarioTerm,
+                      onSearch: setUsuarioTerm,
+                    }}
+                    onClear={() => {
+                      setUsuarioElegido(null)
+                      setUsuarioTerm('')
+                    }}
+                    onChange={(v, option) => {
+                      if (v == null || v === '') {
+                        setUsuarioElegido(null)
+                        return
+                      }
+                      const raw =
+                        typeof v === 'object' && v !== null && 'value' in v
+                          ? (v as { value: unknown }).value
+                          : v
+                      const usuarioId = Number(raw)
+                      if (!Number.isFinite(usuarioId) || usuarioId < 1) {
+                        setUsuarioElegido(null)
+                        return
+                      }
+                      const opt = Array.isArray(option) ? option[0] : option
+                      const fromOpt =
+                        typeof opt?.label === 'string'
+                          ? opt.label
+                          : opt?.label != null
+                            ? String(opt.label)
+                            : undefined
+                      const fromLabeled =
+                        typeof v === 'object' &&
+                        v !== null &&
+                        'label' in v &&
+                        (v as { label?: unknown }).label != null
+                          ? String((v as { label: unknown }).label)
+                          : undefined
+                      const hit = usuarioHits.find((u) => u.usuarioId === usuarioId)
+                      const label = fromOpt ?? fromLabeled ?? hit?.label ?? String(usuarioId)
+                      const personaId =
+                        typeof opt?.personaId === 'number' ? opt.personaId : (hit?.personaId ?? 0)
+                      setUsuarioElegido({ usuarioId, personaId, label })
+                    }}
                     notFoundContent={
                       usuarioTermDebounced.length < 2 && usuarioOptions.length === 0
                         ? 'Escriba al menos 2 caracteres'
