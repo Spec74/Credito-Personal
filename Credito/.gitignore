@@ -145,13 +145,27 @@ modern/_line_*.txt
 
 # Credito modern — cobertura local / CI / artefactos FE
 **/coverage/
-Credito/modern/TestResults/
-Credito/modern/Credito.Modern.Web/coverage/
-Credito/modern/Credito.Modern.Web/dist/
-Credito/modern/Credito.Modern.Web/playwright-report/
-Credito/modern/Credito.Modern.Web/test-results/
-Credito/modern/**/bin/
-Credito/modern/**/obj/
+modern/TestResults/
+modern/Credito.Modern.Web/coverage/
+modern/Credito.Modern.Web/dist/
+modern/Credito.Modern.Web/playwright-report/
+modern/Credito.Modern.Web/test-results/
+modern/**/bin/
+modern/**/obj/
+modern/.tmp-test-out*/
+modern/.publish/
+modern/_compose_*.txt
+modern/_default_*.txt
+modern/_deploy_*.txt
+modern/_spa_redirects.txt
+modern/_fix_consulta.py
+modern/tmp-*.ps1
+modern/RECOVERY-REPORT.txt
+
+# Plantilla HTML vieja y respaldos de BD (quedan en disco, no en GitHub)
+mango/
+*.bak
+fe-*.log
 
 # NCrunch
 _NCrunch_*

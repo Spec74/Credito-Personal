@@ -1,4 +1,0 @@
-# SPA de trabajo (personal). No es el sitio comercial ni se indexa.
-
-User-agent: *
-Disallow: /
