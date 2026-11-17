@@ -145,6 +145,17 @@ internal static class GestorInformeReportAccess
             return (0, Forbidden("oficinaId debe coincidir con la oficina del token JWT."));
         }
 
+        // Central puede elegir sede, pero solo sedes activas reales (no inventadas tipo 999).
+        if (!info.Destinos.Any(d => d.OficinaId == oficinaId.Value))
+        {
+            return (
+                0,
+                Forbidden(
+                    info.EsCentral
+                        ? "oficinaId no corresponde a una sede activa consultable."
+                        : "oficinaId debe coincidir con la oficina del token JWT."));
+        }
+
         return (oficinaId.Value, null);
     }
 

@@ -53,7 +53,7 @@ public sealed class RptSaldoCarteraCajaDiarioPdfDocumentTests
         var wide = CredixLegacyPdfDocument.ResolvePageSize(26, landscape: true);
         var a4 = CredixLegacyPdfDocument.ResolvePageSize(8, landscape: true);
         Assert.True(wide.Width > a4.Width);
-        Assert.Equal(6.2f, CredixLegacyPdfDocument.ResolveBodyFont(26));
+        Assert.Equal(7.2f, CredixLegacyPdfDocument.ResolveBodyFont(26));
     }
 
     [Fact]

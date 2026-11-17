@@ -74,11 +74,12 @@ public sealed class CredixLegacyReportCatalogTests
         Assert.Equal(expected, CredixLegacyPdfDocument.EffectiveLandscape(cols, prefer));
 
     [Fact]
-    public void Creditos_aprobados_sin_columna_desembolso_duplicada()
+    public void Creditos_aprobados_incluye_monto_y_desembolso_sin_csv_duplicado()
     {
         var cols = CredixLegacyReportCatalog.Get(CredixLegacyReportKey.CreditoAprobacion).Columns;
-        Assert.DoesNotContain(cols, c => c.CsvName == "MontoDesembolso");
         Assert.Contains(cols, c => c.CsvName == "MontoCredito");
+        Assert.Contains(cols, c => c.CsvName == "MontoDesembolso");
+        Assert.Equal(cols.Count, cols.Select(c => c.CsvName).Distinct(StringComparer.Ordinal).Count());
         Assert.True(CredixLegacyReportCatalog.Get(CredixLegacyReportKey.CreditoAprobacion).Landscape);
     }
 
