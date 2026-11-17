@@ -257,24 +257,31 @@ internal static class CreditoCicloEndpoints
                     }
                     catch (InvalidOperationException ex)
                     {
-                        log.LogWarning(ex, "Cadena de conexi?n no configurada");
+                        log.LogWarning(ex, "Aprobar crédito rechazado");
+                        var detail = string.IsNullOrWhiteSpace(ex.Message)
+                            ? "No se pudo aprobar el crédito."
+                            : ex.Message.Trim();
+                        var isConfig = detail.Contains("ConnectionString", StringComparison.OrdinalIgnoreCase)
+                            || detail.Contains("Configure CreditoDatabase", StringComparison.OrdinalIgnoreCase);
                         return TypedResults.Problem(
-                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.",
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuraci?n incompleta");
+                            detail: detail,
+                            statusCode: isConfig
+                                ? StatusCodes.Status503ServiceUnavailable
+                                : StatusCodes.Status409Conflict,
+                            title: isConfig ? "Configuración incompleta" : "Aprobación no permitida");
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {
-                        log.LogWarning(ex, "Par?metros inv?lidos");
+                        log.LogWarning(ex, "Parámetros inválidos");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
-                            title: "Par?metros inv?lidos",
+                            title: "Parámetros inválidos",
                             detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
                     }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error al ejecutar CREDITO.usp_Credito_Upd");
-                        var detail = "No se pudo aprobar el cr?dito.";
+                        var detail = "No se pudo aprobar el crédito.";
                         if (env.IsDevelopment())
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
@@ -285,7 +292,7 @@ internal static class CreditoCicloEndpoints
                 })
             .WithName("CreditoAprobarCredito")
             .WithSummary(
-                "Escritura: CREDITO.usp_Credito_Upd. opcion 0 = AprobarCredito1ra; 1 = AprobarCredito (paridad CreditoBL.AprobarCredito).")
+                "Escritura: CREDITO.usp_Credito_Upd. opcion 0 = 1ª aprobación (PEN→AP1); 1 = 2ª aprobación (→APR). Incluye APROBADOR 1/2 y ADMIN.")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAprobador1OAdministrador)
             .Produces<CreditoCicloOperacionResponse>(StatusCodes.Status200OK, "application/json")

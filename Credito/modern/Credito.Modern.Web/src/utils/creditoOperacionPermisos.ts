@@ -87,7 +87,7 @@ export function esCreditoAprobador1(roles: string[]): boolean {
   })
 }
 
-/** Nivel 2: consulta / reportes; no aprueba en bandeja primaria. */
+/** Nivel 2: 2ª aprobación (AP1→APR) y reportes de aprobación. */
 export function esCreditoAprobador2(roles: string[]): boolean {
   return norm(roles).some((role) => {
     const compacto = role.replace(/\s+/g, '')

@@ -1416,19 +1416,29 @@ internal static class CreditoCajaDiarioEndpoints
                     }
                     catch (KeyNotFoundException ex)
                     {
-                        log.LogWarning(ex, "Cr?dito no encontrado");
+                        log.LogWarning(ex, "Crédito no encontrado");
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status404NotFound,
                             title: "No encontrado",
-                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.");
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "No se encontró el crédito o la caja indicada."
+                                : ex.Message);
                     }
                     catch (InvalidOperationException ex)
                     {
                         log.LogWarning(ex, "Desembolso rechazado");
+                        var detail = string.IsNullOrWhiteSpace(ex.Message)
+                            ? "No se pudo realizar el desembolso."
+                            : ex.Message.Trim();
+                        // Connection misconfig → 503; negocio (estado AP1/APR, etc.) → 409.
+                        var isConfig = detail.Contains("ConnectionString", StringComparison.OrdinalIgnoreCase)
+                            || detail.Contains("Configure CreditoDatabase", StringComparison.OrdinalIgnoreCase);
                         return TypedResults.Problem(
-                            statusCode: StatusCodes.Status409Conflict,
-                            title: "Desembolso no permitido",
-                            detail: "No se pudo completar la operaci?n por configuraci?n incompleta del servidor.");
+                            statusCode: isConfig
+                                ? StatusCodes.Status503ServiceUnavailable
+                                : StatusCodes.Status409Conflict,
+                            title: isConfig ? "Configuración incompleta" : "Desembolso no permitido",
+                            detail: detail);
                     }
                     catch (ArgumentOutOfRangeException ex)
                     {

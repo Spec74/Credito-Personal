@@ -33,7 +33,7 @@ import { sumMoney } from '../../utils/money'
 import { creditoStaleTime } from '../../utils/creditoQueryOptions'
 import {
   esCreditoAdministrador,
-  esCreditoAprobador1,
+  esCreditoAprobador,
 } from '../../utils/creditoOperacionPermisos'
 import { AprobarSearchToolbar } from './components/AprobarSearchToolbar'
 import { AprobarTableEmpty } from './components/AprobarTableEmpty'
@@ -47,7 +47,7 @@ export function CreditoAprobarPage() {
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
   const roles = useMemo(() => session?.roles ?? [], [session?.roles])
-  const puedeAprobar = esCreditoAprobador1(roles) || esCreditoAdministrador(roles)
+  const puedeAprobar = esCreditoAprobador(roles) || esCreditoAdministrador(roles)
 
   const [buscar, setBuscar] = useState('')
   const buscarResuelto = useMemo(() => resolveAprobarBuscar(buscar), [buscar])
@@ -94,11 +94,12 @@ export function CreditoAprobarPage() {
       creditoId: number
       opcion: 0 | 1
     }) => aprobarCredito(oficinaId, creditoId, opcion),
-    onSuccess: () => {
+    onSuccess: (_data, vars) => {
+      const listoDesembolso = vars.opcion === 1
       message.success({
-        content: (
+        content: listoDesembolso ? (
           <span>
-            Crédito aprobado.{' '}
+            2ª aprobación lista (APR).{' '}
             <Button
               type="link"
               size="small"
@@ -108,6 +109,8 @@ export function CreditoAprobarPage() {
               Ir a desembolso
             </Button>
           </span>
+        ) : (
+          '1ª aprobación registrada (AP1). Falta la 2ª aprobación para desembolsar.'
         ),
         duration: 8,
       })
@@ -134,12 +137,16 @@ export function CreditoAprobarPage() {
   })
 
   const confirmarAprobar = useCallback((row: CreditoPorAprobarRow) => {
+    const esSegunda = row.estado === 'AP1'
+    const opcion: 0 | 1 = esSegunda ? 1 : 0
     Modal.confirm({
-      title: 'Aprobar crédito',
-      content: `¿Aprobar crédito ${row.creditoId} de ${row.cliente ?? 'cliente'}? Se aplicará la aprobación vigente configurada en el sistema.`,
-      okText: 'Aprobar',
+      title: esSegunda ? '2ª aprobación (APR)' : '1ª aprobación (AP1)',
+      content: esSegunda
+        ? `¿Confirmar 2ª aprobación del crédito ${row.creditoId} (${row.cliente ?? 'cliente'})? Quedará APR y listo para desembolso.`
+        : `¿Registrar 1ª aprobación del crédito ${row.creditoId} (${row.cliente ?? 'cliente'})? Pasará a AP1; luego hace falta la 2ª aprobación.`,
+      okText: esSegunda ? 'Aprobar definitivo' : '1ª aprobación',
       cancelText: 'Cancelar',
-      onOk: () => aprobar.mutateAsync({ creditoId: row.creditoId, opcion: 1 }),
+      onOk: () => aprobar.mutateAsync({ creditoId: row.creditoId, opcion }),
     })
   }, [aprobar])
 
@@ -268,22 +275,27 @@ export function CreditoAprobarPage() {
                 </Button>
               </Tooltip>
             ) : null}
-            {puedeAprobar && row.estado !== 'CRE' ? (
+            {puedeAprobar && (row.estado === 'PEN' || row.estado === 'AP1') ? (
               <>
-                <Tooltip title="Aprobar crédito pendiente">
+                <Tooltip
+                  title={
+                    row.estado === 'AP1'
+                      ? '2ª aprobación: deja el crédito en APR para desembolso'
+                      : '1ª aprobación: deja el crédito en AP1'
+                  }
+                >
                   <Button
                     size="small"
                     type="primary"
                     className="credito-aprobacion-actions__btn credito-aprobacion-actions__btn--aprobar"
                     icon={<CheckOutlined />}
                     loading={aprobar.isPending}
-                    disabled={row.estado !== 'PEN'}
                     onClick={(e) => {
                       e.stopPropagation()
                       confirmarAprobar(row)
                     }}
                   >
-                    Aprobar
+                    {row.estado === 'AP1' ? '2ª aprobación' : '1ª aprobación'}
                   </Button>
                 </Tooltip>
                 <Tooltip title="Rechazar solicitud">

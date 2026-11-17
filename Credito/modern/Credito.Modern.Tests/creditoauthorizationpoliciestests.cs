@@ -58,7 +58,8 @@ public class CreditoAuthorizationPoliciesTests
         Assert.True(CreditoAuthorizationPolicies.HasAprobador2(["APROBADOR 2"]));
         Assert.False(CreditoAuthorizationPolicies.HasAprobador2(["APROBADOR 1"]));
         Assert.True(CreditoAuthorizationPolicies.HasAprobador(["APROBADOR 2"]));
-        Assert.False(CreditoAuthorizationPolicies.HasAprobador1OAdministrador(["APROBADOR 2"]));
+        // Bandeja de aprobación (1ª/2ª) admite ambos niveles + ADMIN.
+        Assert.True(CreditoAuthorizationPolicies.HasAprobador1OAdministrador(["APROBADOR 2"]));
         Assert.True(CreditoAuthorizationPolicies.HasAprobador1OAdministrador(["APROBADOR 1"]));
     }
 

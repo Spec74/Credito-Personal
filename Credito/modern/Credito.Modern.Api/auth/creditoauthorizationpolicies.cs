@@ -16,7 +16,7 @@ public static class CreditoAuthorizationPolicies
     public const string CreditoRolEncargado = "CreditoRolEncargado";
     public const string CreditoRolAprobador1 = "CreditoRolAprobador1";
 
-    /// <summary>APROBADOR 1, ADMINISTRADOR o ADMIN (informes / tope / ciclo aprobación).</summary>
+    /// <summary>APROBADOR 1/2, ADMINISTRADOR o ADMIN (informes / tope / ciclo aprobación 1ª+2ª).</summary>
     public const string CreditoRolAprobador1OAdministrador = "CreditoRolAprobador1OAdministrador";
 
     /// <summary>Solo ADMINISTRADOR o ADMIN (reprogramar, condonar — paridad Creditos.cshtml).</summary>
@@ -73,6 +73,7 @@ public static class CreditoAuthorizationPolicies
     public static readonly string[] RolesAprobador1OAdministrador =
     [
         RolDenominacionAprobador1,
+        RolDenominacionAprobador2,
         RolDenominacionAdministrador,
         RolDenominacionAdminLegacy,
     ];
@@ -174,7 +175,7 @@ public static class CreditoAuthorizationPolicies
     }
 
     public static bool HasAprobador1OAdministrador(IEnumerable<string> roles) =>
-        HasAprobador1(roles) || HasAdministrador(roles);
+        HasAprobador(roles) || HasAdministrador(roles);
 
     public static bool HasEncargadoOAdministrador(IEnumerable<string> roles) =>
         HasEncargado(roles) || HasAdministrador(roles);

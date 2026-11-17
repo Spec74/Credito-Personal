@@ -223,15 +223,34 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
             return new ValidarDesembolsoResponse(false, "Tiene Cuentas por cobrar Pendientes!");
         }
 
-        var montoDesembolso = await connection.ExecuteScalarAsync<decimal?>(
+        var credito = await connection.QueryFirstOrDefaultAsync<CreditoDesembolsoRow>(
             new CommandDefinition(
-                "SELECT MontoDesembolso FROM CREDITO.Credito WHERE CreditoId = @CreditoId;",
+                """
+                SELECT MontoDesembolso, Estado
+                FROM CREDITO.Credito
+                WHERE CreditoId = @CreditoId;
+                """,
                 new { CreditoId = creditoId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
-        if (montoDesembolso is null)
+        if (credito is null)
         {
             return new ValidarDesembolsoResponse(false, "No existe el crédito indicado.");
         }
+
+        if (!string.Equals(credito.Estado, "APR", StringComparison.OrdinalIgnoreCase))
+        {
+            var estado = string.IsNullOrWhiteSpace(credito.Estado) ? "?" : credito.Estado.Trim();
+            var hint = string.Equals(estado, "AP1", StringComparison.OrdinalIgnoreCase)
+                ? " Falta la 2ª aprobación (AP1 → APR) en Crédito → Aprobación."
+                : string.Equals(estado, "PEN", StringComparison.OrdinalIgnoreCase)
+                    ? " Debe aprobarse primero (PEN → APR) en Crédito → Aprobación."
+                    : string.Empty;
+            return new ValidarDesembolsoResponse(
+                false,
+                $"El crédito debe estar APR para desembolsar (actual: {estado}).{hint}");
+        }
+
+        var montoDesembolso = credito.MontoDesembolso;
 
         var caja = await connection.QueryFirstOrDefaultAsync<CajaSaldoRow>(
             new CommandDefinition(
@@ -252,14 +271,14 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
             return new ValidarDesembolsoResponse(false, "La caja diario está cerrada.");
         }
 
-        if (montoDesembolso.Value > caja.SaldoFinal)
+        if (montoDesembolso > caja.SaldoFinal)
         {
-            var falta = montoDesembolso.Value - caja.SaldoFinal;
+            var falta = montoDesembolso - caja.SaldoFinal;
             return new ValidarDesembolsoResponse(
                 false,
                 $"Saldo insuficiente en caja. Disponible S/ {caja.SaldoFinal:N2}; "
-                    + $"desembolso S/ {montoDesembolso.Value:N2} (faltan S/ {falta:N2}). "
-                    + "Fondee la caja desde Bóveda → Transferir → A caja.");
+                    + $"desembolso S/ {montoDesembolso:N2} (faltan S/ {falta:N2}). "
+                    + "Fondee la caja desde Bóveda → A caja.");
         }
 
         return new ValidarDesembolsoResponse(true, null);
@@ -272,6 +291,12 @@ public sealed class DesembolsoReadService(IOptions<SqlDatabaseOptions> options) 
             throw new InvalidOperationException(
                 "Configure CreditoDatabase:ConnectionString (appsettings, variables de entorno o dotnet user-secrets).");
         }
+    }
+
+    private sealed class CreditoDesembolsoRow
+    {
+        public decimal MontoDesembolso { get; init; }
+        public string? Estado { get; init; }
     }
 
     private sealed class CajaSaldoRow

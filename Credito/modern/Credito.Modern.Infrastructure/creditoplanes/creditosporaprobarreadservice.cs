@@ -140,7 +140,7 @@ public sealed class CreditosPorAprobarReadService(IOptions<SqlDatabaseOptions> o
             INNER JOIN MAESTRO.Persona AS up ON up.PersonaId = u.PersonaId
 
             WHERE (
-                    c.Estado = 'PEN'
+                    c.Estado IN (N'PEN', N'AP1')
                     OR (
                         @IncluirCre = CAST(1 AS bit)
                         AND c.Estado = 'CRE'
@@ -156,7 +156,7 @@ public sealed class CreditosPorAprobarReadService(IOptions<SqlDatabaseOptions> o
                             FROM CREDITO.Credito AS c3
                             WHERE c3.PersonaId = c.PersonaId
                               AND c3.OficinaId = c.OficinaId
-                              AND c3.Estado = 'PEN'
+                              AND c3.Estado IN (N'PEN', N'AP1')
                         )
                     )
                 )
@@ -199,7 +199,7 @@ public sealed class CreditosPorAprobarReadService(IOptions<SqlDatabaseOptions> o
             INNER JOIN MAESTRO.Persona AS up ON up.PersonaId = u.PersonaId
 
             WHERE (
-                    c.Estado = 'PEN'
+                    c.Estado IN (N'PEN', N'AP1')
                     OR (
                         @IncluirCre = CAST(1 AS bit)
                         AND c.Estado = 'CRE'
@@ -215,7 +215,7 @@ public sealed class CreditosPorAprobarReadService(IOptions<SqlDatabaseOptions> o
                             FROM CREDITO.Credito AS c3
                             WHERE c3.PersonaId = c.PersonaId
                               AND c3.OficinaId = c.OficinaId
-                              AND c3.Estado = 'PEN'
+                              AND c3.Estado IN (N'PEN', N'AP1')
                         )
                     )
                 )
