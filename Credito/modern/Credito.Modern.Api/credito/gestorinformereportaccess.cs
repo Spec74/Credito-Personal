@@ -1,4 +1,5 @@
 using Credito.Modern.Api.Auth;
+using Credito.Modern.Application.CreditoPlanes;
 using Credito.Modern.Application.Oficinas;
 using Microsoft.AspNetCore.Http.HttpResults;
 
@@ -157,6 +158,94 @@ internal static class GestorInformeReportAccess
         }
 
         return (oficinaId.Value, null);
+    }
+
+    /// <summary>
+    /// Resuelve la sede de la caja diario y aplica <see cref="EnsureOficinaConsultaAsync"/>
+    /// (cierra IDOR por <c>cajaDiarioId</c> ajeno).
+    /// </summary>
+    internal static async Task<(int OficinaId, ProblemHttpResult? Error)> EnsureCajaDiarioConsultaAsync(
+        HttpContext httpContext,
+        IOficinaReadService oficinas,
+        ICajaDiarioOficinaReadService cajaDiarioOficina,
+        int? cajaDiarioId,
+        CancellationToken ct)
+    {
+        if (cajaDiarioId is null or < 1)
+        {
+            return (0, BadRequest("cajaDiarioId es obligatorio y debe ser un entero >= 1."));
+        }
+
+        int? oficinaCaja;
+        try
+        {
+            oficinaCaja = await cajaDiarioOficina
+                .GetOficinaIdByCajaDiarioIdAsync(cajaDiarioId.Value, ct)
+                .ConfigureAwait(false);
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            return (0, BadRequest(string.IsNullOrWhiteSpace(ex.Message)
+                ? "cajaDiarioId inválido."
+                : ex.Message));
+        }
+
+        if (oficinaCaja is null)
+        {
+            return (
+                0,
+                TypedResults.Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "No encontrado",
+                    detail: "No existe una caja diario con el cajaDiarioId indicado."));
+        }
+
+        return await EnsureOficinaConsultaAsync(httpContext, oficinas, oficinaCaja, ct)
+            .ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Resuelve la sede del crédito y aplica <see cref="EnsureOficinaConsultaAsync"/>
+    /// (cierra IDOR por <c>creditoId</c> ajeno).
+    /// </summary>
+    internal static async Task<(int OficinaId, ProblemHttpResult? Error)> EnsureCreditoConsultaAsync(
+        HttpContext httpContext,
+        IOficinaReadService oficinas,
+        ICreditoOficinaReadService creditoOficina,
+        int? creditoId,
+        CancellationToken ct)
+    {
+        if (creditoId is null or < 1)
+        {
+            return (0, BadRequest("creditoId es obligatorio y debe ser un entero >= 1."));
+        }
+
+        int? oficinaCredito;
+        try
+        {
+            oficinaCredito = await creditoOficina
+                .GetOficinaIdByCreditoIdAsync(creditoId.Value, ct)
+                .ConfigureAwait(false);
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            return (0, BadRequest(string.IsNullOrWhiteSpace(ex.Message)
+                ? "creditoId inválido."
+                : ex.Message));
+        }
+
+        if (oficinaCredito is null)
+        {
+            return (
+                0,
+                TypedResults.Problem(
+                    statusCode: StatusCodes.Status404NotFound,
+                    title: "No encontrado",
+                    detail: "No existe un crédito con el creditoId indicado."));
+        }
+
+        return await EnsureOficinaConsultaAsync(httpContext, oficinas, oficinaCredito, ct)
+            .ConfigureAwait(false);
     }
 
     /// <summary>Compat sync: asume no-Central (JWT). Preferir <see cref="ResolveAsync"/>.</summary>

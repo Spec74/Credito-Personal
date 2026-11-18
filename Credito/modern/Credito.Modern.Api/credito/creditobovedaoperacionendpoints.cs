@@ -1655,7 +1655,10 @@ internal static class CreditoBovedaOperacionEndpoints
         app.MapGet(
                 "/api/v1/credito/saldos-caja-chica-diario",
                 async Task<Results<Ok<SaldoCajaSesionPageDto>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    int oficinaId,
                     ISaldosCajaDiarioReadService saldos,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct,
@@ -1663,11 +1666,26 @@ internal static class CreditoBovedaOperacionEndpoints
                     int page = 1,
                     int pageSize = 25) =>
                 {
+                    if (oficinaId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "oficinaId debe ser >= 1.");
+                    }
+
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
+                    {
+                        return sedeErr;
+                    }
+
                     var log = loggerFactory.CreateLogger("SaldosCajaChicaDiario");
                     try
                     {
                         var pagina = await saldos
-                            .ListarCajaChicaDiarioAsync(buscar, page, pageSize, ct)
+                            .ListarCajaChicaDiarioAsync(oficinaId, buscar, page, pageSize, ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(pagina);
                     }
@@ -1693,11 +1711,13 @@ internal static class CreditoBovedaOperacionEndpoints
                 })
             .WithName("CreditoSaldosCajaChicaDiario")
             .WithSummary(
-                "Paridad SaldosController.ListarSaldoCajaChicaDiario (paginado en servidor; el legado tampoco filtra por oficina).")
+                "Paridad SaldosController.ListarSaldoCajaChicaDiario (paginado en servidor; filtrado por oficina).")
             .WithTags("credito", "caja")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<SaldoCajaSesionPageDto>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 

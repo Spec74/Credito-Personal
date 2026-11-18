@@ -1,6 +1,7 @@
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.Oficinas;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +19,7 @@ internal static class MovimientoCajaTicketEndpoints
                     [FromQuery] int oficinaId,
                     IMovimientoCajaTicketReadService ticketRead,
                     IMovimientoCajaScopeReadService movimientoScope,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -30,13 +32,11 @@ internal static class MovimientoCajaTicketEndpoints
                             detail: "movimientoCajaId y oficinaId deben ser >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId)
-                        || jwtOficinaId != oficinaId)
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con vendix:oficina_id del JWT.");
+                        return sedeErr;
                     }
 
                     var (scopeError, scope) = await CajaCreditoWriteGuards

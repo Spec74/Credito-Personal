@@ -50,11 +50,12 @@ export function fetchSaldosCajaDiario(
 }
 
 export function fetchSaldosCajaChicaDiario(
+  oficinaId: number,
   params: SaldosCajaQuery = {},
 ): Promise<SaldoCajaSesionPage> {
-  return apiFetch<SaldoCajaSesionPage>(
-    `/credito/saldos-caja-chica-diario?${paginacionQuery(params)}`,
-  )
+  const q = paginacionQuery(params)
+  q.set('oficinaId', String(oficinaId))
+  return apiFetch<SaldoCajaSesionPage>(`/credito/saldos-caja-chica-diario?${q}`)
 }
 
 export function fetchSaldosCajaDiarioBoveda(

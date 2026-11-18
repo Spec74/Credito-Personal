@@ -246,10 +246,13 @@ internal static class CreditoReporteCajaBovedaEndpoints
         app.MapGet(
                 "/api/v1/credito/rpt-saldos-caja",
                 async Task<Results<Ok<List<RptSaldosCajaRowDto>>, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     int? cajaDiarioId,
                     bool? indCajaChica,
                     bool? incluirAnulados,
                     IRptSaldosCajaReadService rptSaldos,
+                    IOficinaReadService oficinas,
+                    ICajaDiarioOficinaReadService cajaDiarioOficina,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -260,6 +263,13 @@ internal static class CreditoReporteCajaBovedaEndpoints
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
                             detail: "cajaDiarioId es obligatorio y debe ser un entero >= 1.");
+                    }
+
+                    var (_, cajaSedeErr) = await GestorInformeReportAccess.EnsureCajaDiarioConsultaAsync(
+                        httpContext, oficinas, cajaDiarioOficina, cajaDiarioId, ct).ConfigureAwait(false);
+                    if (cajaSedeErr is not null)
+                    {
+                        return cajaSedeErr;
                     }
 
                     var indChica = indCajaChica == true;
@@ -316,6 +326,8 @@ internal static class CreditoReporteCajaBovedaEndpoints
             .Produces<List<RptSaldosCajaRowDto>>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 
@@ -323,9 +335,12 @@ internal static class CreditoReporteCajaBovedaEndpoints
         app.MapGet(
                 "/api/v1/credito/rpt-saldos-caja-csv",
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     int? cajaDiarioId,
                     bool? indCajaChica,
                     IRptSaldosCajaReadService rptSaldos,
+                    IOficinaReadService oficinas,
+                    ICajaDiarioOficinaReadService cajaDiarioOficina,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -336,6 +351,13 @@ internal static class CreditoReporteCajaBovedaEndpoints
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
                             detail: "cajaDiarioId es obligatorio y debe ser un entero >= 1.");
+                    }
+
+                    var (_, cajaSedeErr) = await GestorInformeReportAccess.EnsureCajaDiarioConsultaAsync(
+                        httpContext, oficinas, cajaDiarioOficina, cajaDiarioId, ct).ConfigureAwait(false);
+                    if (cajaSedeErr is not null)
+                    {
+                        return cajaSedeErr;
                     }
 
                     var indChica = indCajaChica == true;
@@ -382,6 +404,8 @@ internal static class CreditoReporteCajaBovedaEndpoints
             .Produces(StatusCodes.Status200OK, contentType: "text/csv")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 
@@ -395,6 +419,8 @@ internal static class CreditoReporteCajaBovedaEndpoints
                     IRptSaldosCajaReadService rptSaldos,
                     IRptSaldoCajaCabReadService cabSaldos,
                     IRptSaldosCajaResumenIngresoReadService resumenIngreso,
+                    IOficinaReadService oficinas,
+                    ICajaDiarioOficinaReadService cajaDiarioOficina,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -405,6 +431,13 @@ internal static class CreditoReporteCajaBovedaEndpoints
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
                             detail: "cajaDiarioId es obligatorio y debe ser un entero >= 1.");
+                    }
+
+                    var (oficinaCaja, cajaSedeErr) = await GestorInformeReportAccess.EnsureCajaDiarioConsultaAsync(
+                        httpContext, oficinas, cajaDiarioOficina, cajaDiarioId, ct).ConfigureAwait(false);
+                    if (cajaSedeErr is not null)
+                    {
+                        return cajaSedeErr;
                     }
 
                     var indChica = indCajaChica == true;
@@ -418,14 +451,8 @@ internal static class CreditoReporteCajaBovedaEndpoints
                         string? resumen = null;
                         if (!indChica)
                         {
-                            // usp_RptSaldosCajaResumenIngreso usa ufnResumenCuentaCajaDiario(caja);
-                            // oficinaId es obligatorio en el contrato API pero no altera el texto.
-                            var oficinaResumen = MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOid)
-                                && jwtOid > 0
-                                    ? jwtOid
-                                    : 1;
                             resumen = await resumenIngreso
-                                .ObtenerPrimerTextoAsync(cajaDiarioId.Value, oficinaResumen, ct)
+                                .ObtenerPrimerTextoAsync(cajaDiarioId.Value, oficinaCaja, ct)
                                 .ConfigureAwait(false);
                         }
 
@@ -468,6 +495,8 @@ internal static class CreditoReporteCajaBovedaEndpoints
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
 
@@ -479,6 +508,8 @@ internal static class CreditoReporteCajaBovedaEndpoints
                     int? cajaDiarioId,
                     int? oficinaId,
                     IRptSaldosCajaResumenIngresoReadService resumenIngreso,
+                    IOficinaReadService oficinas,
+                    ICajaDiarioOficinaReadService cajaDiarioOficina,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -491,20 +522,19 @@ internal static class CreditoReporteCajaBovedaEndpoints
                             detail: "cajaDiarioId y oficinaId son obligatorios y deben ser enteros >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
+                        return sedeErr;
                     }
 
-                    if (jwtOficinaId != oficinaId.Value)
+                    var cajaErr = await CajaCreditoWriteGuards
+                        .ValidateCajaOficinaAsync(oficinaId.Value, cajaDiarioId.Value, cajaDiarioOficina, ct)
+                        .ConfigureAwait(false);
+                    if (cajaErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return cajaErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptSaldosCajaResumenIngreso");
@@ -562,6 +592,7 @@ internal static class CreditoReporteCajaBovedaEndpoints
                     HttpContext httpContext,
                     int? oficinaId,
                     IRptSaldosCajaResumenTipoCuentaReadService resumenTipoCuenta,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -574,20 +605,11 @@ internal static class CreditoReporteCajaBovedaEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptSaldosCajaResumenTipoCuenta");
@@ -1155,6 +1177,7 @@ internal static class CreditoReporteCajaBovedaEndpoints
                     int? creditoId,
                     ICreditoOficinaReadService creditoOficina,
                     ICreditoVencidoMetricasReadService creditoVencidoMetricas,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -1167,64 +1190,14 @@ internal static class CreditoReporteCajaBovedaEndpoints
                             detail: "creditoId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, creditoSedeErr) = await GestorInformeReportAccess.EnsureCreditoConsultaAsync(
+                        httpContext, oficinas, creditoOficina, creditoId, ct).ConfigureAwait(false);
+                    if (creditoSedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
+                        return creditoSedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("MetricasVencimientoCredito");
-                    int? oficinaCredito;
-                    try
-                    {
-                        oficinaCredito = await creditoOficina.GetOficinaIdByCreditoIdAsync(creditoId.Value, ct).ConfigureAwait(false);
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        log.LogWarning(ex, "Cadena de conexión no configurada");
-                        return TypedResults.Problem(
-                            detail: "No se pudo completar la operación por configuración incompleta del servidor.",
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Configuración incompleta");
-                    }
-                    catch (ArgumentOutOfRangeException ex)
-                    {
-                        log.LogWarning(ex, "Parámetros fuera de rango");
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status400BadRequest,
-                            title: "Parámetros inválidos",
-                            detail: string.IsNullOrWhiteSpace(ex.Message) ? "Los parámetros enviados no son válidos." : ex.Message);
-                    }
-                    catch (DbException ex)
-                    {
-                        log.LogError(ex, "Error SQL al resolver CREDITO.Credito por CreditoId");
-                        var detail = "No se pudo validar el crédito.";
-                        if (env.IsDevelopment())
-                            detail += $" Detalle: {ex.Message}";
-                        return TypedResults.Problem(
-                            detail: detail,
-                            statusCode: StatusCodes.Status503ServiceUnavailable,
-                            title: "Error de base de datos");
-                    }
-
-                    if (oficinaCredito is null)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status404NotFound,
-                            title: "No encontrado",
-                            detail: "No existe un crédito con el creditoId indicado.");
-                    }
-
-                    if (oficinaCredito.Value != jwtOficinaId)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El crédito no pertenece a la oficina del token JWT.");
-                    }
-
                     try
                     {
                         var metricas = await creditoVencidoMetricas.ObtenerAsync(creditoId.Value, ct).ConfigureAwait(false);

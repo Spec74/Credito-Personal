@@ -654,6 +654,7 @@ internal static class CreditoSimuladorCarteraEndpoints
                     HttpContext httpContext,
                     int? oficinaId,
                     IObtenerMontoPendientePlanPagoReadService montoPendiente,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -666,20 +667,11 @@ internal static class CreditoSimuladorCarteraEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina v?lida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("ObtenerMontoPendientePlanPago");

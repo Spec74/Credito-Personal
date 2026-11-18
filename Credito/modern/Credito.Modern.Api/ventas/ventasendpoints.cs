@@ -4,6 +4,7 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using Credito.Modern.Api.Auth;
+using Credito.Modern.Api.Credito;
 using Credito.Modern.Api.Hosting;
 using Credito.Modern.Api.Reportes;
 using Credito.Modern.Api.Validation;
@@ -21,6 +22,7 @@ using Credito.Modern.Application.Documentos;
 using Credito.Modern.Application.Integraciones;
 using Credito.Modern.Application.Inventario;
 using Credito.Modern.Application.ListaPrecios;
+using Credito.Modern.Application.Oficinas;
 using Credito.Modern.Application.Prendario;
 using Credito.Modern.Application.Reportes;
 using Credito.Modern.Application.Time;
@@ -238,6 +240,7 @@ internal static class VentasEndpoints
                     bool? indCredito,
                     int? oficinaId,
                     IRptRentabilidadVentaReadService rentabilidad,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -276,20 +279,11 @@ internal static class VentasEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var indC = indContado ?? false;
@@ -360,6 +354,7 @@ internal static class VentasEndpoints
                     bool? indCredito,
                     int? oficinaId,
                     IRptRentabilidadVentaReadService rentabilidad,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -398,20 +393,11 @@ internal static class VentasEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var indC = indContado ?? false;
@@ -900,6 +886,7 @@ internal static class VentasEndpoints
                     bool? indCredito,
                     int? oficinaId,
                     IRptRentabilidadVentaReadService rentabilidad,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -938,20 +925,11 @@ internal static class VentasEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var indC = indContado ?? false;

@@ -128,9 +128,9 @@ export function SaldosPage() {
   })
 
   const cajaChica = useQuery({
-    queryKey: ['saldos-caja-chica-diario', busqueda, page, pageSize],
-    queryFn: () => fetchSaldosCajaChicaDiario({ buscar: busqueda, page, pageSize }),
-    enabled: tab === 'caja-chica',
+    queryKey: ['saldos-caja-chica-diario', oficinaId, busqueda, page, pageSize],
+    queryFn: () => fetchSaldosCajaChicaDiario(oficinaId, { buscar: busqueda, page, pageSize }),
+    enabled: oficinaId > 0 && tab === 'caja-chica',
     placeholderData: keepPreviousData,
   })
 

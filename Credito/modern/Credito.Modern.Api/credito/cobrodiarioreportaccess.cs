@@ -78,6 +78,17 @@ internal static class CobroDiarioReportAccess
             return (null, null, err);
         }
 
+        if (oficinaId is >= 1)
+        {
+            var (_, sedeErr) = await GestorInformeReportAccess
+                .EnsureOficinaConsultaAsync(httpContext, oficinas, oficinaId, ct)
+                .ConfigureAwait(false);
+            if (sedeErr is not null)
+            {
+                return (null, null, sedeErr);
+            }
+        }
+
         return ResolveFiltros(httpContext, usuarioId, oficinaId, requiereGestor, info!.EsCentral);
     }
 
@@ -115,11 +126,17 @@ internal static class CobroDiarioReportAccess
             }
 
             var uid = usuarioId is null or < 1 ? null : usuarioId;
-            var oid = esCentral && oficinaId is null or < 1
-                ? null
-                : esCentral
-                    ? oficinaId
-                    : jwtOficinaId;
+            if (!esCentral)
+            {
+                if (oficinaId is >= 1 && oficinaId.Value != jwtOficinaId)
+                {
+                    return (null, null, Forbidden("oficinaId debe coincidir con la oficina del token JWT."));
+                }
+
+                return (uid, jwtOficinaId, null);
+            }
+
+            var oid = oficinaId is null or < 1 ? null : oficinaId;
             return (uid, oid, null);
         }
 
@@ -174,11 +191,17 @@ internal static class CobroDiarioReportAccess
             }
 
             var uidElevated = usuarioId is null or < 1 ? null : usuarioId;
-            var oidElevated = esCentral && oficinaId is null or < 1
-                ? null
-                : esCentral
-                    ? oficinaId
-                    : jwtOficinaId;
+            if (!esCentral)
+            {
+                if (oficinaId is >= 1 && oficinaId.Value != jwtOficinaId)
+                {
+                    return (null, null, Forbidden("oficinaId debe coincidir con la oficina del token JWT."));
+                }
+
+                return (uidElevated, jwtOficinaId, null);
+            }
+
+            var oidElevated = oficinaId is null or < 1 ? null : oficinaId;
             return (uidElevated, oidElevated, null);
         }
 

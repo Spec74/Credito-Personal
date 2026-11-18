@@ -37,7 +37,7 @@ describe('saldosCaja: paginación en servidor', () => {
   })
 
   it('omite búsquedas en blanco para no invalidar la caché sin motivo', async () => {
-    await fetchSaldosCajaChicaDiario({ buscar: '   ' })
+    await fetchSaldosCajaChicaDiario(7, { buscar: '   ' })
     expect(urlLlamada().searchParams.has('buscar')).toBe(false)
   })
 

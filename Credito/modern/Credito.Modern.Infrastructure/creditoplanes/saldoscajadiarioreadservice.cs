@@ -61,20 +61,24 @@ public sealed class SaldosCajaDiarioReadService(IOptions<SqlDatabaseOptions> opt
             cancellationToken).ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Paridad <c>CajaChicaDiarioBL.LstSaldosCajaChicaDiarioJGrid</c>: el legado no filtra por
-    /// oficina en esta grilla.
-    /// </summary>
     public async Task<SaldoCajaSesionPageDto> ListarCajaChicaDiarioAsync(
+        int oficinaId,
         string? buscar,
         int page,
         int pageSize,
         CancellationToken cancellationToken = default)
     {
+        if (oficinaId < 1)
+        {
+            return EmptyPage(page, pageSize);
+        }
+
         const string from = """
             FROM CREDITO.CajaChicaDiario AS cc
+            INNER JOIN CREDITO.Caja AS c ON c.CajaId = cc.Id
             INNER JOIN MAESTRO.Usuario AS u ON u.UsuarioId = cc.UsuarioId
-            WHERE (@Buscar IS NULL
+            WHERE c.OficinaId = @OficinaId
+              AND (@Buscar IS NULL
                    OR u.NombreUsuario LIKE '%' + @Buscar + '%'
                    OR CAST(cc.Id AS nvarchar(20)) = @Buscar)
             """;
@@ -97,7 +101,7 @@ public sealed class SaldosCajaDiarioReadService(IOptions<SqlDatabaseOptions> opt
             "ORDER BY cc.FechaIniOperacion DESC, cc.Id DESC",
             "cc.SaldoInicial",
             "cc.SaldoFinal",
-            new { },
+            new { OficinaId = oficinaId },
             buscar,
             page,
             pageSize,

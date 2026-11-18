@@ -284,6 +284,7 @@ internal static class CreditoReporteCobroDiarioEndpoints
                     int? usuarioId,
                     int? oficinaId,
                     IRptCobroDiarioDetalleReadService rptDetalle,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -296,12 +297,11 @@ internal static class CreditoReporteCobroDiarioEndpoints
                             detail: "usuarioId y oficinaId son obligatorios y deben ser enteros >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
+                        return sedeErr;
                     }
 
                     if (!MenuIdentity.TryGetUsuarioIdFromJwt(httpContext.User, out var jwtUsuarioId))
@@ -310,14 +310,6 @@ internal static class CreditoReporteCobroDiarioEndpoints
                             statusCode: StatusCodes.Status403Forbidden,
                             title: "Prohibido",
                             detail: "El token no contiene un usuario válido (vendix:usuario_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
                     }
 
                     if (jwtUsuarioId != usuarioId.Value)
@@ -382,6 +374,7 @@ internal static class CreditoReporteCobroDiarioEndpoints
                     int? usuarioId,
                     int? oficinaId,
                     IRptCobroDiarioDetalleReadService rptDetalle,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -394,12 +387,11 @@ internal static class CreditoReporteCobroDiarioEndpoints
                             detail: "usuarioId y oficinaId son obligatorios y deben ser enteros >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
+                        return sedeErr;
                     }
 
                     if (!MenuIdentity.TryGetUsuarioIdFromJwt(httpContext.User, out var jwtUsuarioId))
@@ -408,14 +400,6 @@ internal static class CreditoReporteCobroDiarioEndpoints
                             statusCode: StatusCodes.Status403Forbidden,
                             title: "Prohibido",
                             detail: "El token no contiene un usuario válido (vendix:usuario_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
                     }
 
                     if (jwtUsuarioId != usuarioId.Value)
@@ -481,6 +465,7 @@ internal static class CreditoReporteCobroDiarioEndpoints
                     int? usuarioId,
                     int? oficinaId,
                     IRptCobroDiarioDetalleReadService rptDetalle,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -493,12 +478,11 @@ internal static class CreditoReporteCobroDiarioEndpoints
                             detail: "usuarioId y oficinaId son obligatorios y deben ser enteros >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
+                        return sedeErr;
                     }
 
                     if (!MenuIdentity.TryGetUsuarioIdFromJwt(httpContext.User, out var jwtUsuarioId))
@@ -507,14 +491,6 @@ internal static class CreditoReporteCobroDiarioEndpoints
                             statusCode: StatusCodes.Status403Forbidden,
                             title: "Prohibido",
                             detail: "El token no contiene un usuario válido (vendix:usuario_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
                     }
 
                     if (jwtUsuarioId != usuarioId.Value)

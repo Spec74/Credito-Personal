@@ -359,6 +359,7 @@ internal static class CreditoReporteCajaOperacionEndpoints
                     string? vencidoMayor60,
                     string? vencidoIrrecuperable,
                     IRptCreditoVencidoReadService rptCreditoVencido,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -371,20 +372,11 @@ internal static class CreditoReporteCajaOperacionEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoVencido");
@@ -448,6 +440,7 @@ internal static class CreditoReporteCajaOperacionEndpoints
                     string? vencidoMayor60,
                     string? vencidoIrrecuperable,
                     IRptCreditoVencidoReadService rptCreditoVencido,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -460,20 +453,11 @@ internal static class CreditoReporteCajaOperacionEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoVencidoCsv");
@@ -538,6 +522,7 @@ internal static class CreditoReporteCajaOperacionEndpoints
                     string? vencidoMayor60,
                     string? vencidoIrrecuperable,
                     IRptCreditoVencidoReadService rptCreditoVencido,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -550,20 +535,11 @@ internal static class CreditoReporteCajaOperacionEndpoints
                             detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
                     }
 
-                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
+                        httpContext, oficinas, oficinaId, ct).ConfigureAwait(false);
+                    if (sedeErr is not null)
                     {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
-                    }
-
-                    if (jwtOficinaId != oficinaId.Value)
-                    {
-                        return TypedResults.Problem(
-                            statusCode: StatusCodes.Status403Forbidden,
-                            title: "Prohibido",
-                            detail: "oficinaId debe coincidir con la oficina del token JWT.");
+                        return sedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptCreditoVencidoPdf");
@@ -627,9 +603,12 @@ internal static class CreditoReporteCajaOperacionEndpoints
         app.MapGet(
                 "/api/v1/credito/rpt-notificaciones-vencimiento-pdf",
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     int creditoId,
                     IRptEstadoCreditoReadService estadoCredito,
                     IRptClienteReadService cliente,
+                    ICreditoOficinaReadService creditoOficina,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -640,6 +619,13 @@ internal static class CreditoReporteCajaOperacionEndpoints
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Parámetros inválidos",
                             detail: "creditoId debe ser >= 1.");
+                    }
+
+                    var (_, creditoSedeErr) = await GestorInformeReportAccess.EnsureCreditoConsultaAsync(
+                        httpContext, oficinas, creditoOficina, creditoId, ct).ConfigureAwait(false);
+                    if (creditoSedeErr is not null)
+                    {
+                        return creditoSedeErr;
                     }
 
                     var log = loggerFactory.CreateLogger("RptNotificacionVencimientoPdf");
@@ -700,6 +686,7 @@ internal static class CreditoReporteCajaOperacionEndpoints
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 

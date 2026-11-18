@@ -10,6 +10,7 @@ public interface ISaldosCajaDiarioReadService
         CancellationToken cancellationToken = default);
 
     Task<SaldoCajaSesionPageDto> ListarCajaChicaDiarioAsync(
+        int oficinaId,
         string? buscar,
         int page,
         int pageSize,

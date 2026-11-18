@@ -38,7 +38,7 @@ public class SaldosCierreEndpointTests : IClassFixture<CreditoModernWebApplicati
     [Fact]
     public async Task Saldos_caja_chica_diario_sin_jwt_devuelve_401()
     {
-        var response = await _client.GetAsync("/api/v1/credito/saldos-caja-chica-diario");
+        var response = await _client.GetAsync("/api/v1/credito/saldos-caja-chica-diario?oficinaId=1");
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
