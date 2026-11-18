@@ -1054,6 +1054,42 @@ export function CobranzasTab({
                 </span>
               </button>
             ) : null}
+            {/* Móvil: Dividir queda fuera del sheet colapsable para no perderse. */}
+            {isMobile ? (
+              <Checkbox
+                className="caja-diario-pago-mixto-toggle caja-diario-pago-mixto-toggle--dock"
+                checked={modoPago === 'cuotas' ? cuotaMixto : pagoLibreMixto}
+                disabled={!creditoId || (modoPago === 'cuotas' && selectedKeys.length === 0)}
+                onChange={(e) => {
+                  const on = e.target.checked
+                  setPagoDockExpanded(true)
+                  if (modoPago === 'cuotas') {
+                    setCuotaMixto(on)
+                    if (on) {
+                      const hint = roundMoney(selectedTotal)
+                      setImporteRecibido(hint)
+                      setMediosCuota(
+                        defaultPagoMediosSplit(tipoPagoOptions, hint > 0 ? hint : undefined),
+                      )
+                    } else {
+                      setMediosCuota([])
+                    }
+                  } else {
+                    setPagoLibreMixto(on)
+                    if (on) {
+                      const hint = pagoLibre ?? selectedTotal ?? totalCuotasCredito
+                      setMediosLibre(
+                        defaultPagoMediosSplit(tipoPagoOptions, hint > 0 ? hint : undefined),
+                      )
+                    } else {
+                      setMediosLibre([])
+                    }
+                  }
+                }}
+              >
+                Dividir (efectivo + Yape/Plin/banco)
+              </Checkbox>
+            ) : null}
             <div
               id="caja-diario-pago-dock-body"
               className={[
@@ -1097,39 +1133,40 @@ export function CobranzasTab({
               </button>
             </div>
 
-            <Checkbox
-              className="caja-diario-pago-mixto-toggle"
-              checked={modoPago === 'cuotas' ? cuotaMixto : pagoLibreMixto}
-              disabled={!creditoId || (modoPago === 'cuotas' && selectedKeys.length === 0)}
-              onChange={(e) => {
-                const on = e.target.checked
-                if (isMobile) setPagoDockExpanded(true)
-                if (modoPago === 'cuotas') {
-                  setCuotaMixto(on)
-                  if (on) {
-                    const hint = roundMoney(selectedTotal)
-                    setImporteRecibido(hint)
-                    setMediosCuota(
-                      defaultPagoMediosSplit(tipoPagoOptions, hint > 0 ? hint : undefined),
-                    )
+            {!isMobile ? (
+              <Checkbox
+                className="caja-diario-pago-mixto-toggle"
+                checked={modoPago === 'cuotas' ? cuotaMixto : pagoLibreMixto}
+                disabled={!creditoId || (modoPago === 'cuotas' && selectedKeys.length === 0)}
+                onChange={(e) => {
+                  const on = e.target.checked
+                  if (modoPago === 'cuotas') {
+                    setCuotaMixto(on)
+                    if (on) {
+                      const hint = roundMoney(selectedTotal)
+                      setImporteRecibido(hint)
+                      setMediosCuota(
+                        defaultPagoMediosSplit(tipoPagoOptions, hint > 0 ? hint : undefined),
+                      )
+                    } else {
+                      setMediosCuota([])
+                    }
                   } else {
-                    setMediosCuota([])
+                    setPagoLibreMixto(on)
+                    if (on) {
+                      const hint = pagoLibre ?? selectedTotal ?? totalCuotasCredito
+                      setMediosLibre(
+                        defaultPagoMediosSplit(tipoPagoOptions, hint > 0 ? hint : undefined),
+                      )
+                    } else {
+                      setMediosLibre([])
+                    }
                   }
-                } else {
-                  setPagoLibreMixto(on)
-                  if (on) {
-                    const hint = pagoLibre ?? selectedTotal ?? totalCuotasCredito
-                    setMediosLibre(
-                      defaultPagoMediosSplit(tipoPagoOptions, hint > 0 ? hint : undefined),
-                    )
-                  } else {
-                    setMediosLibre([])
-                  }
-                }
-              }}
-            >
-              Dividir en varios medios (efectivo + Yape/Plin/banco)
-            </Checkbox>
+                }}
+              >
+                Dividir en varios medios (efectivo + Yape/Plin/banco)
+              </Checkbox>
+            ) : null}
 
             {modoPago === 'cuotas' ? (
               <>

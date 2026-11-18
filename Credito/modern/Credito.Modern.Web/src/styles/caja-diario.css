@@ -1665,14 +1665,21 @@
   flex: 0 0 auto;
 }
 
-/* Móvil: el mixto va justo bajo Cuotas/Libre, siempre visible (no debajo del botón). */
-.caja-diario-pago-dock-fixed .caja-diario-pago-mixto-toggle {
-  position: sticky;
-  top: 0;
+/* Móvil: Dividir queda fuera del body colapsable (siempre a la vista bajo el asa). */
+.caja-diario-pago-dock-fixed .caja-diario-pago-mixto-toggle--dock {
+  position: relative;
   z-index: 2;
-  margin: 0 0 6px;
-  padding: 8px 2px;
-  background: var(--credix-surface-elevated);
+  margin: 0 0 8px;
+  padding: 10px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--credix-brand-line, #c5d4e8);
+  background: var(--credix-brand-light, #eef3f9);
+}
+
+.caja-diario-pago-dock-fixed .caja-diario-pago-mixto-toggle--dock span:last-child {
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--credix-ink-brand, #114885);
 }
 
 .caja-diario-pago-dock__body.is-collapsed {
@@ -1961,7 +1968,8 @@
   }
 
   .caja-diario-cobranzas--dock-collapsed {
-    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    /* Asa + Dividir visible aunque el sheet esté colapsado. */
+    padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
   }
 
   .caja-diario-cobranzas--dock-mixto {

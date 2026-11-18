@@ -729,15 +729,22 @@
 }
 
 .cobro-bloque-card__chips {
-  display: grid;
-  grid-template-columns: 1fr 1fr auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .cobro-bloque-card__chips .ant-btn {
+  flex: 1 1 calc(50% - 8px);
+  min-width: 0;
   height: 40px;
   font-weight: 700;
   border-radius: 10px;
+}
+
+.cobro-bloque-card__chips .cobro-bloque-card__chip-clear {
+  flex: 0 0 44px;
+  padding-inline: 0;
 }
 
 .cobro-bloque-card__monto-label {
@@ -769,6 +776,65 @@
   font-variant-numeric: tabular-nums;
 }
 
+.cobro-bloque-card__mixto {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--credix-brand-line, #c5d4e8);
+  background: var(--credix-brand-light, #eef3f9);
+}
+
+.cobro-bloque-card__mixto-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 750;
+  color: var(--credix-ink-brand, #114885);
+}
+
+.cobro-bloque-card__mixto-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cobro-bloque-card__mixto-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.cobro-bloque-card__mixto-list strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.cobro-bloque-card__acciones {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 8px;
+}
+
+.cobro-bloque-card__acciones .ant-btn {
+  min-height: 46px;
+  font-weight: 750;
+  border-radius: 12px;
+}
+
+.cobro-bloque-card__acciones .cobro-bloque-card__cobrar-ya {
+  width: 100%;
+}
+
+.cobro-bloque-card__acciones:has(> :only-child) {
+  grid-template-columns: 1fr;
+}
+
 .cobro-bloque-card__metodos {
   display: flex;
   gap: 8px;
@@ -776,6 +842,7 @@
   -webkit-overflow-scrolling: touch;
   padding-bottom: 2px;
   scrollbar-width: none;
+  scroll-padding-inline: 4px;
 }
 
 .cobro-bloque-card__metodos::-webkit-scrollbar {

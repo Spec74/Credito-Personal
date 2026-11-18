@@ -1816,6 +1816,26 @@ export function CobroBloquePage() {
                         enviado={enviadosSet.has(row.creditoId)}
                         errorMsg={cola.errores[String(row.creditoId)] ?? null}
                         cobrando={enviarPlanilla.isPending}
+                        onDividir={() => {
+                          const hint =
+                            e.montoPagar > 0
+                              ? e.montoPagar
+                              : Math.max(0, row.deudaPendiente || 0)
+                          const base =
+                            e.medios && e.medios.length >= 2
+                              ? e.medios.map((m) => ({
+                                  key: `m-${m.tipoPagoId}-${m.importe}`,
+                                  tipoPagoId: m.tipoPagoId,
+                                  importe: m.importe,
+                                  fechaTransferencia: m.fechaHoraTrans ?? '',
+                                }))
+                              : defaultPagoMediosSplit(
+                                  tipoPagoOptions,
+                                  hint > 0 ? hint : undefined,
+                                )
+                          setMixtoLineas(base)
+                          setMixtoCreditoId(row.creditoId)
+                        }}
                         onCobrar={() => cobrarFila(row)}
                         onUbicacionGuardada={(personaId, lat, lng) => {
                           queryClient.setQueryData(
@@ -1913,6 +1933,13 @@ export function CobroBloquePage() {
           <Modal
             title="Dividir cobro en varios medios"
             open={mixtoCreditoId != null}
+            centered
+            width={fieldMode ? 'min(100vw - 16px, 440px)' : 520}
+            styles={
+              fieldMode
+                ? { body: { maxHeight: 'min(70dvh, 520px)', overflowY: 'auto' } }
+                : undefined
+            }
             onCancel={() => {
               setMixtoCreditoId(null)
               setMixtoLineas([])

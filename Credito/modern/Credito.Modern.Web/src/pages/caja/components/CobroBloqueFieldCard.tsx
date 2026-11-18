@@ -37,6 +37,8 @@ export type CobroBloqueFieldEdit = {
   tipoPagoId: number
   fechaHoraTrans: string
   cuotasSeleccionadas: number[]
+  /** 2+ medios = cobro mixto (mismo flujo que «Dividir» en escritorio). */
+  medios?: Array<{ tipoPagoId: number; importe: number; fechaHoraTrans?: string | null }>
 }
 
 type TipoPagoOpt = { value: number; label: string }
@@ -51,6 +53,8 @@ type Props = {
   /** Cobro ya persistido hoy en este dispositivo. */
   enviado?: boolean
   errorMsg?: string | null
+  /** Abre el modal Dividir / editar mixto (móvil). */
+  onDividir?: () => void
   /** Registra el cobro tipado en el servidor. */
   onCobrar?: () => void
   cobrando?: boolean
@@ -78,6 +82,7 @@ export function CobroBloqueFieldCard({
   cuotasSlot,
   enviado = false,
   errorMsg = null,
+  onDividir,
   onCobrar,
   cobrando = false,
 }: Props) {
@@ -87,7 +92,8 @@ export function CobroBloqueFieldCard({
   const sug = Math.max(0, row.cuotaSugerida || 0)
   const deuda = Math.max(0, row.deudaPendiente || 0)
   const phone = digitsPhone(row.celular)
-  const digital = esTipoPagoDigital(edit.tipoPagoId)
+  const esMixto = (edit.medios?.length ?? 0) >= 2
+  const digital = !esMixto && esTipoPagoDigital(edit.tipoPagoId)
   const mapaPunto = {
     direccion: row.direccion,
     latitud: row.latitud,
@@ -99,7 +105,8 @@ export function CobroBloqueFieldCard({
 
   const setMonto = (montoPagar: number) => {
     const capped = Math.min(Math.max(0, montoPagar), deuda > 0 ? deuda : montoPagar)
-    onPatch({ montoPagar: capped, cuotasSeleccionadas: [] })
+    // Cambiar monto suelto cancela el mixto (mismo criterio que tipar un solo medio).
+    onPatch({ montoPagar: capped, cuotasSeleccionadas: [], medios: undefined })
   }
 
   const registrarMiUbicacion = () => {
@@ -276,6 +283,7 @@ export function CobroBloqueFieldCard({
           </Button>
           <Tooltip title="Quitar monto">
             <Button
+              className="cobro-bloque-card__chip-clear"
               disabled={edit.montoPagar <= 0}
               onClick={() => setMonto(0)}
               aria-label="Limpiar monto"
@@ -298,41 +306,64 @@ export function CobroBloqueFieldCard({
             inputMode="decimal"
             prefix="S/"
             onChange={setMonto}
+            disabled={esMixto}
           />
         </label>
 
-        <div
-          className="cobro-bloque-card__metodos"
-          role="radiogroup"
-          aria-label="Forma de pago"
-          translate="no"
-        >
-          {tipoPagoOptions.map((opt) => {
-            const active = edit.tipoPagoId === opt.value
-            const { variant, aria } = medioEtiquetaUi(opt.label)
-            const nombre = medioNombreMarca(opt.label)
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                role="radio"
-                aria-checked={active}
-                aria-label={aria}
-                title={aria}
-                className={[
-                  'cobro-bloque-card__metodo',
-                  active ? 'cobro-bloque-card__metodo--active' : '',
-                ]
-                  .filter(Boolean)
-                  .join(' ')}
-                onClick={() => onPatch({ tipoPagoId: opt.value })}
-              >
-                <ResumenCuentaBrandLogo variant={variant} etiqueta={nombre} size="sm" />
-                <span translate="no">{nombre}</span>
-              </button>
-            )
-          })}
-        </div>
+        {esMixto ? (
+          <div className="cobro-bloque-card__mixto" aria-label="Cobro mixto">
+            <p className="cobro-bloque-card__mixto-title">
+              Mixto · {edit.medios!.length} medios · S/ {formatMoney(edit.montoPagar)}
+            </p>
+            <ul className="cobro-bloque-card__mixto-list">
+              {edit.medios!.map((m, i) => {
+                const label =
+                  tipoPagoOptions.find((o) => o.value === m.tipoPagoId)?.label ??
+                  `Tipo ${m.tipoPagoId}`
+                const nombre = medioNombreMarca(label)
+                return (
+                  <li key={`${m.tipoPagoId}-${i}`}>
+                    <span translate="no">{nombre}</span>
+                    <strong>S/ {formatMoney(m.importe)}</strong>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ) : (
+          <div
+            className="cobro-bloque-card__metodos"
+            role="radiogroup"
+            aria-label="Forma de pago"
+            translate="no"
+          >
+            {tipoPagoOptions.map((opt) => {
+              const active = edit.tipoPagoId === opt.value
+              const { variant, aria } = medioEtiquetaUi(opt.label)
+              const nombre = medioNombreMarca(opt.label)
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  aria-label={aria}
+                  title={aria}
+                  className={[
+                    'cobro-bloque-card__metodo',
+                    active ? 'cobro-bloque-card__metodo--active' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                  onClick={() => onPatch({ tipoPagoId: opt.value, medios: undefined })}
+                >
+                  <ResumenCuentaBrandLogo variant={variant} etiqueta={nombre} size="sm" />
+                  <span translate="no">{nombre}</span>
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         {digital ? (
           <div className="cobro-bloque-card__voucher">
@@ -351,18 +382,31 @@ export function CobroBloqueFieldCard({
           </p>
         ) : null}
 
-        {!enviado && onCobrar ? (
-          <Button
-            type="primary"
-            block
-            size="large"
-            className="cobro-bloque-card__cobrar-ya"
-            disabled={edit.montoPagar <= 0}
-            loading={cobrando}
-            onClick={onCobrar}
-          >
-            Cobrar
-          </Button>
+        {!enviado ? (
+          <div className="cobro-bloque-card__acciones">
+            {onDividir ? (
+              <Button
+                size="large"
+                className="cobro-bloque-card__dividir"
+                disabled={deuda <= 0}
+                onClick={onDividir}
+              >
+                {esMixto ? 'Editar mixto' : 'Dividir'}
+              </Button>
+            ) : null}
+            {onCobrar ? (
+              <Button
+                type="primary"
+                size="large"
+                className="cobro-bloque-card__cobrar-ya"
+                disabled={edit.montoPagar <= 0}
+                loading={cobrando}
+                onClick={onCobrar}
+              >
+                Cobrar
+              </Button>
+            ) : null}
+          </div>
         ) : null}
       </div>
 
