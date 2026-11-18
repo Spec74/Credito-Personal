@@ -13,6 +13,8 @@
   --caja-cuota-creada-bg: #fefce8;
   --caja-cuota-creada-border: #eab308;
   --caja-cuota-resumen-bg: var(--credix-surface-muted);
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 .caja-diario-page.credix-page .credix-page-body {
@@ -111,6 +113,8 @@
   flex-direction: column;
   gap: 12px;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .caja-diario-workspace {
@@ -119,6 +123,7 @@
   gap: 12px;
   width: 100%;
   min-width: 0;
+  max-width: 100%;
 }
 
 .caja-diario-main-column {
@@ -160,6 +165,8 @@
   flex-direction: column;
   gap: 12px;
   width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .caja-diario-cobro-bridge {
@@ -1508,8 +1515,8 @@
 
 .caja-diario-pago-dock-fixed {
   position: fixed;
-  left: 12px;
-  right: 12px;
+  left: max(8px, env(safe-area-inset-left, 0px));
+  right: max(8px, env(safe-area-inset-right, 0px));
   bottom: 0;
   z-index: 95;
   pointer-events: none;
@@ -1519,6 +1526,8 @@
   max-height: min(88svh, calc(100dvh - 8px));
   display: flex;
   flex-direction: column;
+  width: auto;
+  max-width: 100%;
 }
 
 .caja-diario-pago-dock-fixed__inner {
@@ -1533,6 +1542,9 @@
   box-shadow: 0 8px 24px color-mix(in srgb, var(--credix-text) 14%, transparent);
   max-height: inherit;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
   overflow: hidden;
 }
 
@@ -1669,17 +1681,25 @@
 .caja-diario-pago-dock-fixed .caja-diario-pago-mixto-toggle--dock {
   position: relative;
   z-index: 2;
+  flex: 0 0 auto;
   margin: 0 0 8px;
   padding: 10px 10px;
   border-radius: 10px;
   border: 1px solid var(--credix-brand-line, #c5d4e8);
   background: var(--credix-brand-light, #eef3f9);
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+.caja-diario-pago-dock-fixed.is-collapsed .caja-diario-pago-mixto-toggle--dock {
+  margin-bottom: 0;
 }
 
 .caja-diario-pago-dock-fixed .caja-diario-pago-mixto-toggle--dock span:last-child {
   font-size: 13px;
   font-weight: 750;
   color: var(--credix-ink-brand, #114885);
+  overflow-wrap: anywhere;
 }
 
 .caja-diario-pago-dock__body.is-collapsed {
@@ -1994,6 +2014,38 @@
 
   .caja-diario-pago-dock-fixed .caja-pago-medios-split .caja-diario-pago-recibido .ant-input-number {
     width: 100%;
+  }
+
+  .caja-diario-pago-dock-fixed .caja-pago-medios-split__head {
+    flex-wrap: wrap;
+  }
+
+  .caja-diario-pago-modos__btn {
+    min-height: 40px;
+    font-size: 13px;
+    padding-inline: 6px;
+  }
+
+  .caja-diario-pago-dock-fixed .caja-diario-pago-mixto-toggle--dock {
+    padding: 8px 10px;
+  }
+}
+
+/* Tablet estrecha / landscape: dock no tapa más de lo necesario */
+@media (min-width: 641px) and (max-width: 991px) {
+  .caja-diario-pago-dock-panel {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .caja-diario-pago-dock-row {
+    align-items: stretch;
+  }
+
+  .caja-diario-pago-dock-row .caja-btn-pagar-cuota,
+  .caja-diario-pago-dock-row .caja-btn-pago-libre {
+    flex: 1 1 160px;
+    min-width: 0;
   }
 }
 

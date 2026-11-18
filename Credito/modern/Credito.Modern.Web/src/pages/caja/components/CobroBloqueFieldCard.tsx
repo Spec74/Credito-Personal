@@ -382,8 +382,15 @@ export function CobroBloqueFieldCard({
           </p>
         ) : null}
 
-        {!enviado ? (
-          <div className="cobro-bloque-card__acciones">
+        {!enviado && (onDividir || onCobrar) ? (
+          <div
+            className={[
+              'cobro-bloque-card__acciones',
+              onDividir && onCobrar ? '' : 'cobro-bloque-card__acciones--solo',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
             {onDividir ? (
               <Button
                 size="large"

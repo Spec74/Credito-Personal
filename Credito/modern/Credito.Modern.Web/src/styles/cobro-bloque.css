@@ -1,3 +1,8 @@
+.cobro-bloque-page {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 .cobro-bloque-page .cobro-bloque-page__hint,
 .cobro-bloque-page .cobro-bloque-page__draft {
   margin-bottom: 12px;
@@ -111,6 +116,9 @@
   border: 1px solid var(--credix-border);
   border-radius: 14px;
   background: var(--credix-surface);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .cobro-bloque-enviados-list__right {
@@ -181,7 +189,16 @@
 }
 
 .cobro-bloque-col-accion {
-  min-width: 148px;
+  min-width: 210px;
+}
+
+.cobro-bloque-col-accion .ant-space {
+  max-width: 100%;
+}
+
+.cobro-bloque-table.ant-table-wrapper,
+.cobro-bloque-table .ant-table {
+  max-width: 100%;
 }
 
 /* —— Barra de comando (buscar + chips); sticky vía .cobro-bloque-sticky-chrome —— */
@@ -496,6 +513,9 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .cobro-bloque-field-list__loading {
@@ -515,6 +535,9 @@
   border-radius: 16px;
   background: var(--credix-surface);
   box-shadow: 0 1px 2px color-mix(in srgb, var(--credix-text) 6%, transparent);
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .cobro-bloque-card--mora {
@@ -627,8 +650,9 @@
 
 .cobro-bloque-card__deuda {
   text-align: right;
-  white-space: nowrap;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 42%;
 }
 
 .cobro-bloque-card__deuda span {
@@ -647,6 +671,8 @@
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--credix-brand, #114885);
+  overflow-wrap: anywhere;
+  line-height: 1.15;
 }
 
 .cobro-bloque-card__contacts {
@@ -730,16 +756,22 @@
 
 .cobro-bloque-card__chips {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: stretch;
   gap: 8px;
+  min-width: 0;
 }
 
 .cobro-bloque-card__chips .ant-btn {
-  flex: 1 1 calc(50% - 8px);
+  flex: 1 1 0;
   min-width: 0;
   height: 40px;
+  padding-inline: 8px;
   font-weight: 700;
   border-radius: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cobro-bloque-card__chips .cobro-bloque-card__chip-clear {
@@ -819,20 +851,24 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
   gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
+.cobro-bloque-card__acciones--solo {
+  grid-template-columns: 1fr;
 }
 
 .cobro-bloque-card__acciones .ant-btn {
   min-height: 46px;
+  min-width: 0;
+  width: 100%;
   font-weight: 750;
   border-radius: 12px;
 }
 
 .cobro-bloque-card__acciones .cobro-bloque-card__cobrar-ya {
   width: 100%;
-}
-
-.cobro-bloque-card__acciones:has(> :only-child) {
-  grid-template-columns: 1fr;
 }
 
 .cobro-bloque-card__metodos {
@@ -932,7 +968,11 @@
   bottom: 0;
   z-index: 90;
   pointer-events: none;
-  padding: 0 12px calc(10px + env(safe-area-inset-bottom, 0px));
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0 max(8px, env(safe-area-inset-right, 0px))
+    calc(10px + env(safe-area-inset-bottom, 0px))
+    max(8px, env(safe-area-inset-left, 0px));
 }
 
 .cobro-bloque-dock__inner {
@@ -947,6 +987,10 @@
   background: color-mix(in srgb, var(--credix-surface) 97%, transparent);
   backdrop-filter: blur(12px);
   box-shadow: 0 10px 32px color-mix(in srgb, var(--credix-text) 14%, transparent);
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .cobro-bloque-dock__stats {
@@ -1137,8 +1181,8 @@
   }
 
   .cobro-bloque-dock {
-    padding-left: 8px;
-    padding-right: 8px;
+    padding-left: max(8px, env(safe-area-inset-left, 0px));
+    padding-right: max(8px, env(safe-area-inset-right, 0px));
   }
 
   .cobro-bloque-dock__inner {
@@ -1146,6 +1190,15 @@
     gap: 10px;
     border-radius: 14px;
     padding: 10px 12px;
+  }
+
+  .cobro-bloque-enviados-list__item {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .cobro-bloque-enviados-list__right {
+    margin-left: auto;
   }
 
   .cobro-bloque-dock__stats {
@@ -1183,12 +1236,113 @@
     font-weight: 700;
   }
 
+  .cobro-bloque-card__dividir.ant-btn {
+    min-height: 48px;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
   .cobro-bloque-card__name {
     font-size: 1.05rem;
   }
 
   .cobro-bloque-card__deuda strong {
     font-size: 1.15rem;
+  }
+
+  .cobro-bloque-card {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .cobro-bloque-card__head {
+    gap: 8px;
+  }
+
+  .cobro-bloque-card__deuda {
+    max-width: 46%;
+  }
+
+  .cobro-bloque-card__monto .ant-input-number-input {
+    height: 46px !important;
+    font-size: 20px !important;
+  }
+}
+
+/* Teléfonos muy estrechos: chips en 2×2 sin desborde */
+@media (max-width: 360px) {
+  .cobro-bloque-card__chips {
+    flex-wrap: wrap;
+  }
+
+  .cobro-bloque-card__chips .ant-btn {
+    flex: 1 1 calc(50% - 8px);
+  }
+
+  .cobro-bloque-card__chips .cobro-bloque-card__chip-clear {
+    flex: 1 1 100%;
+  }
+
+  .cobro-bloque-card__acciones {
+    grid-template-columns: 1fr;
+  }
+
+  .cobro-bloque-card__deuda {
+    max-width: 48%;
+  }
+
+  .cobro-bloque-card__deuda strong {
+    font-size: 1rem;
+  }
+}
+
+/* Modal Dividir: ancho fluido PC + móvil sin saltar del viewport */
+.cobro-bloque-mixto-modal.ant-modal {
+  max-width: calc(100vw - 24px);
+  padding-bottom: 0;
+}
+
+.cobro-bloque-mixto-modal .ant-modal-content {
+  max-width: 100%;
+}
+
+.cobro-bloque-mixto-modal .ant-modal-body {
+  min-width: 0;
+}
+
+.cobro-bloque-mixto-modal .caja-pago-medios-split {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.cobro-bloque-mixto-modal--field.ant-modal {
+  width: min(440px, calc(100vw - 16px)) !important;
+  max-width: calc(100vw - 16px);
+  margin: 8px auto;
+}
+
+.cobro-bloque-mixto-modal--field .ant-modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.cobro-bloque-mixto-modal--field .ant-modal-footer .ant-btn {
+  min-height: 44px;
+  flex: 1 1 auto;
+}
+
+@media (max-width: 480px) {
+  .cobro-bloque-mixto-modal.ant-modal {
+    max-width: calc(100vw - 12px);
+  }
+
+  .cobro-bloque-mixto-modal .ant-modal-header,
+  .cobro-bloque-mixto-modal .ant-modal-body,
+  .cobro-bloque-mixto-modal .ant-modal-footer {
+    padding-left: 14px;
+    padding-right: 14px;
   }
 }
 

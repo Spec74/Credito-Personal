@@ -1934,12 +1934,13 @@ export function CobroBloquePage() {
             title="Dividir cobro en varios medios"
             open={mixtoCreditoId != null}
             centered
-            width={fieldMode ? 'min(100vw - 16px, 440px)' : 520}
-            styles={
-              fieldMode
-                ? { body: { maxHeight: 'min(70dvh, 520px)', overflowY: 'auto' } }
-                : undefined
-            }
+            className={fieldMode ? 'cobro-bloque-mixto-modal cobro-bloque-mixto-modal--field' : 'cobro-bloque-mixto-modal'}
+            width={520}
+            styles={{
+              body: fieldMode
+                ? { maxHeight: 'min(70dvh, 520px)', overflowY: 'auto', paddingTop: 8 }
+                : { maxHeight: 'min(72vh, 560px)', overflowY: 'auto' },
+            }}
             onCancel={() => {
               setMixtoCreditoId(null)
               setMixtoLineas([])
