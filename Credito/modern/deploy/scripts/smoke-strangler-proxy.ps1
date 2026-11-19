@@ -9,11 +9,13 @@ param(
     [string]$BaseUrl = "http://localhost:9080",
     [int]$UsuarioId = 1,
     [int]$OficinaId = 1,
+    [int]$SucursalOficinaId = 2,
     [string]$NombreUsuario = "",
     [string]$Clave = "",
     [int]$ClienteAccesoOficinaId = 0,
     [string]$CodigoArticulo = "SMOKE-NOEXISTE",
-    [switch]$SkipJwt
+    [switch]$SkipJwt,
+    [switch]$SkipDashboard
 )
 
 $ErrorActionPreference = "Stop"
@@ -145,6 +147,52 @@ Assert-Status $me @(200)
 Write-Step "GET /api/v1/menu"
 $menu = Invoke-WebRequest -Uri (Get-ApiUrl "/api/v1/menu") -Headers $headers -UseBasicParsing
 Assert-Status $menu @(200)
+
+if (-not $SkipDashboard -and [string]::IsNullOrWhiteSpace($NombreUsuario)) {
+    Write-Step "Tablero Red Central GET /api/v1/dashboard/admin/red (200)"
+    $centralBody = @{
+        usuarioId = $UsuarioId
+        oficinaId = $OficinaId
+        roles     = @("ADMINISTRADOR")
+    } | ConvertTo-Json
+    $centralTok = Invoke-WebRequest -Uri (Get-ApiUrl "/api/v1/dev/token") -Method Post -Body $centralBody -ContentType "application/json" -UseBasicParsing
+    Assert-Status $centralTok @(200)
+    $centralHeaders = @{ Authorization = "Bearer $(($centralTok.Content | ConvertFrom-Json).accessToken)" }
+    Assert-Status (Invoke-WebRequest -Uri (Get-ApiUrl "/api/v1/dashboard/admin/red") -Headers ($centralHeaders + $proxyHeaders) -UseBasicParsing) @(200)
+
+    Write-Step "Tablero Red sucursal GET /api/v1/dashboard/admin/red (403) oficinaId=$SucursalOficinaId"
+    $sucBody = @{
+        usuarioId = $UsuarioId
+        oficinaId = $SucursalOficinaId
+        roles     = @("ADMINISTRADOR")
+    } | ConvertTo-Json
+    $sucTok = Invoke-WebRequest -Uri (Get-ApiUrl "/api/v1/dev/token") -Method Post -Body $sucBody -ContentType "application/json" -UseBasicParsing
+    Assert-Status $sucTok @(200)
+    $sucHeaders = @{ Authorization = "Bearer $(($sucTok.Content | ConvertFrom-Json).accessToken)" }
+    try {
+        Invoke-WebRequest -Uri (Get-ApiUrl "/api/v1/dashboard/admin/red") -Headers ($sucHeaders + $proxyHeaders) -UseBasicParsing | Out-Null
+        throw "Se esperaba 403 en /dashboard/admin/red para oficina no Central."
+    }
+    catch {
+        if ($_.Exception.Message -like "Se esperaba 403*") { throw }
+        $code = [int]$_.Exception.Response.StatusCode
+        if ($code -ne 403) {
+            throw "admin/red sucursal: HTTP $code (esperado 403)"
+        }
+        Write-Host "403 OK (sucursal)" -ForegroundColor Gray
+    }
+
+    Write-Step "Analista GET /api/v1/dashboard/analista (200)"
+    $anaBody = @{
+        usuarioId = $UsuarioId
+        oficinaId = $OficinaId
+        roles     = @("ANALISTA")
+    } | ConvertTo-Json
+    $anaTok = Invoke-WebRequest -Uri (Get-ApiUrl "/api/v1/dev/token") -Method Post -Body $anaBody -ContentType "application/json" -UseBasicParsing
+    Assert-Status $anaTok @(200)
+    $anaHeaders = @{ Authorization = "Bearer $(($anaTok.Content | ConvertFrom-Json).accessToken)" }
+    Assert-Status (Invoke-WebRequest -Uri (Get-ApiUrl "/api/v1/dashboard/analista") -Headers ($anaHeaders + $proxyHeaders) -UseBasicParsing) @(200)
+}
 
 Write-Step "GET /api/v1/reportes/catalogo"
 $catalogo = Invoke-WebRequest -Uri (Get-ApiUrl "/api/v1/reportes/catalogo") -Headers ($headers + $proxyHeaders) -UseBasicParsing

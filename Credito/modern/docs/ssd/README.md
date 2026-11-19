@@ -90,12 +90,12 @@ en `docs/speckit/` (constitución → spec → plan → tasks). Primer cambio:
 
 - [SSD-13 experiencia operativa](SSD-13-experiencia-operativa.md) · [001-experiencia-operativa](../speckit/001-experiencia-operativa/spec.md) · [CONSTITUTION-UX](../speckit/CONSTITUTION-UX.md)
 
-## Estado documental (hasta 2026-11-12)
+## Estado documental (hasta 2026-11-18)
 
-El as-built está al día hasta **2026-11-12** (céntimos ROUND 2, central de riesgos por sede, hub `/reportes/credito` con sede). No se declara «100% completo»: queda deuda abierta.
+**Paquete as-built: 100% escrito y navegable** (SSD-00…19 + índices). Ver [DOCUMENTACION.md](../DOCUMENTACION.md).
 
-**Cerrado 2026-11-12 (mantenibilidad):** endpoints de operación y reportes restantes partidos por dominio (fachadas `MapCreditoOperacionEndpoints` / `MapCreditoReportesRestantesEndpoints` sin cambio de rutas); responsive código firmado en [responsive-audit.md](../responsive-audit.md). Queda solo evidencia operativa SSD §7 / cutover preprod.
+Eso **no** implica cutover operativo al 100%: las casillas SSD §7 `[ ]` son evidencia de smoke (no huecos de prosa). Estado vivo en [DEUDA-TECNICA.md](../DEUDA-TECNICA.md).
+
+**Cerrado 2026-11-18 (mantenibilidad):** fachadas endpoint + Tablero Red / ranking / meta; smokes Docker `:5080`/`:9080` con Red 200/403 + analista. Quedan archivos SPA/API >1500 líneas (backlog §2) y cutover preprod (SSD-00 §7 abierto).
 
 Incluye: SSD-00…19, [DOCUMENTACION.md](../DOCUMENTACION.md), [ARCHITECTURE.md](../ARCHITECTURE.md), [tickets_comprobantes.md](../tickets_comprobantes.md), [responsive-audit.md](../responsive-audit.md), [GLOSARIO.md](../GLOSARIO.md), [AMBIENTES.md](../AMBIENTES.md), [API-OVERVIEW.md](../API-OVERVIEW.md), [TEST-STRATEGY.md](../TEST-STRATEGY.md), [OPS.md](../OPS.md).
-
-Fuera de la documentación quedan la **ejecución operativa** del cutover preprod (SSD-00 §7 casillas abiertas) y la deuda técnica indicada arriba.

@@ -5,9 +5,10 @@
 
 **Qué no es “docs faltantes”:**  
 - Casillas SSD §7 `[ ]` = **evidencia de smoke** (pista operativa). Criterios ya redactados. Ver [DEUDA-TECNICA.md](DEUDA-TECNICA.md) §1.  
-- Deuda de **código** (archivos endpoint muy grandes) = backlog de mantenimiento en [DEUDA-TECNICA.md](DEUDA-TECNICA.md) §2; no bloquea el paquete documental.
+- Deuda de **código** (SPA/API >1500 líneas) = backlog en [DEUDA-TECNICA.md](DEUDA-TECNICA.md) §2; no bloquea el paquete documental.
+- Cutover preprod (SSD-00 §7 abierto) = ops humano; veredicto en [DEUDA-TECNICA.md](DEUDA-TECNICA.md).
 
-**Hecho 2026-11-18:** Tablero Red SQL agregado, `AdminRedDashboard`, ranking/meta, `COMO-LEER-EL-CODIGO`, `readme` adelgazado.  
+**Hecho 2026-11-18:** Tablero Red SQL, ranking/meta, smokes Docker Red 200/403, extract CobroBloque columns/cuotas, SSD §7 reconciliado vs SMOKE-SIGN-OFF donde hay firma.  
 Una base `CREDITO`; sucursal = `OficinaId`. Tablero Red: SSD-01.
 
 Este es el **índice único** para informática, negocio y auditoría.

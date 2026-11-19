@@ -8,9 +8,11 @@ param(
     [string]$BaseUrl = "https://localhost:7288",
     [int]$UsuarioId = 1,
     [int]$OficinaId = 1,
+    [int]$SucursalOficinaId = 2,
     [string]$NombreUsuario = "",
     [string]$Clave = "",
-    [switch]$SkipJwt
+    [switch]$SkipJwt,
+    [switch]$SkipDashboard
 )
 
 $ErrorActionPreference = "Stop"
@@ -138,5 +140,64 @@ Assert-Status (Invoke-ApiRequest -Uri (Get-ApiUrl "/api/v1/menu") -Headers $head
 
 Write-Step "GET /api/v1/database-time"
 Assert-Status (Invoke-ApiRequest -Uri (Get-ApiUrl "/api/v1/database-time")) @(200)
+
+if (-not $SkipDashboard -and [string]::IsNullOrWhiteSpace($NombreUsuario)) {
+    Write-Step "Tablero Red Central GET /api/v1/dashboard/admin/red (200)"
+    $centralBody = @{
+        usuarioId = $UsuarioId
+        oficinaId = $OficinaId
+        roles     = @("ADMINISTRADOR")
+    } | ConvertTo-Json
+    $centralTok = Invoke-ApiRequest -Uri (Get-ApiUrl "/api/v1/dev/token") -Method Post -Body $centralBody
+    Assert-Status $centralTok @(200)
+    $centralHeaders = @{
+        Authorization     = "Bearer $(($centralTok.Content | ConvertFrom-Json).accessToken)"
+        "X-Correlation-ID" = $correlationId
+    }
+    Assert-Status (Invoke-ApiRequest -Uri (Get-ApiUrl "/api/v1/dashboard/admin/red") -Headers $centralHeaders) @(200)
+
+    Write-Step "Tablero Red sucursal GET /api/v1/dashboard/admin/red (403) oficinaId=$SucursalOficinaId"
+    $sucBody = @{
+        usuarioId = $UsuarioId
+        oficinaId = $SucursalOficinaId
+        roles     = @("ADMINISTRADOR")
+    } | ConvertTo-Json
+    $sucTok = Invoke-ApiRequest -Uri (Get-ApiUrl "/api/v1/dev/token") -Method Post -Body $sucBody
+    Assert-Status $sucTok @(200)
+    $sucHeaders = @{
+        Authorization     = "Bearer $(($sucTok.Content | ConvertFrom-Json).accessToken)"
+        "X-Correlation-ID" = $correlationId
+    }
+    try {
+        Invoke-ApiRequest -Uri (Get-ApiUrl "/api/v1/dashboard/admin/red") -Headers $sucHeaders | Out-Null
+        throw "Se esperaba 403 en /dashboard/admin/red para oficina no Central."
+    }
+    catch {
+        $resp = $_.Exception.Response
+        if (-not $resp) { throw }
+        $code = [int]$resp.StatusCode
+        if ($code -ne 403) {
+            throw "admin/red sucursal: HTTP $code (esperado 403)"
+        }
+        Write-Host "403 OK (sucursal)" -ForegroundColor Gray
+    }
+
+    Write-Step "Analista GET /api/v1/dashboard/analista (200)"
+    $anaBody = @{
+        usuarioId = $UsuarioId
+        oficinaId = $OficinaId
+        roles     = @("ANALISTA")
+    } | ConvertTo-Json
+    $anaTok = Invoke-ApiRequest -Uri (Get-ApiUrl "/api/v1/dev/token") -Method Post -Body $anaBody
+    Assert-Status $anaTok @(200)
+    $anaHeaders = @{
+        Authorization     = "Bearer $(($anaTok.Content | ConvertFrom-Json).accessToken)"
+        "X-Correlation-ID" = $correlationId
+    }
+    Assert-Status (Invoke-ApiRequest -Uri (Get-ApiUrl "/api/v1/dashboard/analista") -Headers $anaHeaders) @(200)
+}
+elseif (-not $SkipDashboard) {
+    Write-Host "Tablero Red/analista: omitido con login real (usa -SkipDashboard o corre con dev/token)." -ForegroundColor Gray
+}
 
 Write-Host "`nSmoke local API completado." -ForegroundColor Green

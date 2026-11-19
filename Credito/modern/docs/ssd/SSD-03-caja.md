@@ -120,7 +120,7 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 
 > **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
 
-- [ ] Ítem CAJA DIARIO abre sesión del día; cobro de cuota llama `usp_PagarCuotas` y emite ticket si hay `MovimientoCajaId`.
+- [x] Ítem CAJA DIARIO abre sesión del día; cobro de cuota llama `usp_PagarCuotas` y emite ticket si hay `MovimientoCajaId`. — [SMOKE-SIGN-OFF](../SMOKE-SIGN-OFF.md) `JVILLALOBOS` mov. 2287634 / ticket ~36 KB 2026-10-10
 - [ ] Completar impagos confirma y registra CUO 0; el cierre usa la validación GET, no bloquea el POST.
 - [ ] Última cuota con mora liquida `usp_CreditoMora_Liquidar` (producto con `IndMora`).
 - [ ] Cierre de caja falla con mensaje de condonaciones pendientes de esa caja.
@@ -128,8 +128,8 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 - [ ] `LECTURA_SALDO` ve `/caja/saldos` sin asignar ni cierre masivo.
 - [ ] PDF de cajas asignadas / saldo caja / movimiento bóveda desde Saldos usa JWT, no RDLC MVC.
 - [ ] Hub `/caja` no abre asignar / saldos / verificar.
-- [ ] Cobro móvil (`/caja/cobro`): sin GPS muestra «Registrar mi ubicación»; con GPS solo enlace dirección → coords. *(smoke HTTPS G2 — [SMOKE-SIGN-OFF](../SMOKE-SIGN-OFF.md); automatizado: `clienteMapaNavegacion` + `cobroCampoSmokeParity`)*
-- [x] PC (tabla): columna **Ubicación** con enlace mapa; **sin** botón de captura GPS. *(parity código 2026-10-12 — G1; confirmar viewport en HTTPS)*
+- [x] Cobro móvil (`/caja/cobro`): sin GPS muestra «Registrar mi ubicación»; con GPS solo enlace dirección → coords. — SMOKE G2 2026-10-12 + `clienteMapaNavegacion` / `cobroCampoSmokeParity`
+- [x] PC (tabla): columna **Ubicación** con enlace mapa; **sin** botón de captura GPS. — SMOKE G1 2026-10-12 + parity
 - [x] Cartera Cobrar/Registrar con `CompletarImpagos: false`; tickets solo Enviados; sin day-lock duro. *(parity C1–C3 — `cobroCampoSmokeParity`)*
 
 ## 8. Desviaciones

@@ -96,15 +96,15 @@ La verificación de clave es en C# (`UsuarioPasswordHasher` / `UsuarioPasswordHa
 
 > **Documentación:** criterios redactados al 100%. Las casillas registran **evidencia de ejecución** (Development / preprod), no huecos de spec.
 
-- [ ] Login SPA con usuario real (no `dev/token`) entra y carga menú.
-- [ ] Misma clave vale en MVC tras hash `$pbk2$` (hasher compat).
-- [x] Analista ve tablero personal (KPIs; ranking/podio/meta si hay datos). — API Docker `:5080` 2026-11-18
-- [x] Admin Central ve Tablero Red (`GET …/admin/red` 200). — API Docker 2026-11-18
-- [x] Admin sucursal no ve Red (`GET …/admin/red` 403). — API Docker 2026-11-18
-- [ ] Reportes → Dashboard abre `/inicio`, no Informes. (SPA / menú)
-- [ ] Padre CREDITO/SEGURIDAD no habilita consulta ni usuarios.
-- [ ] Refresh rota access token; Bearer vencido → 401 y re-login.
-- [ ] `dev/token` no existe fuera de Development (Production).
+- [x] Login SPA con usuario real (no `dev/token`) entra y carga menú. — [SMOKE-SIGN-OFF](../SMOKE-SIGN-OFF.md) Vercel/`admvendix` 2026-10-09 (cutover local `:9080` sigue en SSD-00)
+- [ ] Misma clave vale en MVC tras hash `$pbk2$` (hasher compat). — pendiente humo cruzado MVC+API en preprod
+- [x] Analista ve tablero personal (KPIs; ranking/podio/meta si hay datos). — `smoke-local-api` / strangler Docker 2026-11-18
+- [x] Admin Central ve Tablero Red (`GET …/admin/red` 200). — smoke Docker 2026-11-18
+- [x] Admin sucursal no ve Red (`GET …/admin/red` 403). — smoke Docker 2026-11-18
+- [x] Reportes → Dashboard abre `/inicio`, no Informes. — `resolveSpaPathFromMenuItem.test.ts`
+- [x] Padre CREDITO/SEGURIDAD no habilita consulta ni usuarios. — `menuRouteAccess.test.ts` + ACL SMOKE 2026-10-10
+- [ ] Refresh rota access token; Bearer vencido → 401 y re-login. — pendiente humo SPA refresh
+- [x] `dev/token` no existe fuera de Development (Production). — Azure HTTP 404 [SMOKE-SIGN-OFF](../SMOKE-SIGN-OFF.md) 2026-10-09
 
 ## 8. Desviaciones
 
@@ -120,8 +120,8 @@ Password: roadmap (columna 256, flag perezoso). No es desviación financiera.
 
 - API: `loginendpointtests`, `authmeendpointtests`, `usuariopasswordhashertests`, `dashboardadminendpointtests`, `dashboardanalistaendpointtests`
 - SPA: `creditoOperacionPermisos.test.ts` (quién ve cada tablero), `resolvespapathfrommenuitem.test.ts` (Dashboard/Admin, padres nulos), `menuRouteAccess.test.ts`
-- Smoke: `deploy/scripts/smoke-local-api.ps1` (health, 401, token, me, menu, database-time) — OK Docker `:5080` 2026-11-18
-- Smoke: `deploy/scripts/smoke-strangler-proxy.ps1` (health, JWT, menú, reportes, ventas lectura, MVC upstream) — OK Docker `:9080` 2026-11-18
+- Smoke: `deploy/scripts/smoke-local-api.ps1` (health, 401, token, me, menu, database-time, Red 200/403, analista 200) — OK Docker `:5080` 2026-11-18
+- Smoke: `deploy/scripts/smoke-strangler-proxy.ps1` (igual + reportes, ventas lectura, MVC upstream) — OK Docker `:9080` 2026-11-18
 
 ## 10. Go-live
 

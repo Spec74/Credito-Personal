@@ -85,8 +85,8 @@ Listado sin término (&lt; 2 caracteres): clientes distintos de créditos del `U
 - [ ] Guardar redirige a `/clientes`.
 - [ ] Activar / bloquear cambian estado como el MVC.
 - [ ] Prendario nuevo puede ir a `/clientes/nuevo` y volver con `personaId`.
-- [ ] Pestaña Ubicación: «Registrar mi ubicación» / «Actualizar GPS del dispositivo» usa el GPS del dispositivo y persiste lat/lng (edición) o pide Guardar (alta). *(smoke HTTPS — [SMOKE-SIGN-OFF § GPS](../SMOKE-SIGN-OFF.md); automatizado: `deviceGeolocation.test.ts`, `ClienteGpsRules`)*
-- [ ] Sin GPS, el mapa/geocode de domicilio sigue funcionando (paridad; geocode distrito = vista previa). *(smoke — SMOKE-SIGN-OFF § GPS)*
+- [x] Pestaña Ubicación: «Registrar mi ubicación» / «Actualizar GPS del dispositivo» usa el GPS del dispositivo y persiste lat/lng (edición) o pide Guardar (alta). — SMOKE G4 2026-10-12 + `deviceGeolocation.test.ts` / `ClienteGpsRules`
+- [x] Sin GPS, el mapa/geocode de domicilio sigue funcionando (paridad; geocode distrito = vista previa). — SMOKE G5 2026-10-12
 
 ## 8. Desviaciones
 

@@ -89,7 +89,18 @@ Caché: shell/red ~90s, detalle ~180s (`IMemoryCache`).
 
 ---
 
-## 6. Smoke rápido (Docker `:5080`)
+## 6. Smoke rápido (Docker `:5080` / `:9080`)
+
+Automatizado (2026-11-18):
+
+```powershell
+.\deploy\scripts\smoke-local-api.ps1 -BaseUrl "http://localhost:5080"
+.\deploy\scripts\smoke-strangler-proxy.ps1 -BaseUrl "http://localhost:9080"
+```
+
+Incluye Red Central **200**, sucursal (`SucursalOficinaId`, default 2) **403**, analista **200**.
+
+Manual equivalente:
 
 ```text
 POST /api/v1/dev/token  { usuarioId, oficinaId:1, roles:["ADMINISTRADOR"] }  → Bearer
