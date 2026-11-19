@@ -42,4 +42,34 @@ public class DashboardAdminEndpointTests : IClassFixture<CreditoModernWebApplica
         var response = await _client.SendAsync(req);
         Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
+
+    [Fact]
+    public async Task AdminRed_sin_jwt_devuelve_401()
+    {
+        var response = await _client.GetAsync("/api/v1/dashboard/admin/red");
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task AdminRed_sucursal_admin_devuelve_403()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        // Oficina 3 no es Central (IndPrincipal): red solo desde sede principal.
+        var tokenRes = await _client.PostAsJsonAsync(
+            "/api/v1/dev/token",
+            new { usuarioId = 1, oficinaId = 3, roles = new[] { "ADMINISTRADOR" } });
+        Assert.Equal(HttpStatusCode.OK, tokenRes.StatusCode);
+        using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
+        var token = doc.RootElement.GetProperty("accessToken").GetString();
+        Assert.False(string.IsNullOrEmpty(token));
+
+        using var req = new HttpRequestMessage(HttpMethod.Get, "/api/v1/dashboard/admin/red");
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
 }

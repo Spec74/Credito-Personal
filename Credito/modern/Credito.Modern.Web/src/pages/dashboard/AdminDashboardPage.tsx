@@ -14,9 +14,11 @@ import { Alert, Button, Input, Select, Skeleton, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   fetchDashboardAdminDetalle,
+  fetchDashboardAdminRed,
   fetchDashboardAdminShell,
   type DashboardAdminAnalistaRow,
   type DashboardAdminFlujoRow,
+  type DashboardAdminRedSedeRow,
 } from '../../api/dashboard'
 import { ApiError } from '../../api/errors'
 import { DualMetricChart } from '../../components/dashboard/DualMetricChart'
@@ -44,7 +46,7 @@ export function AdminDashboardPage() {
   const { esCentral, oficinas, oficinaSesionId } = useEsCentral()
   const [params, setParams] = useSearchParams()
   const [buscar, setBuscar] = useState('')
-  /** Central: lectura de otra sede sin re-login (`?sedeId=`). Sucursal: siempre JWT. */
+  /** Central: sin sedeId = Tablero Red; con sedeId = tablero de esa oficina. */
   const sedeId = useMemo(() => {
     if (!esCentral) return undefined
     const raw = Number(params.get('sedeId') ?? '')
@@ -59,18 +61,66 @@ export function AdminDashboardPage() {
     }
     setParams(nextParams, { replace: true })
   }
+  const modoRed = esCentral && sedeId == null
   const oficinaKey = session?.oficinaId
   const sedeQuery = esCentral ? sedeId : undefined
-  const enabled = (oficinaKey ?? 0) > 0
   const sedeSeleccionada = sedeId
     ? oficinas.find((o) => o.oficinaId === sedeId)
     : undefined
   const oficinaSesion = oficinas.find((o) => o.oficinaId === oficinaSesionId)
   const alcanceLectura = sedeSeleccionada
     ? `Sede consultada: ${sedeSeleccionada.denominacion || `Sede ${sedeId}`}`
-    : esCentral
-      ? `Oficina de sesión: ${oficinaSesion?.denominacion || shellNombreFallback(oficinaSesionId)} · elija otra sede para comparar`
-      : `Oficina: ${oficinaSesion?.denominacion || shellNombreFallback(oficinaSesionId)}`
+    : `Oficina: ${oficinaSesion?.denominacion || shellNombreFallback(oficinaSesionId)}`
+
+  const sedeSelect = esCentral ? (
+    <Select
+      placeholder="Toda la red"
+      style={{ minWidth: 240 }}
+      value={sedeId ?? 0}
+      onChange={(v) => setSedeId(v === 0 ? undefined : v)}
+      options={[
+        { value: 0, label: 'Toda la red (consolidado)' },
+        ...oficinas.map((o) => ({
+          value: o.oficinaId,
+          label: o.denominacion || `Sede ${o.oficinaId}`,
+        })),
+      ]}
+      aria-label="Alcance del tablero gerencial"
+    />
+  ) : null
+
+  if (modoRed) {
+    return <AdminRedDashboard sedeSelect={sedeSelect} onDrillSede={setSedeId} />
+  }
+
+  return (
+    <AdminSedeDashboard
+      sedeSelect={sedeSelect}
+      sedeQuery={sedeQuery}
+      oficinaKey={oficinaKey}
+      alcanceLectura={alcanceLectura}
+      buscar={buscar}
+      setBuscar={setBuscar}
+    />
+  )
+}
+
+function AdminSedeDashboard({
+  sedeSelect,
+  sedeQuery,
+  oficinaKey,
+  alcanceLectura,
+  buscar,
+  setBuscar,
+}: {
+  sedeSelect: ReactNode
+  sedeQuery: number | undefined
+  oficinaKey: number | undefined
+  alcanceLectura: string
+  buscar: string
+  setBuscar: (v: string) => void
+}) {
+  const enabled = (oficinaKey ?? 0) > 0
 
   const shellQuery = useQuery({
     queryKey: ['dashboard-admin-shell', oficinaKey, sedeQuery],
@@ -386,20 +436,7 @@ export function AdminDashboardPage() {
       subtitle={`Indicadores de cobranza, colocación y cartera · ${shell.nombreOficina}`}
       actions={
         <>
-          {esCentral ? (
-            <Select
-              allowClear
-              placeholder="Consultar otra sede…"
-              style={{ minWidth: 220 }}
-              value={sedeId}
-              onChange={(v) => setSedeId(v)}
-              options={oficinas.map((o) => ({
-                value: o.oficinaId,
-                label: o.denominacion || `Sede ${o.oficinaId}`,
-              }))}
-              aria-label="Sede a consultar en el tablero gerencial"
-            />
-          ) : null}
+          {sedeSelect}
           <Button icon={<ReloadOutlined />} onClick={refetchAll} loading={isFetching}>
             Actualizar
           </Button>
@@ -416,13 +453,10 @@ export function AdminDashboardPage() {
         ) : null}
         <header className="dash-head">
           <div>
-            <p className="dash-kicker">Tablero gerencial · multisucursal</p>
+            <p className="dash-kicker">Tablero gerencial · sede</p>
             <h2 className="dash-hello">{shell.nombreOficina}</h2>
             <p className="dash-scope" role="status">
               {alcanceLectura}
-              {esCentral && !sedeId
-                ? ' (no es consolidado de red: indicadores de una oficina)'
-                : ''}
             </p>
           </div>
           <div className="dash-date">{fechaLarga}</div>
@@ -767,6 +801,268 @@ export function AdminDashboardPage() {
             ) : (
               <Skeleton active paragraph={{ rows: 8 }} />
             )}
+          </div>
+        </section>
+      </div>
+    </CredixPage>
+  )
+}
+
+function AdminRedDashboard({
+  sedeSelect,
+  onDrillSede,
+}: {
+  sedeSelect: ReactNode
+  onDrillSede: (sedeId: number) => void
+}) {
+  const redQuery = useQuery({
+    queryKey: ['dashboard-admin-red'],
+    queryFn: fetchDashboardAdminRed,
+    ...queryOpts,
+    retry: 1,
+  })
+
+  const columns: ColumnsType<DashboardAdminRedSedeRow> = useMemo(
+    () => [
+      {
+        title: 'Sede',
+        dataIndex: 'nombreOficina',
+        key: 'nombre',
+        fixed: 'left',
+        width: 180,
+        render: (nombre: string, row) => (
+          <button
+            type="button"
+            className="dash-red-drill"
+            onClick={() => onDrillSede(row.oficinaId)}
+          >
+            {nombre}
+          </button>
+        ),
+      },
+      {
+        title: 'Cobrado hoy',
+        dataIndex: 'cobradoHoy',
+        key: 'cobradoHoy',
+        align: 'right',
+        render: (v: number) => `S/ ${formatMoney(v)}`,
+        sorter: (a, b) => a.cobradoHoy - b.cobradoHoy,
+        defaultSortOrder: 'descend',
+      },
+      {
+        title: 'vs ayer',
+        dataIndex: 'variacionCobradoHoyPct',
+        key: 'var',
+        align: 'right',
+        width: 100,
+        render: (pct: number | null) => <Variacion pct={pct} />,
+      },
+      {
+        title: 'Desembolso',
+        dataIndex: 'desembolsoHoy',
+        key: 'desembolso',
+        align: 'right',
+        render: (v: number) => `S/ ${formatMoney(v)}`,
+      },
+      {
+        title: 'Flujo neto',
+        dataIndex: 'flujoNetoHoy',
+        key: 'flujo',
+        align: 'right',
+        render: (v: number) => `S/ ${formatMoney(v)}`,
+      },
+      {
+        title: 'Mora %',
+        dataIndex: 'porcentajeMora',
+        key: 'mora',
+        align: 'right',
+        width: 90,
+        render: (v: number) => `${v.toFixed(1)}%`,
+      },
+      {
+        title: 'Por vencer 7d',
+        dataIndex: 'creditosPorVencerSemana',
+        key: 'vencer',
+        align: 'right',
+        width: 110,
+        render: (v: number) => formatEntero(v),
+      },
+      {
+        title: 'Analistas',
+        dataIndex: 'totalAnalistas',
+        key: 'analistas',
+        align: 'right',
+        width: 90,
+        render: (v: number) => formatEntero(v),
+      },
+      {
+        title: 'Semáforo',
+        dataIndex: 'semaforo',
+        key: 'semaforo',
+        width: 140,
+        render: (s: string, row) => (
+          <Tag
+            className={`dash-semaforo is-${s}`}
+            title={row.motivoSemaforo}
+            color={s === 'rojo' ? 'error' : s === 'ambar' ? 'warning' : 'success'}
+          >
+            {s === 'rojo' ? 'Rojo' : s === 'ambar' ? 'Ámbar' : 'Verde'}
+          </Tag>
+        ),
+      },
+    ],
+    [onDrillSede],
+  )
+
+  if (redQuery.isLoading) {
+    return (
+      <CredixPage title="Inicio" subtitle="Consolidando la red…">
+        <div className="dash-analista dash-admin dash-admin-red">
+          <header className="dash-head">
+            <div>
+              <p className="dash-kicker">Tablero gerencial · red</p>
+              <h2 className="dash-hello">Cargando consolidado…</h2>
+            </div>
+          </header>
+          <Skeleton active paragraph={{ rows: 10 }} />
+        </div>
+      </CredixPage>
+    )
+  }
+
+  if (redQuery.isError || !redQuery.data) {
+    return (
+      <CredixPage
+        title="Inicio"
+        subtitle="No se pudo cargar el consolidado de red."
+        actions={
+          <>
+            {sedeSelect}
+            <Button icon={<ReloadOutlined />} onClick={() => void redQuery.refetch()}>
+              Reintentar
+            </Button>
+          </>
+        }
+      >
+        <Alert type="error" showIcon message={errMsg(redQuery.error)} />
+      </CredixPage>
+    )
+  }
+
+  const red = redQuery.data
+  const fechaLarga = formatFechaLarga(red.fechaConsulta)
+
+  return (
+    <CredixPage
+      title="Inicio"
+      subtitle={`Consolidado de ${formatEntero(red.totalSedes)} sedes · cobranza, colocación y mora`}
+      actions={
+        <>
+          {sedeSelect}
+          <Button
+            icon={<ReloadOutlined />}
+            onClick={() => void redQuery.refetch()}
+            loading={redQuery.isFetching}
+          >
+            Actualizar
+          </Button>
+        </>
+      }
+    >
+      <div className="dash-analista dash-admin dash-admin-red">
+        {redQuery.isFetching ? (
+          <p className="dash-refresh-hint" role="status">
+            Actualizando consolidado de red…
+          </p>
+        ) : null}
+        <header className="dash-head">
+          <div>
+            <p className="dash-kicker">Tablero gerencial · red</p>
+            <h2 className="dash-hello">Toda la red</h2>
+            <p className="dash-scope" role="status">
+              Elija una sede en el selector o haga clic en una fila para ver el tablero operativo.
+            </p>
+          </div>
+          <div className="dash-date">{fechaLarga}</div>
+        </header>
+
+        <h3 className="dash-section-title">Estado de la red</h3>
+        <section className="dash-kpis dash-kpis-4" aria-label="Estado de la red">
+          <KpiCard
+            accent="var(--credix-success)"
+            icon={<WalletOutlined />}
+            label="Cobrado hoy"
+            value={`S/ ${formatMoney(red.cobradoHoy)}`}
+            meta={
+              <>
+                <Variacion pct={red.variacionCobradoHoyPct} />
+                <span>Ayer S/ {formatMoney(red.cobradoAyer)}</span>
+              </>
+            }
+          />
+          <KpiCard
+            accent="var(--credix-info)"
+            icon={<RiseOutlined />}
+            label="Desembolso hoy"
+            value={`S/ ${formatMoney(red.desembolsoHoy)}`}
+            meta={<span>Ayer S/ {formatMoney(red.desembolsoAyer)}</span>}
+          />
+          <KpiCard
+            accent="var(--credix-ink-brand)"
+            icon={<SwapOutlined />}
+            label="Flujo neto hoy"
+            value={`S/ ${formatMoney(red.flujoNetoHoy)}`}
+            meta={<span>Ayer S/ {formatMoney(red.flujoNetoAyer)}</span>}
+          />
+          <KpiCard
+            accent="var(--credix-danger)"
+            icon={<WarningOutlined />}
+            label="Mora red"
+            value={`${red.porcentajeMoraRed.toFixed(1)}%`}
+            meta={
+              <span>
+                {formatEntero(red.clientesMora)} clientes · {formatEntero(red.creditosPorVencerSemana)}{' '}
+                por vencer
+              </span>
+            }
+          />
+        </section>
+
+        <section className="dash-semaforo-strip" aria-label="Semáforo de sedes">
+          <div className="dash-semaforo-chip is-verde">
+            <strong>{formatEntero(red.sedesEnVerde)}</strong>
+            <span>en verde</span>
+          </div>
+          <div className="dash-semaforo-chip is-ambar">
+            <strong>{formatEntero(red.sedesEnAmbar)}</strong>
+            <span>en ámbar</span>
+          </div>
+          <div className="dash-semaforo-chip is-rojo">
+            <strong>{formatEntero(red.sedesEnRojo)}</strong>
+            <span>en rojo</span>
+          </div>
+          <div className="dash-semaforo-chip">
+            <strong>{formatEntero(red.totalAnalistas)}</strong>
+            <span>analistas · {formatEntero(red.totalClientes)} clientes</span>
+          </div>
+        </section>
+
+        <section className="dash-panel">
+          <div className="dash-panel-head">
+            <div>
+              <h2>Liga de sedes</h2>
+              <p>Clic en la sede para abrir su tablero operativo</p>
+            </div>
+          </div>
+          <div className="dash-panel-body">
+            <CredixDataTable
+              rowKey={(row) => String(row.oficinaId)}
+              columns={columns}
+              dataSource={[...red.sedes]}
+              pagination={false}
+              size="middle"
+              scroll={{ x: 1100 }}
+            />
           </div>
         </section>
       </div>

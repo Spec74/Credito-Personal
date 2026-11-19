@@ -1,4 +1,5 @@
 using System.Data;
+using Credito.Modern.Application.CreditoPlanes;
 using Credito.Modern.Application.Dashboard;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -10,12 +11,12 @@ namespace Credito.Modern.Infrastructure.Dashboard;
 /// <summary>
 /// Tablero del analista: KPIs + productividad en un roundtrip (semántica de
 /// <c>usp_DashboardGestor</c> / productividad). Mora clasificada igual que el SP.
-/// Drill-down llama <c>usp_DashboardGestorClientesMora</c>. Ranking/podio omitidos
-/// (retirados en producción).
+/// Drill-down llama <c>usp_DashboardGestorClientesMora</c>. Ranking/podio vía SPs legacy.
 /// </summary>
 public sealed class DashboardAnalistaReadService(
     IOptions<SqlDatabaseOptions> options,
-    IMemoryCache cache) : IDashboardAnalistaReadService
+    IMemoryCache cache,
+    ICierreGerencialReadService cierreGerencial) : IDashboardAnalistaReadService
 {
     private const int CommandTimeoutSeconds = 60;
     private static readonly TimeSpan CacheTtl = TimeSpan.FromSeconds(90);
@@ -300,6 +301,11 @@ public sealed class DashboardAnalistaReadService(
             kpisRow.ClientesMoraPagandoConAtraso,
             kpisRow.PorVencerSemana);
 
+        var rankingTask = QueryRankingAsync(usuarioId, oficinaId, cancellationToken);
+        var podioTask = QueryPodioAsync(oficinaId, cancellationToken);
+        var metaTask = QueryMetaMesAsync(usuarioId, oficinaId, cancellationToken);
+        await Task.WhenAll(rankingTask, podioTask, metaTask).ConfigureAwait(false);
+
         var dto = new DashboardAnalistaDto(
             NombreAnalista: string.IsNullOrWhiteSpace(kpisRow.NombreAnalista)
                 ? "Analista"
@@ -307,12 +313,122 @@ public sealed class DashboardAnalistaReadService(
             FechaConsulta: kpisRow.FechaConsulta,
             Kpis: kpis,
             Productividad: productividad,
-            Ranking: Array.Empty<DashboardRankingRowDto>(),
-            PodioMesAnterior: Array.Empty<DashboardPodioRowDto>(),
-            Insights: DashboardAnalistaInsights.Build(kpis));
+            Ranking: await rankingTask.ConfigureAwait(false),
+            PodioMesAnterior: await podioTask.ConfigureAwait(false),
+            Insights: DashboardAnalistaInsights.Build(kpis),
+            MetaMes: await metaTask.ConfigureAwait(false));
 
         cache.Set(cacheKey, dto, CacheTtl);
         return dto;
+    }
+
+    private async Task<IReadOnlyList<DashboardRankingRowDto>> QueryRankingAsync(
+        int usuarioId,
+        int oficinaId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var rows = await connection.QueryAsync<RankingSpRow>(
+                new CommandDefinition(
+                    "CREDITO.usp_DashboardRanking",
+                    new
+                    {
+                        UsuarioId = usuarioId,
+                        OficinaId = oficinaId,
+                        FechaCorte = (DateTime?)null,
+                    },
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: CommandTimeoutSeconds,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+            return rows
+                .Select(r => new DashboardRankingRowDto(
+                    UsuarioId: r.UsuarioId,
+                    NombreCompleto: string.IsNullOrWhiteSpace(r.NombreCompleto)
+                        ? "Sin nombre"
+                        : r.NombreCompleto.Trim(),
+                    TotalCobrado: r.TotalCobrado,
+                    Posicion: r.Posicion,
+                    EsUsuarioActual: r.EsUsuarioActual != 0))
+                .ToList();
+        }
+        catch (Exception)
+        {
+            return Array.Empty<DashboardRankingRowDto>();
+        }
+    }
+
+    private async Task<IReadOnlyList<DashboardPodioRowDto>> QueryPodioAsync(
+        int oficinaId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var rows = await connection.QueryAsync<PodioSpRow>(
+                new CommandDefinition(
+                    "CREDITO.usp_DashboardTopAnterior",
+                    new { OficinaId = oficinaId },
+                    commandType: CommandType.StoredProcedure,
+                    commandTimeout: CommandTimeoutSeconds,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+            return rows
+                .Select(r => new DashboardPodioRowDto(
+                    UsuarioId: r.UsuarioId,
+                    NombreCompleto: string.IsNullOrWhiteSpace(r.NombreCompleto)
+                        ? "Sin nombre"
+                        : r.NombreCompleto.Trim(),
+                    TotalCobrado: r.TotalCobrado,
+                    Posicion: r.Posicion))
+                .ToList();
+        }
+        catch (Exception)
+        {
+            return Array.Empty<DashboardPodioRowDto>();
+        }
+    }
+
+    private async Task<DashboardAnalistaMetaMesDto?> QueryMetaMesAsync(
+        int usuarioId,
+        int oficinaId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var hoy = DateTime.Today;
+            var periodo = new DateTime(hoy.Year, hoy.Month, 1);
+            var filas = await cierreGerencial
+                .ObtenerAvanceAsync(periodo, oficinaId, cancellationToken)
+                .ConfigureAwait(false);
+            var mia = filas.FirstOrDefault(f => f.UsuarioId == usuarioId);
+            if (mia is null)
+            {
+                return null;
+            }
+
+            return new DashboardAnalistaMetaMesDto(
+                MetaConfigurada: mia.MetaConfigurada,
+                MetaCapitalCierre: mia.MetaCapitalCierre,
+                CapitalActual: mia.CapitalActual,
+                CumplimientoCapitalPct: mia.CumplimientoCapitalPct,
+                EstadoCapital: mia.EstadoCapital ?? string.Empty,
+                MetaClientesActivosCierre: mia.MetaClientesActivosCierre,
+                ClientesActivosActual: mia.ClientesActivosActual,
+                CumplimientoClientesPct: mia.CumplimientoClientesPct,
+                EstadoClientes: mia.EstadoClientes ?? string.Empty,
+                MontoCobradoMes: mia.MontoCobradoMes,
+                DesembolsosMes: mia.DesembolsosMes,
+                ClientesNuevosMes: mia.ClientesNuevosMes);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 
     public async Task<IReadOnlyList<DashboardClienteMoraRowDto>> ObtenerClientesMoraAsync(
@@ -411,5 +527,22 @@ public sealed class DashboardAnalistaReadService(
         public int? DiasAtraso { get; init; }
         public string? CodigoClasificacion { get; init; }
         public string? Clasificacion { get; init; }
+    }
+
+    private sealed class RankingSpRow
+    {
+        public int UsuarioId { get; init; }
+        public string NombreCompleto { get; init; } = "";
+        public decimal TotalCobrado { get; init; }
+        public int Posicion { get; init; }
+        public int EsUsuarioActual { get; init; }
+    }
+
+    private sealed class PodioSpRow
+    {
+        public int UsuarioId { get; init; }
+        public string NombreCompleto { get; init; } = "";
+        public decimal TotalCobrado { get; init; }
+        public int Posicion { get; init; }
     }
 }

@@ -202,6 +202,75 @@ export function AnalystDashboardPage() {
 
         <DashboardDecisionStrip items={decisions} title="Prioridades del día" />
 
+        {data.metaMes ? (
+          <section className="dash-panel dash-meta-mes" aria-label="Meta del mes">
+            <div className="dash-panel-head">
+              <div>
+                <h2>Mi meta del mes</h2>
+                <p>
+                  {data.metaMes.metaConfigurada
+                    ? 'Avance vs meta gerencial configurada'
+                    : 'Sin meta formal · se muestra el avance operativo del mes'}
+                </p>
+              </div>
+            </div>
+            <div className="dash-panel-body dash-meta-grid">
+              <div>
+                <span>Capital / cartera</span>
+                <strong>S/ {formatMoney(data.metaMes.capitalActual)}</strong>
+                <p>
+                  Meta{' '}
+                  {data.metaMes.metaCapitalCierre != null
+                    ? `S/ ${formatMoney(data.metaMes.metaCapitalCierre)}`
+                    : '—'}
+                  {data.metaMes.cumplimientoCapitalPct != null
+                    ? ` · ${data.metaMes.cumplimientoCapitalPct.toFixed(0)}%`
+                    : ''}
+                  {data.metaMes.estadoCapital ? ` · ${data.metaMes.estadoCapital}` : ''}
+                </p>
+                {data.metaMes.cumplimientoCapitalPct != null ? (
+                  <Progress
+                    percent={Math.min(100, Math.round(data.metaMes.cumplimientoCapitalPct))}
+                    showInfo={false}
+                    size="small"
+                    strokeColor="var(--credix-ink-brand)"
+                  />
+                ) : null}
+              </div>
+              <div>
+                <span>Clientes activos</span>
+                <strong>{formatEntero(data.metaMes.clientesActivosActual)}</strong>
+                <p>
+                  Meta{' '}
+                  {data.metaMes.metaClientesActivosCierre != null
+                    ? formatEntero(data.metaMes.metaClientesActivosCierre)
+                    : '—'}
+                  {data.metaMes.cumplimientoClientesPct != null
+                    ? ` · ${data.metaMes.cumplimientoClientesPct.toFixed(0)}%`
+                    : ''}
+                  {data.metaMes.estadoClientes ? ` · ${data.metaMes.estadoClientes}` : ''}
+                </p>
+                {data.metaMes.cumplimientoClientesPct != null ? (
+                  <Progress
+                    percent={Math.min(100, Math.round(data.metaMes.cumplimientoClientesPct))}
+                    showInfo={false}
+                    size="small"
+                    strokeColor="var(--credix-success)"
+                  />
+                ) : null}
+              </div>
+              <div>
+                <span>Operación del mes</span>
+                <strong>S/ {formatMoney(data.metaMes.montoCobradoMes)}</strong>
+                <p>
+                  Cobrado · {formatEntero(data.metaMes.clientesNuevosMes)} nuevos · desembolso S/{' '}
+                  {formatMoney(data.metaMes.desembolsosMes)}
+                </p>
+              </div>
+            </div>
+          </section>
+        ) : null}
+
         <h3 className="dash-section-title">Riesgo de cartera</h3>
         <section className="dash-kpis dash-kpis-4" aria-label="Riesgo de cartera">
           <KpiCard
@@ -345,6 +414,83 @@ export function AnalystDashboardPage() {
             </div>
           </div>
         </section>
+
+        {(data.ranking.length > 0 || data.podioMesAnterior.length > 0) && (
+          <div className="dash-grid">
+            {data.ranking.length > 0 ? (
+              <section className="dash-panel">
+                <div className="dash-panel-head">
+                  <div>
+                    <h2>Ranking de cobranza</h2>
+                    <p>Mes en curso · analistas de tu oficina</p>
+                  </div>
+                </div>
+                <div className="dash-panel-body">
+                  {(() => {
+                    const yo = data.ranking.find((r) => r.esUsuarioActual)
+                    return yo ? (
+                      <div className="dash-rank-pos">
+                        <span>Tu posición</span>
+                        <strong>
+                          #{yo.posicion} · S/ {formatMoney(yo.totalCobrado)}
+                        </strong>
+                      </div>
+                    ) : null
+                  })()}
+                  <table className="dash-rank-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Analista</th>
+                        <th>Cobrado</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.ranking.slice(0, 10).map((row) => (
+                        <tr key={row.usuarioId} className={row.esUsuarioActual ? 'is-me' : undefined}>
+                          <td>{row.posicion}</td>
+                          <td>{row.nombreCompleto}</td>
+                          <td>S/ {formatMoney(row.totalCobrado)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            ) : null}
+            {data.podioMesAnterior.length > 0 ? (
+              <section className="dash-panel">
+                <div className="dash-panel-head">
+                  <div>
+                    <h2>Podio mes anterior</h2>
+                    <p>Top 3 por cobranza del mes pasado</p>
+                  </div>
+                </div>
+                <div className="dash-panel-body">
+                  <div className="dash-podium">
+                    {[2, 1, 3]
+                      .map((pos) => data.podioMesAnterior.find((p) => p.posicion === pos))
+                      .filter(Boolean)
+                      .map((row) =>
+                        row ? (
+                          <div
+                            key={row.usuarioId}
+                            className={`dash-podium-item is-${row.posicion}`}
+                          >
+                            <span className="dash-medal" aria-hidden>
+                              {row.posicion === 1 ? '1' : row.posicion === 2 ? '2' : '3'}
+                            </span>
+                            <strong>{row.nombreCompleto}</strong>
+                            <span>S/ {formatMoney(row.totalCobrado)}</span>
+                          </div>
+                        ) : null,
+                      )}
+                  </div>
+                </div>
+              </section>
+            ) : null}
+          </div>
+        )}
 
         <section className="dash-panel">
           <div className="dash-panel-head">

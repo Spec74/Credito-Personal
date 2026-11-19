@@ -847,6 +847,154 @@ public sealed class DashboardAdminReadService(
         public int CreditosPorVencerSemana { get; init; }
     }
 
+    public async Task<DashboardAdminRedDto> ObtenerRedAsync(
+        IReadOnlyList<(int OficinaId, string Nombre)> sedes,
+        CancellationToken cancellationToken = default)
+    {
+        if (sedes is null || sedes.Count == 0)
+        {
+            throw new ArgumentException("Debe indicar al menos una sede.", nameof(sedes));
+        }
+
+        var idsKey = string.Join(',', sedes.Select(s => s.OficinaId).OrderBy(x => x));
+        var cacheKey = $"dashboard:admin:red:{idsKey}";
+        if (cache.TryGetValue(cacheKey, out DashboardAdminRedDto? cached) && cached is not null)
+        {
+            return cached;
+        }
+
+        // Shell+detalle por sede (mora/cobranza reales). Semáforo 3 para no saturar Azure SQL.
+        using var gate = new SemaphoreSlim(3, 3);
+        var officeTasks = sedes.Select(async sede =>
+        {
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                var full = await ObtenerAsync(sede.OficinaId, cancellationToken).ConfigureAwait(false);
+                return (sede.OficinaId, sede.Nombre, Full: full);
+            }
+            finally
+            {
+                gate.Release();
+            }
+        });
+
+        var offices = await Task.WhenAll(officeTasks).ConfigureAwait(false);
+        var rows = offices
+            .Select(x => MapSedeRow(x.OficinaId, x.Nombre, x.Full))
+            .OrderByDescending(r => r.CobradoHoy)
+            .ThenBy(r => r.NombreOficina, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var cobradoHoy = offices.Sum(x => x.Full.Resumen.CobradoHoy);
+        var cobradoAyer = offices.Sum(x => x.Full.Resumen.CobradoAyer);
+        var desembolsoHoy = offices.Sum(x => x.Full.Resumen.DesembolsoHoy);
+        var desembolsoAyer = offices.Sum(x => x.Full.Resumen.DesembolsoAyer);
+        var flujoHoy = offices.Sum(x => x.Full.Resumen.FlujoNetoHoy);
+        var flujoAyer = offices.Sum(x => x.Full.Resumen.FlujoNetoAyer);
+        var clientesMora = offices.Sum(x => x.Full.Resumen.ClientesMora);
+        var porVencer = offices.Sum(x => x.Full.Resumen.CreditosPorVencerSemana);
+        var analistas = offices.Sum(x => x.Full.Resumen.TotalAnalistas);
+        var clientes = offices.Sum(x => x.Full.Resumen.TotalClientes);
+        var fecha = offices.Select(x => x.Full.FechaConsulta).DefaultIfEmpty(DateTime.Now).Max();
+
+        var moraRed = clientes > 0
+            ? Math.Round((clientesMora / (decimal)clientes) * 100m, 1, MidpointRounding.AwayFromZero)
+            : 0m;
+
+        var dto = new DashboardAdminRedDto(
+            FechaConsulta: fecha,
+            TotalSedes: rows.Count,
+            CobradoHoy: cobradoHoy,
+            CobradoAyer: cobradoAyer,
+            VariacionCobradoHoyPct: DashboardAnalistaInsights.VariacionPorcentaje(cobradoHoy, cobradoAyer),
+            DesembolsoHoy: desembolsoHoy,
+            DesembolsoAyer: desembolsoAyer,
+            FlujoNetoHoy: flujoHoy,
+            FlujoNetoAyer: flujoAyer,
+            PorcentajeMoraRed: moraRed,
+            ClientesMora: clientesMora,
+            CreditosPorVencerSemana: porVencer,
+            TotalAnalistas: analistas,
+            TotalClientes: clientes,
+            SedesEnRojo: rows.Count(r => r.Semaforo == "rojo"),
+            SedesEnAmbar: rows.Count(r => r.Semaforo == "ambar"),
+            SedesEnVerde: rows.Count(r => r.Semaforo == "verde"),
+            Sedes: rows);
+
+        cache.Set(cacheKey, dto, ShellCacheTtl);
+        return dto;
+    }
+
+    private static DashboardAdminRedSedeRowDto MapSedeRow(
+        int oficinaId,
+        string nombreFallback,
+        DashboardAdminDto full)
+    {
+        var r = full.Resumen;
+        var nombre = string.IsNullOrWhiteSpace(full.NombreOficina)
+            ? (string.IsNullOrWhiteSpace(nombreFallback) ? $"Sede {oficinaId}" : nombreFallback.Trim())
+            : full.NombreOficina.Trim();
+
+        var pctMora = r.TotalClientes > 0
+            ? Math.Round((r.ClientesMora / (decimal)r.TotalClientes) * 100m, 1, MidpointRounding.AwayFromZero)
+            : (r.SaldoCartera > 0
+                ? Math.Round((r.SaldoMorosidad / r.SaldoCartera) * 100m, 1, MidpointRounding.AwayFromZero)
+                : 0m);
+
+        var (semaforo, motivo) = EvaluarSemaforo(pctMora, r.FlujoNetoHoy, r.CobradoHoy, r.CobradoAyer);
+
+        return new DashboardAdminRedSedeRowDto(
+            OficinaId: oficinaId,
+            NombreOficina: nombre,
+            CobradoHoy: r.CobradoHoy,
+            CobradoAyer: r.CobradoAyer,
+            VariacionCobradoHoyPct: r.VariacionCobradoHoyPct,
+            DesembolsoHoy: r.DesembolsoHoy,
+            FlujoNetoHoy: r.FlujoNetoHoy,
+            PorcentajeMora: pctMora,
+            ClientesMora: r.ClientesMora,
+            CreditosPorVencerSemana: r.CreditosPorVencerSemana,
+            TotalAnalistas: r.TotalAnalistas,
+            TotalClientes: r.TotalClientes,
+            Semaforo: semaforo,
+            MotivoSemaforo: motivo);
+    }
+
+    private static (string Semaforo, string Motivo) EvaluarSemaforo(
+        decimal pctMora,
+        decimal flujoNetoHoy,
+        decimal cobradoHoy,
+        decimal cobradoAyer)
+    {
+        if (pctMora >= 20m)
+        {
+            return ("rojo", $"Mora {pctMora:0.#}% (≥ 20%)");
+        }
+
+        if (flujoNetoHoy < 0m && cobradoAyer > 0m && cobradoHoy < cobradoAyer * 0.7m)
+        {
+            return ("rojo", "Flujo negativo y cobranza bajo 70% vs ayer");
+        }
+
+        if (flujoNetoHoy < 0m)
+        {
+            return ("ambar", "Flujo neto del día negativo");
+        }
+
+        if (pctMora >= 10m)
+        {
+            return ("ambar", $"Mora {pctMora:0.#}% (≥ 10%)");
+        }
+
+        if (cobradoAyer > 0m && cobradoHoy < cobradoAyer)
+        {
+            return ("ambar", "Cobranza bajo el ritmo de ayer");
+        }
+
+        return ("verde", "Operación dentro de umbrales");
+    }
+
     private sealed class AnalistaRow
     {
         public int UsuarioId { get; init; }

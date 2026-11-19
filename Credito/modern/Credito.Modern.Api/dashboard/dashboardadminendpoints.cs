@@ -138,6 +138,67 @@ internal static class DashboardAdminEndpoints
             .ProducesProblem(StatusCodes.Status401Unauthorized)
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+        app.MapGet(
+                "/api/v1/dashboard/admin/red",
+                async Task<Results<Ok<DashboardAdminRedDto>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    IDashboardAdminReadService dashboard,
+                    IOficinaReadService oficinas,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    var (info, oficinaProblem) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, sedeId: null, ct)
+                        .ConfigureAwait(false);
+                    if (oficinaProblem is not null)
+                    {
+                        return oficinaProblem;
+                    }
+
+                    if (!info!.EsCentral)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status403Forbidden,
+                            title: "Prohibido",
+                            detail: "El tablero de red solo está disponible desde la oficina Central.");
+                    }
+
+                    var sedes = info.Destinos
+                        .Where(d => d.OficinaId >= 1)
+                        .Select(d => (d.OficinaId, Nombre: d.Denominacion?.Trim() ?? $"Sede {d.OficinaId}"))
+                        .ToList();
+
+                    if (sedes.Count == 0)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Sin sedes",
+                            detail: "No hay oficinas activas para consolidar la red.");
+                    }
+
+                    var log = loggerFactory.CreateLogger("DashboardAdminRed");
+                    try
+                    {
+                        var dto = await dashboard
+                            .ObtenerRedAsync(sedes, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(dto);
+                    }
+                    catch (Exception ex) when (ex is InvalidOperationException or DbException or TimeoutException)
+                    {
+                        return ReadError(log, env, ex);
+                    }
+                })
+            .WithName("DashboardAdminRed")
+            .WithSummary("Consolidado de red y ranking de sedes (solo Central).")
+            .WithTags("dashboard")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .Produces<DashboardAdminRedDto>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
     }
 
     private static ProblemHttpResult ReadError(ILogger log, IHostEnvironment env, Exception ex)

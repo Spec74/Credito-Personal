@@ -1231,4 +1231,112 @@
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+
+  .dash-semaforo-strip {
+    flex-direction: column;
+  }
+
+  .dash-meta-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dash-red-drill {
+  appearance: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  color: var(--credix-ink-brand);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.dash-red-drill:hover,
+.dash-red-drill:focus-visible {
+  color: var(--credix-text);
+  outline: none;
+}
+
+.dash-semaforo-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.dash-semaforo-chip {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid var(--credix-border);
+  border-radius: 12px;
+  background: var(--credix-surface);
+  min-width: 120px;
+}
+
+.dash-semaforo-chip strong {
+  font-size: 1.15rem;
+  color: var(--credix-text);
+}
+
+.dash-semaforo-chip span {
+  font-size: 12px;
+  color: var(--credix-text-muted);
+}
+
+.dash-semaforo-chip.is-verde {
+  border-color: color-mix(in srgb, var(--credix-success) 40%, var(--credix-border));
+  background: color-mix(in srgb, var(--credix-success) 10%, var(--credix-surface));
+}
+
+.dash-semaforo-chip.is-ambar {
+  border-color: color-mix(in srgb, var(--credix-warning) 40%, var(--credix-border));
+  background: color-mix(in srgb, var(--credix-warning) 10%, var(--credix-surface));
+}
+
+.dash-semaforo-chip.is-rojo {
+  border-color: color-mix(in srgb, var(--credix-danger) 40%, var(--credix-border));
+  background: color-mix(in srgb, var(--credix-danger) 10%, var(--credix-surface));
+}
+
+.dash-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.dash-meta-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dash-meta-grid span {
+  font-size: 12px;
+  color: var(--credix-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dash-meta-grid strong {
+  font-size: 1.25rem;
+  color: var(--credix-text);
+}
+
+.dash-meta-grid p {
+  margin: 0;
+  font-size: 12px;
+  color: var(--credix-text-muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 900px) {
+  .dash-meta-grid {
+    grid-template-columns: 1fr;
+  }
 }

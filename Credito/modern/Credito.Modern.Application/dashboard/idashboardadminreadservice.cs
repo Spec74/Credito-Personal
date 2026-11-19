@@ -23,4 +23,11 @@ public interface IDashboardAdminReadService
     Task<DashboardAdminDetalleDto> ObtenerDetalleAsync(
         int oficinaId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Consolidado de red: shell por cada sede de <paramref name="sedes"/> (Central).
+    /// </summary>
+    Task<DashboardAdminRedDto> ObtenerRedAsync(
+        IReadOnlyList<(int OficinaId, string Nombre)> sedes,
+        CancellationToken cancellationToken = default);
 }

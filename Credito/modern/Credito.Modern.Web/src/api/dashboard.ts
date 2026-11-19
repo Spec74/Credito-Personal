@@ -71,6 +71,21 @@ export interface DashboardInsight {
   accion: string | null
 }
 
+export interface DashboardAnalistaMetaMes {
+  metaConfigurada: boolean
+  metaCapitalCierre: number | null
+  capitalActual: number
+  cumplimientoCapitalPct: number | null
+  estadoCapital: string
+  metaClientesActivosCierre: number | null
+  clientesActivosActual: number
+  cumplimientoClientesPct: number | null
+  estadoClientes: string
+  montoCobradoMes: number
+  desembolsosMes: number
+  clientesNuevosMes: number
+}
+
 export interface DashboardAnalista {
   nombreAnalista: string
   fechaConsulta: string
@@ -79,6 +94,7 @@ export interface DashboardAnalista {
   ranking: DashboardRankingRow[]
   podioMesAnterior: DashboardPodioRow[]
   insights: DashboardInsight[]
+  metaMes?: DashboardAnalistaMetaMes | null
 }
 
 export function fetchDashboardAnalista(): Promise<DashboardAnalista> {
@@ -248,4 +264,48 @@ export function fetchDashboardAdminShell(sedeId?: number): Promise<DashboardAdmi
 
 export function fetchDashboardAdminDetalle(sedeId?: number): Promise<DashboardAdminDetalle> {
   return apiFetch<DashboardAdminDetalle>(`/dashboard/admin/detalle${dashboardSedeQuery(sedeId)}`)
+}
+
+export type DashboardAdminSemaforo = 'verde' | 'ambar' | 'rojo' | string
+
+export interface DashboardAdminRedSedeRow {
+  oficinaId: number
+  nombreOficina: string
+  cobradoHoy: number
+  cobradoAyer: number
+  variacionCobradoHoyPct: number | null
+  desembolsoHoy: number
+  flujoNetoHoy: number
+  porcentajeMora: number
+  clientesMora: number
+  creditosPorVencerSemana: number
+  totalAnalistas: number
+  totalClientes: number
+  semaforo: DashboardAdminSemaforo
+  motivoSemaforo: string
+}
+
+export interface DashboardAdminRed {
+  fechaConsulta: string
+  totalSedes: number
+  cobradoHoy: number
+  cobradoAyer: number
+  variacionCobradoHoyPct: number | null
+  desembolsoHoy: number
+  desembolsoAyer: number
+  flujoNetoHoy: number
+  flujoNetoAyer: number
+  porcentajeMoraRed: number
+  clientesMora: number
+  creditosPorVencerSemana: number
+  totalAnalistas: number
+  totalClientes: number
+  sedesEnRojo: number
+  sedesEnAmbar: number
+  sedesEnVerde: number
+  sedes: DashboardAdminRedSedeRow[]
+}
+
+export function fetchDashboardAdminRed(): Promise<DashboardAdminRed> {
+  return apiFetch<DashboardAdminRed>('/dashboard/admin/red')
 }
