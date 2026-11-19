@@ -3,47 +3,43 @@
 **Fecha:** 2026-11-18 · rama `Eber-migracion`  
 **Índice:** [DOCUMENTACION.md](DOCUMENTACION.md)
 
-Este archivo lista **solo** lo que falta para excelencia de mantenimiento/escala.  
-El **paquete documental as-built** y la arquitectura por capas están cerrados; esto no bloquea go-live de negocio.
+---
+
+## 1. Evidencia operativa (SSD §7)
+
+Las casillas `[ ]` / `[x]` en SSD §7 registran **smoke ejecutado**, no huecos de prosa.
+
+| Evidencia | Estado |
+|-----------|--------|
+| API Docker `:5080` — health, `dev/token`, Tablero Red 200 Central / 403 sucursal, analista 200 | Hecho 2026-11-18 (ver SSD-01 §7 / §9) |
+| Login SPA con usuario real + menú | Pendiente firma humana preprod |
+| Cutover / casillas SSD-00 | Pendiente ops |
+
+Pista: [GUIA-PRUEBAS-GO-LIVE.md](GUIA-PRUEBAS-GO-LIVE.md) · [SMOKE-SIGN-OFF.md](SMOKE-SIGN-OFF.md).
 
 ---
 
-## 1. Evidencia operativa (no es hueco de docs)
+## 2. Archivos grandes — estado
 
-Las casillas `[ ]` en cada SSD §7 son **criterios escritos al 100%**.  
-Marcarlas `[x]` requiere smoke firmado en preprod/prod (humano + ambiente), no más prosa.
-
-Pista: [GUIA-PRUEBAS-GO-LIVE.md](GUIA-PRUEBAS-GO-LIVE.md) · [SMOKE-SIGN-OFF.md](SMOKE-SIGN-OFF.md) · [SSD-00](ssd/SSD-00-cutover.md).
-
----
-
-## 2. Archivos grandes (partir en sprints)
-
-| Archivo | ~líneas | Acción sugerida |
-|---------|---------|-----------------|
-| `Api/credito/creditobovedaoperacionendpoints.cs` | ~2800 | `partial`: lecturas / transferencias / caja-chica |
-| `Api/credito/creditoreportecreditocarteraendpoints.cs` | ~2200 | Ya hay familia `creditoreporte*`; seguir partiendo por informe |
-| `Api/credito/creditocajadiarioendpoints.cs` | ~1800 | Separar cobro / cierre / saldos si crece |
-| `Api/ventas/ventasendpoints.cs` | ~1700 | Lecturas vs escrituras |
-| `Web/.../CobroBloquePage.tsx` | grande | Extraer hooks / subpaneles |
-| `Infrastructure/dashboard/dashboardadminreadservice.cs` | ~900 | Ya partial + `.red.cs` (hecho 2026-11-18) |
+| Archivo | Estado |
+|---------|--------|
+| `creditobovedaoperacionendpoints*.cs` | **Hecho** — facade + consultas / cierres / saldos |
+| `creditoreportecreditocarteraendpoints*.cs` | **Hecho** — morosidad / rentabilidad / activos |
+| `creditocajadiarioendpoints*.cs` | **Hecho** — sesion / movimientos / desembolso (mantiene `Map…Sesion` + `Map…Operacion`) |
+| `ventas/ventasendpoints*.cs` | **Hecho** — reportes / ordenes / rapida |
+| `dashboardadminreadservice*.cs` | **Hecho** — partial + Red SQL |
+| `AdminRedDashboard.tsx` | **Hecho** |
+| `Web/.../CobroBloquePage.tsx` | Pendiente menor — extraer subpaneles cuando toque cobro (no bloquea) |
 
 ---
 
-## 3. Hecho recientemente (no reabrir)
-
-| Ítem | Estado |
-|------|--------|
-| Tablero Red escalable (1 SQL multi-sede) | Hecho — `dashboardadminreadservice.red.cs` |
-| FE Red en archivo propio | Hecho — `AdminRedDashboard.tsx` |
-| Guía de lectura del código | Hecho — `COMO-LEER-EL-CODIGO.md` |
-| `readme.md` adelgazado | Hecho — inventario en `API-ENDPOINTS-INVENTARIO.md` |
-| Ranking/podio/meta analista | Hecho |
-
----
-
-## 4. Fase C producto (opcional)
+## 3. Producto opcional (Fase C)
 
 - Alertas persistentes / umbrales configurables en tablero
-- Mini-comparativo sede vs promedio red en tablero operativo
-- Partir el resto de endpoints >1500 líneas
+- Mini-comparativo sede vs promedio red
+
+---
+
+## 4. Hecho (no reabrir)
+
+Tablero Red SQL multi-sede, ranking/meta analista, `COMO-LEER-EL-CODIGO`, `readme` corto, inventario en `API-ENDPOINTS-INVENTARIO.md`, partials de endpoints gordos (2026-11-18).

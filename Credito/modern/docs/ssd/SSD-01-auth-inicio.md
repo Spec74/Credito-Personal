@@ -98,13 +98,13 @@ La verificación de clave es en C# (`UsuarioPasswordHasher` / `UsuarioPasswordHa
 
 - [ ] Login SPA con usuario real (no `dev/token`) entra y carga menú.
 - [ ] Misma clave vale en MVC tras hash `$pbk2$` (hasher compat).
-- [ ] Analista ve tablero personal (KPIs; ranking/podio/meta si hay datos).
-- [ ] Admin Central ve Tablero Red; clic o selector abre sede.
-- [ ] Admin sucursal no ve Red; solo su oficina JWT.
-- [ ] Reportes → Dashboard abre `/inicio`, no Informes.
+- [x] Analista ve tablero personal (KPIs; ranking/podio/meta si hay datos). — API Docker `:5080` 2026-11-18
+- [x] Admin Central ve Tablero Red (`GET …/admin/red` 200). — API Docker 2026-11-18
+- [x] Admin sucursal no ve Red (`GET …/admin/red` 403). — API Docker 2026-11-18
+- [ ] Reportes → Dashboard abre `/inicio`, no Informes. (SPA / menú)
 - [ ] Padre CREDITO/SEGURIDAD no habilita consulta ni usuarios.
 - [ ] Refresh rota access token; Bearer vencido → 401 y re-login.
-- [ ] `dev/token` no existe fuera de Development.
+- [ ] `dev/token` no existe fuera de Development (Production).
 
 ## 8. Desviaciones
 

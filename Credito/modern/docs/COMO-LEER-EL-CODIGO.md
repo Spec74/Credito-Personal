@@ -89,7 +89,7 @@ Spec de alcance: [speckit/004-alcance-red](speckit/004-alcance-red/spec.md) · f
 | `auth/` | `auth/` | `auth/` | `auth/` |
 | `clientes/` | `clientes/` | `clientes/` | `pages/clientes/` |
 
-Un archivo de endpoints ≈ un grupo de rutas. Un `I*ReadService` / `I*WriteService` ≈ un caso de uso.
+Un archivo de endpoints ≈ un grupo de rutas. Si el archivo creció de más, se parte en **`partial class`** (`*.consultas.cs`, `*.cierres.cs`, …) con un facade que solo llama a los `Map*`. Un `I*ReadService` / `I*WriteService` ≈ un caso de uso.
 
 ---
 

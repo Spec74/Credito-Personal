@@ -67,7 +67,8 @@ No hay referencia de proyecto a `ITB.VENDIX.*`.
 | `articulos/` | Artículos (inventario) |
 | `maestros/` | Marcas, modelos, tipos, ubigeo, valores-tabla |
 | `admin/` | Usuarios, roles |
-| `dashboard/` | Analista / admin |
+| `dashboard/` | Analista / admin (Red: partial `.red.cs`) |
+| `credito/*endpoints*.cs` | Partials por dominio (bóveda, caja diario, reportes cartera) — ver [DEUDA-TECNICA.md](DEUDA-TECNICA.md) |
 | `intranet/` | Comunicados, agenda |
 | `pla/` | PLA / UIF |
 | `reportes/` | Catálogo de export + PDF tabular (QuestPDF) |
