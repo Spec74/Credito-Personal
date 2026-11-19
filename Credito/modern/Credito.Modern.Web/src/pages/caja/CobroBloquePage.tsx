@@ -5,7 +5,6 @@ import {
   Alert,
   Badge,
   Button,
-  Checkbox,
   Grid,
   Input,
   Modal,
@@ -35,7 +34,6 @@ import {
   fetchCreditosGestorDesembolsados,
   type CreditoGestorPendienteRow,
 } from '../../api/cajaDiario'
-import { fetchEstadoPlanPago } from '../../api/creditoPlanes'
 import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
@@ -95,13 +93,13 @@ import {
   loadCobroBloquePendingProcess,
   saveCobroBloqueCarteraCache,
 } from '../../utils/cobroBloqueOffline'
-import type { EstadoPlanPagoCuota } from '../../types/api'
 import type { CajaSession } from './cajaDiario/types'
 import {
   FechaHoraDigitalField,
   nowDatetimeLocal,
 } from './components/FechaHoraDigitalField'
 import { CobroBloqueFieldCard } from './components/CobroBloqueFieldCard'
+import { CobroBloqueCuotasSubgrid } from './components/CobroBloqueCuotasSubgrid'
 import { MontoCobrarInput } from './components/MontoCobrarInput'
 import {
   clienteMapaHref,
@@ -118,24 +116,6 @@ const { Text } = Typography
 
 type RowEdit = CobroBloqueRowDraft
 
-function esCuotaPendiente(c: EstadoPlanPagoCuota): boolean {
-  const e = (c.estado ?? '').trim().toUpperCase()
-  return e !== 'PAG' && e !== 'CAN'
-}
-
-function montoCuotaPendiente(c: EstadoPlanPagoCuota): number {
-  return Math.max(
-    0,
-    sumMoney([
-      Number(c.cuota) || 0,
-      Number(c.cargo) || 0,
-      -(Number(c.descuento) || 0),
-      -(Number(c.pagoLibre) || 0),
-      Number(c.importeMora) || 0,
-    ]),
-  )
-}
-
 function defaultEdit(): RowEdit {
   return {
     montoPagar: 0,
@@ -143,92 +123,6 @@ function defaultEdit(): RowEdit {
     fechaHoraTrans: nowDatetimeLocal(),
     cuotasSeleccionadas: [],
   }
-}
-
-function CuotasSubgrid({
-  creditoId,
-  deudaMax,
-  selected,
-  onChange,
-}: {
-  creditoId: number
-  deudaMax: number
-  selected: number[]
-  onChange: (planPagoIds: number[], monto: number) => void
-}) {
-  const cuotasQuery = useQuery({
-    queryKey: ['cobro-bloque-cuotas', creditoId],
-    queryFn: () => fetchEstadoPlanPago(creditoId),
-  })
-
-  const pendientes = useMemo(
-    () => (cuotasQuery.data ?? []).filter(esCuotaPendiente),
-    [cuotasQuery.data],
-  )
-
-  if (cuotasQuery.isLoading) {
-    return (
-      <div className="cobro-bloque-subgrid cobro-bloque-subgrid--loading">
-        <Spin size="small" /> <Text type="secondary">Cargando cuotas…</Text>
-      </div>
-    )
-  }
-
-  if (cuotasQuery.isError) {
-    return (
-      <Alert
-        type="warning"
-        showIcon
-        message="No se pudieron cargar las cuotas"
-        description="Puede digitar el monto libre en la fila principal."
-      />
-    )
-  }
-
-  if (pendientes.length === 0) {
-    return (
-      <Text type="secondary" className="cobro-bloque-subgrid">
-        Sin cuotas pendientes seleccionables.
-      </Text>
-    )
-  }
-
-  return (
-    <div className="cobro-bloque-subgrid">
-      <Text type="secondary" className="cobro-bloque-subgrid__hint">
-        Máx. S/ {formatMoney(deudaMax)}
-      </Text>
-      <div className="cobro-bloque-subgrid__list">
-        {pendientes.map((c) => {
-          const monto = montoCuotaPendiente(c)
-          const checked = selected.includes(c.planPagoId)
-          return (
-            <label key={c.planPagoId} className="cobro-bloque-subgrid__item">
-              <Checkbox
-                checked={checked}
-                onChange={(ev) => {
-                  const next = ev.target.checked
-                    ? [...selected, c.planPagoId]
-                    : selected.filter((id) => id !== c.planPagoId)
-                  const suma = sumMoney(
-                    pendientes
-                      .filter((p) => next.includes(p.planPagoId))
-                      .map((p) => montoCuotaPendiente(p)),
-                  )
-                  onChange(next, roundMoney(Math.min(suma, deudaMax)))
-                }}
-              />
-              <span>
-                Cuota {c.numero} · venc. {formatFecha(c.fechaVencimiento)} · S/{' '}
-                {formatMoney(monto)}
-                {(c.diasAtrazo ?? 0) > 0 ? ` · ${c.diasAtrazo}d atraso` : ''}
-              </span>
-            </label>
-          )
-        })}
-      </div>
-    </div>
-  )
 }
 
 export function CobroBloquePage() {
@@ -1876,7 +1770,7 @@ export function CobroBloquePage() {
                           )
                         }}
                         cuotasSlot={
-                          <CuotasSubgrid
+                          <CobroBloqueCuotasSubgrid
                             creditoId={row.creditoId}
                             deudaMax={row.deudaPendiente}
                             selected={e.cuotasSeleccionadas}
@@ -1909,7 +1803,7 @@ export function CobroBloquePage() {
                   expandedRowRender: (row) => {
                     const e = getEdit(row)
                     return (
-                      <CuotasSubgrid
+                      <CobroBloqueCuotasSubgrid
                         creditoId={row.creditoId}
                         deudaMax={row.deudaPendiente}
                         selected={e.cuotasSeleccionadas}

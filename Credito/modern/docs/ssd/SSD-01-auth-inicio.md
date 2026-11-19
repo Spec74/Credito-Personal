@@ -120,7 +120,8 @@ Password: roadmap (columna 256, flag perezoso). No es desviación financiera.
 
 - API: `loginendpointtests`, `authmeendpointtests`, `usuariopasswordhashertests`, `dashboardadminendpointtests`, `dashboardanalistaendpointtests`
 - SPA: `creditoOperacionPermisos.test.ts` (quién ve cada tablero), `resolvespapathfrommenuitem.test.ts` (Dashboard/Admin, padres nulos), `menuRouteAccess.test.ts`
-- Smoke: `deploy/scripts/smoke-local-api.ps1` (health, 401, token, me, menu, database-time)
+- Smoke: `deploy/scripts/smoke-local-api.ps1` (health, 401, token, me, menu, database-time) — OK Docker `:5080` 2026-11-18
+- Smoke: `deploy/scripts/smoke-strangler-proxy.ps1` (health, JWT, menú, reportes, ventas lectura, MVC upstream) — OK Docker `:9080` 2026-11-18
 
 ## 10. Go-live
 

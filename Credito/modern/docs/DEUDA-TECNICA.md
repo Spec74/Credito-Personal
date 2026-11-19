@@ -12,6 +12,8 @@ Las casillas `[ ]` / `[x]` en SSD §7 registran **smoke ejecutado**, no huecos d
 | Evidencia | Estado |
 |-----------|--------|
 | API Docker `:5080` — health, `dev/token`, Tablero Red 200 Central / 403 sucursal, analista 200 | Hecho 2026-11-18 (ver SSD-01 §7 / §9) |
+| Smoke strangler `:9080` — `smoke-strangler-proxy.ps1` (health, JWT, menú, reportes, ventas lectura, MVC upstream) | Hecho 2026-11-18 |
+| Smoke API `:5080` — `smoke-local-api.ps1` (health, 401, token, me, menu, database-time) | Hecho 2026-11-18 |
 | Login SPA con usuario real + menú | Pendiente firma humana preprod |
 | Cutover / casillas SSD-00 | Pendiente ops |
 
@@ -29,7 +31,7 @@ Pista: [GUIA-PRUEBAS-GO-LIVE.md](GUIA-PRUEBAS-GO-LIVE.md) · [SMOKE-SIGN-OFF.md]
 | `ventas/ventasendpoints*.cs` | **Hecho** — reportes / ordenes / rapida |
 | `dashboardadminreadservice*.cs` | **Hecho** — partial + Red SQL |
 | `AdminRedDashboard.tsx` | **Hecho** |
-| `Web/.../CobroBloquePage.tsx` | Pendiente menor — extraer subpaneles cuando toque cobro (no bloquea) |
+| `Web/.../CobroBloquePage.tsx` | **Hecho** — `CobroBloqueCuotasSubgrid` (+ helpers cuota); página aún grande, splits opcionales |
 
 ---
 
@@ -42,4 +44,4 @@ Pista: [GUIA-PRUEBAS-GO-LIVE.md](GUIA-PRUEBAS-GO-LIVE.md) · [SMOKE-SIGN-OFF.md]
 
 ## 4. Hecho (no reabrir)
 
-Tablero Red SQL multi-sede, ranking/meta analista, `COMO-LEER-EL-CODIGO`, `readme` corto, inventario en `API-ENDPOINTS-INVENTARIO.md`, partials de endpoints gordos (2026-11-18).
+Tablero Red SQL multi-sede, ranking/meta analista, `COMO-LEER-EL-CODIGO`, `readme` corto, inventario en `API-ENDPOINTS-INVENTARIO.md`, partials de endpoints gordos, extract `CobroBloqueCuotasSubgrid`, smokes Docker `:9080`/`:5080` (2026-11-18).
