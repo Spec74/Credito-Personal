@@ -15,6 +15,7 @@ import type {
   TipoOperacionListItem,
   ValidarCierreCajaDiario,
   VerificarPagoTransferenciaResult,
+  MedioDigitalConciliacionResultado,
 } from '../types/api'
 
 export function fetchCajaDiarioVentaRapida(
@@ -451,6 +452,44 @@ export function verificarPagoTransferencia(body: {
       body: JSON.stringify(body),
     },
   )
+}
+
+/** Sube reporte Yape (.xlsx/.csv). Solo TE PAGÓ. Si aplicarAutos, verifica coincidencias únicas. */
+export function conciliarPagosYape(body: {
+  oficinaId: number
+  archivo: File
+  aplicarAutos?: boolean
+}): Promise<MedioDigitalConciliacionResultado> {
+  const form = new FormData()
+  form.append('oficinaId', String(body.oficinaId))
+  form.append('archivo', body.archivo)
+  if (body.aplicarAutos) {
+    form.append('aplicarAutos', 'true')
+  }
+  return apiFetch<MedioDigitalConciliacionResultado>('/credito/conciliar-pagos-yape', {
+    method: 'POST',
+    body: form,
+  })
+}
+
+/** Sube capturas Plin/Interbank (jpg/png/webp). OCR → Plin-. Si aplicarAutos, verifica únicos. */
+export function conciliarPagosPlin(body: {
+  oficinaId: number
+  capturas: File[]
+  aplicarAutos?: boolean
+}): Promise<MedioDigitalConciliacionResultado> {
+  const form = new FormData()
+  form.append('oficinaId', String(body.oficinaId))
+  for (const f of body.capturas) {
+    form.append('capturas', f)
+  }
+  if (body.aplicarAutos) {
+    form.append('aplicarAutos', 'true')
+  }
+  return apiFetch<MedioDigitalConciliacionResultado>('/credito/conciliar-pagos-plin', {
+    method: 'POST',
+    body: form,
+  })
 }
 
 export function recalcularCajaDiario(body: {

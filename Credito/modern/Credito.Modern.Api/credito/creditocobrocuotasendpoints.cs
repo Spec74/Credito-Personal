@@ -211,7 +211,228 @@ internal static class CreditoCobroCuotasEndpoints
             .ProducesProblem(StatusCodes.Status409Conflict)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
+        app.MapPost(
+                "/api/v1/credito/conciliar-pagos-yape",
+                async Task<Results<Ok<MedioDigitalConciliacionResultadoDto>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    HttpRequest httpRequest,
+                    IMediosDigitalesConciliacionService conciliacion,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (!httpRequest.HasFormContentType)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "Se espera multipart/form-data con el archivo del reporte Yape.");
+                    }
 
+                    var form = await httpRequest.ReadFormAsync(ct).ConfigureAwait(false);
+                    var formError = TryReadOficinaYAplicar(form, httpContext, out var oficinaId, out var aplicarAutos);
+                    if (formError is not null)
+                    {
+                        return formError;
+                    }
+
+                    var file = form.Files.GetFile("archivo") ?? form.Files.GetFile("file");
+                    if (file is null || file.Length < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Archivo requerido",
+                            detail: "Suba el reporte Yape (.xlsx o .csv).");
+                    }
+
+                    if (file.Length > 8 * 1024 * 1024)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Archivo demasiado grande",
+                            detail: "El reporte Yape no debe superar 8 MB.");
+                    }
+
+                    var log = loggerFactory.CreateLogger("ConciliarPagosYape");
+                    try
+                    {
+                        await using var stream = file.OpenReadStream();
+                        var result = await conciliacion
+                            .ConciliarYapeAsync(oficinaId, stream, file.FileName, aplicarAutos, ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(result);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Conciliación Yape rechazada");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Reporte no válido",
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "No se pudo interpretar el reporte Yape."
+                                : ex.Message);
+                    }
+                    catch (ArgumentOutOfRangeException ex)
+                    {
+                        log.LogWarning(ex, "Parámetros inválidos conciliación Yape");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Parámetros inválidos",
+                            detail: ex.Message);
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error de BD en conciliación Yape");
+                        var detail = "No se pudo conciliar el reporte Yape.";
+                        if (env.IsDevelopment())
+                        {
+                            detail += $" Detalle: {ex.Message}";
+                        }
+
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                })
+            .WithName("CreditoConciliarPagosYape")
+            .WithSummary(
+                "Encargado/Admin: sube reporte Yape (TE PAGÓ), concilia 1:1 por monto+minuto y opcionalmente auto-verifica solo coincidencias únicas.")
+            .WithTags("credito", "caja")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
+            .DisableAntiforgery()
+            .Accepts<IFormFile>("multipart/form-data")
+            .Produces<MedioDigitalConciliacionResultadoDto>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
+        app.MapPost(
+                "/api/v1/credito/conciliar-pagos-plin",
+                async Task<Results<Ok<MedioDigitalConciliacionResultadoDto>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    HttpRequest httpRequest,
+                    IMediosDigitalesConciliacionService conciliacion,
+                    ILoggerFactory loggerFactory,
+                    IHostEnvironment env,
+                    CancellationToken ct) =>
+                {
+                    if (!httpRequest.HasFormContentType)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "Se espera multipart/form-data con capturas Plin/Interbank.");
+                    }
+
+                    var form = await httpRequest.ReadFormAsync(ct).ConfigureAwait(false);
+                    var formError = TryReadOficinaYAplicar(form, httpContext, out var oficinaId, out var aplicarAutos);
+                    if (formError is not null)
+                    {
+                        return formError;
+                    }
+
+                    var files = form.Files
+                        .Where(f =>
+                            string.Equals(f.Name, "capturas", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(f.Name, "archivo", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(f.Name, "files", StringComparison.OrdinalIgnoreCase) ||
+                            f.Name.StartsWith("capturas", StringComparison.OrdinalIgnoreCase))
+                        .Where(f => f.Length > 0)
+                        .ToList();
+
+                    if (files.Count == 0)
+                    {
+                        files = form.Files.Where(f => f.Length > 0).ToList();
+                    }
+
+                    if (files.Count == 0)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Capturas requeridas",
+                            detail: "Suba una o más capturas de movimientos Plin (jpg/png/webp).");
+                    }
+
+                    if (files.Any(f => f.Length > 6 * 1024 * 1024))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Archivo demasiado grande",
+                            detail: "Cada captura no debe superar 6 MB.");
+                    }
+
+                    var log = loggerFactory.CreateLogger("ConciliarPagosPlin");
+                    var opened = new List<(Stream Stream, string FileName, IDisposable? Own)>();
+                    try
+                    {
+                        foreach (var f in files)
+                        {
+                            opened.Add((f.OpenReadStream(), f.FileName, null));
+                        }
+
+                        var result = await conciliacion
+                            .ConciliarPlinCapturasAsync(
+                                oficinaId,
+                                opened.Select(x => (x.Stream, x.FileName)).ToList(),
+                                aplicarAutos,
+                                ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(result);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "Conciliación Plin rechazada");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Capturas no válidas",
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "No se pudieron interpretar las capturas Plin."
+                                : ex.Message);
+                    }
+                    catch (ArgumentOutOfRangeException ex)
+                    {
+                        log.LogWarning(ex, "Parámetros inválidos conciliación Plin");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Parámetros inválidos",
+                            detail: ex.Message);
+                    }
+                    catch (DbException ex)
+                    {
+                        log.LogError(ex, "Error de BD en conciliación Plin");
+                        var detail = "No se pudo conciliar las capturas Plin.";
+                        if (env.IsDevelopment())
+                        {
+                            detail += $" Detalle: {ex.Message}";
+                        }
+
+                        return TypedResults.Problem(
+                            detail: detail,
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "Error de base de datos");
+                    }
+                    finally
+                    {
+                        foreach (var (stream, _, _) in opened)
+                        {
+                            await stream.DisposeAsync().ConfigureAwait(false);
+                        }
+                    }
+                })
+            .WithName("CreditoConciliarPagosPlin")
+            .WithSummary(
+                "Encargado/Admin: sube capturas Plin/Interbank, OCR → filas Plin-, concilia 1:1 y opcionalmente auto-verifica únicos.")
+            .WithTags("credito", "caja")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
+            .DisableAntiforgery()
+            .Accepts<IFormFile>("multipart/form-data")
+            .Produces<MedioDigitalConciliacionResultadoDto>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
         app.MapGet(
                 "/api/v1/credito/completar-impagos-validacion",
@@ -1126,5 +1347,29 @@ internal static class CreditoCobroCuotasEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status422UnprocessableEntity)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+    }
+
+    private static ProblemHttpResult? TryReadOficinaYAplicar(
+        IFormCollection form,
+        HttpContext httpContext,
+        out int oficinaId,
+        out bool aplicarAutos)
+    {
+        oficinaId = 0;
+        aplicarAutos =
+            string.Equals(form["aplicarAutos"].ToString(), "true", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(form["aplicarAutos"].ToString(), "1", StringComparison.OrdinalIgnoreCase);
+
+        var oficinaRaw = form["oficinaId"].ToString();
+        if (!int.TryParse(oficinaRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out oficinaId) ||
+            oficinaId < 1)
+        {
+            return TypedResults.Problem(
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Parámetros inválidos",
+                detail: "oficinaId es obligatorio y debe ser un entero >= 1.");
+        }
+
+        return CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
     }
 }

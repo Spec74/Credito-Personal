@@ -277,6 +277,42 @@ export interface VerificarPagoTransferenciaResult {
   yaVerificado: boolean
 }
 
+/** Par conciliación medios digitales (Yape Excel / Plin capturas). */
+export interface MedioDigitalMatchPair {
+  movimientoCajaId: number
+  cliente: string | null
+  movimiento: string | null
+  importePago: number
+  tipoPago: string | null
+  fechaTransferencia: string | null
+  registro: string | null
+  reporteIndice: number | null
+  reporteCanal: string | null
+  reporteOrigen: string | null
+  reporteMensaje: string | null
+  reporteFechaOperacion: string | null
+  reporteMonto: number | null
+  estado: 'Auto' | 'Sugerido' | 'Ambiguo' | 'SinMatch' | string
+  motivo: string
+}
+
+export interface MedioDigitalConciliacionResultado {
+  fuente: string
+  filasArchivo: number
+  filasIngreso: number
+  filasDescartadas: number
+  totalIngresos: number
+  pendientesSistema: number
+  auto: number
+  sugeridos: number
+  ambiguos: number
+  sinMatch: number
+  verificadosAplicados: number
+  yaVerificados: number
+  pares: MedioDigitalMatchPair[]
+  advertencias: string[]
+}
+
 export interface SimuladorCreditoRequest {
   monto: number
   formaPago: string

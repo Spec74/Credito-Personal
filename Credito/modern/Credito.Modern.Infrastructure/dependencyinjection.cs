@@ -253,6 +253,8 @@ public static class DependencyInjection
         services.AddScoped<IRptSaldoCarteraCajaDiarioReadService, RptSaldoCarteraCajaDiarioReadService>();
         services.AddScoped<IPagosNoVerificadosReadService, PagosNoVerificadosReadService>();
         services.AddScoped<IVerificarPagoTransferenciaWriteService, VerificarPagoTransferenciaWriteService>();
+        services.AddSingleton<IOcrEngine, TesseractCliOcrEngine>();
+        services.AddScoped<IMediosDigitalesConciliacionService, MediosDigitalesConciliacionService>();
         services.AddScoped<ICajaDiarioSesionReadService, CajaDiarioSesionReadService>();
         services.AddScoped<IClienteBuscarReadService, ClienteBuscarReadService>();
         services.AddScoped<IClienteListadoReadService, ClienteListadoReadService>();

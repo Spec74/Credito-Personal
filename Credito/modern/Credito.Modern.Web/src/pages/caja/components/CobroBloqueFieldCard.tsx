@@ -38,7 +38,7 @@ export type CobroBloqueFieldEdit = {
   fechaHoraTrans: string
   cuotasSeleccionadas: number[]
   /** 2+ medios = cobro mixto (mismo flujo que «Dividir» en escritorio). */
-  medios?: Array<{ tipoPagoId: number; importe: number; fechaHoraTrans?: string | null }>
+  medios?: Array<{ tipoPagoId: number; importe: number; fechaHoraTrans: string }>
 }
 
 type TipoPagoOpt = { value: number; label: string }

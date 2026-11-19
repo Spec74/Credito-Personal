@@ -24,6 +24,26 @@
   min-width: 0;
 }
 
+.caja-verificar-yape__result {
+  margin-top: 8px;
+  min-width: 0;
+}
+
+.caja-verificar-yape__msg {
+  color: var(--credix-text-muted, #64748b);
+  font-size: 12px;
+}
+
+.caja-verificar-yape__warns {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.caja-verificar-yape-modal .ant-modal-body {
+  max-height: min(78vh, 720px);
+  overflow: auto;
+}
+
 .caja-verificar-pagos-empty {
   padding: 24px 16px;
   text-align: center;
