@@ -182,7 +182,9 @@ Detalle: [SSD-01](ssd/SSD-01-auth-inicio.md) · [DEPLOY-AL-SUBIR.md](migration/D
 | [ssd/README.md](ssd/README.md) | Spec por módulo 00–19 |
 | [API-OVERVIEW.md](API-OVERVIEW.md) | Prefijos y policies |
 | [dashboard_migracion.md](dashboard_migracion.md) | Ingeniería de `/inicio` (Red, ranking, meta) |
-| [../readme.md](../readme.md) | Inventario largo de endpoints |
+| [API-ENDPOINTS-INVENTARIO.md](API-ENDPOINTS-INVENTARIO.md) | Inventario largo de endpoints |
+| [DEUDA-TECNICA.md](DEUDA-TECNICA.md) | Backlog mantenimiento / smoke |
+| [../readme.md](../readme.md) | Arranque local (corto) |
 | [OPS.md](OPS.md) / [AMBIENTES.md](AMBIENTES.md) | Runbooks |
 | [BITACORA-DESVIACIONES.md](migration/BITACORA-DESVIACIONES.md) | Diferencias vs MVC |
 

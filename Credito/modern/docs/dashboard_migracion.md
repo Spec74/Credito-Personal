@@ -29,7 +29,7 @@ DI: `AddScoped<IDashboardAdminReadService, DashboardAdminReadService>()` (y anal
 1. SPA detecta `esCentral && !sedeId` → `fetchDashboardAdminRed()`.
 2. `GET /api/v1/dashboard/admin/red` exige `CreditoRolAdministrador` + `IndPrincipal`.
 3. `SesionOficina` arma `Destinos` = oficinas activas.
-4. `ObtenerRedAsync` hace fan-out (semáforo 3) de `ObtenerAsync` por sede, agrega KPIs y semáforo (`verde`/`ambar`/`rojo`).
+4. `ObtenerRedAsync` ejecuta **un** SQL multi-sede (`STRING_SPLIT` + CTEs cob/coloc/flujo/cartera/analistas) — sin fan-out N×detalle.
 5. Clic en sede → `?sedeId=` → tablero operativo (shell + detalle).
 
 Sucursal que llama `/admin/red` → **403**.
@@ -83,9 +83,9 @@ Caché: shell/red ~90s, detalle ~180s (`IMemoryCache`).
 | DTOs en Application | PASS |
 | Infra implementa `I*Service` | PASS |
 | Oficina vía `SesionOficina` / Destinos | PASS |
-| Fan-out Red solo Central | PASS |
+| Red solo Central; 1 roundtrip SQL | PASS |
 | Ranking/podio/meta best-effort (no tumban el tablero) | WARN aceptado (mismo patrón que shell cob/flujo) |
-| KPIs principales = batch C# no USP | WARN documentado (histórico timeout USP admin/gestor) |
+| KPIs sede = batch C# no USP admin | WARN documentado (histórico timeout USP) |
 
 ---
 

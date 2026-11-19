@@ -74,6 +74,7 @@ El C# no recalcula `TotalPago` ni saldos de cuota.
 | `POST anular-movimiento-caja` | `CreditoRolAnularMovimientoCaja` | Arqueo |
 | `POST transferir-saldos-caja-diario`, `POST reconciliar-caja-diario`, `POST cerrar-caja-diario` | Operador | Arqueo / cierre |
 | `GET pagos-no-verificados`, `POST verificar-pago-transferencia` | Operador | `/caja/verificar-pagos` |
+| `POST …/conciliar-pagos-yape`, `POST …/conciliar-pagos-plin` | Encargado/Admin | Verificar: Excel Yape (TE PAGÓ) / capturas Plin OCR |
 | `GET saldos-caja-diario*`, cierre masivo / asignar | Según rol / `LECTURA_SALDO` | `/caja/saldos`, `/caja/asignar` |
 | Caja chica E/S, rendición, `cerrar-caja-chica-diario`, transferir bóveda | Operador | `/caja/chica` |
 | `POST solicitar-condonacion` | Operador | Diario → bandeja SSD-02 |

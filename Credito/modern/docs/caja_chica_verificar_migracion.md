@@ -2,10 +2,11 @@
 
 Spec SSD: [docs/ssd/SSD-03-caja.md](ssd/SSD-03-caja.md).
 
-**Última revisión:** 2026-05-26  
-Rutas: `/caja/chica`, `/caja/verificar-pagos`
+**Última revisión:** 2026-11-18  
+Rutas: `/caja/chica`, `/caja/verificar-pagos`  
+Spec: [SSD-03](ssd/SSD-03-caja.md)
 
-**Estado:** UI moderna Credix aplicada (mayo 2026). Operativamente listas para go-live.
+**Estado:** UI Credix + conciliación Yape/Plin (nov 2026). Listas para go-live (smoke §7 pendiente de firma).
 
 ---
 
@@ -13,22 +14,22 @@ Rutas: `/caja/chica`, `/caja/verificar-pagos`
 
 | Legacy (`VerificarPagos/Index.cshtml`) | Modern | Estado |
 |----------------------------------------|--------|--------|
-| jqGrid pagos no verificados | `CredixDataTable` + `fetchPagosNoVerificados` | ✅ Funcional |
+| jqGrid pagos no verificados | `CredixDataTable` + `fetchPagosNoVerificados` | ✅ |
 | Doble clic → confirmar verificar | `onDoubleClick` + `Modal.confirm` | ✅ |
 | `Verificar` POST | `verificarPagoTransferencia` | ✅ |
-| — | Export CSV / PDF | ✅ Mejora |
-| — | Botón Verificar por fila | ✅ Mejora |
+| — | Export CSV / PDF | ✅ |
+| — | Botón Verificar por fila | ✅ |
+| — | **Conciliar Yape (Excel TE PAGÓ)** auto 1:1 monto+minuto | ✅ 2026-11 |
+| — | **Conciliar Plin (capturas OCR Tesseract)** | ✅ 2026-11 |
 | Búsqueda / debounce | `filterTableRows` + toolbar | ✅ |
-| Estilos módulo Credix (`#114885`) | `caja-verificar-pagos-module.css` | ✅ |
+| Estilos módulo Credix | `caja-verificar-pagos-module.css` | ✅ |
 | Stats / empty state | KPIs + `VerificarPagosTableEmpty` | ✅ |
-| Paginación 45/60/75 | `pageSizeOptions` legacy | ✅ |
-| Panel «VERIFICADOR DE PAGOS» | `CredixCrudPage` `panelTitle` | ✅ |
 
-**API:** `GET pagos-no-verificados`, `POST verificar-pago-transferencia`, exportaciones en `cajaDiario` API.
+**API:** `GET pagos-no-verificados`, `POST verificar-pago-transferencia`, `POST conciliar-pagos-yape`, `POST conciliar-pagos-plin`, exportaciones.
 
-**Archivos:** `VerificarPagosPage.tsx`, `components/VerificarPagosTableEmpty.tsx`, `components/CajaListToolbar.tsx`, `styles/caja-verificar-pagos-module.css`.
+**Archivos:** `VerificarPagosPage.tsx`, parsers Yape/Plin, `TesseractCliOcrEngine`, `styles/caja-verificar-pagos-module.css`.
 
-**Conclusión:** **Completo** (funcional + UX moderna).
+**Conclusión:** **Completo** (funcional + conciliación).
 
 ---
 

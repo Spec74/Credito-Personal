@@ -1,11 +1,16 @@
 # Documentación de Credito.Modern
 
-**Estado del paquete documental:** as-built actualizado hasta **2026-11-18** (Tablero Red Central, ranking/meta analista, guía [COMO-LEER-EL-CODIGO.md](COMO-LEER-EL-CODIGO.md); mapa [ESTRUCTURA.md](ESTRUCTURA.md)) · rama `Eber-migracion`. No es «100% cerrado»: queda deuda técnica y de evidencia.
-**Deuda operativa (no código):** casillas SSD §7 y cutover preprod siguen abiertas hasta smoke firmado en ambiente. **Hecho 2026-11-18:** `GET /dashboard/admin/red`, UI Red|Sede, ranking/podio/meta en analista; docs SSD-01 / dashboard alineados. **Hecho 2026-11-12:** SPA informes + central de riesgos por sede; checklist responsive en [responsive-audit.md](responsive-audit.md).
-Una base `CREDITO`; sucursal = `OficinaId`. Alcance sucursal vs Central en SSD-07/08 · Tablero Red en SSD-01.
+**Estado del paquete documental as-built:** **100% escrito y navegable** (2026-11-18) · rama `Eber-migracion`.  
+Índice + mapa + arquitectura + guía de código + SSD 00–19 + migraciones de dominio + API overview + inventario de rutas.
 
-Este es el **índice único** para informática, negocio y auditoría.  
-Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escritos** cuya marca depende del smoke preprod (operación), no de documentación faltante.
+**Qué no es “docs faltantes”:**  
+- Casillas SSD §7 `[ ]` = **evidencia de smoke** (pista operativa). Criterios ya redactados. Ver [DEUDA-TECNICA.md](DEUDA-TECNICA.md) §1.  
+- Deuda de **código** (archivos endpoint muy grandes) = backlog de mantenimiento en [DEUDA-TECNICA.md](DEUDA-TECNICA.md) §2; no bloquea el paquete documental.
+
+**Hecho 2026-11-18:** Tablero Red SQL agregado, `AdminRedDashboard`, ranking/meta, `COMO-LEER-EL-CODIGO`, `readme` adelgazado.  
+Una base `CREDITO`; sucursal = `OficinaId`. Tablero Red: SSD-01.
+
+Este es el **índice único** para informática, negocio y auditoría.
 
 ---
 
@@ -17,6 +22,8 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 | **Cómo está organizado y conectado el código** | [COMO-LEER-EL-CODIGO.md](COMO-LEER-EL-CODIGO.md) |
 | **Mapa de carpetas (ingeniero)** | [ESTRUCTURA.md](ESTRUCTURA.md) |
 | Arquitectura | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| **Deuda técnica restante (código / smoke)** | [DEUDA-TECNICA.md](DEUDA-TECNICA.md) |
+| Inventario largo de endpoints | [API-ENDPOINTS-INVENTARIO.md](API-ENDPOINTS-INVENTARIO.md) |
 | Presentación gerencia (slides) | [PRESENTACION_ARQUITECTURA.html](PRESENTACION_ARQUITECTURA.html) |
 | Plan multisucursal + prendario | [migration/PLAN-MULTISUCURSAL-PRENDARIO.md](migration/PLAN-MULTISUCURSAL-PRENDARIO.md) |
 | Siguiente nivel UI / ventaja competitiva (Spec Kit) | [ssd/SSD-13-experiencia-operativa.md](ssd/SSD-13-experiencia-operativa.md) · [speckit/001](speckit/001-experiencia-operativa/spec.md) · [contrato C](speckit/001-experiencia-operativa/contrato-datos-c.md) · [PLA/UIF](speckit/001-experiencia-operativa/contrato-pla-uif.md) · [avisos/agenda](speckit/002-comunicados-agenda/spec.md) · [móvil](speckit/003-movil-shell/spec.md) · [SSD-15](ssd/SSD-15-movil-shell.md) · [alcance red](speckit/004-alcance-red/spec.md) · [Facturador Smart](speckit/005-facturador-smart/spec.md) · [SSD-16](ssd/SSD-16-facturador-smart.md) · [estructura](speckit/006-estructura-contemporanea/spec.md) · [SSD-17](ssd/SSD-17-estructura-contemporanea.md) · [color](ssd/SSD-19-color-scheme.md) |
