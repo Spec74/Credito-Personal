@@ -1,6 +1,11 @@
 /**
- * Verificar pagos — estilos específicos de tabla y acciones.
+ * Verificar pagos + conciliación Yape/Plin — tokens Credix (claro/oscuro) + responsivo.
  */
+
+.caja-verificar-pagos-page {
+  max-width: 100%;
+  overflow-x: clip;
+}
 
 .caja-verificar-pagos-table .ant-table-tbody > tr.caja-verificar-pagos-row--selected > td {
   background: var(--credix-brand-light, #e8f2fc) !important;
@@ -8,12 +13,13 @@
 
 .caja-verificar-pagos-table .ant-table-tbody > tr:hover > td {
   cursor: pointer;
+  background: var(--credix-row-hover, color-mix(in srgb, var(--credix-brand-light) 55%, transparent));
 }
 
 .caja-verificar-pagos-table__importe {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
-  color: var(--credix-brand, #114885);
+  color: var(--credix-ink-brand, var(--credix-brand, #114885));
 }
 
 .caja-verificar-pagos-actions {
@@ -24,9 +30,64 @@
   min-width: 0;
 }
 
+.caja-verificar-medios__result {
+  margin-top: 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.caja-verificar-medios__msg {
+  color: var(--credix-text-muted, #64748b);
+  font-size: 12px;
+}
+
+.caja-verificar-medios__warns {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--credix-text);
+}
+
+.caja-verificar-medios__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 10px;
+  min-width: 0;
+}
+
+.caja-verificar-medios__filters .ant-segmented {
+  max-width: 100%;
+}
+
+.caja-verificar-medios-modal.ant-modal {
+  max-width: calc(100vw - 24px);
+  padding-bottom: 0;
+}
+
+.caja-verificar-medios-modal .ant-modal-body {
+  max-height: min(72vh, 680px);
+  overflow: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.caja-verificar-medios-modal .ant-upload-list {
+  max-width: 100%;
+}
+
+.caja-verificar-medios-modal .ant-upload-list-item {
+  max-width: 100%;
+}
+
+.caja-verificar-medios-modal .ant-table-wrapper {
+  max-width: 100%;
+}
+
+/* Alias legacy (nombres previos Yape) */
 .caja-verificar-yape__result {
   margin-top: 8px;
   min-width: 0;
+  max-width: 100%;
 }
 
 .caja-verificar-yape__msg {
@@ -40,18 +101,23 @@
 }
 
 .caja-verificar-yape-modal .ant-modal-body {
-  max-height: min(78vh, 720px);
+  max-height: min(72vh, 680px);
   overflow: auto;
 }
 
 .caja-verificar-pagos-empty {
   padding: 24px 16px;
   text-align: center;
+  color: var(--credix-text-muted);
 }
 
 @media (max-width: 991px) {
   .caja-verificar-pagos-page ul.credix-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .caja-verificar-medios-modal.ant-modal {
+    width: min(960px, calc(100vw - 20px)) !important;
   }
 }
 
@@ -76,8 +142,72 @@
     gap: 8px;
   }
 
+  .caja-verificar-pagos-toolbar__actions {
+    width: 100%;
+  }
+
   .caja-verificar-pagos-toolbar__actions .ant-btn {
     min-height: 40px;
     justify-content: center;
+    flex: 1 1 calc(50% - 6px);
   }
+
+  .caja-verificar-medios-modal.ant-modal {
+    max-width: calc(100vw - 12px) !important;
+    margin: 6px auto;
+  }
+
+  .caja-verificar-medios-modal .ant-modal-body {
+    max-height: min(68dvh, 560px);
+    padding: 12px 14px !important;
+  }
+
+  .caja-verificar-medios-modal .ant-modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 12px 14px;
+  }
+
+  .caja-verificar-medios-modal .ant-modal-footer .ant-btn {
+    min-height: 44px;
+    flex: 1 1 calc(50% - 8px);
+  }
+
+  .caja-verificar-medios-modal .ant-modal-footer .ant-btn-primary {
+    flex: 1 1 100%;
+  }
+
+  .caja-verificar-medios__filters .ant-segmented {
+    width: 100%;
+  }
+
+  .caja-verificar-medios-modal .ant-upload-wrapper .ant-btn {
+    min-height: 44px;
+    width: 100%;
+  }
+}
+
+/* —— Dark: selección / importes / tipografía —— */
+:root[data-theme='dark'] .caja-verificar-pagos-table .ant-table-tbody > tr.caja-verificar-pagos-row--selected > td {
+  background: var(--credix-brand-light, #1a3048) !important;
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .caja-verificar-pagos-table .ant-table-tbody > tr:hover > td {
+  background: var(--credix-row-hover, #243044) !important;
+}
+
+:root[data-theme='dark'] .caja-verificar-pagos-table__importe {
+  color: var(--credix-ink-brand, #8cb6e8);
+}
+
+:root[data-theme='dark'] .caja-verificar-medios__msg,
+:root[data-theme='dark'] .caja-verificar-yape__msg {
+  color: var(--credix-text-muted, #b4bcc8);
+}
+
+:root[data-theme='dark'] .caja-modal-root.caja-verificar-medios-modal .ant-modal-footer {
+  background: var(--credix-surface-muted, #151a21);
+  border-top-color: var(--credix-border, #3a4452);
 }

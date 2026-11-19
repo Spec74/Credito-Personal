@@ -22,6 +22,11 @@ public sealed class MediosDigitalesConciliacionService(
         var parsed = YapeReporteParser.Parse(archivo, fileName);
         var pendientes = await LoadPendientesAsync(oficinaId, "Yape", cancellationToken)
             .ConfigureAwait(false);
+        var adv = parsed.Advertencias.ToList();
+        if (pendientes.Count == 0)
+        {
+            adv.Add("No hay pagos Yape pendientes de verificar en esta oficina (caja abierta).");
+        }
 
         var resultado = MedioDigitalConciliacionMatcher.Match(
             "Yape",
@@ -29,7 +34,7 @@ public sealed class MediosDigitalesConciliacionService(
             pendientes,
             parsed.FilasArchivo,
             parsed.FilasPagasteDescartadas,
-            parsed.Advertencias);
+            adv);
 
         return await MaybeApplyAsync(resultado, aplicarAutos, cancellationToken).ConfigureAwait(false);
     }
@@ -69,6 +74,11 @@ public sealed class MediosDigitalesConciliacionService(
         var merged = PlinInterbankParser.Merge(parts);
         var pendientes = await LoadPendientesAsync(oficinaId, "Plin", cancellationToken)
             .ConfigureAwait(false);
+        var adv = merged.Advertencias.ToList();
+        if (pendientes.Count == 0)
+        {
+            adv.Add("No hay pagos Plin pendientes de verificar en esta oficina (caja abierta).");
+        }
 
         var resultado = MedioDigitalConciliacionMatcher.Match(
             "Plin",
@@ -76,7 +86,7 @@ public sealed class MediosDigitalesConciliacionService(
             pendientes,
             merged.FilasDetectadas,
             merged.FilasDescartadas,
-            merged.Advertencias);
+            adv);
 
         return await MaybeApplyAsync(resultado, aplicarAutos, cancellationToken).ConfigureAwait(false);
     }

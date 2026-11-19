@@ -5,6 +5,7 @@ import {
   Alert,
   Button,
   Modal,
+  Segmented,
   Space,
   Table,
   Tabs,
@@ -47,6 +48,10 @@ import type {
 import { filterTableRows } from '../../utils/tableClientFilter'
 import { formatMoney } from '../../utils/formatMoney'
 import { sumMoney } from '../../utils/money'
+import {
+  esCreditoAdministrador,
+  esCreditoEncargado,
+} from '../../utils/creditoOperacionPermisos'
 import { CajaListToolbar } from './components/CajaListToolbar'
 import { VerificarPagosTableEmpty } from './components/VerificarPagosTableEmpty'
 import { TipoPagoCell } from '../tesoreria/components/TipoPagoBrand'
@@ -94,9 +99,13 @@ function estadoTag(estado: string) {
   }
 }
 
+type ResultFilter = 'Todos' | 'Auto' | 'Sugerido' | 'Ambiguo' | 'SinMatch'
+
 export function VerificarPagosPage() {
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
+  const roles = session?.roles ?? []
+  const puedeConciliar = esCreditoEncargado(roles) || esCreditoAdministrador(roles)
 
   const [buscar, setBuscar] = useState('')
   const buscarDebounced = useDebouncedValue(buscar.trim(), 300)
@@ -109,6 +118,7 @@ export function VerificarPagosPage() {
   const [yapeFile, setYapeFile] = useState<File | null>(null)
   const [plinFiles, setPlinFiles] = useState<UploadFile[]>([])
   const [resultado, setResultado] = useState<MedioDigitalConciliacionResultado | null>(null)
+  const [resultFilter, setResultFilter] = useState<ResultFilter>('Todos')
 
   const listQuery = useQuery({
     queryKey: ['pagos-no-verificados', oficinaId],
@@ -138,6 +148,19 @@ export function VerificarPagosPage() {
           : `Pago verificado (mov. ${r.movimientoCajaId})`,
       )
       setSelectedId(null)
+      setResultado((prev) => {
+        if (!prev) return prev
+        const pares = prev.pares.filter((p) => p.movimientoCajaId !== r.movimientoCajaId)
+        return {
+          ...prev,
+          pares,
+          auto: pares.filter((p) => p.estado === 'Auto').length,
+          sugeridos: pares.filter((p) => p.estado === 'Sugerido').length,
+          ambiguos: pares.filter((p) => p.estado === 'Ambiguo').length,
+          sinMatch: pares.filter((p) => p.estado === 'SinMatch').length,
+          pendientesSistema: Math.max(0, prev.pendientesSistema - 1),
+        }
+      })
       void listQuery.refetch()
     },
     onError: (e) => message.error(errMsg(e)),
@@ -146,6 +169,21 @@ export function VerificarPagosPage() {
   const pedirVerificar = useCallback((row: PagosNoVerificadosRow) => {
     confirmarVerificacion(row, () => verificar.mutate(row.movimientoCajaId))
   }, [verificar])
+
+  const pedirVerificarPar = useCallback(
+    (par: MedioDigitalMatchPair) => {
+      confirmMoney({
+        title: 'Verificar depósito',
+        amount: par.importePago,
+        officeLabel: [par.cliente, par.tipoPago, par.estado].filter(Boolean).join(' · '),
+        consequence:
+          'Confirmación manual del encargado. El depósito quedará marcado como verificado.',
+        okText: 'Sí, verificar',
+        onOk: () => verificar.mutate(par.movimientoCajaId),
+      })
+    },
+    [verificar],
+  )
 
   const csv = useMutation({
     mutationFn: () => downloadPagosNoVerificadosCsv(oficinaId),
@@ -173,7 +211,16 @@ export function VerificarPagosPage() {
     mutationFn: (archivo: File) =>
       conciliarPagosYape({ oficinaId, archivo, aplicarAutos: true }),
     onSuccess: (r) => {
-      setResultado(r)
+      const restantes = r.pares.filter((p) => p.estado !== 'Auto')
+      setResultado({
+        ...r,
+        pares: restantes,
+        auto: 0,
+        sugeridos: restantes.filter((p) => p.estado === 'Sugerido').length,
+        ambiguos: restantes.filter((p) => p.estado === 'Ambiguo').length,
+        sinMatch: restantes.filter((p) => p.estado === 'SinMatch').length,
+      })
+      setResultFilter('Todos')
       void listQuery.refetch()
       message.success(
         `Yape auto: ${r.verificadosAplicados} verificados (ya OK: ${r.yaVerificados})`,
@@ -205,7 +252,16 @@ export function VerificarPagosPage() {
     mutationFn: (capturas: File[]) =>
       conciliarPagosPlin({ oficinaId, capturas, aplicarAutos: true }),
     onSuccess: (r) => {
-      setResultado(r)
+      const restantes = r.pares.filter((p) => p.estado !== 'Auto')
+      setResultado({
+        ...r,
+        pares: restantes,
+        auto: 0,
+        sugeridos: restantes.filter((p) => p.estado === 'Sugerido').length,
+        ambiguos: restantes.filter((p) => p.estado === 'Ambiguo').length,
+        sinMatch: restantes.filter((p) => p.estado === 'SinMatch').length,
+      })
+      setResultFilter('Todos')
       void listQuery.refetch()
       message.success(
         `Plin auto: ${r.verificadosAplicados} verificados (ya OK: ${r.yaVerificados})`,
@@ -241,26 +297,29 @@ export function VerificarPagosPage() {
         title: 'Acciones',
         key: 'acciones',
         width: 120,
-        render: (_, row) => (
-          <div className="caja-verificar-pagos-actions">
-            <Button
-              type="primary"
-              size="small"
-              icon={<CheckOutlined />}
-              loading={verificar.isPending && selectedId === row.movimientoCajaId}
-              onClick={(e) => {
-                e.stopPropagation()
-                setSelectedId(row.movimientoCajaId)
-                pedirVerificar(row)
-              }}
-            >
-              Verificar
-            </Button>
-          </div>
-        ),
+        render: (_, row) =>
+          puedeConciliar ? (
+            <div className="caja-verificar-pagos-actions">
+              <Button
+                type="primary"
+                size="small"
+                icon={<CheckOutlined />}
+                loading={verificar.isPending && selectedId === row.movimientoCajaId}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setSelectedId(row.movimientoCajaId)
+                  pedirVerificar(row)
+                }}
+              >
+                Verificar
+              </Button>
+            </div>
+          ) : (
+            <Tag>Solo lectura</Tag>
+          ),
       },
     ],
-    [pedirVerificar, selectedId, verificar.isPending],
+    [pedirVerificar, puedeConciliar, selectedId, verificar.isPending],
   )
 
   const resultColumns: ColumnsType<MedioDigitalMatchPair> = useMemo(
@@ -277,7 +336,9 @@ export function VerificarPagosPage() {
         dataIndex: 'importePago',
         align: 'right',
         width: 100,
-        render: (v: number) => formatMoney(v),
+        render: (v: number) => (
+          <span className="caja-verificar-pagos-table__importe">{formatMoney(v)}</span>
+        ),
       },
       { title: 'F. tipada', dataIndex: 'fechaTransferencia', width: 130 },
       {
@@ -290,7 +351,7 @@ export function VerificarPagosPage() {
               {row.reporteCanal ? `${row.reporteCanal}-` : ''}
               {row.reporteOrigen}
               {row.reporteMensaje ? (
-                <span className="caja-verificar-yape__msg"> · {row.reporteMensaje}</span>
+                <span className="caja-verificar-medios__msg"> · {row.reporteMensaje}</span>
               ) : null}
             </span>
           ) : (
@@ -299,9 +360,39 @@ export function VerificarPagosPage() {
       },
       { title: 'F. reporte', dataIndex: 'reporteFechaOperacion', width: 150 },
       { title: 'Motivo', dataIndex: 'motivo', ellipsis: true },
+      {
+        title: 'Acción',
+        key: 'accion',
+        width: 110,
+        fixed: 'right',
+        render: (_, row) =>
+          row.estado === 'Auto' ? (
+            <Tag color="success">Listo auto</Tag>
+          ) : (
+            <Button
+              type="link"
+              size="small"
+              icon={<CheckOutlined />}
+              disabled={!puedeConciliar}
+              loading={verificar.isPending && selectedId === row.movimientoCajaId}
+              onClick={() => {
+                setSelectedId(row.movimientoCajaId)
+                pedirVerificarPar(row)
+              }}
+            >
+              Manual
+            </Button>
+          ),
+      },
     ],
-    [],
+    [pedirVerificarPar, puedeConciliar, selectedId, verificar.isPending],
   )
+
+  const paresFiltrados = useMemo(() => {
+    if (!resultado) return []
+    if (resultFilter === 'Todos') return resultado.pares
+    return resultado.pares.filter((p) => p.estado === resultFilter)
+  }, [resultado, resultFilter])
 
   const stats: CredixStatItem[] = useMemo(
     () => [
@@ -333,6 +424,7 @@ export function VerificarPagosPage() {
     setYapeFile(null)
     setPlinFiles([])
     setResultado(null)
+    setResultFilter('Todos')
   }
 
   const canAnalyze =
@@ -373,13 +465,15 @@ export function VerificarPagosPage() {
           extra={
             <Space wrap size="small" className="caja-verificar-pagos-toolbar__actions">
               {buscando ? <Tag color="blue">Filtrado</Tag> : null}
-              <Button
-                type="primary"
-                icon={<CloudUploadOutlined />}
-                onClick={() => setConciliarOpen(true)}
-              >
-                Conciliar medios
-              </Button>
+              {puedeConciliar ? (
+                <Button
+                  type="primary"
+                  icon={<CloudUploadOutlined />}
+                  onClick={() => setConciliarOpen(true)}
+                >
+                  Conciliar medios
+                </Button>
+              ) : null}
               <Button
                 icon={<FileExcelOutlined />}
                 loading={csv.isPending}
@@ -423,9 +517,13 @@ export function VerificarPagosPage() {
               <p style={{ margin: '0 0 12px', fontSize: 22, fontWeight: 700 }}>
                 S/ {formatMoney(selected.importePago)}
               </p>
-              <Button type="primary" onClick={() => pedirVerificar(selected)}>
-                Verificar
-              </Button>
+              {puedeConciliar ? (
+                <Button type="primary" onClick={() => pedirVerificar(selected)}>
+                  Verificar
+                </Button>
+              ) : (
+                <Tag>Solo Encargado/Admin verifica</Tag>
+              )}
             </div>
           ) : undefined
         }
@@ -453,10 +551,10 @@ export function VerificarPagosPage() {
                   ? 'caja-verificar-pagos-row--selected'
                   : undefined,
               onClick: () => setSelectedId(row.movimientoCajaId),
-              onDoubleClick: () => {
-                setSelectedId(row.movimientoCajaId)
-                pedirVerificar(row)
-              },
+          onDoubleClick: () => {
+            setSelectedId(row.movimientoCajaId)
+            if (puedeConciliar) pedirVerificar(row)
+          },
             })}
             locale={{
               emptyText: listQuery.isLoading ? (
@@ -471,10 +569,12 @@ export function VerificarPagosPage() {
 
       <Modal
         title="Conciliar medios digitales"
-        open={conciliarOpen}
+        open={conciliarOpen && puedeConciliar}
         onCancel={cerrarConciliar}
         width={980}
-        className="caja-verificar-yape-modal"
+        centered
+        rootClassName="caja-modal-root"
+        className="caja-verificar-medios-modal"
         destroyOnClose
         footer={[
           <Button key="close" onClick={cerrarConciliar}>
@@ -524,6 +624,7 @@ export function VerificarPagosPage() {
           onChange={(k) => {
             setTab(k as 'yape' | 'plin')
             setResultado(null)
+            setResultFilter('Todos')
           }}
           items={[
             {
@@ -536,7 +637,7 @@ export function VerificarPagosPage() {
                     showIcon
                     style={{ marginBottom: 12 }}
                     message="Reporte Yape .xlsx / .csv"
-                    description="Se filtra solo TE PAGÓ (se ignora PAGASTE). Auto exige monto + minuto únicos."
+                    description="Se filtra solo TE PAGÓ (se ignora PAGASTE). Auto exige monto + minuto únicos. Familiar que paga no bloquea el auto si el match es único."
                   />
                   <Upload
                     accept=".xlsx,.xlsm,.csv,.txt"
@@ -544,6 +645,7 @@ export function VerificarPagosPage() {
                     beforeUpload={(file) => {
                       setYapeFile(file)
                       setResultado(null)
+                      setResultFilter('Todos')
                       return false
                     }}
                     onRemove={() => {
@@ -571,7 +673,7 @@ export function VerificarPagosPage() {
                     showIcon
                     style={{ marginBottom: 12 }}
                     message="Capturas Interbank / Plin en bloque"
-                    description="Suba varias fotos de movimientos (Plin-nombre). OCR extrae ingresos; filas Yape- de la misma pantalla se ignoran aquí. Dedupe si hay scroll solapado."
+                    description="Hasta 30 fotos. OCR extrae Plin-nombre; Yape- de la misma pantalla se ignora. Dedupe si hay scroll solapado."
                   />
                   <Upload
                     accept="image/*,.jpg,.jpeg,.png,.webp"
@@ -579,16 +681,23 @@ export function VerificarPagosPage() {
                     listType="picture"
                     fileList={plinFiles}
                     beforeUpload={(file) => {
-                      setPlinFiles((prev) => [
-                        ...prev,
-                        {
-                          uid: `${file.name}-${file.size}-${Date.now()}`,
-                          name: file.name,
-                          status: 'done',
-                          originFileObj: file as UploadFile['originFileObj'],
-                        },
-                      ])
+                      setPlinFiles((prev) => {
+                        if (prev.length >= 30) {
+                          message.warning('Máximo 30 capturas por lote.')
+                          return prev
+                        }
+                        return [
+                          ...prev,
+                          {
+                            uid: `${file.name}-${file.size}-${Date.now()}`,
+                            name: file.name,
+                            status: 'done',
+                            originFileObj: file as UploadFile['originFileObj'],
+                          },
+                        ]
+                      })
                       setResultado(null)
+                      setResultFilter('Todos')
                       return false
                     }}
                     onRemove={(file) => {
@@ -605,7 +714,7 @@ export function VerificarPagosPage() {
         />
 
         {resultado ? (
-          <div className="caja-verificar-yape__result">
+          <div className="caja-verificar-medios__result">
             <Space wrap size={[8, 8]} style={{ margin: '12px 0' }}>
               <Tag color="blue">{resultado.fuente}</Tag>
               <Tag>Detectadas: {resultado.filasArchivo}</Tag>
@@ -625,7 +734,7 @@ export function VerificarPagosPage() {
                 style={{ marginBottom: 12 }}
                 message="Avisos del análisis"
                 description={
-                  <ul className="caja-verificar-yape__warns">
+                  <ul className="caja-verificar-medios__warns">
                     {resultado.advertencias.slice(0, 10).map((a) => (
                       <li key={a}>{a}</li>
                     ))}
@@ -634,15 +743,30 @@ export function VerificarPagosPage() {
               />
             ) : null}
 
+            <div className="caja-verificar-medios__filters">
+              <Segmented<ResultFilter>
+                value={resultFilter}
+                onChange={(v) => setResultFilter(v)}
+                options={[
+                  { label: `Todos (${resultado.pares.length})`, value: 'Todos' },
+                  { label: `Auto (${resultado.auto})`, value: 'Auto' },
+                  { label: `Sugeridos (${resultado.sugeridos})`, value: 'Sugerido' },
+                  { label: `Ambiguos (${resultado.ambiguos})`, value: 'Ambiguo' },
+                  { label: `Sin match (${resultado.sinMatch})`, value: 'SinMatch' },
+                ]}
+              />
+            </div>
+
             <Table<MedioDigitalMatchPair>
               size="small"
               rowKey={(r) =>
                 `${r.movimientoCajaId}-${r.estado}-${r.reporteIndice ?? 'x'}`
               }
               columns={resultColumns}
-              dataSource={resultado.pares}
-              scroll={{ x: 920, y: 360 }}
+              dataSource={paresFiltrados}
+              scroll={{ x: 980, y: 360 }}
               pagination={{ pageSize: 20, showSizeChanger: false }}
+              locale={{ emptyText: 'Sin filas en este filtro.' }}
             />
           </div>
         ) : null}
