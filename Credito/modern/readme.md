@@ -1,6 +1,6 @@
 # Credito.Modern
 
-**Documentación completa (100% · 2026-11-09):** [docs/DOCUMENTACION.md](docs/DOCUMENTACION.md) · **Tickets:** [docs/tickets_comprobantes.md](docs/tickets_comprobantes.md) · **Arquitectura:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · **SSD:** [docs/ssd/README.md](docs/ssd/README.md) · **Ops:** [docs/OPS.md](docs/OPS.md)
+**Documentación:** [docs/DOCUMENTACION.md](docs/DOCUMENTACION.md) · **Cómo leer el código:** [docs/COMO-LEER-EL-CODIGO.md](docs/COMO-LEER-EL-CODIGO.md) · **Estructura:** [docs/ESTRUCTURA.md](docs/ESTRUCTURA.md) · **Arquitectura:** [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · **Dashboard:** [docs/dashboard_migracion.md](docs/dashboard_migracion.md) · **SSD:** [docs/ssd/README.md](docs/ssd/README.md) · **Tickets:** [docs/tickets_comprobantes.md](docs/tickets_comprobantes.md) · **Ops:** [docs/OPS.md](docs/OPS.md)
 
 **Migración strangler:** **candidata a cierre / go-live** (API + SPA + deploy). Al subir servidores: [docs/migration/DEPLOY-AL-SUBIR.md](docs/migration/DEPLOY-AL-SUBIR.md).
 

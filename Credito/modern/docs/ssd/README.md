@@ -54,7 +54,7 @@ El menú vivo de **oficina 1 (CREDITO)** cubre SSD-01 … SSD-09 y SSD-00. Venta
 
 | Id | Módulo | Código | Doc actual | Spec SSD |
 |----|--------|--------|------------|----------|
-| SSD-01 | Autenticación, menú, inicio | Hecho | `PASSWORD-STORAGE-ROADMAP`, `MODERN-E2E-LOGIN-MENU` | [SSD-01-auth-inicio.md](SSD-01-auth-inicio.md) |
+| SSD-01 | Autenticación, menú, inicio (Tablero Red Central 2026-11-18) | Hecho | `dashboard_migracion.md`, `COMO-LEER-EL-CODIGO.md`, `PASSWORD-STORAGE-ROADMAP`, `MODERN-E2E-LOGIN-MENU` | [SSD-01-auth-inicio.md](SSD-01-auth-inicio.md) |
 | SSD-02 | Crédito (consulta, nueva solicitud, simulador, aprobar, tareas) | Hecho | `credito_migracion.md` | [SSD-02-credito.md](SSD-02-credito.md) |
 | SSD-03 | Caja diario / chica / saldos / verificar | Hecho | `caja_*_migracion.md` | [SSD-03-caja.md](SSD-03-caja.md) |
 | SSD-04 | Tesorería / bóveda | Hecho | `boveda_migracion.md` | [SSD-04-boveda.md](SSD-04-boveda.md) |

@@ -1,8 +1,8 @@
 # Documentación de Credito.Modern
 
-**Estado del paquete documental:** as-built actualizado hasta **2026-11-12** (céntimos ROUND 2, central de riesgos por sede, hub de reportes con sede; mapa [ESTRUCTURA.md](ESTRUCTURA.md)) · rama `Eber-migracion`. No es «100% cerrado»: queda deuda técnica y de evidencia.
-**Deuda operativa (no código):** casillas SSD §7 y cutover preprod siguen abiertas hasta smoke firmado en ambiente. **Hecho 2026-11-12:** SPA `creditoPlanes` → `creditoInformesExport` + `centralRiesgoApi`; API `creditooperacionendpoints` / `creditoreportesrestantesendpoints` partidos por dominio (fachadas intactas); checklist responsive código firmado en [responsive-audit.md](responsive-audit.md).
-Una base `CREDITO`; sucursal = `OficinaId`. Alcance sucursal vs Central en SSD-07/08.
+**Estado del paquete documental:** as-built actualizado hasta **2026-11-18** (Tablero Red Central, ranking/meta analista, guía [COMO-LEER-EL-CODIGO.md](COMO-LEER-EL-CODIGO.md); mapa [ESTRUCTURA.md](ESTRUCTURA.md)) · rama `Eber-migracion`. No es «100% cerrado»: queda deuda técnica y de evidencia.
+**Deuda operativa (no código):** casillas SSD §7 y cutover preprod siguen abiertas hasta smoke firmado en ambiente. **Hecho 2026-11-18:** `GET /dashboard/admin/red`, UI Red|Sede, ranking/podio/meta en analista; docs SSD-01 / dashboard alineados. **Hecho 2026-11-12:** SPA informes + central de riesgos por sede; checklist responsive en [responsive-audit.md](responsive-audit.md).
+Una base `CREDITO`; sucursal = `OficinaId`. Alcance sucursal vs Central en SSD-07/08 · Tablero Red en SSD-01.
 
 Este es el **índice único** para informática, negocio y auditoría.  
 Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escritos** cuya marca depende del smoke preprod (operación), no de documentación faltante.
@@ -14,6 +14,7 @@ Las casillas `[ ]` dentro de cada SSD §7 son **criterios de aceptación escrito
 | Necesitas… | Lee… |
 |------------|------|
 | Índice / este archivo | [DOCUMENTACION.md](DOCUMENTACION.md) |
+| **Cómo está organizado y conectado el código** | [COMO-LEER-EL-CODIGO.md](COMO-LEER-EL-CODIGO.md) |
 | **Mapa de carpetas (ingeniero)** | [ESTRUCTURA.md](ESTRUCTURA.md) |
 | Arquitectura | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Presentación gerencia (slides) | [PRESENTACION_ARQUITECTURA.html](PRESENTACION_ARQUITECTURA.html) |
@@ -72,6 +73,7 @@ Plantilla: [ssd/SPEC-TEMPLATE.md](ssd/SPEC-TEMPLATE.md).
 | Dominio | Documento |
 |---------|-----------|
 | Crédito | [credito_migracion.md](credito_migracion.md) |
+| **Dashboard / inicio** | [dashboard_migracion.md](dashboard_migracion.md) · [SSD-01](ssd/SSD-01-auth-inicio.md) · [COMO-LEER-EL-CODIGO.md](COMO-LEER-EL-CODIGO.md) |
 | Clientes | [clientes_migracion.md](clientes_migracion.md) (GPS ficha + `POST …/ubicacion`) |
 | Caja diario | [caja_diario_migracion.md](caja_diario_migracion.md) (incluye `/caja/cobro` cola + GPS) · [SSD-03](ssd/SSD-03-caja.md) · smoke → [SMOKE-SIGN-OFF § GPS/Cobro](SMOKE-SIGN-OFF.md) |
 | Caja saldos | [caja_saldos_migracion.md](caja_saldos_migracion.md) |

@@ -31,6 +31,7 @@ Escrituras sensibles validan **oficina del JWT = oficina del body** (`CajaCredit
 | Dominio | Prefijos / ejemplos | SSD |
 |---------|---------------------|-----|
 | Auth / menú / oficinas | `/auth/*`, `/menu`, `/oficinas` | SSD-01 |
+| Dashboard / inicio | `/dashboard/analista`, `/dashboard/admin` (+ `/shell`, `/detalle`, `/red` Central) | SSD-01 · [dashboard_migracion.md](dashboard_migracion.md) |
 | Crédito | `/credito/*` (consulta, aprobar, cargos, condonar, pagar-cuotas…) | SSD-02 |
 | Caja | `/credito/*` caja-diario, chica, saldos, verificar; `/cajas/*` maestro | SSD-03 |
 | Tickets PDF | `movimiento-caja-ticket-pdf`, `movimiento-boveda-ticket-pdf`, `movimiento-caja-chica-ticket-pdf` | [tickets_comprobantes.md](tickets_comprobantes.md) |

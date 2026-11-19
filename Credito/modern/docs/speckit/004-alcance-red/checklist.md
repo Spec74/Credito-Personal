@@ -6,8 +6,9 @@
 | `/reportes/cobranza` en Central | Combo Oficina + “todas”; filas de esa sede o red | [x] |
 | `/mantenimiento/cajas` sucursal | Solo cajas de la sesión; no crear en otra oficina | [x] |
 | `/mantenimiento/cajas` Central | Ve la red; puede crear en una sede | [x] |
-| `/inicio` Central | Selector Sede cambia KPIs sin re-login | [x] |
-| `/inicio` sucursal | Sin selector; datos de su JWT | [x] |
+| `/inicio` Central | Default Tablero Red (`GET …/admin/red`); selector “Toda la red \| sede” sin re-login | [x] |
+| `/inicio` Central drill | Clic sede o `?sedeId=` abre tablero operativo de esa oficina | [x] |
+| `/inicio` sucursal | Sin selector Red; datos de su JWT; `/admin/red` → 403 | [x] |
 | Caja diario / crédito (escritura) | Sigue exigiendo JWT = oficina | [x] |
 | `/maestros/almacenes` sucursal | Solo almacenes de la sesión; no crear en otra oficina | [x] |
 | `/maestros/almacenes` Central | Selector de sede o red; puede crear en una sede | [x] |

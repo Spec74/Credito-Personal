@@ -4,6 +4,19 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-11-18 — Tablero Red Central + ranking/meta analista
+
+**Qué hay:** Admin Central en `/inicio` sin `sedeId` ve consolidado de red
+(`GET /api/v1/dashboard/admin/red`): KPIs agregados, semáforo por sede y
+drill a tablero operativo (`?sedeId=`). Sucursal que llama `/red` → 403.
+Analista recupera ranking (`usp_DashboardRanking`), podio mes anterior
+(`usp_DashboardTopAnterior`) y bloque meta mes (avance cierre gerencial,
+best-effort). Docs: SSD-01, `dashboard_migracion.md`, `COMO-LEER-EL-CODIGO.md`.
+
+**Qué no hay:** alertas persistentes / umbrales configurables (Fase C);
+`usp_DashboardAdmin*` / `usp_DashboardGestor*` siguen fuera del runtime
+(KPIs principales = batch Dapper documentado).
+
 ### 2026-11-13 — Bóveda módulo: gaps de UI/auth/paridad cerrados
 
 **Qué hay:** Tab **Caja chica** visible en operaciones. Analista = embudo

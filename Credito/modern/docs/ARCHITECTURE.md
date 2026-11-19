@@ -1,8 +1,8 @@
 # Arquitectura — Credito.Modern
 
-**Estado:** as-built · 2026-10-24  
+**Estado:** as-built · 2026-11-18  
 **Audiencia:** informática / desarrollo  
-**Mapa de carpetas:** [ESTRUCTURA.md](ESTRUCTURA.md) · **Specs:** [ssd/README.md](ssd/README.md) · índice: [DOCUMENTACION.md](DOCUMENTACION.md)
+**Mapa de carpetas:** [ESTRUCTURA.md](ESTRUCTURA.md) · **Cómo se conecta el código:** [COMO-LEER-EL-CODIGO.md](COMO-LEER-EL-CODIGO.md) · **Specs:** [ssd/README.md](ssd/README.md) · índice: [DOCUMENTACION.md](DOCUMENTACION.md)
 
 ---
 

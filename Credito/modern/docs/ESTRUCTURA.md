@@ -1,8 +1,8 @@
 # Estructura del código — Credito.Modern
 
 **Para:** informática / ingeniero de despliegue  
-**Fecha:** 2026-10-28 · rama `Eber-migracion`  
-**Índice general:** [DOCUMENTACION.md](DOCUMENTACION.md) · **Arquitectura (principios):** [ARCHITECTURE.md](ARCHITECTURE.md)
+**Fecha:** 2026-11-18 · rama `Eber-migracion`  
+**Índice general:** [DOCUMENTACION.md](DOCUMENTACION.md) · **Arquitectura (principios):** [ARCHITECTURE.md](ARCHITECTURE.md) · **Cómo se conecta:** [COMO-LEER-EL-CODIGO.md](COMO-LEER-EL-CODIGO.md)
 
 Este archivo describe **dónde está cada cosa en el árbol**, no la historia de la migración.
 
@@ -155,6 +155,9 @@ Los `test-mvc-*.ps1` y `audit-edmx-msl.ps1` sirven **solo** si se levanta el MVC
 5. Spec → `docs/ssd/SSD-XX-*.md`.
 6. Si el número no cuadra con el MVC → `docs/migration/BITACORA-DESVIACIONES.md`.
 
+**Guía narrativa (capas, JWT/Destinos, ejemplo dashboard):** [COMO-LEER-EL-CODIGO.md](COMO-LEER-EL-CODIGO.md).  
+**Inicio / tableros:** [dashboard_migracion.md](dashboard_migracion.md) · [SSD-01](ssd/SSD-01-auth-inicio.md).
+
 ---
 
 ## 8. Auth (imprescindible para desplegar)
@@ -174,9 +177,11 @@ Detalle: [SSD-01](ssd/SSD-01-auth-inicio.md) · [DEPLOY-AL-SUBIR.md](migration/D
 | Documento | Para qué |
 |-----------|----------|
 | Este archivo | Mapa de carpetas |
+| [COMO-LEER-EL-CODIGO.md](COMO-LEER-EL-CODIGO.md) | Capas, conexiones, checklist al tocar un módulo |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Principios (una BD, no segundo motor) |
 | [ssd/README.md](ssd/README.md) | Spec por módulo 00–19 |
 | [API-OVERVIEW.md](API-OVERVIEW.md) | Prefijos y policies |
+| [dashboard_migracion.md](dashboard_migracion.md) | Ingeniería de `/inicio` (Red, ranking, meta) |
 | [../readme.md](../readme.md) | Inventario largo de endpoints |
 | [OPS.md](OPS.md) / [AMBIENTES.md](AMBIENTES.md) | Runbooks |
 | [BITACORA-DESVIACIONES.md](migration/BITACORA-DESVIACIONES.md) | Diferencias vs MVC |

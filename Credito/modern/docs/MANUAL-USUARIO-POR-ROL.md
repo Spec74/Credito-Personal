@@ -220,7 +220,7 @@ Configuración de la red, seguridad y operación completa de respaldo.
 | Oficinas / Cajas | mantenimiento | Catálogo multisucursal |
 | Bóveda | `/tesoreria/boveda` | Movimientos de bóveda |
 | Condonaciones | `/credito/condonaciones` | Mora a condonar |
-| Dashboard admin | inicio / dashboard | Visión red |
+| Dashboard admin | `/inicio` | Central: **Toda la red** (consolidado + semáforo); elija sede para detalle. Sucursal: solo su oficina |
 | Informes | `/informes` | Catálogo amplio |
 
 ### Responsabilidades críticas

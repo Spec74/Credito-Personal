@@ -39,9 +39,14 @@ flowchart TD
   L[Login] --> JWT[JWT oficina + usuario + roles]
   JWT --> M[Menú vivo por oficina]
   JWT --> H[/inicio]
-  H -->|Central IndPrincipal| S[Selector de sede: KPIs de otra oficina]
-  H -->|Sucursal| K[KPIs de su JWT]
+  H -->|Central sin sedeId| R[Tablero Red consolidado]
+  R -->|clic sede o selector| S[Tablero operativo sede]
+  H -->|Central con sedeId| S
+  H -->|Sucursal admin| K[Tablero gerencial JWT]
+  H -->|Analista| A[Tablero personal + ranking/meta]
 ```
+
+Detalle de endpoints y semáforos: [SSD-01](SSD-01-auth-inicio.md) · [dashboard_migracion.md](../dashboard_migracion.md).
 
 ## 3. Clientes
 
@@ -162,7 +167,7 @@ flowchart TD
 | Escritura crédito / caja / prendario / ventas / almacén | Sí | `ValidateJwtOficina` |
 | Clientes (persona) | Sí, por diseño | DNI de red; crédito de oficina |
 | Catálogos (marca, artículo, producto) | Sí, por diseño | Empresa, no sede |
-| Dashboard `/inicio` | Sí | Central: `sedeId`; sucursal: JWT |
+| Dashboard `/inicio` | Sí | Central: Red (sin `sedeId`) o sede (`sedeId`); sucursal: JWT |
 | Cajas maestro | Sí | Sucursal no crea en otra oficina |
 | Cobranza / cobro diario / morosidad gestor | Sí | Sucursal = JWT; Central = sede o red |
 | Informes de cartera restantes | Sí | Sucursal = JWT (el query ajeno se rechaza). Central entra a la sede o usa cierre/morosos / selector donde ya existe |

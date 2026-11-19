@@ -149,6 +149,8 @@ Lista vacía. ANALISTA → Nuevo.
 | ACC-03 | Shell | Menú RolMenu; sin caja chica ni entrada | TODOS | B | [ ] |
 | ACC-04 | Campana / avisos | ≤640: lista usable; oscuro sin placa blanca | TODOS | B | [ ] |
 | INI-01 | `/inicio` | Tablero vacío sin error; luego cifras | ANALISTA, GESTOR, ADMIN, CAJERO | A | [ ] |
+| INI-02 | `/inicio` Central | Tablero Red (sedes + semáforo); drill a sede | ADMIN Central | A | [ ] |
+| INI-03 | `/inicio` analista | Ranking/podio/meta si hay datos; sin error si vacío | ANALISTA | A | [ ] |
 
 ### Clientes
 

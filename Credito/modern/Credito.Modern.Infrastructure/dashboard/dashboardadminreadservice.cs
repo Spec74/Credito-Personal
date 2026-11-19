@@ -675,6 +675,85 @@ public sealed class DashboardAdminReadService(
         return dto;
     }
 
+    public async Task<DashboardAdminRedDto> ObtenerRedAsync(
+        IReadOnlyList<(int OficinaId, string Nombre)> sedes,
+        CancellationToken cancellationToken = default)
+    {
+        if (sedes is null || sedes.Count == 0)
+        {
+            throw new ArgumentException("Debe indicar al menos una sede.", nameof(sedes));
+        }
+
+        var idsKey = string.Join(',', sedes.Select(s => s.OficinaId).OrderBy(x => x));
+        var cacheKey = $"dashboard:admin:red:{idsKey}";
+        if (cache.TryGetValue(cacheKey, out DashboardAdminRedDto? cached) && cached is not null)
+        {
+            return cached;
+        }
+
+        // Shell+detalle por sede (mora/cobranza reales). Semáforo 3 para no saturar Azure SQL.
+        using var gate = new SemaphoreSlim(3, 3);
+        var officeTasks = sedes.Select(async sede =>
+        {
+            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                var full = await ObtenerAsync(sede.OficinaId, cancellationToken).ConfigureAwait(false);
+                return (sede.OficinaId, sede.Nombre, Full: full);
+            }
+            finally
+            {
+                gate.Release();
+            }
+        });
+
+        var offices = await Task.WhenAll(officeTasks).ConfigureAwait(false);
+        var rows = offices
+            .Select(x => MapSedeRow(x.OficinaId, x.Nombre, x.Full))
+            .OrderByDescending(r => r.CobradoHoy)
+            .ThenBy(r => r.NombreOficina, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        var cobradoHoy = offices.Sum(x => x.Full.Resumen.CobradoHoy);
+        var cobradoAyer = offices.Sum(x => x.Full.Resumen.CobradoAyer);
+        var desembolsoHoy = offices.Sum(x => x.Full.Resumen.DesembolsoHoy);
+        var desembolsoAyer = offices.Sum(x => x.Full.Resumen.DesembolsoAyer);
+        var flujoHoy = offices.Sum(x => x.Full.Resumen.FlujoNetoHoy);
+        var flujoAyer = offices.Sum(x => x.Full.Resumen.FlujoNetoAyer);
+        var clientesMora = offices.Sum(x => x.Full.Resumen.ClientesMora);
+        var porVencer = offices.Sum(x => x.Full.Resumen.CreditosPorVencerSemana);
+        var analistas = offices.Sum(x => x.Full.Resumen.TotalAnalistas);
+        var clientes = offices.Sum(x => x.Full.Resumen.TotalClientes);
+        var fecha = offices.Select(x => x.Full.FechaConsulta).DefaultIfEmpty(DateTime.Now).Max();
+
+        var moraRed = clientes > 0
+            ? Math.Round((clientesMora / (decimal)clientes) * 100m, 1, MidpointRounding.AwayFromZero)
+            : 0m;
+
+        var dto = new DashboardAdminRedDto(
+            FechaConsulta: fecha,
+            TotalSedes: rows.Count,
+            CobradoHoy: cobradoHoy,
+            CobradoAyer: cobradoAyer,
+            VariacionCobradoHoyPct: DashboardAnalistaInsights.VariacionPorcentaje(cobradoHoy, cobradoAyer),
+            DesembolsoHoy: desembolsoHoy,
+            DesembolsoAyer: desembolsoAyer,
+            FlujoNetoHoy: flujoHoy,
+            FlujoNetoAyer: flujoAyer,
+            PorcentajeMoraRed: moraRed,
+            ClientesMora: clientesMora,
+            CreditosPorVencerSemana: porVencer,
+            TotalAnalistas: analistas,
+            TotalClientes: clientes,
+            SedesEnRojo: rows.Count(r => r.Semaforo == "rojo"),
+            SedesEnAmbar: rows.Count(r => r.Semaforo == "ambar"),
+            SedesEnVerde: rows.Count(r => r.Semaforo == "verde"),
+            Sedes: rows);
+
+        cache.Set(cacheKey, dto, ShellCacheTtl);
+        return dto;
+    }
+
     private void EnsureConnection()
     {
         if (string.IsNullOrWhiteSpace(_connectionString))
@@ -845,85 +924,6 @@ public sealed class DashboardAdminReadService(
         public decimal SaldoMorosidad { get; init; }
         public int ClientesMora { get; init; }
         public int CreditosPorVencerSemana { get; init; }
-    }
-
-    public async Task<DashboardAdminRedDto> ObtenerRedAsync(
-        IReadOnlyList<(int OficinaId, string Nombre)> sedes,
-        CancellationToken cancellationToken = default)
-    {
-        if (sedes is null || sedes.Count == 0)
-        {
-            throw new ArgumentException("Debe indicar al menos una sede.", nameof(sedes));
-        }
-
-        var idsKey = string.Join(',', sedes.Select(s => s.OficinaId).OrderBy(x => x));
-        var cacheKey = $"dashboard:admin:red:{idsKey}";
-        if (cache.TryGetValue(cacheKey, out DashboardAdminRedDto? cached) && cached is not null)
-        {
-            return cached;
-        }
-
-        // Shell+detalle por sede (mora/cobranza reales). Semáforo 3 para no saturar Azure SQL.
-        using var gate = new SemaphoreSlim(3, 3);
-        var officeTasks = sedes.Select(async sede =>
-        {
-            await gate.WaitAsync(cancellationToken).ConfigureAwait(false);
-            try
-            {
-                var full = await ObtenerAsync(sede.OficinaId, cancellationToken).ConfigureAwait(false);
-                return (sede.OficinaId, sede.Nombre, Full: full);
-            }
-            finally
-            {
-                gate.Release();
-            }
-        });
-
-        var offices = await Task.WhenAll(officeTasks).ConfigureAwait(false);
-        var rows = offices
-            .Select(x => MapSedeRow(x.OficinaId, x.Nombre, x.Full))
-            .OrderByDescending(r => r.CobradoHoy)
-            .ThenBy(r => r.NombreOficina, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        var cobradoHoy = offices.Sum(x => x.Full.Resumen.CobradoHoy);
-        var cobradoAyer = offices.Sum(x => x.Full.Resumen.CobradoAyer);
-        var desembolsoHoy = offices.Sum(x => x.Full.Resumen.DesembolsoHoy);
-        var desembolsoAyer = offices.Sum(x => x.Full.Resumen.DesembolsoAyer);
-        var flujoHoy = offices.Sum(x => x.Full.Resumen.FlujoNetoHoy);
-        var flujoAyer = offices.Sum(x => x.Full.Resumen.FlujoNetoAyer);
-        var clientesMora = offices.Sum(x => x.Full.Resumen.ClientesMora);
-        var porVencer = offices.Sum(x => x.Full.Resumen.CreditosPorVencerSemana);
-        var analistas = offices.Sum(x => x.Full.Resumen.TotalAnalistas);
-        var clientes = offices.Sum(x => x.Full.Resumen.TotalClientes);
-        var fecha = offices.Select(x => x.Full.FechaConsulta).DefaultIfEmpty(DateTime.Now).Max();
-
-        var moraRed = clientes > 0
-            ? Math.Round((clientesMora / (decimal)clientes) * 100m, 1, MidpointRounding.AwayFromZero)
-            : 0m;
-
-        var dto = new DashboardAdminRedDto(
-            FechaConsulta: fecha,
-            TotalSedes: rows.Count,
-            CobradoHoy: cobradoHoy,
-            CobradoAyer: cobradoAyer,
-            VariacionCobradoHoyPct: DashboardAnalistaInsights.VariacionPorcentaje(cobradoHoy, cobradoAyer),
-            DesembolsoHoy: desembolsoHoy,
-            DesembolsoAyer: desembolsoAyer,
-            FlujoNetoHoy: flujoHoy,
-            FlujoNetoAyer: flujoAyer,
-            PorcentajeMoraRed: moraRed,
-            ClientesMora: clientesMora,
-            CreditosPorVencerSemana: porVencer,
-            TotalAnalistas: analistas,
-            TotalClientes: clientes,
-            SedesEnRojo: rows.Count(r => r.Semaforo == "rojo"),
-            SedesEnAmbar: rows.Count(r => r.Semaforo == "ambar"),
-            SedesEnVerde: rows.Count(r => r.Semaforo == "verde"),
-            Sedes: rows);
-
-        cache.Set(cacheKey, dto, ShellCacheTtl);
-        return dto;
     }
 
     private static DashboardAdminRedSedeRowDto MapSedeRow(
