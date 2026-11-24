@@ -27,7 +27,7 @@ Las casillas `[ ]` / `[x]` en SSD §7 registran **smoke ejecutado**, no huecos d
 | Strangler `:9080` | **Hecho** — `smoke-strangler-proxy.ps1` 2026-11-18 |
 | Piloto Azure B1 + SQL Basic + contenedor OCR | **Hecho** 2026-11-23 — `/health`+`/ready`, oficinas; imagen `ghcr.io/spec74/credito-api:basic` |
 | SPA Vercel → API contenedor | **Hecho** — `vercel.json` / `.env.vercel.example` → `api-credito-ocr-…` |
-| SPA Cloudflare Workers+Assets | **En curso** — `wrangler.toml` / [CLOUDFLARE-PAGES.md](CLOUDFLARE-PAGES.md); falta URL + CORS Azure |
+| SPA Cloudflare Workers+Assets | **Hecho** — `https://credito-personal.sulcaparedescristian.workers.dev`; CORS `BrowserCors__AllowedOrigins__1` sin `/` |
 | ApiPerú en App Service | **Config** — requiere `ApiPeru__Token` (sin token = mensaje “no configurada”) |
 | Login SPA real + cobro/ticket + GPS (cuenta Azure anterior) | **Hecho** — [SMOKE-SIGN-OFF.md](SMOKE-SIGN-OFF.md) 2026-10-09/12 |
 | Cutover preprod SSD-00 §7 | **Pendiente ops humano** |

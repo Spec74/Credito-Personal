@@ -63,10 +63,12 @@ En App Service `api-credito-ocr` → Variables de entorno, agrega el origen Clou
 
 ```text
 BrowserCors__AllowedOrigins__0=https://credito-personal.vercel.app
-BrowserCors__AllowedOrigins__1=https://<proyecto>.pages.dev
+BrowserCors__AllowedOrigins__1=https://credito-personal.sulcaparedescristian.workers.dev
 ```
 
-Si usas dominio custom en Cloudflare (p.ej. `app.tudominio.com`):
+**Sin barra final** (`…workers.dev`, no `…workers.dev/`). El header `Origin` del browser no lleva `/`.
+
+Dominio custom (p.ej. `app.tudominio.com`):
 
 ```text
 BrowserCors__AllowedOrigins__2=https://app.tudominio.com

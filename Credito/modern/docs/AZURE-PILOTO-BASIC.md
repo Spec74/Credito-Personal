@@ -19,7 +19,7 @@ Piloto de costo fijo bajo (créditos Azure ~$200). **No** confundir con el pilot
 | API hostname | `https://api-credito-ocr-eug7aeh6dxcxcyh6.westcentralus-01.azurewebsites.net` | Puerto contenedor **8080** |
 | Imagen | `ghcr.io/spec74/credito-api:basic` | `Dockerfile` en `Credito/modern/` |
 | SPA (actual) | `https://credito-personal.vercel.app` | Vercel; `VITE_API_BASE_URL` → API `/api/v1` |
-| SPA (Cloudflare) | Pages `*.pages.dev` (en curso) | [CLOUDFLARE-PAGES.md](CLOUDFLARE-PAGES.md) |
+| SPA (Cloudflare) | `https://credito-personal.sulcaparedescristian.workers.dev` | [CLOUDFLARE-PAGES.md](CLOUDFLARE-PAGES.md) |
 | Presupuesto | `presupuesto-credito` | Alertas 40% / 100% de US$50 |
 
 **App Service “código” (`api-credito-basic`)**: solo ZIP; **sin** Tesseract. Sustituido por contenedor para OCR Plin. Preferir borrar el de código cuando el contenedor esté estable.
@@ -46,7 +46,7 @@ Script local: `deploy/scripts/publish-api-container.ps1`.
 | `Jwt__SigningKey` | ≥ 32 bytes UTF-8 |
 | `Jwt__Issuer` / `Jwt__Audience` / `Jwt__RefreshAudience` | `Credito.Modern` / … / `Credito.Modern.Refresh` |
 | `BrowserCors__AllowedOrigins__0` | `https://credito-personal.vercel.app` |
-| `BrowserCors__AllowedOrigins__1` | URL Cloudflare Pages (`https://….pages.dev`) al publicar |
+| `BrowserCors__AllowedOrigins__1` | `https://credito-personal.sulcaparedescristian.workers.dev` (**sin** `/` final) |
 | `Auth__RequerirClienteAcceso` | `false` en piloto |
 | `Hosting__AllowDevToken` | `false` |
 | `Hosting__ForwardedHeaders__Enabled` | `true` |
