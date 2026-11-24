@@ -13,7 +13,7 @@
     "test:e2e:roles": "playwright test e2e/role-module-matrix.spec.ts e2e/role-flows.spec.ts e2e/ciclo-credito-capa3.spec.ts e2e/ciclo-capa4-extras.spec.ts --workers=1",
     "typecheck": "tsc -b --pretty false",
     "preview": "vite preview",
-    "pages:deploy": "npm run build && npx --yes wrangler pages deploy dist --project-name=credito-personal",
+    "pages:deploy": "npm run build && npx --yes wrangler deploy",
     "quality": "npm run lint && npm run typecheck && npm run test:coverage && npm run build"
   },
   "dependencies": {

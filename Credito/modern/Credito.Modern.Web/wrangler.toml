@@ -1,12 +1,13 @@
-# Cloudflare Pages — proyecto SPA Credito.Modern.Web
-# Docs: docs/CLOUDFLARE-PAGES.md
+# Cloudflare Workers + Assets (flujo Git actual del dashboard).
+# Build: npm run build → dist/
+# Deploy CI: npx wrangler deploy
 #
-# Deploy manual (opcional):
-#   npm run build
-#   npx wrangler pages deploy dist --project-name=credito-personal
-#
-# En el dashboard de Pages, Root directory = Credito/modern/Credito.Modern.Web
+# SPA: not_found_handling sirve index.html en rutas del router.
+# public/_redirects sigue válido si se usa Pages clásico.
 
 name = "credito-personal"
 compatibility_date = "2026-11-24"
-pages_build_output_dir = "dist"
+
+[assets]
+directory = "./dist"
+not_found_handling = "single-page-application"

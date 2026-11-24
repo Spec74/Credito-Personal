@@ -12,7 +12,7 @@ Despliegue del frontend en **Cloudflare Pages** (alternativa / sustituto de Verc
 | Archivo | Uso |
 |---------|-----|
 | `Credito.Modern.Web/public/_redirects` | SPA fallback (`/* → /index.html`) en Pages |
-| `Credito.Modern.Web/wrangler.toml` | Nombre proyecto + `dist` |
+| `Credito.Modern.Web/wrangler.toml` | Workers + Assets (`dist`, SPA `not_found_handling`) |
 | `Credito.Modern.Web/.env.cloudflare.example` | Variables `VITE_*` de build |
 
 Build local:
@@ -28,21 +28,22 @@ Salida: `dist/`.
 
 ---
 
-## 2. Crear proyecto en Cloudflare (Git)
+## 2. Crear proyecto en Cloudflare (Git — Workers + Assets)
 
-1. [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages** → **Create** → **Pages** → **Connect to Git**.
-2. Repo: `Spec74/Credito-Personal` (o el remoto que usen).
-3. Configuración de build:
+El dashboard actual usa **Workers** con comando de deploy `npx wrangler deploy` (no Pages clásico). El `wrangler.toml` del repo ya declara `[assets]` → `./dist` + SPA.
+
+1. Workers & Pages → **Create** → **Continue with GitHub** → `Spec74/Credito-Personal`.
+2. Configuración:
 
 | Campo | Valor |
 |--------|--------|
+| **Nombre** | `credito-personal` |
 | **Root directory** | `Credito/modern/Credito.Modern.Web` |
-| **Framework preset** | Vite (o None) |
 | **Build command** | `npm run build` |
-| **Build output directory** | `dist` |
-| **Node version** | `22` (o `20`) — Environment variable `NODE_VERSION=22` |
+| **Deploy command** | `npx wrangler deploy` (default del wizard) |
+| **Branch** | `Eber-migracion` |
 
-4. **Environment variables** (Production y Preview):
+3. **Environment variables** (Production y Preview):
 
 ```text
 VITE_BASE_URL=/
@@ -51,7 +52,9 @@ VITE_GOOGLE_MAPS_API_KEY=<misma clave Maps>
 NODE_VERSION=22
 ```
 
-5. **Save and Deploy**. Anota la URL: `https://<proyecto>.pages.dev`.
+4. Deploy. URL típica: `https://credito-personal.<subdominio>.workers.dev` (o custom).
+
+**Pages clásico** (opcional): enlace “Continúa a Pages”; deploy `npx wrangler pages deploy dist`; output `dist`.
 
 ---
 
@@ -91,7 +94,7 @@ En Google Cloud → credenciales de la API key → HTTP referrers:
 ```powershell
 cd Credito/modern/Credito.Modern.Web
 npm run build
-npx wrangler pages deploy dist --project-name=credito-personal
+npx wrangler deploy
 ```
 
 Requiere `npx wrangler login` una vez.
