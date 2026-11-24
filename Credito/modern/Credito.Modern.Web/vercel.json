@@ -24,7 +24,7 @@
   "build": {
     "env": {
       "VITE_BASE_URL": "/",
-      "VITE_API_BASE_URL": "https://api-credito-basic-drdvfqfda2hjbcb6.westcentralus-01.azurewebsites.net/api/v1",
+      "VITE_API_BASE_URL": "https://api-credito-ocr-eug7aeh6dxcxcyh6.westcentralus-01.azurewebsites.net/api/v1",
       "VITE_GOOGLE_MAPS_API_KEY": "AIzaSyD3_8jtXHpMYuwKCnj4WVFMYOYGiL2jG_Y"
     }
   }
