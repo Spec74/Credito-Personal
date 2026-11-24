@@ -1,7 +1,8 @@
 # Smoke de producción — firma para 100% operativo
 
 **Corrida firmada:** 2026-10-10 · cajero `JVILLALOBOS` + cajas abiertas · API Azure + SPA Vercel.  
-**Corrida admin previa:** 2026-10-09 · `admvendix` · oficina `1`.
+**Corrida admin previa:** 2026-10-09 · `admvendix` · oficina `1`.  
+**Host API de estas firmas:** `crediconfiable-api-…` (cuenta Azure anterior). Piloto B1 actual: [AZURE-PILOTO-BASIC.md](AZURE-PILOTO-BASIC.md) (`api-credito-ocr`).
 
 > **Seguridad:** claves (`123.` / admin) circularon por chat. **Rotar** en producción cuando puedan. No versionar hashes ni secretos.
 

@@ -22,7 +22,7 @@ D:\Ebers\GitHub\
 ```
 
 CI (`Eber-migracion` → Azure): `dotnet publish Credito.Modern.Api` desde `Credito/modern`.  
-SPA (Vercel): root `Credito/modern/Credito.Modern.Web`.  
+SPA (Vercel / Cloudflare Pages): root `Credito/modern/Credito.Modern.Web`.  
 Base: una sola `CREDITO` (Azure SQL o SQL Server). Sucursal = `OficinaId` en el JWT, no otro servidor.
 
 ---
@@ -202,17 +202,17 @@ Equivale a lo que ya sabes, con otros nombres:
 
 | En el legado | En el moderno |
 |--------------|---------------|
-| IIS + `Web` | Azure App Service `crediconfiable-api` (push a `Eber-migracion` lo publica) |
-| ASPX / MVC | Vercel: `Credito/modern/Credito.Modern.Web` |
-| SQL Server `CREDITO` | **La misma** `CREDITO` (Azure SQL o el SQL de prod). No hay otra base. |
-| `web.config` connection + auth | App Settings: `CreditoDatabase__ConnectionString`, `Jwt__SigningKey` (≥32), CORS de Vercel |
+| IIS + `Web` | Azure App Service **contenedor** `api-credito-ocr` (imagen GHCR con Tesseract; ver [AZURE-PILOTO-BASIC.md](AZURE-PILOTO-BASIC.md)) |
+| ASPX / MVC | Vercel o Cloudflare Pages: `Credito/modern/Credito.Modern.Web` |
+| SQL Server `CREDITO` | **La misma** `CREDITO` (Azure SQL Basic o SQL de prod). No hay otra base. |
+| `web.config` connection + auth | App Settings: `CreditoDatabase__ConnectionString`, `Jwt__SigningKey` (≥32), `ApiPeru__Token`, CORS SPA |
 | `usp_*` en SSMS | Los mismos `usp_*`. Si el bak es viejo, correr `deploy/sql/` (empezar por `2026-10-08-prod-bak-restore-completo.sql`) |
 
 **Qué haces**
 
 1. **BD:** backup. Aplicar scripts de `Credito/modern/deploy/sql/` que aún no estén en prod. Confirmar `ClaveUsuario nvarchar(256)`. No reescribir a mano `usp_Credito_Ins`.
-2. **Backend:** ya está el workflow. Push a `Eber-migracion` → App Service. Revisa que la connection string apunte a esa `CREDITO` y que CORS incluya `https://credito-personal.vercel.app`.
-3. **Frontend:** Vercel root = `Credito/modern/Credito.Modern.Web`. `VITE_API_BASE_URL` = `https://<app-service>.azurewebsites.net/api/v1` (dominio real, no el nombre corto).
+2. **Backend:** imagen con `.github/workflows/publish-api-container.yml` → App Service **Contenedor** (OCR). ZIP/código solo no basta para Plin OCR. Connection string + JWT + `ApiPeru__Token` + CORS SPA.
+3. **Frontend:** root = `Credito/modern/Credito.Modern.Web`. `VITE_API_BASE_URL` = hostname del **contenedor** + `/api/v1`. Cloudflare: [CLOUDFLARE-PAGES.md](CLOUDFLARE-PAGES.md).
 
 **Qué no haces**
 

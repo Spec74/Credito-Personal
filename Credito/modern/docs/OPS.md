@@ -6,6 +6,7 @@
 
 | Tema | Documento / script |
 |------|---------------------|
+| Piloto Azure B1 + contenedor OCR | [AZURE-PILOTO-BASIC.md](AZURE-PILOTO-BASIC.md) |
 | Subir servidores | [migration/DEPLOY-AL-SUBIR.md](migration/DEPLOY-AL-SUBIR.md) |
 | Cutover A/B | [migration/PHASE-5-OPERATIONS-CUTOVER.md](migration/PHASE-5-OPERATIONS-CUTOVER.md), `deploy/scripts/preprod-cutover-checklist.ps1` |
 | Strangler | [migration/STRANGLER-MIGRATION.md](migration/STRANGLER-MIGRATION.md), `deploy/docker-compose.strangler.yml` |

@@ -9,20 +9,28 @@ Spec SSD: [SSD-00-cutover.md](../ssd/SSD-00-cutover.md).
 - Configurar `BrowserCors:AllowedOrigins` para el origen real de la SPA.
 - Configurar `VITE_API_BASE_URL` y `VITE_LEGACY_ORIGIN` antes del build SPA.
 
-## Piloto Azure + Vercel (gerente)
+## Piloto Azure + SPA (gerente)
+
+**Canónico actual (B1 + contenedor OCR, 2026-11):** [AZURE-PILOTO-BASIC.md](../AZURE-PILOTO-BASIC.md).  
+**SPA Cloudflare Pages:** [CLOUDFLARE-PAGES.md](../CLOUDFLARE-PAGES.md) (prep; Vercel sigue activo).
 
 Módulos SSD-01…09 pulidos para piloto (auth, crédito, caja, bóveda, clientes, prendario, informes, admin, maestros).
 
 | Pieza | Acción |
 |-------|--------|
-| Azure SQL `CREDITO` | Reanudar si está *Paused*; importar `.bacpac` desde SQL Server local |
-| App Service `crediconfiable-api` | Connection string + `Jwt__SigningKey` (≥32) |
-| CORS | `BrowserCors__AllowedOrigins__0=https://credito-personal.vercel.app` (y dominio custom si hay) |
-| API URL (Vercel) | Dominio real App Service, p.ej. `https://crediconfiable-api-….azurewebsites.net/api/v1` (no el nombre corto) |
-| Acceso IP (piloto) | `Auth__RequerirClienteAcceso=false` **o** IPs del gerente en `MAESTRO.Acceso` |
-| Forwarded headers | Recomendado en App Service: `Hosting__ForwardedHeaders__Enabled=true` |
-| Vercel | Root `Credito/modern/Credito.Modern.Web`; env de `.env.vercel.example`; `vercel.json` ya hace SPA fallback |
-| BD | Confirmar `ClaveUsuario nvarchar(256)` antes de confiar en migración perezosa |
+| Azure SQL `CREDITO` | DTU **Basic**; bacpac desde local (semilla OK); firewall Azure services |
+| App Service **contenedor** `api-credito-ocr` | Imagen `ghcr.io/spec74/credito-api:basic` (Tesseract); **no** usar solo ZIP/código si se necesita OCR Plin |
+| App Settings | `CreditoDatabase__ConnectionString`, `Jwt__*` (≥32), CORS, `WEBSITES_PORT=8080`, `ApiPeru__Token`, `Hosting__DisableHttpsRedirection=true` |
+| CORS | `…__0=https://credito-personal.vercel.app`; `…__1=https://<proyecto>.pages.dev` al publicar Cloudflare |
+| API URL (SPA) | `https://api-credito-ocr-eug7aeh6dxcxcyh6.westcentralus-01.azurewebsites.net/api/v1` |
+| Acceso IP (piloto) | `Auth__RequerirClienteAcceso=false` **o** IPs en `MAESTRO.Acceso` |
+| Forwarded headers | `Hosting__ForwardedHeaders__Enabled=true` |
+| Vercel | Root `Credito/modern/Credito.Modern.Web`; `vercel.json` + `.env.vercel.example`; Redeploy tras `VITE_*` |
+| Cloudflare Pages | Mismo root; `_redirects` + `wrangler.toml` + `.env.cloudflare.example`; build `dist` |
+| BD | `ClaveUsuario nvarchar(256)`; wipe semilla: `2026-11-05-vaciar-semilla-producto.sql` |
+| Imagen CI | `.github/workflows/publish-api-container.yml` |
+
+Histórico (cuenta anterior): App Service `crediconfiable-api-…centralus…` — evidencia en [SMOKE-SIGN-OFF.md](../SMOKE-SIGN-OFF.md); **no** es el hostname del piloto B1 actual.
 
 ### Exportar / importar `.bacpac`
 

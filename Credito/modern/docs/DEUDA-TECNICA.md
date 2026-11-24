@@ -1,7 +1,7 @@
 # Deuda técnica — Credito.Modern
 
-**Fecha:** 2026-11-18 · rama `Eber-migracion`  
-**Índice:** [DOCUMENTACION.md](DOCUMENTACION.md)
+**Fecha:** 2026-11-23 · rama `Eber-migracion`  
+**Índice:** [DOCUMENTACION.md](DOCUMENTACION.md) · Piloto Azure: [AZURE-PILOTO-BASIC.md](AZURE-PILOTO-BASIC.md)
 
 ---
 
@@ -10,8 +10,8 @@
 | Dimensión | Estado |
 |-----------|--------|
 | Docs as-built (prosa / SSD / índices) | **100%** escrito y navegable |
-| Organización código (fachadas / capas) | **~90%** — splits hechos; quedan 4 archivos >1500 líneas |
-| Ops / SSD §7 / cutover | **Parcial** — smokes Docker + firmas Azure/SMOKE reconciliadas; SSD-00 preprod y varios §7 módulo siguen abiertos |
+| Organización código (fachadas / capas) | **~90%** — splits hechos; quedan archivos >1500 líneas |
+| Ops / SSD §7 / cutover | **Parcial** — piloto Azure básico arriba; SSD-00 preprod y varios §7 módulo siguen abiertos |
 
 No declarar «producto 100% cerrado» hasta cutover SSD-00 + humos humanos restantes.
 
@@ -23,14 +23,17 @@ Las casillas `[ ]` / `[x]` en SSD §7 registran **smoke ejecutado**, no huecos d
 
 | Evidencia | Estado |
 |-----------|--------|
-| API Docker `:5080` — health, `dev/token`, Red 200/403, analista 200 | **Hecho** — `smoke-local-api.ps1` 2026-11-18 |
-| Strangler `:9080` — proxy + JWT + Red/analista + reportes/ventas/MVC | **Hecho** — `smoke-strangler-proxy.ps1` 2026-11-18 |
-| Login SPA real + cobro/ticket + GPS G1–G5 + ACL (Azure/Vercel) | **Hecho** — [SMOKE-SIGN-OFF.md](SMOKE-SIGN-OFF.md) 2026-10-09/12; casillas SSD-01/03/05 reconciliadas |
-| Cutover preprod SSD-00 §7 (login `:9080` local, piloto un día, rollback, ALTER preprod) | **Pendiente ops humano** |
-| SSD-01 refresh token SPA; SSD-03 impagos/mora/verificar/saldos PDF/hub | **Pendiente humo oficina** |
-| Misma clave `$pbk2$` MVC↔API en preprod | **Pendiente humo cruzado** |
+| API Docker local `:5080` — health, Red 200/403, analista | **Hecho** — `smoke-local-api.ps1` 2026-11-18 |
+| Strangler `:9080` | **Hecho** — `smoke-strangler-proxy.ps1` 2026-11-18 |
+| Piloto Azure B1 + SQL Basic + contenedor OCR | **Hecho** 2026-11-23 — `/health`+`/ready`, oficinas; imagen `ghcr.io/spec74/credito-api:basic` |
+| SPA Vercel → API contenedor | **Hecho** — `vercel.json` / `.env.vercel.example` → `api-credito-ocr-…` |
+| SPA Cloudflare Pages | **Prep** — `_redirects` / `wrangler.toml` / [CLOUDFLARE-PAGES.md](CLOUDFLARE-PAGES.md); falta crear proyecto + CORS |
+| ApiPerú en App Service | **Config** — requiere `ApiPeru__Token` (sin token = mensaje “no configurada”) |
+| Login SPA real + cobro/ticket + GPS (cuenta Azure anterior) | **Hecho** — [SMOKE-SIGN-OFF.md](SMOKE-SIGN-OFF.md) 2026-10-09/12 |
+| Cutover preprod SSD-00 §7 | **Pendiente ops humano** |
+| SSD-01 refresh; SSD-03 impagos/mora/verificar/saldos PDF | **Pendiente humo oficina** |
 
-Pista: [GUIA-PRUEBAS-GO-LIVE.md](GUIA-PRUEBAS-GO-LIVE.md) · [SMOKE-SIGN-OFF.md](SMOKE-SIGN-OFF.md).
+Pista: [GUIA-PRUEBAS-GO-LIVE.md](GUIA-PRUEBAS-GO-LIVE.md) · [AZURE-PILOTO-BASIC.md](AZURE-PILOTO-BASIC.md).
 
 ---
 
@@ -38,13 +41,9 @@ Pista: [GUIA-PRUEBAS-GO-LIVE.md](GUIA-PRUEBAS-GO-LIVE.md) · [SMOKE-SIGN-OFF.md]
 
 | Archivo | Líneas ~ | Estado |
 |---------|----------|--------|
-| `creditobovedaoperacionendpoints*.cs` | facade + partials ≤1394 | **Hecho** |
-| `creditoreportecreditocarteraendpoints*.cs` | partials ≤911 | **Hecho** |
-| `creditocajadiarioendpoints*.cs` | partials ≤866 | **Hecho** |
-| `ventas/ventasendpoints*.cs` | partials ≤920 | **Hecho** |
-| `dashboardadminreadservice*.cs` | partial + Red SQL | **Hecho** |
-| `AdminRedDashboard.tsx` | — | **Hecho** |
-| `CobroBloquePage.tsx` | ~1511 | **Mejorado** — `CobroBloqueCuotasSubgrid` + `CobroBloqueColumns`; toolbar/offline opcionales |
+| Endpoints bóveda/caja/cartera/ventas (partials) | ≤1394 | **Hecho** |
+| `dashboardadminreadservice` + Red | — | **Hecho** |
+| `CobroBloquePage.tsx` | ~1511 | **Mejorado** — CuotasSubgrid + Columns |
 | `creditofichagestionendpoints.cs` | ~1687 | Backlog split |
 | `SimuladorCreditoPage.tsx` | ~1565 | Backlog split |
 | `maestroreadendpoints.cs` | ~1518 | Backlog split |
@@ -60,10 +59,10 @@ Pista: [GUIA-PRUEBAS-GO-LIVE.md](GUIA-PRUEBAS-GO-LIVE.md) · [SMOKE-SIGN-OFF.md]
 
 ## 4. Datos / ranking
 
-`usp_DashboardRanking` filtra `RolId = 6` (ANALISTA). Si en un ambiente el id difiere, ranking vacío es esperado — ver [dashboard_migracion.md](dashboard_migracion.md).
+`usp_DashboardRanking` filtra `RolId = 6` (ANALISTA). Ver [dashboard_migracion.md](dashboard_migracion.md).
 
 ---
 
 ## 5. Hecho (no reabrir)
 
-Tablero Red SQL multi-sede, ranking/meta analista, `COMO-LEER-EL-CODIGO`, inventario endpoints, partials bóveda/caja/cartera/ventas, extract cuotas + columns cobro, smokes Docker con Red 200/403 + analista, reconciliación SSD-01/03/05 vs SMOKE-SIGN-OFF (2026-11-18).
+Tablero Red, ranking/meta, docs as-built, partials endpoints, CobroBloque extract, smokes local/strangler, piloto Azure B1+SQL Basic+contenedor Tesseract+Vercel+semilla (2026-11-23).

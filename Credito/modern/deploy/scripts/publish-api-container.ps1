@@ -7,9 +7,9 @@
 # Ejemplo Docker Hub:
 #   .\deploy\scripts\publish-api-container.ps1 -ImageName "TU_USUARIO/credito-api:basic"
 #
-# Luego en Portal → api-credito-basic → Centro de implementación → Contenedor:
-#   Imagen: TU_USUARIO/credito-api:basic
-#   Puerto: 8080
+# Canónico piloto 2026-11: App Service contenedor api-credito-ocr
+#   Imagen: ghcr.io/spec74/credito-api:basic (o la que pases en -ImageName)
+#   Puerto: 8080 · Doc: docs/AZURE-PILOTO-BASIC.md
 #   Startup: (vacío; ENTRYPOINT del Dockerfile)
 
 param(
@@ -50,14 +50,14 @@ Write-Host @"
 
 Listo. Configura App Service como contenedor:
 
-1) Portal → api-credito-basic → Centro de implementación (o Contenedor)
-2) Origen: Docker Hub (o ACR)
+1) Portal → api-credito-ocr → Contenedor personalizado (no Sidecar)
+2) Origen: GHCR / Docker Hub / ACR según la imagen
 3) Imagen: $ImageName
-4) Puerto: 8080
+4) Puerto: 8080 · WEBSITES_PORT=8080
 5) Guarda y espera reinicio
-6) Prueba: https://api-credito-basic-drdvfqfda2hjbcb6.westcentralus-01.azurewebsites.net/health
+6) Prueba: https://api-credito-ocr-….azurewebsites.net/health
 
-Variables de entorno (connection string, JWT, CORS) se conservan.
+Variables (SQL, JWT, CORS, ApiPeru__Token): ver docs/AZURE-PILOTO-BASIC.md.
 Verificar OCR en Kudu/SSH: tesseract --version
 
 "@ -ForegroundColor Green

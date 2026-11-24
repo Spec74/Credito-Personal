@@ -29,7 +29,9 @@ Spec: [SSD-03](ssd/SSD-03-caja.md)
 
 **Archivos:** `VerificarPagosPage.tsx`, parsers Yape/Plin, `TesseractCliOcrEngine`, `styles/caja-verificar-pagos-module.css`.
 
-**Conclusión:** **Completo** (funcional + conciliación).
+**Runtime OCR Plin:** requiere binario `tesseract` en el host → App Service **contenedor** (`api-credito-ocr` / imagen GHCR). Deploy ZIP/código solo → OCR no disponible. Ver [AZURE-PILOTO-BASIC.md](AZURE-PILOTO-BASIC.md).
+
+**Conclusión:** **Completo** (funcional + conciliación; OCR solo en contenedor).
 
 ---
 

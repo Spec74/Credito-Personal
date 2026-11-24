@@ -1,14 +1,15 @@
 # Documentación de Credito.Modern
 
-**Estado del paquete documental as-built:** **100% escrito y navegable** (2026-11-18) · rama `Eber-migracion`.  
-Índice + mapa + arquitectura + guía de código + SSD 00–19 + migraciones de dominio + API overview + inventario de rutas.
+**Estado del paquete documental as-built:** **100% escrito y navegable** (2026-11-23) · rama `Eber-migracion`.  
+Índice + mapa + arquitectura + guía de código + SSD 00–19 + migraciones de dominio + API overview + inventario de rutas + piloto Azure básico.
 
 **Qué no es “docs faltantes”:**  
 - Casillas SSD §7 `[ ]` = **evidencia de smoke** (pista operativa). Criterios ya redactados. Ver [DEUDA-TECNICA.md](DEUDA-TECNICA.md) §1.  
 - Deuda de **código** (SPA/API >1500 líneas) = backlog en [DEUDA-TECNICA.md](DEUDA-TECNICA.md) §2; no bloquea el paquete documental.
 - Cutover preprod (SSD-00 §7 abierto) = ops humano; veredicto en [DEUDA-TECNICA.md](DEUDA-TECNICA.md).
 
-**Hecho 2026-11-18:** Tablero Red SQL, ranking/meta, smokes Docker Red 200/403, extract CobroBloque columns/cuotas, SSD §7 reconciliado vs SMOKE-SIGN-OFF donde hay firma.  
+**Hecho 2026-11-23:** Piloto Azure B1 + SQL Basic + API **contenedor** (Tesseract/OCR) + Vercel → `api-credito-ocr`; semilla BD; ApiPerú vía `ApiPeru__Token`. Detalle: [AZURE-PILOTO-BASIC.md](AZURE-PILOTO-BASIC.md).  
+**Prep 2026-11-24:** SPA Cloudflare Pages — [CLOUDFLARE-PAGES.md](CLOUDFLARE-PAGES.md).  
 Una base `CREDITO`; sucursal = `OficinaId`. Tablero Red: SSD-01.
 
 Este es el **índice único** para informática, negocio y auditoría.
@@ -24,6 +25,8 @@ Este es el **índice único** para informática, negocio y auditoría.
 | **Mapa de carpetas (ingeniero)** | [ESTRUCTURA.md](ESTRUCTURA.md) |
 | Arquitectura | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | **Deuda técnica restante (código / smoke)** | [DEUDA-TECNICA.md](DEUDA-TECNICA.md) |
+| **Piloto Azure B1 + contenedor OCR (actual)** | [AZURE-PILOTO-BASIC.md](AZURE-PILOTO-BASIC.md) |
+| **SPA en Cloudflare Pages** | [CLOUDFLARE-PAGES.md](CLOUDFLARE-PAGES.md) |
 | Inventario largo de endpoints | [API-ENDPOINTS-INVENTARIO.md](API-ENDPOINTS-INVENTARIO.md) |
 | Presentación gerencia (slides) | [PRESENTACION_ARQUITECTURA.html](PRESENTACION_ARQUITECTURA.html) |
 | Plan multisucursal + prendario | [migration/PLAN-MULTISUCURSAL-PRENDARIO.md](migration/PLAN-MULTISUCURSAL-PRENDARIO.md) |

@@ -1,7 +1,8 @@
 # Guía de pruebas go-live — Credix moderno
 
-**Base:** Azure `CREDITO` de **prueba** (operación vaciada 2/11/2026).  
-**App:** Vercel / API de prueba. **No** producción.  
+**Base:** Azure `CREDITO` de **prueba** (operación vaciada 2/11/2026; semilla 2026-11-23 OK).
+**App:** Vercel / API de prueba. **No** producción.
+**Piloto B1 actual:** API contenedor `api-credito-ocr` — [AZURE-PILOTO-BASIC.md](AZURE-PILOTO-BASIC.md).
 **Quién:** un usuario real de cada rol en la misma oficina, luego repetir corto en otra sede.
 
 Marca `[x]` al pasar. Un **bloqueante** en rojo de la lista no se salta: sin eso no hay go-live.

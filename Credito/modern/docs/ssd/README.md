@@ -90,12 +90,12 @@ en `docs/speckit/` (constitución → spec → plan → tasks). Primer cambio:
 
 - [SSD-13 experiencia operativa](SSD-13-experiencia-operativa.md) · [001-experiencia-operativa](../speckit/001-experiencia-operativa/spec.md) · [CONSTITUTION-UX](../speckit/CONSTITUTION-UX.md)
 
-## Estado documental (hasta 2026-11-18)
+## Estado documental (hasta 2026-11-23)
 
 **Paquete as-built: 100% escrito y navegable** (SSD-00…19 + índices). Ver [DOCUMENTACION.md](../DOCUMENTACION.md).
 
 Eso **no** implica cutover operativo al 100%: las casillas SSD §7 `[ ]` son evidencia de smoke (no huecos de prosa). Estado vivo en [DEUDA-TECNICA.md](../DEUDA-TECNICA.md).
 
-**Cerrado 2026-11-18 (mantenibilidad):** fachadas endpoint + Tablero Red / ranking / meta; smokes Docker `:5080`/`:9080` con Red 200/403 + analista. Quedan archivos SPA/API >1500 líneas (backlog §2) y cutover preprod (SSD-00 §7 abierto).
+**Cerrado 2026-11-23 (piloto Azure básico):** B1 + SQL Basic + API contenedor OCR (`api-credito-ocr`) + Vercel — [AZURE-PILOTO-BASIC.md](../AZURE-PILOTO-BASIC.md). Quedan archivos >1500 líneas (backlog) y cutover preprod SSD-00 §7 abierto.
 
 Incluye: SSD-00…19, [DOCUMENTACION.md](../DOCUMENTACION.md), [ARCHITECTURE.md](../ARCHITECTURE.md), [tickets_comprobantes.md](../tickets_comprobantes.md), [responsive-audit.md](../responsive-audit.md), [GLOSARIO.md](../GLOSARIO.md), [AMBIENTES.md](../AMBIENTES.md), [API-OVERVIEW.md](../API-OVERVIEW.md), [TEST-STRATEGY.md](../TEST-STRATEGY.md), [OPS.md](../OPS.md).

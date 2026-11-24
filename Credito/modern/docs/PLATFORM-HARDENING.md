@@ -10,7 +10,8 @@ Cierra el gap de “calidad de plataforma” (~4/5 → checklist de release).
 | Workflow | Qué hace |
 |----------|----------|
 | `.github/workflows/credito-modern-quality.yml` | `dotnet test` + `npm run quality` en pushes/PR a `Eber-migracion` (paths `Credito/modern/**`) |
-| `.github/workflows/eber-migracion_crediconfiable-api.yml` | **Test API** antes de `dotnet publish` / deploy Azure |
+| `.github/workflows/eber-migracion_crediconfiable-api.yml` | **Test API** antes de `dotnet publish` / deploy Azure (histórico ZIP) |
+| `.github/workflows/publish-api-container.yml` | Build/push imagen GHCR con Tesseract → App Service **contenedor** (`api-credito-ocr`) |
 
 ## 2. Observabilidad
 

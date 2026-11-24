@@ -1,0 +1,3 @@
+# Cloudflare Pages: archivos existentes en dist se sirven primero;
+# el resto cae en index.html (React Router).
+/*    /index.html   200

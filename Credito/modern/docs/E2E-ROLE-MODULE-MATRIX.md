@@ -1,11 +1,12 @@
 # E2E — Matriz rol × módulo (producción)
 
-**Fecha:** 2026-10-10  
+**Fecha:** 2026-10-10 (evidencia cuenta Azure anterior)  
 **SPA:** https://credito-personal.vercel.app  
-**API:** Azure `crediconfiable-api-…`  
+**API (histórico de esta corrida):** `crediconfiable-api-…`  
+**API piloto actual (2026-11):** `api-credito-ocr-…` — [AZURE-PILOTO-BASIC.md](AZURE-PILOTO-BASIC.md)  
 **Oficina:** 1  
 
-> El smoke anterior (cajeros/ruta/PDF) **no** cubría toda la plataforma. Esta corrida valida **perfiles de rol representativos × módulos del menú ACL** + flujos de UI con datos.
+> El smoke anterior (cajeros/ruta/PDF) **no** cubría toda la plataforma. Esta corrida valida **perfiles de rol representativos × módulos del menú ACL** + flujos de UI con datos. Re-ejecutar contra el hostname del piloto B1 si se firma de nuevo.
 
 ## Cómo se prueba
 

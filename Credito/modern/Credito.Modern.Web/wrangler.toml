@@ -1,0 +1,12 @@
+# Cloudflare Pages — proyecto SPA Credito.Modern.Web
+# Docs: docs/CLOUDFLARE-PAGES.md
+#
+# Deploy manual (opcional):
+#   npm run build
+#   npx wrangler pages deploy dist --project-name=credito-personal
+#
+# En el dashboard de Pages, Root directory = Credito/modern/Credito.Modern.Web
+
+name = "credito-personal"
+compatibility_date = "2026-11-24"
+pages_build_output_dir = "dist"
