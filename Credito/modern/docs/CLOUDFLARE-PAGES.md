@@ -11,8 +11,7 @@ Despliegue del frontend en **Cloudflare Pages** (alternativa / sustituto de Verc
 
 | Archivo | Uso |
 |---------|-----|
-| `Credito.Modern.Web/public/_redirects` | SPA fallback (`/* → /index.html`) en Pages |
-| `Credito.Modern.Web/wrangler.toml` | Workers + Assets (`dist`, SPA `not_found_handling`) |
+| `Credito.Modern.Web/wrangler.toml` | Workers + Assets (`dist`, SPA vía `not_found_handling`) — **no** usar `_redirects` (rompe deploy) |
 | `Credito.Modern.Web/.env.cloudflare.example` | Variables `VITE_*` de build |
 
 Build local:

@@ -26,7 +26,7 @@ Módulos SSD-01…09 pulidos para piloto (auth, crédito, caja, bóveda, cliente
 | Acceso IP (piloto) | `Auth__RequerirClienteAcceso=false` **o** IPs en `MAESTRO.Acceso` |
 | Forwarded headers | `Hosting__ForwardedHeaders__Enabled=true` |
 | Vercel | Root `Credito/modern/Credito.Modern.Web`; `vercel.json` + `.env.vercel.example`; Redeploy tras `VITE_*` |
-| Cloudflare Pages | Mismo root; `_redirects` + `wrangler.toml` + `.env.cloudflare.example`; build `dist` |
+| Cloudflare | Mismo root; `wrangler.toml` + `.env.cloudflare.example`; build `dist`; sin `_redirects` |
 | BD | `ClaveUsuario nvarchar(256)`; wipe semilla: `2026-11-05-vaciar-semilla-producto.sql` |
 | Imagen CI | `.github/workflows/publish-api-container.yml` |
 

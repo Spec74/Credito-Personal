@@ -3,7 +3,7 @@
 # Deploy CI: npx wrangler deploy
 #
 # SPA: not_found_handling sirve index.html en rutas del router.
-# public/_redirects sigue válido si se usa Pages clásico.
+# No incluir public/_redirects: con Workers Assets provoca error 100324 (loop).
 
 name = "credito-personal"
 compatibility_date = "2026-11-24"

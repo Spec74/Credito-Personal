@@ -84,7 +84,7 @@ Secretos: solo App Settings / Key Vault. **Nunca** en Git.
 ### Cloudflare Pages
 
 - Guía: [CLOUDFLARE-PAGES.md](CLOUDFLARE-PAGES.md)  
-- Repo: `_redirects`, `wrangler.toml`, `.env.cloudflare.example`  
+- Repo: `wrangler.toml`, `.env.cloudflare.example` (sin `_redirects`)  
 - Build: Root `Credito/modern/Credito.Modern.Web` · `npm run build` · output `dist` · `NODE_VERSION=22`  
 - Mismas `VITE_*` que Vercel; al tener URL Pages → agregar CORS en Azure + referrers Maps
 
