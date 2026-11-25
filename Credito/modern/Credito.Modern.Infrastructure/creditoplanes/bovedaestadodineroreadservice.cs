@@ -51,6 +51,19 @@ public sealed class BovedaEstadoDineroReadService(
                 new { OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false) ?? 0m;
 
+        // Principal + temporal abiertas: si solo se usa saldo PRI, al TRE→TMP el
+        // efectivo de oficina baja hasta cerrar la temporal (mismo hueco que Medios).
+        var saldoBovedasAbiertas = await connection.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(
+                """
+                SELECT ISNULL(SUM(b.SaldoFinal), 0)
+                FROM CREDITO.Boveda AS b
+                WHERE b.OficinaId = @OficinaId
+                  AND b.IndCierre = CAST(0 AS bit);
+                """,
+                new { OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
         decimal montoPlan = 0m;
         try
         {
@@ -70,7 +83,7 @@ public sealed class BovedaEstadoDineroReadService(
         // Cartera vencida no es efectivo: no se consulta aquí (tabla grande).
         // La baldosa de la página es atajo al informe, no un KPI de tesorería.
         const decimal cv = 0m, menor = 0m, mayor = 0m, irrec = 0m;
-        var efectivoOficina = montoCajaChica + montoCajas + saldoBovedaAbierta;
+        var efectivoOficina = montoCajaChica + montoCajas + saldoBovedasAbiertas;
 
         return new BovedaEstadoDineroDto(
             saldoBovedaAbierta,

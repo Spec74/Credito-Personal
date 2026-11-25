@@ -61,13 +61,13 @@ export function BovedaEstadoDineroPanel({ data, loading }: Props) {
     {
       value: data.efectivoOficina ?? data.totalFondo,
       label: 'Efectivo de oficina',
-      hint: 'Bóveda + cajas',
+      hint: 'Principal + temporal + cajas',
     },
     {
       value: data.montoCajas,
       label: 'Cajas diarias',
       to: '/caja/saldos',
-      hint: 'Efectivo de caja y analista',
+      hint: 'Aún no transferidas a bóveda',
     },
     {
       value: data.montoPlanPagoPendiente,

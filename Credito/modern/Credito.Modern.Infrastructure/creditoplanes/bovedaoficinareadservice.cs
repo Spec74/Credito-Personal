@@ -244,6 +244,21 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             .ConfigureAwait(false))
             .ToDictionary(x => x.OficinaId, x => x.Monto);
 
+        // Temporal abierta por sede (mismo criterio que Medios / Efectivo oficina).
+        var temporales = (await connection
+            .QueryAsync<(int OficinaId, decimal Monto)>(
+                new CommandDefinition(
+                    """
+                    SELECT OficinaId, ISNULL(SUM(SaldoFinal), 0) AS Monto
+                    FROM CREDITO.Boveda
+                    WHERE IndCierre = CAST(0 AS bit)
+                      AND IndTemporal = CAST(1 AS bit)
+                    GROUP BY OficinaId;
+                    """,
+                    cancellationToken: cancellationToken))
+            .ConfigureAwait(false))
+            .ToDictionary(x => x.OficinaId, x => x.Monto);
+
         var result = new List<BovedaRedPosicionDto>(oficinas.Count);
         foreach (var row in oficinas)
         {
@@ -259,6 +274,7 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
 
             var montoCajas = cajas.GetValueOrDefault(row.OficinaId);
             var montoChica = chicas.GetValueOrDefault(row.OficinaId);
+            var montoTemporal = temporales.GetValueOrDefault(row.OficinaId);
             var delta = decimal.Round(sumaMedios - row.SaldoFinal, 2);
             result.Add(new BovedaRedPosicionDto(
                 row.OficinaId,
@@ -273,7 +289,7 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                 row.BovedaId is > 0 ? delta : 0m,
                 montoCajas,
                 montoChica,
-                row.SaldoFinal + montoCajas + montoChica));
+                row.SaldoFinal + montoTemporal + montoCajas + montoChica));
         }
 
         return result;
@@ -314,9 +330,14 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             .QueryAsync<MedioRedRow>(
                 new CommandDefinition(
                     """
-                    /* Posición por medio = bóveda abierta + caja aún no transferida (TransBoveda=0).
-                       Así un cobro Yape René/Plin/BCP se ve en Medios antes del cierre/TRE.
-                       Tras usp_CerrarCajasDiarios (TransBoveda=1) solo cuenta BovedaMov (sin doble). */
+                    /* Posición operativa por medio (no debe “aparecer/desaparecer”):
+                       - BovedaMov de TODA bóveda abierta (principal + temporal).
+                         Si solo se mira PRI, al cerrar caja (TRE→TMP) el dinero cae del
+                         radar hasta cerrar la temporal → confunde al admin.
+                       - MovimientoCaja / SI caja con TransBoveda=0 (aún no TRE).
+                       Tras TRE, TransBoveda=1 saca la caja; el mismo importe ya está en
+                       BovedaMov de la temporal → sin hueco ni doble conteo.
+                       El SI de cabecera (abajo) sigue siendo solo de la principal. */
                     ;WITH Partes AS (
                         SELECT
                             b.OficinaId,
@@ -325,7 +346,6 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                         FROM CREDITO.BovedaMov AS bm
                         INNER JOIN CREDITO.Boveda AS b ON b.BovedaId = bm.BovedaId
                         WHERE b.IndCierre = CAST(0 AS bit)
-                          AND b.IndTemporal = CAST(0 AS bit)
                           AND bm.Estado = CAST(1 AS bit)
                           AND bm.TipoPagoId > 0
                           AND bm.TipoPagoId NOT BETWEEN 6 AND 8
