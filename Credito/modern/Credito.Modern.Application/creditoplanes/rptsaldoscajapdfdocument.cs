@@ -54,7 +54,7 @@ public static class RptSaldosCajaPdfDocument
                 {
                     col.Item().Element(c => ComposeGrupo(c, "INGRESOS", ingresos));
                     col.Item().PaddingTop(8).Element(c => ComposeGrupo(c, "EGRESOS", egresos));
-                    col.Item().PaddingTop(16).Element(ComposeFirmas);
+                    col.Item().PaddingTop(16).Element(CredixLegacyPdfDocument.ComposeSignatureBlock);
                 });
 
                 CajaSaldosPdfStyle.Footer(page, rows.Count);
@@ -212,23 +212,6 @@ public static class RptSaldosCajaPdfDocument
                     .Bold();
                 Money(table, rows.Sum(r => r.ImportePago), CajaSaldosPdfStyle.TotalsBg, totals: true);
                 table.Cell().Element(CajaSaldosPdfStyle.TotalsCell);
-            });
-        });
-    }
-
-    private static void ComposeFirmas(IContainer container)
-    {
-        container.PaddingTop(8).Row(row =>
-        {
-            row.RelativeItem().AlignCenter().Column(col =>
-            {
-                col.Item().Width(160).LineHorizontal(0.6f).LineColor(CajaSaldosPdfStyle.Brand);
-                col.Item().PaddingTop(3).Text("Gerente").FontSize(8);
-            });
-            row.RelativeItem().AlignCenter().Column(col =>
-            {
-                col.Item().Width(160).LineHorizontal(0.6f).LineColor(CajaSaldosPdfStyle.Brand);
-                col.Item().PaddingTop(3).Text("Gestor").FontSize(8);
             });
         });
     }

@@ -124,12 +124,13 @@ public static class CredixLegacyPdfDocument
         if (items.Count == 0)
             return;
 
+        // SoftBg = misma banda que Saldos de Caja (estándar visual único).
         container
-            .Background(CredixReportTokens.MetaBg)
+            .Background(CredixReportTokens.SoftBg)
             .Border(0.6f)
             .BorderColor(BorderColor)
-            .PaddingVertical(4)
-            .PaddingHorizontal(6)
+            .PaddingVertical(6)
+            .PaddingHorizontal(8)
             .Column(col =>
             {
                 for (var i = 0; i < items.Count; i += 3)
@@ -151,6 +152,25 @@ public static class CredixLegacyPdfDocument
                     });
                 }
             });
+    }
+
+    /// <summary>Firmas Gerente / Gestor — paridad Saldos de Caja.</summary>
+    public static void ComposeSignatureBlock(IContainer container)
+    {
+        container.PaddingTop(8).Row(row =>
+        {
+            void Firma(string rol)
+            {
+                row.RelativeItem().AlignCenter().Column(col =>
+                {
+                    col.Item().Width(160).LineHorizontal(0.6f).LineColor(CredixReportTokens.Brand);
+                    col.Item().PaddingTop(3).Text(rol).FontSize(8);
+                });
+            }
+
+            Firma("Gerente");
+            Firma("Gestor");
+        });
     }
 
     /// <summary>

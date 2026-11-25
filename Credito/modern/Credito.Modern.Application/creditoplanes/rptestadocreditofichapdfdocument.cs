@@ -7,7 +7,8 @@ namespace Credito.Modern.Application.CreditoPlanes;
 
 /// <summary>
 /// Estado de cuenta del crédito — paridad datos <c>rptEstadoCredito.rdlc</c>
-/// con estilo tabular Credix (cabecera azul, zebra, totales; sin columnas rígidas que partan el “Total”).
+/// con layout estándar Saldos de Caja (banda título, meta SoftBg, tabla azul,
+/// firmas, pie). Horizontal por densidad de columnas.
 /// </summary>
 public static class RptEstadoCreditoFichaPdfDocument
 {
@@ -27,61 +28,59 @@ public static class RptEstadoCreditoFichaPdfDocument
         var totalMora = informe.Cuotas.Sum(x => x.ImporteMora ?? 0m);
         var totalDesc = informe.Cuotas.Sum(x => x.Descuento ?? 0m);
         var totalPagado = EstadoPlanPagoMontos.TotalPagado(informe.Cuotas);
+        var meta = new List<(string, string)>
+        {
+            ("Cliente", cab.Cliente),
+            ("Producto", cab.Producto),
+            ("Modalidad", cab.Modalidad),
+            ("Estado", cab.Estado),
+            ("Cuotas", cab.NumeroCuotas.ToString(inv)),
+            ("Monto crédito", CreditoPdfBranding.Money(cab.MontoCredito)),
+            ("Gastos adm.", CreditoPdfBranding.Money(cab.MontoGastosAdm)),
+            ("Desembolso", CreditoPdfBranding.Money(cab.MontoDesembolso)),
+            ("TEM", $"{cab.Interes.ToString("N2", inv)} %"),
+            ("1.er pago", CreditoPdfBranding.DateShort(cab.FechaPrimerPago)),
+            ("Vencimiento", CreditoPdfBranding.DateShort(cab.FechaVencimiento)),
+            ("Analista", CreditoPdfBranding.OrDash(cab.Analista)),
+            ("Desembolsó", CreditoPdfBranding.OrDash(cab.UsuarioDesembolso)),
+            ("Total crédito", CreditoPdfBranding.Money(cab.Total)),
+        };
 
         return Document.Create(document =>
         {
             document.Page(page =>
             {
-                // Horizontal: 13 columnas numéricas caben sin aplastar “Total” / fechas.
                 page.Size(PageSizes.A4.Landscape());
                 page.Margin(16);
                 page.DefaultTextStyle(x => x.FontSize(7.2f));
-                page.Footer().Element(CreditoPdfBranding.ComposeFooter);
 
-                page.Content().Column(col =>
+                page.Header().Element(c => CreditoPdfBranding.ComposePageHeader(
+                    c,
+                    $"ESTADO DE CUENTA — CRÉDITO N° {cab.CreditoId}",
+                    meta));
+
+                page.Content().PaddingTop(6).Column(col =>
                 {
-                    col.Spacing(6);
-                    CreditoPdfBranding.ComposeTitleBlock(
-                        col,
-                        $"ESTADO DE CUENTA — CRÉDITO N° {cab.CreditoId}");
-
-                    col.Item().Element(c => CreditoPdfBranding.ComposeMetaGrid(c,
-                    [
-                        ("Cliente", cab.Cliente),
-                        ("Producto", cab.Producto),
-                        ("Modalidad", cab.Modalidad),
-                        ("Estado", cab.Estado),
-                        ("Cuotas", cab.NumeroCuotas.ToString(inv)),
-                        ("Monto crédito", CreditoPdfBranding.Money(cab.MontoCredito)),
-                        ("Gastos adm.", CreditoPdfBranding.Money(cab.MontoGastosAdm)),
-                        ("Desembolso", CreditoPdfBranding.Money(cab.MontoDesembolso)),
-                        ("TEM", $"{cab.Interes.ToString("N2", inv)} %"),
-                        ("1.er pago", CreditoPdfBranding.DateShort(cab.FechaPrimerPago)),
-                        ("Vencimiento", CreditoPdfBranding.DateShort(cab.FechaVencimiento)),
-                        ("Analista", CreditoPdfBranding.OrDash(cab.Analista)),
-                        ("Desembolsó", CreditoPdfBranding.OrDash(cab.UsuarioDesembolso)),
-                        ("Total crédito", CreditoPdfBranding.Money(cab.Total)),
-                    ]));
-
-                    col.Item().Element(c => CreditoPdfBranding.ComposeSectionTitle(c, "CRONOGRAMA / ESTADO DE CUOTAS"));
+                    col.Item().Element(c =>
+                        CreditoPdfBranding.ComposeSectionTitle(c, "CRONOGRAMA / ESTADO DE CUOTAS"));
 
                     col.Item().Table(table =>
                     {
                         table.ColumnsDefinition(c =>
                         {
-                            c.RelativeColumn(0.45f); // N°
-                            c.RelativeColumn(1.05f); // Capital
-                            c.RelativeColumn(1.0f);  // Vence
-                            c.RelativeColumn(0.95f); // Amort.
-                            c.RelativeColumn(0.8f);  // Int.
-                            c.RelativeColumn(0.75f); // G.A.
-                            c.RelativeColumn(0.95f); // Cuota
-                            c.RelativeColumn(0.55f); // Est.
-                            c.RelativeColumn(0.5f);  // Días
-                            c.RelativeColumn(0.85f); // Mora
-                            c.RelativeColumn(0.85f); // Desc.
-                            c.RelativeColumn(1.0f);  // F. pago
-                            c.RelativeColumn(1.0f);  // Pagado
+                            c.RelativeColumn(0.45f);
+                            c.RelativeColumn(1.05f);
+                            c.RelativeColumn(1.0f);
+                            c.RelativeColumn(0.95f);
+                            c.RelativeColumn(0.8f);
+                            c.RelativeColumn(0.75f);
+                            c.RelativeColumn(0.95f);
+                            c.RelativeColumn(0.55f);
+                            c.RelativeColumn(0.5f);
+                            c.RelativeColumn(0.85f);
+                            c.RelativeColumn(0.85f);
+                            c.RelativeColumn(1.0f);
+                            c.RelativeColumn(1.0f);
                         });
 
                         table.Header(h =>
@@ -150,7 +149,12 @@ public static class RptEstadoCreditoFichaPdfDocument
                         T("");
                         T(CreditoPdfBranding.Money(totalPagado), true);
                     });
+
+                    col.Item().PaddingTop(12).Element(CreditoPdfBranding.ComposeFirmas);
                 });
+
+                page.Footer().Element(c =>
+                    CredixReportTokens.ComposeStandardFooter(c, informe.Cuotas.Count));
             });
         }).GeneratePdf();
     }

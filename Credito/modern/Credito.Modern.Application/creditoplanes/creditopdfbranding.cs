@@ -16,10 +16,14 @@ public static class CreditoPdfBranding
     public static readonly string BrandHex = CredixReportTokens.BrandHex;
     public static readonly Color BrandColor = CredixReportTokens.Brand;
     public static readonly Color HeaderBg = CredixReportTokens.TableHeaderStrong;
-    public static readonly Color MetaBg = CredixReportTokens.MetaBg;
+    /// <summary>Misma banda azul suave que Saldos de Caja (<see cref="CredixReportTokens.SoftBg"/>).</summary>
+    public static readonly Color MetaBg = CredixReportTokens.SoftBg;
     public static readonly Color Border = CredixReportTokens.BorderSoft;
     public static readonly Color Zebra = CredixReportTokens.Zebra;
     public static readonly Color TotalsBg = CredixReportTokens.TotalsBg;
+
+    /// <summary>Margen A4 vertical alineado a Saldos de Caja.</summary>
+    public const float PageMarginPt = 18f;
 
     public static readonly CultureInfo Pe = CredixReportTokens.Pe;
     public static readonly CultureInfo Inv = CredixReportTokens.Inv;
@@ -34,7 +38,12 @@ public static class CreditoPdfBranding
 
         col.Item().Element(c => CredixLegacyPdfDocument.ComposeTitleBand(c, logo, title, printedAt));
 
-        if (!string.IsNullOrWhiteSpace(subtitle))
+        // No repetir razón social: ya va en la banda de título (paridad Saldos de Caja).
+        if (!string.IsNullOrWhiteSpace(subtitle)
+            && !string.Equals(
+                subtitle.Trim(),
+                CredixReportTokens.CompanyLegalName,
+                StringComparison.OrdinalIgnoreCase))
         {
             col.Item()
                 .PaddingTop(3)
@@ -43,6 +52,29 @@ public static class CreditoPdfBranding
                 .FontSize(8)
                 .FontColor(Colors.Grey.Darken2);
         }
+    }
+
+    /// <summary>
+    /// Cabecera de página estándar: banda logo/título/fecha + meta SoftBg
+    /// (misma composición que Saldos de Caja).
+    /// </summary>
+    public static void ComposePageHeader(
+        IContainer container,
+        string title,
+        IReadOnlyList<(string Label, string Value)> fields,
+        int metaColumns = 3)
+    {
+        var logo = CredixReportAssets.LoadLogo();
+        var printedAt = CredixReportTokens.NowPrinted();
+        container.Column(col =>
+        {
+            col.Item().Element(c =>
+                CredixLegacyPdfDocument.ComposeTitleBand(c, logo, title, printedAt));
+            if (fields.Count > 0)
+            {
+                col.Item().PaddingTop(6).Element(c => ComposeMetaGrid(c, fields, metaColumns));
+            }
+        });
     }
 
     public static void ComposeMetaGrid(
@@ -65,8 +97,8 @@ public static class CreditoPdfBranding
                 .Background(MetaBg)
                 .Border(0.6f)
                 .BorderColor(Border)
-                .PaddingVertical(5)
-                .PaddingHorizontal(7)
+                .PaddingVertical(6)
+                .PaddingHorizontal(8)
                 .Column(col =>
                 {
                     for (var i = 0; i < items.Count; i += 2)
@@ -95,6 +127,9 @@ public static class CreditoPdfBranding
 
         CredixLegacyPdfDocument.ComposeMetadataBlock(container, items);
     }
+
+    public static void ComposeFirmas(IContainer container) =>
+        CredixLegacyPdfDocument.ComposeSignatureBlock(container);
 
     public static void ComposeSectionTitle(IContainer container, string title) =>
         container

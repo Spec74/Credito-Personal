@@ -6,8 +6,8 @@ using Credito.Modern.Application.Reportes;
 namespace Credito.Modern.Application.CreditoPlanes;
 
 /// <summary>
-/// Plan de pagos — paridad datos <c>rptPlanPago.rdlc</c> + estilo tabular Credix
-/// (cabecera azul, zebra, totales; mismas celdas que Saldos de Caja).
+/// Plan de pagos — paridad datos <c>rptPlanPago.rdlc</c> con layout estándar
+/// Saldos de Caja (banda título, meta SoftBg, tabla azul, firmas, pie).
 /// </summary>
 public static class RptPlanPagosFichaPdfDocument
 {
@@ -25,54 +25,52 @@ public static class RptPlanPagosFichaPdfDocument
         var totalInt = cuotas.Sum(x => x.Interes);
         var totalGa = cuotas.Sum(x => x.GastosAdm);
         var totalCuota = cuotas.Sum(x => x.Cuota);
+        var meta = new List<(string, string)>
+        {
+            ("Cliente", cab.Cliente),
+            ("Producto", cab.Producto),
+            ("Modalidad", cab.Modalidad),
+            ("Monto crédito", CreditoPdfBranding.Money(cab.MontoCredito)),
+            ("Gastos adm.", CreditoPdfBranding.Money(cab.MontoGastosAdm)),
+            ("Desembolso", CreditoPdfBranding.Money(cab.MontoDesembolso)),
+            ("Cuotas", cab.NumeroCuotas.ToString(inv)),
+            ("TEM", $"{cab.Interes.ToString("N2", inv)} %"),
+            ("1.er pago", CreditoPdfBranding.DateShort(cab.FechaPrimerPago)),
+            ("Vencimiento", CreditoPdfBranding.DateShort(cab.FechaVencimiento)),
+            ("Estado", cab.Estado),
+            ("Analista", CreditoPdfBranding.OrDash(cab.Analista)),
+            ("Desembolsó", CreditoPdfBranding.OrDash(cab.UsuarioDesembolso)),
+        };
 
         return Document.Create(document =>
         {
             document.Page(page =>
             {
                 page.Size(PageSizes.A4);
-                page.Margin(22);
+                page.Margin(CreditoPdfBranding.PageMarginPt);
                 page.DefaultTextStyle(x => x.FontSize(CredixReportTokens.FontSizeBody));
-                page.Footer().Element(CreditoPdfBranding.ComposeFooter);
 
-                page.Content().Column(col =>
+                page.Header().Element(c => CreditoPdfBranding.ComposePageHeader(
+                    c,
+                    $"PLAN DE PAGOS — CRÉDITO N° {cab.CreditoId}",
+                    meta));
+
+                page.Content().PaddingTop(8).Column(col =>
                 {
-                    col.Spacing(7);
-                    CreditoPdfBranding.ComposeTitleBlock(
-                        col,
-                        $"PLAN DE PAGOS — CRÉDITO N° {cab.CreditoId}");
-
-                    col.Item().Element(c => CreditoPdfBranding.ComposeMetaGrid(c,
-                    [
-                        ("Cliente", cab.Cliente),
-                        ("Producto", cab.Producto),
-                        ("Modalidad", cab.Modalidad),
-                        ("Monto crédito", CreditoPdfBranding.Money(cab.MontoCredito)),
-                        ("Gastos adm.", CreditoPdfBranding.Money(cab.MontoGastosAdm)),
-                        ("Desembolso", CreditoPdfBranding.Money(cab.MontoDesembolso)),
-                        ("Cuotas", cab.NumeroCuotas.ToString(inv)),
-                        ("TEM", $"{cab.Interes.ToString("N2", inv)} %"),
-                        ("1.er pago", CreditoPdfBranding.DateShort(cab.FechaPrimerPago)),
-                        ("Vencimiento", CreditoPdfBranding.DateShort(cab.FechaVencimiento)),
-                        ("Estado", cab.Estado),
-                        ("Analista", CreditoPdfBranding.OrDash(cab.Analista)),
-                        ("Desembolsó", CreditoPdfBranding.OrDash(cab.UsuarioDesembolso)),
-                    ]));
-
-                    col.Item().Element(c => CreditoPdfBranding.ComposeSectionTitle(c, "CRONOGRAMA DE PAGOS"));
+                    col.Item().Element(c =>
+                        CreditoPdfBranding.ComposeSectionTitle(c, "CRONOGRAMA DE PAGOS"));
 
                     col.Item().Table(table =>
                     {
-                        // Pesos equilibrados (evita Relative suelto que “abre” huecos entre columnas).
                         table.ColumnsDefinition(c =>
                         {
-                            c.RelativeColumn(0.45f); // N°
-                            c.RelativeColumn(1.15f); // Capital
-                            c.RelativeColumn(1.05f); // Fecha pago
-                            c.RelativeColumn(1.05f); // Amort.
-                            c.RelativeColumn(0.95f); // Interés
-                            c.RelativeColumn(0.9f);  // G. Adm.
-                            c.RelativeColumn(1.1f);  // Cuota
+                            c.RelativeColumn(0.45f);
+                            c.RelativeColumn(1.15f);
+                            c.RelativeColumn(1.05f);
+                            c.RelativeColumn(1.05f);
+                            c.RelativeColumn(0.95f);
+                            c.RelativeColumn(0.9f);
+                            c.RelativeColumn(1.1f);
                         });
 
                         table.Header(h =>
@@ -118,7 +116,12 @@ public static class RptPlanPagosFichaPdfDocument
                         table.Cell().Element(CreditoPdfBranding.TableTotalCell).AlignRight()
                             .Text(CreditoPdfBranding.Money(totalCuota)).Bold();
                     });
+
+                    col.Item().PaddingTop(16).Element(CreditoPdfBranding.ComposeFirmas);
                 });
+
+                page.Footer().Element(c =>
+                    CredixReportTokens.ComposeStandardFooter(c, cuotas.Count));
             });
         }).GeneratePdf();
     }
