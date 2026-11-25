@@ -40,6 +40,48 @@ public sealed class MovimientoCajaTicketPdfDocumentTests
     }
 
     [Fact]
+    public void Build_mixto_con_medios_devuelve_pdf()
+    {
+        var dto = new MovimientoCajaTicketDto(
+            8,
+            MovimientoCajaTicketLayout.CuotaCredito,
+            8,
+            "GUILLEN RAMOS, RAYDA ANTONIA",
+            "FPAREDES",
+            new DateTime(2026, 11, 25, 7, 14, 0),
+            "Pichari",
+            "CREDI FACIL CREDITO 2",
+            "PAGO MIXTO",
+            string.Empty,
+            250m,
+            2,
+            333.33m,
+            166.67m,
+            10m,
+            0m,
+            0m,
+            null,
+            null,
+            250m,
+            125m,
+            "2 de 3",
+            null,
+            0,
+            0m,
+            "CANCELADO",
+            530m,
+            MedioPago: "Yape S/ 125.00 + Plin S/ 125.00",
+            MediosPago:
+            [
+                new MovimientoCajaTicketMedioDto(7, "Yape", 125m),
+                new MovimientoCajaTicketMedioDto(8, "Plin", 125m),
+            ]);
+
+        Assert.Equal(2, dto.MediosPago!.Count);
+        AssertPdf(MovimientoCajaTicketPdfDocument.Build(dto));
+    }
+
+    [Fact]
     public void Build_boveda_con_medio_entrada_y_titulo_devuelve_pdf()
     {
         var dto = new MovimientoCajaTicketDto(

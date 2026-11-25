@@ -420,9 +420,7 @@ export function buildCobroBloqueEnviadosColumns(
             }
             aria-label={`Imprimir ticket crédito ${it.creditoId}`}
             title={
-              ids.length > 1
-                ? `Imprimir ${ids.length} comprobantes`
-                : 'Imprimir ticket'
+              ids.length > 1 ? 'Imprimir comprobante mixto' : 'Imprimir ticket'
             }
             onClick={() => void imprimirTicket(ids)}
           />

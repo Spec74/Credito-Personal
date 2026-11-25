@@ -828,19 +828,10 @@ export function CobroBloquePage() {
     }
     setTicketPrintingId(ids[0]!)
     try {
-      for (let i = 0; i < ids.length; i++) {
-        const id = ids[i]!
-        setTicketPrintingId(id)
-        await downloadMovimientoCajaTicketPdf(oficinaId, id)
-        // Evitar que el browser colapse descargas múltiples.
-        if (i < ids.length - 1) {
-          await new Promise((r) => setTimeout(r, 350))
-        }
-      }
+      // Un PDF: si hay varios IDs (mixto) el API lista todos los medios.
+      await downloadMovimientoCajaTicketPdf(oficinaId, ids)
       message.success(
-        ids.length > 1
-          ? `${ids.length} comprobantes descargados (uno por medio)`
-          : 'Ticket descargado',
+        ids.length > 1 ? 'Comprobante mixto descargado' : 'Ticket descargado',
       )
     } catch (e) {
       message.error(
@@ -1357,7 +1348,7 @@ export function CobroBloquePage() {
                               aria-label={`Imprimir ticket ${it.personaNombre}`}
                               title={
                                 ticketIdsDeEnviado(it).length > 1
-                                  ? `Imprimir ${ticketIdsDeEnviado(it).length} comprobantes`
+                                  ? 'Imprimir comprobante mixto'
                                   : 'Imprimir ticket'
                               }
                               onClick={() => void imprimirTicket(ticketIdsDeEnviado(it))}

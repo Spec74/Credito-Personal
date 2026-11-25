@@ -32,17 +32,38 @@ public static class MovimientoCajaTicketPdfDocument
                 {
                     col.Spacing(4);
                     col.Item().AlignCenter().Text(titulo).Bold().FontSize(10);
-                    col.Item().Text($"Mov. N° {data.MovimientoCajaId}");
+                    var movLabel = data.MediosPago is { Count: > 1 }
+                        ? string.Join(", ", data.MediosPago.Select(m => m.MovimientoCajaId))
+                        : data.MovimientoCajaId.ToString(inv);
+                    col.Item().Text($"Mov. N° {movLabel}");
                     col.Item().Text($"Oficina: {data.Oficina}");
                     col.Item().Text($"Fecha: {data.FechaReg:g}");
                     col.Item().Text($"Usuario: {data.User}");
-                    if (!string.IsNullOrWhiteSpace(data.MedioPago))
+                    if (data.MediosPago is { Count: > 1 })
+                    {
+                        col.Item().Text("Pago mixto:").Bold();
+                        foreach (var medio in data.MediosPago)
+                        {
+                            col.Item().Row(row =>
+                            {
+                                row.RelativeItem().Text($"  {medio.Nombre}");
+                                row.ConstantItem(70).AlignRight()
+                                    .Text(medio.Importe.ToString("N2", inv));
+                            });
+                        }
+                    }
+                    else if (!string.IsNullOrWhiteSpace(data.MedioPago))
                     {
                         col.Item().Text($"Medio: {data.MedioPago}").Bold();
                     }
 
                     col.Item().LineHorizontal(0.5f);
                     col.Item().Text($"Cliente: {data.Cliente}");
+                    if (data.CreditoId is > 0)
+                    {
+                        col.Item().Text($"Crédito: {data.CreditoId.Value}");
+                    }
+
                     if (data.PersonaId > 0)
                     {
                         col.Item().Text($"Persona ID: {data.PersonaId}");
@@ -70,7 +91,12 @@ public static class MovimientoCajaTicketPdfDocument
                         AddMoneyLine(col, "Descuento", data.Descuento, inv);
                         AddMoneyLine(col, "Importe libre ant.", data.ImporteLibreAnt, inv);
                         AddMoneyLine(col, "Importe libre", data.ImporteLibre, inv);
-                        AddMoneyLine(col, "Importe pagado", data.ImportePagado ?? data.ImportePago, inv);
+                        col.Item().Row(row =>
+                        {
+                            row.RelativeItem().Text("Importe pagado").Bold();
+                            row.ConstantItem(70).AlignRight().Text(
+                                (data.ImportePagado ?? data.ImportePago).ToString("N2", inv)).Bold();
+                        });
                         AddMoneyLine(col, "Saldo capital", data.SaldoCapital, inv);
                         if (!string.IsNullOrWhiteSpace(data.CuotasPagadas))
                         {

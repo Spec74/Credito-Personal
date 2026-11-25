@@ -17,6 +17,7 @@ internal static class MovimientoCajaTicketEndpoints
                     HttpContext httpContext,
                     [FromQuery] int movimientoCajaId,
                     [FromQuery] int oficinaId,
+                    [FromQuery] string? movimientoCajaIds,
                     IMovimientoCajaTicketReadService ticketRead,
                     IMovimientoCajaScopeReadService movimientoScope,
                     IOficinaReadService oficinas,
@@ -24,12 +25,13 @@ internal static class MovimientoCajaTicketEndpoints
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
-                    if (movimientoCajaId < 1 || oficinaId < 1)
+                    var grupoIds = ParseMovimientoIds(movimientoCajaIds, movimientoCajaId);
+                    if (grupoIds.Count == 0 || oficinaId < 1)
                     {
                         return TypedResults.Problem(
                             statusCode: StatusCodes.Status400BadRequest,
                             title: "Solicitud inválida",
-                            detail: "movimientoCajaId y oficinaId deben ser >= 1.");
+                            detail: "movimientoCajaId (o movimientoCajaIds) y oficinaId deben ser >= 1.");
                     }
 
                     var (_, sedeErr) = await GestorInformeReportAccess.EnsureOficinaConsultaAsync(
@@ -39,20 +41,23 @@ internal static class MovimientoCajaTicketEndpoints
                         return sedeErr;
                     }
 
-                    var (scopeError, scope) = await CajaCreditoWriteGuards
-                        .ValidateMovimientoOficinaAsync(oficinaId, movimientoCajaId, movimientoScope, ct)
-                        .ConfigureAwait(false);
-                    if (scopeError is not null)
+                    foreach (var id in grupoIds)
                     {
-                        return scopeError;
+                        var (scopeError, _) = await CajaCreditoWriteGuards
+                            .ValidateMovimientoOficinaAsync(oficinaId, id, movimientoScope, ct)
+                            .ConfigureAwait(false);
+                        if (scopeError is not null)
+                        {
+                            return scopeError;
+                        }
                     }
-
-                    _ = scope;
 
                     var log = loggerFactory.CreateLogger("MovimientoCajaTicketPdf");
                     try
                     {
-                        var data = await ticketRead.ObtenerAsync(movimientoCajaId, ct).ConfigureAwait(false);
+                        var data = grupoIds.Count > 1
+                            ? await ticketRead.ObtenerGrupoAsync(grupoIds, ct).ConfigureAwait(false)
+                            : await ticketRead.ObtenerAsync(grupoIds[0], ct).ConfigureAwait(false);
                         if (data is null)
                         {
                             return TypedResults.Problem(
@@ -62,10 +67,13 @@ internal static class MovimientoCajaTicketEndpoints
                         }
 
                         var bytes = MovimientoCajaTicketPdfDocument.Build(data);
+                        var fileId = grupoIds.Count > 1
+                            ? string.Join("-", grupoIds)
+                            : grupoIds[0].ToString();
                         return TypedResults.File(
                             bytes,
                             "application/pdf",
-                            $"ticket-movimiento-caja-{movimientoCajaId}.pdf");
+                            $"ticket-movimiento-caja-{fileId}.pdf");
                     }
                     catch (Exception ex) when (ex is InvalidOperationException or DbException)
                     {
@@ -96,7 +104,7 @@ internal static class MovimientoCajaTicketEndpoints
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
             .WithSummary(
-                "Ticket PDF por movimiento (QuestPDF). Paridad Reporte/ReporteMovimientoCaja sin RDLC. CreditoUser.");
+                "Ticket PDF por movimiento (QuestPDF). Cobro mixto: movimientoCajaIds=7,8 → un comprobante con ambos medios. CreditoUser.");
 
         app.MapGet(
                 "/api/v1/credito/movimiento-caja-chica-ticket-pdf",
@@ -240,5 +248,32 @@ internal static class MovimientoCajaTicketEndpoints
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf")
             .WithSummary(
                 "Ticket PDF movimiento bóveda. Paridad Reporte/ReporteMovimientoBovedaMov sin RDLC. CreditoUser.");
+    }
+
+    private static List<int> ParseMovimientoIds(string? movimientoCajaIds, int movimientoCajaId)
+    {
+        var ids = new List<int>();
+        if (!string.IsNullOrWhiteSpace(movimientoCajaIds))
+        {
+            foreach (var part in movimientoCajaIds.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (int.TryParse(part, out var id) && id > 0 && !ids.Contains(id))
+                {
+                    ids.Add(id);
+                }
+            }
+        }
+
+        if (ids.Count == 0 && movimientoCajaId > 0)
+        {
+            ids.Add(movimientoCajaId);
+        }
+        else if (movimientoCajaId > 0 && !ids.Contains(movimientoCajaId))
+        {
+            ids.Insert(0, movimientoCajaId);
+        }
+
+        ids.Sort();
+        return ids;
     }
 }

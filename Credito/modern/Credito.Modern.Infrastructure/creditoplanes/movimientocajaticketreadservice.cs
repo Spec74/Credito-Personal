@@ -26,11 +26,61 @@ public sealed class MovimientoCajaTicketReadService(
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
+        var core = await ObtenerCoreAsync(connection, movimientoCajaId, cancellationToken)
+            .ConfigureAwait(false);
+        if (core is null)
+        {
+            return null;
+        }
+
+        return await EnrichMixtoAutoAsync(connection, core, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<MovimientoCajaTicketDto?> ObtenerGrupoAsync(
+        IReadOnlyList<int> movimientoCajaIds,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureConnection();
+        var ids = (movimientoCajaIds ?? Array.Empty<int>())
+            .Where(id => id > 0)
+            .Distinct()
+            .OrderBy(id => id)
+            .ToList();
+        if (ids.Count == 0)
+        {
+            return null;
+        }
+
+        if (ids.Count == 1)
+        {
+            return await ObtenerAsync(ids[0], cancellationToken).ConfigureAwait(false);
+        }
+
+        await using var connection = new SqlConnection(_connectionString);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        // Estado final del crédito = último movimiento del grupo.
+        var core = await ObtenerCoreAsync(connection, ids[^1], cancellationToken).ConfigureAwait(false);
+        if (core is null)
+        {
+            return null;
+        }
+
+        var medios = await ListarMediosAsync(connection, ids, cancellationToken).ConfigureAwait(false);
+        return MergeMixto(core, medios);
+    }
+
+    private async Task<MovimientoCajaTicketDto?> ObtenerCoreAsync(
+        SqlConnection connection,
+        int movimientoCajaId,
+        CancellationToken cancellationToken)
+    {
         var header = await connection.QueryFirstOrDefaultAsync<TicketHeaderRow>(
             new CommandDefinition(
                 """
                 SELECT
                     mc.MovimientoCajaId,
+                    mc.CajaDiarioId,
                     mc.Operacion,
                     mc.CreditoId,
                     mc.PersonaId,
@@ -75,6 +125,116 @@ public sealed class MovimientoCajaTicketReadService(
             "INI" or "GAD" or "CDN" => BuildInicial(header),
             "CON" => await BuildContadoAsync(connection, header, cancellationToken).ConfigureAwait(false),
             _ => BuildOtros(header),
+        };
+    }
+
+    private async Task<MovimientoCajaTicketDto> EnrichMixtoAutoAsync(
+        SqlConnection connection,
+        MovimientoCajaTicketDto core,
+        CancellationToken cancellationToken)
+    {
+        if (core.CreditoId is null or < 1 || core.Layout is not (
+            MovimientoCajaTicketLayout.CuotaCredito or MovimientoCajaTicketLayout.CuotaLibre))
+        {
+            return core;
+        }
+
+        var siblingIds = (await connection.QueryAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT mc2.MovimientoCajaId
+                FROM CREDITO.MovimientoCaja AS mc
+                INNER JOIN CREDITO.MovimientoCaja AS mc2
+                    ON mc2.CajaDiarioId = mc.CajaDiarioId
+                   AND mc2.CreditoId = mc.CreditoId
+                   AND mc2.Operacion = N'CUO'
+                   AND mc2.Estado = 1
+                   AND mc2.IndEntrada = 1
+                   AND ABS(DATEDIFF(SECOND, mc2.FechaReg, mc.FechaReg)) <= 8
+                WHERE mc.MovimientoCajaId = @MovimientoCajaId
+                ORDER BY mc2.MovimientoCajaId;
+                """,
+                new { MovimientoCajaId = core.MovimientoCajaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false)).ToList();
+
+        if (siblingIds.Count < 2)
+        {
+            return core;
+        }
+
+        // Si el ticket pedido no es el último del lote, reconstruir desde el último (estado final).
+        var lastId = siblingIds[^1];
+        var baseDto = core;
+        if (lastId != core.MovimientoCajaId)
+        {
+            baseDto = await ObtenerCoreAsync(connection, lastId, cancellationToken).ConfigureAwait(false)
+                ?? core;
+        }
+
+        var medios = await ListarMediosAsync(connection, siblingIds, cancellationToken).ConfigureAwait(false);
+        return MergeMixto(baseDto, medios);
+    }
+
+    private static async Task<IReadOnlyList<MovimientoCajaTicketMedioDto>> ListarMediosAsync(
+        SqlConnection connection,
+        IReadOnlyList<int> ids,
+        CancellationToken cancellationToken)
+    {
+        var rows = await connection.QueryAsync<(int MovimientoCajaId, decimal ImportePago, string TipoPago)>(
+            new CommandDefinition(
+                """
+                SELECT
+                    mc.MovimientoCajaId,
+                    mc.ImportePago,
+                    COALESCE(vt.Denominacion, CONCAT('Medio ', mc.TipoPagoId)) AS TipoPago
+                FROM CREDITO.MovimientoCaja AS mc
+                LEFT JOIN MAESTRO.ValorTabla AS vt
+                    ON vt.TablaId = 13 AND vt.ItemId = mc.TipoPagoId
+                WHERE mc.MovimientoCajaId IN @Ids
+                ORDER BY mc.MovimientoCajaId;
+                """,
+                new { Ids = ids.ToArray() },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        return rows
+            .Select(r =>
+            {
+                var label = ResumenCuentaCajaParser.DisplayLabel(r.TipoPago);
+                if (string.IsNullOrWhiteSpace(label))
+                {
+                    label = r.TipoPago.Trim();
+                }
+
+                return new MovimientoCajaTicketMedioDto(r.MovimientoCajaId, label, r.ImportePago);
+            })
+            .ToList();
+    }
+
+    private static MovimientoCajaTicketDto MergeMixto(
+        MovimientoCajaTicketDto baseDto,
+        IReadOnlyList<MovimientoCajaTicketMedioDto> medios)
+    {
+        if (medios.Count < 2)
+        {
+            return baseDto;
+        }
+
+        var total = medios.Sum(m => m.Importe);
+        var medioResumen = string.Join(
+            " + ",
+            medios.Select(m => $"{m.Nombre} S/ {m.Importe:N2}"));
+
+        return baseDto with
+        {
+            Concepto = "PAGO MIXTO",
+            ImportePago = total,
+            ImportePagado = total,
+            MedioPago = medioResumen,
+            MediosPago = medios,
+            // Evitar residuos contables de un solo tramo que confunden al cliente.
+            ImporteLibreAnt = null,
+            ImporteLibre = null,
+            Articulo = string.Empty,
         };
     }
 
@@ -487,6 +647,7 @@ public sealed class MovimientoCajaTicketReadService(
     private sealed class TicketHeaderRow
     {
         public int MovimientoCajaId { get; init; }
+        public int CajaDiarioId { get; init; }
         public string Operacion { get; init; } = string.Empty;
         public int? CreditoId { get; init; }
         public int? PersonaId { get; init; }

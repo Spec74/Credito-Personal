@@ -239,11 +239,26 @@ export function fetchMovimientoCajaAnular(
 
 export function downloadMovimientoCajaTicketPdf(
   oficinaId: number,
-  movimientoCajaId: number,
+  movimientoCajaId: number | number[],
 ): Promise<void> {
+  const ids = (Array.isArray(movimientoCajaId) ? movimientoCajaId : [movimientoCajaId]).filter(
+    (id) => id > 0,
+  )
+  if (ids.length === 0) {
+    return Promise.reject(new Error('movimientoCajaId inválido'))
+  }
+  const primary = ids[0]!
+  const q = new URLSearchParams({
+    oficinaId: String(oficinaId),
+    movimientoCajaId: String(primary),
+  })
+  if (ids.length > 1) {
+    q.set('movimientoCajaIds', ids.join(','))
+  }
+  const fileSuffix = ids.length > 1 ? ids.join('-') : String(primary)
   return apiDownload(
-    `/credito/movimiento-caja-ticket-pdf?oficinaId=${oficinaId}&movimientoCajaId=${movimientoCajaId}`,
-    `ticket-movimiento-caja-${movimientoCajaId}.pdf`,
+    `/credito/movimiento-caja-ticket-pdf?${q}`,
+    `ticket-movimiento-caja-${fileSuffix}.pdf`,
   )
 }
 
