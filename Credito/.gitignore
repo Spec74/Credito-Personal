@@ -365,3 +365,6 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+# Publish ZIP / App Service artifacts
+Credito/modern/deploy/out/
