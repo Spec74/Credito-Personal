@@ -7,9 +7,10 @@ using Microsoft.Extensions.Options;
 namespace Credito.Modern.Infrastructure.CreditoPlanes;
 
 public sealed class CajaDiarioCierreService(
-    IOptions<SqlDatabaseOptions> options,
-    ICompletarImpagosValidacionReadService impagosValidacion) : ICajaDiarioCierreService
+    IOptions<SqlDatabaseOptions> options) : ICajaDiarioCierreService
 {
+    // Impagos del día ya no bloquean validar-cierre: POST cerrar-caja-diario
+    // ejecuta usp_CompletarImpagos automáticamente antes de validar/cerrar.
     private const string SelectCajaDiarioSql = """
         SELECT cd.CajaDiarioId,
                cd.CajaId,
@@ -99,12 +100,6 @@ public sealed class CajaDiarioCierreService(
         if (condonaciones > 0)
         {
             blockers.Add("Tiene Condonaciones Pendientes");
-        }
-
-        var impagos = await impagosValidacion.ValidarAsync(cajaDiarioId, cancellationToken).ConfigureAwait(false);
-        if (impagos.CantidadImpagosPendientes is > 0)
-        {
-            blockers.Add("Tiene Creditos Impagos Pendientes");
         }
 
         var pagosNoVerificados = await connection.ExecuteScalarAsync<int>(

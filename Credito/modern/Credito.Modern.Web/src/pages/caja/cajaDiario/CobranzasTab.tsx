@@ -1416,12 +1416,12 @@ export function CobranzasTab({
         <div className="caja-diario-excepciones__body">
           <Button
             id="caja-completar-impagos"
-            type="primary"
             icon={<CheckCircleOutlined />}
             loading={consultandoImpagos || ejecutarCompletarImpagos.isPending}
             onClick={() => void solicitarCompletarImpagos()}
+            title="Opcional: el cierre de caja ya completa impagos solo"
           >
-            Completar impagos
+            Completar impagos (opcional)
           </Button>
           {creditoId && isMobile ? (
             <Button

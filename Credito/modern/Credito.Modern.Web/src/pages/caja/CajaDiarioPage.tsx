@@ -253,8 +253,8 @@ export function CajaDiarioPage() {
             message={`${cantidadImpagosPendientes} crédito(s) con cuota de hoy sin cobro en esta caja`}
             description={
               <>
-                No es verificación de Yape/Plin. Antes de cerrar, cobre esas cuotas o use{' '}
-                <strong>Cobranzas → Cierre y excepciones → Completar impagos</strong>.
+                No es verificación de Yape/Plin. Puede cobrarlos ahora o dejarlos: al{' '}
+                <strong>cerrar caja</strong> se registran solos como impago (CUO 0).
               </>
             }
             action={
@@ -265,15 +265,14 @@ export function CajaDiarioPage() {
                   setSearchParams(
                     (prev) => {
                       const next = new URLSearchParams(prev)
-                      next.set('tab', 'cobranzas')
-                      next.set('accion', 'completar-impagos')
+                      next.set('tab', 'arqueo')
                       return next
                     },
                     { replace: true },
                   )
                 }}
               >
-                Ir a Completar impagos
+                Ir a cerrar caja
               </Button>
             }
           />

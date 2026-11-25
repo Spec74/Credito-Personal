@@ -62,7 +62,7 @@ export function CierreTab({
       cajaConfirm({
         title: '¿Cerrar caja diario?',
         content:
-          'Esta acción cierra la operación del día para esta caja. Se descargará el PDF de saldo.',
+          'Se completarán automáticamente los impagos del día (créditos con cuota de hoy sin cobro), se cerrará la caja y se descargará el PDF de saldo.',
         okText: 'Cerrar',
         okType: 'danger',
         onOk: () => cerrar.mutateAsync(),

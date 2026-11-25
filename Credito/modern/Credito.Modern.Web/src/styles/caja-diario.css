@@ -1586,6 +1586,9 @@
 .caja-diario-pago-dock__body {
   min-height: 0;
   flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
   overflow-x: hidden;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -1788,7 +1791,7 @@
 .caja-diario-pago-recibido {
   display: inline-flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   font-size: 12px;
   font-weight: 700;
   color: var(--credix-text-muted, #64748b);
@@ -1825,11 +1828,14 @@
 
 .caja-tipo-pago-chips {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  padding-top: 4px;
   padding-bottom: 2px;
+  margin-top: 2px;
+  border-top: 1px solid color-mix(in srgb, var(--credix-border, #e5e7eb) 70%, transparent);
 }
 
 .caja-tipo-pago-chips--wrap {
