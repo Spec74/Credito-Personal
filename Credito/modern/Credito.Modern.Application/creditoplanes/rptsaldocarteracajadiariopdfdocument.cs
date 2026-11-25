@@ -36,7 +36,7 @@ public static class RptSaldoCarteraCajaDiarioPdfDocument
             document.Page(page =>
             {
                 page.Size(new PageSize(1480, 842));
-                page.Margin(14);
+                page.Margin(CredixReportTokens.PageMarginLandscapePt);
                 page.DefaultTextStyle(s => s.FontSize(6.4f));
 
                 page.Header().Column(col =>

@@ -37,7 +37,7 @@ public static class RptSaldosCajaPdfDocument
             document.Page(page =>
             {
                 page.Size(PageSizes.A4);
-                page.Margin(18);
+                page.Margin(CredixReportTokens.PageMarginPortraitPt);
                 page.DefaultTextStyle(s => s.FontSize(8));
 
                 page.Header().Column(col =>

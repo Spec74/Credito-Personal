@@ -42,7 +42,7 @@ public static class RptCobroDiarioPdfDocument
             document.Page(page =>
             {
                 page.Size(new PageSize(pageW, pageH));
-                page.Margin(12);
+                page.Margin(CredixReportTokens.PageMarginDensePt);
                 page.DefaultTextStyle(s => s.FontSize(bodyFont));
 
                 page.Header().Column(col =>

@@ -53,7 +53,9 @@ public static class CredixLegacyPdfDocument
             document.Page(page =>
             {
                 page.Size(new PageSize(pageWidth, pageHeight));
-                page.Margin(colCount >= 16 ? 12 : 18);
+                page.Margin(colCount >= 16
+                    ? CredixReportTokens.PageMarginDensePt
+                    : CredixReportTokens.PageMarginPortraitPt);
                 page.DefaultTextStyle(s => s.FontSize(bodyFont));
 
                 var metadata = MergeMetadata(report.Metadata, report.Headers, report.Rows);
@@ -650,7 +652,7 @@ public static class CredixLegacyPdfDocument
     /// <summary>Subfila de contacto bajo cada registro (cliente / celular / dirección).</summary>
     public static IContainer BodyCellContactBand(IContainer container) =>
         container
-            .Background(CredixReportTokens.MetaBg)
+            .Background(CredixReportTokens.SoftBg)
             .Border(BodyBorderPt)
             .BorderColor(BorderColor)
             .PaddingVertical(3)

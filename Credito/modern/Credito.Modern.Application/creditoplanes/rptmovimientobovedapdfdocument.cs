@@ -23,7 +23,7 @@ public static class RptMovimientoBovedaPdfDocument
         string? resumenCuenta = null)
     {
         var logo = CredixReportAssets.LoadLogo();
-        var printedAt = DateTime.Now.ToString("dd/MM/yyyy HH:mm", CajaSaldosPdfStyle.Pe);
+        var printedAt = CredixReportTokens.NowPrinted();
         var composicion = ResumenCuentaCajaParser.Compose(resumenCuenta);
 
         return Document.Create(document =>
@@ -31,7 +31,7 @@ public static class RptMovimientoBovedaPdfDocument
             document.Page(page =>
             {
                 page.Size(PageSizes.A4);
-                page.Margin(18);
+                page.Margin(CredixReportTokens.PageMarginPortraitPt);
                 page.DefaultTextStyle(s => s.FontSize(8));
 
                 page.Header().Column(col =>

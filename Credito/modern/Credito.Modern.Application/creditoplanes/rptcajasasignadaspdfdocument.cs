@@ -22,7 +22,7 @@ public static class RptCajasAsignadasPdfDocument
         string? resumenOficina = null)
     {
         var logo = CredixReportAssets.LoadLogo();
-        var printedAt = DateTime.Now.ToString("dd/MM/yyyy HH:mm", CajaSaldosPdfStyle.Pe);
+        var printedAt = CredixReportTokens.NowPrinted();
         var pe = CajaSaldosPdfStyle.Pe;
 
         return Document.Create(document =>
@@ -30,7 +30,7 @@ public static class RptCajasAsignadasPdfDocument
             document.Page(page =>
             {
                 page.Size(PageSizes.A4.Landscape());
-                page.Margin(16);
+                page.Margin(CredixReportTokens.PageMarginLandscapePt);
                 page.DefaultTextStyle(s => s.FontSize(7.2f));
 
                 page.Header().Column(col =>

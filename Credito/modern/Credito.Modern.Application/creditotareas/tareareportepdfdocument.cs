@@ -1,4 +1,3 @@
-using System.Globalization;
 using Credito.Modern.Application.Reportes;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -7,7 +6,8 @@ using QuestPDF.Infrastructure;
 namespace Credito.Modern.Application.CreditoTareas;
 
 /// <summary>
-/// PDF de tareas agrupado por nombre de cliente (paridad operativa legacy + orden alfabético).
+/// PDF de tareas agrupado por cliente — chrome <see cref="CredixReportPage"/> +
+/// celdas de tabla vía tokens (sin colores locales).
 /// </summary>
 public static class TareaReportePdfDocument
 {
@@ -26,45 +26,37 @@ public static class TareaReportePdfDocument
         string? estado,
         int totalTareas)
     {
-        var logo = CredixReportAssets.LoadLogo();
         var titulo = TareaReporteBuilder.TituloPdf(estado);
-        var fecha = CredixReportTokens.NowPrinted();
         var inv = CredixReportTokens.Inv;
-
-        return Document.Create(document =>
+        var meta = new List<(string, string)>
         {
-            document.Page(page =>
+            ("Total de tareas", totalTareas.ToString(inv)),
+            ("Grupos (clientes)", grupos.Count.ToString(inv)),
+            ("Filtro estado", string.IsNullOrWhiteSpace(estado) ? "TODOS" : estado.Trim()),
+        };
+
+        return CredixReportPage.Build(
+            titulo,
+            meta,
+            col =>
             {
-                page.Size(PageSizes.A4);
-                page.Margin(22);
-                page.DefaultTextStyle(s => s.FontSize(8f));
-
-                page.Header().Column(col =>
+                if (grupos.Count == 0)
                 {
-                    col.Item().Element(c => CredixLegacyPdfDocument.ComposeTitleBand(c, logo, titulo, fecha));
-                    col.Item().PaddingTop(4).Text(t =>
-                    {
-                        t.Span("Total de tareas: ").Bold();
-                        t.Span(totalTareas.ToString(inv));
-                    });
-                });
+                    col.Item().Text("No hay tareas para el filtro seleccionado.").Italic();
+                    return;
+                }
 
-                page.Content().PaddingTop(8).Column(col =>
+                foreach (var grupo in grupos)
                 {
-                    foreach (var grupo in grupos)
-                    {
-                        col.Item().PaddingTop(6).Element(c => ComposeGrupo(c, grupo));
-                    }
-
-                    if (grupos.Count == 0)
-                    {
-                        col.Item().Text("No hay tareas para el filtro seleccionado.").Italic();
-                    }
-                });
-
-                page.Footer().Element(c => CredixReportTokens.ComposeStandardFooter(c, totalTareas));
+                    col.Item().PaddingTop(6).Element(c => ComposeGrupo(c, grupo));
+                }
+            },
+            new CredixReportPage.Options
+            {
+                FontSize = 8f,
+                Signatures = false,
+                FooterRowCount = totalTareas,
             });
-        }).GeneratePdf();
     }
 
     private static void ComposeGrupo(IContainer container, TareaReporteClienteGrupo grupo)
@@ -100,7 +92,7 @@ public static class TareaReportePdfDocument
                         header.Cell()
                             .Background(HeaderBg)
                             .Border(0.5f)
-                            .BorderColor(BorderColor)
+                            .BorderColor(HeaderBg)
                             .Padding(3)
                             .AlignCenter()
                             .Text(h)
@@ -127,7 +119,9 @@ public static class TareaReportePdfDocument
     private static IContainer BodyCell(IContainer container, Color bg) =>
         container
             .Background(bg)
-            .Border(0.25f)
+            .BorderLeft(0.4f)
+            .BorderRight(0.4f)
+            .BorderBottom(0.4f)
             .BorderColor(BorderColor)
             .Padding(3);
 }

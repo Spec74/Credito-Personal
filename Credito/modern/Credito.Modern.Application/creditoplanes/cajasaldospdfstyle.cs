@@ -18,6 +18,8 @@ internal static class CajaSaldosPdfStyle
 
     public static readonly CultureInfo Pe = CredixReportTokens.Pe;
 
+    public const float PageMarginPt = CredixReportTokens.PageMarginPortraitPt;
+
     public static string Money(decimal value) => CredixReportTokens.FormatMoney(value);
 
     public static string DateTime(DateTime value) => value.ToString(CredixReportTokens.DateTimeFormat, Pe);

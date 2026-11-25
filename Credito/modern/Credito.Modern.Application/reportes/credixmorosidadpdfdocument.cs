@@ -41,7 +41,7 @@ public static class CredixMorosidadPdfDocument
             document.Page(page =>
             {
                 page.Size(PageSizes.A4.Landscape());
-                page.Margin(18);
+                page.Margin(CredixReportTokens.PageMarginLandscapePt);
                 page.DefaultTextStyle(s => s.FontSize(CredixLegacyPdfDocument.FontSizeBody));
 
                 page.Header().Column(col =>

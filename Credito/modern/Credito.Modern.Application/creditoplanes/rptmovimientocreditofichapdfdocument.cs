@@ -6,17 +6,11 @@ using Credito.Modern.Application.Reportes;
 namespace Credito.Modern.Application.CreditoPlanes;
 
 /// <summary>
-/// Movimientos del crédito — paridad datos <c>usp_RptMovimientoCredito</c> /
-/// <c>rptCreditoMov.rdlc</c> con layout estándar Saldos de Caja
-/// (banda título, meta SoftBg, tabla azul, firmas, pie).
+/// Movimientos del crédito — datos <c>usp_RptMovimientoCredito</c> /
+/// layout vía <see cref="CredixReportPage"/>.
 /// </summary>
 public static class RptMovimientoCreditoFichaPdfDocument
 {
-    static RptMovimientoCreditoFichaPdfDocument()
-    {
-        QuestPDF.Settings.License = LicenseType.Community;
-    }
-
     public static byte[] Build(
         RptEstadoCreditoCabeceraDto? cab,
         int creditoId,
@@ -47,79 +41,62 @@ public static class RptMovimientoCreditoFichaPdfDocument
                 ("Movimientos", movimientos.Count.ToString(CreditoPdfBranding.Inv)),
             };
 
-        return Document.Create(document =>
-        {
-            document.Page(page =>
+        return CredixReportPage.Build(
+            $"MOVIMIENTOS DEL CRÉDITO N° {creditoId}",
+            meta,
+            col =>
             {
-                page.Size(PageSizes.A4);
-                page.Margin(CreditoPdfBranding.PageMarginPt);
-                page.DefaultTextStyle(x => x.FontSize(CredixReportTokens.FontSizeBody));
+                col.Item().Element(c =>
+                    CreditoPdfBranding.ComposeSectionTitle(c, "DETALLE DE MOVIMIENTOS"));
 
-                page.Header().Element(c => CreditoPdfBranding.ComposePageHeader(
-                    c,
-                    $"MOVIMIENTOS DEL CRÉDITO N° {creditoId}",
-                    meta));
-
-                page.Content().PaddingTop(8).Column(col =>
+                if (movimientos.Count == 0)
                 {
-                    col.Item().Element(c =>
-                        CreditoPdfBranding.ComposeSectionTitle(c, "DETALLE DE MOVIMIENTOS"));
+                    col.Item().PaddingTop(12).AlignCenter()
+                        .Text("No hay movimientos registrados para este crédito.")
+                        .FontColor(Colors.Grey.Darken1);
+                    return;
+                }
 
-                    if (movimientos.Count == 0)
+                col.Item().Table(table =>
+                {
+                    table.ColumnsDefinition(c =>
                     {
-                        col.Item().PaddingTop(12).AlignCenter()
-                            .Text("No hay movimientos registrados para este crédito.")
-                            .FontColor(Colors.Grey.Darken1);
-                    }
-                    else
+                        c.ConstantColumn(72);
+                        c.ConstantColumn(88);
+                        c.RelativeColumn();
+                        c.ConstantColumn(70);
+                        c.ConstantColumn(70);
+                    });
+
+                    table.Header(h =>
                     {
-                        col.Item().Table(table =>
-                        {
-                            table.ColumnsDefinition(c =>
-                            {
-                                c.ConstantColumn(72);
-                                c.ConstantColumn(88);
-                                c.RelativeColumn();
-                                c.ConstantColumn(70);
-                                c.ConstantColumn(70);
-                            });
+                        h.Cell().Element(CreditoPdfBranding.TableHeaderCell).Text("Fecha");
+                        h.Cell().Element(CreditoPdfBranding.TableHeaderCell).Text("Operación");
+                        h.Cell().Element(CreditoPdfBranding.TableHeaderCell).Text("Glosa");
+                        h.Cell().Element(CreditoPdfBranding.TableHeaderCell).AlignRight().Text("Importe");
+                        h.Cell().Element(CreditoPdfBranding.TableHeaderCell).AlignRight().Text("Saldo");
+                    });
 
-                            table.Header(h =>
-                            {
-                                h.Cell().Element(CreditoPdfBranding.TableHeaderCell).Text("Fecha");
-                                h.Cell().Element(CreditoPdfBranding.TableHeaderCell).Text("Operación");
-                                h.Cell().Element(CreditoPdfBranding.TableHeaderCell).Text("Glosa");
-                                h.Cell().Element(CreditoPdfBranding.TableHeaderCell).AlignRight().Text("Importe");
-                                h.Cell().Element(CreditoPdfBranding.TableHeaderCell).AlignRight().Text("Saldo");
-                            });
-
-                            var i = 0;
-                            foreach (var m in movimientos)
-                            {
-                                var zebra = i++ % 2 == 1;
-                                IContainer B(IContainer x) => CreditoPdfBranding.TableBodyCell(x, zebra);
-                                table.Cell().Element(B).Text(CreditoPdfBranding.DateShort(m.Fecha));
-                                table.Cell().Element(B).Text(CreditoPdfBranding.OrDash(m.Operacion));
-                                table.Cell().Element(B).Text(CreditoPdfBranding.OrDash(m.Glosa));
-                                table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(m.ImportePago));
-                                table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(m.Saldo));
-                            }
-
-                            table.Cell().ColumnSpan(3).Element(CreditoPdfBranding.TableTotalCell)
-                                .Text($"Total movimientos: {movimientos.Count}");
-                            table.Cell().Element(CreditoPdfBranding.TableTotalCell).AlignRight()
-                                .Text(CreditoPdfBranding.Money(totalImporte));
-                            table.Cell().Element(CreditoPdfBranding.TableTotalCell).AlignRight()
-                                .Text(saldoFinal is null ? "—" : CreditoPdfBranding.Money(saldoFinal));
-                        });
+                    var i = 0;
+                    foreach (var m in movimientos)
+                    {
+                        var zebra = i++ % 2 == 1;
+                        IContainer B(IContainer x) => CreditoPdfBranding.TableBodyCell(x, zebra);
+                        table.Cell().Element(B).Text(CreditoPdfBranding.DateShort(m.Fecha));
+                        table.Cell().Element(B).Text(CreditoPdfBranding.OrDash(m.Operacion));
+                        table.Cell().Element(B).Text(CreditoPdfBranding.OrDash(m.Glosa));
+                        table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(m.ImportePago));
+                        table.Cell().Element(B).AlignRight().Text(CreditoPdfBranding.Money(m.Saldo));
                     }
 
-                    col.Item().PaddingTop(16).Element(CreditoPdfBranding.ComposeFirmas);
+                    table.Cell().ColumnSpan(3).Element(CreditoPdfBranding.TableTotalCell)
+                        .Text($"Total movimientos: {movimientos.Count}");
+                    table.Cell().Element(CreditoPdfBranding.TableTotalCell).AlignRight()
+                        .Text(CreditoPdfBranding.Money(totalImporte));
+                    table.Cell().Element(CreditoPdfBranding.TableTotalCell).AlignRight()
+                        .Text(saldoFinal is null ? "—" : CreditoPdfBranding.Money(saldoFinal));
                 });
-
-                page.Footer().Element(c =>
-                    CredixReportTokens.ComposeStandardFooter(c, movimientos.Count));
-            });
-        }).GeneratePdf();
+            },
+            new CredixReportPage.Options { FooterRowCount = movimientos.Count });
     }
 }

@@ -39,7 +39,7 @@ internal static class PrendarioPdfLayout
             });
             row.ConstantItem(148).AlignMiddle()
                 .Border(0.75f).BorderColor(Brand)
-                .Background(CredixReportTokens.MetaBg)
+                .Background(CredixReportTokens.SoftBg)
                 .PaddingVertical(5).PaddingHorizontal(6)
                 .AlignCenter()
                 .Text("Contrato No. " + numeroContrato).SemiBold().FontSize(10).FontColor(Brand);

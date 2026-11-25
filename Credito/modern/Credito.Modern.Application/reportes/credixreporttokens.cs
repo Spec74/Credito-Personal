@@ -41,6 +41,13 @@ public static class CredixReportTokens
     public const float LogoWidthPt = 128f;
     public const float LogoHeightPt = 64f;
 
+    /// <summary>Margen A4 vertical (Saldos de Caja y fichas).</summary>
+    public const float PageMarginPortraitPt = 18f;
+    /// <summary>Margen A4 horizontal / tablas densas.</summary>
+    public const float PageMarginLandscapePt = 16f;
+    /// <summary>Margen mínimo para hojas extra-anchas (≥16 columnas).</summary>
+    public const float PageMarginDensePt = 12f;
+
     public static readonly Color Brand = Color.FromHex(BrandHex);
     public static readonly Color BrandDark = Color.FromHex(BrandDarkHex);
     public static readonly Color TableHeader = Color.FromHex(TableHeaderHex);
