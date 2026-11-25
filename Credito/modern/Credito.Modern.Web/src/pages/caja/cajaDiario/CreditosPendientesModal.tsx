@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Input, Tag, Typography } from 'antd'
+import { Input, Space, Tag, Typography } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { SearchOutlined, TeamOutlined } from '@ant-design/icons'
 import { fetchCreditosGestorDesembolsados } from '../../../api/cajaDiario'
 import type { CreditoGestorPendienteRow } from '../../../api/cajaDiario'
 import { CajaModal } from '../../../components/caja/CajaModal'
 import { CredixDataTable } from '../../../components/credix'
+import { formatFecha } from '../../../utils/formatFecha'
 import { formatMoney } from '../../../utils/formatMoney'
 
 const { Text } = Typography
@@ -21,12 +22,21 @@ function matchesQuery(row: CreditoGestorPendienteRow, q: string): boolean {
     row.personaNombre,
     row.creditoId,
     row.montoCredito,
+    row.deudaPendiente,
+    row.cuotaSugerida,
     row.personaId,
   ]
     .filter((v) => v != null && v !== '')
     .join(' ')
     .toLowerCase()
   return blob.includes(norm)
+}
+
+function sortGestorValue(a: CreditoGestorPendienteRow, b: CreditoGestorPendienteRow): number {
+  // Mora / atraso primero → luego mayor deuda → próximo vencimiento.
+  if (b.diasAtrazo !== a.diasAtrazo) return b.diasAtrazo - a.diasAtrazo
+  if (b.deudaPendiente !== a.deudaPendiente) return b.deudaPendiente - a.deudaPendiente
+  return String(a.fechaVencimiento).localeCompare(String(b.fechaVencimiento))
 }
 
 export function CreditosPendientesModal({
@@ -46,23 +56,96 @@ export function CreditosPendientesModal({
     enabled: open,
   })
 
-  const filtrados = useMemo(
-    () => (query.data ?? []).filter((r) => matchesQuery(r, buscar)),
-    [query.data, buscar],
-  )
+  const filtrados = useMemo(() => {
+    const rows = (query.data ?? []).filter((r) => matchesQuery(r, buscar))
+    return [...rows].sort(sortGestorValue)
+  }, [query.data, buscar])
+
+  const totales = useMemo(() => {
+    const deuda = filtrados.reduce((s, r) => s + (r.deudaPendiente || 0), 0)
+    const mora = filtrados.reduce((s, r) => s + (r.importeMora || 0), 0)
+    const enMora = filtrados.filter((r) => r.diasAtrazo > 0).length
+    return { deuda, mora, enMora }
+  }, [filtrados])
 
   const columns: ColumnsType<CreditoGestorPendienteRow> = [
     {
       title: 'Cliente',
-      dataIndex: 'personaNombre',
+      key: 'cliente',
       ellipsis: true,
+      render: (_, r) => (
+        <div className="caja-creditos-pendientes-table__cliente">
+          <strong>{r.personaNombre}</strong>
+          <span className="caja-creditos-pendientes-table__meta">
+            {r.personaCodigo ? `[${r.personaCodigo}] · ` : ''}#{r.creditoId}
+          </span>
+        </div>
+      ),
     },
     {
-      title: 'Monto',
+      title: 'Desembolso',
       dataIndex: 'montoCredito',
       align: 'right',
-      width: 160,
-      render: (v: number) => <strong>{formatMoney(v)}</strong>,
+      width: 110,
+      render: (v: number) => (
+        <span className="caja-creditos-pendientes-table__muted">{formatMoney(v)}</span>
+      ),
+    },
+    {
+      title: 'Deuda',
+      dataIndex: 'deudaPendiente',
+      align: 'right',
+      width: 120,
+      sorter: (a, b) => a.deudaPendiente - b.deudaPendiente,
+      render: (v: number) => (
+        <strong className="caja-creditos-pendientes-table__deuda">{formatMoney(v)}</strong>
+      ),
+    },
+    {
+      title: 'A cobrar',
+      dataIndex: 'cuotaSugerida',
+      align: 'right',
+      width: 110,
+      render: (v: number) => (
+        <span className="caja-creditos-pendientes-table__sugerida">{formatMoney(v)}</span>
+      ),
+    },
+    {
+      title: 'Mora',
+      dataIndex: 'importeMora',
+      align: 'right',
+      width: 96,
+      render: (v: number) =>
+        v > 0 ? (
+          <Tag color="error" className="caja-creditos-pendientes-table__tag">
+            {formatMoney(v)}
+          </Tag>
+        ) : (
+          <Text type="secondary">—</Text>
+        ),
+    },
+    {
+      title: 'Días',
+      dataIndex: 'diasAtrazo',
+      align: 'center',
+      width: 72,
+      sorter: (a, b) => a.diasAtrazo - b.diasAtrazo,
+      render: (v: number) =>
+        v > 0 ? (
+          <Tag color="volcano" className="caja-creditos-pendientes-table__tag">
+            {v}
+          </Tag>
+        ) : (
+          <Tag color="success" className="caja-creditos-pendientes-table__tag">
+            0
+          </Tag>
+        ),
+    },
+    {
+      title: 'Vence',
+      dataIndex: 'fechaVencimiento',
+      width: 108,
+      render: (v: string) => formatFecha(v),
     },
   ]
 
@@ -98,14 +181,24 @@ export function CreditosPendientesModal({
         <div className="caja-creditos-pendientes-modal__toolbar">
           <div className="caja-creditos-pendientes-modal__intro">
             <Text type="secondary">
-              Créditos desembolsados (DES) de su gestión. Haga{' '}
-              <strong>doble clic</strong> en una fila para cargar el cliente y el
-              plan de cuotas en Cobranzas.
+              Cartera DES de su gestión. <strong>Deuda</strong> = capital pendiente + mora.
+              {' '}<strong>A cobrar</strong> = cuota sugerida hoy. Doble clic carga Cobranzas.
             </Text>
-            <Tag color="processing">
-              {filtrados.length}
-              {buscar.trim() ? ` / ${query.data?.length ?? 0}` : ''} crédito(s)
-            </Tag>
+            <Space size={6} wrap>
+              <Tag color="processing">
+                {filtrados.length}
+                {buscar.trim() ? ` / ${query.data?.length ?? 0}` : ''} crédito(s)
+              </Tag>
+              {totales.enMora > 0 ? (
+                <Tag color="volcano">{totales.enMora} en mora</Tag>
+              ) : null}
+              <Tag>
+                Deuda Σ {formatMoney(totales.deuda)}
+              </Tag>
+              {totales.mora > 0 ? (
+                <Tag color="error">Mora Σ {formatMoney(totales.mora)}</Tag>
+              ) : null}
+            </Space>
           </div>
 
           <div className="caja-creditos-pendientes-modal__search">
@@ -141,8 +234,15 @@ export function CreditosPendientesModal({
               showSizeChanger: true,
               showTotal: (t) => `${t} registro(s)`,
             }}
-            scroll={{ x: true, y: 'min(52vh, 520px)' }}
-            rowClassName={() => 'caja-creditos-pendientes-table__row'}
+            scroll={{ x: 900, y: 'min(52vh, 520px)' }}
+            rowClassName={(r) =>
+              [
+                'caja-creditos-pendientes-table__row',
+                r.diasAtrazo > 0 ? 'caja-creditos-pendientes-table__row--mora' : '',
+              ]
+                .filter(Boolean)
+                .join(' ')
+            }
             onRow={(row) => ({
               onDoubleClick: () => {
                 const label = `${row.personaNombre} [${row.personaCodigo}]`

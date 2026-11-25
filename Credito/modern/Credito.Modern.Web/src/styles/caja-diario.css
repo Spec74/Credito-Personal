@@ -937,6 +937,41 @@
   cursor: pointer;
 }
 
+.caja-creditos-pendientes-table__row--mora > td {
+  background: color-mix(in srgb, #c45c26 8%, transparent);
+}
+
+.caja-creditos-pendientes-table__cliente {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.caja-creditos-pendientes-table__meta {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
+.caja-creditos-pendientes-table__muted {
+  opacity: 0.78;
+  font-variant-numeric: tabular-nums;
+}
+
+.caja-creditos-pendientes-table__deuda,
+.caja-creditos-pendientes-table__sugerida {
+  font-variant-numeric: tabular-nums;
+}
+
+.caja-creditos-pendientes-table__sugerida {
+  color: var(--credix-accent, #3b82f6);
+  font-weight: 650;
+}
+
+.caja-creditos-pendientes-table__tag {
+  margin-inline: 0;
+}
+
 .caja-creditos-pendientes-table__row:hover > td {
   background: var(--credix-row-hover) !important;
 }

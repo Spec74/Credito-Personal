@@ -529,12 +529,13 @@ FROM CREDITO.Credito c
             AND mc.Estado = 1
 		    AND mc.Operacion = 'CUO'
       )
-	  -- Condición 2: hoy hay cuota con vencimiento (día de cobro programado)
+	  -- Condición 2: hoy hay cuota con vencimiento aún pendiente (no PAG/CAN)
       AND EXISTS (
           SELECT 1
           FROM CREDITO.PlanPago pp
           WHERE pp.CreditoId = c.CreditoId
             AND pp.FechaVencimiento = CAST(@Fecha AS DATE)
+            AND pp.Estado NOT IN (N'PAG', N'CAN')
       );
 
 Select @Impagos 'Impagos'

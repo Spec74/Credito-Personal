@@ -5,7 +5,7 @@ import {
   useState,
   type Key,
 } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Alert,
@@ -108,7 +108,11 @@ export function CobranzasTab({
 }) {
   const { session } = useAuth()
   const { esCentral } = useEsCentral()
+  const [searchParams, setSearchParams] = useSearchParams()
   const usuarioId = session?.usuarioId ?? 0
+  const [excepcionesOpen, setExcepcionesOpen] = useState(
+    () => searchParams.get('accion') === 'completar-impagos',
+  )
   const [clienteLabel, setClienteLabel] = useState('')
   const [personaId, setPersonaId] = useState(0)
   const [creditosPersona, setCreditosPersona] = useState<CreditoPorPersonaRow[]>(
@@ -167,6 +171,25 @@ export function CobranzasTab({
     () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }),
     [tiposPagoQuery.data, esCentral],
   )
+
+  useEffect(() => {
+    if (searchParams.get('accion') !== 'completar-impagos') return
+    setExcepcionesOpen(true)
+    const t = window.setTimeout(() => {
+      document
+        .getElementById('caja-completar-impagos')
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev)
+          next.delete('accion')
+          return next
+        },
+        { replace: true },
+      )
+    }, 120)
+    return () => window.clearTimeout(t)
+  }, [searchParams, setSearchParams])
 
   useEffect(() => {
     const main = document.querySelector('.credix-main')
@@ -1382,10 +1405,18 @@ export function CobranzasTab({
         </div>
       ) : null}
 
-      <details className="caja-diario-excepciones">
+      <details
+        className="caja-diario-excepciones"
+        open={excepcionesOpen}
+        onToggle={(e) =>
+          setExcepcionesOpen((e.target as HTMLDetailsElement).open)
+        }
+      >
         <summary>Cierre y excepciones</summary>
         <div className="caja-diario-excepciones__body">
           <Button
+            id="caja-completar-impagos"
+            type="primary"
             icon={<CheckCircleOutlined />}
             loading={consultandoImpagos || ejecutarCompletarImpagos.isPending}
             onClick={() => void solicitarCompletarImpagos()}

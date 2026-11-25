@@ -250,19 +250,31 @@ export function CajaDiarioPage() {
             type="warning"
             showIcon
             style={{ marginBottom: 12 }}
-            message={`Hay ${cantidadImpagosPendientes} crédito(s) con impagos pendientes`}
+            message={`${cantidadImpagosPendientes} crédito(s) con cuota de hoy sin cobro en esta caja`}
             description={
               <>
-                Revise y verifique los pagos antes de cerrar caja.{' '}
-                <Link to="/caja/verificar-pagos">Ir a verificar pagos</Link>
+                No es verificación de Yape/Plin. Antes de cerrar, cobre esas cuotas o use{' '}
+                <strong>Cobranzas → Cierre y excepciones → Completar impagos</strong>.
               </>
             }
             action={
-              <Link to="/caja/verificar-pagos">
-                <Button size="small" type="primary">
-                  Verificar pagos
-                </Button>
-              </Link>
+              <Button
+                size="small"
+                type="primary"
+                onClick={() => {
+                  setSearchParams(
+                    (prev) => {
+                      const next = new URLSearchParams(prev)
+                      next.set('tab', 'cobranzas')
+                      next.set('accion', 'completar-impagos')
+                      return next
+                    },
+                    { replace: true },
+                  )
+                }}
+              >
+                Ir a Completar impagos
+              </Button>
             }
           />
         ) : null}

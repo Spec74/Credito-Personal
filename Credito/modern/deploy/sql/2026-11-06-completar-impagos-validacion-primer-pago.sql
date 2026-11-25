@@ -38,6 +38,7 @@ BEGIN
           FROM CREDITO.PlanPago AS pp
           WHERE pp.CreditoId = c.CreditoId
             AND pp.FechaVencimiento = CAST(@Fecha AS DATE)
+            AND pp.Estado NOT IN (N'PAG', N'CAN')
       );
 
     SELECT @Impagos AS Impagos;
