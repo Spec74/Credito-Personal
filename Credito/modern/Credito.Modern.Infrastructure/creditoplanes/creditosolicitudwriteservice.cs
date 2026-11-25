@@ -77,6 +77,30 @@ public sealed class CreditoSolicitudWriteService(IOptions<SqlDatabaseOptions> op
                 incluyeCentralRiesgo: true,
                 cancellationToken).ConfigureAwait(false);
 
+            // Catálogo BD: 1=RAPP, 2=PRENDARIO, 3=FACIL, 4=SOCIAL. Stub CRE → CREDI FACIL (por nombre).
+            var productoFacil = await connection.QueryFirstOrDefaultAsync<(int ProductoId, decimal InteresMinima, decimal InteresMaxima)>(
+                new CommandDefinition(
+                    """
+                    SELECT TOP (1) ProductoId, InteresMinima, InteresMaxima
+                    FROM CREDITO.Producto
+                    WHERE Estado = CAST(1 AS bit)
+                      AND UPPER(LTRIM(RTRIM(Denominacion))) = N'CREDI FACIL'
+                    ORDER BY ProductoId;
+                    """,
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+            if (productoFacil.ProductoId < 1)
+            {
+                throw new InvalidOperationException(
+                    "No hay producto activo 'CREDI FACIL' en CREDITO.Producto. Revise el catálogo.");
+            }
+
+            var productoId = productoFacil.ProductoId;
+            // 8% = default operativo legacy; clamp al rango del producto.
+            var interesDefault = 8m;
+            if (interesDefault < productoFacil.InteresMinima) interesDefault = productoFacil.InteresMinima;
+            if (interesDefault > productoFacil.InteresMaxima) interesDefault = productoFacil.InteresMaxima;
+
             var solicitudId = await connection.ExecuteScalarAsync<int>(
                 new CommandDefinition(
                     """
@@ -87,9 +111,9 @@ public sealed class CreditoSolicitudWriteService(IOptions<SqlDatabaseOptions> op
                         Calificacion, IndCondonacion, MontoCondonacion, IndIrrecuperable, PersonaAvalId,
                         UsuarioRegId, FechaReg)
                     VALUES (
-                        @PersonaId, 1, '', 0, 0, @MontoCredito,
+                        @PersonaId, @ProductoId, '', 0, 0, @MontoCredito,
                         @MontoGastosAdm, 0, 0, 'CAP', 'D', 26,
-                        8, @FechaReg, '', 'CRE', @OficinaId, @FechaReg, 'F',
+                        @Interes, @FechaReg, '', 'CRE', @OficinaId, @FechaReg, 'F',
                         'A', 0, 0, 0, @PersonaAvalId,
                         @UsuarioRegId, @FechaReg);
                     SELECT CAST(SCOPE_IDENTITY() AS int);
@@ -97,8 +121,10 @@ public sealed class CreditoSolicitudWriteService(IOptions<SqlDatabaseOptions> op
                     new
                     {
                         PersonaId = personaId,
+                        ProductoId = productoId,
                         MontoCredito = MontoCreditoInicial,
                         MontoGastosAdm = montoGastosAdm,
+                        Interes = interesDefault,
                         OficinaId = oficinaId,
                         FechaReg = fechaReg.Date,
                         PersonaAvalId = personaAvalId,
@@ -225,6 +251,31 @@ public sealed class CreditoSolicitudWriteService(IOptions<SqlDatabaseOptions> op
                 incluyeCentralRiesgo: true,
                 cancellationToken).ConfigureAwait(false);
 
+            var productoPrendario = await connection.QueryFirstOrDefaultAsync<(int ProductoId, decimal InteresMinima, decimal InteresMaxima)>(
+                new CommandDefinition(
+                    """
+                    SELECT TOP (1) ProductoId, InteresMinima, InteresMaxima
+                    FROM CREDITO.Producto
+                    WHERE Estado = CAST(1 AS bit)
+                      AND (
+                            UPPER(LTRIM(RTRIM(Denominacion))) = N'CREDI PRENDARIO'
+                         OR ProductoId = 2
+                      )
+                    ORDER BY CASE WHEN UPPER(LTRIM(RTRIM(Denominacion))) = N'CREDI PRENDARIO' THEN 0 ELSE 1 END,
+                             ProductoId;
+                    """,
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+            if (productoPrendario.ProductoId < 1)
+            {
+                throw new InvalidOperationException(
+                    "No hay producto activo 'CREDI PRENDARIO' en CREDITO.Producto. Revise el catálogo.");
+            }
+
+            var interesPrendario = 8m;
+            if (interesPrendario < productoPrendario.InteresMinima) interesPrendario = productoPrendario.InteresMinima;
+            if (interesPrendario > productoPrendario.InteresMaxima) interesPrendario = productoPrendario.InteresMaxima;
+
             var solicitudId = await connection.ExecuteScalarAsync<int>(
                 new CommandDefinition(
                     """
@@ -235,9 +286,9 @@ public sealed class CreditoSolicitudWriteService(IOptions<SqlDatabaseOptions> op
                         Calificacion, IndCondonacion, MontoCondonacion, IndIrrecuperable, PersonaAvalId,
                         UsuarioRegId, FechaReg, EsPrendario)
                     VALUES (
-                        @PersonaId, 2, 'CREDITO PRENDARIO', 0, 0, @MontoCredito,
+                        @PersonaId, @ProductoId, 'CREDITO PRENDARIO', 0, 0, @MontoCredito,
                         @MontoGastosAdm, 0, 0, 'CAP', 'M', 1,
-                        8, @FechaVencimiento, '', 'CRE', @OficinaId, @FechaVencimiento, 'F',
+                        @Interes, @FechaVencimiento, '', 'CRE', @OficinaId, @FechaVencimiento, 'F',
                         'A', 0, 0, 0, @PersonaAvalId,
                         @UsuarioRegId, @FechaReg, CAST(1 AS bit));
                     SELECT CAST(SCOPE_IDENTITY() AS int);
@@ -245,8 +296,10 @@ public sealed class CreditoSolicitudWriteService(IOptions<SqlDatabaseOptions> op
                     new
                     {
                         PersonaId = personaId,
+                        ProductoId = productoPrendario.ProductoId,
                         MontoCredito = MontoCreditoInicial,
                         MontoGastosAdm = montoGastosAdm,
+                        Interes = interesPrendario,
                         OficinaId = oficinaId,
                         FechaReg = fechaReg.Date,
                         FechaVencimiento = fechaReg.Date.AddMonths(1),

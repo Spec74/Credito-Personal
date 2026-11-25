@@ -177,8 +177,11 @@ export function CreditoNuevoPage() {
   useEffect(() => {
     if (productoId != null || productos.length === 0) return
     if (solicitudUrl > 0 && !solicitudHidratada) return
-    setProductoId(productos[0].productoId)
-    setInteresMensual(productos[0].interesMinima)
+    // Catálogo BD: RAPP=1, PRENDARIO=2, FACIL=3, SOCIAL=4. Preferir FACIL por nombre.
+    const preferido =
+      productos.find((p) => /credi\s*facil/i.test(p.denominacion.trim())) ?? productos[0]
+    setProductoId(preferido.productoId)
+    setInteresMensual(preferido.interesMinima)
   }, [productoId, productos, solicitudUrl, solicitudHidratada])
 
   useEffect(() => {
@@ -248,13 +251,14 @@ export function CreditoNuevoPage() {
     let cancelled = false
     const t = window.setTimeout(() => {
       setPlanLoading(true)
+      // Paridad Simulador / legacy ADE: GA no va al SP del plan (sí se muestra y se cobra aparte).
       void simularCredito({
         monto,
         formaPago: codigoFormaPago(formaPago),
         nroCuotas,
         interesMensual,
         fechaPrimerPago: fechaPrimerPago.format('YYYY-MM-DD'),
-        gastosAdm,
+        gastosAdm: 0,
       })
         .then((rows) => {
           if (!cancelled) setCuotas(rows)

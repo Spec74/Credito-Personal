@@ -55,7 +55,8 @@ export async function originarCredito(input: OriginarCreditoInput): Promise<Orig
   const generado = await crearCredito({
     oficinaId: input.oficinaId,
     solicitudCreditoId: solicitudId,
-    productoId: input.esPrendario ? 2 : input.productoId,
+    // Prendario: el caller pasa productoId del catálogo (CREDI PRENDARIO); no forzar id 2.
+    productoId: input.productoId,
     tipoCuota: 'F',
     montoInicial: 0,
     montoGastosAdm: input.gastosAdm,

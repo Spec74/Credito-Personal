@@ -106,10 +106,14 @@ export function CreditoPrendarioNuevoPage() {
     queryFn: fetchProductos,
     staleTime: 10 * 60_000,
   })
-  const productoPrendario = useMemo(
-    () => productosQuery.data?.find((p) => p.productoId === 2) ?? null,
-    [productosQuery.data],
-  )
+  const productoPrendario = useMemo(() => {
+    const list = productosQuery.data ?? []
+    return (
+      list.find((p) => /credi\s*prendario/i.test(p.denominacion.trim())) ??
+      list.find((p) => p.productoId === 2) ??
+      null
+    )
+  }, [productosQuery.data])
 
   const clienteQuery = useQuery({
     queryKey: ['cliente-detalle', personaId],
@@ -296,10 +300,13 @@ export function CreditoPrendarioNuevoPage() {
       if (gastosAdm == null || gastosAdm < 0) {
         throw new Error('Indique el trámite administrativo')
       }
+      if (!productoPrendario) {
+        throw new Error("No hay producto activo 'CREDI PRENDARIO' en el catálogo.")
+      }
       return originarCredito({
         oficinaId,
         personaId,
-        productoId: 2,
+        productoId: productoPrendario.productoId,
         esPrendario: true,
         monto: montoCredito,
         modalidad: formaPago,
