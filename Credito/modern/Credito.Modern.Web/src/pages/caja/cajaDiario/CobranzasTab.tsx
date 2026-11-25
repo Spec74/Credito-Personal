@@ -390,6 +390,7 @@ export function CobranzasTab({
           : `Pago registrado (${r.resultId ?? 'OK'})`,
       )
       if (creditoId && usuarioId > 0) {
+        const movIds = (ids ?? []).filter((id): id is number => typeof id === 'number' && id > 0)
         syncDiarioPagoHaciaCobro({
           usuarioId,
           oficinaId: ctx.oficinaId,
@@ -398,7 +399,15 @@ export function CobranzasTab({
           personaNombre: clienteLabel || creditoSel?.descripcion,
           montoPagar: cuotaMixto ? sumPagoMedios(mediosCuota) : (importeRecibido ?? 0),
           tipoPagoId: cuotaMixto ? (mediosCuota[0]?.tipoPagoId ?? 1) : tipoPagoId,
-          movimientoCajaId: r.resultId ?? null,
+          movimientoCajaId: r.resultId ?? movIds[0] ?? null,
+          movimientoCajaIds: cuotaMixto && movIds.length >= 2 ? movIds : undefined,
+          medios:
+            cuotaMixto && mediosCuota.length >= 2
+              ? mediosCuota.map((m) => ({
+                  tipoPagoId: m.tipoPagoId,
+                  importe: Number(m.importe ?? 0),
+                }))
+              : undefined,
         })
       }
       setCuotaMixto(false)
@@ -506,6 +515,10 @@ export function CobranzasTab({
           : 'resultId' in r
             ? r.resultId
             : null
+      const movIds =
+        'movimientoCajaIds' in r && Array.isArray(r.movimientoCajaIds)
+          ? r.movimientoCajaIds.filter((id): id is number => typeof id === 'number' && id > 0)
+          : []
       const montoSync = pagoLibreMixto ? sumPagoMedios(mediosLibre) : (pagoLibre ?? 0)
       const tipoSync = pagoLibreMixto
         ? (mediosLibre[0]?.tipoPagoId ?? 1)
@@ -519,7 +532,15 @@ export function CobranzasTab({
           personaNombre: clienteLabel || creditoSel?.descripcion,
           montoPagar: montoSync,
           tipoPagoId: tipoSync,
-          movimientoCajaId: movId ?? null,
+          movimientoCajaId: movId ?? movIds[0] ?? null,
+          movimientoCajaIds: pagoLibreMixto && movIds.length >= 2 ? movIds : undefined,
+          medios:
+            pagoLibreMixto && mediosLibre.length >= 2
+              ? mediosLibre.map((m) => ({
+                  tipoPagoId: m.tipoPagoId,
+                  importe: Number(m.importe ?? 0),
+                }))
+              : undefined,
         })
       }
       setPagoLibre(null)

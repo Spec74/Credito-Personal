@@ -107,17 +107,28 @@ export function syncDiarioPagoHaciaCobro(
     montoPagar: number
     tipoPagoId?: number
     movimientoCajaId?: number | null
+    movimientoCajaIds?: number[]
+    medios?: CobroEnviadoItem['medios']
   },
 ): void {
   if (args.usuarioId < 1 || args.cajaDiarioId < 1 || args.creditoId < 1) return
   if (!(args.montoPagar > 0)) return
+
+  const ids = (args.movimientoCajaIds ?? [])
+    .filter((id) => id > 0)
+  const primary =
+    args.movimientoCajaId && args.movimientoCajaId > 0
+      ? args.movimientoCajaId
+      : (ids[0] ?? null)
 
   const item: Omit<CobroEnviadoItem, 'enviadoAt'> = {
     creditoId: args.creditoId,
     personaNombre: (args.personaNombre ?? '').trim() || `Crédito ${args.creditoId}`,
     montoPagar: args.montoPagar,
     tipoPagoId: args.tipoPagoId && args.tipoPagoId > 0 ? args.tipoPagoId : 1,
-    movimientoCajaId: args.movimientoCajaId ?? null,
+    medios: args.medios && args.medios.length >= 2 ? args.medios : undefined,
+    movimientoCajaId: primary,
+    movimientoCajaIds: ids.length >= 2 ? ids : undefined,
     origen: 'diario',
   }
   markCobroEnviados(

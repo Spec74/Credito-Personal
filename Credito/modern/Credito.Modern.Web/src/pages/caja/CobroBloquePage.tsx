@@ -56,6 +56,7 @@ import {
   loadCobroCola,
   markCobroEnviados,
   setCobroColaError,
+  ticketIdsDeEnviado,
   type CobroColaDia,
   type CobroEnviadoItem,
 } from '../../utils/cobroCola'
@@ -648,11 +649,24 @@ export function CobroBloquePage() {
     })
   }
 
+  /** Agrupa tickets API por crédito (mixto = varios movimientoCajaId). */
+  const ticketsByCredito = (
+    tickets: { creditoId: number; movimientoCajaId: number }[] | null | undefined,
+  ): Record<number, number[]> => {
+    const map: Record<number, number[]> = {}
+    for (const t of tickets ?? []) {
+      if (!(t.movimientoCajaId > 0) || !(t.creditoId > 0)) continue
+      const list = map[t.creditoId] ?? (map[t.creditoId] = [])
+      if (!list.includes(t.movimientoCajaId)) list.push(t.movimientoCajaId)
+    }
+    return map
+  }
+
   /** Registra enviados locales, limpia tipados y sincroniza caches Diario+Cobro. */
   const aplicarEnviados = (
     planilla: PlanillaItem[],
     origen: CobroEnviadoItem['origen'],
-    extra?: Record<number, number | null | undefined>,
+    extra?: Record<number, number[]>,
   ) => {
     if (planilla.length === 0) return
     const nombres = new Map(
@@ -661,21 +675,25 @@ export function CobroBloquePage() {
     const colapsada = collapsePlanillaByCredito(planilla)
     const nextCola = markCobroEnviados(
       { usuarioId, oficinaId, cajaDiarioId },
-      colapsada.map((p) => ({
-        creditoId: p.creditoId,
-        personaNombre: nombres.get(p.creditoId) ?? `Crédito ${p.creditoId}`,
-        montoPagar: p.montoPagar,
-        tipoPagoId: p.tipoPagoId,
-        medios:
-          p.medios && p.medios.length >= 2
-            ? p.medios.map((m) => ({
-                tipoPagoId: m.tipoPagoId,
-                importe: m.importe,
-              }))
-            : undefined,
-        movimientoCajaId: extra?.[p.creditoId] ?? null,
-        origen,
-      })),
+      colapsada.map((p) => {
+        const ids = extra?.[p.creditoId] ?? []
+        return {
+          creditoId: p.creditoId,
+          personaNombre: nombres.get(p.creditoId) ?? `Crédito ${p.creditoId}`,
+          montoPagar: p.montoPagar,
+          tipoPagoId: p.tipoPagoId,
+          medios:
+            p.medios && p.medios.length >= 2
+              ? p.medios.map((m) => ({
+                  tipoPagoId: m.tipoPagoId,
+                  importe: m.importe,
+                }))
+              : undefined,
+          movimientoCajaId: ids[0] ?? null,
+          movimientoCajaIds: ids.length >= 2 ? ids : undefined,
+          origen,
+        }
+      }),
     )
     setCola(nextCola)
     const ids = colapsada.map((p) => p.creditoId)
@@ -762,10 +780,7 @@ export function CobroBloquePage() {
     },
     onSuccess: (r) => {
       if (r.queued) return
-      const ticketMap: Record<number, number | null | undefined> = {}
-      for (const t of r.result.tickets ?? []) {
-        if (t.movimientoCajaId > 0) ticketMap[t.creditoId] = t.movimientoCajaId
-      }
+      const ticketMap = ticketsByCredito(r.result.tickets)
       const creditosUnicos = collapsePlanillaByCredito(r.planilla)
       const origen = creditosUnicos.length === 1 ? 'cobrar_ya' : 'lote'
       aplicarEnviados(r.planilla, origen, ticketMap)
@@ -797,15 +812,36 @@ export function CobroBloquePage() {
     void enviarPlanilla.mutateAsync(expandRowToPlanillaItems(row.creditoId, e))
   }
 
-  const imprimirTicket = async (movimientoCajaId: number | null | undefined) => {
-    if (!movimientoCajaId || movimientoCajaId < 1 || oficinaId < 1) {
+  const imprimirTicket = async (
+    idsOrOne: number | number[] | null | undefined,
+  ) => {
+    const ids = (
+      Array.isArray(idsOrOne)
+        ? idsOrOne
+        : idsOrOne && idsOrOne > 0
+          ? [idsOrOne]
+          : []
+    ).filter((id) => id > 0)
+    if (ids.length === 0 || oficinaId < 1) {
       message.warning('Este cobro no tiene ticket disponible para reimprimir.')
       return
     }
-    setTicketPrintingId(movimientoCajaId)
+    setTicketPrintingId(ids[0]!)
     try {
-      await downloadMovimientoCajaTicketPdf(oficinaId, movimientoCajaId)
-      message.success('Ticket descargado')
+      for (let i = 0; i < ids.length; i++) {
+        const id = ids[i]!
+        setTicketPrintingId(id)
+        await downloadMovimientoCajaTicketPdf(oficinaId, id)
+        // Evitar que el browser colapse descargas múltiples.
+        if (i < ids.length - 1) {
+          await new Promise((r) => setTimeout(r, 350))
+        }
+      }
+      message.success(
+        ids.length > 1
+          ? `${ids.length} comprobantes descargados (uno por medio)`
+          : 'Ticket descargado',
+      )
     } catch (e) {
       message.error(
         e instanceof ApiError ? e.message : e instanceof Error ? e.message : 'No se pudo imprimir el ticket',
@@ -884,10 +920,7 @@ export function CobroBloquePage() {
           completarImpagos: false,
         })
         // No cancelar el éxito: si el request ya fue a BD, hay que registrar enviados.
-        const ticketMap: Record<number, number | null | undefined> = {}
-        for (const t of r.tickets ?? []) {
-          if (t.movimientoCajaId > 0) ticketMap[t.creditoId] = t.movimientoCajaId
-        }
+        const ticketMap = ticketsByCredito(r.tickets)
         aplicarEnviados(
           planilla.map((p) => ({
             creditoId: p.creditoId,
@@ -1311,15 +1344,23 @@ export function CobroBloquePage() {
                           <strong className="cobro-bloque-enviados-list__monto">
                             S/ {formatMoney(it.montoPagar)}
                           </strong>
-                          {it.movimientoCajaId && it.movimientoCajaId > 0 ? (
+                          {ticketIdsDeEnviado(it).length > 0 ? (
                             <Button
                               type="primary"
                               size="large"
                               className="cobro-bloque-enviados-list__print"
                               icon={<PrinterOutlined />}
-                              loading={ticketPrintingId === it.movimientoCajaId}
+                              loading={
+                                ticketPrintingId != null &&
+                                ticketIdsDeEnviado(it).includes(ticketPrintingId)
+                              }
                               aria-label={`Imprimir ticket ${it.personaNombre}`}
-                              onClick={() => void imprimirTicket(it.movimientoCajaId)}
+                              title={
+                                ticketIdsDeEnviado(it).length > 1
+                                  ? `Imprimir ${ticketIdsDeEnviado(it).length} comprobantes`
+                                  : 'Imprimir ticket'
+                              }
+                              onClick={() => void imprimirTicket(ticketIdsDeEnviado(it))}
                             />
                           ) : null}
                         </div>

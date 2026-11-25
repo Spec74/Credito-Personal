@@ -21,8 +21,19 @@ export type CobroEnviadoItem = {
   /** Si hubo cobro mixto, todos los tramos (para Enviados). */
   medios?: CobroEnviadoMedio[]
   enviadoAt: string
+  /** Primer / principal movimiento (compat). */
   movimientoCajaId?: number | null
+  /** Mixto: un comprobante PDF por movimiento (mismo orden que medios). */
+  movimientoCajaIds?: number[]
   origen: 'cobrar_ya' | 'lote' | 'sync' | 'diario'
+}
+
+/** IDs de ticket a imprimir (mixto = todos; simple = uno). */
+export function ticketIdsDeEnviado(it: Pick<CobroEnviadoItem, 'movimientoCajaId' | 'movimientoCajaIds'>): number[] {
+  const multi = (it.movimientoCajaIds ?? []).filter((id) => id > 0)
+  if (multi.length > 0) return [...new Set(multi)]
+  const one = it.movimientoCajaId
+  return one && one > 0 ? [one] : []
 }
 
 export type CobroColaDia = {

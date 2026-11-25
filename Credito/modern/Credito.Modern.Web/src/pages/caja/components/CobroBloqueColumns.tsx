@@ -27,7 +27,11 @@ import {
   clienteTieneGps,
 } from '../../../utils/clienteMapaNavegacion'
 import type { CobroBloqueRowDraft } from '../../../utils/cobroBloqueDraft'
-import type { CobroColaDia, CobroEnviadoItem } from '../../../utils/cobroCola'
+import {
+  ticketIdsDeEnviado,
+  type CobroColaDia,
+  type CobroEnviadoItem,
+} from '../../../utils/cobroCola'
 
 const { Text } = Typography
 
@@ -318,7 +322,7 @@ export function buildCobroBloqueCarteraColumns(
 export type CobroBloqueEnviadosColumnDeps = {
   tipoPagoOptions: CobroBloqueTipoPagoOption[]
   ticketPrintingId: number | null
-  imprimirTicket: (movimientoCajaId: number) => void | Promise<void>
+  imprimirTicket: (ids: number | number[]) => void | Promise<void>
 }
 
 export function buildCobroBloqueEnviadosColumns(
@@ -402,8 +406,8 @@ export function buildCobroBloqueEnviadosColumns(
       width: 88,
       align: 'center',
       render: (_, it) => {
-        const movId = it.movimientoCajaId
-        if (!movId || movId <= 0) {
+        const ids = ticketIdsDeEnviado(it)
+        if (ids.length === 0) {
           return <Text type="secondary">—</Text>
         }
         return (
@@ -411,10 +415,16 @@ export function buildCobroBloqueEnviadosColumns(
             type="primary"
             size="small"
             icon={<PrinterOutlined />}
-            loading={ticketPrintingId === movId}
+            loading={
+              ticketPrintingId != null && ids.includes(ticketPrintingId)
+            }
             aria-label={`Imprimir ticket crédito ${it.creditoId}`}
-            title="Imprimir ticket"
-            onClick={() => void imprimirTicket(movId)}
+            title={
+              ids.length > 1
+                ? `Imprimir ${ids.length} comprobantes`
+                : 'Imprimir ticket'
+            }
+            onClick={() => void imprimirTicket(ids)}
           />
         )
       },
