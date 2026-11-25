@@ -5,7 +5,7 @@ import {
   useState,
   type Key,
 } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Alert,
@@ -16,7 +16,6 @@ import {
   Space,
 } from 'antd'
 import {
-  CheckCircleOutlined,
   CreditCardOutlined,
   DollarOutlined,
   DownOutlined,
@@ -29,8 +28,6 @@ import {
   WalletOutlined,
 } from '@ant-design/icons'
 import {
-  completarImpagos,
-  completarImpagosValidacion,
   fetchCreditoMoraResumen,
   fetchCreditosPorPersona,
   fetchCuentasPorCobrarPendientes,
@@ -108,11 +105,7 @@ export function CobranzasTab({
 }) {
   const { session } = useAuth()
   const { esCentral } = useEsCentral()
-  const [searchParams, setSearchParams] = useSearchParams()
   const usuarioId = session?.usuarioId ?? 0
-  const [excepcionesOpen, setExcepcionesOpen] = useState(
-    () => searchParams.get('accion') === 'completar-impagos',
-  )
   const [clienteLabel, setClienteLabel] = useState('')
   const [personaId, setPersonaId] = useState(0)
   const [creditosPersona, setCreditosPersona] = useState<CreditoPorPersonaRow[]>(
@@ -139,7 +132,6 @@ export function CobranzasTab({
   const [fechaPagoLibre, setFechaPagoLibre] = useState('')
   const [showCxc, setShowCxc] = useState(false)
   const [cuotasModalOpen, setCuotasModalOpen] = useState(false)
-  const [consultandoImpagos, setConsultandoImpagos] = useState(false)
   const [moraModalOpen, setMoraModalOpen] = useState(false)
   const [solicitarOpen, setSolicitarOpen] = useState(false)
   const [moraSolicitar, setMoraSolicitar] = useState<number | null>(null)
@@ -171,25 +163,6 @@ export function CobranzasTab({
     () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }),
     [tiposPagoQuery.data, esCentral],
   )
-
-  useEffect(() => {
-    if (searchParams.get('accion') !== 'completar-impagos') return
-    setExcepcionesOpen(true)
-    const t = window.setTimeout(() => {
-      document
-        .getElementById('caja-completar-impagos')
-        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev)
-          next.delete('accion')
-          return next
-        },
-        { replace: true },
-      )
-    }, 120)
-    return () => window.clearTimeout(t)
-  }, [searchParams, setSearchParams])
 
   useEffect(() => {
     const main = document.querySelector('.credix-main')
@@ -579,49 +552,6 @@ export function CobranzasTab({
       cajaToastError(errMsg(e) || 'No se pudo registrar el pago libre.')
     },
   })
-
-  const ejecutarCompletarImpagos = useMutation({
-    mutationFn: () =>
-      completarImpagos({
-        oficinaId: ctx.oficinaId,
-        cajaDiarioId: ctx.cajaDiarioId,
-      }),
-    onSuccess: (r) => {
-      if (r.success) {
-        cajaToastSuccess('Impagos completados')
-      } else {
-        cajaToastWarning(
-          'La base de datos no completó los impagos. Consulte con sistemas.',
-        )
-      }
-      onChanged()
-    },
-    onError: (e) => cajaToastError(errMsg(e)),
-  })
-
-  const solicitarCompletarImpagos = async () => {
-    setConsultandoImpagos(true)
-    try {
-      const validacion = await completarImpagosValidacion(
-        ctx.oficinaId,
-        ctx.cajaDiarioId,
-      )
-      const pendientes = validacion.cantidadImpagosPendientes ?? 0
-      if (pendientes <= 0) {
-        cajaToastInfo('No hay créditos impagos pendientes para completar.')
-        return
-      }
-      cajaConfirm({
-        title: 'Completar impagos',
-        content: `Hay ${pendientes} crédito(s) sin cobro registrado hoy. Se registrará un movimiento CUO de S/ 0.00 (pago libre 0) en cada uno, para poder cerrar la caja. ¿Continuar?`,
-        onOk: () => ejecutarCompletarImpagos.mutateAsync(),
-      })
-    } catch (e) {
-      cajaToastError(errMsg(e))
-    } finally {
-      setConsultandoImpagos(false)
-    }
-  }
 
   const solicitarPagoLibre = async () => {
     if (!creditoId) return
@@ -1405,24 +1335,9 @@ export function CobranzasTab({
         </div>
       ) : null}
 
-      <details
-        className="caja-diario-excepciones"
-        open={excepcionesOpen}
-        onToggle={(e) =>
-          setExcepcionesOpen((e.target as HTMLDetailsElement).open)
-        }
-      >
-        <summary>Cierre y excepciones</summary>
+      <details className="caja-diario-excepciones">
+        <summary>Excepciones</summary>
         <div className="caja-diario-excepciones__body">
-          <Button
-            id="caja-completar-impagos"
-            icon={<CheckCircleOutlined />}
-            loading={consultandoImpagos || ejecutarCompletarImpagos.isPending}
-            onClick={() => void solicitarCompletarImpagos()}
-            title="Opcional: el cierre de caja ya completa impagos solo"
-          >
-            Completar impagos (opcional)
-          </Button>
           {creditoId && isMobile ? (
             <Button
               onClick={() => {

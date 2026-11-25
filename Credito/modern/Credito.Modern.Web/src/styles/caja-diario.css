@@ -941,6 +941,19 @@
   background: color-mix(in srgb, #c45c26 8%, transparent);
 }
 
+.caja-movimientos-modal__cliente {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.caja-movimientos-modal__meta {
+  font-size: 12px;
+  opacity: 0.72;
+}
+
 .caja-creditos-pendientes-table__cliente {
   display: flex;
   flex-direction: column;
