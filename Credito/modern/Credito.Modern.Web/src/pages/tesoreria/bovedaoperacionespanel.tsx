@@ -260,13 +260,17 @@ export function BovedaOperacionesPanel({
     staleTime: 5 * 60_000,
   })
   const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }),
-    [tiposPagoQuery.data, esCentral],
+    () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral, oficinaId }),
+    [tiposPagoQuery.data, esCentral, oficinaId],
   )
   /** Fondeo/remesa: siempre catálogo Central (billeteras Gerente/René + bancos). */
   const tipoPagoOptionsRed = useMemo(
-    () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral: true }),
-    [tiposPagoQuery.data],
+    () =>
+      buildTipoPagoOptions(tiposPagoQuery.data ?? [], {
+        esCentral: true,
+        oficinaId,
+      }),
+    [tiposPagoQuery.data, oficinaId],
   )
   /** Analista: no efectivo. Central tipa billeteras 10–13; sucursal tipa genéricos 2/3…. */
   const tipoPagoOptionsAnalista = useMemo(

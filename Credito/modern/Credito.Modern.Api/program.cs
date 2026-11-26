@@ -14,6 +14,7 @@ using Credito.Modern.Api.Caja;
 using Credito.Modern.Api.Dashboard;
 using Credito.Modern.Api.Credito;
 using Credito.Modern.Api.Maestros;
+using Credito.Modern.Api.MediosPago;
 using Credito.Modern.Api.Prendario;
 using Credito.Modern.Api.Pla;
 using Credito.Modern.Api.Intranet;
@@ -302,6 +303,7 @@ app.MapAlmacenOperacionEndpoints();
 
 app.MapMaestroReadEndpoints();
 app.MapMaestroCrudEndpoints();
+app.MapOficinaMedioPagoEndpoints();
 app.MapArticuloCrudEndpoints();
 app.MapCajaMaestroEndpoints();
 app.MapUsuarioAdminEndpoints();

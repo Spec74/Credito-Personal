@@ -29,6 +29,10 @@ export const MarcasPage = lazyNamed(
   () => import('../pages/masters/MarcasPage'),
   'MarcasPage',
 )
+export const MediosPagoPage = lazyNamed(
+  () => import('../pages/masters/MediosPagoPage'),
+  'MediosPagoPage',
+)
 export const ModelosPage = lazyNamed(
   () => import('../pages/masters/ModelosPage'),
   'ModelosPage',

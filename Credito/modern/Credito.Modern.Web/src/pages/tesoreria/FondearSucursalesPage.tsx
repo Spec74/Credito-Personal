@@ -50,8 +50,8 @@ export function FondearSucursalesPage() {
     staleTime: 5 * 60_000,
   })
   const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPago.data ?? [], { esCentral }),
-    [tiposPago.data, esCentral],
+    () => buildTipoPagoOptions(tiposPago.data ?? [], { esCentral, oficinaId }),
+    [tiposPago.data, esCentral, oficinaId],
   )
 
   const filas = useMemo(() => destinos.data ?? [], [destinos.data])

@@ -61,6 +61,14 @@ import {
 import { CajaSection } from '../../../components/caja/CajaSection'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
 import { TipoPagoChips } from '../../../components/caja/TipoPagoChips'
+import { CobroMedioInstrucciones } from '../../../components/caja/CobroMedioInstrucciones'
+import { fetchOficinaMediosPago } from '../../../api/mediosPago'
+import {
+  esTipoPagoCobroPermitido,
+  medioNombrePorItemId,
+  ordenTipoPago,
+  TIPO_PAGO_EFECTIVO,
+} from '../../../utils/tipoPago'
 import {
   defaultPagoMediosSplit,
   PagoMediosSplit,
@@ -153,16 +161,55 @@ export function CobranzasTab({
     queryFn: () => fetchCondonacionPendienteCredito(creditoId!),
     enabled: creditoId != null && creditoId > 0,
   })
+  const oficinaId = session?.oficinaId ?? 0
   const tiposPagoQuery = useQuery({
     queryKey: ['valores-tabla', 13],
     queryFn: () => fetchValoresTabla(13),
     staleTime: 5 * 60_000,
   })
+  const mediosOficinaQuery = useQuery({
+    queryKey: ['oficina-medios-pago', oficinaId],
+    queryFn: () => fetchOficinaMediosPago(oficinaId, { soloRaices: true }),
+    enabled: oficinaId > 0,
+    staleTime: 60_000,
+  })
 
-  const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }),
-    [tiposPagoQuery.data, esCentral],
-  )
+  const tipoPagoOptions = useMemo(() => {
+    const flat: { tipoPagoId: number; nombre: string; activo: boolean }[] = []
+    for (const m of mediosOficinaQuery.data ?? []) {
+      flat.push(m)
+      for (const v of m.variantes ?? []) flat.push(v)
+    }
+    const fromOficina = flat
+      .filter((m) => m.activo && esTipoPagoCobroPermitido(m.tipoPagoId, esCentral))
+      .map((m) => {
+        const label =
+          medioNombrePorItemId(m.tipoPagoId) ??
+          (m.nombre.trim() || `Tipo ${m.tipoPagoId}`)
+        return {
+          value: m.tipoPagoId,
+          label,
+          searchText: `${label} ${m.nombre}`.trim(),
+        }
+      })
+      .sort((a, b) => ordenTipoPago(a.value) - ordenTipoPago(b.value))
+
+    if (fromOficina.length > 0) {
+      if (!fromOficina.some((o) => o.value === TIPO_PAGO_EFECTIVO)) {
+        fromOficina.unshift({
+          value: TIPO_PAGO_EFECTIVO,
+          label: 'Efectivo',
+          searchText: 'Efectivo',
+        })
+      }
+      return fromOficina
+    }
+
+    return buildTipoPagoOptions(tiposPagoQuery.data ?? [], {
+      esCentral,
+      oficinaId,
+    })
+  }, [mediosOficinaQuery.data, tiposPagoQuery.data, esCentral, oficinaId])
 
   useEffect(() => {
     const main = document.querySelector('.credix-main')
@@ -1230,6 +1277,7 @@ export function CobranzasTab({
                         compact={!isMobile}
                       />
                     ) : null}
+                    <CobroMedioInstrucciones tipoPagoId={tipoPagoId} />
                   </>
                 )}
               </>
@@ -1326,6 +1374,7 @@ export function CobranzasTab({
                         compact={!isMobile}
                       />
                     ) : null}
+                    <CobroMedioInstrucciones tipoPagoId={tipoPagoLibreId} />
                   </>
                 )}
               </>

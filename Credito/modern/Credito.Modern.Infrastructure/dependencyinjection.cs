@@ -11,6 +11,8 @@ using Credito.Modern.Application.CreditoPlanes;
 using Credito.Modern.Application.Documentos;
 using Credito.Modern.Application.Maestros;
 using Credito.Modern.Application.Marcas;
+using Credito.Modern.Application.MediosPago;
+using Credito.Modern.Infrastructure.MediosPago;
 using Credito.Modern.Application.Menus;
 using Credito.Modern.Application.Modelos;
 using Credito.Modern.Application.TipoArticulos;
@@ -94,6 +96,7 @@ public static class DependencyInjection
         services.AddSingleton<IDatabaseTimeProvider, DatabaseTimeProvider>();
         services.AddScoped<IMarcaReadService, MarcaReadService>();
         services.AddScoped<IMarcaWriteService, MarcaWriteService>();
+        services.AddScoped<IOficinaMedioPagoService, OficinaMedioPagoService>();
         services.AddScoped<IModeloWriteService, ModeloWriteService>();
         services.AddScoped<ITipoArticuloWriteService, TipoArticuloWriteService>();
         services.AddScoped<IOficinaWriteService, OficinaWriteService>();

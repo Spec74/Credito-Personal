@@ -246,8 +246,8 @@ export function CreditoPrendarioGestionPage() {
   })
 
   const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPago.data ?? [], { esCentral }),
-    [tiposPago.data, esCentral],
+    () => buildTipoPagoOptions(tiposPago.data ?? [], { esCentral, oficinaId }),
+    [tiposPago.data, esCentral, oficinaId],
   )
 
   useEffect(() => {

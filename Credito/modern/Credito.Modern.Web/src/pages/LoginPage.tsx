@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { BankOutlined, LockOutlined, UserOutlined } from '@ant-design/icons'
-import { Alert, Button, Checkbox, Form, Grid, Input, Select, Spin, Typography } from 'antd'
+import { Alert, Button, Checkbox, Form, Grid, Input, Select, Spin } from 'antd'
 import { fetchOficinas } from '../api/oficinas'
 import { ApiError } from '../api/errors'
 import { getAuthLoginErrorMessage } from '../auth/authLoginError'
@@ -13,11 +13,8 @@ import { branding } from '../config/branding'
 import { fetchClientPublicIp } from '../utils/clientIp'
 import { parseLoginOficinaId } from '../utils/sucursalRed'
 import { CredixColorSchemeToggle } from '../components/layout/CredixColorSchemeToggle'
-import { pickLoginFrase } from '../utils/loginFrase'
 import { pickLoginSaludoDia } from '../utils/loginSaludo'
 import '../styles/credix-login.css'
-
-const { Text } = Typography
 
 interface LoginFormValues {
   nombreUsuario: string
@@ -38,14 +35,12 @@ export function LoginPage() {
   const location = useLocation()
   const { isAuthenticated, isLoading, login } = useAuth()
   const screens = Grid.useBreakpoint()
-  // md undefined al primer paint → tratar como compacto (móvil) para no abrir teclado.
   const isCompact = screens.md !== true
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [clientIp, setClientIp] = useState<string | null>(null)
   const [ipResolved, setIpResolved] = useState(false)
   const [form] = Form.useForm<LoginFormValues>()
-  const [frase] = useState(() => pickLoginFrase())
   const [saludoDia] = useState(() => pickLoginSaludoDia())
 
   const oficinasQuery = useQuery({
@@ -149,159 +144,135 @@ export function LoginPage() {
 
   return (
     <main className="credix-login" translate="no">
-      <aside className="credix-login-stage">
-        <div className="credix-login-ornament credix-login-ornament--stage" aria-hidden>
-          <span className="credix-login-ornament__linen" />
-          <span className="credix-login-ornament__lattice" />
-          <span className="credix-login-ornament__frame" />
+      <div className="credix-login-shell">
+        <div className="credix-login-orbs" aria-hidden>
+          <span className="credix-login-orb credix-login-orb--a" />
+          <span className="credix-login-orb credix-login-orb--b" />
+          <span className="credix-login-orb credix-login-orb--c" />
+          <span className="credix-login-orb credix-login-orb--d" />
         </div>
-        <header className="credix-login-stage__greet">
-          <p className="credix-login-stage__hello">{saludoDia.saludo}.</p>
-          <p className="credix-login-stage__line">{saludoDia.linea}</p>
-        </header>
-        <div className="credix-login-stage__body">
-          <div className="credix-login-seal">
-            <span className="credix-login-seal__ring" aria-hidden />
-            <BrandLogo className="credix-login-seal__logo" fluid priority />
-          </div>
-          <p className="credix-login-stage__eyebrow">Acceso del personal</p>
-          <blockquote className="credix-login-quote" key={frase.texto}>
-            <p>{frase.texto}</p>
-            {frase.fuente ? <cite>{frase.fuente}</cite> : null}
-          </blockquote>
-        </div>
-      </aside>
 
-      <section className="credix-login-panel">
-        <div className="credix-login-ornament credix-login-ornament--panel" aria-hidden>
-          <span className="credix-login-ornament__linen" />
-          <span className="credix-login-ornament__lattice" />
-          <span className="credix-login-ornament__frame" />
-        </div>
-        {/* Solo móvil: marca plana (sin sello). Escritorio sigue usando el stage de 2 columnas. */}
-        <div className="credix-login-form__brand">
-          <BrandLogo className="credix-login-form__logo" compact priority />
-          <p className="credix-login-form__greet">{saludoDia.saludo}.</p>
-        </div>
-        <div className="credix-login-form__head">
-          <p className="credix-login-form__context">Sesión de sucursal</p>
-          <CredixColorSchemeToggle variant="segmented" />
-        </div>
-        <div className="credix-login-form__main">
-          <header className="credix-login-form__header">
-            <h1 className="credix-login-form__title">Iniciar sesión</h1>
-            <Text className="credix-login-form__hint">
-              Usa tu usuario de trabajo. La sesión queda en la oficina que elijas.
-            </Text>
-            <div className="credix-login-form__alerts" aria-live="polite">
-              {oficinasError ? (
-                <Alert
-                  type="warning"
-                  showIcon
-                  banner
-                  className="credix-login-form__alert"
-                  title="Oficinas no disponibles"
-                  action={
-                    <Button size="small" onClick={() => void oficinasQuery.refetch()}>
-                      Reintentar
-                    </Button>
+        {/* Izquierda: solo atmósfera + bienvenida (logo vive en el formulario). */}
+        <aside className="credix-login-stage" aria-label="Bienvenida">
+          <p className="credix-login-stage__welcome">Bienvenido</p>
+          <p className="credix-login-stage__hello">
+            {saludoDia.saludo}. {saludoDia.linea}
+          </p>
+        </aside>
+
+        <section className="credix-login-panel">
+          <div className="credix-login-panel__top">
+            <CredixColorSchemeToggle variant="segmented" />
+          </div>
+
+          <div className="credix-login-panel__body">
+            <header className="credix-login-form__header">
+              <div className="credix-login-form__brand">
+                <BrandLogo className="credix-login-form__logo" fluid priority />
+              </div>
+              <h1 className="credix-login-form__title">Iniciar sesión</h1>
+              <div className="credix-login-form__alerts" aria-live="polite">
+                {oficinasError ? (
+                  <Alert
+                    type="warning"
+                    showIcon
+                    banner
+                    className="credix-login-form__alert"
+                    title="Oficinas no disponibles"
+                    action={
+                      <Button size="small" onClick={() => void oficinasQuery.refetch()}>
+                        Reintentar
+                      </Button>
+                    }
+                  />
+                ) : null}
+                {error ? (
+                  <Alert type="error" banner showIcon title={error} className="credix-login-form__alert" />
+                ) : null}
+              </div>
+            </header>
+
+            <Form<LoginFormValues>
+              form={form}
+              layout="vertical"
+              size="large"
+              className="credix-login-form__fields"
+              onFinish={onFinish}
+              requiredMark={false}
+              initialValues={{ recordar: true }}
+            >
+              <Form.Item
+                name="nombreUsuario"
+                rules={[{ required: true, message: 'Ingrese su usuario' }]}
+              >
+                <Input
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
+                  autoFocus={!isCompact}
+                  aria-label="Usuario"
+                  placeholder="Usuario"
+                  prefix={<UserOutlined aria-hidden />}
+                />
+              </Form.Item>
+              <Form.Item name="clave" rules={[{ required: true, message: 'Ingrese su contraseña' }]}>
+                <Input.Password
+                  autoComplete="current-password"
+                  aria-label="Contraseña"
+                  placeholder="Contraseña"
+                  prefix={<LockOutlined aria-hidden />}
+                />
+              </Form.Item>
+              <Form.Item
+                name="oficinaId"
+                rules={[{ required: true, message: 'Seleccione oficina' }]}
+              >
+                <Select
+                  showSearch={!isCompact}
+                  optionFilterProp="label"
+                  prefix={<BankOutlined aria-hidden />}
+                  loading={oficinasQuery.isLoading}
+                  aria-label="Oficina"
+                  placeholder={
+                    oficinasQuery.isLoading
+                      ? 'Cargando oficinas…'
+                      : oficinaOptions.length
+                        ? 'Oficina'
+                        : 'Sin oficinas'
+                  }
+                  options={oficinaOptions}
+                  listHeight={isCompact ? 220 : 256}
+                  getPopupContainer={(node) => node.parentElement ?? document.body}
+                  notFoundContent={
+                    oficinasQuery.isLoading ? <Spin size="small" /> : (oficinasError ?? 'No hay datos')
                   }
                 />
-              ) : null}
-              {error ? (
-                <Alert type="error" banner showIcon title={error} className="credix-login-form__alert" />
-              ) : null}
-            </div>
-          </header>
+              </Form.Item>
 
-          <Form<LoginFormValues>
-            form={form}
-            layout="vertical"
-            size="large"
-            className="credix-login-form__fields"
-            onFinish={onFinish}
-            requiredMark={false}
-            initialValues={{ recordar: true }}
-          >
-            <Form.Item
-              name="nombreUsuario"
-              label="Usuario"
-              rules={[{ required: true, message: 'Ingrese su usuario' }]}
-            >
-              <Input
-                autoComplete="username"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                autoFocus={!isCompact}
-                prefix={<UserOutlined aria-hidden />}
-              />
-            </Form.Item>
-            <Form.Item
-              name="clave"
-              label="Contraseña"
-              rules={[{ required: true, message: 'Ingrese su contraseña' }]}
-            >
-              <Input.Password
-                autoComplete="current-password"
-                prefix={<LockOutlined aria-hidden />}
-              />
-            </Form.Item>
-            <Form.Item
-              name="oficinaId"
-              label="Oficina"
-              extra="La sesión queda ligada a esta sede."
-              rules={[{ required: true, message: 'Seleccione oficina' }]}
-            >
-              <Select
-                // En móvil showSearch enfoca un input y abre el teclado → desplaza el login.
-                showSearch={!isCompact}
-                optionFilterProp="label"
-                prefix={<BankOutlined aria-hidden />}
-                loading={oficinasQuery.isLoading}
-                placeholder={
-                  oficinasQuery.isLoading
-                    ? 'Cargando oficinas…'
-                    : oficinaOptions.length
-                      ? 'Seleccione oficina'
-                      : 'Sin oficinas'
-                }
-                options={oficinaOptions}
-                listHeight={isCompact ? 220 : 256}
-                getPopupContainer={(node) => node.parentElement ?? document.body}
-                notFoundContent={
-                  oficinasQuery.isLoading ? (
-                    <Spin size="small" />
-                  ) : (
-                    (oficinasError ?? 'No hay datos')
-                  )
-                }
-              />
-            </Form.Item>
+              <Form.Item name="recordar" valuePropName="checked" className="credix-login-form__remember">
+                <Checkbox>Recordarme</Checkbox>
+              </Form.Item>
 
-            <Form.Item name="recordar" valuePropName="checked" className="credix-login-form__remember">
-              <Checkbox>Recordar sesión en este equipo</Checkbox>
-            </Form.Item>
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                className="credix-login-form__submit"
+                loading={submitting}
+                disabled={oficinaOptions.length === 0 && !oficinasQuery.isLoading}
+              >
+                Iniciar sesión
+              </Button>
+            </Form>
 
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              className="credix-login-form__submit"
-              loading={submitting}
-              disabled={oficinaOptions.length === 0 && !oficinasQuery.isLoading}
-            >
-              Iniciar sesión
-            </Button>
-          </Form>
-        </div>
-        <div className="credix-login-form__foot">
-          <p className="credix-login-form__legal">
-            ¿No es colaborador? Acérquese a una agencia.{' '}
-            <a href={soporte.href}>{soporte.label}</a>
-          </p>
-        </div>
-      </section>
+            <p className="credix-login-form__foot">
+              ¿No es colaborador? Acérquese a una agencia.{' '}
+              <a href={soporte.href}>{soporte.label}</a>
+            </p>
+          </div>
+        </section>
+      </div>
     </main>
   )
 }

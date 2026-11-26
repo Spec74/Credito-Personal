@@ -175,8 +175,9 @@ export function esMarcaTipoPago(
     desCorta?: string | null
   },
   esCentral = false,
+  oficinaId?: number,
 ): boolean {
-  return esMarcaTipoPagoCatalogo(item, esCentral)
+  return esMarcaTipoPagoCatalogo(item, esCentral, oficinaId)
 }
 
 /** Reexport: nombre UI estable por ItemId (compat con imports existentes). */

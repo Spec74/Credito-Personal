@@ -369,8 +369,12 @@ export function CobroBloquePage() {
   })
 
   const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }),
-    [tiposPagoQuery.data, esCentral],
+    () =>
+      buildTipoPagoOptions(tiposPagoQuery.data ?? [], {
+        esCentral,
+        oficinaId,
+      }),
+    [tiposPagoQuery.data, esCentral, oficinaId],
   )
 
   // Recuperar borrador al abrir sesión de caja (solo una vez).

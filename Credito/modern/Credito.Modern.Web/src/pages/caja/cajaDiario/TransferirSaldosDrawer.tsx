@@ -61,8 +61,12 @@ export function TransferirSaldosDrawer({
   })
 
   const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }),
-    [tiposPagoQuery.data, esCentral],
+    () =>
+      buildTipoPagoOptions(tiposPagoQuery.data ?? [], {
+        esCentral,
+        oficinaId: ctx.oficinaId,
+      }),
+    [tiposPagoQuery.data, esCentral, ctx.oficinaId],
   )
 
   const medioId = tipoPagoId && tipoPagoId > 0 ? tipoPagoId : 1

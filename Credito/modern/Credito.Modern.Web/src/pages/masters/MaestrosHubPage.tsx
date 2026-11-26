@@ -7,6 +7,7 @@ const SECTIONS = [
     title: 'Catálogos',
     links: [
       { to: '/maestros/marcas', label: 'Marcas' },
+      { to: '/maestros/medios-pago', label: 'Medios de pago' },
       { to: '/maestros/modelos', label: 'Modelos' },
       { to: '/maestros/tipos-articulo', label: 'Tipos de artículo' },
       { to: '/maestros/articulos', label: 'Artículos' },

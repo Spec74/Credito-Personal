@@ -28,11 +28,12 @@ function nombreOpcion(itemId: number, denominacion: string): string {
  */
 export function buildTipoPagoOptions(
   items: { itemId: number; denominacion: string; desCorta?: string | null }[],
-  opts?: { esCentral?: boolean },
+  opts?: { esCentral?: boolean; oficinaId?: number },
 ): TipoPagoOption[] {
   const esCentral = opts?.esCentral === true
+  const oficinaId = opts?.oficinaId
   return items
-    .filter((t) => t.itemId > 0 && esMarcaTipoPago(t, esCentral))
+    .filter((t) => t.itemId > 0 && esMarcaTipoPago(t, esCentral, oficinaId))
     .map((t) => {
       const nombre = nombreOpcion(t.itemId, t.denominacion)
       return {

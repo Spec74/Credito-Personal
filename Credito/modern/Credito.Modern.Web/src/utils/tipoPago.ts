@@ -163,6 +163,7 @@ export function esMarcaTipoPagoCatalogo(
     desCorta?: string | null
   },
   esCentral = false,
+  oficinaId?: number,
 ): boolean {
   if (item.itemId < 1) return false
   const dc = (item.desCorta ?? '').trim().toUpperCase()
@@ -172,5 +173,10 @@ export function esMarcaTipoPagoCatalogo(
     return false
   }
   if (!esCentral && dc === 'CENTRAL') return false
+  // Variantes creadas por otra sucursal (DesCorta = OFI:{oficinaId}).
+  if (dc.startsWith('OFI:')) {
+    if (oficinaId == null || oficinaId < 1) return false
+    if (dc !== `OFI:${oficinaId}`) return false
+  }
   return esTipoPagoCobroPermitido(item.itemId, esCentral)
 }

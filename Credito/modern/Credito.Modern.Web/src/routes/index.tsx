@@ -29,6 +29,7 @@ export function AppRoutes() {
         <Route path="/inicio" element={<Pages.HomePage />} />
         <Route path="/maestros" element={<Pages.MaestrosHubPage />} />
         <Route path="/maestros/marcas" element={<Pages.MarcasPage />} />
+        <Route path="/maestros/medios-pago" element={<Pages.MediosPagoPage />} />
         <Route path="/maestros/modelos" element={<Pages.ModelosPage />} />
         <Route path="/maestros/tipos-articulo" element={<Pages.TipoArticuloPage />} />
         <Route path="/maestros/articulos" element={<Pages.ArticulosPage />} />

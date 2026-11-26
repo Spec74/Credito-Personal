@@ -1,778 +1,541 @@
-/* Login a una pantalla (svh estable; teclado no reacomoda el shell). Lino en claro; marino en oscuro. */
+/*
+ * Login profesional (guía) + dark mode al estándar Credix:
+ * WCAG: texto #e6e8ec, muted #b4bcc8, lienzo no #000, enlaces #8cb6e8.
+ */
+
 html:has(.credix-login),
-html:has(.credix-login) body {
-  background: #f3ebd6;
-  /* Evita rubber-band / scroll del body detrás del login al enfocar campos. */
-  overflow: hidden;
+html:has(.credix-login) body,
+#root:has(.credix-login) {
+  height: 100%;
+  min-height: 100dvh;
+  min-height: 100svh;
+  margin: 0;
+  background: #114885;
+  overflow: hidden !important;
   overscroll-behavior: none;
 }
 
 html[data-theme='dark']:has(.credix-login),
-html[data-theme='dark']:has(.credix-login) body {
-  background: #0b1728;
+html[data-theme='dark']:has(.credix-login) body,
+html[data-theme='dark'] #root:has(.credix-login) {
+  background: #0a3558;
 }
 
 .credix-login {
-  --login-linen: #f3ebd6;
-  --login-linen-deep: #eadfc8;
-  --login-seal-face: #f3ebd6;
-  --login-ink: #1a3354;
-  --login-muted: #5c6d80;
-  --login-navy: #114885;
+  --login-brand: #114885;
+  --login-brand-deep: #0a3558;
   --login-mark: #3db5ea;
-  --login-field: #ffffff;
-  --login-field-border: color-mix(in srgb, var(--login-navy) 22%, #d9e0ea);
-  --login-field-text: #1a3354;
-  --login-font: var(
-    --credix-font,
-    'Inter',
-    'Segoe UI',
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Helvetica Neue',
-    Arial,
-    sans-serif
-  );
+  --login-link: #114885;
+  --login-stage: linear-gradient(148deg, #0a3558 0%, #114885 50%, #1a5f9e 100%);
+  --login-ink: #1c2430;
+  --login-muted: #7a8798;
+  --login-navy: #114885;
+  --login-field: transparent;
+  --login-field-line: color-mix(in srgb, #114885 42%, transparent);
+  --login-field-line-focus: #114885;
+  --login-field-text: #1c2430;
+  --login-field-icon: #8a97a8;
+  --login-panel: #ffffff;
+  --login-focus-ring: color-mix(in srgb, #114885 18%, transparent);
+  --login-submit-fg: #ffffff;
+  --login-panel-shadow: color-mix(in srgb, #041828 16%, transparent);
+  --login-field-gap: clamp(18px, 2.6vh, 26px);
+  --login-font: 'Manrope', 'Segoe UI', system-ui, sans-serif;
+  --login-display: 'Fraunces', Georgia, 'Times New Roman', serif;
   box-sizing: border-box;
-  /* svh = viewport “pequeño” estable; el teclado no cambia la altura del shell. */
+  width: 100%;
   height: 100dvh;
   height: 100svh;
-  max-height: 100dvh;
   max-height: 100svh;
-  min-height: 100dvh;
-  min-height: 100svh;
   overflow: hidden;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  background: var(--login-linen);
+  padding: 0;
+  margin: 0;
   color: var(--login-ink);
   font-family: var(--login-font);
+  background: var(--login-stage);
+  color-scheme: light;
 }
 
+/* Oscuro: superficie elevada, contraste AA, sin panel blanco residual. */
 html[data-theme='dark'] .credix-login {
-  --login-linen: #0b1728;
-  --login-linen-deep: #07101c;
-  --login-ink: #e8eef6;
-  --login-muted: #9eb0c4;
-  --login-navy: #8ec4ea;
-  --login-mark: #3db5ea;
-  --login-field: #14324c;
-  --login-field-border: color-mix(in srgb, var(--login-mark) 38%, #1c3d5c);
-  --login-field-text: #e8eef6;
-  background: var(--login-linen);
-  color: var(--login-ink);
+  --login-stage: linear-gradient(148deg, #061828 0%, #0a3558 46%, #114885 100%);
+  --login-ink: #e6e8ec;
+  --login-muted: #b4bcc8;
+  --login-link: #8cb6e8;
+  --login-navy: #3db5ea;
+  --login-field: transparent;
+  --login-field-line: #3a4452;
+  --login-field-line-focus: #3db5ea;
+  --login-field-text: #e6e8ec;
+  --login-field-icon: #9aa3b2;
+  --login-panel: #1b2028;
+  --login-focus-ring: color-mix(in srgb, #3db5ea 26%, transparent);
+  --login-submit-fg: #0a1f33;
+  --login-panel-shadow: color-mix(in srgb, #000 45%, transparent);
+  color-scheme: dark;
 }
 
 .credix-login.is-boot {
-  grid-template-columns: 1fr;
   place-items: center;
 }
 
-.credix-login-stage,
-.credix-login-panel {
+.credix-login-shell {
   position: relative;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  align-content: stretch;
-  min-height: 0;
+  width: 100%;
   height: 100%;
   overflow: hidden;
-  padding: clamp(16px, 3.4vh, 48px) clamp(24px, 4.6vw, 72px);
-  gap: clamp(12px, 2.2vh, 28px);
-  background: transparent;
+  isolation: isolate;
+  animation: credix-login-rise 0.4s ease-out both;
 }
 
-.credix-login-stage {
-  grid-template-rows: auto 1fr;
+@keyframes credix-login-rise {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.credix-login-ornament {
+/* Esferas detrás del panel y del texto: decoran el azul, no tapan el form. */
+.credix-login-orbs {
   position: absolute;
   inset: 0;
+  z-index: 1;
   pointer-events: none;
   overflow: hidden;
 }
 
-.credix-login-ornament__linen,
-.credix-login-ornament__lattice,
-.credix-login-ornament__frame {
+.credix-login-orb {
   position: absolute;
-  inset: 0;
+  border-radius: 50%;
+  box-shadow:
+    inset -20px -26px 44px color-mix(in srgb, #061f36 40%, transparent),
+    inset 12px 10px 24px color-mix(in srgb, #ffffff 18%, transparent);
+  animation: credix-login-float 11s ease-in-out infinite;
 }
 
-.credix-login-ornament__linen {
-  background-color: var(--login-linen);
-  background-image:
-    repeating-linear-gradient(
-      0deg,
-      transparent 0 3px,
-      color-mix(in srgb, var(--login-navy) 3.4%, transparent) 3px 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0 3px,
-      color-mix(in srgb, var(--login-navy) 2.2%, transparent) 3px 4px
-    ),
-    linear-gradient(180deg, var(--login-linen) 0%, var(--login-linen-deep) 100%);
-}
-
-html[data-theme='dark'] .credix-login-ornament__linen {
-  background-image:
-    radial-gradient(ellipse at 18% 12%, color-mix(in srgb, var(--login-mark) 16%, transparent), transparent 46%),
-    radial-gradient(ellipse at 88% 88%, color-mix(in srgb, #114885 42%, transparent), transparent 52%),
-    repeating-linear-gradient(
-      0deg,
-      transparent 0 3px,
-      color-mix(in srgb, var(--login-mark) 6%, transparent) 3px 4px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0 3px,
-      color-mix(in srgb, #114885 10%, transparent) 3px 4px
-    ),
-    linear-gradient(180deg, #0e1d32 0%, #08111d 100%);
-}
-
-.credix-login-ornament__lattice {
-  opacity: 0.72;
-  background-image:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--login-navy) 14%, transparent) 1px,
-      transparent 1px
-    ),
-    linear-gradient(
-      45deg,
-      color-mix(in srgb, var(--login-mark) 12%, transparent) 1px,
-      transparent 1px
-    );
-  background-size: 28px 28px;
-  mask-image: radial-gradient(ellipse at 38% 42%, #000 8%, transparent 68%);
-}
-
-html[data-theme='dark'] .credix-login-ornament__lattice {
-  opacity: 0.42;
-}
-
-.credix-login-ornament__frame {
-  inset: 22px;
-  background:
-    linear-gradient(var(--login-navy), var(--login-navy)) top left / 42px 1.5px no-repeat,
-    linear-gradient(var(--login-navy), var(--login-navy)) top left / 1.5px 42px no-repeat,
-    linear-gradient(var(--login-navy), var(--login-navy)) top right / 42px 1.5px no-repeat,
-    linear-gradient(var(--login-navy), var(--login-navy)) top right / 1.5px 42px no-repeat,
-    linear-gradient(var(--login-navy), var(--login-navy)) bottom left / 42px 1.5px no-repeat,
-    linear-gradient(var(--login-navy), var(--login-navy)) bottom left / 1.5px 42px no-repeat,
-    linear-gradient(var(--login-navy), var(--login-navy)) bottom right / 42px 1.5px no-repeat,
-    linear-gradient(var(--login-navy), var(--login-navy)) bottom right / 1.5px 42px no-repeat;
-  opacity: 0.38;
-}
-
-html[data-theme='dark'] .credix-login-ornament__frame {
-  opacity: 0.55;
-}
-
-.credix-login-ornament--stage::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 12%;
-  bottom: 12%;
-  width: 4px;
-  background: linear-gradient(
-    180deg,
-    transparent,
-    var(--login-mark) 18%,
-    var(--login-navy) 50%,
-    var(--login-mark) 82%,
-    transparent
+/* Superior — zona azul, apenas roza la costura */
+.credix-login-orb--a {
+  width: min(42vw, 460px);
+  aspect-ratio: 1;
+  left: 18%;
+  top: -24%;
+  background: radial-gradient(
+    circle at 32% 30%,
+    color-mix(in srgb, var(--login-mark) 45%, #fff) 0%,
+    #2e69ae 42%,
+    #114885 74%,
+    #0a3558 100%
   );
 }
 
-.credix-login-ornament--panel .credix-login-ornament__lattice {
-  opacity: 0.18;
-  mask-image: radial-gradient(ellipse at 88% 12%, #000 0%, transparent 52%);
+/* Inferior izquierda */
+.credix-login-orb--b {
+  width: min(40vw, 440px);
+  aspect-ratio: 1;
+  left: -14%;
+  bottom: -28%;
+  background: radial-gradient(circle at 40% 28%, #3db5ea 0%, #2e69ae 40%, #114885 76%, #061f36 100%);
+  animation-delay: -3s;
 }
 
-html[data-theme='dark'] .credix-login-ornament--panel .credix-login-ornament__lattice {
+/* Costura baja: queda bajo el panel (z-index), solo se ve en el azul */
+.credix-login-orb--c {
+  width: min(28vw, 300px);
+  aspect-ratio: 1;
+  left: 30%;
+  top: 58%;
+  background: radial-gradient(circle at 38% 32%, #7ec8f0 0%, #2e69ae 50%, #114885 88%);
+  opacity: 0.9;
+  animation-delay: -5s;
+}
+
+/* Peek inferior-derecha del blanco (guía), muy suave y detrás del form */
+.credix-login-orb--d {
+  width: min(22vw, 240px);
+  aspect-ratio: 1;
+  right: -8%;
+  bottom: -18%;
+  background: radial-gradient(circle at 36% 34%, #5eb8e8 0%, #2e69ae 55%, #114885 100%);
   opacity: 0.28;
+  animation-delay: -7s;
+  z-index: 0;
 }
 
-.credix-login-ornament--panel .credix-login-ornament__frame {
-  opacity: 0.14;
+@keyframes credix-login-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -8px, 0);
+  }
 }
 
-html[data-theme='dark'] .credix-login-ornament--panel .credix-login-ornament__frame {
-  opacity: 0.4;
+/* —— Escenario azul: solo bienvenida (logo va en el formulario) —— */
+.credix-login-stage {
+  position: absolute;
+  z-index: 4;
+  inset: 0 auto 0 0;
+  width: min(48%, 560px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(10px, 1.6vh, 16px);
+  padding: clamp(28px, 6vh, 64px) clamp(20px, 3vw, 40px) clamp(28px, 6vh, 64px)
+    clamp(32px, 5.5vw, 72px);
+  color: #fff;
+  background: transparent;
 }
 
-.credix-login-stage__greet,
-.credix-login-stage__body,
-.credix-login-form__brand,
-.credix-login-form__head,
-.credix-login-form__main,
-.credix-login-form__foot {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-}
-
-/* Marca compacta del panel: visible solo en ≤960px (ver @media abajo). */
-.credix-login-form__brand {
-  display: none;
-}
-
-.credix-login-stage__greet {
-  display: grid;
-  gap: 6px;
+.credix-login-stage__welcome {
+  margin: 0;
+  font-family: var(--login-display);
+  font-size: clamp(2rem, 3.6vw, 2.85rem);
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.05;
+  text-shadow: 0 2px 18px color-mix(in srgb, #041828 30%, transparent);
 }
 
 .credix-login-stage__hello {
   margin: 0;
-  font-size: clamp(1.05rem, 1.6vw, 1.4rem);
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  color: var(--login-navy);
-}
-
-.credix-login-stage__line {
-  margin: 0;
-  max-width: 28em;
-  font-size: 0.95rem;
+  font-size: clamp(0.92rem, 1.5vh, 1.05rem);
   line-height: 1.45;
-  color: var(--login-muted);
-}
-
-.credix-login-form__context {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--login-muted);
-}
-
-.credix-login-stage__body {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  min-height: 0;
-  gap: clamp(10px, 1.8vh, 22px);
-}
-
-.credix-login-seal {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: min(560px, 88%, 64dvh);
-  aspect-ratio: 1;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  overflow: hidden;
-}
-
-.credix-login-seal__ring {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 50% 50%, var(--login-seal-face) 0 68%, transparent 69%),
-    repeating-conic-gradient(
-      from 0deg,
-      color-mix(in srgb, #114885 16%, transparent) 0 3deg,
-      transparent 3deg 9deg
-    );
-  box-shadow:
-    inset 0 0 0 2px #114885,
-    inset 0 0 0 6px var(--login-seal-face),
-    inset 0 0 0 7px color-mix(in srgb, var(--login-mark) 70%, white),
-    0 10px 28px color-mix(in srgb, #114885 18%, transparent);
+  color: color-mix(in srgb, #ffffff 92%, transparent);
+  max-width: 28ch;
+  font-weight: 500;
 }
 
 /*
-  Cara crema ≈ 68% del diámetro. Lockup 250×91: máx. inscrito ≈ 64% del sello.
-  Llenamos al límite de la cara para que la marca domine el sello.
-  Especificidad alta: .credix-brand-logo { width:100% } no debe ganar.
-*/
-.credix-login-seal > .credix-login-seal__logo.credix-brand-logo,
-.credix-login-seal .credix-login-seal__logo {
-  position: relative;
-  z-index: 1;
-  box-sizing: border-box;
-  width: 64% !important;
-  max-width: 64% !important;
-  max-height: none;
-  margin: 0;
-  padding: 0;
-  text-align: center;
-  overflow: visible;
-}
-
-.credix-login-seal .credix-login-seal__logo .credix-brand-logo__plate {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
-  padding: 0 !important;
-  background: transparent !important;
-  border: 0;
-  box-shadow: none !important;
-  border-radius: 0;
-}
-
-.credix-login-seal .credix-login-seal__logo .credix-brand-logo__img,
-:root[data-theme='dark'] .credix-login-seal .credix-login-seal__logo .credix-brand-logo__img {
-  display: block;
-  width: 100% !important;
-  max-width: 100% !important;
-  height: auto !important;
-  max-height: none;
-  object-fit: contain;
-  object-position: center;
-  filter: none;
-}
-
-.credix-login-stage__eyebrow {
-  margin: 0;
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--login-navy);
-}
-
-.credix-login-quote {
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-
-.credix-login-quote p {
-  margin: 0 auto;
-  max-width: 18em;
-  font-size: clamp(1.15rem, 2.1vw, 2.05rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.28;
-  color: var(--login-ink);
-}
-
-.credix-login-quote cite {
-  display: block;
-  margin-top: 12px;
-  font-size: 11px;
-  font-style: normal;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--login-navy);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .credix-login-quote {
-    animation: credixLoginIn 0.45s ease both;
-  }
-}
-
-@keyframes credixLoginIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.credix-login-form__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.credix-theme-segmented.ant-segmented {
-  background: color-mix(in srgb, var(--login-navy) 8%, var(--login-field));
-}
-
-html[data-theme='dark'] .credix-theme-segmented.ant-segmented {
-  background: #10263c;
-  color: var(--login-ink);
-}
-
-.credix-theme-segmented .ant-segmented-item-label {
-  min-height: 32px;
-  padding-inline: 12px;
-}
-
-.credix-login-form__main {
-  position: relative;
+ * Panel blanco ENCIMA de las esferas.
+ * Borde izquierdo orgánico = división de la guía (sin línea recta).
+ */
+.credix-login-panel {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(56%, 760px);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  width: 100%;
-  max-width: none;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  background: var(--login-panel);
+  border-top-left-radius: min(38vw, 360px);
+  border-bottom-left-radius: min(26vw, 240px);
+  box-shadow: -24px 0 56px var(--login-panel-shadow);
+  overflow: hidden;
+  color-scheme: inherit;
+}
+
+.credix-login-panel__top {
+  position: absolute;
+  top: clamp(12px, 2vh, 20px);
+  right: clamp(14px, 2.5vw, 24px);
+  z-index: 6;
+}
+
+.credix-login-panel__body {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+  gap: clamp(18px, 3vh, 28px);
+  width: min(100%, 28rem);
+  max-width: 100%;
+  margin-inline: auto;
+  box-sizing: border-box;
+  padding: clamp(36px, 6vh, 72px) clamp(28px, 4vw, 48px) clamp(28px, 5vh, 52px);
 }
 
 .credix-login-form__header {
-  position: relative;
-  margin-bottom: clamp(12px, 2.2vh, 28px);
-}
-
-.credix-login-form__title {
-  margin: 0 0 8px;
-  font-size: clamp(1.4rem, 2vw, 1.85rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
-  color: var(--login-ink);
-}
-
-.credix-login-form__hint {
-  display: block;
-  max-width: 42em;
-  min-height: 2.6em;
-  color: var(--login-muted);
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.credix-login-form__alerts {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 3;
-  display: grid;
-  gap: 8px;
-  pointer-events: none;
-}
-
-.credix-login-form__header:has(.credix-login-form__alert) .credix-login-form__hint {
-  visibility: hidden;
-}
-
-.credix-login-form__alert.ant-alert {
-  pointer-events: auto;
-  padding: 8px 12px !important;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  border-radius: 10px;
-  box-shadow: 0 8px 24px color-mix(in srgb, var(--login-ink) 10%, transparent);
+  gap: 14px;
+  text-align: center;
 }
 
-.credix-login-form__alert .ant-alert-description {
-  display: none;
+.credix-login-form__brand {
+  width: min(240px, 72%);
+  margin-inline: auto;
 }
 
-.credix-login-form__fields .ant-form-item {
-  margin-bottom: clamp(10px, 1.6vh, 16px);
+.credix-login-form__logo.credix-brand-logo {
+  width: 100%;
+  text-align: center;
 }
 
-.credix-login-form__fields .ant-form-item-label {
-  padding-bottom: 4px !important;
-}
-
-.credix-login-form__fields .ant-form-item-label > label {
-  height: auto;
-  font-family: var(--login-font);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--login-ink);
-}
-
-.credix-login-form__fields .ant-form-item-extra {
-  margin-top: 4px;
-  font-size: 12px;
-  color: var(--login-muted);
-}
-
-.credix-login-form__fields .ant-input-affix-wrapper,
-.credix-login-form__fields .ant-select-single .ant-select-selector {
-  height: 48px !important;
-  min-height: 48px !important;
-  padding-inline: 14px !important;
-  padding-block: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  border-radius: 10px !important;
-  background: var(--login-field) !important;
-  border-color: var(--login-field-border) !important;
-  color: var(--login-field-text) !important;
+.credix-login-form__logo .credix-brand-logo__plate {
+  display: block;
+  margin: 0;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
   box-shadow: none !important;
 }
 
-.credix-login-form__fields .ant-input-affix-wrapper input.ant-input,
-.credix-login-form__fields .ant-select-selection-item,
-.credix-login-form__fields .ant-select-selection-placeholder {
-  font-family: var(--login-font);
-  font-size: 16px;
-  line-height: 22px;
-  color: var(--login-field-text) !important;
+.credix-login-form__logo .credix-brand-logo__img {
+  width: 100%;
+  height: auto;
+  display: block;
   background: transparent !important;
 }
 
-.credix-login-form__fields .ant-input-affix-wrapper input.ant-input::placeholder {
-  color: color-mix(in srgb, var(--login-muted) 88%, transparent);
+/* En oscuro el PNG de marca (cian/blanco) se lee bien sobre el panel. */
+html[data-theme='dark'] .credix-login-form__logo .credix-brand-logo__img {
+  filter: drop-shadow(0 2px 8px color-mix(in srgb, #000 35%, transparent));
+}
+
+.credix-login-form__title {
+  margin: 0;
+  font-family: var(--login-display);
+  font-size: clamp(1.85rem, 2.8vw, 2.35rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  color: var(--login-ink);
+  line-height: 1.1;
+}
+
+.credix-login-form__alerts {
+  display: grid;
+  gap: 8px;
+}
+
+.credix-login-form__alert {
+  border-radius: 12px;
+}
+
+.credix-login-form__fields {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--login-field-gap);
+}
+
+.credix-login-form__fields .ant-form-item {
+  margin-bottom: 0;
+}
+
+.credix-login-form__fields .ant-form-item-explain {
+  min-height: 0;
+  margin-top: 4px;
+  font-size: 0.75rem;
+}
+
+/* Campos: fondo del panel + línea inferior azul (claro y oscuro). */
+.credix-login-form__fields .ant-input-affix-wrapper,
+.credix-login-form__fields .ant-input-password,
+.credix-login-form__fields .ant-select-selector {
+  background: var(--login-field) !important;
+  border: 0 !important;
+  border-bottom: 1.5px solid var(--login-field-line) !important;
+  border-radius: 0 !important;
+  min-height: 48px;
+  padding-inline: 2px 4px !important;
+  padding-block: 8px !important;
+  box-shadow: none !important;
+  color: var(--login-field-text) !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.credix-login-form__fields .ant-select .ant-select-selector {
+  align-items: center;
 }
 
 .credix-login-form__fields .ant-input-prefix,
-.credix-login-form__fields .ant-select-prefix,
-.credix-login-form__fields .ant-input-suffix {
-  color: var(--login-muted);
-  margin-inline-end: 8px;
+.credix-login-form__fields .ant-select-prefix {
+  color: var(--login-field-icon) !important;
+  margin-inline-end: 12px;
 }
 
-.credix-login-form__fields .ant-input-affix-wrapper-focused,
-.credix-login-form__fields .ant-input:focus,
+.credix-login-form__fields .ant-input,
+.credix-login-form__fields .ant-input-affix-wrapper input,
+.credix-login-form__fields .ant-select-selection-item,
+.credix-login-form__fields .ant-select-selection-placeholder {
+  background: transparent !important;
+  color: var(--login-field-text) !important;
+  font-size: 0.98rem;
+}
+
+.credix-login-form__fields .ant-input-password-icon,
+.credix-login-form__fields .ant-select-arrow {
+  color: var(--login-field-icon) !important;
+}
+
+.credix-login-form__fields .ant-input-affix-wrapper:focus-within,
 .credix-login-form__fields .ant-select-focused .ant-select-selector {
-  border-color: var(--login-mark) !important;
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--login-mark) 22%, transparent) !important;
+  border-bottom-color: var(--login-field-line-focus) !important;
+  box-shadow: 0 3px 0 0 var(--login-focus-ring) !important;
 }
 
 .credix-login-form__remember {
-  margin-bottom: 16px !important;
-  color: var(--login-ink);
+  margin-bottom: 0 !important;
 }
 
 .credix-login-form__remember .ant-checkbox-label {
-  color: var(--login-ink);
+  color: var(--login-ink) !important;
+  font-size: 0.88rem;
 }
 
-.credix-login-form__fields .ant-select-disabled .ant-select-selector {
-  background: color-mix(in srgb, var(--login-field) 82%, var(--login-linen)) !important;
-  color: var(--login-muted) !important;
+html[data-theme='dark'] .credix-login-form__remember .ant-checkbox-checked .ant-checkbox-inner {
+  background: #3db5ea !important;
+  border-color: #3db5ea !important;
 }
 
-.credix-login-form__submit.ant-btn {
-  height: 48px;
-  font-family: var(--login-font);
-  font-weight: 600;
-  font-size: 15px;
-  border-radius: 10px;
-  background: #114885;
-  border-color: #114885;
+.credix-login-form__submit {
+  height: 52px !important;
+  margin-top: 2px;
+  border-radius: 14px !important;
+  font-weight: 700 !important;
+  font-size: 1rem !important;
+  background: var(--login-navy) !important;
+  border-color: var(--login-navy) !important;
+  color: var(--login-submit-fg) !important;
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--login-brand) 24%, transparent);
 }
 
-.credix-login-form__submit.ant-btn:not(:disabled):hover {
-  background: #0e3d70;
-  border-color: #0e3d70;
+.credix-login-form__submit:hover:not(:disabled) {
+  filter: brightness(1.06);
 }
 
-html[data-theme='dark'] .credix-login-form__submit.ant-btn {
-  background: #3db5ea;
-  border-color: #3db5ea;
-  color: #072033;
-}
-
-html[data-theme='dark'] .credix-login-form__submit.ant-btn:not(:disabled):hover {
-  background: #64c6f0;
-  border-color: #64c6f0;
-  color: #072033;
+html[data-theme='dark'] .credix-login-form__submit {
+  box-shadow: 0 12px 28px color-mix(in srgb, #3db5ea 22%, transparent);
 }
 
 .credix-login-form__foot {
-  z-index: 2;
-  flex-shrink: 0;
-  padding-top: 4px;
-  background: color-mix(in srgb, var(--login-linen) 88%, transparent);
-}
-
-.credix-login-form__legal {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
+  font-size: 0.82rem;
   color: var(--login-muted);
+  text-align: center;
 }
 
-.credix-login-form__legal a {
-  color: var(--login-navy);
-  font-weight: 600;
+.credix-login-form__foot a {
+  color: var(--login-link);
+  font-weight: 650;
+  text-decoration: none;
 }
 
-html[data-theme='dark'] .credix-login-form__legal a {
-  color: var(--login-mark);
+/* Toggle Claro/Oscuro legible sobre panel oscuro */
+html[data-theme='dark'] .credix-login-panel__top .credix-theme-segmented.ant-segmented {
+  background: #232a34;
+  color: #e6e8ec;
 }
 
-@media (max-width: 960px) {
-  /*
-    Un solo bloque: sin stage/sello estático. Logo plano + tema + formulario.
-    ≥961px conserva las dos columnas con sello.
-  */
-  .credix-login {
-    grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 1fr);
-    height: 100dvh;
-    height: 100svh;
-    max-height: 100dvh;
-    max-height: 100svh;
-    min-height: 100dvh;
-    min-height: 100svh;
-    overflow: hidden;
+html[data-theme='dark'] .credix-login-panel__top .ant-segmented-item-selected {
+  background: #2c3440 !important;
+  color: #e6e8ec !important;
+}
+
+@media (max-height: 740px) {
+  .credix-login-form__foot {
+    display: none;
   }
 
-  .credix-login-stage {
-    display: none !important;
+  .credix-login-stage__hello {
+    display: none;
+  }
+
+  .credix-login-panel__body {
+    gap: 12px;
+    padding-block: 28px 20px;
+  }
+
+  .credix-login {
+    --login-field-gap: 14px;
+  }
+
+  .credix-login-form__fields .ant-input-affix-wrapper,
+  .credix-login-form__fields .ant-select-selector {
+    min-height: 44px;
+  }
+
+  .credix-login-form__submit {
+    height: 46px !important;
   }
 
   .credix-login-form__brand {
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 900px) {
+  .credix-login-shell {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    text-align: center;
-    padding-top: 4px;
   }
 
-  .credix-login-form__logo.credix-brand-logo,
-  .credix-login-form__logo {
-    width: min(220px, 72vw);
-    max-width: 100%;
-    margin: 0 auto;
+  .credix-login-orbs {
+    z-index: 0;
   }
 
-  .credix-login-form__logo .credix-brand-logo__img {
-    width: 100% !important;
-    height: auto !important;
+  .credix-login-orb--c,
+  .credix-login-orb--d {
+    display: none;
   }
 
-  .credix-login-form__greet {
-    margin: 0;
-    font-size: 1.05rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--login-navy);
-  }
-
-  /* Dropdown de oficina anclado al campo (sin teclado de búsqueda en compacto). */
-  .credix-login-form__fields .ant-select-dropdown {
-    position: absolute !important;
-  }
-
-  .credix-login-ornament__frame {
-    inset: 8px;
-    background:
-      linear-gradient(var(--login-navy), var(--login-navy)) top left / 14px 1.5px no-repeat,
-      linear-gradient(var(--login-navy), var(--login-navy)) top left / 1.5px 14px no-repeat,
-      linear-gradient(var(--login-navy), var(--login-navy)) top right / 14px 1.5px no-repeat,
-      linear-gradient(var(--login-navy), var(--login-navy)) top right / 1.5px 14px no-repeat,
-      linear-gradient(var(--login-navy), var(--login-navy)) bottom left / 14px 1.5px no-repeat,
-      linear-gradient(var(--login-navy), var(--login-navy)) bottom left / 1.5px 14px no-repeat,
-      linear-gradient(var(--login-navy), var(--login-navy)) bottom right / 14px 1.5px no-repeat,
-      linear-gradient(var(--login-navy), var(--login-navy)) bottom right / 1.5px 14px no-repeat;
-  }
-
-  .credix-login-panel {
-    min-height: 0;
-    height: 100%;
-    overflow: hidden;
-    display: grid;
-    grid-template-rows: auto auto minmax(0, 1fr) auto;
-    padding: clamp(20px, 3.2vh, 36px) clamp(20px, 5vw, 40px);
-    gap: clamp(10px, 1.6vh, 16px);
-  }
-
-  .credix-login-form__main {
-    overflow-x: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: contain;
-    justify-content: flex-start;
-    min-height: 0;
-    max-width: none;
-  }
-
-  .credix-login-form__fields .ant-form-item {
-    scroll-margin-block: 12px 28px;
-  }
-
-  .credix-login-form__header {
-    margin-bottom: 12px;
-  }
-
-  .credix-login-form__head {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-
-  .credix-theme-segmented.ant-segmented {
+  /* Móvil: franja azul corta; marca vive en el formulario. */
+  .credix-login-stage {
+    position: relative;
+    inset: auto;
     width: 100%;
+    min-height: 18svh;
+    max-height: 22svh;
+    padding: 20px 20px 14px;
+    gap: 6px;
+    z-index: 2;
+    justify-content: flex-end;
   }
 
-  .credix-theme-segmented .ant-segmented-item {
+  .credix-login-stage__welcome {
+    font-size: 1.55rem;
+  }
+
+  .credix-login-stage__hello {
+    font-size: 0.85rem;
+    max-width: 36ch;
+  }
+
+  .credix-login-panel {
+    position: relative;
+    inset: auto;
+    width: 100%;
     flex: 1;
-    justify-content: center;
+    min-height: 0;
+    border-radius: 28px 28px 0 0;
+    z-index: 3;
+  }
+
+  .credix-login-panel__body {
+    padding: 18px 22px 28px;
+    gap: 16px;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  .credix-login-form__brand {
+    max-width: 200px;
+  }
+
+  .credix-login-panel__top {
+    position: static;
+    align-self: flex-end;
+    margin: 10px 14px 0 auto;
   }
 }
 
-@media (max-width: 560px) {
-  .credix-login-ornament__lattice,
-  .credix-login-ornament__frame,
-  .credix-login-ornament--stage::after {
-    display: none;
-  }
-
-  .credix-login-panel {
-    padding: 16px 18px 14px;
-    gap: 10px;
-  }
-
-  .credix-login-form__logo.credix-brand-logo,
-  .credix-login-form__logo {
-    width: min(188px, 64vw);
-  }
-
-  .credix-login-form__context {
-    text-align: center;
-  }
-}
-
-@media (max-height: 720px) and (min-width: 961px) {
-  .credix-login-seal {
-    width: min(420px, 52dvh);
-  }
-
-  .credix-login-quote p {
-    font-size: 1.15rem;
-  }
-}
-
-@media (max-height: 640px) and (min-width: 961px) {
-  .credix-login-stage__line,
-  .credix-login-form__hint {
-    display: none;
-  }
-
-  .credix-login-seal {
-    width: min(320px, 44dvh);
-  }
-}
-
-/* Landscape estrecho: marca más chica para priorizar el formulario. */
-@media (max-width: 960px) and (max-height: 480px) and (orientation: landscape) {
-  .credix-login-form__greet {
-    display: none;
-  }
-
-  .credix-login-form__logo.credix-brand-logo,
-  .credix-login-form__logo {
-    width: min(140px, 36vw);
-  }
-
-  .credix-login-panel {
-    padding-block: 10px;
-    gap: 8px;
+@media (prefers-reduced-motion: reduce) {
+  .credix-login-shell,
+  .credix-login-orb,
+  .credix-login-form__submit {
+    animation: none !important;
+    transition: none !important;
   }
 }

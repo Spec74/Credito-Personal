@@ -58,11 +58,14 @@ export function EntradaSalidaTab({
 
   const tipoPagoOptions = useMemo(
     () =>
-      buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral }).map((t) => ({
+      buildTipoPagoOptions(tiposPagoQuery.data ?? [], {
+        esCentral,
+        oficinaId: ctx.oficinaId,
+      }).map((t) => ({
         value: t.value,
         label: t.label,
       })),
-    [tiposPagoQuery.data, esCentral],
+    [tiposPagoQuery.data, esCentral, ctx.oficinaId],
   )
 
   const tiposCaja = (tiposQuery.data ?? []).filter((t) => t.indCajaDiario)
