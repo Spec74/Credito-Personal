@@ -490,12 +490,24 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         var cajasPendientes = await connection.ExecuteScalarAsync<decimal>(
             new CommandDefinition(
                 """
-                SELECT ISNULL(SUM(cd.SaldoFinal), 0)
-                FROM CREDITO.CajaDiario AS cd
-                INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
-                WHERE c.OficinaId = @OficinaId
-                  AND cd.IndCierre = CAST(0 AS bit)
-                  AND cd.TransBoveda = CAST(0 AS bit);
+                SELECT CAST(ROUND(
+                    ISNULL((
+                        SELECT SUM(cd.SaldoFinal)
+                        FROM CREDITO.CajaDiario AS cd
+                        INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                        WHERE c.OficinaId = @OficinaId
+                          AND cd.IndCierre = CAST(0 AS bit)
+                          AND cd.TransBoveda = CAST(0 AS bit)
+                    ), 0)
+                    + ISNULL((
+                        SELECT SUM(ccd.SaldoFinal)
+                        FROM CREDITO.CajaChicaDiario AS ccd
+                        INNER JOIN CREDITO.Caja AS c ON c.CajaId = ccd.Id
+                        WHERE c.OficinaId = @OficinaId
+                          AND ccd.IndCierre = CAST(0 AS bit)
+                          AND ccd.TransBoveda = CAST(0 AS bit)
+                    ), 0)
+                , 2) AS decimal(16, 2));
                 """,
                 new { OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
@@ -527,6 +539,17 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                         WHERE c.OficinaId = @OficinaId
                           AND cd.TransBoveda = CAST(0 AS bit)
                           AND cd.SaldoInicial <> 0
+
+                        UNION ALL
+
+                        /* Caja chica pendiente: se trata como efectivo (sin desglose tipado). */
+                        SELECT CAST(1 AS smallint), ccd.SaldoFinal
+                        FROM CREDITO.CajaChicaDiario AS ccd
+                        INNER JOIN CREDITO.Caja AS c ON c.CajaId = ccd.Id
+                        WHERE c.OficinaId = @OficinaId
+                          AND ccd.IndCierre = CAST(0 AS bit)
+                          AND ccd.TransBoveda = CAST(0 AS bit)
+                          AND ccd.SaldoFinal <> 0
                     )
                     SELECT
                         p.TipoPagoId,

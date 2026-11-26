@@ -10,6 +10,27 @@ internal static class BovedaCuadreSql
     /// <summary>Cuadre al céntimo: cualquier Δ redondeado a 2 decimales ≠ 0 es descuadre.</summary>
     internal const decimal Tolerancia = 0m;
 
+    /// <summary>Efectivo (TipoPagoId=1) disponible en una bóveda (SI cuenta/cabecera + neto mov).</summary>
+    internal const string EfectivoDisponible = """
+        DECLARE @HayCuentas bit = CASE
+            WHEN EXISTS (SELECT 1 FROM CREDITO.BovedaCuenta WHERE BovedaId = @BovedaId)
+            THEN 1 ELSE 0 END;
+        DECLARE @SiMedio decimal(16, 2) = ISNULL((
+            SELECT SaldoInicial
+            FROM CREDITO.BovedaCuenta
+            WHERE BovedaId = @BovedaId AND TipoPagoId = 1), 0);
+        IF @HayCuentas = 0
+            SET @SiMedio = ISNULL((
+                SELECT SaldoInicial FROM CREDITO.Boveda WHERE BovedaId = @BovedaId), 0);
+        DECLARE @Neto decimal(16, 2) = ISNULL((
+            SELECT SUM(IIF(IndEntrada = 1, Importe, -Importe))
+            FROM CREDITO.BovedaMov
+            WHERE BovedaId = @BovedaId
+              AND Estado = 1
+              AND TipoPagoId = 1), 0);
+        SELECT CAST(ROUND(@SiMedio + @Neto, 2) AS decimal(16, 2));
+        """;
+
     internal const string SumaMedios = """
         SELECT CAST(ROUND(
             CASE

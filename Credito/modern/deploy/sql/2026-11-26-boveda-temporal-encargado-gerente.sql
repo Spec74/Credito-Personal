@@ -25,6 +25,27 @@ BEGIN
 END
 GO
 
+-- Una sola temporal abierta por sede (evita fondeo ambiguo).
+IF EXISTS (
+    SELECT OficinaId
+    FROM CREDITO.Boveda
+    WHERE IndTemporal = CAST(1 AS bit) AND IndCierre = CAST(0 AS bit)
+    GROUP BY OficinaId
+    HAVING COUNT(*) > 1)
+BEGIN
+    RAISERROR(N'Hay más de una bóveda temporal abierta en alguna oficina. Cierre duplicados antes de crear UX_Boveda_TemporalAbierta_Oficina.', 16, 1);
+END
+ELSE IF NOT EXISTS (
+    SELECT 1 FROM sys.indexes
+    WHERE name = N'UX_Boveda_TemporalAbierta_Oficina'
+      AND object_id = OBJECT_ID(N'CREDITO.Boveda'))
+BEGIN
+    CREATE UNIQUE NONCLUSTERED INDEX UX_Boveda_TemporalAbierta_Oficina
+        ON CREDITO.Boveda (OficinaId)
+        WHERE IndTemporal = CAST(1 AS bit) AND IndCierre = CAST(0 AS bit);
+END
+GO
+
 CREATE OR ALTER PROCEDURE [CREDITO].[usp_CerrarBovedaTemporal]
     @OficinaId INT,
     @UsuarioRegId INT

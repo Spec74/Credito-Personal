@@ -8,15 +8,19 @@ namespace Credito.Modern.Infrastructure.CreditoPlanes;
 /// no parte el dinero entre principal y temporal.
 /// </para>
 /// <para>
-/// <b>Bóveda UI / ops de sede:</b> la principal abierta (IndTemporal=0 primero).
+/// <b>Fondeo a cajas (asignar / TRS / analista / chica):</b> misma preferencia que el
+/// retorno — temporal abierta si existe; si no, principal. Evita partir el ciclo.
+/// </para>
+/// <para>
+/// <b>Bóveda UI / I-E / bancos:</b> siempre la principal abierta (IndTemporal=0).
 /// Financiar temporal es vía <c>asignar-boveda-temporal</c>.
 /// </para>
 /// </summary>
 internal static class BovedaOperativaSql
 {
     /// <summary>
-    /// Destino de TRE al devolver dinero de caja(s): temporal si existe, si no principal.
-    /// Exige IndCierre=0.
+    /// Destino de TRE al devolver dinero de caja(s) y fuente de fondeo a cajas:
+    /// temporal si existe, si no principal. Exige IndCierre=0.
     /// </summary>
     internal const string SelectIdDestinoRetornoCajas = """
         SELECT TOP 1 BovedaId
@@ -24,6 +28,28 @@ internal static class BovedaOperativaSql
         WHERE OficinaId = @OficinaId
           AND IndCierre = CAST(0 AS bit)
         ORDER BY CASE WHEN IndTemporal = CAST(1 AS bit) THEN 0 ELSE 1 END, BovedaId;
+        """;
+
+    /// <summary>Alias semántico: misma regla que el retorno (ciclo temporal cerrado).</summary>
+    internal const string SelectIdFuenteFondeoCajas = SelectIdDestinoRetornoCajas;
+
+    /// <summary>Sin UPDLOCK (lecturas de monto / UI).</summary>
+    internal const string SelectIdFuenteFondeoCajasRead = """
+        SELECT TOP 1 BovedaId
+        FROM CREDITO.Boveda
+        WHERE OficinaId = @OficinaId
+          AND IndCierre = CAST(0 AS bit)
+        ORDER BY CASE WHEN IndTemporal = CAST(1 AS bit) THEN 0 ELSE 1 END, BovedaId;
+        """;
+
+    /// <summary>True si la fuente de fondeo es temporal.</summary>
+    internal const string ExisteTemporalAbierta = """
+        SELECT CAST(CASE WHEN EXISTS (
+            SELECT 1 FROM CREDITO.Boveda
+            WHERE OficinaId = @OficinaId
+              AND IndCierre = CAST(0 AS bit)
+              AND IndTemporal = CAST(1 AS bit)
+        ) THEN 1 ELSE 0 END AS bit);
         """;
 
     /// <summary>

@@ -198,8 +198,8 @@ export function AsignarCajaForm({
             montoBoveda == null
               ? undefined
               : esBovedaTemporal
-                ? 'Hay bóveda temporal abierta: el monto de apertura se descuenta de la temporal (ciclo de turno).'
-                : 'No hay temporal abierta: el monto sale de la bóveda principal.'
+                ? 'Hay bóveda temporal abierta: el monto (efectivo disponible) sale de la temporal. También aplica a transferencias bóveda→caja.'
+                : 'No hay temporal abierta: el monto (efectivo disponible) sale de la bóveda principal.'
           }
         />
       )}

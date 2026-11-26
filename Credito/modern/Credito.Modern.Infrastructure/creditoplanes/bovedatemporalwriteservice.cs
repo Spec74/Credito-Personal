@@ -342,8 +342,8 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
         bool otorgoEncargado,
         CancellationToken cancellationToken)
     {
-        // Tabla desplegada por 2026-11-26-boveda-temporal-encargado-gerente.sql.
-        // Si aún no existe, no bloquea la operación (USP tampoco revoca sin tracking).
+        // Obligatoria si se otorga ENCARGADO nuevo: sin tracking el cierre no puede revocar
+        // al ayudante y deja privilegio huérfano. Script: 2026-11-26-boveda-temporal-encargado-gerente.sql
         var existeTabla = await connection.ExecuteScalarAsync<int>(
             new CommandDefinition(
                 """
@@ -355,6 +355,13 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
 
         if (existeTabla == 0)
         {
+            if (otorgoEncargado)
+            {
+                throw new InvalidOperationException(
+                    "Falta aplicar deploy/sql/2026-11-26-boveda-temporal-encargado-gerente.sql "
+                    + "(tabla CREDITO.BovedaTemporalResponsable) antes de asignar temporal a un usuario nuevo.");
+            }
+
             return;
         }
 

@@ -83,19 +83,10 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
                 return ("No tiene asignado un Cajero.", null);
             }
 
-            // Fuente = temporal abierta si existe; si no, principal.
-            // Ya no se amarra al rol ENCARGADO (gerente permanente de sede).
+            // Fuente = temporal abierta si existe; si no, principal (mismo ciclo que retorno TRE).
             var usarTemporal = await connection.ExecuteScalarAsync<bool>(
                 new CommandDefinition(
-                    """
-                    SELECT CAST(CASE WHEN EXISTS (
-                        SELECT 1
-                        FROM CREDITO.Boveda
-                        WHERE OficinaId = @OficinaId
-                          AND IndCierre = CAST(0 AS bit)
-                          AND IndTemporal = CAST(1 AS bit)
-                    ) THEN 1 ELSE 0 END AS bit);
-                    """,
+                    BovedaOperativaSql.ExisteTemporalAbierta,
                     new { OficinaId = oficinaId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
@@ -103,45 +94,30 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
             var boveda = await connection.QueryFirstOrDefaultAsync<BovedaSaldoRow>(
                 new CommandDefinition(
                     """
-                    SELECT BovedaId, SaldoInicial, SaldoFinal
+                    SELECT TOP 1 BovedaId, SaldoInicial, SaldoFinal
                     FROM CREDITO.Boveda WITH (UPDLOCK, HOLDLOCK)
                     WHERE OficinaId = @OficinaId
                       AND IndCierre = CAST(0 AS bit)
-                      AND IndTemporal = @IndTemporal;
+                    ORDER BY CASE WHEN IndTemporal = CAST(1 AS bit) THEN 0 ELSE 1 END, BovedaId;
                     """,
-                    new { OficinaId = oficinaId, IndTemporal = usarTemporal },
+                    new { OficinaId = oficinaId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
             if (boveda is null)
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                return ("No existe bóveda abierta para la oficina.", null);
+                return (
+                    usarTemporal
+                        ? "No existe bóveda temporal abierta para fondear la caja."
+                        : "No existe bóveda principal abierta para la oficina.",
+                    null);
             }
 
-            // SI de caja siempre sale como efectivo (TipoPagoId=1). Validar ese medio, no SaldoFinal total
-            // (el total incluye Yape/Plin/bancos y permitiría overdraw de efectivo).
+            // SI de caja siempre sale como efectivo (TipoPagoId=1). Validar ese medio, no SaldoFinal total.
             var efectivoDisponible = await connection.ExecuteScalarAsync<decimal>(
                 new CommandDefinition(
-                    """
-                    DECLARE @HayCuentas bit = CASE
-                        WHEN EXISTS (SELECT 1 FROM CREDITO.BovedaCuenta WHERE BovedaId = @BovedaId)
-                        THEN 1 ELSE 0 END;
-                    DECLARE @SiMedio decimal(16, 2) = ISNULL((
-                        SELECT SaldoInicial
-                        FROM CREDITO.BovedaCuenta
-                        WHERE BovedaId = @BovedaId AND TipoPagoId = 1), 0);
-                    IF @HayCuentas = 0
-                        SET @SiMedio = ISNULL((
-                            SELECT SaldoInicial FROM CREDITO.Boveda WHERE BovedaId = @BovedaId), 0);
-                    DECLARE @Neto decimal(16, 2) = ISNULL((
-                        SELECT SUM(IIF(IndEntrada = 1, Importe, -Importe))
-                        FROM CREDITO.BovedaMov
-                        WHERE BovedaId = @BovedaId
-                          AND Estado = 1
-                          AND TipoPagoId = 1), 0);
-                    SELECT CAST(ROUND(@SiMedio + @Neto, 2) AS decimal(16, 2));
-                    """,
+                    BovedaCuadreSql.EfectivoDisponible,
                     new { BovedaId = boveda.BovedaId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
@@ -149,8 +125,9 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
             if (saldoInicial > efectivoDisponible)
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                var cual = usarTemporal ? "bóveda temporal" : "bóveda principal";
                 return (
-                    $"Saldo insuficiente de efectivo en bóveda. Disponible S/ {efectivoDisponible:N2}; solicitado S/ {saldoInicial:N2}.",
+                    $"Saldo insuficiente de efectivo en {cual}. Disponible S/ {efectivoDisponible:N2}; solicitado S/ {saldoInicial:N2}.",
                     null);
             }
 

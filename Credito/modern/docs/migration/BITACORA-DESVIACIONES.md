@@ -6,12 +6,13 @@ una respuesta documentada en lugar de una discusión.
 
 ### 2026-11-26 — ENCARGADO gerente permanente ≠ responsable temporal
 
-**Qué hay:** `asignar-caja` / `monto-boveda-asignacion` debitan **temporal si
-está abierta**, si no la **principal** (ya no se amarran al rol ENCARGADO).
-Tabla `CREDITO.BovedaTemporalResponsable` + `usp_CerrarBovedaTemporal` solo
-revoca ENCARGADO si `OtorgoEncargado=1` (otorgado al crear esa temporal).
-Dashboard bóveda: capas Principal / Temporal / En cajas + panel «Progreso en
-cajas por medio» (sin ocultar cobros del consolidado). Script
+**Qué hay:** `asignar-caja`, `transferir-boveda-caja` / analista / chica y
+`monto-boveda-asignacion` usan la **misma fuente**: temporal si abierta, si no
+principal (`BovedaOperativaSql`). Monto = **efectivo** disponible (no
+`SaldoFinal` total). Tabla `CREDITO.BovedaTemporalResponsable` + índice único
+temporal abierta; cierre solo revoca ENCARGADO si `OtorgoEncargado=1`. Sin
+tabla + otorgo nuevo → falla el alta (no deja privilegio huérfano). Dashboard:
+capas + progreso (diario + chica). Script
 `deploy/sql/2026-11-26-boveda-temporal-encargado-gerente.sql`.
 
 **Qué no hay:** rol separado `RESPONSABLE_TEMPORAL`; el consolidado de medios

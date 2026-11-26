@@ -110,7 +110,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        var bovedaId = await GetBovedaAbiertaIdAsync(connection, null, oficinaId, cancellationToken)
+        var bovedaId = await GetBovedaFuenteFondeoCajasAsync(connection, null, oficinaId, cancellationToken)
             .ConfigureAwait(false);
         if (bovedaId is null)
         {
@@ -209,7 +209,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        var bovedaId = await GetBovedaAbiertaIdAsync(connection, null, oficinaId, cancellationToken)
+        var bovedaId = await GetBovedaFuenteFondeoCajasAsync(connection, null, oficinaId, cancellationToken)
             .ConfigureAwait(false);
         if (bovedaId is null)
         {
@@ -450,7 +450,8 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
 
         try
         {
-            var bovedaId = await GetBovedaAbiertaIdAsync(connection, transaction, oficinaId, cancellationToken)
+            // Fondeo a caja: temporal si abierta (mismo ciclo que asignar-caja / retorno).
+            var bovedaId = await GetBovedaFuenteFondeoCajasAsync(connection, transaction, oficinaId, cancellationToken)
                 .ConfigureAwait(false);
             if (bovedaId is null)
             {
@@ -676,7 +677,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
 
         try
         {
-            var bovedaId = await GetBovedaAbiertaIdAsync(connection, transaction, oficinaId, cancellationToken)
+            var bovedaId = await GetBovedaFuenteFondeoCajasAsync(connection, transaction, oficinaId, cancellationToken)
                 .ConfigureAwait(false);
             if (bovedaId is null)
             {
@@ -978,6 +979,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
                 : row.Mensaje);
     }
 
+    /// <summary>Principal abierta (I-E, bancos, pantalla bóveda).</summary>
     private static async Task<int?> GetBovedaAbiertaIdAsync(
         SqlConnection connection,
         SqlTransaction? transaction,
@@ -986,13 +988,25 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
     {
         return await connection.ExecuteScalarAsync<int?>(
             new CommandDefinition(
-                """
-                SELECT TOP 1 BovedaId
-                FROM CREDITO.Boveda
-                WHERE OficinaId = @OficinaId
-                  AND IndCierre = CAST(0 AS bit)
-                ORDER BY IndTemporal, BovedaId;
-                """,
+                BovedaOperativaSql.SelectIdPrincipalAbierta,
+                new { OficinaId = oficinaId },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+    }
+
+    /// <summary>Fuente de fondeo a cajas: temporal si abierta, si no principal.</summary>
+    private static async Task<int?> GetBovedaFuenteFondeoCajasAsync(
+        SqlConnection connection,
+        SqlTransaction? transaction,
+        int oficinaId,
+        CancellationToken cancellationToken)
+    {
+        var sql = transaction is null
+            ? BovedaOperativaSql.SelectIdFuenteFondeoCajasRead
+            : BovedaOperativaSql.SelectIdFuenteFondeoCajas;
+        return await connection.ExecuteScalarAsync<int?>(
+            new CommandDefinition(
+                sql,
                 new { OficinaId = oficinaId },
                 transaction: transaction,
                 cancellationToken: cancellationToken)).ConfigureAwait(false);

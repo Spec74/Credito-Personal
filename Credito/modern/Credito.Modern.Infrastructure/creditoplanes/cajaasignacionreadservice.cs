@@ -60,37 +60,32 @@ public sealed class CajaAsignacionReadService(IOptions<SqlDatabaseOptions> optio
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        // Fuente = temporal abierta si existe; si no, principal (no depende del rol ENCARGADO).
-        _ = usuarioId;
+        // Mismo criterio que el write: temporal abierta → temporal; si no → principal.
+        // Monto = efectivo disponible (TipoPagoId=1), no SaldoFinal total (evita overdraw visual).
         var usarTemporal = await connection.ExecuteScalarAsync<bool>(
             new CommandDefinition(
-                """
-                SELECT CAST(CASE WHEN EXISTS (
-                    SELECT 1
-                    FROM CREDITO.Boveda
-                    WHERE OficinaId = @OficinaId
-                      AND IndCierre = CAST(0 AS bit)
-                      AND IndTemporal = CAST(1 AS bit)
-                ) THEN 1 ELSE 0 END AS bit);
-                """,
+                BovedaOperativaSql.ExisteTemporalAbierta,
                 new { OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-        const string sql = """
-            SELECT SaldoFinal
-            FROM CREDITO.Boveda
-            WHERE OficinaId = @OficinaId
-              AND IndCierre = CAST(0 AS bit)
-              AND IndTemporal = @IndTemporal;
-            """;
-
-        var monto = await connection.ExecuteScalarAsync<decimal?>(
+        var bovedaId = await connection.ExecuteScalarAsync<int?>(
             new CommandDefinition(
-                sql,
-                new { OficinaId = oficinaId, IndTemporal = usarTemporal },
+                BovedaOperativaSql.SelectIdFuenteFondeoCajasRead,
+                new { OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-        return (monto ?? 0m, usarTemporal);
+        if (bovedaId is null)
+        {
+            return (0m, usarTemporal);
+        }
+
+        var efectivo = await connection.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(
+                BovedaCuadreSql.EfectivoDisponible,
+                new { BovedaId = bovedaId.Value },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        return (efectivo, usarTemporal);
     }
 
     private void EnsureConnection()
