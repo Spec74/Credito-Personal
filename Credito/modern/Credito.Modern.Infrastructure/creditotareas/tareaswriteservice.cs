@@ -40,15 +40,17 @@ public sealed class TareasWriteService(IOptions<SqlDatabaseOptions> options) : I
                 SELECT CASE WHEN EXISTS (
                     SELECT 1 FROM CREDITO.Credito
                     WHERE CreditoId = @CreditoId
+                      AND OficinaId = @OficinaId
                       AND Estado IN ('CRE', 'PEN', 'APR', 'DES')
                 ) THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END;
                 """,
-                new { request.CreditoId },
+                new { request.CreditoId, OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
         if (!creditoValido)
         {
-            throw new InvalidOperationException("El crédito indicado no es válido para tareas.");
+            throw new InvalidOperationException(
+                "El crédito indicado no es válido para tareas o no pertenece a esta oficina.");
         }
 
         if (request.TareaId > 0
@@ -307,7 +309,7 @@ public sealed class TareasWriteService(IOptions<SqlDatabaseOptions> options) : I
         int oficinaId,
         CancellationToken cancellationToken)
     {
-        var esAdmin = await PuedeEditarAsync(connection, usuarioId, oficinaId, cancellationToken)
+        var elevado = await PuedeEditarAsync(connection, usuarioId, oficinaId, cancellationToken)
             .ConfigureAwait(false);
         return await connection.ExecuteScalarAsync<bool>(
             new CommandDefinition(
@@ -317,10 +319,17 @@ public sealed class TareasWriteService(IOptions<SqlDatabaseOptions> options) : I
                     FROM CREDITO.Tarea AS t
                     INNER JOIN CREDITO.Credito AS c ON c.CreditoId = t.CreditoId
                     WHERE t.TareaId = @TareaId
-                      AND (@EsAdmin = 1 OR c.UsuarioRegId = @UsuarioId)
+                      AND c.OficinaId = @OficinaId
+                      AND (@Elevado = 1 OR c.UsuarioRegId = @UsuarioId)
                 ) THEN CAST(1 AS bit) ELSE CAST(0 AS bit) END;
                 """,
-                new { TareaId = tareaId, UsuarioId = usuarioId, EsAdmin = esAdmin },
+                new
+                {
+                    TareaId = tareaId,
+                    UsuarioId = usuarioId,
+                    OficinaId = oficinaId,
+                    Elevado = elevado,
+                },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
@@ -335,28 +344,12 @@ public sealed class TareasWriteService(IOptions<SqlDatabaseOptions> options) : I
         return await PuedeEditarAsync(connection, usuarioId, oficinaId, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<bool> PuedeEditarAsync(
+    private static Task<bool> PuedeEditarAsync(
         SqlConnection connection,
         int usuarioId,
         int oficinaId,
         CancellationToken cancellationToken) =>
-        await connection.ExecuteScalarAsync<bool>(
-            new CommandDefinition(
-                """
-                SELECT CAST(CASE WHEN EXISTS (
-                    SELECT 1
-                    FROM MAESTRO.UsuarioRol AS ur
-                    INNER JOIN MAESTRO.Rol AS r ON r.RolId = ur.RolId
-                    WHERE ur.UsuarioId = @UsuarioId
-                      AND ur.OficinaId = @OficinaId
-                      AND (
-                          UPPER(r.Denominacion) LIKE '%ADMINISTRADOR%'
-                          OR UPPER(r.Denominacion) LIKE '%APROBADOR%'
-                      )
-                ) THEN 1 ELSE 0 END AS bit);
-                """,
-                new { UsuarioId = usuarioId, OficinaId = oficinaId },
-                cancellationToken: cancellationToken)).ConfigureAwait(false);
+        TareasReadService.EsElevadoSedeAsync(connection, usuarioId, oficinaId, cancellationToken);
 
     private void EnsureConnection()
     {

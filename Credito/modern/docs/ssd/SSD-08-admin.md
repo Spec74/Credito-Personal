@@ -1,6 +1,6 @@
 # SSD-08 — Administración (seguridad y oficinas)
 
-**Estado:** as-built · 2026-09-11 · validación usuarios/roles/oficinas con `formRules` / `UsuarioValidacion` 2026-09-27 ([SSD-12](SSD-12-validacion.md)) · **alcance por sede 2026-10-24**  
+**Estado:** as-built · 2026-09-11 · validación usuarios/roles/oficinas con `formRules` / `UsuarioValidacion` 2026-09-27 ([SSD-12](SSD-12-validacion.md)) · **alcance por sede 2026-10-24** · **gerente de sede + admin de red 2026-11-26**  
 **Código:** `/admin/*`, `/mantenimiento/oficinas` · `/api/v1/usuarios/*`, `/api/v1/roles/*`, `/api/v1/oficinas/*`  
 **Fuente legacy:** `UsuarioController`, `RolController`, `OficinaController`, `ComisionController`  
 **Doc de ingeniería:** [ui_modernizacion_modulos.md](../ui_modernizacion_modulos.md) (no hay `*_migracion.md` propio)
@@ -11,12 +11,13 @@ Dar de alta oficinas, usuarios, roles/menús y (vacío a propósito) comisiones.
 
 | Rol | Uso |
 |-----|-----|
-| Administrador en sucursal | Lista y escribe solo `UsuarioOficina` de su sede. Alta queda en esa oficina. No apaga `Usuario.Estado` global. UI: «Administrador de sede» (código `ADMINISTRADOR`) |
-| Administrador en Central (`IndPrincipal`) | Ve la red (`verRed`), asigna otras sedes y puede desactivar la cuenta. UI: «Administrador de red» (mismo código) |
+| **Gerente de sede** (`ENCARGADO`) | Independencia operativa: lista/escribe usuarios y cajas **solo de su oficina**; no asigna `ADMINISTRADOR`; no gestiona el catálogo global de roles. También medios de pago de su sede |
+| **Administrador de red** (`ADMINISTRADOR` + Central) | `AlcanceRed`: ve la red (`verRed`), asigna otras sedes, desactiva cuenta, puede mutar sedes ajenas (soporte). UI: «Administrador de red» |
+| Administrador en sucursal (legado) | Si aún hay `ADMINISTRADOR` fuera de Central, el alcance queda de sede (`AlcanceRed=false`). Preferir `ENCARGADO` como gerente |
 | Cualquier autenticado | Combo de oficinas activas en login (SSD-01); gestores para filtros de informe |
-| Resto | Sin ítem USUARIO/ROL/OFICINA no entra |
+| Resto | Sin ítem USUARIO/ROL/OFICINA no entra (AppShell añade rutas de sede a encargado/admin) |
 
-**Etiquetas vs códigos (2026-11-06):** no se renombran filas de `MAESTRO.Rol`. La SPA muestra etiquetas amigables (`roleDisplayLabels`) y tooltips (LECTURA / LECTURA_SALDO / SALDOS CAJA; rol `CAJA CENTRAL` ≠ maestro de caja). `CreditoRolOperador` incluye la denominación viva `CAJA`.
+**Etiquetas vs códigos (2026-11-26):** `APROBADOR` unificado (legacy 1/2). `ENCARGADO` = gerente de sede. No se inventa `ADMIN_SEDE`. SPA: `roleDisplayLabels`. `CreditoRolOperador` incluye `CAJA`.
 
 ## 2. Alcance
 
@@ -60,21 +61,23 @@ Resetear clave: paridad MVC (`123456`) con hash `$pbk2$` para el login moderno.
 
 | Método y ruta | Política | Pantalla |
 |---------------|----------|----------|
-| `GET /api/v1/usuarios/gestion`, `GET .../detalle` | `CreditoRolAdministrador` | `/admin/usuarios` |
-| `POST /usuarios/guardar`, `.../activar`, `.../resetear-clave` | Admin | Usuarios |
-| `POST .../asignar-oficinas`, `.../asignar-roles` | Admin | Usuarios |
+| `GET /api/v1/usuarios/gestion`, `GET .../detalle` | `CreditoRolEncargadoOAdministrador` | `/admin/usuarios` |
+| `POST /usuarios/guardar`, `.../activar`, `.../resetear-clave` | Encargado o Admin | Usuarios |
+| `POST .../asignar-oficinas`, `.../asignar-roles` | Encargado o Admin (roles `ADMIN*` solo Admin) | Usuarios |
 | `GET /usuarios/reporte-gestores` | `CreditoUser` | Combos de informes |
-| `GET/POST /api/v1/roles/*` | Admin | `/admin/roles` |
+| `GET/POST /api/v1/roles/*` | Solo Admin | `/admin/roles` |
 | `GET /oficinas/gestion` | `CreditoUser` | Oficinas |
 | `POST /oficinas/guardar`, `.../activar` | Admin | Oficinas |
+| `POST /cajas/guardar`, `.../activar` | Encargado o Admin | `/mantenimiento/cajas` |
 
 ## 6. Seguridad
 
 - `EXACT_MENU_ROUTES`: `/admin/usuarios`, `/admin/roles`, `/mantenimiento/oficinas`.
 - Hub `/admin` no abre usuarios/roles/oficinas; sí puede abrir `/admin/comisiones`.
 - Padre SEGURIDAD no se mapea a `/admin`.
-- Escrituras de usuario/rol: solo `CreditoRolAdministrador`.
-- Alcance 2026-10-24: sucursal no ve ni edita sedes ajenas; quitar de sede ≠ borrar la cuenta. Central reemplaza el set de oficinas y limpia `UsuarioRol` huérfanos.
+- Escrituras de usuario/caja/medios: `CreditoRolEncargadoOAdministrador`. Catálogo de roles: solo `CreditoRolAdministrador`.
+- `UsuarioAdminScope.AlcanceRed` = `EsCentral && ActorEsAdministrador`. Encargado en Central **no** ve la red.
+- Alcance 2026-10-24 / 2026-11-26: sucursal no ve ni edita sedes ajenas; quitar de sede ≠ borrar la cuenta. Central admin reemplaza el set de oficinas y limpia `UsuarioRol` huérfanos.
 
 ## 7. Criterios de aceptación
 

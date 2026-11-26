@@ -37,7 +37,7 @@ Paridad con `Web/Views/Credito/Creditos.cshtml`, `CreditoController`, `CreditoBL
 | **1** | Consulta unificada por cliente + grilla créditos | **Hecho** |
 | **2** | Cabecera cliente (SBS, calificación, KPIs, crear solicitud → simulador) | **Hecho** — `GET persona-credito-ficha`, `CreditoPersonaCabecera` |
 | **3** | Impresos agrupados + depurar en cabecera + rol LECTURA | **Hecho** |
-| **4** | Permisos finos (APROBADOR 1 solo bandeja, ENCARGADO) | **Hecho** |
+| **4** | Permisos finos (APROBADOR solo bandeja, ENCARGADO gerente sede, tareas por oficina) | **Hecho** |
 | **5** | UI familiar + PDF tabla / puente RDLC | **Hecho** |
 
 ### Fase 2 — mapeo legacy
@@ -72,7 +72,7 @@ Paridad con `Web/Views/Credito/Creditos.cshtml`, `CreditoController`, `CreditoBL
 |--------------|-------------|--------------|
 | `ViewBag.Aprobador1` — anular, prorrogar, tope, analista | `puedeAnularCreditoUi`, `puedeProrrogarCreditoUi`, `puedeEditarTopeCreditoUi`, `puedeCambiarAnalistaCreditoUi` | `CreditoRolAprobador1OAdministrador` en aprobar/anular/prorrogar/tope/analista |
 | `ViewBag.Administrador` — reprogramar, condonar | `puedeReprogramarCreditoUi`, `puedeCondonarCreditoUi` | `CreditoRolSoloAdministrador` |
-| APROBADOR 1 sin gestor/encargado/admin | `esCreditoPerfilSoloBandeja` → hub + rutas solo `/credito/aprobar` | — |
+| APROBADOR sin gestor/encargado/admin | `esCreditoPerfilSoloBandeja` → hub + rutas solo `/credito/aprobar` | — |
 | Rol LECTURA | `tieneCreditoModoLectura` | `CreditoRolOperador` (403 si solo LECTURA) |
 | ENCARGADO — bóveda temporal | `puedeGestionarBovedaEncargadoUi` | `CreditoRolEncargadoOAdministrador` en `asignar-boveda-temporal` |
 
@@ -128,9 +128,10 @@ Paridad con `Web/Views/Credito/Creditos.cshtml`, `CreditoController`, `CreditoBL
 | Búsqueda listado | Multi-palabra (`tareaListSearch.ts`) |
 | Búsqueda crédito modal | `TareaBusquedaTerminos` + DNI/nombre/N° crédito/código `[…]` |
 | Filas completadas (verde / tachado) | Clase `.credito-tareas-row--completada` |
-| Solo admin/aprobador crea | `GET tareas/puede-editar` |
+| Solo elevado de sede crea | `GET tareas/puede-editar` (ADMIN / ENCARGADO / APROBADOR) |
+| Multisucursal (2026-11-26) | Filtro `Credito.OficinaId`; búsqueda de créditos por sede; `verRed` solo admin de red |
 
-**Archivos:** `TareasPage.tsx`, `TareaEditorModal.tsx`, `TareasBuscarCredito.tsx`, `credito-tareas.css`.
+**Archivos:** `TareasPage.tsx`, `TareaEditorModal.tsx`, `TareasBuscarCredito.tsx`, `credito-tareas.css`, `TareasReadService`, `TareasWriteService`.
 
 **Menú:** en legacy el ítem **Tareas** abre `/Tareas/Index` directo (no hub). En modern, `legacyRoutes` + `resolveSpaPathFromMenuItem` envían **Tareas** y **Cliente** a `/credito/tareas` y `/clientes`; el hub `/credito` queda para entradas genéricas o acceso desde Inicio.
 
@@ -138,7 +139,7 @@ Paridad con `Web/Views/Credito/Creditos.cshtml`, `CreditoController`, `CreditoBL
 
 - PDF QuestPDF ≠ pixel-perfect RDLC (diseño distinto; datos agrupados por cliente en orden alfabético).
 - `GET metricas-vencimiento-credito` sigue cargando al seleccionar crédito (podría diferirse a pestaña KPI).
-- `TareasPage`: listado sin paginación servidor (igual que legacy; filtros búsqueda/analista en cliente).
+- `TareasPage`: listado sin paginación servidor (igual que legacy; filtros búsqueda/analista en cliente). API filtra por `Credito.OficinaId` (multisucursal 2026-11-26).
 - Avales: tabla Ant `Table` (no `CredixDataTable`); columnas con anchos fijos razonables.
 
 **Utilidades añadidas:** `src/utils/creditoQueryOptions.ts`, `src/utils/creditoGrillaQueryKey.ts`, `CredixDataTable` modo `operacion`.
@@ -159,7 +160,8 @@ Paridad con `Web/Views/Credito/Creditos.cshtml`, `CreditoController`, `CreditoBL
 | Aprobar 1ª/2ª (otra pantalla MVC) | Botones 1.ª / 2.ª en bandeja + confirmación | ✅ Mejora |
 | — | Rechazar solicitud | ✅ API `rechazar-credito` |
 | — | Consulta crédito en fila | ✅ |
-| Rol solo bandeja APROBADOR 1 | `CreditoOperacionRoute` + hub filtrado | ✅ |
+| Rol solo bandeja APROBADOR | `CreditoOperacionRoute` + hub filtrado | ✅ |
+| Tareas acotadas a `Credito.OficinaId` | Listado / detalle / buscar créditos / alta | ✅ |
 
 **UI:** `credito-aprobacion-module.css`, stats KPI, empty `AprobarTableEmpty`, `placeholderData` en listado.
 
@@ -195,9 +197,10 @@ Paridad con `Web/Views/Credito/Creditos.cshtml`, `CreditoController`, `CreditoBL
 | Búsqueda listado | Multi-palabra (`tareaListSearch.ts`) |
 | Búsqueda crédito modal | `TareaBusquedaTerminos` + DNI/nombre/N° crédito/código `[…]` |
 | Filas completadas (verde / tachado) | Clase `.credito-tareas-row--completada` |
-| Solo admin/aprobador crea | `GET tareas/puede-editar` |
+| Solo elevado de sede crea | `GET tareas/puede-editar` (ADMIN / ENCARGADO / APROBADOR) |
+| Multisucursal (2026-11-26) | Filtro `Credito.OficinaId`; búsqueda de créditos por sede; `verRed` solo admin de red |
 
-**Archivos:** `TareasPage.tsx`, `TareaEditorModal.tsx`, `TareasBuscarCredito.tsx`, `credito-tareas.css`.
+**Archivos:** `TareasPage.tsx`, `TareaEditorModal.tsx`, `TareasBuscarCredito.tsx`, `credito-tareas.css`, `TareasReadService`, `TareasWriteService`.
 
 **Menú:** en legacy el ítem **Tareas** abre `/Tareas/Index` directo (no hub). En modern, `legacyRoutes` + `resolveSpaPathFromMenuItem` envían **Tareas** y **Cliente** a `/credito/tareas` y `/clientes`; el hub `/credito` queda para entradas genéricas o acceso desde Inicio.
 
@@ -205,7 +208,7 @@ Paridad con `Web/Views/Credito/Creditos.cshtml`, `CreditoController`, `CreditoBL
 
 - PDF QuestPDF ≠ pixel-perfect RDLC (diseño distinto; datos agrupados por cliente en orden alfabético).
 - `GET metricas-vencimiento-credito` sigue cargando al seleccionar crédito (podría diferirse a pestaña KPI).
-- `TareasPage`: listado sin paginación servidor (igual que legacy; filtros búsqueda/analista en cliente).
+- `TareasPage`: listado sin paginación servidor (igual que legacy; filtros búsqueda/analista en cliente). API filtra por `Credito.OficinaId` (multisucursal 2026-11-26).
 - Avales: tabla Ant `Table` (no `CredixDataTable`); columnas con anchos fijos razonables.
 
 **Utilidades añadidas:** `src/utils/creditoQueryOptions.ts`, `src/utils/creditoGrillaQueryKey.ts`, `CredixDataTable` modo `operacion`.
@@ -226,7 +229,8 @@ Paridad con `Web/Views/Credito/Creditos.cshtml`, `CreditoController`, `CreditoBL
 | Aprobar 1ª/2ª (otra pantalla MVC) | Botones 1.ª / 2.ª en bandeja + confirmación | ✅ Mejora |
 | — | Rechazar solicitud | ✅ API `rechazar-credito` |
 | — | Consulta crédito en fila | ✅ |
-| Rol solo bandeja APROBADOR 1 | `CreditoOperacionRoute` + hub filtrado | ✅ |
+| Rol solo bandeja APROBADOR | `CreditoOperacionRoute` + hub filtrado | ✅ |
+| Tareas acotadas a `Credito.OficinaId` | Listado / detalle / buscar créditos / alta | ✅ |
 
 **UI:** `credito-aprobacion-module.css`, stats KPI, empty `AprobarTableEmpty`, `placeholderData` en listado.
 

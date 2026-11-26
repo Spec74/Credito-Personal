@@ -19,6 +19,7 @@ using Credito.Modern.Application.Documentos;
 using Credito.Modern.Application.Integraciones;
 using Credito.Modern.Application.Inventario;
 using Credito.Modern.Application.ListaPrecios;
+using Credito.Modern.Application.Oficinas;
 using Credito.Modern.Application.Prendario;
 using Credito.Modern.Application.Reportes;
 using Credito.Modern.Application.Time;
@@ -41,7 +42,9 @@ internal static class CreditoTareasCrudEndpoints
                 async Task<Results<Ok<List<TareaListItemDto>>, ProblemHttpResult>> (
                     HttpContext httpContext,
                     string? estado,
+                    bool? verRed,
                     ITareasReadService tareas,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -65,8 +68,14 @@ internal static class CreditoTareasCrudEndpoints
                     var log = loggerFactory.CreateLogger("CreditoTareas");
                     try
                     {
+                        var alcanceRed = await ResolverAlcanceRedTareasAsync(
+                                httpContext,
+                                oficinas,
+                                verRed == true,
+                                ct)
+                            .ConfigureAwait(false);
                         var items = await tareas
-                            .ListarPorUsuarioAsync(usuarioId, oficinaId, estado, ct)
+                            .ListarPorUsuarioAsync(usuarioId, oficinaId, estado, alcanceRed, ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(items.ToList());
                     }
@@ -148,7 +157,7 @@ internal static class CreditoTareasCrudEndpoints
                     }
                 })
             .WithName("CreditoTareasPuedeEditar")
-            .WithSummary("Paridad TareaBL.PuedeEditarTarea (Administrador o Aprobador).")
+            .WithSummary("Elevado de sede: Administrador, Encargado o Aprobador en la oficina del JWT.")
             .WithTags("credito", "tareas")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<PuedeEditarTareaResponse>(StatusCodes.Status200OK, "application/json")
@@ -160,16 +169,35 @@ internal static class CreditoTareasCrudEndpoints
         app.MapGet(
                 "/api/v1/credito/tareas/creditos-buscar",
                 async Task<Results<Ok<List<CreditoTareaBuscarDto>>, ProblemHttpResult>> (
+                    HttpContext httpContext,
                     string? term,
+                    bool? verRed,
                     ITareasReadService tareas,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
                 {
+                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var oficinaId) || oficinaId < 1)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status401Unauthorized,
+                            title: "No autorizado",
+                            detail: "El token no contiene una oficina válida (vendix:oficina_id).");
+                    }
+
                     var log = loggerFactory.CreateLogger("CreditoTareasBuscar");
                     try
                     {
-                        var items = await tareas.BuscarCreditosAsync(term ?? string.Empty, ct).ConfigureAwait(false);
+                        var alcanceRed = await ResolverAlcanceRedTareasAsync(
+                                httpContext,
+                                oficinas,
+                                verRed == true,
+                                ct)
+                            .ConfigureAwait(false);
+                        var items = await tareas
+                            .BuscarCreditosAsync(term ?? string.Empty, oficinaId, alcanceRed, ct)
+                            .ConfigureAwait(false);
                         return TypedResults.Ok(items.ToList());
                     }
                     catch (InvalidOperationException ex)
@@ -207,7 +235,9 @@ internal static class CreditoTareasCrudEndpoints
                 async Task<Results<Ok<TareaDetalleDto>, ProblemHttpResult>> (
                     HttpContext httpContext,
                     int tareaId,
+                    bool? verRed,
                     ITareasReadService tareas,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -232,7 +262,15 @@ internal static class CreditoTareasCrudEndpoints
                     var log = loggerFactory.CreateLogger("CreditoTareasDetalle");
                     try
                     {
-                        var detalle = await tareas.ObtenerDetalleAsync(tareaId, usuarioId, oficinaId, ct).ConfigureAwait(false);
+                        var alcanceRed = await ResolverAlcanceRedTareasAsync(
+                                httpContext,
+                                oficinas,
+                                verRed == true,
+                                ct)
+                            .ConfigureAwait(false);
+                        var detalle = await tareas
+                            .ObtenerDetalleAsync(tareaId, usuarioId, oficinaId, alcanceRed, ct)
+                            .ConfigureAwait(false);
                         if (detalle is null)
                         {
                             return TypedResults.Problem(
@@ -547,5 +585,27 @@ internal static class CreditoTareasCrudEndpoints
             .ProducesProblem(StatusCodes.Status404NotFound)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
+    }
+
+    /// <summary>Admin de red + Central + verRed → ve tareas de todas las sedes.</summary>
+    private static async Task<bool> ResolverAlcanceRedTareasAsync(
+        HttpContext httpContext,
+        IOficinaReadService oficinas,
+        bool verRed,
+        CancellationToken ct)
+    {
+        if (!verRed)
+        {
+            return false;
+        }
+
+        var roles = httpContext.User.FindAll(ClaimTypes.Role).Select(static c => c.Value);
+        if (!CreditoAuthorizationPolicies.HasAdministrador(roles))
+        {
+            return false;
+        }
+
+        var (info, _) = await SesionOficina.ResolverAsync(httpContext, oficinas, null, ct).ConfigureAwait(false);
+        return info?.EsCentral == true;
     }
 }

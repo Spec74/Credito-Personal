@@ -33,9 +33,10 @@ En prod casi todos los gestores comparten el mismo menú `ANALISTA|CAJA`. Se eli
 
 | Perfil | Usuario | Roles | Por qué |
 |--------|---------|-------|---------|
-| **ADMIN** | `RMANTILLA` | ADMINISTRADOR, ANALISTA, APROBADOR 1/2, CAJA | Menú completo (seguridad, bóveda, aprobación, caja chica, reportes) |
-| **GESTOR_CAJA** | `YCERVANTES` | ANALISTA, CAJA | Operación diaria típica + prendario; sin admin |
-| **APROBADOR_REPORTE** | `BQUISPE` | ANALISTA, APROBADOR 1, CAJA, REPORTE*, SALDOS CAJA, LECTURA_SALDO | Aprobación + reportes + saldos |
+| **ADMIN** | `RMANTILLA` | ADMINISTRADOR, ANALISTA, APROBADOR, CAJA | Menú completo (seguridad, bóveda, aprobación, caja chica, reportes). Tras SQL 2026-11-26: `APROBADOR` unificado |
+| **GESTOR_CAJA** | `YCERVANTES` | ANALISTA, CAJA | Operación diaria típica + prendario; sin admin; tareas solo de sus créditos en la sede |
+| **APROBADOR_REPORTE** | `BQUISPE` | ANALISTA, APROBADOR, CAJA, REPORTE*, SALDOS CAJA, LECTURA_SALDO | Aprobación + reportes + saldos |
+| **GERENTE_SEDE** | `JVILLALOBOS` | ENCARGADO (+ CAJA / reportes según asignación) | Usuarios/cajas/medios/bóveda/tareas de **su** sede |
 | **CAJERO_ENCARGADO** | `JVILLALOBOS` | ANALISTA, CAJA, CAJA CENTRAL, ENCARGADO, REPORTE* | Caja abierta + saldos + verificar pagos |
 
 `ADMVENDIX` (ADMIN|APROBADOR|CAJA, sin prendario en menú) queda cubierto por solapamiento con ADMIN/`RMANTILLA`.
@@ -50,8 +51,9 @@ En prod casi todos los gestores comparten el mismo menú `ANALISTA|CAJA`. Se eli
 |--------|--------------------|-----------------------------|
 | ADMIN | inicio, crédito*, clientes, caja*, bóveda, admin*, mantenimiento*, reportes*, informes* | — |
 | GESTOR_CAJA | inicio, crédito/consulta/simulador/tareas/prendario*, clientes, caja/diario | admin/usuarios, admin/roles, bóveda, aprobar, saldos, caja chica, condonaciones |
-| APROBADOR_REPORTE | aprobar, saldos, verificar pagos, reportes crédito/cobranza, consulta, diario, prendario, tareas | admin/usuarios, bóveda, caja chica |
-| CAJERO_ENCARGADO | diario, saldos, verificar pagos, reportes crédito, consulta, clientes, prendario, tareas, simulador | admin/usuarios, bóveda, aprobar |
+| APROBADOR | aprobar, reportes crédito, consulta/tareas según menú | admin/usuarios, bóveda, caja chica (sin rol operativo) |
+| GERENTE_SEDE (ENCARGADO) | diario, saldos, verificar pagos, bóveda sede, admin/usuarios (sede), cajas maestro, medios, tareas sede | admin/roles (catálogo), otras sedes |
+| CAJERO_ENCARGADO | diario, saldos, verificar pagos, reportes crédito, consulta, clientes, prendario, tareas, simulador | admin/roles, otras sedes |
 
 ### Capa 2 — Flujos UI
 
@@ -90,7 +92,7 @@ cd Credito/modern
 |------|-------|-----------|
 | Simulador S/ 200 · 2 cuotas · TEM 6% · prod CREDI RAPP | `RMANTILLA` | Plan 2× S/ 112 |
 | Solicitud + crédito | `RMANTILLA` / caja **29578 CAJA CENTRAL 1** | **creditoId 87691** estado PEN |
-| Aprobar (`opcion=1`) | `BQUISPE` (APROBADOR 1) | `ok=true` → APR |
+| Aprobar (`opcion=1`) | `BQUISPE` (APROBADOR) | `ok=true` → APR |
 | Validar + realizar desembolso | `RMANTILLA` | `movimientoCajaId=2287635` · saldo 10000→9800 |
 | Cobro CUOTA 1 (planPago **1735681**, S/ 112, efectivo) | `RMANTILLA` | `resultId=2287636` · ticket PDF **~35 KB** `%PDF` |
 | Validar cierre | `RMANTILLA` | Tras rechazar PEN huérfano 87692: **`puedeCerrar=true`** |

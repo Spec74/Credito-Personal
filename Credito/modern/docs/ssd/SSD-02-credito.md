@@ -75,7 +75,7 @@ Prefijo `/api/v1/credito`. JWT con `vendix:oficina_id` / `vendix:usuario_id`.
 | `POST simulador-credito`, `POST crear-solicitud-credito`, `POST crear-credito` | `CreditoUser` | `/credito/nuevo` (originar) · `/credito/simulador` (cotizar) |
 | `GET/POST parametros-simulador` | User / `CreditoRolAdministrador` | `/credito/parametros-simulador` |
 | `GET creditos-por-aprobar`, `POST aprobar-credito`, `POST rechazar-credito` | Aprobador1 o admin | `/credito/aprobar` |
-| `GET/POST tareas/*` | `CreditoUser` (alta restringida) | `/credito/tareas` |
+| `GET/POST tareas/*` | `CreditoUser` (alta: elevado sede; datos por `Credito.OficinaId`) | `/credito/tareas` |
 | `POST condonar-credito` | `CreditoRolSoloAdministrador` | Gestión en consulta |
 | `GET condonaciones-pendientes`, `POST solicitar-condonacion` | `CreditoRolOperador` | `/credito/condonaciones` + caja |
 | `POST cambiar-analista`, `POST actualizar-tope`, anular, prorrogar | `CreditoRolAprobador1OAdministrador` | Gestión |
@@ -83,12 +83,13 @@ Prefijo `/api/v1/credito`. JWT con `vendix:oficina_id` / `vendix:usuario_id`.
 ## 6. Seguridad
 
 - Oficina del JWT en listados de condonación y operaciones de oficina.
+- **Tareas (2026-11-26):** listado, detalle, búsqueda de créditos, informe y alta filtran `CREDITO.Credito.OficinaId` a la sede del JWT. Elevado de sede (`ADMINISTRADOR` / `ENCARGADO` / `APROBADOR`) ve todas las tareas de la sede; el resto solo las de créditos propios. Admin de red + Central + `verRed=true` puede monitorear todas las sedes. Alta exige crédito de la misma oficina.
 - `EXACT_MENU_ROUTES`: `/credito/aprobar`, `/credito/parametros-simulador` (el hub `/credito` no las abre).
-- APROBADOR 1 solo bandeja: `esCreditoPerfilSoloBandeja` + `CreditoOperacionRoute`.
+- `APROBADOR` (unificado; legacy 1/2) solo bandeja si no tiene rol operativo: `esCreditoPerfilSoloBandeja` + `CreditoOperacionRoute`.
 - Rol LECTURA: UI sin gestión; API `CreditoRolOperador` en escrituras.
 - Padres de menú (CREDITO) no se mapean a `/credito` para no conceder `/credito/*`.
 
-Archivos: `creditoOperacionPermisos.ts`, `creditoHubFilter.ts`, `CreditoAuthorizationPolicies.cs`, `menuRouteAccess.ts`.
+Archivos: `creditoOperacionPermisos.ts`, `creditoHubFilter.ts`, `CreditoAuthorizationPolicies.cs`, `menuRouteAccess.ts`, `TareasReadService` / `TareasWriteService`.
 
 ## 7. Criterios de aceptación
 
@@ -96,7 +97,8 @@ Archivos: `creditoOperacionPermisos.ts`, `creditoHubFilter.ts`, `CreditoAuthoriz
 
 - [ ] Gestor con ítem CREDITOS abre `/credito/consulta`, busca persona y ve plan del crédito elegido.
 - [ ] Simular con `monto <= 0` no llama al SP (lista vacía, paridad MVC).
-- [ ] APROBADOR 1 sin gestor/admin no entra a consulta ni simulador por menú; sí a `/credito/aprobar`.
+- [ ] APROBADOR sin gestor/admin no entra a consulta ni simulador por menú; sí a `/credito/aprobar`.
+- [ ] Tareas de sede A no listan ni buscan créditos de sede B; alta rechaza crédito ajeno.
 - [ ] Aprobar 1.ª / 2.ª y rechazar llaman los mismos `usp_*` que el MVC.
 - [ ] Impresos abren PDF JWT (no MVC RDLC) con plan / estado / movimientos.
 - [ ] Admin condona en ficha; la solicitud previa nace en caja y aparece en `/credito/condonaciones` acotada a la oficina.

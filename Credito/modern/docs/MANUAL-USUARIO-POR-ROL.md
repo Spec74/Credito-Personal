@@ -1,27 +1,25 @@
 # Manual de usuario por rol — Credix / CrediConfiable
 
 **Alcance:** operación diaria en la SPA moderna (multisucursal).  
-**Fecha:** 2026-11-05  
+**Fecha:** 2026-11-26  
 **Complementa:** `E2E-ROLE-MODULE-MATRIX.md` (pruebas ACL) y `GUIA-PRUEBAS-GO-LIVE.md` (go-live técnico).
 
 ---
 
 ## 1. Cómo leer este manual
 
-En la práctica casi nadie tiene **un solo** rol. El sistema combina roles del menú (`MAESTRO.Rol` + `RolMenu`) con permisos de pantalla.
+En la práctica casi nadie tiene **un solo** rol. El sistema combina **capacidad** (`MAESTRO.Rol`) con **alcance** (oficina de sesión / `IndPrincipal`).
 
 | Perfil de trabajo | Roles típicos en BD | Para quién |
 |-------------------|---------------------|------------|
-| **Gestor / Analista** | `ANALISTA` (+ a veces `CAJA`) | Originación, clientes, consulta, prendario, tareas |
+| **Gestor / Analista** | `ANALISTA` (+ a veces `CAJA`) | Originación, clientes, consulta, prendario, tareas de su sede |
 | **Cajero** | `CAJA` (+ a veces `ANALISTA`, `CAJA CENTRAL`) | Caja diario, cobros, tickets |
-| **Aprobador nivel 1** | `APROBADOR 1` | Aprueba / rechaza en bandeja |
-| **Aprobador nivel 2** | `APROBADOR 2` | Consulta bandeja y reportes; **no** aprueba (hace falta nivel 1 o admin) |
-| **Encargado de sede** | `ENCARGADO` (+ `SALDOS CAJA`, reportes) | Asignar/abrir caja, saldos, verificar pagos, fondeo |
-| **Administrador de sede** | `ADMINISTRADOR` en oficina no Central | Seguridad y operación de su sede |
-| **Administrador de red** | `ADMINISTRADOR` en Central (`IndPrincipal`) | Misma denominación; alcance de red (verRed, otras sedes) |
+| **Aprobador** | `APROBADOR` (legacy `APROBADOR 1` / `2` migrados) | Aprueba / rechaza; pasos PEN→AP1→APR son del crédito, no dos roles |
+| **Gerente de sede** | `ENCARGADO` (+ `SALDOS CAJA`, reportes) | Independencia de su oficina: usuarios, cajas, medios, bóveda, saldos, verificar pagos, tareas de sede. **No** asigna `ADMINISTRADOR` |
+| **Administrador de red** | `ADMINISTRADOR` en Central (`IndPrincipal`) | Monitoreo y soporte de toda la red (lectura + escritura auditada). En Central suele ir junto a `ENCARGADO` si también opera bóveda |
 | **Solo lectura / reportes** | `LECTURA`, `REPORTE`, `REPORTEPARCIAL`, `LECTURA_SALDO` | Consultar e imprimir, sin mutar |
 
-**No confundir:** el rol `CAJA CENTRAL` abre menús de cajero central; la **caja física** «CAJA CENTRAL …» se define en el maestro de cajas. `LECTURA` (crédito) ≠ `LECTURA_SALDO` (saldos) ≠ `SALDOS CAJA` (menú de saldos).
+**No confundir:** el rol `CAJA CENTRAL` abre menús de cajero central; la **caja física** «CAJA CENTRAL …» se define en el maestro de cajas. `LECTURA` (crédito) ≠ `LECTURA_SALDO` (saldos) ≠ `SALDOS CAJA` (menú de saldos). El gerente de sede **no** es un segundo código `ADMIN_SEDE`: es `ENCARGADO` con escrituras de sede.
 
 Si al entrar ve **«Sin permiso»**, el menú de su usuario no incluye esa ruta: pida al administrador que revise **Admin → Roles / Usuarios**, no es un error de la pantalla.
 
@@ -60,7 +58,7 @@ Originación de créditos personales y prendarios, atención de cliente, seguimi
 | Simulador | `/credito/simulador` | Armar plan antes de solicitar |
 | Consulta crédito | `/credito/consulta` | Plan, movimientos, mora, PDF |
 | Prendario listado / nuevo | `/credito/prendario`, `/credito/prendario/nuevo` | Bienes, contrato, desembolso prendario |
-| Tareas | `/credito/tareas` | Seguimiento operativo |
+| Tareas | `/credito/tareas` | Seguimiento de la **sede** del login (`Credito.OficinaId`). Elevado (admin / encargado / aprobador) ve todas las de la sede; gestor solo las de sus créditos. Alta solo elevado. Admin de red puede `verRed` |
 
 ### Flujo típico — crédito personal
 
@@ -141,7 +139,7 @@ Abrir sesión de caja, cobrar cuotas, pagos libres, desembolsos autorizados, emi
 
 ---
 
-## 5. Aprobador (`APROBADOR 1` / `APROBADOR 2`)
+## 5. Aprobador (`APROBADOR`; legacy 1 / 2)
 
 ### Qué hace
 
@@ -164,7 +162,7 @@ Revisar solicitudes en **PEN** y aprobar o rechazar.
 
 ### Notas
 
-- `APROBADOR 1` sin roles operativos → solo bandeja (no caja ni originación completa).
+- `APROBADOR` sin roles operativos → solo bandeja (no caja ni originación completa).
 - Anular / prorrogar / cambiar analista / tope: según combinación con `ADMINISTRADOR` (ver permisos de consulta).
 
 ---
@@ -304,11 +302,13 @@ Evidencia ACL automatizada: `E2E-ROLE-MODULE-MATRIX.md`.
 ## 12. Estado de roles (referencia)
 
 Roles **activos** en catálogo (`MAESTRO.Rol.Estado = 1`):  
-`ADMINISTRADOR`, `CAJA`, `ANALISTA`, `APROBADOR 1`, `APROBADOR 2`, `CAJA CENTRAL`, `LECTURA`, `ENCARGADO`, `REPORTE`, `REPORTEPARCIAL`, `ANULACION_MOV`, `SALDOS CAJA`, `LECTURA_SALDO`.
+`ADMINISTRADOR`, `CAJA`, `ANALISTA`, `APROBADOR`, `CAJA CENTRAL`, `LECTURA`, `ENCARGADO`, `REPORTE`, `REPORTEPARCIAL`, `ANULACION_MOV`, `SALDOS CAJA`, `LECTURA_SALDO`.
+
+Roles **legacy / migrar:** `APROBADOR 1`, `APROBADOR 2` → `APROBADOR` (`deploy/sql/2026-11-26-roles-aprobador-gerente-sede.sql`).
 
 Roles **inactivos** (catálogo histórico, no usar en alta nueva):  
 `VENDEDOR`, `ALMACEN`, `PROMOTOR`.
 
-**Políticas API (escritura):** `CreditoRolOperador` acepta `CAJA` / `CAJERO` / `CAJA CENTRAL` además de admin, encargado, analista y gestor. Aprobar/rechazar exige `APROBADOR 1` o administrador; `APROBADOR 2` no abre esa política.
+**Políticas API (escritura):** `CreditoRolOperador` acepta `CAJA` / `CAJERO` / `CAJA CENTRAL` además de admin, encargado, analista y gestor. Aprobar/rechazar exige `APROBADOR` (unificado) o administrador. Usuarios/cajas/medios de sede: `CreditoRolEncargadoOAdministrador` (alcance red solo admin + Central).
 
 La asignación real de menús se administra en **Admin → Roles**; este manual describe la operación esperada, no sustituye el ACL de cada usuario.

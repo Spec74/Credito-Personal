@@ -14,6 +14,9 @@ Términos usados en SSD, arquitectura y runbooks. Índice: [DOCUMENTACION.md](DO
 | **IndPrincipal** | Oficina Central (Huamanga). Ve la red, fondea. El resto son sucursales |
 | **Sede** | Una fila `MAESTRO.Oficina`. No es un servidor ni una base distinta |
 | **UsuarioOficina** | Asignación usuario ↔ sede. Un login puede operar en varias; roles van por `UsuarioRol.OficinaId` |
+| **AlcanceRed** | Admin de red: `ADMINISTRADOR` + sesión Central (`IndPrincipal`). Lectura/escritura de apoyo sobre otras sedes |
+| **Gerente de sede** | Rol `ENCARGADO`: independencia operativa de su oficina (usuarios, cajas, medios, bóveda). No asigna `ADMINISTRADOR` |
+| **APROBADOR** | Rol unificado de bandeja (legacy `APROBADOR 1` / `2`). Los pasos PEN→AP1→APR son del ciclo del crédito |
 | **`usp_*`** | Procedimiento almacenado SQL; contrato de negocio (el C# no inventa cuotas/mora) |
 | **JWT / Bearer** | Access token; claims `vendix:usuario_id`, `vendix:oficina_id`, `vendix:usuario_oficina_id` |
 | **`$pbk2$`** | Prefijo de clave hasheada PBKDF2; el legado podía guardar clave en claro |

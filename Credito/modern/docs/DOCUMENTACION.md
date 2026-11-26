@@ -1,7 +1,9 @@
 # Documentación de Credito.Modern
 
-**Estado del paquete documental as-built:** **100% escrito y navegable** (2026-11-23) · rama `Eber-migracion`.  
+**Estado del paquete documental as-built:** **100% escrito y navegable** (2026-11-26) · rama `Eber-migracion`.  
 Índice + mapa + arquitectura + guía de código + SSD 00–19 + migraciones de dominio + API overview + inventario de rutas + piloto Azure básico.
+
+**Gobierno multi-sucursal 2026-11-26:** rol × alcance — `ENCARGADO` = gerente de sede (usuarios/cajas/medios/bóveda de su oficina); `ADMINISTRADOR` en Central = admin de red (lectura/escritura soporte); `APROBADOR` unificado (legacy 1/2). Tareas acotadas por `Credito.OficinaId` (+ `verRed` solo admin de red). SQL: `deploy/sql/2026-11-26-roles-aprobador-gerente-sede.sql`, `deploy/sql/2026-11-26-medios-oficina-filtro-reportes.sql`. Ver [MANUAL-USUARIO-POR-ROL.md](MANUAL-USUARIO-POR-ROL.md), [SSD-02](ssd/SSD-02-credito.md), [SSD-08](ssd/SSD-08-admin.md).
 
 **Qué no es “docs faltantes”:**  
 - Casillas SSD §7 `[ ]` = **evidencia de smoke** (pista operativa). Criterios ya redactados. Ver [DEUDA-TECNICA.md](DEUDA-TECNICA.md) §1.  

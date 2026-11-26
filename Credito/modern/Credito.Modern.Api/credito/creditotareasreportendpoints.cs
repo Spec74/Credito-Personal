@@ -1,7 +1,9 @@
 using System.Data.Common;
+using System.Security.Claims;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Application.CreditoPlanes;
 using Credito.Modern.Application.CreditoTareas;
+using Credito.Modern.Application.Oficinas;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Credito.Modern.Api.Credito;
@@ -15,7 +17,9 @@ internal static class CreditoTareasReportEndpoints
                 async Task<Results<Ok<List<TareaReporteRowDto>>, ProblemHttpResult>> (
                     HttpContext httpContext,
                     string? estado,
+                    bool? verRed,
                     ITareasReadService tareas,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -32,8 +36,10 @@ internal static class CreditoTareasReportEndpoints
                     var log = loggerFactory.CreateLogger("RptCreditoTarea");
                     try
                     {
+                        var alcanceRed = await ResolverAlcanceRedAsync(httpContext, oficinas, verRed == true, ct)
+                            .ConfigureAwait(false);
                         var items = await tareas
-                            .ListarParaReporteAsync(usuarioId, oficinaId, estado, ct)
+                            .ListarParaReporteAsync(usuarioId, oficinaId, estado, alcanceRed, ct)
                             .ConfigureAwait(false);
                         return TypedResults.Ok(items.ToList());
                     }
@@ -52,7 +58,9 @@ internal static class CreditoTareasReportEndpoints
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
                     HttpContext httpContext,
                     string? estado,
+                    bool? verRed,
                     ITareasReadService tareas,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -69,8 +77,10 @@ internal static class CreditoTareasReportEndpoints
                     var log = loggerFactory.CreateLogger("RptCreditoTareaCsv");
                     try
                     {
+                        var alcanceRed = await ResolverAlcanceRedAsync(httpContext, oficinas, verRed == true, ct)
+                            .ConfigureAwait(false);
                         var items = await tareas
-                            .ListarParaReporteAsync(usuarioId, oficinaId, estado, ct)
+                            .ListarParaReporteAsync(usuarioId, oficinaId, estado, alcanceRed, ct)
                             .ConfigureAwait(false);
                         var bytes = TareaReporteCsvFormatter.ToUtf8BomCsv(items);
                         return TypedResults.File(bytes, "text/csv; charset=utf-8", "credito-tareas.csv");
@@ -90,7 +100,9 @@ internal static class CreditoTareasReportEndpoints
                 async Task<Results<FileContentHttpResult, ProblemHttpResult>> (
                     HttpContext httpContext,
                     string? estado,
+                    bool? verRed,
                     ITareasReadService tareas,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -107,8 +119,10 @@ internal static class CreditoTareasReportEndpoints
                     var log = loggerFactory.CreateLogger("RptCreditoTareaPdf");
                     try
                     {
+                        var alcanceRed = await ResolverAlcanceRedAsync(httpContext, oficinas, verRed == true, ct)
+                            .ConfigureAwait(false);
                         var items = await tareas
-                            .ListarParaReporteAsync(usuarioId, oficinaId, estado, ct)
+                            .ListarParaReporteAsync(usuarioId, oficinaId, estado, alcanceRed, ct)
                             .ConfigureAwait(false);
                         var grupos = TareaReporteBuilder.AgruparPorCliente(items);
                         var pdfBytes = TareaReportePdfDocument.Generar(grupos, estado, items.Count);
@@ -123,6 +137,27 @@ internal static class CreditoTareasReportEndpoints
             .WithTags("credito", "tareas")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces(StatusCodes.Status200OK, contentType: "application/pdf");
+    }
+
+    private static async Task<bool> ResolverAlcanceRedAsync(
+        HttpContext httpContext,
+        IOficinaReadService oficinas,
+        bool verRed,
+        CancellationToken ct)
+    {
+        if (!verRed)
+        {
+            return false;
+        }
+
+        var roles = httpContext.User.FindAll(ClaimTypes.Role).Select(static c => c.Value);
+        if (!CreditoAuthorizationPolicies.HasAdministrador(roles))
+        {
+            return false;
+        }
+
+        var (info, _) = await SesionOficina.ResolverAsync(httpContext, oficinas, null, ct).ConfigureAwait(false);
+        return info?.EsCentral == true;
     }
 
     private static ProblemHttpResult ReadError(ILogger log, IHostEnvironment env, Exception ex)
