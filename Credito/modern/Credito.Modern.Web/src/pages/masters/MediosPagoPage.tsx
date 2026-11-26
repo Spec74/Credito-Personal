@@ -30,6 +30,8 @@ import { useAuth } from '../../auth/useAuth'
 import { CredixCrudPage, CredixDataTable, CredixModal } from '../../components/credix'
 import { QrEmvDisplay } from '../../components/caja/QrEmvDisplay'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
+import { esMarcaTipoPagoCatalogo } from '../../utils/tipoPago'
+import { useEsCentral } from '../../hooks/useEsCentral'
 import '../../styles/medios-pago.css'
 
 const MARCAS = [
@@ -302,6 +304,7 @@ function MedioFormFields({
 export function MediosPagoPage() {
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
+  const { esCentral } = useEsCentral()
   const screens = Grid.useBreakpoint()
   const isMobile = screens.md !== true
   const [filtro, setFiltro] = useState('')
@@ -347,9 +350,23 @@ export function MediosPagoPage() {
   const tiposDisponibles = useMemo(() => {
     const usados = new Set(flat.map((m) => m.tipoPagoId))
     return (catalogoQuery.data ?? [])
-      .filter((v) => v.itemId > 0 && !usados.has(v.itemId))
+      .filter(
+        (v) =>
+          v.itemId > 0 &&
+          !usados.has(v.itemId) &&
+          // No ofrecer legado OBSOLETO / «… HUANTA» ni billeteras ajenas a la sede.
+          esMarcaTipoPagoCatalogo(
+            {
+              itemId: v.itemId,
+              denominacion: v.denominacion,
+              desCorta: v.desCorta,
+            },
+            esCentral,
+            oficinaId,
+          ),
+      )
       .map((v) => ({ value: v.itemId, label: `${v.itemId} — ${v.denominacion}` }))
-  }, [catalogoQuery.data, flat])
+  }, [catalogoQuery.data, flat, esCentral, oficinaId])
 
   const closeEditor = () => {
     setModalOpen(false)
