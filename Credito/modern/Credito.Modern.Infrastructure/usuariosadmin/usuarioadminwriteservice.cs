@@ -182,7 +182,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                 return new MaestroOperacionResponse(true, usuarioId, null);
             }
 
-            if (!scope.EsCentral
+            if (!scope.AlcanceRed
                 && !await PerteneceASedeAsync(c, tx, request.UsuarioId, scope.OficinaId, soloActivo: false, ct)
                     .ConfigureAwait(false))
             {
@@ -217,7 +217,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                         NombreUsuario = nombreUsuario,
                         ClaveUsuario = claveAlmacenar,
                         request.Estado,
-                        PuedeEstado = scope.EsCentral ? 1 : 0,
+                        PuedeEstado = scope.AlcanceRed ? 1 : 0,
                     },
                     transaction: tx,
                     cancellationToken: ct)).ConfigureAwait(false);
@@ -246,7 +246,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
         Ensure();
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
-        if (scope.EsCentral)
+        if (scope.AlcanceRed)
         {
             var n = await c.ExecuteAsync(
                 new CommandDefinition(
@@ -310,7 +310,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
         var hash = UsuarioPasswordHasher.CreateTemporaryHash(temporal);
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
-        if (!scope.EsCentral
+        if (!scope.AlcanceRed
             && !await PerteneceASedeAsync(c, null, usuarioId, scope.OficinaId, soloActivo: true, ct)
                 .ConfigureAwait(false))
         {
@@ -389,7 +389,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
         await using var tx = (SqlTransaction)await c.BeginTransactionAsync(ct).ConfigureAwait(false);
         try
         {
-            if (!scope.EsCentral)
+            if (!scope.AlcanceRed)
             {
                 if (!await PerteneceASedeAsync(c, tx, usuarioId, scope.OficinaId, soloActivo: false, ct)
                         .ConfigureAwait(false)
@@ -465,7 +465,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
         CancellationToken ct = default)
     {
         Ensure();
-        if (!scope.EsCentral && oficinaId != scope.OficinaId)
+        if (!scope.AlcanceRed && oficinaId != scope.OficinaId)
         {
             return new MaestroOperacionResponse(false, null, "Solo puede asignar roles de esta sucursal.");
         }
@@ -485,6 +485,47 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                 false,
                 null,
                 "Asigne primero la oficina antes de definir roles.");
+        }
+
+        if (!scope.ActorEsAdministrador)
+        {
+            var dens = (await c.QueryAsync<string>(
+                new CommandDefinition(
+                    """
+                    SELECT r.Denominacion
+                    FROM MAESTRO.Rol AS r
+                    WHERE r.RolId IN @RolIds
+                      AND r.Estado = CAST(1 AS bit);
+                    """,
+                    new { RolIds = rolIds.Where(id => id >= 1).Distinct().ToArray() },
+                    cancellationToken: ct)).ConfigureAwait(false)).ToList();
+
+            var reservadoErr = UsuarioValidacion.RequireSinRolesReservadosAdminRed(dens);
+            if (reservadoErr is not null)
+            {
+                return new MaestroOperacionResponse(false, null, reservadoErr);
+            }
+
+            // El gerente de sede no puede alterar un usuario que ya es ADMIN en esta oficina.
+            var targetEsAdmin = await c.ExecuteScalarAsync<int>(
+                new CommandDefinition(
+                    """
+                    SELECT COUNT(1)
+                    FROM MAESTRO.UsuarioRol AS ur
+                    INNER JOIN MAESTRO.Rol AS r ON r.RolId = ur.RolId
+                    WHERE ur.UsuarioId = @UsuarioId
+                      AND ur.OficinaId = @OficinaId
+                      AND REPLACE(UPPER(LTRIM(RTRIM(r.Denominacion))), ' ', '') IN (N'ADMINISTRADOR', N'ADMIN');
+                    """,
+                    new { UsuarioId = usuarioId, OficinaId = oficinaId },
+                    cancellationToken: ct)).ConfigureAwait(false);
+            if (targetEsAdmin > 0)
+            {
+                return new MaestroOperacionResponse(
+                    false,
+                    null,
+                    "No puede modificar roles de un administrador. Solicite al administrador de red.");
+            }
         }
 
         await using var tx = (SqlTransaction)await c.BeginTransactionAsync(ct).ConfigureAwait(false);
@@ -615,7 +656,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
         }
 
         int[] oficinas;
-        if (scope.EsCentral)
+        if (scope.AlcanceRed)
         {
             // Roles sin sede explícita → sede del operador (puede completar sedes después).
             oficinas = oficinasEnviadas.Length > 0

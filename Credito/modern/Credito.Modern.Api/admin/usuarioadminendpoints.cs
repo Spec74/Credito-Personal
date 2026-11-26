@@ -43,7 +43,7 @@ internal static class UsuarioAdminEndpoints
                                 page ?? 1,
                                 pageSize ?? 25,
                                 incluirInactivos == true,
-                                scope!.EsCentral && verRed != false,
+                                scope!.AlcanceRed && verRed != false,
                                 sedeId,
                                 ct)
                             .ConfigureAwait(false);
@@ -56,7 +56,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("UsuariosGestion")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<UsuarioGestionPageDto>();
 
         app.MapGet(
@@ -135,7 +135,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("UsuarioDetalle")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<UsuarioPersonaDetalleDto>();
 
         app.MapGet(
@@ -176,7 +176,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("PersonaPorDni")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<PersonaPorDniDto>();
 
         app.MapGet(
@@ -211,7 +211,7 @@ internal static class UsuarioAdminEndpoints
             .WithName("ValidarUsuarioDni")
             .WithSummary("Paridad ValidarUsuarioDNI: existe=true si ya hay usuario con ese DNI.")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<ValidarDniResponse>();
 
         app.MapGet(
@@ -254,7 +254,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("UsuarioRolesAsignacion")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<List<RolAsignacionDto>>();
 
         app.MapPost(
@@ -287,7 +287,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("GuardarUsuario")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<MaestroOperacionResponse>()
             .ProducesProblem(StatusCodes.Status400BadRequest);
 
@@ -325,7 +325,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("ActivarUsuario")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -382,7 +382,7 @@ internal static class UsuarioAdminEndpoints
             .WithName("ResetearClaveUsuario")
             .WithSummary("Genera clave temporal aleatoria; el usuario debe cambiarla al iniciar sesión.")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<ResetearClaveResponse>();
 
         app.MapPost(
@@ -420,7 +420,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("AsignarOficinasUsuario")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -465,7 +465,7 @@ internal static class UsuarioAdminEndpoints
                 })
             .WithName("AsignarRolesUsuario")
             .WithTags("usuarios-admin")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<MaestroOperacionResponse>();
     }
 
@@ -493,6 +493,11 @@ internal static class UsuarioAdminEndpoints
                     detail: "La oficina de la sesión no existe."));
             }
 
+            var roles = http.User.FindAll(System.Security.Claims.ClaimTypes.Role).Select(static c => c.Value);
+            scope = scope with
+            {
+                ActorEsAdministrador = CreditoAuthorizationPolicies.HasAdministrador(roles),
+            };
             return (scope, null);
         }
         catch (Exception ex) when (ex is InvalidOperationException or DbException)

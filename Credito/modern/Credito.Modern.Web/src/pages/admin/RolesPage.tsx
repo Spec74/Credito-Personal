@@ -268,8 +268,9 @@ export function RolesPage() {
                   <Form form={form} layout="vertical">
                     <Paragraph type="secondary" style={{ marginBottom: 12 }}>
                       No renombre códigos usados por políticas (p. ej. CAJA, ADMINISTRADOR,
-                      APROBADOR 1). ADMINISTRADOR es de sede o de red según la oficina de
-                      sesión; CAJA CENTRAL como rol no sustituye el maestro de cajas.
+                      ENCARGADO, APROBADOR). ADMINISTRADOR = red (Central); ENCARGADO =
+                      gerente de sede. Preferir APROBADOR frente a legacy 1/2. CAJA CENTRAL
+                      como rol no sustituye el maestro de cajas.
                     </Paragraph>
                     <Form.Item
                       name="denominacion"

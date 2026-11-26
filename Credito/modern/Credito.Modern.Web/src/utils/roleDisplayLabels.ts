@@ -1,6 +1,6 @@
 /**
  * Etiquetas amigables sobre `MAESTRO.Rol.Denominacion` (código estable en JWT/políticas).
- * Multisucursal: sede vs red se infiere de la oficina de sesión (`IndPrincipal`), no de otro RolId.
+ * Rol × alcance: sede vs red se infiere de la oficina de sesión (`IndPrincipal`), no de otro RolId.
  */
 
 export type RoleLabelContext = {
@@ -19,19 +19,32 @@ type RoleMeta = {
 
 const ROLE_META: Record<string, RoleMeta> = {
   ADMINISTRADOR: {
-    label: 'Administrador',
+    label: 'Administrador de red',
     labelWhenCentral: 'Administrador de red',
-    labelWhenSede: 'Administrador de sede',
+    labelWhenSede: 'Administrador (sede — preferir ENCARGADO)',
     hint:
-      'Seguridad, oficinas, usuarios y overrides. En Central gestiona la red; en sucursal solo su sede. El código en BD sigue siendo ADMINISTRADOR.',
+      'Seguridad y control de la red. En Central: lectura/escritura de todas las sucursales (monitoreo y soporte). El gerente operativo de cada sede es ENCARGADO.',
   },
   ADMIN: {
     label: 'Administrador (legacy)',
     hint: 'Alias histórico de ADMINISTRADOR. Preferir ADMINISTRADOR en altas nuevas.',
   },
   ENCARGADO: {
-    label: 'Encargado de sede',
-    hint: 'Asignar/abrir caja, saldos, verificar pagos y operaciones de sede.',
+    label: 'Gerente de sede',
+    hint:
+      'Independencia de su oficina: usuarios, cajas, medios, bóveda, saldos y verificar pagos. No asigna ADMINISTRADOR ni gestiona otras sedes. En Central puede convivir con ADMINISTRADOR en la misma persona.',
+  },
+  APROBADOR: {
+    label: 'Aprobador',
+    hint: 'Bandeja y ciclo de aprobación de créditos (pasos del crédito, no niveles de rol distintos).',
+  },
+  'APROBADOR 1': {
+    label: 'Aprobador (legacy 1)',
+    hint: 'Alias legacy. Migrar a APROBADOR. Tiene la misma capacidad de aprobación.',
+  },
+  'APROBADOR 2': {
+    label: 'Aprobador (legacy 2)',
+    hint: 'Alias legacy. Migrar a APROBADOR. Ya no es solo consulta.',
   },
   ANALISTA: {
     label: 'Analista / gestor de crédito',
@@ -53,15 +66,6 @@ const ROLE_META: Record<string, RoleMeta> = {
     label: 'Cajero de caja central (menú)',
     hint:
       'Rol de menú adicional. La caja física «central» se define en el maestro de cajas (nombre con CAJA CENTRAL), no solo con este rol.',
-  },
-  'APROBADOR 1': {
-    label: 'Aprobador (nivel 1)',
-    hint: 'Puede aprobar o rechazar en la bandeja. Escrituras de ciclo de aprobación.',
-  },
-  'APROBADOR 2': {
-    label: 'Aprobador (nivel 2)',
-    hint:
-      'Consulta / segundo nivel y reportes. No aprueba en bandeja primaria; para aprobar se requiere APROBADOR 1 o ADMINISTRADOR.',
   },
   LECTURA: {
     label: 'Solo lectura (crédito)',

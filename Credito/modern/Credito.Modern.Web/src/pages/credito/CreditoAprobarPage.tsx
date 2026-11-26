@@ -414,7 +414,7 @@ export function CreditoAprobarPage() {
           type="warning"
           showIcon
           style={{ marginBottom: 16 }}
-          message="Tu usuario puede consultar esta bandeja, pero solo APROBADOR 1 o ADMINISTRADOR puede aprobar o rechazar."
+          message="Tu usuario puede consultar esta bandeja, pero solo APROBADOR o ADMINISTRADOR puede aprobar o rechazar."
         />
       ) : null}
 

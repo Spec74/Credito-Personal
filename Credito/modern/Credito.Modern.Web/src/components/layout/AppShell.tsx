@@ -53,7 +53,7 @@ import { resolveSpaPathFromModulo } from '../../utils/legacyRoutes'
 import { resolveSpaPathFromMenuItem } from '../../utils/resolveSpaPathFromMenuItem'
 import { hasMenuRouteAccess } from '../../utils/menuRouteAccess'
 import { puedeAsignarCajaUi, puedeCobroBloqueUi } from '../../utils/cajaSaldosPermisos'
-import { puedePublicarAvisos } from '../../utils/creditoOperacionPermisos'
+import { puedeGestionarSedeUi, puedePublicarAvisos } from '../../utils/creditoOperacionPermisos'
 
 const { Text } = Typography
 
@@ -158,6 +158,12 @@ export function AppShell() {
     if (puedeVerMorosos) paths.push('/informes/morosos')
     // Admin/encargado: Asignar caja por rol (modal o ruta), sin exigir ítem de menú Saldos.
     if (puedeAsignarCajaUi(roles)) paths.push('/caja/asignar')
+    // Gerente de sede / admin: usuarios y maestro de cajas (independencia de oficina).
+    if (puedeGestionarSedeUi(roles)) {
+      paths.push('/admin/usuarios')
+      paths.push('/mantenimiento/cajas')
+      paths.push('/maestros/medios-pago')
+    }
     // Gestor/analista/caja: cobro en bloque es atajo de Caja diario (sin ítem de menú).
     if (puedeCobroBloqueUi(roles)) {
       paths.push('/caja/cobro')

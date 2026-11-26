@@ -1,4 +1,5 @@
 using Credito.Modern.Application.UsuariosAdmin;
+using Credito.Modern.Application.Validation;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -47,8 +48,8 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         var ps = pageSize < 1 ? 25 : Math.Min(pageSize, 200);
         var skip = (p - 1) * ps;
         var term = string.IsNullOrWhiteSpace(buscar) ? null : buscar.Trim();
-        var red = scope.EsCentral && verRed;
-        var sedeFiltro = scope.EsCentral && sedeId is >= 1 ? sedeId : red ? null : scope.OficinaId;
+        var red = scope.AlcanceRed && verRed;
+        var sedeFiltro = scope.AlcanceRed && sedeId is >= 1 ? sedeId : red ? null : scope.OficinaId;
 
         var estadoFilter = incluirInactivos
             ? ""
@@ -141,7 +142,7 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
             total,
             totalPages,
             rows,
-            scope.EsCentral,
+            scope.AlcanceRed,
             scope.OficinaId,
             scope.Oficina,
             red);
@@ -152,7 +153,7 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         CancellationToken ct = default)
     {
         Ensure();
-        var sedeFilter = scope.EsCentral
+        var sedeFilter = scope.AlcanceRed
             ? ""
             : """
               AND EXISTS (
@@ -184,7 +185,10 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
     public Task<UsuarioPersonaDetalleDto?> GetDetalleAsync(
         int usuarioId,
         CancellationToken ct = default) =>
-        GetDetalleAsync(new UsuarioAdminScope(0, EsCentral: true, Oficina: ""), usuarioId, ct);
+        GetDetalleAsync(
+            new UsuarioAdminScope(0, EsCentral: true, Oficina: "", ActorEsAdministrador: true),
+            usuarioId,
+            ct);
 
     public async Task<UsuarioPersonaDetalleDto?> GetDetalleAsync(
         UsuarioAdminScope scope,
@@ -241,7 +245,7 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
             return null;
         }
 
-        if (!scope.EsCentral)
+        if (!scope.AlcanceRed)
         {
             var enSede = await c.ExecuteScalarAsync<int>(
                 new CommandDefinition(
@@ -263,7 +267,7 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
                 o.OficinaId,
                 o.Denominacion,
                 o.Asignado,
-                scope.EsCentral || o.OficinaId == scope.OficinaId))
+                scope.AlcanceRed || o.OficinaId == scope.OficinaId))
             .ToList();
 
         var otras = oficinas
@@ -288,8 +292,8 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
             row.EmailPersonal,
             row.Direccion,
             oficinas,
-            scope.EsCentral,
-            scope.EsCentral,
+            scope.AlcanceRed,
+            scope.AlcanceRed,
             enEstaSede,
             otras);
     }
@@ -351,7 +355,7 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         CancellationToken ct = default)
     {
         Ensure();
-        if (!scope.EsCentral && oficinaId != scope.OficinaId)
+        if (!scope.AlcanceRed && oficinaId != scope.OficinaId)
         {
             return [];
         }
@@ -371,12 +375,21 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
 
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
-        var rows = await c.QueryAsync<RolAsignacionDto>(
+        var rows = (await c.QueryAsync<RolAsignacionDto>(
             new CommandDefinition(
                 sql,
                 new { UsuarioId = usuarioId, OficinaId = oficinaId },
-                cancellationToken: ct)).ConfigureAwait(false);
-        return rows.ToList();
+                cancellationToken: ct))
+            .ConfigureAwait(false)).ToList();
+
+        if (!scope.ActorEsAdministrador)
+        {
+            rows = rows
+                .Where(r => !UsuarioValidacion.EsRolReservadoAdminRed(r.Denominacion))
+                .ToList();
+        }
+
+        return rows;
     }
 
     private sealed class UsuarioDetalleRow

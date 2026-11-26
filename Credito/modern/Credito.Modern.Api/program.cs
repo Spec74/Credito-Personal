@@ -173,7 +173,14 @@ builder.Services.AddAuthorization(options =>
         static policy =>
         {
             policy.RequireAuthenticatedUser();
-            policy.RequireAssertion(ctx => CreditoAuthorizationPolicies.HasAprobador1OAdministrador(GetRoleClaims(ctx.User)));
+            policy.RequireAssertion(ctx => CreditoAuthorizationPolicies.HasAprobadorOAdministrador(GetRoleClaims(ctx.User)));
+        });
+    options.AddPolicy(
+        CreditoAuthorizationPolicies.CreditoRolAprobadorOAdministrador,
+        static policy =>
+        {
+            policy.RequireAuthenticatedUser();
+            policy.RequireAssertion(ctx => CreditoAuthorizationPolicies.HasAprobadorOAdministrador(GetRoleClaims(ctx.User)));
         });
     options.AddPolicy(
         CreditoAuthorizationPolicies.CreditoRolSoloAdministrador,

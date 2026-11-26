@@ -73,8 +73,23 @@ public sealed record OficinaAsignacionDto(
     bool Asignado,
     bool Editable = true);
 
-/// <summary>Sede de la sesión JWT para acotar gestión de usuarios.</summary>
-public sealed record UsuarioAdminScope(int OficinaId, bool EsCentral, string Oficina);
+/// <summary>
+/// Sede de la sesión JWT para acotar gestión de usuarios.
+/// <para>
+/// <see cref="AlcanceRed"/> = admin de red (rol ADMINISTRADOR + oficina Central).
+/// El gerente de sede (ENCARGADO) siempre opera solo <see cref="OficinaId"/>,
+/// aunque su sesión sea Central.
+/// </para>
+/// </summary>
+public sealed record UsuarioAdminScope(
+    int OficinaId,
+    bool EsCentral,
+    string Oficina,
+    bool ActorEsAdministrador = false)
+{
+    /// <summary>Puede listar/mutar usuarios de toda la red.</summary>
+    public bool AlcanceRed => EsCentral && ActorEsAdministrador;
+}
 
 public sealed record RolAsignacionDto(int RolId, string Denominacion, bool Asignado);
 

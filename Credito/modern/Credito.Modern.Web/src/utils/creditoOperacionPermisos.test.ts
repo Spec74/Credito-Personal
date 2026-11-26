@@ -37,11 +37,13 @@ describe('creditoOperacionPermisos', () => {
     expect(esCreditoOperador(['CAJA CENTRAL'])).toBe(true)
   })
 
-  it('APROBADOR 2 puro es bandeja consultiva; no anula', () => {
+  it('APROBADOR unificado (legacy 1/2) puede anular; puro sigue solo bandeja', () => {
     expect(esCreditoAprobador2(['APROBADOR 2'])).toBe(true)
+    expect(esCreditoPerfilSoloBandeja(['APROBADOR'])).toBe(true)
     expect(esCreditoPerfilSoloBandeja(['APROBADOR 2'])).toBe(true)
-    expect(puedeAnularCreditoUi(['APROBADOR 2'])).toBe(false)
+    expect(puedeAnularCreditoUi(['APROBADOR 2'])).toBe(true)
     expect(puedeAnularCreditoUi(['APROBADOR 1'])).toBe(true)
+    expect(puedeAnularCreditoUi(['APROBADOR'])).toBe(true)
   })
 })
 

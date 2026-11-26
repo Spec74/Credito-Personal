@@ -292,9 +292,9 @@ internal static class CreditoCicloEndpoints
                 })
             .WithName("CreditoAprobarCredito")
             .WithSummary(
-                "Escritura: CREDITO.usp_Credito_Upd. opcion 0 = 1ª aprobación (PEN→AP1); 1 = 2ª aprobación (→APR). Incluye APROBADOR 1/2 y ADMIN.")
+                "Escritura: CREDITO.usp_Credito_Upd. opcion 0 = 1ª aprobación (PEN→AP1); 1 = 2ª aprobación (→APR). APROBADOR (unificado) o ADMIN.")
             .WithTags("credito")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAprobador1OAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAprobadorOAdministrador)
             .Produces<CreditoCicloOperacionResponse>(StatusCodes.Status200OK, "application/json")
             .ProducesProblem(StatusCodes.Status400BadRequest)
             .ProducesProblem(StatusCodes.Status401Unauthorized)

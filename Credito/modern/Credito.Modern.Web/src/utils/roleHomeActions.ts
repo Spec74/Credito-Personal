@@ -58,11 +58,13 @@ export function buildRoleHomeActions(roles: string[]): RoleHomeAction[] {
   }
   if (esEncargado) {
     push({ to: '/caja/saldos', label: 'Saldos y cierre' })
+    push({ to: '/admin/usuarios', label: 'Usuarios de sede' })
     push({ to: '/tesoreria/fondear-sucursales', label: 'Fondear sedes' })
     push({ to: '/tesoreria/red', label: 'Red' })
   }
   if (esAdmin) {
     push({ to: '/informes', label: 'Informes' })
+    push({ to: '/admin/usuarios', label: 'Usuarios' })
   }
 
   if (esCaja) {

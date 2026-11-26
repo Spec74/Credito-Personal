@@ -75,19 +75,33 @@ export function debeMostrarDashboardAdmin(roles: string[], vista?: string | null
   return vista !== 'modulos' && vista !== 'analista'
 }
 
-export function esCreditoAprobador1(roles: string[]): boolean {
+/**
+ * APROBADOR unificado (incluye legacy APROBADOR 1 / 2 y alias cortos).
+ * Los pasos PEN→AP1→APR son del ciclo del crédito, no niveles de rol.
+ */
+export function esCreditoAprobador(roles: string[]): boolean {
   return norm(roles).some((role) => {
     const compacto = role.replace(/\s+/g, '')
     return (
+      compacto === 'APROBADOR' ||
       compacto === 'APROBADOR1' ||
       compacto === 'APROBADOR01' ||
       compacto === 'APRO1' ||
-      compacto === 'APRO01'
+      compacto === 'APRO01' ||
+      compacto === 'APROBADOR2' ||
+      compacto === 'APROBADOR02' ||
+      compacto === 'APRO2' ||
+      compacto === 'APRO02'
     )
   })
 }
 
-/** Nivel 2: 2ª aprobación (AP1→APR) y reportes de aprobación. */
+/** @deprecated Usar {@link esCreditoAprobador}. */
+export function esCreditoAprobador1(roles: string[]): boolean {
+  return esCreditoAprobador(roles)
+}
+
+/** @deprecated Legacy; ya no hay nivel 2 distinto. */
 export function esCreditoAprobador2(roles: string[]): boolean {
   return norm(roles).some((role) => {
     const compacto = role.replace(/\s+/g, '')
@@ -100,8 +114,9 @@ export function esCreditoAprobador2(roles: string[]): boolean {
   })
 }
 
-export function esCreditoAprobador(roles: string[]): boolean {
-  return esCreditoAprobador1(roles) || esCreditoAprobador2(roles)
+/** Gerente de sede (ENCARGADO) u administrador: gestión de sede. */
+export function puedeGestionarSedeUi(roles: string[]): boolean {
+  return esCreditoEncargado(roles) || esCreditoAdministrador(roles)
 }
 
 export function esCreditoEncargado(roles: string[]): boolean {
@@ -121,15 +136,13 @@ export function puedeMutarAviso(roles: string[], alcance: string): boolean {
 }
 
 /**
- * APROBADOR 1/2 sin rol operativo (paridad API `HasRolOperador`): solo bandeja en el hub.
- * APROBADOR 2 puro también se limita al hub (consulta); la API de aprobar sigue exigiendo nivel 1.
+ * APROBADOR sin rol operativo (paridad API `HasRolOperador`): solo bandeja en el hub.
  */
 export function esCreditoPerfilSoloBandeja(roles: string[]): boolean {
-  if (!esCreditoAprobador1(roles) && !esCreditoAprobador2(roles)) {
+  if (!esCreditoAprobador(roles)) {
     return false
   }
 
-  // Misma familia que CreditoRolOperador (incluye variantes CAJA / CAJA CENTRAL).
   return !esCreditoOperador(roles)
 }
 
@@ -155,7 +168,7 @@ export function puedeAnularCreditoUi(roles: string[]): boolean {
     return false
   }
 
-  return esCreditoAprobador1(roles) || esCreditoAdministrador(roles)
+  return esCreditoAprobador(roles) || esCreditoAdministrador(roles)
 }
 
 export function puedeProrrogarCreditoUi(roles: string[]): boolean {
@@ -163,7 +176,7 @@ export function puedeProrrogarCreditoUi(roles: string[]): boolean {
     return false
   }
 
-  return esCreditoAprobador1(roles) || esCreditoAdministrador(roles)
+  return esCreditoAprobador(roles) || esCreditoAdministrador(roles)
 }
 
 /** Paridad `btncReprogramar` / `btncCondonar` solo si ViewBag.Administrador > 0. */
@@ -184,7 +197,7 @@ export function puedeEditarTopeCreditoUi(roles: string[]): boolean {
     return false
   }
 
-  return esCreditoAdministrador(roles) || esCreditoAprobador1(roles)
+  return esCreditoAdministrador(roles) || esCreditoAprobador(roles)
 }
 
 /** Paridad deshabilitar analista cuando ViewBag.Aprobador1 == 0. */
@@ -193,7 +206,7 @@ export function puedeCambiarAnalistaCreditoUi(roles: string[]): boolean {
     return false
   }
 
-  return esCreditoAprobador1(roles) || esCreditoAdministrador(roles)
+  return esCreditoAprobador(roles) || esCreditoAdministrador(roles)
 }
 
 export function puedeEditarTramiteCentralAvalUi(roles: string[]): boolean {
@@ -238,7 +251,7 @@ export function puedeHabilitarDepuradoCliente(roles: string[], depurado: boolean
     return false
   }
 
-  return esCreditoAprobador1(roles) || esCreditoAdministrador(roles)
+  return esCreditoAprobador(roles) || esCreditoAdministrador(roles)
 }
 
 /** Paridad `btnCrearSolicitud` + `Model.lectura == false`. */

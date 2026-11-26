@@ -737,8 +737,8 @@ export function UsuariosPage() {
               label="Roles"
               extra={
                 esCentral
-                  ? 'ADMINISTRADOR aquí = administrador de red. CAJA CENTRAL es menú de cajero central; la caja física se define en Mantenimiento → Cajas.'
-                  : 'ADMINISTRADOR aquí = administrador de sede. APROBADOR 2 consulta; APROBADOR 1 aprueba.'
+                  ? 'ADMINISTRADOR = admin de red (toda la red). ENCARGADO = gerente operativo de Central. APROBADOR aprueba. CAJA CENTRAL es menú; la caja física está en Mantenimiento → Cajas.'
+                  : 'ENCARGADO (gerente de sede) gestiona usuarios/cajas de esta oficina. No puede asignar ADMINISTRADOR. APROBADOR aprueba créditos.'
               }
               rules={
                 usuarioId < 1

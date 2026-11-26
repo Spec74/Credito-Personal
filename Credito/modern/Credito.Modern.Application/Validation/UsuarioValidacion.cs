@@ -5,6 +5,31 @@ namespace Credito.Modern.Application.Validation;
 /// <summary>Alta/edición de usuarios admin (paridad + reglas 2026).</summary>
 public static class UsuarioValidacion
 {
+    /// <summary>Roles que solo el administrador de red puede asignar.</summary>
+    public static bool EsRolReservadoAdminRed(string? denominacion)
+    {
+        if (string.IsNullOrWhiteSpace(denominacion))
+        {
+            return false;
+        }
+
+        var n = denominacion.Trim().ToUpperInvariant().Replace(" ", string.Empty);
+        return n is "ADMINISTRADOR" or "ADMIN";
+    }
+
+    public static string? RequireSinRolesReservadosAdminRed(IEnumerable<string?> denominaciones)
+    {
+        foreach (var d in denominaciones)
+        {
+            if (EsRolReservadoAdminRed(d))
+            {
+                return "Solo el administrador de red puede asignar el rol ADMINISTRADOR.";
+            }
+        }
+
+        return null;
+    }
+
     public const int MaxClave = 100;
     public const int MinClaveNueva = 8;
 

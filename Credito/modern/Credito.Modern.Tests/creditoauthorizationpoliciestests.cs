@@ -33,6 +33,7 @@ public class CreditoAuthorizationPoliciesTests
     [InlineData("REPORTE")]
     [InlineData("REPORTEPARCIAL")]
     [InlineData("ANULACION_MOV")]
+    [InlineData("APROBADOR")]
     [InlineData("APROBADOR 1")]
     [InlineData("APROBADOR 2")]
     [InlineData("SALDOS CAJA")]
@@ -51,22 +52,37 @@ public class CreditoAuthorizationPoliciesTests
     }
 
     [Fact]
-    public void HasAprobador_distingue_nivel_1_y_2()
+    public void HasAprobador_unifica_legacy_1_y_2()
     {
-        Assert.True(CreditoAuthorizationPolicies.HasAprobador1(["APROBADOR 1"]));
-        Assert.False(CreditoAuthorizationPolicies.HasAprobador1(["APROBADOR 2"]));
-        Assert.True(CreditoAuthorizationPolicies.HasAprobador2(["APROBADOR 2"]));
-        Assert.False(CreditoAuthorizationPolicies.HasAprobador2(["APROBADOR 1"]));
+        Assert.True(CreditoAuthorizationPolicies.HasAprobador(["APROBADOR"]));
+        Assert.True(CreditoAuthorizationPolicies.HasAprobador(["APROBADOR 1"]));
         Assert.True(CreditoAuthorizationPolicies.HasAprobador(["APROBADOR 2"]));
-        // Bandeja de aprobación (1ª/2ª) admite ambos niveles + ADMIN.
-        Assert.True(CreditoAuthorizationPolicies.HasAprobador1OAdministrador(["APROBADOR 2"]));
-        Assert.True(CreditoAuthorizationPolicies.HasAprobador1OAdministrador(["APROBADOR 1"]));
+        Assert.True(CreditoAuthorizationPolicies.HasAprobador1(["APROBADOR"]));
+        Assert.True(CreditoAuthorizationPolicies.HasAprobadorOAdministrador(["APROBADOR"]));
+        Assert.True(CreditoAuthorizationPolicies.HasAprobadorOAdministrador(["ADMINISTRADOR"]));
+        Assert.False(CreditoAuthorizationPolicies.HasAprobador(["ENCARGADO"]));
+    }
+
+    [Fact]
+    public void HasEncargadoOAdministrador_gerente_sede_y_admin()
+    {
+        Assert.True(CreditoAuthorizationPolicies.HasEncargadoOAdministrador(["ENCARGADO"]));
+        Assert.True(CreditoAuthorizationPolicies.HasEncargadoOAdministrador(["ADMINISTRADOR"]));
+        Assert.False(CreditoAuthorizationPolicies.HasEncargadoOAdministrador(["CAJA"]));
+    }
+
+    [Fact]
+    public void EsRolReservadoAdminRed_solo_admin()
+    {
+        Assert.True(CreditoAuthorizationPolicies.EsRolReservadoAdminRed("ADMINISTRADOR"));
+        Assert.True(CreditoAuthorizationPolicies.EsRolReservadoAdminRed("ADMIN"));
+        Assert.False(CreditoAuthorizationPolicies.EsRolReservadoAdminRed("ENCARGADO"));
+        Assert.False(CreditoAuthorizationPolicies.EsRolReservadoAdminRed("APROBADOR"));
     }
 
     [Fact]
     public void HasEncargado_no_confunde_con_cajero_encargado_compuesto()
     {
-        // Claim compuesto histórico: no es el rol ENCARGADO.
         Assert.False(CreditoAuthorizationPolicies.HasEncargado(["CAJERO ENCARGADO"]));
         Assert.True(CreditoAuthorizationPolicies.HasCajaOperativa(["CAJERO ENCARGADO"]));
     }

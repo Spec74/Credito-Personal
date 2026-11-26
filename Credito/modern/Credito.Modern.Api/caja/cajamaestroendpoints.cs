@@ -199,6 +199,11 @@ internal static class CajaMaestroEndpoints
                             detail: "No se pudo obtener la fecha del servidor.");
                     }
 
+                    var roles = httpContext.User.FindAll(System.Security.Claims.ClaimTypes.Role)
+                        .Select(static c => c.Value);
+                    var alcanceRed = info!.EsCentral
+                        && CreditoAuthorizationPolicies.HasAdministrador(roles);
+
                     return await WriteAsync(
                         loggerFactory,
                         env,
@@ -208,14 +213,14 @@ internal static class CajaMaestroEndpoints
                             body,
                             usuarioId,
                             serverTime.Value,
-                            info!.OficinaId,
-                            info.EsCentral,
+                            info.OficinaId,
+                            alcanceRed,
                             token)).ConfigureAwait(false);
                 })
             .WithName("GuardarCaja")
-            .WithSummary("Paridad CajaController.GuardarCaja (alta: IndAbierto=0, UsuarioReg/FechaReg).")
+            .WithSummary("Paridad CajaController.GuardarCaja (alta: IndAbierto=0, UsuarioReg/FechaReg). Gerente de sede: solo su oficina.")
             .WithTags("caja")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<MaestroOperacionResponse>();
 
         app.MapPost(
@@ -261,6 +266,11 @@ internal static class CajaMaestroEndpoints
                         return oficinaProblem;
                     }
 
+                    var roles = httpContext.User.FindAll(System.Security.Claims.ClaimTypes.Role)
+                        .Select(static c => c.Value);
+                    var alcanceRed = info!.EsCentral
+                        && CreditoAuthorizationPolicies.HasAdministrador(roles);
+
                     return await WriteAsync(
                         loggerFactory,
                         env,
@@ -270,14 +280,14 @@ internal static class CajaMaestroEndpoints
                             cajaId,
                             usuarioId,
                             serverTime.Value,
-                            info!.OficinaId,
-                            info.EsCentral,
+                            info.OficinaId,
+                            alcanceRed,
                             token)).ConfigureAwait(false);
                 })
             .WithName("ActivarCaja")
-            .WithSummary("Paridad CajaController.Activar (toggle Estado).")
+            .WithSummary("Paridad CajaController.Activar (toggle Estado). Gerente de sede: solo su oficina.")
             .WithTags("caja")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolAdministrador)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<MaestroOperacionResponse>();
     }
 

@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Security.Claims;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Application.MediosPago;
 using Credito.Modern.Application.Oficinas;
@@ -31,15 +32,23 @@ internal static class OficinaMedioPagoEndpoints
                     }
 
                     // Lectura propia: JWT = oficinaId.
-                    // Lectura Central (IndPrincipal): permitida a cualquier sucursal autenticada
-                    // (solo activos) para armar remesa/fondeo sin exponer CRUD ajeno.
+                    // Admin de red (ADMIN + Central): cualquier sede (monitoreo / soporte).
+                    // Sucursal: puede leer catálogo activo de Central (remesa/fondeo).
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
                     var esLecturaCentralRemota = false;
                     if (oficinaError is not null)
                     {
-                        var activas = await oficinas.GetActivasAsync(ct).ConfigureAwait(false);
-                        var target = activas.FirstOrDefault(o => o.OficinaId == oficinaId);
-                        if (target?.IndPrincipal == true && incluirInactivos != true)
+                        var (adminRed, targetOk, targetEsCentral) = await ResolverAlcanceMediosAsync(
+                                httpContext,
+                                oficinaId,
+                                oficinas,
+                                ct)
+                            .ConfigureAwait(false);
+                        if (adminRed && targetOk)
+                        {
+                            // Admin de red: lectura completa.
+                        }
+                        else if (targetEsCentral && incluirInactivos != true)
                         {
                             esLecturaCentralRemota = true;
                         }
@@ -80,10 +89,16 @@ internal static class OficinaMedioPagoEndpoints
                     GuardarOficinaMedioPagoRequest body,
                     HttpContext httpContext,
                     IOficinaMedioPagoService service,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     CancellationToken ct) =>
                 {
-                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
+                    var oficinaError = await ValidateMediosWriteOficinaAsync(
+                            httpContext,
+                            body.OficinaId,
+                            oficinas,
+                            ct)
+                        .ConfigureAwait(false);
                     if (oficinaError is not null)
                     {
                         return oficinaError;
@@ -105,7 +120,7 @@ internal static class OficinaMedioPagoEndpoints
                 })
             .WithName("OficinaMedioPagoGuardar")
             .WithTags("medios-pago")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<OficinaMedioPagoOperacionResponse>();
 
         app.MapPost(
@@ -116,6 +131,7 @@ internal static class OficinaMedioPagoEndpoints
                     int? oficinaId,
                     HttpContext httpContext,
                     IOficinaMedioPagoService service,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     CancellationToken ct) =>
                 {
@@ -128,7 +144,12 @@ internal static class OficinaMedioPagoEndpoints
                     }
 
                     var targetOficinaId = oficinaId is > 0 ? oficinaId.Value : jwtOficinaId;
-                    var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, targetOficinaId);
+                    var oficinaError = await ValidateMediosWriteOficinaAsync(
+                            httpContext,
+                            targetOficinaId,
+                            oficinas,
+                            ct)
+                        .ConfigureAwait(false);
                     if (oficinaError is not null)
                     {
                         return oficinaError;
@@ -152,7 +173,53 @@ internal static class OficinaMedioPagoEndpoints
                 })
             .WithName("OficinaMedioPagoActivar")
             .WithTags("medios-pago")
-            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolEncargadoOAdministrador)
             .Produces<OficinaMedioPagoOperacionResponse>();
+    }
+
+    /// <summary>
+    /// Escritura: propia sede, o cualquier sede si admin de red (ADMIN + Central).
+    /// </summary>
+    private static async Task<ProblemHttpResult?> ValidateMediosWriteOficinaAsync(
+        HttpContext httpContext,
+        int oficinaId,
+        IOficinaReadService oficinas,
+        CancellationToken ct)
+    {
+        var propia = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+        if (propia is null)
+        {
+            return null;
+        }
+
+        var (adminRed, targetOk, _) = await ResolverAlcanceMediosAsync(
+                httpContext,
+                oficinaId,
+                oficinas,
+                ct)
+            .ConfigureAwait(false);
+        if (adminRed && targetOk)
+        {
+            return null;
+        }
+
+        return propia;
+    }
+
+    private static async Task<(bool AdminRed, bool TargetOk, bool TargetEsCentral)> ResolverAlcanceMediosAsync(
+        HttpContext httpContext,
+        int oficinaId,
+        IOficinaReadService oficinas,
+        CancellationToken ct)
+    {
+        var roles = httpContext.User.FindAll(ClaimTypes.Role).Select(static c => c.Value);
+        var activas = await oficinas.GetActivasAsync(ct).ConfigureAwait(false);
+        var sesion = MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficina)
+            ? activas.FirstOrDefault(o => o.OficinaId == jwtOficina)
+            : null;
+        var adminRed = CreditoAuthorizationPolicies.HasAdministrador(roles)
+            && sesion?.IndPrincipal == true;
+        var target = activas.FirstOrDefault(o => o.OficinaId == oficinaId);
+        return (adminRed, target is not null, target?.IndPrincipal == true);
     }
 }
