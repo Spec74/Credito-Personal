@@ -83,19 +83,20 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
                 return ("No tiene asignado un Cajero.", null);
             }
 
-            var esEncargado = await connection.ExecuteScalarAsync<bool>(
+            // Fuente = temporal abierta si existe; si no, principal.
+            // Ya no se amarra al rol ENCARGADO (gerente permanente de sede).
+            var usarTemporal = await connection.ExecuteScalarAsync<bool>(
                 new CommandDefinition(
                     """
                     SELECT CAST(CASE WHEN EXISTS (
                         SELECT 1
-                        FROM MAESTRO.UsuarioRol AS ur
-                        INNER JOIN MAESTRO.Rol AS r ON r.RolId = ur.RolId
-                        WHERE ur.UsuarioId = @UsuarioId
-                          AND ur.OficinaId = @OficinaId
-                          AND r.Denominacion = N'ENCARGADO'
+                        FROM CREDITO.Boveda
+                        WHERE OficinaId = @OficinaId
+                          AND IndCierre = CAST(0 AS bit)
+                          AND IndTemporal = CAST(1 AS bit)
                     ) THEN 1 ELSE 0 END AS bit);
                     """,
-                    new { UsuarioId = usuarioRegId, OficinaId = oficinaId },
+                    new { OficinaId = oficinaId },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 
@@ -108,7 +109,7 @@ public sealed class CajaAsignacionWriteService(IOptions<SqlDatabaseOptions> opti
                       AND IndCierre = CAST(0 AS bit)
                       AND IndTemporal = @IndTemporal;
                     """,
-                    new { OficinaId = oficinaId, IndTemporal = esEncargado },
+                    new { OficinaId = oficinaId, IndTemporal = usarTemporal },
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
 

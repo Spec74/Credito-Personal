@@ -72,6 +72,7 @@ Detalle y comandos `sqlcmd`: [deploy/sql/README-2026-11-08-AZURE.md](../../deplo
 | 4 | `2026-11-13-usp-cerrar-boveda-temporal-centimos.sql` | `usp_CerrarBovedaTemporal` ROUND 2 al devolver a principal |
 | 5 | `2026-11-26-medios-oficina-filtro-reportes.sql` | Medios por oficina + filtro reportes |
 | 6 | `2026-11-26-roles-aprobador-gerente-sede.sql` | `APROBADOR` unificado; roles gerente sede |
+| 7 | `2026-11-26-boveda-temporal-encargado-gerente.sql` | Tracking responsable temporal; cierre no borra gerente `ENCARGADO` |
 
 Gate opcional: `deploy/scripts/smoke-db-gate.ps1` (ROUND 2 en cierre/recalcular y filtro de sede en central de riesgos).
 

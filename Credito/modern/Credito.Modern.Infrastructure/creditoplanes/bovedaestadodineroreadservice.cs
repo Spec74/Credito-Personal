@@ -51,18 +51,32 @@ public sealed class BovedaEstadoDineroReadService(
                 new { OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false) ?? 0m;
 
-        // Principal + temporal abiertas: si solo se usa saldo PRI, al TRE→TMP el
-        // efectivo de oficina baja hasta cerrar la temporal (mismo hueco que Medios).
-        var saldoBovedasAbiertas = await connection.ExecuteScalarAsync<decimal>(
+        var montoPrincipal = await connection.ExecuteScalarAsync<decimal>(
             new CommandDefinition(
                 """
                 SELECT ISNULL(SUM(b.SaldoFinal), 0)
                 FROM CREDITO.Boveda AS b
                 WHERE b.OficinaId = @OficinaId
-                  AND b.IndCierre = CAST(0 AS bit);
+                  AND b.IndCierre = CAST(0 AS bit)
+                  AND b.IndTemporal = CAST(0 AS bit);
                 """,
                 new { OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        var montoTemporal = await connection.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(
+                """
+                SELECT ISNULL(SUM(b.SaldoFinal), 0)
+                FROM CREDITO.Boveda AS b
+                WHERE b.OficinaId = @OficinaId
+                  AND b.IndCierre = CAST(0 AS bit)
+                  AND b.IndTemporal = CAST(1 AS bit);
+                """,
+                new { OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        // Principal + temporal: si solo se usa PRI, al TRE→TMP el efectivo baja hasta cerrar TMP.
+        var saldoBovedasAbiertas = montoPrincipal + montoTemporal;
 
         decimal montoPlan = 0m;
         try
@@ -95,7 +109,9 @@ public sealed class BovedaEstadoDineroReadService(
             mayor,
             irrec,
             efectivoOficina,
-            efectivoOficina);
+            efectivoOficina,
+            montoPrincipal,
+            montoTemporal);
     }
 
     private void EnsureConnection()

@@ -11,12 +11,12 @@ Fondo de oficina: saldos, movimientos, transferencias (caja, caja chica, bancos,
 
 | Rol | Uso |
 |-----|-----|
-| Encargado / administrador | Opera bóveda principal; asigna **bóveda temporal** a un responsable |
-| Responsable de temporal | Recibe rol `ENCARGADO` al asignar; abre cajas desde Saldos; el monto sale de la **temporal** (re-login tras alta) |
+| Gerente de sede (`ENCARGADO`) / administrador | Opera bóveda principal; asigna **bóveda temporal**; puede abrir cajas desde principal si no hay temporal |
+| Responsable de temporal | Si aún no era `ENCARGADO`, lo recibe al asignar (tracking); al cerrar temporal solo se revoca si se otorgó en esa temporal. Gerente permanente se conserva |
 | Gestor (con menú BOVEDA) | Misma pantalla; la API de movimiento es `CreditoUser` |
 | Cajero | No opera bóveda desde caja diario (eso es SSD-03) |
 
-**Ciclo de dinero con temporal (cero céntimos, sede = JWT):** fondeo principal→temporal → asignar caja (débito temporal si ENCARGADO) → operación → retorno/cierre de cajas a **temporal** → cuadre → cierre temporal→principal. Ver [BITACORA 2026-11-13](../migration/BITACORA-DESVIACIONES.md).
+**Ciclo de dinero con temporal (cero céntimos, sede = JWT):** fondeo principal→temporal → asignar caja (**débito = temporal si está abierta**, independiente del rol) → operación → retorno/cierre de cajas a **temporal** → cuadre → cierre temporal→principal. Dashboard: posición consolidada por medio + capas (principal / temporal / en cajas) + progreso en cajas por medio. Ver [BITACORA 2026-11-26](../migration/BITACORA-DESVIACIONES.md).
 
 ## 2. Alcance
 

@@ -604,7 +604,7 @@ internal static partial class CreditoBovedaOperacionEndpoints
                 })
             .WithName("CreditoMontoBovedaAsignacion")
             .WithSummary(
-                "Solo lectura: paridad SaldosController.MostrarMontoBoveda (b?veda temporal si rol ENCARGADO).")
+                "Solo lectura: saldo de la bóveda fuente para asignar caja (temporal si está abierta; si no, principal).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<MontoBovedaAsignacionResponse>(StatusCodes.Status200OK, "application/json")

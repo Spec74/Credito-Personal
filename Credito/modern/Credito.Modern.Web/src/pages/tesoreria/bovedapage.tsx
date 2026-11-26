@@ -231,11 +231,21 @@ export function BovedaPage() {
         <>
           <CredixPanel title="Medios de pago" className="boveda-panel-medios">
             <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-              Posición operativa por medio: bóveda principal + temporal abierta + caja aún
-              no transferida (TRE). Así los cobros no desaparecen al cerrar caja mientras
-              la temporal sigue abierta. El banner Σ medios y la remesa a Central usan solo
-              el ledger de la bóveda principal.
+              Posición operativa consolidada por medio (principal + temporal + caja pendiente
+              de TRE). Los cobros no desaparecen del radar hasta que vuelven a bóveda. El
+              banner Σ medios y la remesa a Central usan solo el ledger de la principal.
             </Text>
+            {resumen.data?.capas ? (
+              <Space wrap size={8} style={{ marginBottom: 12 }} translate="no">
+                <Tag>Principal {formatMoney(resumen.data.capas.principal)}</Tag>
+                <Tag color="orange">
+                  Temporal {formatMoney(resumen.data.capas.temporal)}
+                </Tag>
+                <Tag color="blue">
+                  En cajas {formatMoney(resumen.data.capas.cajasPendientes)}
+                </Tag>
+              </Space>
+            ) : null}
             <BovedaResumenCuenta
               data={resumen.data}
               loading={resumen.isLoading || !secondaryReady}
@@ -244,6 +254,26 @@ export function BovedaPage() {
               hideHeader
               eagerLogos
             />
+            {resumen.data?.enCajas && resumen.data.enCajas.length > 0 ? (
+              <div style={{ marginTop: 16 }}>
+                <Text strong style={{ display: 'block', marginBottom: 8 }}>
+                  Progreso en cajas por medio
+                </Text>
+                <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
+                  Cobros y saldos aún en caja diaria (antes de TRE). No forman parte del
+                  cuadre de la bóveda principal hasta el retorno.
+                </Text>
+                <BovedaResumenCuenta
+                  data={{
+                    ...resumen.data,
+                    marcas: resumen.data.enCajas,
+                  }}
+                  loading={false}
+                  isError={false}
+                  hideHeader
+                />
+              </div>
+            ) : null}
           </CredixPanel>
 
           <CredixPanel

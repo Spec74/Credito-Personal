@@ -323,7 +323,13 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
 
         if (sesion is null)
         {
-            return new BovedaMediosRedDto(false, oficinaId, $"Oficina {oficinaId}", []);
+            return new BovedaMediosRedDto(
+                false,
+                oficinaId,
+                $"Oficina {oficinaId}",
+                [],
+                new BovedaMedioCapasDto(0, 0, 0),
+                []);
         }
 
         var filas = (await connection
@@ -435,7 +441,124 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             .ConfigureAwait(false)).ToList();
 
         var marcas = BuildMarcas(sesion, filas);
-        return new BovedaMediosRedDto(sesion.IndPrincipal, sesion.OficinaId, sesion.Oficina, marcas);
+        var (capas, enCajas) = await BuildCapasYProgresoCajasAsync(
+                connection,
+                sesion,
+                oficinaId,
+                cancellationToken)
+            .ConfigureAwait(false);
+        return new BovedaMediosRedDto(
+            sesion.IndPrincipal,
+            sesion.OficinaId,
+            sesion.Oficina,
+            marcas,
+            capas,
+            enCajas);
+    }
+
+    /// <summary>
+    /// Capas de liquidez + progreso por medio aún en caja (TransBoveda=0).
+    /// No reemplaza <c>Marcas</c> consolidado: evita que el dinero “desaparezca” del radar.
+    /// </summary>
+    private static async Task<(BovedaMedioCapasDto Capas, IReadOnlyList<BovedaMedioMarcaDto> EnCajas)>
+        BuildCapasYProgresoCajasAsync(
+            SqlConnection connection,
+            SesionOficinaRow sesion,
+            int oficinaId,
+            CancellationToken cancellationToken)
+    {
+        var principal = await connection.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(
+                """
+                SELECT ISNULL(SUM(SaldoFinal), 0)
+                FROM CREDITO.Boveda
+                WHERE OficinaId = @OficinaId AND IndCierre = 0 AND IndTemporal = 0;
+                """,
+                new { OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        var temporal = await connection.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(
+                """
+                SELECT ISNULL(SUM(SaldoFinal), 0)
+                FROM CREDITO.Boveda
+                WHERE OficinaId = @OficinaId AND IndCierre = 0 AND IndTemporal = 1;
+                """,
+                new { OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        var cajasPendientes = await connection.ExecuteScalarAsync<decimal>(
+            new CommandDefinition(
+                """
+                SELECT ISNULL(SUM(cd.SaldoFinal), 0)
+                FROM CREDITO.CajaDiario AS cd
+                INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                WHERE c.OficinaId = @OficinaId
+                  AND cd.IndCierre = CAST(0 AS bit)
+                  AND cd.TransBoveda = CAST(0 AS bit);
+                """,
+                new { OficinaId = oficinaId },
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        var capas = new BovedaMedioCapasDto(principal, temporal, cajasPendientes);
+
+        var progreso = (await connection
+            .QueryAsync<(short TipoPagoId, string Nombre, string? Marca, decimal Monto)>(
+                new CommandDefinition(
+                    """
+                    ;WITH Partes AS (
+                        SELECT
+                            mc.TipoPagoId,
+                            IIF(mc.IndEntrada = 1, mc.ImportePago, -mc.ImportePago) AS Importe
+                        FROM CREDITO.MovimientoCaja AS mc
+                        INNER JOIN CREDITO.CajaDiario AS cd ON cd.CajaDiarioId = mc.CajaDiarioId
+                        INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                        WHERE c.OficinaId = @OficinaId
+                          AND cd.TransBoveda = CAST(0 AS bit)
+                          AND mc.Estado = CAST(1 AS bit)
+                          AND mc.TipoPagoId > 0
+                          AND mc.TipoPagoId NOT BETWEEN 6 AND 8
+
+                        UNION ALL
+
+                        SELECT CAST(1 AS smallint), cd.SaldoInicial
+                        FROM CREDITO.CajaDiario AS cd
+                        INNER JOIN CREDITO.Caja AS c ON c.CajaId = cd.CajaId
+                        WHERE c.OficinaId = @OficinaId
+                          AND cd.TransBoveda = CAST(0 AS bit)
+                          AND cd.SaldoInicial <> 0
+                    )
+                    SELECT
+                        p.TipoPagoId,
+                        COALESCE(NULLIF(LTRIM(RTRIM(omp.Nombre)), N''), vt.Denominacion, CONCAT(N'Tipo ', p.TipoPagoId)) AS Nombre,
+                        omp.MarcaCodigo AS Marca,
+                        CAST(ROUND(SUM(p.Importe), 2) AS decimal(16, 2)) AS Monto
+                    FROM Partes AS p
+                    LEFT JOIN CREDITO.OficinaMedioPago AS omp
+                        ON omp.OficinaId = @OficinaId
+                       AND omp.TipoPagoId = p.TipoPagoId
+                       AND omp.ParentOficinaMedioPagoId IS NULL
+                    LEFT JOIN MAESTRO.ValorTabla AS vt
+                        ON vt.TablaId = 13 AND vt.ItemId = p.TipoPagoId
+                    GROUP BY p.TipoPagoId, omp.Nombre, omp.MarcaCodigo, vt.Denominacion
+                    HAVING ROUND(SUM(p.Importe), 2) <> 0
+                    ORDER BY p.TipoPagoId;
+                    """,
+                    new { OficinaId = oficinaId },
+                    cancellationToken: cancellationToken))
+            .ConfigureAwait(false)).ToList();
+
+        var enCajas = progreso
+            .Select(r => new BovedaMedioMarcaDto(
+                r.TipoPagoId,
+                r.Nombre,
+                string.IsNullOrWhiteSpace(r.Marca) ? "otro" : r.Marca!,
+                r.Monto,
+                Array.Empty<BovedaMedioSedeDto>()))
+            .ToList();
+
+        _ = sesion;
+        return (capas, enCajas);
     }
 
     private static IReadOnlyList<BovedaMedioMarcaDto> BuildMarcas(

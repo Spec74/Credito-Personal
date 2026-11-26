@@ -4,6 +4,22 @@ Registro de cada punto donde el sistema moderno se aparta del comportamiento del
 con el motivo. Existe para que cualquier diferencia de resultado frente al sistema viejo tenga
 una respuesta documentada en lugar de una discusión.
 
+### 2026-11-26 — ENCARGADO gerente permanente ≠ responsable temporal
+
+**Qué hay:** `asignar-caja` / `monto-boveda-asignacion` debitan **temporal si
+está abierta**, si no la **principal** (ya no se amarran al rol ENCARGADO).
+Tabla `CREDITO.BovedaTemporalResponsable` + `usp_CerrarBovedaTemporal` solo
+revoca ENCARGADO si `OtorgoEncargado=1` (otorgado al crear esa temporal).
+Dashboard bóveda: capas Principal / Temporal / En cajas + panel «Progreso en
+cajas por medio» (sin ocultar cobros del consolidado). Script
+`deploy/sql/2026-11-26-boveda-temporal-encargado-gerente.sql`.
+
+**Qué no hay:** rol separado `RESPONSABLE_TEMPORAL`; el consolidado de medios
+sigue mostrando PRI+TMP+caja (a propósito, para no “perder” dinero del radar).
+
+**Por qué:** el legado borraba **todos** los `UsuarioRol ENCARGADO` al cerrar
+temporal; con ENCARGADO = gerente de sede eso destruía el perfil permanente.
+
 ### 2026-11-18 — Tablero Red Central + ranking/meta + Red SQL v2
 
 **Qué hay:** Admin Central en `/inicio` sin `sedeId` ve consolidado de red

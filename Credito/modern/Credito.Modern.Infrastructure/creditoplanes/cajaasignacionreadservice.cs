@@ -60,19 +60,20 @@ public sealed class CajaAsignacionReadService(IOptions<SqlDatabaseOptions> optio
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
-        var esEncargado = await connection.ExecuteScalarAsync<bool>(
+        // Fuente = temporal abierta si existe; si no, principal (no depende del rol ENCARGADO).
+        _ = usuarioId;
+        var usarTemporal = await connection.ExecuteScalarAsync<bool>(
             new CommandDefinition(
                 """
                 SELECT CAST(CASE WHEN EXISTS (
                     SELECT 1
-                    FROM MAESTRO.UsuarioRol AS ur
-                    INNER JOIN MAESTRO.Rol AS r ON r.RolId = ur.RolId
-                    WHERE ur.UsuarioId = @UsuarioId
-                      AND ur.OficinaId = @OficinaId
-                      AND r.Denominacion = N'ENCARGADO'
+                    FROM CREDITO.Boveda
+                    WHERE OficinaId = @OficinaId
+                      AND IndCierre = CAST(0 AS bit)
+                      AND IndTemporal = CAST(1 AS bit)
                 ) THEN 1 ELSE 0 END AS bit);
                 """,
-                new { UsuarioId = usuarioId, OficinaId = oficinaId },
+                new { OficinaId = oficinaId },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
         const string sql = """
@@ -86,10 +87,10 @@ public sealed class CajaAsignacionReadService(IOptions<SqlDatabaseOptions> optio
         var monto = await connection.ExecuteScalarAsync<decimal?>(
             new CommandDefinition(
                 sql,
-                new { OficinaId = oficinaId, IndTemporal = esEncargado },
+                new { OficinaId = oficinaId, IndTemporal = usarTemporal },
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-        return (monto ?? 0m, esEncargado);
+        return (monto ?? 0m, usarTemporal);
     }
 
     private void EnsureConnection()

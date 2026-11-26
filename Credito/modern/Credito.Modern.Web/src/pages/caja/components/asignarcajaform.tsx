@@ -198,8 +198,8 @@ export function AsignarCajaForm({
             montoBoveda == null
               ? undefined
               : esBovedaTemporal
-                ? 'Con rol ENCARGADO el monto de apertura se descuenta de la bóveda temporal.'
-                : 'Sin rol ENCARGADO en esta oficina el monto sale de la bóveda principal (aunque exista temporal).'
+                ? 'Hay bóveda temporal abierta: el monto de apertura se descuenta de la temporal (ciclo de turno).'
+                : 'No hay temporal abierta: el monto sale de la bóveda principal.'
           }
         />
       )}

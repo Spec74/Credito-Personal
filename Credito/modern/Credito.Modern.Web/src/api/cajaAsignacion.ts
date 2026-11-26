@@ -22,7 +22,7 @@ export function fetchCajasParaAsignar(
 
 export interface MontoBovedaAsignacion {
   monto: number
-  /** True = el JWT tiene UsuarioRol ENCARGADO → saldo de bóveda temporal. */
+  /** True = hay bóveda temporal abierta → el SI de caja sale de esa temporal. */
   esBovedaTemporal: boolean
 }
 

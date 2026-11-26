@@ -64,15 +64,25 @@ public sealed record BovedaMedioMarcaDto(
     decimal Total,
     IReadOnlyList<BovedaMedioSedeDto> Sedes);
 
+/// <summary>Totales de liquidez por capa (ledger vs en tránsito en cajas).</summary>
+public sealed record BovedaMedioCapasDto(
+    decimal Principal,
+    decimal Temporal,
+    decimal CajasPendientes);
+
 /// <summary>
 /// Resumen estructurado. Central: padres Yape/Interbank = familia; variantes = billetera.
 /// Sucursal: solo su bóveda. No usa ítems 6–8 del catálogo como si fueran marcas.
+/// <see cref="Marcas"/> = posición operativa consolidada (PRI+TMP+caja pendiente).
+/// <see cref="EnCajas"/> = solo cobros/saldos aún en caja (progreso antes de TRE).
 /// </summary>
 public sealed record BovedaMediosRedDto(
     bool EsCentral,
     int OficinaId,
     string Oficina,
-    IReadOnlyList<BovedaMedioMarcaDto> Marcas);
+    IReadOnlyList<BovedaMedioMarcaDto> Marcas,
+    BovedaMedioCapasDto? Capas = null,
+    IReadOnlyList<BovedaMedioMarcaDto>? EnCajas = null);
 
 /// <summary>Fila leftover en <c>BovedaMovTemp</c> hacia la bóveda destino. El USP no acepta: solo anula (flag 2).</summary>
 public sealed record BovedaTransferenciaPendienteDto(

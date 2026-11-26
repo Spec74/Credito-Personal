@@ -144,11 +144,20 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
                         transaction: transaction,
                         cancellationToken: cancellationToken)).ConfigureAwait(false);
 
-                await EnsureEncargadoRolAsync(
+                var otorgoEncargado = await EnsureEncargadoRolAsync(
                     connection,
                     transaction,
                     oficinaId,
                     usuarioEncargadoResuelto.Value,
+                    cancellationToken).ConfigureAwait(false);
+
+                await RegistrarResponsableTemporalAsync(
+                    connection,
+                    transaction,
+                    bovedaTemporalId,
+                    oficinaId,
+                    usuarioEncargadoResuelto.Value,
+                    otorgoEncargado,
                     cancellationToken).ConfigureAwait(false);
 
                 descripcion = "ASIGNACION TEMPORAL: " + descripcion;
@@ -237,14 +246,15 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
-    private static async Task EnsureEncargadoRolAsync(
+    /// <returns>True si se insertó UsuarioRol ENCARGADO en esta operación (para revocar al cerrar).</returns>
+    private static async Task<bool> EnsureEncargadoRolAsync(
         SqlConnection connection,
         SqlTransaction transaction,
         int oficinaId,
         int usuarioId,
         CancellationToken cancellationToken)
     {
-        // Exacto "ENCARGADO" (paridad CajaDiarioBL.AsignarUsuarioCaja). No LIKE %ENCARGADO%.
+        // Exacto "ENCARGADO". No LIKE %ENCARGADO%. Gerente permanente que ya lo tiene → Otorgo=false.
         var rolId = await connection.ExecuteScalarAsync<int?>(
             new CommandDefinition(
                 """
@@ -269,18 +279,30 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
         }
 
-        await connection.ExecuteAsync(
+        var yaTenia = await connection.ExecuteScalarAsync<bool>(
             new CommandDefinition(
                 """
-                IF NOT EXISTS (
+                SELECT CAST(CASE WHEN EXISTS (
                     SELECT 1 FROM MAESTRO.UsuarioRol
                     WHERE RolId = @RolId AND UsuarioId = @UsuarioId AND OficinaId = @OficinaId)
-                INSERT INTO MAESTRO.UsuarioRol (OficinaId, RolId, UsuarioId)
-                VALUES (@OficinaId, @RolId, @UsuarioId);
+                THEN 1 ELSE 0 END AS bit);
                 """,
                 new { RolId = rolId.Value, UsuarioId = usuarioId, OficinaId = oficinaId },
                 transaction: transaction,
                 cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (!yaTenia)
+        {
+            await connection.ExecuteAsync(
+                new CommandDefinition(
+                    """
+                    INSERT INTO MAESTRO.UsuarioRol (OficinaId, RolId, UsuarioId)
+                    VALUES (@OficinaId, @RolId, @UsuarioId);
+                    """,
+                    new { RolId = rolId.Value, UsuarioId = usuarioId, OficinaId = oficinaId },
+                    transaction: transaction,
+                    cancellationToken: cancellationToken)).ConfigureAwait(false);
+        }
 
         var menuId = await connection.ExecuteScalarAsync<int?>(
             new CommandDefinition(
@@ -307,6 +329,52 @@ public sealed class BovedaTemporalWriteService(IOptions<SqlDatabaseOptions> opti
                     transaction: transaction,
                     cancellationToken: cancellationToken)).ConfigureAwait(false);
         }
+
+        return !yaTenia;
+    }
+
+    private static async Task RegistrarResponsableTemporalAsync(
+        SqlConnection connection,
+        SqlTransaction transaction,
+        int bovedaId,
+        int oficinaId,
+        int usuarioId,
+        bool otorgoEncargado,
+        CancellationToken cancellationToken)
+    {
+        // Tabla desplegada por 2026-11-26-boveda-temporal-encargado-gerente.sql.
+        // Si aún no existe, no bloquea la operación (USP tampoco revoca sin tracking).
+        var existeTabla = await connection.ExecuteScalarAsync<int>(
+            new CommandDefinition(
+                """
+                SELECT CASE WHEN OBJECT_ID(N'CREDITO.BovedaTemporalResponsable', N'U') IS NULL
+                    THEN 0 ELSE 1 END;
+                """,
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
+
+        if (existeTabla == 0)
+        {
+            return;
+        }
+
+        await connection.ExecuteAsync(
+            new CommandDefinition(
+                """
+                IF NOT EXISTS (SELECT 1 FROM CREDITO.BovedaTemporalResponsable WHERE BovedaId = @BovedaId)
+                INSERT INTO CREDITO.BovedaTemporalResponsable (
+                    BovedaId, OficinaId, UsuarioId, OtorgoEncargado)
+                VALUES (@BovedaId, @OficinaId, @UsuarioId, @OtorgoEncargado);
+                """,
+                new
+                {
+                    BovedaId = bovedaId,
+                    OficinaId = oficinaId,
+                    UsuarioId = usuarioId,
+                    OtorgoEncargado = otorgoEncargado,
+                },
+                transaction: transaction,
+                cancellationToken: cancellationToken)).ConfigureAwait(false);
     }
 
     private static async Task EjecutarTransferirBovedaAsync(

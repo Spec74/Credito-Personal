@@ -484,7 +484,7 @@ export function BovedaOperacionesPanel({
       setUsuarioHits([])
       onOk(
         asignoNueva
-          ? `Bóveda temporal #${r.bovedaTemporalId}. El responsable recibió rol ENCARGADO: debe volver a iniciar sesión para asignar cajas desde la temporal.`
+          ? `Bóveda temporal #${r.bovedaTemporalId}. Si el responsable no era ENCARGADO, se le otorgó el rol (re-login). Con temporal abierta, asignar caja debita la temporal.`
           : r.bovedaTemporalId
             ? `Transferencia a temporal #${r.bovedaTemporalId}`
             : 'Transferencia a temporal registrada',
@@ -683,7 +683,7 @@ export function BovedaOperacionesPanel({
       content: (
         <Paragraph style={{ marginBottom: 0 }}>
           {temporalOnly
-            ? 'Se devolverá el saldo de la temporal a la principal y se quitará el rol ENCARGADO de la oficina.'
+            ? 'Se devolverá el saldo de la temporal a la principal. Solo se revoca ENCARGADO si se otorgó al crear esta temporal (el gerente permanente se conserva).'
             : 'Se cerrará la bóveda principal de esta oficina. Confirme solo si las cajas están en orden.'}
         </Paragraph>
       ),
@@ -1039,7 +1039,7 @@ export function BovedaOperacionesPanel({
                 showIcon
                 style={{ marginBottom: 12 }}
                 message="Ya existe una bóveda temporal abierta. Solo se transferirá saldo adicional a esa temporal."
-                description="Quien tenga rol ENCARGADO en esta oficina descuenta de la temporal al asignar cajas. Al cerrar la temporal se quita ENCARGADO de la oficina."
+                description="Con temporal abierta, asignar caja debita la temporal (no depende del rol). Al cerrar, solo se revoca ENCARGADO si se otorgó al crear esta temporal."
               />
             ) : (
               <>
@@ -1048,7 +1048,7 @@ export function BovedaOperacionesPanel({
                   showIcon
                   style={{ marginBottom: 12 }}
                   message="Asignar bóveda temporal"
-                  description="El encargado de oficina (o administrador) elige al responsable. Ese usuario recibe el rol ENCARGADO: es quien abre cajas y el monto sale de la temporal, no de la principal. Tras asignar, el responsable debe volver a iniciar sesión."
+                  description="Elija al responsable del turno. Si aún no es ENCARGADO, se le otorga (re-login). Mientras la temporal esté abierta, el SI de caja sale de la temporal; sin temporal, de la principal. El gerente permanente no pierde el rol al cerrar."
                 />
                 <Form.Item
                   name="usuarioId"

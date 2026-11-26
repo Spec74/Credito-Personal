@@ -1,4 +1,5 @@
 --CREDITO.usp_CerrarBovedaTemporal  1, 3
+-- 2026-11-26: revoca ENCARGADO solo si se otorgó al crear esta temporal (gerente permanente se conserva).
 CREATE PROCEDURE [CREDITO].[usp_CerrarBovedaTemporal]
     @OficinaId INT,
 	@UsuarioRegId INT
@@ -56,6 +57,15 @@ SELECT @RolEncargado=r.RolId
 FROM MAESTRO.Rol AS r
 WHERE r.Denominacion ='ENCARGADO'
 
-IF @RolEncargado IS NOT NULL
-	DELETE FROM MAESTRO.UsuarioRol
-	WHERE RolId=@RolEncargado AND OficinaId=@OficinaId
+IF @RolEncargado IS NOT NULL AND OBJECT_ID(N'CREDITO.BovedaTemporalResponsable', N'U') IS NOT NULL
+BEGIN
+	DELETE ur
+	FROM MAESTRO.UsuarioRol AS ur
+	INNER JOIN CREDITO.BovedaTemporalResponsable AS tr
+		ON tr.UsuarioId = ur.UsuarioId
+	   AND tr.OficinaId = ur.OficinaId
+	   AND tr.BovedaId = @BovedaIdTemporal
+	WHERE ur.RolId = @RolEncargado
+	  AND ur.OficinaId = @OficinaId
+	  AND tr.OtorgoEncargado = CAST(1 AS bit)
+END

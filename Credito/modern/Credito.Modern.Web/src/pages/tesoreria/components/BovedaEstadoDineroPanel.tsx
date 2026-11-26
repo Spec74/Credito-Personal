@@ -64,8 +64,18 @@ export function BovedaEstadoDineroPanel({ data, loading }: Props) {
       hint: 'Principal + temporal + cajas',
     },
     {
+      value: data.montoBovedaPrincipal ?? data.saldoBoveda,
+      label: 'En bóveda principal',
+      hint: 'Ledger principal (cuadre / remesa)',
+    },
+    {
+      value: data.montoBovedaTemporal ?? 0,
+      label: 'En bóveda temporal',
+      hint: data.montoBovedaTemporal ? 'Turno encargado abierto' : 'Sin temporal abierta',
+    },
+    {
       value: data.montoCajas,
-      label: 'Cajas diarias',
+      label: 'En cajas (progreso)',
       to: '/caja/saldos',
       hint: 'Aún no transferidas a bóveda',
     },

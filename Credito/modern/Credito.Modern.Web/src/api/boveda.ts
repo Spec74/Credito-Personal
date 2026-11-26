@@ -46,6 +46,10 @@ export interface BovedaEstadoDinero {
   vencidoIrrecuperable: number
   totalFondo: number
   efectivoOficina?: number
+  /** Ledger bóveda principal abierta. */
+  montoBovedaPrincipal?: number
+  /** Ledger bóveda temporal abierta (0 si no hay). */
+  montoBovedaTemporal?: number
 }
 
 export interface BovedaListadoRow {
@@ -116,11 +120,22 @@ export interface BovedaMedioMarca {
   sedes: BovedaMedioSede[]
 }
 
+export interface BovedaMedioCapas {
+  principal: number
+  temporal: number
+  cajasPendientes: number
+}
+
 export interface BovedaMediosRed {
   esCentral: boolean
   oficinaId: number
   oficina: string
+  /** Posición operativa consolidada (PRI + TMP + caja pendiente). */
   marcas: BovedaMedioMarca[]
+  /** Totales por capa de liquidez. */
+  capas?: BovedaMedioCapas | null
+  /** Cobros/saldos aún en caja (antes de TRE a bóveda). */
+  enCajas?: BovedaMedioMarca[] | null
 }
 
 export function fetchBovedaMediosRed(oficinaId: number): Promise<BovedaMediosRed> {
