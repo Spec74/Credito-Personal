@@ -12,6 +12,8 @@ const LEGACY_TO_SPA: Array<{ match: RegExp; spaPath: string }> = [
   { match: /\/transferencia(\/index)?$/i, spaPath: '/almacen/transferencia' },
   { match: /\/marca(\/index)?$/i, spaPath: '/maestros/marcas' },
   { match: /^\/marca$/i, spaPath: '/maestros/marcas' },
+  { match: /\/mediospago(\/index)?$/i, spaPath: '/maestros/medios-pago' },
+  { match: /^\/mediospago$/i, spaPath: '/maestros/medios-pago' },
   { match: /\/modelo(\/index)?$/i, spaPath: '/maestros/modelos' },
   { match: /\/tipoarticulo(\/index)?$/i, spaPath: '/maestros/tipos-articulo' },
   { match: /\/articulo(\/index)?$/i, spaPath: '/maestros/articulos' },

@@ -1,9 +1,10 @@
-import { useMemo, type ReactNode } from 'react'
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Alert, Card, Descriptions, Typography } from 'antd'
+import { Alert, Grid, Typography } from 'antd'
 import { fetchOficinaMediosPago, type OficinaMedioPago } from '../../api/mediosPago'
 import { useAuth } from '../../auth/useAuth'
 import { QrEmvDisplay } from './QrEmvDisplay'
+import '../../styles/medios-pago.css'
 
 function flattenMedios(items: OficinaMedioPago[]): OficinaMedioPago[] {
   const out: OficinaMedioPago[] = []
@@ -16,7 +17,7 @@ function flattenMedios(items: OficinaMedioPago[]): OficinaMedioPago[] {
   return out
 }
 
-/** Instrucciones de cobro digital según configuración de la oficina. */
+/** Instrucciones de cobro digital según configuración de la oficina (PC + móvil). */
 export function CobroMedioInstrucciones({
   tipoPagoId,
   montoLabel,
@@ -26,11 +27,14 @@ export function CobroMedioInstrucciones({
 }) {
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
+  const screens = Grid.useBreakpoint()
+  const isMobile = screens.md !== true
 
   const mediosQuery = useQuery({
     queryKey: ['oficina-medios-pago', oficinaId],
     queryFn: () => fetchOficinaMediosPago(oficinaId, { soloRaices: true }),
     enabled: oficinaId > 0 && tipoPagoId > 1,
+    staleTime: 60_000,
   })
 
   const medio = useMemo(() => {
@@ -38,11 +42,7 @@ export function CobroMedioInstrucciones({
     return all.find((m) => m.activo && m.tipoPagoId === tipoPagoId) ?? null
   }, [mediosQuery.data, tipoPagoId])
 
-  if (tipoPagoId <= 1) {
-    return null
-  }
-
-  if (mediosQuery.isLoading) {
+  if (tipoPagoId <= 1 || mediosQuery.isLoading) {
     return null
   }
 
@@ -57,66 +57,73 @@ export function CobroMedioInstrucciones({
   if (!showQr && !showPhone && !showAccount) {
     return (
       <Alert
+        className="cobro-medio__empty"
         type="info"
         showIcon
-        style={{ marginTop: 8 }}
         title={`${medio.nombre}: sin datos de cobro`}
-        description="Configure celular, cuenta/CCI o el payload EMV oficial del QR en Maestros → Medios de pago."
+        description="Configure celular, cuenta/CCI o el QR oficial en Mantenimiento → Medios de pago."
       />
     )
   }
 
   return (
-    <Card
-      size="small"
-      style={{ marginTop: 8 }}
-      title={`Cobrar con ${medio.nombre}${montoLabel ? ` · ${montoLabel}` : ''}`}
-    >
-      {showQr ? (
-        <QrEmvDisplay
-          payload={medio.qrEmvPayload}
-          label={medio.qrNota ?? 'Cliente: escanear con Yape, Plin o banca móvil'}
-        />
-      ) : null}
+    <section className="cobro-medio" aria-label={`Cobrar con ${medio.nombre}`}>
+      <header className="cobro-medio__head">
+        <h3 className="cobro-medio__title">
+          Cobrar con {medio.nombre}
+          {montoLabel ? ` · ${montoLabel}` : ''}
+        </h3>
+        <p className="cobro-medio__hint">Muestre al cliente · verifique en su app</p>
+      </header>
 
-      <Descriptions
-        size="small"
-        column={1}
-        style={{ marginTop: showQr ? 12 : 0 }}
-        items={[
-          showPhone
-            ? {
-                key: 'tel',
-                label: 'Celular',
-                children: (
-                  <Typography.Text copyable>{medio.telefono}</Typography.Text>
-                ),
-              }
-            : null,
-          showAccount && medio.numeroCuenta
-            ? {
-                key: 'cta',
-                label: 'N° cuenta',
-                children: (
-                  <Typography.Text copyable>{medio.numeroCuenta}</Typography.Text>
-                ),
-              }
-            : null,
-          showAccount && medio.cci
-            ? {
-                key: 'cci',
-                label: 'CCI',
-                children: (
-                  <Typography.Text copyable>{medio.cci}</Typography.Text>
-                ),
-              }
-            : null,
-        ].filter(Boolean) as {
-          key: string
-          label: string
-          children: ReactNode
-        }[]}
-      />
-    </Card>
+      <div className="cobro-medio__body">
+        {showQr ? (
+          <QrEmvDisplay
+            payload={medio.qrEmvPayload}
+            size={isMobile ? 200 : 220}
+            compact={isMobile}
+            label={medio.qrNota ?? 'Cliente: escanear con Yape, Plin o banca móvil'}
+          />
+        ) : null}
+
+        {(showPhone || showAccount) && (
+          <div className="cobro-medio__fields">
+            {showPhone ? (
+              <div className="cobro-medio__field">
+                <span className="cobro-medio__field-label">Celular</span>
+                <Typography.Text
+                  className="cobro-medio__field-value"
+                  copyable={{ text: medio.telefono ?? undefined }}
+                >
+                  {medio.telefono}
+                </Typography.Text>
+              </div>
+            ) : null}
+            {showAccount && medio.numeroCuenta ? (
+              <div className="cobro-medio__field">
+                <span className="cobro-medio__field-label">N° cuenta</span>
+                <Typography.Text
+                  className="cobro-medio__field-value"
+                  copyable={{ text: medio.numeroCuenta }}
+                >
+                  {medio.numeroCuenta}
+                </Typography.Text>
+              </div>
+            ) : null}
+            {showAccount && medio.cci ? (
+              <div className="cobro-medio__field">
+                <span className="cobro-medio__field-label">CCI</span>
+                <Typography.Text
+                  className="cobro-medio__field-value"
+                  copyable={{ text: medio.cci }}
+                >
+                  {medio.cci}
+                </Typography.Text>
+              </div>
+            ) : null}
+          </div>
+        )}
+      </div>
+    </section>
   )
 }

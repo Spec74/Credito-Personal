@@ -288,6 +288,14 @@ function resolveCatalogoOperacionFromLabel(label: string, mod: string): string |
   if (label === 'almacenes' || (label === 'almacen' && mod.includes('MAESTRO'))) {
     return '/maestros/almacenes'
   }
+  if (
+    label.includes('medios de pago') ||
+    label.includes('medio de pago') ||
+    label === 'mediospago' ||
+    label === 'mediopago'
+  ) {
+    return '/maestros/medios-pago'
+  }
 
   if (label.includes('venta rapida')) {
     return '/ventas/venta-rapida'

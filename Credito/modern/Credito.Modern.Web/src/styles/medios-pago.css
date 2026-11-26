@@ -1,0 +1,224 @@
+/* Medios de pago — admin por sucursal (Credix, responsive) */
+
+.medios-pago-form {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.medios-pago-form__section {
+  margin: 0 0 8px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--credix-surface-elevated, #fff) 92%, var(--credix-brand, #114885) 8%);
+  border: 1px solid color-mix(in srgb, var(--credix-border, #d9e2ec) 80%, transparent);
+}
+
+.medios-pago-form__section-title {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--credix-text-secondary, #5b6b7c);
+}
+
+.medios-pago-form__flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: center;
+}
+
+.medios-pago-form__flags .ant-form-item {
+  margin-bottom: 0;
+}
+
+.medios-pago-form__qr-preview {
+  margin-top: 8px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--credix-surface, #fff);
+  border: 1px dashed color-mix(in srgb, var(--credix-border, #d9e2ec) 90%, transparent);
+}
+
+.medios-pago-row-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.medios-pago-row-title__name {
+  font-weight: 600;
+  color: var(--credix-text, #0a1f33);
+  word-break: break-word;
+}
+
+.medios-pago-row-title__meta {
+  font-size: 0.75rem;
+  color: var(--credix-text-secondary, #5b6b7c);
+}
+
+@media (max-width: 767px) {
+  .medios-pago-form__section {
+    padding: 12px;
+  }
+}
+
+/* Cobro diario — panel de instrucciones (sin look legacy de card genérica) */
+.cobro-medio {
+  margin-top: 10px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--credix-brand, #114885) 22%, var(--credix-border, #d9e2ec));
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--credix-brand, #114885) 6%, var(--credix-surface, #fff)) 0%,
+    var(--credix-surface, #fff) 48%
+  );
+  overflow: hidden;
+}
+
+.cobro-medio__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--credix-border, #d9e2ec) 85%, transparent);
+}
+
+.cobro-medio__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 650;
+  color: var(--credix-text, #0a1f33);
+}
+
+.cobro-medio__hint {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--credix-text-secondary, #5b6b7c);
+  white-space: nowrap;
+}
+
+.cobro-medio__body {
+  padding: 12px 14px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cobro-medio__fields {
+  display: grid;
+  gap: 8px;
+}
+
+.cobro-medio__field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--credix-surface-elevated, #f7fafc) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--credix-border, #d9e2ec) 70%, transparent);
+}
+
+.cobro-medio__field-label {
+  font-size: 0.72rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--credix-text-secondary, #5b6b7c);
+  flex-shrink: 0;
+}
+
+.cobro-medio__field-value {
+  font-size: 1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--credix-text, #0a1f33);
+  text-align: right;
+  word-break: break-all;
+}
+
+.cobro-medio__empty {
+  margin-top: 10px;
+}
+
+.qr-emv {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.qr-emv__label {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--credix-text-secondary, #5b6b7c);
+  max-width: 28rem;
+  line-height: 1.35;
+}
+
+.qr-emv__frame {
+  padding: 10px;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 0 color-mix(in srgb, #0a1f33 8%, transparent);
+  line-height: 0;
+}
+
+.qr-emv__img {
+  width: min(220px, 58vw);
+  height: auto;
+  aspect-ratio: 1;
+  max-width: 100%;
+}
+
+.qr-emv__foot {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--credix-text-secondary, #5b6b7c);
+  max-width: 22rem;
+  line-height: 1.35;
+}
+
+@media (max-width: 767px) {
+  .cobro-medio__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cobro-medio__hint {
+    white-space: normal;
+  }
+
+  .cobro-medio__field {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cobro-medio__field-value {
+    text-align: left;
+    font-size: 1.05rem;
+  }
+
+  .qr-emv__img {
+    width: min(240px, 72vw);
+  }
+}
+
+:root[data-theme='dark'] .qr-emv__frame {
+  background: #f8fafc;
+}
+
+:root[data-theme='dark'] .cobro-medio {
+  background: linear-gradient(
+    165deg,
+    color-mix(in srgb, var(--credix-brand, #5b9bd5) 12%, var(--credix-surface, #121820)) 0%,
+    var(--credix-surface, #121820) 55%
+  );
+}

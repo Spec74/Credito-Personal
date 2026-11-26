@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react'
 import QRCode from 'qrcode'
-import { Alert, Spin, Typography } from 'antd'
+import { Alert, Spin } from 'antd'
+import '../../styles/medios-pago.css'
 
 /**
- * Dibuja un QR a partir de payload EMVCo MPM (estándar BCRP / Circular 0003-2020).
- * El string debe provenir del QR oficial (Yape/Plin/banco), no inventarse.
+ * Dibuja un QR EMVCo MPM (BCRP / Estándar QR Perú).
+ * El payload debe ser el oficial del proveedor; no se inventa.
  */
 export function QrEmvDisplay({
   payload,
   size = 220,
   label,
+  compact = false,
 }: {
   payload: string | null | undefined
   size?: number
   label?: string
+  /** En paneles estrechos (cobro móvil) reduce tipografía auxiliar. */
+  compact?: boolean
 }) {
   const [dataUrl, setDataUrl] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -27,12 +31,19 @@ export function QrEmvDisplay({
       return
     }
 
-    // Algunos proveedores prefijan "generate:" — se elimina para dibujar.
+    // Límite defensivo: payloads EMV reales no suelen superar ~1–2 KB.
+    if (raw.length > 4096) {
+      setDataUrl(null)
+      setError('Payload EMV demasiado largo. Verifique que pegó solo el código oficial.')
+      return
+    }
+
     const emv = raw.replace(/^generate:/i, '')
+    const pixelSize = Math.min(Math.max(size, 160), 320)
     void QRCode.toDataURL(emv, {
       errorCorrectionLevel: 'M',
       margin: 2,
-      width: size,
+      width: pixelSize,
       color: { dark: '#0a1f33', light: '#ffffff' },
     })
       .then((url) => {
@@ -73,16 +84,21 @@ export function QrEmvDisplay({
   }
 
   return (
-    <div style={{ textAlign: 'center' }}>
-      {label ? (
-        <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-          {label}
-        </Typography.Text>
-      ) : null}
-      <img src={dataUrl} alt="QR de cobro" width={size} height={size} />
-      <Typography.Paragraph type="secondary" style={{ marginTop: 8, marginBottom: 0, fontSize: 12 }}>
-        Escaneable desde Yape, Plin y apps de banca interoperables (BCRP).
-      </Typography.Paragraph>
+    <div className={compact ? 'qr-emv qr-emv--compact' : 'qr-emv'}>
+      {label ? <p className="qr-emv__label">{label}</p> : null}
+      <div className="qr-emv__frame">
+        <img
+          className="qr-emv__img"
+          src={dataUrl}
+          alt="Código QR de cobro"
+          width={size}
+          height={size}
+          decoding="async"
+        />
+      </div>
+      <p className="qr-emv__foot">
+        Escaneable con Yape, Plin y banca móvil interoperable (BCRP).
+      </p>
     </div>
   )
 }
