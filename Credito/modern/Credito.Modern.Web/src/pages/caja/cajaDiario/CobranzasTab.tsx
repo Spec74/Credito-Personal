@@ -48,7 +48,6 @@ import {
 } from './cajaFeedback'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
 import { CreditoMoraModal } from '../../../components/caja/CreditoMoraModal'
-import { fetchValoresTabla } from '../../../api/maestros'
 import {
   fetchCondonacionPendienteCredito,
   solicitarCondonacion,
@@ -62,13 +61,7 @@ import { CajaSection } from '../../../components/caja/CajaSection'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
 import { TipoPagoChips } from '../../../components/caja/TipoPagoChips'
 import { CobroMedioInstrucciones } from '../../../components/caja/CobroMedioInstrucciones'
-import { fetchOficinaMediosPago } from '../../../api/mediosPago'
-import {
-  esTipoPagoCobroPermitido,
-  medioNombrePorItemId,
-  ordenTipoPago,
-  TIPO_PAGO_EFECTIVO,
-} from '../../../utils/tipoPago'
+import { esTipoPagoDigital } from '../../../utils/tipoPago'
 import {
   defaultPagoMediosSplit,
   PagoMediosSplit,
@@ -76,8 +69,8 @@ import {
   validatePagoMedios,
   type PagoMedioLineaUi,
 } from '../../../components/caja/PagoMediosSplit'
-import { buildTipoPagoOptions } from '../../tesoreria/components/TipoPagoBrand'
 import { useEsCentral } from '../../../hooks/useEsCentral'
+import { useMediosPagoOperativos } from '../../../hooks/useMediosPagoOperativos'
 import {
   FechaHoraDigitalField,
   nowDatetimeLocal,
@@ -91,7 +84,6 @@ import { sumarMoraVigente } from '../../../components/caja/creditoMoraVista'
 import type { CreditoPorPersonaRow } from '../../../types/api'
 import { formatMoney } from '../../../utils/formatMoney'
 import { moneyEquals, roundMoney, sumMoney } from '../../../utils/money'
-import { esTipoPagoDigital } from '../../../utils/tipoPago'
 import { toLegacyFechaTransferencia } from '../../../utils/formatFecha'
 import { CancelacionCreditoPanel } from './CancelacionCreditoPanel'
 import { CxcInlinePanel } from './CxcInlinePanel'
@@ -162,54 +154,9 @@ export function CobranzasTab({
     enabled: creditoId != null && creditoId > 0,
   })
   const oficinaId = session?.oficinaId ?? 0
-  const tiposPagoQuery = useQuery({
-    queryKey: ['valores-tabla', 13],
-    queryFn: () => fetchValoresTabla(13),
-    staleTime: 5 * 60_000,
+  const { options: tipoPagoOptions } = useMediosPagoOperativos(oficinaId, {
+    esCentral,
   })
-  const mediosOficinaQuery = useQuery({
-    queryKey: ['oficina-medios-pago', oficinaId],
-    queryFn: () => fetchOficinaMediosPago(oficinaId, { soloRaices: true }),
-    enabled: oficinaId > 0,
-    staleTime: 60_000,
-  })
-
-  const tipoPagoOptions = useMemo(() => {
-    const flat: { tipoPagoId: number; nombre: string; activo: boolean }[] = []
-    for (const m of mediosOficinaQuery.data ?? []) {
-      flat.push(m)
-      for (const v of m.variantes ?? []) flat.push(v)
-    }
-    const fromOficina = flat
-      .filter((m) => m.activo && esTipoPagoCobroPermitido(m.tipoPagoId, esCentral))
-      .map((m) => {
-        const label =
-          medioNombrePorItemId(m.tipoPagoId) ??
-          (m.nombre.trim() || `Tipo ${m.tipoPagoId}`)
-        return {
-          value: m.tipoPagoId,
-          label,
-          searchText: `${label} ${m.nombre}`.trim(),
-        }
-      })
-      .sort((a, b) => ordenTipoPago(a.value) - ordenTipoPago(b.value))
-
-    if (fromOficina.length > 0) {
-      if (!fromOficina.some((o) => o.value === TIPO_PAGO_EFECTIVO)) {
-        fromOficina.unshift({
-          value: TIPO_PAGO_EFECTIVO,
-          label: 'Efectivo',
-          searchText: 'Efectivo',
-        })
-      }
-      return fromOficina
-    }
-
-    return buildTipoPagoOptions(tiposPagoQuery.data ?? [], {
-      esCentral,
-      oficinaId,
-    })
-  }, [mediosOficinaQuery.data, tiposPagoQuery.data, esCentral, oficinaId])
 
   useEffect(() => {
     const main = document.querySelector('.credix-main')
@@ -1255,12 +1202,39 @@ export function CobranzasTab({
                   </Button>
                 </div>
                 {cuotaMixto ? (
-                  <PagoMediosSplit
-                    lineas={mediosCuota}
-                    options={tipoPagoOptions}
-                    onChange={setMediosCuota}
-                    disabled={pagar.isPending}
-                  />
+                  <>
+                    <PagoMediosSplit
+                      lineas={mediosCuota}
+                      options={tipoPagoOptions}
+                      onChange={setMediosCuota}
+                      disabled={pagar.isPending}
+                    />
+                    {mediosCuota
+                      .filter(
+                        (l) =>
+                          esTipoPagoDigital(l.tipoPagoId) &&
+                          (l.importe ?? 0) > 0,
+                      )
+                      .map((l) => (
+                        <CobroMedioInstrucciones
+                          key={l.key}
+                          tipoPagoId={l.tipoPagoId}
+                          monto={l.importe}
+                          onVoucherValidated={(v) => {
+                            setMediosCuota((prev) =>
+                              prev.map((row) =>
+                                row.key === l.key
+                                  ? {
+                                      ...row,
+                                      fechaTransferencia: v.fechaOperacionLocal,
+                                    }
+                                  : row,
+                              ),
+                            )
+                          }}
+                        />
+                      ))}
+                  </>
                 ) : (
                   <>
                     <TipoPagoChips
@@ -1277,7 +1251,20 @@ export function CobranzasTab({
                         compact={!isMobile}
                       />
                     ) : null}
-                    <CobroMedioInstrucciones tipoPagoId={tipoPagoId} />
+                    <CobroMedioInstrucciones
+                      tipoPagoId={tipoPagoId}
+                      monto={importeRecibido ?? selectedTotal}
+                      onVoucherValidated={(v) => {
+                        setFechaTransferencia(v.fechaOperacionLocal)
+                        if (!v.coincideMonto) {
+                          cajaToastWarning(
+                            'Monto del voucher no coincide con el cobro; revise antes de confirmar',
+                          )
+                        } else {
+                          cajaToastSuccess('Hora del voucher aplicada')
+                        }
+                      }}
+                    />
                   </>
                 )}
               </>
@@ -1291,6 +1278,31 @@ export function CobranzasTab({
                       onChange={setMediosLibre}
                       disabled={ejecutarPagoLibre.isPending}
                     />
+                    {mediosLibre
+                      .filter(
+                        (l) =>
+                          esTipoPagoDigital(l.tipoPagoId) &&
+                          (l.importe ?? 0) > 0,
+                      )
+                      .map((l) => (
+                        <CobroMedioInstrucciones
+                          key={l.key}
+                          tipoPagoId={l.tipoPagoId}
+                          monto={l.importe}
+                          onVoucherValidated={(v) => {
+                            setMediosLibre((prev) =>
+                              prev.map((row) =>
+                                row.key === l.key
+                                  ? {
+                                      ...row,
+                                      fechaTransferencia: v.fechaOperacionLocal,
+                                    }
+                                  : row,
+                              ),
+                            )
+                          }}
+                        />
+                      ))}
                     <Button
                       type="primary"
                       size={isMobile ? 'large' : 'middle'}
@@ -1374,7 +1386,20 @@ export function CobranzasTab({
                         compact={!isMobile}
                       />
                     ) : null}
-                    <CobroMedioInstrucciones tipoPagoId={tipoPagoLibreId} />
+                    <CobroMedioInstrucciones
+                      tipoPagoId={tipoPagoLibreId}
+                      monto={pagoLibre}
+                      onVoucherValidated={(v) => {
+                        setFechaPagoLibre(v.fechaOperacionLocal)
+                        if (!v.coincideMonto) {
+                          cajaToastWarning(
+                            'Monto del voucher no coincide con el cobro; revise antes de confirmar',
+                          )
+                        } else {
+                          cajaToastSuccess('Hora del voucher aplicada')
+                        }
+                      }}
+                    />
                   </>
                 )}
               </>

@@ -79,6 +79,27 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             return ("Debe indicar el medio de origen y destino.", null);
         }
 
+        EnsureConnection();
+        await using (var preConn = new SqlConnection(_connectionString))
+        {
+            await preConn.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var origenErr = await TipoPagoOficinaSql
+                .RequireMedioActivoEnOficinaAsync(preConn, oficinaId, tipoPagoOrigenId, cancellationToken)
+                .ConfigureAwait(false);
+            if (origenErr is not null)
+            {
+                return (origenErr, null);
+            }
+
+            var destinoErr = await TipoPagoOficinaSql
+                .RequireMedioActivoEnOficinaAsync(preConn, oficinaId, tipoPagoDestinoId, cancellationToken)
+                .ConfigureAwait(false);
+            if (destinoErr is not null)
+            {
+                return (destinoErr, null);
+            }
+        }
+
         // Sin conversión silenciosa: el medio que sale de bóveda es el que entra en caja.
         if (tipoPagoDestinoId != tipoPagoOrigenId)
         {
@@ -282,6 +303,15 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
         EnsureConnection();
         await using var connection = new SqlConnection(_connectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        var medioErr = await TipoPagoOficinaSql
+            .RequireMedioActivoEnOficinaAsync(connection, oficinaId, tipoPagoId, cancellationToken)
+            .ConfigureAwait(false);
+        if (medioErr is not null)
+        {
+            throw new InvalidOperationException(medioErr);
+        }
+
         await using var transaction = (SqlTransaction)await connection
             .BeginTransactionAsync(cancellationToken)
             .ConfigureAwait(false);

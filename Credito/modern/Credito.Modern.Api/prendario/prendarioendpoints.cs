@@ -21,6 +21,7 @@ using Credito.Modern.Application.Documentos;
 using Credito.Modern.Application.Integraciones;
 using Credito.Modern.Application.Inventario;
 using Credito.Modern.Application.ListaPrecios;
+using Credito.Modern.Application.MediosPago;
 using Credito.Modern.Application.Prendario;
 using Credito.Modern.Application.Reportes;
 using Credito.Modern.Application.Time;
@@ -1050,6 +1051,7 @@ internal static class PrendarioEndpoints
                     ICajaDiarioOficinaReadService cajaDiarioOficina,
                     ICreditoOficinaReadService creditoOficina,
                     IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
+                    IOficinaMedioPagoService mediosPago,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -1066,6 +1068,16 @@ internal static class PrendarioEndpoints
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, body.OficinaId);
                     if (oficinaError is not null)
                         return oficinaError;
+
+                    var medioError = ProblemResults.IfInvalid(
+                        await mediosPago
+                            .ValidateMedioActivoAsync(
+                                body.OficinaId,
+                                body.TipoPagoId < 1 ? 1 : body.TipoPagoId,
+                                ct)
+                            .ConfigureAwait(false));
+                    if (medioError is not null)
+                        return medioError;
 
                     var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
                     if (usuarioError is not null)

@@ -47,16 +47,15 @@ import {
   medioNombrePorItemId,
 } from '../../utils/tipoPago'
 import { fetchTipoOperaciones } from '../../api/cajaDiario'
-import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { useEsCentral } from '../../hooks/useEsCentral'
+import { useMediosPagoOperativos } from '../../hooks/useMediosPagoOperativos'
 import { useSecondaryDataReady } from '../../hooks/useSecondaryDataReady'
 import type { TipoOperacionListItem } from '../../types/api'
 import { FIELD_MAX, glosaRules, moneyRequired } from '../../validation/formRules'
 import {
   TipoPagoOptionLabel,
-  buildTipoPagoOptions,
   tipoPagoOptionRender,
   tipoPagoPopupRender,
 } from './components/TipoPagoBrand'
@@ -214,7 +213,7 @@ export function BovedaOperacionesPanel({
   existeTemporal,
   temporalListo,
 }: Props) {
-  const { esCentral } = useEsCentral()
+  const { esCentral, oficinas } = useEsCentral()
   const navGroups = useMemo(() => opsGroups(esCentral), [esCentral])
   const stageCopy = useMemo(() => opsCopy(esCentral), [esCentral])
   const queryClient = useQueryClient()
@@ -253,25 +252,20 @@ export function BovedaOperacionesPanel({
   })
   const tiposBoveda = (tiposQuery.data ?? []).filter((t) => t.indBoveda)
 
-  const tiposPagoQuery = useQuery({
-    queryKey: ['valores-tabla', 13],
-    queryFn: () => fetchValoresTabla(13),
-    enabled: oficinaOk && secondaryReady,
-    staleTime: 5 * 60_000,
-  })
-  const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPagoQuery.data ?? [], { esCentral, oficinaId }),
-    [tiposPagoQuery.data, esCentral, oficinaId],
-  )
-  /** Fondeo/remesa: siempre catálogo Central (billeteras Gerente/René + bancos). */
-  const tipoPagoOptionsRed = useMemo(
-    () =>
-      buildTipoPagoOptions(tiposPagoQuery.data ?? [], {
-        esCentral: true,
-        oficinaId,
-      }),
-    [tiposPagoQuery.data, oficinaId],
-  )
+  const centralOficinaId =
+    oficinas.find((o) => o.indPrincipal)?.oficinaId ?? (esCentral ? oficinaId : 0)
+  const mediosEnabled = oficinaOk && secondaryReady
+  const { options: tipoPagoOptions, isLoading: mediosLoading } =
+    useMediosPagoOperativos(oficinaId, {
+      esCentral,
+      enabled: mediosEnabled,
+    })
+  /** Fondeo/remesa: medios activos de Central (billeteras Gerente/René + bancos). */
+  const { options: tipoPagoOptionsRed, isLoading: mediosRedLoading } =
+    useMediosPagoOperativos(esCentral ? oficinaId : centralOficinaId, {
+      esCentral: true,
+      enabled: mediosEnabled && (esCentral || centralOficinaId > 0),
+    })
   /** Analista: no efectivo. Central tipa billeteras 10–13; sucursal tipa genéricos 2/3…. */
   const tipoPagoOptionsAnalista = useMemo(
     () => tipoPagoOptions.filter((o) => o.value !== 1),
@@ -772,7 +766,7 @@ export function BovedaOperacionesPanel({
             {importeField}
             <Form.Item name="tipoPagoId" label="Tipo de pago" rules={[{ required: true }]}>
               <Select
-                loading={tiposPagoQuery.isLoading}
+                loading={mediosLoading}
                 placeholder="Efectivo, Yape, banco…"
                 options={tipoPagoOptions}
                 {...tipoPagoSelectProps}
@@ -886,7 +880,7 @@ export function BovedaOperacionesPanel({
               rules={[{ required: true }]}
             >
               <Select
-                loading={tiposPagoQuery.isLoading}
+                loading={mediosLoading}
                 options={tipoPagoOptionsAnalista}
                 placeholder={
                   esCentral
@@ -971,7 +965,7 @@ export function BovedaOperacionesPanel({
               rules={[{ required: true, message: 'Seleccione el origen' }]}
             >
               <Select
-                loading={tiposPagoQuery.isLoading}
+                loading={mediosLoading}
                 placeholder="Medio de pago origen"
                 options={tipoPagoOptions}
                 {...tipoPagoSelectProps}
@@ -998,7 +992,7 @@ export function BovedaOperacionesPanel({
               ]}
             >
               <Select
-                loading={tiposPagoQuery.isLoading}
+                loading={mediosLoading}
                 placeholder="Medio de pago destino"
                 options={tipoPagoOptions}
                 {...tipoPagoSelectProps}
@@ -1149,7 +1143,7 @@ export function BovedaOperacionesPanel({
               rules={[{ required: true, message: 'Seleccione el medio' }]}
             >
               <Select
-                loading={tiposPagoQuery.isLoading && !tiposPagoQuery.data}
+                loading={mediosLoading && tipoPagoOptions.length === 0}
                 placeholder="Efectivo, Yape, banco…"
                 options={tipoPagoOptions}
                 {...tipoPagoSelectProps}
@@ -1216,7 +1210,7 @@ export function BovedaOperacionesPanel({
               rules={[{ required: true, message: 'Seleccione el medio' }]}
             >
               <Select
-                loading={tiposPagoQuery.isLoading}
+                loading={mediosRedLoading}
                 placeholder="Yape Gerente, Yape René, BCP…"
                 options={tipoPagoOptionsRed}
                 {...tipoPagoSelectProps}

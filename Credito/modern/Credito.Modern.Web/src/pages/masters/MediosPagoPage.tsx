@@ -30,7 +30,11 @@ import { useAuth } from '../../auth/useAuth'
 import { CredixCrudPage, CredixDataTable, CredixModal } from '../../components/credix'
 import { QrEmvDisplay } from '../../components/caja/QrEmvDisplay'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
-import { esMarcaTipoPagoCatalogo } from '../../utils/tipoPago'
+import {
+  esMarcaTipoPagoCatalogo,
+  esTipoPagoBovedaCanonico,
+  medioNombrePorItemId,
+} from '../../utils/tipoPago'
 import { useEsCentral } from '../../hooks/useEsCentral'
 import '../../styles/medios-pago.css'
 
@@ -239,7 +243,7 @@ function MedioFormFields({
       </div>
 
       <div className="medios-pago-form__section">
-        <p className="medios-pago-form__section-title">Ledger / bóveda</p>
+        <p className="medios-pago-form__section-title">Cuenta de bóveda (ledger)</p>
         <Form.Item name="familiaCodigo" label="Familia (rollup)">
           <Select
             allowClear
@@ -251,12 +255,34 @@ function MedioFormFields({
           />
         </Form.Item>
 
-        {!editing ? (
+        {editing ? (
+          <>
+            <Form.Item label="TipoPagoId (bóveda)">
+              <Input
+                disabled
+                value={`${editing.tipoPagoId} — ${medioNombrePorItemId(editing.tipoPagoId) ?? editing.nombre}`}
+                size={isMobile ? 'large' : 'middle'}
+              />
+            </Form.Item>
+            <Form.Item name="tipoPagoId" hidden>
+              <InputNumber />
+            </Form.Item>
+            {esTipoPagoBovedaCanonico(editing.tipoPagoId) ? (
+              <p className="medios-pago-form__section-title" style={{ marginTop: 4, textTransform: 'none', letterSpacing: 0, fontWeight: 500 }}>
+                Cuenta canónica de bóveda: configure celular, CCI o QR. El saldo sigue tipándose con este TipoPagoId.
+              </p>
+            ) : null}
+          </>
+        ) : (
           <>
             <Form.Item
               name="crearTipoPagoCatalogo"
               valuePropName="checked"
-              extra="Crea un ItemId nuevo en ValorTabla (13) ligado a este medio."
+              extra={
+                tiposDisponibles.length === 0
+                  ? 'Las cuentas de bóveda (Yape, Interbank, BCP…) ya están en la lista. Use Editar o cree una Variante.'
+                  : 'Solo si necesita un medio extra (variante). Las cuentas de bóveda ya existen: edítelas en la grilla.'
+              }
             >
               <Checkbox>Crear tipo de pago nuevo en catálogo</Checkbox>
             </Form.Item>
@@ -268,16 +294,21 @@ function MedioFormFields({
                 form.getFieldValue('crearTipoPagoCatalogo') ? null : (
                   <Form.Item
                     name="tipoPagoId"
-                    label="Tipo de pago existente"
-                    rules={[{ required: true, message: 'Elija un tipo libre o cree uno nuevo' }]}
+                    label="Cuenta de bóveda aún sin configurar"
+                    rules={
+                      tiposDisponibles.length
+                        ? [{ required: true, message: 'Elija una cuenta libre o cree una variante' }]
+                        : []
+                    }
                   >
                     <Select
                       options={tiposDisponibles}
                       size={isMobile ? 'large' : 'middle'}
+                      disabled={tiposDisponibles.length === 0}
                       placeholder={
                         tiposDisponibles.length
-                          ? 'Tipos aún no usados en esta sucursal'
-                          : 'No hay tipos libres — active crear catálogo'
+                          ? 'Cuentas de bóveda pendientes en esta sucursal'
+                          : 'Ninguna pendiente — edite la lista o cree variante'
                       }
                       showSearch
                       optionFilterProp="label"
@@ -287,10 +318,6 @@ function MedioFormFields({
               }
             </Form.Item>
           </>
-        ) : (
-          <Form.Item name="tipoPagoId" hidden>
-            <InputNumber />
-          </Form.Item>
         )}
 
         <Form.Item name="parentOficinaMedioPagoId" hidden>
@@ -381,6 +408,9 @@ export function MediosPagoPage() {
       closeEditor()
       void queryClient.invalidateQueries({ queryKey: ['oficina-medios-pago'] })
       void queryClient.invalidateQueries({ queryKey: ['valores-tabla', 13] })
+      void queryClient.invalidateQueries({ queryKey: ['boveda'] })
+      void queryClient.invalidateQueries({ queryKey: ['boveda-medios-red'] })
+      void queryClient.invalidateQueries({ queryKey: ['resumen-cuenta-boveda'] })
     },
     onError: (e: unknown) => {
       message.error(e instanceof ApiError ? e.message : 'Error al guardar')
@@ -393,6 +423,9 @@ export function MediosPagoPage() {
     onSuccess: () => {
       message.success('Estado actualizado')
       void queryClient.invalidateQueries({ queryKey: ['oficina-medios-pago'] })
+      void queryClient.invalidateQueries({ queryKey: ['boveda'] })
+      void queryClient.invalidateQueries({ queryKey: ['boveda-medios-red'] })
+      void queryClient.invalidateQueries({ queryKey: ['resumen-cuenta-boveda'] })
     },
     onError: (e: unknown) => {
       message.error(e instanceof ApiError ? e.message : 'Error al cambiar estado')
@@ -492,16 +525,25 @@ export function MediosPagoPage() {
 
   const columns: ColumnsType<OficinaMedioPago> = [
     {
-      title: 'Medio',
+      title: 'Cuenta / medio',
       dataIndex: 'nombre',
       render: (v, row) => (
         <div className="medios-pago-row-title">
           <span className="medios-pago-row-title__name">
+            {esTipoPagoBovedaCanonico(row.tipoPagoId) ? (
+              <Tag color="blue" style={{ marginRight: 6 }}>
+                Bóveda
+              </Tag>
+            ) : null}
             {row.parentOficinaMedioPagoId ? <Tag style={{ marginRight: 6 }}>Variante</Tag> : null}
             {v}
           </span>
           <span className="medios-pago-row-title__meta">
-            Tipo {row.tipoPagoId} · {row.marcaCodigo}
+            Tipo {row.tipoPagoId}
+            {medioNombrePorItemId(row.tipoPagoId)
+              ? ` · ${medioNombrePorItemId(row.tipoPagoId)}`
+              : ''}{' '}
+            · {row.marcaCodigo}
             {row.telefono ? ` · ${row.telefono}` : ''}
           </span>
         </div>
@@ -582,7 +624,7 @@ export function MediosPagoPage() {
   return (
     <CredixCrudPage
       title="Medios de pago"
-      subtitle="Configuración por sucursal: celular, cuenta/CCI y QR EMV oficial (BCRP)."
+      subtitle="Son las mismas cuentas de bóveda (Efectivo, Yape, Interbank, BCP…). Aquí configura celular, CCI y QR por sucursal; el saldo sigue en Tesorería."
       stats={stats}
       breadcrumb={[
         { title: <Link to="/inicio">Inicio</Link> },
@@ -620,7 +662,7 @@ export function MediosPagoPage() {
             size={isMobile ? 'large' : 'middle'}
             block={isMobile}
           >
-            Nuevo medio
+            Variante / extra
           </Button>
         </Space>
       }
@@ -665,7 +707,10 @@ export function MediosPagoPage() {
           pageSize: isMobile ? 10 : 20,
           showTotal: (total) => `${total} medio(s)`,
         }}
-        locale={{ emptyText: 'No hay medios configurados para esta sucursal' }}
+        locale={{
+          emptyText:
+            'Sin medios. Al abrir esta página el sistema siembra las cuentas de bóveda; pulse Actualizar o revise la oficina de sesión.',
+        }}
       />
     </CredixCrudPage>
   )

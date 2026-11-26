@@ -29,12 +29,11 @@ import {
   fetchCreditosGestorDesembolsados,
   type CreditoGestorPendienteRow,
 } from '../../api/cajaDiario'
-import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { CredixDataTable, CredixPage, CredixPanel } from '../../components/credix'
-import { buildTipoPagoOptions } from '../tesoreria/components/TipoPagoBrand'
 import { useEsCentral } from '../../hooks/useEsCentral'
+import { useMediosPagoOperativos } from '../../hooks/useMediosPagoOperativos'
 import { formatMoney } from '../../utils/formatMoney'
 import { moneyEquals, roundMoney, sumMoney } from '../../utils/money'
 import { esTipoPagoDigital } from '../../utils/tipoPago'
@@ -362,20 +361,9 @@ export function CobroBloquePage() {
   const carteraRows = carteraQuery.data?.rows
   carteraRowsRef.current = carteraRows ?? []
 
-  const tiposPagoQuery = useQuery({
-    queryKey: ['valores-tabla', 13],
-    queryFn: () => fetchValoresTabla(13),
-    staleTime: 5 * 60_000,
+  const { options: tipoPagoOptions } = useMediosPagoOperativos(oficinaId, {
+    esCentral,
   })
-
-  const tipoPagoOptions = useMemo(
-    () =>
-      buildTipoPagoOptions(tiposPagoQuery.data ?? [], {
-        esCentral,
-        oficinaId,
-      }),
-    [tiposPagoQuery.data, esCentral, oficinaId],
-  )
 
   // Recuperar borrador al abrir sesión de caja (solo una vez).
   useEffect(() => {

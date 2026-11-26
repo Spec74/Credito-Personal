@@ -13,9 +13,8 @@ import {
   entradaSalidaCajaDiario,
   fetchTipoOperaciones,
 } from '../../../api/cajaDiario'
-import { fetchValoresTabla } from '../../../api/maestros'
-import { buildTipoPagoOptions } from '../../tesoreria/components/TipoPagoBrand'
 import { useEsCentral } from '../../../hooks/useEsCentral'
+import { useMediosPagoOperativos } from '../../../hooks/useMediosPagoOperativos'
 import { ClienteBuscarAutoComplete } from '../../../components/caja/ClienteBuscarAutoComplete'
 import { CajaModal } from '../../../components/caja/CajaModal'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
@@ -50,22 +49,11 @@ export function EntradaSalidaTab({
     queryKey: ['tipo-operaciones'],
     queryFn: fetchTipoOperaciones,
   })
-  const tiposPagoQuery = useQuery({
-    queryKey: ['valores-tabla', 13],
-    queryFn: () => fetchValoresTabla(13),
-    staleTime: 5 * 60_000,
-  })
-
+  const { options: tipoPagoOptionsRaw, isLoading: mediosLoading } =
+    useMediosPagoOperativos(ctx.oficinaId, { esCentral })
   const tipoPagoOptions = useMemo(
-    () =>
-      buildTipoPagoOptions(tiposPagoQuery.data ?? [], {
-        esCentral,
-        oficinaId: ctx.oficinaId,
-      }).map((t) => ({
-        value: t.value,
-        label: t.label,
-      })),
-    [tiposPagoQuery.data, esCentral, ctx.oficinaId],
+    () => tipoPagoOptionsRaw.map((t) => ({ value: t.value, label: t.label })),
+    [tipoPagoOptionsRaw],
   )
 
   const tiposCaja = (tiposQuery.data ?? []).filter((t) => t.indCajaDiario)
@@ -178,7 +166,7 @@ export function EntradaSalidaTab({
             rules={[{ required: true }]}
           >
             <Select
-              loading={tiposPagoQuery.isLoading}
+              loading={mediosLoading}
               options={tipoPagoOptions}
               showSearch
               optionFilterProp="label"

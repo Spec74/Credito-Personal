@@ -2,6 +2,7 @@ using System.Data.Common;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Api.Validation;
 using Credito.Modern.Application.CreditoPlanes;
+using Credito.Modern.Application.MediosPago;
 using Credito.Modern.Application.Oficinas;
 using Credito.Modern.Application.Validation;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -19,6 +20,7 @@ internal static class BovedaTransferenciaBancosEndpoints
                     TransferirBovedaBancosRequest body,
                     IBovedaMovWriteService bovedaMovWrite,
                     IOficinaReadService oficinas,
+                    IOficinaMedioPagoService mediosPago,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -49,7 +51,21 @@ internal static class BovedaTransferenciaBancosEndpoints
                         TipoPagoRules.RequireParCobroPermitido(
                             body.TipoPagoOrigenId,
                             body.TipoPagoDestinoId,
-                            sesionTipo!.EsCentral));
+                            sesionTipo!.EsCentral)
+                        ?? await mediosPago
+                            .ValidateMedioActivoAsync(
+                                body.OficinaId,
+                                body.TipoPagoOrigenId,
+                                ct,
+                                "tipoPagoOrigenId")
+                            .ConfigureAwait(false)
+                        ?? await mediosPago
+                            .ValidateMedioActivoAsync(
+                                body.OficinaId,
+                                body.TipoPagoDestinoId,
+                                ct,
+                                "tipoPagoDestinoId")
+                            .ConfigureAwait(false));
                     if (tipoPagoError is not null)
                         return tipoPagoError;
 

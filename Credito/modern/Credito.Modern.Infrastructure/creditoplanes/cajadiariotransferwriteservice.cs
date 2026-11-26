@@ -80,6 +80,20 @@ public sealed class CajaDiarioTransferWriteService(IOptions<SqlDatabaseOptions> 
                 return (tipoErr, false);
             }
 
+            var medioOficinaErr = await TipoPagoOficinaSql
+                .RequireMedioActivoEnOficinaAsync(
+                    connection,
+                    oficinaId,
+                    tipoPagoId,
+                    cancellationToken,
+                    transaction)
+                .ConfigureAwait(false);
+            if (medioOficinaErr is not null)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return (medioOficinaErr, false);
+            }
+
             var saldoMedio = await ObtenerSaldoMedioCajaDiarioAsync(
                 connection,
                 transaction,

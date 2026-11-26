@@ -84,6 +84,9 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
         var esCentral = await TipoPagoOficinaSql
             .EsCentralPorCajaDiarioAsync(connection, cajaDiarioId, cancellationToken)
             .ConfigureAwait(false);
+        var oficinaId = await TipoPagoOficinaSql
+            .OficinaIdPorCajaDiarioAsync(connection, cajaDiarioId, cancellationToken)
+            .ConfigureAwait(false) ?? 0;
 
         var normalizados = new List<PagoMedioLineaDto>(medios.Count);
         decimal total = 0m;
@@ -105,6 +108,19 @@ public sealed class CajaPagoWriteService(IOptions<SqlDatabaseOptions> options) :
             if (tipoErr is not null)
             {
                 throw new ArgumentException(tipoErr, nameof(medios));
+            }
+
+            var medioOficinaErr = await TipoPagoOficinaSql
+                .RequireMedioActivoEnOficinaAsync(
+                    connection,
+                    oficinaId,
+                    linea.TipoPagoId,
+                    cancellationToken,
+                    fieldName: $"medios[{i}].tipoPagoId")
+                .ConfigureAwait(false);
+            if (medioOficinaErr is not null)
+            {
+                throw new ArgumentException(medioOficinaErr, nameof(medios));
             }
 
             var fechaErr = TipoPagoRules.RequireDigitalFecha(

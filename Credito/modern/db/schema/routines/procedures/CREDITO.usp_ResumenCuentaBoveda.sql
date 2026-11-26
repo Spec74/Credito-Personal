@@ -4,6 +4,7 @@ CREATE OR ALTER PROC [CREDITO].[usp_ResumenCuentaBoveda]
 AS
 
 DECLARE @SaldoInicial DECIMAL(15,2) = (SELECT SaldoInicial FROM CREDITO.Boveda WHERE BovedaId=@BovedaId)
+DECLARE @OficinaId INT = (SELECT OficinaId FROM CREDITO.Boveda WHERE BovedaId=@BovedaId)
 
 IF @SaldoInicial > 0
 BEGIN
@@ -23,17 +24,18 @@ END
 ),
 SALDOS AS (
 	SELECT
-		vt.ItemId AS TipoPagoId,
-		vt.Denominacion,
+		omp.TipoPagoId,
+		COALESCE(NULLIF(LTRIM(RTRIM(omp.Nombre)), N''), vt.Denominacion) AS Denominacion,
 		CAST(ISNULL(BC.SaldoInicial, 0) + ISNULL(c.Importe, 0) AS DECIMAL(16, 2)) AS Saldo
-	FROM MAESTRO.ValorTabla vt
-	LEFT JOIN CUENTAS C ON vt.ItemId = c.TipoPagoId
+	FROM CREDITO.OficinaMedioPago AS omp
+	INNER JOIN MAESTRO.ValorTabla AS vt
+		ON vt.TablaId = 13 AND vt.ItemId = omp.TipoPagoId
+	LEFT JOIN CUENTAS C ON omp.TipoPagoId = c.TipoPagoId
 	LEFT JOIN CREDITO.BovedaCuenta BC
-		ON BC.BovedaId = @BovedaId AND BC.TipoPagoId = vt.ItemId
-	WHERE vt.TablaId = 13
-	  AND vt.ItemId > 0
-	  AND vt.ItemId NOT BETWEEN 6 AND 8
-	  AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
+		ON BC.BovedaId = @BovedaId AND BC.TipoPagoId = omp.TipoPagoId
+	WHERE omp.OficinaId = @OficinaId
+	  AND omp.Activo = 1
+	  AND omp.TipoPagoId > 0
 )
 SELECT COALESCE((
 	SELECT

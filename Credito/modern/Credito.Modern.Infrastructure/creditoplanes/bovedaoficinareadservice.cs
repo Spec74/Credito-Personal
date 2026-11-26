@@ -389,7 +389,9 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                         COALESCE(o.Denominacion, CONCAT('Oficina ', o.OficinaId)) AS Oficina,
                         CAST(o.IndPrincipal AS bit) AS IndPrincipal,
                         b.BovedaId,
-                        vt.ItemId AS TipoPagoId,
+                        omp.TipoPagoId,
+                        COALESCE(NULLIF(LTRIM(RTRIM(omp.Nombre)), N''), vt.Denominacion) AS MedioNombre,
+                        omp.MarcaCodigo,
                         /* SI por cuenta; si no hay BovedaCuenta, el SI de cabecera va a efectivo (paridad cuadre). */
                         CAST(ROUND(
                             CASE
@@ -397,7 +399,7 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                                 WHEN NOT EXISTS (
                                         SELECT 1 FROM CREDITO.BovedaCuenta AS x
                                         WHERE x.BovedaId = b.BovedaId)
-                                     AND vt.ItemId = 1
+                                     AND omp.TipoPagoId = 1
                                     THEN ISNULL(b.SaldoInicialCab, 0)
                                 ELSE ISNULL(bc.SaldoInicial, 0)
                             END
@@ -412,18 +414,21 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                           AND bv.IndTemporal = CAST(0 AS bit)
                         ORDER BY bv.BovedaId DESC
                     ) AS b
+                    INNER JOIN CREDITO.OficinaMedioPago AS omp
+                        ON omp.OficinaId = o.OficinaId
+                       AND omp.Activo = 1
+                       AND omp.TipoPagoId > 0
+                       AND omp.ParentOficinaMedioPagoId IS NULL
                     INNER JOIN MAESTRO.ValorTabla AS vt
                         ON vt.TablaId = 13
-                       AND vt.ItemId > 0
-                       AND vt.ItemId NOT BETWEEN 6 AND 8
-                       AND ISNULL(vt.DesCorta, N'') <> N'OBSOLETO'
+                       AND vt.ItemId = omp.TipoPagoId
                     LEFT JOIN CREDITO.BovedaCuenta AS bc
-                        ON bc.BovedaId = b.BovedaId AND bc.TipoPagoId = vt.ItemId
+                        ON bc.BovedaId = b.BovedaId AND bc.TipoPagoId = omp.TipoPagoId
                     LEFT JOIN Movs AS m
-                        ON m.OficinaId = o.OficinaId AND m.TipoPagoId = vt.ItemId
+                        ON m.OficinaId = o.OficinaId AND m.TipoPagoId = omp.TipoPagoId
                     WHERE o.Estado = CAST(1 AS bit)
                        OR o.OficinaId = @OficinaId
-                    ORDER BY vt.ItemId, o.IndPrincipal DESC, o.Denominacion;
+                    ORDER BY omp.Orden, omp.TipoPagoId, o.IndPrincipal DESC, o.Denominacion;
                     """,
                     new { OficinaId = oficinaId },
                     cancellationToken: cancellationToken))
@@ -492,7 +497,8 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         var result = new List<BovedaMedioMarcaDto>(catalogo.Length);
         foreach (var (id, marca, variant, familia) in catalogo)
         {
-            if (TipoPagoRules.IsCentralWallet(id) && !idsEnCatalogo.Contains(id))
+            // Solo medios activos en alguna oficina de la red (OficinaMedioPago).
+            if (!idsEnCatalogo.Contains(id) && !familia.Any(idsEnCatalogo.Contains))
             {
                 continue;
             }
@@ -549,6 +555,44 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
             result.Add(new BovedaMedioMarcaDto(id, marca, variant, total, sedes));
         }
 
+        // Medios custom / variantes de oficina no cubiertos por el catálogo canónico.
+        var cubiertos = catalogo.SelectMany(c => c.Familia).ToHashSet();
+        foreach (var extraId in idsEnCatalogo.Where(id => !cubiertos.Contains(id)).OrderBy(id => id))
+        {
+            var propias = filas.Where(f => f.TipoPagoId == extraId).ToList();
+            if (!sesion.IndPrincipal)
+            {
+                propias = propias.Where(f => f.OficinaId == sesion.OficinaId).ToList();
+            }
+
+            var nombre =
+                propias.Select(p => p.MedioNombre).FirstOrDefault(n => !string.IsNullOrWhiteSpace(n))
+                ?? $"Tipo {extraId}";
+            var variant = propias.Select(p => p.MarcaCodigo).FirstOrDefault(m => !string.IsNullOrWhiteSpace(m))
+                ?? "otro";
+
+            var sedes = propias
+                .Where(f => f.BovedaId is > 0 && (sesion.IndPrincipal || f.OficinaId == sesion.OficinaId))
+                .GroupBy(f => f.OficinaId)
+                .Select(g =>
+                {
+                    var first = g.First();
+                    return new BovedaMedioSedeDto(
+                        first.OficinaId,
+                        first.Oficina,
+                        first.IndPrincipal,
+                        first.BovedaId,
+                        decimal.Round(g.Sum(x => x.Monto), 2, MidpointRounding.AwayFromZero));
+                })
+                .ToList();
+
+            var total = decimal.Round(
+                sesion.IndPrincipal ? sedes.Sum(s => s.Monto) : propias.Sum(p => p.Monto),
+                2,
+                MidpointRounding.AwayFromZero);
+            result.Add(new BovedaMedioMarcaDto(extraId, nombre, variant, total, sedes));
+        }
+
         return result;
     }
 
@@ -566,6 +610,8 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
         public bool IndPrincipal { get; init; }
         public int? BovedaId { get; init; }
         public short TipoPagoId { get; init; }
+        public string? MedioNombre { get; init; }
+        public string? MarcaCodigo { get; init; }
         public decimal Monto { get; init; }
     }
 

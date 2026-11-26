@@ -57,14 +57,34 @@ public sealed class TesseractCliOcrEngine(ILogger<TesseractCliOcrEngine> logger)
             using var proc = Process.Start(psi)
                 ?? throw new InvalidOperationException("No se pudo iniciar tesseract.");
 
-            var stderrTask = proc.StandardError.ReadToEndAsync(cancellationToken);
-            await proc.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-            var stderr = await stderrTask.ConfigureAwait(false);
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(25));
 
-            if (proc.ExitCode != 0)
+            try
             {
-                logger.LogWarning("tesseract exit {Code}: {Err}", proc.ExitCode, stderr);
-                throw new InvalidOperationException("No se pudo leer la captura con OCR.");
+                var stderrTask = proc.StandardError.ReadToEndAsync(timeoutCts.Token);
+                await proc.WaitForExitAsync(timeoutCts.Token).ConfigureAwait(false);
+                var stderr = await stderrTask.ConfigureAwait(false);
+
+                if (proc.ExitCode != 0)
+                {
+                    logger.LogWarning("tesseract exit {Code}: {Err}", proc.ExitCode, stderr);
+                    throw new InvalidOperationException("No se pudo leer la captura con OCR.");
+                }
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    if (!proc.HasExited) proc.Kill(entireProcessTree: true);
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                throw new InvalidOperationException(
+                    "OCR tardó demasiado. Use una foto más liviana o tipifique la hora manualmente.");
             }
 
             var txtPath = outBase + ".txt";

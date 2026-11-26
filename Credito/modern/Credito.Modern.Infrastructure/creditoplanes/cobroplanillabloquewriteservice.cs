@@ -54,6 +54,9 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
         var esCentral = await TipoPagoOficinaSql
             .EsCentralPorCajaDiarioAsync(connection, cajaDiarioId, cancellationToken)
             .ConfigureAwait(false);
+        var oficinaId = await TipoPagoOficinaSql
+            .OficinaIdPorCajaDiarioAsync(connection, cajaDiarioId, cancellationToken)
+            .ConfigureAwait(false) ?? 0;
 
         var items = new List<PagoPlanillaItemDto>();
         foreach (var raw in planilla)
@@ -81,6 +84,23 @@ public sealed class CobroPlanillaBloqueWriteService(IOptions<SqlDatabaseOptions>
                 return new CobrarPlanillaBloqueResponse(
                     false,
                     $"Crédito {raw.CreditoId}: {tipoErr}",
+                    0,
+                    0,
+                    SinTickets);
+            }
+
+            var medioOficinaErr = await TipoPagoOficinaSql
+                .RequireMedioActivoEnOficinaAsync(
+                    connection,
+                    oficinaId,
+                    raw.TipoPagoId,
+                    cancellationToken)
+                .ConfigureAwait(false);
+            if (medioOficinaErr is not null)
+            {
+                return new CobrarPlanillaBloqueResponse(
+                    false,
+                    $"Crédito {raw.CreditoId}: {medioOficinaErr}",
                     0,
                     0,
                     SinTickets);

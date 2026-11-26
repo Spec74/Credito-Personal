@@ -7,15 +7,14 @@ import {
   fetchBovedasDestinoTransferencia,
   transferirBoveda,
 } from '../../api/boveda'
-import { fetchValoresTabla } from '../../api/maestros'
 import { ApiError } from '../../api/errors'
 import { useAuth } from '../../auth/useAuth'
 import { useEsCentral } from '../../hooks/useEsCentral'
+import { useMediosPagoOperativos } from '../../hooks/useMediosPagoOperativos'
 import { CredixPage, CredixDataTable, confirmMoney } from '../../components/credix'
 import { formatMoney } from '../../utils/formatMoney'
 import { resolverBovedaDestinoPorSede } from '../../utils/sucursalRed'
 import {
-  buildTipoPagoOptions,
   tipoPagoOptionRender,
   tipoPagoPopupRender,
 } from './components/TipoPagoBrand'
@@ -43,16 +42,11 @@ export function FondearSucursalesPage() {
     retry: false,
   })
 
-  const tiposPago = useQuery({
-    queryKey: ['valores-tabla', 13],
-    queryFn: () => fetchValoresTabla(13),
-    enabled: oficinaId > 0,
-    staleTime: 5 * 60_000,
-  })
-  const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPago.data ?? [], { esCentral, oficinaId }),
-    [tiposPago.data, esCentral, oficinaId],
-  )
+  const { options: tipoPagoOptions, isLoading: mediosLoading } =
+    useMediosPagoOperativos(oficinaId, {
+      esCentral,
+      enabled: oficinaId > 0,
+    })
 
   const filas = useMemo(() => destinos.data ?? [], [destinos.data])
 
@@ -169,7 +163,7 @@ export function FondearSucursalesPage() {
           id="fondeo-medio"
           style={{ width: '100%', marginTop: 4 }}
           value={tipoPagoId}
-          loading={tiposPago.isLoading}
+          loading={mediosLoading}
           options={tipoPagoOptions}
           optionFilterProp="label"
           showSearch

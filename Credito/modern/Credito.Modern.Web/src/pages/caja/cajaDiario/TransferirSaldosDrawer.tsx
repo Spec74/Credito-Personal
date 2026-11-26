@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   Alert,
@@ -15,12 +15,11 @@ import {
   fetchSaldoCuentaCajaDiario,
   transferirSaldosCajaDiario,
 } from '../../../api/cajaDiario'
-import { fetchValoresTabla } from '../../../api/maestros'
 import { CajaDrawer } from '../../../components/caja/CajaDrawer'
 import { useEsCentral } from '../../../hooks/useEsCentral'
+import { useMediosPagoOperativos } from '../../../hooks/useMediosPagoOperativos'
 import { formatMoney } from '../../../utils/formatMoney'
 import {
-  buildTipoPagoOptions,
   tipoPagoOptionRender,
   tipoPagoPopupRender,
 } from '../../tesoreria/components/TipoPagoBrand'
@@ -53,21 +52,10 @@ export function TransferirSaldosDrawer({
   const { esCentral } = useEsCentral()
   const tipoPagoId = Form.useWatch('tipoPagoId', form) as number | undefined
 
-  const tiposPagoQuery = useQuery({
-    queryKey: ['valores-tabla', 13],
-    queryFn: () => fetchValoresTabla(13),
+  const { options: tipoPagoOptions } = useMediosPagoOperativos(ctx.oficinaId, {
+    esCentral,
     enabled: open,
-    staleTime: 5 * 60_000,
   })
-
-  const tipoPagoOptions = useMemo(
-    () =>
-      buildTipoPagoOptions(tiposPagoQuery.data ?? [], {
-        esCentral,
-        oficinaId: ctx.oficinaId,
-      }),
-    [tiposPagoQuery.data, esCentral, ctx.oficinaId],
-  )
 
   const medioId = tipoPagoId && tipoPagoId > 0 ? tipoPagoId : 1
 

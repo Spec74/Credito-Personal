@@ -1,6 +1,7 @@
 using System.Data.Common;
 using Credito.Modern.Api.Auth;
 using Credito.Modern.Application.MediosPago;
+using Credito.Modern.Application.Oficinas;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Credito.Modern.Api.MediosPago;
@@ -17,6 +18,7 @@ internal static class OficinaMedioPagoEndpoints
                     bool? soloRaices,
                     HttpContext httpContext,
                     IOficinaMedioPagoService service,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     CancellationToken ct) =>
                 {
@@ -28,10 +30,23 @@ internal static class OficinaMedioPagoEndpoints
                             detail: "oficinaId debe ser >= 1.");
                     }
 
+                    // Lectura propia: JWT = oficinaId.
+                    // Lectura Central (IndPrincipal): permitida a cualquier sucursal autenticada
+                    // (solo activos) para armar remesa/fondeo sin exponer CRUD ajeno.
                     var oficinaError = CajaCreditoWriteGuards.ValidateJwtOficina(httpContext, oficinaId);
+                    var esLecturaCentralRemota = false;
                     if (oficinaError is not null)
                     {
-                        return oficinaError;
+                        var activas = await oficinas.GetActivasAsync(ct).ConfigureAwait(false);
+                        var target = activas.FirstOrDefault(o => o.OficinaId == oficinaId);
+                        if (target?.IndPrincipal == true && incluirInactivos != true)
+                        {
+                            esLecturaCentralRemota = true;
+                        }
+                        else
+                        {
+                            return oficinaError;
+                        }
                     }
 
                     try
@@ -39,7 +54,7 @@ internal static class OficinaMedioPagoEndpoints
                         var items = await service
                             .ListByOficinaAsync(
                                 oficinaId,
-                                incluirInactivos == true,
+                                incluirInactivos == true && !esLecturaCentralRemota,
                                 soloRaices != false,
                                 ct)
                             .ConfigureAwait(false);

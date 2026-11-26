@@ -258,6 +258,7 @@ public static class DependencyInjection
         services.AddScoped<IVerificarPagoTransferenciaWriteService, VerificarPagoTransferenciaWriteService>();
         services.AddSingleton<IOcrEngine, TesseractCliOcrEngine>();
         services.AddScoped<IMediosDigitalesConciliacionService, MediosDigitalesConciliacionService>();
+        services.AddScoped<IVoucherValidacionService, VoucherValidacionService>();
         services.AddScoped<ICajaDiarioSesionReadService, CajaDiarioSesionReadService>();
         services.AddScoped<IClienteBuscarReadService, ClienteBuscarReadService>();
         services.AddScoped<IClienteListadoReadService, ClienteListadoReadService>();

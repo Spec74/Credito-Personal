@@ -3,7 +3,12 @@ import { useQuery } from '@tanstack/react-query'
 import { Alert, Grid, Typography } from 'antd'
 import { fetchOficinaMediosPago, type OficinaMedioPago } from '../../api/mediosPago'
 import { useAuth } from '../../auth/useAuth'
+import { formatMoney } from '../../utils/formatMoney'
 import { QrEmvDisplay } from './QrEmvDisplay'
+import {
+  VoucherValidarCaptura,
+  type VoucherValidadoPayload,
+} from './VoucherValidarCaptura'
 import '../../styles/medios-pago.css'
 
 function flattenMedios(items: OficinaMedioPago[]): OficinaMedioPago[] {
@@ -20,10 +25,17 @@ function flattenMedios(items: OficinaMedioPago[]): OficinaMedioPago[] {
 /** Instrucciones de cobro digital según configuración de la oficina (PC + móvil). */
 export function CobroMedioInstrucciones({
   tipoPagoId,
+  monto,
   montoLabel,
+  onVoucherValidated,
 }: {
   tipoPagoId: number
+  /** Monto PEN a incrustar en el QR dinámico (tag 54). */
+  monto?: number | null
+  /** Etiqueta opcional; si no hay, se arma desde `monto`. */
   montoLabel?: string
+  /** Tras OCR exitoso: rellenar fecha/hora del voucher en el cobro. */
+  onVoucherValidated?: (data: VoucherValidadoPayload) => void
 }) {
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
@@ -31,16 +43,22 @@ export function CobroMedioInstrucciones({
   const isMobile = screens.md !== true
 
   const mediosQuery = useQuery({
-    queryKey: ['oficina-medios-pago', oficinaId],
+    queryKey: ['oficina-medios-pago', oficinaId, { soloRaices: true }],
     queryFn: () => fetchOficinaMediosPago(oficinaId, { soloRaices: true }),
     enabled: oficinaId > 0 && tipoPagoId > 1,
-    staleTime: 60_000,
+    staleTime: 30_000,
   })
 
   const medio = useMemo(() => {
     const all = flattenMedios(mediosQuery.data ?? [])
     return all.find((m) => m.activo && m.tipoPagoId === tipoPagoId) ?? null
   }, [mediosQuery.data, tipoPagoId])
+
+  const montoNum =
+    monto != null && Number.isFinite(monto) && monto > 0 ? Number(monto) : null
+  const labelMonto =
+    montoLabel?.trim() ||
+    (montoNum != null ? formatMoney(montoNum) : undefined)
 
   if (tipoPagoId <= 1 || mediosQuery.isLoading) {
     return null
@@ -71,18 +89,42 @@ export function CobroMedioInstrucciones({
       <header className="cobro-medio__head">
         <h3 className="cobro-medio__title">
           Cobrar con {medio.nombre}
-          {montoLabel ? ` · ${montoLabel}` : ''}
+          {labelMonto ? ` · ${labelMonto}` : ''}
         </h3>
-        <p className="cobro-medio__hint">Muestre al cliente · verifique en su app</p>
+        <p className="cobro-medio__hint">
+          {showQr && montoNum != null
+            ? 'Muestre el QR · el cliente debe ver el monto al escanear'
+            : 'Muestre al cliente · verifique en su app'}
+        </p>
       </header>
 
       <div className="cobro-medio__body">
         {showQr ? (
+          montoNum == null ? (
+            <Alert
+              type="warning"
+              showIcon
+              title="Indique el monto del cobro"
+              description="El QR dinámico necesita el importe para que al escanear salga precargado."
+              style={{ marginBottom: 8 }}
+            />
+          ) : null
+        ) : null}
+        {showQr ? (
           <QrEmvDisplay
             payload={medio.qrEmvPayload}
+            amount={montoNum}
             size={isMobile ? 200 : 220}
             compact={isMobile}
             label={medio.qrNota ?? 'Cliente: escanear con Yape, Plin o banca móvil'}
+          />
+        ) : null}
+
+        {medio.esDigital ? (
+          <VoucherValidarCaptura
+            montoEsperado={montoNum}
+            canalEsperado={medio.marcaCodigo || medio.nombre}
+            onValidated={onVoucherValidated}
           />
         ) : null}
 

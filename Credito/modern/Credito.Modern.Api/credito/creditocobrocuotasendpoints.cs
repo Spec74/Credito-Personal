@@ -20,6 +20,7 @@ using Credito.Modern.Application.Documentos;
 using Credito.Modern.Application.Integraciones;
 using Credito.Modern.Application.Inventario;
 using Credito.Modern.Application.ListaPrecios;
+using Credito.Modern.Application.MediosPago;
 using Credito.Modern.Application.Oficinas;
 using Credito.Modern.Application.Prendario;
 using Credito.Modern.Application.Productos;
@@ -434,6 +435,142 @@ internal static class CreditoCobroCuotasEndpoints
             .ProducesProblem(StatusCodes.Status403Forbidden)
             .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
 
+        app.MapPost(
+                "/api/v1/credito/validar-voucher-captura",
+                async Task<Results<Ok<VoucherValidacionResponse>, ProblemHttpResult>> (
+                    HttpContext httpContext,
+                    HttpRequest httpRequest,
+                    IVoucherValidacionService voucherValidacion,
+                    ILoggerFactory loggerFactory,
+                    CancellationToken ct) =>
+                {
+                    if (!httpRequest.HasFormContentType)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Solicitud inválida",
+                            detail: "Se espera multipart/form-data con la foto de la constancia.");
+                    }
+
+                    var form = await httpRequest.ReadFormAsync(ct).ConfigureAwait(false);
+                    if (!MenuIdentity.TryGetOficinaIdFromJwt(httpContext.User, out var jwtOficinaId))
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status403Forbidden,
+                            title: "Prohibido",
+                            detail: "El token no contiene una oficina válida.");
+                    }
+
+                    var oficinaRaw = form["oficinaId"].ToString();
+                    if (!int.TryParse(oficinaRaw, out var oficinaId) || oficinaId < 1)
+                    {
+                        oficinaId = jwtOficinaId;
+                    }
+
+                    if (oficinaId != jwtOficinaId)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status403Forbidden,
+                            title: "Prohibido",
+                            detail: "oficinaId debe coincidir con el JWT.");
+                    }
+
+                    decimal? montoEsperado = null;
+                    var montoRaw = form["montoEsperado"].ToString();
+                    if (!string.IsNullOrWhiteSpace(montoRaw) &&
+                        decimal.TryParse(
+                            montoRaw.Replace(',', '.'),
+                            System.Globalization.NumberStyles.Number,
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            out var montoParsed) &&
+                        montoParsed > 0)
+                    {
+                        montoEsperado = decimal.Round(montoParsed, 2, MidpointRounding.AwayFromZero);
+                    }
+
+                    var file = form.Files.FirstOrDefault(f => f.Length > 0);
+                    if (file is null)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Captura requerida",
+                            detail: "Tome una foto o suba la constancia (jpg/png/webp).");
+                    }
+
+                    if (file.Length > 8 * 1024 * 1024)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Archivo demasiado grande",
+                            detail: "La captura no debe superar 8 MB.");
+                    }
+
+                    var contentType = (file.ContentType ?? "").ToLowerInvariant();
+                    var ext = Path.GetExtension(file.FileName ?? "").ToLowerInvariant();
+                    var mimeOk =
+                        contentType is "" or "application/octet-stream" ||
+                        contentType.StartsWith("image/", StringComparison.Ordinal);
+                    var extOk = ext is "" or ".jpg" or ".jpeg" or ".png" or ".webp" or ".jfif" or ".heic";
+                    if (!mimeOk || !extOk)
+                    {
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Formato no soportado",
+                            detail: "Use foto JPG, PNG o WEBP de la constancia.");
+                    }
+
+                    var canalEsperado = form["canalEsperado"].ToString();
+                    if (string.IsNullOrWhiteSpace(canalEsperado))
+                    {
+                        canalEsperado = form["marcaCodigo"].ToString();
+                    }
+
+                    var log = loggerFactory.CreateLogger("ValidarVoucherCaptura");
+                    try
+                    {
+                        await using var stream = file.OpenReadStream();
+                        var result = await voucherValidacion
+                            .ValidarCapturaAsync(
+                                stream,
+                                file.FileName,
+                                montoEsperado,
+                                string.IsNullOrWhiteSpace(canalEsperado) ? null : canalEsperado.Trim(),
+                                ct)
+                            .ConfigureAwait(false);
+                        return TypedResults.Ok(result);
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "OCR voucher no disponible o rechazado");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status503ServiceUnavailable,
+                            title: "OCR no disponible",
+                            detail: string.IsNullOrWhiteSpace(ex.Message)
+                                ? "No se pudo leer la constancia."
+                                : ex.Message);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.LogError(ex, "Error al validar voucher");
+                        return TypedResults.Problem(
+                            statusCode: StatusCodes.Status500InternalServerError,
+                            title: "Error",
+                            detail: "No se pudo procesar la captura del voucher.");
+                    }
+                })
+            .WithName("CreditoValidarVoucherCaptura")
+            .WithSummary(
+                "Caja: foto de constancia (Yape/Plin/BCP/Interbank/Nación) → OCR → monto, fecha/hora y nro. operación.")
+            .WithTags("credito", "caja")
+            .RequireAuthorization(CreditoAuthorizationPolicies.CreditoRolOperador)
+            .DisableAntiforgery()
+            .Accepts<IFormFile>("multipart/form-data")
+            .Produces<VoucherValidacionResponse>(StatusCodes.Status200OK, "application/json")
+            .ProducesProblem(StatusCodes.Status400BadRequest)
+            .ProducesProblem(StatusCodes.Status401Unauthorized)
+            .ProducesProblem(StatusCodes.Status403Forbidden)
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+
         app.MapGet(
                 "/api/v1/credito/completar-impagos-validacion",
                 async Task<Results<Ok<CompletarImpagosValidacionResponse>, ProblemHttpResult>> (
@@ -659,6 +796,7 @@ internal static class CreditoCobroCuotasEndpoints
                     IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
                     IDatabaseTimeProvider databaseTime,
                     IOficinaReadService oficinas,
+                    IOficinaMedioPagoService mediosPago,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -698,7 +836,10 @@ internal static class CreditoCobroCuotasEndpoints
                         TipoPagoRules.RequireCobroPermitido(body.TipoPagoId, sesionTipo!.EsCentral)
                         ?? TipoPagoRules.RequireDigitalFecha(
                             body.TipoPagoId,
-                            body.FechaPagoTransferencia));
+                            body.FechaPagoTransferencia)
+                        ?? await mediosPago
+                            .ValidateMedioActivoAsync(body.OficinaId, body.TipoPagoId, ct)
+                            .ConfigureAwait(false));
                     if (tipoPagoError is not null)
                         return tipoPagoError;
 
@@ -837,6 +978,7 @@ internal static class CreditoCobroCuotasEndpoints
                     ICreditoOficinaReadService creditoOficina,
                     IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
                     IOficinaReadService oficinas,
+                    IOficinaMedioPagoService mediosPago,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -868,7 +1010,10 @@ internal static class CreditoCobroCuotasEndpoints
                         TipoPagoRules.RequireCobroPermitido(body.TipoPagoId, sesionTipo!.EsCentral)
                         ?? TipoPagoRules.RequireDigitalFecha(
                             body.TipoPagoId,
-                            body.FechaPagoTransferencia));
+                            body.FechaPagoTransferencia)
+                        ?? await mediosPago
+                            .ValidateMedioActivoAsync(body.OficinaId, body.TipoPagoId, ct)
+                            .ConfigureAwait(false));
                     if (tipoPagoError is not null)
                         return tipoPagoError;
 
@@ -1102,6 +1247,8 @@ internal static class CreditoCobroCuotasEndpoints
                     ICajaDiarioOficinaReadService cajaDiarioOficina,
                     ICreditoOficinaReadService creditoOficina,
                     IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
+                    IOficinaMedioPagoService mediosPago,
+                    IOficinaReadService oficinas,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -1122,6 +1269,24 @@ internal static class CreditoCobroCuotasEndpoints
                     {
                         return oficinaError;
                     }
+
+                    var (sesionTipo, sesionTipoErr) = await SesionOficina
+                        .ResolverAsync(httpContext, oficinas, null, ct)
+                        .ConfigureAwait(false);
+                    if (sesionTipoErr is not null)
+                        return sesionTipoErr;
+
+                    var tipoPagoMora = body.TipoPagoId < 1 ? 1 : body.TipoPagoId;
+                    var medioError = ProblemResults.IfInvalid(
+                        TipoPagoRules.RequireCobroPermitido(tipoPagoMora, sesionTipo!.EsCentral)
+                        ?? TipoPagoRules.RequireDigitalFecha(
+                            tipoPagoMora,
+                            body.FechaPagoTransferencia)
+                        ?? await mediosPago
+                            .ValidateMedioActivoAsync(body.OficinaId, tipoPagoMora, ct)
+                            .ConfigureAwait(false));
+                    if (medioError is not null)
+                        return medioError;
 
                     var usuarioError = CajaCreditoWriteGuards.ValidateJwtUsuario(httpContext, out var usuarioId);
                     if (usuarioError is not null)
@@ -1226,6 +1391,7 @@ internal static class CreditoCobroCuotasEndpoints
                     IEntradaSalidaCajaDiarioReadService entradaSalidaRead,
                     IDatabaseTimeProvider databaseTime,
                     IOficinaReadService oficinas,
+                    IOficinaMedioPagoService mediosPago,
                     ILoggerFactory loggerFactory,
                     IHostEnvironment env,
                     CancellationToken ct) =>
@@ -1253,7 +1419,10 @@ internal static class CreditoCobroCuotasEndpoints
                         TipoPagoRules.RequireCobroPermitido(tipoPagoId, sesionTipo!.EsCentral)
                         ?? TipoPagoRules.RequireDigitalFecha(
                             tipoPagoId,
-                            body.FechaPagoTransferencia));
+                            body.FechaPagoTransferencia)
+                        ?? await mediosPago
+                            .ValidateMedioActivoAsync(body.OficinaId, tipoPagoId, ct)
+                            .ConfigureAwait(false));
                     if (tipoPagoError is not null)
                         return tipoPagoError;
 

@@ -7,7 +7,8 @@ namespace Credito.Modern.Infrastructure.CreditoPlanes;
 /// </summary>
 internal static class BovedaCuadreSql
 {
-    internal const decimal Tolerancia = 0.01m;
+    /// <summary>Cuadre al céntimo: cualquier Δ redondeado a 2 decimales ≠ 0 es descuadre.</summary>
+    internal const decimal Tolerancia = 0m;
 
     internal const string SumaMedios = """
         SELECT CAST(ROUND(

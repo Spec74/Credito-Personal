@@ -21,9 +21,16 @@ DECLARE @SaldoInicial DECIMAL(15,2) = ISNULL((
 
 
 ;WITH SALDOINICIAL AS(
-	SELECT ItemId 'TipoPagoId',Denominacion, IIF(ItemId=1,@SaldoInicial,0) 'Importe'
-	FROM MAESTRO.ValorTabla
-	WHERE TablaId=13 AND ItemId>0
+	SELECT
+		omp.TipoPagoId,
+		COALESCE(NULLIF(LTRIM(RTRIM(omp.Nombre)), N''), vt.Denominacion) AS Denominacion,
+		IIF(omp.TipoPagoId = 1, @SaldoInicial, 0) AS Importe
+	FROM CREDITO.OficinaMedioPago AS omp
+	INNER JOIN MAESTRO.ValorTabla AS vt
+		ON vt.TablaId = 13 AND vt.ItemId = omp.TipoPagoId
+	WHERE omp.OficinaId = @OficinaId
+	  AND omp.Activo = 1
+	  AND omp.TipoPagoId > 0
 ),
 CUENTAS AS (
 	SELECT TipoPagoId,SUM(IIF(MC.IndEntrada=1,MC.ImportePago,-MC.ImportePago) ) 'Importe'

@@ -38,6 +38,24 @@ export const CENTRAL_WALLET_IDS: readonly number[] = [
   TIPO_PAGO_INTERBANK_RENE,
 ]
 
+/** ItemIds canónicos de ledger/bóveda (no variantes OFI ni 6–8). */
+export const BOVEDA_TIPO_PAGO_IDS: readonly number[] = [
+  TIPO_PAGO_EFECTIVO,
+  TIPO_PAGO_YAPE,
+  TIPO_PAGO_INTERBANK,
+  TIPO_PAGO_BCP,
+  TIPO_PAGO_NACION,
+  TIPO_PAGO_PLIN,
+  TIPO_PAGO_YAPE_GERENTE,
+  TIPO_PAGO_YAPE_RENE,
+  TIPO_PAGO_INTERBANK_GERENTE,
+  TIPO_PAGO_INTERBANK_RENE,
+]
+
+export function esTipoPagoBovedaCanonico(tipoPagoId: number): boolean {
+  return BOVEDA_TIPO_PAGO_IDS.includes(Number(tipoPagoId))
+}
+
 /** Variante visual (logo/mark). Misma semántica que ResumenCuentaVariant. */
 export type TipoPagoMarcaVariant =
   | 'efectivo'

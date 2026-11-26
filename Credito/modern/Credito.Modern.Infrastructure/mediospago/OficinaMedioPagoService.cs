@@ -1,5 +1,6 @@
 using System.Data;
 using Credito.Modern.Application.MediosPago;
+using Credito.Modern.Infrastructure.CreditoPlanes;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -50,7 +51,8 @@ public sealed class OficinaMedioPagoService(IOptions<SqlDatabaseOptions> options
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
         // Multisucursal: cada oficina nueva recibe su catálogo base al primer acceso.
-        await EnsureSemillaOficinaAsync(connection, tx: null, oficinaId, cancellationToken)
+        await OficinaMedioPagoSeedSql
+            .EnsureSemillaOficinaAsync(connection, transaction: null, oficinaId, cancellationToken)
             .ConfigureAwait(false);
 
         var rows = (
@@ -118,9 +120,10 @@ public sealed class OficinaMedioPagoService(IOptions<SqlDatabaseOptions> options
 
         try
         {
-            await EnsureSemillaOficinaAsync(
+            await OficinaMedioPagoSeedSql
+                .EnsureSemillaOficinaAsync(
                     connection,
-                    (SqlTransaction)tx,
+                    tx,
                     request.OficinaId,
                     cancellationToken)
                 .ConfigureAwait(false);
@@ -215,6 +218,17 @@ public sealed class OficinaMedioPagoService(IOptions<SqlDatabaseOptions> options
                             cancellationToken: cancellationToken))
                     .ConfigureAwait(false);
 
+                if (request.Activo)
+                {
+                    await EnsureBovedaCuentasAbiertasAsync(
+                            connection,
+                            (SqlTransaction)tx,
+                            request.OficinaId,
+                            tipoPagoId,
+                            cancellationToken)
+                        .ConfigureAwait(false);
+                }
+
                 await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
                 return new OficinaMedioPagoOperacionResponse(newId, tipoPagoId);
             }
@@ -276,6 +290,17 @@ public sealed class OficinaMedioPagoService(IOptions<SqlDatabaseOptions> options
                 throw new InvalidOperationException("No se pudo actualizar el medio de pago.");
             }
 
+            if (request.Activo)
+            {
+                await EnsureBovedaCuentasAbiertasAsync(
+                        connection,
+                        (SqlTransaction)tx,
+                        request.OficinaId,
+                        tipoPagoId,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
             await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new OficinaMedioPagoOperacionResponse(request.OficinaMedioPagoId.Value, tipoPagoId);
         }
@@ -303,115 +328,133 @@ public sealed class OficinaMedioPagoService(IOptions<SqlDatabaseOptions> options
         }
 
         await using var connection = new SqlConnection(_cs);
-        var tipoPagoId = await connection
-            .ExecuteScalarAsync<short?>(
-                new CommandDefinition(
-                    """
-                    UPDATE CREDITO.OficinaMedioPago
-                    SET Activo = @Activo, UpdatedAtUtc = SYSUTCDATETIME()
-                    OUTPUT INSERTED.TipoPagoId
-                    WHERE OficinaMedioPagoId = @Id
-                      AND OficinaId = @OficinaId;
-                    """,
-                    new { Id = oficinaMedioPagoId, OficinaId = oficinaId, Activo = activo },
-                    cancellationToken: cancellationToken))
-            .ConfigureAwait(false);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
-        if (tipoPagoId is null)
+        try
         {
-            throw new InvalidOperationException("Medio de pago no encontrado en la oficina.");
-        }
+            var tipoPagoId = await connection
+                .ExecuteScalarAsync<short?>(
+                    new CommandDefinition(
+                        """
+                        UPDATE CREDITO.OficinaMedioPago
+                        SET Activo = @Activo, UpdatedAtUtc = SYSUTCDATETIME()
+                        OUTPUT INSERTED.TipoPagoId
+                        WHERE OficinaMedioPagoId = @Id
+                          AND OficinaId = @OficinaId;
+                        """,
+                        new { Id = oficinaMedioPagoId, OficinaId = oficinaId, Activo = activo },
+                        transaction: tx,
+                        cancellationToken: cancellationToken))
+                .ConfigureAwait(false);
 
-        return new OficinaMedioPagoOperacionResponse(oficinaMedioPagoId, tipoPagoId.Value);
+            if (tipoPagoId is null)
+            {
+                throw new InvalidOperationException("Medio de pago no encontrado en la oficina.");
+            }
+
+            if (activo)
+            {
+                await EnsureBovedaCuentasAbiertasAsync(
+                        connection,
+                        (SqlTransaction)tx,
+                        oficinaId,
+                        tipoPagoId.Value,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+            }
+
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new OficinaMedioPagoOperacionResponse(oficinaMedioPagoId, tipoPagoId.Value);
+        }
+        catch
+        {
+            await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
     }
 
     /// <summary>
-    /// Inserta medios base faltantes para la oficina (idempotente).
-    /// Billeteras SoloCentral solo en oficina principal.
+    /// Abre BovedaCuenta en bóvedas abiertas de la oficina al activar/crear un medio.
+    /// Paridad con EnsureBovedaCuenta de movimientos: SI cabecera → efectivo si no había cuentas.
+    /// No borra al desactivar (historial / saldos previos).
     /// </summary>
-    private static async Task EnsureSemillaOficinaAsync(
+    private static async Task EnsureBovedaCuentasAbiertasAsync(
         SqlConnection connection,
-        SqlTransaction? tx,
+        SqlTransaction tx,
         int oficinaId,
+        short tipoPagoId,
         CancellationToken cancellationToken)
     {
         await connection
             .ExecuteAsync(
                 new CommandDefinition(
                     """
-                    ;WITH Catalogo AS (
-                        SELECT
-                            vt.ItemId AS TipoPagoId,
-                            LTRIM(RTRIM(vt.Denominacion)) AS Nombre,
-                            CASE
-                                WHEN vt.ItemId = 1 THEN N'efectivo'
-                                WHEN vt.ItemId IN (2, 10, 11) THEN N'yape'
-                                WHEN vt.ItemId IN (3, 12, 13) THEN N'interbank'
-                                WHEN vt.ItemId = 4 THEN N'bcp'
-                                WHEN vt.ItemId = 5 THEN N'banco-nacion'
-                                WHEN vt.ItemId = 9 THEN N'plin'
-                                ELSE N'otro'
-                            END AS MarcaCodigo,
-                            CASE
-                                WHEN vt.ItemId = 1 THEN 10
-                                WHEN vt.ItemId IN (10, 11) THEN 20
-                                WHEN vt.ItemId = 2 THEN 22
-                                WHEN vt.ItemId IN (12, 13) THEN 30
-                                WHEN vt.ItemId = 3 THEN 32
-                                WHEN vt.ItemId = 4 THEN 40
-                                WHEN vt.ItemId = 5 THEN 50
-                                WHEN vt.ItemId = 9 THEN 60
-                                ELSE 100 + vt.ItemId
-                            END AS Orden,
-                            CAST(CASE WHEN vt.ItemId > 1 THEN 1 ELSE 0 END AS bit) AS EsDigital,
-                            CAST(CASE WHEN vt.ItemId IN (2, 9, 10, 11) THEN 1 ELSE 0 END AS bit) AS UsaCelular,
-                            CAST(CASE WHEN vt.ItemId IN (3, 4, 5, 12, 13) THEN 1 ELSE 0 END AS bit) AS UsaCuenta,
-                            CAST(CASE WHEN vt.ItemId IN (2, 9, 10, 11) THEN 1 ELSE 0 END AS bit) AS UsaQr,
-                            CASE
-                                WHEN vt.ItemId IN (2, 10, 11) THEN N'YAPE'
-                                WHEN vt.ItemId IN (3, 12, 13) THEN N'INTERBANK'
-                                ELSE NULL
-                            END AS FamiliaCodigo,
-                            CAST(CASE WHEN vt.ItemId BETWEEN 10 AND 13 THEN 1 ELSE 0 END AS bit) AS SoloCentral
-                        FROM MAESTRO.ValorTabla AS vt
-                        WHERE vt.TablaId = 13
-                          AND vt.ItemId > 0
-                          AND vt.ItemId NOT BETWEEN 6 AND 8
-                    )
-                    INSERT INTO CREDITO.OficinaMedioPago (
-                        OficinaId, TipoPagoId, Nombre, MarcaCodigo, Orden, Activo,
-                        EsDigital, UsaCelular, UsaCuenta, UsaQr, FamiliaCodigo, SoloCentral
-                    )
-                    SELECT
-                        o.OficinaId,
-                        c.TipoPagoId,
-                        c.Nombre,
-                        c.MarcaCodigo,
-                        c.Orden,
-                        1,
-                        c.EsDigital,
-                        c.UsaCelular,
-                        c.UsaCuenta,
-                        c.UsaQr,
-                        c.FamiliaCodigo,
-                        c.SoloCentral
-                    FROM MAESTRO.Oficina AS o
-                    CROSS JOIN Catalogo AS c
-                    WHERE o.OficinaId = @OficinaId
-                      AND (
-                            c.SoloCentral = 0
-                            OR ISNULL(o.IndPrincipal, 0) = 1
-                          )
-                      AND NOT EXISTS (
-                            SELECT 1
-                            FROM CREDITO.OficinaMedioPago AS m
-                            WHERE m.OficinaId = o.OficinaId
-                              AND m.TipoPagoId = c.TipoPagoId
-                          );
+                    DECLARE @BovedaId int, @SiCab decimal(16, 2);
+
+                    DECLARE cur CURSOR LOCAL FAST_FORWARD FOR
+                    SELECT b.BovedaId, b.SaldoInicial
+                    FROM CREDITO.Boveda AS b
+                    WHERE b.OficinaId = @OficinaId
+                      AND b.IndCierre = CAST(0 AS bit);
+
+                    OPEN cur;
+                    FETCH NEXT FROM cur INTO @BovedaId, @SiCab;
+                    WHILE @@FETCH_STATUS = 0
+                    BEGIN
+                        IF NOT EXISTS (
+                            SELECT 1 FROM CREDITO.BovedaCuenta
+                            WHERE BovedaId = @BovedaId AND TipoPagoId = @TipoPagoId)
+                        BEGIN
+                            IF NOT EXISTS (SELECT 1 FROM CREDITO.BovedaCuenta WHERE BovedaId = @BovedaId)
+                            BEGIN
+                                IF @TipoPagoId = 1
+                                    INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
+                                    VALUES (@BovedaId, 1, @SiCab);
+                                ELSE
+                                BEGIN
+                                    INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
+                                    VALUES (@BovedaId, 1, @SiCab);
+                                    INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
+                                    VALUES (@BovedaId, @TipoPagoId, CAST(0 AS decimal(16, 2)));
+                                END
+                            END
+                            ELSE
+                                INSERT INTO CREDITO.BovedaCuenta (BovedaId, TipoPagoId, SaldoInicial)
+                                VALUES (@BovedaId, @TipoPagoId, CAST(0 AS decimal(16, 2)));
+                        END
+
+                        FETCH NEXT FROM cur INTO @BovedaId, @SiCab;
+                    END
+                    CLOSE cur;
+                    DEALLOCATE cur;
                     """,
-                    new { OficinaId = oficinaId },
+                    new { OficinaId = oficinaId, TipoPagoId = tipoPagoId },
                     transaction: tx,
                     cancellationToken: cancellationToken))
+            .ConfigureAwait(false);
+    }
+
+    public async Task<string?> ValidateMedioActivoAsync(
+        int oficinaId,
+        int tipoPagoId,
+        CancellationToken cancellationToken,
+        string fieldName = "tipoPagoId")
+    {
+        if (oficinaId < 1 || tipoPagoId < 1)
+        {
+            return $"{fieldName}: oficina/medio inválido.";
+        }
+
+        await using var connection = new SqlConnection(_cs);
+        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+        return await TipoPagoOficinaSql
+            .RequireMedioActivoEnOficinaAsync(
+                connection,
+                oficinaId,
+                tipoPagoId,
+                cancellationToken,
+                fieldName: fieldName)
             .ConfigureAwait(false);
     }
 

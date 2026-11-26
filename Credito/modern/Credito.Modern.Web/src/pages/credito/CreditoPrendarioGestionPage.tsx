@@ -13,10 +13,9 @@ import {
 } from '../../api/creditoGestion'
 import { prorrogarCredito } from '../../api/creditoPlanes'
 import { fetchCajaDiarioSesion } from '../../api/cajaDiario'
-import { fetchValoresTabla } from '../../api/maestros'
 import { TipoPagoChips } from '../../components/caja/TipoPagoChips'
-import { buildTipoPagoOptions } from '../tesoreria/components/TipoPagoBrand'
 import { useEsCentral } from '../../hooks/useEsCentral'
+import { useMediosPagoOperativos } from '../../hooks/useMediosPagoOperativos'
 import { FechaHoraDigitalField, nowDatetimeLocal } from '../caja/components/FechaHoraDigitalField'
 import {
   abonarPrendario,
@@ -239,16 +238,10 @@ export function CreditoPrendarioGestionPage() {
     enabled: oficinaId > 0,
   })
 
-  const tiposPago = useQuery({
-    queryKey: ['valores-tabla', 13],
-    queryFn: () => fetchValoresTabla(13),
-    staleTime: 5 * 60_000,
+  const { options: tipoPagoOptions } = useMediosPagoOperativos(oficinaId, {
+    esCentral,
+    enabled: oficinaId > 0,
   })
-
-  const tipoPagoOptions = useMemo(
-    () => buildTipoPagoOptions(tiposPago.data ?? [], { esCentral, oficinaId }),
-    [tiposPago.data, esCentral, oficinaId],
-  )
 
   useEffect(() => {
     if (tipoPagoId > 1) {
