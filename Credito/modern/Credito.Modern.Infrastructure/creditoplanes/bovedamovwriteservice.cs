@@ -19,6 +19,7 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
         short tipoPagoId,
         int usuarioRegId,
         DateTime fechaOperacion,
+        string? fechaPagoTransferencia = null,
         CancellationToken cancellationToken = default)
     {
         if (oficinaId < 1 || tipoOperacionId < 1 || usuarioRegId < 1)
@@ -36,10 +37,28 @@ public sealed class BovedaMovWriteService(IOptions<SqlDatabaseOptions> options) 
             throw new ArgumentOutOfRangeException(nameof(descripcion), "descripcion es obligatoria.");
         }
 
+        var fechaErr = TipoPagoRules.RequireDigitalFecha(tipoPagoId, fechaPagoTransferencia);
+        if (fechaErr is not null)
+        {
+            throw new ArgumentOutOfRangeException(nameof(fechaPagoTransferencia), fechaErr);
+        }
+
+        var glosa = descripcion.Trim();
+        if (TipoPagoRules.IsDigital(tipoPagoId)
+            && !string.IsNullOrWhiteSpace(fechaPagoTransferencia))
+        {
+            // BovedaMov no tiene columna FechaTransferencia: queda en glosa para auditoría/ticket.
+            var stamp = fechaPagoTransferencia.Trim();
+            if (!glosa.Contains("F.VOUCHER", StringComparison.OrdinalIgnoreCase))
+            {
+                glosa = $"{glosa} | F.VOUCHER {stamp}";
+            }
+        }
+
         return ExecuteIngresoEgresoAsync(
             oficinaId,
             importe,
-            descripcion,
+            glosa,
             tipoOperacionId,
             tipoPagoId,
             usuarioRegId,

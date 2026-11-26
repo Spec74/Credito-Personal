@@ -336,6 +336,8 @@ export function ingresoEgresoBoveda(body: {
   descripcion: string
   tipoOperacionId: number
   tipoPagoId: number
+  /** Obligatoria si el medio es digital (Yape/Plin/banco). */
+  fechaPagoTransferencia?: string | null
 }): Promise<BovedaMovOperacionResponse> {
   return postJson('/credito/ingreso-egreso-boveda', body)
 }

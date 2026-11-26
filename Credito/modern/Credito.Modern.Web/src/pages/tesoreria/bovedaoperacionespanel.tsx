@@ -36,16 +36,21 @@ import {
   type BovedaTransferenciaPendiente,
 } from '../../api/boveda'
 import { confirmMoney } from '../../components/credix'
-import { formatFechaHora } from '../../utils/formatFecha'
+import { formatFechaHora, toLegacyFechaTransferencia } from '../../utils/formatFecha'
 import { formatMoney } from '../../utils/formatMoney'
 import { moneyGreater } from '../../utils/money'
 import {
   TIPO_PAGO_YAPE,
   TIPO_PAGO_YAPE_GERENTE,
+  esTipoPagoDigital,
   mapFondeoDestino,
   mapRemesaOrigen,
   medioNombrePorItemId,
 } from '../../utils/tipoPago'
+import {
+  FechaHoraDigitalField,
+  nowDatetimeLocal,
+} from '../caja/components/FechaHoraDigitalField'
 import { fetchTipoOperaciones } from '../../api/cajaDiario'
 import { ApiError } from '../../api/errors'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
@@ -125,7 +130,8 @@ function opsCopy(esCentral: boolean): Record<string, { title: string; blurb: str
   return {
     ingreso: {
       title: 'Registrar movimiento',
-      blurb: 'Ingreso o egreso de esta bóveda, con el medio de pago.',
+      blurb:
+        'Ingreso o egreso tipado (efectivo, Yape, Plin, bancos). Digital exige fecha/hora del voucher.',
     },
     caja: {
       title: 'Transferir a caja',
@@ -222,9 +228,12 @@ export function BovedaOperacionesPanel({
   const [usuarioElegido, setUsuarioElegido] = useState<UsuarioBovedaBuscarItem | null>(null)
   const [usuarioHits, setUsuarioHits] = useState<UsuarioBovedaBuscarItem[]>([])
   const [activeTab, setActiveTab] = useState('ingreso')
+  const [ingresoForm] = Form.useForm()
   const [fondeoForm] = Form.useForm()
   const [temporalForm] = Form.useForm()
   const [analistaForm] = Form.useForm()
+  const medioIngresoId = Form.useWatch('tipoPagoId', ingresoForm) as number | undefined
+  const ingresoEsDigital = esTipoPagoDigital(medioIngresoId ?? 1)
   const bovedaId = boveda.bovedaId
   const operacionesDeshabilitadas = boveda.indCierre || oficinaId < 1
   const usuarioTermDebounced = useDebouncedValue(usuarioTerm.trim(), 350)
@@ -434,7 +443,14 @@ export function BovedaOperacionesPanel({
 
   const ingresoEgreso = useMutation({
     mutationFn: ingresoEgresoBoveda,
-    onSuccess: (r) => onOk(`Movimiento bóveda #${r.movimientoBovedaId}`),
+    onSuccess: (r) => {
+      ingresoForm.resetFields()
+      ingresoForm.setFieldsValue({
+        tipoPagoId: 1,
+        fechaPagoTransferencia: nowDatetimeLocal(),
+      })
+      onOk(`Movimiento bóveda #${r.movimientoBovedaId}`)
+    },
     onError: (e) => message.error(errMsg(e)),
   })
 
@@ -734,19 +750,46 @@ export function BovedaOperacionesPanel({
   const panes: Record<string, ReactNode> = {
     ingreso: (
         <Form
+          form={ingresoForm}
           className="boveda-operaciones-form"
           layout="vertical"
-          initialValues={{ tipoPagoId: 1 }}
-          onFinish={(v) =>
+          initialValues={{ tipoPagoId: 1, fechaPagoTransferencia: nowDatetimeLocal() }}
+          onValuesChange={(changed) => {
+            if (!('tipoPagoId' in changed)) return
+            const id = Number(changed.tipoPagoId)
+            if (esTipoPagoDigital(id)) {
+              const actual = ingresoForm.getFieldValue('fechaPagoTransferencia') as string | undefined
+              if (!actual?.trim()) {
+                ingresoForm.setFieldsValue({ fechaPagoTransferencia: nowDatetimeLocal() })
+              }
+            }
+          }}
+          onFinish={(v) => {
+            const medioId = v.tipoPagoId && v.tipoPagoId > 0 ? v.tipoPagoId : 1
+            const digital = esTipoPagoDigital(medioId)
             ingresoEgreso.mutate({
               oficinaId,
               importe: v.importe,
               descripcion: v.descripcion,
               tipoOperacionId: v.tipoOperacionId,
-              tipoPagoId: v.tipoPagoId,
+              tipoPagoId: medioId,
+              fechaPagoTransferencia: digital
+                ? toLegacyFechaTransferencia(v.fechaPagoTransferencia) ??
+                  v.fechaPagoTransferencia ??
+                  null
+                : null,
             })
-          }
+          }}
         >
+          {tipoPagoOptions.length <= 1 ? (
+            <Alert
+              type="info"
+              showIcon
+              style={{ marginBottom: 14 }}
+              message="Solo aparece efectivo en el combo"
+              description="Active Yape, Plin o bancos en Mantenimiento → Medios de pago de esta oficina. El motor ya acepta medios digitales."
+            />
+          ) : null}
           <Form.Item
             name="tipoOperacionId"
             label="Tipo de operación"
@@ -773,6 +816,21 @@ export function BovedaOperacionesPanel({
               />
             </Form.Item>
           </div>
+          {ingresoEsDigital ? (
+            <Form.Item
+              name="fechaPagoTransferencia"
+              label="Fecha/hora del voucher"
+              rules={[
+                {
+                  required: true,
+                  message: 'Los medios digitales requieren fecha/hora del voucher.',
+                },
+              ]}
+              extra="Misma regla que cobros: trazabilidad del movimiento digital."
+            >
+              <FechaHoraDigitalField value="" onChange={() => undefined} />
+            </Form.Item>
+          ) : null}
           {descripcionField}
           {formActions('Registrar movimiento', ingresoEgreso.isPending)}
         </Form>

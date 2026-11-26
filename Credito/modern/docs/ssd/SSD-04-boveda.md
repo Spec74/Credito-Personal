@@ -23,7 +23,8 @@ Fondo de oficina: saldos, movimientos, transferencias (caja, caja chica, bancos,
 **Entra**
 
 - Estado de dinero, saldos, resumen de cuenta, historial
-- Ingreso/egreso, transferir caja / caja chica / entre bancos / inter-oficina
+- Ingreso/egreso tipado (efectivo + digitales); digital exige `fechaPagoTransferencia` (misma regla que cobros; queda en glosa `F.VOUCHER`)
+- Transferir caja / caja chica / entre bancos / inter-oficina
 - Bóveda temporal (asignar, confirmar, cerrar)
 - Informe y tickets PDF de movimiento ([tickets_comprobantes.md](../tickets_comprobantes.md): oficina real, agente, medio tipado, E/S)
 

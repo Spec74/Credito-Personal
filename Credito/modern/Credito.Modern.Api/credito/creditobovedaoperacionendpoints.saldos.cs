@@ -739,6 +739,9 @@ internal static partial class CreditoBovedaOperacionEndpoints
 
                     var tipoPagoError = ProblemResults.IfInvalid(
                         TipoPagoRules.RequireCobroPermitido(body.TipoPagoId, sesionTipo!.EsCentral)
+                        ?? TipoPagoRules.RequireDigitalFecha(
+                            body.TipoPagoId,
+                            body.FechaPagoTransferencia)
                         ?? await mediosPago
                             .ValidateMedioActivoAsync(body.OficinaId, body.TipoPagoId, ct)
                             .ConfigureAwait(false));
@@ -772,6 +775,7 @@ internal static partial class CreditoBovedaOperacionEndpoints
                                 body.TipoPagoId,
                                 usuarioId,
                                 serverTime.Value,
+                                body.FechaPagoTransferencia,
                                 ct)
                             .ConfigureAwait(false);
 
@@ -824,7 +828,7 @@ internal static partial class CreditoBovedaOperacionEndpoints
                 })
             .WithName("CreditoIngresoEgresoBoveda")
             .WithSummary(
-                "Escritura: paridad BovedaMovBL.IngresoEgresoBovedaCaja + usp_ActualizarSaldosBoveda. Tipo operaci?n debe tener IndBoveda.")
+                "Escritura: ingreso/egreso tipado. Medio digital exige fechaPagoTransferencia (paridad cobros).")
             .WithTags("credito")
             .RequireAuthorization(CreditoAuthorizationPolicies.CreditoUser)
             .Produces<BovedaMovOperacionResponse>(StatusCodes.Status200OK, "application/json")

@@ -10,6 +10,7 @@ public interface IBovedaMovWriteService
         short tipoPagoId,
         int usuarioRegId,
         DateTime fechaOperacion,
+        string? fechaPagoTransferencia = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>

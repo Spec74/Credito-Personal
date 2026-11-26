@@ -69,6 +69,35 @@ public class BovedaMovEndpointTests : IClassFixture<CreditoModernWebApplicationF
     }
 
     [Fact]
+    public async Task Ingreso_egreso_boveda_digital_sin_fecha_voucher_devuelve_400()
+    {
+        if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var tokenRes = await _client.PostAsJsonAsync("/api/v1/dev/token", new { usuarioId = 1, oficinaId = 1 });
+        using var doc = await JsonDocument.ParseAsync(await tokenRes.Content.ReadAsStreamAsync());
+        var token = doc.RootElement.GetProperty("accessToken").GetString();
+
+        using var req = new HttpRequestMessage(HttpMethod.Post, "/api/v1/credito/ingreso-egreso-boveda")
+        {
+            Content = JsonContent.Create(new
+            {
+                oficinaId = 1,
+                importe = 1m,
+                descripcion = "aporte yape",
+                tipoOperacionId = 1,
+                tipoPagoId = (short)2,
+                fechaPagoTransferencia = (string?)null,
+            }),
+        };
+        req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var res = await _client.SendAsync(req);
+        Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
+    }
+
+    [Fact]
     public async Task Transferir_boveda_caja_parametros_alineados_no_es_401()
     {
         if (string.Equals(Environment.GetEnvironmentVariable("CI"), "true", StringComparison.OrdinalIgnoreCase))
