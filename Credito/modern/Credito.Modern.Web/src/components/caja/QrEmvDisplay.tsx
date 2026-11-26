@@ -40,11 +40,13 @@ export function QrEmvDisplay({
 
     const emv = raw.replace(/^generate:/i, '')
     const pixelSize = Math.min(Math.max(size, 160), 320)
+    // Módulos oscuros + quiet zone blanca: contraste de lectura (ISO/IEC 18004 / EMVCo).
+    // Independiente del tema UI para que escáneres y banca móvil lean el código.
     void QRCode.toDataURL(emv, {
       errorCorrectionLevel: 'M',
       margin: 2,
       width: pixelSize,
-      color: { dark: '#0a1f33', light: '#ffffff' },
+      color: { dark: '#000000', light: '#ffffff' },
     })
       .then((url) => {
         if (!cancelled) {

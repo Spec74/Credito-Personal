@@ -876,3 +876,65 @@
   border-color: var(--credix-warning) !important;
   color: var(--credix-warning) !important;
 }
+
+/* —— Medios de pago / cobro QR (tokens Credix; QR quiet-zone clara ISO/EMVCo) —— */
+:root[data-theme='dark'] .medios-pago-form,
+:root[data-theme='dark'] .medios-pago-form__section-title,
+:root[data-theme='dark'] .medios-pago-row-title__name,
+:root[data-theme='dark'] .medios-pago-row-title__meta,
+:root[data-theme='dark'] .cobro-medio,
+:root[data-theme='dark'] .cobro-medio__title,
+:root[data-theme='dark'] .cobro-medio__hint,
+:root[data-theme='dark'] .cobro-medio__field-label,
+:root[data-theme='dark'] .cobro-medio__field-value,
+:root[data-theme='dark'] .cobro-medio__field-value.ant-typography,
+:root[data-theme='dark'] .qr-emv__label,
+:root[data-theme='dark'] .qr-emv__foot {
+  color: var(--credix-text);
+}
+
+:root[data-theme='dark'] .medios-pago-form__section-title,
+:root[data-theme='dark'] .medios-pago-row-title__meta,
+:root[data-theme='dark'] .cobro-medio__hint,
+:root[data-theme='dark'] .cobro-medio__field-label,
+:root[data-theme='dark'] .qr-emv__label,
+:root[data-theme='dark'] .qr-emv__foot {
+  color: var(--credix-text-muted);
+}
+
+:root[data-theme='dark'] .medios-pago-form__section,
+:root[data-theme='dark'] .cobro-medio__field {
+  background: var(--credix-surface-muted);
+  border-color: var(--credix-border);
+}
+
+:root[data-theme='dark'] .medios-pago-form__qr-preview,
+:root[data-theme='dark'] .cobro-medio__body {
+  background: var(--credix-surface);
+  border-color: var(--credix-brand-line);
+}
+
+:root[data-theme='dark'] .cobro-medio {
+  background: var(--credix-surface);
+  border-color: var(--credix-brand-line);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--credix-ink-brand) 14%, transparent);
+}
+
+:root[data-theme='dark'] .cobro-medio__head {
+  background: var(--credix-brand-light);
+  border-bottom-color: var(--credix-border);
+}
+
+:root[data-theme='dark'] .qr-emv__frame {
+  background: #ffffff;
+  border-color: var(--credix-border);
+}
+
+:root[data-theme='dark'] .qr-emv__img {
+  filter: none !important;
+}
+
+:root[data-theme='dark'] .cobro-medio__field .ant-typography-copy,
+:root[data-theme='dark'] .cobro-medio__field .anticon {
+  color: var(--credix-ink-brand);
+}
