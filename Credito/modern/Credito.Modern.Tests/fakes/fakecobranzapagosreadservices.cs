@@ -43,7 +43,8 @@ internal sealed class FakeUsuarioAdminReadService : IUsuarioAdminReadService
     public Task<UsuarioAdminScope?> ResolveScopeAsync(
         int oficinaId,
         CancellationToken cancellationToken = default) =>
-        Task.FromResult<UsuarioAdminScope?>(new UsuarioAdminScope(oficinaId, true, "Oficina Test"));
+        Task.FromResult<UsuarioAdminScope?>(
+            new UsuarioAdminScope(oficinaId, true, "Oficina Test", ActorEsAdministrador: false));
 
     public Task<UsuarioGestionPageDto> ListGestionAsync(
         UsuarioAdminScope scope,
@@ -64,7 +65,10 @@ internal sealed class FakeUsuarioAdminReadService : IUsuarioAdminReadService
     public Task<UsuarioPersonaDetalleDto?> GetDetalleAsync(
         int usuarioId,
         CancellationToken cancellationToken = default) =>
-        GetDetalleAsync(new UsuarioAdminScope(1, true, "Oficina Test"), usuarioId, cancellationToken);
+        GetDetalleAsync(
+            new UsuarioAdminScope(1, true, "Oficina Test", ActorEsAdministrador: false),
+            usuarioId,
+            cancellationToken);
 
     public Task<UsuarioPersonaDetalleDto?> GetDetalleAsync(
         UsuarioAdminScope scope,

@@ -21,20 +21,17 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         const string sql = """
             SELECT o.OficinaId,
                    CAST(o.IndPrincipal AS bit) AS EsCentral,
-                   o.Denominacion AS Oficina
+                   o.Denominacion AS Oficina,
+                   CAST(0 AS bit) AS ActorEsAdministrador
             FROM MAESTRO.Oficina AS o
             WHERE o.OficinaId = @OficinaId;
             """;
 
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
-        // Dapper no materializa bien records con parámetros opcionales (ActorEsAdministrador).
-        var row = await c.QuerySingleOrDefaultAsync<ScopeRow>(
+        return await c.QuerySingleOrDefaultAsync<UsuarioAdminScope>(
             new CommandDefinition(sql, new { OficinaId = oficinaId }, cancellationToken: ct))
             .ConfigureAwait(false);
-        return row is null
-            ? null
-            : new UsuarioAdminScope(row.OficinaId, row.EsCentral, row.Oficina ?? "");
     }
 
     public async Task<UsuarioGestionPageDto> ListGestionAsync(
@@ -53,49 +50,40 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         var skip = (p - 1) * ps;
         var term = string.IsNullOrWhiteSpace(buscar) ? null : buscar.Trim();
         var red = scope.AlcanceRed && verRed;
-        var sedeFiltro = scope.AlcanceRed && sedeId is >= 1 ? sedeId : red ? null : scope.OficinaId;
-        var sedeListado = sedeFiltro ?? (red ? null : scope.OficinaId);
+        // Admin de red + verRed: toda la red (sedeId opcional). Si no, solo la sede de sesión.
+        var sedeListado = red
+            ? (sedeId is >= 1 ? sedeId : null)
+            : scope.OficinaId;
+        var acotarSede = sedeListado is >= 1;
 
-        var estadoFilter = incluirInactivos ? "" : "AND u.Estado = CAST(1 AS bit)";
+        var estadoFilter = incluirInactivos
+            ? ""
+            : acotarSede
+                ? "AND u.Estado = CAST(1 AS bit) AND uo.Estado = CAST(1 AS bit)"
+                : "AND u.Estado = CAST(1 AS bit)";
         var buscarFilter = term is null ? "" : "AND u.NombreUsuario LIKE '%' + @Buscar + '%'";
-        // Membresía sede: vínculo, rol o cajero (no solo INNER JOIN UsuarioOficina).
-        var sedeExists = sedeListado is >= 1
+        var sedeJoin = acotarSede
             ? """
-              AND (
-                    EXISTS (
-                        SELECT 1
-                        FROM MAESTRO.UsuarioOficina AS xf
-                        WHERE xf.UsuarioId = u.UsuarioId
-                          AND xf.OficinaId = @SedeId
-                          AND (@IncluirInactivos = 1 OR xf.Estado = CAST(1 AS bit)))
-                    OR EXISTS (
-                        SELECT 1
-                        FROM MAESTRO.UsuarioRol AS xr
-                        WHERE xr.UsuarioId = u.UsuarioId
-                          AND xr.OficinaId = @SedeId)
-                    OR EXISTS (
-                        SELECT 1
-                        FROM CREDITO.Caja AS xc
-                        WHERE xc.CajeroId = u.UsuarioId
-                          AND xc.OficinaId = @SedeId)
-                  )
+              INNER JOIN MAESTRO.UsuarioOficina AS uo
+                  ON uo.UsuarioId = u.UsuarioId
+                 AND uo.OficinaId = @SedeId
               """
             : "";
 
         var countSql = $"""
             SELECT COUNT(1)
             FROM MAESTRO.Usuario AS u
-            LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+            INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+            {sedeJoin}
             WHERE 1 = 1
               {estadoFilter}
-              {buscarFilter}
-              {sedeExists};
+              {buscarFilter};
             """;
 
         var sql = $"""
             SELECT u.UsuarioId,
                    u.NombreUsuario,
-                   ISNULL(NULLIF(LTRIM(RTRIM(p.NombreCompleto)), N''), u.NombreUsuario) AS NombreCompleto,
+                   p.NombreCompleto,
                    p.Celular1,
                    p.EmailPersonal,
                    u.Estado,
@@ -115,11 +103,11 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
                        ORDER BY o.IndPrincipal DESC, o.Denominacion
                        FOR XML PATH(N''), TYPE).value(N'.', N'nvarchar(400)'), 1, 2, N'') AS Sedes
             FROM MAESTRO.Usuario AS u
-            LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+            INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
+            {sedeJoin}
             WHERE 1 = 1
               {estadoFilter}
               {buscarFilter}
-              {sedeExists}
             ORDER BY u.NombreUsuario
             OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;
             """;
@@ -131,25 +119,15 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
             Take = ps,
             SedeId = sedeListado ?? scope.OficinaId,
             OficinaSesion = scope.OficinaId,
-            IncluirInactivos = incluirInactivos ? 1 : 0,
         };
 
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
 
-        // Autocura: al listar una sede, recrea vínculos faltantes (roles / cajero / oficina).
-        if (sedeListado is >= 1)
-        {
-            await UsuarioOficinaVinculoSql
-                .EnsureVinculosAsync(c, transaction: null, sedeListado, ct)
-                .ConfigureAwait(false);
-        }
-        else if (red)
-        {
-            await UsuarioOficinaVinculoSql
-                .EnsureVinculosAsync(c, transaction: null, oficinaId: null, ct)
-                .ConfigureAwait(false);
-        }
+        // Igual que semilla de medios: asegurar vínculos canónicos antes de listar.
+        await UsuarioOficinaVinculoSql
+            .EnsureFromEvidenceAsync(c, transaction: null, sedeListado, ct)
+            .ConfigureAwait(false);
 
         var total = await c.ExecuteScalarAsync<int>(
             new CommandDefinition(countSql, args, cancellationToken: ct)).ConfigureAwait(false);
@@ -412,13 +390,6 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         }
 
         return rows;
-    }
-
-    private sealed class ScopeRow
-    {
-        public int OficinaId { get; init; }
-        public bool EsCentral { get; init; }
-        public string? Oficina { get; init; }
     }
 
     private sealed class UsuarioDetalleRow

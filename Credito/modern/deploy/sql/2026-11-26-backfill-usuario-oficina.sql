@@ -5,7 +5,8 @@
   Sin ese vínculo, Seguridad → Usuarios puede salir vacío aunque
   Mantenimiento → Cajas muestre el gestor (CajeroId).
 
-  Idempotente. El API también autocura al listar usuarios / guardar caja.
+  Idempotente. El API aplica la misma lógica en UsuarioOficinaVinculoSql
+  (EnsureFromEvidenceAsync al listar; UpsertAsync al guardar caja/usuario).
 */
 
 SET NOCOUNT ON;

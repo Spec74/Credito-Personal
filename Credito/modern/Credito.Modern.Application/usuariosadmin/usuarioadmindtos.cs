@@ -35,18 +35,20 @@ public sealed record UsuarioReporteGestorDto(
     string NombreUsuario,
     string NombreCompleto);
 
+/// <summary>
+/// Página de gestión. <see cref="EsCentral"/> = IndPrincipal de la sede de sesión;
+/// <see cref="AlcanceRed"/> = permiso de red (no confundir con EsCentral).
+/// </summary>
 public sealed record UsuarioGestionPageDto(
     int Page,
     int PageSize,
     int TotalRecords,
     int TotalPages,
     List<UsuarioGestionListItemDto> Rows,
-    /// <summary>La sede de sesión es oficina principal (<c>IndPrincipal</c>).</summary>
     bool EsCentral = false,
     int OficinaId = 0,
     string? Oficina = null,
     bool VerRed = false,
-    /// <summary>Admin de red: puede listar/mutar usuarios de toda la red.</summary>
     bool AlcanceRed = false);
 
 public sealed record UsuarioPersonaDetalleDto(
@@ -83,12 +85,16 @@ public sealed record OficinaAsignacionDto(
 /// El gerente de sede (ENCARGADO) siempre opera solo <see cref="OficinaId"/>,
 /// aunque su sesión sea Central.
 /// </para>
+/// <para>
+/// <see cref="ActorEsAdministrador"/> lo fija el endpoint desde claims JWT;
+/// al resolver la oficina desde BD queda en false hasta enriquecer el scope.
+/// </para>
 /// </summary>
 public sealed record UsuarioAdminScope(
     int OficinaId,
     bool EsCentral,
     string Oficina,
-    bool ActorEsAdministrador = false)
+    bool ActorEsAdministrador)
 {
     /// <summary>Puede listar/mutar usuarios de toda la red.</summary>
     public bool AlcanceRed => EsCentral && ActorEsAdministrador;

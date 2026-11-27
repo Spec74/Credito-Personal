@@ -109,15 +109,10 @@ export function UsuariosPage() {
     enabled: drawerOpen,
   })
 
-  // Alcance red = ADMIN en Central. Compat: APIs viejas enviaban ese flag en esCentral.
-  const alcanceRed =
-    usuariosQuery.data?.alcanceRed === true ||
-    (usuariosQuery.data?.alcanceRed == null && usuariosQuery.data?.esCentral === true)
+  // alcanceRed = permiso de red. Compat: APIs anteriores lo enviaban como esCentral.
+  const alcanceRed = usuariosQuery.data?.alcanceRed ?? usuariosQuery.data?.esCentral === true
   const oficinaSesionId =
-    (usuariosQuery.data?.oficinaId && usuariosQuery.data.oficinaId >= 1
-      ? usuariosQuery.data.oficinaId
-      : null) ??
-    (session?.oficinaId && session.oficinaId >= 1 ? session.oficinaId : 0)
+    [usuariosQuery.data?.oficinaId, session?.oficinaId].find((id) => (id ?? 0) >= 1) ?? 0
   const oficinaSesionNombre =
     usuariosQuery.data?.oficina?.trim() ||
     session?.oficinaDenominacion?.trim() ||

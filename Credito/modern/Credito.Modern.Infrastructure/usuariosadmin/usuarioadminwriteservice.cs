@@ -626,49 +626,14 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
         return n > 0;
     }
 
-    private static async Task AsegurarSedeAsync(
+    private static Task AsegurarSedeAsync(
         SqlConnection c,
         SqlTransaction tx,
         int usuarioId,
         int oficinaId,
         bool activo,
-        CancellationToken ct)
-    {
-        var n = await c.ExecuteAsync(
-            new CommandDefinition(
-                """
-                UPDATE MAESTRO.UsuarioOficina
-                SET Estado = @Estado
-                WHERE UsuarioId = @UsuarioId AND OficinaId = @OficinaId;
-                """,
-                new
-                {
-                    UsuarioId = usuarioId,
-                    OficinaId = oficinaId,
-                    Estado = activo,
-                },
-                transaction: tx,
-                cancellationToken: ct)).ConfigureAwait(false);
-        if (n > 0)
-        {
-            return;
-        }
-
-        await c.ExecuteAsync(
-            new CommandDefinition(
-                """
-                INSERT INTO MAESTRO.UsuarioOficina (UsuarioId, OficinaId, Estado)
-                VALUES (@UsuarioId, @OficinaId, @Estado);
-                """,
-                new
-                {
-                    UsuarioId = usuarioId,
-                    OficinaId = oficinaId,
-                    Estado = activo,
-                },
-                transaction: tx,
-                cancellationToken: ct)).ConfigureAwait(false);
-    }
+        CancellationToken ct) =>
+        UsuarioOficinaVinculoSql.UpsertAsync(c, tx, usuarioId, oficinaId, activo, ct);
 
     /// <returns>Mensaje de error de negocio, o <c>null</c> si ok.</returns>
     private static async Task<string?> AplicarAsignacionAsync(

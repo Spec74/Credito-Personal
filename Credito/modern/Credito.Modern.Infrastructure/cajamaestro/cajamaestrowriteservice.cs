@@ -50,11 +50,12 @@ public sealed class CajaMaestroWriteService(IOptions<SqlDatabaseOptions> options
                     },
                     cancellationToken: ct)).ConfigureAwait(false);
             await UsuarioOficinaVinculoSql
-                .AsegurarUsuarioSedeAsync(
+                .UpsertAsync(
                     c,
                     transaction: null,
                     request.CajeroId ?? 0,
                     request.OficinaId,
+                    activo: true,
                     ct)
                 .ConfigureAwait(false);
             return new MaestroOperacionResponse(true, id, null);
@@ -93,11 +94,12 @@ public sealed class CajaMaestroWriteService(IOptions<SqlDatabaseOptions> options
         }
 
         await UsuarioOficinaVinculoSql
-            .AsegurarUsuarioSedeAsync(
+            .UpsertAsync(
                 c,
                 transaction: null,
                 request.CajeroId ?? 0,
                 request.OficinaId,
+                activo: true,
                 ct)
             .ConfigureAwait(false);
         return new MaestroOperacionResponse(true, request.CajaId, null);

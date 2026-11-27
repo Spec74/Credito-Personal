@@ -54,7 +54,6 @@ export async function fetchOficinaMediosPago(
   if (opts?.incluirInactivos) q.set('incluirInactivos', 'true')
   if (opts?.soloRaices === false) q.set('soloRaices', 'false')
   const qs = q.toString()
-  // baseUrl ya incluye /api/v1 — no repetir el prefijo (si no → HTTP 404).
   return apiFetch<OficinaMedioPago[]>(
     `/oficinas/${oficinaId}/medios-pago${qs ? `?${qs}` : ''}`,
   )
