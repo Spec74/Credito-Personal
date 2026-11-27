@@ -18,20 +18,27 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
             return null;
         }
 
+        // POCO mutable: Dapper no materializa bien records posicionales (rompe listar/guardar usuarios).
         const string sql = """
             SELECT o.OficinaId,
                    CAST(o.IndPrincipal AS bit) AS EsCentral,
-                   o.Denominacion AS Oficina,
-                   CAST(0 AS bit) AS ActorEsAdministrador
+                   o.Denominacion AS Oficina
             FROM MAESTRO.Oficina AS o
             WHERE o.OficinaId = @OficinaId;
             """;
 
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
-        return await c.QuerySingleOrDefaultAsync<UsuarioAdminScope>(
+        var row = await c.QuerySingleOrDefaultAsync<OficinaScopeRow>(
             new CommandDefinition(sql, new { OficinaId = oficinaId }, cancellationToken: ct))
             .ConfigureAwait(false);
+        return row is null
+            ? null
+            : new UsuarioAdminScope(
+                row.OficinaId,
+                row.EsCentral,
+                row.Oficina ?? string.Empty,
+                ActorEsAdministrador: false);
     }
 
     public async Task<UsuarioGestionPageDto> ListGestionAsync(
@@ -390,6 +397,14 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         }
 
         return rows;
+    }
+
+    /// <summary>Fila Dapper para oficina de sesión (ctor sin parámetros).</summary>
+    private sealed class OficinaScopeRow
+    {
+        public int OficinaId { get; set; }
+        public bool EsCentral { get; set; }
+        public string? Oficina { get; set; }
     }
 
     private sealed class UsuarioDetalleRow
