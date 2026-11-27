@@ -420,11 +420,12 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                           AND bv.IndTemporal = CAST(0 AS bit)
                         ORDER BY bv.BovedaId DESC
                     ) AS b
+                    /* Incluye raíces y variantes (p. ej. 10–13 bajo Yape/Interbank):
+                       BuildMarcas agrupa por TipoPagoId; Parent solo es jerarquía UI. */
                     INNER JOIN CREDITO.OficinaMedioPago AS omp
                         ON omp.OficinaId = o.OficinaId
                        AND omp.Activo = 1
                        AND omp.TipoPagoId > 0
-                       AND omp.ParentOficinaMedioPagoId IS NULL
                     INNER JOIN MAESTRO.ValorTabla AS vt
                         ON vt.TablaId = 13
                        AND vt.ItemId = omp.TipoPagoId
@@ -560,7 +561,6 @@ public sealed class BovedaOficinaReadService(IOptions<SqlDatabaseOptions> option
                     LEFT JOIN CREDITO.OficinaMedioPago AS omp
                         ON omp.OficinaId = @OficinaId
                        AND omp.TipoPagoId = p.TipoPagoId
-                       AND omp.ParentOficinaMedioPagoId IS NULL
                     LEFT JOIN MAESTRO.ValorTabla AS vt
                         ON vt.TablaId = 13 AND vt.ItemId = p.TipoPagoId
                     GROUP BY p.TipoPagoId, omp.Nombre, omp.MarcaCodigo, vt.Denominacion

@@ -135,3 +135,32 @@ WHERE o.Estado = 1
           AND m.TipoPagoId = c.TipoPagoId
       );
 GO
+
+/*
+  Central: billeteras 10/11 → padre Yape (2); 12/13 → Interbank (3).
+  Misma lógica que OficinaMedioPagoSeedSql.LinkBilleterasCentralAsync.
+  No altera TipoPagoId.
+*/
+UPDATE child
+SET child.ParentOficinaMedioPagoId = parent.OficinaMedioPagoId,
+    child.UpdatedAtUtc = SYSUTCDATETIME()
+FROM CREDITO.OficinaMedioPago AS child
+INNER JOIN MAESTRO.Oficina AS o
+    ON o.OficinaId = child.OficinaId
+   AND ISNULL(o.IndPrincipal, 0) = 1
+INNER JOIN CREDITO.OficinaMedioPago AS parent
+    ON parent.OficinaId = child.OficinaId
+   AND parent.TipoPagoId = CASE child.TipoPagoId
+        WHEN 10 THEN CAST(2 AS smallint)
+        WHEN 11 THEN CAST(2 AS smallint)
+        WHEN 12 THEN CAST(3 AS smallint)
+        WHEN 13 THEN CAST(3 AS smallint)
+   END
+   AND ISNULL(parent.ParentOficinaMedioPagoId, 0) = 0
+WHERE child.TipoPagoId IN (10, 11, 12, 13)
+  AND (
+        child.ParentOficinaMedioPagoId IS NULL
+        OR child.ParentOficinaMedioPagoId = 0
+        OR child.ParentOficinaMedioPagoId <> parent.OficinaMedioPagoId
+      );
+GO

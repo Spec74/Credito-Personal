@@ -76,6 +76,7 @@ Detalle y comandos `sqlcmd`: [deploy/sql/README-2026-11-08-AZURE.md](../../deplo
 | 8 | `2026-11-26-roles-aprobador-gerente-sede.sql` | `APROBADOR` unificado; roles gerente sede |
 | 9 | `2026-11-26-boveda-temporal-encargado-gerente.sql` | Tracking responsable temporal; cierre no borra gerente `ENCARGADO` |
 | 10 | `2026-11-26-backfill-usuario-oficina.sql` | Repara `UsuarioOficina` desde roles/cajeros (evita Usuarios vacío con cajas OK) |
+| 11 | `2026-11-27-oficina-medio-pago-nest-billeteras-central.sql` | Central: 10/11 bajo Yape (2), 12/13 bajo Interbank (3); no cambia ledger |
 
 Gate opcional: `deploy/scripts/smoke-db-gate.ps1` (ROUND 2 en cierre/recalcular y filtro de sede en central de riesgos).
 

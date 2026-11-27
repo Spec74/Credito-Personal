@@ -6,6 +6,9 @@
  * Central tipa: billeteras Gerente/René (10–13); no genéricos 2/3.
  * Vista red Central: padre Yape/Interbank = rollup familia; 10–13 = detalle billetera.
  * Fondeo billetera→sucursal: 10/11→2 y 12/13→3.
+ *
+ * OficinaMedioPago (Central): 10/11 son variantes UI de Tipo 2; 12/13 de Tipo 3
+ * (ParentOficinaMedioPagoId). El ledger sigue siendo TipoPagoId distinto.
  */
 
 export const TIPO_PAGO_EFECTIVO = 1

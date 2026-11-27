@@ -529,9 +529,12 @@ export function MediosPagoPage() {
       title: 'Cuenta / medio',
       dataIndex: 'nombre',
       render: (v, row) => (
-        <div className="medios-pago-row-title">
+        <div
+          className="medios-pago-row-title"
+          style={row.parentOficinaMedioPagoId ? { paddingLeft: 20 } : undefined}
+        >
           <span className="medios-pago-row-title__name">
-            {esTipoPagoBovedaCanonico(row.tipoPagoId) ? (
+            {esTipoPagoBovedaCanonico(row.tipoPagoId) && !row.parentOficinaMedioPagoId ? (
               <Tag color="blue" style={{ marginRight: 6 }}>
                 Bóveda
               </Tag>
