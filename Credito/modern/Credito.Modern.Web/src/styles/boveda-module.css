@@ -1,5 +1,6 @@
 /**
  * Bóveda — layout Credix corporativo (tesorería).
+ * Responsive: PC 4 cols liquidez / tablet 2×2 / móvil apilado.
  */
 
 .boveda-page ul.credix-stats {
@@ -10,6 +11,23 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
+}
+
+.boveda-page__actions {
+  max-width: 100%;
+}
+
+.boveda-page__loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 88px;
+  padding: 16px;
+}
+
+.boveda-alert {
+  margin-bottom: 0;
 }
 
 .boveda-panel-lead {
@@ -22,6 +40,11 @@
 
 .boveda-contexto {
   align-items: center;
+  max-width: 100%;
+}
+
+.boveda-contexto__meta {
+  font-size: 12px;
 }
 
 /* —— Liquidez: 4 baldosas (principal · temporal · cajas · total) —— */
@@ -29,12 +52,14 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  min-width: 0;
 }
 
 .boveda-estado-dinero {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+  min-width: 0;
 }
 
 .boveda-estado-dinero--liquidez .boveda-estado-dinero__card--emphasis {
@@ -43,13 +68,7 @@
 }
 
 .boveda-estado-dinero--liquidez .boveda-estado-dinero__card--emphasis .boveda-estado-dinero__value {
-  font-size: 1.3rem;
-}
-
-@media (max-width: 991px) {
-  .boveda-estado-dinero {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  font-size: clamp(1.1rem, 2.2vw, 1.3rem);
 }
 
 .boveda-estado-dinero--loading {
@@ -75,6 +94,7 @@
 
 .boveda-estado-dinero__card--link {
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .boveda-estado-dinero__card--link:hover {
@@ -82,16 +102,24 @@
   box-shadow: var(--credix-shadow-md);
 }
 
+.boveda-estado-dinero__card--link:focus-visible {
+  outline: 2px solid var(--credix-brand, #114885);
+  outline-offset: 2px;
+}
+
 .boveda-estado-dinero__value {
-  font-size: 1.2rem;
+  font-size: clamp(1.05rem, 2vw, 1.2rem);
   font-weight: 700;
   color: var(--credix-brand, #114885);
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .boveda-estado-dinero__label {
   font-size: 12px;
+  font-weight: 600;
   color: var(--credix-text-muted, #6b7280);
   margin-top: 4px;
 }
@@ -114,7 +142,7 @@
 }
 
 .boveda-liquidez__cartera-label {
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.02em;
   text-transform: uppercase;
   font-size: 11px;
@@ -124,10 +152,50 @@
   color: var(--credix-brand, #114885);
   text-decoration: none;
   font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
 }
 
 .boveda-liquidez__cartera-link:hover {
   text-decoration: underline;
+}
+
+.boveda-liquidez__cartera-note {
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.85;
+}
+
+@media (max-width: 991px) {
+  .boveda-estado-dinero {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .boveda-estado-dinero {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .boveda-estado-dinero__card {
+    padding: 12px;
+  }
+
+  .boveda-estado-dinero__hint {
+    display: none;
+  }
+
+  .boveda-panel-lead {
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .boveda-liquidez__cartera {
+    gap: 6px 12px;
+  }
 }
 
 /* —— Saldos de sesión —— */
@@ -199,6 +267,17 @@
   box-shadow: none;
 }
 
+.boveda-resumen-cuenta--empty-col {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.boveda-resumen-cuenta__empty-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .boveda-resumen-cuenta__header {
   display: flex;
   align-items: center;
@@ -240,18 +319,32 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+  min-width: 0;
 }
 
+/* Sucursal: más columnas cuando hay espacio; 1 col en móvil estrecho. */
 @media (min-width: 641px) {
-  .boveda-resumen-cuenta__grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  .boveda-resumen-cuenta--sucursal .boveda-resumen-cuenta__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
   }
 }
 
-@media (min-width: 1180px) {
-  .boveda-resumen-cuenta__grid {
-    grid-template-columns: repeat(auto-fit, minmax(124px, 1fr));
+@media (min-width: 992px) {
+  .boveda-resumen-cuenta--sucursal .boveda-resumen-cuenta__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .boveda-resumen-cuenta--sucursal .boveda-resumen-cuenta__grid {
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+}
+
+@media (max-width: 400px) {
+  .boveda-resumen-cuenta--sucursal .boveda-resumen-cuenta__grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -275,6 +368,15 @@
   box-shadow: var(--credix-shadow-sm);
 }
 
+.boveda-resumen-cuenta__item-top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+}
+
 .boveda-resumen-cuenta__item-icon {
   display: flex;
   align-items: center;
@@ -286,6 +388,7 @@
 
 .boveda-resumen-cuenta__item-meta {
   min-width: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -300,11 +403,13 @@
 }
 
 .boveda-resumen-cuenta__item-monto {
-  font-size: 1.05rem;
+  font-size: clamp(0.95rem, 2.2vw, 1.05rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: var(--credix-ink-brand, var(--credix-brand, #114885));
   line-height: 1.2;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .boveda-resumen-cuenta__item-monto--neg {
@@ -314,7 +419,15 @@
 .boveda-resumen-cuenta__toolbar {
   display: flex;
   justify-content: flex-end;
-  padding: 0 4px 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 14px 0;
+}
+
+.boveda-resumen-cuenta__toolbar .ant-checkbox-wrapper {
+  font-size: 12px;
+  min-height: 36px;
+  align-items: center;
 }
 
 .boveda-resumen-cuenta__item-caja {
@@ -403,6 +516,7 @@
   border-left: 3px solid #114885;
 }
 
+/* Central: tarjetas más anchas (familias + sedes); evita 5 cols aplastadas. */
 .boveda-resumen-cuenta--red .boveda-resumen-cuenta__grid {
   grid-template-columns: 1fr;
 }
@@ -421,12 +535,16 @@
 
 @media (min-width: 1400px) {
   .boveda-resumen-cuenta--red .boveda-resumen-cuenta__grid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }
 
 .boveda-resumen-cuenta--red .boveda-resumen-cuenta__item {
   min-height: 0;
+}
+
+.boveda-resumen-cuenta--red .boveda-resumen-cuenta__item--familia {
+  grid-column: span 1;
 }
 
 .boveda-resumen-cuenta__sedes {
@@ -513,6 +631,16 @@
 .boveda-panel-ops .credix-box-content,
 .boveda-panel-ops .credix-panel-body {
   padding: 0;
+}
+
+.boveda-panel-ops .credix-box-header--split {
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: flex-start;
+}
+
+.boveda-panel-ops .credix-box-header-extra {
+  max-width: 100%;
 }
 
 .boveda-ops {

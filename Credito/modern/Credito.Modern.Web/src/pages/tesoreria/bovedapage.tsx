@@ -71,6 +71,8 @@ export function BovedaPage() {
     boveda.error instanceof ApiError &&
     boveda.error.status === 404
 
+  const esCentral = resumen.data?.esCentral === true
+
   const stats = useMemo((): CredixStatItem[] => {
     if (boveda.isLoading) {
       return [
@@ -115,6 +117,11 @@ export function BovedaPage() {
   const sumaMedios = Number(boveda.data?.sumaMedios ?? 0)
   const descuadre = !!boveda.data && Math.abs(deltaMedios) > 0.01
 
+  const estadoDineroErrorMsg =
+    estadoDinero.error instanceof ApiError
+      ? estadoDinero.error.message
+      : undefined
+
   const sesionExtra = boveda.data ? (
     <Space wrap size={8} className="boveda-contexto" translate="no">
       <Tag color={boveda.data.indTemporal ? 'orange' : 'blue'}>
@@ -123,7 +130,7 @@ export function BovedaPage() {
       <Tag color={boveda.data.indCierre ? 'default' : 'green'}>
         {boveda.data.indCierre ? 'Cerrada' : 'Abierta'}
       </Tag>
-      <Text type="secondary">
+      <Text type="secondary" className="boveda-contexto__meta">
         Desde {formatFecha(boveda.data.fechaIniOperacion)} · #{boveda.data.bovedaId}
       </Text>
     </Space>
@@ -132,16 +139,25 @@ export function BovedaPage() {
   const liquidezPanel = (
     <CredixPanel title="Liquidez de efectivo" className="boveda-panel-liquidez">
       <p className="boveda-panel-lead">
-        Dónde está el efectivo operativo. El cuadre del ledger usa solo la bóveda
-        principal; temporal y cajas son capas aparte hasta el retorno (TRE).
+        Dónde está el efectivo. El cuadre usa solo la bóveda principal; temporal y
+        cajas son capas aparte hasta el retorno (TRE).
       </p>
       <BovedaEstadoDineroPanel
         data={estadoDinero.data}
         capas={resumen.data?.capas}
-        loading={estadoDinero.isLoading || (secondaryReady && resumen.isLoading)}
+        loading={
+          estadoDinero.isLoading ||
+          (secondaryReady && resumen.isLoading && !estadoDinero.data)
+        }
+        isError={estadoDinero.isError}
+        errorMessage={estadoDineroErrorMsg}
       />
     </CredixPanel>
   )
+
+  const mediosLead = esCentral
+    ? 'Red consolidada por medio. Yape e Interbank agrupan Gerente/René; el ledger sigue separado. «En caja» es pendiente de TRE.'
+    : 'Posición por medio (bóveda + temporal + pendiente en caja). Los cobros digitales siguen visibles hasta el retorno a bóveda.'
 
   return (
     <CredixPage
@@ -155,7 +171,7 @@ export function BovedaPage() {
       ]}
       stats={stats}
       actions={
-        <Space wrap>
+        <Space wrap className="boveda-page__actions">
           <Button icon={<ReloadOutlined />} onClick={refrescar}>
             Actualizar
           </Button>
@@ -171,7 +187,7 @@ export function BovedaPage() {
         <Alert
           type="info"
           showIcon
-          style={{ marginBottom: 0 }}
+          className="boveda-alert"
           message="Hay una bóveda temporal abierta. Ciérrela en Cierre cuando termine."
         />
       ) : null}
@@ -180,6 +196,7 @@ export function BovedaPage() {
         <Alert
           type="error"
           showIcon
+          className="boveda-alert"
           message="El cuadre de medios no cierra"
           description={
             <>
@@ -193,13 +210,16 @@ export function BovedaPage() {
 
       {boveda.isLoading ? (
         <CredixPanel>
-          <Spin />
+          <div className="boveda-page__loading">
+            <Spin />
+          </div>
         </CredixPanel>
       ) : sinBoveda ? (
         <>
           <Alert
             type="warning"
             showIcon
+            className="boveda-alert"
             message="No hay bóveda abierta para esta oficina."
             description="La bóveda del día se crea al iniciar sesión. Revise con soporte si el problema persiste."
           />
@@ -210,6 +230,7 @@ export function BovedaPage() {
           <Alert
             type="error"
             showIcon
+            className="boveda-alert"
             message="No se pudo cargar la bóveda"
             description={
               boveda.error instanceof ApiError ? boveda.error.message : 'Error desconocido'
@@ -221,10 +242,7 @@ export function BovedaPage() {
           {liquidezPanel}
 
           <CredixPanel title="Medios de pago" className="boveda-panel-medios">
-            <p className="boveda-panel-lead">
-              Posición consolidada por medio (principal + temporal + pendiente en caja).
-              En Central, Yape e Interbank agrupan Gerente/René; el ledger sigue separado.
-            </p>
+            <p className="boveda-panel-lead">{mediosLead}</p>
             <BovedaResumenCuenta
               data={resumen.data}
               loading={resumen.isLoading || !secondaryReady}
@@ -243,7 +261,13 @@ export function BovedaPage() {
               className="boveda-panel-ops"
               extra={sesionExtra}
             >
-              <Suspense fallback={<Spin />}>
+              <Suspense
+                fallback={
+                  <div className="boveda-page__loading">
+                    <Spin />
+                  </div>
+                }
+              >
                 <BovedaOperacionesPanel
                   oficinaId={oficinaId}
                   boveda={boveda.data}
@@ -256,13 +280,20 @@ export function BovedaPage() {
             <Alert
               type="info"
               showIcon
+              className="boveda-alert"
               message="Bóveda cerrada"
               description="No hay operaciones sobre una bóveda cerrada."
             />
           )}
 
           <CredixPanel title="Historial" className="boveda-panel-historial">
-            <Suspense fallback={<Spin />}>
+            <Suspense
+              fallback={
+                <div className="boveda-page__loading">
+                  <Spin />
+                </div>
+              }
+            >
               <BovedaHistorialGrillas
                 oficinaId={oficinaId}
                 bovedaAbiertaId={boveda.data.bovedaId}

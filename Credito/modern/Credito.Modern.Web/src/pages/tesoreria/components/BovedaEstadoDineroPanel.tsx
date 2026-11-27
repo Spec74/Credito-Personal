@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Spin } from 'antd'
+import { Alert, Spin } from 'antd'
 import type { BovedaEstadoDinero, BovedaMedioCapas } from '../../../api/boveda'
 import { formatMoney } from '../../../utils/formatMoney'
 
@@ -8,6 +8,8 @@ type Props = {
   /** Capas del resumen de medios (preferidas si vienen). */
   capas?: BovedaMedioCapas | null
   loading: boolean
+  isError?: boolean
+  errorMessage?: string
 }
 
 type Tile = {
@@ -55,7 +57,13 @@ function KpiCard({ value, label, to, hint, emphasis }: Tile) {
  * Dónde está el efectivo operativo: principal · temporal · cajas · total.
  * Cartera (plan/vencida) va aparte: no es liquidez de bóveda.
  */
-export function BovedaEstadoDineroPanel({ data, capas, loading }: Props) {
+export function BovedaEstadoDineroPanel({
+  data,
+  capas,
+  loading,
+  isError,
+  errorMessage,
+}: Props) {
   if (loading) {
     return (
       <div className="boveda-estado-dinero boveda-estado-dinero--loading">
@@ -63,8 +71,27 @@ export function BovedaEstadoDineroPanel({ data, capas, loading }: Props) {
       </div>
     )
   }
+
+  if (isError && !data && !capas) {
+    return (
+      <Alert
+        type="warning"
+        showIcon
+        message="No se pudo cargar la liquidez"
+        description={errorMessage || 'Intente actualizar la página.'}
+      />
+    )
+  }
+
   if (!data && !capas) {
-    return null
+    return (
+      <Alert
+        type="info"
+        showIcon
+        message="Sin datos de liquidez"
+        description="Aún no hay cifras de efectivo para esta oficina."
+      />
+    )
   }
 
   const principal =
@@ -80,7 +107,7 @@ export function BovedaEstadoDineroPanel({ data, capas, loading }: Props) {
     {
       value: Number(principal),
       label: 'En bóveda',
-      hint: 'Ledger principal (cuadre)',
+      hint: 'Ledger (cuadre)',
     },
     {
       value: Number(temporal),
@@ -91,12 +118,12 @@ export function BovedaEstadoDineroPanel({ data, capas, loading }: Props) {
       value: Number(cajas),
       label: 'En cajas',
       to: '/caja/saldos',
-      hint: 'Pendiente de TRE',
+      hint: 'Pendiente TRE',
     },
     {
       value: Number(total),
-      label: 'Efectivo de oficina',
-      hint: 'Principal + temporal + cajas',
+      label: 'Efectivo oficina',
+      hint: 'Suma de capas',
       emphasis: true,
     },
   ]
@@ -113,13 +140,14 @@ export function BovedaEstadoDineroPanel({ data, capas, loading }: Props) {
       </div>
       {data ? (
         <div className="boveda-liquidez__cartera">
-          <span className="boveda-liquidez__cartera-label">Cartera (no es efectivo)</span>
+          <span className="boveda-liquidez__cartera-label">Cartera</span>
           <Link to="/caja/saldos" className="boveda-liquidez__cartera-link">
             Por cobrar {formatMoney(plan)}
           </Link>
           <Link to="/informes/credito-vencido" className="boveda-liquidez__cartera-link">
             Vencida {formatMoney(vencida)}
           </Link>
+          <span className="boveda-liquidez__cartera-note">No es efectivo</span>
         </div>
       ) : null}
     </div>

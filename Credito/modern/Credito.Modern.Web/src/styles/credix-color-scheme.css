@@ -815,12 +815,25 @@
 }
 
 :root[data-theme='dark'] .boveda-cuadre--roto,
-:root[data-theme='dark'] .boveda-resumen-cuenta__sede-monto--neg {
+:root[data-theme='dark'] .boveda-resumen-cuenta__sede-monto--neg,
+:root[data-theme='dark'] .boveda-resumen-cuenta__item-monto--neg,
+:root[data-theme='dark'] .boveda-resumen-cuenta__wallet-monto--neg {
   color: var(--credix-danger);
 }
 
-:root[data-theme='dark'] .boveda-saldos-grid__card--final {
+:root[data-theme='dark'] .boveda-saldos-grid__card--final,
+:root[data-theme='dark'] .boveda-estado-dinero--liquidez .boveda-estado-dinero__card--emphasis {
   border-color: var(--credix-brand-line);
+  background: var(--credix-brand-light);
+}
+
+:root[data-theme='dark'] .boveda-resumen-cuenta__wallets,
+:root[data-theme='dark'] .boveda-resumen-cuenta__sedes {
+  border-color: var(--credix-border);
+}
+
+:root[data-theme='dark'] .boveda-liquidez__cartera-link {
+  color: var(--credix-ink-brand);
 }
 
 :root[data-theme='dark'] .caja-sin-sesion-alert.ant-alert {
