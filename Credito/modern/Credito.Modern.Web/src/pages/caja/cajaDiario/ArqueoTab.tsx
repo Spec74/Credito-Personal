@@ -202,11 +202,13 @@ export function ArqueoTab({
     },
     { title: 'Glosa', dataIndex: 'glosa', ellipsis: true },
     {
-      title: '',
-      width: 150,
+      title: 'Acciones',
+      key: 'acciones',
+      width: 168,
       fixed: 'right',
+      className: 'credix-col-acciones',
       render: (_, r) => (
-        <Space size="small">
+        <Space size={4} wrap={false} className="credix-col-acciones__btns">
           <Button
             size="small"
             icon={<FilePdfOutlined />}

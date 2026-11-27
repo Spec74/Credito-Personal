@@ -225,6 +225,7 @@ export function CreditoAprobarPage() {
         key: 'acciones',
         width: puedeAprobar ? 300 : 190,
         fixed: 'right',
+        className: 'credix-col-acciones',
         render: (_, row) => (
           <div className="credito-aprobacion-actions">
             <Tooltip title="Consulta de crédito">

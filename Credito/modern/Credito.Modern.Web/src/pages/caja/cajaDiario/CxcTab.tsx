@@ -68,8 +68,11 @@ export function CxcTab({
     },
     { title: 'Estado', dataIndex: 'estado', width: 90 },
     {
-      title: '',
-      width: 90,
+      title: 'Acciones',
+      key: 'acciones',
+      width: 104,
+      fixed: 'right',
+      className: 'credix-col-acciones',
       render: (_, row) => (
         <Button
           size="small"
@@ -111,12 +114,14 @@ export function CxcTab({
         </Button>
       </div>
       <CredixDataTable<CuentaPorCobrarPendienteRow>
+        mode="operacion"
         rowKey={(r) => `${r.ordenVentaId}-${r.cuentaxCobrarId}`}
         columns={columns}
         dataSource={query.data ?? []}
         loading={query.isLoading}
         pagination={{ defaultPageSize: 20 }}
         size="small"
+        scroll={{ x: 880 }}
       />
     </>
   )

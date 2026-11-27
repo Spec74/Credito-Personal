@@ -51,6 +51,30 @@
   max-width: 100%;
 }
 
+/* Columna de acciones: el botón no se sale del borde de la tabla */
+.credix-table .ant-table-cell.credix-col-acciones,
+.credix-table th.credix-col-acciones {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: clip;
+  vertical-align: middle;
+}
+
+.credix-table .ant-table-cell.credix-col-acciones .ant-btn,
+.credix-table .ant-table-cell.credix-col-acciones .ant-space {
+  max-width: 100%;
+}
+
+.credix-col-acciones__btns {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  max-width: 100%;
+}
+
+.credix-mobile-card__actions .ant-btn {
+  max-width: 100%;
+}
+
 .credix-mobile-cards {
   display: flex;
   flex-direction: column;

@@ -136,9 +136,11 @@ export function MovimientosCajaModal({
       render: (v: string | null) => v || '—',
     },
     {
-      title: '',
+      title: 'Acciones',
+      key: 'acciones',
       width: 56,
       fixed: 'right',
+      className: 'credix-col-acciones',
       render: (_, r) => (
         <Button
           size="small"

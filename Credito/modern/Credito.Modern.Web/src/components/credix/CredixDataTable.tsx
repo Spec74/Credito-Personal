@@ -50,6 +50,10 @@ function isActionsColumn<T extends object>(col: ColumnType<T>): boolean {
     ? col.dataIndex.join('.').toLowerCase()
     : String(col.dataIndex ?? '').toLowerCase()
   const title = columnLabel(col).toLowerCase()
+  const className = String(
+    (col as ColumnType<T> & { className?: string }).className ?? '',
+  ).toLowerCase()
+  if (className.includes('credix-col-acciones')) return true
   return (
     key === 'acciones' ||
     key === 'accion' ||

@@ -522,6 +522,8 @@
   background: var(--credix-surface);
   overflow: hidden;
   box-shadow: var(--credix-shadow-sm);
+  max-width: 100%;
+  min-width: 0;
 }
 
 .caja-section__head {
@@ -605,6 +607,19 @@
 
 .caja-section__body {
   padding: 12px 14px 14px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Tablas operativas dentro de sección: scroll contenido, sin botones fuera del borde */
+.caja-section__body .credix-table-scroll {
+  max-width: 100%;
+}
+
+.caja-diario-desembolsos,
+.caja-diario-entrada-salida {
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* —— Toolbar cobranzas (alias; reglas en bloque superior) —— */

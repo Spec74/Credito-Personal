@@ -88,30 +88,36 @@ export function DesembolsosTab({
   }
 
   const columns: ColumnsType<DesembolsoPendienteRow> = [
-    { title: 'Nro crédito', dataIndex: 'creditoId', width: 88 },
+    { title: 'Nro crédito', dataIndex: 'creditoId', width: 100 },
     { title: 'Cliente', dataIndex: 'personaNombre', ellipsis: true },
     {
       title: 'Crédito',
       dataIndex: 'montoCredito',
       align: 'right',
+      width: 100,
       render: formatMoney,
     },
     {
       title: 'Gasto adm.',
       dataIndex: 'montoGastosAdm',
       align: 'right',
+      width: 100,
       render: formatMoney,
     },
     {
       title: 'Desembolso',
       dataIndex: 'montoDesembolso',
       align: 'right',
+      width: 110,
       render: formatMoney,
     },
-    { title: 'Estado', dataIndex: 'estado', width: 100 },
+    { title: 'Estado', dataIndex: 'estado', width: 72 },
     {
-      title: '',
-      width: 110,
+      title: 'Acciones',
+      key: 'acciones',
+      width: 128,
+      fixed: 'right',
+      className: 'credix-col-acciones',
       render: (_, row) => (
         <Button
           size="small"
@@ -163,13 +169,14 @@ export function DesembolsosTab({
         icon={<BankOutlined />}
       >
         <CredixDataTable<DesembolsoPendienteRow>
+          mode="operacion"
           rowKey="creditoId"
           columns={columns}
           dataSource={query.data ?? []}
           loading={query.isLoading}
           pagination={{ defaultPageSize: 20 }}
           size="small"
-          scroll={{ x: 960 }}
+          scroll={{ x: 900 }}
         />
       </CajaSection>
     </div>

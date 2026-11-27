@@ -86,7 +86,9 @@ export function CxcInlinePanel({
     {
       title: 'Acciones',
       key: 'acciones',
-      width: 110,
+      width: 128,
+      fixed: 'right',
+      className: 'credix-col-acciones',
       render: (_, row) => (
         <Button
           size="small"
@@ -104,7 +106,7 @@ export function CxcInlinePanel({
             })
           }}
         >
-          Pagar cuenta
+          Pagar
         </Button>
       ),
     },
