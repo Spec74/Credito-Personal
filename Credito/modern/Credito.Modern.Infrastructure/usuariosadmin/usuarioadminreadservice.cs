@@ -28,9 +28,13 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
 
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
-        return await c.QuerySingleOrDefaultAsync<UsuarioAdminScope>(
+        // Dapper no materializa bien records con parámetros opcionales (ActorEsAdministrador).
+        var row = await c.QuerySingleOrDefaultAsync<ScopeRow>(
             new CommandDefinition(sql, new { OficinaId = oficinaId }, cancellationToken: ct))
             .ConfigureAwait(false);
+        return row is null
+            ? null
+            : new UsuarioAdminScope(row.OficinaId, row.EsCentral, row.Oficina ?? "");
     }
 
     public async Task<UsuarioGestionPageDto> ListGestionAsync(
@@ -408,6 +412,13 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         }
 
         return rows;
+    }
+
+    private sealed class ScopeRow
+    {
+        public int OficinaId { get; init; }
+        public bool EsCentral { get; init; }
+        public string? Oficina { get; init; }
     }
 
     private sealed class UsuarioDetalleRow
