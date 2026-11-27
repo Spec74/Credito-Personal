@@ -775,13 +775,30 @@ export function UsuariosPage() {
         </Drawer>
       }
     >
+      {usuariosQuery.isError ? (
+        <Alert
+          type="error"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message="No se pudieron cargar los usuarios"
+          description={
+            usuariosQuery.error instanceof ApiError
+              ? usuariosQuery.error.message
+              : 'Error al listar usuarios. Pulse Actualizar o revise la sesión/oficina.'
+          }
+        />
+      ) : null}
       <CredixDataTable<UsuarioGestionRow>
         rowKey="usuarioId"
         columns={columns}
         dataSource={usuariosQuery.data?.rows ?? []}
         loading={usuariosQuery.isLoading}
         pagination={pagination}
-        locale={{ emptyText: 'No hay usuarios' }}
+        locale={{
+          emptyText: usuariosQuery.isError
+            ? 'Error al listar usuarios.'
+            : 'No hay usuarios en esta sede (falta vínculo en UsuarioOficina o aún no hay altas).',
+        }}
       />
     </CredixCrudPage>
   )

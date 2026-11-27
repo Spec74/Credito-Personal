@@ -54,15 +54,16 @@ export async function fetchOficinaMediosPago(
   if (opts?.incluirInactivos) q.set('incluirInactivos', 'true')
   if (opts?.soloRaices === false) q.set('soloRaices', 'false')
   const qs = q.toString()
+  // baseUrl ya incluye /api/v1 — no repetir el prefijo (si no → HTTP 404).
   return apiFetch<OficinaMedioPago[]>(
-    `/api/v1/oficinas/${oficinaId}/medios-pago${qs ? `?${qs}` : ''}`,
+    `/oficinas/${oficinaId}/medios-pago${qs ? `?${qs}` : ''}`,
   )
 }
 
 export async function guardarOficinaMedioPago(
   body: GuardarOficinaMedioPagoBody,
 ): Promise<{ oficinaMedioPagoId: number; tipoPagoId: number }> {
-  return apiFetch(`/api/v1/medios-pago/guardar`, {
+  return apiFetch(`/medios-pago/guardar`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -78,8 +79,7 @@ export async function setOficinaMedioPagoActivo(
     activo: activo ? 'true' : 'false',
     oficinaId: String(oficinaId),
   })
-  return apiFetch(
-    `/api/v1/medios-pago/${oficinaMedioPagoId}/activar?${q}`,
-    { method: 'POST' },
-  )
+  return apiFetch(`/medios-pago/${oficinaMedioPagoId}/activar?${q}`, {
+    method: 'POST',
+  })
 }
