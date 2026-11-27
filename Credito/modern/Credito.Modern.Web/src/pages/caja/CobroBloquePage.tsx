@@ -49,6 +49,10 @@ import {
   type PagoMedioLineaUi,
 } from '../../components/caja/PagoMediosSplit'
 import { CobroMedioInstrucciones } from '../../components/caja/CobroMedioInstrucciones'
+import {
+  CobroBloqueDigitalDock,
+  type CobroBloqueDigitalDockItem,
+} from './components/CobroBloqueDigitalDock'
 import { clearCobroBloqueEjecutadoHoy } from '../../utils/cobroBloqueDayLock'
 import {
   clearCobroColaError,
@@ -982,25 +986,53 @@ export function CobroBloquePage() {
     message.success('Borrador descartado (solo en este dispositivo).')
   }
 
-  /** Escritorio: filas tipadas con medio digital se expanden para mostrar QR/voucher. */
-  const autoExpandedDigitalKeys = useMemo(() => {
-    return filas
-      .filter((row) => {
-        if (!esTipado(row) || enviadosSet.has(row.creditoId)) return false
-        const e = getEdit(row)
-        if ((e.medios?.length ?? 0) >= 2) {
-          return e.medios!.some((m) => esTipoPagoDigital(m.tipoPagoId) && m.importe > 0)
-        }
-        return esTipoPagoDigital(e.tipoPagoId) && e.montoPagar > 0
-      })
-      .map((row) => row.creditoId)
-  }, [filas, esTipado, enviadosSet, getEdit])
+  /** Escritorio: tipados digitales → panel fijo (no dentro del scroll de la tabla). */
+  const digitalDockItems = useMemo((): CobroBloqueDigitalDockItem[] => {
+    if (fieldMode) return []
+    const out: CobroBloqueDigitalDockItem[] = []
+    for (const row of filas) {
+      if (!esTipado(row) || enviadosSet.has(row.creditoId)) continue
+      const e = getEdit(row)
+      const labelOf = (tipoPagoId: number) =>
+        tipoPagoOptions.find((o) => o.value === tipoPagoId)?.label ?? `Tipo ${tipoPagoId}`
+      if ((e.medios?.length ?? 0) >= 2) {
+        e.medios!.forEach((m, i) => {
+          if (!esTipoPagoDigital(m.tipoPagoId) || !(m.importe > 0)) return
+          out.push({
+            creditoId: row.creditoId,
+            personaNombre: row.personaNombre,
+            tipoPagoId: m.tipoPagoId,
+            tipoPagoLabel: labelOf(m.tipoPagoId),
+            importe: m.importe,
+            lineKey: `${row.creditoId}-m${i}-${m.tipoPagoId}`,
+          })
+        })
+      } else if (esTipoPagoDigital(e.tipoPagoId) && e.montoPagar > 0) {
+        out.push({
+          creditoId: row.creditoId,
+          personaNombre: row.personaNombre,
+          tipoPagoId: e.tipoPagoId,
+          tipoPagoLabel: labelOf(e.tipoPagoId),
+          importe: e.montoPagar,
+          lineKey: `${row.creditoId}-s-${e.tipoPagoId}`,
+        })
+      }
+    }
+    return out
+  }, [fieldMode, filas, esTipado, enviadosSet, getEdit, tipoPagoOptions])
 
-  const [manualExpandedKeys, setManualExpandedKeys] = useState<Key[]>([])
-  const expandedRowKeys = useMemo(() => {
-    const set = new Set<Key>([...autoExpandedDigitalKeys, ...manualExpandedKeys])
-    return Array.from(set)
-  }, [autoExpandedDigitalKeys, manualExpandedKeys])
+  const [digitalDockKey, setDigitalDockKey] = useState<string | null>(null)
+  useEffect(() => {
+    if (digitalDockItems.length === 0) {
+      setDigitalDockKey(null)
+      return
+    }
+    if (!digitalDockKey || !digitalDockItems.some((it) => it.lineKey === digitalDockKey)) {
+      setDigitalDockKey(digitalDockItems[0]!.lineKey)
+    }
+  }, [digitalDockItems, digitalDockKey])
+
+  const [expandedRowKeys, setExpandedRowKeys] = useState<Key[]>([])
 
   const columns = buildCobroBloqueCarteraColumns({
     getEdit,
@@ -1513,63 +1545,11 @@ export function CobroBloquePage() {
                 scroll={{ x: 'max-content' }}
                 expandable={{
                   expandedRowKeys,
-                  onExpandedRowsChange: (keys) => {
-                    const next = keys as Key[]
-                    // Conservar auto-digitales; el resto es expansión manual (cuotas).
-                    const auto = new Set<Key>(autoExpandedDigitalKeys)
-                    setManualExpandedKeys(next.filter((k) => !auto.has(k)))
-                  },
+                  onExpandedRowsChange: (keys) => setExpandedRowKeys(keys as Key[]),
                   expandedRowRender: (row) => {
                     const e = getEdit(row)
-                    const mixto = (e.medios?.length ?? 0) >= 2
-                    const digitales = mixto
-                      ? e.medios!.filter(
-                          (m) => esTipoPagoDigital(m.tipoPagoId) && m.importe > 0,
-                        )
-                      : esTipoPagoDigital(e.tipoPagoId) && e.montoPagar > 0
-                        ? [{ tipoPagoId: e.tipoPagoId, importe: e.montoPagar }]
-                        : []
                     return (
-                      <div className="cobro-bloque-expand">
-                        {digitales.map((m, i) => (
-                          <CobroMedioInstrucciones
-                            key={`exp-${row.creditoId}-${m.tipoPagoId}-${i}`}
-                            tipoPagoId={m.tipoPagoId}
-                            monto={m.importe}
-                            onVoucherValidated={(v) => {
-                              if (mixto && e.medios) {
-                                const next = e.medios.map((rowMedio) =>
-                                  rowMedio.tipoPagoId === m.tipoPagoId &&
-                                  Math.abs(rowMedio.importe - m.importe) < 0.01
-                                    ? {
-                                        ...rowMedio,
-                                        fechaHoraTrans: v.fechaOperacionLocal,
-                                      }
-                                    : rowMedio,
-                                )
-                                patchEdit(
-                                  row.creditoId,
-                                  {
-                                    medios: next,
-                                    fechaHoraTrans: v.fechaOperacionLocal,
-                                  },
-                                  row,
-                                )
-                              } else {
-                                patchEdit(
-                                  row.creditoId,
-                                  { fechaHoraTrans: v.fechaOperacionLocal },
-                                  row,
-                                )
-                              }
-                              if (!v.coincideMonto) {
-                                message.warning(
-                                  'Monto del voucher no coincide; revise antes de confirmar',
-                                )
-                              }
-                            }}
-                          />
-                        ))}
+                      <div className="cobro-bloque-expand cobro-bloque-expand--cuotas">
                         <CobroBloqueCuotasSubgrid
                           creditoId={row.creditoId}
                           deudaMax={row.deudaPendiente}
@@ -1589,6 +1569,39 @@ export function CobroBloquePage() {
                 }}
               />
             )}
+
+            {!fieldMode && tabPrincipal === 'cartera' ? (
+              <CobroBloqueDigitalDock
+                items={digitalDockItems}
+                activeKey={digitalDockKey}
+                onActiveKeyChange={setDigitalDockKey}
+                onVoucherValidated={(item, fechaOperacionLocal) => {
+                  const row = filas.find((r) => r.creditoId === item.creditoId)
+                  if (!row) return
+                  const e = getEdit(row)
+                  if ((e.medios?.length ?? 0) >= 2 && e.medios) {
+                    const next = e.medios.map((m) =>
+                      m.tipoPagoId === item.tipoPagoId &&
+                      Math.abs(m.importe - item.importe) < 0.01
+                        ? { ...m, fechaHoraTrans: fechaOperacionLocal }
+                        : m,
+                    )
+                    patchEdit(
+                      row.creditoId,
+                      { medios: next, fechaHoraTrans: fechaOperacionLocal },
+                      row,
+                    )
+                  } else {
+                    patchEdit(row.creditoId, { fechaHoraTrans: fechaOperacionLocal }, row)
+                  }
+                }}
+                onMontoMismatch={() =>
+                  message.warning(
+                    'Monto del voucher no coincide; revise antes de confirmar',
+                  )
+                }
+              />
+            ) : null}
           </CredixPanel>
 
           {actionDock}

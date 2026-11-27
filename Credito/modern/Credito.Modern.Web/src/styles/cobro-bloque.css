@@ -953,8 +953,128 @@
   max-width: 100%;
 }
 
-.cobro-bloque-expand .cobro-medio {
+.cobro-bloque-expand--cuotas {
+  /* Solo selección de cuotas; el QR vive fuera del scroll de la tabla. */
+  max-width: min(100%, 42rem);
+}
+
+/* —— Panel QR fijo (PC): no viaja con el scroll horizontal de la planilla —— */
+.cobro-bloque-digital-dock {
+  margin-top: 14px;
+  border: 1px solid var(--credix-brand-line, #b8d4ef);
+  border-radius: 14px;
+  background: var(--credix-surface, #fff);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 6%);
+  overflow: hidden;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.cobro-bloque-digital-dock__head {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--credix-border, #e5e7eb);
+  background: var(--credix-brand-light, #e8f2fc);
+}
+
+.cobro-bloque-digital-dock__title {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--credix-ink-brand, var(--credix-brand, #114885));
+}
+
+.cobro-bloque-digital-dock__title .anticon {
+  font-size: 18px;
+  margin-top: 2px;
+}
+
+.cobro-bloque-digital-dock__title strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.cobro-bloque-digital-dock__sub {
+  display: block;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.cobro-bloque-digital-dock__single {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--credix-text, #1f2937);
+  word-break: break-word;
+}
+
+.cobro-bloque-digital-dock__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cobro-bloque-digital-dock__tab {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  height: auto !important;
+  padding: 8px 10px !important;
+  max-width: 100%;
+}
+
+.cobro-bloque-digital-dock__tab-name {
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.2;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cobro-bloque-digital-dock__tab-meta {
+  font-size: 11px;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+
+.cobro-bloque-digital-dock__body {
+  padding: 12px 14px 14px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cobro-bloque-digital-dock__body .cobro-medio {
   margin-top: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 767px) {
+  /* En campo el QR ya va en la tarjeta; el dock PC no se monta. */
+  .cobro-bloque-digital-dock {
+    display: none;
+  }
+}
+
+:root[data-theme='dark'] .cobro-bloque-digital-dock {
+  background: var(--credix-surface);
+  border-color: var(--credix-brand-line);
+}
+
+:root[data-theme='dark'] .cobro-bloque-digital-dock__head {
+  background: var(--credix-brand-light);
+  border-color: var(--credix-border);
+}
+
+:root[data-theme='dark'] .cobro-bloque-digital-dock__title,
+:root[data-theme='dark'] .cobro-bloque-digital-dock__single {
+  color: var(--credix-ink-brand);
 }
 
 .cobro-bloque-card__cuotas {
