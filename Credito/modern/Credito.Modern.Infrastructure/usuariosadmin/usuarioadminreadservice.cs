@@ -50,36 +50,38 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         var term = string.IsNullOrWhiteSpace(buscar) ? null : buscar.Trim();
         var red = scope.AlcanceRed && verRed;
         var sedeFiltro = scope.AlcanceRed && sedeId is >= 1 ? sedeId : red ? null : scope.OficinaId;
+        var sedeListado = sedeFiltro ?? (red ? null : scope.OficinaId);
 
-        var estadoFilter = incluirInactivos
-            ? ""
-            : red
-                ? "AND u.Estado = CAST(1 AS bit)"
-                : "AND u.Estado = CAST(1 AS bit) AND uo.Estado = CAST(1 AS bit)";
+        var estadoFilter = incluirInactivos ? "" : "AND u.Estado = CAST(1 AS bit)";
         var buscarFilter = term is null ? "" : "AND u.NombreUsuario LIKE '%' + @Buscar + '%'";
-        var sedeJoin = red
-            ? ""
-            : """
-              INNER JOIN MAESTRO.UsuarioOficina AS uo
-                  ON uo.UsuarioId = u.UsuarioId
-                 AND uo.OficinaId = @SedeId
-              """;
-        var sedeExists = red && sedeFiltro is >= 1
+        // Membresía sede: vínculo, rol o cajero (no solo INNER JOIN UsuarioOficina).
+        var sedeExists = sedeListado is >= 1
             ? """
-              AND EXISTS (
-                  SELECT 1
-                  FROM MAESTRO.UsuarioOficina AS xf
-                  WHERE xf.UsuarioId = u.UsuarioId
-                    AND xf.OficinaId = @SedeId
-                    AND xf.Estado = CAST(1 AS bit))
+              AND (
+                    EXISTS (
+                        SELECT 1
+                        FROM MAESTRO.UsuarioOficina AS xf
+                        WHERE xf.UsuarioId = u.UsuarioId
+                          AND xf.OficinaId = @SedeId
+                          AND (@IncluirInactivos = 1 OR xf.Estado = CAST(1 AS bit)))
+                    OR EXISTS (
+                        SELECT 1
+                        FROM MAESTRO.UsuarioRol AS xr
+                        WHERE xr.UsuarioId = u.UsuarioId
+                          AND xr.OficinaId = @SedeId)
+                    OR EXISTS (
+                        SELECT 1
+                        FROM CREDITO.Caja AS xc
+                        WHERE xc.CajeroId = u.UsuarioId
+                          AND xc.OficinaId = @SedeId)
+                  )
               """
             : "";
 
         var countSql = $"""
             SELECT COUNT(1)
             FROM MAESTRO.Usuario AS u
-            INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
-            {sedeJoin}
+            LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
             WHERE 1 = 1
               {estadoFilter}
               {buscarFilter}
@@ -89,7 +91,7 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
         var sql = $"""
             SELECT u.UsuarioId,
                    u.NombreUsuario,
-                   p.NombreCompleto,
+                   ISNULL(NULLIF(LTRIM(RTRIM(p.NombreCompleto)), N''), u.NombreUsuario) AS NombreCompleto,
                    p.Celular1,
                    p.EmailPersonal,
                    u.Estado,
@@ -109,8 +111,7 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
                        ORDER BY o.IndPrincipal DESC, o.Denominacion
                        FOR XML PATH(N''), TYPE).value(N'.', N'nvarchar(400)'), 1, 2, N'') AS Sedes
             FROM MAESTRO.Usuario AS u
-            INNER JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
-            {sedeJoin}
+            LEFT JOIN MAESTRO.Persona AS p ON p.PersonaId = u.PersonaId
             WHERE 1 = 1
               {estadoFilter}
               {buscarFilter}
@@ -124,12 +125,28 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
             Buscar = term,
             Skip = skip,
             Take = ps,
-            SedeId = sedeFiltro ?? scope.OficinaId,
+            SedeId = sedeListado ?? scope.OficinaId,
             OficinaSesion = scope.OficinaId,
+            IncluirInactivos = incluirInactivos ? 1 : 0,
         };
 
         await using var c = new SqlConnection(_cs);
         await c.OpenAsync(ct).ConfigureAwait(false);
+
+        // Autocura: al listar una sede, recrea vínculos faltantes (roles / cajero / oficina).
+        if (sedeListado is >= 1)
+        {
+            await UsuarioOficinaVinculoSql
+                .EnsureVinculosAsync(c, transaction: null, sedeListado, ct)
+                .ConfigureAwait(false);
+        }
+        else if (red)
+        {
+            await UsuarioOficinaVinculoSql
+                .EnsureVinculosAsync(c, transaction: null, oficinaId: null, ct)
+                .ConfigureAwait(false);
+        }
+
         var total = await c.ExecuteScalarAsync<int>(
             new CommandDefinition(countSql, args, cancellationToken: ct)).ConfigureAwait(false);
         var rows = (await c.QueryAsync<UsuarioGestionListItemDto>(

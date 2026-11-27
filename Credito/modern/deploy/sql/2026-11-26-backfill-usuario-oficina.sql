@@ -1,9 +1,11 @@
 /*
-  Repara vínculos sede ↔ usuario cuando hay roles o caja asignada pero falta
-  MAESTRO.UsuarioOficina. Sin ese vínculo, Seguridad → Usuarios sale vacío
-  aunque Mantenimiento → Cajas muestre el gestor (CajeroId).
+  Repara vínculos sede ↔ usuario cuando hay roles, caja o UsuarioAsignadoId
+  de oficina pero falta MAESTRO.UsuarioOficina.
 
-  Idempotente. Ejecutar en Azure y local tras los scripts 2026-11-25/26.
+  Sin ese vínculo, Seguridad → Usuarios puede salir vacío aunque
+  Mantenimiento → Cajas muestre el gestor (CajeroId).
+
+  Idempotente. El API también autocura al listar usuarios / guardar caja.
 */
 
 SET NOCOUNT ON;
@@ -34,6 +36,20 @@ WHERE c.CajeroId >= 1
         AND uo.OficinaId = c.OficinaId);
 GO
 
+INSERT INTO MAESTRO.UsuarioOficina (UsuarioId, OficinaId, Estado)
+SELECT DISTINCT o.UsuarioAsignadoId, o.OficinaId, CAST(1 AS bit)
+FROM MAESTRO.Oficina AS o
+INNER JOIN MAESTRO.Usuario AS u ON u.UsuarioId = o.UsuarioAsignadoId
+WHERE o.UsuarioAsignadoId IS NOT NULL
+  AND o.UsuarioAsignadoId >= 1
+  AND o.OficinaId >= 1
+  AND NOT EXISTS (
+      SELECT 1
+      FROM MAESTRO.UsuarioOficina AS uo
+      WHERE uo.UsuarioId = o.UsuarioAsignadoId
+        AND uo.OficinaId = o.OficinaId);
+GO
+
 UPDATE uo
 SET uo.Estado = CAST(1 AS bit)
 FROM MAESTRO.UsuarioOficina AS uo
@@ -49,6 +65,11 @@ WHERE uo.Estado = CAST(0 AS bit)
             FROM CREDITO.Caja AS c
             WHERE c.CajeroId = uo.UsuarioId
               AND c.OficinaId = uo.OficinaId)
+        OR EXISTS (
+            SELECT 1
+            FROM MAESTRO.Oficina AS o
+            WHERE o.UsuarioAsignadoId = uo.UsuarioId
+              AND o.OficinaId = uo.OficinaId)
       );
 GO
 

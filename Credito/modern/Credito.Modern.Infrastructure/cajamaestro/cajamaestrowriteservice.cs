@@ -1,5 +1,6 @@
 using Credito.Modern.Application.CajaMaestro;
 using Credito.Modern.Application.Maestros;
+using Credito.Modern.Infrastructure.UsuariosAdmin;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
@@ -48,6 +49,14 @@ public sealed class CajaMaestroWriteService(IOptions<SqlDatabaseOptions> options
                         request.CajeroId,
                     },
                     cancellationToken: ct)).ConfigureAwait(false);
+            await UsuarioOficinaVinculoSql
+                .AsegurarUsuarioSedeAsync(
+                    c,
+                    transaction: null,
+                    request.CajeroId ?? 0,
+                    request.OficinaId,
+                    ct)
+                .ConfigureAwait(false);
             return new MaestroOperacionResponse(true, id, null);
         }
 
@@ -78,9 +87,20 @@ public sealed class CajaMaestroWriteService(IOptions<SqlDatabaseOptions> options
                 },
                 cancellationToken: ct)).ConfigureAwait(false);
 
-        return n > 0
-            ? new MaestroOperacionResponse(true, request.CajaId, null)
-            : new MaestroOperacionResponse(false, null, "Caja no encontrada.");
+        if (n < 1)
+        {
+            return new MaestroOperacionResponse(false, null, "Caja no encontrada.");
+        }
+
+        await UsuarioOficinaVinculoSql
+            .AsegurarUsuarioSedeAsync(
+                c,
+                transaction: null,
+                request.CajeroId ?? 0,
+                request.OficinaId,
+                ct)
+            .ConfigureAwait(false);
+        return new MaestroOperacionResponse(true, request.CajaId, null);
     }
 
     public async Task<MaestroOperacionResponse> ActivarAsync(
