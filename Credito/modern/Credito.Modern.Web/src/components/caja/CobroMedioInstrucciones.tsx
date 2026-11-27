@@ -51,7 +51,12 @@ export function CobroMedioInstrucciones({
 
   const medio = useMemo(() => {
     const all = flattenMedios(mediosQuery.data ?? [])
-    return all.find((m) => m.activo && m.tipoPagoId === tipoPagoId) ?? null
+    const id = Number(tipoPagoId)
+    return (
+      all.find((m) => m.activo && Number(m.tipoPagoId) === id) ??
+      all.find((m) => Number(m.tipoPagoId) === id) ??
+      null
+    )
   }, [mediosQuery.data, tipoPagoId])
 
   const montoNum =
@@ -64,7 +69,19 @@ export function CobroMedioInstrucciones({
     return null
   }
 
-  if (!medio || !medio.esDigital) {
+  if (!medio) {
+    return (
+      <Alert
+        className="cobro-medio__empty"
+        type="warning"
+        showIcon
+        title="Medio digital sin ficha en esta oficina"
+        description="Configure Yape/Interbank (celular, CCI o QR) en Mantenimiento → Medios de pago."
+      />
+    )
+  }
+
+  if (!medio.esDigital) {
     return null
   }
 

@@ -11,6 +11,7 @@ import type { CreditoGestorPendienteRow } from '../../../api/cajaDiario'
 import { actualizarUbicacionCliente } from '../../../api/clientes'
 import { ApiError } from '../../../api/errors'
 import { cajaConfirm } from '../../../components/caja/cajaConfirm'
+import { CobroMedioInstrucciones } from '../../../components/caja/CobroMedioInstrucciones'
 import { formatMoney } from '../../../utils/formatMoney'
 import { formatFecha } from '../../../utils/formatFecha'
 import {
@@ -375,6 +376,53 @@ export function CobroBloqueFieldCard({
             />
           </div>
         ) : null}
+
+        {digital && edit.montoPagar > 0 ? (
+          <div className="cobro-bloque-card__medio-instrucciones">
+            <CobroMedioInstrucciones
+              tipoPagoId={edit.tipoPagoId}
+              monto={edit.montoPagar}
+              onVoucherValidated={(v) => {
+                onPatch({ fechaHoraTrans: v.fechaOperacionLocal })
+                if (!v.coincideMonto) {
+                  message.warning(
+                    'Monto del voucher no coincide con el cobro; revise antes de confirmar',
+                  )
+                }
+              }}
+            />
+          </div>
+        ) : null}
+
+        {esMixto
+          ? edit.medios!
+              .map((m, i) => ({ m, i }))
+              .filter(({ m }) => esTipoPagoDigital(m.tipoPagoId) && m.importe > 0)
+              .map(({ m, i }) => (
+                <div
+                  key={`mixto-medio-${m.tipoPagoId}-${i}`}
+                  className="cobro-bloque-card__medio-instrucciones"
+                >
+                  <CobroMedioInstrucciones
+                    tipoPagoId={m.tipoPagoId}
+                    monto={m.importe}
+                    onVoucherValidated={(v) => {
+                      const next = edit.medios!.map((row, idx) =>
+                        idx === i
+                          ? { ...row, fechaHoraTrans: v.fechaOperacionLocal }
+                          : row,
+                      )
+                      onPatch({ medios: next, fechaHoraTrans: v.fechaOperacionLocal })
+                      if (!v.coincideMonto) {
+                        message.warning(
+                          'Monto del voucher no coincide; revise antes de confirmar',
+                        )
+                      }
+                    }}
+                  />
+                </div>
+              ))
+          : null}
 
         {errorMsg ? (
           <p className="cobro-bloque-card__error" role="alert">

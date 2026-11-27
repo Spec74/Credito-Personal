@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type Key } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
@@ -48,6 +48,7 @@ import {
   sumPagoMedios,
   type PagoMedioLineaUi,
 } from '../../components/caja/PagoMediosSplit'
+import { CobroMedioInstrucciones } from '../../components/caja/CobroMedioInstrucciones'
 import { clearCobroBloqueEjecutadoHoy } from '../../utils/cobroBloqueDayLock'
 import {
   clearCobroColaError,
@@ -981,6 +982,26 @@ export function CobroBloquePage() {
     message.success('Borrador descartado (solo en este dispositivo).')
   }
 
+  /** Escritorio: filas tipadas con medio digital se expanden para mostrar QR/voucher. */
+  const autoExpandedDigitalKeys = useMemo(() => {
+    return filas
+      .filter((row) => {
+        if (!esTipado(row) || enviadosSet.has(row.creditoId)) return false
+        const e = getEdit(row)
+        if ((e.medios?.length ?? 0) >= 2) {
+          return e.medios!.some((m) => esTipoPagoDigital(m.tipoPagoId) && m.importe > 0)
+        }
+        return esTipoPagoDigital(e.tipoPagoId) && e.montoPagar > 0
+      })
+      .map((row) => row.creditoId)
+  }, [filas, esTipado, enviadosSet, getEdit])
+
+  const [manualExpandedKeys, setManualExpandedKeys] = useState<Key[]>([])
+  const expandedRowKeys = useMemo(() => {
+    const set = new Set<Key>([...autoExpandedDigitalKeys, ...manualExpandedKeys])
+    return Array.from(set)
+  }, [autoExpandedDigitalKeys, manualExpandedKeys])
+
   const columns = buildCobroBloqueCarteraColumns({
     getEdit,
     patchEdit,
@@ -1491,23 +1512,80 @@ export function CobroBloquePage() {
                 size="middle"
                 scroll={{ x: 'max-content' }}
                 expandable={{
+                  expandedRowKeys,
+                  onExpandedRowsChange: (keys) => {
+                    const next = keys as Key[]
+                    // Conservar auto-digitales; el resto es expansión manual (cuotas).
+                    const auto = new Set<Key>(autoExpandedDigitalKeys)
+                    setManualExpandedKeys(next.filter((k) => !auto.has(k)))
+                  },
                   expandedRowRender: (row) => {
                     const e = getEdit(row)
+                    const mixto = (e.medios?.length ?? 0) >= 2
+                    const digitales = mixto
+                      ? e.medios!.filter(
+                          (m) => esTipoPagoDigital(m.tipoPagoId) && m.importe > 0,
+                        )
+                      : esTipoPagoDigital(e.tipoPagoId) && e.montoPagar > 0
+                        ? [{ tipoPagoId: e.tipoPagoId, importe: e.montoPagar }]
+                        : []
                     return (
-                      <CobroBloqueCuotasSubgrid
-                        creditoId={row.creditoId}
-                        deudaMax={row.deudaPendiente}
-                        selected={e.cuotasSeleccionadas}
-                        onChange={(ids, monto) =>
-                          patchEdit(
-                            row.creditoId,
-                            { cuotasSeleccionadas: ids, montoPagar: monto },
-                            row,
-                          )
-                        }
-                      />
+                      <div className="cobro-bloque-expand">
+                        {digitales.map((m, i) => (
+                          <CobroMedioInstrucciones
+                            key={`exp-${row.creditoId}-${m.tipoPagoId}-${i}`}
+                            tipoPagoId={m.tipoPagoId}
+                            monto={m.importe}
+                            onVoucherValidated={(v) => {
+                              if (mixto && e.medios) {
+                                const next = e.medios.map((rowMedio) =>
+                                  rowMedio.tipoPagoId === m.tipoPagoId &&
+                                  Math.abs(rowMedio.importe - m.importe) < 0.01
+                                    ? {
+                                        ...rowMedio,
+                                        fechaHoraTrans: v.fechaOperacionLocal,
+                                      }
+                                    : rowMedio,
+                                )
+                                patchEdit(
+                                  row.creditoId,
+                                  {
+                                    medios: next,
+                                    fechaHoraTrans: v.fechaOperacionLocal,
+                                  },
+                                  row,
+                                )
+                              } else {
+                                patchEdit(
+                                  row.creditoId,
+                                  { fechaHoraTrans: v.fechaOperacionLocal },
+                                  row,
+                                )
+                              }
+                              if (!v.coincideMonto) {
+                                message.warning(
+                                  'Monto del voucher no coincide; revise antes de confirmar',
+                                )
+                              }
+                            }}
+                          />
+                        ))}
+                        <CobroBloqueCuotasSubgrid
+                          creditoId={row.creditoId}
+                          deudaMax={row.deudaPendiente}
+                          selected={e.cuotasSeleccionadas}
+                          onChange={(ids, monto) =>
+                            patchEdit(
+                              row.creditoId,
+                              { cuotasSeleccionadas: ids, montoPagar: monto },
+                              row,
+                            )
+                          }
+                        />
+                      </div>
                     )
                   },
+                  rowExpandable: () => true,
                 }}
               />
             )}
@@ -1581,6 +1659,29 @@ export function CobroBloquePage() {
               options={tipoPagoOptions}
               onChange={setMixtoLineas}
             />
+            {mixtoLineas
+              .filter((l) => esTipoPagoDigital(l.tipoPagoId) && (l.importe ?? 0) > 0)
+              .map((l) => (
+                <CobroMedioInstrucciones
+                  key={l.key}
+                  tipoPagoId={l.tipoPagoId}
+                  monto={l.importe}
+                  onVoucherValidated={(v) => {
+                    setMixtoLineas((prev) =>
+                      prev.map((row) =>
+                        row.key === l.key
+                          ? { ...row, fechaTransferencia: v.fechaOperacionLocal }
+                          : row,
+                      ),
+                    )
+                    if (!v.coincideMonto) {
+                      message.warning(
+                        'Monto del voucher no coincide; revise antes de confirmar',
+                      )
+                    }
+                  }}
+                />
+              ))}
             {mixtoCreditoId != null ? (
               <Button
                 type="link"

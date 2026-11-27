@@ -935,6 +935,28 @@
   color: var(--credix-ink-brand);
 }
 
+.cobro-bloque-card__medio-instrucciones {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cobro-bloque-card__medio-instrucciones .cobro-medio {
+  margin-top: 0;
+}
+
+.cobro-bloque-expand {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0 8px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cobro-bloque-expand .cobro-medio {
+  margin-top: 0;
+}
+
 .cobro-bloque-card__cuotas {
   border-top: 1px solid var(--credix-border);
   padding-top: 8px;
