@@ -1,4 +1,4 @@
-import { Suspense, lazy, useMemo } from 'react'
+import { Suspense, lazy, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { Alert, Button, Space, Spin, Tag, Typography } from 'antd'
@@ -37,6 +37,7 @@ export function BovedaPage() {
   const { session } = useAuth()
   const oficinaId = session?.oficinaId ?? 0
   const secondaryReady = useSecondaryDataReady(oficinaId > 0)
+  const [mostrarCeros, setMostrarCeros] = useState(false)
 
   const boveda = useQuery({
     queryKey: ['boveda-abierta', oficinaId],
@@ -97,7 +98,7 @@ export function BovedaPage() {
       {
         value: formatMoney(boveda.data.saldoFinal),
         label: 'Saldo final',
-        detail: abierta ? 'SI + E − S' : 'Cerrada',
+        detail: abierta ? (descuadre ? 'Descuadre' : 'Cuadrado') : 'Cerrada',
         tone: descuadre ? 'red' : abierta ? 'green' : 'default',
       },
     ]
@@ -113,8 +114,6 @@ export function BovedaPage() {
   const deltaMedios = Number(boveda.data?.deltaMedios ?? 0)
   const sumaMedios = Number(boveda.data?.sumaMedios ?? 0)
   const descuadre = !!boveda.data && Math.abs(deltaMedios) > 0.01
-  const efectivoOficina =
-    estadoDinero.data?.efectivoOficina ?? estadoDinero.data?.totalFondo
 
   const sesionExtra = boveda.data ? (
     <Space wrap size={8} className="boveda-contexto" translate="no">
@@ -129,6 +128,20 @@ export function BovedaPage() {
       </Text>
     </Space>
   ) : null
+
+  const liquidezPanel = (
+    <CredixPanel title="Liquidez de efectivo" className="boveda-panel-liquidez">
+      <p className="boveda-panel-lead">
+        Dónde está el efectivo operativo. El cuadre del ledger usa solo la bóveda
+        principal; temporal y cajas son capas aparte hasta el retorno (TRE).
+      </p>
+      <BovedaEstadoDineroPanel
+        data={estadoDinero.data}
+        capas={resumen.data?.capas}
+        loading={estadoDinero.isLoading || (secondaryReady && resumen.isLoading)}
+      />
+    </CredixPanel>
+  )
 
   return (
     <CredixPage
@@ -163,34 +176,18 @@ export function BovedaPage() {
         />
       ) : null}
 
-      {boveda.data ? (
-        <div
-          className={descuadre ? 'boveda-cuadre boveda-cuadre--roto' : 'boveda-cuadre'}
-          translate="no"
-        >
-          <span>
-            SI {formatMoney(boveda.data.saldoInicial)} + E{' '}
-            {formatMoney(boveda.data.entradas)} − S {formatMoney(boveda.data.salidas)} ={' '}
-            <strong>{formatMoney(boveda.data.saldoFinal)}</strong>
-          </span>
-          <span>
-            Σ medios bóveda {formatMoney(sumaMedios)}
-            {descuadre
-              ? ` · delta ${formatMoney(deltaMedios)}`
-              : ' = saldo final'}
-          </span>
-          {efectivoOficina != null ? (
-            <span>Efectivo de oficina {formatMoney(efectivoOficina)}</span>
-          ) : null}
-        </div>
-      ) : null}
-
       {descuadre ? (
         <Alert
           type="error"
           showIcon
           message="El cuadre de medios no cierra"
-          description="La suma por medio en la bóveda (efectivo, Yape Gerente/René, Plin, bancos…) no coincide con el saldo final. No cierre hasta corregir los asientos."
+          description={
+            <>
+              Σ medios del ledger {formatMoney(sumaMedios)} vs saldo final{' '}
+              {formatMoney(boveda.data!.saldoFinal)} (delta {formatMoney(deltaMedios)}).
+              No cierre hasta corregir los asientos.
+            </>
+          }
         />
       ) : null}
 
@@ -206,15 +203,7 @@ export function BovedaPage() {
             message="No hay bóveda abierta para esta oficina."
             description="La bóveda del día se crea al iniciar sesión. Revise con soporte si el problema persiste."
           />
-          <CredixPanel
-            title="Cajones y cartera (no mezclar)"
-            className="boveda-panel-liquidez"
-          >
-            <BovedaEstadoDineroPanel
-              data={estadoDinero.data}
-              loading={estadoDinero.isLoading}
-            />
-          </CredixPanel>
+          {liquidezPanel}
         </>
       ) : boveda.isError ? (
         <div translate="no">
@@ -229,23 +218,13 @@ export function BovedaPage() {
         </div>
       ) : boveda.data ? (
         <>
+          {liquidezPanel}
+
           <CredixPanel title="Medios de pago" className="boveda-panel-medios">
-            <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-              Posición operativa consolidada por medio (principal + temporal + caja pendiente
-              de TRE). Los cobros no desaparecen del radar hasta que vuelven a bóveda. El
-              banner Σ medios y la remesa a Central usan solo el ledger de la principal.
-            </Text>
-            {resumen.data?.capas ? (
-              <Space wrap size={8} style={{ marginBottom: 12 }} translate="no">
-                <Tag>Principal {formatMoney(resumen.data.capas.principal)}</Tag>
-                <Tag color="orange">
-                  Temporal {formatMoney(resumen.data.capas.temporal)}
-                </Tag>
-                <Tag color="blue">
-                  En cajas {formatMoney(resumen.data.capas.cajasPendientes)}
-                </Tag>
-              </Space>
-            ) : null}
+            <p className="boveda-panel-lead">
+              Posición consolidada por medio (principal + temporal + pendiente en caja).
+              En Central, Yape e Interbank agrupan Gerente/René; el ledger sigue separado.
+            </p>
             <BovedaResumenCuenta
               data={resumen.data}
               loading={resumen.isLoading || !secondaryReady}
@@ -253,36 +232,8 @@ export function BovedaPage() {
               error={resumen.error}
               hideHeader
               eagerLogos
-            />
-            {resumen.data?.enCajas && resumen.data.enCajas.length > 0 ? (
-              <div style={{ marginTop: 16 }}>
-                <Text strong style={{ display: 'block', marginBottom: 8 }}>
-                  Progreso en cajas por medio
-                </Text>
-                <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-                  Cobros y saldos aún en caja diaria (antes de TRE). No forman parte del
-                  cuadre de la bóveda principal hasta el retorno.
-                </Text>
-                <BovedaResumenCuenta
-                  data={{
-                    ...resumen.data,
-                    marcas: resumen.data.enCajas,
-                  }}
-                  loading={false}
-                  isError={false}
-                  hideHeader
-                />
-              </div>
-            ) : null}
-          </CredixPanel>
-
-          <CredixPanel
-            title="Cajones y cartera (no mezclar)"
-            className="boveda-panel-liquidez"
-          >
-            <BovedaEstadoDineroPanel
-              data={estadoDinero.data}
-              loading={estadoDinero.isLoading}
+              mostrarCeros={mostrarCeros}
+              onMostrarCerosChange={setMostrarCeros}
             />
           </CredixPanel>
 
@@ -320,15 +271,7 @@ export function BovedaPage() {
           </CredixPanel>
         </>
       ) : (
-        <CredixPanel
-          title="Cajones y cartera (no mezclar)"
-          className="boveda-panel-liquidez"
-        >
-          <BovedaEstadoDineroPanel
-            data={estadoDinero.data}
-            loading={estadoDinero.isLoading}
-          />
-        </CredixPanel>
+        liquidezPanel
       )}
     </CredixPage>
   )

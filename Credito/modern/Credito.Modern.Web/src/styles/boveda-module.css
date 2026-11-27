@@ -24,30 +24,26 @@
   align-items: center;
 }
 
-.boveda-cuadre {
+/* —— Liquidez: 4 baldosas (principal · temporal · cajas · total) —— */
+.boveda-liquidez {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px 20px;
-  padding: 10px 14px;
-  border: 1px solid var(--credix-border, #e5e7eb);
-  border-radius: var(--credix-radius, 8px);
-  background: var(--credix-surface, #fff);
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  color: var(--credix-text, #111827);
+  flex-direction: column;
+  gap: 12px;
 }
 
-.boveda-cuadre--roto {
-  border-color: var(--credix-danger);
-  background: var(--credix-danger-bg);
-  color: var(--credix-danger, #9b1c1c);
-}
-
-/* —— Fuera de esta bóveda (4 baldosas, sin repetir saldo/total) —— */
 .boveda-estado-dinero {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+}
+
+.boveda-estado-dinero--liquidez .boveda-estado-dinero__card--emphasis {
+  background: var(--credix-brand-light, #eef5fb);
+  border-color: var(--credix-brand-line, #b8d4ef);
+}
+
+.boveda-estado-dinero--liquidez .boveda-estado-dinero__card--emphasis .boveda-estado-dinero__value {
+  font-size: 1.3rem;
 }
 
 @media (max-width: 991px) {
@@ -103,8 +99,35 @@
 .boveda-estado-dinero__hint {
   margin-top: 6px;
   font-size: 11px;
+  font-weight: 500;
+  color: var(--credix-text-muted, #6b7280);
+}
+
+.boveda-liquidez__cartera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 16px;
+  padding: 8px 2px 0;
+  font-size: 12px;
+  color: var(--credix-text-muted, #6b7280);
+}
+
+.boveda-liquidez__cartera-label {
   font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.boveda-liquidez__cartera-link {
   color: var(--credix-brand, #114885);
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.boveda-liquidez__cartera-link:hover {
+  text-decoration: underline;
 }
 
 /* —— Saldos de sesión —— */
@@ -286,6 +309,58 @@
 
 .boveda-resumen-cuenta__item-monto--neg {
   color: var(--credix-danger);
+}
+
+.boveda-resumen-cuenta__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 4px 10px;
+}
+
+.boveda-resumen-cuenta__item-caja {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--credix-brand, #114885);
+  font-variant-numeric: tabular-nums;
+}
+
+.boveda-resumen-cuenta__item--familia {
+  gap: 8px;
+}
+
+.boveda-resumen-cuenta__wallets {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 8px 0 0;
+  width: 100%;
+  border-top: 1px solid var(--credix-border, #e5e7eb);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.boveda-resumen-cuenta__wallet {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.boveda-resumen-cuenta__wallet-nom {
+  color: var(--credix-text-muted, #6b7280);
+  font-weight: 500;
+}
+
+.boveda-resumen-cuenta__wallet-monto {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--credix-text, #111827);
+}
+
+.boveda-resumen-cuenta__wallet-monto--neg {
+  color: var(--credix-danger, #9b1c1c);
 }
 
 .boveda-resumen-cuenta__item--efectivo {
