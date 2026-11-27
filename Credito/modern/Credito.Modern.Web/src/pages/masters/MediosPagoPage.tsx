@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  Alert,
   Button,
   Checkbox,
   Drawer,
@@ -697,6 +698,28 @@ export function MediosPagoPage() {
         )
       }
     >
+      {oficinaId < 1 ? (
+        <Alert
+          type="warning"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message="Sin oficina en sesión"
+          description="Vuelva a iniciar sesión. Sin oficina no se puede sembrar ni configurar medios de pago."
+        />
+      ) : null}
+      {listQuery.isError ? (
+        <Alert
+          type="error"
+          showIcon
+          style={{ marginBottom: 12 }}
+          message="No se pudieron cargar los medios"
+          description={
+            listQuery.error instanceof ApiError
+              ? listQuery.error.message
+              : 'Revise que exista CREDITO.OficinaMedioPago (script 2026-11-25-oficina-medio-pago.sql) y pulse Actualizar.'
+          }
+        />
+      ) : null}
       <CredixDataTable
         rowKey="oficinaMedioPagoId"
         loading={listQuery.isLoading}
@@ -709,7 +732,11 @@ export function MediosPagoPage() {
         }}
         locale={{
           emptyText:
-            'Sin medios. Al abrir esta página el sistema siembra las cuentas de bóveda; pulse Actualizar o revise la oficina de sesión.',
+            oficinaId < 1
+              ? 'Sin oficina en sesión.'
+              : listQuery.isError
+                ? 'Error al listar medios.'
+                : 'Sin medios. Al abrir esta página el sistema siembra las cuentas de bóveda; pulse Actualizar. Si sigue vacío, aplique deploy/sql/2026-11-25-oficina-medio-pago.sql.',
         }}
       />
     </CredixCrudPage>

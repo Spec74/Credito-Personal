@@ -14,10 +14,12 @@ internal static class OficinaMedioPagoSeedSql
         int oficinaId,
         CancellationToken cancellationToken)
     {
-        await connection
-            .ExecuteAsync(
-                new CommandDefinition(
-                    """
+        try
+        {
+            await connection
+                .ExecuteAsync(
+                    new CommandDefinition(
+                        """
                     ;WITH Catalogo AS (
                         SELECT
                             vt.ItemId AS TipoPagoId,
@@ -88,9 +90,20 @@ internal static class OficinaMedioPagoSeedSql
                               AND m.TipoPagoId = c.TipoPagoId
                           );
                     """,
-                    new { OficinaId = oficinaId },
-                    transaction: transaction,
-                    cancellationToken: cancellationToken))
-            .ConfigureAwait(false);
+                        new { OficinaId = oficinaId },
+                        transaction: transaction,
+                        cancellationToken: cancellationToken))
+                .ConfigureAwait(false);
+        }
+        catch (Exception ex) when (
+            ex.Message.Contains("OficinaMedioPago", StringComparison.OrdinalIgnoreCase)
+            && (ex.Message.Contains("Invalid object name", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("no existe", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("does not exist", StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new InvalidOperationException(
+                "Falta CREDITO.OficinaMedioPago. Ejecute deploy/sql/2026-11-25-oficina-medio-pago.sql antes de configurar medios.",
+                ex);
+        }
     }
 }

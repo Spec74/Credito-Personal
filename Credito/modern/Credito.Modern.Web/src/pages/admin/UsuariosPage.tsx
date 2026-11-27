@@ -57,6 +57,7 @@ import {
 } from '../../api/usuariosAdmin'
 import { ApiError } from '../../api/errors'
 import { CredixCrudPage, CredixDataTable, CredixDatePicker } from '../../components/credix'
+import { useAuth } from '../../auth/useAuth'
 import { useCrudListStats } from '../../hooks/useCrudListStats'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { roleDisplayHint, roleSelectLabel } from '../../utils/roleDisplayLabels'
@@ -64,6 +65,7 @@ import { roleDisplayHint, roleSelectLabel } from '../../utils/roleDisplayLabels'
 const { Paragraph, Text } = Typography
 
 export function UsuariosPage() {
+  const { session } = useAuth()
   const screens = Grid.useBreakpoint()
   const [buscar, setBuscar] = useState('')
   const buscarDebounced = useDebouncedValue(buscar.trim(), 350)
@@ -107,9 +109,19 @@ export function UsuariosPage() {
     enabled: drawerOpen,
   })
 
-  const esCentral = usuariosQuery.data?.esCentral === true
-  const oficinaSesionId = usuariosQuery.data?.oficinaId ?? 0
-  const oficinaSesionNombre = usuariosQuery.data?.oficina?.trim() || 'esta sucursal'
+  // Alcance red = ADMIN en Central. Compat: APIs viejas enviaban ese flag en esCentral.
+  const alcanceRed =
+    usuariosQuery.data?.alcanceRed === true ||
+    (usuariosQuery.data?.alcanceRed == null && usuariosQuery.data?.esCentral === true)
+  const oficinaSesionId =
+    (usuariosQuery.data?.oficinaId && usuariosQuery.data.oficinaId >= 1
+      ? usuariosQuery.data.oficinaId
+      : null) ??
+    (session?.oficinaId && session.oficinaId >= 1 ? session.oficinaId : 0)
+  const oficinaSesionNombre =
+    usuariosQuery.data?.oficina?.trim() ||
+    session?.oficinaDenominacion?.trim() ||
+    'esta sucursal'
 
   const guardar = useMutation({
     mutationFn: guardarUsuario,
@@ -289,13 +301,13 @@ export function UsuariosPage() {
       nombreUsuario: d.nombreUsuario,
       claveUsuario: '',
       estado: d.estado,
-      oficinaIds: esCentral ? asignadas : [oficinaSesionId].filter((id) => id >= 1),
+      oficinaIds: alcanceRed ? asignadas : [oficinaSesionId].filter((id) => id >= 1),
     })
-  }, [detalleQuery.data, esCentral, form, oficinaSesionId, usuarioId])
+  }, [detalleQuery.data, alcanceRed, form, oficinaSesionId, usuarioId])
 
   useEffect(() => {
     if (usuarioId < 1 || !drawerOpen) return
-    const oficinaRol = esCentral
+    const oficinaRol = alcanceRed
       ? ((form.getFieldValue('oficinaIds') as number[] | undefined)?.[0] ??
         detalleQuery.data?.oficinas.find((o) => o.asignado)?.oficinaId)
       : oficinaSesionId
@@ -306,7 +318,7 @@ export function UsuariosPage() {
         roles.filter((r) => r.asignado).map((r) => r.rolId),
       )
     })
-  }, [detalleQuery.data, drawerOpen, esCentral, form, oficinaSesionId, usuarioId])
+  }, [detalleQuery.data, drawerOpen, alcanceRed, form, oficinaSesionId, usuarioId])
 
   const aplicarClaveGenerada = () => {
     const clave = generarClaveTemporal()
@@ -336,7 +348,7 @@ export function UsuariosPage() {
   const guardarTodo = () => {
     void form.validateFields().then((v) => {
       const rolIds = ((v.rolIds as number[]) ?? []).filter((id) => id >= 1)
-      const oficinaIds = esCentral
+      const oficinaIds = alcanceRed
         ? (((v.oficinaIds as number[]) ?? []).filter((id) => id >= 1))
         : rolIds.length > 0 && oficinaSesionId >= 1
           ? [oficinaSesionId]
@@ -346,7 +358,7 @@ export function UsuariosPage() {
         message.warning('Seleccione al menos un rol')
         return
       }
-      if (!esNuevo && esCentral && oficinaIds.length < 1) {
+      if (!esNuevo && alcanceRed && oficinaIds.length < 1) {
         message.warning('Seleccione al menos una oficina')
         return
       }
@@ -387,7 +399,7 @@ export function UsuariosPage() {
     { title: 'Usuario', dataIndex: 'nombreUsuario', width: 120 },
     { title: 'Nombre', dataIndex: 'nombreCompleto', ellipsis: true },
     { title: 'Celular', dataIndex: 'celular1', width: 100 },
-    ...(esCentral
+    ...(alcanceRed
       ? [
           {
             title: 'Sedes',
@@ -402,7 +414,7 @@ export function UsuariosPage() {
       dataIndex: 'estado',
       width: 110,
       render: (v: boolean, row: UsuarioGestionRow) =>
-        esCentral ? (
+        alcanceRed ? (
           v ? <Tag color="green">Activo</Tag> : <Tag>Inactivo</Tag>
         ) : row.enEstaSede && v ? (
           <Tag color="green">En esta sede</Tag>
@@ -424,14 +436,14 @@ export function UsuariosPage() {
             loading={activar.isPending}
             onClick={() =>
               Modal.confirm({
-                title: esCentral
+                title: alcanceRed
                   ? row.estado
                     ? '¿Desactivar la cuenta?'
                     : '¿Activar la cuenta?'
                   : row.enEstaSede
                     ? '¿Quitar de esta sucursal?'
                     : '¿Reincorporar a esta sucursal?',
-                content: esCentral
+                content: alcanceRed
                   ? 'Afecta el acceso en todas las sedes.'
                   : row.enEstaSede
                     ? 'Sigue existiendo. Si tiene otras sedes, ahí puede seguir entrando.'
@@ -440,7 +452,7 @@ export function UsuariosPage() {
               })
             }
           >
-            {esCentral
+            {alcanceRed
               ? row.estado
                 ? 'Desactivar'
                 : 'Activar'
@@ -472,7 +484,7 @@ export function UsuariosPage() {
   }))
   const rolesOptions = (rolesCatalogoQuery.data ?? []).map((r) => ({
     value: r.rolId,
-    label: roleSelectLabel(r.denominacion, { esCentral }),
+    label: roleSelectLabel(r.denominacion, { esCentral: alcanceRed }),
     title: roleDisplayHint(r.denominacion),
   }))
 
@@ -480,7 +492,7 @@ export function UsuariosPage() {
     <CredixCrudPage
       title="Usuarios"
       subtitle={
-        esCentral
+        alcanceRed
           ? verRed
             ? 'Toda la red · puede crear identidad y asignar sede/rol después'
             : `Personal de ${oficinaSesionNombre} · sede/rol opcionales al crear`
@@ -520,7 +532,7 @@ export function UsuariosPage() {
           >
             Incluir inactivos
           </Checkbox>
-          {esCentral ? (
+          {alcanceRed ? (
             <Checkbox
               checked={verRed}
               onChange={(e) => {
@@ -701,12 +713,12 @@ export function UsuariosPage() {
               <Paragraph type="secondary" style={{ marginTop: 4 }}>
                 {usuarioId < 1
                   ? 'Opcional al crear: puede guardar solo la identidad y asignar sede/rol después. Sin ambos no podrá iniciar sesión.'
-                  : esCentral
+                  : alcanceRed
                     ? 'Los mismos roles se aplican a todas las sedes que marque.'
                     : `Queda en ${oficinaSesionNombre}. Debe tener al menos un rol.`}
               </Paragraph>
             </div>
-            {esCentral ? (
+            {alcanceRed ? (
               <Form.Item
                 name="oficinaIds"
                 label="Oficinas"
@@ -736,7 +748,7 @@ export function UsuariosPage() {
               name="rolIds"
               label="Roles"
               extra={
-                esCentral
+                alcanceRed
                   ? 'ADMINISTRADOR = admin de red (toda la red). ENCARGADO = gerente operativo de Central. APROBADOR aprueba. CAJA CENTRAL es menú; la caja física está en Mantenimiento → Cajas.'
                   : 'ENCARGADO (gerente de sede) gestiona usuarios/cajas de esta oficina. No puede asignar ADMINISTRADOR. APROBADOR aprueba créditos.'
               }
@@ -754,7 +766,7 @@ export function UsuariosPage() {
                 placeholder="Qué puede hacer en el sistema"
               />
             </Form.Item>
-            {esCentral ? (
+            {alcanceRed ? (
               <Form.Item name="estado" label="Activo" valuePropName="checked">
                 <Switch />
               </Form.Item>

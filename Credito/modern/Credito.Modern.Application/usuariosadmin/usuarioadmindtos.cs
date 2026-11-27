@@ -41,10 +41,13 @@ public sealed record UsuarioGestionPageDto(
     int TotalRecords,
     int TotalPages,
     List<UsuarioGestionListItemDto> Rows,
+    /// <summary>La sede de sesión es oficina principal (<c>IndPrincipal</c>).</summary>
     bool EsCentral = false,
     int OficinaId = 0,
     string? Oficina = null,
-    bool VerRed = false);
+    bool VerRed = false,
+    /// <summary>Admin de red: puede listar/mutar usuarios de toda la red.</summary>
+    bool AlcanceRed = false);
 
 public sealed record UsuarioPersonaDetalleDto(
     int UsuarioId,

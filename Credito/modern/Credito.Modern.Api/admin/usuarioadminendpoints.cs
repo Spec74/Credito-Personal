@@ -359,7 +359,7 @@ internal static class UsuarioAdminEndpoints
                         var response = await write.ResetearClaveAsync(scope!, usuarioId, ct).ConfigureAwait(false);
                         return TypedResults.Ok(response);
                     }
-                    catch (InvalidOperationException ex)
+                    catch (InvalidOperationException ex) when (IsMissingConnectionString(ex))
                     {
                         log.LogWarning(ex, "Cadena de conexión no configurada");
                         return TypedResults.Problem(
@@ -367,11 +367,19 @@ internal static class UsuarioAdminEndpoints
                             statusCode: StatusCodes.Status503ServiceUnavailable,
                             title: "Configuración incompleta");
                     }
+                    catch (InvalidOperationException ex)
+                    {
+                        log.LogWarning(ex, "ResetearClaveUsuario rechazado");
+                        return TypedResults.Problem(
+                            detail: ex.Message,
+                            statusCode: StatusCodes.Status400BadRequest,
+                            title: "Operación no válida");
+                    }
                     catch (DbException ex)
                     {
                         log.LogError(ex, "Error en ResetearClaveUsuario");
-                        var detail = "No se pudo completar la operación.";
-                        if (env.IsDevelopment())
+                        var detail = "No se pudo completar la operación en base de datos.";
+                        if (env.IsDevelopment() || env.IsEnvironment("Staging"))
                             detail += $" Detalle: {ex.Message}";
                         return TypedResults.Problem(
                             detail: detail,
@@ -509,9 +517,13 @@ internal static class UsuarioAdminEndpoints
         }
     }
 
+    private static bool IsMissingConnectionString(InvalidOperationException ex) =>
+        ex.Message.Contains("ConnectionString", StringComparison.OrdinalIgnoreCase)
+        || ex.Message.Contains("CreditoDatabase", StringComparison.OrdinalIgnoreCase);
+
     private static ProblemHttpResult ReadError(ILogger log, IHostEnvironment env, Exception ex)
     {
-        if (ex is InvalidOperationException ioe)
+        if (ex is InvalidOperationException ioe && IsMissingConnectionString(ioe))
         {
             log.LogWarning(ioe, "Cadena de conexión no configurada");
             return TypedResults.Problem(
@@ -520,9 +532,18 @@ internal static class UsuarioAdminEndpoints
                 title: "Configuración incompleta");
         }
 
+        if (ex is InvalidOperationException ioeBiz)
+        {
+            log.LogWarning(ioeBiz, "Operación de usuarios admin rechazada");
+            return TypedResults.Problem(
+                detail: ioeBiz.Message,
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Operación no válida");
+        }
+
         log.LogError(ex, "Error en usuarios admin");
         var detail = "No se pudo completar la operación.";
-        if (env.IsDevelopment())
+        if (env.IsDevelopment() || env.IsEnvironment("Staging"))
             detail += $" Detalle: {ex.Message}";
         return TypedResults.Problem(
             detail: detail,
@@ -543,7 +564,7 @@ internal static class UsuarioAdminEndpoints
             var response = await action(ct).ConfigureAwait(false);
             return TypedResults.Ok(response);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException ex) when (IsMissingConnectionString(ex))
         {
             log.LogWarning(ex, "Cadena de conexión no configurada");
             return TypedResults.Problem(
@@ -551,12 +572,27 @@ internal static class UsuarioAdminEndpoints
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Configuración incompleta");
         }
+        catch (InvalidOperationException ex)
+        {
+            log.LogWarning(ex, "Operación {Operation} rechazada", operation);
+            return TypedResults.Problem(
+                detail: ex.Message,
+                statusCode: StatusCodes.Status400BadRequest,
+                title: "Operación no válida");
+        }
         catch (DbException ex)
         {
             log.LogError(ex, "Error en {Operation}", operation);
-            var detail = "No se pudo completar la operación.";
-            if (env.IsDevelopment())
+            var detail = "No se pudo completar la operación en base de datos.";
+            // Truncación de ClaveUsuario u otros constraints: mensaje útil también fuera de Development.
+            if (ex.Message.Contains("truncated", StringComparison.OrdinalIgnoreCase)
+                || ex.Message.Contains("ClaveUsuario", StringComparison.OrdinalIgnoreCase)
+                || env.IsDevelopment()
+                || env.IsEnvironment("Staging"))
+            {
                 detail += $" Detalle: {ex.Message}";
+            }
+
             return TypedResults.Problem(
                 detail: detail,
                 statusCode: StatusCodes.Status503ServiceUnavailable,

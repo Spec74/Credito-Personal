@@ -142,10 +142,11 @@ public sealed class UsuarioAdminReadService(IOptions<SqlDatabaseOptions> options
             total,
             totalPages,
             rows,
-            scope.AlcanceRed,
+            scope.EsCentral,
             scope.OficinaId,
             scope.Oficina,
-            red);
+            red,
+            scope.AlcanceRed);
     }
 
     public async Task<IReadOnlyList<UsuarioReporteGestorDto>> ListReporteGestoresAsync(

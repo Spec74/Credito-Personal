@@ -26,10 +26,13 @@ export interface UsuarioGestionPage {
   totalRecords: number
   totalPages: number
   rows: UsuarioGestionRow[]
+  /** Sede de sesión con IndPrincipal. */
   esCentral: boolean
   oficinaId: number
   oficina: string | null
   verRed: boolean
+  /** Admin de red: gestiona usuarios de toda la red (antes se reutilizaba esCentral). */
+  alcanceRed?: boolean
 }
 
 export interface OficinaAsignacion {

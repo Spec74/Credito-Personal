@@ -95,15 +95,15 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
 
             if (personaId is null or < 1)
             {
-                personaId = await c.ExecuteScalarAsync<int>(
+                personaId = await c.ExecuteScalarAsync<int?>(
                     new CommandDefinition(
                         """
                         INSERT INTO MAESTRO.Persona (
                             Nombre, ApePaterno, ApeMaterno, NombreCompleto, TipoDocumento, NumeroDocumento,
-                            Sexo, TipoPersona, EmailPersonal, FechaNacimiento, Direccion, Estado, Celular1)
+                            Codigo, Sexo, TipoPersona, EmailPersonal, FechaNacimiento, Direccion, Estado, Celular1)
                         VALUES (
                             @Nombre, @ApePaterno, @ApeMaterno, @NombreCompleto, 'DNI', @NumeroDocumento,
-                            @Sexo, 'N', @EmailPersonal, @FechaNacimiento, @Direccion, @Estado, @Celular1);
+                            '', @Sexo, 'N', @EmailPersonal, @FechaNacimiento, @Direccion, @Estado, @Celular1);
                         SELECT CAST(SCOPE_IDENTITY() AS int);
                         """,
                         new
@@ -122,6 +122,14 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                         },
                         transaction: tx,
                         cancellationToken: ct)).ConfigureAwait(false);
+                if (personaId is null or < 1)
+                {
+                    await tx.RollbackAsync(ct).ConfigureAwait(false);
+                    return new MaestroOperacionResponse(
+                        false,
+                        null,
+                        "No se pudo crear la persona (identidad). Revise columnas NOT NULL de MAESTRO.Persona.");
+                }
             }
             else
             {
@@ -161,7 +169,7 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
 
             if (request.UsuarioId < 1)
             {
-                var usuarioId = await c.ExecuteScalarAsync<int>(
+                var usuarioId = await c.ExecuteScalarAsync<int?>(
                     new CommandDefinition(
                         """
                         INSERT INTO MAESTRO.Usuario (PersonaId, NombreUsuario, ClaveUsuario, Estado)
@@ -177,9 +185,25 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                         },
                         transaction: tx,
                         cancellationToken: ct)).ConfigureAwait(false);
-                await AplicarAsignacionAsync(c, tx, scope, usuarioId, request, ct).ConfigureAwait(false);
+                if (usuarioId is null or < 1)
+                {
+                    await tx.RollbackAsync(ct).ConfigureAwait(false);
+                    return new MaestroOperacionResponse(
+                        false,
+                        null,
+                        "No se pudo crear el usuario. Si ClaveUsuario es corta, aplique nvarchar(256) (script PBKDF2).");
+                }
+
+                var asignacionErr = await AplicarAsignacionAsync(c, tx, scope, usuarioId.Value, request, ct)
+                    .ConfigureAwait(false);
+                if (asignacionErr is not null)
+                {
+                    await tx.RollbackAsync(ct).ConfigureAwait(false);
+                    return new MaestroOperacionResponse(false, null, asignacionErr);
+                }
+
                 await tx.CommitAsync(ct).ConfigureAwait(false);
-                return new MaestroOperacionResponse(true, usuarioId, null);
+                return new MaestroOperacionResponse(true, usuarioId.Value, null);
             }
 
             if (!scope.AlcanceRed
@@ -227,7 +251,14 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                 return new MaestroOperacionResponse(false, null, "Usuario no encontrado.");
             }
 
-            await AplicarAsignacionAsync(c, tx, scope, request.UsuarioId, request, ct).ConfigureAwait(false);
+            var asignacionErrEdit = await AplicarAsignacionAsync(c, tx, scope, request.UsuarioId, request, ct)
+                .ConfigureAwait(false);
+            if (asignacionErrEdit is not null)
+            {
+                await tx.RollbackAsync(ct).ConfigureAwait(false);
+                return new MaestroOperacionResponse(false, null, asignacionErrEdit);
+            }
+
             await tx.CommitAsync(ct).ConfigureAwait(false);
             return new MaestroOperacionResponse(true, request.UsuarioId, null);
         }
@@ -639,7 +670,8 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                 cancellationToken: ct)).ConfigureAwait(false);
     }
 
-    private static async Task AplicarAsignacionAsync(
+    /// <returns>Mensaje de error de negocio, o <c>null</c> si ok.</returns>
+    private static async Task<string?> AplicarAsignacionAsync(
         SqlConnection c,
         SqlTransaction tx,
         UsuarioAdminScope scope,
@@ -652,7 +684,28 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
         // Identidad primero: sin sede ni rol no asignamos (el usuario aún no puede entrar).
         if (rolIds.Length < 1 && oficinasEnviadas.Length < 1)
         {
-            return;
+            return null;
+        }
+
+        if (rolIds.Length > 0 && !scope.ActorEsAdministrador)
+        {
+            var dens = (await c.QueryAsync<string>(
+                new CommandDefinition(
+                    """
+                    SELECT r.Denominacion
+                    FROM MAESTRO.Rol AS r
+                    WHERE r.RolId IN @RolIds
+                      AND r.Estado = CAST(1 AS bit);
+                    """,
+                    new { RolIds = rolIds },
+                    transaction: tx,
+                    cancellationToken: ct)).ConfigureAwait(false)).ToList();
+
+            var reservadoErr = UsuarioValidacion.RequireSinRolesReservadosAdminRed(dens);
+            if (reservadoErr is not null)
+            {
+                return reservadoErr;
+            }
         }
 
         int[] oficinas;
@@ -666,13 +719,18 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
                     : [];
             if (oficinas.Length < 1)
             {
-                return;
+                return null;
             }
 
             await ReemplazarOficinasCentralAsync(c, tx, usuarioId, oficinas, ct).ConfigureAwait(false);
         }
         else
         {
+            if (scope.OficinaId < 1)
+            {
+                return "La oficina de sesión no es válida; no se puede asignar sede al usuario.";
+            }
+
             oficinas = [scope.OficinaId];
             await AsegurarSedeAsync(c, tx, usuarioId, scope.OficinaId, activo: true, ct)
                 .ConfigureAwait(false);
@@ -680,13 +738,15 @@ public sealed class UsuarioAdminWriteService(IOptions<SqlDatabaseOptions> option
 
         if (rolIds.Length < 1)
         {
-            return;
+            return null;
         }
 
         foreach (var oficinaId in oficinas)
         {
             await ReemplazarRolesSedeAsync(c, tx, usuarioId, oficinaId, rolIds, ct).ConfigureAwait(false);
         }
+
+        return null;
     }
 
     private static async Task ReemplazarOficinasCentralAsync(
